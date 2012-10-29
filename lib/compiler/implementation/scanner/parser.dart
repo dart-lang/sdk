@@ -977,21 +977,14 @@ class Parser {
     Token factoryKeyword = token;
     listener.beginFactoryMethod(factoryKeyword);
     token = token.next; // Skip 'factory'.
-    token = parseIdentifier(token);
-    token = parseQualifiedRestOpt(token);
-    token = parseTypeVariablesOpt(token);
-    Token period = null;
-    if (optional('.', token)) {
-      period = token;
-      token = parseIdentifier(token.next);
-    }
+    token = parseConstructorReference(token);
     token = parseFormalParameters(token);
     if (optional('=', token)) {
       token = parseRedirectingFactoryBody(token);
     } else {
       token = parseFunctionBody(token, false);
     }
-    listener.endFactoryMethod(start, period, token);
+    listener.endFactoryMethod(start, token);
     return token.next;
   }
 
@@ -1652,22 +1645,22 @@ class Parser {
     return false;
   }
 
-  Token parseNewExpression(Token token) {
-    Token newKeyword = token;
-    token = expect('new', token);
-    token = parseType(token);
-    bool named = false;
-    if (optional('.', token)) {
-      named = true;
-      token = parseIdentifier(token.next);
-    }
+  Token parseRequiredArguments(Token token) {
     if (optional('(', token)) {
       token = parseArguments(token);
     } else {
       listener.handleNoArguments(token);
       token = listener.unexpected(token);
     }
-    listener.handleNewExpression(newKeyword, named);
+    return token;
+  }
+
+  Token parseNewExpression(Token token) {
+    Token newKeyword = token;
+    token = expect('new', token);
+    token = parseConstructorReference(token);
+    token = parseRequiredArguments(token);
+    listener.handleNewExpression(newKeyword);
     return token;
   }
 
@@ -1681,15 +1674,9 @@ class Parser {
         (identical(value, '{'))) {
       return parseLiteralListOrMap(constKeyword);
     }
-    token = parseType(token);
-    bool named = false;
-    if (optional('.', token)) {
-      named = true;
-      token = parseIdentifier(token.next);
-    }
-    expect('(', token);
-    token = parseArguments(token);
-    listener.handleConstExpression(constKeyword, named);
+    token = parseConstructorReference(token);
+    token = parseRequiredArguments(token);
+    listener.handleConstExpression(constKeyword);
     return token;
   }
 

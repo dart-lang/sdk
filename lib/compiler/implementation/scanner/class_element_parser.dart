@@ -132,15 +132,14 @@ class MemberListener extends NodeListener {
     addMember(memberElement);
   }
 
-  void endFactoryMethod(Token factoryKeyword, Token periodBeforeName,
-                        Token endToken) {
-    super.endFactoryMethod(factoryKeyword, periodBeforeName, endToken);
+  void endFactoryMethod(Token beginToken, Token endToken) {
+    super.endFactoryMethod(beginToken, endToken);
     FunctionExpression method = popNode();
     pushNode(null);
     SourceString name = getMethodNameHack(method.name);
     ElementKind kind = ElementKind.FUNCTION;
     Element memberElement =
-        new PartialFunctionElement(name, factoryKeyword, null, endToken,
+        new PartialFunctionElement(name, beginToken, null, endToken,
                                    kind, method.modifiers, enclosingElement);
     addMember(memberElement);
   }

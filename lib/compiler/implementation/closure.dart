@@ -366,8 +366,7 @@ class ClosureTranslator extends Visitor {
   }
 
   visitNewExpression(NewExpression node) {
-    TypeAnnotation annotation = node.send.getTypeAnnotation();
-    DartType type = elements.getType(annotation);
+    DartType type = elements.getType(node);
 
     bool hasTypeVariable(DartType type) {
       if (type is TypeVariableType) {

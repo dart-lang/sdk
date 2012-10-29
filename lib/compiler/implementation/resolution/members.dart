@@ -1926,31 +1926,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
    * [null], if there is no corresponding constructor, class or library.
    */
   FunctionElement resolveConstructor(NewExpression node) {
-    // Resolve the constructor that [node] refers to.
-    ConstructorResolver visitor =
-        new ConstructorResolver(compiler, this, node.isConst());
-    FunctionElement constructor = node.accept(visitor);
-    // Try to resolve the type that the new-expression constructs.
-    TypeAnnotation annotation = node.send.getTypeAnnotation();
-    if (Elements.isUnresolved(constructor)) {
-      // Resolve the type arguments. We cannot create a type and check the
-      // number of type arguments for this annotation, because we do not know
-      // the element.
-      Link arguments = const Link<Node>();
-      if (annotation.typeArguments != null) {
-        arguments = annotation.typeArguments.nodes;
-      }
-      for (Node argument in arguments) {
-        resolveTypeRequired(argument);
-      }
-    } else {
-      // Resolve and store the type this annotation resolves to. The type
-      // is used in the backend, e.g., for creating runtime type information.
-      // TODO(karlklose): This will resolve the class element again. Refactor
-      // so we can use the TypeResolver.
-      resolveTypeRequired(annotation);
-    }
-    return constructor;
+    return node.accept(new ConstructorResolver(compiler, this));
   }
 
   DartType resolveTypeRequired(TypeAnnotation node) {
@@ -2888,13 +2864,10 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
 
 class ConstructorResolver extends CommonResolverVisitor<Element> {
   final ResolverVisitor resolver;
-  // TODO(ngeoffray): have this context at the call site.
-  final bool inConstContext;
+  bool inConstContext = false;
+  DartType type;
 
-  ConstructorResolver(Compiler compiler,
-                      this.resolver,
-                      this.inConstContext)
-      : super(compiler);
+  ConstructorResolver(Compiler compiler, this.resolver) : super(compiler);
 
   visitNode(Node node) {
     throw 'not supported';
@@ -2947,6 +2920,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
   }
 
   visitNewExpression(NewExpression node) {
+    inConstContext = node.isConst();
     Node selector = node.send.selector;
     Element e = visit(selector);
     if (!Elements.isUnresolved(e) && identical(e.kind, ElementKind.CLASS)) {
@@ -2957,11 +2931,21 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
       }
       e = lookupConstructor(cls, selector, const SourceString(''));
     }
+    if (type == null) {
+      if (Elements.isUnresolved(e)) {
+        type = compiler.dynamicClass.computeType(compiler);
+      } else {
+        type = e.getEnclosingClass().computeType(compiler).asRaw();
+      }
+    }
+    resolver.mapping.setType(node, type);
     return e;
   }
 
   visitTypeAnnotation(TypeAnnotation node) {
-    return visit(node.typeName);
+    assert(invariant(node, type == null));
+    type = resolver.resolveTypeRequired(node);
+    return resolver.mapping[node];
   }
 
   visitSend(Send node) {

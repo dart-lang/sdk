@@ -2910,7 +2910,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         <HInstruction>[typeInfoSetter, newObject, runtimeInfo]));
   }
 
-  visitNewSend(Send node) {
+  visitNewSend(Send node, InterfaceType type) {
     bool isListConstructor = false;
     computeType(element) {
       Element originalElement = elements[node];
@@ -2952,11 +2952,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return;
     }
 
-    TypeAnnotation annotation = node.getTypeAnnotation();
-    if (annotation == null) {
-      compiler.internalError("malformed send in new expression");
-    }
-    InterfaceType type = elements.getType(annotation);
     if (type.element.modifiers.isAbstract() &&
         constructor.isGenerativeConstructor()) {
       generateAbstractClassInstantiationError(node, type.name.slowToString());
@@ -3145,7 +3140,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       Constant constant = handler.compileNodeWithDefinitions(node, elements);
       stack.add(graph.addConstant(constant));
     } else {
-      visitNewSend(node.send);
+      visitNewSend(node.send, elements.getType(node));
     }
   }
 

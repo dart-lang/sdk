@@ -99,8 +99,7 @@ class Listener {
   void beginFactoryMethod(Token token) {
   }
 
-  void endFactoryMethod(Token startKeyword, Token periodBeforeName,
-                        Token endToken) {
+  void endFactoryMethod(Token beginToken, Token endToken) {
   }
 
   void beginFormalParameter(Token token) {
@@ -408,7 +407,7 @@ class Listener {
   void handleConditionalExpression(Token question, Token colon) {
   }
 
-  void handleConstExpression(Token token, bool named) {
+  void handleConstExpression(Token token) {
   }
 
   void handleFunctionTypedFormalParameter(Token token) {
@@ -474,7 +473,7 @@ class Listener {
   void handleNamedArgument(Token colon) {
   }
 
-  void handleNewExpression(Token token, bool named) {
+  void handleNewExpression(Token token) {
   }
 
   void handleNoArguments(Token token) {
@@ -1570,19 +1569,15 @@ class NodeListener extends ElementListener {
     pushNode(new Send(receiver, selector, arguments));
   }
 
-  void handleNewExpression(Token token, bool named) {
+  void handleNewExpression(Token token) {
     NodeList arguments = popNode();
     Node name = popNode();
-    if (named) {
-      TypeAnnotation type = popNode();
-      name = new Send(type, name);
-    }
     pushNode(new NewExpression(token, new Send(null, name, arguments)));
   }
 
-  void handleConstExpression(Token token, bool named) {
+  void handleConstExpression(Token token) {
     // [token] carries the 'const' information.
-    handleNewExpression(token, named);
+    handleNewExpression(token);
   }
 
   void handleOperatorName(Token operatorKeyword, Token token) {
@@ -1687,25 +1682,14 @@ class NodeListener extends ElementListener {
     pushNode(new EmptyStatement(token));
   }
 
-  void endFactoryMethod(Token startKeyword, Token periodBeforeName,
-                        Token endToken) {
+  void endFactoryMethod(Token beginToken, Token endToken) {
     Statement body = popNode();
     NodeList formals = popNode();
-    // TODO(karlklose): don't throw type parameters away.
-    NodeList typeParameters;
-    Node name;
-    if (periodBeforeName != null) {
-      name = popNode();
-      typeParameters = popNode();
-      // A library prefix was handled in [handleQualified].
-      name = new Send(popNode(), name);
-    } else {
-      typeParameters = popNode();
-      name = popNode();
-    }
+    Node name = popNode();
+
     // TODO(ahe): Move this parsing to the parser.
     int modifierCount = 0;
-    Token modifier = startKeyword;
+    Token modifier = beginToken;
     if (modifier.stringValue == "external") {
       handleModifier(modifier);
       modifierCount++;

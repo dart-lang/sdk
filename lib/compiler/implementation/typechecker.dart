@@ -70,6 +70,8 @@ abstract class DartType {
   abstract DartType unalias(Compiler compiler);
 
   abstract bool operator ==(other);
+
+  DartType asRaw() => this;
 }
 
 class TypeVariableType implements DartType {
@@ -185,6 +187,11 @@ class InterfaceType implements DartType {
     if (other is !InterfaceType) return false;
     if (!identical(element, other.element)) return false;
     return arguments == other.arguments;
+  }
+
+  InterfaceType asRaw() {
+    if (arguments.isEmpty) return this;
+    return new InterfaceType(element);
   }
 }
 
