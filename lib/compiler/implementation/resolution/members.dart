@@ -1699,15 +1699,18 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     Selector selector = mapping.getSelector(node);
     if (selector == null) return;
 
-    // If we don't know what we're calling or if we are calling a getter,
-    // we need to register that fact that we may be calling a closure
-    // with the same arguments.
-    if (node.isCall &&
-        (Elements.isUnresolved(target) ||
-         target.isGetter() ||
-         Elements.isClosureSend(node, target))) {
-      Selector call = new Selector.callClosureFrom(selector);
-      world.registerDynamicInvocation(call.name, call);
+    if (node.isCall) {
+      if (Elements.isUnresolved(target) ||
+          target.isGetter() ||
+          Elements.isClosureSend(node, target)) {
+        // If we don't know what we're calling or if we are calling a getter,
+        // we need to register that fact that we may be calling a closure
+        // with the same arguments.
+        Selector call = new Selector.callClosureFrom(selector);
+        world.registerDynamicInvocation(call.name, call);
+      } else if (!selector.applies(target, compiler)) {
+        warnArgumentMismatch(node, target);
+      }
     }
 
     // TODO(ngeoffray): Warn if target is null and the send is
@@ -1715,6 +1718,13 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     useElement(node, target);
     registerSend(selector, target);
     return node.isPropertyAccess ? target : null;
+  }
+
+  void warnArgumentMismatch(Send node, Element target) {
+    // TODO(karlklose): we can be more precise about the reason of the
+    // mismatch.
+    warning(node.argumentsNode, MessageKind.INVALID_ARGUMENTS,
+            [target.name]);
   }
 
   visitSendSet(SendSet node) {

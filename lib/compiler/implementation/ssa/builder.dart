@@ -2300,6 +2300,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     push(result);
   }
 
+  void pushInvokeHelper4(Element helper, HInstruction a0, HInstruction a1,
+                         HInstruction a2, HInstruction a3) {
+    HInstruction reference = new HStatic(helper);
+    add(reference);
+    List<HInstruction> inputs = <HInstruction>[reference, a0, a1, a2, a3];
+    HInstruction result = new HInvokeStatic(inputs);
+    push(result);
+  }
+
   visitOperatorSend(node) {
     assert(node.selector is Operator);
     if (!methodInterceptionEnabled) {
@@ -2733,15 +2742,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else if (element.isFunction() || element.isGenerativeConstructor()) {
       // TODO(5347): Try to avoid the need for calling [implementation] before
       // calling [addStaticSendArgumentsToList].
+      FunctionElement function = element.implementation;
       bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
-                                                    element.implementation,
-                                                    inputs);
+                                                    function, inputs);
       if (!succeeded) {
-        // TODO(ngeoffray): Match the VM behavior and throw an
-        // exception at runtime.
-        compiler.cancel('Unimplemented non-matching static call', node: node);
+        generateWrongArgumentCountError(node, element, node.arguments);
+      } else {
+        push(new HInvokeSuper(inputs));
       }
-      push(new HInvokeSuper(inputs));
     } else {
       target = new HInvokeSuper(inputs);
       add(target);
@@ -2940,9 +2948,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                                   constructor.implementation,
                                                   inputs);
     if (!succeeded) {
-      // TODO(ngeoffray): Match the VM behavior and throw an
-      // exception at runtime.
-      compiler.cancel('Unimplemented non-matching static call', node: node);
+      generateWrongArgumentCountError(node, constructor, node.arguments);
+      return;
     }
 
     TypeAnnotation annotation = node.getTypeAnnotation();
@@ -2983,7 +2990,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                 argumentNodes: node.arguments);
       return;
     }
-    if (identical(element, compiler.assertMethod) && !compiler.enableUserAssertions) {
+    if (identical(element, compiler.assertMethod)
+        && !compiler.enableUserAssertions) {
       stack.add(graph.addConstantNull(constantSystem));
       return;
     }
@@ -3002,9 +3010,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                                     element.implementation,
                                                     inputs);
       if (!succeeded) {
-        // TODO(ngeoffray): Match the VM behavior and throw an
-        // exception at runtime.
-        compiler.cancel('Unimplemented non-matching static call', node: node);
+        generateWrongArgumentCountError(node, element, node.arguments);
+        return;
       }
 
       // TODO(kasperl): Try to use the general inlining infrastructure for
@@ -3060,7 +3067,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   void generateThrowNoSuchMethod(Node diagnosticNode,
                                  String methodName,
                                  {Link<Node> argumentNodes,
-                                  List<HInstruction> argumentValues}) {
+                                  List<HInstruction> argumentValues,
+                                  List<String> existingArguments}) {
     Element helper =
         compiler.findHelper(const SourceString('throwNoSuchMethod'));
     Constant receiverConstant =
@@ -3080,7 +3088,40 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     HInstruction arguments = new HLiteralList(argumentValues);
     add(arguments);
-    pushInvokeHelper3(helper, receiver, name, arguments);
+    HInstruction existingNamesList;
+    if (existingArguments != null) {
+      List<HInstruction> existingNames = <HInstruction>[];
+      for (String name in existingArguments) {
+        HInstruction nameConstant =
+            graph.addConstantString(new DartString.literal(name),
+                                    diagnosticNode, constantSystem);
+        existingNames.add(nameConstant);
+      }
+      existingNamesList = new HLiteralList(existingNames);
+      add(existingNamesList);
+    } else {
+      existingNamesList = graph.addConstantNull(constantSystem);
+    }
+    pushInvokeHelper4(helper, receiver, name, arguments, existingNamesList);
+  }
+
+  /**
+   * Generate code to throw a [NoSuchMethodError] exception for calling a
+   * method with a wrong number of arguments or mismatching named optional
+   * arguments.
+   */
+  void generateWrongArgumentCountError(Node diagnosticNode,
+                                       FunctionElement function,
+                                       Link<Node> argumentNodes) {
+    List<String> existingArguments = <String>[];
+    FunctionSignature signature = function.computeSignature(compiler);
+    signature.forEachParameter((Element parameter) {
+      existingArguments.add(parameter.name.slowToString());
+    });
+    generateThrowNoSuchMethod(diagnosticNode,
+                              function.name.slowToString(),
+                              argumentNodes: argumentNodes,
+                              existingArguments: existingArguments);
   }
 
   visitNewExpression(NewExpression node) {

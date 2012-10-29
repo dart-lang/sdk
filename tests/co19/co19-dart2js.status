@@ -304,7 +304,6 @@ LibTest/core/List/getRange_A03_t01: Fail, OK
 LibTest/core/List/setRange_A05_t01: Fail, OK
 
 # These tests need to be updated for new optional parameter syntax and semantics, co19 issue 258:
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t01: Fail, OK
 Language/07_Classes/1_Instance_Methods_A02_t05: Fail, OK
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A13_t01: Fail, OK
 Language/14_Types/5_Function_Types_A01_t21: Fail, OK
@@ -388,15 +387,14 @@ LibTest/core/double/operator_remainder_A01_t04: Fail
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t10: Fail # TODO(ahe): Enforce optional parameter semantics.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t11: Fail # TODO(ahe): Enforce optional parameter semantics.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # TODO(ahe): Enforce optional parameter semantics.
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t01: Fail # http://dartbug.com/5026
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t04: Fail # TODO(ahe): Enforce optional parameter semantics.
+Language/06_Functions/2_Formal_Parameters_A03_t03: Fail # TODO(ahe): Enforce optional parameter semantics.
+Language/06_Functions/2_Formal_Parameters_A03_t04: Fail # TODO(ahe): Enforce optional parameter semantics.
+Language/06_Functions/2_Formal_Parameters_A03_t06: Fail # TODO(ahe): Enforce optional parameter semantics.
 
 Language/09_Generics/09_Generics_A05_t01: Fail # dart2js fails to reject type variable within static member
 
-Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t01: Fail # Compile-time error: Unimplemented non-matching static call
-Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t04: Fail # Compile-time error: Unimplemented non-matching static call
-Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t05: Fail # Compile-time error: Unimplemented non-matching static call
-Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t08: Fail # Compile-time error: Unimplemented non-matching static call
-Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A07_t01: Fail # Compile-time error: Unimplemented non-matching static call
-Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A07_t04: Fail # Compile-time error: Unimplemented non-matching static call
 Language/10_Expressions/01_Constants_A03_t01: Fail # Compile-time error: error: not a compile-time constant
 Language/10_Expressions/01_Constants_A11_t01: Fail # Compile-time error: error: not a compile-time constant
 LibTest/isolate/SendPort/send_A02_t01: Fail # Compile-time error: error: not a compile-time constant
@@ -545,9 +543,6 @@ Language/03_Overview/2_Privacy_A01_t11: Fail # internal error: super property re
 Language/03_Overview/2_Privacy_A01_t14: Fail # duplicate definition of _(var _)=> _
 
 Language/10_Expressions/01_Constants_A12_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
-Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t01: Fail # Unimplemented non-matching static call
-Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t04: Fail # Unimplemented non-matching static call
-Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t05: Fail # Unimplemented non-matching static call
 Language/10_Expressions/22_Equality_A05_t01: Fail # != cannot be called on super
 Language/10_Expressions/27_Unary_Expressions_A01_t01: Fail # ! cannot be called on super
 Language/10_Expressions/27_Unary_Expressions_A01_t10: Fail # cannot deal with super in complex assignments
@@ -619,6 +614,7 @@ Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t01: Fail # Che
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail # Checks that it is a compile-time error if the name of a positional optional parameter begins with an '_' character.
 Language/06_Functions/2_Formal_Parameters_A03_t01: Fail # Checks that it is a compile-time error if a required parameter is declared as a constant variable.
 Language/06_Functions/2_Formal_Parameters_A03_t02: Fail # Checks that it is a compile-time error if a required parameter is declared as a constant typed variable.
+Language/06_Functions/2_Formal_Parameters_A03_t05: Fail # Checks that it is a compile-time error if an optional named parameter is declared as a constant typed variable.
 Language/06_Functions/2_Formal_Parameters_A03_t05: Fail # Checks that it is a compile-time error if an optional positional parameter is declared as a constant variable.
 Language/07_Classes/07_Classes_A02_t02: Fail # Checks that it is a compile-time error if a constant constructor declaration includes a body.
 Language/07_Classes/07_Classes_A02_t04: Fail # Checks that it is a compile-time error if a constant constructor declaration with initializers includes a body.
@@ -636,7 +632,7 @@ Language/07_Classes/1_Instance_Methods/2_Operators_A06_t02: Fail # Checks that a
 Language/07_Classes/1_Instance_Methods/2_Operators_A07_t01: Fail # Checks that a compile-time error is produced if a user-defined operator [] specifies an optional named parameter.
 Language/07_Classes/1_Instance_Methods/2_Operators_A07_t02: Fail # Checks that a compile-time error is produced if a user-defined operator [] specifies an optional named parameter in addition to the required one.
 Language/07_Classes/1_Instance_Methods/2_Operators_A07_t03: Fail # Checks that a compile-time error is produced if a user-defined operator []= specifies one optional named parameter.
-Language/07_Classes/1_Instance_Methods/2_Operators_A07_t04: Fail # Checks that a compile-time error is produced if a user-defined operator []= specifies one optional named parameter in addition to the two required ones.
+Language/07_Classes/1_Instance_Methods/2_Operators_A07_t04: Fail # Checks that a compile-time error is produced if a user-defined operator []= specifies one optional named parameter in addition to the two required ones
 Language/07_Classes/1_Instance_Methods_A02_t01: Fail # Checks that a compile-time error is produced if m1 has fewer named parameters than m2 (2 vs 3) and neither have any required parameters.
 Language/07_Classes/1_Instance_Methods_A02_t02: Fail # Checks that a compile-time error is produced if m1 has fewer named parameters than m2 (1 vs. 0) and neither have any required parameters.
 Language/07_Classes/1_Instance_Methods_A02_t05: Fail # Checks that a compile-time error is produced if m1 has almost the same set of named  parameters as m2 except for one of them having a different name.
@@ -690,6 +686,7 @@ Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # Checks that Unicode whites
 # Unexpected compile-time errors.
 #
 [ $compiler == dart2js ]
+Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A04_t01: Fail # Checks that it is a compile-time error if there are two named arguments with the same name in a function invocation expression.
 Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t03: Fail # http://dartbug.com/5027
 Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t06: Fail # http://dartbug.com/5027
 
@@ -699,8 +696,6 @@ Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t03: Fail # 
 Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t04: Fail # http://dartbug.com/3566
 
 Language/03_Overview/03_Overview_A01_t01: Fail # http://dartbug.com/3903
-
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t01: Fail # http://dartbug.com/5026
 
 Language/07_Classes/3_Setters_A04_t01: Fail # http://dartbug.com/5023
 Language/07_Classes/3_Setters_A04_t02: Fail # http://dartbug.com/5023

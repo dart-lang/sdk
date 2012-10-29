@@ -70,12 +70,6 @@ getter_no_setter_test/01: Fail # http://dartbug.com/5519
 illegal_invocation_test/03: Fail # http://dartbug.com/5519
 isnot_malformed_type_test/01: Fail # http://dartbug.com/5519
 not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
-not_enough_positional_arguments_test/02: Fail # http://dartbug.com/5519
-optional_named_parameters_test/01: Fail # http://dartbug.com/5519
-optional_named_parameters_test/03: Fail # http://dartbug.com/5519
-optional_named_parameters_test/05: Fail # http://dartbug.com/5519
-optional_named_parameters_test/07: Fail # http://dartbug.com/5519
-optional_named_parameters_test/09: Fail # http://dartbug.com/5519
 
 execute_finally8_test: Fail # http://dartbug.com/5643
 
@@ -94,12 +88,8 @@ function_type_alias_test: Fail
 function_type_alias2_test: Fail
 named_parameters_type_test: Fail
 positional_parameters_type_test: Fail
-named_parameters_test/01: Fail
-named_parameters_test/03: Fail
-named_parameters_test/05: Fail
-named_parameters_test/07: Fail
-named_parameters_test/09: Fail
 named_parameters_with_object_property_names_test: Fail
+named_parameters_aggregated_test/04: Fail # dart2js issue 5213
 
 # Fail "const EmptyLink<Element>" must be a compile-time constant if unchecked on linux.
 # Crash infinite loop on Mac and dart2js checked mode on linux.
@@ -166,9 +156,6 @@ method_override2_test/03: Fail # accepts illegal override
 abstract_getter_test/01: Fail # instantiation of abstract class
 abstract_factory_constructor_test/01: Fail # instantiation of abstract class
 parameter_initializer6_negative_test: Fail # Issue 3502
-named_parameters2_test: Fail # Unimplemented non-matching static call
-named_parameters3_test: Fail # Unimplemented non-matching static call
-named_parameters4_test: Fail # Unimplemented non-matching static call
 named_parameters_aggregated_test/01: Fail # Presence of default values for optional params is not properly validated in type definitions.
 named_parameters_aggregated_test/03: Fail # Presence of default values for optional params is not properly validated in closure types.
 named_parameters_aggregated_test/05: Fail # Absence of positional parameters before named parameters does not trigger static type warning.

@@ -223,6 +223,9 @@ class Selector {
       => appliesUntyped(element, compiler);
 
   bool appliesUntyped(Element element, Compiler compiler) {
+    if (Elements.isUnresolved(element)) return false;
+    if (element.isForeign()) return true;
+
     if (element.isSetter()) return isSetter();
     if (element.isGetter()) return isGetter() || isCall();
     if (element.isField()) return isGetter() || isSetter() || isCall();
