@@ -229,8 +229,9 @@ abstract class Compiler implements DiagnosticListener {
         new dart_backend.DartBackend(this, strips);
     constantHandler = new ConstantHandler(this, backend.constantSystem);
     enqueuer = new EnqueueTask(this);
-    tasks = [scanner, dietParser, parser, resolver, closureToClassMapper,
-             checker, typesTask, constantHandler, enqueuer];
+    tasks = [scanner, dietParser, parser, patchParser, libraryLoader,
+             resolver, closureToClassMapper, checker, typesTask,
+             constantHandler, enqueuer];
     tasks.addAll(backend.tasks);
   }
 
@@ -555,6 +556,7 @@ abstract class Compiler implements DiagnosticListener {
         internalErrorOnElement(work.element, "Work list is not empty.");
       });
     }
+    if (!REPORT_EXCESS_RESOLUTION) return;
     var resolved = new Set.from(enqueuer.resolution.resolvedElements.keys);
     for (Element e in codegenWorld.generatedCode.keys) {
       resolved.remove(e);
@@ -583,7 +585,6 @@ abstract class Compiler implements DiagnosticListener {
       }
     }
     log('Excess resolution work: ${resolved.length}.');
-    if (!REPORT_EXCESS_RESOLUTION) return;
     for (Element e in resolved) {
       SourceSpan span = spanFromElement(e);
       reportDiagnostic(span, 'Warning: $e resolved but not compiled.',
