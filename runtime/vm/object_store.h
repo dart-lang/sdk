@@ -362,6 +362,13 @@ class ObjectStore {
     core_impl_library_ = value.raw();
   }
 
+  RawLibrary* collection_library() const {
+    return collection_library_;
+  }
+  void set_collection_library(const Library& value) {
+    collection_library_ = value.raw();
+  }
+
   RawLibrary* math_library() const {
     return math_library_;
   }
@@ -526,6 +533,7 @@ class ObjectStore {
   RawArray* canonical_type_arguments_;
   RawLibrary* core_library_;
   RawLibrary* core_impl_library_;
+  RawLibrary* collection_library_;
   RawLibrary* math_library_;
   RawLibrary* isolate_library_;
   RawLibrary* mirrors_library_;

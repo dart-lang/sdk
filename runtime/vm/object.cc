@@ -925,6 +925,15 @@ RawError* Object::Init(Isolate* isolate) {
   if (!error.IsNull()) {
     return error.raw();
   }
+  const Script& collection_script =
+      Script::Handle(Bootstrap::LoadCollectionScript(false));
+  const Library& collection_lib =
+      Library::Handle(Library::CollectionLibrary());
+  ASSERT(!collection_lib.IsNull());
+  error = Bootstrap::Compile(collection_lib, collection_script);
+  if (!error.IsNull()) {
+    return error.raw();
+  }
   const Script& math_script = Script::Handle(Bootstrap::LoadMathScript(false));
   const Library& math_lib = Library::Handle(Library::MathLibrary());
   ASSERT(!math_lib.IsNull());
@@ -5941,8 +5950,15 @@ void Library::InitCoreLibrary(Isolate* isolate) {
   const Library& math_lib = Library::Handle(Library::MathLibrary());
   const Namespace& math_ns = Namespace::Handle(
       Namespace::New(math_lib, Array::Handle(), Array::Handle()));
+  Library::InitCollectionLibrary(isolate);
+  const Library& collection_lib =
+      Library::Handle(Library::CollectionLibrary());
+  const Namespace& collection_ns = Namespace::Handle(
+      Namespace::New(collection_lib, Array::Handle(), Array::Handle()));
   core_lib.AddImport(math_ns);
   core_impl_lib.AddImport(math_ns);
+  core_lib.AddImport(collection_ns);
+  core_impl_lib.AddImport(collection_ns);
   isolate->object_store()->set_root_library(Library::Handle());
 
   // Hook up predefined classes without setting their library pointers. These
@@ -5950,6 +5966,18 @@ void Library::InitCoreLibrary(Isolate* isolate) {
   // isolates so setting their library pointers would be wrong.
   const Class& cls = Class::Handle(Object::dynamic_class());
   core_lib.AddObject(cls, String::Handle(cls.Name()));
+}
+
+
+void Library::InitCollectionLibrary(Isolate* isolate) {
+  const String& url = String::Handle(Symbols::New("dart:collection"));
+  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
+  lib.Register();
+  const Library& math_lib = Library::Handle(Library::MathLibrary());
+  const Namespace& math_ns = Namespace::Handle(
+      Namespace::New(math_lib, Array::Handle(), Array::Handle()));
+  lib.AddImport(math_ns);
+  isolate->object_store()->set_collection_library(lib);
 }
 
 
@@ -5994,10 +6022,11 @@ void Library::InitScalarlistLibrary(Isolate* isolate) {
   const String& url = String::Handle(Symbols::New("dart:scalarlist"));
   const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
   lib.Register();
-  const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
-  const Namespace& impl_ns = Namespace::Handle(
-      Namespace::New(core_impl_lib, Array::Handle(), Array::Handle()));
-  lib.AddImport(impl_ns);
+  const Library& collection_lib =
+      Library::Handle(Library::CollectionLibrary());
+  const Namespace& collection_ns = Namespace::Handle(
+      Namespace::New(collection_lib, Array::Handle(), Array::Handle()));
+  lib.AddImport(collection_ns);
   isolate->object_store()->set_scalarlist_library(lib);
 }
 
@@ -6112,6 +6141,11 @@ RawLibrary* Library::CoreLibrary() {
 
 RawLibrary* Library::CoreImplLibrary() {
   return Isolate::Current()->object_store()->core_impl_library();
+}
+
+
+RawLibrary* Library::CollectionLibrary() {
+  return Isolate::Current()->object_store()->collection_library();
 }
 
 

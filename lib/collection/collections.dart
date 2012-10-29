@@ -100,7 +100,9 @@ class Collections {
    * it allows this method and [_emitMap] to identify recursive collections
    * and maps.
    */
-  static void _emitCollection(Collection c, StringBuffer result, List visiting) {
+  static void _emitCollection(Collection c,
+                              StringBuffer result,
+                              List visiting) {
     visiting.add(c);
     bool isList = c is List;
     result.add(isList ? '[' : '{');

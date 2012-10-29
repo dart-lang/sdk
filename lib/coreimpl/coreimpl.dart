@@ -4,12 +4,11 @@
 
 #library("dart:coreimpl");
 
-#source("arrays.dart");
-#source("collections.dart");
+#import("dart:collection");
+
 #source("hash_map_set.dart");
 #source("linked_hash_map.dart");
 #source("list.dart");
-#source("maps.dart");
 #source("queue.dart");
 #source("regexp.dart");
 #source("splay_tree.dart");

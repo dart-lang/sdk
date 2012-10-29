@@ -4,6 +4,7 @@
 
 #library("MapsTest.dart");
 #import("dart:coreimpl");
+#import("dart:collection");
 
 main() {
   final key1 = "key1";

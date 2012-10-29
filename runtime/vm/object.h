@@ -1909,6 +1909,7 @@ class Library : public Object {
   static bool IsKeyUsed(intptr_t key);
 
   static void InitCoreLibrary(Isolate* isolate);
+  static void InitCollectionLibrary(Isolate* isolate);
   static void InitMathLibrary(Isolate* isolate);
   static void InitIsolateLibrary(Isolate* isolate);
   static void InitMirrorsLibrary(Isolate* isolate);
@@ -1917,6 +1918,7 @@ class Library : public Object {
 
   static RawLibrary* CoreLibrary();
   static RawLibrary* CoreImplLibrary();
+  static RawLibrary* CollectionLibrary();
   static RawLibrary* MathLibrary();
   static RawLibrary* IsolateLibrary();
   static RawLibrary* MirrorsLibrary();

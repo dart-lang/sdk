@@ -23,6 +23,7 @@
 # ......dart_debugger_api.h
 # ....lib/
 # ......_internal/
+# ......collection/
 # ......core/
 # ......coreimpl/
 # ......crypto/
@@ -249,9 +250,9 @@ def Main(argv):
   #
 
   os.makedirs(join(LIB, 'html'))
-  for library in ['_internal', 'core', 'coreimpl', 'crypto', 'isolate',
-                  join('html', 'dart2js'), join('html', 'dartium'), 'json',
-                  'math', 'mirrors', 'scalarlist', 'uri', 'utf']:
+  for library in ['_internal', 'collection', 'core', 'coreimpl', 'crypto',
+                  'isolate', join('html', 'dart2js'), join('html', 'dartium'),
+                  'json', 'math', 'mirrors', 'scalarlist', 'uri', 'utf']:
     copytree(join(HOME, 'lib', library), join(LIB, library),
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh'))
 

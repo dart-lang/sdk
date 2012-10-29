@@ -5,6 +5,7 @@
 #library('dart:_js_helper');
 
 #import('dart:coreimpl');
+#import('dart:collection');
 
 #source('constant_map.dart');
 #source('native_helper.dart');

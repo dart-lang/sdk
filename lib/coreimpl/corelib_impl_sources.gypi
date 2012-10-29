@@ -4,12 +4,9 @@
 
 {
   'sources': [
-    'arrays.dart',
-    'collections.dart',
     'hash_map_set.dart',
     'linked_hash_map.dart',
     'list.dart',
-    'maps.dart',
     'queue.dart',
     'regexp.dart',
     'splay_tree.dart',
