@@ -308,7 +308,7 @@ class _HttpHeaders implements HttpHeaders {
 class _HeaderValue implements HeaderValue {
   _HeaderValue([String this.value = ""]);
 
-  _HeaderValue.fromString(String value) {
+  _HeaderValue.fromString(String value, {this.parameterSeparator: ";"}) {
     // Parse the string.
     _parse(value);
   }
@@ -347,18 +347,23 @@ class _HeaderValue implements HeaderValue {
     String parseValue() {
       int start = index;
       while (!done()) {
-        if (s[index] == " " || s[index] == "\t" || s[index] == ";") break;
+        if (s[index] == " " ||
+            s[index] == "\t" ||
+            s[index] == parameterSeparator) break;
         index++;
       }
       return s.substring(start, index).toLowerCase();
     }
 
     void expect(String expected) {
-      if (done()) throw new HttpException("Failed to parse header value [$s]");
-      if (s[index] != expected) {
-        throw new HttpException("Failed to parse header value [$s]");
+      if (done() || s[index] != expected) {
+        throw new HttpException("Failed to parse header value");
       }
       index++;
+    }
+
+    void maybeExpect(String expected) {
+      if (s[index] == expected) index++;
     }
 
     void parseParameters() {
@@ -381,7 +386,7 @@ class _HeaderValue implements HeaderValue {
           while (!done()) {
             if (s[index] == "\\") {
               if (index + 1 == s.length) {
-                throw new HttpException("Failed to parse header value [$s]");
+                throw new HttpException("Failed to parse header value");
               }
               index++;
             } else if (s[index] == "\"") {
@@ -409,7 +414,7 @@ class _HeaderValue implements HeaderValue {
         _parameters[name] = value;
         skipWS();
         if (done()) return;
-        expect(";");
+        expect(parameterSeparator);
       }
     }
 
@@ -417,11 +422,12 @@ class _HeaderValue implements HeaderValue {
     value = parseValue();
     skipWS();
     if (done()) return;
-    expect(";");
+    maybeExpect(parameterSeparator);
     parseParameters();
   }
 
   String value;
+  String parameterSeparator;
   Map<String, String> _parameters;
 }
 
@@ -1779,6 +1785,84 @@ class _HttpClientResponse
     _headers.add(name, value);
   }
 
+  void _handleUnauthorized() {
+
+    void retryRequest(_Credentials cr) {
+      if (cr != null) {
+        if (cr.scheme == _AuthenticationScheme.DIGEST) {
+          cr.nonce = header.parameters["nonce"];
+          cr.algorithm = header.parameters["algorithm"];
+          cr.qop = header.parameters["qop"];
+        }
+        // Drain body and retry.
+        // TODO(sjgesse): Support digest.
+        if (cr.scheme == _AuthenticationScheme.BASIC) {
+          inputStream.onData = inputStream.read;
+          inputStream.onClosed = _connection.retry;
+          return;
+        }
+      }
+
+      // Fall through to here to perform normal response handling if
+      // there is no sensible authorization handling.
+      if (_connection._onResponse != null) {
+        _connection._onResponse(this);
+      }
+    }
+
+    // Only try to authenticate if there is a challenge in the response.
+    List<String> challenge = _headers[HttpHeaders.WWW_AUTHENTICATE];
+    if (challenge != null && challenge.length == 1) {
+      _HeaderValue header =
+          new _HeaderValue.fromString(challenge[0], parameterSeparator: ",");
+      _AuthenticationScheme scheme =
+          new _AuthenticationScheme.fromString(header.value);
+      String realm = header.parameters["realm"];
+
+      // See if any credentials are available.
+      _Credentials cr =
+          _connection._client._findCredentials(
+              _connection._request._uri, scheme);
+
+      // Ask for more credentials if none found or the one found has
+      // already been used. If it has already been used it must now be
+      // invalid and is removed.
+      if (cr == null || cr.used) {
+        if (cr != null) {
+          _connection._client._removeCredentials(cr);
+        }
+        cr = null;
+        if (_connection._client._authenticate != null) {
+          Future authComplete =
+              _connection._client._authenticate(
+                  _connection._request._uri, scheme.toString(), realm);
+          authComplete.then((credsAvailable) {
+            if (credsAvailable) {
+              cr = _connection._client._findCredentials(
+                  _connection._request._uri, scheme);
+              retryRequest(cr);
+            } else {
+              if (_connection._onResponse != null) {
+                _connection._onResponse(this);
+              }
+            }
+          });
+          return;
+        }
+      } else {
+        // If credentials found prepare for retrying the request.
+        retryRequest(cr);
+        return;
+      }
+    }
+
+    // Fall through to here to perform normal response handling if
+    // there is no sensible authorization handling.
+    if (_connection._onResponse != null) {
+      _connection._onResponse(this);
+    }
+  }
+
   void _onHeadersComplete() {
     // Get parsed content length.
     _contentLength = _httpConnection._httpParser.contentLength;
@@ -1812,6 +1896,8 @@ class _HttpClientResponse
       } else {
         throw new RedirectLimitExceededException(_connection._redirects);
       }
+    } else if (statusCode == HttpStatus.UNAUTHORIZED) {
+      _handleUnauthorized();
     } else if (_connection._onResponse != null) {
       _connection._onResponse(this);
     }
@@ -1966,6 +2052,14 @@ class _HttpClientConnection
     _onErrorCallback = callback;
   }
 
+  void retry() {
+    if (_socketConn != null) {
+      throw new HttpException("Cannot retry with body data pending");
+    }
+    // Retry the URL using the same connection instance.
+    _client._openUrl(_method, _request._uri, this);
+  }
+
   void redirect([String method, Uri url]) {
     if (_socketConn != null) {
       throw new HttpException("Cannot redirect with body data pending");
@@ -2090,6 +2184,7 @@ class _HttpClient implements HttpClient {
 
   _HttpClient() : _openSockets = new Map(),
                   _activeSockets = new Set(),
+                  credentials = new List<_Credentials>(),
                   _shutdown = false;
 
   HttpClientConnection open(
@@ -2120,9 +2215,6 @@ class _HttpClient implements HttpClient {
     if (url.scheme != "http") {
       throw new HttpException("Unsupported URL scheme ${url.scheme}");
     }
-    if (url.userInfo != "") {
-      throw new HttpException("Unsupported user info ${url.userInfo}");
-    }
     return _open(method, url, connection);
   }
 
@@ -2137,6 +2229,15 @@ class _HttpClient implements HttpClient {
   }
 
   HttpClientConnection postUrl(Uri url) => _openUrl("POST", url);
+
+  set authenticate(bool f(Uri url, String scheme, String realm)) {
+    _authenticate = f;
+  }
+
+  void addCredentials(
+      Uri url, String realm, HttpClientCredentials cr) {
+    credentials.add(new _Credentials(url, realm, cr));
+  }
 
   set findProxy(String f(Uri uri)) => _findProxy = f;
 
@@ -2181,6 +2282,20 @@ class _HttpClient implements HttpClient {
         HttpClientRequest request = connection.open(method, url);
         request.headers.host = host;
         request.headers.port = port;
+        if (url.userInfo != null && !url.userInfo.isEmpty) {
+          // If the URL contains user information use that for basic
+          // authorization
+          _UTF8Encoder encoder = new _UTF8Encoder();
+          String auth =
+              CryptoUtils.bytesToBase64(encoder.encodeString(url.userInfo));
+          request.headers.set(HttpHeaders.AUTHORIZATION, "Basic $auth");
+        } else {
+          // Look for credentials.
+          _Credentials cr = _findCredentials(url);
+          if (cr != null) {
+            cr.authorize(request);
+          }
+        }
         if (connection._onRequest != null) {
           connection._onRequest(request);
         } else {
@@ -2324,11 +2439,34 @@ class _HttpClient implements HttpClient {
     sockets.addFirst(socketConn);
   }
 
+  _Credentials _findCredentials(Uri url, [_AuthenticationScheme scheme]) {
+    // Look for credentials.
+    _Credentials cr =
+        credentials.reduce(null, (_Credentials prev, _Credentials value) {
+          if (value.applies(url, scheme)) {
+            if (prev == null) return value;
+            return value.uri.path.length > prev.uri.path.length ? value : prev;
+          } else {
+            return prev;
+          }
+        });
+    return cr;
+  }
+
+  void _removeCredentials(_Credentials cr) {
+    int index = credentials.indexOf(cr);
+    if (index != -1) {
+      credentials.removeAt(index);
+    }
+  }
+
   Function _onOpen;
   Map<String, Queue<_SocketConnection>> _openSockets;
   Set<_SocketConnection> _activeSockets;
+  List<_Credentials> credentials;
   Timer _evictionTimer;
   Function _findProxy;
+  Function _authenticate;
   bool _shutdown;  // Has this HTTP client been shutdown?
 }
 
@@ -2347,6 +2485,109 @@ class _DetachedSocket implements DetachedSocket {
   Socket _socket;
   List<int> _unparsedData;
 }
+
+
+class _AuthenticationScheme {
+  static const UNKNOWN = const _AuthenticationScheme(-1);
+  static const BASIC = const _AuthenticationScheme(0);
+  static const DIGEST = const _AuthenticationScheme(1);
+
+  const _AuthenticationScheme(this._scheme);
+
+  factory _AuthenticationScheme.fromString(String scheme) {
+    if (scheme.toLowerCase() == "basic") return BASIC;
+    if (scheme.toLowerCase() == "digest") return DIGEST;
+    return UNKNOWN;
+  }
+
+  String toString() {
+    if (this == BASIC) return "Basic";
+    if (this == DIGEST) return "Digest";
+    return "Unknown";
+  }
+
+  final int _scheme;
+}
+
+
+class _Credentials {
+  _Credentials(this.uri, this.realm, this.credentials);
+
+  _AuthenticationScheme get scheme => credentials.scheme;
+
+  bool applies(Uri uri, _AuthenticationScheme scheme) {
+    if (scheme != null && credentials.scheme != scheme) return false;
+    if (uri.domain != this.uri.domain) return false;
+    int thisPort =
+        this.uri.port == 0 ? HttpClient.DEFAULT_HTTP_PORT : this.uri.port;
+    int otherPort = uri.port == 0 ? HttpClient.DEFAULT_HTTP_PORT : uri.port;
+    if (otherPort != thisPort) return false;
+    return uri.path.startsWith(this.uri.path);
+  }
+
+  void authorize(HttpClientRequest request) {
+    credentials.authorize(this, request);
+    used = true;
+  }
+
+  bool used = false;
+  Uri uri;
+  String realm;
+  HttpClientCredentials credentials;
+
+  // Digest specific fields.
+  String nonce;
+  String algorithm;
+  String qop;
+}
+
+
+class _HttpClientCredentials implements HttpClientCredentials {
+  abstract _AuthenticationScheme get scheme;
+  abstract void authorize(HttpClientRequest request);
+}
+
+
+class _HttpClientBasicCredentials implements HttpClientBasicCredentials {
+  _HttpClientBasicCredentials(this.username,
+                              this.password);
+
+  _AuthenticationScheme get scheme => _AuthenticationScheme.BASIC;
+
+  void authorize(_Credentials _, HttpClientRequest request) {
+    // There is no mentioning of username/password encoding in RFC
+    // 2617. However there is an open draft for adding an additional
+    // accept-charset parameter to the WWW-Authenticate and
+    // Proxy-Authenticate headers, see
+    // http://tools.ietf.org/html/draft-reschke-basicauth-enc-06. For
+    // now always use UTF-8 encoding.
+    _UTF8Encoder encoder = new _UTF8Encoder();
+    String auth =
+        CryptoUtils.bytesToBase64(encoder.encodeString(
+            "$username:$password"));
+    request.headers.set(HttpHeaders.AUTHORIZATION, "Basic $auth");
+  }
+
+  String username;
+  String password;
+}
+
+
+class _HttpClientDigestCredentials implements HttpClientDigestCredentials {
+  _HttpClientDigestCredentials(this.username,
+                               this.password);
+
+  _AuthenticationScheme get scheme => _AuthenticationScheme.DIGEST;
+
+  void authorize(_Credentials credentials, HttpClientRequest request) {
+    // TODO(sgjesse): Implement!!!
+    throw new UnsupportedOperationException();
+  }
+
+  String username;
+  String password;
+}
+
 
 
 class _RedirectInfo implements RedirectInfo {

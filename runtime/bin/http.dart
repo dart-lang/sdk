@@ -370,8 +370,10 @@ abstract class HeaderValue {
    * Creates a new header value object from parsing a header value
    * string with both value and optional parameters.
    */
-  factory HeaderValue.fromString(String value) {
-    return new _HeaderValue.fromString(value);
+  factory HeaderValue.fromString(String value,
+                                 {String parameterSeparator: ";"}) {
+    return new _HeaderValue.fromString(
+        value, parameterSeparator: parameterSeparator);
   }
 
   /**
@@ -747,6 +749,29 @@ abstract class HttpClient {
   HttpClientConnection postUrl(Uri url);
 
   /**
+   * Sets the function to be called when a site is requesting
+   * authentication. The URL requested and the security realm from the
+   * server are passed in the arguments [url] and [realm].
+   *
+   * The function returns a [Future] which should complete when the
+   * authentication have been resolved. If credentials cannot be
+   * provided the [Future] should complete with [false]. If
+   * credentials are available the function should add these using
+   * [addCredentials] before completing the [Future] with the value
+   * [true].
+   *
+   * If the [Future] completes with true the request will be retried
+   * using the updated credentials. Otherwise response processing will
+   * continue normally.
+   */
+  set authenticate(Future<bool> f(Uri url, String scheme, String realm));
+
+  /**
+   * Add credentials to be used for authorizing HTTP requests.
+   */
+  void addCredentials(Uri url, String realm, HttpClientCredentials credentials);
+
+  /**
    * Sets the function used to resolve the proxy server to be used for
    * opening a HTTP connection to the specified [url]. If this
    * function is not set, direct connections will always be used.
@@ -941,6 +966,28 @@ abstract class HttpClientResponse {
    */
   InputStream get inputStream;
 }
+
+
+abstract class HttpClientCredentials { }
+
+
+/**
+ * Represent credentials for basic authentication.
+ */
+abstract class HttpClientBasicCredentials extends HttpClientCredentials {
+  factory HttpClientBasicCredentials(String username, String password) =>
+      new _HttpClientBasicCredentials(username, password);
+}
+
+
+/**
+ * Represent credentials for digest authentication.
+ */
+abstract class HttpClientDigestCredentials extends HttpClientCredentials {
+  factory HttpClientDigestCredentials(String username, String password) =>
+      new _HttpClientDigestCredentials(username, password);
+}
+
 
 /**
  * Connection information.
