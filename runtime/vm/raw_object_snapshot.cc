@@ -2113,13 +2113,14 @@ BYTEARRAY_TYPE_LIST(EXTERNALARRAY_READ_FROM)
 #undef EXTERNALARRAY_READ_FROM
 
 
+template<typename ElementT>
 static void ByteArrayWriteTo(SnapshotWriter* writer,
                              intptr_t object_id,
                              Snapshot::Kind kind,
                              intptr_t byte_array_kind,
                              intptr_t tags,
                              RawSmi* length,
-                             uint8_t* data) {
+                             ElementT* data) {
   ASSERT(writer != NULL);
   intptr_t len = Smi::Value(length);
 
@@ -2157,7 +2158,7 @@ void Raw##name##Array::WriteTo(SnapshotWriter* writer,                         \
                    k##name##ArrayCid,                                          \
                    writer->GetObjectTags(this),                                \
                    ptr()->length_,                                             \
-                   reinterpret_cast<uint8_t*>(ptr()->data_));                  \
+                   ptr()->data_);                                              \
 }                                                                              \
 
 
@@ -2175,7 +2176,7 @@ void RawExternal##name##Array::WriteTo(SnapshotWriter* writer,                 \
                    k##name##ArrayCid,                                          \
                    writer->GetObjectTags(this),                                \
                    ptr()->length_,                                             \
-                   reinterpret_cast<uint8_t*>(ptr()->external_data_->data())); \
+                   ptr()->external_data_->data());                             \
 }                                                                              \
 
 

@@ -627,6 +627,77 @@ TEST_CASE(SerializeByteArray) {
 }
 
 
+#define TEST_TYPED_ARRAY(darttype, ctype)                                     \
+  {                                                                           \
+    StackZone zone(Isolate::Current());                                       \
+    uint8_t* buffer;                                                          \
+    MessageWriter writer(&buffer, &zone_allocator);                           \
+    const int kArrayLength = 127;                                             \
+    darttype& array = darttype::Handle(darttype::New(kArrayLength));          \
+    for (int i = 0; i < kArrayLength; i++) {                                  \
+      array.SetAt(i, i);                                                      \
+    }                                                                         \
+    writer.WriteMessage(array);                                               \
+    intptr_t buffer_len = writer.BytesWritten();                              \
+    SnapshotReader reader(buffer, buffer_len,                                 \
+                          Snapshot::kMessage, Isolate::Current());            \
+    darttype& serialized_array = darttype::Handle();                          \
+    serialized_array ^= reader.ReadObject();                                  \
+    for (int i = 0; i < kArrayLength; i++) {                                  \
+      EXPECT_EQ(static_cast<ctype>(i), serialized_array.At(i));               \
+    }                                                                         \
+  }
+
+
+#define TEST_EXTERNAL_TYPED_ARRAY(darttype, ctype)                            \
+  {                                                                           \
+    StackZone zone(Isolate::Current());                                       \
+    ctype data[] = { 0, 11, 22, 33, 44, 55, 66, 77 };                         \
+    intptr_t length = ARRAY_SIZE(data);                                       \
+    External##darttype& array = External##darttype::Handle(                   \
+        External##darttype::New(data, length, NULL, NULL));                   \
+    uint8_t* buffer;                                                          \
+    MessageWriter writer(&buffer, &zone_allocator);                           \
+    writer.WriteMessage(array);                                               \
+    intptr_t buffer_len = writer.BytesWritten();                              \
+    SnapshotReader reader(buffer, buffer_len,                                 \
+                          Snapshot::kMessage, Isolate::Current());            \
+    darttype& serialized_array = darttype::Handle();                          \
+    serialized_array ^= reader.ReadObject();                                  \
+    for (int i = 0; i < length; i++) {                                        \
+      EXPECT_EQ(static_cast<ctype>(data[i]), serialized_array.At(i));         \
+    }                                                                         \
+  }
+
+
+TEST_CASE(SerializeTypedArray) {
+  TEST_TYPED_ARRAY(Int8Array, int8_t);
+  TEST_TYPED_ARRAY(Uint8Array, uint8_t);
+  TEST_TYPED_ARRAY(Int16Array, int16_t);
+  TEST_TYPED_ARRAY(Uint16Array, uint16_t);
+  TEST_TYPED_ARRAY(Int32Array, int32_t);
+  TEST_TYPED_ARRAY(Uint32Array, uint32_t);
+  TEST_TYPED_ARRAY(Int64Array, int64_t);
+  TEST_TYPED_ARRAY(Uint64Array, uint64_t);
+  TEST_TYPED_ARRAY(Float32Array, float);
+  TEST_TYPED_ARRAY(Float64Array, double);
+}
+
+
+TEST_CASE(SerializeExternalTypedArray) {
+  TEST_EXTERNAL_TYPED_ARRAY(Int8Array, int8_t);
+  TEST_EXTERNAL_TYPED_ARRAY(Uint8Array, uint8_t);
+  TEST_EXTERNAL_TYPED_ARRAY(Int16Array, int16_t);
+  TEST_EXTERNAL_TYPED_ARRAY(Uint16Array, uint16_t);
+  TEST_EXTERNAL_TYPED_ARRAY(Int32Array, int32_t);
+  TEST_EXTERNAL_TYPED_ARRAY(Uint32Array, uint32_t);
+  TEST_EXTERNAL_TYPED_ARRAY(Int64Array, int64_t);
+  TEST_EXTERNAL_TYPED_ARRAY(Uint64Array, uint64_t);
+  TEST_EXTERNAL_TYPED_ARRAY(Float32Array, float);
+  TEST_EXTERNAL_TYPED_ARRAY(Float64Array, double);
+}
+
+
 TEST_CASE(SerializeEmptyByteArray) {
   StackZone zone(Isolate::Current());
 
