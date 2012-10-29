@@ -29,7 +29,6 @@ Language/07_Classes/6_Constructors/2_Factories_A07_t01: Fail # TODO(ahe): Please
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail # TODO(ahe): Please triage this failure.
-Language/09_Generics/09_Generics_A05_t02: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/01_Constants_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/01_Constants_A13_t06: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t04: Fail # TODO(ahe): Please triage this failure.
@@ -216,6 +215,9 @@ LibTest/core/NoMoreElementsException/toString_A01_t01: Fail, OK # co19 issue 288
 LibTest/core/EmptyQueueException/EmptyQueueException_A01_t01: Fail, OK # co19 issue 288
 LibTest/core/EmptyQueueException/toString_A01_t01: Fail, OK # co19 issue 288
 
+Language/09_Generics/09_Generics_A05_t01: Fail # co19 issue 297
+Language/09_Generics/09_Generics_A05_t02: Fail # co19 issue 297
+
 [ $compiler == dart2js && $unchecked ]
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(ahe): Please triage this failure.
 
@@ -379,6 +381,7 @@ LibTest/core/Map/getValues_A01_t02: Fail, OK # co19 issue 287
 LibTest/core/int/isOdd_A01_t01: Fail, OK # co19 issue 277
 LibTest/core/int/isEven_A01_t01: Fail, OK # co19 issue 277
 
+Language/09_Generics/09_Generics_A05_t01: Fail # co19 issue 297
 
 [ $compiler == dart2js && $system == windows && $jscl ]
 LibTest/core/double/operator_remainder_A01_t04: Fail
@@ -393,8 +396,12 @@ Language/06_Functions/2_Formal_Parameters_A03_t03: Fail # TODO(ahe): Enforce opt
 Language/06_Functions/2_Formal_Parameters_A03_t04: Fail # TODO(ahe): Enforce optional parameter semantics.
 Language/06_Functions/2_Formal_Parameters_A03_t06: Fail # TODO(ahe): Enforce optional parameter semantics.
 
-Language/09_Generics/09_Generics_A05_t01: Fail # dart2js fails to reject type variable within static member
-
+Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t01: Fail # Compile-time error: Unimplemented non-matching static call
+Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t04: Fail # Compile-time error: Unimplemented non-matching static call
+Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t05: Fail # Compile-time error: Unimplemented non-matching static call
+Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t08: Fail # Compile-time error: Unimplemented non-matching static call
+Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A07_t01: Fail # Compile-time error: Unimplemented non-matching static call
+Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A07_t04: Fail # Compile-time error: Unimplemented non-matching static call
 Language/10_Expressions/01_Constants_A03_t01: Fail # Compile-time error: error: not a compile-time constant
 Language/10_Expressions/01_Constants_A11_t01: Fail # Compile-time error: error: not a compile-time constant
 LibTest/isolate/SendPort/send_A02_t01: Fail # Compile-time error: error: not a compile-time constant

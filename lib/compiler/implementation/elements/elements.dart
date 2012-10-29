@@ -159,6 +159,16 @@ class Element implements Spannable {
     return enclosingElement != null && enclosingElement.isClass();
   }
   bool isInstanceMember() => false;
+
+  /**
+   * Returns [:true:] if this element is enclosed in a static member or is
+   * itself a static member.
+   */
+  bool isInStaticMember() {
+    Element member = getEnclosingMember();
+    return member != null && member.modifiers.isStatic();
+  }
+
   bool isFactoryConstructor() => modifiers.isFactory();
   bool isGenerativeConstructor() =>
       identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR);
@@ -296,6 +306,10 @@ class Element implements Spannable {
     return null;
   }
 
+  /**
+   * Returns the member enclosing this element or the element itself if it is a
+   * member. If no enclosing element is found, [:null:] is returned.
+   */
   Element getEnclosingMember() {
     for (Element e = this; e != null; e = e.enclosingElement) {
       if (e.isMember()) return e;

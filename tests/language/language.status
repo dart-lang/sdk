@@ -376,7 +376,6 @@ method_override2_test/01: Fail # http://dartbug.com/5519
 named_parameters_aggregated_test/01: Fail # http://dartbug.com/5519
 named_parameters_aggregated_test/03: Fail # http://dartbug.com/5519
 named_parameters_aggregated_test/04: Fail # http://dartbug.com/5519
-new_expression_type_args_test/02: Fail # inherited from dart2js
 not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
 override_field_test/04: Fail # http://dartbug.com/5519
 static_field3_test/01: Fail # http://dartbug.com/5519
@@ -479,6 +478,8 @@ many_overridden_no_such_method_test: Pass, Fail, OK # Hard codes the name of inv
 no_such_method_test: Pass, Fail, OK # Hard codes the name of invoked method ("foo").
 
 named_parameters_aggregated_test/05: Fail # Compile-time error reported instead of static type warning.
+
+new_expression_type_args_test/02: Fail # Test does not conform with spec.
 
 get_set_syntax_test/00: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/01: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111

@@ -333,7 +333,8 @@ class ResolverTask extends CompilerTask {
   TreeElements resolveField(VariableElement element) {
     Node tree = element.parseNode(compiler);
     if(element.modifiers.isStatic() && element.variables.isTopLevel()) {
-      error(element.modifiers.getStatic(), MessageKind.TOP_LEVEL_VARIABLE_DECLARED_STATIC);
+      error(element.modifiers.getStatic(),
+            MessageKind.TOP_LEVEL_VARIABLE_DECLARED_STATIC);
     }
     ResolverVisitor visitor = visitorFor(element);
     initializerDo(tree, visitor.visit);
@@ -1058,23 +1059,21 @@ class TypeResolver {
   // flags instead of closures.
   // TODO(johnniwinther): Should never return [null] but instead an erroneous
   // type.
-  DartType resolveTypeAnnotation(TypeAnnotation node,
-                                 {Scope inScope, ClassElement inClass,
-                                 onFailure(Node, MessageKind, [List arguments]),
-                                 whenResolved(Node, Type)}) {
+  DartType resolveTypeAnnotation(
+      TypeAnnotation node,
+      Scope scope,
+      {onFailure(Node node, MessageKind kind, [List arguments]),
+       whenResolved(Node node, DartType type)}) {
     if (onFailure == null) {
       onFailure = (n, k, [arguments]) {};
     }
     if (whenResolved == null) {
       whenResolved = (n, t) {};
     }
-    if (inClass != null) {
-      inScope = inClass.buildScope();
-    }
-    if (inScope == null) {
+    if (scope == null) {
       compiler.internalError('resolveTypeAnnotation: no scope specified');
     }
-    return resolveTypeAnnotationInContext(inScope, node, onFailure,
+    return resolveTypeAnnotationInContext(scope, node, onFailure,
                                           whenResolved);
   }
 
@@ -1981,10 +1980,21 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   DartType resolveTypeAnnotation(TypeAnnotation node) {
+    // TODO(johnniwinther): Remove this together with the named arguments
+    // on [TypeResolver.resolveTypeAnnotation].
+    void checkAndUseType(TypeAnnotation annotation, DartType type) {
+      useType(annotation, type);
+      if (type != null &&
+          identical(type.kind, TypeKind.TYPE_VARIABLE) &&
+          enclosingElement.isInStaticMember()) {
+        warning(annotation, MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
+                [type]);
+      }
+    }
+
     Function report = typeRequired ? error : warning;
-    DartType type = typeResolver.resolveTypeAnnotation(node, inScope: scope,
-                                                       onFailure: report,
-                                                       whenResolved: useType);
+    DartType type = typeResolver.resolveTypeAnnotation(
+        node, scope, onFailure: report, whenResolved: checkAndUseType);
     if (type == null) return null;
     if (inCheckContext) {
       compiler.enqueuer.resolution.registerIsCheck(type);
@@ -2349,7 +2359,7 @@ class TypeDefinitionVisitor extends CommonResolverVisitor<DartType> {
       TypeVariableElement variableElement = typeVariable.element;
       if (typeNode.bound != null) {
         DartType boundType = typeResolver.resolveTypeAnnotation(
-            typeNode.bound, inScope: scope, onFailure: warning);
+            typeNode.bound, scope, onFailure: warning);
         if (boundType != null && boundType.element == variableElement) {
           // TODO(johnniwinther): Check for more general cycles, like
           // [: <A extends B, B extends C, C extends B> :].

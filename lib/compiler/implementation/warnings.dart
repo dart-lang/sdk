@@ -141,6 +141,8 @@ class MessageKind {
       'cannot use type variable as constructor');
   static const DUPLICATE_TYPE_VARIABLE_NAME = const MessageKind(
       'type variable #{1} already declared');
+  static const TYPE_VARIABLE_WITHIN_STATIC_MEMBER = const MessageKind(
+      'cannot refer to type variable #{1} within a static member');
   static const INVALID_BREAK = const MessageKind(
       'target of break is not a statement');
   static const INVALID_USE_OF_SUPER = const MessageKind(

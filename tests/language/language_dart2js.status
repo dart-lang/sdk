@@ -40,7 +40,7 @@ type_parameter_test/04: Fail # Issue 4932
 
 [ $compiler == dart2js && $unchecked ]
 assertion_test: Fail
-new_expression_type_args_test/02: Fail # dart2js fails to reject type variable within static member
+new_expression_type_args_test/02: Fail # Test does not conform with spec.
 
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.

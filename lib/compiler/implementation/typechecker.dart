@@ -26,8 +26,25 @@ class TypeCheckerTask extends CompilerTask {
   }
 }
 
+class TypeKind {
+  final String id;
+
+  const TypeKind(String this.id);
+
+  static const TypeKind FUNCTION = const TypeKind('function');
+  static const TypeKind INTERFACE = const TypeKind('interface');
+  static const TypeKind STATEMENT = const TypeKind('statement');
+  static const TypeKind TYPEDEF = const TypeKind('typedef');
+  static const TypeKind TYPE_VARIABLE = const TypeKind('type variable');
+  static const TypeKind VOID = const TypeKind('void');
+
+  String toString() => id;
+}
+
 abstract class DartType {
   abstract SourceString get name;
+
+  abstract TypeKind get kind;
 
   /**
    * Returns the [Element] which declared this type.
@@ -60,6 +77,8 @@ class TypeVariableType implements DartType {
 
   TypeVariableType(this.element);
 
+  TypeKind get kind => TypeKind.TYPE_VARIABLE;
+
   SourceString get name => element.name;
 
   DartType unalias(Compiler compiler) => this;
@@ -79,7 +98,10 @@ class TypeVariableType implements DartType {
  */
 class StatementType implements DartType {
   final String stringName;
+
   Element get element => null;
+
+  TypeKind get kind => TypeKind.STATEMENT;
 
   SourceString get name => new SourceString(stringName);
 
@@ -108,7 +130,11 @@ class StatementType implements DartType {
 
 class VoidType implements DartType {
   const VoidType(this.element);
+
+  TypeKind get kind => TypeKind.VOID;
+
   SourceString get name => element.name;
+
   final VoidElement element;
 
   DartType unalias(Compiler compiler) => this;
@@ -126,6 +152,8 @@ class InterfaceType implements DartType {
 
   const InterfaceType(this.element,
                       [this.arguments = const Link<DartType>()]);
+
+  TypeKind get kind => TypeKind.INTERFACE;
 
   SourceString get name => element.name;
 
@@ -169,6 +197,8 @@ class FunctionType implements DartType {
                Element this.element) {
     assert(element == null || invariant(element, element.isDeclaration));
   }
+
+  TypeKind get kind => TypeKind.FUNCTION;
 
   DartType unalias(Compiler compiler) => this;
 
@@ -219,6 +249,8 @@ class TypedefType implements DartType {
 
   const TypedefType(this.element,
       [this.typeArguments = const Link<DartType>()]);
+
+  TypeKind get kind => TypeKind.TYPEDEF;
 
   SourceString get name => element.name;
 
