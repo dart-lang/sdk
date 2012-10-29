@@ -1251,8 +1251,7 @@ class _HttpOutputStream extends _BaseOutputStream implements OutputStream {
 
 
 class _HttpConnectionBase {
-  _HttpConnectionBase() : _sendBuffers = new Queue(),
-                          _httpParser = new _HttpParser(),
+  _HttpConnectionBase() : _httpParser = new _HttpParser(),
                           hashCode = _nextHashCode {
     _nextHashCode = (_nextHashCode + 1) & 0xFFFFFFF;
   }
@@ -1361,8 +1360,6 @@ class _HttpConnectionBase {
   bool _closing = false;  // Is the socket closed by the client?
   bool _error = false;  // Is the socket closed due to an error?
   _HttpParser _httpParser;
-
-  Queue _sendBuffers;
 
   Function onDetach;
 
