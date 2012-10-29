@@ -15015,7 +15015,7 @@ abstract class HttpRequest implements EventTarget {
       _HttpRequestFactoryProvider.createHttpRequest_get(url, onSuccess);
 
   factory HttpRequest.getWithCredentials(String url, onSuccess(HttpRequest request)) =>
-      _HttpRequestFactoryProvider.createHttpRequestgetWithCredentials(url, onSuccess);
+      _HttpRequestFactoryProvider.createHttpRequest_getWithCredentials(url, onSuccess);
 
   factory HttpRequest() => _HttpRequestFactoryProvider.createHttpRequest();
 
