@@ -5,8 +5,7 @@
 // Dart test program for testing native float arrays.
 
 // Library tag to be able to run in html test framework.
-#library("TypedArrayTest.dart");
-
+library TypedArrayTest;
 import 'dart:isolate';
 import 'dart:scalarlist';
 
