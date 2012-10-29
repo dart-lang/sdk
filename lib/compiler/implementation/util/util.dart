@@ -12,4 +12,13 @@ part 'link.dart';
  * Tagging interface for classes from which source spans can be generated.
  */
 // TODO(johnniwinther): Find a better name.
+// TODO(ahe): How about "Bolt"?
 abstract class Spannable {}
+
+class SpannableAssertionFailure {
+  final Spannable node;
+  final String message;
+  SpannableAssertionFailure(this.node, this.message);
+
+  String toString() => 'compiler crashed.';
+}

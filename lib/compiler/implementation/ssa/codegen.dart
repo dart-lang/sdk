@@ -2307,9 +2307,11 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     world.registerIsCheck(type);
     Element element = type.element;
     if (identical(element.kind, ElementKind.TYPE_VARIABLE)) {
-      compiler.unimplemented("visitIs for type variables", instruction: node);
+      compiler.unimplemented("visitIs for type variables",
+                             instruction: node.expression);
     } else if (identical(element.kind, ElementKind.TYPEDEF)) {
-      compiler.unimplemented("visitIs for typedefs", instruction: node);
+      compiler.unimplemented("visitIs for typedefs",
+                             instruction: node.expression);
     }
     LibraryElement coreLibrary = compiler.coreLibrary;
     ClassElement objectClass = compiler.objectClass;

@@ -93,12 +93,6 @@ Token firstBeginToken(Node first, Node second) {
   return token;
 }
 
-class NodeAssertionFailure implements Exception {
-  final Node node;
-  final String message;
-  NodeAssertionFailure(this.node, this.message);
-}
-
 /**
  * A node in a syntax tree.
  *
@@ -1304,8 +1298,8 @@ class StringJuxtaposition extends StringNode {
    */
   DartString get dartString {
     if (isInterpolation) {
-      throw new NodeAssertionFailure(this,
-                                     "Getting dartString on interpolation;");
+      throw new SpannableAssertionFailure(
+          this, "Getting dartString on interpolation;");
     }
     if (dartStringCache == null) {
       DartString firstString = first.accept(const GetDartStringVisitor());

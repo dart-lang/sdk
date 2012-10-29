@@ -142,6 +142,13 @@ abstract class Compiler implements DiagnosticListener {
     _currentElement = element;
     try {
       return f();
+    } on SpannableAssertionFailure catch (ex) {
+      if (!hasCrashed) {
+        SourceSpan span = spanFromSpannable(ex.node);
+        reportDiagnostic(span, ex.message, api.Diagnostic.ERROR);
+      }
+      hasCrashed = true;
+      throw;
     } on CompilerCancelledException catch (ex) {
       throw;
     } on StackOverflowError catch (ex) {
@@ -279,7 +286,7 @@ abstract class Compiler implements DiagnosticListener {
     } else if (token != null) {
       span = spanFromTokens(token, token);
     } else if (instruction != null) {
-      span = spanFromElement(currentElement);
+      span = spanFromHInstruction(instruction);
     } else if (element != null) {
       span = spanFromElement(element);
     } else {
@@ -287,6 +294,20 @@ abstract class Compiler implements DiagnosticListener {
     }
     reportDiagnostic(span, reason, api.Diagnostic.ERROR);
     throw new CompilerCancelledException(reason);
+  }
+
+  SourceSpan spanFromSpannable(Spannable node) {
+    if (node is Node) {
+      return spanFromNode(node);
+    } else if (node is Token) {
+      return spanFromTokens(node, node);
+    } else if (node is HInstruction) {
+      return spanFromHInstruction(node);
+    } else if (node is Element) {
+      return spanFromElement(node);
+    } else {
+      throw 'No error location for error: $reason';
+    }
   }
 
   void reportFatalError(String reason, Element element,
@@ -759,6 +780,17 @@ abstract class Compiler implements DiagnosticListener {
         : spanFromTokens(position, position, uri);
   }
 
+  SourceSpan spanFromHInstruction(HInstruction instruction) {
+    Element element = instruction.sourceElement;
+    if (element == null) element = currentElement;
+    var position = instruction.sourcePosition;
+    if (position == null) return spanFromElement(element);
+    Token token = position.token;
+    if (token == null) return spanFromElement(element);
+    Uri uri = element.getCompilationUnit().script.uri;
+    return spanFromTokens(token, token, uri);
+  }
+
   Script readScript(Uri uri, [Node node]) {
     unimplemented('Compiler.readScript');
   }
@@ -864,8 +896,8 @@ bool invariant(Spannable spannable, var condition, {String message: null}) {
   if (condition is Function){
     condition = condition();
   }
-  if (!condition && message != null) {
-    print('assertion failed: $message');
+  if (spannable == null || !condition) {
+    throw new SpannableAssertionFailure(spannable, message);
   }
-  return spannable != null && condition;
+  return true;
 }
