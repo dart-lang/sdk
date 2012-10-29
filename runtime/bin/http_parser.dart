@@ -428,6 +428,14 @@ class _HttpParser {
 
           case _State.HEADER_ENDING:
             _expect(byte, _CharCode.LF);
+            // If a request message has neither Content-Length nor
+            // Transfer-Encoding the message must not have a body (RFC
+            // 2616 section 4.3).
+            if (_messageType == _MessageType.REQUEST &&
+                _contentLength < 0 &&
+                _chunked == false) {
+              _contentLength = 0;
+            }
             if (_connectionUpgrade) {
               _state = _State.UPGRADED;
               _unparsedData =
@@ -439,8 +447,6 @@ class _HttpParser {
                 _state = _State.CHUNK_SIZE;
                 _remainingContent = 0;
               } else if (_contentLength == 0 ||
-                         (_messageType == _MessageType.REQUEST &&
-                          _contentLength == -1) ||
                          (_messageType == _MessageType.RESPONSE &&
                           (_noMessageBody || _responseToMethod == "HEAD"))) {
                 // If there is no message body get ready to process the

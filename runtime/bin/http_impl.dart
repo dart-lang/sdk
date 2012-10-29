@@ -690,9 +690,12 @@ class _HttpRequestResponseBase {
       }
       assert(_headResponse || _bodyBytesWritten == _contentLength);
     }
-    // If we are done writing the response and the client has closed
-    // or the connection is not persistent we can close.
-    if (!persistentConnection || _httpConnection._closing) {
+    // If we are done writing the response, and either the client has
+    // closed or the connection is not persistent, we can close. Also
+    // if using HTTP 1.0 and the content length was not known we must
+    // close to indicate end of body.
+    if (!persistentConnection || _httpConnection._closing ||
+        (_protocolVersion == "1.0" && _contentLength < 0)) {
       _httpConnection._close();
     }
     return allWritten;
@@ -890,8 +893,11 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
       }
     }
 
-    _headers._mutable = false;
+    // Get parsed content length.
+    _contentLength = _httpConnection._httpParser.contentLength;
+
     // Prepare for receiving data.
+    _headers._mutable = false;
     _buffer = new _BufferList();
   }
 
@@ -1098,11 +1104,6 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   bool _writeHeader() {
     List<int> data;
 
-    // HTTP/1.0 does not support chunked.
-    if (_protocolVersion == "1.0" && _contentLength < 0) {
-      throw new HttpException("Content length required for HTTP 1.0");
-    }
-
     // Write status line.
     if (_protocolVersion == "1.1") {
       _httpConnection._write(_Const.HTTP11);
@@ -1118,10 +1119,11 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     _writeCRLF();
 
     // Determine the value of the "Transfer-Encoding" header based on
-    // whether the content length is known.
+    // whether the content length is known. HTTP/1.0 does not support
+    // chunked.
     if (_contentLength >= 0) {
       _headers.set(HttpHeaders.CONTENT_LENGTH, _contentLength.toString());
-    } else if (_contentLength < 0) {
+    } else if (_contentLength < 0 && _protocolVersion == "1.1") {
       _headers.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
     }
 
@@ -1695,7 +1697,7 @@ class _HttpClientRequest
 
     // Determine the value of the "Transfer-Encoding" header based on
     // whether the content length is known. If there is no content
-    // neither "Content-Length" nor "Transfer-Encoding" is set
+    // neither "Content-Length" nor "Transfer-Encoding" is set.
     if (_contentLength > 0) {
       _headers.set(HttpHeaders.CONTENT_LENGTH, _contentLength.toString());
     } else if (_contentLength < 0) {
@@ -1775,14 +1777,16 @@ class _HttpClientResponse
 
   void _onHeaderReceived(String name, String value) {
     _headers.add(name, value);
-    if (name == "content-length") {
-      _contentLength = parseInt(value);
-    }
   }
 
   void _onHeadersComplete() {
+    // Get parsed content length.
+    _contentLength = _httpConnection._httpParser.contentLength;
+
+    // Prepare for receiving data.
     _headers._mutable = false;
     _buffer = new _BufferList();
+
     if (isRedirect && _connection.followRedirects) {
       if (_connection._redirects == null ||
           _connection._redirects.length < _connection.maxRedirects) {
