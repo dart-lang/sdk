@@ -1276,17 +1276,10 @@ class Mock {
    * return value. If we find no [Behavior] to apply an exception is
    * thrown.
    */
-  noSuchMethod(InvocationMirror invocation) {
-    String method = invocation.methodName;
-    // Remove this when InvocationMirror works correctly.
-    if (method.startsWith("get:")) method = method.substring(4);
-
-    if (invocation.isGetter) {
-      method = 'get $method';
+  noSuchMethod(String method, List args) {
+    if (method.startsWith('get:')) {
+      method = 'get ${method.substring(4)}';
     }
-    List args = invocation.positionalArguments;
-    // TODO: Handle named arguments too.
-
     bool matchedMethodName = false;
     MatchState matchState = new MatchState();
     for (String k in _behaviors.keys) {

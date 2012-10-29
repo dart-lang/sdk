@@ -1515,12 +1515,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                                    Selector defaultSelector) {
     // TODO(4434): For private members we need to use the untyped selector.
     if (defaultSelector.name.isPrivate()) return defaultSelector;
-    // If [JSInvocationMirror.invokeOn] has been called, we must not create a
-    // typed selector based on the receiver type.
-    if (node.element == null && // Invocation is not exact.
-        backend.compiler.enabledInvokeOn) {
-      return defaultSelector;
-    }
     HType receiverHType = types[node.inputs[0]];
     DartType receiverType = receiverHType.computeType(compiler);
     if (receiverType != null) {

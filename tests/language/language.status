@@ -63,12 +63,6 @@ local_function_test: Fail # issue 6124
 naming_test: Fail # issue 6124
 
 invocation_mirror_test: Fail # issue 3326, 3622.
-no_such_method_test: Fail # issue 3326, 3622.
-
-invocation_mirror_indirect_test: Fail # Issue 3326
-many_overridden_no_such_method_test: Fail # Issue 3326
-overridden_no_such_method_test: Fail # Issue 3326
-
 
 [ $compiler == none && ($system == macos || $system == linux) && $arch == ia32 && $checked ]
 gc_test: Skip  # Issue 1487, flaky.
@@ -527,4 +521,3 @@ naming_test: Fail # issue 6130
 
 # This is a VM error when the compiled code is run.
 invocation_mirror_test: Fail # issue 3326, 3622.
-invocation_mirror_indirect_test: Fail # issue 3326, 3622.

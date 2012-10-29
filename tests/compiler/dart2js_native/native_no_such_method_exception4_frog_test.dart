@@ -4,7 +4,7 @@
 
 class A native "*A" {
   bar() => 42;
-  noSuchMethod(x) => "native(${x.memberName}:${x.positionalArguments})";
+  noSuchMethod(x,y) => "native($x:$y)";
 }
 
 class B native "*B" {

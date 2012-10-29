@@ -4911,7 +4911,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     String[] lines = {
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  noSuchMethod(InvocationMirror invocation) {}",
+        "  noSuchMethod(String name, List args) {}",
         "}",
         "class B extends A {}",
         "class C {}",
@@ -4953,7 +4953,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     String[] lines = {
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  noSuchMethod(InvocationMirror invocation) {}",
+        "  noSuchMethod(String name, List args) {}",
         "}",
         "class B extends A {}",
         "class C {}",

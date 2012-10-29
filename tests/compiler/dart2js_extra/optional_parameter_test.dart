@@ -11,7 +11,7 @@ class A {
     return b;
   }
 
-  noSuchMethod(mirror) {
+  noSuchMethod(name, args) {
     return 0;
   }
 }

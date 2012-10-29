@@ -75,7 +75,10 @@ Language/11_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t03:
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t08: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t04: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Expressions/17_Getter_Invocation_A02_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Expressions/17_Getter_Invocation_A02_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Expressions/18_Assignment_A05_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Expressions/18_Assignment_A05_t04: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Expressions/18_Assignment_A05_t05: Fail # TODO(vm-team): Please triage this failure.
@@ -221,8 +224,6 @@ LibTest/core/Queue/iterator_next_A02_t01: Fail, OK # co19 issue 288
 LibTest/core/Queue/removeFirst_A02_t01: Fail, OK # co19 issue 288
 LibTest/core/Queue/removeLast_A02_t01: Fail, OK # co19 issue 288
 
-LibTest/core/NoSuchMethodError/NoSuchMethodError_A01_t01: Fail, OK # co19 issue 300
-LibTest/core/NoSuchMethodError/toString_A01_t01: Fail, OK # co19 issue 300
 
 [ $compiler == none && $runtime == vm && $checked ]
 Language/12_Statements/05_If_A02_t01: Fail # TODO(vm-team): Please triage this failure.
@@ -412,6 +413,10 @@ LibTest/isolate/isolate_api/spawnUri_A01_t04: Crash
 # class '?' overrides function '?' of super class '?' with incompatible parameters
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t05: Fail
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t06: Fail
+Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t01: Fail # Issue 3622
+Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t02: Fail # Issue 3622
 
 
 # function 'func' not found in super class, getter 'func' should be invoked first.

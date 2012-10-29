@@ -11,9 +11,8 @@ class NoSuchMethodInfo {
 }
 
 class A {
-  noSuchMethod(InvocationMirror invocation) {
-    topLevelInfo = new NoSuchMethodInfo(this, invocation.memberName,
-                                        invocation.positionalArguments);
+  noSuchMethod(String name, List args) {
+    topLevelInfo = new NoSuchMethodInfo(this, name, args);
     return topLevelInfo;
   }
 
@@ -39,13 +38,13 @@ main() {
   Expect.isTrue(info.receiver === a);
 
   info = a.bar;
-  Expect.equals('bar', info.name);
+  Expect.equals('get:bar', info.name);
   Expect.isTrue(info.args.length == 0);
   Expect.isTrue(info.receiver === a);
 
   a.bar = 2;
   info = topLevelInfo;
-  Expect.equals('bar', info.name);
+  Expect.equals('set:bar', info.name);
   Expect.isTrue(info.args.length == 1);
   Expect.isTrue(info.args[0] === 2);
   Expect.isTrue(info.receiver === a);
