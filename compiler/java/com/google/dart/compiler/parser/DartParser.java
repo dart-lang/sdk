@@ -144,7 +144,7 @@ public class DartParser extends CompletionHooksParserBase {
   private static final String ABSTRACT_KEYWORD = "abstract";
   private static final String AS_KEYWORD = "as";
   private static final String CALL_KEYWORD = "call";
-  private static final String DYNAMIC_KEYWORD = "dynamic";
+  public static final String DYNAMIC_KEYWORD = "dynamic";
   private static final String EXPORT_KEYWORD = "export";
   private static final String EXTERNAL_KEYWORD = "external";
   private static final String FACTORY_KEYWORD = "factory";
