@@ -4,7 +4,7 @@
 
 // Dart test for Splaytrees.
 #library("SplayTreeTest.dart");
-#import("dart:coreimpl");
+#import("dart:collection");
 
 
 class SplayTreeMapTest {

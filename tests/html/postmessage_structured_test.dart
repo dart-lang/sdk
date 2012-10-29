@@ -6,7 +6,7 @@
 #import('../../pkg/unittest/unittest.dart');
 #import('../../pkg/unittest/html_config.dart');
 #import('dart:html');
-#import('dart:coreimpl');  // SplayTreeMap
+#import('dart:collection');  // SplayTreeMap
 #import('utils.dart');
 
 injectSource(code) {

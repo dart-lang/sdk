@@ -7,3 +7,4 @@ library collection;
 part 'arrays.dart';
 part 'collections.dart';
 part 'maps.dart';
+part 'splay_tree.dart';
