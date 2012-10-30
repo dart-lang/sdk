@@ -1617,6 +1617,13 @@ class RangeAnalysis : public ValueObject {
                                        Range* constraint,
                                        Instruction* after);
 
+  void ConstrainValueAfterBranch(Definition* defn, Value* use);
+  void ConstrainValueAfterCheckArrayBound(Definition* defn,
+                                          CheckArrayBoundInstr* check);
+  Definition* LoadArrayLength(CheckArrayBoundInstr* check);
+
+
+
   // Replace uses of the definition def that are dominated by instruction dom
   // with uses of other definition.
   void RenameDominatedUses(Definition* def,
@@ -1674,6 +1681,42 @@ class RangeAnalysis : public ValueObject {
   // Worklist for induction variables analysis.
   GrowableArray<Definition*> worklist_;
   BitVector* marked_defns_;
+
+  class ArrayLengthData : public ValueObject {
+   public:
+    ArrayLengthData(Definition* array, Definition* array_length)
+        : array_(array), array_length_(array_length) { }
+
+    Definition* array() const { return array_; }
+    Definition* array_length() const { return array_length_; }
+
+    typedef Definition* Value;
+    typedef Definition* Key;
+    typedef class ArrayLengthData Pair;
+
+    // KeyValueTrait members.
+    static Key KeyOf(const ArrayLengthData& data) {
+      return data.array();
+    }
+
+    static Value ValueOf(const ArrayLengthData& data) {
+      return data.array_length();
+    }
+
+    static inline intptr_t Hashcode(Key key) {
+      return reinterpret_cast<intptr_t>(key);
+    }
+
+    static inline bool IsKeyEqual(const ArrayLengthData& kv, Key key) {
+      return kv.array() == key;
+    }
+
+   private:
+    Definition* array_;
+    Definition* array_length_;
+  };
+
+  DirectChainedHashMap<ArrayLengthData> array_lengths_;
 
   DISALLOW_COPY_AND_ASSIGN(RangeAnalysis);
 };
@@ -1863,50 +1906,108 @@ ConstraintInstr* RangeAnalysis::InsertConstraintFor(Definition* defn,
 }
 
 
+void RangeAnalysis::ConstrainValueAfterBranch(Definition* defn, Value* use) {
+  BranchInstr* branch = use->instruction()->AsBranch();
+  RelationalOpInstr* rel_op = branch->comparison()->AsRelationalOp();
+  if ((rel_op != NULL) && (rel_op->operands_class_id() == kSmiCid)) {
+    // Found comparison of two smis. Constrain defn at true and false
+    // successors using the other operand as a boundary.
+    Definition* boundary;
+    Token::Kind op_kind;
+    if (use->use_index() == 0) {  // Left operand.
+      boundary = rel_op->InputAt(1)->definition();
+      op_kind = rel_op->kind();
+    } else {
+      ASSERT(use->use_index() == 1);  // Right operand.
+      boundary = rel_op->InputAt(0)->definition();
+      // InsertConstraintFor assumes that defn is left operand of a
+      // comparison if it is right operand flip the comparison.
+      op_kind = FlipComparison(rel_op->kind());
+    }
+
+    // Constrain definition at the true successor.
+    ConstraintInstr* true_constraint =
+        InsertConstraintFor(defn,
+                            ConstraintRange(op_kind, boundary),
+                            branch->true_successor());
+    // Mark true_constraint an artificial use of boundary. This ensures
+    // that constraint's range is recalculated if boundary's range changes.
+    if (true_constraint != NULL) true_constraint->AddDependency(boundary);
+
+    // Constrain definition with a negated condition at the false successor.
+    ConstraintInstr* false_constraint =
+        InsertConstraintFor(
+            defn,
+            ConstraintRange(NegateComparison(op_kind), boundary),
+            branch->false_successor());
+    // Mark false_constraint an artificial use of boundary. This ensures
+    // that constraint's range is recalculated if boundary's range changes.
+    if (false_constraint != NULL) false_constraint->AddDependency(boundary);
+  }
+}
+
 void RangeAnalysis::InsertConstraintsFor(Definition* defn) {
   for (Value* use = defn->input_use_list();
        use != NULL;
        use = use->next_use()) {
     if (use->instruction()->IsBranch()) {
-      BranchInstr* branch = use->instruction()->AsBranch();
-      RelationalOpInstr* rel_op = branch->comparison()->AsRelationalOp();
-      if ((rel_op != NULL) && (rel_op->operands_class_id() == kSmiCid)) {
-        // Found comparison of two smis. Constrain defn at true and false
-        // successors using the other operand as a boundary.
-        Definition* boundary;
-        Token::Kind op_kind;
-        if (use->use_index() == 0) {  // Left operand.
-          boundary = rel_op->InputAt(1)->definition();
-          op_kind = rel_op->kind();
-        } else {
-          ASSERT(use->use_index() == 1);  // Right operand.
-          boundary = rel_op->InputAt(0)->definition();
-          // InsertConstraintFor assumes that defn is left operand of a
-          // comparison if it is right operand flip the comparison.
-          op_kind = FlipComparison(rel_op->kind());
-        }
-
-        // Constrain definition at the true successor.
-        ConstraintInstr* true_constraint =
-            InsertConstraintFor(defn,
-                                ConstraintRange(op_kind, boundary),
-                                branch->true_successor());
-        // Mark true_constraint an artificial use of boundary. This ensures
-        // that constraint's range is recalculated if boundary's range changes.
-        if (true_constraint != NULL) true_constraint->AddDependency(boundary);
-
-        // Constrain definition with a negated condition at the false successor.
-        ConstraintInstr* false_constraint =
-            InsertConstraintFor(
-                defn,
-                ConstraintRange(NegateComparison(op_kind), boundary),
-                branch->false_successor());
-        // Mark false_constraint an artificial use of boundary. This ensures
-        // that constraint's range is recalculated if boundary's range changes.
-        if (false_constraint != NULL) false_constraint->AddDependency(boundary);
-      }
+      ConstrainValueAfterBranch(defn, use);
+    } else if (use->instruction()->IsCheckArrayBound()) {
+      ConstrainValueAfterCheckArrayBound(
+          defn,
+          use->instruction()->AsCheckArrayBound());
     }
   }
+}
+
+
+Definition* RangeAnalysis::LoadArrayLength(CheckArrayBoundInstr* check) {
+  Definition* array = check->array()->definition();
+
+  Definition* length = array_lengths_.Lookup(array);
+  if (length != NULL) return length;
+
+  StaticCallInstr* allocation = array->AsStaticCall();
+  if ((allocation != NULL) &&
+      allocation->is_known_constructor() &&
+      (allocation->ResultCid() == kArrayCid)) {
+    // For fixed length arrays check if array is the result of a constructor
+    // call. In this case we can use the length passed to the constructor
+    // instead of loading it from array itself.
+    length = allocation->ArgumentAt(1)->value()->definition();
+  } else {
+    // Load length from the array. Do not insert instruction into the graph.
+    // It will only be used in range boundaries.
+    LoadFieldInstr* length_load = new LoadFieldInstr(
+        check->array()->Copy(),
+        Array::length_offset(),
+        Type::ZoneHandle(Type::SmiType()),
+        true);  // Immutable.
+    length_load->set_recognized_kind(MethodRecognizer::kObjectArrayLength);
+    length_load->set_result_cid(kSmiCid);
+    length_load->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
+    length = length_load;
+  }
+
+  ASSERT(length != NULL);
+  array_lengths_.Insert(ArrayLengthData(array, length));
+  return length;
+}
+
+
+void RangeAnalysis::ConstrainValueAfterCheckArrayBound(
+    Definition* defn, CheckArrayBoundInstr* check) {
+  if ((check->array_type() != kArrayCid) &&
+      (check->array_type() != kImmutableArrayCid)) {
+    return;
+  }
+
+  Definition* length = LoadArrayLength(check);
+
+  Range* constraint_range = new Range(
+      RangeBoundary::FromConstant(0),
+      RangeBoundary::FromDefinition(length, -1));
+  InsertConstraintFor(defn, constraint_range, check);
 }
 
 
@@ -2095,9 +2196,11 @@ void RangeAnalysis::InferRangesRecursive(BlockEntryInstr* block) {
         smi_definitions_->Contains(defn->ssa_temp_index())) {
       defn->InferRange();
     } else if (FLAG_array_bounds_check_elimination &&
-               current->IsCheckArrayBound() &&
-               current->AsCheckArrayBound()->IsRedundant()) {
-      it.RemoveCurrentFromGraph();
+               current->IsCheckArrayBound()) {
+      CheckArrayBoundInstr* check = current->AsCheckArrayBound();
+      RangeBoundary array_length =
+          RangeBoundary::FromDefinition(LoadArrayLength(check));
+      if (check->IsRedundant(array_length)) it.RemoveCurrentFromGraph();
     }
   }
 
@@ -2545,7 +2648,7 @@ static bool IsLoadEliminationCandidate(Definition* def) {
 
 
 static intptr_t NumberLoadExpressions(FlowGraph* graph) {
-  DirectChainedHashMap<Definition*> map;
+  DirectChainedHashMap<PointerKeyValueTrait<Definition> > map;
   intptr_t expr_id = 0;
   for (BlockIterator it = graph->reverse_postorder_iterator();
        !it.Done();
@@ -2735,7 +2838,7 @@ bool DominatorBasedCSE::Optimize(FlowGraph* graph) {
     }
   }
 
-  DirectChainedHashMap<Instruction*> map;
+  DirectChainedHashMap<PointerKeyValueTrait<Instruction> > map;
   changed = OptimizeRecursive(graph->graph_entry(), &map) || changed;
 
   return changed;
@@ -2744,7 +2847,7 @@ bool DominatorBasedCSE::Optimize(FlowGraph* graph) {
 
 bool DominatorBasedCSE::OptimizeRecursive(
     BlockEntryInstr* block,
-    DirectChainedHashMap<Instruction*>* map) {
+    DirectChainedHashMap<PointerKeyValueTrait<Instruction> >* map) {
   bool changed = false;
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
     Instruction* current = it.Current();
@@ -2764,7 +2867,8 @@ bool DominatorBasedCSE::OptimizeRecursive(
   for (intptr_t i = 0; i < num_children; ++i) {
     BlockEntryInstr* child = block->dominated_blocks()[i];
     if (i  < num_children - 1) {
-      DirectChainedHashMap<Instruction*> child_map(*map);  // Copy map.
+      // Copy map.
+      DirectChainedHashMap<PointerKeyValueTrait<Instruction> > child_map(*map);
       changed = OptimizeRecursive(child, &child_map) || changed;
     } else {
       // Reuse map for the last child.

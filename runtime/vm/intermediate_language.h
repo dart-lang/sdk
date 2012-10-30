@@ -1607,7 +1607,7 @@ class RangeBoundary : public ValueObject {
   static RangeBoundary Max(RangeBoundary a, RangeBoundary b);
 
   bool Overflowed() const {
-    return !Smi::IsValid(value());
+    return IsConstant() && !Smi::IsValid(value());
   }
 
   RangeBoundary Clamp() const {
@@ -2367,7 +2367,8 @@ class StaticCallInstr : public TemplateDefinition<0> {
         function_(function),
         argument_names_(argument_names),
         arguments_(arguments),
-        result_cid_(kDynamicCid) {
+        result_cid_(kDynamicCid),
+        is_known_constructor_(false) {
     ASSERT(function.IsZoneHandle());
     ASSERT(argument_names.IsZoneHandle());
   }
@@ -2394,12 +2395,21 @@ class StaticCallInstr : public TemplateDefinition<0> {
   virtual intptr_t ResultCid() const { return result_cid_; }
   void set_result_cid(intptr_t value) { result_cid_ = value; }
 
+  bool is_known_constructor() const { return is_known_constructor_; }
+  void set_is_known_constructor(bool is_known_constructor) {
+    is_known_constructor_ = is_known_constructor;
+  }
+
  private:
   const intptr_t token_pos_;
   const Function& function_;
   const Array& argument_names_;
   ZoneGrowableArray<PushArgumentInstr*>* arguments_;
   intptr_t result_cid_;  // For some library functions we know the result.
+
+  // Some library constructors have known semantics.
+  bool is_known_constructor_;
+
 
   DISALLOW_COPY_AND_ASSIGN(StaticCallInstr);
 };
@@ -3956,7 +3966,7 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
 
   intptr_t array_type() const { return array_type_; }
 
-  bool IsRedundant();
+  bool IsRedundant(RangeBoundary length);
 
  private:
   intptr_t array_type_;

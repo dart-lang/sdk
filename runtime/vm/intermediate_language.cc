@@ -2121,13 +2121,15 @@ RangeBoundary RangeBoundary::UpperBound() const {
 }
 
 
+static bool AreEqualDefinitions(Definition* a, Definition* b) {
+  return (a == b) || (!a->AffectedBySideEffect() && a->Equals(b));
+}
+
+
 // Returns true if two range boundaries refer to the same symbol.
 static bool DependOnSameSymbol(const RangeBoundary& a, const RangeBoundary& b) {
-  if (!a.IsSymbol() || !b.IsSymbol()) return false;
-  if (a.symbol() == b.symbol()) return true;
-
-  return !a.symbol()->AffectedBySideEffect() &&
-      a.symbol()->Equals(b.symbol());
+  return a.IsSymbol() && b.IsSymbol() &&
+      AreEqualDefinitions(a.symbol(), b.symbol());
 }
 
 
@@ -2453,12 +2455,6 @@ static bool IsArrayLength(Definition* defn) {
 }
 
 
-static bool IsLengthOf(Definition* defn, Definition* array) {
-  return IsArrayLength(defn) &&
-      (defn->AsLoadField()->value()->definition() == array);
-}
-
-
 void BinarySmiOpInstr::InferRange() {
   // TODO(vegorov): canonicalize BinarySmiOp to always have constant on the
   // right and a non-constant on the left.
@@ -2534,7 +2530,7 @@ void BinarySmiOpInstr::InferRange() {
 }
 
 
-bool CheckArrayBoundInstr::IsRedundant() {
+bool CheckArrayBoundInstr::IsRedundant(RangeBoundary length) {
   // Check that array has an immutable length.
   if ((array_type() != kArrayCid) && (array_type() != kImmutableArrayCid)) {
     return false;
@@ -2550,13 +2546,21 @@ bool CheckArrayBoundInstr::IsRedundant() {
 
   RangeBoundary max = CanonicalizeBoundary(index_range->max(),
                                            RangeBoundary::OverflowedMaxSmi());
+
+  if (max.Overflowed()) return false;
+
+  // Try to compare constant boundaries.
+  if (max.UpperBound().value() < length.LowerBound().value()) {
+    return true;
+  }
+
+  length = CanonicalizeBoundary(length, RangeBoundary::OverflowedMaxSmi());
+  if (length.Overflowed()) return false;
+
+  // Try symbolic comparison.
   do {
-    if (max.IsSymbol() &&
-        (max.offset() < 0) &&
-        IsLengthOf(max.symbol(), array()->definition())) {
-      return true;
-    }
-  } while (CanonicalizeMaxBoundary(&max));
+    if (DependOnSameSymbol(max, length)) return max.offset() < length.offset();
+  } while (CanonicalizeMaxBoundary(&max) || CanonicalizeMinBoundary(&length));
 
   // Failed to prove that maximum is bounded with array length.
   return false;
