@@ -16159,14 +16159,6 @@ class _IDBOpenDBRequestImpl extends _IDBRequestImpl implements IDBOpenDBRequest 
 
   _IDBOpenDBRequestEventsImpl get on =>
     new _IDBOpenDBRequestEventsImpl(this);
-
-  // From EventTarget
-
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
-
-  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
-
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
 class _IDBOpenDBRequestEventsImpl extends _IDBRequestEventsImpl implements IDBOpenDBRequestEvents {
@@ -16410,14 +16402,6 @@ class _IDBVersionChangeRequestImpl extends _IDBRequestImpl implements IDBVersion
 
   _IDBVersionChangeRequestEventsImpl get on =>
     new _IDBVersionChangeRequestEventsImpl(this);
-
-  // From EventTarget
-
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
-
-  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
-
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
 class _IDBVersionChangeRequestEventsImpl extends _IDBRequestEventsImpl implements IDBVersionChangeRequestEvents {
@@ -17863,14 +17847,6 @@ abstract class LocalMediaStream implements MediaStream, EventTarget {
 class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream native "*LocalMediaStream" {
 
   void stop() native;
-
-  // From EventTarget
-
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
-
-  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
-
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31377,14 +31353,6 @@ class _ScriptProcessorNodeImpl extends _AudioNodeImpl implements ScriptProcessor
     new _ScriptProcessorNodeEventsImpl(this);
 
   final int bufferSize;
-
-  // From EventTarget
-
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
-
-  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
-
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
 class _ScriptProcessorNodeEventsImpl extends _EventsImpl implements ScriptProcessorNodeEvents {

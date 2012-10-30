@@ -554,11 +554,16 @@ class HtmlDartInterfaceGenerator(object):
     """
     def walk(parents):
       for parent in parents:
-        if IsDartCollectionType(parent.type.id):
-          result.append(parent.type.id)
+        parent_name = parent.type.id
+        if parent_name == 'EventTarget':
+          # Currently EventTarget is implemented as a mixin, not a proper
+          # super interface---ignore its members.
           continue
-        if self._database.HasInterface(parent.type.id):
-          parent_interface = self._database.GetInterface(parent.type.id)
+        if IsDartCollectionType(parent_name):
+          result.append(parent_name)
+          continue
+        if self._database.HasInterface(parent_name):
+          parent_interface = self._database.GetInterface(parent_name)
           result.append(parent_interface)
           walk(parent_interface.parents)
 
