@@ -1982,8 +1982,7 @@ void FlowGraphAllocator::AllocateUnallocatedRanges() {
 #endif
 
   while (!unallocated_.is_empty()) {
-    LiveRange* range = unallocated_.Last();
-    unallocated_.RemoveLast();
+    LiveRange* range = unallocated_.RemoveLast();
     const intptr_t start = range->Start();
     TRACE_ALLOC(OS::Print("Processing live range for vreg %"Pd" "
                           "starting at %"Pd"\n",

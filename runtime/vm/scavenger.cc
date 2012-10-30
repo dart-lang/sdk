@@ -527,8 +527,7 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
     }
     while (!delayed_weak_stack->is_empty()) {
       // Pop the delayed weak object from the stack and visit its pointers.
-      RawObject* weak_property = delayed_weak_stack->Last();
-      delayed_weak_stack->RemoveLast();
+      RawObject* weak_property = delayed_weak_stack->RemoveLast();
       weak_property->VisitPointers(visitor);
     }
   }

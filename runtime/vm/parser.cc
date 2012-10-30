@@ -976,16 +976,13 @@ void Parser::SkipBlock() {
         token_stack.Add(token);
         break;
       case Token::kRBRACE:
-        is_match = token_stack.Last() == Token::kLBRACE;
-        token_stack.RemoveLast();
+        is_match = token_stack.RemoveLast() == Token::kLBRACE;
         break;
       case Token::kRPAREN:
-        is_match = token_stack.Last() == Token::kLPAREN;
-        token_stack.RemoveLast();
+        is_match = token_stack.RemoveLast() == Token::kLPAREN;
         break;
       case Token::kRBRACK:
-        is_match = token_stack.Last() == Token::kLBRACK;
-        token_stack.RemoveLast();
+        is_match = token_stack.RemoveLast() == Token::kLBRACK;
         break;
       case Token::kEOS:
         unexpected_token_found = true;

@@ -1455,9 +1455,8 @@ void SminessPropagator::AddToWorklist(PhiInstr* phi) {
 
 
 PhiInstr* SminessPropagator::RemoveLastFromWorklist() {
-  PhiInstr* phi = worklist_.Last();
+  PhiInstr* phi = worklist_.RemoveLast();
   ASSERT(in_worklist_->Contains(phi->ssa_temp_index()));
-  worklist_.RemoveLast();
   in_worklist_->Remove(phi->ssa_temp_index());
   return phi;
 }
@@ -1978,8 +1977,7 @@ Range* RangeAnalysis::InferInductionVariableRange(JoinEntryInstr* loop_header,
   ResetWorklist();
   MarkDefinition(var);
   while (!worklist_.is_empty()) {
-    Definition* defn = worklist_.Last();
-    worklist_.RemoveLast();
+    Definition* defn = worklist_.RemoveLast();
 
     if (defn->IsPhi()) {
       PhiInstr* phi = defn->AsPhi();
@@ -3380,8 +3378,7 @@ void ConstantPropagator::Analyze() {
   while (true) {
     if (block_worklist_.is_empty()) {
       if (definition_worklist_.is_empty()) break;
-      Definition* definition = definition_worklist_.Last();
-      definition_worklist_.RemoveLast();
+      Definition* definition = definition_worklist_.RemoveLast();
       definition_marks_->Remove(definition->ssa_temp_index());
       Value* use = definition->input_use_list();
       while (use != NULL) {
@@ -3389,8 +3386,7 @@ void ConstantPropagator::Analyze() {
         use = use->next_use();
       }
     } else {
-      BlockEntryInstr* block = block_worklist_.Last();
-      block_worklist_.RemoveLast();
+      BlockEntryInstr* block = block_worklist_.RemoveLast();
       block->Accept(this);
     }
   }
