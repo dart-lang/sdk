@@ -162,7 +162,14 @@ public class Types {
       return interTypes.get(0);
     }
     // create union
-    return new InterfaceTypeUnion(interTypes);
+    return unionTypes(interTypes);
+  }
+
+  /**
+   * @return the {@link InterfaceType} which is union of given ones.
+   */
+  public InterfaceType unionTypes(List<InterfaceType> types) {
+    return new InterfaceTypeUnion(types);
   }
 
   /**

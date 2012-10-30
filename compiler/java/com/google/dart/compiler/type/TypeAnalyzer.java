@@ -774,7 +774,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
             // if we fell back to Dynamic, keep it
           } else {
             Type unionType = getUnionType(currentType, inferredType);
-            unionType = Types.makeInferred(unionType);
+            if (unionType != currentType) {
+              unionType = Types.makeInferred(unionType);
+            }
             blockOldTypes.getFirst().rememberOldType(element, element.getType());
             Elements.setType(element, unionType);
           }
@@ -785,21 +787,25 @@ public class TypeAnalyzer implements DartCompilationPhase {
        * @return the {@link Type} which is both "a" and "b" types. May be "dynamic" if "a" and "b"
        *         don't form hierarchy.
        */
-      Type getUnionType(Type a, Type b) {
-        if (TypeKind.of(a) == TypeKind.DYNAMIC) {
-          return b;
+      Type getUnionType(Type curType, Type newType) {
+        if (TypeKind.of(curType) == TypeKind.DYNAMIC) {
+          return newType;
         }
-        if (TypeKind.of(b) == TypeKind.DYNAMIC) {
-          return a;
+        if (TypeKind.of(newType) == TypeKind.DYNAMIC) {
+          return curType;
         }
-        if (types.isSubtype(a, b)) {
-          return a;
+        if (types.isSubtype(curType, newType)) {
+          return curType;
         }
-        if (types.isSubtype(b, a)) {
-          return b;
+        if (types.isSubtype(newType, curType)) {
+          return newType;
         }
-        // TODO(scheglov) return union of types, but this is not easy
-        return dynamicType;
+        // if InterfaceType, use union
+        if (curType instanceof InterfaceType && newType instanceof InterfaceType) {
+          return types.unionTypes(ImmutableList.of((InterfaceType) curType, (InterfaceType) newType));
+        }
+        // keep type as is
+        return curType;
       }
 
       void restore() {

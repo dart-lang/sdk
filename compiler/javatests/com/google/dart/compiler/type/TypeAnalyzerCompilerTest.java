@@ -2409,8 +2409,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
-   * When single variable has conflicting type constraints, right now we don't try to unify them,
-   * instead we fall back to "dynamic".
+   * When single variable has conflicting type constraints, we use union of types.
    */
   public void test_typesPropagation_ifIsType_conflictingTypes() throws Exception {
     analyzeLibrary(
@@ -2421,7 +2420,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  }",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "[int, String]");
   }
 
   public void test_typesPropagation_ifIsType_negation() throws Exception {
@@ -2767,6 +2766,38 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     // we exited "if" Block, so "assert" may be was not executed, so we don't know type
     assertInferredElementTypeString(testUnit, "a3", "dynamic");
     assertInferredElementTypeString(testUnit, "b3", "dynamic");
+  }
+
+  /**
+   * When variable has explicit type, we should not fall to 'dynamic', we need to keep this type.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6399
+   */
+  public void test_typesPropagation_assertIsType_hasExplicitType() throws Exception {
+    analyzeLibrary(
+        "class A {}",
+        "class B extends A {}",
+        "class C extends B {}",
+        "main() {",
+        "  B v;",
+        "  if (v is A) {",
+        "    var v1 = v;",
+        "  }",
+        "  if (v is B) {",
+        "    var v2 = v;",
+        "  }",
+        "  if (v is C) {",
+        "    var v3 = v;",
+        "  }",
+        "  if (v is String) {",
+        "    var v4 = v;",
+        "  }",
+        "}",
+        "");
+    assertInferredElementTypeString(testUnit, "v1", "B");
+    assertInferredElementTypeString(testUnit, "v2", "B");
+    assertInferredElementTypeString(testUnit, "v3", "C");
+    assertInferredElementTypeString(testUnit, "v4", "[B, String]");
   }
 
   public void test_typesPropagation_field_inClass_final() throws Exception {
