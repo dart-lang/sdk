@@ -380,7 +380,7 @@ class Apidoc extends doc.Dartdoc {
 
   /** Override definition from parent class to strip out annotation tags. */
   doc.DocComment createDocComment(String text,
-                                  [InterfaceMirror inheritedFrom]) {
+                                  [ClassMirror inheritedFrom]) {
     String strippedText =
         text.replaceAll(const RegExp("@([a-zA-Z]+) ([^;]+)(?:;|\$)"),
                         '').trim();
@@ -570,7 +570,7 @@ class MdnComment implements doc.DocComment {
 
   String get text => mdnComment;
 
-  InterfaceMirror get inheritedFrom => null;
+  ClassMirror get inheritedFrom => null;
 
   String get html {
     // Wrap the mdn comment so we can highlight it and so we handle MDN scraped

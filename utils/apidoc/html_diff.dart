@@ -101,7 +101,7 @@ class HtmlDiff {
       warn('Could not find $HTML_LIBRARY_NAME');
       return;
     }
-    for (InterfaceMirror htmlType in htmlLib.types.values) {
+    for (ClassMirror htmlType in htmlLib.types.values) {
       final domTypes = htmlToDomTypes(htmlType);
       if (domTypes.isEmpty) continue;
 
@@ -139,7 +139,7 @@ class HtmlDiff {
    * [htmlType] from `dart:html`. This can be the empty list if no
    * correspondence is found.
    */
-  List<String> htmlToDomTypes(InterfaceMirror htmlType) {
+  List<String> htmlToDomTypes(ClassMirror htmlType) {
     if (htmlType.simpleName == null) return [];
     final tags = _getTags(comments.find(htmlType.location));
     if (tags.containsKey('domName')) {

@@ -78,7 +78,7 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
              Map<String,TypeMirror> types) {
   var fooClass = types["Foo"];
   Expect.isNotNull(fooClass, "Type 'Foo' not found");
-  Expect.isTrue(fooClass is InterfaceMirror,
+  Expect.isTrue(fooClass is ClassMirror,
                 "Unexpected mirror type returned");
   Expect.stringEquals("Foo", fooClass.simpleName,
                       "Unexpected type simple name");
@@ -151,7 +151,7 @@ void testBar(MirrorSystem system, LibraryMirror helperLibrary,
              Map<String,TypeMirror> types) {
   var barInterface = types["Bar"];
   Expect.isNotNull(barInterface, "Type 'Bar' not found");
-  Expect.isTrue(barInterface is InterfaceMirror,
+  Expect.isTrue(barInterface is ClassMirror,
                "Unexpected mirror type returned");
   Expect.stringEquals("Bar", barInterface.simpleName,
                       "Unexpected type simple name");
@@ -241,7 +241,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
              Map<String,TypeMirror> types) {
   var bazClass = types["Baz"];
   Expect.isNotNull(bazClass, "Type 'Baz' not found");
-  Expect.isTrue(bazClass is InterfaceMirror,
+  Expect.isTrue(bazClass is ClassMirror,
                 "Unexpected mirror type returned");
   Expect.stringEquals("Baz", bazClass.simpleName,
                       "Unexpected type simple name");
@@ -484,7 +484,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
 
   var method3ReturnType = method3.returnType;
   Expect.isNotNull(method3ReturnType, "Return type is null");
-  Expect.isTrue(method3ReturnType is InterfaceMirror,
+  Expect.isTrue(method3ReturnType is ClassMirror,
                 "Return type is not interface");
   Expect.equals(bazClass, method3ReturnType.declaration,
                 "Return type is not Baz");
@@ -699,7 +699,7 @@ void testPrivate(MirrorSystem system, LibraryMirror helperLibrary,
                  Map<String,TypeMirror> types) {
   var privateClass = types['_PrivateClass'];
   Expect.isNotNull(privateClass);
-  Expect.isTrue(privateClass is InterfaceMirror);
+  Expect.isTrue(privateClass is ClassMirror);
   Expect.isTrue(privateClass.isClass);
   Expect.isTrue(privateClass.isPrivate);
 

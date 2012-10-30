@@ -126,7 +126,7 @@ abstract class LibraryMirror extends ObjectMirror {
   /**
    * Returns an iterable over all types in the library.
    */
-  Map<String, InterfaceMirror> get types;
+  Map<String, ClassMirror> get types;
 
   /**
    * Returns the source location for this library.
@@ -187,22 +187,22 @@ abstract class TypeMirror implements Mirror {
 /**
  * A class or interface type.
  */
-abstract class InterfaceMirror implements TypeMirror, ObjectMirror {
+abstract class ClassMirror implements TypeMirror, ObjectMirror {
   /**
    * Returns the defining type, i.e. declaration of a type.
    */
-  InterfaceMirror get declaration;
+  ClassMirror get declaration;
 
   /**
    * Returns the super class of this type, or null if this type is [Object] or a
    * typedef.
    */
-  InterfaceMirror get superclass;
+  ClassMirror get superclass;
 
   /**
    * Returns a list of the interfaces directly implemented by this type.
    */
-  List<InterfaceMirror> get interfaces;
+  List<ClassMirror> get interfaces;
 
   /**
    * Is [:true:] iff this type is a class.
@@ -247,7 +247,7 @@ abstract class InterfaceMirror implements TypeMirror, ObjectMirror {
   /**
    * Returns the default type for this interface.
    */
-  InterfaceMirror get defaultType;
+  ClassMirror get defaultType;
 }
 
 /**
@@ -261,7 +261,7 @@ abstract class TypeVariableMirror implements TypeMirror {
   // Should not be called [declaration] as we then would have two [TypeMirror]
   // subtypes ([InterfaceMirror] and [TypeVariableMirror]) which have
   // [declaration()] methods but with different semantics.
-  InterfaceMirror get declarer;
+  ClassMirror get declarer;
 
   /**
    * Returns the bound of the type parameter.
@@ -272,7 +272,7 @@ abstract class TypeVariableMirror implements TypeMirror {
 /**
  * A function type.
  */
-abstract class FunctionTypeMirror implements InterfaceMirror {
+abstract class FunctionTypeMirror implements ClassMirror {
   /**
    * Returns the return type of this function type.
    */
@@ -292,7 +292,7 @@ abstract class FunctionTypeMirror implements InterfaceMirror {
 /**
  * A typedef.
  */
-abstract class TypedefMirror implements InterfaceMirror {
+abstract class TypedefMirror implements ClassMirror {
   /**
    * Returns the defining type for this typedef. For instance [:void f(int):]
    * for a [:typedef void f(int):].

@@ -16,11 +16,11 @@
  * Returns an iterable over the type declarations directly inheriting from
  * the declaration of this type.
  */
-Iterable<InterfaceMirror> computeSubdeclarations(InterfaceMirror type) {
+Iterable<ClassMirror> computeSubdeclarations(ClassMirror type) {
   type = type.declaration;
-  var subtypes = <InterfaceMirror>[];
+  var subtypes = <ClassMirror>[];
   type.system.libraries.forEach((_, library) {
-    for (InterfaceMirror otherType in library.types.values) {
+    for (ClassMirror otherType in library.types.values) {
       var superClass = otherType.superclass;
       if (superClass !== null) {
         superClass = superClass.declaration;
@@ -31,7 +31,7 @@ Iterable<InterfaceMirror> computeSubdeclarations(InterfaceMirror type) {
         }
       }
       final superInterfaces = otherType.interfaces;
-      for (InterfaceMirror superInterface in superInterfaces) {
+      for (ClassMirror superInterface in superInterfaces) {
         superInterface = superInterface.declaration;
         if (type.library === superInterface.library) {
           if (superInterface == type) {
@@ -73,14 +73,14 @@ int getLocationColumn(Location location) {
   return column;
 }
 
-class HierarchyIterable implements Iterable<InterfaceMirror> {
+class HierarchyIterable implements Iterable<ClassMirror> {
   final bool includeType;
-  final InterfaceMirror type;
+  final ClassMirror type;
 
   HierarchyIterable(this.type, {bool includeType})
       : this.includeType = includeType;
 
-  Iterator<InterfaceMirror> iterator() =>
+  Iterator<ClassMirror> iterator() =>
       new HierarchyIterator(type, includeType: includeType);
 }
 
@@ -93,11 +93,11 @@ class HierarchyIterable implements Iterable<InterfaceMirror> {
  * visited in breadth first order and a superinterface is visited more than once
  * if implemented through multiple supertypes.
  */
-class HierarchyIterator implements Iterator<InterfaceMirror> {
-  final Queue<InterfaceMirror> queue = new Queue<InterfaceMirror>();
-  InterfaceMirror object;
+class HierarchyIterator implements Iterator<ClassMirror> {
+  final Queue<ClassMirror> queue = new Queue<ClassMirror>();
+  ClassMirror object;
 
-  HierarchyIterator(InterfaceMirror type, {bool includeType}) {
+  HierarchyIterator(ClassMirror type, {bool includeType}) {
     if (includeType) {
       queue.add(type);
     } else {
@@ -105,7 +105,7 @@ class HierarchyIterator implements Iterator<InterfaceMirror> {
     }
   }
 
-  InterfaceMirror push(InterfaceMirror type) {
+  ClassMirror push(ClassMirror type) {
     if (type.superclass !== null) {
       if (type.superclass.isObject) {
         object = type.superclass;
@@ -117,8 +117,8 @@ class HierarchyIterator implements Iterator<InterfaceMirror> {
     return type;
   }
 
-  InterfaceMirror next() {
-    InterfaceMirror type;
+  ClassMirror next() {
+    ClassMirror type;
     if (queue.isEmpty) {
       if (object === null) {
         throw new StateError("No more elements");
