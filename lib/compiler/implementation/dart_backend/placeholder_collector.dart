@@ -365,7 +365,6 @@ class PlaceholderCollector extends Visitor {
       // Do not forget to rename them as well.
       Link<Element> optionalParameters =
           constructor.functionSignature.optionalParameters;
-      print(send.argumentsNode);
       for (final argument in send.argumentsNode) {
         NamedArgument named = argument.asNamedArgument();
         if (named == null) continue;
