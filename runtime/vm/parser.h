@@ -219,7 +219,7 @@ class Parser : public ValueObject {
   void ExpectToken(Token::Kind token_expected);
   void ExpectSemicolon();
   void UnexpectedToken();
-  String* ExpectClassIdentifier(const char* msg);
+  String* ExpectUserDefinedTypeIdentifier(const char* msg);
   String* ExpectIdentifier(const char* msg);
   bool IsLiteral(const char* literal);
 

@@ -3076,7 +3076,7 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
   const intptr_t class_pos = TokenPos();
   ExpectToken(Token::kCLASS);
   const intptr_t classname_pos = TokenPos();
-  String& class_name = *ExpectClassIdentifier("class name expected");
+  String& class_name = *ExpectUserDefinedTypeIdentifier("class name expected");
   if (FLAG_trace_parser) {
     OS::Print("TopLevel parsing class '%s'\n", class_name.ToCString());
   }
@@ -3320,7 +3320,7 @@ void Parser::ParseFunctionTypeAlias(
 
   const intptr_t alias_name_pos = TokenPos();
   const String* alias_name =
-      ExpectClassIdentifier("function alias name expected");
+      ExpectUserDefinedTypeIdentifier("function alias name expected");
 
   // Parse the type parameters of the function type.
   ParseTypeParameters(alias_owner);
@@ -3402,7 +3402,8 @@ void Parser::ParseInterfaceDefinition(
   const intptr_t interface_pos = TokenPos();
   ExpectToken(Token::kINTERFACE);
   const intptr_t interfacename_pos = TokenPos();
-  String& interface_name = *ExpectClassIdentifier("interface name expected");
+  String& interface_name =
+      *ExpectUserDefinedTypeIdentifier("interface name expected");
   if (FLAG_trace_parser) {
     OS::Print("TopLevel parsing interface '%s'\n", interface_name.ToCString());
   }
@@ -3589,21 +3590,18 @@ void Parser::ParseTypeParameters(const Class& cls) {
     do {
       ConsumeToken();
       SkipMetadata();
-      if (CurrentToken() != Token::kIDENT) {
-        ErrorMsg("type parameter name expected");
-      }
-      String& type_parameter_name = *CurrentLiteral();
       const intptr_t type_parameter_pos = TokenPos();
+      String& type_parameter_name =
+          *ExpectUserDefinedTypeIdentifier("type parameter expected");
       // Check for duplicate type parameters.
       for (intptr_t i = 0; i < index; i++) {
         existing_type_parameter ^= type_parameters_array.At(i);
         existing_type_parameter_name = existing_type_parameter.name();
         if (existing_type_parameter_name.Equals(type_parameter_name)) {
-          ErrorMsg("duplicate type parameter '%s'",
+          ErrorMsg(type_parameter_pos, "duplicate type parameter '%s'",
                    type_parameter_name.ToCString());
         }
       }
-      ConsumeToken();
       if (CurrentToken() == Token::kEXTENDS) {
         ConsumeToken();
         // A bound may refer to the owner of the type parameter it applies to,
@@ -6584,7 +6582,7 @@ void Parser::UnexpectedToken() {
 }
 
 
-String* Parser::ExpectClassIdentifier(const char* msg) {
+String* Parser::ExpectUserDefinedTypeIdentifier(const char* msg) {
   if (CurrentToken() != Token::kIDENT) {
     ErrorMsg("%s", msg);
   }
