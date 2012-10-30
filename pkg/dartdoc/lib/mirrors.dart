@@ -149,14 +149,37 @@ abstract class ObjectMirror implements Mirror {
  */
 abstract class LibraryMirror implements ObjectMirror, DeclarationMirror {
   /**
-   * The name of the library, as given in #library().
+   * An immutable map from from names to mirrors for all members in
+   * this library.
+   *
+   * The members of a library are its top-level classes,
+   * functions, variables, getters, and setters.
    */
-  String get simpleName;
+  Map<String, Mirror> get members;
 
   /**
-   * Returns an iterable over all types in the library.
+   * An immutable map from names to mirrors for all class
+   * declarations in this library.
    */
-  Map<String, ClassMirror> get types;
+  Map<String, ClassMirror> get classes;
+
+  /**
+   * An immutable map from names to mirrors for all function, getter,
+   * and setter declarations in this library.
+   */
+  Map<String, MethodMirror> get functions;
+
+  /**
+   * An immutable map from names to mirrors for all getter
+   * declarations in this library.
+   */
+  Map<String, MethodMirror> get getters;
+
+  /**
+   * An immutable map from names to mirrors for all setter
+   * declarations in this library.
+   */
+  Map<String, MethodMirror> get setters;
 
   /**
    * Returns the canonical URI for this library.

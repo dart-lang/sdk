@@ -586,7 +586,7 @@ class Dartdoc {
     }
 
     final types = [];
-    for (ClassMirror type in orderByName(library.types.values)) {
+    for (ClassMirror type in orderByName(library.classes.values)) {
       if (!showPrivate && type.isPrivate) continue;
 
       var typeInfo = {};
@@ -684,7 +684,7 @@ class Dartdoc {
     final types = <ClassMirror>[];
     final exceptions = <ClassMirror>[];
 
-    for (ClassMirror type in orderByName(library.types.values)) {
+    for (ClassMirror type in orderByName(library.classes.values)) {
       if (!showPrivate && type.isPrivate) continue;
 
       if (isException(type)) {
@@ -750,7 +750,7 @@ class Dartdoc {
     final typedefs = <TypedefMirror>[];
     final exceptions = <ClassMirror>[];
 
-    for (ClassMirror type in orderByName(library.types.values)) {
+    for (ClassMirror type in orderByName(library.classes.values)) {
       if (!showPrivate && type.isPrivate) continue;
 
       if (isException(type)) {
@@ -774,7 +774,7 @@ class Dartdoc {
     writeFooter();
     endFile();
 
-    for (final type in library.types.values) {
+    for (final type in library.classes.values) {
       if (!showPrivate && type.isPrivate) continue;
 
       docType(type);
@@ -1754,7 +1754,7 @@ class Dartdoc {
             new RegExp(r'new ([\w$]+)(?:\.([\w$]+))?').firstMatch(name);
         if (match == null) return;
         String typeName = match[1];
-        ClassMirror foundtype = currentLibrary.types[typeName];
+        ClassMirror foundtype = currentLibrary.classes[typeName];
         if (foundtype == null) return;
         String constructorName =
             (match[2] == null) ? typeName : '$typeName.${match[2]}';
@@ -1769,7 +1769,7 @@ class Dartdoc {
       final foreignMemberLink = (() {
         final match = new RegExp(r'([\w$]+)\.([\w$]+)').firstMatch(name);
         if (match == null) return;
-        ClassMirror foundtype = currentLibrary.types[match[1]];
+        ClassMirror foundtype = currentLibrary.classes[match[1]];
         if (foundtype == null) return;
         MemberMirror foundMember = foundtype.declaredMembers[match[2]];
         if (foundMember == null) return;
@@ -1777,7 +1777,7 @@ class Dartdoc {
       })();
       if (foreignMemberLink != null) return foreignMemberLink;
 
-      ClassMirror foundType = currentLibrary.types[name];
+      ClassMirror foundType = currentLibrary.classes[name];
       if (foundType != null) {
         return makeLink(typeUrl(foundType));
       }

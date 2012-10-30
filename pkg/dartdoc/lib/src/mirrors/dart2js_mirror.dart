@@ -484,7 +484,7 @@ abstract class Dart2JsObjectMirror extends Dart2JsElementMirror
 
 class Dart2JsLibraryMirror extends Dart2JsObjectMirror
     implements LibraryMirror {
-  Map<String, ClassMirror> _types;
+  Map<String, ClassMirror> _classes;
   Map<String, MemberMirror> _members;
 
   Dart2JsLibraryMirror(Dart2JsMirrorSystem system, LibraryElement library)
@@ -523,24 +523,24 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
 
   String get qualifiedName => simpleName;
 
-  void _ensureTypes() {
-    if (_types == null) {
-      _types = <String, ClassMirror>{};
+  void _ensureClasses() {
+    if (_classes == null) {
+      _classes = <String, ClassMirror>{};
       _library.forEachLocalMember((Element e) {
         if (e.isClass()) {
           e.ensureResolved(system.compiler);
           var type = new Dart2JsClassMirror.fromLibrary(this, e);
-          assert(invariant(_library, !_types.containsKey(type.simpleName),
+          assert(invariant(_library, !_classes.containsKey(type.simpleName),
               message: "Type name '${type.simpleName}' "
                        "is not unique in $_library."));
-          _types[type.simpleName] = type;
+          _classes[type.simpleName] = type;
         } else if (e.isTypedef()) {
           var type = new Dart2JsTypedefMirror.fromLibrary(this,
               e.computeType(system.compiler));
-          assert(invariant(_library, !_types.containsKey(type.simpleName),
+          assert(invariant(_library, !_classes.containsKey(type.simpleName),
               message: "Type name '${type.simpleName}' "
                        "is not unique in $_library."));
-          _types[type.simpleName] = type;
+          _classes[type.simpleName] = type;
         }
       });
     }
@@ -565,9 +565,29 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
     return new ImmutableMapWrapper<String, MemberMirror>(_members);
   }
 
-  Map<String, ClassMirror> get types {
-    _ensureTypes();
-    return new ImmutableMapWrapper<String, ClassMirror>(_types);
+  Map<String, Mirror> get members => declaredMembers;
+
+  Map<String, MethodMirror> get functions {
+    _ensureMembers();
+    return new FilteredImmutableMap(_members,
+        (MemberMirror member) => member is MethodMirror);
+  }
+
+  Map<String, MethodMirror> get getters {
+    _ensureMembers();
+    return new FilteredImmutableMap(_members,
+        (MemberMirror member) => member is MethodMirror && member.isGetter);
+  }
+
+  Map<String, MethodMirror> get setters {
+    _ensureMembers();
+    return new FilteredImmutableMap(_members,
+        (MemberMirror member) => member is MethodMirror && member.isSetter);
+  }
+
+  Map<String, ClassMirror> get classes {
+    _ensureClasses();
+    return new ImmutableMapWrapper<String, ClassMirror>(_classes);
   }
 
   SourceLocation get location {

@@ -55,18 +55,21 @@ main() {
   Expect.stringEquals("mirrors_helper", helperLibrary.qualifiedName,
     "Unexpected library qualified name");
 
-  var types = helperLibrary.types;
-  Expect.isNotNull(types, "No types map returned");
-  Expect.isFalse(types.isEmpty, "Empty types map returned");
+  var classes = helperLibrary.classes;
+  Expect.isNotNull(classes, "No classes map returned");
+  Expect.isFalse(classes.isEmpty, "Empty classes map returned");
 
-  testFoo(mirrors, helperLibrary, types);
-  testBar(mirrors, helperLibrary, types);
-  testBaz(mirrors, helperLibrary, types);
+  testFoo(mirrors, helperLibrary, classes);
+  testBar(mirrors, helperLibrary, classes);
+  testBaz(mirrors, helperLibrary, classes);
   // TODO(johnniwinther): Add test of class [Boz] and typedef [Func].
   // TODO(johnniwinther): Add tests of type argument substitution, which
   // is not currently implemented in dart2js.
   // TODO(johnniwinther): Add tests of Location and Source.
-  testPrivate(mirrors, helperLibrary, types);
+  testPrivate(mirrors, helperLibrary, classes);
+  // TODO(johnniwinther): Add tests  of [LibraryMirror.functions],
+  // [LibraryMirror.getters], [LibraryMirror.setters] and
+  // [LibraryMirror.members].
 }
 
 // Testing class Foo:
@@ -75,8 +78,8 @@ main() {
 //
 // }
 void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
-             Map<String,TypeMirror> types) {
-  var fooClass = types["Foo"];
+             Map<String,TypeMirror> classes) {
+  var fooClass = classes["Foo"];
   Expect.isNotNull(fooClass, "Type 'Foo' not found");
   Expect.isTrue(fooClass is ClassMirror,
                 "Unexpected mirror type returned");
@@ -148,8 +151,8 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
 //
 // }
 void testBar(MirrorSystem system, LibraryMirror helperLibrary,
-             Map<String,TypeMirror> types) {
-  var barInterface = types["Bar"];
+             Map<String,TypeMirror> classes) {
+  var barInterface = classes["Bar"];
   Expect.isNotNull(barInterface, "Type 'Bar' not found");
   Expect.isTrue(barInterface is ClassMirror,
                "Unexpected mirror type returned");
@@ -238,8 +241,8 @@ void testBar(MirrorSystem system, LibraryMirror helperLibrary,
 //   int operator -() => 0;
 // }
 void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
-             Map<String,TypeMirror> types) {
-  var bazClass = types["Baz"];
+             Map<String,TypeMirror> classes) {
+  var bazClass = classes["Baz"];
   Expect.isNotNull(bazClass, "Type 'Baz' not found");
   Expect.isTrue(bazClass is ClassMirror,
                 "Unexpected mirror type returned");
@@ -696,8 +699,8 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
 //   factory _PrivateClass._privateFactoryConstructor() => new _PrivateClass();
 // }
 void testPrivate(MirrorSystem system, LibraryMirror helperLibrary,
-                 Map<String,TypeMirror> types) {
-  var privateClass = types['_PrivateClass'];
+                 Map<String,TypeMirror> classes) {
+  var privateClass = classes['_PrivateClass'];
   Expect.isNotNull(privateClass);
   Expect.isTrue(privateClass is ClassMirror);
   Expect.isTrue(privateClass.isClass);

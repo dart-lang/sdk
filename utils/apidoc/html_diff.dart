@@ -101,7 +101,7 @@ class HtmlDiff {
       warn('Could not find $HTML_LIBRARY_NAME');
       return;
     }
-    for (ClassMirror htmlType in htmlLib.types.values) {
+    for (ClassMirror htmlType in htmlLib.classes.values) {
       final domTypes = htmlToDomTypes(htmlType);
       if (domTypes.isEmpty) continue;
 
