@@ -158,27 +158,6 @@ void FUNCTION_NAME(File_WriteByte)(Dart_NativeArguments args) {
 }
 
 
-void FUNCTION_NAME(File_WriteString)(Dart_NativeArguments args) {
-  Dart_EnterScope();
-  intptr_t value =
-      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
-  File* file = reinterpret_cast<File*>(value);
-  ASSERT(file != NULL);
-  const char* str =
-      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
-  int bytes_written = file->Write(reinterpret_cast<const void*>(str),
-                                  strlen(str));
-  if (bytes_written >= 0) {
-    Dart_SetReturnValue(args, Dart_NewInteger(bytes_written));
-  } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
-  }
-  Dart_ExitScope();
-}
-
-
 void FUNCTION_NAME(File_ReadList)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t value =
@@ -861,25 +840,6 @@ static CObject* FileWriteListRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileWriteStringRequest(const CObjectArray& request) {
-  if (request.Length() == 3 &&
-      request[1]->IsIntptr() &&
-      request[2]->IsString()) {
-    File* file = CObjectToFilePointer(request[1]);
-    ASSERT(file != NULL);
-    if (!file->IsClosed()) {
-      CObjectString str(request[2]);
-      const void* buffer = reinterpret_cast<const void*>(str.CString());
-      int64_t bytes_written = file->Write(buffer, str.Length());
-      return new CObjectInt64(CObject::NewInt64(bytes_written));
-    } else {
-      return CObject::FileClosedError();
-    }
-  }
-  return CObject::IllegalArgumentError();
-}
-
-
 void FileService(Dart_Port dest_port_id,
                  Dart_Port reply_port_id,
                  Dart_CObject* message) {
@@ -942,9 +902,6 @@ void FileService(Dart_Port dest_port_id,
           break;
         case File::kWriteListRequest:
           response = FileWriteListRequest(request);
-          break;
-        case File::kWriteStringRequest:
-          response = FileWriteStringRequest(request);
           break;
         default:
           UNREACHABLE();

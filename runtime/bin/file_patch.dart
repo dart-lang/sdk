@@ -26,8 +26,6 @@ patch class _RandomAccessFile {
   /* patch */ static _writeByte(int id, int value) native "File_WriteByte";
   /* patch */ static _writeList(int id, List<int> buffer, int offset, int bytes)
       native "File_WriteList";
-  /* patch */ static _writeString(int id, String string)
-      native "File_WriteString";
   /* patch */ static _position(int id) native "File_Position";
   /* patch */ static _setPosition(int id, int position)
       native "File_SetPosition";

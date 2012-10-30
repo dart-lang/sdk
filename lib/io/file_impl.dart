@@ -321,7 +321,6 @@ const int _READ_BYTE_REQUEST = 14;
 const int _WRITE_BYTE_REQUEST = 15;
 const int _READ_LIST_REQUEST = 16;
 const int _WRITE_LIST_REQUEST = 17;
-const int _WRITE_STRING_REQUEST = 18;
 
 // Base class for _File and _RandomAccessFile with shared functions.
 class _FileBase {
@@ -904,32 +903,25 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
 
   Future<RandomAccessFile> writeString(String string,
                                        [Encoding encoding = Encoding.UTF_8]) {
-    _ensureFileService();
-    Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
-    if (closed) return _completeWithClosedException(completer);
-    List request = new List(3);
-    request[0] = _WRITE_STRING_REQUEST;
-    request[1] = _id;
-    request[2] = string;
-    return _fileService.call(request).transform((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response,
-                                     "writeString failed for file '$_name'");
-      }
-      return this;
-    });
+    if (encoding is! Encoding) {
+      var completer = new Completer();
+      new Timer(0, (t) {
+        completer.completeException(new FileIOException(
+            "Invalid encoding in writeString: $encoding"));
+      });
+      return completer.future;
+    }
+    var data = _StringEncoders.encoder(encoding).encodeString(string);
+    return writeList(data, 0, data.length);
   }
 
-  external static _writeString(int id, String string);
-
   int writeStringSync(String string, [Encoding encoding = Encoding.UTF_8]) {
-    _checkNotClosed();
-    if (string is !String) throw new ArgumentError();
-    var result = _writeString(_id, string);
-    if (result is OSError) {
-      throw new FileIOException("writeString failed for file '$_name'");
+    if (encoding is! Encoding) {
+      throw new FileIOException(
+          "Invalid encoding in writeStringSync: $encoding");
     }
-    return result;
+    var data = _StringEncoders.encoder(encoding).encodeString(string);
+    return writeListSync(data, 0, data.length);
   }
 
   Future<int> position() {

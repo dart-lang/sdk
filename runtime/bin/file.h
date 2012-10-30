@@ -68,8 +68,7 @@ class File {
     kReadByteRequest = 14,
     kWriteByteRequest = 15,
     kReadListRequest = 16,
-    kWriteListRequest = 17,
-    kWriteStringRequest = 18
+    kWriteListRequest = 17
   };
 
   ~File();
