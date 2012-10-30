@@ -3064,8 +3064,18 @@ void ConstantPropagator::VisitStoreLocal(StoreLocalInstr* instr) {
 void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
+
   if (IsNonConstant(left) || IsNonConstant(right)) {
-    SetValue(instr, non_constant_);
+    // TODO(vegorov): incorporate nullability information into the lattice.
+    if ((left.IsNull() && (instr->right()->ResultCid() != kDynamicCid)) ||
+        (right.IsNull() && (instr->left()->ResultCid() != kDynamicCid))) {
+      bool result = left.IsNull() ? (instr->right()->ResultCid() == kNullCid)
+                                  : (instr->left()->ResultCid() == kNullCid);
+      if (instr->kind() == Token::kNE_STRICT) result = !result;
+      SetValue(instr, Bool::ZoneHandle(Bool::Get(result)));
+    } else {
+      SetValue(instr, non_constant_);
+    }
   } else if (IsConstant(left) && IsConstant(right)) {
     bool result = (left.raw() == right.raw());
     if (instr->kind() == Token::kNE_STRICT) result = !result;
@@ -3400,6 +3410,8 @@ void ConstantPropagator::Transform() {
     printer.PrintBlocks();
   }
 
+  GrowableArray<PhiInstr*> redundant_phis(10);
+
   // We will recompute dominators, block ordering, block ids, block last
   // instructions, previous pointers, predecessors, etc. after eliminating
   // unreachable code.  We do not maintain those properties during the
@@ -3442,6 +3454,7 @@ void ConstantPropagator::Transform() {
             PhiInstr* phi = (*phis)[phi_idx];
             if (phi == NULL) continue;
             phi->inputs_.TruncateTo(live_count);
+            if (live_count == 1) redundant_phis.Add(phi);
           }
         }
       }
@@ -3516,6 +3529,12 @@ void ConstantPropagator::Transform() {
   GrowableArray<BitVector*> dominance_frontier;
   graph_->ComputeDominators(&dominance_frontier);
   graph_->ComputeUseLists();
+
+  for (intptr_t i = 0; i < redundant_phis.length(); i++) {
+    PhiInstr* phi = redundant_phis[i];
+    phi->ReplaceUsesWith(phi->InputAt(0)->definition());
+    phi->mark_dead();
+  }
 
   if (FLAG_trace_constant_propagation) {
     OS::Print("\n==== After constant propagation ====\n");

@@ -1668,22 +1668,52 @@ void EffectGraphVisitor::BuildConstructorCall(
 }
 
 
-static intptr_t GetResultCidOfConstructor(ConstructorCallNode* node) {
-  if (node->constructor().IsFactory()) {
-    const Function& function = node->constructor();
-    const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
-    const Class& function_class = Class::Handle(function.Owner());
+static bool IsRecognizedConstructor(const Function& function,
+                                    const String& expected) {
+  const Class& clazz = Class::Handle(function.Owner());
+  const Library& lib = Library::Handle(clazz.library());
 
-    if (function_class.library() == core_impl_lib.raw()) {
-      if (function_class.Name() == Symbols::ListImplementation()) {
-        if (function.name() == Symbols::ListFactory()) {
-          if (node->arguments()->length() == 0) {
-            return kGrowableObjectArrayCid;
-          } else {
-            ASSERT(node->arguments()->length() == 1);
-            return kArrayCid;
-          }
-        }
+  const String& expected_class_name =
+      String::Handle(lib.PrivateName(expected));
+  if (!String::Handle(clazz.Name()).Equals(expected_class_name)) {
+    return false;
+  }
+
+  const String& function_name = String::Handle(function.name());
+  const String& expected_function_name = String::Handle(
+      String::Concat(expected_class_name, String::Handle(Symbols::Dot())));
+  return function_name.Equals(expected_function_name);
+}
+
+
+static intptr_t GetResultCidOfConstructor(ConstructorCallNode* node) {
+  const Function& function = node->constructor();
+  const Class& function_class = Class::Handle(function.Owner());
+  const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
+
+  if (function_class.library() != core_impl_lib.raw()) {
+    return kDynamicCid;
+  }
+
+  if (node->constructor().IsFactory()) {
+    if ((function_class.Name() == Symbols::ListImplementation()) &&
+        (function.name() == Symbols::ListFactory())) {
+      // If there are no arguments then the result is guaranteed to be a
+      // GrowableObjectArray. However if there is an argument the result
+      // is not guaranteed to be a fixed size array because the argument
+      // can be null.
+      if (node->arguments()->length() == 0) {
+        return kGrowableObjectArrayCid;
+      }
+    } else {
+      if (IsRecognizedConstructor(function,
+                                  String::Handle(Symbols::ObjectArray())) &&
+          (node->arguments()->length() == 1)) {
+        return kArrayCid;
+      } else if (IsRecognizedConstructor(function,
+                     String::Handle(Symbols::GrowableObjectArray())) &&
+                 (node->arguments()->length() == 0)) {
+        return kGrowableObjectArrayCid;
       }
     }
   }

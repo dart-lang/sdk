@@ -1177,6 +1177,7 @@ class PhiInstr : public Definition {
   // Phi is alive if it reaches a non-environment use.
   bool is_alive() const { return is_alive_; }
   void mark_alive() { is_alive_ = true; }
+  void mark_dead() { is_alive_ = false; }
 
   virtual Representation RequiredInputRepresentation(intptr_t i) const {
     return representation_;
