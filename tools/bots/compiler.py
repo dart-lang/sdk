@@ -294,5 +294,19 @@ def RunCompilerTests(build_info):
     CleanUpTemporaryFiles(build_info.system, build_info.runtime)
 
 
+def BuildCompiler(build_info):
+  """
+  Builds the SDK.
+
+  - build_info: the buildInfo object, containing information about what sort of
+      build and test to be run.
+  """
+  with BuildStep('Build SDK and d8'):
+    args = [sys.executable, './tools/build.py', '--mode=' + build_info.mode,
+            'dart2js_bot']
+    print 'Build SDK and d8: %s' % (' '.join(args))
+    RunProcess(args)
+
+
 if __name__ == '__main__':
-  bot.RunBot(GetBuildInfo, RunCompilerTests)
+  bot.RunBot(GetBuildInfo, RunCompilerTests, build_step=BuildCompiler)
