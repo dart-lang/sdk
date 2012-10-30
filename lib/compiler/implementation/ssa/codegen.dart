@@ -86,7 +86,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       parameterNames.forEach((element, name) {
         parameters.add(new js.Parameter(name));
       });
-      addTypeParameters(work.element, parameters, parameterNames);
+      addBackendParameters(work.element, parameters, parameterNames);
       String parametersString = Strings.join(parameterNames.values, ", ");
       SsaOptimizedCodeGenerator codegen = new SsaOptimizedCodeGenerator(
           backend, work, parameters, parameterNames);
@@ -117,23 +117,49 @@ class SsaCodeGeneratorTask extends CompilerTask {
     });
   }
 
-  void addTypeParameters(Element element,
-                         List<js.Parameter> parameters,
-                         Map<Element, String> parameterNames) {
-    if (!element.isConstructor()) return;
-    ClassElement cls = element.enclosingElement;
-    if (!compiler.world.needsRti(cls)) return;
-    cls.typeVariables.forEach((TypeVariableType typeVariable) {
-      String name = typeVariable.element.name.slowToString();
-      String prefix = '';
-      // Avoid collisions with real parameters of the method.
-      do {
-        name = JsNames.getValid('$prefix$name');
-        prefix = '\$$prefix';
-      } while (parameterNames.containsValue(name));
-      parameterNames[typeVariable.element] = name;
-      parameters.add(new js.Parameter(name));
-    });
+  void addBackendParameter(Element element,
+                           List<js.Parameter> parameters,
+                           Map<Element, String> parameterNames) {
+    String name = element.name.slowToString();
+    String prefix = '';
+    // Avoid collisions with real parameters of the method.
+    do {
+      name = JsNames.getValid('$prefix$name');
+      prefix = '\$$prefix';
+    } while (parameterNames.containsValue(name));
+    parameterNames[element] = name;
+    parameters.add(new js.Parameter(name));
+  }
+
+  void addBackendParameters(Element element,
+                            List<js.Parameter> parameters,
+                            Map<Element, String> parameterNames) {
+    // TODO(ngeoffray): We should infer this information from the
+    // graph, instead of recomputing what the builder did.
+    if (element.isConstructor()) {
+      // Put the type parameters.
+      ClassElement cls = element.enclosingElement;
+      if (!compiler.world.needsRti(cls)) return;
+      cls.typeVariables.forEach((TypeVariableType typeVariable) {
+        addBackendParameter(typeVariable.element, parameters, parameterNames);
+      });
+    } else if (element.isGenerativeConstructorBody()) {
+      // Put the parameter checks parameters.
+      Node node = element.implementation.parseNode(compiler);
+      ClosureClassMap closureData =
+          compiler.closureToClassMapper.getMappingForNestedFunction(node);
+      FunctionElement functionElement = element;
+      FunctionSignature params = functionElement.computeSignature(compiler);
+      TreeElements elements =
+          compiler.enqueuer.resolution.getCachedElements(element);
+      params.orderedForEachParameter((Element element) {
+        if (elements.isParameterChecked(element)) {
+          Element checkResultElement =
+              closureData.parametersWithSentinel[element];
+          addBackendParameter(checkResultElement, parameters, parameterNames);
+        }
+      });
+    }
   }
 
   CodeBuffer generateBailoutMethod(WorkItem work, HGraph graph) {
@@ -145,7 +171,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       parameterNames.forEach((element, name) {
         parameters.add(new js.Parameter(name));
       });
-      addTypeParameters(work.element, parameters, parameterNames);
+      addBackendParameters(work.element, parameters, parameterNames);
 
       SsaUnoptimizedCodeGenerator codegen = new SsaUnoptimizedCodeGenerator(
           backend, work, parameters, parameterNames);

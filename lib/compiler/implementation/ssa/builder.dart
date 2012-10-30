@@ -867,7 +867,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   HGraph graph;
   LocalsHandler localsHandler;
   HInstruction rethrowableException;
-  Map<Element, HParameterValue> parameters;
+  Map<Element, HInstruction> parameters;
   final RuntimeTypeInformation rti;
 
   Map<TargetElement, JumpHandler> jumpTargets;
@@ -907,7 +907,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       stack = new List<HInstruction>(),
       activationVariables = new Map<Element, HLocalValue>(),
       jumpTargets = new Map<TargetElement, JumpHandler>(),
-      parameters = new Map<Element, HParameterValue>(),
+      parameters = new Map<Element, HInstruction>(),
       sourceElementStack = <Element>[work.element],
       inliningStack = <InliningState>[],
       rti = builder.compiler.codegenWorld.rti,
@@ -1153,6 +1153,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       FunctionSignature params = constructor.computeSignature(compiler);
       params.orderedForEachParameter((Element parameter) {
         HInstruction argument = compiledArguments[index++];
+        // Because we are inlining the initializer, we must update
+        // what was given as parameter. This will be used in case
+        // there is a parameter check expression in the initializer.
+        parameters[parameter] = argument;
         localsHandler.updateLocal(parameter, argument);
         // Don't forget to update the field, if the parameter is of the
         // form [:this.x:].
@@ -1166,7 +1170,20 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       TreeElements oldElements = elements;
       elements =
           compiler.enqueuer.resolution.getCachedElements(constructor);
+
+      ClosureClassMap oldClosureData = localsHandler.closureData;
+      localsHandler.closureData =
+          compiler.closureToClassMapper.computeClosureToClassMapping(
+              constructor, constructor.parseNode(compiler), elements);
+
+      params.orderedForEachParameter((Element parameterElement) {
+        if (elements.isParameterChecked(parameterElement)) {
+          addParameterCheckInstruction(parameterElement);
+        }
+      });
+
       buildInitializers(constructor, constructors, fieldValues);
+      localsHandler.closureData = oldClosureData;
       elements = oldElements;
     });
   }
@@ -1356,6 +1373,22 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       functionSignature.orderedForEachParameter((parameter) {
         bodyCallInputs.add(localsHandler.readLocal(parameter));
       });
+
+      // If parameters are checked, we pass the already computed
+      // boolean to the constructor body.
+      TreeElements elements =
+          compiler.enqueuer.resolution.getCachedElements(constructor);
+      Node node = constructor.parseNode(compiler);
+      ClosureClassMap parameterClosureData =
+          compiler.closureToClassMapper.getMappingForNestedFunction(node);
+      functionSignature.orderedForEachParameter((parameter) {
+        if (elements.isParameterChecked(parameter)) {
+          Element fieldCheck =
+              parameterClosureData.parametersWithSentinel[parameter];
+          bodyCallInputs.add(localsHandler.readLocal(fieldCheck));
+        }
+      });
+
       // TODO(ahe): The constructor name is statically resolved. See
       // SsaCodeGenerator.visitInvokeDynamicMethod. Is there a cleaner
       // way to do this?
@@ -1376,48 +1409,56 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   void addParameterCheckInstruction(Element element) {
-    // This is the code we emit for a parameter that is being checked
-    // on whether it was given at value at the call site:
-    //
-    // foo([a = 42) {
-    //   if (?a) print('parameter passed $a');
-    // }
-    //
-    // foo([a = 42]) {
-    //   var t1 = a === sentinel;
-    //   if (t1) a = 42;
-    //   if (!t1) print('parameter passed ' + a);
-    // }
+    HInstruction check;
+    Element checkResultElement =
+        localsHandler.closureData.parametersWithSentinel[element];
+    if (currentElement.isGenerativeConstructorBody()) {
+      // A generative constructor body receives extra parameters that
+      // indicate if a parameter was passed to the factory.
+      check = new HParameterValue(checkResultElement);
+      add(check);
+    } else {
+      // This is the code we emit for a parameter that is being checked
+      // on whether it was given at value at the call site:
+      //
+      // foo([a = 42) {
+      //   if (?a) print('parameter passed $a');
+      // }
+      //
+      // foo([a = 42]) {
+      //   var t1 = a === sentinel;
+      //   if (t1) a = 42;
+      //   if (!t1) print('parameter passed ' + a);
+      // }
 
-    // Fetch the original default value of [element];
-    ConstantHandler handler = compiler.constantHandler;
-    Constant constant = handler.compileVariable(element);
-    HConstant defaultValue = constant == null
-        ? graph.addConstantNull(constantSystem)
-        : graph.addConstant(constant);
+      // Fetch the original default value of [element];
+      ConstantHandler handler = compiler.constantHandler;
+      Constant constant = handler.compileVariable(element);
+      HConstant defaultValue = constant == null
+          ? graph.addConstantNull(constantSystem)
+          : graph.addConstant(constant);
 
-    // Emit the equality check with the sentinel.
-    HConstant sentinel = graph.addConstant(SentinelConstant.SENTINEL);
-    Element equalsHelper = interceptors.getTripleEqualsInterceptor();
-    HInstruction target = new HStatic(equalsHelper);
-    add(target);
-    HInstruction operand = parameters[element];
-    HInstruction check = new HIdentity(target, sentinel, operand);
-    add(check);
+      // Emit the equality check with the sentinel.
+      HConstant sentinel = graph.addConstant(SentinelConstant.SENTINEL);
+      Element equalsHelper = interceptors.getTripleEqualsInterceptor();
+      HInstruction target = new HStatic(equalsHelper);
+      add(target);
+      HInstruction operand = parameters[element];
+      check = new HIdentity(target, sentinel, operand);
+      add(check);
 
-    // If the check succeeds, we must update the parameter with the
-    // default value.
-    handleIf(element.parseNode(compiler),
-             () => stack.add(check),
-             () => localsHandler.updateLocal(element, defaultValue),
-             null);
+      // If the check succeeds, we must update the parameter with the
+      // default value.
+      handleIf(element.parseNode(compiler),
+               () => stack.add(check),
+               () => localsHandler.updateLocal(element, defaultValue),
+               null);
 
-    // Create the instruction that parameter checks will use.
-    check = new HNot(check);
-    add(check);
+      // Create the instruction that parameter checks will use.
+      check = new HNot(check);
+      add(check);
+    }
 
-    ClosureClassMap closureData = localsHandler.closureData;
-    Element checkResultElement = closureData.parametersWithSentinel[element];
     localsHandler.updateLocal(checkResultElement, check);
   }
 
