@@ -3,12 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #import("mock_compiler.dart");
-#source("../../../lib/compiler/implementation/ssa/types.dart");
-
-class DartType {
-  const DartType(this.str);
-  final String str;
-}
+#import("../../../lib/compiler/implementation/ssa/ssa.dart");
 
 const CONFLICTING = HType.CONFLICTING;
 const UNKNOWN = HType.UNKNOWN;
@@ -33,7 +28,7 @@ HType nonPrimitive2;
 HType potentialArray;
 HType potentialString;
 
-void testUnion(Compiler compiler) {
+void testUnion(MockCompiler compiler) {
   Expect.equals(CONFLICTING, 
                 CONFLICTING.union(CONFLICTING, compiler));
   Expect.equals(UNKNOWN, 
@@ -1025,7 +1020,7 @@ void testUnion(Compiler compiler) {
                 FIXED_ARRAY.union(FIXED_ARRAY, compiler));
 }
 
-void testIntersection(Compiler compiler) {
+void testIntersection(MockCompiler compiler) {
   Expect.equals(CONFLICTING, 
                 CONFLICTING.intersection(CONFLICTING, compiler));
   Expect.equals(CONFLICTING, 
