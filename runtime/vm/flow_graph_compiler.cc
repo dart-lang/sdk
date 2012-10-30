@@ -465,23 +465,18 @@ bool FlowGraphCompiler::TryIntrinsify() {
 }
 
 
-const ICData& FlowGraphCompiler::GenerateInstanceCall(
+void FlowGraphCompiler::GenerateInstanceCall(
     intptr_t deopt_id,
     intptr_t token_pos,
-    const String& function_name,
     intptr_t argument_count,
     const Array& argument_names,
-    intptr_t checked_argument_count,
-    LocationSummary* locs) {
-  ICData& ic_data =
-      ICData::ZoneHandle(ICData::New(parsed_function().function(),
-                                     function_name,
-                                     deopt_id,
-                                     checked_argument_count));
+    LocationSummary* locs,
+    const ICData& ic_data) {
+  ASSERT(!ic_data.IsNull());
   const Array& arguments_descriptor =
       DartEntry::ArgumentsDescriptor(argument_count, argument_names);
   uword label_address = 0;
-  switch (checked_argument_count) {
+  switch (ic_data.num_args_tested()) {
     case 1:
       label_address = StubCode::OneArgCheckInlineCacheEntryPoint();
       break;
@@ -498,7 +493,6 @@ const ICData& FlowGraphCompiler::GenerateInstanceCall(
 
   EmitInstanceCall(&target_label, ic_data, arguments_descriptor, argument_count,
                    deopt_id, token_pos, locs);
-  return ic_data;
 }
 
 

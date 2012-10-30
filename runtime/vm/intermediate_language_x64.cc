@@ -333,7 +333,8 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                        intptr_t deopt_id,
                                        intptr_t token_pos,
                                        Token::Kind kind,
-                                       LocationSummary* locs) {
+                                       LocationSummary* locs,
+                                       const ICData& original_ic_data) {
   if (!compiler->is_optimizing()) {
     compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
                                    deopt_id,
@@ -351,13 +352,20 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   __ j(EQUAL, &check_identity, Assembler::kNearJump);
   __ cmpq(Address(RSP, 1 * kWordSize), raw_null);
   __ j(EQUAL, &check_identity, Assembler::kNearJump);
-  const ICData& ic_data = compiler->GenerateInstanceCall(deopt_id,
-                                                         token_pos,
-                                                         operator_name,
-                                                         kNumberOfArguments,
-                                                         kNoArgumentNames,
-                                                         kNumArgumentsChecked,
-                                                         locs);
+
+  ICData& equality_ic_data = ICData::ZoneHandle(original_ic_data.raw());
+  if (equality_ic_data.IsNull()) {
+    equality_ic_data = ICData::New(compiler->parsed_function().function(),
+                                   operator_name,
+                                   deopt_id,
+                                   kNumArgumentsChecked);
+  }
+  compiler->GenerateInstanceCall(deopt_id,
+                                 token_pos,
+                                 kNumberOfArguments,
+                                 kNoArgumentNames,
+                                 locs,
+                                 equality_ic_data);
   Label check_ne;
   __ jmp(&check_ne);
 
@@ -366,7 +374,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   // necessary.
   Register ic_data_reg = locs->temp(0).reg();
   ASSERT(ic_data_reg == RBX);  // Stub depends on it.
-  __ LoadObject(ic_data_reg, ic_data);
+  __ LoadObject(ic_data_reg, equality_ic_data);
   compiler->GenerateCall(token_pos,
                          &StubCode::EqualityWithNullArgLabel(),
                          PcDescriptors::kOther,
@@ -705,7 +713,8 @@ void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                              deopt_id(),
                              token_pos(),
                              kind(),
-                             locs());
+                             locs(),
+                             *ic_data());
   ASSERT(locs()->out().reg() == RAX);
 }
 
@@ -743,7 +752,8 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                              deopt_id(),
                              token_pos(),
                              Token::kEQ,  // kNE reverse occurs at branch.
-                             locs());
+                             locs(),
+                             *ic_data());
   if (branch->is_checked()) {
     EmitAssertBoolean(RAX, token_pos(), locs(), compiler);
   }
@@ -830,13 +840,19 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   const intptr_t kNumArguments = 2;
   const intptr_t kNumArgsChecked = 2;  // Type-feedback.
+  ICData& relational_ic_data = ICData::ZoneHandle(ic_data()->raw());
+  if (relational_ic_data.IsNull()) {
+    relational_ic_data = ICData::New(compiler->parsed_function().function(),
+                                     function_name,
+                                     deopt_id(),
+                                     kNumArgsChecked);
+  }
   compiler->GenerateInstanceCall(deopt_id(),
                                  token_pos(),
-                                 function_name,
                                  kNumArguments,
                                  Array::ZoneHandle(),  // No optional arguments.
-                                 kNumArgsChecked,
-                                 locs());
+                                 locs(),
+                                 relational_ic_data);
 }
 
 

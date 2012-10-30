@@ -1843,27 +1843,31 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
       compiler->GenerateInstanceCall(deopt_id(),
                                      token_pos(),
-                                     function_name(),
                                      ArgumentCount(),
                                      argument_names(),
-                                     checked_argument_count(),
-                                     locs());
+                                     locs(),
+                                     *ic_data());
     } else {
       Label* deopt =
           compiler->AddDeoptStub(deopt_id(), kDeoptInstanceCallNoICData);
       __ jmp(deopt);
     }
   } else {
+    ASSERT(!HasICData());
     compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
                                    deopt_id(),
                                    token_pos());
+    const ICData& initial_ic_data = ICData::ZoneHandle(
+        ICData::New(compiler->parsed_function().function(),
+                    function_name(),
+                    deopt_id(),
+                    checked_argument_count()));
     compiler->GenerateInstanceCall(deopt_id(),
                                    token_pos(),
-                                   function_name(),
                                    ArgumentCount(),
                                    argument_names(),
-                                   checked_argument_count(),
-                                   locs());
+                                   locs(),
+                                   initial_ic_data);
   }
 }
 
