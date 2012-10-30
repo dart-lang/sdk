@@ -13367,9 +13367,11 @@ class _ElementImpl extends _NodeImpl implements Element {
   // Hooks to support custom WebComponents.
   var xtag;
 
-  noSuchMethod(String name, List args) {
+  noSuchMethod(InvocationMirror invocation) {
     if (dynamicUnknownElementDispatcher == null) {
-      throw new NoSuchMethodError(this, name, args);
+      throw new NoSuchMethodError(this, invocation.methodName,
+                                        invocation.positionalArguments,
+                                        invocation.namedArguments);
     } else {
       return dynamicUnknownElementDispatcher(this, name, args);
     }

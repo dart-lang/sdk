@@ -5,22 +5,20 @@
 
 class NoSuchMethodTest {
 
-  foo([a = 10, b = 20]) {
+  foo({a = 10, b = 20}) {
     return (10 * a) + b;
   }
 
-  noSuchMethod(String name, List args) {
-    Expect.equals("moo", name);
-    Expect.equals(1, args.length);
-    return foo(args[0]);
+  noSuchMethod(InvocationMirror im) {
+    Expect.equals("moo", im.memberName);
+    Expect.equals(0, im.positionalArguments.length);
+    Expect.equals(1, im.namedArguments.length);
+    return foo(b:im.namedArguments["b"]);
   }
 
   static testMain() {
     var obj = new NoSuchMethodTest();
-    Expect.equals(1010, obj.moo(b:99));  // obj.NoSuchMethod called here.
-    // After we remove the rest argument and change the signature of
-    // noSuchMethod to be compatible with named arguments, we can expect the
-    // correct value of 199 instead of 1010.
+    Expect.equals(199, obj.moo(b:99));  // obj.NoSuchMethod called here.
   }
 }
 

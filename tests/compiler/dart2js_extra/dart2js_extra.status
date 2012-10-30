@@ -8,6 +8,7 @@ statements_test: Fail
 typed_locals_test: Fail
 inline_position_crash_test: Fail # http://www.dartbug.com/3905
 constant_javascript_semantics3_test: Fail # http://www.dartbug.com/5581
+no_such_method_test: Fail # Wrong InvocationMirror.memberName.
 
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
 regress/4740_test: Fail

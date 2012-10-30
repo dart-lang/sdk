@@ -63,6 +63,9 @@ local_function_test: Fail # issue 6124
 naming_test: Fail # issue 6124
 
 invocation_mirror_test: Fail # issue 3326, 3622.
+no_such_method_test: Fail # issue 3326, 3622.
+
+invocation_mirror_indirect_test: Fail # Issue 3326
 
 [ $compiler == none && ($system == macos || $system == linux) && $arch == ia32 && $checked ]
 gc_test: Skip  # Issue 1487, flaky.
@@ -88,6 +91,9 @@ compile_time_constant_checked3_test/03: Fail, OK
 compile_time_constant_checked3_test/04: Fail, OK
 compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
+
+[ $compiler == none && $checked ]
+super_call4_test: Fail # Issue 3326 - Passing list instead of InvocationMirror.
 
 [ $compiler == dartc ]
 implicit_this_test/none: Fail # should not warn about allocating SubAbstract2
@@ -157,7 +163,8 @@ library6_negative_test: Fail # still a valid test? Issue 3650
 list_literal4_test: Fail # Issue 1343
 map_literal4_test: Fail # Issue 1343
 named_parameters_with_object_property_names_test: Fail # Issue 2137
-no_such_method_negative_test: Fail # Runtime only test, rewrite as multiteste
+no_such_method_test: Fail
+no_such_method_negative_test: Fail # Runtime only test, rewrite as multitest
 override_field_test/03: Fail # still a valid test? Issue 3894
 override_field_test/04: Fail # still a valid test? Issue 3656
 override_field_method3_negative_test: Fail, OK # test issue 5249
@@ -208,10 +215,8 @@ lazy_static6_test: Fail, OK
 library1_test: Fail, OK
 library_prefixes_test: Fail, OK
 many_generic_instanceof_test: Fail, OK
-many_overridden_no_such_method_test: Fail, OK
 multi_pass2_test: Fail, OK
 multi_pass_test: Fail, OK
-overridden_no_such_method_test: Fail, OK
 private2_test: Fail, OK
 private3_test: Fail, OK
 private_test: Fail, OK
@@ -530,8 +535,6 @@ disable_privacy_test: Fail, Ok
 generic_test: Fail, Ok
 # Minified mode failures.
 # TODO(antonm): proper support in test framework.
-overridden_no_such_method_test: Pass, Fail, OK # Hard codes the name of invoked method ("foo").
-many_overridden_no_such_method_test: Pass, Fail, OK # Hard codes the name of invoked method ("foo").
 no_such_method_test: Pass, Fail, OK # Hard codes the name of invoked method ("foo").
 
 named_parameters_aggregated_test/05: Fail # Compile-time error reported instead of static type warning.
@@ -578,3 +581,4 @@ naming_test: Fail # issue 6130
 
 # This is a VM error when the compiled code is run.
 invocation_mirror_test: Fail # issue 3326, 3622.
+invocation_mirror_indirect_test: Fail # issue 3326, 3622.

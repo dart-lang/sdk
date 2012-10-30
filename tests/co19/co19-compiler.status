@@ -38,12 +38,7 @@ Language/11_Expressions/11_Instance_Creation/1_New_A02_t07: Fail # TODO(analyzer
 Language/11_Expressions/11_Instance_Creation/1_New_A06_t06: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/2_Const_A10_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation_A02_t01: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/17_Getter_Invocation_A02_t01: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/17_Getter_Invocation_A02_t02: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/18_Assignment_A05_t02: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/18_Assignment_A05_t04: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/18_Assignment_A05_t05: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/18_Assignment_A08_t04: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/19_Conditional_A01_t14: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/19_Conditional_A01_t15: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t14: Fail # TODO(analyzer-team): Please triage this failure.
@@ -225,7 +220,6 @@ Language/10_Expressions/30_Type_Cast_A01_t04: Fail, OK # the expected error is n
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail, OK # contains syntax error
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail, OK # contains syntax error
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail, OK # deprecated parameter syntax
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t03: Fail # Issue 5294
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t04: Fail # Issue 5294
 
 # The following tests use NoSuchMethodException instead of NoSuchMethodError.
@@ -249,12 +243,7 @@ Language/11_Expressions/01_Constants_A16_t02: Fail # Issue 1473
 Language/11_Expressions/01_Constants_A16_t03: Fail # Issue 1473
 Language/11_Expressions/01_Constants_A17_t03: Fail # Issue 1473
 Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t05: Fail # language change 3368
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail # Issue 3524
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail # Issue 3524
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t05: Fail # Issue 3524
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t06: Fail # Issue 3524
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t01: Fail # Issue 3524
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t02: Fail # Issue 3524
 Language/11_Expressions/19_Conditional_A01_t12: Fail # language change 3368
 Language/11_Expressions/19_Conditional_A01_t13: Fail # language change 3368
 Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t12: Fail # language change 3368

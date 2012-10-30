@@ -353,6 +353,63 @@ class ListIterator<T> implements Iterator<T> {
   }
 }
 
+createInvocationMirror(name, internalName, type, arguments, argumentNames) =>
+    new JSInvocationMirror(name, internalName, type, arguments, argumentNames);
+
+class JSInvocationMirror implements InvocationMirror {
+  static const METHOD = 0;
+  static const GETTER = 1;
+  static const SETTER = 2;
+
+  final String memberName;
+  final String _internalName;
+  final int _kind;
+  final List _arguments;
+  final List _namedArgumentNames;
+  /** Map from argument name to index in _arguments. */
+  Map<String,dynamic> _namedIndices = null;
+
+  JSInvocationMirror(this.memberName,
+                     this._internalName,
+                     this._kind,
+                     this._arguments,
+                     this._namedArgumentNames);
+
+  bool get isMethod => _kind == METHOD;
+  bool get isGetter => _kind == GETTER;
+  bool get isSetter => _kind == SETTER;
+  bool get isAccessor => _kind != METHOD;
+
+  List get positionalArguments {
+    if (isGetter) return null;
+    var list = [];
+    var argumentCount =
+        _arguments.length - _namedArgumentNames.length;
+    for (var index = 0 ; index < argumentCount ; index++) {
+      list.add(_arguments[index]);
+    }
+    return list;
+  }
+
+  Map<String,dynamic> get namedArguments {
+    if (isAccessor) return null;
+    var map = <String,dynamic>{};
+    int namedArgumentCount = _namedArgumentNames.length;
+    int namedArgumentsStartIndex = _arguments.length - namedArgumentCount;
+    for (int i = 0; i < namedArgumentCount; i++) {
+      map[_namedArgumentNames[i]] = _arguments[namedArgumentsStartIndex + i];
+    }
+    return map;
+  }
+
+  invokeOn(Object object) {
+    List arguments = _arguments;
+    if (!isJsArray(arguments)) arguments = new List.from(arguments);
+    return JS("var", "#[#].apply(#, #)",
+              object, _internalName, object, arguments);
+  }
+}
+
 class Primitives {
   static int hashCodeSeed = 0;
 
@@ -648,7 +705,7 @@ class Primitives {
     String selectorName = 'call\$$argumentCount$buffer';
     var jsFunction = JS('var', '#[#]', function, selectorName);
     if (jsFunction == null) {
-      throw new NoSuchMethodError(function, selectorName, arguments);
+      throw new NoSuchMethodError(function, selectorName, arguments, {});
     }
     // We bound 'this' to [function] because of how we compile
     // closures: escaped local variables are stored and accessed through
@@ -889,7 +946,7 @@ unwrapException(ex) {
         type == 'non_object_property_load') {
       return new NullPointerException();
     } else if (type == 'undefined_method') {
-      return new NoSuchMethodError('', name, []);
+      return new NoSuchMethodError('', name, [], {});
     }
 
     var ieErrorCode = JS('int', '#.number & 0xffff', ex);
@@ -910,7 +967,7 @@ unwrapException(ex) {
         // Object doesn't support property or method 'foo' which sets the error
         // code 438 in IE.
         // TODO(kasperl): Compute the right name if possible.
-        return new NoSuchMethodError('', '<unknown>', []);
+        return new NoSuchMethodError('', '<unknown>', [], {});
       }
     }
 
@@ -1377,7 +1434,8 @@ void assertHelper(condition) {
  * resolved cannot be found.
  */
 void throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {
-  throw new NoSuchMethodError(obj, name, arguments, expectedArgumentNames);
+  throw new NoSuchMethodError(obj, name, arguments, const {},
+                              expectedArgumentNames);
 }
 
 /**
