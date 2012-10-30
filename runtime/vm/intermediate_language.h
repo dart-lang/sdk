@@ -2285,6 +2285,8 @@ class EqualityCompareInstr : public ComparisonInstr {
     return kTagged;
   }
 
+  bool IsPolymorphic() const;
+
  private:
   const ICData* ic_data_;
   const intptr_t token_pos_;

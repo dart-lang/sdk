@@ -308,7 +308,7 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
     locs->set_out(Location::RequiresRegister());
     return locs;
   }
-  if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
+  if (IsPolymorphic()) {
     const intptr_t kNumTemps = 1;
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
@@ -700,7 +700,7 @@ void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                            deopt_id());
     return;
   }
-  if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
+  if (IsPolymorphic()) {
     EmitGenericEqualityCompare(compiler, locs(), kind(), kNoBranch, *ic_data(),
                                deopt_id(), token_pos());
     return;
@@ -739,7 +739,7 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                            deopt_id());
     return;
   }
-  if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
+  if (IsPolymorphic()) {
     EmitGenericEqualityCompare(compiler, locs(), kind(), branch, *ic_data(),
                                deopt_id(), token_pos());
     return;

@@ -21,7 +21,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, enable_type_checks);
-
+DECLARE_FLAG(int, max_polymorphic_checks);
 
 Definition::Definition()
     : range_(NULL),
@@ -1071,6 +1071,13 @@ intptr_t EqualityCompareInstr::ResultCid() const {
     return kBoolCid;
   }
   return kDynamicCid;
+}
+
+
+bool EqualityCompareInstr::IsPolymorphic() const {
+  return HasICData() &&
+      (ic_data()->NumberOfChecks() > 0) &&
+      (ic_data()->NumberOfChecks() <= FLAG_max_polymorphic_checks);
 }
 
 

@@ -27,9 +27,11 @@ DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
 DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
 DEFINE_FLAG(bool, trace_range_analysis, false, "Trace range analysis progress");
 DEFINE_FLAG(bool, trace_constant_propagation, false,
-            "Print constant propagation and useless code elimination.");
+    "Print constant propagation and useless code elimination.");
 DEFINE_FLAG(bool, array_bounds_check_elimination, true,
-            "Eliminate redundant bounds checks.");
+    "Eliminate redundant bounds checks.");
+DEFINE_FLAG(int, max_polymorphic_checks, 4,
+    "Maximum number of polymorphic check, otherwise it is megamorphic.");
 
 
 void FlowGraphOptimizer::ApplyICData() {
@@ -1157,8 +1159,7 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
       instr->ReplaceWith(call, current_iterator());
       return;
     }
-    const intptr_t kMaxChecks = 4;
-    if (instr->ic_data()->NumberOfChecks() <= kMaxChecks) {
+    if (instr->ic_data()->NumberOfChecks() <= FLAG_max_polymorphic_checks) {
       bool call_with_checks;
       if (unary_checks.HasOneTarget()) {
         // Type propagation has not run yet, we cannot eliminate the check.
