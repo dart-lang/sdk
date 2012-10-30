@@ -2,6 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+patch class ServerSocket {
+  /* patch */ factory ServerSocket(String bindAddress, int port, int backlog) {
+    return new _ServerSocket(bindAddress, port, backlog);
+  }
+}
+
+
+patch class Socket {
+  /* patch */ factory Socket(String host, int port) => new _Socket(host, port);
+}
+
 
 class _SocketBase extends NativeFieldWrapperClass1 {
   // Bit flags used when communicating between the eventhandler and
@@ -97,6 +108,7 @@ class _SocketBase extends NativeFieldWrapperClass1 {
   }
 
   OSError _getError() native "Socket_GetError";
+ 
   int _getPort() native "Socket_GetPort";
 
   void set onError(void callback(e)) {
@@ -423,8 +435,7 @@ class _Socket extends _SocketBase implements Socket {
     throw new SocketIOException("writeList failed - invalid socket handle");
   }
 
-  _writeList(List<int> buffer, int offset, int bytes)
-      native "Socket_WriteList";
+  _writeList(List<int> buffer, int offset, int bytes) native "Socket_WriteList";
 
   bool _isErrorResponse(response) {
     return response is List && response[0] != _SUCCESS_RESPONSE;

@@ -208,6 +208,7 @@ class _WebSocketProtocolProcessor {
 
             // Hack - as we always do index++ below.
             index--;
+            break;
         }
 
         // Move to the next byte.

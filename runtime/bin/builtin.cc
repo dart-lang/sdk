@@ -11,13 +11,14 @@
 
 
 Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
-  /*      url_                    source_       has_natives_  */
-  { DartUtils::kBuiltinLibURL, builtin_source_, true  },
-  { DartUtils::kJsonLibURL,    json_source_,    false },
-  { DartUtils::kUriLibURL,     uri_source_,     false },
-  { DartUtils::kCryptoLibURL,  crypto_source_,  false },
-  { DartUtils::kIOLibURL,      io_source_,      true  },
-  { DartUtils::kUtfLibURL,     utf_source_,     false }
+  /* { url_, source_, patch_url_, patch_source_, has_natives_ } */
+  { DartUtils::kBuiltinLibURL, builtin_source_, NULL, NULL, true },
+  { DartUtils::kJsonLibURL, json_source_, NULL, NULL, false },
+  { DartUtils::kUriLibURL, uri_source_, NULL, NULL, false },
+  { DartUtils::kCryptoLibURL, crypto_source_, NULL, NULL, false },
+  { DartUtils::kIOLibURL, io_source_,
+    DartUtils::kIOLibPatchURL, io_patch_, true },
+  { DartUtils::kUtfLibURL, utf_source_, NULL, NULL, false }
 };
 
 
@@ -45,6 +46,13 @@ Dart_Handle Builtin::LoadAndCheckLibrary(BuiltinLibraryId id) {
     if (!Dart_IsError(library) && (builtin_libraries_[id].has_natives_)) {
       // Setup the native resolver for built in library functions.
       DART_CHECK_VALID(Dart_SetNativeResolver(library, NativeLookup));
+    }
+    if (builtin_libraries_[id].patch_url_ != NULL) {
+      ASSERT(builtin_libraries_[id].patch_source_ != NULL);
+      Dart_Handle patch_url = Dart_NewString(builtin_libraries_[id].patch_url_);
+      Dart_Handle patch_source =
+          Dart_NewString(builtin_libraries_[id].patch_source_);
+      DART_CHECK_VALID(Dart_LoadPatch(library, patch_url, patch_source));
     }
   }
   DART_CHECK_VALID(library);

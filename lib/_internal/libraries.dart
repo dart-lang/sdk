@@ -44,9 +44,9 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
       dart2jsPath: "html/dart2js/html_dart2js.dart"),
 
   "io": const LibraryInfo(
-      "io/io_runtime.dart",
+      "io/io.dart",
       category: "Server",
-      dart2jsPath: "compiler/implementation/lib/io.dart"),
+      dart2jsPatchPath: "compiler/implementation/lib/io_patch.dart"),
 
   "isolate": const LibraryInfo(
       "isolate/isolate.dart",

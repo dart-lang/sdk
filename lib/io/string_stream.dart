@@ -61,7 +61,7 @@ class DecoderException implements Exception {
 
 // Utility class for decoding UTF-8 from data delivered as a stream of
 // bytes.
-class _StringDecoderBase implements _StringDecoder {
+abstract class _StringDecoderBase implements _StringDecoder {
   _StringDecoderBase()
       : _bufferList = new _BufferList(),
         _result = new List<int>(),
@@ -154,7 +154,7 @@ class _StringDecoderBase implements _StringDecoder {
     _resultOffset = 0;
   }
 
-  abstract bool _processNext();
+  bool _processNext();
 
   _BufferList _bufferList;
   int _resultOffset = 0;

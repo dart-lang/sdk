@@ -149,9 +149,6 @@ def CopyDart2Js(build_dir, sdk_root, version):
 
 def Main(argv):
   # Pull in all of the gpyi files which will be munged into the sdk.
-  io_runtime_sources = \
-    (eval(open("runtime/bin/io_sources.gypi").read()))['sources']
-
   HOME = dirname(dirname(realpath(__file__)))
 
   SDK = argv[1]
@@ -222,35 +219,11 @@ def Main(argv):
   os.makedirs(LIB)
 
   #
-  # Create and populate lib/io.
-  #
-  io_dest_dir = join(LIB, 'io')
-  os.makedirs(io_dest_dir)
-  os.makedirs(join(io_dest_dir, 'runtime'))
-  for filename in io_runtime_sources:
-    assert filename.endswith('.dart')
-    if filename == 'io.dart':
-      copyfile(join(HOME, 'runtime', 'bin', filename),
-               join(io_dest_dir, 'io_runtime.dart'))
-    else:
-      copyfile(join(HOME, 'runtime', 'bin', filename),
-               join(io_dest_dir, 'runtime', filename))
-
-  # Construct lib/io/io_runtime.dart from whole cloth.
-  dest_file = open(join(io_dest_dir, 'io_runtime.dart'), 'a')
-  for filename in io_runtime_sources:
-    assert filename.endswith('.dart')
-    if filename == 'io.dart':
-      continue
-    dest_file.write('#source("runtime/' + filename + '");\n')
-  dest_file.close()
-
-  #
   # Create and populate lib/{core, crypto, isolate, json, uri, utf, ...}.
   #
 
   os.makedirs(join(LIB, 'html'))
-  for library in ['_internal', 'collection', 'core', 'coreimpl', 'crypto',
+  for library in ['_internal', 'collection', 'core', 'coreimpl', 'crypto', 'io',
                   'isolate', join('html', 'dart2js'), join('html', 'dartium'),
                   'json', 'math', 'mirrors', 'scalarlist', 'uri', 'utf']:
     copytree(join(HOME, 'lib', library), join(LIB, library),
@@ -278,10 +251,6 @@ def Main(argv):
   ReplaceInFiles(
         [join(LIB, '_internal', 'libraries.dart')],
         [('"compiler/', '"../pkg/compiler/')])
-
-  ReplaceInFiles(
-        [join(PKG, 'compiler', 'implementation', 'lib', 'io.dart')],
-        [('../../runtime/bin', '../../lib/io/runtime')])
 
   # Fixup dartdoc
   # TODO(dgrove): Remove this once issue 4788 is addressed.

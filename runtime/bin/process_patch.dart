@@ -2,7 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-_exit(int status) native "Exit";
+patch class Process {
+  /* patch */ static Future<Process> start(String executable,
+                                           List<String> arguments,
+                                           [ProcessOptions options]) {
+    _ProcessImpl process = new _ProcessImpl(executable, arguments, options);
+    return process._start();
+  }
+
+  /* patch */ static Future<ProcessResult> run(String executable,
+                                               List<String> arguments,
+                                               [ProcessOptions options]) {
+    return new _NonInteractiveProcess(executable, arguments, options)._result;
+  }
+}
+
+
+patch class _ProcessUtils {
+  /* patch */ static _exit(int status) native "Exit";
+}
+
 
 class _ProcessStartStatus {
   int _errorCode;  // Set to OS error code if process start failed.
@@ -10,21 +29,8 @@ class _ProcessStartStatus {
 }
 
 
-class _Process extends NativeFieldWrapperClass1 implements Process {
-  static Future<ProcessResult> run(String path,
-                                   List<String> arguments,
-                                   [ProcessOptions options]) {
-    return new _NonInteractiveProcess(path, arguments, options)._result;
-  }
-
-  static Future<Process> start(String path,
-                               List<String> arguments,
-                               ProcessOptions options) {
-    _Process process = new _Process(path, arguments, options);
-    return process._start();
-  }
-
-  _Process(String path, List<String> arguments, ProcessOptions options) {
+class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
+  _ProcessImpl(String path, List<String> arguments, ProcessOptions options) {
     if (path is !String) {
       throw new ArgumentError("Path is not a String: $path");
     }
@@ -286,7 +292,7 @@ class _NonInteractiveProcess {
     }
 
     // Start the underlying process.
-    var processFuture = new _Process(path, arguments, options)._start();
+    var processFuture = new _ProcessImpl(path, arguments, options)._start();
 
     processFuture.then((Process p) {
       // Make sure the process stdin is closed.

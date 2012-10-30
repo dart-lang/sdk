@@ -2,19 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(ager): The only reason for this class is that we
+// cannot patch a top-level at this point.
+class _ProcessUtils {
+  external static _exit(int status);
+}
+
 /** Exit the Dart VM process with the given [status] code. */
 void exit(int status) {
   if (status is !int) {
     throw new ArgumentError("int status expected");
   }
-  _exit(status);
+  _ProcessUtils._exit(status);
 }
 
 /**
  * [Process] is used to start new processes using the static
  * [start] and [run] methods.
  */
-class Process {
+abstract class Process {
   /**
    * Starts a process running the [executable] with the specified
    * [arguments]. Returns a [:Future<Process>:] that completes with a
@@ -31,11 +37,9 @@ class Process {
    * does not read all data on the streams the underlying system
    * resources will not be freed since there is still pending data.
    */
-  static Future<Process> start(String executable,
-                               List<String> arguments,
-                               [ProcessOptions options]) {
-    return _Process.start(executable, arguments, options);
-  }
+  external static Future<Process> start(String executable,
+                                        List<String> arguments,
+                                        [ProcessOptions options]);
 
   /**
    * Starts a process and runs it non-interactively to completion. The
@@ -48,11 +52,9 @@ class Process {
    * result of running the process, i.e., exit code, standard out and
    * standard in.
    */
-  static Future<ProcessResult> run(String executable,
-                                   List<String> arguments,
-                                   [ProcessOptions options]) {
-    return _Process.run(executable, arguments, options);
-  }
+  external static Future<ProcessResult> run(String executable,
+                                            List<String> arguments,
+                                            [ProcessOptions options]);
 
   /**
    * Returns an input stream of the process stdout.
@@ -60,7 +62,7 @@ class Process {
    * Throws an [UnsupportedError] if the process is
    * non-interactive.
    */
-  abstract InputStream get stdout;
+  InputStream get stdout;
 
   /**
    * Returns an input stream of the process stderr.
@@ -68,7 +70,7 @@ class Process {
    * Throws an [UnsupportedError] if the process is
    * non-interactive.
    */
-  abstract InputStream get stderr;
+  InputStream get stderr;
 
   /**
    * Returns an output stream to the process stdin.
@@ -76,7 +78,7 @@ class Process {
    * Throws an [UnsupportedError] if the process is
    * non-interactive.
    */
-  abstract OutputStream get stdin;
+  OutputStream get stdin;
 
   /**
    * Sets an exit handler which gets invoked when the process
@@ -85,7 +87,7 @@ class Process {
    * Throws an [UnsupportedError] if the process is
    * non-interactive.
    */
-  abstract void set onExit(void callback(int exitCode));
+  void set onExit(void callback(int exitCode));
 
   /**
    * On Windows, [kill] kills the process, ignoring the [signal]
@@ -100,7 +102,7 @@ class Process {
    * a [:false:] return value from kill means that the process is
    * already dead.
    */
-  abstract bool kill([ProcessSignal signal = ProcessSignal.SIGTERM]);
+  bool kill([ProcessSignal signal = ProcessSignal.SIGTERM]);
 }
 
 

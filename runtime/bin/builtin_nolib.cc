@@ -11,13 +11,13 @@
 
 
 Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
-  /*      url_                 source_          has_natives_  */
-  { DartUtils::kBuiltinLibURL, NULL,            true  },
-  { DartUtils::kJsonLibURL,    NULL,            false },
-  { DartUtils::kUriLibURL,     NULL,            false },
-  { DartUtils::kCryptoLibURL,  NULL,            false },
-  { DartUtils::kIOLibURL,      NULL,            true  },
-  { DartUtils::kUtfLibURL,     NULL,            false }
+  /* { url_, source_, patch_url_, patch_source_, has_natives_ } */
+  { DartUtils::kBuiltinLibURL, NULL, NULL, NULL, true },
+  { DartUtils::kJsonLibURL, NULL, NULL, NULL, false },
+  { DartUtils::kUriLibURL, NULL, NULL, NULL, false },
+  { DartUtils::kCryptoLibURL, NULL, NULL, NULL, false },
+  { DartUtils::kIOLibURL, NULL, NULL, NULL, true  },
+  { DartUtils::kUtfLibURL, NULL, NULL, NULL, false }
 };
 
 

@@ -15,12 +15,12 @@ OutputStream _stderr;
 
 
 InputStream _getStdioInputStream() {
-  switch (_getStdioHandleType(0)) {
+  switch (_StdIOUtils._getStdioHandleType(0)) {
     case _STDIO_HANDLE_TYPE_TERMINAL:
     case _STDIO_HANDLE_TYPE_PIPE:
     case _STDIO_HANDLE_TYPE_SOCKET:
       Socket s = new _Socket._internalReadOnly();
-      _getStdioHandle(s, 0);
+      _StdIOUtils._getStdioHandle(s, 0);
       s._closed = false;
       return s.inputStream;
     case _STDIO_HANDLE_TYPE_FILE:
@@ -33,12 +33,12 @@ InputStream _getStdioInputStream() {
 
 OutputStream _getStdioOutputStream(int fd) {
   assert(fd == 1 || fd == 2);
-  switch (_getStdioHandleType(fd)) {
+  switch (_StdIOUtils._getStdioHandleType(fd)) {
     case _STDIO_HANDLE_TYPE_TERMINAL:
     case _STDIO_HANDLE_TYPE_PIPE:
     case _STDIO_HANDLE_TYPE_SOCKET:
       Socket s = new _Socket._internalWriteOnly();
-      _getStdioHandle(s, fd);
+      _StdIOUtils._getStdioHandle(s, fd);
       s._closed = false;
       return s.outputStream;
     case _STDIO_HANDLE_TYPE_FILE:
@@ -72,5 +72,8 @@ OutputStream get stderr {
   return _stderr;
 }
 
-_getStdioHandle(Socket socket, int num) native "Socket_GetStdioHandle";
-_getStdioHandleType(int num) native "File_GetStdioHandleType";
+
+class _StdIOUtils {
+  external static _getStdioHandle(Socket socket, int num);
+  external static _getStdioHandleType(int num);
+}

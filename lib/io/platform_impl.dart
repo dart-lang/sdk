@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class _Platform {
-  static int _numberOfProcessors() native "Platform_NumberOfProcessors";
-  static String _pathSeparator() native "Platform_PathSeparator";
-  static String _operatingSystem() native "Platform_OperatingSystem";
-  static _localHostname() native "Platform_LocalHostname";
-  static _environment() native "Platform_Environment";
+  external static int _numberOfProcessors();
+  external static String _pathSeparator();
+  external static String _operatingSystem();
+  external static _localHostname();
+  external static _environment();
 
   static int get numberOfProcessors {
     return _numberOfProcessors();

@@ -4,8 +4,8 @@
 
 #import('dart:math');
 
-#source("../../../runtime/bin/http_parser.dart");
-#source("../../../runtime/bin/mime_multipart_parser.dart");
+#source("../../../lib/io/http_parser.dart");
+#source("../../../lib/io/mime_multipart_parser.dart");
 
 void testParse(String message,
                String boundary,

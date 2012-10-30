@@ -55,12 +55,6 @@ class OSError {
 }
 
 
-// Check if a List is a builtin VM List type. Returns true
-// if the List is a builtin VM List type and false if it is
-// a user defined List type.
-bool _isBuiltinList(List buffer) native "Common_IsBuiltinList";
-
-
 // Object for holding a buffer and an offset.
 class _BufferAndOffset {
   _BufferAndOffset(List this.buffer, int this.offset);
@@ -68,14 +62,13 @@ class _BufferAndOffset {
   int offset;
 }
 
-
 // Ensure that the input List can be serialized through a native port.
 // Only builtin Lists can be serialized through. If user-defined Lists
 // get here, the contents is copied to a Uint8List. This has the added
 // benefit that it is faster to access from the C code as well.
 _BufferAndOffset _ensureFastAndSerializableBuffer(
     List buffer, int offset, int bytes) {
-  if (buffer is Uint8List || _isBuiltinList(buffer)) {
+  if (buffer is Uint8List || _BufferUtils._isBuiltinList(buffer)) {
     return new _BufferAndOffset(buffer, offset);
   }
   var newBuffer = new Uint8List(bytes);
@@ -83,10 +76,20 @@ _BufferAndOffset _ensureFastAndSerializableBuffer(
   for (int i = 0; i < bytes; i++) {
     int value = buffer[j];
     if (value is! int) {
-      throw new FileIOException("List element is not an integer at index $j");
+      throw new ArgumentError("List element is not an integer at index $j");
     }
     newBuffer[i] = value;
     j++;
   }
   return new _BufferAndOffset(newBuffer, 0);
+}
+
+
+// TODO(ager): The only reason for the class here is that
+// we cannot patch a top-level function.
+class _BufferUtils {
+  // Check if a List is a builtin VM List type. Returns true
+  // if the List is a builtin VM List type and false if it is
+  // a user defined List type.
+  external static bool _isBuiltinList(List buffer);
 }

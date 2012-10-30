@@ -154,7 +154,6 @@ class _HttpSessionManager {
   _HttpSession _tail;
   Timer _timer;
 
-  static Uint8List _getRandomBytes(int count)
-      native "Crypto_GetRandomBytes";
+  external static Uint8List _getRandomBytes(int count);
 }
 

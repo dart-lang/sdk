@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// The dart:io library is the concatenation of all the files in
-// io_sources.gypi. This file needs to be the first file in that
-// concatenation.
+// We should be able to get rid of this file. This is used to set up
+// the dart:io library for the VM because it cannot use the actual library
+// file which is in lib/io/io.dart.
 
-#library("io");
+#library("dart:io");
 #import("dart:coreimpl");
 #import("dart:crypto");
 #import("dart:isolate");

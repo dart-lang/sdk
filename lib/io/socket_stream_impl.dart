@@ -77,7 +77,7 @@ class _SocketInputStream implements InputStream {
     }
   }
 
-  void _onSocketError(e) {
+  bool _onSocketError(e) {
     close();
     if (_onError != null) {
       _onError(e);

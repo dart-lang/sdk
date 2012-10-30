@@ -6,6 +6,7 @@
   'variables': {
     'crypto_cc_file': '<(SHARED_INTERMEDIATE_DIR)/crypto_gen.cc',
     'io_cc_file': '<(SHARED_INTERMEDIATE_DIR)/io_gen.cc',
+    'io_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/io_patch_gen.cc',
     'json_cc_file': '<(SHARED_INTERMEDIATE_DIR)/json_gen.cc',
     'uri_cc_file': '<(SHARED_INTERMEDIATE_DIR)/uri_gen.cc',
     'utf_cc_file': '<(SHARED_INTERMEDIATE_DIR)/utf_gen.cc',
@@ -79,8 +80,11 @@
     {
       'target_name': 'generate_io_cc_file',
       'type': 'none',
+      'sources': [
+        'io.dart',
+      ],
       'includes': [
-        'io_sources.gypi',
+        '../../lib/io/iolib_sources.gypi',
       ],
       'actions': [
         {
@@ -103,6 +107,36 @@
             '<@(_sources)',
           ],
           'message': 'Generating ''<(io_cc_file)'' file.'
+        },
+      ]
+    },
+    {
+      'target_name': 'generate_io_patch_cc_file',
+      'type': 'none',
+      'includes': [
+        'io_sources.gypi',
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_io_patch_cc',
+          'inputs': [
+            '../tools/create_string_literal.py',
+            '<(builtin_in_cc_file)',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(io_patch_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/create_string_literal.py',
+            '--output', '<(io_patch_cc_file)',
+            '--input_cc', '<(builtin_in_cc_file)',
+            '--include', 'bin/builtin.h',
+            '--var_name', 'Builtin::io_patch_',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(io_patch_cc_file)'' file.'
         },
       ]
     },
@@ -222,6 +256,7 @@
         'generate_builtin_cc_file',
         'generate_crypto_cc_file',
         'generate_io_cc_file',
+        'generate_io_patch_cc_file',
         'generate_json_cc_file',
         'generate_uri_cc_file',
         'generate_utf_cc_file',
@@ -306,6 +341,7 @@
         '<(builtin_cc_file)',
         '<(crypto_cc_file)',
         '<(io_cc_file)',
+        '<(io_patch_cc_file)',
         '<(json_cc_file)',
         '<(uri_cc_file)',
         '<(utf_cc_file)',
@@ -425,6 +461,7 @@
         '<(builtin_cc_file)',
         '<(crypto_cc_file)',
         '<(io_cc_file)',
+        '<(io_patch_cc_file)',
         '<(json_cc_file)',
         '<(uri_cc_file)',
         '<(utf_cc_file)',
@@ -463,6 +500,7 @@
         '<(builtin_cc_file)',
         '<(crypto_cc_file)',
         '<(io_cc_file)',
+        '<(io_patch_cc_file)',
         '<(json_cc_file)',
         '<(uri_cc_file)',
         '<(utf_cc_file)',

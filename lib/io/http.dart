@@ -116,7 +116,7 @@ abstract class HttpServer {
    * Set the timeout, in seconds, for sessions of this HTTP server. Default
    * is 20 minutes.
    */
-  int set sessionTimeout(int timeout);
+  set sessionTimeout(int timeout);
 }
 
 
@@ -403,7 +403,7 @@ abstract class HttpSession {
   /**
    * Access the user-data associated with the session.
    */
-  Dynamic data;
+  dynamic data;
 
   /**
    * Destroy the session. This will terminate the session and any further

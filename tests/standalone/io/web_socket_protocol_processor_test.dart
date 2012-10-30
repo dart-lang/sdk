@@ -4,8 +4,8 @@
 
 #import("dart:math");
 
-#source("../../../runtime/bin/websocket.dart");
-#source("../../../runtime/bin/websocket_impl.dart");
+#source("../../../lib/io/websocket.dart");
+#source("../../../lib/io/websocket_impl.dart");
 
 class WebSocketFrame {
   WebSocketFrame(int opcode, List<int> data);

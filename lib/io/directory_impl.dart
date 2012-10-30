@@ -19,13 +19,13 @@ class _Directory implements Directory {
   _Directory.fromPath(Path path) : this(path.toNativePath());
   _Directory.current() : this(_current());
 
-  static String _current() native "Directory_Current";
-  static _createTemp(String template) native "Directory_CreateTemp";
-  static int _exists(String path) native "Directory_Exists";
-  static _create(String path) native "Directory_Create";
-  static _delete(String path, bool recursive) native "Directory_Delete";
-  static _rename(String path, String newPath) native "Directory_Rename";
-  static SendPort _newServicePort() native "Directory_NewServicePort";
+  external static String _current();
+  external static _createTemp(String template);
+  external static int _exists(String path);
+  external static _create(String path);
+  external static _delete(String path, bool recursive);
+  external static _rename(String path, String newPath);
+  external static SendPort _newServicePort();
 
   Future<bool> exists() {
     _ensureDirectoryService();
@@ -34,7 +34,7 @@ class _Directory implements Directory {
     request[1] = _path;
     return _directoryService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response, "Exists failed");
+        throw _exceptionOrErrorFromResponse(response, "Exists failed");
       }
       return response == 1;
     });
@@ -58,7 +58,7 @@ class _Directory implements Directory {
     request[1] = _path;
     return _directoryService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response, "Creation failed");
+        throw _exceptionOrErrorFromResponse(response, "Creation failed");
       }
       return this;
     });
@@ -81,8 +81,8 @@ class _Directory implements Directory {
     request[1] = _path;
     return _directoryService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response,
-                                     "Creation of temporary directory failed");
+        throw _exceptionOrErrorFromResponse(response,
+                                      "Creation of temporary directory failed");
       }
       return new Directory(response);
     });
@@ -109,11 +109,10 @@ class _Directory implements Directory {
     request[2] = recursive;
     return _directoryService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response, errorMsg);
+        throw _exceptionOrErrorFromResponse(response, errorMsg);
       }
       return this;
     });
-    return completer.future;
   }
 
   Future<Directory> delete() {
@@ -152,7 +151,7 @@ class _Directory implements Directory {
     request[2] = newPath;
     return _directoryService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response, "Rename failed");
+        throw _exceptionOrErrorFromResponse(response, "Rename failed");
       }
       return new Directory(newPath);
     });
@@ -179,7 +178,7 @@ class _Directory implements Directory {
     return response is List && response[0] != _SUCCESS_RESPONSE;
   }
 
-  Exception _exceptionFromResponse(response, String message) {
+  _exceptionOrErrorFromResponse(response, String message) {
     assert(_isErrorResponse(response));
     switch (response[_ERROR_RESPONSE_ERROR_TYPE]) {
       case _ILLEGAL_ARGUMENT_RESPONSE:

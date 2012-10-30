@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _BaseDataInputStream {
-  abstract int available();
+abstract class _BaseDataInputStream {
+  int available();
 
   List<int> read([int len]) {
     if (_closeCallbackCalled || _scheduledCloseCallback != null) return null;
@@ -65,7 +65,7 @@ class _BaseDataInputStream {
     }
   }
 
-  abstract List<int> _read(int bytesToRead);
+  List<int> _read(int bytesToRead);
 
   void _dataReceived() {
     // More data has been received asynchronously. Perform the data

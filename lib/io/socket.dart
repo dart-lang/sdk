@@ -7,9 +7,7 @@ abstract class ServerSocket {
    * Constructs a new server socket, binds it to a given address and port,
    * and listens on it.
    */
-  factory ServerSocket(String bindAddress, int port, int backlog) {
-    return new _ServerSocket(bindAddress, port, backlog);
-  }
+  external factory ServerSocket(String bindAddress, int port, int backlog);
 
   /**
    * The connection handler gets called when there is a new incoming
@@ -40,7 +38,7 @@ abstract class Socket {
    * host on the given port. The returned socket is not yet connected
    * but ready for registration of callbacks.
    */
-  factory Socket(String host, int port) => new _Socket(host, port);
+  external factory Socket(String host, int port);
 
   /**
    * Returns the number of received and non-read bytes in the socket that

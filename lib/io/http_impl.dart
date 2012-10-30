@@ -648,7 +648,7 @@ class _HttpRequestResponseBase {
 
 
   bool _write(List<int> data, bool copyBuffer) {
-    if (_headResponse) return;
+    if (_headResponse) return true;
     _ensureHeadersSent();
     bool allWritten = true;
     if (data.length > 0) {
@@ -667,7 +667,7 @@ class _HttpRequestResponseBase {
   }
 
   bool _writeList(List<int> data, int offset, int count) {
-    if (_headResponse) return;
+    if (_headResponse) return true;
     _ensureHeadersSent();
     bool allWritten = true;
     if (count > 0) {
@@ -1143,7 +1143,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
       bool found = false;
       for (int i = 0; i < cookies.length; i++) {
         if (cookies[i].name.toUpperCase() == _DART_SESSION_ID) {
-          cookie.value = session.id;
+          cookies[i].value = session.id;
           found = true;
           break;
         }
@@ -1254,7 +1254,7 @@ class _HttpOutputStream extends _BaseOutputStream implements OutputStream {
 }
 
 
-class _HttpConnectionBase {
+abstract class _HttpConnectionBase {
   _HttpConnectionBase() : _httpParser = new _HttpParser(),
                           hashCode = _nextHashCode {
     _nextHashCode = (_nextHashCode + 1) & 0xFFFFFFF;
@@ -1355,8 +1355,8 @@ class _HttpConnectionBase {
     return null;
   }
 
-  abstract void _onConnectionClosed(e);
-  abstract void _responseDone();
+  void _onConnectionClosed(e);
+  void _responseDone();
 
   void set _onNoPendingWrites(void callback()) {
     if (!_error) {
@@ -1564,7 +1564,7 @@ class _HttpServer implements HttpServer {
     _onError = callback;
   }
 
-  int set sessionTimeout(int timeout) {
+  set sessionTimeout(int timeout) {
     _sessionManager.sessionTimeout = timeout;
   }
 
@@ -1798,13 +1798,8 @@ class _HttpClientResponse
 
     void retryRequest(_Credentials cr) {
       if (cr != null) {
-        if (cr.scheme == _AuthenticationScheme.DIGEST) {
-          cr.nonce = header.parameters["nonce"];
-          cr.algorithm = header.parameters["algorithm"];
-          cr.qop = header.parameters["qop"];
-        }
         // Drain body and retry.
-        // TODO(sjgesse): Support digest.
+        // TODO(sgjesse): Support digest.
         if (cr.scheme == _AuthenticationScheme.BASIC) {
           inputStream.onData = inputStream.read;
           inputStream.onClosed = _connection.retry;
@@ -2239,7 +2234,7 @@ class _HttpClient implements HttpClient {
 
   HttpClientConnection postUrl(Uri url) => _openUrl("POST", url);
 
-  set authenticate(bool f(Uri url, String scheme, String realm)) {
+  set authenticate(Future<bool> f(Uri url, String scheme, String realm)) {
     _authenticate = f;
   }
 
@@ -2551,9 +2546,9 @@ class _Credentials {
 }
 
 
-class _HttpClientCredentials implements HttpClientCredentials {
-  abstract _AuthenticationScheme get scheme;
-  abstract void authorize(HttpClientRequest request);
+abstract class _HttpClientCredentials implements HttpClientCredentials {
+  _AuthenticationScheme get scheme;
+  void authorize(HttpClientRequest request);
 }
 
 

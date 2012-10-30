@@ -329,7 +329,7 @@ class _FileBase {
     return response is List && response[0] != _SUCCESS_RESPONSE;
   }
 
-  Exception _exceptionFromResponse(response, String message) {
+  _exceptionFromResponse(response, String message) {
     assert(_isErrorResponse(response));
     switch (response[_ERROR_RESPONSE_ERROR_TYPE]) {
       case _ILLEGAL_ARGUMENT_RESPONSE:
@@ -346,7 +346,12 @@ class _FileBase {
   }
 }
 
-SendPort _newServicePort() native "File_NewServicePort";
+// TODO(ager): The only reason for this class is that the patching
+// mechanism doesn't seem to like patching a private top level
+// function.
+class _FileUtils {
+  external static SendPort _newServicePort();
+}
 
 // Class for encapsulating the native implementation of files.
 class _File extends _FileBase implements File {
@@ -374,8 +379,7 @@ class _File extends _FileBase implements File {
     });
   }
 
-
-  static _exists(String name) native "File_Exists";
+  external static _exists(String name);
 
   bool existsSync() {
     var result = _exists(_name);
@@ -396,7 +400,7 @@ class _File extends _FileBase implements File {
     });
   }
 
-  static _create(String name) native "File_Create";
+  external static _create(String name);
 
   void createSync() {
     var result = _create(_name);
@@ -416,7 +420,7 @@ class _File extends _FileBase implements File {
     });
   }
 
-  static _delete(String name) native "File_Delete";
+  external static _delete(String name);
 
   void deleteSync() {
     var result = _delete(_name);
@@ -438,7 +442,7 @@ class _File extends _FileBase implements File {
     });
   }
 
-  static _directory(String name) native "File_Directory";
+  external static _directory(String name);
 
   Directory directorySync() {
     var result = _directory(name);
@@ -485,7 +489,7 @@ class _File extends _FileBase implements File {
   }
 
 
-  static _lengthFromName(String name) native "File_LengthFromName";
+  external static _lengthFromName(String name);
 
   int lengthSync() {
     var result = _lengthFromName(_name);
@@ -508,7 +512,7 @@ class _File extends _FileBase implements File {
     });
   }
 
-  static _lastModified(String name) native "File_LastModified";
+  external static _lastModified(String name);
 
   Date lastModifiedSync() {
     var ms = _lastModified(name);
@@ -516,7 +520,7 @@ class _File extends _FileBase implements File {
     return new Date.fromMillisecondsSinceEpoch(ms);
   }
 
-  static _open(String name, int mode) native "File_Open";
+  external static _open(String name, int mode);
 
   RandomAccessFile openSync([FileMode mode = FileMode.READ]) {
     if (mode != FileMode.READ &&
@@ -530,7 +534,7 @@ class _File extends _FileBase implements File {
     return new _RandomAccessFile(id, _name);
   }
 
-  static int _openStdio(int fd) native "File_OpenStdio";
+  external static int _openStdio(int fd);
 
   static RandomAccessFile _openStdioSync(int fd) {
     var id = _openStdio(fd);
@@ -555,7 +559,7 @@ class _File extends _FileBase implements File {
     });
   }
 
-  static _fullPath(String name) native "File_FullPath";
+  external static _fullPath(String name);
 
   String fullPathSync() {
     var result = _fullPath(_name);
@@ -661,7 +665,7 @@ class _File extends _FileBase implements File {
 
   void _ensureFileService() {
     if (_fileService == null) {
-      _fileService = _newServicePort();
+      _fileService = _FileUtils._newServicePort();
     }
   }
 
@@ -700,7 +704,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     });
   }
 
-  static int _close(int id) native "File_Close";
+  external static int _close(int id);
 
   void closeSync() {
     _checkNotClosed();
@@ -727,7 +731,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     });
   }
 
-  static _readByte(int id) native "File_ReadByte";
+  external static _readByte(int id);
 
   int readByteSync() {
     _checkNotClosed();
@@ -776,8 +780,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     }
   }
 
-  static _readList(int id, List<int> buffer, int offset, int bytes)
-      native "File_ReadList";
+  external static _readList(int id, List<int> buffer, int offset, int bytes);
 
   int readListSync(List<int> buffer, int offset, int bytes) {
     _checkNotClosed();
@@ -822,7 +825,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     });
   }
 
-  static _writeByte(int id, int value) native "File_WriteByte";
+  external static _writeByte(int id, int value);
 
   int writeByteSync(int value) {
     _checkNotClosed();
@@ -879,8 +882,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     });
   }
 
-  static _writeList(int id, List<int> buffer, int offset, int bytes)
-      native "File_WriteList";
+  external static _writeList(int id, List<int> buffer, int offset, int bytes);
 
   int writeListSync(List<int> buffer, int offset, int bytes) {
     _checkNotClosed();
@@ -918,7 +920,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     });
   }
 
-  static _writeString(int id, String string) native "File_WriteString";
+  external static _writeString(int id, String string);
 
   int writeStringSync(String string, [Encoding encoding = Encoding.UTF_8]) {
     _checkNotClosed();
@@ -946,7 +948,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     });
   }
 
-  static _position(int id) native "File_Position";
+  external static _position(int id);
 
   int positionSync() {
     _checkNotClosed();
@@ -974,7 +976,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     });
   }
 
-  static _setPosition(int id, int position) native "File_SetPosition";
+  external static _setPosition(int id, int position);
 
   void setPositionSync(int position) {
     _checkNotClosed();
@@ -1001,7 +1003,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     });
   }
 
-  static _truncate(int id, int length) native "File_Truncate";
+  external static _truncate(int id, int length);
 
   void truncateSync(int length) {
     _checkNotClosed();
@@ -1027,7 +1029,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     });
   }
 
-  static _length(int id) native "File_Length";
+  external static _length(int id);
 
   int lengthSync() {
     _checkNotClosed();
@@ -1054,7 +1056,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     });
   }
 
-  static _flush(int id) native "File_Flush";
+  external static _flush(int id);
 
   void flushSync() {
     _checkNotClosed();
@@ -1068,7 +1070,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
 
   void _ensureFileService() {
     if (_fileService == null) {
-      _fileService = _newServicePort();
+      _fileService = _FileUtils._newServicePort();
     }
   }
 
