@@ -301,11 +301,11 @@ def BuildCompiler(build_info):
   - build_info: the buildInfo object, containing information about what sort of
       build and test to be run.
   """
-  with BuildStep('Build SDK and d8'):
+  with bot.BuildStep('Build SDK and d8'):
     args = [sys.executable, './tools/build.py', '--mode=' + build_info.mode,
             'dart2js_bot']
     print 'Build SDK and d8: %s' % (' '.join(args))
-    RunProcess(args)
+    bot.RunProcess(args)
 
 
 if __name__ == '__main__':
