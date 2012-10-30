@@ -77,7 +77,3 @@ io/list_input_stream_test: Skip # Timeout TODO(ngeoffray): investigate
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
 *: Skip
-
-[ $system == windows ]
-io/process_path_test: Skip # TODO(rnystrom): Investigating.
-io/process_path_environment_test: Skip # TODO(rnystrom): Investigating.

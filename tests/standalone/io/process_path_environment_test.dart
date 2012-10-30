@@ -10,13 +10,18 @@
 main() {
   // Pick an app that we expect to be on the PATH that returns 0 when run with
   // no arguments.
-  var executable = Platform.operatingSystem == 'windows' ? 'cmd.exe' : 'true';
+  var executable = 'true';
+  var args = [];
+  if (Platform.operatingSystem == 'windows') {
+    executable = 'cmd.exe';
+    args = ['/C', 'echo', '"ok"'];
+  }
 
   var options = new ProcessOptions();
   options.environment = new Map.from(Platform.environment);
   options.environment['whatever'] = 'something';
 
-  Process.run(executable, [], options).then((result) {
+  Process.run(executable, args, options).then((result) {
     Expect.equals(0, result.exitCode);
   });
 }
