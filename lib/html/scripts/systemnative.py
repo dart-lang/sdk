@@ -473,6 +473,7 @@ class DartiumBackend(object):
 
     version = [1]
     def GenerateCall(operation, argument_count, checks):
+      checks = filter(lambda e: e != 'true', checks)
       if checks:
         if operation.type.id != 'void':
           template = '    if ($CHECKS) {\n      return $CALL;\n    }\n'
@@ -503,8 +504,11 @@ class DartiumBackend(object):
       for i in range(0, argument_count):
         argument = operation.arguments[i]
         argument_name = argument_names[i]
-        checks[i] = '(%s is %s || %s == null)' % (
-            argument_name, self._DartType(argument.type.id), argument_name)
+        type = self._DartType(argument.type.id)
+        if type not in ['dynamic', 'Object']:
+          checks[i] = '(%s is %s || %s == null)' % (argument_name, type, argument_name)
+        else:
+          checks[i] = 'true'
       GenerateCall(operation, argument_count, checks)
 
     # TODO: Optimize the dispatch to avoid repeated checks.

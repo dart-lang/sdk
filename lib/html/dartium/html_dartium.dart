@@ -17402,9 +17402,7 @@ class _IDBIndexImpl extends NativeFieldWrapperClass1 implements IDBIndex {
     if ((key_OR_range is IDBKeyRange || key_OR_range == null)) {
       return _count_2(key_OR_range);
     }
-    if ((key_OR_range is dynamic || key_OR_range == null)) {
-      return _count_3(key_OR_range);
-    }
+    return _count_3(key_OR_range);
     throw "Incorrect number or type of arguments";
   }
 
@@ -17418,9 +17416,7 @@ class _IDBIndexImpl extends NativeFieldWrapperClass1 implements IDBIndex {
     if ((key is IDBKeyRange || key == null)) {
       return _get_1(key);
     }
-    if ((key is dynamic || key == null)) {
-      return _get_2(key);
-    }
+    return _get_2(key);
     throw "Incorrect number or type of arguments";
   }
 
@@ -17432,9 +17428,7 @@ class _IDBIndexImpl extends NativeFieldWrapperClass1 implements IDBIndex {
     if ((key is IDBKeyRange || key == null)) {
       return _getKey_1(key);
     }
-    if ((key is dynamic || key == null)) {
-      return _getKey_2(key);
-    }
+    return _getKey_2(key);
     throw "Incorrect number or type of arguments";
   }
 
@@ -17452,10 +17446,10 @@ class _IDBIndexImpl extends NativeFieldWrapperClass1 implements IDBIndex {
     if ((key_OR_range is IDBKeyRange || key_OR_range == null) && (direction is String || direction == null)) {
       return _openCursor_3(key_OR_range, direction);
     }
-    if ((key_OR_range is dynamic || key_OR_range == null) && !?direction) {
+    if (!?direction) {
       return _openCursor_4(key_OR_range);
     }
-    if ((key_OR_range is dynamic || key_OR_range == null) && (direction is String || direction == null)) {
+    if ((direction is String || direction == null)) {
       return _openCursor_5(key_OR_range, direction);
     }
     throw "Incorrect number or type of arguments";
@@ -17481,10 +17475,10 @@ class _IDBIndexImpl extends NativeFieldWrapperClass1 implements IDBIndex {
     if ((key_OR_range is IDBKeyRange || key_OR_range == null) && (direction is String || direction == null)) {
       return _openKeyCursor_3(key_OR_range, direction);
     }
-    if ((key_OR_range is dynamic || key_OR_range == null) && !?direction) {
+    if (!?direction) {
       return _openKeyCursor_4(key_OR_range);
     }
-    if ((key_OR_range is dynamic || key_OR_range == null) && (direction is String || direction == null)) {
+    if ((direction is String || direction == null)) {
       return _openKeyCursor_5(key_OR_range, direction);
     }
     throw "Incorrect number or type of arguments";
@@ -17729,9 +17723,7 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
     if ((key_OR_range is IDBKeyRange || key_OR_range == null)) {
       return _count_2(key_OR_range);
     }
-    if ((key_OR_range is dynamic || key_OR_range == null)) {
-      return _count_3(key_OR_range);
-    }
+    return _count_3(key_OR_range);
     throw "Incorrect number or type of arguments";
   }
 
@@ -17769,9 +17761,7 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
     if ((key_OR_keyRange is IDBKeyRange || key_OR_keyRange == null)) {
       return _delete_1(key_OR_keyRange);
     }
-    if ((key_OR_keyRange is dynamic || key_OR_keyRange == null)) {
-      return _delete_2(key_OR_keyRange);
-    }
+    return _delete_2(key_OR_keyRange);
     throw "Incorrect number or type of arguments";
   }
 
@@ -17785,9 +17775,7 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
     if ((key is IDBKeyRange || key == null)) {
       return _get_1(key);
     }
-    if ((key is dynamic || key == null)) {
-      return _get_2(key);
-    }
+    return _get_2(key);
     throw "Incorrect number or type of arguments";
   }
 
@@ -17807,10 +17795,10 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
     if ((key_OR_range is IDBKeyRange || key_OR_range == null) && (direction is String || direction == null)) {
       return _openCursor_3(key_OR_range, direction);
     }
-    if ((key_OR_range is dynamic || key_OR_range == null) && !?direction) {
+    if (!?direction) {
       return _openCursor_4(key_OR_range);
     }
-    if ((key_OR_range is dynamic || key_OR_range == null) && (direction is String || direction == null)) {
+    if ((direction is String || direction == null)) {
       return _openCursor_5(key_OR_range, direction);
     }
     throw "Incorrect number or type of arguments";
