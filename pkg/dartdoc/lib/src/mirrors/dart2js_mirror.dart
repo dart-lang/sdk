@@ -753,6 +753,26 @@ class Dart2JsClassMirror extends Dart2JsObjectMirror
     return new ImmutableMapWrapper<String, MemberMirror>(_members);
   }
 
+  Map<String, Mirror> get members => declaredMembers;
+
+  Map<String, MethodMirror> get methods {
+    _ensureMembers();
+    return new FilteredImmutableMap(_members,
+        (MemberMirror member) => member is MethodMirror);
+  }
+
+  Map<String, MethodMirror> get getters {
+    _ensureMembers();
+    return new FilteredImmutableMap(_members,
+        (MemberMirror member) => member is MethodMirror && member.isGetter);
+  }
+
+  Map<String, MethodMirror> get setters {
+    _ensureMembers();
+    return new FilteredImmutableMap(_members,
+        (MemberMirror member) => member is MethodMirror && member.isSetter);
+  }
+
   bool get isObject => _class == system.compiler.objectClass;
 
   bool get isDynamic => false;
@@ -906,9 +926,6 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
     return _definition;
   }
 
-  Map<String, MemberMirror> get declaredMembers =>
-      const <String, MemberMirror>{};
-
   ClassMirror get originalDeclaration => this;
 
   // TODO(johnniwinther): How should a typedef respond to these?
@@ -923,11 +940,6 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
   bool get isOriginalDeclaration => true;
 
   bool get isAbstract => false;
-
-  Map<String, MethodMirror> get constructors =>
-      const <String, MethodMirror>{};
-
-  ClassMirror get defaultFactory => null;
 }
 
 class Dart2JsTypeVariableMirror extends Dart2JsTypeElementMirror
@@ -1021,6 +1033,21 @@ abstract class Dart2JsTypeElementMirror extends Dart2JsProxyMirror
   bool get isFunction => false;
 
   String toString() => _type.element.toString();
+
+  Map<String, MemberMirror> get declaredMembers =>
+      const <String, MemberMirror>{};
+
+  Map<String, MemberMirror> get members => const <String, MemberMirror>{};
+
+  Map<String, MethodMirror> get constructors => const <String, MethodMirror>{};
+
+  Map<String, MethodMirror> get methods => const <String, MethodMirror>{};
+
+  Map<String, MethodMirror> get getters => const <String, MethodMirror>{};
+
+  Map<String, MethodMirror> get setters => const <String, MethodMirror>{};
+
+  ClassMirror get defaultFactory => null;
 }
 
 class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
@@ -1038,6 +1065,9 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
   // TODO(johnniwinther): Substitute type arguments for type variables.
   Map<String, MemberMirror> get declaredMembers =>
       originalDeclaration.declaredMembers;
+
+  // TODO(johnniwinther): Substitute type arguments for type variables.
+  Map<String, MemberMirror> get members => originalDeclaration.members;
 
   bool get isObject => system.compiler.objectClass == _type.element;
 
@@ -1081,6 +1111,15 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
   // TODO(johnniwinther): Substitute type arguments for type variables.
   Map<String, MethodMirror> get constructors =>
       originalDeclaration.constructors;
+
+  // TODO(johnniwinther): Substitute type arguments for type variables.
+  Map<String, MethodMirror> get methods => originalDeclaration.methods;
+
+  // TODO(johnniwinther): Substitute type arguments for type variables.
+  Map<String, MethodMirror> get setters => originalDeclaration.setters;
+
+  // TODO(johnniwinther): Substitute type arguments for type variables.
+  Map<String, MethodMirror> get getters => originalDeclaration.getters;
 
   // TODO(johnniwinther): Substitute type arguments for type variables?
   ClassMirror get defaultFactory => originalDeclaration.defaultFactory;
@@ -1169,10 +1208,6 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeElementMirror
 
   List<TypeVariableMirror> get typeVariables =>
       originalDeclaration.typeVariables;
-
-  Map<String, MethodMirror> get constructors => <String, MethodMirror>{};
-
-  ClassMirror get defaultFactory => null;
 
   TypeMirror get returnType {
     return _convertTypeToTypeMirror(system, _functionType.returnType,

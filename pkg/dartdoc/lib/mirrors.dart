@@ -290,7 +290,39 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
   List<TypeVariableMirror> get typeVariables;
 
   /**
-   * Returns an immutable map of the constructors in this interface.
+   * An immutable map from from names to mirrors for all members of
+   * this type.
+   *
+   * The members of a type are its methods, fields, getters, and
+   * setters.  Note that constructors and type variables are not
+   * considered to be members of a type.
+   *
+   * This does not include inherited members.
+   */
+  Map<String, Mirror> get members;
+
+  /**
+   * An immutable map from names to mirrors for all method,
+   * declarations for this type.  This does not include getters and
+   * setters.
+   */
+  Map<String, MethodMirror> get methods;
+
+  /**
+   * An immutable map from names to mirrors for all getter
+   * declarations for this type.
+   */
+  Map<String, MethodMirror> get getters;
+
+  /**
+   * An immutable map from names to mirrors for all setter
+   * declarations for this type.
+   */
+  Map<String, MethodMirror> get setters;
+
+  /**
+   * An immutable map from names to mirrors for all constructor
+   * declarations for this type.
    */
   Map<String, MethodMirror> get constructors;
 

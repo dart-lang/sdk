@@ -1534,7 +1534,7 @@ class Dartdoc {
     // arguments. If the type isn't generic, genericType returns `this`, so it
     // works for non-generic types too.
     return '${sanitize(displayName(type.library))}/'
-           '${type.declaration.simpleName}.html';
+           '${type.originalDeclaration.simpleName}.html';
   }
 
   /** Gets the URL for the documentation for [member]. */
