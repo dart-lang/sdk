@@ -84,6 +84,22 @@ class DeoptimizationContext : public ValueObject {
 // the deopt-info array.
 class DeoptInstr : public ZoneAllocated {
  public:
+  enum Kind {
+    kRetAfterAddress,
+    kRetBeforeAddress,
+    kConstant,
+    kRegister,
+    kXmmRegister,
+    kInt64XmmRegister,
+    kStackSlot,
+    kDoubleStackSlot,
+    kInt64StackSlot,
+    kPcMarker,
+    kCallerFp,
+    kCallerPc,
+    kSuffix,
+  };
+
   static DeoptInstr* Create(intptr_t kind_as_int, intptr_t from_index);
 
   DeoptInstr() {}
@@ -94,22 +110,15 @@ class DeoptInstr : public ZoneAllocated {
   virtual void Execute(DeoptimizationContext* deopt_context,
                        intptr_t to_index) = 0;
 
- protected:
-  enum Kind {
-    kSetRetAfterAddress,
-    kSetRetBeforeAddress,
-    kCopyConstant,
-    kCopyRegister,
-    kCopyXmmRegister,
-    kCopyInt64XmmRegister,
-    kCopyStackSlot,
-    kCopyDoubleStackSlot,
-    kCopyInt64StackSlot,
-    kSetPcMarker,
-    kSetCallerFp,
-    kSetCallerPc,
-  };
+  bool Equals(const DeoptInstr& other) const {
+    return (kind() == other.kind()) && (from_index() == other.from_index());
+  }
 
+  // Decode the payload of a suffix command.  Return the suffix length and
+  // set the output parameter info_number to the index of the shared suffix.
+  static intptr_t DecodeSuffix(intptr_t from_index, intptr_t* info_number);
+
+ protected:
   virtual DeoptInstr::Kind kind() const = 0;
   virtual intptr_t from_index() const = 0;
 
@@ -120,18 +129,18 @@ class DeoptInstr : public ZoneAllocated {
 };
 
 
-// Builds one instance of DeoptInfo. Call AddXXX methods in the order of
-// their target, starting wih deoptimized code continuation pc and ending with
-// the first argument of the deoptimized code.
+// Builds a deoptimization info table, one DeoptInfo at a time.  Call AddXXX
+// methods in the order of their target, starting wih deoptimized code
+// continuation pc and ending with the first argument of the deoptimized
+// code.  Call CreateDeoptInfo to write the accumulated instructions into
+// the heap and reset the builder's internal state for the next DeoptInfo.
 class DeoptInfoBuilder : public ValueObject {
  public:
+  explicit DeoptInfoBuilder(const intptr_t num_args);
+
   // 'object_table' holds all objects referred to by DeoptInstr in
   // all DeoptInfo instances for a single Code object.
-  DeoptInfoBuilder(const GrowableObjectArray& object_table,
-                   const intptr_t num_args)
-      : instructions_(),
-        object_table_(object_table),
-        num_args_(num_args) {}
+  const GrowableObjectArray& object_table() { return object_table_; }
 
   // Return address before instruction.
   void AddReturnAddressBefore(const Function& function,
@@ -151,14 +160,20 @@ class DeoptInfoBuilder : public ValueObject {
   void AddCallerFp(intptr_t to_index);
   void AddCallerPc(intptr_t to_index);
 
-  RawDeoptInfo* CreateDeoptInfo() const;
+  RawDeoptInfo* CreateDeoptInfo();
 
  private:
+  class TrieNode;
+
   intptr_t FindOrAddObjectInTable(const Object& obj) const;
 
   GrowableArray<DeoptInstr*> instructions_;
   const GrowableObjectArray& object_table_;
   const intptr_t num_args_;
+
+  // Used to compress entries by sharing suffixes.
+  TrieNode* trie_root_;
+  intptr_t current_info_number_;
 
   DISALLOW_COPY_AND_ASSIGN(DeoptInfoBuilder);
 };

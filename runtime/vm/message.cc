@@ -6,8 +6,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, trace_isolates);
-
 MessageQueue::MessageQueue() {
   head_ = NULL;
   tail_ = NULL;

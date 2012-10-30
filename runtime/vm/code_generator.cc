@@ -1664,7 +1664,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
   const intptr_t num_args =
       function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
   intptr_t unoptimized_stack_size =
-      + deopt_info.Length() - num_args
+      + deopt_info.TranslationLength() - num_args
       - 2;  // Subtract caller FP and PC.
   return unoptimized_stack_size * kWordSize;
 }
@@ -1675,12 +1675,11 @@ END_LEAF_RUNTIME_ENTRY
 static intptr_t DeoptimizeWithDeoptInfo(const Code& code,
                                         const DeoptInfo& deopt_info,
                                         const StackFrame& caller_frame) {
-  const intptr_t len = deopt_info.Length();
+  const intptr_t len = deopt_info.TranslationLength();
   GrowableArray<DeoptInstr*> deopt_instructions(len);
-  for (intptr_t i = 0; i < len; i++) {
-    deopt_instructions.Add(DeoptInstr::Create(deopt_info.Instruction(i),
-                                              deopt_info.FromIndex(i)));
-  }
+  const Array& deopt_table = Array::Handle(code.deopt_info_array());
+  ASSERT(!deopt_table.IsNull());
+  deopt_info.ToInstructions(deopt_table, &deopt_instructions);
 
   intptr_t* start = reinterpret_cast<intptr_t*>(caller_frame.sp() - kWordSize);
   const Function& function = Function::Handle(code.function());

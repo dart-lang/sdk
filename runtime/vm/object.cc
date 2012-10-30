@@ -6771,6 +6771,47 @@ intptr_t DeoptInfo::Instruction(intptr_t index) const {
 }
 
 
+intptr_t DeoptInfo::TranslationLength() const {
+  intptr_t length = Length();
+  if (Instruction(length - 1) != DeoptInstr::kSuffix) return length;
+
+  // If the last command is a suffix, add in the length of the suffix and
+  // do not count the suffix command as a translation command.
+  intptr_t ignored = 0;
+  intptr_t suffix_length =
+      DeoptInstr::DecodeSuffix(FromIndex(length - 1), &ignored);
+  return length + suffix_length - 1;
+}
+
+
+void DeoptInfo::ToInstructions(const Array& table,
+                               GrowableArray<DeoptInstr*>* instructions) const {
+  ASSERT(instructions->is_empty());
+  Smi& offset = Smi::Handle();
+  DeoptInfo& info = DeoptInfo::Handle(raw());
+  Smi& reason = Smi::Handle();
+  intptr_t index = 0;
+  intptr_t length = TranslationLength();
+  while (index < length) {
+    intptr_t instruction = info.Instruction(index);
+    intptr_t from_index = info.FromIndex(index);
+    if (instruction == DeoptInstr::kSuffix) {
+      // Suffix instructions cause us to 'jump' to another translation,
+      // changing info, length and index.
+      intptr_t info_number = 0;
+      intptr_t suffix_length =
+          DeoptInstr::DecodeSuffix(from_index, &info_number);
+      DeoptTable::GetEntry(table, info_number, &offset, &info, &reason);
+      length = info.TranslationLength();
+      index = length - suffix_length;
+    } else {
+      instructions->Add(DeoptInstr::Create(instruction, from_index));
+      ++index;
+    }
+  }
+}
+
+
 const char* DeoptInfo::ToCString() const {
   if (Length() == 0) {
     return "No DeoptInfo";

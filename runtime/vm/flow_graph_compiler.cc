@@ -62,77 +62,73 @@ void CompilerDeoptInfo::AllocateIncomingParametersRecursive(
 }
 
 
-RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler) {
+RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
+                                                 DeoptInfoBuilder* builder) {
   if (deoptimization_env_ == NULL) return DeoptInfo::null();
 
   intptr_t stack_height = compiler->StackSize();
   AllocateIncomingParametersRecursive(deoptimization_env_, &stack_height);
 
-  const Function& function = compiler->parsed_function().function();
-  // For functions with optional arguments, all incoming arguments are copied
-  // to spill slots. The deoptimization environment does not track them.
-  const intptr_t incoming_arg_count =
-      function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
-  DeoptInfoBuilder builder(compiler->object_table(), incoming_arg_count);
-
   intptr_t slot_ix = 0;
-  Environment* inner = deoptimization_env_;
+  Environment* current = deoptimization_env_;
 
   // For the innermost environment, call the virtual return builder.
-  BuildReturnAddress(&builder, inner->function(), slot_ix++);
+  BuildReturnAddress(builder, current->function(), slot_ix++);
 
   // For the innermost environment, set outgoing arguments and the locals.
-  for (intptr_t i = inner->Length() - 1;
-       i >= inner->fixed_parameter_count();
+  for (intptr_t i = current->Length() - 1;
+       i >= current->fixed_parameter_count();
        i--) {
-    builder.AddCopy(inner->LocationAt(i), *inner->ValueAt(i), slot_ix++);
+    builder->AddCopy(current->LocationAt(i), *current->ValueAt(i), slot_ix++);
   }
 
   // PC marker and caller FP.
-  builder.AddPcMarker(inner->function(), slot_ix++);
-  builder.AddCallerFp(slot_ix++);
+  builder->AddPcMarker(current->function(), slot_ix++);
+  builder->AddCallerFp(slot_ix++);
 
-  while (inner->outer() != NULL) {
-    // Write the frame for an outer environment.
-    const Environment* current = inner->outer();
-
+  Environment* previous = current;
+  current = current->outer();
+  while (current != NULL) {
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
-    builder.AddReturnAddressAfter(current->function(),
-                                  current->deopt_id(),
-                                  slot_ix++);
+    builder->AddReturnAddressAfter(current->function(),
+                                   current->deopt_id(),
+                                   slot_ix++);
 
     // The values of outgoing arguments can be changed from the inlined call so
-    // we must read them from the inner environment.
-    for (intptr_t i = inner->fixed_parameter_count() - 1; i >= 0; i--) {
-      builder.AddCopy(inner->LocationAt(i), *inner->ValueAt(i), slot_ix++);
+    // we must read them from the previous environment.
+    for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {
+      builder->AddCopy(previous->LocationAt(i), *previous->ValueAt(i),
+                       slot_ix++);
     }
 
     // Set the locals, note that outgoing arguments are not in the environment.
     for (intptr_t i = current->Length() - 1;
          i >= current->fixed_parameter_count();
          i--) {
-      builder.AddCopy(current->LocationAt(i), *current->ValueAt(i), slot_ix++);
+      builder->AddCopy(current->LocationAt(i), *current->ValueAt(i), slot_ix++);
     }
 
     // PC marker and caller FP.
-    builder.AddPcMarker(current->function(), slot_ix++);
-    builder.AddCallerFp(slot_ix++);
+    builder->AddPcMarker(current->function(), slot_ix++);
+    builder->AddCallerFp(slot_ix++);
 
     // Iterate on the outer environment.
-    inner = inner->outer();
+    previous = current;
+    current = current->outer();
   }
-  ASSERT(inner != NULL);  // The inner pointer is now the outermost environment.
+  // The previous pointer is now the outermost environment.
+  ASSERT(previous != NULL);
 
   // For the outermost environment, set caller PC.
-  builder.AddCallerPc(slot_ix++);
+  builder->AddCallerPc(slot_ix++);
 
   // For the outermost environment, set the incoming arguments.
-  for (intptr_t i = inner->fixed_parameter_count() - 1; i >= 0; i--) {
-    builder.AddCopy(inner->LocationAt(i), *inner->ValueAt(i), slot_ix++);
+  for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {
+    builder->AddCopy(previous->LocationAt(i), *previous->ValueAt(i), slot_ix++);
   }
 
-  const DeoptInfo& deopt_info = DeoptInfo::Handle(builder.CreateDeoptInfo());
+  const DeoptInfo& deopt_info = DeoptInfo::Handle(builder->CreateDeoptInfo());
   return deopt_info.raw();
 }
 
@@ -150,7 +146,6 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
           is_optimizing ? new StackmapTableBuilder() : NULL),
       block_info_(block_order_.length()),
       deopt_infos_(),
-      object_table_(GrowableObjectArray::Handle(GrowableObjectArray::New())),
       is_optimizing_(is_optimizing),
       bool_true_(Bool::ZoneHandle(Bool::True())),
       bool_false_(Bool::ZoneHandle(Bool::False())),
@@ -380,6 +375,13 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
 
 
 void FlowGraphCompiler::FinalizeDeoptInfo(const Code& code) {
+  // For functions with optional arguments, all incoming arguments are copied
+  // to spill slots. The deoptimization environment does not track them.
+  const Function& function = parsed_function().function();
+  const intptr_t incoming_arg_count =
+      function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
+  DeoptInfoBuilder builder(incoming_arg_count);
+
   const Array& array =
       Array::Handle(Array::New(DeoptTable::SizeFor(deopt_infos_.length()),
                                Heap::kOld));
@@ -388,12 +390,13 @@ void FlowGraphCompiler::FinalizeDeoptInfo(const Code& code) {
   Smi& reason = Smi::Handle();
   for (intptr_t i = 0; i < deopt_infos_.length(); i++) {
     offset = Smi::New(deopt_infos_[i]->pc_offset());
-    info = deopt_infos_[i]->CreateDeoptInfo(this);
+    info = deopt_infos_[i]->CreateDeoptInfo(this, &builder);
     reason = Smi::New(deopt_infos_[i]->reason());
     DeoptTable::SetEntry(array, i, offset, info, reason);
   }
   code.set_deopt_info_array(array);
-  const Array& object_array = Array::Handle(Array::MakeArray(object_table()));
+  const Array& object_array =
+      Array::Handle(Array::MakeArray(builder.object_table()));
   code.set_object_table(object_array);
 }
 

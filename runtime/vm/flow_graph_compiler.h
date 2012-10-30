@@ -67,7 +67,8 @@ class CompilerDeoptInfo : public ZoneAllocated {
         reason_(reason),
         deoptimization_env_(NULL) {}
 
-  RawDeoptInfo* CreateDeoptInfo(FlowGraphCompiler* compiler);
+  RawDeoptInfo* CreateDeoptInfo(FlowGraphCompiler* compiler,
+                                DeoptInfoBuilder* builder);
 
   void AllocateIncomingParametersRecursive(Environment* env,
                                            intptr_t* stack_height);

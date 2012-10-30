@@ -29,6 +29,7 @@ class Api;
 class Assembler;
 class Closure;
 class Code;
+class DeoptInstr;
 class LocalScope;
 class Symbols;
 
@@ -2331,7 +2332,12 @@ class DeoptInfo : public Object {
   };
 
  public:
+  // The number of instructions.
   intptr_t Length() const;
+
+  // The number of real (non-suffix) instructions needed to execute the
+  // deoptimization translation.
+  intptr_t TranslationLength() const;
 
   static RawDeoptInfo* New(intptr_t num_commands);
 
@@ -2359,6 +2365,11 @@ class DeoptInfo : public Object {
   intptr_t ToIndex(intptr_t index) const {
     return index;
   }
+
+  // Unpack the entire translation into an array of deoptimization
+  // instructions.  This copies any shared suffixes into the array.
+  void ToInstructions(const Array& table,
+                      GrowableArray<DeoptInstr*>* instructions) const;
 
  private:
   intptr_t* EntryAddr(intptr_t index, intptr_t entry_offset) const {
