@@ -36185,7 +36185,7 @@ abstract class WebGLRenderingContext implements CanvasRenderingContext {
   int getError();
 
   /** @domName WebGLRenderingContext.getExtension */
-  void getExtension(String name);
+  Object getExtension(String name);
 
   /** @domName WebGLRenderingContext.getFramebufferAttachmentParameter */
   Object getFramebufferAttachmentParameter(int target, int attachment, int pname);
@@ -36541,7 +36541,7 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   int getError() native;
 
-  void getExtension(String name) native;
+  Object getExtension(String name) native;
 
   Object getFramebufferAttachmentParameter(int target, int attachment, int pname) native;
 

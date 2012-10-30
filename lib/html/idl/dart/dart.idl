@@ -117,7 +117,9 @@ module html {
     // TBD
     // void glGetShaderPrecisionFormat (GLenum shadertype, GLenum precisiontype, GLint* range, GLint* precision);
 
-    DOMString[] getSupportedExtensions();
+    [Custom] any getExtension(DOMString name);
+    [Suppressed, StrictTypeChecking, Custom] void getExtension(DOMString name);
+    [Custom] DOMString[] getSupportedExtensions();
     [Suppressed, StrictTypeChecking, Custom] void getSupportedExtensions();
 
     [Custom] any getTexParameter(in unsigned long target, in unsigned long pname) raises(DOMException);
