@@ -458,6 +458,10 @@ class PrimaryNode : public AstNode {
 
   const Object& primary() const { return primary_; }
 
+  bool IsSuper() const {
+    return primary().IsString() && (primary().raw() == Symbols::Super());
+  }
+
   virtual void VisitChildren(AstNodeVisitor* visitor) const;
 
   DECLARE_COMMON_NODE_FUNCTIONS(PrimaryNode);

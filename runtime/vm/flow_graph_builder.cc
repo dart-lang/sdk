@@ -2669,10 +2669,10 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
 // Looks up dynamic method noSuchMethod in target_class
 // (including its super class chain) and builds a static call to it.
 StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
-      const Class& target_class,
-      AstNode* receiver,
-      const String& method_name,
-      ArgumentListNode* method_arguments) {
+    const Class& target_class,
+    AstNode* receiver,
+    const String& method_name,
+    ArgumentListNode* method_arguments) {
   const String& no_such_method_name =
       String::ZoneHandle(Symbols::NoSuchMethod());
   const Function& no_such_method_func = Function::ZoneHandle(

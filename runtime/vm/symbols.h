@@ -25,6 +25,7 @@ class ObjectPointerVisitor;
   V(TopLevel, "::")                                                            \
   V(DefaultLabel, ":L")                                                        \
   V(This, "this")                                                              \
+  V(Super, "super")                                                            \
   V(HasNext, "hasNext")                                                        \
   V(Next, "next")                                                              \
   V(Value, "value")                                                            \

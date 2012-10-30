@@ -282,7 +282,6 @@ Language/11_Expressions/07_Maps_A01_t01: Skip # co19 issue 91: map literals ille
 
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail # issue 1604.
 Language/11_Expressions/27_Unary_Expressions_A01_t01: Fail # issue 1288 (unary super operator call)
-Language/11_Expressions/27_Unary_Expressions_A08_t01: Fail # issue 1288 (unary super operator call)
 
 LibTest/core/List/every_A03_t01: Skip # Promise removed (co19 issue #79)
 LibTest/core/List/filter_A03_t01: Skip # Promise removed (co19 issue #79)

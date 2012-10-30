@@ -366,6 +366,7 @@ class Parser : public ValueObject {
   AstNode* ParseSuperCall(const String& function_name);
   AstNode* ParseSuperFieldAccess(const String& field_name);
   AstNode* ParseSuperOperator();
+  AstNode* BuildUnarySuperOperator(Token::Kind op, PrimaryNode* super);
 
   static void SetupDefaultsForOptionalParams(const ParamList* params,
                                              Array& default_values);

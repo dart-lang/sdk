@@ -1386,6 +1386,38 @@ static bool IsSimpleLocalOrLiteralNode(AstNode* node) {
 }
 
 
+AstNode* Parser::BuildUnarySuperOperator(Token::Kind op, PrimaryNode* super) {
+  ASSERT(super->IsSuper());
+  AstNode* super_op = NULL;
+  const intptr_t super_pos = super->token_pos();
+  if ((op == Token::kNEGATE) ||
+      (op == Token::kBIT_NOT)) {
+    // Resolve the operator function in the superclass.
+    const String& operator_function_name =
+        String::ZoneHandle(Symbols::New(Token::Str(op)));
+    const bool kResolveGetter = false;
+    bool is_no_such_method = false;
+    const Function& super_operator = Function::ZoneHandle(
+        GetSuperFunction(super_pos,
+                         operator_function_name,
+                         kResolveGetter,
+                         &is_no_such_method));
+    ArgumentListNode* op_arguments = new ArgumentListNode(super_pos);
+    AstNode* receiver = LoadReceiver(super_pos);
+    op_arguments->Add(receiver);
+    CheckFunctionIsCallable(super_pos, super_operator);
+    if (is_no_such_method) {
+      op_arguments = BuildNoSuchMethodArguments(operator_function_name,
+                                                *op_arguments);
+    }
+    super_op = new StaticCallNode(super_pos, super_operator, op_arguments);
+  } else {
+    ErrorMsg(super_pos, "illegal super operator call");
+  }
+  return super_op;
+}
+
+
 AstNode* Parser::ParseSuperOperator() {
   TRACE_PARSER("ParseSuperOperator");
   AstNode* super_op = NULL;
@@ -6657,6 +6689,10 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
   TRACE_PARSER("ParseBinaryExpr");
   ASSERT(min_preced >= 4);
   AstNode* left_operand = ParseUnaryExpr();
+  if (left_operand->IsPrimaryNode() &&
+      (left_operand->AsPrimaryNode()->IsSuper())) {
+    ErrorMsg(left_operand->token_pos(), "illegal use of 'super'");
+  }
   if (IsLiteral("as")) {  // Not a reserved word.
     token_kind_ = Token::kAS;
   }
@@ -6720,12 +6756,12 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
 
 
 bool Parser::IsAssignableExpr(AstNode* expr) {
-  return expr->IsPrimaryNode()
-      || (expr->IsLoadLocalNode() && !expr->AsLoadLocalNode()->HasPseudo())
+  return (expr->IsLoadLocalNode() && !expr->AsLoadLocalNode()->HasPseudo())
       || expr->IsLoadStaticFieldNode()
       || expr->IsStaticGetterNode()
       || expr->IsInstanceGetterNode()
-      || expr->IsLoadIndexedNode();
+      || expr->IsLoadIndexedNode()
+      || (expr->IsPrimaryNode() && !expr->AsPrimaryNode()->IsSuper());
 }
 
 
@@ -7082,6 +7118,8 @@ AstNode* Parser::ParseUnaryExpr() {
         ErrorMsg(op_pos, "unexpected operator '+'");
       }
       // Expression is the literal itself.
+    } else if (expr->IsPrimaryNode() && (expr->AsPrimaryNode()->IsSuper())) {
+      expr = BuildUnarySuperOperator(unary_op, expr->AsPrimaryNode());
     } else {
       expr = UnaryOpNode::UnaryOpOrLiteral(op_pos, unary_op, expr);
     }
@@ -7349,6 +7387,9 @@ AstNode* Parser::LoadFieldIfUnresolved(AstNode* node) {
   }
   PrimaryNode* primary = node->AsPrimaryNode();
   if (primary->primary().IsString()) {
+    if (primary->IsSuper()) {
+      return primary;
+    }
     // In a static method, evaluation of an unresolved identifier causes a
     // NoSuchMethodError to be thrown.
     // In an instance method, we convert this into a getter call
@@ -7400,6 +7441,9 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
         if (left->AsPrimaryNode()->primary().IsFunction()) {
           left = LoadClosure(left->AsPrimaryNode());
         } else {
+          // Super field access handled in ParseSuperFieldAccess(),
+          // super calls handled in ParseSuperCall().
+          ASSERT(!left->AsPrimaryNode()->IsSuper());
           left = LoadFieldIfUnresolved(left);
         }
       }
@@ -7437,6 +7481,9 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
         }
       }
     } else if (CurrentToken() == Token::kLBRACK) {
+      // Super index operator handled in ParseSuperOperator().
+      ASSERT(!left->IsPrimaryNode() || !left->AsPrimaryNode()->IsSuper());
+
       const intptr_t bracket_pos = TokenPos();
       ConsumeToken();
       left = LoadFieldIfUnresolved(left);
@@ -7482,6 +7529,9 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           }
         } else if (primary->primary().IsString()) {
           // Primary is an unresolved name.
+          if (primary->IsSuper()) {
+            ErrorMsg(primary->token_pos(), "illegal use of super");
+          }
           String& name = String::CheckedZoneHandle(primary->primary().raw());
           if (current_function().is_static()) {
             selector = ThrowNoSuchMethodError(primary->token_pos(), name);
@@ -7516,6 +7566,10 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           ErrorMsg(left->token_pos(),
                    "illegal use of class name '%s'",
                    cls_name.ToCString());
+        } else if (primary->IsSuper()) {
+          // Return "super" to handle unary super operator calls,
+          // or to report illegal use of "super" otherwise.
+          left = primary;
         } else {
           UNREACHABLE();  // Internal parser error.
         }
@@ -9472,7 +9526,8 @@ AstNode* Parser::ParsePrimary() {
         (CurrentToken() == Token::kNE)) {
       primary = ParseSuperOperator();
     } else {
-      ErrorMsg("illegal super call");
+      primary = new PrimaryNode(TokenPos(),
+                                String::ZoneHandle(Symbols::Super()));
     }
   } else if (CurrentToken() == Token::kCONDITIONAL) {
     primary = ParseArgumentDefinitionTest();
