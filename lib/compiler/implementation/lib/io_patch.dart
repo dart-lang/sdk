@@ -96,9 +96,6 @@ patch class _RandomAccessFile {
   patch static _writeList(int id, List<int> buffer, int offset, int bytes) {
     throw new UnsupportedError("RandomAccessFile._writeList");
   }
-  patch static _writeString(int id, String string) {
-    throw new UnsupportedError("RandomAccessFile._writeString");
-  }
   patch static _position(int id) {
     throw new UnsupportedError("RandomAccessFile._position");
   }
