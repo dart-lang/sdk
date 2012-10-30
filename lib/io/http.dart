@@ -66,7 +66,7 @@ abstract class HttpServer {
    * setup. See [addRequestHandler] and [defaultRequestHandler] for
    * information on how incoming HTTP requests are handled.
    */
-  void listen(String host, int port, [int backlog]);
+  void listen(String host, int port, {int backlog: 128});
 
   /**
    * Attach the HTTP server to an existing [:ServerSocket:]. If the

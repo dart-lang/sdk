@@ -278,7 +278,7 @@ class ErrorInputStream implements InputStream {
   List<int> read([int len]) => null;
   int readInto(List<int> buffer, [int offset, int len]) => 0;
   int available() => 0;
-  void pipe(OutputStream output, [bool close]){ }
+  void pipe(OutputStream output, {bool close: true}){ }
   void close() { }
   bool get closed => true;
   void set onData(void callback()) { }

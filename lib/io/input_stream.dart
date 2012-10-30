@@ -60,7 +60,7 @@ abstract class InputStream {
    * `false` for the optional argument [close] keeps the output
    * stream open after writing all data from the input stream.
    */
-  void pipe(OutputStream output, [bool close = true]);
+  void pipe(OutputStream output, {bool close: true});
 
   /**
    * Close the underlying communication channel to avoid getting any
