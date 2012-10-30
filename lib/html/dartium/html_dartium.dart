@@ -26820,15 +26820,7 @@ class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement {
 
   SVGAnimatedString get target native "SVGAElement_target_Getter";
 
-  SVGAnimatedString get href native "SVGAElement_href_Getter";
-
-  SVGStringList get requiredExtensions native "SVGAElement_requiredExtensions_Getter";
-
-  SVGStringList get requiredFeatures native "SVGAElement_requiredFeatures_Getter";
-
-  SVGStringList get systemLanguage native "SVGAElement_systemLanguage_Getter";
-
-  bool hasExtension(String extension) native "SVGAElement_hasExtension_Callback";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGAElement_externalResourcesRequired_Getter";
 
   String get xmllang native "SVGAElement_xmllang_Getter";
 
@@ -26837,16 +26829,6 @@ class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement {
   String get xmlspace native "SVGAElement_xmlspace_Getter";
 
   void set xmlspace(String value) native "SVGAElement_xmlspace_Setter";
-
-  SVGAnimatedBoolean get externalResourcesRequired native "SVGAElement_externalResourcesRequired_Getter";
-
-  SVGAnimatedString get $dom_svgClassName native "SVGAElement_className_Getter";
-
-  CSSStyleDeclaration get style native "SVGAElement_style_Getter";
-
-  CSSValue getPresentationAttribute(String name) native "SVGAElement_getPresentationAttribute_Callback";
-
-  SVGAnimatedTransformList get transform native "SVGAElement_transform_Getter";
 
   SVGElement get farthestViewportElement native "SVGAElement_farthestViewportElement_Getter";
 
@@ -26859,6 +26841,24 @@ class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement {
   SVGMatrix getScreenCTM() native "SVGAElement_getScreenCTM_Callback";
 
   SVGMatrix getTransformToElement(SVGElement element) native "SVGAElement_getTransformToElement_Callback";
+
+  SVGAnimatedString get $dom_svgClassName native "SVGAElement_className_Getter";
+
+  CSSStyleDeclaration get style native "SVGAElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) native "SVGAElement_getPresentationAttribute_Callback";
+
+  SVGStringList get requiredExtensions native "SVGAElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures native "SVGAElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage native "SVGAElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) native "SVGAElement_hasExtension_Callback";
+
+  SVGAnimatedTransformList get transform native "SVGAElement_transform_Getter";
+
+  SVGAnimatedString get href native "SVGAElement_href_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27699,16 +27699,6 @@ class _SVGAnimationElementImpl extends _SVGElementImpl implements SVGAnimationEl
 
   num getStartTime() native "SVGAnimationElement_getStartTime_Callback";
 
-  SVGStringList get requiredExtensions native "SVGAnimationElement_requiredExtensions_Getter";
-
-  SVGStringList get requiredFeatures native "SVGAnimationElement_requiredFeatures_Getter";
-
-  SVGStringList get systemLanguage native "SVGAnimationElement_systemLanguage_Getter";
-
-  bool hasExtension(String extension) native "SVGAnimationElement_hasExtension_Callback";
-
-  SVGAnimatedBoolean get externalResourcesRequired native "SVGAnimationElement_externalResourcesRequired_Getter";
-
   void beginElement() native "SVGAnimationElement_beginElement_Callback";
 
   void beginElementAt(num offset) native "SVGAnimationElement_beginElementAt_Callback";
@@ -27716,6 +27706,16 @@ class _SVGAnimationElementImpl extends _SVGElementImpl implements SVGAnimationEl
   void endElement() native "SVGAnimationElement_endElement_Callback";
 
   void endElementAt(num offset) native "SVGAnimationElement_endElementAt_Callback";
+
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGAnimationElement_externalResourcesRequired_Getter";
+
+  SVGStringList get requiredExtensions native "SVGAnimationElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures native "SVGAnimationElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage native "SVGAnimationElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) native "SVGAnimationElement_hasExtension_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27750,13 +27750,7 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
 
   SVGAnimatedLength get r native "SVGCircleElement_r_Getter";
 
-  SVGStringList get requiredExtensions native "SVGCircleElement_requiredExtensions_Getter";
-
-  SVGStringList get requiredFeatures native "SVGCircleElement_requiredFeatures_Getter";
-
-  SVGStringList get systemLanguage native "SVGCircleElement_systemLanguage_Getter";
-
-  bool hasExtension(String extension) native "SVGCircleElement_hasExtension_Callback";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGCircleElement_externalResourcesRequired_Getter";
 
   String get xmllang native "SVGCircleElement_xmllang_Getter";
 
@@ -27765,16 +27759,6 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
   String get xmlspace native "SVGCircleElement_xmlspace_Getter";
 
   void set xmlspace(String value) native "SVGCircleElement_xmlspace_Setter";
-
-  SVGAnimatedBoolean get externalResourcesRequired native "SVGCircleElement_externalResourcesRequired_Getter";
-
-  SVGAnimatedString get $dom_svgClassName native "SVGCircleElement_className_Getter";
-
-  CSSStyleDeclaration get style native "SVGCircleElement_style_Getter";
-
-  CSSValue getPresentationAttribute(String name) native "SVGCircleElement_getPresentationAttribute_Callback";
-
-  SVGAnimatedTransformList get transform native "SVGCircleElement_transform_Getter";
 
   SVGElement get farthestViewportElement native "SVGCircleElement_farthestViewportElement_Getter";
 
@@ -27787,6 +27771,22 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
   SVGMatrix getScreenCTM() native "SVGCircleElement_getScreenCTM_Callback";
 
   SVGMatrix getTransformToElement(SVGElement element) native "SVGCircleElement_getTransformToElement_Callback";
+
+  SVGAnimatedString get $dom_svgClassName native "SVGCircleElement_className_Getter";
+
+  CSSStyleDeclaration get style native "SVGCircleElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) native "SVGCircleElement_getPresentationAttribute_Callback";
+
+  SVGStringList get requiredExtensions native "SVGCircleElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures native "SVGCircleElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage native "SVGCircleElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) native "SVGCircleElement_hasExtension_Callback";
+
+  SVGAnimatedTransformList get transform native "SVGCircleElement_transform_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27811,13 +27811,7 @@ class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElem
 
   SVGAnimatedEnumeration get clipPathUnits native "SVGClipPathElement_clipPathUnits_Getter";
 
-  SVGStringList get requiredExtensions native "SVGClipPathElement_requiredExtensions_Getter";
-
-  SVGStringList get requiredFeatures native "SVGClipPathElement_requiredFeatures_Getter";
-
-  SVGStringList get systemLanguage native "SVGClipPathElement_systemLanguage_Getter";
-
-  bool hasExtension(String extension) native "SVGClipPathElement_hasExtension_Callback";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGClipPathElement_externalResourcesRequired_Getter";
 
   String get xmllang native "SVGClipPathElement_xmllang_Getter";
 
@@ -27826,16 +27820,6 @@ class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElem
   String get xmlspace native "SVGClipPathElement_xmlspace_Getter";
 
   void set xmlspace(String value) native "SVGClipPathElement_xmlspace_Setter";
-
-  SVGAnimatedBoolean get externalResourcesRequired native "SVGClipPathElement_externalResourcesRequired_Getter";
-
-  SVGAnimatedString get $dom_svgClassName native "SVGClipPathElement_className_Getter";
-
-  CSSStyleDeclaration get style native "SVGClipPathElement_style_Getter";
-
-  CSSValue getPresentationAttribute(String name) native "SVGClipPathElement_getPresentationAttribute_Callback";
-
-  SVGAnimatedTransformList get transform native "SVGClipPathElement_transform_Getter";
 
   SVGElement get farthestViewportElement native "SVGClipPathElement_farthestViewportElement_Getter";
 
@@ -27848,6 +27832,22 @@ class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElem
   SVGMatrix getScreenCTM() native "SVGClipPathElement_getScreenCTM_Callback";
 
   SVGMatrix getTransformToElement(SVGElement element) native "SVGClipPathElement_getTransformToElement_Callback";
+
+  SVGAnimatedString get $dom_svgClassName native "SVGClipPathElement_className_Getter";
+
+  CSSStyleDeclaration get style native "SVGClipPathElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) native "SVGClipPathElement_getPresentationAttribute_Callback";
+
+  SVGStringList get requiredExtensions native "SVGClipPathElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures native "SVGClipPathElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage native "SVGClipPathElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) native "SVGClipPathElement_hasExtension_Callback";
+
+  SVGAnimatedTransformList get transform native "SVGClipPathElement_transform_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27993,7 +27993,7 @@ class _SVGCursorElementImpl extends _SVGElementImpl implements SVGCursorElement 
 
   SVGAnimatedLength get y native "SVGCursorElement_y_Getter";
 
-  SVGAnimatedString get href native "SVGCursorElement_href_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGCursorElement_externalResourcesRequired_Getter";
 
   SVGStringList get requiredExtensions native "SVGCursorElement_requiredExtensions_Getter";
 
@@ -28003,7 +28003,7 @@ class _SVGCursorElementImpl extends _SVGElementImpl implements SVGCursorElement 
 
   bool hasExtension(String extension) native "SVGCursorElement_hasExtension_Callback";
 
-  SVGAnimatedBoolean get externalResourcesRequired native "SVGCursorElement_externalResourcesRequired_Getter";
+  SVGAnimatedString get href native "SVGCursorElement_href_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28023,13 +28023,7 @@ abstract class SVGDefsElement implements SVGElement, SVGTests, SVGLangSpace, SVG
 
 class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement {
 
-  SVGStringList get requiredExtensions native "SVGDefsElement_requiredExtensions_Getter";
-
-  SVGStringList get requiredFeatures native "SVGDefsElement_requiredFeatures_Getter";
-
-  SVGStringList get systemLanguage native "SVGDefsElement_systemLanguage_Getter";
-
-  bool hasExtension(String extension) native "SVGDefsElement_hasExtension_Callback";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGDefsElement_externalResourcesRequired_Getter";
 
   String get xmllang native "SVGDefsElement_xmllang_Getter";
 
@@ -28038,16 +28032,6 @@ class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement {
   String get xmlspace native "SVGDefsElement_xmlspace_Getter";
 
   void set xmlspace(String value) native "SVGDefsElement_xmlspace_Setter";
-
-  SVGAnimatedBoolean get externalResourcesRequired native "SVGDefsElement_externalResourcesRequired_Getter";
-
-  SVGAnimatedString get $dom_svgClassName native "SVGDefsElement_className_Getter";
-
-  CSSStyleDeclaration get style native "SVGDefsElement_style_Getter";
-
-  CSSValue getPresentationAttribute(String name) native "SVGDefsElement_getPresentationAttribute_Callback";
-
-  SVGAnimatedTransformList get transform native "SVGDefsElement_transform_Getter";
 
   SVGElement get farthestViewportElement native "SVGDefsElement_farthestViewportElement_Getter";
 
@@ -28060,6 +28044,22 @@ class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement {
   SVGMatrix getScreenCTM() native "SVGDefsElement_getScreenCTM_Callback";
 
   SVGMatrix getTransformToElement(SVGElement element) native "SVGDefsElement_getTransformToElement_Callback";
+
+  SVGAnimatedString get $dom_svgClassName native "SVGDefsElement_className_Getter";
+
+  CSSStyleDeclaration get style native "SVGDefsElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) native "SVGDefsElement_getPresentationAttribute_Callback";
+
+  SVGStringList get requiredExtensions native "SVGDefsElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures native "SVGDefsElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage native "SVGDefsElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) native "SVGDefsElement_hasExtension_Callback";
+
+  SVGAnimatedTransformList get transform native "SVGDefsElement_transform_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28583,13 +28583,7 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
 
   SVGAnimatedLength get ry native "SVGEllipseElement_ry_Getter";
 
-  SVGStringList get requiredExtensions native "SVGEllipseElement_requiredExtensions_Getter";
-
-  SVGStringList get requiredFeatures native "SVGEllipseElement_requiredFeatures_Getter";
-
-  SVGStringList get systemLanguage native "SVGEllipseElement_systemLanguage_Getter";
-
-  bool hasExtension(String extension) native "SVGEllipseElement_hasExtension_Callback";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGEllipseElement_externalResourcesRequired_Getter";
 
   String get xmllang native "SVGEllipseElement_xmllang_Getter";
 
@@ -28598,16 +28592,6 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
   String get xmlspace native "SVGEllipseElement_xmlspace_Getter";
 
   void set xmlspace(String value) native "SVGEllipseElement_xmlspace_Setter";
-
-  SVGAnimatedBoolean get externalResourcesRequired native "SVGEllipseElement_externalResourcesRequired_Getter";
-
-  SVGAnimatedString get $dom_svgClassName native "SVGEllipseElement_className_Getter";
-
-  CSSStyleDeclaration get style native "SVGEllipseElement_style_Getter";
-
-  CSSValue getPresentationAttribute(String name) native "SVGEllipseElement_getPresentationAttribute_Callback";
-
-  SVGAnimatedTransformList get transform native "SVGEllipseElement_transform_Getter";
 
   SVGElement get farthestViewportElement native "SVGEllipseElement_farthestViewportElement_Getter";
 
@@ -28620,6 +28604,22 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
   SVGMatrix getScreenCTM() native "SVGEllipseElement_getScreenCTM_Callback";
 
   SVGMatrix getTransformToElement(SVGElement element) native "SVGEllipseElement_getTransformToElement_Callback";
+
+  SVGAnimatedString get $dom_svgClassName native "SVGEllipseElement_className_Getter";
+
+  CSSStyleDeclaration get style native "SVGEllipseElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) native "SVGEllipseElement_getPresentationAttribute_Callback";
+
+  SVGStringList get requiredExtensions native "SVGEllipseElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures native "SVGEllipseElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage native "SVGEllipseElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) native "SVGEllipseElement_hasExtension_Callback";
+
+  SVGAnimatedTransformList get transform native "SVGEllipseElement_transform_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29424,16 +29424,6 @@ class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElemen
 
   SVGAnimatedPreserveAspectRatio get preserveAspectRatio native "SVGFEImageElement_preserveAspectRatio_Getter";
 
-  SVGAnimatedString get href native "SVGFEImageElement_href_Getter";
-
-  String get xmllang native "SVGFEImageElement_xmllang_Getter";
-
-  void set xmllang(String value) native "SVGFEImageElement_xmllang_Setter";
-
-  String get xmlspace native "SVGFEImageElement_xmlspace_Getter";
-
-  void set xmlspace(String value) native "SVGFEImageElement_xmlspace_Setter";
-
   SVGAnimatedBoolean get externalResourcesRequired native "SVGFEImageElement_externalResourcesRequired_Getter";
 
   SVGAnimatedLength get height native "SVGFEImageElement_height_Getter";
@@ -29446,11 +29436,21 @@ class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElemen
 
   SVGAnimatedLength get y native "SVGFEImageElement_y_Getter";
 
+  String get xmllang native "SVGFEImageElement_xmllang_Getter";
+
+  void set xmllang(String value) native "SVGFEImageElement_xmllang_Setter";
+
+  String get xmlspace native "SVGFEImageElement_xmlspace_Getter";
+
+  void set xmlspace(String value) native "SVGFEImageElement_xmlspace_Setter";
+
   SVGAnimatedString get $dom_svgClassName native "SVGFEImageElement_className_Getter";
 
   CSSStyleDeclaration get style native "SVGFEImageElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGFEImageElement_getPresentationAttribute_Callback";
+
+  SVGAnimatedString get href native "SVGFEImageElement_href_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29946,7 +29946,7 @@ class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement 
 
   void setFilterRes(int filterResX, int filterResY) native "SVGFilterElement_setFilterRes_Callback";
 
-  SVGAnimatedString get href native "SVGFilterElement_href_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGFilterElement_externalResourcesRequired_Getter";
 
   String get xmllang native "SVGFilterElement_xmllang_Getter";
 
@@ -29956,13 +29956,13 @@ class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement 
 
   void set xmlspace(String value) native "SVGFilterElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired native "SVGFilterElement_externalResourcesRequired_Getter";
-
   SVGAnimatedString get $dom_svgClassName native "SVGFilterElement_className_Getter";
 
   CSSStyleDeclaration get style native "SVGFilterElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGFilterElement_getPresentationAttribute_Callback";
+
+  SVGAnimatedString get href native "SVGFilterElement_href_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30149,13 +30149,7 @@ class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeign
 
   SVGAnimatedLength get y native "SVGForeignObjectElement_y_Getter";
 
-  SVGStringList get requiredExtensions native "SVGForeignObjectElement_requiredExtensions_Getter";
-
-  SVGStringList get requiredFeatures native "SVGForeignObjectElement_requiredFeatures_Getter";
-
-  SVGStringList get systemLanguage native "SVGForeignObjectElement_systemLanguage_Getter";
-
-  bool hasExtension(String extension) native "SVGForeignObjectElement_hasExtension_Callback";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGForeignObjectElement_externalResourcesRequired_Getter";
 
   String get xmllang native "SVGForeignObjectElement_xmllang_Getter";
 
@@ -30164,16 +30158,6 @@ class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeign
   String get xmlspace native "SVGForeignObjectElement_xmlspace_Getter";
 
   void set xmlspace(String value) native "SVGForeignObjectElement_xmlspace_Setter";
-
-  SVGAnimatedBoolean get externalResourcesRequired native "SVGForeignObjectElement_externalResourcesRequired_Getter";
-
-  SVGAnimatedString get $dom_svgClassName native "SVGForeignObjectElement_className_Getter";
-
-  CSSStyleDeclaration get style native "SVGForeignObjectElement_style_Getter";
-
-  CSSValue getPresentationAttribute(String name) native "SVGForeignObjectElement_getPresentationAttribute_Callback";
-
-  SVGAnimatedTransformList get transform native "SVGForeignObjectElement_transform_Getter";
 
   SVGElement get farthestViewportElement native "SVGForeignObjectElement_farthestViewportElement_Getter";
 
@@ -30186,6 +30170,22 @@ class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeign
   SVGMatrix getScreenCTM() native "SVGForeignObjectElement_getScreenCTM_Callback";
 
   SVGMatrix getTransformToElement(SVGElement element) native "SVGForeignObjectElement_getTransformToElement_Callback";
+
+  SVGAnimatedString get $dom_svgClassName native "SVGForeignObjectElement_className_Getter";
+
+  CSSStyleDeclaration get style native "SVGForeignObjectElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) native "SVGForeignObjectElement_getPresentationAttribute_Callback";
+
+  SVGStringList get requiredExtensions native "SVGForeignObjectElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures native "SVGForeignObjectElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage native "SVGForeignObjectElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) native "SVGForeignObjectElement_hasExtension_Callback";
+
+  SVGAnimatedTransformList get transform native "SVGForeignObjectElement_transform_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30205,13 +30205,7 @@ abstract class SVGGElement implements SVGElement, SVGTests, SVGLangSpace, SVGExt
 
 class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement {
 
-  SVGStringList get requiredExtensions native "SVGGElement_requiredExtensions_Getter";
-
-  SVGStringList get requiredFeatures native "SVGGElement_requiredFeatures_Getter";
-
-  SVGStringList get systemLanguage native "SVGGElement_systemLanguage_Getter";
-
-  bool hasExtension(String extension) native "SVGGElement_hasExtension_Callback";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGGElement_externalResourcesRequired_Getter";
 
   String get xmllang native "SVGGElement_xmllang_Getter";
 
@@ -30220,16 +30214,6 @@ class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement {
   String get xmlspace native "SVGGElement_xmlspace_Getter";
 
   void set xmlspace(String value) native "SVGGElement_xmlspace_Setter";
-
-  SVGAnimatedBoolean get externalResourcesRequired native "SVGGElement_externalResourcesRequired_Getter";
-
-  SVGAnimatedString get $dom_svgClassName native "SVGGElement_className_Getter";
-
-  CSSStyleDeclaration get style native "SVGGElement_style_Getter";
-
-  CSSValue getPresentationAttribute(String name) native "SVGGElement_getPresentationAttribute_Callback";
-
-  SVGAnimatedTransformList get transform native "SVGGElement_transform_Getter";
 
   SVGElement get farthestViewportElement native "SVGGElement_farthestViewportElement_Getter";
 
@@ -30242,6 +30226,22 @@ class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement {
   SVGMatrix getScreenCTM() native "SVGGElement_getScreenCTM_Callback";
 
   SVGMatrix getTransformToElement(SVGElement element) native "SVGGElement_getTransformToElement_Callback";
+
+  SVGAnimatedString get $dom_svgClassName native "SVGGElement_className_Getter";
+
+  CSSStyleDeclaration get style native "SVGGElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) native "SVGGElement_getPresentationAttribute_Callback";
+
+  SVGStringList get requiredExtensions native "SVGGElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures native "SVGGElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage native "SVGGElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) native "SVGGElement_hasExtension_Callback";
+
+  SVGAnimatedTransformList get transform native "SVGGElement_transform_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30321,13 +30321,13 @@ class _SVGGlyphRefElementImpl extends _SVGElementImpl implements SVGGlyphRefElem
 
   void set y(num value) native "SVGGlyphRefElement_y_Setter";
 
-  SVGAnimatedString get href native "SVGGlyphRefElement_href_Getter";
-
   SVGAnimatedString get $dom_svgClassName native "SVGGlyphRefElement_className_Getter";
 
   CSSStyleDeclaration get style native "SVGGlyphRefElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGGlyphRefElement_getPresentationAttribute_Callback";
+
+  SVGAnimatedString get href native "SVGGlyphRefElement_href_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30370,8 +30370,6 @@ class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElem
 
   SVGAnimatedEnumeration get spreadMethod native "SVGGradientElement_spreadMethod_Getter";
 
-  SVGAnimatedString get href native "SVGGradientElement_href_Getter";
-
   SVGAnimatedBoolean get externalResourcesRequired native "SVGGradientElement_externalResourcesRequired_Getter";
 
   SVGAnimatedString get $dom_svgClassName native "SVGGradientElement_className_Getter";
@@ -30379,6 +30377,8 @@ class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElem
   CSSStyleDeclaration get style native "SVGGradientElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGGradientElement_getPresentationAttribute_Callback";
+
+  SVGAnimatedString get href native "SVGGradientElement_href_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30441,15 +30441,7 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement {
 
   SVGAnimatedLength get y native "SVGImageElement_y_Getter";
 
-  SVGAnimatedString get href native "SVGImageElement_href_Getter";
-
-  SVGStringList get requiredExtensions native "SVGImageElement_requiredExtensions_Getter";
-
-  SVGStringList get requiredFeatures native "SVGImageElement_requiredFeatures_Getter";
-
-  SVGStringList get systemLanguage native "SVGImageElement_systemLanguage_Getter";
-
-  bool hasExtension(String extension) native "SVGImageElement_hasExtension_Callback";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGImageElement_externalResourcesRequired_Getter";
 
   String get xmllang native "SVGImageElement_xmllang_Getter";
 
@@ -30458,16 +30450,6 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement {
   String get xmlspace native "SVGImageElement_xmlspace_Getter";
 
   void set xmlspace(String value) native "SVGImageElement_xmlspace_Setter";
-
-  SVGAnimatedBoolean get externalResourcesRequired native "SVGImageElement_externalResourcesRequired_Getter";
-
-  SVGAnimatedString get $dom_svgClassName native "SVGImageElement_className_Getter";
-
-  CSSStyleDeclaration get style native "SVGImageElement_style_Getter";
-
-  CSSValue getPresentationAttribute(String name) native "SVGImageElement_getPresentationAttribute_Callback";
-
-  SVGAnimatedTransformList get transform native "SVGImageElement_transform_Getter";
 
   SVGElement get farthestViewportElement native "SVGImageElement_farthestViewportElement_Getter";
 
@@ -30480,6 +30462,24 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement {
   SVGMatrix getScreenCTM() native "SVGImageElement_getScreenCTM_Callback";
 
   SVGMatrix getTransformToElement(SVGElement element) native "SVGImageElement_getTransformToElement_Callback";
+
+  SVGAnimatedString get $dom_svgClassName native "SVGImageElement_className_Getter";
+
+  CSSStyleDeclaration get style native "SVGImageElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) native "SVGImageElement_getPresentationAttribute_Callback";
+
+  SVGStringList get requiredExtensions native "SVGImageElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures native "SVGImageElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage native "SVGImageElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) native "SVGImageElement_hasExtension_Callback";
+
+  SVGAnimatedTransformList get transform native "SVGImageElement_transform_Getter";
+
+  SVGAnimatedString get href native "SVGImageElement_href_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30751,13 +30751,7 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement {
 
   SVGAnimatedLength get y2 native "SVGLineElement_y2_Getter";
 
-  SVGStringList get requiredExtensions native "SVGLineElement_requiredExtensions_Getter";
-
-  SVGStringList get requiredFeatures native "SVGLineElement_requiredFeatures_Getter";
-
-  SVGStringList get systemLanguage native "SVGLineElement_systemLanguage_Getter";
-
-  bool hasExtension(String extension) native "SVGLineElement_hasExtension_Callback";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGLineElement_externalResourcesRequired_Getter";
 
   String get xmllang native "SVGLineElement_xmllang_Getter";
 
@@ -30766,16 +30760,6 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement {
   String get xmlspace native "SVGLineElement_xmlspace_Getter";
 
   void set xmlspace(String value) native "SVGLineElement_xmlspace_Setter";
-
-  SVGAnimatedBoolean get externalResourcesRequired native "SVGLineElement_externalResourcesRequired_Getter";
-
-  SVGAnimatedString get $dom_svgClassName native "SVGLineElement_className_Getter";
-
-  CSSStyleDeclaration get style native "SVGLineElement_style_Getter";
-
-  CSSValue getPresentationAttribute(String name) native "SVGLineElement_getPresentationAttribute_Callback";
-
-  SVGAnimatedTransformList get transform native "SVGLineElement_transform_Getter";
 
   SVGElement get farthestViewportElement native "SVGLineElement_farthestViewportElement_Getter";
 
@@ -30788,6 +30772,22 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement {
   SVGMatrix getScreenCTM() native "SVGLineElement_getScreenCTM_Callback";
 
   SVGMatrix getTransformToElement(SVGElement element) native "SVGLineElement_getTransformToElement_Callback";
+
+  SVGAnimatedString get $dom_svgClassName native "SVGLineElement_className_Getter";
+
+  CSSStyleDeclaration get style native "SVGLineElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) native "SVGLineElement_getPresentationAttribute_Callback";
+
+  SVGStringList get requiredExtensions native "SVGLineElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures native "SVGLineElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage native "SVGLineElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) native "SVGLineElement_hasExtension_Callback";
+
+  SVGAnimatedTransformList get transform native "SVGLineElement_transform_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30872,9 +30872,9 @@ abstract class SVGMPathElement implements SVGElement, SVGURIReference, SVGExtern
 
 class _SVGMPathElementImpl extends _SVGElementImpl implements SVGMPathElement {
 
-  SVGAnimatedString get href native "SVGMPathElement_href_Getter";
-
   SVGAnimatedBoolean get externalResourcesRequired native "SVGMPathElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get href native "SVGMPathElement_href_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30951,6 +30951,12 @@ class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement 
 
   void setOrientToAuto() native "SVGMarkerElement_setOrientToAuto_Callback";
 
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGMarkerElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio native "SVGMarkerElement_preserveAspectRatio_Getter";
+
+  SVGAnimatedRect get viewBox native "SVGMarkerElement_viewBox_Getter";
+
   String get xmllang native "SVGMarkerElement_xmllang_Getter";
 
   void set xmllang(String value) native "SVGMarkerElement_xmllang_Setter";
@@ -30959,17 +30965,11 @@ class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement 
 
   void set xmlspace(String value) native "SVGMarkerElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired native "SVGMarkerElement_externalResourcesRequired_Getter";
-
   SVGAnimatedString get $dom_svgClassName native "SVGMarkerElement_className_Getter";
 
   CSSStyleDeclaration get style native "SVGMarkerElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGMarkerElement_getPresentationAttribute_Callback";
-
-  SVGAnimatedPreserveAspectRatio get preserveAspectRatio native "SVGMarkerElement_preserveAspectRatio_Getter";
-
-  SVGAnimatedRect get viewBox native "SVGMarkerElement_viewBox_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31019,13 +31019,7 @@ class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement {
 
   SVGAnimatedLength get y native "SVGMaskElement_y_Getter";
 
-  SVGStringList get requiredExtensions native "SVGMaskElement_requiredExtensions_Getter";
-
-  SVGStringList get requiredFeatures native "SVGMaskElement_requiredFeatures_Getter";
-
-  SVGStringList get systemLanguage native "SVGMaskElement_systemLanguage_Getter";
-
-  bool hasExtension(String extension) native "SVGMaskElement_hasExtension_Callback";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGMaskElement_externalResourcesRequired_Getter";
 
   String get xmllang native "SVGMaskElement_xmllang_Getter";
 
@@ -31035,13 +31029,19 @@ class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement {
 
   void set xmlspace(String value) native "SVGMaskElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired native "SVGMaskElement_externalResourcesRequired_Getter";
-
   SVGAnimatedString get $dom_svgClassName native "SVGMaskElement_className_Getter";
 
   CSSStyleDeclaration get style native "SVGMaskElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGMaskElement_getPresentationAttribute_Callback";
+
+  SVGStringList get requiredExtensions native "SVGMaskElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures native "SVGMaskElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage native "SVGMaskElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) native "SVGMaskElement_hasExtension_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31571,13 +31571,7 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement {
 
   num getTotalLength() native "SVGPathElement_getTotalLength_Callback";
 
-  SVGStringList get requiredExtensions native "SVGPathElement_requiredExtensions_Getter";
-
-  SVGStringList get requiredFeatures native "SVGPathElement_requiredFeatures_Getter";
-
-  SVGStringList get systemLanguage native "SVGPathElement_systemLanguage_Getter";
-
-  bool hasExtension(String extension) native "SVGPathElement_hasExtension_Callback";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGPathElement_externalResourcesRequired_Getter";
 
   String get xmllang native "SVGPathElement_xmllang_Getter";
 
@@ -31586,16 +31580,6 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement {
   String get xmlspace native "SVGPathElement_xmlspace_Getter";
 
   void set xmlspace(String value) native "SVGPathElement_xmlspace_Setter";
-
-  SVGAnimatedBoolean get externalResourcesRequired native "SVGPathElement_externalResourcesRequired_Getter";
-
-  SVGAnimatedString get $dom_svgClassName native "SVGPathElement_className_Getter";
-
-  CSSStyleDeclaration get style native "SVGPathElement_style_Getter";
-
-  CSSValue getPresentationAttribute(String name) native "SVGPathElement_getPresentationAttribute_Callback";
-
-  SVGAnimatedTransformList get transform native "SVGPathElement_transform_Getter";
 
   SVGElement get farthestViewportElement native "SVGPathElement_farthestViewportElement_Getter";
 
@@ -31608,6 +31592,22 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement {
   SVGMatrix getScreenCTM() native "SVGPathElement_getScreenCTM_Callback";
 
   SVGMatrix getTransformToElement(SVGElement element) native "SVGPathElement_getTransformToElement_Callback";
+
+  SVGAnimatedString get $dom_svgClassName native "SVGPathElement_className_Getter";
+
+  CSSStyleDeclaration get style native "SVGPathElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) native "SVGPathElement_getPresentationAttribute_Callback";
+
+  SVGStringList get requiredExtensions native "SVGPathElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures native "SVGPathElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage native "SVGPathElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) native "SVGPathElement_hasExtension_Callback";
+
+  SVGAnimatedTransformList get transform native "SVGPathElement_transform_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32619,15 +32619,11 @@ class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElemen
 
   SVGAnimatedLength get y native "SVGPatternElement_y_Getter";
 
-  SVGAnimatedString get href native "SVGPatternElement_href_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGPatternElement_externalResourcesRequired_Getter";
 
-  SVGStringList get requiredExtensions native "SVGPatternElement_requiredExtensions_Getter";
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio native "SVGPatternElement_preserveAspectRatio_Getter";
 
-  SVGStringList get requiredFeatures native "SVGPatternElement_requiredFeatures_Getter";
-
-  SVGStringList get systemLanguage native "SVGPatternElement_systemLanguage_Getter";
-
-  bool hasExtension(String extension) native "SVGPatternElement_hasExtension_Callback";
+  SVGAnimatedRect get viewBox native "SVGPatternElement_viewBox_Getter";
 
   String get xmllang native "SVGPatternElement_xmllang_Getter";
 
@@ -32637,17 +32633,21 @@ class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElemen
 
   void set xmlspace(String value) native "SVGPatternElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired native "SVGPatternElement_externalResourcesRequired_Getter";
-
   SVGAnimatedString get $dom_svgClassName native "SVGPatternElement_className_Getter";
 
   CSSStyleDeclaration get style native "SVGPatternElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGPatternElement_getPresentationAttribute_Callback";
 
-  SVGAnimatedPreserveAspectRatio get preserveAspectRatio native "SVGPatternElement_preserveAspectRatio_Getter";
+  SVGStringList get requiredExtensions native "SVGPatternElement_requiredExtensions_Getter";
 
-  SVGAnimatedRect get viewBox native "SVGPatternElement_viewBox_Getter";
+  SVGStringList get requiredFeatures native "SVGPatternElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage native "SVGPatternElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) native "SVGPatternElement_hasExtension_Callback";
+
+  SVGAnimatedString get href native "SVGPatternElement_href_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32772,13 +32772,7 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
 
   SVGPointList get points native "SVGPolygonElement_points_Getter";
 
-  SVGStringList get requiredExtensions native "SVGPolygonElement_requiredExtensions_Getter";
-
-  SVGStringList get requiredFeatures native "SVGPolygonElement_requiredFeatures_Getter";
-
-  SVGStringList get systemLanguage native "SVGPolygonElement_systemLanguage_Getter";
-
-  bool hasExtension(String extension) native "SVGPolygonElement_hasExtension_Callback";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGPolygonElement_externalResourcesRequired_Getter";
 
   String get xmllang native "SVGPolygonElement_xmllang_Getter";
 
@@ -32787,16 +32781,6 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
   String get xmlspace native "SVGPolygonElement_xmlspace_Getter";
 
   void set xmlspace(String value) native "SVGPolygonElement_xmlspace_Setter";
-
-  SVGAnimatedBoolean get externalResourcesRequired native "SVGPolygonElement_externalResourcesRequired_Getter";
-
-  SVGAnimatedString get $dom_svgClassName native "SVGPolygonElement_className_Getter";
-
-  CSSStyleDeclaration get style native "SVGPolygonElement_style_Getter";
-
-  CSSValue getPresentationAttribute(String name) native "SVGPolygonElement_getPresentationAttribute_Callback";
-
-  SVGAnimatedTransformList get transform native "SVGPolygonElement_transform_Getter";
 
   SVGElement get farthestViewportElement native "SVGPolygonElement_farthestViewportElement_Getter";
 
@@ -32809,6 +32793,22 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
   SVGMatrix getScreenCTM() native "SVGPolygonElement_getScreenCTM_Callback";
 
   SVGMatrix getTransformToElement(SVGElement element) native "SVGPolygonElement_getTransformToElement_Callback";
+
+  SVGAnimatedString get $dom_svgClassName native "SVGPolygonElement_className_Getter";
+
+  CSSStyleDeclaration get style native "SVGPolygonElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) native "SVGPolygonElement_getPresentationAttribute_Callback";
+
+  SVGStringList get requiredExtensions native "SVGPolygonElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures native "SVGPolygonElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage native "SVGPolygonElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) native "SVGPolygonElement_hasExtension_Callback";
+
+  SVGAnimatedTransformList get transform native "SVGPolygonElement_transform_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32838,13 +32838,7 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
 
   SVGPointList get points native "SVGPolylineElement_points_Getter";
 
-  SVGStringList get requiredExtensions native "SVGPolylineElement_requiredExtensions_Getter";
-
-  SVGStringList get requiredFeatures native "SVGPolylineElement_requiredFeatures_Getter";
-
-  SVGStringList get systemLanguage native "SVGPolylineElement_systemLanguage_Getter";
-
-  bool hasExtension(String extension) native "SVGPolylineElement_hasExtension_Callback";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGPolylineElement_externalResourcesRequired_Getter";
 
   String get xmllang native "SVGPolylineElement_xmllang_Getter";
 
@@ -32853,16 +32847,6 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
   String get xmlspace native "SVGPolylineElement_xmlspace_Getter";
 
   void set xmlspace(String value) native "SVGPolylineElement_xmlspace_Setter";
-
-  SVGAnimatedBoolean get externalResourcesRequired native "SVGPolylineElement_externalResourcesRequired_Getter";
-
-  SVGAnimatedString get $dom_svgClassName native "SVGPolylineElement_className_Getter";
-
-  CSSStyleDeclaration get style native "SVGPolylineElement_style_Getter";
-
-  CSSValue getPresentationAttribute(String name) native "SVGPolylineElement_getPresentationAttribute_Callback";
-
-  SVGAnimatedTransformList get transform native "SVGPolylineElement_transform_Getter";
 
   SVGElement get farthestViewportElement native "SVGPolylineElement_farthestViewportElement_Getter";
 
@@ -32875,6 +32859,22 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
   SVGMatrix getScreenCTM() native "SVGPolylineElement_getScreenCTM_Callback";
 
   SVGMatrix getTransformToElement(SVGElement element) native "SVGPolylineElement_getTransformToElement_Callback";
+
+  SVGAnimatedString get $dom_svgClassName native "SVGPolylineElement_className_Getter";
+
+  CSSStyleDeclaration get style native "SVGPolylineElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) native "SVGPolylineElement_getPresentationAttribute_Callback";
+
+  SVGStringList get requiredExtensions native "SVGPolylineElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures native "SVGPolylineElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage native "SVGPolylineElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) native "SVGPolylineElement_hasExtension_Callback";
+
+  SVGAnimatedTransformList get transform native "SVGPolylineElement_transform_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33053,13 +33053,7 @@ class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement {
 
   SVGAnimatedLength get y native "SVGRectElement_y_Getter";
 
-  SVGStringList get requiredExtensions native "SVGRectElement_requiredExtensions_Getter";
-
-  SVGStringList get requiredFeatures native "SVGRectElement_requiredFeatures_Getter";
-
-  SVGStringList get systemLanguage native "SVGRectElement_systemLanguage_Getter";
-
-  bool hasExtension(String extension) native "SVGRectElement_hasExtension_Callback";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGRectElement_externalResourcesRequired_Getter";
 
   String get xmllang native "SVGRectElement_xmllang_Getter";
 
@@ -33068,16 +33062,6 @@ class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement {
   String get xmlspace native "SVGRectElement_xmlspace_Getter";
 
   void set xmlspace(String value) native "SVGRectElement_xmlspace_Setter";
-
-  SVGAnimatedBoolean get externalResourcesRequired native "SVGRectElement_externalResourcesRequired_Getter";
-
-  SVGAnimatedString get $dom_svgClassName native "SVGRectElement_className_Getter";
-
-  CSSStyleDeclaration get style native "SVGRectElement_style_Getter";
-
-  CSSValue getPresentationAttribute(String name) native "SVGRectElement_getPresentationAttribute_Callback";
-
-  SVGAnimatedTransformList get transform native "SVGRectElement_transform_Getter";
 
   SVGElement get farthestViewportElement native "SVGRectElement_farthestViewportElement_Getter";
 
@@ -33090,6 +33074,22 @@ class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement {
   SVGMatrix getScreenCTM() native "SVGRectElement_getScreenCTM_Callback";
 
   SVGMatrix getTransformToElement(SVGElement element) native "SVGRectElement_getTransformToElement_Callback";
+
+  SVGAnimatedString get $dom_svgClassName native "SVGRectElement_className_Getter";
+
+  CSSStyleDeclaration get style native "SVGRectElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) native "SVGRectElement_getPresentationAttribute_Callback";
+
+  SVGStringList get requiredExtensions native "SVGRectElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures native "SVGRectElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage native "SVGRectElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) native "SVGRectElement_hasExtension_Callback";
+
+  SVGAnimatedTransformList get transform native "SVGRectElement_transform_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33362,13 +33362,11 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement {
 
   void unsuspendRedrawAll() native "SVGSVGElement_unsuspendRedrawAll_Callback";
 
-  SVGStringList get requiredExtensions native "SVGSVGElement_requiredExtensions_Getter";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGSVGElement_externalResourcesRequired_Getter";
 
-  SVGStringList get requiredFeatures native "SVGSVGElement_requiredFeatures_Getter";
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio native "SVGSVGElement_preserveAspectRatio_Getter";
 
-  SVGStringList get systemLanguage native "SVGSVGElement_systemLanguage_Getter";
-
-  bool hasExtension(String extension) native "SVGSVGElement_hasExtension_Callback";
+  SVGAnimatedRect get viewBox native "SVGSVGElement_viewBox_Getter";
 
   String get xmllang native "SVGSVGElement_xmllang_Getter";
 
@@ -33377,14 +33375,6 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement {
   String get xmlspace native "SVGSVGElement_xmlspace_Getter";
 
   void set xmlspace(String value) native "SVGSVGElement_xmlspace_Setter";
-
-  SVGAnimatedBoolean get externalResourcesRequired native "SVGSVGElement_externalResourcesRequired_Getter";
-
-  SVGAnimatedString get $dom_svgClassName native "SVGSVGElement_className_Getter";
-
-  CSSStyleDeclaration get style native "SVGSVGElement_style_Getter";
-
-  CSSValue getPresentationAttribute(String name) native "SVGSVGElement_getPresentationAttribute_Callback";
 
   SVGElement get farthestViewportElement native "SVGSVGElement_farthestViewportElement_Getter";
 
@@ -33398,9 +33388,19 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement {
 
   SVGMatrix getTransformToElement(SVGElement element) native "SVGSVGElement_getTransformToElement_Callback";
 
-  SVGAnimatedPreserveAspectRatio get preserveAspectRatio native "SVGSVGElement_preserveAspectRatio_Getter";
+  SVGAnimatedString get $dom_svgClassName native "SVGSVGElement_className_Getter";
 
-  SVGAnimatedRect get viewBox native "SVGSVGElement_viewBox_Getter";
+  CSSStyleDeclaration get style native "SVGSVGElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) native "SVGSVGElement_getPresentationAttribute_Callback";
+
+  SVGStringList get requiredExtensions native "SVGSVGElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures native "SVGSVGElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage native "SVGSVGElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) native "SVGSVGElement_hasExtension_Callback";
 
   int get zoomAndPan native "SVGSVGElement_zoomAndPan_Getter";
 
@@ -33431,9 +33431,9 @@ class _SVGScriptElementImpl extends _SVGElementImpl implements SVGScriptElement 
 
   void set type(String value) native "SVGScriptElement_type_Setter";
 
-  SVGAnimatedString get href native "SVGScriptElement_href_Getter";
-
   SVGAnimatedBoolean get externalResourcesRequired native "SVGScriptElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedString get href native "SVGScriptElement_href_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33713,13 +33713,7 @@ abstract class SVGSwitchElement implements SVGElement, SVGTests, SVGLangSpace, S
 
 class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement {
 
-  SVGStringList get requiredExtensions native "SVGSwitchElement_requiredExtensions_Getter";
-
-  SVGStringList get requiredFeatures native "SVGSwitchElement_requiredFeatures_Getter";
-
-  SVGStringList get systemLanguage native "SVGSwitchElement_systemLanguage_Getter";
-
-  bool hasExtension(String extension) native "SVGSwitchElement_hasExtension_Callback";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGSwitchElement_externalResourcesRequired_Getter";
 
   String get xmllang native "SVGSwitchElement_xmllang_Getter";
 
@@ -33728,16 +33722,6 @@ class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement 
   String get xmlspace native "SVGSwitchElement_xmlspace_Getter";
 
   void set xmlspace(String value) native "SVGSwitchElement_xmlspace_Setter";
-
-  SVGAnimatedBoolean get externalResourcesRequired native "SVGSwitchElement_externalResourcesRequired_Getter";
-
-  SVGAnimatedString get $dom_svgClassName native "SVGSwitchElement_className_Getter";
-
-  CSSStyleDeclaration get style native "SVGSwitchElement_style_Getter";
-
-  CSSValue getPresentationAttribute(String name) native "SVGSwitchElement_getPresentationAttribute_Callback";
-
-  SVGAnimatedTransformList get transform native "SVGSwitchElement_transform_Getter";
 
   SVGElement get farthestViewportElement native "SVGSwitchElement_farthestViewportElement_Getter";
 
@@ -33750,6 +33734,22 @@ class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement 
   SVGMatrix getScreenCTM() native "SVGSwitchElement_getScreenCTM_Callback";
 
   SVGMatrix getTransformToElement(SVGElement element) native "SVGSwitchElement_getTransformToElement_Callback";
+
+  SVGAnimatedString get $dom_svgClassName native "SVGSwitchElement_className_Getter";
+
+  CSSStyleDeclaration get style native "SVGSwitchElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) native "SVGSwitchElement_getPresentationAttribute_Callback";
+
+  SVGStringList get requiredExtensions native "SVGSwitchElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures native "SVGSwitchElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage native "SVGSwitchElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) native "SVGSwitchElement_hasExtension_Callback";
+
+  SVGAnimatedTransformList get transform native "SVGSwitchElement_transform_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33769,6 +33769,12 @@ abstract class SVGSymbolElement implements SVGElement, SVGLangSpace, SVGExternal
 
 class _SVGSymbolElementImpl extends _SVGElementImpl implements SVGSymbolElement {
 
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGSymbolElement_externalResourcesRequired_Getter";
+
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio native "SVGSymbolElement_preserveAspectRatio_Getter";
+
+  SVGAnimatedRect get viewBox native "SVGSymbolElement_viewBox_Getter";
+
   String get xmllang native "SVGSymbolElement_xmllang_Getter";
 
   void set xmllang(String value) native "SVGSymbolElement_xmllang_Setter";
@@ -33777,17 +33783,11 @@ class _SVGSymbolElementImpl extends _SVGElementImpl implements SVGSymbolElement 
 
   void set xmlspace(String value) native "SVGSymbolElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired native "SVGSymbolElement_externalResourcesRequired_Getter";
-
   SVGAnimatedString get $dom_svgClassName native "SVGSymbolElement_className_Getter";
 
   CSSStyleDeclaration get style native "SVGSymbolElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGSymbolElement_getPresentationAttribute_Callback";
-
-  SVGAnimatedPreserveAspectRatio get preserveAspectRatio native "SVGSymbolElement_preserveAspectRatio_Getter";
-
-  SVGAnimatedRect get viewBox native "SVGSymbolElement_viewBox_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33927,13 +33927,7 @@ class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextConte
 
   void selectSubString(int offset, int length) native "SVGTextContentElement_selectSubString_Callback";
 
-  SVGStringList get requiredExtensions native "SVGTextContentElement_requiredExtensions_Getter";
-
-  SVGStringList get requiredFeatures native "SVGTextContentElement_requiredFeatures_Getter";
-
-  SVGStringList get systemLanguage native "SVGTextContentElement_systemLanguage_Getter";
-
-  bool hasExtension(String extension) native "SVGTextContentElement_hasExtension_Callback";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGTextContentElement_externalResourcesRequired_Getter";
 
   String get xmllang native "SVGTextContentElement_xmllang_Getter";
 
@@ -33943,13 +33937,19 @@ class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextConte
 
   void set xmlspace(String value) native "SVGTextContentElement_xmlspace_Setter";
 
-  SVGAnimatedBoolean get externalResourcesRequired native "SVGTextContentElement_externalResourcesRequired_Getter";
-
   SVGAnimatedString get $dom_svgClassName native "SVGTextContentElement_className_Getter";
 
   CSSStyleDeclaration get style native "SVGTextContentElement_style_Getter";
 
   CSSValue getPresentationAttribute(String name) native "SVGTextContentElement_getPresentationAttribute_Callback";
+
+  SVGStringList get requiredExtensions native "SVGTextContentElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures native "SVGTextContentElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage native "SVGTextContentElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) native "SVGTextContentElement_hasExtension_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33969,8 +33969,6 @@ abstract class SVGTextElement implements SVGTextPositioningElement, SVGTransform
 
 class _SVGTextElementImpl extends _SVGTextPositioningElementImpl implements SVGTextElement {
 
-  SVGAnimatedTransformList get transform native "SVGTextElement_transform_Getter";
-
   SVGElement get farthestViewportElement native "SVGTextElement_farthestViewportElement_Getter";
 
   SVGElement get nearestViewportElement native "SVGTextElement_nearestViewportElement_Getter";
@@ -33982,6 +33980,8 @@ class _SVGTextElementImpl extends _SVGTextPositioningElementImpl implements SVGT
   SVGMatrix getScreenCTM() native "SVGTextElement_getScreenCTM_Callback";
 
   SVGMatrix getTransformToElement(SVGElement element) native "SVGTextElement_getTransformToElement_Callback";
+
+  SVGAnimatedTransformList get transform native "SVGTextElement_transform_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34429,15 +34429,7 @@ class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement {
 
   SVGAnimatedLength get y native "SVGUseElement_y_Getter";
 
-  SVGAnimatedString get href native "SVGUseElement_href_Getter";
-
-  SVGStringList get requiredExtensions native "SVGUseElement_requiredExtensions_Getter";
-
-  SVGStringList get requiredFeatures native "SVGUseElement_requiredFeatures_Getter";
-
-  SVGStringList get systemLanguage native "SVGUseElement_systemLanguage_Getter";
-
-  bool hasExtension(String extension) native "SVGUseElement_hasExtension_Callback";
+  SVGAnimatedBoolean get externalResourcesRequired native "SVGUseElement_externalResourcesRequired_Getter";
 
   String get xmllang native "SVGUseElement_xmllang_Getter";
 
@@ -34446,16 +34438,6 @@ class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement {
   String get xmlspace native "SVGUseElement_xmlspace_Getter";
 
   void set xmlspace(String value) native "SVGUseElement_xmlspace_Setter";
-
-  SVGAnimatedBoolean get externalResourcesRequired native "SVGUseElement_externalResourcesRequired_Getter";
-
-  SVGAnimatedString get $dom_svgClassName native "SVGUseElement_className_Getter";
-
-  CSSStyleDeclaration get style native "SVGUseElement_style_Getter";
-
-  CSSValue getPresentationAttribute(String name) native "SVGUseElement_getPresentationAttribute_Callback";
-
-  SVGAnimatedTransformList get transform native "SVGUseElement_transform_Getter";
 
   SVGElement get farthestViewportElement native "SVGUseElement_farthestViewportElement_Getter";
 
@@ -34468,6 +34450,24 @@ class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement {
   SVGMatrix getScreenCTM() native "SVGUseElement_getScreenCTM_Callback";
 
   SVGMatrix getTransformToElement(SVGElement element) native "SVGUseElement_getTransformToElement_Callback";
+
+  SVGAnimatedString get $dom_svgClassName native "SVGUseElement_className_Getter";
+
+  CSSStyleDeclaration get style native "SVGUseElement_style_Getter";
+
+  CSSValue getPresentationAttribute(String name) native "SVGUseElement_getPresentationAttribute_Callback";
+
+  SVGStringList get requiredExtensions native "SVGUseElement_requiredExtensions_Getter";
+
+  SVGStringList get requiredFeatures native "SVGUseElement_requiredFeatures_Getter";
+
+  SVGStringList get systemLanguage native "SVGUseElement_systemLanguage_Getter";
+
+  bool hasExtension(String extension) native "SVGUseElement_hasExtension_Callback";
+
+  SVGAnimatedTransformList get transform native "SVGUseElement_transform_Getter";
+
+  SVGAnimatedString get href native "SVGUseElement_href_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

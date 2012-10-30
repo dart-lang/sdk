@@ -24132,42 +24132,15 @@ class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement native "*S
 
   final _SVGAnimatedStringImpl target;
 
-  // From SVGURIReference
+  // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedStringImpl href;
-
-  // From SVGTests
-
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -24182,6 +24155,33 @@ class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement native "*S
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
+
+  // From SVGURIReference
+
+  final _SVGAnimatedStringImpl href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24878,20 +24878,6 @@ class _SVGAnimationElementImpl extends _SVGElementImpl implements SVGAnimationEl
 
   num getStartTime() native;
 
-  // From SVGTests
-
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
   // From ElementTimeControl
 
   void beginElement() native;
@@ -24901,6 +24887,20 @@ class _SVGAnimationElementImpl extends _SVGElementImpl implements SVGAnimationEl
   void endElement() native;
 
   void endElementAt(num offset) native;
+
+  // From SVGExternalResourcesRequired
+
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24929,38 +24929,15 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
 
   final _SVGAnimatedLengthImpl r;
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -24975,6 +24952,29 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24993,38 +24993,15 @@ class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElem
 
   final _SVGAnimatedEnumerationImpl clipPathUnits;
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -25039,6 +25016,29 @@ class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElem
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25166,9 +25166,9 @@ class _SVGCursorElementImpl extends _SVGElementImpl implements SVGCursorElement 
 
   final _SVGAnimatedLengthImpl y;
 
-  // From SVGURIReference
+  // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedStringImpl href;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGTests
 
@@ -25180,9 +25180,9 @@ class _SVGCursorElementImpl extends _SVGElementImpl implements SVGCursorElement 
 
   bool hasExtension(String extension) native;
 
-  // From SVGExternalResourcesRequired
+  // From SVGURIReference
 
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
+  final _SVGAnimatedStringImpl href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25196,38 +25196,15 @@ abstract class SVGDefsElement implements SVGElement, SVGTests, SVGLangSpace, SVG
 
 class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement native "*SVGDefsElement" {
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -25242,6 +25219,29 @@ class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement nati
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25737,38 +25737,15 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
 
   final _SVGAnimatedLengthImpl ry;
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -25783,6 +25760,29 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26535,16 +26535,6 @@ class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElemen
 
   final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
 
-  // From SVGURIReference
-
-  final _SVGAnimatedStringImpl href;
-
-  // From SVGLangSpace
-
-  String xmllang;
-
-  String xmlspace;
-
   // From SVGExternalResourcesRequired
 
   final _SVGAnimatedBooleanImpl externalResourcesRequired;
@@ -26561,6 +26551,12 @@ class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElemen
 
   final _SVGAnimatedLengthImpl y;
 
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
   // From SVGStylable
 
   _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
@@ -26569,6 +26565,10 @@ class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElemen
   // final _CSSStyleDeclarationImpl style;
 
   _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGURIReference
+
+  final _SVGAnimatedStringImpl href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27034,19 +27034,15 @@ class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement 
 
   void setFilterRes(int filterResX, int filterResY) native;
 
-  // From SVGURIReference
+  // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedStringImpl href;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
@@ -27056,6 +27052,10 @@ class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement 
   // final _CSSStyleDeclarationImpl style;
 
   _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGURIReference
+
+  final _SVGAnimatedStringImpl href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27200,38 +27200,15 @@ class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeign
 
   final _SVGAnimatedLengthImpl y;
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -27246,6 +27223,29 @@ class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeign
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27259,38 +27259,15 @@ abstract class SVGGElement implements SVGElement, SVGTests, SVGLangSpace, SVGExt
 
 class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement native "*SVGGElement" {
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -27305,6 +27282,29 @@ class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement native "*S
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27360,10 +27360,6 @@ class _SVGGlyphRefElementImpl extends _SVGElementImpl implements SVGGlyphRefElem
 
   num y;
 
-  // From SVGURIReference
-
-  final _SVGAnimatedStringImpl href;
-
   // From SVGStylable
 
   _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
@@ -27372,6 +27368,10 @@ class _SVGGlyphRefElementImpl extends _SVGElementImpl implements SVGGlyphRefElem
   // final _CSSStyleDeclarationImpl style;
 
   _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGURIReference
+
+  final _SVGAnimatedStringImpl href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27408,10 +27408,6 @@ class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElem
 
   final _SVGAnimatedEnumerationImpl spreadMethod;
 
-  // From SVGURIReference
-
-  final _SVGAnimatedStringImpl href;
-
   // From SVGExternalResourcesRequired
 
   final _SVGAnimatedBooleanImpl externalResourcesRequired;
@@ -27424,6 +27420,10 @@ class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElem
   // final _CSSStyleDeclarationImpl style;
 
   _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGURIReference
+
+  final _SVGAnimatedStringImpl href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27474,42 +27474,15 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement na
 
   final _SVGAnimatedLengthImpl y;
 
-  // From SVGURIReference
+  // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedStringImpl href;
-
-  // From SVGTests
-
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -27524,6 +27497,33 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement na
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
+
+  // From SVGURIReference
+
+  final _SVGAnimatedStringImpl href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27771,38 +27771,15 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement nati
 
   final _SVGAnimatedLengthImpl y2;
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -27817,6 +27794,29 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement nati
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27889,13 +27889,13 @@ abstract class SVGMPathElement implements SVGElement, SVGURIReference, SVGExtern
 
 class _SVGMPathElementImpl extends _SVGElementImpl implements SVGMPathElement native "*SVGMPathElement" {
 
-  // From SVGURIReference
-
-  final _SVGAnimatedStringImpl href;
-
   // From SVGExternalResourcesRequired
 
   final _SVGAnimatedBooleanImpl externalResourcesRequired;
+
+  // From SVGURIReference
+
+  final _SVGAnimatedStringImpl href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27966,15 +27966,21 @@ class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement 
 
   void setOrientToAuto() native;
 
+  // From SVGExternalResourcesRequired
+
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
+
+  // From SVGFitToViewBox
+
+  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
+
+  final _SVGAnimatedRectImpl viewBox;
+
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
@@ -27984,12 +27990,6 @@ class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement 
   // final _CSSStyleDeclarationImpl style;
 
   _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGFitToViewBox
-
-  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
-
-  final _SVGAnimatedRectImpl viewBox;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28033,25 +28033,15 @@ class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement nati
 
   final _SVGAnimatedLengthImpl y;
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
@@ -28061,6 +28051,16 @@ class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement nati
   // final _CSSStyleDeclarationImpl style;
 
   _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28534,38 +28534,15 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement nati
 
   num getTotalLength() native;
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -28580,6 +28557,29 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement nati
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29343,9 +29343,30 @@ class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElemen
 
   final _SVGAnimatedLengthImpl y;
 
-  // From SVGURIReference
+  // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedStringImpl href;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
+
+  // From SVGFitToViewBox
+
+  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
+
+  final _SVGAnimatedRectImpl viewBox;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -29357,30 +29378,9 @@ class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElemen
 
   bool hasExtension(String extension) native;
 
-  // From SVGLangSpace
+  // From SVGURIReference
 
-  String xmllang;
-
-  String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGFitToViewBox
-
-  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
-
-  final _SVGAnimatedRectImpl viewBox;
+  final _SVGAnimatedStringImpl href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29483,38 +29483,15 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
 
   final _SVGPointListImpl points;
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -29529,6 +29506,29 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29552,38 +29552,15 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
 
   final _SVGPointListImpl points;
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -29598,6 +29575,29 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29754,38 +29754,15 @@ class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement nati
 
   final _SVGAnimatedLengthImpl y;
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -29800,6 +29777,29 @@ class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement nati
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 
 class _SVGRectImpl implements SVGRect native "*SVGRect" {
@@ -30040,34 +30040,21 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement native
 
   void unsuspendRedrawAll() native;
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
-  final _SVGStringListImpl requiredFeatures;
+  // From SVGFitToViewBox
 
-  final _SVGStringListImpl systemLanguage;
+  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
 
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedRectImpl viewBox;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
 
   // From SVGLocatable
 
@@ -30083,11 +30070,24 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement native
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
 
-  // From SVGFitToViewBox
+  // From SVGStylable
 
-  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
-  final _SVGAnimatedRectImpl viewBox;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
 
   // From SVGZoomAndPan
 
@@ -30110,13 +30110,13 @@ class _SVGScriptElementImpl extends _SVGElementImpl implements SVGScriptElement 
 
   String type;
 
-  // From SVGURIReference
-
-  final _SVGAnimatedStringImpl href;
-
   // From SVGExternalResourcesRequired
 
   final _SVGAnimatedBooleanImpl externalResourcesRequired;
+
+  // From SVGURIReference
+
+  final _SVGAnimatedStringImpl href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30364,38 +30364,15 @@ abstract class SVGSwitchElement implements SVGElement, SVGTests, SVGLangSpace, S
 
 class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement native "*SVGSwitchElement" {
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -30410,6 +30387,29 @@ class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement 
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30423,15 +30423,21 @@ abstract class SVGSymbolElement implements SVGElement, SVGLangSpace, SVGExternal
 
 class _SVGSymbolElementImpl extends _SVGElementImpl implements SVGSymbolElement native "*SVGSymbolElement" {
 
+  // From SVGExternalResourcesRequired
+
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
+
+  // From SVGFitToViewBox
+
+  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
+
+  final _SVGAnimatedRectImpl viewBox;
+
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
@@ -30441,12 +30447,6 @@ class _SVGSymbolElementImpl extends _SVGElementImpl implements SVGSymbolElement 
   // final _CSSStyleDeclarationImpl style;
 
   _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGFitToViewBox
-
-  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
-
-  final _SVGAnimatedRectImpl viewBox;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30570,25 +30570,15 @@ class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextConte
 
   void selectSubString(int offset, int length) native;
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
@@ -30598,6 +30588,16 @@ class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextConte
   // final _CSSStyleDeclarationImpl style;
 
   _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30610,10 +30610,6 @@ abstract class SVGTextElement implements SVGTextPositioningElement, SVGTransform
 }
 
 class _SVGTextElementImpl extends _SVGTextPositioningElementImpl implements SVGTextElement native "*SVGTextElement" {
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -30628,6 +30624,10 @@ class _SVGTextElementImpl extends _SVGTextPositioningElementImpl implements SVGT
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31036,42 +31036,15 @@ class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement native
 
   final _SVGAnimatedLengthImpl y;
 
-  // From SVGURIReference
+  // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedStringImpl href;
-
-  // From SVGTests
-
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -31086,6 +31059,33 @@ class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement native
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
+
+  // From SVGURIReference
+
+  final _SVGAnimatedStringImpl href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

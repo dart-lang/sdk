@@ -410,7 +410,7 @@ class HtmlDartInterfaceGenerator(object):
     # defined in the current interface as well as a parent.  In that case we
     # avoid making a duplicate definition and pray that the signatures match.
     secondary_parents = self._TransitiveSecondaryParents(interface)
-    for parent_interface in secondary_parents:
+    for parent_interface in sorted(secondary_parents):
       if isinstance(parent_interface, str):  # IsDartCollectionType(parent_interface)
         continue
       for attr in sorted(parent_interface.attributes, ConstantOutputOrder):
