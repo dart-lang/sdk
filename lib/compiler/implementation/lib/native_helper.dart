@@ -7,6 +7,13 @@ String typeNameInChrome(obj) {
   if (name == 'Window') return 'DOMWindow';
   if (name == 'CanvasPixelArray') return 'Uint8ClampedArray';
   if (name == 'WebKitMutationObserver') return 'MutationObserver';
+  if (name == 'AudioChannelMerger') return 'ChannelMergerNode';
+  if (name == 'AudioChannelSplitter') return 'ChannelSplitterNode';
+  if (name == 'AudioGainNode') return 'GainNode';
+  if (name == 'AudioPannerNode') return 'PannerNode';
+  if (name == 'JavaScriptAudioNode') return 'ScriptProcessorNode';
+  if (name == 'Oscillator') return 'OscillatorNode';
+  if (name == 'RealtimeAnalyserNode') return 'AnalyserNode';
   return name;
 }
 
@@ -16,6 +23,13 @@ String typeNameInSafari(obj) {
   if (name == 'Window') return 'DOMWindow';
   if (name == 'CanvasPixelArray') return 'Uint8ClampedArray';
   if (name == 'WebKitMutationObserver') return 'MutationObserver';
+  if (name == 'AudioChannelMerger') return 'ChannelMergerNode';
+  if (name == 'AudioChannelSplitter') return 'ChannelSplitterNode';
+  if (name == 'AudioGainNode') return 'GainNode';
+  if (name == 'AudioPannerNode') return 'PannerNode';
+  if (name == 'JavaScriptAudioNode') return 'ScriptProcessorNode';
+  if (name == 'Oscillator') return 'OscillatorNode';
+  if (name == 'RealtimeAnalyserNode') return 'AnalyserNode';
   return name;
 }
 

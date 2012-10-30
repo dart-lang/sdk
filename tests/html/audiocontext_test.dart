@@ -26,4 +26,18 @@ main() {
         expect(e.code, equals(DOMException.SYNTAX_ERR));
       }
   });
+
+  test('audioRenames', () {
+    AudioContext context = new AudioContext();
+    GainNode gainNode = context.createGainNode();
+    gainNode.connect(context.destination, 0, 0);
+    expect(gainNode is GainNode, isTrue);
+
+    expect(context.createAnalyser() is AnalyserNode, isTrue);
+    expect(context.createChannelMerger() is ChannelMergerNode, isTrue);
+    expect(context.createChannelSplitter() is ChannelSplitterNode, isTrue);
+    expect(context.createOscillator() is OscillatorNode, isTrue);
+    expect(context.createPanner() is PannerNode, isTrue);
+    expect(context.createJavaScriptNode(4096) is ScriptProcessorNode, isTrue);
+  });
 }
