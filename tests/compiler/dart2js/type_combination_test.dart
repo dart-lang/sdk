@@ -2028,7 +2028,7 @@ void testIntersection(Compiler compiler) {
 }
 
 void main() {
-  Compiler compiler = new MockCompiler();
+  MockCompiler compiler = new MockCompiler();
   nonPrimitive1 = new HBoundedType.nonNull(
       compiler.mapClass.computeType(compiler));
   nonPrimitive2 = new HBoundedType.nonNull(
