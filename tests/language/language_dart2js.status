@@ -38,8 +38,6 @@ type_parameter_test/02: Fail # Issue 4932
 type_parameter_test/03: Fail # Issue 4932
 type_parameter_test/04: Fail # Issue 4932
 
-suoer_call4_test: Fail # Badly generated noSuchMethod call.
-
 [ $compiler == dart2js && $unchecked ]
 assertion_test: Fail
 new_expression_type_args_test/02: Fail # Test does not conform with spec.

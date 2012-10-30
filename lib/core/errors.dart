@@ -73,56 +73,39 @@ class AbstractClassInstantiationError implements Error {
  */
 class NoSuchMethodError implements Error {
   final Object _receiver;
-  final String _memberName;
+  final String _functionName;
   final List _arguments;
-  final Map<String,Dynamic> _namedArguments;
   final List _existingArgumentNames;
 
   /**
    * Create a [NoSuchMethodError] corresponding to a failed method call.
    *
-   * The first parameter to this constructor is the receiver of the method call.
-   * That is, the object on which the method was attempted called.
-   * The second parameter is the name of the called method or accessor.
-   * The third parameter is a list of the positional arguments that the method
-   * was called with.
-   * The fourth parameter is a map from [String] names to the values of named
-   * arguments that the method was called with.
+   * The first parameter is the receiver of the method call.
+   * The second parameter is the name of the called method.
+   * The third parameter is the positional arguments that the method was
+   * called with.
    * The optional [exisitingArgumentNames] is the expected parameters of a
    * method with the same name on the receiver, if available. This is
    * the method that would have been called if the parameters had matched.
+   *
+   * TODO(lrn): This will be rewritten to use mirrors when they are available.
    */
   const NoSuchMethodError(Object this._receiver,
-                          String this._memberName,
+                          String this._functionName,
                           List this._arguments,
-                          Map<String,Dynamic> this._namedArguments,
                           [List existingArgumentNames = null])
       : this._existingArgumentNames = existingArgumentNames;
 
   String toString() {
     StringBuffer sb = new StringBuffer();
-    int i = 0;
-    if (_arguments != null) {
-      for (; i < _arguments.length; i++) {
-        if (i > 0) {
-          sb.add(", ");
-        }
-        sb.add(safeToString(_arguments[i]));
+    for (int i = 0; i < _arguments.length; i++) {
+      if (i > 0) {
+        sb.add(", ");
       }
-    }
-    if (_namedArguments != null) {
-      _namedArguments.forEach((String key, var value) {
-        if (i > 0) {
-          sb.add(", ");
-        }
-        sb.add(key);
-        sb.add(": ");
-        sb.add(safeToString(value));
-        i++;
-      });
+      sb.add(safeToString(_arguments[i]));
     }
     if (_existingArgumentNames === null) {
-      return "NoSuchMethodError : method not found: '$_memberName'\n"
+      return "NoSuchMethodError : method not found: '$_functionName'\n"
           "Receiver: ${safeToString(_receiver)}\n"
           "Arguments: [$sb]";
     } else {
@@ -136,10 +119,10 @@ class NoSuchMethodError implements Error {
       }
       String formalParameters = sb.toString();
       return "NoSuchMethodError: incorrect number of arguments passed to "
-          "method named '$_memberName'\n"
+          "method named '$_functionName'\n"
           "Receiver: ${safeToString(_receiver)}\n"
-          "Tried calling: $_memberName($actualParameters)\n"
-          "Found: $_memberName($formalParameters)";
+          "Tried calling: $_functionName($actualParameters)\n"
+          "Found: $_functionName($formalParameters)";
     }
   }
 

@@ -45,10 +45,16 @@ class CoreRuntimeTypesTest {
   }
 
   static assertTypeError(void f()) {
-    Expect.throws(f, (exception) => (exception is TypeError) ||
-                                    (exception is NoSuchMethodError) ||
-                                    (exception is NullPointerException) ||
-                                    (exception is ArgumentError));
+    try {
+      f();
+    } catch (exception) {
+      Expect.equals(true, (exception is TypeError) ||
+                          (exception is NoSuchMethodError) ||
+                          (exception is NullPointerException) ||
+                          (exception is ArgumentError));
+      return;
+    }
+    Expect.equals(true, false);
   }
 
   static testBooleanOperators() {

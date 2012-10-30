@@ -137,8 +137,6 @@ class ObjectPointerVisitor;
   V(_ExternalFloat32Array, "_ExternalFloat32Array")                            \
   V(_ExternalFloat64Array, "_ExternalFloat64Array")                            \
   V(_WeakProperty, "_WeakProperty")                                            \
-  V(InvocationMirror, "_InvocationMirror")                                     \
-  V(AllocateInvocationMirror, "_allocateInvocationMirror")                     \
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates

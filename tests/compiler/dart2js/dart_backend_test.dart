@@ -53,7 +53,6 @@ abstract class Navigator {
 
 const helperLib = r'''
 #library('js_helper');
-class JSInvocationMirror {}
 ''';
 
 testDart2Dart(String src, {void continuation(String s), bool minify: false,

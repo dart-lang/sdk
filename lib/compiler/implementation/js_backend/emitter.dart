@@ -1254,8 +1254,8 @@ $classesCollector.$mangledName = {'':
     // Do not generate no such method handlers if there is no class.
     if (compiler.codegenWorld.instantiatedClasses.isEmpty) return;
 
-    String noSuchMethodName = namer.publicInstanceMethodNameByArity(
-        Compiler.NO_SUCH_METHOD, Compiler.NO_SUCH_METHOD_ARG_COUNT);
+    String noSuchMethodName =
+        namer.publicInstanceMethodNameByArity(Compiler.NO_SUCH_METHOD, 2);
 
     // Keep track of the JavaScript names we've already added so we
     // do not introduce duplicates (bad for code size).
@@ -1280,36 +1280,14 @@ $classesCollector.$mangledName = {'':
     }
 
     CodeBuffer generateMethod(String methodName, Selector selector) {
-      // Values match JSInvocationMirror in js-helper library.
-      const int METHOD = 0;
-      const int GETTER = 1;
-      const int SETTER = 2;
-      int type = METHOD;
-      if (selector.isGetter()) {
-        type = GETTER;
-      } else if (selector.isSetter()) {
-        type = SETTER;
-      }
       CodeBuffer args = new CodeBuffer();
       for (int i = 0; i < selector.argumentCount; i++) {
         if (i != 0) args.add(', ');
         args.add('\$$i');
       }
-      CodeBuffer argNames = new CodeBuffer();
-      List<SourceString> names = selector.getOrderedNamedArguments();
-      for (int i = 0; i < names.length; i++) {
-        if (i != 0) argNames.add(', ');
-        argNames.add('"');
-        argNames.add(names[i].slowToString());
-        argNames.add('"');
-      }
-      String internalName = namer.instanceMethodInvocationName(
-          selector.library, new SourceString(methodName), selector);
       CodeBuffer buffer = new CodeBuffer();
       buffer.add('function($args) {\n');
-      buffer.add('  return this.$noSuchMethodName('
-                     '\$.createInvocationMirror("$methodName", "$internalName",'
-                     ' $type, [$args], [$argNames]));\n');
+      buffer.add('  return this.$noSuchMethodName("$methodName", [$args]);\n');
       buffer.add(' }');
       return buffer;
     }

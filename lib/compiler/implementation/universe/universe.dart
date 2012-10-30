@@ -198,8 +198,7 @@ class Selector {
 
   // TODO(kasperl): This belongs somewhere else.
   Selector.noSuchMethod()
-      : this(SelectorKind.CALL, Compiler.NO_SUCH_METHOD, null,
-             Compiler.NO_SUCH_METHOD_ARG_COUNT);
+      : this(SelectorKind.CALL, Compiler.NO_SUCH_METHOD, null, 2);
 
   bool isGetter() => identical(kind, SelectorKind.GETTER);
   bool isSetter() => identical(kind, SelectorKind.SETTER);
