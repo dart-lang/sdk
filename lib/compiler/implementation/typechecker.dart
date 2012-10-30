@@ -46,6 +46,8 @@ abstract class DartType {
 
   abstract TypeKind get kind;
 
+  const DartType();
+
   /**
    * Returns the [Element] which declared this type.
    *
@@ -74,7 +76,7 @@ abstract class DartType {
   DartType asRaw() => this;
 }
 
-class TypeVariableType implements DartType {
+class TypeVariableType extends DartType {
   final TypeVariableElement element;
 
   TypeVariableType(this.element);
@@ -98,7 +100,7 @@ class TypeVariableType implements DartType {
 /**
  * A statement type tracks whether a statement returns or may return.
  */
-class StatementType implements DartType {
+class StatementType extends DartType {
   final String stringName;
 
   Element get element => null;
@@ -130,7 +132,7 @@ class StatementType implements DartType {
   String toString() => stringName;
 }
 
-class VoidType implements DartType {
+class VoidType extends DartType {
   const VoidType(this.element);
 
   TypeKind get kind => TypeKind.VOID;
@@ -148,7 +150,7 @@ class VoidType implements DartType {
   String toString() => name.slowToString();
 }
 
-class InterfaceType implements DartType {
+class InterfaceType extends DartType {
   final Element element;
   final Link<DartType> arguments;
 
@@ -195,7 +197,7 @@ class InterfaceType implements DartType {
   }
 }
 
-class FunctionType implements DartType {
+class FunctionType extends DartType {
   final Element element;
   DartType returnType;
   Link<DartType> parameterTypes;
@@ -250,7 +252,7 @@ class FunctionType implements DartType {
   }
 }
 
-class TypedefType implements DartType {
+class TypedefType extends DartType {
   final TypedefElement element;
   final Link<DartType> typeArguments;
 
@@ -560,7 +562,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
   }
 
   DartType lookupMethodType(Node node, ClassElement classElement,
-                        SourceString name) {
+                            SourceString name) {
     Element member = classElement.lookupLocalMember(name);
     if (member == null) {
       classElement.ensureResolved(compiler);

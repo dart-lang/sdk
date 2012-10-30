@@ -46,7 +46,8 @@ class World {
         for (DartType current in cls.allSupertypes) {
           typesImplementedBySubclassesOfCls.add(current.element);
         }
-        type = type.element.supertype;
+        ClassElement classElement = type.element;
+        type = classElement.supertype;
       }
     }
 

@@ -303,7 +303,7 @@ abstract class Compiler implements DiagnosticListener {
     } else if (node is Element) {
       return spanFromElement(node);
     } else {
-      throw 'No error location for error: $reason';
+      throw 'No error location.';
     }
   }
 

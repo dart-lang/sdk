@@ -77,7 +77,7 @@ void renamePlaceholders(
     }
   }
 
-  sortedForEach(Map<Element, Dynamic> map, f) {
+  sortedForEach(Map<Element, dynamic> map, f) {
     for (Element element in sortElements(map.keys)) {
       f(element, map[element]);
     }
@@ -87,16 +87,18 @@ void renamePlaceholders(
     // TODO(smok): Do not rename type if it is in platform library or
     // js-helpers.
     StringBuffer result = new StringBuffer(renameElement(type.element));
-    if (type is InterfaceType && !type.arguments.isEmpty) {
-      result.add('<');
-      Link<DartType> argumentsLink = type.arguments;
-      result.add(renameType(argumentsLink.head, renameElement));
-      for (Link<DartType> link = argumentsLink.tail; !link.isEmpty;
-           link = link.tail) {
-        result.add(',');
-        result.add(renameType(link.head, renameElement));
+    if (type is InterfaceType) {
+      if (!type.arguments.isEmpty) {
+        result.add('<');
+        Link<DartType> argumentsLink = type.arguments;
+        result.add(renameType(argumentsLink.head, renameElement));
+        for (Link<DartType> link = argumentsLink.tail; !link.isEmpty;
+             link = link.tail) {
+          result.add(',');
+          result.add(renameType(link.head, renameElement));
+        }
+        result.add('>');
       }
-      result.add('>');
     }
     return result.toString();
   }

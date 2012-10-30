@@ -121,7 +121,7 @@ class SendVisitor extends ResolvedVisitor {
   }
 
   internalError(String reason, {Node node}) {
-    collector.internalError(reason, node);
+    collector.internalError(reason, node: node);
   }
 }
 
@@ -363,8 +363,9 @@ class PlaceholderCollector extends Visitor {
       //   C([this.field]);
       // }
       // Do not forget to rename them as well.
+      FunctionElement constructorFunction = constructor;
       Link<Element> optionalParameters =
-          constructor.functionSignature.optionalParameters;
+          constructorFunction.functionSignature.optionalParameters;
       for (final argument in send.argumentsNode) {
         NamedArgument named = argument.asNamedArgument();
         if (named == null) continue;
