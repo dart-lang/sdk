@@ -765,7 +765,7 @@ class Dart2JsClassMirror extends Dart2JsObjectMirror
 
   bool get isFunction => false;
 
-  ClassMirror get declaration => this;
+  ClassMirror get originalDeclaration => this;
 
   ClassMirror get superclass {
     if (_class.supertype != null) {
@@ -774,7 +774,7 @@ class Dart2JsClassMirror extends Dart2JsObjectMirror
     return null;
   }
 
-  List<ClassMirror> get interfaces {
+  List<ClassMirror> get superinterfaces {
     var list = <ClassMirror>[];
     Link<DartType> link = _class.interfaces;
     while (!link.isEmpty) {
@@ -792,7 +792,7 @@ class Dart2JsClassMirror extends Dart2JsObjectMirror
 
   bool get isAbstract => _class.modifiers.isAbstract();
 
-  bool get isDeclaration => true;
+  bool get isOriginalDeclaration => true;
 
   List<TypeMirror> get typeArguments {
     throw new UnsupportedError(
@@ -820,7 +820,7 @@ class Dart2JsClassMirror extends Dart2JsObjectMirror
   /**
    * Returns the default type for this interface.
    */
-  ClassMirror get defaultType {
+  ClassMirror get defaultFactory {
     if (_class.defaultClass != null) {
       return new Dart2JsInterfaceTypeMirror(system, _class.defaultClass);
     }
@@ -837,7 +837,7 @@ class Dart2JsClassMirror extends Dart2JsObjectMirror
     if (library != other.library) {
       return false;
     }
-    if (isDeclaration !== other.isDeclaration) {
+    if (isOriginalDeclaration !== other.isOriginalDeclaration) {
       return false;
     }
     return qualifiedName == other.qualifiedName;
@@ -909,25 +909,25 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
   Map<String, MemberMirror> get declaredMembers =>
       const <String, MemberMirror>{};
 
-  ClassMirror get declaration => this;
+  ClassMirror get originalDeclaration => this;
 
   // TODO(johnniwinther): How should a typedef respond to these?
   ClassMirror get superclass => null;
 
-  List<ClassMirror> get interfaces => const <ClassMirror>[];
+  List<ClassMirror> get superinterfaces => const <ClassMirror>[];
 
   bool get isClass => false;
 
   bool get isInterface => false;
 
-  bool get isDeclaration => true;
+  bool get isOriginalDeclaration => true;
 
   bool get isAbstract => false;
 
   Map<String, MethodMirror> get constructors =>
       const <String, MethodMirror>{};
 
-  ClassMirror get defaultType => null;
+  ClassMirror get defaultFactory => null;
 }
 
 class Dart2JsTypeVariableMirror extends Dart2JsTypeElementMirror
@@ -1033,33 +1033,34 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
 
   InterfaceType get _interfaceType => _type;
 
-  String get qualifiedName => declaration.qualifiedName;
+  String get qualifiedName => originalDeclaration.qualifiedName;
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
-  Map<String, MemberMirror> get declaredMembers => declaration.declaredMembers;
+  Map<String, MemberMirror> get declaredMembers =>
+      originalDeclaration.declaredMembers;
 
   bool get isObject => system.compiler.objectClass == _type.element;
 
   bool get isDynamic => system.compiler.dynamicClass == _type.element;
 
-  ClassMirror get declaration
+  ClassMirror get originalDeclaration
       => new Dart2JsClassMirror(system, _type.element);
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
-  ClassMirror get superclass => declaration.superclass;
+  ClassMirror get superclass => originalDeclaration.superclass;
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
-  List<ClassMirror> get interfaces => declaration.interfaces;
+  List<ClassMirror> get superinterfaces => originalDeclaration.superinterfaces;
 
-  bool get isClass => declaration.isClass;
+  bool get isClass => originalDeclaration.isClass;
 
-  bool get isInterface => declaration.isInterface;
+  bool get isInterface => originalDeclaration.isInterface;
 
-  bool get isAbstract => declaration.isAbstract;
+  bool get isAbstract => originalDeclaration.isAbstract;
 
-  bool get isPrivate => declaration.isPrivate;
+  bool get isPrivate => originalDeclaration.isPrivate;
 
-  bool get isDeclaration => false;
+  bool get isOriginalDeclaration => false;
 
   List<TypeMirror> get typeArguments {
     if (_typeArguments == null) {
@@ -1074,13 +1075,15 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
     return _typeArguments;
   }
 
-  List<TypeVariableMirror> get typeVariables => declaration.typeVariables;
+  List<TypeVariableMirror> get typeVariables =>
+      originalDeclaration.typeVariables;
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
-  Map<String, MethodMirror> get constructors => declaration.constructors;
+  Map<String, MethodMirror> get constructors =>
+      originalDeclaration.constructors;
 
   // TODO(johnniwinther): Substitute type arguments for type variables?
-  ClassMirror get defaultType => declaration.defaultType;
+  ClassMirror get defaultFactory => originalDeclaration.defaultFactory;
 
   bool operator ==(Object other) {
     if (this === other) {
@@ -1089,10 +1092,10 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
     if (other is! ClassMirror) {
       return false;
     }
-    if (other.isDeclaration) {
+    if (other.isOriginalDeclaration) {
       return false;
     }
-    if (declaration != other.declaration) {
+    if (originalDeclaration != other.originalDeclaration) {
       return false;
     }
     var thisTypeArguments = typeArguments.iterator();
@@ -1121,20 +1124,20 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeElementMirror
   FunctionType get _functionType => _type;
 
   // TODO(johnniwinther): Is this the qualified name of a function type?
-  String get qualifiedName => declaration.qualifiedName;
+  String get qualifiedName => originalDeclaration.qualifiedName;
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
   Map<String, MemberMirror> get declaredMembers {
     var method = callMethod;
     if (method !== null) {
       var map = new Map<String, MemberMirror>.from(
-          declaration.declaredMembers);
+          originalDeclaration.declaredMembers);
       var name = method.qualifiedName;
       assert(!map.containsKey(name));
       map[name] = method;
       return new ImmutableMapWrapper<String, MemberMirror>(map);
     }
-    return declaration.declaredMembers;
+    return originalDeclaration.declaredMembers;
   }
 
   bool get isFunction => true;
@@ -1143,32 +1146,33 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeElementMirror
       system.getLibrary(_functionType.element.getLibrary()),
       _functionType.element);
 
-  ClassMirror get declaration
+  ClassMirror get originalDeclaration
       => new Dart2JsClassMirror(system, system.compiler.functionClass);
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
-  ClassMirror get superclass => declaration.superclass;
+  ClassMirror get superclass => originalDeclaration.superclass;
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
-  List<ClassMirror> get interfaces => declaration.interfaces;
+  List<ClassMirror> get superinterfaces => originalDeclaration.superinterfaces;
 
-  bool get isClass => declaration.isClass;
+  bool get isClass => originalDeclaration.isClass;
 
-  bool get isInterface => declaration.isInterface;
+  bool get isInterface => originalDeclaration.isInterface;
 
-  bool get isPrivate => declaration.isPrivate;
+  bool get isPrivate => originalDeclaration.isPrivate;
 
-  bool get isDeclaration => false;
+  bool get isOriginalDeclaration => false;
 
   bool get isAbstract => false;
 
   List<TypeMirror> get typeArguments => const <TypeMirror>[];
 
-  List<TypeVariableMirror> get typeVariables => declaration.typeVariables;
+  List<TypeVariableMirror> get typeVariables =>
+      originalDeclaration.typeVariables;
 
   Map<String, MethodMirror> get constructors => <String, MethodMirror>{};
 
-  ClassMirror get defaultType => null;
+  ClassMirror get defaultFactory => null;
 
   TypeMirror get returnType {
     return _convertTypeToTypeMirror(system, _functionType.returnType,

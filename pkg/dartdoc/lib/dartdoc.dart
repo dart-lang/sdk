@@ -604,9 +604,9 @@ class Dartdoc {
         typeInfo[MEMBERS] = typeMembers;
       }
 
-      if (!type.declaration.typeVariables.isEmpty) {
+      if (!type.originalDeclaration.typeVariables.isEmpty) {
         final typeVariables = [];
-        for (final typeVariable in type.declaration.typeVariables) {
+        for (final typeVariable in type.originalDeclaration.typeVariables) {
           typeVariables.add(typeVariable.displayName);
         }
         typeInfo[ARGS] = Strings.join(typeVariables, ', ');
@@ -940,15 +940,15 @@ class Dartdoc {
       }
 
       listTypes(subtypes, 'Subclasses');
-      listTypes(type.interfaces, 'Implements');
+      listTypes(type.superinterfaces, 'Implements');
     } else {
       // Show the default class.
-      if (type.defaultType != null) {
-        listTypes([type.defaultType], 'Default class');
+      if (type.defaultFactory != null) {
+        listTypes([type.defaultFactory], 'Default class');
       }
 
       // List extended interfaces.
-      listTypes(type.interfaces, 'Extends');
+      listTypes(type.superinterfaces, 'Extends');
 
       // List subinterfaces and implementing classes.
       final subinterfaces = [];
@@ -1618,7 +1618,7 @@ class Dartdoc {
       write(type.simpleName);
     }
 
-    if (type.isDeclaration) {
+    if (type.isOriginalDeclaration) {
       // Avoid calling [:typeArguments():] on a declaration.
       return;
     }
@@ -1655,9 +1655,9 @@ class Dartdoc {
     assert(type is ClassMirror);
 
     // See if it's a generic type.
-    if (type.isDeclaration) {
+    if (type.isOriginalDeclaration) {
       final typeParams = [];
-      for (final typeParam in type.declaration.typeVariables) {
+      for (final typeParam in type.originalDeclaration.typeVariables) {
         if (showBounds &&
             (typeParam.bound != null) &&
             !typeParam.bound.isObject) {
@@ -1678,7 +1678,7 @@ class Dartdoc {
     final typeArgs = type.typeArguments;
     if (typeArgs.length > 0) {
       final args = Strings.join(typeArgs.map((arg) => typeName(arg)), ', ');
-      return '${type.declaration.simpleName}&lt;$args&gt;';
+      return '${type.originalDeclaration.simpleName}&lt;$args&gt;';
     }
 
     // Regular type.

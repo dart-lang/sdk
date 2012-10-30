@@ -17,7 +17,7 @@ int count(Iterable iterable) {
 
 bool containsType(TypeMirror expected, Iterable<TypeMirror> iterable) {
   for (var element in iterable) {
-    if (element.declaration == expected.declaration) {
+    if (element.originalDeclaration == expected.originalDeclaration) {
       return true;
     }
   }
@@ -98,9 +98,8 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(fooClass.isTypedef, "Class is a typedef");
   Expect.isFalse(fooClass.isFunction, "Class is a function");
 
-  Expect.isTrue(fooClass.isDeclaration, "Class is not declaration");
-  Expect.equals(fooClass, fooClass.declaration,
-                "Class is not its declaration");
+  Expect.isTrue(fooClass.isOriginalDeclaration);
+  Expect.equals(fooClass, fooClass.originalDeclaration);
 
   Expect.isTrue(fooClass.isClass, "Class is not class");
   Expect.isFalse(fooClass.isInterface, "Class is interface");
@@ -109,20 +108,19 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   var objectType = fooClass.superclass;
   Expect.isNotNull(objectType, "Superclass is null");
   Expect.isTrue(objectType.isObject, "Object is not Object");
-  Expect.isFalse(objectType.isDeclaration, "Object type is declaration");
+  Expect.isFalse(objectType.isOriginalDeclaration);
   Expect.isTrue(containsType(fooClass,
                              computeSubdeclarations(objectType)),
                 "Class is not subclass of superclass");
 
-  var fooInterfaces = fooClass.interfaces;
+  var fooInterfaces = fooClass.superinterfaces;
   Expect.isNotNull(fooInterfaces, "Interfaces map is null");
   Expect.isTrue(fooInterfaces.isEmpty, "Interfaces map is not empty");
 
   var fooSubdeclarations = computeSubdeclarations(fooClass);
   Expect.equals(1, count(fooSubdeclarations), "Unexpected subtype count");
   for (var fooSubdeclaration in fooSubdeclarations) {
-    Expect.equals(fooClass, fooSubdeclaration.superclass.declaration,
-                  "Class is not superclass of subclass");
+    Expect.equals(fooClass, fooSubdeclaration.superclass.originalDeclaration);
   }
 
   Expect.throws(() => fooClass.typeArguments,
@@ -133,7 +131,7 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isTrue(fooClassTypeVariables.isEmpty,
                 "Type variable list is not empty");
 
-  Expect.isNull(fooClass.defaultType, "Class has default type");
+  Expect.isNull(fooClass.defaultFactory);
 
   var fooClassMembers = fooClass.declaredMembers;
   Expect.isNotNull(fooClassMembers, "Declared members map is null");
@@ -171,9 +169,8 @@ void testBar(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(barInterface.isTypedef, "Interface is a typedef");
   Expect.isFalse(barInterface.isFunction, "Interface is a function");
 
-  Expect.isTrue(barInterface.isDeclaration, "Interface is not declaration");
-  Expect.equals(barInterface, barInterface.declaration,
-                "Interface is not its declaration");
+  Expect.isTrue(barInterface.isOriginalDeclaration);
+  Expect.equals(barInterface, barInterface.originalDeclaration);
 
   Expect.isFalse(barInterface.isClass, "Interface is class");
   Expect.isTrue(barInterface.isInterface, "Interface is not interface");
@@ -182,12 +179,12 @@ void testBar(MirrorSystem system, LibraryMirror helperLibrary,
   var objectType = barInterface.superclass;
   Expect.isNotNull(objectType, "Superclass is null");
   Expect.isTrue(objectType.isObject, "Object is not Object");
-  Expect.isFalse(objectType.isDeclaration, "Object type is declaration");
+  Expect.isFalse(objectType.isOriginalDeclaration);
   Expect.isTrue(containsType(barInterface,
                              computeSubdeclarations(objectType)),
                 "Class is not subclass of superclass");
 
-  var barInterfaces = barInterface.interfaces;
+  var barInterfaces = barInterface.superinterfaces;
   Expect.isNotNull(barInterfaces, "Interfaces map is null");
   Expect.isTrue(barInterfaces.isEmpty, "Interfaces map is not empty");
 
@@ -195,7 +192,7 @@ void testBar(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.equals(1, count(barSubdeclarations), "Unexpected subtype count");
   for (var barSubdeclaration in barSubdeclarations) {
     Expect.isTrue(containsType(barInterface,
-                               barSubdeclaration.interfaces),
+                               barSubdeclaration.superinterfaces),
                   "Interface is not superinterface of subclass");
   }
 
@@ -213,7 +210,7 @@ void testBar(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isNotNull(barE, "Type variable is null");
   Expect.isTrue(barE.isTypeVariable, "Type variable is not type variable");
 
-  Expect.isNull(barInterface.defaultType, "Interface has default type");
+  Expect.isNull(barInterface.defaultFactory);
 
   var barInterfaceMembers = barInterface.declaredMembers;
   Expect.isNotNull(barInterfaceMembers, "Declared members map is null");
@@ -261,9 +258,8 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(bazClass.isTypedef, "Class is a typedef");
   Expect.isFalse(bazClass.isFunction, "Class is a function");
 
-  Expect.isTrue(bazClass.isDeclaration, "Class is not declaration");
-  Expect.equals(bazClass, bazClass.declaration,
-                "Class is not its declaration");
+  Expect.isTrue(bazClass.isOriginalDeclaration);
+  Expect.equals(bazClass, bazClass.originalDeclaration);
 
   Expect.isTrue(bazClass.isClass, "Class is not class");
   Expect.isFalse(bazClass.isInterface, "Class is interface");
@@ -272,12 +268,12 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   var objectType = bazClass.superclass;
   Expect.isNotNull(objectType, "Superclass is null");
   Expect.isTrue(objectType.isObject, "Object is not Object");
-  Expect.isFalse(objectType.isDeclaration, "Object type is declaration");
+  Expect.isFalse(objectType.isOriginalDeclaration);
   Expect.isTrue(containsType(bazClass,
                              computeSubdeclarations(objectType)),
                 "Class is not subclass of superclass");
 
-  var bazInterfaces = bazClass.interfaces;
+  var bazInterfaces = bazClass.superinterfaces;
   Expect.isNotNull(bazInterfaces, "Interfaces map is null");
   Expect.isTrue(!bazInterfaces.isEmpty, "Interfaces map is empty");
   for (var bazInterface in bazInterfaces) {
@@ -291,7 +287,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
 
   var barInterface = findMirror(bazInterfaces, "Bar");
   Expect.isNotNull(barInterface, "Interface bar is missing");
-  Expect.isFalse(barInterface.isDeclaration, "Interface type is declaration");
+  Expect.isFalse(barInterface.isOriginalDeclaration);
   var barInterfaceTypeArguments = barInterface.typeArguments;
   Expect.isNotNull(barInterfaceTypeArguments, "Type arguments are missing");
   Expect.equals(1, barInterfaceTypeArguments.length,
@@ -314,7 +310,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
                 "Unexpected type variable declarer");
   var bazEbound = bazE.bound;
   Expect.isNotNull(bazEbound, "Missing type variable bound");
-  Expect.isFalse(bazEbound.isDeclaration, "Bound is declaration");
+  Expect.isFalse(bazEbound.isOriginalDeclaration);
   Expect.isTrue(bazEbound.isObject, "Bound is not object");
 
   var bazF = bazClassTypeVariables[1];
@@ -325,11 +321,11 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.equals(bazClass, bazF.declarer);
   var bazFbound = bazF.bound;
   Expect.isNotNull(bazFbound, "Missing type variable bound");
-  Expect.isFalse(bazFbound.isDeclaration, "Bound is declaration");
+  Expect.isFalse(bazFbound.isOriginalDeclaration);
   Expect.stringEquals("mirrors_helper.Foo", bazFbound.qualifiedName,
                       "Bound is not Foo");
 
-  Expect.isNull(bazClass.defaultType, "Class has default type");
+  Expect.isNull(bazClass.defaultFactory);
 
   var bazClassMembers = bazClass.declaredMembers;
   Expect.isNotNull(bazClassMembers, "Declared members map is null");
@@ -345,8 +341,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
                       "Unexpected method simpleName");
   Expect.stringEquals('mirrors_helper.Baz.method1', method1.qualifiedName,
                       "Unexpected method qualifiedName");
-  Expect.equals(method1.owner, bazClass,
-                "Unexpected surrounding declaration");
+  Expect.equals(method1.owner, bazClass);
   Expect.isFalse(method1.isTopLevel, "Method is top level");
   Expect.isFalse(method1.isConstructor, "Method is constructor");
   Expect.isFalse(method1.isField, "Method is field");
@@ -399,8 +394,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
                       "Unexpected method simpleName");
   Expect.stringEquals('mirrors_helper.Baz.method2', method2.qualifiedName,
                       "Unexpected method qualifiedName");
-  Expect.equals(method2.owner, bazClass,
-                "Unexpected surrounding declaration");
+  Expect.equals(method2.owner, bazClass);
   Expect.isFalse(method2.isTopLevel, "Method is top level");
   Expect.isFalse(method2.isConstructor, "Method is constructor");
   Expect.isFalse(method2.isField, "Method is field");
@@ -466,8 +460,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
                       "Unexpected method simpleName");
   Expect.stringEquals('mirrors_helper.Baz.method3', method3.qualifiedName,
                       "Unexpected method qualifiedName");
-  Expect.equals(method3.owner, bazClass,
-                      "Unexpected surrounding declaration");
+  Expect.equals(method3.owner, bazClass);
   Expect.isFalse(method3.isTopLevel, "Method is top level");
   Expect.isFalse(method3.isConstructor, "Method is constructor");
   Expect.isFalse(method3.isField, "Method is field");
@@ -489,8 +482,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isNotNull(method3ReturnType, "Return type is null");
   Expect.isTrue(method3ReturnType is ClassMirror,
                 "Return type is not interface");
-  Expect.equals(bazClass, method3ReturnType.declaration,
-                "Return type is not Baz");
+  Expect.equals(bazClass, method3ReturnType.originalDeclaration);
   // TODO(johnniwinther): Test type arguments of [method3ReturnType].
 
   var method3Parameters = method3.parameters;
@@ -545,24 +537,22 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.equals(helperLibrary, funcTypedef.library,
                 "Unexpected typedef library");
   Expect.isNull(funcTypedef.superclass, "Non-null superclass on typedef");
-  Expect.isNotNull(funcTypedef.interfaces,
-                   "Null interfaces map on typedef");
-  Expect.isTrue(funcTypedef.interfaces.isEmpty,
-                "Non-empty interfaces map on typedef");
+  Expect.isNotNull(funcTypedef.superinterfaces);
+  Expect.isTrue(funcTypedef.superinterfaces.isEmpty);
   Expect.isNotNull(funcTypedef.declaredMembers,
                    "Declared members map is null on type def");
   Expect.isTrue(funcTypedef.declaredMembers.isEmpty,
                 "Non-empty declared members map on typedef");
 
-  // TODO(johnniwinther): Returned typedef should not be the declaration:
-  Expect.isTrue(funcTypedef.isDeclaration, "Typedef is not declaration");
+  // TODO(johnniwinther): Returned typedef should not be the original
+  // declaration:
+  Expect.isTrue(funcTypedef.isOriginalDeclaration);
   Expect.isFalse(funcTypedef.isClass, "Typedef is class");
   Expect.isFalse(funcTypedef.isInterface, "Typedef is interface");
   Expect.isFalse(funcTypedef.isPrivate, "Typedef is private");
-  Expect.isNull(funcTypedef.defaultType,
-                "Typedef default type is non-null");
+  Expect.isNull(funcTypedef.defaultFactory);
   // TODO(johnniwinther): Should not throw an exception since the type should
-  // not be the declaration.
+  // not be the original declaration.
   Expect.throws(() => funcTypedef.typeArguments,
                 (exception) => true,
                 "Typedef has type arguments");
@@ -597,8 +587,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.stringEquals('mirrors_helper.Baz.==',
                       operator_eq.qualifiedName,
                       "Unexpected method qualifiedName");
-  Expect.equals(operator_eq.owner, bazClass,
-                "Unexpected surrounding declaration");
+  Expect.equals(operator_eq.owner, bazClass);
   Expect.isFalse(operator_eq.isTopLevel, "Method is top level");
   Expect.isFalse(operator_eq.isConstructor, "Method is constructor");
   Expect.isFalse(operator_eq.isField, "Method is field");
@@ -627,8 +616,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.stringEquals('mirrors_helper.Baz.${Mirror.UNARY_MINUS}',
                       operator_negate.qualifiedName,
                       "Unexpected method qualifiedName");
-  Expect.equals(operator_negate.owner, bazClass,
-                "Unexpected surrounding declaration");
+  Expect.equals(operator_negate.owner, bazClass);
   Expect.isFalse(operator_negate.isTopLevel, "Method is top level");
   Expect.isFalse(operator_negate.isConstructor, "Method is constructor");
   Expect.isFalse(operator_negate.isField, "Method is field");

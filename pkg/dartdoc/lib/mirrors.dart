@@ -232,9 +232,15 @@ abstract class TypeMirror implements DeclarationMirror {
  */
 abstract class ClassMirror implements TypeMirror, ObjectMirror {
   /**
-   * Returns the defining type, i.e. declaration of a type.
+   * A mirror on the original declaration of this type.
+   *
+   * For most classes, they are their own original declaration.  For
+   * generic classes, however, there is a distinction between the
+   * original class declaration, which has unbound type variables, and
+   * the instantiations of generic classes, which have bound type
+   * variables.
    */
-  ClassMirror get declaration;
+  ClassMirror get originalDeclaration;
 
   /**
    * Returns the super class of this type, or null if this type is [Object] or a
@@ -245,7 +251,7 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
   /**
    * Returns a list of the interfaces directly implemented by this type.
    */
-  List<ClassMirror> get interfaces;
+  List<ClassMirror> get superinterfaces;
 
   /**
    * Is [:true:] iff this type is a class.
@@ -258,9 +264,15 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
   bool get isInterface;
 
   /**
-   * Is [:true:] if this type is the declaration of a type.
+   * Is this the original declaration of this type?
+   *
+   * For most classes, they are their own original declaration.  For
+   * generic classes, however, there is a distinction between the
+   * original class declaration, which has unbound type variables, and
+   * the instantiations of generic classes, which have bound type
+   * variables.
    */
-  bool get isDeclaration;
+  bool get isOriginalDeclaration;
 
   /**
    * Is [:true:] if this class is declared abstract.
@@ -285,7 +297,7 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
   /**
    * Returns the default type for this interface.
    */
-  ClassMirror get defaultType;
+  ClassMirror get defaultFactory;
 }
 
 /**

@@ -17,22 +17,22 @@
  * the declaration of this type.
  */
 Iterable<ClassMirror> computeSubdeclarations(ClassMirror type) {
-  type = type.declaration;
+  type = type.originalDeclaration;
   var subtypes = <ClassMirror>[];
   type.system.libraries.forEach((_, library) {
     for (ClassMirror otherType in library.classes.values) {
       var superClass = otherType.superclass;
       if (superClass !== null) {
-        superClass = superClass.declaration;
+        superClass = superClass.originalDeclaration;
         if (type.library === superClass.library) {
           if (superClass == type) {
              subtypes.add(otherType);
           }
         }
       }
-      final superInterfaces = otherType.interfaces;
+      final superInterfaces = otherType.superinterfaces;
       for (ClassMirror superInterface in superInterfaces) {
-        superInterface = superInterface.declaration;
+        superInterface = superInterface.originalDeclaration;
         if (type.library === superInterface.library) {
           if (superInterface == type) {
             subtypes.add(otherType);
@@ -113,7 +113,7 @@ class HierarchyIterator implements Iterator<ClassMirror> {
         queue.addFirst(type.superclass);
       }
     }
-    queue.addAll(type.interfaces);
+    queue.addAll(type.superinterfaces);
     return type;
   }
 
