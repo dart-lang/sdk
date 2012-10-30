@@ -2513,6 +2513,23 @@ void BinarySmiOpInstr::InferRange() {
       }
       break;
 
+    case Token::kBIT_AND:
+      if (Range::ConstantMin(right_range).value() >= 0) {
+        min = RangeBoundary::FromConstant(0);
+        max = Range::ConstantMax(right_range);
+        break;
+      }
+      if (Range::ConstantMin(left_range).value() >= 0) {
+        min = RangeBoundary::FromConstant(0);
+        max = Range::ConstantMax(left_range);
+        break;
+      }
+
+      if (range_ == NULL) {
+        range_ = Range::Unknown();
+      }
+      return;
+
     default:
       if (range_ == NULL) {
         range_ = Range::Unknown();
@@ -2527,6 +2544,14 @@ void BinarySmiOpInstr::InferRange() {
   if (max.IsConstant()) max.Clamp();
 
   range_ = new Range(min, max);
+}
+
+
+// Inclusive.
+bool Range::IsWithin(intptr_t min_int, intptr_t max_int) const {
+  if (min().LowerBound().value() < min_int) return false;
+  if (max().UpperBound().value() > max_int) return false;
+  return true;
 }
 
 

@@ -1691,8 +1691,8 @@ class Range : public ZoneAllocated {
   void PrintTo(BufferFormatter* f) const;
   static const char* ToCString(Range* range);
 
-  const RangeBoundary& min() { return min_; }
-  const RangeBoundary& max() { return max_; }
+  const RangeBoundary& min() const { return min_; }
+  const RangeBoundary& max() const { return max_; }
 
   bool Equals(Range* other) {
     return min_.Equals(other->min_) && max_.Equals(other->max_);
@@ -1707,6 +1707,9 @@ class Range : public ZoneAllocated {
     if (range == NULL) return RangeBoundary::MaxSmi();
     return range->max().UpperBound();
   }
+
+  // Inclusive.
+  bool IsWithin(intptr_t min_int, intptr_t max_int) const;
 
  private:
   RangeBoundary min_;

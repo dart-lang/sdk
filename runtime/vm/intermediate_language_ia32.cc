@@ -1757,9 +1757,14 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Label call_method, done;
       // Check if count too large for handling it inlined.
       __ movl(temp, left);
-      __ cmpl(right,
+      Range* right_range = this->right()->definition()->range();
+      const bool right_needs_check =
+          (right_range == NULL) || !right_range->IsWithin(0, (Smi::kBits - 1));
+      if (right_needs_check) {
+        __ cmpl(right,
           Immediate(reinterpret_cast<int32_t>(Smi::New(Smi::kBits))));
-      __ j(ABOVE_EQUAL, &call_method, Assembler::kNearJump);
+        __ j(ABOVE_EQUAL, &call_method, Assembler::kNearJump);
+      }
       Register right_temp = locs()->temp(1).reg();
       ASSERT(right_temp == ECX);  // Count must be in ECX
       __ movl(right_temp, right);
