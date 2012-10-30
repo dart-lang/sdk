@@ -16729,6 +16729,9 @@ abstract class InputElement implements Element {
   /** @domName HTMLInputElement.defaultValue */
   String defaultValue;
 
+  /** @domName HTMLInputElement.dirName */
+  String dirName;
+
   /** @domName HTMLInputElement.disabled */
   bool disabled;
 
@@ -16899,6 +16902,8 @@ class _InputElementImpl extends _ElementImpl implements InputElement native "*HT
   bool defaultChecked;
 
   String defaultValue;
+
+  String dirName;
 
   bool disabled;
 
@@ -33417,6 +33422,9 @@ abstract class TextAreaElement implements Element {
   /** @domName HTMLTextAreaElement.defaultValue */
   String defaultValue;
 
+  /** @domName HTMLTextAreaElement.dirName */
+  String dirName;
+
   /** @domName HTMLTextAreaElement.disabled */
   bool disabled;
 
@@ -33497,6 +33505,8 @@ class _TextAreaElementImpl extends _ElementImpl implements TextAreaElement nativ
   int cols;
 
   String defaultValue;
+
+  String dirName;
 
   bool disabled;
 

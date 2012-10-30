@@ -18540,6 +18540,9 @@ abstract class InputElement implements Element {
   /** @domName HTMLInputElement.defaultValue */
   String defaultValue;
 
+  /** @domName HTMLInputElement.dirName */
+  String dirName;
+
   /** @domName HTMLInputElement.disabled */
   bool disabled;
 
@@ -18731,6 +18734,10 @@ class _InputElementImpl extends _ElementImpl_Merged implements InputElement {
   String get defaultValue native "HTMLInputElement_defaultValue_Getter";
 
   void set defaultValue(String value) native "HTMLInputElement_defaultValue_Setter";
+
+  String get dirName native "HTMLInputElement_dirName_Getter";
+
+  void set dirName(String value) native "HTMLInputElement_dirName_Setter";
 
   bool get disabled native "HTMLInputElement_disabled_Getter";
 
@@ -37189,6 +37196,9 @@ abstract class TextAreaElement implements Element {
   /** @domName HTMLTextAreaElement.defaultValue */
   String defaultValue;
 
+  /** @domName HTMLTextAreaElement.dirName */
+  String dirName;
+
   /** @domName HTMLTextAreaElement.disabled */
   bool disabled;
 
@@ -37280,6 +37290,10 @@ class _TextAreaElementImpl extends _ElementImpl_Merged implements TextAreaElemen
   String get defaultValue native "HTMLTextAreaElement_defaultValue_Getter";
 
   void set defaultValue(String value) native "HTMLTextAreaElement_defaultValue_Setter";
+
+  String get dirName native "HTMLTextAreaElement_dirName_Getter";
+
+  void set dirName(String value) native "HTMLTextAreaElement_dirName_Setter";
 
   bool get disabled native "HTMLTextAreaElement_disabled_Getter";
 
