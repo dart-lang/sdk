@@ -103,7 +103,7 @@ void renamePlaceholders(
     return result.toString();
   }
 
-  String renameConstructor(Element element, DartType type,
+  String renameConstructor(Element element, ConstructorPlaceholder placeholder,
       Function renameString, Function renameElement) {
     assert(element.isConstructor());
     StringBuffer result = new StringBuffer();
@@ -111,8 +111,10 @@ void renamePlaceholders(
     if (element.name != element.getEnclosingClass().name) {
       // Named constructor or factory. Is there a more reliable way to check
       // this case?
-      result.add(renameType(type, renameElement));
-      result.add('.');
+      if (!placeholder.isRedirectingCall) {
+        result.add(renameType(placeholder.type, renameElement));
+        result.add('.');
+      }
       String prefix = '${element.getEnclosingClass().name.slowToString()}\$';
       if (!name.startsWith(prefix)) {
         // Factory for another interface (that is going away soon).
@@ -122,7 +124,8 @@ void renamePlaceholders(
       name = name.substring(prefix.length);
       result.add(name);
     } else {
-      result.add(renameType(type, renameElement));
+      assert(!placeholder.isRedirectingCall);
+      result.add(renameType(placeholder.type, renameElement));
     }
     return result.toString();
   }
@@ -283,7 +286,7 @@ void renamePlaceholders(
       (Element constructor, List<ConstructorPlaceholder> placeholders) {
         for (ConstructorPlaceholder ph in placeholders) {
           renames[ph.node] =
-              renameConstructor(constructor, ph.type, rename, renameElement);
+              renameConstructor(constructor, ph, rename, renameElement);
         }
   });
   sortedForEach(placeholderCollector.privateNodes, (library, nodes) {

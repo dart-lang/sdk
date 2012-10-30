@@ -172,19 +172,6 @@ testGetSet() {
   testDart2Dart('String get foo{return "a";}main(){foo;}');
 }
 
-testFactoryConstructor() {
-  testDart2Dart('main(){new A.fromFoo();}class A{A.fromFoo();}');
-  // Now more complicated, with normal constructor and factory parameters.
-  testDart2Dart('main(){new A.fromFoo(5);}'
-      'class A{A(this.f);A.fromFoo(foo):this("f");final String f;}');
-  // Now even more complicated, with interface and default factory.
-  testDart2Dart('main(){new A.fromFoo(5);new I.fromFoo();}'
-      'class IFactory{factory I.fromFoo()=>new A(5);}'
-      'interface I default IFactory{I.fromFoo();}'
-      'class A implements I{A(this.f);A.fromFoo(foo):this("f");'
-      'final String f;}');
-}
-
 testAbstractClass() {
   testDart2Dart('main(){A.foo;}abstract class A{final static num foo;}');
 }
@@ -483,42 +470,6 @@ main() {
   Expect.isTrue(collector.elementNodes[classElement].contains(defaultTypeNode));
 }
 
-testFactoryRename() {
-  var librarySrc = '''
-#library('mylib');
-
-interface I default B { I(); }
-class A implements I { A() {} }
-class B { factory I() {} }
-
-''';
-  var mainSrc = '''
-#import('mylib.dart', prefix: 'mylib');
-
-interface I default B { I(); }
-class A implements I { A() {} }
-class B { factory I() {} }
-
-main() {
-  new I();
-  new A();
-
-  new mylib.I();
-  new mylib.A();
-}
-''';
-  var expectedResult =
-    'interface I default B{I();}'
-    'class A implements I{A(){}}'
-    'class B{factory I(){}}'
-    'interface p_I default p_B{p_I();}'
-    'class p_A implements p_I{p_A(){}}'
-    'class p_B{factory p_I(){}}'
-    'main(){new p_I();new p_A();new I();new A();}';
-  testDart2DartWithLibrary(mainSrc, librarySrc,
-      continuation: (String result) { Expect.equals(expectedResult, result); });
-}
-
 testTypeVariablesAreRenamed() {
   // Somewhat a hack: we require all the references of the identifier
   // to be renamed in the same way for the whole library. Hence
@@ -610,32 +561,6 @@ main() {
       continuation: (String result) { Expect.equals(expectedResult, result); });
 }
 
-testInterfaceDefaultAnotherLib() {
-  var librarySrc = '''
-#library('mylib');
-class C<T> {
-  factory I() {}
-}
-''';
-  var mainSrc = '''
-#import('mylib.dart', prefix: 'mylib');
-
-interface I<T> default mylib.C<T> {
-  I();
-}
-
-main() {
-  new I();
-}
-''';
-  var expectedResult =
-    'class C<T>{factory I(){}}'
-    'interface I<T> default C<T>{I();}'
-    'main(){new I();}';
-  testDart2DartWithLibrary(mainSrc, librarySrc,
-      continuation: (String result) { Expect.equals(expectedResult, result); });
-}
-
 testStaticAccessIoLib() {
   var src = '''
 #import('dart:io');
@@ -710,39 +635,6 @@ main() {
       (String result) { Expect.equals(expectedResult, result); }, minify: true);
 }
 
-testTypeVariablesInDifferentLibraries() {
-// This is a simplified version of what we have in
-// lib/compiler/implementation/util.
-  var librarySrc = '''
-#library('mylib');
-#import('script.dart');
-interface Iterable<K> {}
-
-interface Link<T> extends Iterable<T> default LinkFactory<T> {
-  Link();
-}
-''';
-  var mainSrc = '''
-#library('script.dart');
-#import('mylib.dart');
-
-class LinkFactory<T> {
-  factory Link() {}
-}
-
-main() {
-  new Link<int>();
-}
-''';
-  var expectedResult =
-    'interface Iterable<K>{}'
-    'interface Link<T> extends Iterable<T> default LinkFactory<T>{Link();}'
-    'class LinkFactory<T>{factory Link(){}}'
-    'main(){new Link<int>();}';
-  testDart2DartWithLibrary(mainSrc, librarySrc,
-      continuation: (String result) { Expect.equals(expectedResult, result); });
-}
-
 testDeclarationTypePlaceholders() {
   var src = '''
 String globalfield;
@@ -807,7 +699,6 @@ main() {
   testExtendsImplements();
   testVariableDefinitions();
   testGetSet();
-  testFactoryConstructor();
   testAbstractClass();
   testConflictSendsRename();
   testNoConflictSendsRename();
@@ -818,17 +709,14 @@ main() {
   testLibraryGetSet();
   testFieldTypeOutput();
   testDefaultClassNamePlaceholder();
-  testFactoryRename();
   testTypeVariablesAreRenamed();
   testClassTypeArgumentBound();
   testDoubleMains();
-  testInterfaceDefaultAnotherLib();
   testStaticAccessIoLib();
   testLocalFunctionPlaceholder();
   testMinification();
   testClosureLocalsMinified();
   testParametersMinified();
-  testTypeVariablesInDifferentLibraries();
   testDeclarationTypePlaceholders();
   testPlatformLibraryMemberNamesAreFixed();
   testConflictsWithCoreLib();

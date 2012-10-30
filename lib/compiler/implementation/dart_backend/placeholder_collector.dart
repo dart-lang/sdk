@@ -27,7 +27,11 @@ class FunctionScope {
 class ConstructorPlaceholder {
   final Node node;
   final DartType type;
-  ConstructorPlaceholder(this.node, this.type);
+  final bool isRedirectingCall;
+  ConstructorPlaceholder(this.node, this.type)
+      : this.isRedirectingCall = false;
+  ConstructorPlaceholder.redirectingCall(this.node)
+      : this.type = null, this.isRedirectingCall = true;
 }
 
 class DeclarationTypePlaceholder {
@@ -47,7 +51,12 @@ class SendVisitor extends ResolvedVisitor {
   visitForeignSend(Send node) {}
 
   visitSuperSend(Send node) {
-    collector.tryMakeMemberPlaceholder(node.selector);
+    Element element = elements[node];
+    if (element != null && element.isConstructor()) {
+      collector.makeRedirectingConstructorPlaceholder(node.selector, element);
+    } else {
+      collector.tryMakeMemberPlaceholder(node.selector);
+    }
   }
 
   visitDynamicSend(Send node) {
@@ -98,15 +107,13 @@ class SendVisitor extends ResolvedVisitor {
         || identical(element, compiler.assertMethod)) {
       return;
     }
-    // TODO(smok): We should never go inside this IF, check?
     if (element.isConstructor() || element.isFactoryConstructor()) {
       // Rename named constructor in redirection position:
       // class C { C.named(); C.redirecting() : this.named(); }
-      // TODO(smok): Fix redirecting constructors.
       if (node.receiver is Identifier
           && node.receiver.asIdentifier().isThis()) {
         assert(node.selector is Identifier);
-        collector.tryMakeMemberPlaceholder(node.selector);
+        collector.makeRedirectingConstructorPlaceholder(node.selector, element);
       }
       return;
     }
@@ -159,27 +166,11 @@ class PlaceholderCollector extends Visitor {
       constructorPlaceholders =
           new Map<Element, List<ConstructorPlaceholder>>();
 
-  void tryMakeConstructorPlaceholder(
-      FunctionExpression constructor, FunctionElement constructorElement) {
-    DartType type = constructorElement.getEnclosingClass().type.asRaw();
-    makeConstructorPlaceholder(constructor.name, constructorElement, type);
-  }
-
   void collectFunctionDeclarationPlaceholders(
       FunctionElement element, FunctionExpression node) {
     if (element.isGenerativeConstructor() || element.isFactoryConstructor()) {
-      // Two complicated cases for class/interface renaming:
-      // 1) class which implements constructors of other interfaces, but not
-      //    implements interfaces themselves:
-      //      0.dart: class C { I(); }
-      //      1.dart and 2.dart: interface I default C { I(); }
-      //    now we have to duplicate our I() constructor in C class with
-      //    proper names.
-      // 2) (even worse for us):
-      //      0.dart: class C { C(); }
-      //      1.dart: interface C default p0.C { C(); }
-      //    the second case is just a bug now.
-      tryMakeConstructorPlaceholder(node, element);
+      DartType type = element.getEnclosingClass().type.asRaw();
+      makeConstructorPlaceholder(node.name, element, type);
     } else if (Elements.isStaticOrTopLevel(element)) {
       // Note: this code should only rename private identifiers for class'
       // fields/getters/setters/methods.  Top-level identifiers are renamed
@@ -332,9 +323,15 @@ class PlaceholderCollector extends Visitor {
   }
 
   void makeConstructorPlaceholder(Node node, Element element, DartType type) {
+    assert(type != null);
     constructorPlaceholders
         .putIfAbsent(element, () => <ConstructorPlaceholder>[])
             .add(new ConstructorPlaceholder(node, type));
+  }
+  void makeRedirectingConstructorPlaceholder(Node node, Element element) {
+    constructorPlaceholders
+        .putIfAbsent(element, () => <ConstructorPlaceholder>[])
+            .add(new ConstructorPlaceholder.redirectingCall(node));
   }
 
   void internalError(String reason, {Node node}) {
