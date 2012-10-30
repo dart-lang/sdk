@@ -1439,7 +1439,7 @@ class Dartdoc {
   /**
    * Documents the source code contained within [location].
    */
-  void docCode(Location location) {
+  void docCode(SourceLocation location) {
     if (includeSource) {
       writeln('<pre class="source">');
       writeln(md.escapeHtml(unindentCode(location)));
@@ -1688,7 +1688,7 @@ class Dartdoc {
   /**
    * Remove leading indentation to line up with first line.
    */
-  unindentCode(Location span) {
+  unindentCode(SourceLocation span) {
     final column = getLocationColumn(span);
     final lines = span.text.split('\n');
     // TODO(rnystrom): Dirty hack.
@@ -1703,7 +1703,7 @@ class Dartdoc {
   /**
    * Takes a string of Dart code and turns it into sanitized HTML.
    */
-  formatCode(Location span) {
+  formatCode(SourceLocation span) {
     final code = unindentCode(span);
 
     // Syntax highlight.

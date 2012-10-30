@@ -58,7 +58,7 @@ LibraryMirror findLibrary(MemberMirror member) {
 /**
  * Returns the column of the start of a location.
  */
-int getLocationColumn(Location location) {
+int getLocationColumn(SourceLocation location) {
   String text = location.source.text;
   int index = location.start-1;
   var column = 0;

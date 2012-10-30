@@ -103,6 +103,10 @@ abstract class DeclarationMirror implements Mirror {
    */
   String get qualifiedName;
 
+  /**
+   * The source location of this Dart language entity.
+   */
+  SourceLocation get location;
 }
 
 /**
@@ -132,11 +136,6 @@ abstract class LibraryMirror implements ObjectMirror, DeclarationMirror {
   Map<String, ClassMirror> get types;
 
   /**
-   * Returns the source location for this library.
-   */
-  Location get location;
-
-  /**
    * Returns the canonical URI for this library.
    */
   Uri get uri;
@@ -146,11 +145,6 @@ abstract class LibraryMirror implements ObjectMirror, DeclarationMirror {
  * Common interface for classes, interfaces, typedefs and type variables.
  */
 abstract class TypeMirror implements DeclarationMirror {
-  /**
-   * Returns the source location for this type.
-   */
-  Location get location;
-
   /**
    * Returns the library in which this member resides.
    */
@@ -308,11 +302,6 @@ abstract class TypedefMirror implements ClassMirror {
  */
 abstract class MemberMirror implements DeclarationMirror {
   /**
-   * Returns the source location for this member.
-   */
-  Location get location;
-
-  /**
    * Returns a mirror on the declaration immediately surrounding the reflectee.
    * This could be a class, interface, library or another method or function.
    */
@@ -467,11 +456,11 @@ abstract class ParameterMirror implements Mirror {
 }
 
 /**
- * A [Location] describes the span of an entity in Dart source code.
- * A [Location] should be the minimum span that encloses the declaration of the
- * mirrored entity.
+ * A [SourceLocation] describes the span of an entity in Dart source code.
+ * A [SourceLocation] should be the minimum span that encloses the declaration
+ * of the mirrored entity.
  */
-abstract class Location {
+abstract class SourceLocation {
   /**
    * The character position where the location begins.
    */
@@ -483,7 +472,7 @@ abstract class Location {
   int get end;
 
   /**
-   * Returns the [Source] in which this [Location] indexes.
+   * Returns the [Source] in which this [SourceLocation] indexes.
    * If [:loc:] is a location, [:loc.source().text()[loc.start]:] is where it
    * starts, and [:loc.source().text()[loc.end]:] is where it ends.
    */

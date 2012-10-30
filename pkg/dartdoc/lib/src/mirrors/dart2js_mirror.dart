@@ -412,7 +412,7 @@ abstract class Dart2JsElementMirror implements Dart2JsDeclarationMirror {
 
   String get displayName => simpleName;
 
-  Location get location => new Dart2JsLocation(
+  SourceLocation get location => new Dart2JsLocation(
       _element.getCompilationUnit().script,
       system.compiler.spanFromElement(_element));
 
@@ -563,7 +563,7 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
     return new ImmutableMapWrapper<String, ClassMirror>(_types);
   }
 
-  Location get location {
+  SourceLocation get location {
     var script = _library.getCompilationUnit().script;
     return new Dart2JsLocation(
         script,
@@ -571,7 +571,7 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
   }
 }
 
-class Dart2JsLocation implements Location {
+class Dart2JsLocation implements SourceLocation {
   Script _script;
   SourceSpan _span;
 
@@ -693,7 +693,7 @@ class Dart2JsClassMirror extends Dart2JsObjectMirror
 
   String get qualifiedName => '${library.qualifiedName}.${simpleName}';
 
-  Location get location {
+  SourceLocation get location {
     if (_class is PartialClassElement) {
       var node = _class.parseNode(system.compiler);
       if (node !== null) {
@@ -834,7 +834,7 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
 
   String get qualifiedName => '${library.qualifiedName}.${simpleName}';
 
-  Location get location {
+  SourceLocation get location {
     var node = _typedef.element.parseNode(_diagnosticListener);
     if (node !== null) {
       var script = _typedef.element.getCompilationUnit().script;
@@ -969,7 +969,7 @@ abstract class Dart2JsTypeElementMirror extends Dart2JsProxyMirror
 
   String get simpleName => _type.name.slowToString();
 
-  Location get location {
+  SourceLocation get location {
     var script = _type.element.getCompilationUnit().script;
     return new Dart2JsLocation(script,
                                system.compiler.spanFromElement(_type.element));
@@ -1167,7 +1167,7 @@ class Dart2JsVoidMirror extends Dart2JsTypeElementMirror {
   /**
    * The void type has no location.
    */
-  Location get location => null;
+  SourceLocation get location => null;
 
   /**
    * The void type has no library.
@@ -1199,7 +1199,7 @@ class Dart2JsDynamicMirror extends Dart2JsTypeElementMirror {
   /**
    * The dynamic type has no location.
    */
-  Location get location => null;
+  SourceLocation get location => null;
 
   /**
    * The dynamic type has no library.
@@ -1344,7 +1344,7 @@ class Dart2JsMethodMirror extends Dart2JsElementMirror
 
   String get operatorName => _operatorName;
 
-  Location get location {
+  SourceLocation get location {
     var node = _function.parseNode(_diagnosticListener);
     if (node !== null) {
       var script = _function.getCompilationUnit().script;
@@ -1392,7 +1392,7 @@ class Dart2JsFieldMirror extends Dart2JsElementMirror
       _variable.computeType(system.compiler),
       system.compiler.types.dynamicType);
 
-  Location get location {
+  SourceLocation get location {
     var script = _variable.getCompilationUnit().script;
     var node = _variable.variables.parseNode(_diagnosticListener);
     if (node !== null) {

@@ -28,7 +28,7 @@ class CommentMap {
    *
    * If a comment is returned, it is guaranteed to be non-empty.
    */
-  String find(Location span) {
+  String find(SourceLocation span) {
     if (span == null) return null;
 
     _ensureFileParsed(span.source);
