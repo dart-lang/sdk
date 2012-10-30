@@ -922,7 +922,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             jsCondition = generateExpression(condition);
             currentContainer = body;
           } else {
-            jsCondition = new js.LiteralBool(true);
+            jsCondition = newLiteralBool(true);
             currentContainer = body;
             generateStatements(condition);
             use(condition.conditionExpression);
@@ -1336,7 +1336,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitBoolify(HBoolify node) {
     assert(node.inputs.length == 1);
     use(node.inputs[0]);
-    push(new js.Binary('===', pop(), new js.LiteralBool(true)), node);
+    push(new js.Binary('===', pop(), newLiteralBool(true)), node);
   }
 
   visitExit(HExit node) {
@@ -1734,12 +1734,21 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(new js.New(new js.VariableUse(jsClassReference), arguments), node);
   }
 
+  js.Expression newLiteralBool(bool value) {
+    if (compiler.enableMinification) {
+      // Use !0 for true, !1 for false.
+      return new js.Prefix("!", new js.LiteralNumber(value ? "0" : "1"));
+    } else {
+      return new js.LiteralBool(value);
+    }
+  }
+
   void generateConstant(Constant constant) {
     Namer namer = backend.namer;
     // TODO(floitsch): should we use the ConstantVisitor here?
     if (!constant.isObject()) {
       if (constant.isBool()) {
-        push(new js.LiteralBool((constant as BoolConstant).value));
+        push(newLiteralBool(constant.value));
       } else if (constant.isNum()) {
         // TODO(floitsch): get rid of the code buffer.
         CodeBuffer buffer = new CodeBuffer();
@@ -1838,7 +1847,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     if (input is HBoolify && isGenerateAtUseSite(input)) {
       use(input.inputs[0]);
-      push(new js.Binary("!==", pop(), new js.LiteralBool(true)), input);
+      push(new js.Binary("!==", pop(), newLiteralBool(true)), input);
     } else if (canGenerateOptimizedComparison(input) &&
                isGenerateAtUseSite(input)) {
       Map<String, String> inverseOperator = const <String, String>{
@@ -2348,7 +2357,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (identical(element, objectClass) || identical(element, compiler.dynamicClass)) {
       // The constant folder also does this optimization, but we make
       // it safe by assuming it may have not run.
-      push(new js.LiteralBool(true), node);
+      push(newLiteralBool(true), node);
     } else if (element == compiler.stringClass) {
       checkString(input, '===');
       attachLocationToLast(node);
@@ -2664,7 +2673,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     js.Statement body = currentContainer;
     currentContainer = oldContainerStack.removeLast();
     body = unwrapStatement(body);
-    js.While loop = new js.While(new js.LiteralBool(true), body);
+    js.While loop = new js.While(newLiteralBool(true), body);
 
     HLoopInformation info = block.loopInformation;
     attachLocationRange(loop,
@@ -2925,7 +2934,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     js.Statement body = unwrapStatement(currentContainer);
     currentContainer = oldContainerStack.removeLast();
 
-    js.Statement result = new js.While(new js.LiteralBool(true), body);
+    js.Statement result = new js.While(newLiteralBool(true), body);
     attachLocationRange(result,
                         info.loopBlockInformation.sourcePosition,
                         info.loopBlockInformation.endSourcePosition);
