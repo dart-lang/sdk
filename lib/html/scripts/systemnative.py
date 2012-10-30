@@ -473,7 +473,6 @@ class DartiumBackend(object):
 
     version = [1]
     def GenerateCall(operation, argument_count, checks):
-      checks = filter(lambda e: e != 'true', checks)
       if checks:
         if operation.type.id != 'void':
           template = '    if ($CHECKS) {\n      return $CALL;\n    }\n'
@@ -500,15 +499,14 @@ class DartiumBackend(object):
       self._GenerateOperationNativeCallback(operation, operation.arguments[:argument_count], cpp_callback_name)
 
     def GenerateChecksAndCall(operation, argument_count):
-      checks = ['!?%s' % name for name in argument_names]
+      checks = []
       for i in range(0, argument_count):
         argument = operation.arguments[i]
         argument_name = argument_names[i]
         type = self._DartType(argument.type.id)
         if type not in ['dynamic', 'Object']:
-          checks[i] = '(%s is %s || %s == null)' % (argument_name, type, argument_name)
-        else:
-          checks[i] = 'true'
+          checks.append('(%s is %s || %s == null)' % (argument_name, type, argument_name))
+      checks.extend(['!?%s' % name for name in argument_names[argument_count:]])
       GenerateCall(operation, argument_count, checks)
 
     # TODO: Optimize the dispatch to avoid repeated checks.
