@@ -115,6 +115,21 @@ abstract class DeclarationMirror implements Mirror {
    * Note that for libraries, the owner will be [:null:].
    */
   DeclarationMirror get owner;
+
+  /**
+   * Is this declaration private?
+   *
+   * Note that for libraries, this will be [:false:].
+   */
+  bool get isPrivate;
+
+  /**
+   * Is this declaration top-level?
+   *
+   * This is defined to be equivalent to:
+   *    [:mirror.owner != null && mirror.owner is LibraryMirror:]
+   */
+  bool get isTopLevel;
 }
 
 /**
@@ -218,11 +233,6 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    * Is [:true:] iff this type is an interface.
    */
   bool get isInterface;
-
-  /**
-   * Is [:true:] if this type is private.
-   */
-  bool get isPrivate;
 
   /**
    * Is [:true:] if this type is the declaration of a type.
@@ -329,11 +339,6 @@ abstract class MemberMirror implements DeclarationMirror {
    * Returns true if this member is a method.
    */
   bool get isMethod;
-
-  /**
-   * Returns true if this member is private.
-   */
-  bool get isPrivate;
 
   /**
    * Returns true if this member is static.

@@ -387,19 +387,22 @@ abstract class Dart2JsMirror implements Mirror {
 abstract class Dart2JsDeclarationMirror
     implements Dart2JsMirror, DeclarationMirror {
 
+  bool get isTopLevel => owner != null && owner is LibraryMirror;
+
+  bool get isPrivate => _isPrivate(simpleName);
 }
 
-abstract class Dart2JsMemberMirror
-    implements Dart2JsDeclarationMirror, MemberMirror {
+abstract class Dart2JsMemberMirror extends Dart2JsDeclarationMirror
+    implements MemberMirror {
 
 }
 
-abstract class Dart2JsTypeMirror
-    implements Dart2JsDeclarationMirror, TypeMirror {
+abstract class Dart2JsTypeMirror extends Dart2JsDeclarationMirror
+    implements TypeMirror {
 
 }
 
-abstract class Dart2JsElementMirror implements Dart2JsDeclarationMirror {
+abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
   final Dart2JsMirrorSystem system;
   final Element _element;
 
@@ -421,7 +424,7 @@ abstract class Dart2JsElementMirror implements Dart2JsDeclarationMirror {
   int get hashCode => qualifiedName.hashCode;
 }
 
-abstract class Dart2JsProxyMirror implements Dart2JsDeclarationMirror {
+abstract class Dart2JsProxyMirror extends Dart2JsDeclarationMirror {
   final Dart2JsMirrorSystem system;
 
   Dart2JsProxyMirror(this.system);
@@ -492,6 +495,8 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
   Uri get uri => _library.uri;
 
   DeclarationMirror get owner => null;
+
+  bool get isPrivate => false;
 
   LibraryMirror library() => this;
 
@@ -767,8 +772,6 @@ class Dart2JsClassMirror extends Dart2JsObjectMirror
 
   bool get isAbstract => _class.modifiers.isAbstract();
 
-  bool get isPrivate => _isPrivate(simpleName);
-
   bool get isDeclaration => true;
 
   List<TypeMirror> get typeArguments {
@@ -896,8 +899,6 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
   bool get isClass => false;
 
   bool get isInterface => false;
-
-  bool get isPrivate => _isPrivate(simpleName);
 
   bool get isDeclaration => true;
 
@@ -1387,8 +1388,6 @@ class Dart2JsFieldMirror extends Dart2JsElementMirror
   bool get isField => true;
 
   bool get isMethod => false;
-
-  bool get isPrivate => _isPrivate(simpleName);
 
   bool get isStatic => _variable.modifiers.isStatic();
 
