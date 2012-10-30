@@ -16,6 +16,7 @@
 #include "bin/fdutils.h"
 #include "bin/thread.h"
 
+extern char **environ;
 
 // ProcessInfo is used to map a process id to the file descriptor for
 // the pipe used to communicate the exit code of the process to Dart.
@@ -460,15 +461,13 @@ int Process::Start(const char* path,
       ReportChildError(exec_control[1]);
     }
 
-    if (environment != NULL) {
-      TEMP_FAILURE_RETRY(
-          execve(path,
-                 const_cast<char* const*>(program_arguments),
-                 program_environment));
-    } else {
-      TEMP_FAILURE_RETRY(
-          execvp(path, const_cast<char* const*>(program_arguments)));
+    if (program_environment != NULL) {
+      environ = program_environment;
     }
+
+    TEMP_FAILURE_RETRY(
+        execvp(path, const_cast<char* const*>(program_arguments)));
+
     ReportChildError(exec_control[1]);
   }
 
