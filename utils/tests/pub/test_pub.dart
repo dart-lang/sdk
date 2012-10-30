@@ -536,9 +536,10 @@ void schedulePub({List<String> args, Pattern output, Pattern error,
           ['--enable-type-checks', '--enable-asserts', pubPath, '--trace'];
       dartArgs.addAll(args);
 
-      var environment = new Map.from(Platform.environment);
-      environment['PUB_CACHE'] = pathInSandbox(cachePath);
-      environment['DART_SDK'] = pathInSandbox(sdkPath);
+      var environment = {
+        'PUB_CACHE': pathInSandbox(cachePath),
+        'DART_SDK': pathInSandbox(sdkPath)
+      };
 
       return runProcess(dartBin, dartArgs, workingDir: pathInSandbox(appPath),
           environment: environment);
@@ -1050,16 +1051,22 @@ class GitRepoDescriptor extends DirectoryDescriptor {
 
     return super.create(parentDir).chain((rootDir) {
       workingDir = rootDir;
-      return writeTextFile(join(parentDir, '.gitconfig'), '''
-[user]
-  name = Test Pub
-  email = pub@dartlang.org
-''');
-    }).chain(runGitStep);
+      return runGitStep(null);
+    });
   }
 
   Future<String> _runGit(List<String> args, Directory workingDir) {
-    return runGit(args, workingDir: workingDir.path).transform((result) {
+    // Explicitly specify the committer information. Git needs this to commit
+    // and we don't want to rely on the buildbots having this already set up.
+    var environment = {
+      'GIT_AUTHOR_NAME': 'Pub Test',
+      'GIT_AUTHOR_EMAIL': 'pub@dartlang.org',
+      'GIT_COMMITTER_NAME': 'Pub Test',
+      'GIT_COMMITTER_EMAIL': 'pub@dartlang.org'
+    };
+
+    return runGit(args, workingDir: workingDir.path,
+        environment: environment).transform((result) {
       if (!result.success) {
         throw "Error running: git ${Strings.join(args, ' ')}\n"
             "${Strings.join(result.stderr, '\n')}";
