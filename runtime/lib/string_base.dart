@@ -20,11 +20,15 @@ class _StringBase {
    *  [codePoints].
    */
   static String createFromCharCodes(List<int> charCodes) {
-    // TODO(ajohnsen): Add fast path once string_base is in core.
-    int len = charCodes.length;
-    var objectArray = new List(len);
-    for (int i = 0; i < len; i++) {
-      objectArray[i] = charCodes[i];
+    _ObjectArray objectArray;
+    if (charCodes is _ObjectArray) {
+      objectArray = charCodes;
+    } else {
+      int len = charCodes.length;
+      objectArray = new _ObjectArray(len);
+      for (int i = 0; i < len; i++) {
+        objectArray[i] = charCodes[i];
+      }
     }
     return _createFromCodePoints(objectArray);
   }
@@ -332,11 +336,15 @@ class _StringBase {
   }
 
   static String concatAll(List<String> strings) {
-    // TODO(ajohnsen): Add fast path once string_base is in core.
-    int len = strings.length;
-    var stringsArray = new List(len);
-    for (int i = 0; i < len; i++) {
-      stringsArray[i] = strings[i];
+    _ObjectArray stringsArray;
+    if (strings is _ObjectArray) {
+      stringsArray = strings;
+    } else {
+      int len = strings.length;
+      stringsArray = new _ObjectArray(len);
+      for (int i = 0; i < len; i++) {
+        stringsArray[i] = strings[i];
+      }
     }
     return _concatAll(stringsArray);
   }

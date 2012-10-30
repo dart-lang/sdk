@@ -26,7 +26,8 @@ class _JSRegExpMatch implements Match {
       assert(endIndex == -1);
       return null;
     }
-    return str._substringUnchecked(startIndex, endIndex);
+    // TODO(ajohnsen): Use _substringUnchecked when regexp is in core.
+    return str.substring(startIndex, endIndex);
   }
 
   String operator [](int groupIdx) {
@@ -98,7 +99,8 @@ patch class JSSyntaxRegExp {
     if (match === null) {
       return null;
     }
-    return str._substringUnchecked(match[0], match[1]);
+    // TODO(ajohnsen): Use _substringUnchecked when regexp is in core.
+    return str.substring(match[0], match[1]);
   }
 
   /* patch */ String get pattern native "JSSyntaxRegExp_getPattern";

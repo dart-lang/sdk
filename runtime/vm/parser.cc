@@ -5803,7 +5803,7 @@ AstNode* Parser::ParseForStatement(String* label_name) {
 AstNode* Parser::MakeStaticCall(const String& cls_name,
                                 const String& func_name,
                                 ArgumentListNode* arguments) {
-  const Class& cls = Class::Handle(LookupImplClass(cls_name));
+  const Class& cls = Class::Handle(LookupCoreClass(cls_name));
   ASSERT(!cls.IsNull());
   const Function& func = Function::ZoneHandle(
       Resolver::ResolveStatic(cls,
@@ -9247,7 +9247,7 @@ AstNode* Parser::ParseNewOperator() {
 
 String& Parser::Interpolate(ArrayNode* values) {
   const String& class_name = String::Handle(Symbols::StringBase());
-  const Class& cls = Class::Handle(LookupImplClass(class_name));
+  const Class& cls = Class::Handle(LookupCoreClass(class_name));
   ASSERT(!cls.IsNull());
   const String& func_name = String::Handle(Symbols::Interpolate());
   const Function& func =

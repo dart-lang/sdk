@@ -7,6 +7,5 @@
     'hash_map_set.dart',
     'linked_hash_map.dart',
     'regexp.dart',
-    'string.dart',
   ],
 }
