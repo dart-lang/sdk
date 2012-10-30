@@ -1034,6 +1034,10 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     return _writeList(buffer, offset, len);
   }
 
+  void _streamFlush() {
+    _httpConnection._flush();
+  }
+
   void _streamClose() {
     _responseEnd();
   }
@@ -1197,10 +1201,6 @@ class _HttpInputStream extends _BaseDataInputStream implements InputStream {
     return result;
   }
 
-  void flush() {
-    // Nothing to do on a HTTP output stream.
-  }
-
   void _close() {
     // TODO(sgjesse): Handle this.
   }
@@ -1222,6 +1222,10 @@ class _HttpOutputStream extends _BaseOutputStream implements OutputStream {
 
   bool writeFrom(List<int> buffer, [int offset = 0, int len]) {
     return _requestOrResponse._streamWriteFrom(buffer, offset, len);
+  }
+
+  void flush() {
+    _requestOrResponse._streamFlush();
   }
 
   void close() {
@@ -1277,6 +1281,10 @@ class _HttpConnectionBase {
     if (!_error && !_closing) {
       return _socket.outputStream.writeFrom(buffer, offset, len);
     }
+  }
+
+  bool _flush() {
+    _socket.outputStream.flush();
   }
 
   bool _close() {
@@ -1645,6 +1653,10 @@ class _HttpClientRequest
   bool _streamWriteFrom(List<int> buffer, int offset, int len) {
     if (_done) throw new HttpException("Request closed");
     return _writeList(buffer, offset, len);
+  }
+
+  void _streamFlush() {
+    _httpConnection._flush();
   }
 
   void _streamClose() {
