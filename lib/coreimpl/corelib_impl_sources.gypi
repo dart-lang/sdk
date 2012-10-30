@@ -7,7 +7,6 @@
     'hash_map_set.dart',
     'linked_hash_map.dart',
     'list.dart',
-    'queue.dart',
     'regexp.dart',
     'string.dart',
   ],
