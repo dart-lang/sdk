@@ -20,20 +20,16 @@ class _StringBase {
    *  [codePoints].
    */
   static String createFromCharCodes(List<int> charCodes) {
-    _ObjectArray objectArray;
-    if (charCodes is _ObjectArray) {
-      objectArray = charCodes;
-    } else {
-      int len = charCodes.length;
-      objectArray = new _ObjectArray(len);
-      for (int i = 0; i < len; i++) {
-        objectArray[i] = charCodes[i];
-      }
+    // TODO(ajohnsen): Add fast path once string_base is in core.
+    int len = charCodes.length;
+    var objectArray = new List(len);
+    for (int i = 0; i < len; i++) {
+      objectArray[i] = charCodes[i];
     }
     return _createFromCodePoints(objectArray);
   }
 
-  static String _createFromCodePoints(_ObjectArray<int> codePoints)
+  static String _createFromCodePoints(List<int> codePoints)
       native "StringBase_createFromCodePoints";
 
   String operator [](int index) native "String_charAt";
@@ -232,7 +228,7 @@ class _StringBase {
    */
   static String _interpolate(List values) {
     int numValues = values.length;
-    var stringList = new _ObjectArray(numValues);
+    var stringList = new List(numValues);
     for (int i = 0; i < numValues; i++) {
       stringList[i] = values[i].toString();
     }
@@ -336,20 +332,16 @@ class _StringBase {
   }
 
   static String concatAll(List<String> strings) {
-    _ObjectArray stringsArray;
-    if (strings is _ObjectArray) {
-      stringsArray = strings;
-    } else {
-      int len = strings.length;
-      stringsArray = new _ObjectArray(len);
-      for (int i = 0; i < len; i++) {
-        stringsArray[i] = strings[i];
-      }
+    // TODO(ajohnsen): Add fast path once string_base is in core.
+    int len = strings.length;
+    var stringsArray = new List(len);
+    for (int i = 0; i < len; i++) {
+      stringsArray[i] = strings[i];
     }
     return _concatAll(stringsArray);
   }
 
-  static String _concatAll(_ObjectArray<String> strings)
+  static String _concatAll(List<String> strings)
       native "Strings_concatAll";
 }
 

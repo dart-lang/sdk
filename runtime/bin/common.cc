@@ -23,17 +23,17 @@ void FUNCTION_NAME(Common_IsBuiltinList)(Dart_NativeArguments args) {
   // If we have not cached the class pointers in the isolate data,
   // look them up and cache them now.
   if (object_array_class == NULL) {
-    Dart_Handle coreimpl_lib =
-        Dart_LookupLibrary(Dart_NewString("dart:coreimpl"));
-    ASSERT(!Dart_IsError(coreimpl_lib));
+    Dart_Handle core_lib =
+        Dart_LookupLibrary(Dart_NewString("dart:core"));
+    ASSERT(!Dart_IsError(core_lib));
     object_array_class =
-        Dart_GetClass(coreimpl_lib, Dart_NewString("_ObjectArray"));
+        Dart_GetClass(core_lib, Dart_NewString("_ObjectArray"));
     ASSERT(!Dart_IsError(object_array_class));
     immutable_array_class =
-        Dart_GetClass(coreimpl_lib, Dart_NewString("_ImmutableArray"));
+        Dart_GetClass(core_lib, Dart_NewString("_ImmutableArray"));
     ASSERT(!Dart_IsError(immutable_array_class));
     growable_object_array_class =
-        Dart_GetClass(coreimpl_lib, Dart_NewString("_GrowableObjectArray"));
+        Dart_GetClass(core_lib, Dart_NewString("_GrowableObjectArray"));
     ASSERT(!Dart_IsError(growable_object_array_class));
     // Update the cache.
     isolate_data->object_array_class =

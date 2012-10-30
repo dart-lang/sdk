@@ -148,3 +148,17 @@ patch class _StopwatchImpl {
   patch static int _frequency() => 1000;
   patch static int _now() => Primitives.dateNow();
 }
+
+
+// Patch for List implementation.
+patch class _ListImpl<E> {
+  patch factory List([int length]) => Primitives.newList(length);
+
+  patch factory List.from(Iterable<E> other) {
+    var result = new List();
+    for (var element in other) {
+      result.add(element);
+    }
+    return result;
+  }
+}

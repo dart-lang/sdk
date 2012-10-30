@@ -6,13 +6,6 @@
 
 {
   'sources': [
-    'array.cc',
-    'array.dart',
-    'array_patch.dart',
-    'growable_array.cc',
-    'growable_array.dart',
-    'immutable_map.dart',
-    'literal_factory.dart',
     'math.dart',
     'math.cc',
     'object.cc',

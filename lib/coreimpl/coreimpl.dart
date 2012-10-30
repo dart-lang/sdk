@@ -8,6 +8,5 @@
 
 #source("hash_map_set.dart");
 #source("linked_hash_map.dart");
-#source("list.dart");
 #source("regexp.dart");
 #source("string.dart");

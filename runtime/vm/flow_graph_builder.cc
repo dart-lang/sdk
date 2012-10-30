@@ -1689,9 +1689,9 @@ static bool IsRecognizedConstructor(const Function& function,
 static intptr_t GetResultCidOfConstructor(ConstructorCallNode* node) {
   const Function& function = node->constructor();
   const Class& function_class = Class::Handle(function.Owner());
-  const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
+  const Library& core_lib = Library::Handle(Library::CoreLibrary());
 
-  if (function_class.library() != core_impl_lib.raw()) {
+  if (function_class.library() != core_lib.raw()) {
     return kDynamicCid;
   }
 
@@ -2067,7 +2067,7 @@ void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
       const String& cls_name = String::Handle(Symbols::NoSuchMethodError());
       const String& func_name = String::Handle(Symbols::ThrowNew());
       const Class& cls = Class::Handle(
-          Library::Handle(Library::CoreImplLibrary()).LookupClass(cls_name));
+          Library::Handle(Library::CoreLibrary()).LookupClass(cls_name));
       ASSERT(!cls.IsNull());
       getter_function = Resolver::ResolveStatic(cls,
                                                 func_name,

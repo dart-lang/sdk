@@ -7,7 +7,7 @@
  * fixed size or extendable.
  */
 interface List<E> extends Collection<E>, Sequence<E>
-                  default ListImplementation<E> {
+                  default _ListImpl<E> {
   /**
    * Creates a list of the given [length].
    *
@@ -173,4 +173,21 @@ interface List<E> extends Collection<E>, Sequence<E>
    * [start] is greater than the length of the list.
    */
   void insertRange(int start, int length, [E initialValue]);
+}
+
+class _ListImpl<E> {
+  /**
+   * Factory implementation of List().
+   *
+   * Creates a list of the given [length].
+   */
+  external factory List([int length]);
+
+  /**
+   * Factory implementation of List.from().
+   *
+   * Creates a list with the elements of [other]. The order in
+   * the list will be the order provided by the iterator of [other].
+   */
+  external factory List.from(Iterable<E> other);
 }

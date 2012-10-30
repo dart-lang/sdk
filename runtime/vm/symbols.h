@@ -42,7 +42,7 @@ class ObjectPointerVisitor;
   V(ThrowNew, "_throwNew")                                                     \
   V(ListLiteralFactoryClass, "_ListLiteralFactory")                            \
   V(ListLiteralFactory, "List.fromLiteral")                                    \
-  V(ListImplementation, "ListImplementation")                                  \
+  V(ListImplementation, "_ListImpl")                                           \
   V(ListFactory, "List.")                                                      \
   V(MapLiteralFactoryClass, "_MapLiteralFactory")                              \
   V(MapLiteralFactory, "Map.fromLiteral")                                      \
