@@ -2310,10 +2310,12 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
       // super class instead.
       ArgumentListNode* arguments = new ArgumentListNode(node->token_pos());
       arguments->Add(node->index_expr());
-      BuildStaticNoSuchMethodCall(node->super_class(),
-                                  node->array(),
-                                  index_operator_name,
-                                  arguments);
+      StaticCallInstr* call =
+          BuildStaticNoSuchMethodCall(node->super_class(),
+                                      node->array(),
+                                      index_operator_name,
+                                      arguments);
+      ReturnDefinition(call);
       return;
     }
   }
