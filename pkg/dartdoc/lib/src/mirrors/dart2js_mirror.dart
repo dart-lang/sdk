@@ -491,6 +491,8 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
 
   Uri get uri => _library.uri;
 
+  DeclarationMirror get owner => null;
+
   LibraryMirror library() => this;
 
   /**
@@ -619,6 +621,8 @@ class Dart2JsParameterMirror extends Dart2JsElementMirror
                          this.isOptional)
     : super(system, element);
 
+  DeclarationMirror get owner => _method;
+
   VariableElement get _variableElement => _element;
 
   String get qualifiedName => '${_method.qualifiedName}#${simpleName}';
@@ -668,7 +672,7 @@ class Dart2JsFieldParameterMirror extends Dart2JsParameterMirror {
   bool get isInitializingFormal => true;
 
   FieldMirror get initializedField => new Dart2JsFieldMirror(
-      _method.surroundingDeclaration, _fieldParameterElement.fieldElement);
+      _method.owner, _fieldParameterElement.fieldElement);
 }
 
 //------------------------------------------------------------------------------
@@ -690,6 +694,8 @@ class Dart2JsClassMirror extends Dart2JsObjectMirror
                                  ClassElement _class)
       : this.library = library,
         super(library.system, _class);
+
+  DeclarationMirror get owner => library;
 
   String get qualifiedName => '${library.qualifiedName}.${simpleName}';
 
@@ -974,6 +980,8 @@ abstract class Dart2JsTypeElementMirror extends Dart2JsProxyMirror
     return new Dart2JsLocation(script,
                                system.compiler.spanFromElement(_type.element));
   }
+
+  DeclarationMirror get owner => library;
 
   LibraryMirror get library {
     return system.getLibrary(_type.element.getLibrary());
@@ -1301,9 +1309,9 @@ class Dart2JsMethodMirror extends Dart2JsElementMirror
   String get displayName => _displayName;
 
   String get qualifiedName
-      => '${surroundingDeclaration.qualifiedName}.$simpleName';
+      => '${owner.qualifiedName}.$simpleName';
 
-  ObjectMirror get surroundingDeclaration => _objectMirror;
+  DeclarationMirror get owner => _objectMirror;
 
   bool get isTopLevel => _objectMirror is LibraryMirror;
 
@@ -1368,9 +1376,9 @@ class Dart2JsFieldMirror extends Dart2JsElementMirror
         super(objectMirror.system, variable);
 
   String get qualifiedName
-      => '${surroundingDeclaration.qualifiedName}.$simpleName';
+      => '${owner.qualifiedName}.$simpleName';
 
-  ObjectMirror get surroundingDeclaration => _objectMirror;
+  DeclarationMirror get owner => _objectMirror;
 
   bool get isTopLevel => _objectMirror is LibraryMirror;
 

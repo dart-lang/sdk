@@ -342,7 +342,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
                       "Unexpected method simpleName");
   Expect.stringEquals('mirrors_helper.Baz.method1', method1.qualifiedName,
                       "Unexpected method qualifiedName");
-  Expect.equals(method1.surroundingDeclaration, bazClass,
+  Expect.equals(method1.owner, bazClass,
                 "Unexpected surrounding declaration");
   Expect.isFalse(method1.isTopLevel, "Method is top level");
   Expect.isFalse(method1.isConstructor, "Method is constructor");
@@ -396,7 +396,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
                       "Unexpected method simpleName");
   Expect.stringEquals('mirrors_helper.Baz.method2', method2.qualifiedName,
                       "Unexpected method qualifiedName");
-  Expect.equals(method2.surroundingDeclaration, bazClass,
+  Expect.equals(method2.owner, bazClass,
                 "Unexpected surrounding declaration");
   Expect.isFalse(method2.isTopLevel, "Method is top level");
   Expect.isFalse(method2.isConstructor, "Method is constructor");
@@ -463,7 +463,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
                       "Unexpected method simpleName");
   Expect.stringEquals('mirrors_helper.Baz.method3', method3.qualifiedName,
                       "Unexpected method qualifiedName");
-  Expect.equals(method3.surroundingDeclaration, bazClass,
+  Expect.equals(method3.owner, bazClass,
                       "Unexpected surrounding declaration");
   Expect.isFalse(method3.isTopLevel, "Method is top level");
   Expect.isFalse(method3.isConstructor, "Method is constructor");
@@ -594,7 +594,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.stringEquals('mirrors_helper.Baz.==',
                       operator_eq.qualifiedName,
                       "Unexpected method qualifiedName");
-  Expect.equals(operator_eq.surroundingDeclaration, bazClass,
+  Expect.equals(operator_eq.owner, bazClass,
                 "Unexpected surrounding declaration");
   Expect.isFalse(operator_eq.isTopLevel, "Method is top level");
   Expect.isFalse(operator_eq.isConstructor, "Method is constructor");
@@ -624,7 +624,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.stringEquals('mirrors_helper.Baz.${Mirror.UNARY_MINUS}',
                       operator_negate.qualifiedName,
                       "Unexpected method qualifiedName");
-  Expect.equals(operator_negate.surroundingDeclaration, bazClass,
+  Expect.equals(operator_negate.owner, bazClass,
                 "Unexpected surrounding declaration");
   Expect.isFalse(operator_negate.isTopLevel, "Method is top level");
   Expect.isFalse(operator_negate.isConstructor, "Method is constructor");

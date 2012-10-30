@@ -551,7 +551,7 @@ class Apidoc extends doc.Dartdoc {
    * different library than [member].
    */
   String _linkMember(MemberMirror member) {
-    final typeName = member.surroundingDeclaration.simpleName;
+    final typeName = member.owner.simpleName;
     var memberName = '$typeName.${member.simpleName}';
     if (member is MethodMirror && (member.isConstructor || member.isFactory)) {
       final separator = member.constructorName == '' ? '' : '.';

@@ -123,7 +123,7 @@ class HtmlDiff {
     var domMembers = htmlToDomMembers(htmlMember, domTypes);
     if (htmlMember == null && !domMembers.isEmpty) {
       warn('$HTML_LIBRARY_NAME member '
-           '${htmlMember.surroundingDeclaration.simpleName}.'
+           '${htmlMember.owner.simpleName}.'
            '${htmlMember.simpleName} has no corresponding '
            '$HTML_LIBRARY_NAME member.');
     }

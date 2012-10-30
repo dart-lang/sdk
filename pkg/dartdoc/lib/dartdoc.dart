@@ -1083,28 +1083,28 @@ class Dartdoc {
       if (member is MethodMirror) {
         if (member.isGetter) {
           instanceGetters[member.displayName] = member;
-          if (member.surroundingDeclaration == host) {
+          if (member.owner == host) {
             allPropertiesInherited = false;
           }
         } else if (member.isSetter) {
           instanceSetters[member.displayName] = member;
-          if (member.surroundingDeclaration == host) {
+          if (member.owner == host) {
             allPropertiesInherited = false;
           }
         } else if (member.isOperator) {
           instanceOperators.add(member);
-          if (member.surroundingDeclaration == host) {
+          if (member.owner == host) {
             allOperatorsInherited = false;
           }
         } else {
           instanceMethods.add(member);
-          if (member.surroundingDeclaration == host) {
+          if (member.owner == host) {
             allMethodsInherited = false;
           }
         }
       } else if (member is FieldMirror) {
         instanceGetters[member.displayName] = member;
-        if (member.surroundingDeclaration == host) {
+        if (member.owner == host) {
           allPropertiesInherited = false;
         }
       }
@@ -1169,7 +1169,7 @@ class Dartdoc {
       } else {
         DocComment getterComment = getMemberComment(getter);
         DocComment setterComment = getMemberComment(setter);
-        if (getter.surroundingDeclaration !== setter.surroundingDeclaration ||
+        if (getter.owner !== setter.owner ||
             getterComment != null && setterComment != null) {
           // Both have comments or are not declared in the same class
           // => Documents separately.
@@ -1240,7 +1240,7 @@ class Dartdoc {
     }
 
     bool showCode = includeSource && !isAbstract;
-    bool inherited = host != member.surroundingDeclaration;
+    bool inherited = host != member.owner;
 
     writeln('<div class="method${inherited ? ' inherited': ''}">'
             '<h4 id="${memberAnchor(member)}">');
@@ -1294,7 +1294,7 @@ class Dartdoc {
 
     if (inherited) {
       write('<div class="inherited-from">inherited from ');
-      annotateType(host, member.surroundingDeclaration);
+      annotateType(host, member.owner);
       write('</div>');
     }
 
@@ -1331,7 +1331,7 @@ class Dartdoc {
     _totalMembers++;
     _currentMember = getter;
 
-    bool inherited = host != getter.surroundingDeclaration;
+    bool inherited = host != getter.owner;
 
     writeln('<div class="field${inherited ? ' inherited' : ''}">'
             '<h4 id="${memberAnchor(getter)}">');
@@ -1374,7 +1374,7 @@ class Dartdoc {
 
     if (inherited) {
       write('<div class="inherited-from">inherited from ');
-      annotateType(host, getter.surroundingDeclaration);
+      annotateType(host, getter.owner);
       write('</div>');
     }
 
@@ -1477,9 +1477,9 @@ class Dartdoc {
     String comment = _comments.find(member.location);
     ClassMirror inheritedFrom = null;
     if (comment == null) {
-      if (member.surroundingDeclaration is ClassMirror) {
+      if (member.owner is ClassMirror) {
         var iterable =
-            new HierarchyIterable(member.surroundingDeclaration,
+            new HierarchyIterable(member.owner,
                                   includeType: false);
         for (ClassMirror type in iterable) {
           var inheritedMember = type.declaredMembers[member.simpleName];
@@ -1539,7 +1539,7 @@ class Dartdoc {
 
   /** Gets the URL for the documentation for [member]. */
   String memberUrl(MemberMirror member) {
-    String url = typeUrl(member.surroundingDeclaration);
+    String url = typeUrl(member.owner);
     return '$url#${memberAnchor(member)}';
   }
 

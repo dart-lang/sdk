@@ -107,6 +107,14 @@ abstract class DeclarationMirror implements Mirror {
    * The source location of this Dart language entity.
    */
   SourceLocation get location;
+
+  /**
+   * A mirror on the owner of this function. This is the declaration immediately
+   * surrounding the reflectee.
+   *
+   * Note that for libraries, the owner will be [:null:].
+   */
+  DeclarationMirror get owner;
 }
 
 /**
@@ -301,12 +309,6 @@ abstract class TypedefMirror implements ClassMirror {
  * A member of a type, i.e. a field, method or constructor.
  */
 abstract class MemberMirror implements DeclarationMirror {
-  /**
-   * Returns a mirror on the declaration immediately surrounding the reflectee.
-   * This could be a class, interface, library or another method or function.
-   */
-  ObjectMirror get surroundingDeclaration;
-
   /**
    * Returns true if this is a top level member, i.e. a member not within a
    * type.
