@@ -16,9 +16,3 @@
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
-
-[ $compiler == dart2js && $runtime == drt && $checked ]
-benchmark_smoke_test: Fail # TypeError: Object #<HTMLParagraphElement> has no method 'get$text'
-
-[ $runtime == ie9 && $compiler == dart2js && $checked ]
-benchmark_smoke_test: Fail

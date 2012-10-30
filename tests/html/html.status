@@ -300,6 +300,3 @@ documentfragment_test: Skip # Timeout
 
 [ $compiler == dart2js && $runtime == chrome && $system == windows]
 css_test: Pass, Fail # Issue #2823
-
-[ $compiler == dart2js && $checked && $browser]
-fileapi_test: Fail # TypeError: Object #<DirectoryEntry> has no method 'get$name'
