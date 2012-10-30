@@ -471,17 +471,15 @@ Future<List<int>> consumeInputStream(InputStream stream) {
   return completer.future;
 }
 
-/// Spawns and runs the process located at [executable], passing in [args].
-/// Returns a [Future] that will complete the results of the process after it
-/// has ended.
-///
-/// The spawned process will inherit its parents environment variables. If
-/// [environment] is provided, that will be used to augment (not replace) the
-/// the inherited variables.
-///
-/// If [pipeStdout] and/or [pipeStderr] are set, all output from the
-/// subprocess's output streams are sent to the parent process's output streams.
-/// Output from piped streams won't be available in the result object.
+/**
+ * Spawns and runs the process located at [executable], passing in [args].
+ * Returns a [Future] that will complete the results of the process after it
+ * has ended.
+ *
+ * If [pipeStdout] and/or [pipeStderr] are set, all output from the subprocess's
+ * output streams are sent to the parent process's output streams. Output from
+ * piped streams won't be available in the result object.
+ */
 Future<PubProcessResult> runProcess(String executable, List<String> args,
     {workingDir, Map<String, String> environment, bool pipeStdout: false,
     bool pipeStderr: false}) {
@@ -501,11 +499,7 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
   if (workingDir != null) {
     options.workingDirectory = _getDirectory(workingDir).path;
   }
-
-  if (environment != null) {
-    options.environment = new Map.from(Platform.environment);
-    environment.forEach((key, value) => options.environment[key] = value);
-  }
+  options.environment = environment;
 
   var future = Process.run(executable, args, options);
   return future.transform((result) {
@@ -562,11 +556,8 @@ Future<bool> get isGitInstalled {
 }
 
 /// Run a git process with [args] from [workingDir].
-Future<PubProcessResult> runGit(List<String> args,
-    {String workingDir, Map<String, String> environment}) {
-  return _gitCommand.chain((git) => runProcess(git, args,
-        workingDir: workingDir, environment: environment));
-}
+Future<PubProcessResult> runGit(List<String> args, {String workingDir}) =>
+    _gitCommand.chain((git) => runProcess(git, args, workingDir: workingDir));
 
 /// Returns the name of the git command-line app, or null if Git could not be
 /// found on the user's PATH.
