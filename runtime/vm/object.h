@@ -1061,17 +1061,18 @@ class Function : public Object {
   RawString* QualifiedUserVisibleName() const;
   virtual RawString* DictionaryName() const { return name(); }
 
-  // Build a string of the form '<T, R>(T, [b: B, c: C]) => R' representing the
-  // internal signature of the given function.
+  // Build a string of the form 'C<T, R>(T, {b: B, c: C}) => R' representing the
+  // internal signature of the given function. In this example, T and R are
+  // type parameters of class C, the owner of the function.
   RawString* Signature() const {
     const bool instantiate = false;
     return BuildSignature(instantiate, kInternalName, TypeArguments::Handle());
   }
 
-  // Build a string of the form '(A, [b: B, c: C]) => D' representing the
+  // Build a string of the form '(A, {b: B, c: C}) => D' representing the
   // signature of the given function, where all generic types (e.g. '<T, R>' in
-  // '<T, R>(T, [b: B, c: C]) => R') are instantiated using the given
-  // instantiator type argument vector (e.g. '<A, D>').
+  // 'C<T, R>(T, {b: B, c: C}) => R') are instantiated using the given
+  // instantiator type argument vector of a C instance (e.g. '<A, D>').
   RawString* InstantiatedSignatureFrom(
       const AbstractTypeArguments& instantiator,
       NameVisibility name_visibility) const {

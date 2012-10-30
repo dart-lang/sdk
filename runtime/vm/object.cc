@@ -3921,14 +3921,15 @@ RawString* Function::BuildSignature(
   const String& kCommaSpace = String::Handle(Symbols::New(", "));
   const String& kColonSpace = String::Handle(Symbols::New(": "));
   const String& kLParen = String::Handle(Symbols::New("("));
-  const String& kRParen = String::Handle(Symbols::New(") => "));
+  const String& kRParenArrow = String::Handle(Symbols::New(") => "));
   const String& kLBracket = String::Handle(Symbols::New("["));
   const String& kRBracket = String::Handle(Symbols::New("]"));
   const String& kLBrace = String::Handle(Symbols::New("{"));
   const String& kRBrace = String::Handle(Symbols::New("}"));
   String& name = String::Handle();
-  if (!instantiate && !is_static()) {
-    // Prefix the signature with its type parameters, if any (e.g. "<K, V>").
+  if (!instantiate && !is_static() && (name_visibility == kInternalName)) {
+    // Prefix the signature with its class and type parameters, if any (e.g.
+    // "Map<K, V>(K) => bool").
     // The signature of static functions cannot be type parameterized.
     const String& kSpaceExtendsSpace =
         String::Handle(Symbols::New(" extends "));
@@ -3939,6 +3940,8 @@ RawString* Function::BuildSignature(
     const TypeArguments& type_parameters = TypeArguments::Handle(
         function_class.type_parameters());
     if (!type_parameters.IsNull()) {
+      const String& function_class_name = String::Handle(function_class.Name());
+      pieces.Add(function_class_name);
       intptr_t num_type_parameters = type_parameters.Length();
       pieces.Add(kLAngleBracket);
       TypeParameter& type_parameter = TypeParameter::Handle();
@@ -3948,7 +3951,7 @@ RawString* Function::BuildSignature(
         name = type_parameter.name();
         pieces.Add(name);
         bound = type_parameter.bound();
-        if (!bound.IsNull() && !bound.IsDynamicType()) {
+        if (!bound.IsNull() && !bound.IsObjectType()) {
           pieces.Add(kSpaceExtendsSpace);
           name = bound.BuildName(name_visibility);
           pieces.Add(name);
@@ -4011,7 +4014,7 @@ RawString* Function::BuildSignature(
       pieces.Add(kRBrace);
     }
   }
-  pieces.Add(kRParen);
+  pieces.Add(kRParenArrow);
   AbstractType& res_type = AbstractType::Handle(result_type());
   if (instantiate && !res_type.IsInstantiated()) {
     res_type = res_type.InstantiateFrom(instantiator);

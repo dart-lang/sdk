@@ -1031,7 +1031,7 @@ class RawTypeParameter : public RawAbstractType {
   }
   RawClass* parameterized_class_;
   RawString* name_;
-  RawAbstractType* bound_;  // DynamicType if no explicit bound specified.
+  RawAbstractType* bound_;  // ObjectType if no explicit bound specified.
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->bound_); }
   intptr_t index_;
   intptr_t token_pos_;
