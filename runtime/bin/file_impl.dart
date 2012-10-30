@@ -329,7 +329,7 @@ class _FileBase {
     return response is List && response[0] != _SUCCESS_RESPONSE;
   }
 
-  _exceptionFromResponse(response, String message) {
+  Exception _exceptionFromResponse(response, String message) {
     assert(_isErrorResponse(response));
     switch (response[_ERROR_RESPONSE_ERROR_TYPE]) {
       case _ILLEGAL_ARGUMENT_RESPONSE:
