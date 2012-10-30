@@ -448,6 +448,7 @@ bad_constructor_test/05: Fail
 bad_constructor_test/06: Fail
 argument_definition_test/*: Skip # Not implemented.
 argument_definition2_test: Skip # Not implemented. Fails in minified tests.
+argument_definition3_test: Skip # Not implemented. Fails in minified tests.
 const_var_test: Fail # Map literals take 2 type arguments.
 map_literal3_test: Fail # Map literals take 2 type arguments.
 class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
