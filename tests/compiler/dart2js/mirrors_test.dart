@@ -24,8 +24,8 @@ bool containsType(TypeMirror expected, Iterable<TypeMirror> iterable) {
   return false;
 }
 
-Mirror findMirror(List<Mirror> list, String name) {
-  for (Mirror mirror in list) {
+DeclarationMirror findMirror(List<DeclarationMirror> list, String name) {
+  for (DeclarationMirror mirror in list) {
     if (mirror.simpleName == name) {
       return mirror;
     }

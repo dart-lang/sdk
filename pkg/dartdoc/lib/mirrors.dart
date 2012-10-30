@@ -66,6 +66,13 @@ abstract class Mirror {
   static const String UNARY_MINUS = 'unary-';
 
   /**
+   * Returns the mirror system which contains this mirror.
+   */
+  MirrorSystem get system;
+}
+
+abstract class DeclarationMirror implements Mirror {
+  /**
    * The simple name of the entity. The simple name is unique within the
    * scope of the entity declaration.
    *
@@ -96,10 +103,6 @@ abstract class Mirror {
    */
   String get qualifiedName;
 
-  /**
-   * Returns the mirror system which contains this mirror.
-   */
-  MirrorSystem get system;
 }
 
 /**
@@ -117,7 +120,7 @@ abstract class ObjectMirror implements Mirror {
 /**
  * A library.
  */
-abstract class LibraryMirror extends ObjectMirror {
+abstract class LibraryMirror implements ObjectMirror, DeclarationMirror {
   /**
    * The name of the library, as given in #library().
    */
@@ -142,7 +145,7 @@ abstract class LibraryMirror extends ObjectMirror {
 /**
  * Common interface for classes, interfaces, typedefs and type variables.
  */
-abstract class TypeMirror implements Mirror {
+abstract class TypeMirror implements DeclarationMirror {
   /**
    * Returns the source location for this type.
    */
@@ -303,7 +306,7 @@ abstract class TypedefMirror implements ClassMirror {
 /**
  * A member of a type, i.e. a field, method or constructor.
  */
-abstract class MemberMirror implements Mirror {
+abstract class MemberMirror implements DeclarationMirror {
   /**
    * Returns the source location for this member.
    */

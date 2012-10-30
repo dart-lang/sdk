@@ -384,15 +384,22 @@ abstract class Dart2JsMirror implements Mirror {
   Dart2JsMirrorSystem get system;
 }
 
-abstract class Dart2JsMemberMirror implements Dart2JsMirror, MemberMirror {
+abstract class Dart2JsDeclarationMirror
+    implements Dart2JsMirror, DeclarationMirror {
 
 }
 
-abstract class Dart2JsTypeMirror implements Dart2JsMirror, TypeMirror {
+abstract class Dart2JsMemberMirror
+    implements Dart2JsDeclarationMirror, MemberMirror {
 
 }
 
-abstract class Dart2JsElementMirror implements Dart2JsMirror {
+abstract class Dart2JsTypeMirror
+    implements Dart2JsDeclarationMirror, TypeMirror {
+
+}
+
+abstract class Dart2JsElementMirror implements Dart2JsDeclarationMirror {
   final Dart2JsMirrorSystem system;
   final Element _element;
 
@@ -414,7 +421,7 @@ abstract class Dart2JsElementMirror implements Dart2JsMirror {
   int get hashCode => qualifiedName.hashCode;
 }
 
-abstract class Dart2JsProxyMirror implements Dart2JsMirror {
+abstract class Dart2JsProxyMirror implements Dart2JsDeclarationMirror {
   final Dart2JsMirrorSystem system;
 
   Dart2JsProxyMirror(this.system);
