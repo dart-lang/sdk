@@ -48,6 +48,63 @@ public class ParserRecoveryTest extends AbstractParserTest {
     // Implemented elsewhere
   }
 
+  public void test_incompleteFunctionExpression() {
+    DartParserRunner parserRunner = parseSource(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v = (AAA a, BB)",
+        "}"));
+    DartUnit unit = parserRunner.getDartUnit();
+    assertEquals(
+        Joiner.on("\n").join(
+            "// unit test_incompleteFunctionExpression",
+            "",
+            "main() {",
+            "  var v = (AAA a, BB) {",
+            "  };",
+            "}",
+            ""),
+        unit.toString());
+  }
+
+  public void test_incompleteFunctionExpression_qualifiedType() {
+    DartParserRunner parserRunner = parseSource(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v = (pref.AAA a, BB)",
+        "}"));
+    DartUnit unit = parserRunner.getDartUnit();
+    assertEquals(
+        Joiner.on("\n").join(
+            "// unit test_incompleteFunctionExpression_qualifiedType",
+            "",
+            "main() {",
+            "  var v = (pref.AAA a, BB) {",
+            "  };",
+            "}",
+            ""),
+        unit.toString());
+  }
+  
+  public void test_incompleteFunctionExpression_typeArguments() {
+    DartParserRunner parserRunner = parseSource(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v = (AAA<T1, T2<T3, T4>, T5> a, BB)",
+        "}"));
+    DartUnit unit = parserRunner.getDartUnit();
+    assertEquals(
+        Joiner.on("\n").join(
+            "// unit test_incompleteFunctionExpression_typeArguments",
+            "",
+            "main() {",
+            "  var v = (AAA<T1, T2<T3, T4>, T5> a, BB) {",
+            "  };",
+            "}",
+            ""),
+            unit.toString());
+  }
+
   public void testVarOnMethodDefinition() {
     // This syntax is illegal, and should produce errors, but since it is a common error,
     // we want to make sure it produce a valid AST for editor users

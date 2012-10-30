@@ -4369,6 +4369,13 @@ public class DartParser extends CompletionHooksParserBase {
       if (!optional(Token.LPAREN)) {
         return false;
       }
+      // if it looks as "(Type name, ....)" then it may be function expression
+      boolean hasTwoIdentifiersComma;
+      {
+        int nameOffset = skipTypeName(0);
+        hasTwoIdentifiersComma = nameOffset != -1 && peek(nameOffset + 0) == Token.IDENTIFIER
+            && peek(nameOffset + 1) == Token.COMMA;
+      }
       // find matching parenthesis
       int count = 1;
       while (count != 0) {
@@ -4383,7 +4390,7 @@ public class DartParser extends CompletionHooksParserBase {
             break;
         }
       }
-      return (peek(0) == Token.ARROW || peek(0) == Token.LBRACE);
+      return (peek(0) == Token.ARROW || peek(0) == Token.LBRACE) || hasTwoIdentifiersComma;
     } finally {
       rollback();
     }
