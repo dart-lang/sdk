@@ -1661,7 +1661,9 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // involving only things with guaranteed number types and a given
   // field.
   bool isSimpleFieldNumberComputation(HInstruction value, HFieldSet node) {
-    if (value.guaranteedType.union(HType.NUMBER) == HType.NUMBER) return true;
+    if (value.guaranteedType.union(HType.NUMBER, compiler) == HType.NUMBER) {
+      return true;
+    }
     if (value is HBinaryArithmetic) {
       return (isSimpleFieldNumberComputation(value.left, node) &&
               isSimpleFieldNumberComputation(value.right, node));

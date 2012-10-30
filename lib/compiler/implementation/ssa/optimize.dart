@@ -399,7 +399,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
     // We don't optimize on numbers to preserve the runtime semantics.
     if (!(left.isNumber(types) && right.isNumber(types)) &&
-        leftType.intersection(rightType).isConflicting()) {
+        leftType.intersection(rightType, compiler).isConflicting()) {
       return graph.addConstantBool(false, constantSystem);
     }
 
@@ -489,7 +489,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // If the intersection of the types is still the incoming type then
     // the incoming type was a subtype of the guarded type, and no check
     // is required.
-    HType combinedType = types[value].intersection(node.guardedType);
+    HType combinedType = types[value].intersection(node.guardedType, compiler);
     return (combinedType == types[value]) ? value : node;
   }
 
@@ -576,7 +576,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (types[value].canBeNull() && node.isBooleanConversionCheck) {
       return node;
     }
-    HType combinedType = types[value].intersection(types[node]);
+    HType combinedType = types[value].intersection(types[node], compiler);
     return (combinedType == types[value]) ? value : node;
   }
 
@@ -1256,7 +1256,8 @@ class SsaConstructionFieldTypes
           predecessorsFieldSetters.forEach((Element element, HType type) {
             HType currentType = currentFieldSetters[element];
             if (currentType != null) {
-              newFieldSetters[element] = currentType.union(type);
+              newFieldSetters[element] =
+                  currentType.union(type, backend.compiler);
             }
           });
           currentFieldSetters = newFieldSetters;

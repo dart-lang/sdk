@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#import("mock_compiler.dart");
 #source("../../../lib/compiler/implementation/ssa/types.dart");
 
 class DartType {
@@ -21,1048 +22,2021 @@ const READABLE_ARRAY = HType.READABLE_ARRAY;
 const MUTABLE_ARRAY = HType.MUTABLE_ARRAY;
 const FIXED_ARRAY = HType.FIXED_ARRAY;
 const EXTENDABLE_ARRAY = HType.EXTENDABLE_ARRAY;
-const NON_PRIMITIVE1 = const HBoundedType.nonNull(const DartType("type1"));
-const NON_PRIMITIVE2 = const HBoundedType.nonNull(const DartType("type2"));
-const POTENTIAL_ARRAY =
-    const HBoundedPotentialPrimitiveArray(const DartType('type 3'), true);
-const POTENTIAL_STRING =
-    const HBoundedPotentialPrimitiveString(const DartType('type 4'), true);
 const BOOLEAN_OR_NULL = HType.BOOLEAN_OR_NULL;
 const NUMBER_OR_NULL = HType.NUMBER_OR_NULL;
 const INTEGER_OR_NULL = HType.INTEGER_OR_NULL;
 const DOUBLE_OR_NULL = HType.DOUBLE_OR_NULL;
 const STRING_OR_NULL = HType.STRING_OR_NULL;
 const NULL = HType.NULL;
+HType nonPrimitive1;
+HType nonPrimitive2;
+HType potentialArray;
+HType potentialString;
 
-void testUnion() {
-  Expect.equals(CONFLICTING, CONFLICTING.union(CONFLICTING));
-  Expect.equals(UNKNOWN, CONFLICTING.union(UNKNOWN));
-  Expect.equals(BOOLEAN, CONFLICTING.union(BOOLEAN));
-  Expect.equals(NUMBER, CONFLICTING.union(NUMBER));
-  Expect.equals(INTEGER, CONFLICTING.union(INTEGER));
-  Expect.equals(DOUBLE, CONFLICTING.union(DOUBLE));
-  Expect.equals(INDEXABLE_PRIMITIVE, CONFLICTING.union(INDEXABLE_PRIMITIVE));
-  Expect.equals(STRING, CONFLICTING.union(STRING));
-  Expect.equals(READABLE_ARRAY, CONFLICTING.union(READABLE_ARRAY));
-  Expect.equals(MUTABLE_ARRAY, CONFLICTING.union(MUTABLE_ARRAY));
-  Expect.equals(EXTENDABLE_ARRAY, CONFLICTING.union(EXTENDABLE_ARRAY));
-  Expect.equals(NON_PRIMITIVE1, CONFLICTING.union(NON_PRIMITIVE1));
-  Expect.equals(NON_PRIMITIVE2, CONFLICTING.union(NON_PRIMITIVE2));
-  Expect.equals(POTENTIAL_ARRAY, CONFLICTING.union(POTENTIAL_ARRAY));
-  Expect.equals(POTENTIAL_STRING, CONFLICTING.union(POTENTIAL_STRING));
-  Expect.equals(BOOLEAN_OR_NULL, CONFLICTING.union(BOOLEAN_OR_NULL));
-  Expect.equals(NUMBER_OR_NULL, CONFLICTING.union(NUMBER_OR_NULL));
-  Expect.equals(INTEGER_OR_NULL, CONFLICTING.union(INTEGER_OR_NULL));
-  Expect.equals(DOUBLE_OR_NULL, CONFLICTING.union(DOUBLE_OR_NULL));
-  Expect.equals(STRING_OR_NULL, CONFLICTING.union(STRING_OR_NULL));
-  Expect.equals(NULL, CONFLICTING.union(NULL));
-  Expect.equals(FIXED_ARRAY, CONFLICTING.union(FIXED_ARRAY));
+void testUnion(Compiler compiler) {
+  Expect.equals(CONFLICTING, 
+                CONFLICTING.union(CONFLICTING, compiler));
+  Expect.equals(UNKNOWN, 
+                CONFLICTING.union(UNKNOWN, compiler));
+  Expect.equals(BOOLEAN, 
+                CONFLICTING.union(BOOLEAN, compiler));
+  Expect.equals(NUMBER, 
+                CONFLICTING.union(NUMBER, compiler));
+  Expect.equals(INTEGER, 
+                CONFLICTING.union(INTEGER, compiler));
+  Expect.equals(DOUBLE, 
+                CONFLICTING.union(DOUBLE, compiler));
+  Expect.equals(INDEXABLE_PRIMITIVE, 
+                CONFLICTING.union(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(STRING, 
+                CONFLICTING.union(STRING, compiler));
+  Expect.equals(READABLE_ARRAY, 
+                CONFLICTING.union(READABLE_ARRAY, compiler));
+  Expect.equals(MUTABLE_ARRAY, 
+                CONFLICTING.union(MUTABLE_ARRAY, compiler));
+  Expect.equals(EXTENDABLE_ARRAY, 
+                CONFLICTING.union(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(nonPrimitive1, 
+                CONFLICTING.union(nonPrimitive1, compiler));
+  Expect.equals(nonPrimitive2, 
+                CONFLICTING.union(nonPrimitive2, compiler));
+  Expect.equals(potentialArray, 
+                CONFLICTING.union(potentialArray, compiler));
+  Expect.equals(potentialString, 
+                CONFLICTING.union(potentialString, compiler));
+  Expect.equals(BOOLEAN_OR_NULL, 
+                CONFLICTING.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                CONFLICTING.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(INTEGER_OR_NULL, 
+                CONFLICTING.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(DOUBLE_OR_NULL, 
+                CONFLICTING.union(DOUBLE_OR_NULL, compiler));
+  Expect.equals(STRING_OR_NULL, 
+                CONFLICTING.union(STRING_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                CONFLICTING.union(NULL, compiler));
+  Expect.equals(FIXED_ARRAY, 
+                CONFLICTING.union(FIXED_ARRAY, compiler));
 
-  Expect.equals(UNKNOWN, UNKNOWN.union(CONFLICTING));
-  Expect.equals(UNKNOWN, UNKNOWN.union(UNKNOWN));
-  Expect.equals(UNKNOWN, UNKNOWN.union(BOOLEAN));
-  Expect.equals(UNKNOWN, UNKNOWN.union(NUMBER));
-  Expect.equals(UNKNOWN, UNKNOWN.union(INTEGER));
-  Expect.equals(UNKNOWN, UNKNOWN.union(DOUBLE));
-  Expect.equals(UNKNOWN, UNKNOWN.union(INDEXABLE_PRIMITIVE));
-  Expect.equals(UNKNOWN, UNKNOWN.union(STRING));
-  Expect.equals(UNKNOWN, UNKNOWN.union(READABLE_ARRAY));
-  Expect.equals(UNKNOWN, UNKNOWN.union(MUTABLE_ARRAY));
-  Expect.equals(UNKNOWN, UNKNOWN.union(EXTENDABLE_ARRAY));
-  Expect.equals(UNKNOWN, UNKNOWN.union(NON_PRIMITIVE1));
-  Expect.equals(UNKNOWN, UNKNOWN.union(NON_PRIMITIVE2));
-  Expect.equals(UNKNOWN, UNKNOWN.union(POTENTIAL_ARRAY));
-  Expect.equals(UNKNOWN, UNKNOWN.union(POTENTIAL_STRING));
-  Expect.equals(UNKNOWN, UNKNOWN.union(BOOLEAN_OR_NULL));
-  Expect.equals(UNKNOWN, UNKNOWN.union(NUMBER_OR_NULL));
-  Expect.equals(UNKNOWN, UNKNOWN.union(INTEGER_OR_NULL));
-  Expect.equals(UNKNOWN, UNKNOWN.union(DOUBLE_OR_NULL));
-  Expect.equals(UNKNOWN, UNKNOWN.union(STRING_OR_NULL));
-  Expect.equals(UNKNOWN, UNKNOWN.union(NULL));
-  Expect.equals(UNKNOWN, UNKNOWN.union(FIXED_ARRAY));
+  Expect.equals(UNKNOWN, 
+                UNKNOWN.union(CONFLICTING, compiler));
+  Expect.equals(UNKNOWN, 
+                UNKNOWN.union(UNKNOWN, compiler));
+  Expect.equals(UNKNOWN, 
+                UNKNOWN.union(BOOLEAN, compiler));
+  Expect.equals(UNKNOWN, 
+                UNKNOWN.union(NUMBER, compiler));
+  Expect.equals(UNKNOWN, 
+                UNKNOWN.union(INTEGER, compiler));
+  Expect.equals(UNKNOWN, 
+                UNKNOWN.union(DOUBLE, compiler));
+  Expect.equals(UNKNOWN, 
+                UNKNOWN.union(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(UNKNOWN, 
+                UNKNOWN.union(STRING, compiler));
+  Expect.equals(UNKNOWN, 
+                UNKNOWN.union(READABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                UNKNOWN.union(MUTABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                UNKNOWN.union(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                UNKNOWN.union(nonPrimitive1, compiler));
+  Expect.equals(UNKNOWN, 
+                UNKNOWN.union(nonPrimitive2, compiler));
+  Expect.equals(UNKNOWN, 
+                UNKNOWN.union(potentialArray, compiler));
+  Expect.equals(UNKNOWN, 
+                UNKNOWN.union(potentialString, compiler));
+  Expect.equals(UNKNOWN, 
+                UNKNOWN.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                UNKNOWN.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                UNKNOWN.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                UNKNOWN.union(DOUBLE_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                UNKNOWN.union(STRING_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                UNKNOWN.union(NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                UNKNOWN.union(FIXED_ARRAY, compiler));
 
-  Expect.equals(BOOLEAN, BOOLEAN.union(CONFLICTING));
-  Expect.equals(UNKNOWN, BOOLEAN.union(UNKNOWN));
-  Expect.equals(BOOLEAN, BOOLEAN.union(BOOLEAN));
-  Expect.equals(UNKNOWN, BOOLEAN.union(NUMBER));
-  Expect.equals(UNKNOWN, BOOLEAN.union(INTEGER));
-  Expect.equals(UNKNOWN, BOOLEAN.union(DOUBLE));
-  Expect.equals(UNKNOWN, BOOLEAN.union(INDEXABLE_PRIMITIVE));
-  Expect.equals(UNKNOWN, BOOLEAN.union(STRING));
-  Expect.equals(UNKNOWN, BOOLEAN.union(READABLE_ARRAY));
-  Expect.equals(UNKNOWN, BOOLEAN.union(MUTABLE_ARRAY));
-  Expect.equals(UNKNOWN, BOOLEAN.union(EXTENDABLE_ARRAY));
-  Expect.equals(UNKNOWN, BOOLEAN.union(NON_PRIMITIVE1));
-  Expect.equals(UNKNOWN, BOOLEAN.union(NON_PRIMITIVE2));
-  Expect.equals(UNKNOWN, BOOLEAN.union(POTENTIAL_ARRAY));
-  Expect.equals(UNKNOWN, BOOLEAN.union(POTENTIAL_STRING));
-  Expect.equals(BOOLEAN_OR_NULL, BOOLEAN.union(BOOLEAN_OR_NULL));
-  Expect.equals(UNKNOWN, BOOLEAN.union(NUMBER_OR_NULL));
-  Expect.equals(UNKNOWN, BOOLEAN.union(INTEGER_OR_NULL));
-  Expect.equals(UNKNOWN, BOOLEAN.union(DOUBLE_OR_NULL));
-  Expect.equals(UNKNOWN, BOOLEAN.union(STRING_OR_NULL));
-  Expect.equals(BOOLEAN_OR_NULL, BOOLEAN.union(NULL));
-  Expect.equals(UNKNOWN, BOOLEAN.union(FIXED_ARRAY));
+  Expect.equals(BOOLEAN, 
+                BOOLEAN.union(CONFLICTING, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN.union(UNKNOWN, compiler));
+  Expect.equals(BOOLEAN, 
+                BOOLEAN.union(BOOLEAN, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN.union(NUMBER, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN.union(INTEGER, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN.union(DOUBLE, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN.union(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN.union(STRING, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN.union(READABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN.union(MUTABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN.union(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN.union(nonPrimitive1, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN.union(nonPrimitive2, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN.union(potentialArray, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN.union(potentialString, compiler));
+  Expect.equals(BOOLEAN_OR_NULL, 
+                BOOLEAN.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN.union(DOUBLE_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN.union(STRING_OR_NULL, compiler));
+  Expect.equals(BOOLEAN_OR_NULL, 
+                BOOLEAN.union(NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN.union(FIXED_ARRAY, compiler));
 
-  Expect.equals(NUMBER, NUMBER.union(CONFLICTING));
-  Expect.equals(UNKNOWN, NUMBER.union(UNKNOWN));
-  Expect.equals(UNKNOWN, NUMBER.union(BOOLEAN));
-  Expect.equals(NUMBER, NUMBER.union(NUMBER));
-  Expect.equals(NUMBER, NUMBER.union(INTEGER));
-  Expect.equals(NUMBER, NUMBER.union(DOUBLE));
-  Expect.equals(UNKNOWN, NUMBER.union(INDEXABLE_PRIMITIVE));
-  Expect.equals(UNKNOWN, NUMBER.union(STRING));
-  Expect.equals(UNKNOWN, NUMBER.union(READABLE_ARRAY));
-  Expect.equals(UNKNOWN, NUMBER.union(MUTABLE_ARRAY));
-  Expect.equals(UNKNOWN, NUMBER.union(EXTENDABLE_ARRAY));
-  Expect.equals(UNKNOWN, NUMBER.union(NON_PRIMITIVE1));
-  Expect.equals(UNKNOWN, NUMBER.union(NON_PRIMITIVE2));
-  Expect.equals(UNKNOWN, NUMBER.union(POTENTIAL_ARRAY));
-  Expect.equals(UNKNOWN, NUMBER.union(POTENTIAL_STRING));
-  Expect.equals(UNKNOWN, NUMBER.union(BOOLEAN_OR_NULL));
-  Expect.equals(NUMBER_OR_NULL, NUMBER.union(NUMBER_OR_NULL));
-  Expect.equals(NUMBER_OR_NULL, NUMBER.union(INTEGER_OR_NULL));
-  Expect.equals(NUMBER_OR_NULL, NUMBER.union(DOUBLE_OR_NULL));
-  Expect.equals(UNKNOWN, NUMBER.union(STRING_OR_NULL));
-  Expect.equals(NUMBER_OR_NULL, NUMBER.union(NULL));
-  Expect.equals(UNKNOWN, NUMBER.union(FIXED_ARRAY));
+  Expect.equals(NUMBER, 
+                NUMBER.union(CONFLICTING, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER.union(UNKNOWN, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER.union(BOOLEAN, compiler));
+  Expect.equals(NUMBER, 
+                NUMBER.union(NUMBER, compiler));
+  Expect.equals(NUMBER, 
+                NUMBER.union(INTEGER, compiler));
+  Expect.equals(NUMBER, 
+                NUMBER.union(DOUBLE, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER.union(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER.union(STRING, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER.union(READABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER.union(MUTABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER.union(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER.union(nonPrimitive1, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER.union(nonPrimitive2, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER.union(potentialArray, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER.union(potentialString, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                NUMBER.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                NUMBER.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                NUMBER.union(DOUBLE_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER.union(STRING_OR_NULL, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                NUMBER.union(NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER.union(FIXED_ARRAY, compiler));
 
-  Expect.equals(INTEGER, INTEGER.union(CONFLICTING));
-  Expect.equals(UNKNOWN, INTEGER.union(UNKNOWN));
-  Expect.equals(UNKNOWN, INTEGER.union(BOOLEAN));
-  Expect.equals(NUMBER, INTEGER.union(NUMBER));
-  Expect.equals(INTEGER, INTEGER.union(INTEGER));
-  Expect.equals(NUMBER, INTEGER.union(DOUBLE));
-  Expect.equals(UNKNOWN, INTEGER.union(INDEXABLE_PRIMITIVE));
-  Expect.equals(UNKNOWN, INTEGER.union(STRING));
-  Expect.equals(UNKNOWN, INTEGER.union(READABLE_ARRAY));
-  Expect.equals(UNKNOWN, INTEGER.union(MUTABLE_ARRAY));
-  Expect.equals(UNKNOWN, INTEGER.union(EXTENDABLE_ARRAY));
-  Expect.equals(UNKNOWN, INTEGER.union(NON_PRIMITIVE1));
-  Expect.equals(UNKNOWN, INTEGER.union(NON_PRIMITIVE2));
-  Expect.equals(UNKNOWN, INTEGER.union(POTENTIAL_ARRAY));
-  Expect.equals(UNKNOWN, INTEGER.union(POTENTIAL_STRING));
-  Expect.equals(UNKNOWN, INTEGER.union(BOOLEAN_OR_NULL));
-  Expect.equals(NUMBER_OR_NULL, INTEGER.union(NUMBER_OR_NULL));
-  Expect.equals(INTEGER_OR_NULL, INTEGER.union(INTEGER_OR_NULL));
-  Expect.equals(NUMBER_OR_NULL, INTEGER.union(DOUBLE_OR_NULL));
-  Expect.equals(UNKNOWN, INTEGER.union(STRING_OR_NULL));
-  Expect.equals(INTEGER_OR_NULL, INTEGER.union(NULL));
-  Expect.equals(UNKNOWN, INTEGER.union(FIXED_ARRAY));
+  Expect.equals(INTEGER, 
+                INTEGER.union(CONFLICTING, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER.union(UNKNOWN, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER.union(BOOLEAN, compiler));
+  Expect.equals(NUMBER, 
+                INTEGER.union(NUMBER, compiler));
+  Expect.equals(INTEGER, 
+                INTEGER.union(INTEGER, compiler));
+  Expect.equals(NUMBER, 
+                INTEGER.union(DOUBLE, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER.union(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER.union(STRING, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER.union(READABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER.union(MUTABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER.union(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER.union(nonPrimitive1, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER.union(nonPrimitive2, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER.union(potentialArray, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER.union(potentialString, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                INTEGER.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(INTEGER_OR_NULL, 
+                INTEGER.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                INTEGER.union(DOUBLE_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER.union(STRING_OR_NULL, compiler));
+  Expect.equals(INTEGER_OR_NULL, 
+                INTEGER.union(NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER.union(FIXED_ARRAY, compiler));
 
-  Expect.equals(DOUBLE, DOUBLE.union(CONFLICTING));
-  Expect.equals(UNKNOWN, DOUBLE.union(UNKNOWN));
-  Expect.equals(UNKNOWN, DOUBLE.union(BOOLEAN));
-  Expect.equals(NUMBER, DOUBLE.union(NUMBER));
-  Expect.equals(NUMBER, DOUBLE.union(INTEGER));
-  Expect.equals(DOUBLE, DOUBLE.union(DOUBLE));
-  Expect.equals(UNKNOWN, DOUBLE.union(INDEXABLE_PRIMITIVE));
-  Expect.equals(UNKNOWN, DOUBLE.union(STRING));
-  Expect.equals(UNKNOWN, DOUBLE.union(READABLE_ARRAY));
-  Expect.equals(UNKNOWN, DOUBLE.union(MUTABLE_ARRAY));
-  Expect.equals(UNKNOWN, DOUBLE.union(EXTENDABLE_ARRAY));
-  Expect.equals(UNKNOWN, DOUBLE.union(NON_PRIMITIVE1));
-  Expect.equals(UNKNOWN, DOUBLE.union(NON_PRIMITIVE2));
-  Expect.equals(UNKNOWN, DOUBLE.union(POTENTIAL_ARRAY));
-  Expect.equals(UNKNOWN, DOUBLE.union(POTENTIAL_STRING));
-  Expect.equals(UNKNOWN, DOUBLE.union(BOOLEAN_OR_NULL));
-  Expect.equals(NUMBER_OR_NULL, DOUBLE.union(NUMBER_OR_NULL));
-  Expect.equals(NUMBER_OR_NULL, DOUBLE.union(INTEGER_OR_NULL));
-  Expect.equals(DOUBLE_OR_NULL, DOUBLE.union(DOUBLE_OR_NULL));
-  Expect.equals(UNKNOWN, DOUBLE.union(STRING_OR_NULL));
-  Expect.equals(DOUBLE_OR_NULL, DOUBLE.union(NULL));
-  Expect.equals(UNKNOWN, DOUBLE.union(FIXED_ARRAY));
+  Expect.equals(DOUBLE, 
+                DOUBLE.union(CONFLICTING, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE.union(UNKNOWN, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE.union(BOOLEAN, compiler));
+  Expect.equals(NUMBER, 
+                DOUBLE.union(NUMBER, compiler));
+  Expect.equals(NUMBER, 
+                DOUBLE.union(INTEGER, compiler));
+  Expect.equals(DOUBLE, 
+                DOUBLE.union(DOUBLE, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE.union(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE.union(STRING, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE.union(READABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE.union(MUTABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE.union(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE.union(nonPrimitive1, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE.union(nonPrimitive2, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE.union(potentialArray, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE.union(potentialString, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                DOUBLE.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                DOUBLE.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(DOUBLE_OR_NULL, 
+                DOUBLE.union(DOUBLE_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE.union(STRING_OR_NULL, compiler));
+  Expect.equals(DOUBLE_OR_NULL, 
+                DOUBLE.union(NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE.union(FIXED_ARRAY, compiler));
 
-  Expect.equals(INDEXABLE_PRIMITIVE, INDEXABLE_PRIMITIVE.union(CONFLICTING));
-  Expect.equals(UNKNOWN, INDEXABLE_PRIMITIVE.union(UNKNOWN));
-  Expect.equals(UNKNOWN, INDEXABLE_PRIMITIVE.union(BOOLEAN));
-  Expect.equals(UNKNOWN, INDEXABLE_PRIMITIVE.union(NUMBER));
-  Expect.equals(UNKNOWN, INDEXABLE_PRIMITIVE.union(INTEGER));
-  Expect.equals(UNKNOWN, INDEXABLE_PRIMITIVE.union(DOUBLE));
+  Expect.equals(INDEXABLE_PRIMITIVE, 
+                INDEXABLE_PRIMITIVE.union(CONFLICTING, compiler));
+  Expect.equals(UNKNOWN, 
+                INDEXABLE_PRIMITIVE.union(UNKNOWN, compiler));
+  Expect.equals(UNKNOWN, 
+                INDEXABLE_PRIMITIVE.union(BOOLEAN, compiler));
+  Expect.equals(UNKNOWN, 
+                INDEXABLE_PRIMITIVE.union(NUMBER, compiler));
+  Expect.equals(UNKNOWN, 
+                INDEXABLE_PRIMITIVE.union(INTEGER, compiler));
+  Expect.equals(UNKNOWN, 
+                INDEXABLE_PRIMITIVE.union(DOUBLE, compiler));
   Expect.equals(INDEXABLE_PRIMITIVE,
-                INDEXABLE_PRIMITIVE.union(INDEXABLE_PRIMITIVE));
-  Expect.equals(INDEXABLE_PRIMITIVE, INDEXABLE_PRIMITIVE.union(STRING));
-  Expect.equals(INDEXABLE_PRIMITIVE, INDEXABLE_PRIMITIVE.union(READABLE_ARRAY));
-  Expect.equals(INDEXABLE_PRIMITIVE, INDEXABLE_PRIMITIVE.union(MUTABLE_ARRAY));
+                INDEXABLE_PRIMITIVE.union(INDEXABLE_PRIMITIVE, 
+                compiler));
+  Expect.equals(INDEXABLE_PRIMITIVE, 
+                INDEXABLE_PRIMITIVE.union(STRING, compiler));
+  Expect.equals(INDEXABLE_PRIMITIVE, 
+                INDEXABLE_PRIMITIVE.union(READABLE_ARRAY, compiler));
+  Expect.equals(INDEXABLE_PRIMITIVE, 
+                INDEXABLE_PRIMITIVE.union(MUTABLE_ARRAY, compiler));
   Expect.equals(INDEXABLE_PRIMITIVE,
-                INDEXABLE_PRIMITIVE.union(EXTENDABLE_ARRAY));
-  Expect.equals(UNKNOWN, INDEXABLE_PRIMITIVE.union(NON_PRIMITIVE1));
-  Expect.equals(UNKNOWN, INDEXABLE_PRIMITIVE.union(NON_PRIMITIVE2));
-  Expect.equals(UNKNOWN, INDEXABLE_PRIMITIVE.union(POTENTIAL_ARRAY));
-  Expect.equals(UNKNOWN, INDEXABLE_PRIMITIVE.union(POTENTIAL_STRING));
-  Expect.equals(UNKNOWN, INDEXABLE_PRIMITIVE.union(BOOLEAN_OR_NULL));
-  Expect.equals(UNKNOWN, INDEXABLE_PRIMITIVE.union(NUMBER_OR_NULL));
-  Expect.equals(UNKNOWN, INDEXABLE_PRIMITIVE.union(INTEGER_OR_NULL));
-  Expect.equals(UNKNOWN, INDEXABLE_PRIMITIVE.union(DOUBLE_OR_NULL));
-  Expect.equals(UNKNOWN, INDEXABLE_PRIMITIVE.union(STRING_OR_NULL));
-  Expect.equals(UNKNOWN, INDEXABLE_PRIMITIVE.union(NULL));
-  Expect.equals(INDEXABLE_PRIMITIVE, INDEXABLE_PRIMITIVE.union(FIXED_ARRAY));
+                INDEXABLE_PRIMITIVE.union(EXTENDABLE_ARRAY, 
+                compiler));
+  Expect.equals(UNKNOWN, 
+                INDEXABLE_PRIMITIVE.union(nonPrimitive1, compiler));
+  Expect.equals(UNKNOWN, 
+                INDEXABLE_PRIMITIVE.union(nonPrimitive2, compiler));
+  Expect.equals(UNKNOWN, 
+                INDEXABLE_PRIMITIVE.union(potentialArray, compiler));
+  Expect.equals(UNKNOWN, 
+                INDEXABLE_PRIMITIVE.union(potentialString, compiler));
+  Expect.equals(UNKNOWN, 
+                INDEXABLE_PRIMITIVE.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                INDEXABLE_PRIMITIVE.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                INDEXABLE_PRIMITIVE.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                INDEXABLE_PRIMITIVE.union(DOUBLE_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                INDEXABLE_PRIMITIVE.union(STRING_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                INDEXABLE_PRIMITIVE.union(NULL, compiler));
+  Expect.equals(INDEXABLE_PRIMITIVE, 
+                INDEXABLE_PRIMITIVE.union(FIXED_ARRAY, compiler));
 
-  Expect.equals(STRING, STRING.union(CONFLICTING));
-  Expect.equals(UNKNOWN, STRING.union(UNKNOWN));
-  Expect.equals(UNKNOWN, STRING.union(BOOLEAN));
-  Expect.equals(UNKNOWN, STRING.union(NUMBER));
-  Expect.equals(UNKNOWN, STRING.union(INTEGER));
-  Expect.equals(UNKNOWN, STRING.union(DOUBLE));
-  Expect.equals(INDEXABLE_PRIMITIVE, STRING.union(INDEXABLE_PRIMITIVE));
-  Expect.equals(STRING, STRING.union(STRING));
-  Expect.equals(INDEXABLE_PRIMITIVE, STRING.union(READABLE_ARRAY));
-  Expect.equals(INDEXABLE_PRIMITIVE, STRING.union(MUTABLE_ARRAY));
-  Expect.equals(INDEXABLE_PRIMITIVE, STRING.union(EXTENDABLE_ARRAY));
-  Expect.equals(UNKNOWN, STRING.union(NON_PRIMITIVE1));
-  Expect.equals(UNKNOWN, STRING.union(NON_PRIMITIVE2));
-  Expect.equals(UNKNOWN, STRING.union(POTENTIAL_ARRAY));
-  Expect.equals(POTENTIAL_STRING, STRING.union(POTENTIAL_STRING));
-  Expect.equals(UNKNOWN, STRING.union(BOOLEAN_OR_NULL));
-  Expect.equals(UNKNOWN, STRING.union(NUMBER_OR_NULL));
-  Expect.equals(UNKNOWN, STRING.union(INTEGER_OR_NULL));
-  Expect.equals(UNKNOWN, STRING.union(DOUBLE_OR_NULL));
-  Expect.equals(STRING_OR_NULL, STRING.union(STRING_OR_NULL));
-  Expect.equals(STRING_OR_NULL, STRING.union(NULL));
-  Expect.equals(INDEXABLE_PRIMITIVE, STRING.union(FIXED_ARRAY));
+  Expect.equals(STRING, 
+                STRING.union(CONFLICTING, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING.union(UNKNOWN, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING.union(BOOLEAN, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING.union(NUMBER, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING.union(INTEGER, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING.union(DOUBLE, compiler));
+  Expect.equals(INDEXABLE_PRIMITIVE, 
+                STRING.union(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(STRING, 
+                STRING.union(STRING, compiler));
+  Expect.equals(INDEXABLE_PRIMITIVE, 
+                STRING.union(READABLE_ARRAY, compiler));
+  Expect.equals(INDEXABLE_PRIMITIVE, 
+                STRING.union(MUTABLE_ARRAY, compiler));
+  Expect.equals(INDEXABLE_PRIMITIVE, 
+                STRING.union(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING.union(nonPrimitive1, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING.union(nonPrimitive2, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING.union(potentialArray, compiler));
+  Expect.equals(potentialString, 
+                STRING.union(potentialString, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING.union(DOUBLE_OR_NULL, compiler));
+  Expect.equals(STRING_OR_NULL, 
+                STRING.union(STRING_OR_NULL, compiler));
+  Expect.equals(STRING_OR_NULL, 
+                STRING.union(NULL, compiler));
+  Expect.equals(INDEXABLE_PRIMITIVE, 
+                STRING.union(FIXED_ARRAY, compiler));
 
-  Expect.equals(READABLE_ARRAY, READABLE_ARRAY.union(CONFLICTING));
-  Expect.equals(UNKNOWN, READABLE_ARRAY.union(UNKNOWN));
-  Expect.equals(UNKNOWN, READABLE_ARRAY.union(BOOLEAN));
-  Expect.equals(UNKNOWN, READABLE_ARRAY.union(NUMBER));
-  Expect.equals(UNKNOWN, READABLE_ARRAY.union(INTEGER));
-  Expect.equals(UNKNOWN, READABLE_ARRAY.union(DOUBLE));
-  Expect.equals(INDEXABLE_PRIMITIVE, READABLE_ARRAY.union(INDEXABLE_PRIMITIVE));
-  Expect.equals(INDEXABLE_PRIMITIVE, READABLE_ARRAY.union(STRING));
-  Expect.equals(READABLE_ARRAY, READABLE_ARRAY.union(READABLE_ARRAY));
-  Expect.equals(READABLE_ARRAY, READABLE_ARRAY.union(MUTABLE_ARRAY));
-  Expect.equals(READABLE_ARRAY, READABLE_ARRAY.union(EXTENDABLE_ARRAY));
-  Expect.equals(UNKNOWN, READABLE_ARRAY.union(NON_PRIMITIVE1));
-  Expect.equals(UNKNOWN, READABLE_ARRAY.union(NON_PRIMITIVE2));
-  Expect.equals(POTENTIAL_ARRAY, READABLE_ARRAY.union(POTENTIAL_ARRAY));
-  Expect.equals(UNKNOWN, READABLE_ARRAY.union(POTENTIAL_STRING));
-  Expect.equals(UNKNOWN, READABLE_ARRAY.union(BOOLEAN_OR_NULL));
-  Expect.equals(UNKNOWN, READABLE_ARRAY.union(NUMBER_OR_NULL));
-  Expect.equals(UNKNOWN, READABLE_ARRAY.union(INTEGER_OR_NULL));
-  Expect.equals(UNKNOWN, READABLE_ARRAY.union(DOUBLE_OR_NULL));
-  Expect.equals(UNKNOWN, READABLE_ARRAY.union(STRING_OR_NULL));
-  Expect.equals(UNKNOWN, READABLE_ARRAY.union(NULL));
-  Expect.equals(READABLE_ARRAY, READABLE_ARRAY.union(FIXED_ARRAY));
+  Expect.equals(READABLE_ARRAY, 
+                READABLE_ARRAY.union(CONFLICTING, compiler));
+  Expect.equals(UNKNOWN, 
+                READABLE_ARRAY.union(UNKNOWN, compiler));
+  Expect.equals(UNKNOWN, 
+                READABLE_ARRAY.union(BOOLEAN, compiler));
+  Expect.equals(UNKNOWN, 
+                READABLE_ARRAY.union(NUMBER, compiler));
+  Expect.equals(UNKNOWN, 
+                READABLE_ARRAY.union(INTEGER, compiler));
+  Expect.equals(UNKNOWN, 
+                READABLE_ARRAY.union(DOUBLE, compiler));
+  Expect.equals(INDEXABLE_PRIMITIVE, 
+                READABLE_ARRAY.union(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(INDEXABLE_PRIMITIVE, 
+                READABLE_ARRAY.union(STRING, compiler));
+  Expect.equals(READABLE_ARRAY, 
+                READABLE_ARRAY.union(READABLE_ARRAY, compiler));
+  Expect.equals(READABLE_ARRAY, 
+                READABLE_ARRAY.union(MUTABLE_ARRAY, compiler));
+  Expect.equals(READABLE_ARRAY, 
+                READABLE_ARRAY.union(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                READABLE_ARRAY.union(nonPrimitive1, compiler));
+  Expect.equals(UNKNOWN, 
+                READABLE_ARRAY.union(nonPrimitive2, compiler));
+  Expect.equals(potentialArray, 
+                READABLE_ARRAY.union(potentialArray, compiler));
+  Expect.equals(UNKNOWN, 
+                READABLE_ARRAY.union(potentialString, compiler));
+  Expect.equals(UNKNOWN, 
+                READABLE_ARRAY.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                READABLE_ARRAY.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                READABLE_ARRAY.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                READABLE_ARRAY.union(DOUBLE_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                READABLE_ARRAY.union(STRING_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                READABLE_ARRAY.union(NULL, compiler));
+  Expect.equals(READABLE_ARRAY, 
+                READABLE_ARRAY.union(FIXED_ARRAY, compiler));
 
-  Expect.equals(MUTABLE_ARRAY, MUTABLE_ARRAY.union(CONFLICTING));
-  Expect.equals(UNKNOWN, MUTABLE_ARRAY.union(UNKNOWN));
-  Expect.equals(UNKNOWN, MUTABLE_ARRAY.union(BOOLEAN));
-  Expect.equals(UNKNOWN, MUTABLE_ARRAY.union(NUMBER));
-  Expect.equals(UNKNOWN, MUTABLE_ARRAY.union(INTEGER));
-  Expect.equals(UNKNOWN, MUTABLE_ARRAY.union(DOUBLE));
-  Expect.equals(INDEXABLE_PRIMITIVE, MUTABLE_ARRAY.union(INDEXABLE_PRIMITIVE));
-  Expect.equals(INDEXABLE_PRIMITIVE, MUTABLE_ARRAY.union(STRING));
-  Expect.equals(READABLE_ARRAY, MUTABLE_ARRAY.union(READABLE_ARRAY));
-  Expect.equals(MUTABLE_ARRAY, MUTABLE_ARRAY.union(MUTABLE_ARRAY));
-  Expect.equals(MUTABLE_ARRAY, MUTABLE_ARRAY.union(EXTENDABLE_ARRAY));
-  Expect.equals(UNKNOWN, MUTABLE_ARRAY.union(NON_PRIMITIVE1));
-  Expect.equals(UNKNOWN, MUTABLE_ARRAY.union(NON_PRIMITIVE2));
-  Expect.equals(POTENTIAL_ARRAY,MUTABLE_ARRAY.union(POTENTIAL_ARRAY));
-  Expect.equals(UNKNOWN, MUTABLE_ARRAY.union(POTENTIAL_STRING));
-  Expect.equals(UNKNOWN, MUTABLE_ARRAY.union(BOOLEAN_OR_NULL));
-  Expect.equals(UNKNOWN, MUTABLE_ARRAY.union(NUMBER_OR_NULL));
-  Expect.equals(UNKNOWN, MUTABLE_ARRAY.union(INTEGER_OR_NULL));
-  Expect.equals(UNKNOWN, MUTABLE_ARRAY.union(DOUBLE_OR_NULL));
-  Expect.equals(UNKNOWN, MUTABLE_ARRAY.union(STRING_OR_NULL));
-  Expect.equals(UNKNOWN, MUTABLE_ARRAY.union(NULL));
-  Expect.equals(MUTABLE_ARRAY, MUTABLE_ARRAY.union(FIXED_ARRAY));
+  Expect.equals(MUTABLE_ARRAY, 
+                MUTABLE_ARRAY.union(CONFLICTING, compiler));
+  Expect.equals(UNKNOWN, 
+                MUTABLE_ARRAY.union(UNKNOWN, compiler));
+  Expect.equals(UNKNOWN, 
+                MUTABLE_ARRAY.union(BOOLEAN, compiler));
+  Expect.equals(UNKNOWN, 
+                MUTABLE_ARRAY.union(NUMBER, compiler));
+  Expect.equals(UNKNOWN, 
+                MUTABLE_ARRAY.union(INTEGER, compiler));
+  Expect.equals(UNKNOWN, 
+                MUTABLE_ARRAY.union(DOUBLE, compiler));
+  Expect.equals(INDEXABLE_PRIMITIVE, 
+                MUTABLE_ARRAY.union(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(INDEXABLE_PRIMITIVE, 
+                MUTABLE_ARRAY.union(STRING, compiler));
+  Expect.equals(READABLE_ARRAY, 
+                MUTABLE_ARRAY.union(READABLE_ARRAY, compiler));
+  Expect.equals(MUTABLE_ARRAY, 
+                MUTABLE_ARRAY.union(MUTABLE_ARRAY, compiler));
+  Expect.equals(MUTABLE_ARRAY, 
+                MUTABLE_ARRAY.union(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                MUTABLE_ARRAY.union(nonPrimitive1, compiler));
+  Expect.equals(UNKNOWN, 
+                MUTABLE_ARRAY.union(nonPrimitive2, compiler));
+  Expect.equals(potentialArray,MUTABLE_ARRAY.union(potentialArray, 
+                compiler));
+  Expect.equals(UNKNOWN, 
+                MUTABLE_ARRAY.union(potentialString, compiler));
+  Expect.equals(UNKNOWN, 
+                MUTABLE_ARRAY.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                MUTABLE_ARRAY.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                MUTABLE_ARRAY.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                MUTABLE_ARRAY.union(DOUBLE_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                MUTABLE_ARRAY.union(STRING_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                MUTABLE_ARRAY.union(NULL, compiler));
+  Expect.equals(MUTABLE_ARRAY, 
+                MUTABLE_ARRAY.union(FIXED_ARRAY, compiler));
 
-  Expect.equals(EXTENDABLE_ARRAY, EXTENDABLE_ARRAY.union(CONFLICTING));
-  Expect.equals(UNKNOWN, EXTENDABLE_ARRAY.union(UNKNOWN));
-  Expect.equals(UNKNOWN, EXTENDABLE_ARRAY.union(BOOLEAN));
-  Expect.equals(UNKNOWN, EXTENDABLE_ARRAY.union(NUMBER));
-  Expect.equals(UNKNOWN, EXTENDABLE_ARRAY.union(INTEGER));
-  Expect.equals(UNKNOWN, EXTENDABLE_ARRAY.union(DOUBLE));
-  Expect.equals(INDEXABLE_PRIMITIVE, EXTENDABLE_ARRAY.union(INDEXABLE_PRIMITIVE));
-  Expect.equals(INDEXABLE_PRIMITIVE, EXTENDABLE_ARRAY.union(STRING));
-  Expect.equals(READABLE_ARRAY, EXTENDABLE_ARRAY.union(READABLE_ARRAY));
-  Expect.equals(MUTABLE_ARRAY, EXTENDABLE_ARRAY.union(MUTABLE_ARRAY));
-  Expect.equals(EXTENDABLE_ARRAY, EXTENDABLE_ARRAY.union(EXTENDABLE_ARRAY));
-  Expect.equals(UNKNOWN, EXTENDABLE_ARRAY.union(NON_PRIMITIVE1));
-  Expect.equals(UNKNOWN, EXTENDABLE_ARRAY.union(NON_PRIMITIVE2));
-  Expect.equals(POTENTIAL_ARRAY, EXTENDABLE_ARRAY.union(POTENTIAL_ARRAY));
-  Expect.equals(UNKNOWN, EXTENDABLE_ARRAY.union(POTENTIAL_STRING));
-  Expect.equals(UNKNOWN, EXTENDABLE_ARRAY.union(BOOLEAN_OR_NULL));
-  Expect.equals(UNKNOWN, EXTENDABLE_ARRAY.union(NUMBER_OR_NULL));
-  Expect.equals(UNKNOWN, EXTENDABLE_ARRAY.union(INTEGER_OR_NULL));
-  Expect.equals(UNKNOWN, EXTENDABLE_ARRAY.union(DOUBLE_OR_NULL));
-  Expect.equals(UNKNOWN, EXTENDABLE_ARRAY.union(STRING_OR_NULL));
-  Expect.equals(UNKNOWN, EXTENDABLE_ARRAY.union(NULL));
-  Expect.equals(MUTABLE_ARRAY, EXTENDABLE_ARRAY.union(FIXED_ARRAY));
+  Expect.equals(EXTENDABLE_ARRAY, 
+                EXTENDABLE_ARRAY.union(CONFLICTING, compiler));
+  Expect.equals(UNKNOWN, 
+                EXTENDABLE_ARRAY.union(UNKNOWN, compiler));
+  Expect.equals(UNKNOWN, 
+                EXTENDABLE_ARRAY.union(BOOLEAN, compiler));
+  Expect.equals(UNKNOWN, 
+                EXTENDABLE_ARRAY.union(NUMBER, compiler));
+  Expect.equals(UNKNOWN, 
+                EXTENDABLE_ARRAY.union(INTEGER, compiler));
+  Expect.equals(UNKNOWN, 
+                EXTENDABLE_ARRAY.union(DOUBLE, compiler));
+  Expect.equals(INDEXABLE_PRIMITIVE, 
+                EXTENDABLE_ARRAY.union(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(INDEXABLE_PRIMITIVE, 
+                EXTENDABLE_ARRAY.union(STRING, compiler));
+  Expect.equals(READABLE_ARRAY, 
+                EXTENDABLE_ARRAY.union(READABLE_ARRAY, compiler));
+  Expect.equals(MUTABLE_ARRAY, 
+                EXTENDABLE_ARRAY.union(MUTABLE_ARRAY, compiler));
+  Expect.equals(EXTENDABLE_ARRAY, 
+                EXTENDABLE_ARRAY.union(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                EXTENDABLE_ARRAY.union(nonPrimitive1, compiler));
+  Expect.equals(UNKNOWN, 
+                EXTENDABLE_ARRAY.union(nonPrimitive2, compiler));
+  Expect.equals(potentialArray, 
+                EXTENDABLE_ARRAY.union(potentialArray, compiler));
+  Expect.equals(UNKNOWN, 
+                EXTENDABLE_ARRAY.union(potentialString, compiler));
+  Expect.equals(UNKNOWN, 
+                EXTENDABLE_ARRAY.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                EXTENDABLE_ARRAY.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                EXTENDABLE_ARRAY.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                EXTENDABLE_ARRAY.union(DOUBLE_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                EXTENDABLE_ARRAY.union(STRING_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                EXTENDABLE_ARRAY.union(NULL, compiler));
+  Expect.equals(MUTABLE_ARRAY, 
+                EXTENDABLE_ARRAY.union(FIXED_ARRAY, compiler));
 
-  Expect.equals(NON_PRIMITIVE1, NON_PRIMITIVE1.union(CONFLICTING));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE1.union(UNKNOWN));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE1.union(BOOLEAN));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE1.union(NUMBER));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE1.union(INTEGER));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE1.union(DOUBLE));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE1.union(INDEXABLE_PRIMITIVE));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE1.union(STRING));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE1.union(READABLE_ARRAY));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE1.union(MUTABLE_ARRAY));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE1.union(EXTENDABLE_ARRAY));
-  Expect.equals(NON_PRIMITIVE1, NON_PRIMITIVE1.union(NON_PRIMITIVE1));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE1.union(NON_PRIMITIVE2));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE1.union(POTENTIAL_ARRAY));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE1.union(POTENTIAL_STRING));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE1.union(BOOLEAN_OR_NULL));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE1.union(NUMBER_OR_NULL));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE1.union(INTEGER_OR_NULL));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE1.union(DOUBLE_OR_NULL));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE1.union(STRING_OR_NULL));
-  Expect.isTrue(NON_PRIMITIVE1.union(NULL) is HBoundedType);
-  Expect.equals(UNKNOWN, NON_PRIMITIVE1.union(FIXED_ARRAY));
+  Expect.equals(nonPrimitive1, 
+                nonPrimitive1.union(CONFLICTING, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive1.union(UNKNOWN, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive1.union(BOOLEAN, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive1.union(NUMBER, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive1.union(INTEGER, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive1.union(DOUBLE, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive1.union(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive1.union(STRING, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive1.union(READABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive1.union(MUTABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive1.union(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(nonPrimitive1, 
+                nonPrimitive1.union(nonPrimitive1, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive1.union(nonPrimitive2, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive1.union(potentialArray, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive1.union(potentialString, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive1.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive1.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive1.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive1.union(DOUBLE_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive1.union(STRING_OR_NULL, compiler));
+  Expect.isTrue(nonPrimitive1.union(NULL, compiler) is HBoundedType);
+  Expect.equals(UNKNOWN, 
+                nonPrimitive1.union(FIXED_ARRAY, compiler));
 
-  Expect.equals(NON_PRIMITIVE2, NON_PRIMITIVE2.union(CONFLICTING));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE2.union(UNKNOWN));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE2.union(BOOLEAN));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE2.union(NUMBER));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE2.union(INTEGER));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE2.union(DOUBLE));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE2.union(INDEXABLE_PRIMITIVE));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE2.union(STRING));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE2.union(READABLE_ARRAY));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE2.union(MUTABLE_ARRAY));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE2.union(EXTENDABLE_ARRAY));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE2.union(NON_PRIMITIVE1));
-  Expect.equals(NON_PRIMITIVE2, NON_PRIMITIVE2.union(NON_PRIMITIVE2));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE2.union(POTENTIAL_ARRAY));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE2.union(POTENTIAL_STRING));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE2.union(BOOLEAN_OR_NULL));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE2.union(NUMBER_OR_NULL));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE2.union(INTEGER_OR_NULL));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE2.union(DOUBLE_OR_NULL));
-  Expect.equals(UNKNOWN, NON_PRIMITIVE2.union(STRING_OR_NULL));
-  Expect.isTrue(NON_PRIMITIVE2.union(NULL) is HBoundedType);
-  Expect.equals(UNKNOWN, NON_PRIMITIVE2.union(FIXED_ARRAY));
+  Expect.equals(nonPrimitive2, 
+                nonPrimitive2.union(CONFLICTING, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive2.union(UNKNOWN, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive2.union(BOOLEAN, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive2.union(NUMBER, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive2.union(INTEGER, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive2.union(DOUBLE, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive2.union(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive2.union(STRING, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive2.union(READABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive2.union(MUTABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive2.union(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive2.union(nonPrimitive1, compiler));
+  Expect.equals(nonPrimitive2, 
+                nonPrimitive2.union(nonPrimitive2, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive2.union(potentialArray, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive2.union(potentialString, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive2.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive2.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive2.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive2.union(DOUBLE_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                nonPrimitive2.union(STRING_OR_NULL, compiler));
+  Expect.isTrue(nonPrimitive2.union(NULL, compiler) is HBoundedType);
+  Expect.equals(UNKNOWN, 
+                nonPrimitive2.union(FIXED_ARRAY, compiler));
 
-  Expect.equals(POTENTIAL_ARRAY, POTENTIAL_ARRAY.union(CONFLICTING));
-  Expect.equals(UNKNOWN, POTENTIAL_ARRAY.union(UNKNOWN));
-  Expect.equals(UNKNOWN, POTENTIAL_ARRAY.union(BOOLEAN));
-  Expect.equals(UNKNOWN, POTENTIAL_ARRAY.union(NUMBER));
-  Expect.equals(UNKNOWN, POTENTIAL_ARRAY.union(INTEGER));
-  Expect.equals(UNKNOWN, POTENTIAL_ARRAY.union(DOUBLE));
-  Expect.equals(UNKNOWN, POTENTIAL_ARRAY.union(INDEXABLE_PRIMITIVE));
-  Expect.equals(UNKNOWN, POTENTIAL_ARRAY.union(STRING));
-  Expect.equals(POTENTIAL_ARRAY, POTENTIAL_ARRAY.union(READABLE_ARRAY));
-  Expect.equals(POTENTIAL_ARRAY, POTENTIAL_ARRAY.union(MUTABLE_ARRAY));
-  Expect.equals(POTENTIAL_ARRAY, POTENTIAL_ARRAY.union(EXTENDABLE_ARRAY));
-  Expect.equals(UNKNOWN, POTENTIAL_ARRAY.union(NON_PRIMITIVE1));
-  Expect.equals(UNKNOWN, POTENTIAL_ARRAY.union(NON_PRIMITIVE2));
-  Expect.equals(POTENTIAL_ARRAY, POTENTIAL_ARRAY.union(POTENTIAL_ARRAY));
-  Expect.equals(UNKNOWN, POTENTIAL_ARRAY.union(POTENTIAL_STRING));
-  Expect.equals(UNKNOWN, POTENTIAL_ARRAY.union(BOOLEAN_OR_NULL));
-  Expect.equals(UNKNOWN, POTENTIAL_ARRAY.union(NUMBER_OR_NULL));
-  Expect.equals(UNKNOWN, POTENTIAL_ARRAY.union(INTEGER_OR_NULL));
-  Expect.equals(UNKNOWN, POTENTIAL_ARRAY.union(DOUBLE_OR_NULL));
-  Expect.equals(UNKNOWN, POTENTIAL_ARRAY.union(STRING_OR_NULL));
-  Expect.equals(POTENTIAL_ARRAY, POTENTIAL_ARRAY.union(NULL));
-  Expect.equals(POTENTIAL_ARRAY, POTENTIAL_ARRAY.union(FIXED_ARRAY));
+  Expect.equals(potentialArray, 
+                potentialArray.union(CONFLICTING, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialArray.union(UNKNOWN, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialArray.union(BOOLEAN, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialArray.union(NUMBER, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialArray.union(INTEGER, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialArray.union(DOUBLE, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialArray.union(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialArray.union(STRING, compiler));
+  Expect.equals(potentialArray, 
+                potentialArray.union(READABLE_ARRAY, compiler));
+  Expect.equals(potentialArray, 
+                potentialArray.union(MUTABLE_ARRAY, compiler));
+  Expect.equals(potentialArray, 
+                potentialArray.union(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialArray.union(nonPrimitive1, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialArray.union(nonPrimitive2, compiler));
+  Expect.equals(potentialArray, 
+                potentialArray.union(potentialArray, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialArray.union(potentialString, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialArray.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialArray.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialArray.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialArray.union(DOUBLE_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialArray.union(STRING_OR_NULL, compiler));
+  Expect.equals(potentialArray, 
+                potentialArray.union(NULL, compiler));
+  Expect.equals(potentialArray, 
+                potentialArray.union(FIXED_ARRAY, compiler));
 
-  Expect.equals(POTENTIAL_STRING, POTENTIAL_STRING.union(CONFLICTING));
-  Expect.equals(UNKNOWN, POTENTIAL_STRING.union(UNKNOWN));
-  Expect.equals(UNKNOWN, POTENTIAL_STRING.union(BOOLEAN));
-  Expect.equals(UNKNOWN, POTENTIAL_STRING.union(NUMBER));
-  Expect.equals(UNKNOWN, POTENTIAL_STRING.union(INTEGER));
-  Expect.equals(UNKNOWN, POTENTIAL_STRING.union(DOUBLE));
-  Expect.equals(UNKNOWN, POTENTIAL_STRING.union(INDEXABLE_PRIMITIVE));
-  Expect.equals(POTENTIAL_STRING, POTENTIAL_STRING.union(STRING));
-  Expect.equals(UNKNOWN, POTENTIAL_STRING.union(READABLE_ARRAY));
-  Expect.equals(UNKNOWN, POTENTIAL_STRING.union(MUTABLE_ARRAY));
-  Expect.equals(UNKNOWN, POTENTIAL_STRING.union(EXTENDABLE_ARRAY));
-  Expect.equals(UNKNOWN, POTENTIAL_STRING.union(NON_PRIMITIVE1));
-  Expect.equals(UNKNOWN, POTENTIAL_STRING.union(NON_PRIMITIVE2));
-  Expect.equals(UNKNOWN, POTENTIAL_STRING.union(POTENTIAL_ARRAY));
-  Expect.equals(POTENTIAL_STRING, POTENTIAL_STRING.union(POTENTIAL_STRING));
-  Expect.equals(UNKNOWN, POTENTIAL_STRING.union(BOOLEAN_OR_NULL));
-  Expect.equals(UNKNOWN, POTENTIAL_STRING.union(NUMBER_OR_NULL));
-  Expect.equals(UNKNOWN, POTENTIAL_STRING.union(INTEGER_OR_NULL));
-  Expect.equals(UNKNOWN, POTENTIAL_STRING.union(DOUBLE_OR_NULL));
-  Expect.equals(POTENTIAL_STRING, POTENTIAL_STRING.union(STRING_OR_NULL));
-  Expect.equals(POTENTIAL_STRING, POTENTIAL_STRING.union(NULL));
-  Expect.equals(UNKNOWN, POTENTIAL_STRING.union(FIXED_ARRAY));
+  Expect.equals(potentialString, 
+                potentialString.union(CONFLICTING, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialString.union(UNKNOWN, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialString.union(BOOLEAN, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialString.union(NUMBER, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialString.union(INTEGER, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialString.union(DOUBLE, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialString.union(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(potentialString, 
+                potentialString.union(STRING, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialString.union(READABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialString.union(MUTABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialString.union(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialString.union(nonPrimitive1, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialString.union(nonPrimitive2, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialString.union(potentialArray, compiler));
+  Expect.equals(potentialString, 
+                potentialString.union(potentialString, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialString.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialString.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialString.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialString.union(DOUBLE_OR_NULL, compiler));
+  Expect.equals(potentialString, 
+                potentialString.union(STRING_OR_NULL, compiler));
+  Expect.equals(potentialString, 
+                potentialString.union(NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                potentialString.union(FIXED_ARRAY, compiler));
 
-  Expect.equals(BOOLEAN_OR_NULL, BOOLEAN_OR_NULL.union(CONFLICTING));
-  Expect.equals(UNKNOWN, BOOLEAN_OR_NULL.union(UNKNOWN));
-  Expect.equals(BOOLEAN_OR_NULL, BOOLEAN_OR_NULL.union(BOOLEAN));
-  Expect.equals(UNKNOWN, BOOLEAN_OR_NULL.union(NUMBER));
-  Expect.equals(UNKNOWN, BOOLEAN_OR_NULL.union(INTEGER));
-  Expect.equals(UNKNOWN, BOOLEAN_OR_NULL.union(DOUBLE));
-  Expect.equals(UNKNOWN, BOOLEAN_OR_NULL.union(INDEXABLE_PRIMITIVE));
-  Expect.equals(UNKNOWN, BOOLEAN_OR_NULL.union(STRING));
-  Expect.equals(UNKNOWN, BOOLEAN_OR_NULL.union(READABLE_ARRAY));
-  Expect.equals(UNKNOWN, BOOLEAN_OR_NULL.union(MUTABLE_ARRAY));
-  Expect.equals(UNKNOWN, BOOLEAN_OR_NULL.union(EXTENDABLE_ARRAY));
-  Expect.equals(UNKNOWN, BOOLEAN_OR_NULL.union(NON_PRIMITIVE1));
-  Expect.equals(UNKNOWN, BOOLEAN_OR_NULL.union(NON_PRIMITIVE2));
-  Expect.equals(UNKNOWN, BOOLEAN_OR_NULL.union(POTENTIAL_ARRAY));
-  Expect.equals(UNKNOWN, BOOLEAN_OR_NULL.union(POTENTIAL_STRING));
-  Expect.equals(BOOLEAN_OR_NULL, BOOLEAN_OR_NULL.union(BOOLEAN_OR_NULL));
-  Expect.equals(UNKNOWN, BOOLEAN_OR_NULL.union(NUMBER_OR_NULL));
-  Expect.equals(UNKNOWN, BOOLEAN_OR_NULL.union(INTEGER_OR_NULL));
-  Expect.equals(UNKNOWN, BOOLEAN_OR_NULL.union(DOUBLE_OR_NULL));
-  Expect.equals(UNKNOWN, BOOLEAN_OR_NULL.union(STRING_OR_NULL));
-  Expect.equals(BOOLEAN_OR_NULL, BOOLEAN_OR_NULL.union(NULL));
-  Expect.equals(UNKNOWN, BOOLEAN_OR_NULL.union(FIXED_ARRAY));
+  Expect.equals(BOOLEAN_OR_NULL, 
+                BOOLEAN_OR_NULL.union(CONFLICTING, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN_OR_NULL.union(UNKNOWN, compiler));
+  Expect.equals(BOOLEAN_OR_NULL, 
+                BOOLEAN_OR_NULL.union(BOOLEAN, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN_OR_NULL.union(NUMBER, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN_OR_NULL.union(INTEGER, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN_OR_NULL.union(DOUBLE, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN_OR_NULL.union(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN_OR_NULL.union(STRING, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN_OR_NULL.union(READABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN_OR_NULL.union(MUTABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN_OR_NULL.union(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN_OR_NULL.union(nonPrimitive1, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN_OR_NULL.union(nonPrimitive2, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN_OR_NULL.union(potentialArray, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN_OR_NULL.union(potentialString, compiler));
+  Expect.equals(BOOLEAN_OR_NULL, 
+                BOOLEAN_OR_NULL.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN_OR_NULL.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN_OR_NULL.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN_OR_NULL.union(DOUBLE_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN_OR_NULL.union(STRING_OR_NULL, compiler));
+  Expect.equals(BOOLEAN_OR_NULL, 
+                BOOLEAN_OR_NULL.union(NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                BOOLEAN_OR_NULL.union(FIXED_ARRAY, compiler));
 
-  Expect.equals(NUMBER_OR_NULL, NUMBER_OR_NULL.union(CONFLICTING));
-  Expect.equals(UNKNOWN, NUMBER_OR_NULL.union(UNKNOWN));
-  Expect.equals(UNKNOWN, NUMBER_OR_NULL.union(BOOLEAN));
-  Expect.equals(NUMBER_OR_NULL, NUMBER_OR_NULL.union(NUMBER));
-  Expect.equals(NUMBER_OR_NULL, NUMBER_OR_NULL.union(INTEGER));
-  Expect.equals(NUMBER_OR_NULL, NUMBER_OR_NULL.union(DOUBLE));
-  Expect.equals(UNKNOWN, NUMBER_OR_NULL.union(INDEXABLE_PRIMITIVE));
-  Expect.equals(UNKNOWN, NUMBER_OR_NULL.union(STRING));
-  Expect.equals(UNKNOWN, NUMBER_OR_NULL.union(READABLE_ARRAY));
-  Expect.equals(UNKNOWN, NUMBER_OR_NULL.union(MUTABLE_ARRAY));
-  Expect.equals(UNKNOWN, NUMBER_OR_NULL.union(EXTENDABLE_ARRAY));
-  Expect.equals(UNKNOWN, NUMBER_OR_NULL.union(NON_PRIMITIVE1));
-  Expect.equals(UNKNOWN, NUMBER_OR_NULL.union(NON_PRIMITIVE2));
-  Expect.equals(UNKNOWN, NUMBER_OR_NULL.union(POTENTIAL_ARRAY));
-  Expect.equals(UNKNOWN, NUMBER_OR_NULL.union(POTENTIAL_STRING));
-  Expect.equals(UNKNOWN, NUMBER_OR_NULL.union(BOOLEAN_OR_NULL));
-  Expect.equals(NUMBER_OR_NULL, NUMBER_OR_NULL.union(NUMBER_OR_NULL));
-  Expect.equals(NUMBER_OR_NULL, NUMBER_OR_NULL.union(INTEGER_OR_NULL));
-  Expect.equals(NUMBER_OR_NULL, NUMBER_OR_NULL.union(DOUBLE_OR_NULL));
-  Expect.equals(UNKNOWN, NUMBER_OR_NULL.union(STRING_OR_NULL));
-  Expect.equals(NUMBER_OR_NULL, NUMBER_OR_NULL.union(NULL));
-  Expect.equals(UNKNOWN, NUMBER_OR_NULL.union(FIXED_ARRAY));
+  Expect.equals(NUMBER_OR_NULL, 
+                NUMBER_OR_NULL.union(CONFLICTING, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER_OR_NULL.union(UNKNOWN, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER_OR_NULL.union(BOOLEAN, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                NUMBER_OR_NULL.union(NUMBER, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                NUMBER_OR_NULL.union(INTEGER, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                NUMBER_OR_NULL.union(DOUBLE, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER_OR_NULL.union(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER_OR_NULL.union(STRING, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER_OR_NULL.union(READABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER_OR_NULL.union(MUTABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER_OR_NULL.union(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER_OR_NULL.union(nonPrimitive1, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER_OR_NULL.union(nonPrimitive2, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER_OR_NULL.union(potentialArray, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER_OR_NULL.union(potentialString, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER_OR_NULL.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                NUMBER_OR_NULL.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                NUMBER_OR_NULL.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                NUMBER_OR_NULL.union(DOUBLE_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER_OR_NULL.union(STRING_OR_NULL, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                NUMBER_OR_NULL.union(NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                NUMBER_OR_NULL.union(FIXED_ARRAY, compiler));
 
-  Expect.equals(INTEGER_OR_NULL, INTEGER_OR_NULL.union(CONFLICTING));
-  Expect.equals(UNKNOWN, INTEGER_OR_NULL.union(UNKNOWN));
-  Expect.equals(UNKNOWN, INTEGER_OR_NULL.union(BOOLEAN));
-  Expect.equals(NUMBER_OR_NULL, INTEGER_OR_NULL.union(NUMBER));
-  Expect.equals(INTEGER_OR_NULL, INTEGER_OR_NULL.union(INTEGER));
-  Expect.equals(NUMBER_OR_NULL, INTEGER_OR_NULL.union(DOUBLE));
-  Expect.equals(UNKNOWN, INTEGER_OR_NULL.union(INDEXABLE_PRIMITIVE));
-  Expect.equals(UNKNOWN, INTEGER_OR_NULL.union(STRING));
-  Expect.equals(UNKNOWN, INTEGER_OR_NULL.union(READABLE_ARRAY));
-  Expect.equals(UNKNOWN, INTEGER_OR_NULL.union(MUTABLE_ARRAY));
-  Expect.equals(UNKNOWN, INTEGER_OR_NULL.union(EXTENDABLE_ARRAY));
-  Expect.equals(UNKNOWN, INTEGER_OR_NULL.union(NON_PRIMITIVE1));
-  Expect.equals(UNKNOWN, INTEGER_OR_NULL.union(NON_PRIMITIVE2));
-  Expect.equals(UNKNOWN, INTEGER_OR_NULL.union(POTENTIAL_ARRAY));
-  Expect.equals(UNKNOWN, INTEGER_OR_NULL.union(POTENTIAL_STRING));
-  Expect.equals(UNKNOWN, INTEGER_OR_NULL.union(BOOLEAN_OR_NULL));
-  Expect.equals(NUMBER_OR_NULL, INTEGER_OR_NULL.union(NUMBER_OR_NULL));
-  Expect.equals(INTEGER_OR_NULL, INTEGER_OR_NULL.union(INTEGER_OR_NULL));
-  Expect.equals(NUMBER_OR_NULL, INTEGER_OR_NULL.union(DOUBLE_OR_NULL));
-  Expect.equals(UNKNOWN, INTEGER_OR_NULL.union(STRING_OR_NULL));
-  Expect.equals(INTEGER_OR_NULL, INTEGER_OR_NULL.union(NULL));
-  Expect.equals(UNKNOWN, INTEGER_OR_NULL.union(FIXED_ARRAY));
+  Expect.equals(INTEGER_OR_NULL, 
+                INTEGER_OR_NULL.union(CONFLICTING, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER_OR_NULL.union(UNKNOWN, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER_OR_NULL.union(BOOLEAN, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                INTEGER_OR_NULL.union(NUMBER, compiler));
+  Expect.equals(INTEGER_OR_NULL, 
+                INTEGER_OR_NULL.union(INTEGER, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                INTEGER_OR_NULL.union(DOUBLE, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER_OR_NULL.union(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER_OR_NULL.union(STRING, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER_OR_NULL.union(READABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER_OR_NULL.union(MUTABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER_OR_NULL.union(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER_OR_NULL.union(nonPrimitive1, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER_OR_NULL.union(nonPrimitive2, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER_OR_NULL.union(potentialArray, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER_OR_NULL.union(potentialString, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER_OR_NULL.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                INTEGER_OR_NULL.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(INTEGER_OR_NULL, 
+                INTEGER_OR_NULL.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                INTEGER_OR_NULL.union(DOUBLE_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER_OR_NULL.union(STRING_OR_NULL, compiler));
+  Expect.equals(INTEGER_OR_NULL, 
+                INTEGER_OR_NULL.union(NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                INTEGER_OR_NULL.union(FIXED_ARRAY, compiler));
 
-  Expect.equals(DOUBLE_OR_NULL, DOUBLE_OR_NULL.union(CONFLICTING));
-  Expect.equals(UNKNOWN, DOUBLE_OR_NULL.union(UNKNOWN));
-  Expect.equals(UNKNOWN, DOUBLE_OR_NULL.union(BOOLEAN));
-  Expect.equals(NUMBER_OR_NULL, DOUBLE_OR_NULL.union(NUMBER));
-  Expect.equals(NUMBER_OR_NULL, DOUBLE_OR_NULL.union(INTEGER));
-  Expect.equals(DOUBLE_OR_NULL, DOUBLE_OR_NULL.union(DOUBLE));
-  Expect.equals(UNKNOWN, DOUBLE_OR_NULL.union(INDEXABLE_PRIMITIVE));
-  Expect.equals(UNKNOWN, DOUBLE_OR_NULL.union(STRING));
-  Expect.equals(UNKNOWN, DOUBLE_OR_NULL.union(READABLE_ARRAY));
-  Expect.equals(UNKNOWN, DOUBLE_OR_NULL.union(MUTABLE_ARRAY));
-  Expect.equals(UNKNOWN, DOUBLE_OR_NULL.union(EXTENDABLE_ARRAY));
-  Expect.equals(UNKNOWN, DOUBLE_OR_NULL.union(NON_PRIMITIVE1));
-  Expect.equals(UNKNOWN, DOUBLE_OR_NULL.union(NON_PRIMITIVE2));
-  Expect.equals(UNKNOWN, DOUBLE_OR_NULL.union(POTENTIAL_ARRAY));
-  Expect.equals(UNKNOWN, DOUBLE_OR_NULL.union(POTENTIAL_STRING));
-  Expect.equals(UNKNOWN, DOUBLE_OR_NULL.union(BOOLEAN_OR_NULL));
-  Expect.equals(NUMBER_OR_NULL, DOUBLE_OR_NULL.union(NUMBER_OR_NULL));
-  Expect.equals(NUMBER_OR_NULL, DOUBLE_OR_NULL.union(INTEGER_OR_NULL));
-  Expect.equals(DOUBLE_OR_NULL, DOUBLE_OR_NULL.union(DOUBLE_OR_NULL));
-  Expect.equals(UNKNOWN, DOUBLE_OR_NULL.union(STRING_OR_NULL));
-  Expect.equals(DOUBLE_OR_NULL, DOUBLE_OR_NULL.union(NULL));
-  Expect.equals(UNKNOWN, DOUBLE_OR_NULL.union(FIXED_ARRAY));
+  Expect.equals(DOUBLE_OR_NULL, 
+                DOUBLE_OR_NULL.union(CONFLICTING, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE_OR_NULL.union(UNKNOWN, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE_OR_NULL.union(BOOLEAN, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                DOUBLE_OR_NULL.union(NUMBER, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                DOUBLE_OR_NULL.union(INTEGER, compiler));
+  Expect.equals(DOUBLE_OR_NULL, 
+                DOUBLE_OR_NULL.union(DOUBLE, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE_OR_NULL.union(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE_OR_NULL.union(STRING, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE_OR_NULL.union(READABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE_OR_NULL.union(MUTABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE_OR_NULL.union(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE_OR_NULL.union(nonPrimitive1, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE_OR_NULL.union(nonPrimitive2, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE_OR_NULL.union(potentialArray, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE_OR_NULL.union(potentialString, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE_OR_NULL.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                DOUBLE_OR_NULL.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                DOUBLE_OR_NULL.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(DOUBLE_OR_NULL, 
+                DOUBLE_OR_NULL.union(DOUBLE_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE_OR_NULL.union(STRING_OR_NULL, compiler));
+  Expect.equals(DOUBLE_OR_NULL, 
+                DOUBLE_OR_NULL.union(NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                DOUBLE_OR_NULL.union(FIXED_ARRAY, compiler));
 
-  Expect.equals(STRING_OR_NULL, STRING_OR_NULL.union(CONFLICTING));
-  Expect.equals(UNKNOWN, STRING_OR_NULL.union(UNKNOWN));
-  Expect.equals(UNKNOWN, STRING_OR_NULL.union(BOOLEAN));
-  Expect.equals(UNKNOWN, STRING_OR_NULL.union(NUMBER));
-  Expect.equals(UNKNOWN, STRING_OR_NULL.union(INTEGER));
-  Expect.equals(UNKNOWN, STRING_OR_NULL.union(DOUBLE));
-  Expect.equals(UNKNOWN, STRING_OR_NULL.union(INDEXABLE_PRIMITIVE));
-  Expect.equals(STRING_OR_NULL, STRING_OR_NULL.union(STRING));
-  Expect.equals(UNKNOWN, STRING_OR_NULL.union(READABLE_ARRAY));
-  Expect.equals(UNKNOWN, STRING_OR_NULL.union(MUTABLE_ARRAY));
-  Expect.equals(UNKNOWN, STRING_OR_NULL.union(EXTENDABLE_ARRAY));
-  Expect.equals(UNKNOWN, STRING_OR_NULL.union(NON_PRIMITIVE1));
-  Expect.equals(UNKNOWN, STRING_OR_NULL.union(NON_PRIMITIVE2));
-  Expect.equals(UNKNOWN, STRING_OR_NULL.union(POTENTIAL_ARRAY));
-  Expect.equals(POTENTIAL_STRING, STRING_OR_NULL.union(POTENTIAL_STRING));
-  Expect.equals(UNKNOWN, STRING_OR_NULL.union(BOOLEAN_OR_NULL));
-  Expect.equals(UNKNOWN, STRING_OR_NULL.union(NUMBER_OR_NULL));
-  Expect.equals(UNKNOWN, STRING_OR_NULL.union(INTEGER_OR_NULL));
-  Expect.equals(UNKNOWN, STRING_OR_NULL.union(DOUBLE_OR_NULL));
-  Expect.equals(STRING_OR_NULL, STRING_OR_NULL.union(STRING_OR_NULL));
-  Expect.equals(STRING_OR_NULL, STRING_OR_NULL.union(NULL));
-  Expect.equals(UNKNOWN, STRING_OR_NULL.union(FIXED_ARRAY));
+  Expect.equals(STRING_OR_NULL, 
+                STRING_OR_NULL.union(CONFLICTING, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING_OR_NULL.union(UNKNOWN, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING_OR_NULL.union(BOOLEAN, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING_OR_NULL.union(NUMBER, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING_OR_NULL.union(INTEGER, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING_OR_NULL.union(DOUBLE, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING_OR_NULL.union(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(STRING_OR_NULL, 
+                STRING_OR_NULL.union(STRING, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING_OR_NULL.union(READABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING_OR_NULL.union(MUTABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING_OR_NULL.union(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING_OR_NULL.union(nonPrimitive1, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING_OR_NULL.union(nonPrimitive2, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING_OR_NULL.union(potentialArray, compiler));
+  Expect.equals(potentialString, 
+                STRING_OR_NULL.union(potentialString, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING_OR_NULL.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING_OR_NULL.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING_OR_NULL.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING_OR_NULL.union(DOUBLE_OR_NULL, compiler));
+  Expect.equals(STRING_OR_NULL, 
+                STRING_OR_NULL.union(STRING_OR_NULL, compiler));
+  Expect.equals(STRING_OR_NULL, 
+                STRING_OR_NULL.union(NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                STRING_OR_NULL.union(FIXED_ARRAY, compiler));
 
-  Expect.equals(NULL, NULL.union(CONFLICTING));
-  Expect.equals(UNKNOWN, NULL.union(UNKNOWN));
-  Expect.equals(BOOLEAN_OR_NULL, NULL.union(BOOLEAN));
-  Expect.equals(NUMBER_OR_NULL, NULL.union(NUMBER));
-  Expect.equals(INTEGER_OR_NULL, NULL.union(INTEGER));
-  Expect.equals(DOUBLE_OR_NULL, NULL.union(DOUBLE));
-  Expect.equals(UNKNOWN, NULL.union(INDEXABLE_PRIMITIVE));
-  Expect.equals(STRING_OR_NULL, NULL.union(STRING));
-  Expect.equals(UNKNOWN, NULL.union(READABLE_ARRAY));
-  Expect.equals(UNKNOWN, NULL.union(MUTABLE_ARRAY));
-  Expect.equals(UNKNOWN, NULL.union(EXTENDABLE_ARRAY));
-  Expect.equals(UNKNOWN, NULL.union(NON_PRIMITIVE1));
-  Expect.equals(UNKNOWN, NULL.union(NON_PRIMITIVE2));
-  Expect.equals(POTENTIAL_ARRAY, NULL.union(POTENTIAL_ARRAY));
-  Expect.equals(POTENTIAL_STRING, NULL.union(POTENTIAL_STRING));
-  Expect.equals(BOOLEAN_OR_NULL, NULL.union(BOOLEAN_OR_NULL));
-  Expect.equals(NUMBER_OR_NULL, NULL.union(NUMBER_OR_NULL));
-  Expect.equals(INTEGER_OR_NULL, NULL.union(INTEGER_OR_NULL));
-  Expect.equals(DOUBLE_OR_NULL, NULL.union(DOUBLE_OR_NULL));
-  Expect.equals(STRING_OR_NULL, NULL.union(STRING_OR_NULL));
-  Expect.equals(NULL, NULL.union(NULL));
-  Expect.equals(UNKNOWN, NULL.union(FIXED_ARRAY));
+  Expect.equals(NULL, 
+                NULL.union(CONFLICTING, compiler));
+  Expect.equals(UNKNOWN, 
+                NULL.union(UNKNOWN, compiler));
+  Expect.equals(BOOLEAN_OR_NULL, 
+                NULL.union(BOOLEAN, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                NULL.union(NUMBER, compiler));
+  Expect.equals(INTEGER_OR_NULL, 
+                NULL.union(INTEGER, compiler));
+  Expect.equals(DOUBLE_OR_NULL, 
+                NULL.union(DOUBLE, compiler));
+  Expect.equals(UNKNOWN, 
+                NULL.union(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(STRING_OR_NULL, 
+                NULL.union(STRING, compiler));
+  Expect.equals(UNKNOWN, 
+                NULL.union(READABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                NULL.union(MUTABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                NULL.union(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                NULL.union(nonPrimitive1, compiler));
+  Expect.equals(UNKNOWN, 
+                NULL.union(nonPrimitive2, compiler));
+  Expect.equals(potentialArray, 
+                NULL.union(potentialArray, compiler));
+  Expect.equals(potentialString, 
+                NULL.union(potentialString, compiler));
+  Expect.equals(BOOLEAN_OR_NULL, 
+                NULL.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                NULL.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(INTEGER_OR_NULL, 
+                NULL.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(DOUBLE_OR_NULL, 
+                NULL.union(DOUBLE_OR_NULL, compiler));
+  Expect.equals(STRING_OR_NULL, 
+                NULL.union(STRING_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                NULL.union(NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                NULL.union(FIXED_ARRAY, compiler));
 
-  Expect.equals(FIXED_ARRAY, FIXED_ARRAY.union(CONFLICTING));
-  Expect.equals(UNKNOWN, FIXED_ARRAY.union(UNKNOWN));
-  Expect.equals(UNKNOWN, FIXED_ARRAY.union(BOOLEAN));
-  Expect.equals(UNKNOWN, FIXED_ARRAY.union(NUMBER));
-  Expect.equals(UNKNOWN, FIXED_ARRAY.union(INTEGER));
-  Expect.equals(UNKNOWN, FIXED_ARRAY.union(DOUBLE));
-  Expect.equals(INDEXABLE_PRIMITIVE, FIXED_ARRAY.union(INDEXABLE_PRIMITIVE));
-  Expect.equals(INDEXABLE_PRIMITIVE, FIXED_ARRAY.union(STRING));
-  Expect.equals(READABLE_ARRAY, FIXED_ARRAY.union(READABLE_ARRAY));
-  Expect.equals(MUTABLE_ARRAY, FIXED_ARRAY.union(MUTABLE_ARRAY));
-  Expect.equals(MUTABLE_ARRAY, FIXED_ARRAY.union(EXTENDABLE_ARRAY));
-  Expect.equals(UNKNOWN, FIXED_ARRAY.union(NON_PRIMITIVE1));
-  Expect.equals(UNKNOWN, FIXED_ARRAY.union(NON_PRIMITIVE2));
-  Expect.equals(POTENTIAL_ARRAY, FIXED_ARRAY.union(POTENTIAL_ARRAY));
-  Expect.equals(UNKNOWN, FIXED_ARRAY.union(POTENTIAL_STRING));
-  Expect.equals(UNKNOWN, FIXED_ARRAY.union(BOOLEAN_OR_NULL));
-  Expect.equals(UNKNOWN, FIXED_ARRAY.union(NUMBER_OR_NULL));
-  Expect.equals(UNKNOWN, FIXED_ARRAY.union(INTEGER_OR_NULL));
-  Expect.equals(UNKNOWN, FIXED_ARRAY.union(DOUBLE_OR_NULL));
-  Expect.equals(UNKNOWN, FIXED_ARRAY.union(STRING_OR_NULL));
-  Expect.equals(UNKNOWN, FIXED_ARRAY.union(NULL));
-  Expect.equals(FIXED_ARRAY, FIXED_ARRAY.union(FIXED_ARRAY));
+  Expect.equals(FIXED_ARRAY, 
+                FIXED_ARRAY.union(CONFLICTING, compiler));
+  Expect.equals(UNKNOWN, 
+                FIXED_ARRAY.union(UNKNOWN, compiler));
+  Expect.equals(UNKNOWN, 
+                FIXED_ARRAY.union(BOOLEAN, compiler));
+  Expect.equals(UNKNOWN, 
+                FIXED_ARRAY.union(NUMBER, compiler));
+  Expect.equals(UNKNOWN, 
+                FIXED_ARRAY.union(INTEGER, compiler));
+  Expect.equals(UNKNOWN, 
+                FIXED_ARRAY.union(DOUBLE, compiler));
+  Expect.equals(INDEXABLE_PRIMITIVE, 
+                FIXED_ARRAY.union(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(INDEXABLE_PRIMITIVE, 
+                FIXED_ARRAY.union(STRING, compiler));
+  Expect.equals(READABLE_ARRAY, 
+                FIXED_ARRAY.union(READABLE_ARRAY, compiler));
+  Expect.equals(MUTABLE_ARRAY, 
+                FIXED_ARRAY.union(MUTABLE_ARRAY, compiler));
+  Expect.equals(MUTABLE_ARRAY, 
+                FIXED_ARRAY.union(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN, 
+                FIXED_ARRAY.union(nonPrimitive1, compiler));
+  Expect.equals(UNKNOWN, 
+                FIXED_ARRAY.union(nonPrimitive2, compiler));
+  Expect.equals(potentialArray, 
+                FIXED_ARRAY.union(potentialArray, compiler));
+  Expect.equals(UNKNOWN, 
+                FIXED_ARRAY.union(potentialString, compiler));
+  Expect.equals(UNKNOWN, 
+                FIXED_ARRAY.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                FIXED_ARRAY.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                FIXED_ARRAY.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                FIXED_ARRAY.union(DOUBLE_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                FIXED_ARRAY.union(STRING_OR_NULL, compiler));
+  Expect.equals(UNKNOWN, 
+                FIXED_ARRAY.union(NULL, compiler));
+  Expect.equals(FIXED_ARRAY, 
+                FIXED_ARRAY.union(FIXED_ARRAY, compiler));
 }
 
-void testIntersection() {
-  Expect.equals(CONFLICTING, CONFLICTING.intersection(CONFLICTING));
-  Expect.equals(CONFLICTING, CONFLICTING.intersection(UNKNOWN));
-  Expect.equals(CONFLICTING, CONFLICTING.intersection(BOOLEAN));
-  Expect.equals(CONFLICTING, CONFLICTING.intersection(NUMBER));
-  Expect.equals(CONFLICTING, CONFLICTING.intersection(INTEGER));
-  Expect.equals(CONFLICTING, CONFLICTING.intersection(DOUBLE));
-  Expect.equals(CONFLICTING, CONFLICTING.intersection(INDEXABLE_PRIMITIVE));
-  Expect.equals(CONFLICTING, CONFLICTING.intersection(STRING));
-  Expect.equals(CONFLICTING, CONFLICTING.intersection(READABLE_ARRAY));
-  Expect.equals(CONFLICTING, CONFLICTING.intersection(MUTABLE_ARRAY));
-  Expect.equals(CONFLICTING, CONFLICTING.intersection(EXTENDABLE_ARRAY));
-  Expect.equals(CONFLICTING, CONFLICTING.intersection(NON_PRIMITIVE1));
-  Expect.equals(CONFLICTING, CONFLICTING.intersection(NON_PRIMITIVE2));
-  Expect.equals(CONFLICTING, CONFLICTING.intersection(POTENTIAL_ARRAY));
-  Expect.equals(CONFLICTING, CONFLICTING.intersection(POTENTIAL_STRING));
-  Expect.equals(CONFLICTING, CONFLICTING.intersection(BOOLEAN_OR_NULL));
-  Expect.equals(CONFLICTING, CONFLICTING.intersection(NUMBER_OR_NULL));
-  Expect.equals(CONFLICTING, CONFLICTING.intersection(INTEGER_OR_NULL));
-  Expect.equals(CONFLICTING, CONFLICTING.intersection(DOUBLE_OR_NULL));
-  Expect.equals(CONFLICTING, CONFLICTING.intersection(STRING_OR_NULL));
-  Expect.equals(CONFLICTING, CONFLICTING.intersection(NULL));
-  Expect.equals(CONFLICTING, CONFLICTING.intersection(FIXED_ARRAY));
+void testIntersection(Compiler compiler) {
+  Expect.equals(CONFLICTING, 
+                CONFLICTING.intersection(CONFLICTING, compiler));
+  Expect.equals(CONFLICTING, 
+                CONFLICTING.intersection(UNKNOWN, compiler));
+  Expect.equals(CONFLICTING, 
+                CONFLICTING.intersection(BOOLEAN, compiler));
+  Expect.equals(CONFLICTING, 
+                CONFLICTING.intersection(NUMBER, compiler));
+  Expect.equals(CONFLICTING, 
+                CONFLICTING.intersection(INTEGER, compiler));
+  Expect.equals(CONFLICTING, 
+                CONFLICTING.intersection(DOUBLE, compiler));
+  Expect.equals(CONFLICTING, 
+                CONFLICTING.intersection(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(CONFLICTING, 
+                CONFLICTING.intersection(STRING, compiler));
+  Expect.equals(CONFLICTING, 
+                CONFLICTING.intersection(READABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                CONFLICTING.intersection(MUTABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                CONFLICTING.intersection(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                CONFLICTING.intersection(nonPrimitive1, compiler));
+  Expect.equals(CONFLICTING, 
+                CONFLICTING.intersection(nonPrimitive2, compiler));
+  Expect.equals(CONFLICTING, 
+                CONFLICTING.intersection(potentialArray, compiler));
+  Expect.equals(CONFLICTING, 
+                CONFLICTING.intersection(potentialString, compiler));
+  Expect.equals(CONFLICTING, 
+                CONFLICTING.intersection(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                CONFLICTING.intersection(NUMBER_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                CONFLICTING.intersection(INTEGER_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                CONFLICTING.intersection(DOUBLE_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                CONFLICTING.intersection(STRING_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                CONFLICTING.intersection(NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                CONFLICTING.intersection(FIXED_ARRAY, compiler));
 
-  Expect.equals(CONFLICTING, UNKNOWN.intersection(CONFLICTING));
-  Expect.equals(UNKNOWN, UNKNOWN.intersection(UNKNOWN));
-  Expect.equals(BOOLEAN, UNKNOWN.intersection(BOOLEAN));
-  Expect.equals(NUMBER, UNKNOWN.intersection(NUMBER));
-  Expect.equals(INTEGER, UNKNOWN.intersection(INTEGER));
-  Expect.equals(DOUBLE, UNKNOWN.intersection(DOUBLE));
-  Expect.equals(INDEXABLE_PRIMITIVE, UNKNOWN.intersection(INDEXABLE_PRIMITIVE));
-  Expect.equals(STRING, UNKNOWN.intersection(STRING));
-  Expect.equals(READABLE_ARRAY, UNKNOWN.intersection(READABLE_ARRAY));
-  Expect.equals(MUTABLE_ARRAY, UNKNOWN.intersection(MUTABLE_ARRAY));
-  Expect.equals(EXTENDABLE_ARRAY, UNKNOWN.intersection(EXTENDABLE_ARRAY));
-  Expect.equals(NON_PRIMITIVE1, UNKNOWN.intersection(NON_PRIMITIVE1));
-  Expect.equals(NON_PRIMITIVE2, UNKNOWN.intersection(NON_PRIMITIVE2));
-  Expect.equals(POTENTIAL_ARRAY, UNKNOWN.intersection(POTENTIAL_ARRAY));
-  Expect.equals(POTENTIAL_STRING, UNKNOWN.intersection(POTENTIAL_STRING));
-  Expect.equals(BOOLEAN_OR_NULL, UNKNOWN.intersection(BOOLEAN_OR_NULL));
-  Expect.equals(NUMBER_OR_NULL, UNKNOWN.intersection(NUMBER_OR_NULL));
-  Expect.equals(INTEGER_OR_NULL, UNKNOWN.intersection(INTEGER_OR_NULL));
-  Expect.equals(DOUBLE_OR_NULL, UNKNOWN.intersection(DOUBLE_OR_NULL));
-  Expect.equals(STRING_OR_NULL, UNKNOWN.intersection(STRING_OR_NULL));
-  Expect.equals(NULL, UNKNOWN.intersection(NULL));
-  Expect.equals(FIXED_ARRAY, UNKNOWN.intersection(FIXED_ARRAY));
+  Expect.equals(CONFLICTING, 
+                UNKNOWN.intersection(CONFLICTING, compiler));
+  Expect.equals(UNKNOWN, 
+                UNKNOWN.intersection(UNKNOWN, compiler));
+  Expect.equals(BOOLEAN, 
+                UNKNOWN.intersection(BOOLEAN, compiler));
+  Expect.equals(NUMBER, 
+                UNKNOWN.intersection(NUMBER, compiler));
+  Expect.equals(INTEGER, 
+                UNKNOWN.intersection(INTEGER, compiler));
+  Expect.equals(DOUBLE, 
+                UNKNOWN.intersection(DOUBLE, compiler));
+  Expect.equals(INDEXABLE_PRIMITIVE, 
+                UNKNOWN.intersection(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(STRING, 
+                UNKNOWN.intersection(STRING, compiler));
+  Expect.equals(READABLE_ARRAY, 
+                UNKNOWN.intersection(READABLE_ARRAY, compiler));
+  Expect.equals(MUTABLE_ARRAY, 
+                UNKNOWN.intersection(MUTABLE_ARRAY, compiler));
+  Expect.equals(EXTENDABLE_ARRAY, 
+                UNKNOWN.intersection(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(nonPrimitive1, 
+                UNKNOWN.intersection(nonPrimitive1, compiler));
+  Expect.equals(nonPrimitive2, 
+                UNKNOWN.intersection(nonPrimitive2, compiler));
+  Expect.equals(potentialArray, 
+                UNKNOWN.intersection(potentialArray, compiler));
+  Expect.equals(potentialString, 
+                UNKNOWN.intersection(potentialString, compiler));
+  Expect.equals(BOOLEAN_OR_NULL, 
+                UNKNOWN.intersection(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                UNKNOWN.intersection(NUMBER_OR_NULL, compiler));
+  Expect.equals(INTEGER_OR_NULL, 
+                UNKNOWN.intersection(INTEGER_OR_NULL, compiler));
+  Expect.equals(DOUBLE_OR_NULL, 
+                UNKNOWN.intersection(DOUBLE_OR_NULL, compiler));
+  Expect.equals(STRING_OR_NULL, 
+                UNKNOWN.intersection(STRING_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                UNKNOWN.intersection(NULL, compiler));
+  Expect.equals(FIXED_ARRAY, 
+                UNKNOWN.intersection(FIXED_ARRAY, compiler));
 
-  Expect.equals(CONFLICTING, BOOLEAN.intersection(CONFLICTING));
-  Expect.equals(BOOLEAN, BOOLEAN.intersection(UNKNOWN));
-  Expect.equals(BOOLEAN, BOOLEAN.intersection(BOOLEAN));
-  Expect.equals(CONFLICTING, BOOLEAN.intersection(NUMBER));
-  Expect.equals(CONFLICTING, BOOLEAN.intersection(INTEGER));
-  Expect.equals(CONFLICTING, BOOLEAN.intersection(DOUBLE));
-  Expect.equals(CONFLICTING, BOOLEAN.intersection(INDEXABLE_PRIMITIVE));
-  Expect.equals(CONFLICTING, BOOLEAN.intersection(STRING));
-  Expect.equals(CONFLICTING, BOOLEAN.intersection(READABLE_ARRAY));
-  Expect.equals(CONFLICTING, BOOLEAN.intersection(MUTABLE_ARRAY));
-  Expect.equals(CONFLICTING, BOOLEAN.intersection(EXTENDABLE_ARRAY));
-  Expect.equals(CONFLICTING, BOOLEAN.intersection(NON_PRIMITIVE1));
-  Expect.equals(CONFLICTING, BOOLEAN.intersection(NON_PRIMITIVE2));
-  Expect.equals(CONFLICTING, BOOLEAN.intersection(POTENTIAL_ARRAY));
-  Expect.equals(CONFLICTING, BOOLEAN.intersection(POTENTIAL_STRING));
-  Expect.equals(BOOLEAN, BOOLEAN.intersection(BOOLEAN_OR_NULL));
-  Expect.equals(CONFLICTING, BOOLEAN.intersection(NUMBER_OR_NULL));
-  Expect.equals(CONFLICTING, BOOLEAN.intersection(INTEGER_OR_NULL));
-  Expect.equals(CONFLICTING, BOOLEAN.intersection(DOUBLE_OR_NULL));
-  Expect.equals(CONFLICTING, BOOLEAN.intersection(STRING_OR_NULL));
-  Expect.equals(CONFLICTING, BOOLEAN.intersection(NULL));
-  Expect.equals(CONFLICTING, BOOLEAN.intersection(FIXED_ARRAY));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN.intersection(CONFLICTING, compiler));
+  Expect.equals(BOOLEAN, 
+                BOOLEAN.intersection(UNKNOWN, compiler));
+  Expect.equals(BOOLEAN, 
+                BOOLEAN.intersection(BOOLEAN, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN.intersection(NUMBER, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN.intersection(INTEGER, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN.intersection(DOUBLE, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN.intersection(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN.intersection(STRING, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN.intersection(READABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN.intersection(MUTABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN.intersection(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN.intersection(nonPrimitive1, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN.intersection(nonPrimitive2, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN.intersection(potentialArray, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN.intersection(potentialString, compiler));
+  Expect.equals(BOOLEAN, 
+                BOOLEAN.intersection(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN.intersection(NUMBER_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN.intersection(INTEGER_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN.intersection(DOUBLE_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN.intersection(STRING_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN.intersection(NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN.intersection(FIXED_ARRAY, compiler));
 
-  Expect.equals(CONFLICTING, NUMBER.intersection(CONFLICTING));
-  Expect.equals(NUMBER, NUMBER.intersection(UNKNOWN));
-  Expect.equals(CONFLICTING, NUMBER.intersection(BOOLEAN));
-  Expect.equals(NUMBER, NUMBER.intersection(NUMBER));
-  Expect.equals(INTEGER, NUMBER.intersection(INTEGER));
-  Expect.equals(DOUBLE, NUMBER.intersection(DOUBLE));
-  Expect.equals(CONFLICTING, NUMBER.intersection(INDEXABLE_PRIMITIVE));
-  Expect.equals(CONFLICTING, NUMBER.intersection(STRING));
-  Expect.equals(CONFLICTING, NUMBER.intersection(READABLE_ARRAY));
-  Expect.equals(CONFLICTING, NUMBER.intersection(MUTABLE_ARRAY));
-  Expect.equals(CONFLICTING, NUMBER.intersection(EXTENDABLE_ARRAY));
-  Expect.equals(CONFLICTING, NUMBER.intersection(NON_PRIMITIVE1));
-  Expect.equals(CONFLICTING, NUMBER.intersection(NON_PRIMITIVE2));
-  Expect.equals(CONFLICTING, NUMBER.intersection(POTENTIAL_ARRAY));
-  Expect.equals(CONFLICTING, NUMBER.intersection(POTENTIAL_STRING));
-  Expect.equals(CONFLICTING, NUMBER.intersection(BOOLEAN_OR_NULL));
-  Expect.equals(NUMBER, NUMBER.intersection(NUMBER_OR_NULL));
-  Expect.equals(INTEGER, NUMBER.intersection(INTEGER_OR_NULL));
-  Expect.equals(DOUBLE, NUMBER.intersection(DOUBLE_OR_NULL));
-  Expect.equals(CONFLICTING, NUMBER.intersection(STRING_OR_NULL));
-  Expect.equals(CONFLICTING, NUMBER.intersection(NULL));
-  Expect.equals(CONFLICTING, NUMBER.intersection(FIXED_ARRAY));
+  Expect.equals(CONFLICTING, 
+                NUMBER.intersection(CONFLICTING, compiler));
+  Expect.equals(NUMBER, 
+                NUMBER.intersection(UNKNOWN, compiler));
+  Expect.equals(CONFLICTING, 
+                NUMBER.intersection(BOOLEAN, compiler));
+  Expect.equals(NUMBER, 
+                NUMBER.intersection(NUMBER, compiler));
+  Expect.equals(INTEGER, 
+                NUMBER.intersection(INTEGER, compiler));
+  Expect.equals(DOUBLE, 
+                NUMBER.intersection(DOUBLE, compiler));
+  Expect.equals(CONFLICTING, 
+                NUMBER.intersection(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(CONFLICTING, 
+                NUMBER.intersection(STRING, compiler));
+  Expect.equals(CONFLICTING, 
+                NUMBER.intersection(READABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                NUMBER.intersection(MUTABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                NUMBER.intersection(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                NUMBER.intersection(nonPrimitive1, compiler));
+  Expect.equals(CONFLICTING, 
+                NUMBER.intersection(nonPrimitive2, compiler));
+  Expect.equals(CONFLICTING, 
+                NUMBER.intersection(potentialArray, compiler));
+  Expect.equals(CONFLICTING, 
+                NUMBER.intersection(potentialString, compiler));
+  Expect.equals(CONFLICTING, 
+                NUMBER.intersection(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(NUMBER, 
+                NUMBER.intersection(NUMBER_OR_NULL, compiler));
+  Expect.equals(INTEGER, 
+                NUMBER.intersection(INTEGER_OR_NULL, compiler));
+  Expect.equals(DOUBLE, 
+                NUMBER.intersection(DOUBLE_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                NUMBER.intersection(STRING_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                NUMBER.intersection(NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                NUMBER.intersection(FIXED_ARRAY, compiler));
 
-  Expect.equals(CONFLICTING, INTEGER.intersection(CONFLICTING));
-  Expect.equals(INTEGER, INTEGER.intersection(UNKNOWN));
-  Expect.equals(CONFLICTING, INTEGER.intersection(BOOLEAN));
-  Expect.equals(INTEGER, INTEGER.intersection(NUMBER));
-  Expect.equals(INTEGER, INTEGER.intersection(INTEGER));
-  Expect.equals(CONFLICTING, INTEGER.intersection(DOUBLE));
-  Expect.equals(CONFLICTING, INTEGER.intersection(INDEXABLE_PRIMITIVE));
-  Expect.equals(CONFLICTING, INTEGER.intersection(STRING));
-  Expect.equals(CONFLICTING, INTEGER.intersection(READABLE_ARRAY));
-  Expect.equals(CONFLICTING, INTEGER.intersection(MUTABLE_ARRAY));
-  Expect.equals(CONFLICTING, INTEGER.intersection(EXTENDABLE_ARRAY));
-  Expect.equals(CONFLICTING, INTEGER.intersection(NON_PRIMITIVE1));
-  Expect.equals(CONFLICTING, INTEGER.intersection(NON_PRIMITIVE2));
-  Expect.equals(CONFLICTING, INTEGER.intersection(POTENTIAL_ARRAY));
-  Expect.equals(CONFLICTING, INTEGER.intersection(POTENTIAL_STRING));
-  Expect.equals(CONFLICTING, INTEGER.intersection(BOOLEAN_OR_NULL));
-  Expect.equals(INTEGER, INTEGER.intersection(NUMBER_OR_NULL));
-  Expect.equals(INTEGER, INTEGER.intersection(INTEGER_OR_NULL));
-  Expect.equals(CONFLICTING, INTEGER.intersection(DOUBLE_OR_NULL));
-  Expect.equals(CONFLICTING, INTEGER.intersection(STRING_OR_NULL));
-  Expect.equals(CONFLICTING, INTEGER.intersection(NULL));
-  Expect.equals(CONFLICTING, INTEGER.intersection(FIXED_ARRAY));
+  Expect.equals(CONFLICTING, 
+                INTEGER.intersection(CONFLICTING, compiler));
+  Expect.equals(INTEGER, 
+                INTEGER.intersection(UNKNOWN, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER.intersection(BOOLEAN, compiler));
+  Expect.equals(INTEGER, 
+                INTEGER.intersection(NUMBER, compiler));
+  Expect.equals(INTEGER, 
+                INTEGER.intersection(INTEGER, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER.intersection(DOUBLE, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER.intersection(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER.intersection(STRING, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER.intersection(READABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER.intersection(MUTABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER.intersection(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER.intersection(nonPrimitive1, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER.intersection(nonPrimitive2, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER.intersection(potentialArray, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER.intersection(potentialString, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER.intersection(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(INTEGER, 
+                INTEGER.intersection(NUMBER_OR_NULL, compiler));
+  Expect.equals(INTEGER, 
+                INTEGER.intersection(INTEGER_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER.intersection(DOUBLE_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER.intersection(STRING_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER.intersection(NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER.intersection(FIXED_ARRAY, compiler));
 
-  Expect.equals(CONFLICTING, DOUBLE.intersection(CONFLICTING));
-  Expect.equals(DOUBLE, DOUBLE.intersection(UNKNOWN));
-  Expect.equals(CONFLICTING, DOUBLE.intersection(BOOLEAN));
-  Expect.equals(DOUBLE, DOUBLE.intersection(NUMBER));
-  Expect.equals(CONFLICTING, DOUBLE.intersection(INTEGER));
-  Expect.equals(DOUBLE, DOUBLE.intersection(DOUBLE));
-  Expect.equals(CONFLICTING, DOUBLE.intersection(INDEXABLE_PRIMITIVE));
-  Expect.equals(CONFLICTING, DOUBLE.intersection(STRING));
-  Expect.equals(CONFLICTING, DOUBLE.intersection(READABLE_ARRAY));
-  Expect.equals(CONFLICTING, DOUBLE.intersection(MUTABLE_ARRAY));
-  Expect.equals(CONFLICTING, DOUBLE.intersection(EXTENDABLE_ARRAY));
-  Expect.equals(CONFLICTING, DOUBLE.intersection(NON_PRIMITIVE1));
-  Expect.equals(CONFLICTING, DOUBLE.intersection(NON_PRIMITIVE2));
-  Expect.equals(CONFLICTING, DOUBLE.intersection(POTENTIAL_ARRAY));
-  Expect.equals(CONFLICTING, DOUBLE.intersection(POTENTIAL_STRING));
-  Expect.equals(CONFLICTING, DOUBLE.intersection(BOOLEAN_OR_NULL));
-  Expect.equals(DOUBLE, DOUBLE.intersection(NUMBER_OR_NULL));
-  Expect.equals(CONFLICTING, DOUBLE.intersection(INTEGER_OR_NULL));
-  Expect.equals(DOUBLE, DOUBLE.intersection(DOUBLE_OR_NULL));
-  Expect.equals(CONFLICTING, DOUBLE.intersection(STRING_OR_NULL));
-  Expect.equals(CONFLICTING, DOUBLE.intersection(NULL));
-  Expect.equals(CONFLICTING, DOUBLE.intersection(FIXED_ARRAY));
+  Expect.equals(CONFLICTING, 
+                DOUBLE.intersection(CONFLICTING, compiler));
+  Expect.equals(DOUBLE, 
+                DOUBLE.intersection(UNKNOWN, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE.intersection(BOOLEAN, compiler));
+  Expect.equals(DOUBLE, 
+                DOUBLE.intersection(NUMBER, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE.intersection(INTEGER, compiler));
+  Expect.equals(DOUBLE, 
+                DOUBLE.intersection(DOUBLE, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE.intersection(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE.intersection(STRING, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE.intersection(READABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE.intersection(MUTABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE.intersection(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE.intersection(nonPrimitive1, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE.intersection(nonPrimitive2, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE.intersection(potentialArray, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE.intersection(potentialString, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE.intersection(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(DOUBLE, 
+                DOUBLE.intersection(NUMBER_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE.intersection(INTEGER_OR_NULL, compiler));
+  Expect.equals(DOUBLE, 
+                DOUBLE.intersection(DOUBLE_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE.intersection(STRING_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE.intersection(NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE.intersection(FIXED_ARRAY, compiler));
   
-  Expect.equals(CONFLICTING, INDEXABLE_PRIMITIVE.intersection(CONFLICTING));
-  Expect.equals(INDEXABLE_PRIMITIVE, INDEXABLE_PRIMITIVE.intersection(UNKNOWN));
-  Expect.equals(CONFLICTING, INDEXABLE_PRIMITIVE.intersection(BOOLEAN));
-  Expect.equals(CONFLICTING, INDEXABLE_PRIMITIVE.intersection(NUMBER));
-  Expect.equals(CONFLICTING, INDEXABLE_PRIMITIVE.intersection(INTEGER));
-  Expect.equals(CONFLICTING, INDEXABLE_PRIMITIVE.intersection(DOUBLE));
+  Expect.equals(CONFLICTING, 
+                INDEXABLE_PRIMITIVE.intersection(CONFLICTING, compiler));
+  Expect.equals(INDEXABLE_PRIMITIVE, 
+                INDEXABLE_PRIMITIVE.intersection(UNKNOWN, compiler));
+  Expect.equals(CONFLICTING, 
+                INDEXABLE_PRIMITIVE.intersection(BOOLEAN, compiler));
+  Expect.equals(CONFLICTING, 
+                INDEXABLE_PRIMITIVE.intersection(NUMBER, compiler));
+  Expect.equals(CONFLICTING, 
+                INDEXABLE_PRIMITIVE.intersection(INTEGER, compiler));
+  Expect.equals(CONFLICTING, 
+                INDEXABLE_PRIMITIVE.intersection(DOUBLE, compiler));
   Expect.equals(INDEXABLE_PRIMITIVE,
-                INDEXABLE_PRIMITIVE.intersection(INDEXABLE_PRIMITIVE));
-  Expect.equals(STRING, INDEXABLE_PRIMITIVE.intersection(STRING));
+                INDEXABLE_PRIMITIVE.intersection(INDEXABLE_PRIMITIVE, 
+                compiler));
+  Expect.equals(STRING, 
+                INDEXABLE_PRIMITIVE.intersection(STRING, compiler));
   Expect.equals(READABLE_ARRAY,
-                INDEXABLE_PRIMITIVE.intersection(READABLE_ARRAY));
+                INDEXABLE_PRIMITIVE.intersection(READABLE_ARRAY, 
+                compiler));
   Expect.equals(MUTABLE_ARRAY,
-                INDEXABLE_PRIMITIVE.intersection(MUTABLE_ARRAY));
+                INDEXABLE_PRIMITIVE.intersection(MUTABLE_ARRAY, 
+                compiler));
   Expect.equals(EXTENDABLE_ARRAY,
-                INDEXABLE_PRIMITIVE.intersection(EXTENDABLE_ARRAY));
-  Expect.equals(CONFLICTING, INDEXABLE_PRIMITIVE.intersection(NON_PRIMITIVE1));
-  Expect.equals(CONFLICTING, INDEXABLE_PRIMITIVE.intersection(NON_PRIMITIVE2));
+                INDEXABLE_PRIMITIVE.intersection(EXTENDABLE_ARRAY, 
+                compiler));
+  Expect.equals(CONFLICTING, 
+                INDEXABLE_PRIMITIVE.intersection(nonPrimitive1, compiler));
+  Expect.equals(CONFLICTING, 
+                INDEXABLE_PRIMITIVE.intersection(nonPrimitive2, compiler));
   Expect.equals(READABLE_ARRAY,
-                INDEXABLE_PRIMITIVE.intersection(POTENTIAL_ARRAY));
+                INDEXABLE_PRIMITIVE.intersection(potentialArray, 
+                compiler));
   Expect.equals(STRING,
-                INDEXABLE_PRIMITIVE.intersection(POTENTIAL_STRING));
-  Expect.equals(CONFLICTING, INDEXABLE_PRIMITIVE.intersection(BOOLEAN_OR_NULL));
-  Expect.equals(CONFLICTING, INDEXABLE_PRIMITIVE.intersection(NUMBER_OR_NULL));
-  Expect.equals(CONFLICTING, INDEXABLE_PRIMITIVE.intersection(INTEGER_OR_NULL));
-  Expect.equals(CONFLICTING, INDEXABLE_PRIMITIVE.intersection(DOUBLE_OR_NULL));
-  Expect.equals(CONFLICTING, INDEXABLE_PRIMITIVE.intersection(STRING_OR_NULL));
-  Expect.equals(CONFLICTING, INDEXABLE_PRIMITIVE.intersection(NULL));
-  Expect.equals(FIXED_ARRAY, INDEXABLE_PRIMITIVE.intersection(FIXED_ARRAY));
+                INDEXABLE_PRIMITIVE.intersection(potentialString, 
+                compiler));
+  Expect.equals(CONFLICTING, 
+                INDEXABLE_PRIMITIVE.intersection(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                INDEXABLE_PRIMITIVE.intersection(NUMBER_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                INDEXABLE_PRIMITIVE.intersection(INTEGER_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                INDEXABLE_PRIMITIVE.intersection(DOUBLE_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                INDEXABLE_PRIMITIVE.intersection(STRING_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                INDEXABLE_PRIMITIVE.intersection(NULL, compiler));
+  Expect.equals(FIXED_ARRAY, 
+                INDEXABLE_PRIMITIVE.intersection(FIXED_ARRAY, compiler));
 
-  Expect.equals(CONFLICTING, STRING.intersection(CONFLICTING));
-  Expect.equals(STRING, STRING.intersection(UNKNOWN));
-  Expect.equals(CONFLICTING, STRING.intersection(BOOLEAN));
-  Expect.equals(CONFLICTING, STRING.intersection(NUMBER));
-  Expect.equals(CONFLICTING, STRING.intersection(INTEGER));
-  Expect.equals(CONFLICTING, STRING.intersection(DOUBLE));
-  Expect.equals(STRING, STRING.intersection(INDEXABLE_PRIMITIVE));
-  Expect.equals(STRING, STRING.intersection(STRING));
-  Expect.equals(CONFLICTING, STRING.intersection(READABLE_ARRAY));
-  Expect.equals(CONFLICTING, STRING.intersection(MUTABLE_ARRAY));
-  Expect.equals(CONFLICTING, STRING.intersection(EXTENDABLE_ARRAY));
-  Expect.equals(CONFLICTING, STRING.intersection(NON_PRIMITIVE1));
-  Expect.equals(CONFLICTING, STRING.intersection(NON_PRIMITIVE2));
-  Expect.equals(CONFLICTING, STRING.intersection(POTENTIAL_ARRAY));
-  Expect.equals(STRING, STRING.intersection(POTENTIAL_STRING));
-  Expect.equals(CONFLICTING, STRING.intersection(BOOLEAN_OR_NULL));
-  Expect.equals(CONFLICTING, STRING.intersection(NUMBER_OR_NULL));
-  Expect.equals(CONFLICTING, STRING.intersection(INTEGER_OR_NULL));
-  Expect.equals(CONFLICTING, STRING.intersection(DOUBLE_OR_NULL));
-  Expect.equals(STRING, STRING.intersection(STRING_OR_NULL));
-  Expect.equals(CONFLICTING, STRING.intersection(NULL));
-  Expect.equals(CONFLICTING, STRING.intersection(FIXED_ARRAY));
+  Expect.equals(CONFLICTING, 
+                STRING.intersection(CONFLICTING, compiler));
+  Expect.equals(STRING, 
+                STRING.intersection(UNKNOWN, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING.intersection(BOOLEAN, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING.intersection(NUMBER, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING.intersection(INTEGER, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING.intersection(DOUBLE, compiler));
+  Expect.equals(STRING, 
+                STRING.intersection(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(STRING, 
+                STRING.intersection(STRING, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING.intersection(READABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING.intersection(MUTABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING.intersection(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING.intersection(nonPrimitive1, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING.intersection(nonPrimitive2, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING.intersection(potentialArray, compiler));
+  Expect.equals(STRING, 
+                STRING.intersection(potentialString, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING.intersection(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING.intersection(NUMBER_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING.intersection(INTEGER_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING.intersection(DOUBLE_OR_NULL, compiler));
+  Expect.equals(STRING, 
+                STRING.intersection(STRING_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING.intersection(NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING.intersection(FIXED_ARRAY, compiler));
 
-  Expect.equals(CONFLICTING, READABLE_ARRAY.intersection(CONFLICTING));
-  Expect.equals(READABLE_ARRAY, READABLE_ARRAY.intersection(UNKNOWN));
-  Expect.equals(CONFLICTING, READABLE_ARRAY.intersection(BOOLEAN));
-  Expect.equals(CONFLICTING, READABLE_ARRAY.intersection(NUMBER));
-  Expect.equals(CONFLICTING, READABLE_ARRAY.intersection(INTEGER));
-  Expect.equals(CONFLICTING, READABLE_ARRAY.intersection(DOUBLE));
-  Expect.equals(READABLE_ARRAY, READABLE_ARRAY.intersection(INDEXABLE_PRIMITIVE));
-  Expect.equals(CONFLICTING, READABLE_ARRAY.intersection(STRING));
-  Expect.equals(READABLE_ARRAY, READABLE_ARRAY.intersection(READABLE_ARRAY));
-  Expect.equals(MUTABLE_ARRAY, READABLE_ARRAY.intersection(MUTABLE_ARRAY));
-  Expect.equals(EXTENDABLE_ARRAY, READABLE_ARRAY.intersection(EXTENDABLE_ARRAY));
-  Expect.equals(CONFLICTING, READABLE_ARRAY.intersection(NON_PRIMITIVE1));
-  Expect.equals(CONFLICTING, READABLE_ARRAY.intersection(NON_PRIMITIVE2));
-  Expect.equals(READABLE_ARRAY, READABLE_ARRAY.intersection(POTENTIAL_ARRAY));
-  Expect.equals(CONFLICTING, READABLE_ARRAY.intersection(POTENTIAL_STRING));
-  Expect.equals(CONFLICTING, READABLE_ARRAY.intersection(BOOLEAN_OR_NULL));
-  Expect.equals(CONFLICTING, READABLE_ARRAY.intersection(NUMBER_OR_NULL));
-  Expect.equals(CONFLICTING, READABLE_ARRAY.intersection(INTEGER_OR_NULL));
-  Expect.equals(CONFLICTING, READABLE_ARRAY.intersection(DOUBLE_OR_NULL));
-  Expect.equals(CONFLICTING, READABLE_ARRAY.intersection(STRING_OR_NULL));
-  Expect.equals(CONFLICTING, READABLE_ARRAY.intersection(NULL));
-  Expect.equals(FIXED_ARRAY, READABLE_ARRAY.intersection(FIXED_ARRAY));
+  Expect.equals(CONFLICTING, 
+                READABLE_ARRAY.intersection(CONFLICTING, compiler));
+  Expect.equals(READABLE_ARRAY, 
+                READABLE_ARRAY.intersection(UNKNOWN, compiler));
+  Expect.equals(CONFLICTING, 
+                READABLE_ARRAY.intersection(BOOLEAN, compiler));
+  Expect.equals(CONFLICTING, 
+                READABLE_ARRAY.intersection(NUMBER, compiler));
+  Expect.equals(CONFLICTING, 
+                READABLE_ARRAY.intersection(INTEGER, compiler));
+  Expect.equals(CONFLICTING, 
+                READABLE_ARRAY.intersection(DOUBLE, compiler));
+  Expect.equals(READABLE_ARRAY, 
+                READABLE_ARRAY.intersection(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(CONFLICTING, 
+                READABLE_ARRAY.intersection(STRING, compiler));
+  Expect.equals(READABLE_ARRAY, 
+                READABLE_ARRAY.intersection(READABLE_ARRAY, compiler));
+  Expect.equals(MUTABLE_ARRAY, 
+                READABLE_ARRAY.intersection(MUTABLE_ARRAY, compiler));
+  Expect.equals(EXTENDABLE_ARRAY, 
+                READABLE_ARRAY.intersection(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                READABLE_ARRAY.intersection(nonPrimitive1, compiler));
+  Expect.equals(CONFLICTING, 
+                READABLE_ARRAY.intersection(nonPrimitive2, compiler));
+  Expect.equals(READABLE_ARRAY, 
+                READABLE_ARRAY.intersection(potentialArray, compiler));
+  Expect.equals(CONFLICTING, 
+                READABLE_ARRAY.intersection(potentialString, compiler));
+  Expect.equals(CONFLICTING, 
+                READABLE_ARRAY.intersection(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                READABLE_ARRAY.intersection(NUMBER_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                READABLE_ARRAY.intersection(INTEGER_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                READABLE_ARRAY.intersection(DOUBLE_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                READABLE_ARRAY.intersection(STRING_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                READABLE_ARRAY.intersection(NULL, compiler));
+  Expect.equals(FIXED_ARRAY, 
+                READABLE_ARRAY.intersection(FIXED_ARRAY, compiler));
 
-  Expect.equals(CONFLICTING, MUTABLE_ARRAY.intersection(CONFLICTING));
-  Expect.equals(MUTABLE_ARRAY, MUTABLE_ARRAY.intersection(UNKNOWN));
-  Expect.equals(CONFLICTING, MUTABLE_ARRAY.intersection(BOOLEAN));
-  Expect.equals(CONFLICTING, MUTABLE_ARRAY.intersection(NUMBER));
-  Expect.equals(CONFLICTING, MUTABLE_ARRAY.intersection(INTEGER));
-  Expect.equals(CONFLICTING, MUTABLE_ARRAY.intersection(DOUBLE));
-  Expect.equals(MUTABLE_ARRAY, MUTABLE_ARRAY.intersection(INDEXABLE_PRIMITIVE));
-  Expect.equals(CONFLICTING, MUTABLE_ARRAY.intersection(STRING));
-  Expect.equals(MUTABLE_ARRAY, MUTABLE_ARRAY.intersection(READABLE_ARRAY));
-  Expect.equals(MUTABLE_ARRAY, MUTABLE_ARRAY.intersection(MUTABLE_ARRAY));
-  Expect.equals(EXTENDABLE_ARRAY, MUTABLE_ARRAY.intersection(EXTENDABLE_ARRAY));
-  Expect.equals(CONFLICTING, MUTABLE_ARRAY.intersection(NON_PRIMITIVE1));
-  Expect.equals(CONFLICTING, MUTABLE_ARRAY.intersection(NON_PRIMITIVE2));
-  Expect.equals(MUTABLE_ARRAY, MUTABLE_ARRAY.intersection(POTENTIAL_ARRAY));
-  Expect.equals(CONFLICTING, MUTABLE_ARRAY.intersection(POTENTIAL_STRING));
-  Expect.equals(CONFLICTING, MUTABLE_ARRAY.intersection(BOOLEAN_OR_NULL));
-  Expect.equals(CONFLICTING, MUTABLE_ARRAY.intersection(NUMBER_OR_NULL));
-  Expect.equals(CONFLICTING, MUTABLE_ARRAY.intersection(INTEGER_OR_NULL));
-  Expect.equals(CONFLICTING, MUTABLE_ARRAY.intersection(DOUBLE_OR_NULL));
-  Expect.equals(CONFLICTING, MUTABLE_ARRAY.intersection(STRING_OR_NULL));
-  Expect.equals(CONFLICTING, MUTABLE_ARRAY.intersection(NULL));
-  Expect.equals(FIXED_ARRAY, MUTABLE_ARRAY.intersection(FIXED_ARRAY));
+  Expect.equals(CONFLICTING, 
+                MUTABLE_ARRAY.intersection(CONFLICTING, compiler));
+  Expect.equals(MUTABLE_ARRAY, 
+                MUTABLE_ARRAY.intersection(UNKNOWN, compiler));
+  Expect.equals(CONFLICTING, 
+                MUTABLE_ARRAY.intersection(BOOLEAN, compiler));
+  Expect.equals(CONFLICTING, 
+                MUTABLE_ARRAY.intersection(NUMBER, compiler));
+  Expect.equals(CONFLICTING, 
+                MUTABLE_ARRAY.intersection(INTEGER, compiler));
+  Expect.equals(CONFLICTING, 
+                MUTABLE_ARRAY.intersection(DOUBLE, compiler));
+  Expect.equals(MUTABLE_ARRAY, 
+                MUTABLE_ARRAY.intersection(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(CONFLICTING, 
+                MUTABLE_ARRAY.intersection(STRING, compiler));
+  Expect.equals(MUTABLE_ARRAY, 
+                MUTABLE_ARRAY.intersection(READABLE_ARRAY, compiler));
+  Expect.equals(MUTABLE_ARRAY, 
+                MUTABLE_ARRAY.intersection(MUTABLE_ARRAY, compiler));
+  Expect.equals(EXTENDABLE_ARRAY, 
+                MUTABLE_ARRAY.intersection(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                MUTABLE_ARRAY.intersection(nonPrimitive1, compiler));
+  Expect.equals(CONFLICTING, 
+                MUTABLE_ARRAY.intersection(nonPrimitive2, compiler));
+  Expect.equals(MUTABLE_ARRAY, 
+                MUTABLE_ARRAY.intersection(potentialArray, compiler));
+  Expect.equals(CONFLICTING, 
+                MUTABLE_ARRAY.intersection(potentialString, compiler));
+  Expect.equals(CONFLICTING, 
+                MUTABLE_ARRAY.intersection(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                MUTABLE_ARRAY.intersection(NUMBER_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                MUTABLE_ARRAY.intersection(INTEGER_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                MUTABLE_ARRAY.intersection(DOUBLE_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                MUTABLE_ARRAY.intersection(STRING_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                MUTABLE_ARRAY.intersection(NULL, compiler));
+  Expect.equals(FIXED_ARRAY, 
+                MUTABLE_ARRAY.intersection(FIXED_ARRAY, compiler));
 
-  Expect.equals(CONFLICTING, EXTENDABLE_ARRAY.intersection(CONFLICTING));
-  Expect.equals(EXTENDABLE_ARRAY, EXTENDABLE_ARRAY.intersection(UNKNOWN));
-  Expect.equals(CONFLICTING, EXTENDABLE_ARRAY.intersection(BOOLEAN));
-  Expect.equals(CONFLICTING, EXTENDABLE_ARRAY.intersection(NUMBER));
-  Expect.equals(CONFLICTING, EXTENDABLE_ARRAY.intersection(INTEGER));
-  Expect.equals(CONFLICTING, EXTENDABLE_ARRAY.intersection(DOUBLE));
+  Expect.equals(CONFLICTING, 
+                EXTENDABLE_ARRAY.intersection(CONFLICTING, compiler));
+  Expect.equals(EXTENDABLE_ARRAY, 
+                EXTENDABLE_ARRAY.intersection(UNKNOWN, compiler));
+  Expect.equals(CONFLICTING, 
+                EXTENDABLE_ARRAY.intersection(BOOLEAN, compiler));
+  Expect.equals(CONFLICTING, 
+                EXTENDABLE_ARRAY.intersection(NUMBER, compiler));
+  Expect.equals(CONFLICTING, 
+                EXTENDABLE_ARRAY.intersection(INTEGER, compiler));
+  Expect.equals(CONFLICTING, 
+                EXTENDABLE_ARRAY.intersection(DOUBLE, compiler));
   Expect.equals(EXTENDABLE_ARRAY,
-                EXTENDABLE_ARRAY.intersection(INDEXABLE_PRIMITIVE));
-  Expect.equals(CONFLICTING, EXTENDABLE_ARRAY.intersection(STRING));
+                EXTENDABLE_ARRAY.intersection(INDEXABLE_PRIMITIVE, 
+                compiler));
+  Expect.equals(CONFLICTING, 
+                EXTENDABLE_ARRAY.intersection(STRING, compiler));
   Expect.equals(EXTENDABLE_ARRAY,
-                EXTENDABLE_ARRAY.intersection(READABLE_ARRAY));
-  Expect.equals(EXTENDABLE_ARRAY, EXTENDABLE_ARRAY.intersection(MUTABLE_ARRAY));
+                EXTENDABLE_ARRAY.intersection(READABLE_ARRAY, 
+                compiler));
+  Expect.equals(EXTENDABLE_ARRAY, 
+                EXTENDABLE_ARRAY.intersection(MUTABLE_ARRAY, compiler));
   Expect.equals(EXTENDABLE_ARRAY,
-                EXTENDABLE_ARRAY.intersection(EXTENDABLE_ARRAY));
-  Expect.equals(CONFLICTING, EXTENDABLE_ARRAY.intersection(NON_PRIMITIVE1));
-  Expect.equals(CONFLICTING, EXTENDABLE_ARRAY.intersection(NON_PRIMITIVE2));
+                EXTENDABLE_ARRAY.intersection(EXTENDABLE_ARRAY, 
+                compiler));
+  Expect.equals(CONFLICTING, 
+                EXTENDABLE_ARRAY.intersection(nonPrimitive1, compiler));
+  Expect.equals(CONFLICTING, 
+                EXTENDABLE_ARRAY.intersection(nonPrimitive2, compiler));
   Expect.equals(EXTENDABLE_ARRAY,
-                EXTENDABLE_ARRAY.intersection(POTENTIAL_ARRAY));
-  Expect.equals(CONFLICTING, EXTENDABLE_ARRAY.intersection(POTENTIAL_STRING));
-  Expect.equals(CONFLICTING, EXTENDABLE_ARRAY.intersection(BOOLEAN_OR_NULL));
-  Expect.equals(CONFLICTING, EXTENDABLE_ARRAY.intersection(NUMBER_OR_NULL));
-  Expect.equals(CONFLICTING, EXTENDABLE_ARRAY.intersection(INTEGER_OR_NULL));
-  Expect.equals(CONFLICTING, EXTENDABLE_ARRAY.intersection(DOUBLE_OR_NULL));
-  Expect.equals(CONFLICTING, EXTENDABLE_ARRAY.intersection(STRING_OR_NULL));
-  Expect.equals(CONFLICTING, EXTENDABLE_ARRAY.intersection(NULL));
-  Expect.equals(CONFLICTING, EXTENDABLE_ARRAY.intersection(FIXED_ARRAY));
+                EXTENDABLE_ARRAY.intersection(potentialArray, 
+                compiler));
+  Expect.equals(CONFLICTING, 
+                EXTENDABLE_ARRAY.intersection(potentialString, compiler));
+  Expect.equals(CONFLICTING, 
+                EXTENDABLE_ARRAY.intersection(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                EXTENDABLE_ARRAY.intersection(NUMBER_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                EXTENDABLE_ARRAY.intersection(INTEGER_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                EXTENDABLE_ARRAY.intersection(DOUBLE_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                EXTENDABLE_ARRAY.intersection(STRING_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                EXTENDABLE_ARRAY.intersection(NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                EXTENDABLE_ARRAY.intersection(FIXED_ARRAY, compiler));
 
-  Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(CONFLICTING));
-  Expect.equals(NON_PRIMITIVE1, NON_PRIMITIVE1.intersection(UNKNOWN));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(BOOLEAN));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(NUMBER));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(INTEGER));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(DOUBLE));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(INDEXABLE_PRIMITIVE));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(STRING));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(READABLE_ARRAY));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(MUTABLE_ARRAY));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(EXTENDABLE_ARRAY));
-  Expect.equals(NON_PRIMITIVE1, NON_PRIMITIVE1.intersection(NON_PRIMITIVE1));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(NON_PRIMITIVE2));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(POTENTIAL_ARRAY));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(POTENTIAL_STRING));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(BOOLEAN_OR_NULL));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(NUMBER_OR_NULL));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(INTEGER_OR_NULL));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(DOUBLE_OR_NULL));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(STRING_OR_NULL));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(NULL));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(FIXED_ARRAY));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive1.intersection(CONFLICTING, compiler));
+  Expect.equals(nonPrimitive1, 
+                nonPrimitive1.intersection(UNKNOWN, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive1.intersection(BOOLEAN, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive1.intersection(NUMBER, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive1.intersection(INTEGER, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive1.intersection(DOUBLE, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive1.intersection(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive1.intersection(STRING, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive1.intersection(READABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive1.intersection(MUTABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive1.intersection(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(nonPrimitive1, 
+                nonPrimitive1.intersection(nonPrimitive1, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive1.intersection(nonPrimitive2, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive1.intersection(potentialArray, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive1.intersection(potentialString, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive1.intersection(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive1.intersection(NUMBER_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive1.intersection(INTEGER_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive1.intersection(DOUBLE_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive1.intersection(STRING_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive1.intersection(NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive1.intersection(FIXED_ARRAY, compiler));
 
-  Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(CONFLICTING));
-  Expect.equals(NON_PRIMITIVE2, NON_PRIMITIVE2.intersection(UNKNOWN));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(BOOLEAN));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(NUMBER));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(INTEGER));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(DOUBLE));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(INDEXABLE_PRIMITIVE));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(STRING));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(READABLE_ARRAY));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(MUTABLE_ARRAY));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(EXTENDABLE_ARRAY));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(NON_PRIMITIVE1));
-  Expect.equals(NON_PRIMITIVE2, NON_PRIMITIVE2.intersection(NON_PRIMITIVE2));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(POTENTIAL_ARRAY));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(POTENTIAL_STRING));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(BOOLEAN_OR_NULL));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(NUMBER_OR_NULL));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(INTEGER_OR_NULL));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(DOUBLE_OR_NULL));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(STRING_OR_NULL));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(NULL));
-  Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(FIXED_ARRAY));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive2.intersection(CONFLICTING, compiler));
+  Expect.equals(nonPrimitive2, 
+                nonPrimitive2.intersection(UNKNOWN, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive2.intersection(BOOLEAN, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive2.intersection(NUMBER, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive2.intersection(INTEGER, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive2.intersection(DOUBLE, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive2.intersection(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive2.intersection(STRING, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive2.intersection(READABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive2.intersection(MUTABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive2.intersection(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive2.intersection(nonPrimitive1, compiler));
+  Expect.equals(nonPrimitive2, 
+                nonPrimitive2.intersection(nonPrimitive2, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive2.intersection(potentialArray, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive2.intersection(potentialString, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive2.intersection(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive2.intersection(NUMBER_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive2.intersection(INTEGER_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive2.intersection(DOUBLE_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive2.intersection(STRING_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive2.intersection(NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                nonPrimitive2.intersection(FIXED_ARRAY, compiler));
 
-  Expect.equals(CONFLICTING, POTENTIAL_ARRAY.intersection(CONFLICTING));
-  Expect.equals(POTENTIAL_ARRAY, POTENTIAL_ARRAY.intersection(UNKNOWN));
-  Expect.equals(CONFLICTING, POTENTIAL_ARRAY.intersection(BOOLEAN));
-  Expect.equals(CONFLICTING, POTENTIAL_ARRAY.intersection(NUMBER));
-  Expect.equals(CONFLICTING, POTENTIAL_ARRAY.intersection(INTEGER));
-  Expect.equals(CONFLICTING, POTENTIAL_ARRAY.intersection(DOUBLE));
-  Expect.equals(READABLE_ARRAY, POTENTIAL_ARRAY.intersection(INDEXABLE_PRIMITIVE));
-  Expect.equals(CONFLICTING, POTENTIAL_ARRAY.intersection(STRING));
-  Expect.equals(READABLE_ARRAY, POTENTIAL_ARRAY.intersection(READABLE_ARRAY));
-  Expect.equals(MUTABLE_ARRAY, POTENTIAL_ARRAY.intersection(MUTABLE_ARRAY));
-  Expect.equals(EXTENDABLE_ARRAY, POTENTIAL_ARRAY.intersection(EXTENDABLE_ARRAY));
-  Expect.equals(CONFLICTING, POTENTIAL_ARRAY.intersection(NON_PRIMITIVE1));
-  Expect.equals(CONFLICTING, POTENTIAL_ARRAY.intersection(NON_PRIMITIVE2));
-  Expect.equals(POTENTIAL_ARRAY, POTENTIAL_ARRAY.intersection(POTENTIAL_ARRAY));
-  Expect.equals(NULL, POTENTIAL_ARRAY.intersection(POTENTIAL_STRING));
-  Expect.equals(NULL, POTENTIAL_ARRAY.intersection(BOOLEAN_OR_NULL));
-  Expect.equals(NULL, POTENTIAL_ARRAY.intersection(NUMBER_OR_NULL));
-  Expect.equals(NULL, POTENTIAL_ARRAY.intersection(INTEGER_OR_NULL));
-  Expect.equals(NULL, POTENTIAL_ARRAY.intersection(DOUBLE_OR_NULL));
-  Expect.equals(NULL, POTENTIAL_ARRAY.intersection(STRING_OR_NULL));
-  Expect.equals(NULL, POTENTIAL_ARRAY.intersection(NULL));
-  Expect.equals(FIXED_ARRAY, POTENTIAL_ARRAY.intersection(FIXED_ARRAY));
+  Expect.equals(CONFLICTING, 
+                potentialArray.intersection(CONFLICTING, compiler));
+  Expect.equals(potentialArray, 
+                potentialArray.intersection(UNKNOWN, compiler));
+  Expect.equals(CONFLICTING, 
+                potentialArray.intersection(BOOLEAN, compiler));
+  Expect.equals(CONFLICTING, 
+                potentialArray.intersection(NUMBER, compiler));
+  Expect.equals(CONFLICTING, 
+                potentialArray.intersection(INTEGER, compiler));
+  Expect.equals(CONFLICTING, 
+                potentialArray.intersection(DOUBLE, compiler));
+  Expect.equals(READABLE_ARRAY, 
+                potentialArray.intersection(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(CONFLICTING, 
+                potentialArray.intersection(STRING, compiler));
+  Expect.equals(READABLE_ARRAY, 
+                potentialArray.intersection(READABLE_ARRAY, compiler));
+  Expect.equals(MUTABLE_ARRAY, 
+                potentialArray.intersection(MUTABLE_ARRAY, compiler));
+  Expect.equals(EXTENDABLE_ARRAY, 
+                potentialArray.intersection(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                potentialArray.intersection(nonPrimitive1, compiler));
+  Expect.equals(CONFLICTING, 
+                potentialArray.intersection(nonPrimitive2, compiler));
+  Expect.equals(potentialArray, 
+                potentialArray.intersection(potentialArray, compiler));
+  Expect.equals(NULL, 
+                potentialArray.intersection(potentialString, compiler));
+  Expect.equals(NULL, 
+                potentialArray.intersection(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                potentialArray.intersection(NUMBER_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                potentialArray.intersection(INTEGER_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                potentialArray.intersection(DOUBLE_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                potentialArray.intersection(STRING_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                potentialArray.intersection(NULL, compiler));
+  Expect.equals(FIXED_ARRAY, 
+                potentialArray.intersection(FIXED_ARRAY, compiler));
 
-  Expect.equals(CONFLICTING, POTENTIAL_STRING.intersection(CONFLICTING));
-  Expect.equals(POTENTIAL_STRING, POTENTIAL_STRING.intersection(UNKNOWN));
-  Expect.equals(CONFLICTING, POTENTIAL_STRING.intersection(BOOLEAN));
-  Expect.equals(CONFLICTING, POTENTIAL_STRING.intersection(NUMBER));
-  Expect.equals(CONFLICTING, POTENTIAL_STRING.intersection(INTEGER));
-  Expect.equals(CONFLICTING, POTENTIAL_STRING.intersection(DOUBLE));
-  Expect.equals(STRING, POTENTIAL_STRING.intersection(INDEXABLE_PRIMITIVE));
-  Expect.equals(STRING, POTENTIAL_STRING.intersection(STRING));
-  Expect.equals(CONFLICTING, POTENTIAL_STRING.intersection(READABLE_ARRAY));
-  Expect.equals(CONFLICTING, POTENTIAL_STRING.intersection(MUTABLE_ARRAY));
-  Expect.equals(CONFLICTING, POTENTIAL_STRING.intersection(EXTENDABLE_ARRAY));
-  Expect.equals(CONFLICTING, POTENTIAL_STRING.intersection(NON_PRIMITIVE1));
-  Expect.equals(CONFLICTING, POTENTIAL_STRING.intersection(NON_PRIMITIVE2));
-  Expect.equals(NULL, POTENTIAL_STRING.intersection(POTENTIAL_ARRAY));
-  Expect.equals(POTENTIAL_STRING, POTENTIAL_STRING.intersection(POTENTIAL_STRING));
-  Expect.equals(NULL, POTENTIAL_STRING.intersection(BOOLEAN_OR_NULL));
-  Expect.equals(NULL, POTENTIAL_STRING.intersection(NUMBER_OR_NULL));
-  Expect.equals(NULL, POTENTIAL_STRING.intersection(INTEGER_OR_NULL));
-  Expect.equals(NULL, POTENTIAL_STRING.intersection(DOUBLE_OR_NULL));
-  Expect.equals(STRING_OR_NULL, POTENTIAL_STRING.intersection(STRING_OR_NULL));
-  Expect.equals(NULL, POTENTIAL_STRING.intersection(NULL));
-  Expect.equals(CONFLICTING, POTENTIAL_STRING.intersection(FIXED_ARRAY));
+  Expect.equals(CONFLICTING, 
+                potentialString.intersection(CONFLICTING, compiler));
+  Expect.equals(potentialString, 
+                potentialString.intersection(UNKNOWN, compiler));
+  Expect.equals(CONFLICTING, 
+                potentialString.intersection(BOOLEAN, compiler));
+  Expect.equals(CONFLICTING, 
+                potentialString.intersection(NUMBER, compiler));
+  Expect.equals(CONFLICTING, 
+                potentialString.intersection(INTEGER, compiler));
+  Expect.equals(CONFLICTING, 
+                potentialString.intersection(DOUBLE, compiler));
+  Expect.equals(STRING, 
+                potentialString.intersection(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(STRING, 
+                potentialString.intersection(STRING, compiler));
+  Expect.equals(CONFLICTING, 
+                potentialString.intersection(READABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                potentialString.intersection(MUTABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                potentialString.intersection(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                potentialString.intersection(nonPrimitive1, compiler));
+  Expect.equals(CONFLICTING, 
+                potentialString.intersection(nonPrimitive2, compiler));
+  Expect.equals(NULL, 
+                potentialString.intersection(potentialArray, compiler));
+  Expect.equals(potentialString, 
+                potentialString.intersection(potentialString, compiler));
+  Expect.equals(NULL, 
+                potentialString.intersection(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                potentialString.intersection(NUMBER_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                potentialString.intersection(INTEGER_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                potentialString.intersection(DOUBLE_OR_NULL, compiler));
+  Expect.equals(STRING_OR_NULL, 
+                potentialString.intersection(STRING_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                potentialString.intersection(NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                potentialString.intersection(FIXED_ARRAY, compiler));
 
-  Expect.equals(CONFLICTING, BOOLEAN_OR_NULL.intersection(CONFLICTING));
-  Expect.equals(BOOLEAN_OR_NULL, BOOLEAN_OR_NULL.intersection(UNKNOWN));
-  Expect.equals(BOOLEAN, BOOLEAN_OR_NULL.intersection(BOOLEAN));
-  Expect.equals(CONFLICTING, BOOLEAN_OR_NULL.intersection(NUMBER));
-  Expect.equals(CONFLICTING, BOOLEAN_OR_NULL.intersection(INTEGER));
-  Expect.equals(CONFLICTING, BOOLEAN_OR_NULL.intersection(DOUBLE));
-  Expect.equals(CONFLICTING, BOOLEAN_OR_NULL.intersection(INDEXABLE_PRIMITIVE));
-  Expect.equals(CONFLICTING, BOOLEAN_OR_NULL.intersection(STRING));
-  Expect.equals(CONFLICTING, BOOLEAN_OR_NULL.intersection(READABLE_ARRAY));
-  Expect.equals(CONFLICTING, BOOLEAN_OR_NULL.intersection(MUTABLE_ARRAY));
-  Expect.equals(CONFLICTING, BOOLEAN_OR_NULL.intersection(EXTENDABLE_ARRAY));
-  Expect.equals(CONFLICTING, BOOLEAN_OR_NULL.intersection(NON_PRIMITIVE1));
-  Expect.equals(CONFLICTING, BOOLEAN_OR_NULL.intersection(NON_PRIMITIVE2));
-  Expect.equals(NULL, BOOLEAN_OR_NULL.intersection(POTENTIAL_ARRAY));
-  Expect.equals(NULL, BOOLEAN_OR_NULL.intersection(POTENTIAL_STRING));
-  Expect.equals(BOOLEAN_OR_NULL, BOOLEAN_OR_NULL.intersection(BOOLEAN_OR_NULL));
-  Expect.equals(NULL, BOOLEAN_OR_NULL.intersection(NUMBER_OR_NULL));
-  Expect.equals(NULL, BOOLEAN_OR_NULL.intersection(INTEGER_OR_NULL));
-  Expect.equals(NULL, BOOLEAN_OR_NULL.intersection(DOUBLE_OR_NULL));
-  Expect.equals(NULL, BOOLEAN_OR_NULL.intersection(STRING_OR_NULL));
-  Expect.equals(NULL, BOOLEAN_OR_NULL.intersection(NULL));
-  Expect.equals(CONFLICTING, BOOLEAN_OR_NULL.intersection(FIXED_ARRAY));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN_OR_NULL.intersection(CONFLICTING, compiler));
+  Expect.equals(BOOLEAN_OR_NULL, 
+                BOOLEAN_OR_NULL.intersection(UNKNOWN, compiler));
+  Expect.equals(BOOLEAN, 
+                BOOLEAN_OR_NULL.intersection(BOOLEAN, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN_OR_NULL.intersection(NUMBER, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN_OR_NULL.intersection(INTEGER, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN_OR_NULL.intersection(DOUBLE, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN_OR_NULL.intersection(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN_OR_NULL.intersection(STRING, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN_OR_NULL.intersection(READABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN_OR_NULL.intersection(MUTABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN_OR_NULL.intersection(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN_OR_NULL.intersection(nonPrimitive1, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN_OR_NULL.intersection(nonPrimitive2, compiler));
+  Expect.equals(NULL, 
+                BOOLEAN_OR_NULL.intersection(potentialArray, compiler));
+  Expect.equals(NULL, 
+                BOOLEAN_OR_NULL.intersection(potentialString, compiler));
+  Expect.equals(BOOLEAN_OR_NULL, 
+                BOOLEAN_OR_NULL.intersection(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                BOOLEAN_OR_NULL.intersection(NUMBER_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                BOOLEAN_OR_NULL.intersection(INTEGER_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                BOOLEAN_OR_NULL.intersection(DOUBLE_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                BOOLEAN_OR_NULL.intersection(STRING_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                BOOLEAN_OR_NULL.intersection(NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                BOOLEAN_OR_NULL.intersection(FIXED_ARRAY, compiler));
 
-  Expect.equals(CONFLICTING, NUMBER_OR_NULL.intersection(CONFLICTING));
-  Expect.equals(NUMBER_OR_NULL, NUMBER_OR_NULL.intersection(UNKNOWN));
-  Expect.equals(CONFLICTING, NUMBER_OR_NULL.intersection(BOOLEAN));
-  Expect.equals(NUMBER, NUMBER_OR_NULL.intersection(NUMBER));
-  Expect.equals(INTEGER, NUMBER_OR_NULL.intersection(INTEGER));
-  Expect.equals(DOUBLE, NUMBER_OR_NULL.intersection(DOUBLE));
-  Expect.equals(CONFLICTING, NUMBER_OR_NULL.intersection(INDEXABLE_PRIMITIVE));
-  Expect.equals(CONFLICTING, NUMBER_OR_NULL.intersection(STRING));
-  Expect.equals(CONFLICTING, NUMBER_OR_NULL.intersection(READABLE_ARRAY));
-  Expect.equals(CONFLICTING, NUMBER_OR_NULL.intersection(MUTABLE_ARRAY));
-  Expect.equals(CONFLICTING, NUMBER_OR_NULL.intersection(EXTENDABLE_ARRAY));
-  Expect.equals(CONFLICTING, NUMBER_OR_NULL.intersection(NON_PRIMITIVE1));
-  Expect.equals(CONFLICTING, NUMBER_OR_NULL.intersection(NON_PRIMITIVE2));
-  Expect.equals(NULL, NUMBER_OR_NULL.intersection(POTENTIAL_ARRAY));
-  Expect.equals(NULL, NUMBER_OR_NULL.intersection(POTENTIAL_STRING));
-  Expect.equals(NULL, NUMBER_OR_NULL.intersection(BOOLEAN_OR_NULL));
-  Expect.equals(NUMBER_OR_NULL, NUMBER_OR_NULL.intersection(NUMBER_OR_NULL));
-  Expect.equals(INTEGER_OR_NULL, NUMBER_OR_NULL.intersection(INTEGER_OR_NULL));
-  Expect.equals(DOUBLE_OR_NULL, NUMBER_OR_NULL.intersection(DOUBLE_OR_NULL));
-  Expect.equals(NULL, NUMBER_OR_NULL.intersection(STRING_OR_NULL));
-  Expect.equals(NULL, NUMBER_OR_NULL.intersection(NULL));
-  Expect.equals(CONFLICTING, NUMBER_OR_NULL.intersection(FIXED_ARRAY));
+  Expect.equals(CONFLICTING, 
+                NUMBER_OR_NULL.intersection(CONFLICTING, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                NUMBER_OR_NULL.intersection(UNKNOWN, compiler));
+  Expect.equals(CONFLICTING, 
+                NUMBER_OR_NULL.intersection(BOOLEAN, compiler));
+  Expect.equals(NUMBER, 
+                NUMBER_OR_NULL.intersection(NUMBER, compiler));
+  Expect.equals(INTEGER, 
+                NUMBER_OR_NULL.intersection(INTEGER, compiler));
+  Expect.equals(DOUBLE, 
+                NUMBER_OR_NULL.intersection(DOUBLE, compiler));
+  Expect.equals(CONFLICTING, 
+                NUMBER_OR_NULL.intersection(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(CONFLICTING, 
+                NUMBER_OR_NULL.intersection(STRING, compiler));
+  Expect.equals(CONFLICTING, 
+                NUMBER_OR_NULL.intersection(READABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                NUMBER_OR_NULL.intersection(MUTABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                NUMBER_OR_NULL.intersection(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                NUMBER_OR_NULL.intersection(nonPrimitive1, compiler));
+  Expect.equals(CONFLICTING, 
+                NUMBER_OR_NULL.intersection(nonPrimitive2, compiler));
+  Expect.equals(NULL, 
+                NUMBER_OR_NULL.intersection(potentialArray, compiler));
+  Expect.equals(NULL, 
+                NUMBER_OR_NULL.intersection(potentialString, compiler));
+  Expect.equals(NULL, 
+                NUMBER_OR_NULL.intersection(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(NUMBER_OR_NULL, 
+                NUMBER_OR_NULL.intersection(NUMBER_OR_NULL, compiler));
+  Expect.equals(INTEGER_OR_NULL, 
+                NUMBER_OR_NULL.intersection(INTEGER_OR_NULL, compiler));
+  Expect.equals(DOUBLE_OR_NULL, 
+                NUMBER_OR_NULL.intersection(DOUBLE_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                NUMBER_OR_NULL.intersection(STRING_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                NUMBER_OR_NULL.intersection(NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                NUMBER_OR_NULL.intersection(FIXED_ARRAY, compiler));
 
-  Expect.equals(CONFLICTING, INTEGER_OR_NULL.intersection(CONFLICTING));
-  Expect.equals(INTEGER_OR_NULL, INTEGER_OR_NULL.intersection(UNKNOWN));
-  Expect.equals(CONFLICTING, INTEGER_OR_NULL.intersection(BOOLEAN));
-  Expect.equals(INTEGER, INTEGER_OR_NULL.intersection(NUMBER));
-  Expect.equals(INTEGER, INTEGER_OR_NULL.intersection(INTEGER));
-  Expect.equals(CONFLICTING, INTEGER_OR_NULL.intersection(DOUBLE));
-  Expect.equals(CONFLICTING, INTEGER_OR_NULL.intersection(INDEXABLE_PRIMITIVE));
-  Expect.equals(CONFLICTING, INTEGER_OR_NULL.intersection(STRING));
-  Expect.equals(CONFLICTING, INTEGER_OR_NULL.intersection(READABLE_ARRAY));
-  Expect.equals(CONFLICTING, INTEGER_OR_NULL.intersection(MUTABLE_ARRAY));
-  Expect.equals(CONFLICTING, INTEGER_OR_NULL.intersection(EXTENDABLE_ARRAY));
-  Expect.equals(CONFLICTING, INTEGER_OR_NULL.intersection(NON_PRIMITIVE1));
-  Expect.equals(CONFLICTING, INTEGER_OR_NULL.intersection(NON_PRIMITIVE2));
-  Expect.equals(NULL, INTEGER_OR_NULL.intersection(POTENTIAL_ARRAY));
-  Expect.equals(NULL, INTEGER_OR_NULL.intersection(POTENTIAL_STRING));
-  Expect.equals(NULL, INTEGER_OR_NULL.intersection(BOOLEAN_OR_NULL));
-  Expect.equals(INTEGER_OR_NULL, INTEGER_OR_NULL.intersection(NUMBER_OR_NULL));
-  Expect.equals(INTEGER_OR_NULL, INTEGER_OR_NULL.intersection(INTEGER_OR_NULL));
-  Expect.equals(NULL, INTEGER_OR_NULL.intersection(DOUBLE_OR_NULL));
-  Expect.equals(NULL, INTEGER_OR_NULL.intersection(STRING_OR_NULL));
-  Expect.equals(NULL, INTEGER_OR_NULL.intersection(NULL));
-  Expect.equals(CONFLICTING, INTEGER_OR_NULL.intersection(FIXED_ARRAY));
+  Expect.equals(CONFLICTING, 
+                INTEGER_OR_NULL.intersection(CONFLICTING, compiler));
+  Expect.equals(INTEGER_OR_NULL, 
+                INTEGER_OR_NULL.intersection(UNKNOWN, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER_OR_NULL.intersection(BOOLEAN, compiler));
+  Expect.equals(INTEGER, 
+                INTEGER_OR_NULL.intersection(NUMBER, compiler));
+  Expect.equals(INTEGER, 
+                INTEGER_OR_NULL.intersection(INTEGER, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER_OR_NULL.intersection(DOUBLE, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER_OR_NULL.intersection(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER_OR_NULL.intersection(STRING, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER_OR_NULL.intersection(READABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER_OR_NULL.intersection(MUTABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER_OR_NULL.intersection(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER_OR_NULL.intersection(nonPrimitive1, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER_OR_NULL.intersection(nonPrimitive2, compiler));
+  Expect.equals(NULL, 
+                INTEGER_OR_NULL.intersection(potentialArray, compiler));
+  Expect.equals(NULL, 
+                INTEGER_OR_NULL.intersection(potentialString, compiler));
+  Expect.equals(NULL, 
+                INTEGER_OR_NULL.intersection(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(INTEGER_OR_NULL, 
+                INTEGER_OR_NULL.intersection(NUMBER_OR_NULL, compiler));
+  Expect.equals(INTEGER_OR_NULL, 
+                INTEGER_OR_NULL.intersection(INTEGER_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                INTEGER_OR_NULL.intersection(DOUBLE_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                INTEGER_OR_NULL.intersection(STRING_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                INTEGER_OR_NULL.intersection(NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                INTEGER_OR_NULL.intersection(FIXED_ARRAY, compiler));
 
-  Expect.equals(CONFLICTING, DOUBLE_OR_NULL.intersection(CONFLICTING));
-  Expect.equals(DOUBLE_OR_NULL, DOUBLE_OR_NULL.intersection(UNKNOWN));
-  Expect.equals(CONFLICTING, DOUBLE_OR_NULL.intersection(BOOLEAN));
-  Expect.equals(DOUBLE, DOUBLE_OR_NULL.intersection(NUMBER));
-  Expect.equals(CONFLICTING, DOUBLE_OR_NULL.intersection(INTEGER));
-  Expect.equals(DOUBLE, DOUBLE_OR_NULL.intersection(DOUBLE));
-  Expect.equals(CONFLICTING, DOUBLE_OR_NULL.intersection(INDEXABLE_PRIMITIVE));
-  Expect.equals(CONFLICTING, DOUBLE_OR_NULL.intersection(STRING));
-  Expect.equals(CONFLICTING, DOUBLE_OR_NULL.intersection(READABLE_ARRAY));
-  Expect.equals(CONFLICTING, DOUBLE_OR_NULL.intersection(MUTABLE_ARRAY));
-  Expect.equals(CONFLICTING, DOUBLE_OR_NULL.intersection(EXTENDABLE_ARRAY));
-  Expect.equals(CONFLICTING, DOUBLE_OR_NULL.intersection(NON_PRIMITIVE1));
-  Expect.equals(CONFLICTING, DOUBLE_OR_NULL.intersection(NON_PRIMITIVE2));
-  Expect.equals(NULL, DOUBLE_OR_NULL.intersection(POTENTIAL_ARRAY));
-  Expect.equals(NULL, DOUBLE_OR_NULL.intersection(POTENTIAL_STRING));
-  Expect.equals(NULL, DOUBLE_OR_NULL.intersection(BOOLEAN_OR_NULL));
-  Expect.equals(DOUBLE_OR_NULL, DOUBLE_OR_NULL.intersection(NUMBER_OR_NULL));
-  Expect.equals(NULL, DOUBLE_OR_NULL.intersection(INTEGER_OR_NULL));
-  Expect.equals(DOUBLE_OR_NULL, DOUBLE_OR_NULL.intersection(DOUBLE_OR_NULL));
-  Expect.equals(NULL, DOUBLE_OR_NULL.intersection(STRING_OR_NULL));
-  Expect.equals(NULL, DOUBLE_OR_NULL.intersection(NULL));
-  Expect.equals(CONFLICTING, DOUBLE_OR_NULL.intersection(FIXED_ARRAY));
+  Expect.equals(CONFLICTING, 
+                DOUBLE_OR_NULL.intersection(CONFLICTING, compiler));
+  Expect.equals(DOUBLE_OR_NULL, 
+                DOUBLE_OR_NULL.intersection(UNKNOWN, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE_OR_NULL.intersection(BOOLEAN, compiler));
+  Expect.equals(DOUBLE, 
+                DOUBLE_OR_NULL.intersection(NUMBER, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE_OR_NULL.intersection(INTEGER, compiler));
+  Expect.equals(DOUBLE, 
+                DOUBLE_OR_NULL.intersection(DOUBLE, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE_OR_NULL.intersection(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE_OR_NULL.intersection(STRING, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE_OR_NULL.intersection(READABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE_OR_NULL.intersection(MUTABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE_OR_NULL.intersection(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE_OR_NULL.intersection(nonPrimitive1, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE_OR_NULL.intersection(nonPrimitive2, compiler));
+  Expect.equals(NULL, 
+                DOUBLE_OR_NULL.intersection(potentialArray, compiler));
+  Expect.equals(NULL, 
+                DOUBLE_OR_NULL.intersection(potentialString, compiler));
+  Expect.equals(NULL, 
+                DOUBLE_OR_NULL.intersection(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(DOUBLE_OR_NULL, 
+                DOUBLE_OR_NULL.intersection(NUMBER_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                DOUBLE_OR_NULL.intersection(INTEGER_OR_NULL, compiler));
+  Expect.equals(DOUBLE_OR_NULL, 
+                DOUBLE_OR_NULL.intersection(DOUBLE_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                DOUBLE_OR_NULL.intersection(STRING_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                DOUBLE_OR_NULL.intersection(NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                DOUBLE_OR_NULL.intersection(FIXED_ARRAY, compiler));
 
-  Expect.equals(CONFLICTING, STRING_OR_NULL.intersection(CONFLICTING));
-  Expect.equals(STRING_OR_NULL, STRING_OR_NULL.intersection(UNKNOWN));
-  Expect.equals(CONFLICTING, STRING_OR_NULL.intersection(BOOLEAN));
-  Expect.equals(CONFLICTING, STRING_OR_NULL.intersection(NUMBER));
-  Expect.equals(CONFLICTING, STRING_OR_NULL.intersection(INTEGER));
-  Expect.equals(CONFLICTING, STRING_OR_NULL.intersection(DOUBLE));
-  Expect.equals(STRING, STRING_OR_NULL.intersection(INDEXABLE_PRIMITIVE));
-  Expect.equals(STRING, STRING_OR_NULL.intersection(STRING));
-  Expect.equals(CONFLICTING, STRING_OR_NULL.intersection(READABLE_ARRAY));
-  Expect.equals(CONFLICTING, STRING_OR_NULL.intersection(MUTABLE_ARRAY));
-  Expect.equals(CONFLICTING, STRING_OR_NULL.intersection(EXTENDABLE_ARRAY));
-  Expect.equals(CONFLICTING, STRING_OR_NULL.intersection(NON_PRIMITIVE1));
-  Expect.equals(CONFLICTING, STRING_OR_NULL.intersection(NON_PRIMITIVE2));
-  Expect.equals(NULL, STRING_OR_NULL.intersection(POTENTIAL_ARRAY));
-  Expect.equals(STRING_OR_NULL, STRING_OR_NULL.intersection(POTENTIAL_STRING));
-  Expect.equals(NULL, STRING_OR_NULL.intersection(BOOLEAN_OR_NULL));
-  Expect.equals(NULL, STRING_OR_NULL.intersection(NUMBER_OR_NULL));
-  Expect.equals(NULL, STRING_OR_NULL.intersection(INTEGER_OR_NULL));
-  Expect.equals(NULL, STRING_OR_NULL.intersection(DOUBLE_OR_NULL));
-  Expect.equals(STRING_OR_NULL, STRING_OR_NULL.intersection(STRING_OR_NULL));
-  Expect.equals(NULL, STRING_OR_NULL.intersection(NULL));
-  Expect.equals(CONFLICTING, STRING_OR_NULL.intersection(FIXED_ARRAY));
+  Expect.equals(CONFLICTING, 
+                STRING_OR_NULL.intersection(CONFLICTING, compiler));
+  Expect.equals(STRING_OR_NULL, 
+                STRING_OR_NULL.intersection(UNKNOWN, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING_OR_NULL.intersection(BOOLEAN, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING_OR_NULL.intersection(NUMBER, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING_OR_NULL.intersection(INTEGER, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING_OR_NULL.intersection(DOUBLE, compiler));
+  Expect.equals(STRING, 
+                STRING_OR_NULL.intersection(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(STRING, 
+                STRING_OR_NULL.intersection(STRING, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING_OR_NULL.intersection(READABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING_OR_NULL.intersection(MUTABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING_OR_NULL.intersection(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING_OR_NULL.intersection(nonPrimitive1, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING_OR_NULL.intersection(nonPrimitive2, compiler));
+  Expect.equals(NULL, 
+                STRING_OR_NULL.intersection(potentialArray, compiler));
+  Expect.equals(STRING_OR_NULL, 
+                STRING_OR_NULL.intersection(potentialString, compiler));
+  Expect.equals(NULL, 
+                STRING_OR_NULL.intersection(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                STRING_OR_NULL.intersection(NUMBER_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                STRING_OR_NULL.intersection(INTEGER_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                STRING_OR_NULL.intersection(DOUBLE_OR_NULL, compiler));
+  Expect.equals(STRING_OR_NULL, 
+                STRING_OR_NULL.intersection(STRING_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                STRING_OR_NULL.intersection(NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                STRING_OR_NULL.intersection(FIXED_ARRAY, compiler));
 
-  Expect.equals(CONFLICTING, NULL.intersection(CONFLICTING));
-  Expect.equals(NULL, NULL.intersection(UNKNOWN));
-  Expect.equals(CONFLICTING, NULL.intersection(BOOLEAN));
-  Expect.equals(CONFLICTING, NULL.intersection(NUMBER));
-  Expect.equals(CONFLICTING, NULL.intersection(INTEGER));
-  Expect.equals(CONFLICTING, NULL.intersection(DOUBLE));
-  Expect.equals(CONFLICTING, NULL.intersection(INDEXABLE_PRIMITIVE));
-  Expect.equals(CONFLICTING, NULL.intersection(STRING));
-  Expect.equals(CONFLICTING, NULL.intersection(READABLE_ARRAY));
-  Expect.equals(CONFLICTING, NULL.intersection(MUTABLE_ARRAY));
-  Expect.equals(CONFLICTING, NULL.intersection(EXTENDABLE_ARRAY));
-  Expect.equals(CONFLICTING, NULL.intersection(NON_PRIMITIVE1));
-  Expect.equals(CONFLICTING, NULL.intersection(NON_PRIMITIVE2));
-  Expect.equals(NULL, NULL.intersection(POTENTIAL_ARRAY));
-  Expect.equals(NULL, NULL.intersection(POTENTIAL_STRING));
-  Expect.equals(NULL, NULL.intersection(BOOLEAN_OR_NULL));
-  Expect.equals(NULL, NULL.intersection(NUMBER_OR_NULL));
-  Expect.equals(NULL, NULL.intersection(INTEGER_OR_NULL));
-  Expect.equals(NULL, NULL.intersection(DOUBLE_OR_NULL));
-  Expect.equals(NULL, NULL.intersection(STRING_OR_NULL));
-  Expect.equals(NULL, NULL.intersection(NULL));
-  Expect.equals(CONFLICTING, NULL.intersection(FIXED_ARRAY));
+  Expect.equals(CONFLICTING, 
+                NULL.intersection(CONFLICTING, compiler));
+  Expect.equals(NULL, 
+                NULL.intersection(UNKNOWN, compiler));
+  Expect.equals(CONFLICTING, 
+                NULL.intersection(BOOLEAN, compiler));
+  Expect.equals(CONFLICTING, 
+                NULL.intersection(NUMBER, compiler));
+  Expect.equals(CONFLICTING, 
+                NULL.intersection(INTEGER, compiler));
+  Expect.equals(CONFLICTING, 
+                NULL.intersection(DOUBLE, compiler));
+  Expect.equals(CONFLICTING, 
+                NULL.intersection(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(CONFLICTING, 
+                NULL.intersection(STRING, compiler));
+  Expect.equals(CONFLICTING, 
+                NULL.intersection(READABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                NULL.intersection(MUTABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                NULL.intersection(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                NULL.intersection(nonPrimitive1, compiler));
+  Expect.equals(CONFLICTING, 
+                NULL.intersection(nonPrimitive2, compiler));
+  Expect.equals(NULL, 
+                NULL.intersection(potentialArray, compiler));
+  Expect.equals(NULL, 
+                NULL.intersection(potentialString, compiler));
+  Expect.equals(NULL, 
+                NULL.intersection(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                NULL.intersection(NUMBER_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                NULL.intersection(INTEGER_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                NULL.intersection(DOUBLE_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                NULL.intersection(STRING_OR_NULL, compiler));
+  Expect.equals(NULL, 
+                NULL.intersection(NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                NULL.intersection(FIXED_ARRAY, compiler));
 
-  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(CONFLICTING));
-  Expect.equals(FIXED_ARRAY, FIXED_ARRAY.intersection(UNKNOWN));
-  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(BOOLEAN));
-  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(NUMBER));
-  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(INTEGER));
-  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(DOUBLE));
-  Expect.equals(FIXED_ARRAY, FIXED_ARRAY.intersection(INDEXABLE_PRIMITIVE));
-  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(STRING));
-  Expect.equals(FIXED_ARRAY, FIXED_ARRAY.intersection(READABLE_ARRAY));
-  Expect.equals(FIXED_ARRAY, FIXED_ARRAY.intersection(MUTABLE_ARRAY));
-  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(EXTENDABLE_ARRAY));
-  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(NON_PRIMITIVE1));
-  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(NON_PRIMITIVE2));
-  Expect.equals(FIXED_ARRAY, FIXED_ARRAY.intersection(POTENTIAL_ARRAY));
-  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(POTENTIAL_STRING));
-  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(BOOLEAN_OR_NULL));
-  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(NUMBER_OR_NULL));
-  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(INTEGER_OR_NULL));
-  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(DOUBLE_OR_NULL));
-  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(STRING_OR_NULL));
-  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(NULL));
-  Expect.equals(FIXED_ARRAY, FIXED_ARRAY.intersection(FIXED_ARRAY));
+  Expect.equals(CONFLICTING, 
+                FIXED_ARRAY.intersection(CONFLICTING, compiler));
+  Expect.equals(FIXED_ARRAY, 
+                FIXED_ARRAY.intersection(UNKNOWN, compiler));
+  Expect.equals(CONFLICTING, 
+                FIXED_ARRAY.intersection(BOOLEAN, compiler));
+  Expect.equals(CONFLICTING, 
+                FIXED_ARRAY.intersection(NUMBER, compiler));
+  Expect.equals(CONFLICTING, 
+                FIXED_ARRAY.intersection(INTEGER, compiler));
+  Expect.equals(CONFLICTING, 
+                FIXED_ARRAY.intersection(DOUBLE, compiler));
+  Expect.equals(FIXED_ARRAY, 
+                FIXED_ARRAY.intersection(INDEXABLE_PRIMITIVE, compiler));
+  Expect.equals(CONFLICTING, 
+                FIXED_ARRAY.intersection(STRING, compiler));
+  Expect.equals(FIXED_ARRAY, 
+                FIXED_ARRAY.intersection(READABLE_ARRAY, compiler));
+  Expect.equals(FIXED_ARRAY, 
+                FIXED_ARRAY.intersection(MUTABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                FIXED_ARRAY.intersection(EXTENDABLE_ARRAY, compiler));
+  Expect.equals(CONFLICTING, 
+                FIXED_ARRAY.intersection(nonPrimitive1, compiler));
+  Expect.equals(CONFLICTING, 
+                FIXED_ARRAY.intersection(nonPrimitive2, compiler));
+  Expect.equals(FIXED_ARRAY, 
+                FIXED_ARRAY.intersection(potentialArray, compiler));
+  Expect.equals(CONFLICTING, 
+                FIXED_ARRAY.intersection(potentialString, compiler));
+  Expect.equals(CONFLICTING, 
+                FIXED_ARRAY.intersection(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                FIXED_ARRAY.intersection(NUMBER_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                FIXED_ARRAY.intersection(INTEGER_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                FIXED_ARRAY.intersection(DOUBLE_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                FIXED_ARRAY.intersection(STRING_OR_NULL, compiler));
+  Expect.equals(CONFLICTING, 
+                FIXED_ARRAY.intersection(NULL, compiler));
+  Expect.equals(FIXED_ARRAY, 
+                FIXED_ARRAY.intersection(FIXED_ARRAY, compiler));
 }
 
 void main() {
-  testUnion();
-  testIntersection();
+  Compiler compiler = new MockCompiler();
+  nonPrimitive1 = new HBoundedType.nonNull(
+      compiler.mapClass.computeType(compiler));
+  nonPrimitive2 = new HBoundedType.nonNull(
+      compiler.functionClass.computeType(compiler));
+  potentialArray = new HBoundedPotentialPrimitiveArray(
+      compiler.listClass.computeType(compiler), true);
+  potentialString = new HBoundedPotentialPrimitiveString(
+      compiler.stringClass.computeType(compiler), true);
+  testUnion(compiler);
+  testIntersection(compiler);
 }

@@ -21,7 +21,7 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
 
   HType computeType(HInstruction instruction) {
     if (instruction.hasGuaranteedType()) return instruction.guaranteedType;
-    return instruction.computeTypeFromInputTypes(types);
+    return instruction.computeTypeFromInputTypes(types, compiler);
   }
 
   // Re-compute and update the type of the instruction. Returns
@@ -172,7 +172,7 @@ class SsaSpeculativeTypePropagator extends SsaTypePropagator {
     HType desiredType = HType.UNKNOWN;
     for (final user in instruction.usedBy) {
       HType userType =
-          user.computeDesiredTypeForInput(instruction, types);
+          user.computeDesiredTypeForInput(instruction, types, compiler);
       // Mainly due to the "if (true)" added by hackAroundPossiblyAbortingBody
       // in builder.dart uninitialized variables will propagate a type of null
       // which will result in a conflicting type when combined with a primitive
@@ -180,7 +180,7 @@ class SsaSpeculativeTypePropagator extends SsaTypePropagator {
       // TODO(sgjesse): Reconcider this when hackAroundPossiblyAbortingBody
       // has been removed.
       if (desiredType.isPrimitive() && userType == HType.NULL) continue;
-      desiredType = desiredType.intersection(userType);
+      desiredType = desiredType.intersection(userType, compiler);
       // No need to continue if two users disagree on the type.
       if (desiredType.isConflicting()) break;
     }
@@ -203,7 +203,7 @@ class SsaSpeculativeTypePropagator extends SsaTypePropagator {
     // TODO(ngeoffray): Allow speculative optimizations on
     // non-primitive types?
     if (!desiredType.isPrimitive()) return newType;
-    return newType.intersection(desiredType);
+    return newType.intersection(desiredType, compiler);
   }
 
   // Do not use speculative argument type optimization for now.
