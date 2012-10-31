@@ -265,6 +265,34 @@ void testOperatorParse() {
   Expect.isNull(function.getOrSet);
 }
 
+class Collector implements DiagnosticListener {
+  int token = -1;
+
+  void cancel(String reason, {node, token, instruction, element}) {
+    this.token = token.kind;
+    throw this;
+  }
+
+  void log(message) {
+    print(message);
+  }
+}
+
+void testMissingCloseParen() {
+  final String source =
+'''foo(x {  // <= missing closing ")"
+  return x;
+}''';
+  parse() {
+    parseMember(source, diagnosticHandler: new Collector());
+  }
+  check(Collector c) {
+    Expect.equals(OPEN_CURLY_BRACKET_TOKEN, c.token);
+    return true;
+  }
+  Expect.throws(parse, check);
+}
+
 void main() {
   testGenericTypes();
   // TODO(ahe): Enable this test when we handle library prefixes.
@@ -279,4 +307,5 @@ void main() {
   testIndex();
   testPostfix();
   testOperatorParse();
+  testMissingCloseParen();
 }
