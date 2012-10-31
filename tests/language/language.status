@@ -385,6 +385,7 @@ interface_factory_test: Fail
 non_parameterized_factory2_test: Fail
 non_parameterized_factory_test: Fail
 type_variable_scope_test: Fail
+constructor_redirect2_test/03: Fail
 
 class_literal_test/05: Fail # http://dartbug.com/5519
 class_literal_test/10: Fail # http://dartbug.com/5519

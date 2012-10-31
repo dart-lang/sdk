@@ -117,6 +117,7 @@ factory_redirection_test/04: Pass # For the wrong reason. Not implemented.
 factory_redirection_test/05: Fail # Not implemented.
 factory_redirection_test/06: Fail # Not implemented.
 factory_redirection_test/07: Pass # For the wrong reason. Not implemented.
+constructor_redirect2_test/03: Fail # redirecting ctor with initializing formal
 factory3_test: Fail # internal error: visitIs for type variables not implemented
 function_type_alias2_test: Fail # cannot resolve type f1
 function_type_alias3_test: Fail # cannot resolve type F
