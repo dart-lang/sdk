@@ -198,7 +198,10 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
 
         exitDataRead += _exitHandler.inputStream.readInto(
             exitDataBuffer, exitDataRead, EXIT_DATA_SIZE - exitDataRead);
-        if (exitDataRead == EXIT_DATA_SIZE) handleExit();
+        if (exitDataRead == EXIT_DATA_SIZE) {
+          _exitHandler.close();
+          handleExit();
+        }
       };
 
       completer.complete(this);
