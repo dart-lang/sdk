@@ -602,7 +602,7 @@ class DartiumBackend(object):
       self._cpp_impl_includes.add('"DOMWindow.h"')
       runtime_check = emitter.Format(
           '        if (!ContextFeatures::$(FEATURE)Enabled(DartUtilities::domWindowForCurrentIsolate()->document())) {\n'
-          '            exception = Dart_NewString("Feature $FEATURE is not enabled");\n'
+          '            exception = Dart_NewStringFromCString("Feature $FEATURE is not enabled");\n'
           '            goto fail;\n'
           '        }',
           FEATURE=v8EnabledPerContext)
@@ -612,7 +612,7 @@ class DartiumBackend(object):
       self._cpp_impl_includes.add('"RuntimeEnabledFeatures.h"')
       runtime_check = emitter.Format(
           '        if (!RuntimeEnabledFeatures::$(FEATURE)Enabled()) {\n'
-          '            exception = Dart_NewString("Feature $FEATURE is not enabled");\n'
+          '            exception = Dart_NewStringFromCString("Feature $FEATURE is not enabled");\n'
           '            goto fail;\n'
           '        }',
           FEATURE=self._ToWebKitName(v8EnabledAtRuntime))
@@ -654,7 +654,7 @@ class DartiumBackend(object):
       body_emitter.Emit(
           '        ScriptExecutionContext* context = DartUtilities::scriptExecutionContext();\n'
           '        if (!context) {\n'
-          '            exception = Dart_NewString("Failed to retrieve a context");\n'
+          '            exception = Dart_NewStringFromCString("Failed to retrieve a context");\n'
           '            goto fail;\n'
           '        }\n\n')
 
@@ -663,7 +663,7 @@ class DartiumBackend(object):
       body_emitter.Emit(
           '        DOMWindow* domWindow = DartUtilities::domWindowForCurrentIsolate();\n'
           '        if (!domWindow) {\n'
-          '            exception = Dart_NewString("Failed to fetch domWindow");\n'
+          '            exception = Dart_NewStringFromCString("Failed to fetch domWindow");\n'
           '            goto fail;\n'
           '        }\n'
           '        Document* document = domWindow->document();\n')
