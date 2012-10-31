@@ -6,6 +6,8 @@
 # libraries.
 {
   'sources': [
+    'io_buffer.cc',
+    'io_buffer.h',
     'common.cc',
     'crypto.cc',
     'crypto_android.cc',

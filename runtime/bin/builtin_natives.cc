@@ -60,6 +60,7 @@
   V(ServerSocket_Accept, 2)                                                    \
   V(Socket_CreateConnect, 3)                                                   \
   V(Socket_Available, 1)                                                       \
+  V(Socket_Read, 2)                                                            \
   V(Socket_ReadList, 4)                                                        \
   V(Socket_WriteList, 4)                                                       \
   V(Socket_GetPort, 1)                                                         \

@@ -375,6 +375,20 @@ class _Socket extends _SocketBase implements Socket {
 
   _available() native "Socket_Available";
 
+  List<int> read([int len]) {
+    if (len != null && len <= 0) {
+      throw new SocketIOException("Illegal length $len");
+    }
+    var result = _read(len == null ? -1 : len);
+    if (result is OSError) {
+      _reportError(result, "Read failed");
+      return null;
+    }
+    return result;
+  }
+
+  _read(int len) native "Socket_Read";
+
   int readList(List<int> buffer, int offset, int bytes) {
     if (!_closed) {
       if (bytes == 0) {

@@ -47,6 +47,15 @@ abstract class Socket {
   int available();
 
   /**
+   * Read up to [len] bytes from the socket. This function is
+   * non-blocking and will only return data if data is available. The
+   * number of bytes read can be less then [len] if fewer bytes are
+   * available for immediate reading. If no data is available [null]
+   * is returned.
+   */
+  List<int> read([int len]);
+
+  /**
    * Reads up to [count] bytes of data from the socket and stores them into
    * buffer after buffer offset [offset]. The number of successfully read
    * bytes is returned. This function is non-blocking and will only read data

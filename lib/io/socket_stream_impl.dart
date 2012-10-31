@@ -9,30 +9,7 @@ class _SocketInputStream implements InputStream {
   }
 
   List<int> read([int len]) {
-    int bytesToRead = available();
-    if (bytesToRead == 0) return null;
-    if (len !== null) {
-      if (len <= 0) {
-        throw new StreamException("Illegal length $len");
-      } else if (bytesToRead > len) {
-        bytesToRead = len;
-      }
-    }
-    List<int> buffer = new Uint8List(bytesToRead);
-    int bytesRead = _socket.readList(buffer, 0, bytesToRead);
-    if (bytesRead == 0) {
-      // On MacOS when reading from a tty Ctrl-D will result in one
-      // byte reported as available. Attempting to read it out will
-      // result in zero bytes read. When that happens there is no data
-      // which is indicated by a null return value.
-      return null;
-    } else if (bytesRead < bytesToRead) {
-      List<int> newBuffer = new Uint8List(bytesRead);
-      newBuffer.setRange(0, bytesRead, buffer);
-      return newBuffer;
-    } else {
-      return buffer;
-    }
+    return _socket.read(len);
   }
 
   int readInto(List<int> buffer, [int offset = 0, int len]) {

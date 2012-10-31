@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "bin/io_buffer.h"
 #include "bin/socket.h"
 #include "bin/dartutils.h"
 #include "bin/thread.h"
@@ -54,6 +55,52 @@ void FUNCTION_NAME(Socket_Available)(Dart_NativeArguments args) {
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle socket_obj = Dart_GetNativeArgument(args, 0);
+  intptr_t socket = 0;
+  Socket::GetSocketIdNativeField(socket_obj, &socket);
+  intptr_t available = Socket::Available(socket);
+  if (available > 0) {
+    int64_t length = 0;
+    Dart_Handle length_obj = Dart_GetNativeArgument(args, 1);
+    if (DartUtils::GetInt64Value(length_obj, &length)) {
+      if (length == -1 || available < length) {
+        length = available;
+      }
+      uint8_t* buffer = NULL;
+      Dart_Handle result = IOBuffer::Allocate(length, &buffer);
+      if (Dart_IsError(result)) Dart_PropagateError(result);
+      ASSERT(buffer != NULL);
+      intptr_t bytes_read = Socket::Read(socket, buffer, length);
+      if (bytes_read == length) {
+        Dart_SetReturnValue(args, result);
+      } else if (bytes_read == 0) {
+        // On MacOS when reading from a tty Ctrl-D will result in one
+        // byte reported as available. Attempting to read it out will
+        // result in zero bytes read. When that happens there is no
+        // data which is indicated by a null return value.
+        Dart_SetReturnValue(args, Dart_Null());
+      } else {
+        ASSERT(bytes_read == -1);
+        Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+      }
+    } else {
+      OSError os_error(-1, "Invalid argument", OSError::kUnknown);
+      Dart_Handle err = DartUtils::NewDartOSError(&os_error);
+      if (Dart_IsError(err)) Dart_PropagateError(err);
+      Dart_SetReturnValue(args, err);
+    }
+  } else if (available == 0) {
+    Dart_SetReturnValue(args, Dart_Null());
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  }
+
   Dart_ExitScope();
 }
 
