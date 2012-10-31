@@ -512,6 +512,7 @@ syntax_test/47: Fail
 # DartVM problem.
 constructor5_test: Fail
 constructor6_test: Fail
+closure_in_initializer_test: Fail
 field_override_test/01: Fail
 field_override_test/02: Fail
 field_override_test/none: Fail
