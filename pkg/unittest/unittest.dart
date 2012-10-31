@@ -377,7 +377,7 @@ class _SpreadArgsHelper {
 
   _after() {
     if (_isDone()) {
-      _handleCallbackFunctionComplete();
+      _handleCallbackFunctionComplete(_testNum);
     }
   }
 
@@ -646,7 +646,7 @@ void tearDown(Function teardownTest) {
  * Called when one of the callback functions is done with all expected
  * calls.
  */
-void _handleCallbackFunctionComplete() {
+void _handleCallbackFunctionComplete(testNum) {
   // TODO (gram): we defer this to give the nextBatch recursive
   // stack a chance to unwind. This is a temporary hack but
   // really a bunch of code here needs to be fixed. We have a
@@ -654,6 +654,12 @@ void _handleCallbackFunctionComplete() {
   // which is recursively invoked in the case of async tests that
   // run synchronously. Bad things can then happen.
   _defer(() {
+    if (_currentTest != testNum) {
+      if (_tests[testNum].result == PASS) {
+        _tests[testNum].error("Unexpected extra callbacks");
+      }
+      return; // Extraneous callback.
+    }
     if (_currentTest < _tests.length) {
       final testCase = _tests[_currentTest];
       --testCase.callbackFunctionsOutstanding;
@@ -683,7 +689,7 @@ void _nextTestCase() {
  * TODO(gram) remove this when WebKit tests are working with new framework
  */
 void callbackDone() {
-  _handleCallbackFunctionComplete();
+  _handleCallbackFunctionComplete(_currentTest);
 }
 
 /**
