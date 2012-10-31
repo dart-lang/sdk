@@ -1848,12 +1848,14 @@ LocationSummary* InstanceCallInstr::MakeLocationSummary() const {
 void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (compiler->is_optimizing()) {
     if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
+      const ICData& unary_ic_data =
+          ICData::ZoneHandle(ic_data()->AsUnaryClassChecks());
       compiler->GenerateInstanceCall(deopt_id(),
                                      token_pos(),
                                      ArgumentCount(),
                                      argument_names(),
                                      locs(),
-                                     *ic_data());
+                                     unary_ic_data);
     } else {
       Label* deopt =
           compiler->AddDeoptStub(deopt_id(), kDeoptInstanceCallNoICData);

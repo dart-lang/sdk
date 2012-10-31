@@ -355,8 +355,11 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   __ cmpl(Address(ESP, 1 * kWordSize), raw_null);
   __ j(EQUAL, &check_identity, Assembler::kNearJump);
 
-  ICData& equality_ic_data = ICData::ZoneHandle(original_ic_data.raw());
-  if (equality_ic_data.IsNull()) {
+  ICData& equality_ic_data = ICData::ZoneHandle();
+  if (compiler->is_optimizing()) {
+    ASSERT(!original_ic_data.IsNull());
+    equality_ic_data = original_ic_data.AsUnaryClassChecks();
+  } else {
     equality_ic_data = ICData::New(compiler->parsed_function().function(),
                                    operator_name,
                                    deopt_id,
@@ -372,16 +375,36 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   __ jmp(&check_ne);
 
   __ Bind(&check_identity);
-  // Call stub, load IC data in register. The stub will update ICData if
-  // necessary.
-  Register ic_data_reg = locs->temp(0).reg();
-  ASSERT(ic_data_reg == ECX);  // Stub depends on it.
-  __ LoadObject(ic_data_reg, equality_ic_data);
-  compiler->GenerateCall(token_pos,
-                         &StubCode::EqualityWithNullArgLabel(),
-                         PcDescriptors::kOther,
-                         locs);
-  __ Drop(2);
+  Label equality_done;
+  if (compiler->is_optimizing()) {
+    // No need to update IC data.
+    Label is_true;
+    __ popl(EAX);
+    __ popl(EDX);
+    __ cmpl(EAX, EDX);
+    __ j(EQUAL, &is_true);
+    __ LoadObject(EAX, (kind == Token::kEQ) ? compiler->bool_false()
+                                            : compiler->bool_true());
+    __ jmp(&equality_done);
+    __ Bind(&is_true);
+    __ LoadObject(EAX, (kind == Token::kEQ) ? compiler->bool_true()
+                                            : compiler->bool_false());
+    if (kind == Token::kNE) {
+      // Skip not-equal result conversion.
+      __ jmp(&equality_done);
+    }
+  } else {
+    // Call stub, load IC data in register. The stub will update ICData if
+    // necessary.
+    Register ic_data_reg = locs->temp(0).reg();
+    ASSERT(ic_data_reg == ECX);  // Stub depends on it.
+    __ LoadObject(ic_data_reg, equality_ic_data);
+    compiler->GenerateCall(token_pos,
+                           &StubCode::EqualityWithNullArgLabel(),
+                           PcDescriptors::kOther,
+                           locs);
+    __ Drop(2);
+  }
   __ Bind(&check_ne);
   if (kind == Token::kNE) {
     Label false_label, true_label, done;
@@ -395,6 +418,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
     __ LoadObject(EAX, compiler->bool_false());
     __ Bind(&done);
   }
+  __ Bind(&equality_done);
 }
 
 
@@ -972,7 +996,10 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t kNumArguments = 2;
   const intptr_t kNumArgsChecked = 2;  // Type-feedback.
   ICData& relational_ic_data = ICData::ZoneHandle(ic_data()->raw());
-  if (relational_ic_data.IsNull()) {
+  if (compiler->is_optimizing()) {
+    ASSERT(!ic_data()->IsNull());
+    relational_ic_data = ic_data()->AsUnaryClassChecks();
+  } else {
     relational_ic_data = ICData::New(compiler->parsed_function().function(),
                                      function_name,
                                      deopt_id(),

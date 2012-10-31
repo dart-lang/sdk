@@ -476,6 +476,8 @@ void FlowGraphCompiler::GenerateInstanceCall(
     LocationSummary* locs,
     const ICData& ic_data) {
   ASSERT(!ic_data.IsNull());
+  // Because optimized code should not waste time.
+  ASSERT(!is_optimizing() || ic_data.num_args_tested() == 1);
   const Array& arguments_descriptor =
       DartEntry::ArgumentsDescriptor(argument_count, argument_names);
   uword label_address = 0;
