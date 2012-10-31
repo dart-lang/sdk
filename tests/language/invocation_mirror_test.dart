@@ -32,7 +32,7 @@ class C extends N {
 testInvocationMirror(InvocationMirror im, String name,
                      [List positional, Map named]) {
   Expect.isTrue(im is InvocationMirror);
-  Expect.equals(name, im.methodName);
+  Expect.equals(name, im.memberName);
   if (named == null) {
     Expect.isTrue(im.isAccessor);
     Expect.isFalse(im.isMethod);
@@ -95,7 +95,7 @@ testInvocationMirrors() {
   testInvocationMirror(n(), 'call', [], {});
   testInvocationMirror(n(42), 'call', [42], {});
   testInvocationMirror(n(x: 42), 'call', [], {"x": 42});
-  testInvocationMirror(n(37, x: 42), 'call', [37], {"x": 42});is
+  testInvocationMirror(n(37, x: 42), 'call', [37], {"x": 42});
 
   // Calling with arguments not matching existing call method.
   testInvocationMirror(c(), 'call', [], {});
@@ -137,15 +137,15 @@ testInvocationMirrors() {
   // original receivers noSuchMethod, only the one inherited from Object
   // by the closure object.
   Expect.throws(() { var x = n.flif; x(37, 42); },
-                (e) => e is noSuchMethodError);
+                (e) => e is NoSuchMethodError);
   Expect.throws(() { var x = c.call; x(37, 42); },
-                (e) => e is noSuchMethodError);
+                (e) => e is NoSuchMethodError);
 }
 
 // Test the NoSuchMethodError thrown by different incorrect calls.
 testNoSuchMethodErrors() {
   test(Function block) {
-    Expect.throws(block, (e) => e is noSuchMethodError);
+    Expect.throws(block, (e) => e is NoSuchMethodError);
   }
 
   var o = new Object();
