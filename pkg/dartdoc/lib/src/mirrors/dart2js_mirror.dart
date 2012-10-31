@@ -42,13 +42,14 @@ List<ParameterMirror> _parametersFromFunctionSignature(
   Link<Element> link = signature.requiredParameters;
   while (!link.isEmpty) {
     parameters.add(new Dart2JsParameterMirror(
-        system, method, link.head, false));
+        system, method, link.head, false, false));
     link = link.tail;
   }
   link = signature.optionalParameters;
+  bool isNamed = signature.optionalParametersAreNamed;
   while (!link.isEmpty) {
     parameters.add(new Dart2JsParameterMirror(
-        system, method, link.head, true));
+        system, method, link.head, true, isNamed));
     link = link.tail;
   }
   return parameters;
@@ -392,9 +393,19 @@ abstract class Dart2JsDeclarationMirror
   bool get isPrivate => _isPrivate(simpleName);
 }
 
-abstract class Dart2JsMemberMirror extends Dart2JsDeclarationMirror
+abstract class Dart2JsMemberMirror extends Dart2JsElementMirror
     implements MemberMirror {
 
+  Dart2JsMemberMirror(Dart2JsMirrorSystem system, Element element)
+      : super(system, element);
+
+  bool get isConstructor => false;
+
+  bool get isField => false;
+
+  bool get isMethod => false;
+
+  bool get isStatic => false;
 }
 
 abstract class Dart2JsTypeMirror extends Dart2JsDeclarationMirror
@@ -639,27 +650,30 @@ class Dart2JsSource implements Source {
   String get text => _script.text;
 }
 
-class Dart2JsParameterMirror extends Dart2JsElementMirror
+class Dart2JsParameterMirror extends Dart2JsMemberMirror
     implements ParameterMirror {
   final MethodMirror _method;
   final bool isOptional;
+  final bool isNamed;
 
   factory Dart2JsParameterMirror(Dart2JsMirrorSystem system,
                                  MethodMirror method,
                                  VariableElement element,
-                                 bool isOptional) {
+                                 bool isOptional,
+                                 bool isNamed) {
     if (element is FieldParameterElement) {
       return new Dart2JsFieldParameterMirror(system,
-                                             method, element, isOptional);
+          method, element, isOptional, isNamed);
     }
     return new Dart2JsParameterMirror._normal(system,
-                                              method, element, isOptional);
+        method, element, isOptional, isNamed);
   }
 
   Dart2JsParameterMirror._normal(Dart2JsMirrorSystem system,
                          this._method,
                          VariableElement element,
-                         this.isOptional)
+                         this.isOptional,
+                         this.isNamed)
     : super(system, element);
 
   DeclarationMirror get owner => _method;
@@ -673,6 +687,11 @@ class Dart2JsParameterMirror extends Dart2JsElementMirror
       system.compiler.types.dynamicType,
       _variableElement.variables.functionSignature);
 
+
+  bool get isFinal => false;
+
+  bool get isConst => false;
+
   String get defaultValue {
     if (hasDefaultValue) {
       SendSet expression = _variableElement.cachedNode.asSendSet();
@@ -680,6 +699,7 @@ class Dart2JsParameterMirror extends Dart2JsElementMirror
     }
     return null;
   }
+
   bool get hasDefaultValue {
     return _variableElement.cachedNode !== null &&
         _variableElement.cachedNode is SendSet;
@@ -695,8 +715,9 @@ class Dart2JsFieldParameterMirror extends Dart2JsParameterMirror {
   Dart2JsFieldParameterMirror(Dart2JsMirrorSystem system,
                               MethodMirror method,
                               FieldParameterElement element,
-                              bool isOptional)
-      : super._normal(system, method, element, isOptional);
+                              bool isOptional,
+                              bool isNamed)
+      : super._normal(system, method, element, isOptional, isNamed);
 
   FieldParameterElement get _fieldParameterElement => _element;
 
@@ -1290,8 +1311,8 @@ class Dart2JsDynamicMirror extends Dart2JsTypeElementMirror {
 // Member mirrors implementation.
 //------------------------------------------------------------------------------
 
-class Dart2JsMethodMirror extends Dart2JsElementMirror
-    implements Dart2JsMemberMirror, MethodMirror {
+class Dart2JsMethodMirror extends Dart2JsMemberMirror
+    implements MethodMirror {
   final Dart2JsObjectMirror _objectMirror;
   String _simpleName;
   String _displayName;
@@ -1377,8 +1398,6 @@ class Dart2JsMethodMirror extends Dart2JsElementMirror
   bool get isConstructor
       => _kind == Dart2JsMethodKind.CONSTRUCTOR || isConst || isFactory;
 
-  bool get isField => false;
-
   bool get isMethod => !isConstructor;
 
   bool get isPrivate =>
@@ -1423,8 +1442,7 @@ class Dart2JsMethodMirror extends Dart2JsElementMirror
 
 }
 
-class Dart2JsFieldMirror extends Dart2JsElementMirror
-    implements Dart2JsMemberMirror, VariableMirror {
+class Dart2JsFieldMirror extends Dart2JsMemberMirror implements VariableMirror {
   Dart2JsObjectMirror _objectMirror;
   VariableElement _variable;
 
@@ -1441,11 +1459,7 @@ class Dart2JsFieldMirror extends Dart2JsElementMirror
 
   bool get isTopLevel => _objectMirror is LibraryMirror;
 
-  bool get isConstructor => false;
-
   bool get isField => true;
-
-  bool get isMethod => false;
 
   bool get isStatic => _variable.modifiers.isStatic();
 

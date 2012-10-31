@@ -391,12 +391,6 @@ abstract class TypedefMirror implements ClassMirror {
  */
 abstract class MemberMirror implements DeclarationMirror {
   /**
-   * Returns true if this is a top level member, i.e. a member not within a
-   * type.
-   */
-  bool get isTopLevel;
-
-  /**
    * Returns true if this member is a constructor.
    */
   bool get isConstructor;
@@ -499,7 +493,7 @@ abstract class MethodMirror implements MemberMirror {
 /**
  * A formal parameter.
  */
-abstract class ParameterMirror implements Mirror {
+abstract class ParameterMirror implements VariableMirror {
   /**
    * Returns the type of this parameter.
    */
@@ -511,14 +505,19 @@ abstract class ParameterMirror implements Mirror {
   String get defaultValue;
 
   /**
-   * Returns true if this parameter has a default value.
+   * Does this parameter have a default value?
    */
   bool get hasDefaultValue;
 
   /**
-   * Returns true if this parameter is optional.
+   * Is this parameter optional?
    */
   bool get isOptional;
+
+  /**
+   * Is this parameter named?
+   */
+  bool get isNamed;
 
   /**
    * Returns [:true:] iff this parameter is an initializing formal of a
