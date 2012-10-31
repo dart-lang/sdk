@@ -154,7 +154,6 @@ instance_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewr
 # Test expects signature of noSuchMethod to be correct according
 # to specification. Should start working when the library signature
 # changes.
-invocation_mirror_test: Fail, OK
 is_not_class2_negative_test: Fail #  Runtime only test, rewrite as multitest
 library2_negative_test: Fail # still a valid test? Issue 3649
 library4_negative_test: Fail # still a valid test? Issue 3530
