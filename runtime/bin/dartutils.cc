@@ -99,15 +99,15 @@ void DartUtils::SetIntegerField(Dart_Handle handle,
                                 const char* name,
                                 intptr_t val) {
   Dart_Handle result = Dart_SetField(handle,
-                                     Dart_NewString(name),
+                                     NewString(name),
                                      Dart_NewInteger(val));
   ASSERT(!Dart_IsError(result));
 }
 
 
 intptr_t DartUtils::GetIntegerField(Dart_Handle handle,
-                                            const char* name) {
-  Dart_Handle result = Dart_GetField(handle, Dart_NewString(name));
+                                    const char* name) {
+  Dart_Handle result = Dart_GetField(handle, NewString(name));
   ASSERT(!Dart_IsError(result));
   intptr_t value = DartUtils::GetIntegerValue(result);
   return value;
@@ -117,9 +117,7 @@ intptr_t DartUtils::GetIntegerField(Dart_Handle handle,
 void DartUtils::SetStringField(Dart_Handle handle,
                                const char* name,
                                const char* val) {
-  Dart_Handle result = Dart_SetField(handle,
-                                     Dart_NewString(name),
-                                     Dart_NewString(val));
+  Dart_Handle result = Dart_SetField(handle, NewString(name), NewString(val));
   ASSERT(!Dart_IsError(result));
 }
 
@@ -174,7 +172,7 @@ Dart_Handle DartUtils::CanonicalizeURL(CommandLineOptions* url_mapping,
   if (Dart_IsError(library_url)) {
     return Dart_Error("accessing library url failed");
   }
-  if (!Dart_IsString8(library_url)) {
+  if (!Dart_IsString(library_url)) {
     return Dart_Error("library url is not a string");
   }
   const char* library_url_str = NULL;
@@ -191,7 +189,7 @@ Dart_Handle DartUtils::CanonicalizeURL(CommandLineOptions* url_mapping,
   }
   // Calculate the canonical path.
   const char* canon_url_str = GetCanonicalPath(library_url_str, url_str);
-  Dart_Handle canon_url = Dart_NewString(canon_url_str);
+  Dart_Handle canon_url = NewString(canon_url_str);
   free(const_cast<char*>(canon_url_str));
 
   return canon_url;
@@ -210,18 +208,18 @@ Dart_Handle DartUtils::ReadStringFromFile(const char* filename) {
     return Dart_Error(error_msg);
   }
   intptr_t len = file->Length();
-  char* text_buffer = reinterpret_cast<char*>(malloc(len + 1));
+  uint8_t* text_buffer = reinterpret_cast<uint8_t*>(malloc(len));
   if (text_buffer == NULL) {
     delete file;
     return Dart_Error("Unable to allocate buffer");
   }
   if (!file->ReadFully(text_buffer, len)) {
     delete file;
+    free(text_buffer);
     return Dart_Error("Unable to fully read contents");
   }
-  text_buffer[len] = '\0';
   delete file;
-  Dart_Handle str = Dart_NewString(text_buffer);
+  Dart_Handle str = Dart_NewStringFromUTF8(text_buffer, len);
   free(text_buffer);
   return str;
 }
@@ -231,11 +229,13 @@ static Dart_Handle ResolveScriptUri(Dart_Handle script_uri,
                                     Dart_Handle builtin_lib) {
   const int kNumArgs = 3;
   Dart_Handle dart_args[kNumArgs];
-  dart_args[0] = Dart_NewString(DartUtils::original_working_directory);
+  dart_args[0] = DartUtils::NewString(DartUtils::original_working_directory);
   dart_args[1] = script_uri;
   dart_args[2] = (IsWindowsHost() ? Dart_True() : Dart_False());
-  return Dart_Invoke(
-      builtin_lib, Dart_NewString("_resolveScriptUri"), kNumArgs, dart_args);
+  return Dart_Invoke(builtin_lib,
+                     DartUtils::NewString("_resolveScriptUri"),
+                     kNumArgs,
+                     dart_args);
 }
 
 
@@ -246,7 +246,10 @@ static Dart_Handle FilePathFromUri(Dart_Handle script_uri,
   dart_args[0] = script_uri;
   dart_args[1] = (IsWindowsHost() ? Dart_True() : Dart_False());
   Dart_Handle script_path = Dart_Invoke(
-      builtin_lib, Dart_NewString("_filePathFromUri"), kNumArgs, dart_args);
+      builtin_lib,
+      DartUtils::NewString("_filePathFromUri"),
+      kNumArgs,
+      dart_args);
   return script_path;
 }
 
@@ -257,7 +260,7 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
   if (!Dart_IsLibrary(library)) {
     return Dart_Error("not a library");
   }
-  if (!Dart_IsString8(url)) {
+  if (!Dart_IsString(url)) {
     return Dart_Error("url is not a string");
   }
   const char* url_string = NULL;
@@ -285,7 +288,7 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
     dart_args[0] = library_url;
     dart_args[1] = url;
     return Dart_Invoke(
-        builtin_lib, Dart_NewString("_resolveUri"), kNumArgs, dart_args);
+        builtin_lib, NewString("_resolveUri"), kNumArgs, dart_args);
   }
   if (is_dart_scheme_url) {
     ASSERT(tag == kImportTag);
@@ -346,8 +349,7 @@ static Dart_Handle ReadSource(Dart_Handle script_uri,
 Dart_Handle DartUtils::LoadScript(const char* script_uri,
                                   Dart_Handle builtin_lib) {
   Dart_Handle resolved_script_uri;
-  resolved_script_uri = ResolveScriptUri(Dart_NewString(script_uri),
-                                         builtin_lib);
+  resolved_script_uri = ResolveScriptUri(NewString(script_uri), builtin_lib);
   if (Dart_IsError(resolved_script_uri)) {
     return resolved_script_uri;
   }
@@ -392,35 +394,35 @@ Dart_Handle DartUtils::LoadSource(CommandLineOptions* url_mapping,
 Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
                                                Dart_Handle builtin_lib) {
   // Setup the corelib 'print' function.
-  Dart_Handle print =
-      Dart_Invoke(builtin_lib, Dart_NewString("_getPrintClosure"), 0, 0);
-  Dart_Handle corelib = Dart_LookupLibrary(Dart_NewString("dart:core"));
+  Dart_Handle print = Dart_Invoke(
+      builtin_lib, NewString("_getPrintClosure"), 0, 0);
+  Dart_Handle corelib = Dart_LookupLibrary(NewString("dart:core"));
   Dart_Handle result = Dart_SetField(corelib,
-                                     Dart_NewString("_printClosure"), print);
+                                     NewString("_printClosure"),
+                                     print);
 
   // Setup the 'timer' factory.
-  Dart_Handle url = Dart_NewString(kIsolateLibURL);
+  Dart_Handle url = NewString(kIsolateLibURL);
   DART_CHECK_VALID(url);
   Dart_Handle isolate_lib = Dart_LookupLibrary(url);
   DART_CHECK_VALID(isolate_lib);
   Dart_Handle io_lib = Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
   Dart_Handle timer_closure =
-      Dart_Invoke(io_lib, Dart_NewString("_getTimerFactoryClosure"), 0, NULL);
+      Dart_Invoke(io_lib, NewString("_getTimerFactoryClosure"), 0, NULL);
   Dart_Handle args[1];
   args[0] = timer_closure;
-  DART_CHECK_VALID(Dart_Invoke(isolate_lib,
-                               Dart_NewString("_setTimerFactoryClosure"),
-                               1, args));
+  DART_CHECK_VALID(Dart_Invoke(
+      isolate_lib, NewString("_setTimerFactoryClosure"), 1, args));
 
   // Set up package root if specified.
   if (package_root != NULL) {
-    result = Dart_NewString(package_root);
+    result = NewString(package_root);
     if (!Dart_IsError(result)) {
       const int kNumArgs = 1;
       Dart_Handle dart_args[kNumArgs];
       dart_args[0] = result;
       return Dart_Invoke(builtin_lib,
-                         Dart_NewString("_setPackageRoot"),
+                         NewString("_setPackageRoot"),
                          kNumArgs,
                          dart_args);
     }
@@ -492,16 +494,16 @@ Dart_Handle DartUtils::NewDartOSError() {
 
 Dart_Handle DartUtils::NewDartOSError(OSError* os_error) {
   // Create a Dart OSError object with the information retrieved from the OS.
-  Dart_Handle url = Dart_NewString("dart:io");
+  Dart_Handle url = NewString("dart:io");
   if (Dart_IsError(url)) return url;
   Dart_Handle lib = Dart_LookupLibrary(url);
   if (Dart_IsError(lib)) return lib;
-  Dart_Handle class_name = Dart_NewString("OSError");
+  Dart_Handle class_name = NewString("OSError");
   if (Dart_IsError(class_name)) return class_name;
   Dart_Handle clazz = Dart_GetClass(lib, class_name);
   if (Dart_IsError(clazz)) return clazz;
   Dart_Handle args[2];
-  args[0] = Dart_NewString(os_error->message());
+  args[0] = NewString(os_error->message());
   if (Dart_IsError(args[0])) return args[0];
   args[1] = Dart_NewInteger(os_error->code());
   if (Dart_IsError(args[1])) return args[1];

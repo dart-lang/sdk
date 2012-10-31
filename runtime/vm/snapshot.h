@@ -36,7 +36,6 @@ class RawClass;
 class RawContext;
 class RawDouble;
 class RawField;
-class RawFourByteString;
 class RawClosureData;
 class RawRedirectionData;
 class RawFunction;
@@ -239,7 +238,6 @@ class SnapshotReader : public BaseReader {
   RawImmutableArray* NewImmutableArray(intptr_t len);
   RawOneByteString* NewOneByteString(intptr_t len);
   RawTwoByteString* NewTwoByteString(intptr_t len);
-  RawFourByteString* NewFourByteString(intptr_t len);
   RawTypeArguments* NewTypeArguments(intptr_t len);
   RawTokenStream* NewTokenStream(intptr_t len);
   RawContext* NewContext(intptr_t num_variables);

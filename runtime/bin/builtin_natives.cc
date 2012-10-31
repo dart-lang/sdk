@@ -103,9 +103,11 @@ Dart_NativeFunction Builtin::NativeLookup(Dart_Handle name,
 // test/debug functionality in standalone dart mode.
 
 void Builtin::PrintString(FILE* out, Dart_Handle str) {
-  const uint8_t* characters = NULL;
-  intptr_t length;
-  Dart_Handle result = Dart_StringToBytes(str, &characters, &length);
+  intptr_t length = 0;
+  Dart_Handle result = Dart_StringLength(str, &length);
+  DART_CHECK_VALID(result);
+  uint8_t* chars = reinterpret_cast<uint8_t*>(malloc(length * sizeof(uint8_t)));
+  result = Dart_StringToUTF8(str, chars, &length);
   if (Dart_IsError(result)) {
     // TODO(turnidge): Consider propagating some errors here.  What if
     // an isolate gets interrupted by the embedder in the middle of
@@ -113,10 +115,11 @@ void Builtin::PrintString(FILE* out, Dart_Handle str) {
     // interrupt.
     fputs(Dart_GetError(result), out);
   } else {
-    fwrite(characters, sizeof(*characters), length, out);
+    fwrite(chars, sizeof(*chars), length, out);
   }
   fputc('\n', out);
   fflush(out);
+  free(chars);
 }
 
 

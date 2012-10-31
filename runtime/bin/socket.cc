@@ -233,7 +233,7 @@ void FUNCTION_NAME(Socket_GetRemotePeer)(Dart_NativeArguments args) {
   char host[INET_ADDRSTRLEN];
   if (Socket::GetRemotePeer(socket, host, &port)) {
     Dart_Handle list = Dart_NewList(2);
-    Dart_ListSetAt(list, 0, Dart_NewString(host));
+    Dart_ListSetAt(list, 0, Dart_NewStringFromCString(host));
     Dart_ListSetAt(list, 1, Dart_NewInteger(port));
     Dart_SetReturnValue(args, list);
   } else {

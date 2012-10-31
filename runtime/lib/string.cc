@@ -15,14 +15,14 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
   GET_NATIVE_ARGUMENT(Array, a, arguments->At(0));
   // TODO(srdjan): Check that parameterized type is an int.
   Zone* zone = isolate->current_zone();
-  intptr_t len = a.Length();
+  intptr_t array_len = a.Length();
 
   // Unbox the array and determine the maximum element width.
   bool is_one_byte_string = true;
-  bool is_two_byte_string = true;
-  uint32_t* temp = zone->Alloc<uint32_t>(len);
+  intptr_t utf16_len = array_len;
+  uint32_t* utf32_array = zone->Alloc<uint32_t>(array_len);
   Object& index_object = Object::Handle(isolate);
-  for (intptr_t i = 0; i < len; i++) {
+  for (intptr_t i = 0; i < array_len; i++) {
     index_object = a.At(i);
     if (!index_object.IsSmi()) {
       GrowableArray<const Object*> args;
@@ -33,21 +33,20 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
     if (value < 0) {
       GrowableArray<const Object*> args;
       Exceptions::ThrowByType(Exceptions::kArgument, args);
-    } else if (value > 0xFFFF) {
-      is_one_byte_string = false;
-      is_two_byte_string = false;
-    } else if (value > 0xFF) {
-      is_one_byte_string = false;
+    } else {
+      if (value > 0x7F) {
+        is_one_byte_string = false;
+      }
+      if (value > 0xFFFF) {
+        utf16_len += 1;
+      }
     }
-    temp[i] = value;
+    utf32_array[i] = value;
   }
   if (is_one_byte_string) {
-    return OneByteString::New(temp, len, Heap::kNew);
-  } else if (is_two_byte_string) {
-    return TwoByteString::New(temp, len, Heap::kNew);
-  } else {
-    return FourByteString::New(temp, len, Heap::kNew);
+    return OneByteString::New(utf32_array, array_len, Heap::kNew);
   }
+  return TwoByteString::New(utf16_len, utf32_array, array_len, Heap::kNew);
 }
 
 

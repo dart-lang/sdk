@@ -109,10 +109,8 @@ class ObjectPointerVisitor;
   V(ImmutableArray, "_ImmutableArray")                                         \
   V(OneByteString, "_OneByteString")                                           \
   V(TwoByteString, "_TwoByteString")                                           \
-  V(FourByteString, "_FourByteString")                                         \
   V(ExternalOneByteString, "_ExternalOneByteString")                           \
   V(ExternalTwoByteString, "_ExternalTwoByteString")                           \
-  V(ExternalFourByteString, "_ExternalFourByteString")                         \
   V(Stacktrace, "Stacktrace")                                                  \
   V(JSSyntaxRegExp, "JSSyntaxRegExp")                                          \
   V(Object, "Object")                                                          \

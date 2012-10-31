@@ -1323,15 +1323,12 @@ DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle double_obj, double* value);
  */
 DART_EXPORT bool Dart_IsString(Dart_Handle object);
 
-/**
- * Is this object a String whose codepoints all fit into 8 bits?
- */
-DART_EXPORT bool Dart_IsString8(Dart_Handle object);
 
 /**
- * Is this object a String whose codepoints all fit into 16 bits?
+ * Is this object an ASCII String?
  */
-DART_EXPORT bool Dart_IsString16(Dart_Handle object);
+DART_EXPORT bool Dart_IsAsciiString(Dart_Handle object);
+
 
 /**
  * Gets the length of a String.
@@ -1345,51 +1342,54 @@ DART_EXPORT Dart_Handle Dart_StringLength(Dart_Handle str, intptr_t* length);
 
 /**
  * Returns a String built from the provided C string
+ * (There is an implicit assumption that the C string passed in contains
+ *  UTF-8 encoded characters and '\0' is considered as a termination
+ *  character).
  *
  * \param value A C String
  *
  * \return The String object if no error occurs. Otherwise returns
  *   an error handle.
  */
-DART_EXPORT Dart_Handle Dart_NewString(const char* str);
+DART_EXPORT Dart_Handle Dart_NewStringFromCString(const char* str);
 // TODO(turnidge): Document what happens when we run out of memory
 // during this call.
 
 /**
- * Returns a String built from an array of 8-bit codepoints.
+ * Returns a String built from an array of UTF-8 encoded characters.
  *
- * \param value An array of 8-bit codepoints.
+ * \param utf8_array An array of UTF-8 encoded characters.
  * \param length The length of the codepoints array.
  *
  * \return The String object if no error occurs. Otherwise returns
  *   an error handle.
  */
-DART_EXPORT Dart_Handle Dart_NewString8(const uint8_t* codepoints,
-                                        intptr_t length);
+DART_EXPORT Dart_Handle Dart_NewStringFromUTF8(const uint8_t* utf8_array,
+                                               intptr_t length);
 
 /**
- * Returns a String built from an array of 16-bit codepoints.
+ * Returns a String built from an array of UTF-16 encoded characters.
  *
- * \param value An array of 16-bit codepoints.
+ * \param utf16_array An array of UTF-16 encoded characters.
  * \param length The length of the codepoints array.
  *
  * \return The String object if no error occurs. Otherwise returns
  *   an error handle.
  */
-DART_EXPORT Dart_Handle Dart_NewString16(const uint16_t* codepoints,
-                                         intptr_t length);
+DART_EXPORT Dart_Handle Dart_NewStringFromUTF16(const uint16_t* utf16_array,
+                                                intptr_t length);
 
 /**
- * Returns a String built from an array of 32-bit codepoints.
+ * Returns a String built from an array of UTF-32 encoded characters.
  *
- * \param value An array of 32-bit codepoints.
+ * \param utf32_array An array of UTF-32 encoded characters.
  * \param length The length of the codepoints array.
  *
  * \return The String object if no error occurs. Otherwise returns
  *   an error handle.
  */
-DART_EXPORT Dart_Handle Dart_NewString32(const uint32_t* codepoints,
-                                         intptr_t length);
+DART_EXPORT Dart_Handle Dart_NewStringFromUTF32(const uint32_t* utf32_array,
+                                                intptr_t length);
 
 /**
  * Is this object an external String?
@@ -1405,135 +1405,84 @@ DART_EXPORT bool Dart_IsExternalString(Dart_Handle object);
 DART_EXPORT Dart_Handle Dart_ExternalStringGetPeer(Dart_Handle object,
                                                    void** peer);
 
-
 /**
- * Returns a String which references an external array of 8-bit codepoints.
+ * Returns a String which references an external array of UTF-8 encoded
+ * characters.
  *
- * \param value An array of 8-bit codepoints. This array must not move.
- * \param length The length of the codepoints array.
+ * \param utf8_array An array of UTF-8 encoded characters. This must not move.
+ * \param length The length of the characters array.
  * \param peer An external pointer to associate with this string.
- * \param callback A callback to be called when this string is finalized.
+ * \param cback A callback to be called when this string is finalized.
  *
  * \return The String object if no error occurs. Otherwise returns
  *   an error handle.
  */
-DART_EXPORT Dart_Handle Dart_NewExternalString8(const uint8_t* codepoints,
-                                                intptr_t length,
-                                                void* peer,
-                                                Dart_PeerFinalizer callback);
+DART_EXPORT Dart_Handle Dart_NewExternalUTF8String(const uint8_t* utf8_array,
+                                                   intptr_t length,
+                                                   void* peer,
+                                                   Dart_PeerFinalizer cback);
 
 /**
- * Returns a String which references an external array of 16-bit codepoints.
+ * Returns a String which references an external array of UTF-16 encoded
+ * characters.
  *
- * \param value An array of 16-bit codepoints. This array must not move.
- * \param length The length of the codepoints array.
+ * \param utf16_array An array of UTF-16 encoded characters. This must not move.
+ * \param length The length of the characters array.
  * \param peer An external pointer to associate with this string.
- * \param callback A callback to be called when this string is finalized.
+ * \param cback A callback to be called when this string is finalized.
  *
  * \return The String object if no error occurs. Otherwise returns
  *   an error handle.
  */
-DART_EXPORT Dart_Handle Dart_NewExternalString16(const uint16_t* codepoints,
-                                                 intptr_t length,
-                                                 void* peer,
-                                                 Dart_PeerFinalizer callback);
+DART_EXPORT Dart_Handle Dart_NewExternalUTF16String(const uint16_t* utf16_array,
+                                                    intptr_t length,
+                                                    void* peer,
+                                                    Dart_PeerFinalizer cback);
 
 /**
- * Returns a String which references an external array of 32-bit codepoints.
- *
- * \param value An array of 32-bit codepoints. This array must not move.
- * \param length The length of the codepoints array.
- * \param peer An external pointer to associate with this string.
- * \param callback A callback to be called when this string is finalized.
- *
- * \return The String object if no error occurs. Otherwise returns
- *   an error handle.
- */
-DART_EXPORT Dart_Handle Dart_NewExternalString32(const uint32_t* codepoints,
-                                                 intptr_t length,
-                                                 void* peer,
-                                                 Dart_PeerFinalizer callback);
-
-/**
- * Gets the codepoints from a String.
- *
- * This function is only valid on strings for which Dart_IsString8 is
- * true. Otherwise an error occurs.
+ * Gets the C string representation of a String.
+ * (It is a sequence of UTF-8 encoded values with a '\0' termination.)
  *
  * \param str A string.
- * \param codepoints An array allocated by the caller, used to return
- *   the array of codepoints.
- * \param length Used to pass in the length of the provided array.
- *   Used to return the length of the array which was actually used.
- *
- * \return A valid handle if no error occurs during the operation.
- */
-DART_EXPORT Dart_Handle Dart_StringGet8(Dart_Handle str,
-                                        uint8_t* codepoints,
-                                        intptr_t* length);
-// TODO(turnidge): Rename to GetString8 to be consistent with the Is*
-// and New* functions above?
-
-/**
- * Gets the codepoints from a String.
- *
- * This function is only valid on strings for which Dart_IsString8 or
- * Dart_IsString16 is true. Otherwise an error occurs.
- *
- * \param str A string.
- * \param codepoints An array allocated by the caller, used to return
- *   the array of codepoints.
- * \param length Used to pass in the length of the provided array.
- *   Used to return the length of the array which was actually used.
- *
- * \return A valid handle if no error occurs during the operation.
- */
-DART_EXPORT Dart_Handle Dart_StringGet16(Dart_Handle str,
-                                         uint16_t* codepoints,
-                                         intptr_t* length);
-
-/**
- * Gets the codepoints from a String
- *
- * \param str A string.
- * \param codepoints An array allocated by the caller, used to return
- *   the array of codepoints.
- * \param length Used to pass in the length of the provided array.
- *   Used to return the length of the array which was actually used.
- *
- * \return A valid handle if no error occurs during the operation.
- */
-DART_EXPORT Dart_Handle Dart_StringGet32(Dart_Handle str,
-                                         uint32_t* codepoints,
-                                         intptr_t* length);
-
-/**
- * Gets the utf8 encoded representation of a String.
- *
- * \param str A string.
- * \param utf8 Returns the String represented as a utf8 encoded C
- *   string. This C string is scope allocated and is only valid until
+ * \param cstr Returns the String represented as a C string.
+ *   This C string is scope allocated and is only valid until
  *   the next call to Dart_ExitScope.
  *
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle str,
-                                             const char** utf8);
+                                             const char** cstr);
 
 /**
  * Gets a UTF-8 encoded representation of a String.
  *
  * \param str A string.
- * \param bytes Returns the String represented as an array of UTF-8
- *   code units. This array is scope allocated and is only valid until
- *   the next call to Dart_ExitScope.
- * \param length Returns the length of the code units array, in bytes.
+ * \param utf8_array An array allocated by the caller, used to return
+ *   the array of UTF-8 encoded characters.
+ * \param length Used to pass in the length of the provided array.
+ *   Used to return the length of the array which was actually used.
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT Dart_Handle Dart_StringToBytes(Dart_Handle str,
-                                           const uint8_t** bytes,
+DART_EXPORT Dart_Handle Dart_StringToUTF8(Dart_Handle str,
+                                          uint8_t* utf8_array,
+                                          intptr_t* length);
+
+/**
+ * Gets the UTF-16 encoded representation of a string.
+ *
+ * \param str A string.
+ * \param utf16_array An array allocated by the caller, used to return
+ *   the array of UTF-16 encoded characters.
+ * \param length Used to pass in the length of the provided array.
+ *   Used to return the length of the array which was actually used.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_StringToUTF16(Dart_Handle str,
+                                           uint16_t* utf16_array,
                                            intptr_t* length);
+
 
 // --- Lists ---
 

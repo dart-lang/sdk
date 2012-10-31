@@ -273,13 +273,6 @@ bool Api::ExternalStringGetPeerHelper(Dart_Handle object, void** peer) {
       *peer = data->peer();
       return true;
     }
-    case kExternalFourByteStringCid: {
-      RawExternalFourByteString* raw_string =
-          reinterpret_cast<RawExternalFourByteString*>(raw_obj)->ptr();
-      ExternalStringData<uint32_t>* data = raw_string->external_data_;
-      *peer = data->peer();
-      return true;
-    }
   }
   return false;
 }
@@ -1522,13 +1515,8 @@ DART_EXPORT bool Dart_IsString(Dart_Handle object) {
 }
 
 
-DART_EXPORT bool Dart_IsString8(Dart_Handle object) {
+DART_EXPORT bool Dart_IsAsciiString(Dart_Handle object) {
   return RawObject::IsOneByteStringClassId(Api::ClassId(object));
-}
-
-
-DART_EXPORT bool Dart_IsString16(Dart_Handle object) {
-  return RawObject::IsTwoByteStringClassId(Api::ClassId(object));
 }
 
 
@@ -1544,53 +1532,53 @@ DART_EXPORT Dart_Handle Dart_StringLength(Dart_Handle str, intptr_t* len) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewString(const char* str) {
+DART_EXPORT Dart_Handle Dart_NewStringFromCString(const char* str) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   if (str == NULL) {
     RETURN_NULL_ERROR(str);
   }
-  if (!Utf8::IsValid(str)) {
-    return Api::NewError("%s expects argument 'str' to be valid UTF-8.",
-                         CURRENT_FUNC);
-  }
   return Api::NewHandle(isolate, String::New(str));
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewString8(const uint8_t* codepoints,
-                                        intptr_t length) {
+DART_EXPORT Dart_Handle Dart_NewStringFromUTF8(const uint8_t* utf8_array,
+                                               intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  if (codepoints == NULL && length != 0) {
-    RETURN_NULL_ERROR(codepoints);
+  if (utf8_array == NULL && length != 0) {
+    RETURN_NULL_ERROR(utf8_array);
   }
   CHECK_LENGTH(length, String::kMaxElements);
-  return Api::NewHandle(isolate, String::New(codepoints, length));
+  if (!Utf8::IsValid(utf8_array, length)) {
+    return Api::NewError("%s expects argument 'str' to be valid UTF-8.",
+                         CURRENT_FUNC);
+  }
+  return Api::NewHandle(isolate, String::New(utf8_array, length));
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewString16(const uint16_t* codepoints,
-                                         intptr_t length) {
+DART_EXPORT Dart_Handle Dart_NewStringFromUTF16(const uint16_t* utf16_array,
+                                                intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  if (codepoints == NULL && length != 0) {
-    RETURN_NULL_ERROR(codepoints);
+  if (utf16_array == NULL && length != 0) {
+    RETURN_NULL_ERROR(utf16_array);
   }
   CHECK_LENGTH(length, String::kMaxElements);
-  return Api::NewHandle(isolate, String::New(codepoints, length));
+  return Api::NewHandle(isolate, String::New(utf16_array, length));
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewString32(const uint32_t* codepoints,
-                                         intptr_t length) {
+DART_EXPORT Dart_Handle Dart_NewStringFromUTF32(const uint32_t* utf32_array,
+                                                intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  if (codepoints == NULL && length != 0) {
-    RETURN_NULL_ERROR(codepoints);
+  if (utf32_array == NULL && length != 0) {
+    RETURN_NULL_ERROR(utf32_array);
   }
   CHECK_LENGTH(length, String::kMaxElements);
-  return Api::NewHandle(isolate, String::New(codepoints, length));
+  return Api::NewHandle(isolate, String::New(utf32_array, length));
 }
 
 
@@ -1623,113 +1611,38 @@ DART_EXPORT Dart_Handle Dart_ExternalStringGetPeer(Dart_Handle object,
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewExternalString8(const uint8_t* codepoints,
-                                                intptr_t length,
-                                                void* peer,
-                                                Dart_PeerFinalizer callback) {
+DART_EXPORT Dart_Handle Dart_NewExternalUTF8String(const uint8_t* utf8_array,
+                                                   intptr_t length,
+                                                   void* peer,
+                                                   Dart_PeerFinalizer cback) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  if (codepoints == NULL && length != 0) {
-    RETURN_NULL_ERROR(codepoints);
+  if (utf8_array == NULL && length != 0) {
+    RETURN_NULL_ERROR(utf8_array);
   }
   CHECK_LENGTH(length, String::kMaxElements);
-  return Api::NewHandle(
-      isolate, String::NewExternal(codepoints, length, peer, callback));
+  return Api::NewHandle(isolate,
+                        String::NewExternal(utf8_array, length, peer, cback));
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewExternalString16(const uint16_t* codepoints,
-                                                 intptr_t length,
-                                                 void* peer,
-                                                 Dart_PeerFinalizer callback) {
+DART_EXPORT Dart_Handle Dart_NewExternalUTF16String(const uint16_t* utf16_array,
+                                                    intptr_t length,
+                                                    void* peer,
+                                                    Dart_PeerFinalizer cback) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  if (codepoints == NULL && length != 0) {
-    RETURN_NULL_ERROR(codepoints);
+  if (utf16_array == NULL && length != 0) {
+    RETURN_NULL_ERROR(utf16_array);
   }
   CHECK_LENGTH(length, String::kMaxElements);
-  return Api::NewHandle(
-      isolate, String::NewExternal(codepoints, length, peer, callback));
-}
-
-
-DART_EXPORT Dart_Handle Dart_NewExternalString32(const uint32_t* codepoints,
-                                                 intptr_t length,
-                                                 void* peer,
-                                                 Dart_PeerFinalizer callback) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  if (codepoints == NULL && length != 0) {
-    RETURN_NULL_ERROR(codepoints);
-  }
-  CHECK_LENGTH(length, String::kMaxElements);
-  return Api::NewHandle(
-      isolate, String::NewExternal(codepoints, length, peer, callback));
-}
-
-
-DART_EXPORT Dart_Handle Dart_StringGet8(Dart_Handle str,
-                                        uint8_t* codepoints,
-                                        intptr_t* length) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const OneByteString& str_obj = Api::UnwrapOneByteStringHandle(isolate, str);
-  if (str_obj.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, str, String8);
-  }
-  intptr_t str_len = str_obj.Length();
-  intptr_t copy_len = (str_len > *length) ? *length : str_len;
-  for (intptr_t i = 0; i < copy_len; i++) {
-    codepoints[i] = static_cast<uint8_t>(str_obj.CharAt(i));
-  }
-  *length= copy_len;
-  return Api::Success(isolate);
-}
-
-
-DART_EXPORT Dart_Handle Dart_StringGet16(Dart_Handle str,
-                                         uint16_t* codepoints,
-                                         intptr_t* length) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const String& str_obj = Api::UnwrapStringHandle(isolate, str);
-  if (str_obj.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, str, String);
-  }
-  if (str_obj.CharSize() > String::kTwoByteChar) {
-    return Api::NewError("Object is not a String16 or String8");
-  }
-  intptr_t str_len = str_obj.Length();
-  intptr_t copy_len = (str_len > *length) ? *length : str_len;
-  for (intptr_t i = 0; i < copy_len; i++) {
-    codepoints[i] = static_cast<uint16_t>(str_obj.CharAt(i));
-  }
-  *length = copy_len;
-  return Api::Success(isolate);
-}
-
-
-DART_EXPORT Dart_Handle Dart_StringGet32(Dart_Handle str,
-                                         uint32_t* codepoints,
-                                         intptr_t* length) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const String& str_obj = Api::UnwrapStringHandle(isolate, str);
-  if (str_obj.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, str, String);
-  }
-  intptr_t str_len = str_obj.Length();
-  intptr_t copy_len = (str_len > *length) ? *length : str_len;
-  for (intptr_t i = 0; i < copy_len; i++) {
-    codepoints[i] = static_cast<uint32_t>(str_obj.CharAt(i));
-  }
-  *length = copy_len;
-  return Api::Success(isolate);
+  return Api::NewHandle(isolate,
+                        String::NewExternal(utf16_array, length, peer, cback));
 }
 
 
 DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle object,
-                                             const char** result) {
+                                             const char** cstr) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const String& str_obj = Api::UnwrapStringHandle(isolate, object);
@@ -1744,34 +1657,45 @@ DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle object,
   const char* string_value = str_obj.ToCString();
   memmove(res, string_value, string_length + 1);
   ASSERT(res[string_length] == '\0');
-  *result = res;
+  *cstr = res;
   return Api::Success(isolate);
 }
 
 
-DART_EXPORT Dart_Handle Dart_StringToBytes(Dart_Handle object,
-                                           const uint8_t** bytes,
-                                           intptr_t *length) {
+DART_EXPORT Dart_Handle Dart_StringToUTF8(Dart_Handle str,
+                                          uint8_t* utf8_array,
+                                          intptr_t* length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const String& str = Api::UnwrapStringHandle(isolate, object);
-  if (str.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, object, String);
+  const String& str_obj = Api::UnwrapStringHandle(isolate, str);
+  if (str_obj.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, str, String);
   }
-  if (bytes == NULL) {
-    RETURN_NULL_ERROR(bytes);
+  intptr_t str_len = str_obj.Length();
+  if (str_len > *length) {
+    return Api::NewError("Input array is not large enough to hold the result");
   }
-  if (length == NULL) {
-    RETURN_NULL_ERROR(length);
+  str_obj.ToUTF8(utf8_array, str_len);
+  *length= str_len;
+  return Api::Success(isolate);
+}
+
+
+DART_EXPORT Dart_Handle Dart_StringToUTF16(Dart_Handle str,
+                                           uint16_t* utf16_array,
+                                           intptr_t* length) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const String& str_obj = Api::UnwrapStringHandle(isolate, str);
+  if (str_obj.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, str, String);
   }
-  const char* cstring = str.ToCString();
-  *length = Utf8::Length(str);
-  uint8_t* result = Api::TopScope(isolate)->zone()->Alloc<uint8_t>(*length);
-  if (result == NULL) {
-    return Api::NewError("Unable to allocate memory");
+  intptr_t str_len = str_obj.Length();
+  intptr_t copy_len = (str_len > *length) ? *length : str_len;
+  for (intptr_t i = 0; i < copy_len; i++) {
+    utf16_array[i] = static_cast<uint16_t>(str_obj.CharAt(i));
   }
-  memmove(result, cstring, *length);
-  *bytes = result;
+  *length = copy_len;
   return Api::Success(isolate);
 }
 

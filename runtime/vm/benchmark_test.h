@@ -35,6 +35,11 @@ DECLARE_FLAG(int, heap_growth_space_ratio);
   static void Dart_BenchmarkHelper##name(Benchmark* benchmark)
 
 
+inline Dart_Handle NewString(const char* str) {
+  return Dart_NewStringFromCString(str);
+}
+
+
 class Benchmark {
  public:
   typedef void (RunEntry)(Benchmark* benchmark);

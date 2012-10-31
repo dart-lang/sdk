@@ -18,9 +18,7 @@ TEST_CASE(OldGC) {
   "}\n";
   FLAG_verbose_gc = true;
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle result = Dart_Invoke(lib,
-                                   Dart_NewString("main"),
-                                   0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
 
   EXPECT_VALID(result);
   EXPECT(!Dart_IsNull(result));
@@ -39,9 +37,7 @@ TEST_CASE(LargeSweep) {
   FLAG_verbose_gc = true;
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_EnterScope();
-  Dart_Handle result = Dart_Invoke(lib,
-                                   Dart_NewString("main"),
-                                   0, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
 
   EXPECT_VALID(result);
   EXPECT(!Dart_IsNull(result));

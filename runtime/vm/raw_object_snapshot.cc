@@ -1715,37 +1715,6 @@ RawTwoByteString* TwoByteString::ReadFrom(SnapshotReader* reader,
 }
 
 
-RawFourByteString* FourByteString::ReadFrom(SnapshotReader* reader,
-                                            intptr_t object_id,
-                                            intptr_t tags,
-                                            Snapshot::Kind kind) {
-  // Read the length so that we can determine instance size to allocate.
-  ASSERT(reader != NULL);
-  intptr_t len = reader->ReadSmiValue();
-  intptr_t hash = reader->ReadSmiValue();
-  FourByteString& str_obj = FourByteString::ZoneHandle(reader->isolate(),
-                                                       FourByteString::null());
-
-  if (kind == Snapshot::kFull) {
-    RawFourByteString* obj = reader->NewFourByteString(len);
-    str_obj = obj;
-    str_obj.set_tags(tags);
-    obj->ptr()->hash_ = Smi::New(hash);
-    uint32_t* raw_ptr = (len > 0)? str_obj.CharAddr(0) : NULL;
-    for (intptr_t i = 0; i < len; i++) {
-      ASSERT(str_obj.CharAddr(i) == raw_ptr);  // Will trigger assertions.
-      *raw_ptr = reader->Read<uint32_t>();
-      raw_ptr += 1;
-    }
-    ASSERT(String::Hash(str_obj, 0, str_obj.Length()) == hash);
-  } else {
-    ReadFromImpl<FourByteString, uint32_t>(reader, &str_obj, len, tags, kind);
-  }
-  reader->AddBackRef(object_id, &str_obj, kIsDeserialized);
-  return str_obj.raw();
-}
-
-
 template<typename T>
 static void StringWriteTo(SnapshotWriter* writer,
                           intptr_t object_id,
@@ -1812,20 +1781,6 @@ void RawTwoByteString::WriteTo(SnapshotWriter* writer,
 }
 
 
-void RawFourByteString::WriteTo(SnapshotWriter* writer,
-                                intptr_t object_id,
-                                Snapshot::Kind kind) {
-  StringWriteTo(writer,
-                object_id,
-                kind,
-                kFourByteStringCid,
-                writer->GetObjectTags(this),
-                ptr()->length_,
-                ptr()->hash_,
-                ptr()->data_);
-}
-
-
 RawExternalOneByteString* ExternalOneByteString::ReadFrom(
     SnapshotReader* reader,
     intptr_t object_id,
@@ -1843,16 +1798,6 @@ RawExternalTwoByteString* ExternalTwoByteString::ReadFrom(
     Snapshot::Kind kind) {
   UNREACHABLE();
   return ExternalTwoByteString::null();
-}
-
-
-RawExternalFourByteString* ExternalFourByteString::ReadFrom(
-    SnapshotReader* reader,
-    intptr_t object_id,
-    intptr_t tags,
-    Snapshot::Kind kind) {
-  UNREACHABLE();
-  return ExternalFourByteString::null();
 }
 
 
@@ -1879,21 +1824,6 @@ void RawExternalTwoByteString::WriteTo(SnapshotWriter* writer,
                 object_id,
                 kind,
                 kTwoByteStringCid,
-                writer->GetObjectTags(this),
-                ptr()->length_,
-                ptr()->hash_,
-                ptr()->external_data_->data());
-}
-
-
-void RawExternalFourByteString::WriteTo(SnapshotWriter* writer,
-                                        intptr_t object_id,
-                                        Snapshot::Kind kind) {
-  // Serialize as a non-external four byte string.
-  StringWriteTo(writer,
-                object_id,
-                kind,
-                kFourByteStringCid,
                 writer->GetObjectTags(this),
                 ptr()->length_,
                 ptr()->hash_,

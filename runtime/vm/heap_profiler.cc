@@ -278,10 +278,8 @@ void HeapProfiler::WriteObject(const RawObject* raw_obj) {
     }
     case kOneByteStringCid:
     case kTwoByteStringCid:
-    case kFourByteStringCid:
     case kExternalOneByteStringCid:
-    case kExternalTwoByteStringCid:
-    case kExternalFourByteStringCid: {
+    case kExternalTwoByteStringCid: {
       WriteInstanceDump(StringId(reinterpret_cast<const RawString*>(raw_obj)));
       break;
     }
@@ -355,7 +353,8 @@ void HeapProfiler::WriteStringInUtf8(const RawString* raw_string) {
       int32_t ch = onestr->ptr()->data_[i];
       j += Utf8::Encode(ch, &characters[j]);
     }
-  } else if (class_id == kTwoByteStringCid) {
+  } else {
+    ASSERT(class_id == kTwoByteStringCid);
     const RawTwoByteString* twostr =
         reinterpret_cast<const RawTwoByteString*>(raw_string);
     for (intptr_t i = 0; i < Smi::Value(twostr->ptr()->length_); ++i) {
@@ -364,18 +363,6 @@ void HeapProfiler::WriteStringInUtf8(const RawString* raw_string) {
     characters = new char[length];
     for (intptr_t i = 0, j = 0; i < Smi::Value(twostr->ptr()->length_); ++i) {
       int32_t ch = twostr->ptr()->data_[i];
-      j += Utf8::Encode(ch, &characters[j]);
-    }
-  } else {
-    ASSERT(class_id == kFourByteStringCid);
-    const RawFourByteString* fourstr =
-        reinterpret_cast<const RawFourByteString*>(raw_string);
-    for (intptr_t i = 0; i < Smi::Value(fourstr->ptr()->length_); ++i) {
-      length += Utf8::Length(fourstr->ptr()->data_[i]);
-    }
-    characters = new char[length];
-    for (intptr_t i = 0, j = 0; i < Smi::Value(fourstr->ptr()->length_); ++i) {
-      int32_t ch = fourstr->ptr()->data_[i];
       j += Utf8::Encode(ch, &characters[j]);
     }
   }

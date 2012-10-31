@@ -10,7 +10,7 @@
 
 namespace dart {
 
-static const uint8_t kTrailBytes[256] = {
+static const int8_t kTrailBytes[256] = {
   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -58,6 +58,18 @@ static bool IsTrailByte(uint8_t code_unit) {
 }
 
 
+static bool IsAsciiSequenceStart(uint8_t code_unit) {
+  // Check is codepoint is <= U+007F
+  return (code_unit <= Utf8::kMaxOneByteChar);
+}
+
+
+static bool IsSmpSequenceStart(uint8_t code_unit) {
+  // Check is codepoint is >= U+10000.
+  return (code_unit >= 0xF0);
+}
+
+
 // Returns true if the code point is a high- or low-surrogate.
 static bool IsSurrogate(uint32_t code_point) {
   return (code_point & 0xfffff800) == 0xd800;
@@ -66,7 +78,7 @@ static bool IsSurrogate(uint32_t code_point) {
 
 // Returns true if the code point value is above Plane 17.
 static bool IsOutOfRange(uint32_t code_point) {
-  return code_point > 0x10FFFF;
+  return (code_point > 0x10FFFF);
 }
 
 
@@ -76,47 +88,51 @@ static bool IsNonShortestForm(uint32_t code_point, size_t num_bytes) {
 }
 
 
+void Utf8::ConvertUTF32ToUTF16(int32_t codepoint, uint16_t* dst) {
+  ASSERT(codepoint > kMaxBmpCodepoint);
+  ASSERT(dst != NULL);
+  dst[0] = (Utf8::kLeadOffset + (codepoint >> 10));
+  dst[1] = (0xDC00 + (codepoint & 0x3FF));
+}
+
+
 // Returns a count of the number of UTF-8 trail bytes.
-intptr_t Utf8::CodePointCount(const char* str, intptr_t* width) {
-  bool is_two_byte_string = false;
-  bool is_four_byte_string = false;
+intptr_t Utf8::CodePointCount(const uint8_t* utf8_array,
+                              intptr_t array_len,
+                              Type* type) {
   intptr_t len = 0;
-  for (; *str != '\0'; ++str) {
-    uint8_t code_unit = *str;
+  Type char_type = kAscii;
+  for (intptr_t i = 0; i < array_len; i++) {
+    uint8_t code_unit = utf8_array[i];
     if (!IsTrailByte(code_unit)) {
       ++len;
     }
-    if (code_unit > 0xC3) {  // > U+00FF
-      if (code_unit < 0xF0) {  // < U+10000
-        is_two_byte_string = true;
-      } else {
-        is_four_byte_string = true;
+    if (!IsAsciiSequenceStart(code_unit)) {  // > U+007F
+      if (IsSmpSequenceStart(code_unit)) {  // >= U+10000
+        char_type = kSMP;
+        ++len;
+      } else if (char_type == kAscii) {
+        char_type = kBMP;
       }
     }
   }
-  if (is_four_byte_string) {
-    *width = 4;
-  } else if (is_two_byte_string) {
-    *width = 2;
-  } else {
-    *width = 1;
-  }
+  *type = char_type;
   return len;
 }
 
 
 // Returns true if str is a valid NUL-terminated UTF-8 string.
-bool Utf8::IsValid(const char* str) {
+bool Utf8::IsValid(const uint8_t* utf8_array, intptr_t array_len) {
   intptr_t i = 0;
-  while (str[i] != '\0') {
-    uint32_t ch = str[i] & 0xFF;
+  while (i < array_len) {
+    uint32_t ch = utf8_array[i] & 0xFF;
     intptr_t j = 1;
     if (ch >= 0x80) {
-      uint8_t num_trail_bytes = kTrailBytes[ch];
+      int8_t num_trail_bytes = kTrailBytes[ch];
       bool is_malformed = false;
       for (; j < num_trail_bytes; ++j) {
-        if (str[i + j] != '\0') {
-          uint8_t code_unit = str[i + j];
+        if ((i + j) < array_len) {
+          uint8_t code_unit = utf8_array[i + j];
           is_malformed |= !IsTrailByte(code_unit);
           ch = (ch << 6) + code_unit;
         } else {
@@ -202,15 +218,17 @@ intptr_t Utf8::Encode(const String& src, char* dst, intptr_t len) {
 }
 
 
-intptr_t Utf8::Decode(const char* src, int32_t* dst) {
-  uint32_t ch = src[0] & 0xFF;
-  uint32_t i = 1;
+intptr_t Utf8::Decode(const uint8_t* utf8_array,
+                      intptr_t array_len,
+                      int32_t* dst) {
+  uint32_t ch = utf8_array[0] & 0xFF;
+  intptr_t i = 1;
   if (ch >= 0x80) {
-    uint32_t num_trail_bytes = kTrailBytes[ch];
+    int32_t num_trail_bytes = kTrailBytes[ch];
     bool is_malformed = false;
     for (; i < num_trail_bytes; ++i) {
-      if (src[i] != '\0') {
-        uint8_t code_unit = src[i];
+      if (i < array_len) {
+        uint8_t code_unit = utf8_array[i];
         is_malformed |= !IsTrailByte(code_unit);
         ch = (ch << 6) + code_unit;
       } else {
@@ -233,38 +251,70 @@ intptr_t Utf8::Decode(const char* src, int32_t* dst) {
 }
 
 
-template<typename T>
-static bool DecodeImpl(const char* src, T* dst, intptr_t len) {
+bool Utf8::DecodeToAscii(const uint8_t* utf8_array,
+                         intptr_t array_len,
+                         uint8_t* dst,
+                         intptr_t len) {
+  if (len < array_len) {
+    return false;  // output overflow
+  }
+#ifdef DEBUG
+  for (intptr_t i = 0; i < array_len; i++) {
+    ASSERT(IsAsciiSequenceStart(utf8_array[i]));
+  }
+#endif
+  memmove(dst, utf8_array, array_len);
+  return true;  // success
+}
+
+
+bool Utf8::DecodeToUTF16(const uint8_t* utf8_array,
+                         intptr_t array_len,
+                         uint16_t* dst,
+                         intptr_t len) {
   intptr_t i = 0;
   intptr_t j = 0;
   intptr_t num_bytes;
-  for (; src[i] != '\0' && j < len; i += num_bytes, ++j) {
+  for (; (i < array_len) && (j < len); i += num_bytes, ++j) {
     int32_t ch;
-    num_bytes = Utf8::Decode(&src[i], &ch);
+    bool is_smp = IsSmpSequenceStart(utf8_array[i]);
+    num_bytes = Utf8::Decode(&utf8_array[i], (array_len - i), &ch);
     if (ch == -1) {
       return false;  // invalid input
     }
-    dst[j] = ch;
+    if (is_smp) {
+      ConvertUTF32ToUTF16(ch, &(dst[j]));
+      j = j + 1;
+    } else {
+      dst[j] = ch;
+    }
   }
-  if (src[i] != '\0' && j == len) {
+  if ((i < array_len) && (j == len)) {
     return false;  // output overflow
   }
   return true;  // success
 }
 
 
-bool Utf8::Decode(const char* src, uint8_t* dst, intptr_t len) {
-  return DecodeImpl(src, dst, len);
-}
-
-
-bool Utf8::Decode(const char* src, uint16_t* dst, intptr_t len) {
-  return DecodeImpl(src, dst, len);
-}
-
-
-bool Utf8::Decode(const char* src, uint32_t* dst, intptr_t len) {
-  return DecodeImpl(src, dst, len);
+bool Utf8::DecodeToUTF32(const uint8_t* utf8_array,
+                         intptr_t array_len,
+                         uint32_t* dst,
+                         intptr_t len) {
+  intptr_t i = 0;
+  intptr_t j = 0;
+  intptr_t num_bytes;
+  for (; (i < array_len) && (j < len); i += num_bytes, ++j) {
+    int32_t ch;
+    num_bytes = Utf8::Decode(&utf8_array[i], (array_len - i), &ch);
+    if (ch == -1) {
+      return false;  // invalid input
+    }
+    dst[j] = ch;
+  }
+  if ((i < array_len) && (j == len)) {
+    return false;  // output overflow
+  }
+  return true;  // success
 }
 
 }  // namespace dart

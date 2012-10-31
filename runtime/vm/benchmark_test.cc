@@ -173,26 +173,18 @@ BENCHMARK(UseDartApi) {
 
   // Create a native wrapper class with native fields.
   Dart_Handle result = Dart_CreateNativeWrapperClass(
-      lib,
-      Dart_NewString("NativeFieldsWrapper"),
-      1);
+      lib, NewString("NativeFieldsWrapper"), 1);
   EXPECT_VALID(result);
 
   Dart_Handle args[1];
   args[0] = Dart_NewInteger(kNumIterations);
 
   // Warmup first to avoid compilation jitters.
-  Dart_Invoke(lib,
-              Dart_NewString("benchmark"),
-              1,
-              args);
+  Dart_Invoke(lib, NewString("benchmark"), 1, args);
 
   Timer timer(true, "UseDartApi benchmark");
   timer.Start();
-  Dart_Invoke(lib,
-              Dart_NewString("benchmark"),
-              1,
-              args);
+  Dart_Invoke(lib, NewString("benchmark"), 1, args);
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
   benchmark->set_score(elapsed_time);
@@ -211,17 +203,15 @@ BENCHMARK(DartStringAccess) {
   // Create strings.
   uint8_t data8[] = { 'o', 'n', 'e', 0xFF };
   int external_peer_data = 123;
-  Dart_Handle external_string = Dart_NewExternalString8(data8,
-                                                        ARRAY_SIZE(data8),
-                                                        &external_peer_data,
-                                                        NULL);
-  Dart_Handle internal_string = Dart_NewString("two");
+  Dart_Handle external_string = Dart_NewExternalUTF8String(data8,
+                                                           ARRAY_SIZE(data8),
+                                                           &external_peer_data,
+                                                           NULL);
+  Dart_Handle internal_string = NewString("two");
 
   // Run benchmark.
   for (int64_t i = 0; i < kNumIterations; i++) {
     EXPECT(Dart_IsString(internal_string));
-    EXPECT(Dart_IsString8(internal_string));
-    EXPECT(Dart_IsString16(internal_string));
     EXPECT(!Dart_IsExternalString(internal_string));
     EXPECT_VALID(external_string);
     EXPECT(Dart_IsExternalString(external_string));
@@ -387,8 +377,8 @@ BENCHMARK(FrameLookup) {
   Dart_Handle lib = TestCase::LoadTestScript(
       kScriptChars,
       reinterpret_cast<Dart_NativeEntryResolver>(StackFrameNativeResolver));
-  Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("StackFrameTest"));
-  Dart_Handle result = Dart_Invoke(cls, Dart_NewString("testMain"), 0, NULL);
+  Dart_Handle cls = Dart_GetClass(lib, NewString("StackFrameTest"));
+  Dart_Handle result = Dart_Invoke(cls, NewString("testMain"), 0, NULL);
   EXPECT_VALID(result);
   int64_t elapsed_time = 0;
   result = Dart_IntegerToInt64(result, &elapsed_time);

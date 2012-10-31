@@ -101,13 +101,6 @@ intptr_t RawObject::SizeFromClass() const {
         instance_size = TwoByteString::InstanceSize(string_length);
         break;
       }
-      case kFourByteStringCid: {
-        const RawFourByteString* raw_string =
-            reinterpret_cast<const RawFourByteString*>(this);
-        intptr_t string_length = Smi::Value(raw_string->ptr()->length_);
-        instance_size = FourByteString::InstanceSize(string_length);
-        break;
-      }
       case kArrayCid:
       case kImmutableArrayCid: {
         const RawArray* raw_array = reinterpret_cast<const RawArray*>(this);
@@ -688,14 +681,6 @@ intptr_t RawTwoByteString::VisitTwoByteStringPointers(
 }
 
 
-intptr_t RawFourByteString::VisitFourByteStringPointers(
-    RawFourByteString* raw_obj, ObjectPointerVisitor* visitor) {
-  intptr_t length = Smi::Value(raw_obj->ptr()->length_);
-  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-  return FourByteString::InstanceSize(length);
-}
-
-
 intptr_t RawExternalOneByteString::VisitExternalOneByteStringPointers(
     RawExternalOneByteString* raw_obj, ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
@@ -711,15 +696,6 @@ intptr_t RawExternalTwoByteString::VisitExternalTwoByteStringPointers(
   ASSERT(raw_obj->IsHeapObject());
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return ExternalTwoByteString::InstanceSize();
-}
-
-
-intptr_t RawExternalFourByteString::VisitExternalFourByteStringPointers(
-    RawExternalFourByteString* raw_obj, ObjectPointerVisitor* visitor) {
-  // Make sure that we got here with the tagged pointer as this.
-  ASSERT(raw_obj->IsHeapObject());
-  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-  return ExternalFourByteString::InstanceSize();
 }
 
 

@@ -127,14 +127,10 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   ASSERT(OneByteString::InstanceSize() == cls.instance_size());
   cls = object_store->two_byte_string_class();
   ASSERT(TwoByteString::InstanceSize() == cls.instance_size());
-  cls = object_store->four_byte_string_class();
-  ASSERT(FourByteString::InstanceSize() == cls.instance_size());
   cls = object_store->external_one_byte_string_class();
   ASSERT(ExternalOneByteString::InstanceSize() == cls.instance_size());
   cls = object_store->external_two_byte_string_class();
   ASSERT(ExternalTwoByteString::InstanceSize() == cls.instance_size());
-  cls = object_store->external_four_byte_string_class();
-  ASSERT(ExternalFourByteString::InstanceSize() == cls.instance_size());
   cls = object_store->double_class();
   ASSERT(Double::InstanceSize() == cls.instance_size());
   cls = object_store->bool_class();
@@ -269,10 +265,8 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
       case kDoubleCid:
       case kOneByteStringCid:
       case kTwoByteStringCid:
-      case kFourByteStringCid:
       case kExternalOneByteStringCid:
       case kExternalTwoByteStringCid:
-      case kExternalFourByteStringCid:
       case kBoolCid:
       case kArrayCid:
       case kImmutableArrayCid:

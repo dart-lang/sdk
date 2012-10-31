@@ -179,10 +179,10 @@ void StartEvent::Process() {
 
   Dart_Handle recv_port = Dart_GetReceivePort(Dart_GetMainPortId());
   EXPECT_VALID(recv_port);
-  result = Dart_SetField(lib, Dart_NewString("mainPort"), recv_port);
+  result = Dart_SetField(lib, NewString("mainPort"), recv_port);
   EXPECT_VALID(result);
 
-  result = Dart_Invoke(lib, Dart_NewString(main_), 0, NULL);
+  result = Dart_Invoke(lib, NewString(main_), 0, NULL);
   EXPECT_VALID(result);
   free(const_cast<char*>(main_));
   main_ = NULL;
@@ -317,7 +317,7 @@ UNIT_TEST_CASE(CustomIsolates) {
   EXPECT_VALID(lib);
 
   // Run main.
-  result = Dart_Invoke(lib, Dart_NewString("main"), 0, NULL);
+  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
   EXPECT(Dart_IsString(result));
   const char* result_str = NULL;

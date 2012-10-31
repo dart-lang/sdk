@@ -3626,13 +3626,12 @@ class String : public Instance {
 
   static const intptr_t kOneByteChar = 1;
   static const intptr_t kTwoByteChar = 2;
-  static const intptr_t kFourByteChar = 4;
 
   // All strings share the same maximum element count to keep things
   // simple.  We choose a value that will prevent integer overflow for
-  // 4 byte strings, since it is the worst case.
+  // 2 byte strings, since it is the worst case.
   static const intptr_t kSizeofRawString = sizeof(RawObject) + (2 * kWordSize);
-  static const intptr_t kMaxElements = kSmiMax / kFourByteChar;
+  static const intptr_t kMaxElements = kSmiMax / kTwoByteChar;
 
   intptr_t Length() const { return Smi::Value(raw_ptr()->length_); }
   static intptr_t length_offset() { return OFFSET_OF(RawString, length_); }
@@ -3673,30 +3672,42 @@ class String : public Instance {
     return NULL;
   }
 
-  static RawString* New(const char* str, Heap::Space space = Heap::kNew);
-  static RawString* New(const uint8_t* characters,
-                        intptr_t len,
+  void ToUTF8(uint8_t* utf8_array, intptr_t array_len) const;
+
+  // Creates a new String object from a C string that is assumed to contain
+  // UTF-8 encoded characters and '\0' is considered a termination character.
+  static RawString* New(const char* cstr, Heap::Space space = Heap::kNew);
+
+  // Creates a new String object from an array of UTF-8 encoded characters.
+  static RawString* New(const uint8_t* utf8_array,
+                        intptr_t array_len,
                         Heap::Space space = Heap::kNew);
-  static RawString* New(const uint16_t* characters,
-                        intptr_t len,
+
+  // Creates a new String object from an array of UTF-16 encoded characters.
+  static RawString* New(const uint16_t* utf16_array,
+                        intptr_t array_len,
                         Heap::Space space = Heap::kNew);
-  static RawString* New(const uint32_t* characters,
-                        intptr_t len,
+
+  // Creates a new String object from an array of UTF-32 encoded characters.
+  static RawString* New(const uint32_t* utf32_array,
+                        intptr_t array_len,
                         Heap::Space space = Heap::kNew);
+
+  // Create a new String object from another Dart String instance.
   static RawString* New(const String& str, Heap::Space space = Heap::kNew);
 
-  static RawString* NewExternal(const uint8_t* characters,
-                                intptr_t len,
+  // Creates a new External String object using the specified array of
+  // UTF-8 encoded characters as the external reference.
+  static RawString* NewExternal(const uint8_t* utf8_array,
+                                intptr_t array_len,
                                 void* peer,
                                 Dart_PeerFinalizer callback,
                                 Heap::Space = Heap::kNew);
-  static RawString* NewExternal(const uint16_t* characters,
-                                intptr_t len,
-                                void* peer,
-                                Dart_PeerFinalizer callback,
-                                Heap::Space = Heap::kNew);
-  static RawString* NewExternal(const uint32_t* characters,
-                                intptr_t len,
+
+  // Creates a new External String object using the specified array of
+  // UTF-16 encoded characters as the external reference.
+  static RawString* NewExternal(const uint16_t* utf16_array,
+                                intptr_t array_len,
                                 void* peer,
                                 Dart_PeerFinalizer callback,
                                 Heap::Space = Heap::kNew);
@@ -3708,10 +3719,6 @@ class String : public Instance {
   static void Copy(const String& dst,
                    intptr_t dst_offset,
                    const uint16_t* characters,
-                   intptr_t len);
-  static void Copy(const String& dst,
-                   intptr_t dst_offset,
-                   const uint32_t* characters,
                    intptr_t len);
   static void Copy(const String& dst,
                    intptr_t dst_offset,
@@ -3888,7 +3895,8 @@ class TwoByteString : public String {
   static RawTwoByteString* New(const uint16_t* characters,
                                intptr_t len,
                                Heap::Space space);
-  static RawTwoByteString* New(const uint32_t* characters,
+  static RawTwoByteString* New(intptr_t utf16_len,
+                               const uint32_t* characters,
                                intptr_t len,
                                Heap::Space space);
   static RawTwoByteString* New(const TwoByteString& str,
@@ -3912,64 +3920,6 @@ class TwoByteString : public String {
   }
 
   HEAP_OBJECT_IMPLEMENTATION(TwoByteString, String);
-  friend class Class;
-  friend class String;
-};
-
-
-class FourByteString : public String {
- public:
-  virtual int32_t CharAt(intptr_t index) const {
-    return *CharAddr(index);
-  }
-
-  virtual intptr_t CharSize() const {
-    return kFourByteChar;
-  }
-
-  RawFourByteString* EscapeSpecialCharacters(bool raw_str) const;
-
-  static const intptr_t kBytesPerElement = 4;
-  static const intptr_t kMaxElements = String::kMaxElements;
-
-  static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawFourByteString) == OFFSET_OF(RawFourByteString, data_));
-    return 0;
-  }
-
-  static intptr_t InstanceSize(intptr_t len) {
-    ASSERT(sizeof(RawTwoByteString) == kSizeofRawString);
-    ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(
-        sizeof(RawFourByteString) + (len * kBytesPerElement));
-  }
-
-  static RawFourByteString* New(intptr_t len,
-                                Heap::Space space);
-  static RawFourByteString* New(const uint32_t* characters,
-                                intptr_t len,
-                                Heap::Space space);
-  static RawFourByteString* New(const FourByteString& str,
-                                Heap::Space space);
-
-  static RawFourByteString* Concat(const String& str1,
-                                   const String& str2,
-                                   Heap::Space space);
-  static RawFourByteString* ConcatAll(const Array& strings,
-                                      intptr_t len,
-                                      Heap::Space space);
-
-  static RawFourByteString* Transform(int32_t (*mapping)(int32_t ch),
-                                      const String& str,
-                                      Heap::Space space);
-
- private:
-  uint32_t* CharAddr(intptr_t index) const {
-    ASSERT((index >= 0) && (index < Length()));
-    return &raw_ptr()->data_[index];
-  }
-
-  HEAP_OBJECT_IMPLEMENTATION(FourByteString, String);
   friend class Class;
   friend class String;
 };
@@ -4066,54 +4016,6 @@ class ExternalTwoByteString : public String {
   static void Finalize(Dart_Handle handle, void* peer);
 
   HEAP_OBJECT_IMPLEMENTATION(ExternalTwoByteString, String);
-  friend class Class;
-  friend class String;
-};
-
-
-class ExternalFourByteString : public String {
- public:
-  virtual int32_t CharAt(intptr_t index) const {
-    return *CharAddr(index);
-  }
-
-  virtual intptr_t CharSize() const {
-    return kFourByteChar;
-  }
-
-  virtual bool IsExternal() const { return true; }
-  virtual void* GetPeer() const {
-    return raw_ptr()->external_data_->peer();
-  }
-
-  // We use the same maximum elements for all strings.
-  static const intptr_t kBytesPerElement = 4;
-  static const intptr_t kMaxElements = String::kMaxElements;
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawExternalFourByteString));
-  }
-
-  static RawExternalFourByteString* New(const uint32_t* characters,
-                                        intptr_t len,
-                                        void* peer,
-                                        Dart_PeerFinalizer callback,
-                                        Heap::Space space = Heap::kNew);
-
- private:
-  const uint32_t* CharAddr(intptr_t index) const {
-    // TODO(iposva): Determine if we should throw an exception here.
-    ASSERT((index >= 0) && (index < Length()));
-    return &(raw_ptr()->external_data_->data()[index]);
-  }
-
-  void SetExternalData(ExternalStringData<uint32_t>* data) {
-    raw_ptr()->external_data_ = data;
-  }
-
-  static void Finalize(Dart_Handle handle, void* peer);
-
-  HEAP_OBJECT_IMPLEMENTATION(ExternalFourByteString, String);
   friend class Class;
   friend class String;
 };

@@ -26,7 +26,7 @@ Dart_Handle Builtin::Source(BuiltinLibraryId id) {
   ASSERT((sizeof(builtin_libraries_) / sizeof(builtin_lib_props)) ==
          kInvalidLibrary);
   ASSERT(id >= kBuiltinLibrary && id < kInvalidLibrary);
-  return Dart_NewString(builtin_libraries_[id].source_);
+  return DartUtils::NewString(builtin_libraries_[id].source_);
 }
 
 
@@ -39,7 +39,7 @@ Dart_Handle Builtin::LoadAndCheckLibrary(BuiltinLibraryId id) {
   ASSERT((sizeof(builtin_libraries_) / sizeof(builtin_lib_props)) ==
          kInvalidLibrary);
   ASSERT(id >= kBuiltinLibrary && id < kInvalidLibrary);
-  Dart_Handle url = Dart_NewString(builtin_libraries_[id].url_);
+  Dart_Handle url = DartUtils::NewString(builtin_libraries_[id].url_);
   Dart_Handle library = Dart_LookupLibrary(url);
   if (Dart_IsError(library)) {
     library = Dart_LoadLibrary(url, Source(id));
@@ -49,9 +49,10 @@ Dart_Handle Builtin::LoadAndCheckLibrary(BuiltinLibraryId id) {
     }
     if (builtin_libraries_[id].patch_url_ != NULL) {
       ASSERT(builtin_libraries_[id].patch_source_ != NULL);
-      Dart_Handle patch_url = Dart_NewString(builtin_libraries_[id].patch_url_);
+      Dart_Handle patch_url =
+          DartUtils::NewString(builtin_libraries_[id].patch_url_);
       Dart_Handle patch_source =
-          Dart_NewString(builtin_libraries_[id].patch_source_);
+          DartUtils::NewString(builtin_libraries_[id].patch_source_);
       DART_CHECK_VALID(Dart_LoadPatch(library, patch_url, patch_source));
     }
   }

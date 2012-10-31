@@ -300,11 +300,11 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
                                        const char* executable_name,
                                        const char* script_name) {
   int options_count = options->count();
-  Dart_Handle dart_executable = Dart_NewString(executable_name);
+  Dart_Handle dart_executable = DartUtils::NewString(executable_name);
   if (Dart_IsError(dart_executable)) {
     return dart_executable;
   }
-  Dart_Handle dart_script = Dart_NewString(script_name);
+  Dart_Handle dart_script = DartUtils::NewString(script_name);
   if (Dart_IsError(dart_script)) {
     return dart_script;
   }
@@ -313,7 +313,8 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
     return dart_arguments;
   }
   for (int i = 0; i < options_count; i++) {
-    Dart_Handle argument_value = Dart_NewString(options->GetArgument(i));
+    Dart_Handle argument_value =
+        DartUtils::NewString(options->GetArgument(i));
     if (Dart_IsError(argument_value)) {
       return argument_value;
     }
@@ -322,7 +323,7 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
       return result;
     }
   }
-  Dart_Handle core_lib_url = Dart_NewString("dart:core");
+  Dart_Handle core_lib_url = DartUtils::NewString("dart:core");
   if (Dart_IsError(core_lib_url)) {
     return core_lib_url;
   }
@@ -330,7 +331,8 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
   if (Dart_IsError(core_lib)) {
     return core_lib;
   }
-  Dart_Handle runtime_options_class_name = Dart_NewString("_OptionsImpl");
+  Dart_Handle runtime_options_class_name =
+      DartUtils::NewString("_OptionsImpl");
   if (Dart_IsError(runtime_options_class_name)) {
     return runtime_options_class_name;
   }
@@ -339,7 +341,8 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
   if (Dart_IsError(runtime_options_class)) {
     return runtime_options_class;
   }
-  Dart_Handle executable_name_name = Dart_NewString("_nativeExecutable");
+  Dart_Handle executable_name_name =
+      DartUtils::NewString("_nativeExecutable");
   if (Dart_IsError(executable_name_name)) {
     return executable_name_name;
   }
@@ -350,7 +353,7 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
   if (Dart_IsError(set_executable_name)) {
     return set_executable_name;
   }
-  Dart_Handle script_name_name = Dart_NewString("_nativeScript");
+  Dart_Handle script_name_name = DartUtils::NewString("_nativeScript");
   if (Dart_IsError(script_name_name)) {
     return script_name_name;
   }
@@ -359,7 +362,7 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
   if (Dart_IsError(set_script_name)) {
     return set_script_name;
   }
-  Dart_Handle native_name = Dart_NewString("_nativeArguments");
+  Dart_Handle native_name = DartUtils::NewString("_nativeArguments");
   if (Dart_IsError(native_name)) {
     return native_name;
   }
@@ -554,7 +557,7 @@ static Dart_Handle SetBreakpoint(const char* breakpoint_at,
     char* colon = strchr(bpt_line, ':');
     ASSERT(colon != NULL);
     *colon = '\0';
-    Dart_Handle url = Dart_NewString(bpt_line);
+    Dart_Handle url = DartUtils::NewString(bpt_line);
     Dart_Handle line_number = Dart_NewInteger(atoi(colon + 1));
     free(bpt_line);
     Dart_Breakpoint bpt;
@@ -565,12 +568,12 @@ static Dart_Handle SetBreakpoint(const char* breakpoint_at,
     Dart_Handle function_name;
     char* dot = strchr(bpt_function, '.');
     if (dot == NULL) {
-      class_name = Dart_NewString("");
-      function_name = Dart_NewString(breakpoint_at);
+      class_name = DartUtils::NewString("");
+      function_name = DartUtils::NewString(breakpoint_at);
     } else {
       *dot = '\0';
-      class_name = Dart_NewString(bpt_function);
-      function_name = Dart_NewString(dot + 1);
+      class_name = DartUtils::NewString(bpt_function);
+      function_name = DartUtils::NewString(dot + 1);
     }
     free(bpt_function);
     Dart_Breakpoint bpt;
@@ -727,7 +730,7 @@ int main(int argc, char** argv) {
   }
 
   // Lookup and invoke the top level main function.
-  result = Dart_Invoke(library, Dart_NewString("main"), 0, NULL);
+  result = Dart_Invoke(library, DartUtils::NewString("main"), 0, NULL);
   if (Dart_IsError(result)) {
     return ErrorExit("%s\n", Dart_GetError(result));
   }

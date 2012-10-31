@@ -94,23 +94,23 @@ void Symbols::Add(const Array& symbol_table, const String& str) {
 
 
 RawString* Symbols::New(const char* str) {
-  intptr_t width = 0;
-  intptr_t len = Utf8::CodePointCount(str, &width);
+  ASSERT(str != NULL);
+  Utf8::Type type;
+  intptr_t str_len = strlen(str);
+  const uint8_t* utf8_array = reinterpret_cast<const uint8_t*>(str);
+  intptr_t len = Utf8::CodePointCount(utf8_array, str_len, &type);
   Zone* zone = Isolate::Current()->current_zone();
   if (len == 0) {
     return Symbols::New(reinterpret_cast<uint8_t*>(NULL), 0);
-  } else if (width == 1) {
+  }
+  if (type == Utf8::kAscii) {
     uint8_t* characters = zone->Alloc<uint8_t>(len);
-    Utf8::Decode(str, characters, len);
-    return New(characters, len);
-  } else if (width == 2) {
-    uint16_t* characters = zone->Alloc<uint16_t>(len);
-    Utf8::Decode(str, characters, len);
+    Utf8::DecodeToAscii(utf8_array, str_len, characters, len);
     return New(characters, len);
   }
-  ASSERT(width == 4);
-  uint32_t* characters = zone->Alloc<uint32_t>(len);
-  Utf8::Decode(str, characters, len);
+  ASSERT((type == Utf8::kBMP) || (type == Utf8::kSMP));
+  uint16_t* characters = zone->Alloc<uint16_t>(len);
+  Utf8::DecodeToUTF16(utf8_array, str_len, characters, len);
   return New(characters, len);
 }
 

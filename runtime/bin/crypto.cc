@@ -13,7 +13,8 @@ void FUNCTION_NAME(Crypto_GetRandomBytes)(Dart_NativeArguments args) {
   Dart_Handle count_obj = Dart_GetNativeArgument(args, 0);
   int64_t count = 0;
   if (!DartUtils::GetInt64Value(count_obj, &count)) {
-    Dart_Handle error = Dart_NewString("Invalid argument, must be an int.");
+    Dart_Handle error =
+        DartUtils::NewString("Invalid argument, must be an int.");
     Dart_ThrowException(error);
   }
   uint8_t* buffer = new uint8_t[count];
@@ -25,7 +26,7 @@ void FUNCTION_NAME(Crypto_GetRandomBytes)(Dart_NativeArguments args) {
   Dart_Handle result = Dart_NewByteArray(count);
   if (Dart_IsError(result)) {
     delete[] buffer;
-    Dart_Handle error = Dart_NewString("Failed to allocate storage.");
+    Dart_Handle error = DartUtils::NewString("Failed to allocate storage.");
     Dart_ThrowException(error);
   }
   Dart_ListSetAsBytes(result, 0, buffer, count);
@@ -33,4 +34,3 @@ void FUNCTION_NAME(Crypto_GetRandomBytes)(Dart_NativeArguments args) {
   delete[] buffer;
   Dart_ExitScope();
 }
-

@@ -30,9 +30,9 @@ void FUNCTION_NAME(Unhandled_equals)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Unhandled_invoke)(Dart_NativeArguments args) {
   // Invoke the specified entry point.
-  Dart_Handle cls = Dart_GetClass(TestCase::lib(), Dart_NewString("Second"));
+  Dart_Handle cls = Dart_GetClass(TestCase::lib(), NewString("Second"));
   Dart_Handle result = Dart_Invoke(cls,
-                                   Dart_NewString("method2"),
+                                   NewString("method2"),
                                    0,
                                    NULL);
   ASSERT(Dart_IsError(result));
@@ -43,9 +43,9 @@ void FUNCTION_NAME(Unhandled_invoke)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Unhandled_invoke2)(Dart_NativeArguments args) {
   // Invoke the specified entry point.
-  Dart_Handle cls = Dart_GetClass(TestCase::lib(), Dart_NewString("Second"));
+  Dart_Handle cls = Dart_GetClass(TestCase::lib(), NewString("Second"));
   Dart_Handle result = Dart_Invoke(cls,
-                                   Dart_NewString("method2"),
+                                   NewString("method2"),
                                    0,
                                    NULL);
   ASSERT(Dart_IsError(result));
@@ -127,7 +127,7 @@ TEST_CASE(UnhandledExceptions) {
   Dart_Handle lib = TestCase::LoadTestScript(
       kScriptChars,
       reinterpret_cast<Dart_NativeEntryResolver>(native_lookup));
-  EXPECT_VALID(Dart_Invoke(lib, Dart_NewString("testMain"), 0, NULL));
+  EXPECT_VALID(Dart_Invoke(lib, NewString("testMain"), 0, NULL));
 }
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 

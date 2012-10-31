@@ -443,7 +443,7 @@ LibTest/core/Queue/iterator_hasNext_A01_t01: Slow, Pass
 [ $compiler == dart2js ]
 Language/11_Expressions/22_Equality_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
 Language/11_Expressions/28_Postfix_Expressions_A01_t01: Fail, OK # A map literal cannot start an expression statement.
-LibTest/core/String/String_class_A02_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
+LibTest/core/String/String_class_A02_t01: Pass, Fail, OK # issue 6418 compiler cancelled: Unhandled non-BMP character: U+10000
 LibTest/core/String/charCodeAt_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 LibTest/core/String/charCodes_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 

@@ -59,10 +59,8 @@ namespace dart {
     V(String)                                                                  \
       V(OneByteString)                                                         \
       V(TwoByteString)                                                         \
-      V(FourByteString)                                                        \
       V(ExternalOneByteString)                                                 \
       V(ExternalTwoByteString)                                                 \
-      V(ExternalFourByteString)                                                \
     V(Bool)                                                                    \
     V(Array)                                                                   \
       V(ImmutableArray)                                                        \
@@ -1125,16 +1123,6 @@ class RawTwoByteString : public RawString {
 };
 
 
-class RawFourByteString : public RawString {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(FourByteString);
-
-  // Variable length data follows here.
-  uint32_t data_[0];
-
-  friend class SnapshotReader;
-};
-
-
 template<typename T>
 class ExternalStringData {
  public:
@@ -1171,14 +1159,6 @@ class RawExternalTwoByteString : public RawString {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalTwoByteString);
 
   ExternalStringData<uint16_t>* external_data_;
-  friend class Api;
-};
-
-
-class RawExternalFourByteString : public RawString {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalFourByteString);
-
-  ExternalStringData<uint32_t>* external_data_;
   friend class Api;
 };
 
@@ -1473,6 +1453,7 @@ class RawJSRegExp : public RawInstance {
   uint8_t data_[0];
 };
 
+
 class RawWeakProperty : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(WeakProperty);
 
@@ -1491,6 +1472,7 @@ class RawWeakProperty : public RawInstance {
   friend class ScavengerVisitor;
 };
 
+
 // Class Id predicates.
 
 inline bool RawObject::IsErrorClassId(intptr_t index) {
@@ -1503,6 +1485,7 @@ inline bool RawObject::IsErrorClassId(intptr_t index) {
   return (index >= kErrorCid && index < kInstanceCid);
 }
 
+
 inline bool RawObject::IsNumberClassId(intptr_t index) {
   // Make sure this function is updated when new Number types are added.
   ASSERT(kIntegerCid == kNumberCid + 1 &&
@@ -1514,6 +1497,7 @@ inline bool RawObject::IsNumberClassId(intptr_t index) {
   return (index >= kNumberCid && index < kStringCid);
 }
 
+
 inline bool RawObject::IsIntegerClassId(intptr_t index) {
   // Make sure this function is updated when new Integer types are added.
   ASSERT(kSmiCid == kIntegerCid + 1 &&
@@ -1523,58 +1507,54 @@ inline bool RawObject::IsIntegerClassId(intptr_t index) {
   return (index >= kIntegerCid && index < kDoubleCid);
 }
 
+
 inline bool RawObject::IsStringClassId(intptr_t index) {
   // Make sure this function is updated when new StringCid types are added.
   ASSERT(kOneByteStringCid == kStringCid + 1 &&
          kTwoByteStringCid == kStringCid + 2 &&
-         kFourByteStringCid == kStringCid + 3 &&
-         kExternalOneByteStringCid == kStringCid + 4 &&
-         kExternalTwoByteStringCid == kStringCid + 5 &&
-         kExternalFourByteStringCid == kStringCid + 6 &&
-         kBoolCid == kStringCid + 7);
+         kExternalOneByteStringCid == kStringCid + 3 &&
+         kExternalTwoByteStringCid == kStringCid + 4 &&
+         kBoolCid == kStringCid + 5);
   return (index >= kStringCid && index < kBoolCid);
 }
+
 
 inline bool RawObject::IsOneByteStringClassId(intptr_t index) {
   // Make sure this function is updated when new StringCid types are added.
   ASSERT(kOneByteStringCid == kStringCid + 1 &&
          kTwoByteStringCid == kStringCid + 2 &&
-         kFourByteStringCid == kStringCid + 3 &&
-         kExternalOneByteStringCid == kStringCid + 4 &&
-         kExternalTwoByteStringCid == kStringCid + 5 &&
-         kExternalFourByteStringCid == kStringCid + 6 &&
-         kBoolCid == kStringCid + 7);
+         kExternalOneByteStringCid == kStringCid + 3 &&
+         kExternalTwoByteStringCid == kStringCid + 4 &&
+         kBoolCid == kStringCid + 5);
   return (index == kOneByteStringCid || index == kExternalOneByteStringCid);
 }
+
 
 inline bool RawObject::IsTwoByteStringClassId(intptr_t index) {
   // Make sure this function is updated when new StringCid types are added.
   ASSERT(kOneByteStringCid == kStringCid + 1 &&
          kTwoByteStringCid == kStringCid + 2 &&
-         kFourByteStringCid == kStringCid + 3 &&
-         kExternalOneByteStringCid == kStringCid + 4 &&
-         kExternalTwoByteStringCid == kStringCid + 5 &&
-         kExternalFourByteStringCid == kStringCid + 6 &&
-         kBoolCid == kStringCid + 7);
+         kExternalOneByteStringCid == kStringCid + 3 &&
+         kExternalTwoByteStringCid == kStringCid + 4 &&
+         kBoolCid == kStringCid + 5);
   return (index == kOneByteStringCid ||
           index == kTwoByteStringCid ||
           index == kExternalOneByteStringCid ||
           index == kExternalTwoByteStringCid);
 }
 
+
 inline bool RawObject::IsExternalStringClassId(intptr_t index) {
   // Make sure this function is updated when new StringCid types are added.
   ASSERT(kOneByteStringCid == kStringCid + 1 &&
          kTwoByteStringCid == kStringCid + 2 &&
-         kFourByteStringCid == kStringCid + 3 &&
-         kExternalOneByteStringCid == kStringCid + 4 &&
-         kExternalTwoByteStringCid == kStringCid + 5 &&
-         kExternalFourByteStringCid == kStringCid + 6 &&
-         kBoolCid == kStringCid + 7);
+         kExternalOneByteStringCid == kStringCid + 3 &&
+         kExternalTwoByteStringCid == kStringCid + 4 &&
+         kBoolCid == kStringCid + 5);
   return (index == kExternalOneByteStringCid ||
-          index == kExternalTwoByteStringCid ||
-          index == kExternalFourByteStringCid);
+          index == kExternalTwoByteStringCid);
 }
+
 
 inline bool RawObject::IsBuiltinListClassId(intptr_t index) {
   // Make sure this function is updated when new builtin List types are added.
@@ -1584,6 +1564,7 @@ inline bool RawObject::IsBuiltinListClassId(intptr_t index) {
   return (index >= kArrayCid && index < kByteArrayCid) ||
       IsByteArrayClassId(index);
 }
+
 
 inline bool RawObject::IsByteArrayClassId(intptr_t index) {
   // Make sure this function is updated when new ByteArray types are added.

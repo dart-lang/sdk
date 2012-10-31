@@ -26,7 +26,7 @@ void IfNull(Dart_NativeArguments arguments) {
 }
 
 Dart_NativeFunction ResolveName(Dart_Handle name, int argc) {
-  assert(Dart_IsString8(name));
+  assert(Dart_IsString(name));
   const char* cname;
   Dart_Handle check_error;
 

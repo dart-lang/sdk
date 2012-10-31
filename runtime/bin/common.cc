@@ -24,16 +24,16 @@ void FUNCTION_NAME(Common_IsBuiltinList)(Dart_NativeArguments args) {
   // look them up and cache them now.
   if (object_array_class == NULL) {
     Dart_Handle core_lib =
-        Dart_LookupLibrary(Dart_NewString("dart:core"));
+        Dart_LookupLibrary(Dart_NewStringFromCString("dart:core"));
     ASSERT(!Dart_IsError(core_lib));
     object_array_class =
-        Dart_GetClass(core_lib, Dart_NewString("_ObjectArray"));
+        Dart_GetClass(core_lib, Dart_NewStringFromCString("_ObjectArray"));
     ASSERT(!Dart_IsError(object_array_class));
     immutable_array_class =
-        Dart_GetClass(core_lib, Dart_NewString("_ImmutableArray"));
+        Dart_GetClass(core_lib, Dart_NewStringFromCString("_ImmutableArray"));
     ASSERT(!Dart_IsError(immutable_array_class));
-    growable_object_array_class =
-        Dart_GetClass(core_lib, Dart_NewString("_GrowableObjectArray"));
+    growable_object_array_class = Dart_GetClass(
+        core_lib, Dart_NewStringFromCString("_GrowableObjectArray"));
     ASSERT(!Dart_IsError(growable_object_array_class));
     // Update the cache.
     isolate_data->object_array_class =

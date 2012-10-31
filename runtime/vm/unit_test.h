@@ -132,6 +132,11 @@
   }
 
 
+inline Dart_Handle NewString(const char* str) {
+  return Dart_NewStringFromCString(str);
+}
+
+
 namespace dart {
 
 // Forward declarations.

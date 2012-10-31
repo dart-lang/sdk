@@ -15,7 +15,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x41, 0xF1, 0x42 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(is_valid);
     EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
@@ -25,7 +25,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x4D };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(is_valid);
     EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
@@ -35,7 +35,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x430 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(is_valid);
     EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
@@ -45,7 +45,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x4E8C };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(is_valid);
     EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
@@ -55,7 +55,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x10302 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(is_valid);
     EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
@@ -65,7 +65,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x4D, 0x430, 0x4E8C, 0x10302 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(is_valid);
     EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
@@ -80,7 +80,7 @@ TEST_CASE(Utf8Decode) {
                             0x5D1, 0x5E8, 0x5DB, 0x5D4 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(is_valid);
     EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
@@ -93,7 +93,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x3BA, 0x1F79, 0x3C3, 0x3BC, 0x3B5 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(is_valid);
     EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
@@ -108,7 +108,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x0 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0xFF, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -119,7 +119,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x80 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(is_valid);
     EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
@@ -130,7 +130,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x800 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(is_valid);
     EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
@@ -141,7 +141,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x10000 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(is_valid);
     EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
@@ -152,7 +152,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x200000 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -163,7 +163,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x400000 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -176,7 +176,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x7F };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(is_valid);
     EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
@@ -187,7 +187,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x7FF };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(is_valid);
     EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
@@ -198,7 +198,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xFFFF };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(is_valid);
     EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
@@ -209,7 +209,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x1FFFF };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -220,7 +220,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x3FFFFFF };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -231,7 +231,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x7FFFFFF };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -244,7 +244,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xD7FF };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(is_valid);
     EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
@@ -255,7 +255,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xE000 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(is_valid);
     EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
@@ -266,7 +266,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xFFFD };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(is_valid);
     EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
@@ -277,7 +277,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x10FFFF };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(is_valid);
     EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
@@ -288,7 +288,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x110000 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -303,7 +303,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x80 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -314,7 +314,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xBF };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -325,7 +325,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x80, 0xBF };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -336,7 +336,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x80, 0xBF, 0x80 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -347,7 +347,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x80, 0xBF, 0x80, 0xBF  };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -358,7 +358,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x80, 0xBF, 0x80, 0xBF, 0x80 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -369,7 +369,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x80, 0xBF, 0x80, 0xBF, 0x80, 0xBF };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -380,7 +380,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x80, 0xBF, 0x80, 0xBF, 0x80, 0xBF, 0x80 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -399,7 +399,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t dst[ARRAY_SIZE(expected)];
     for (size_t i = 0; i < strlen(src); ++i) {
       memset(dst, 0xFF, sizeof(dst));
-      bool is_valid = Utf8::Decode(&src[i], dst, ARRAY_SIZE(dst));
+      bool is_valid = Utf8::DecodeCStringToUTF32(&src[i], dst, ARRAY_SIZE(dst));
       EXPECT(!is_valid);
       EXPECT(memcmp(expected, dst, sizeof(expected)));
     }
@@ -422,7 +422,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t dst[ARRAY_SIZE(expected)];
     for (size_t i = 0; i < strlen(src); i += 2) {
       memset(dst, 0xFF, sizeof(dst));
-      bool is_valid = Utf8::Decode(&src[i], dst, ARRAY_SIZE(dst));
+      bool is_valid = Utf8::DecodeCStringToUTF32(&src[i], dst, ARRAY_SIZE(dst));
       EXPECT(!is_valid);
       EXPECT(memcmp(expected, dst, sizeof(expected)));
     }
@@ -439,7 +439,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t dst[ARRAY_SIZE(expected)];
     for (size_t i = 0; i < strlen(src); i += 2) {
       memset(dst, 0xFF, sizeof(dst));
-      bool is_valid = Utf8::Decode(&src[i], dst, ARRAY_SIZE(dst));
+      bool is_valid = Utf8::DecodeCStringToUTF32(&src[i], dst, ARRAY_SIZE(dst));
       EXPECT(!is_valid);
       EXPECT(memcmp(expected, dst, sizeof(expected)));
     }
@@ -454,7 +454,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t dst[ARRAY_SIZE(expected)];
     for (size_t i = 0; i < strlen(src); i += 2) {
       memset(dst, 0xFF, sizeof(dst));
-      bool is_valid = Utf8::Decode(&src[i], dst, ARRAY_SIZE(dst));
+      bool is_valid = Utf8::DecodeCStringToUTF32(&src[i], dst, ARRAY_SIZE(dst));
       EXPECT(!is_valid);
       EXPECT(memcmp(expected, dst, sizeof(expected)));
     }
@@ -468,7 +468,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t dst[ARRAY_SIZE(expected)];
     for (size_t i = 0; i < strlen(src); i += 2) {
       memset(dst, 0xFF, sizeof(dst));
-      bool is_valid = Utf8::Decode(&src[i], dst, ARRAY_SIZE(dst));
+      bool is_valid = Utf8::DecodeCStringToUTF32(&src[i], dst, ARRAY_SIZE(dst));
       EXPECT(!is_valid);
       EXPECT(memcmp(expected, dst, sizeof(expected)));
     }
@@ -482,7 +482,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t dst[ARRAY_SIZE(expected)];
     for (size_t i = 0; i < strlen(src); i += 2) {
       memset(dst, 0xFF, sizeof(dst));
-      bool is_valid = Utf8::Decode(&src[i], dst, ARRAY_SIZE(dst));
+      bool is_valid = Utf8::DecodeCStringToUTF32(&src[i], dst, ARRAY_SIZE(dst));
       EXPECT(!is_valid);
       EXPECT(memcmp(expected, dst, sizeof(expected)));
     }
@@ -496,7 +496,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x0 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0xFF, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -507,7 +507,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x0 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0xFF, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -518,7 +518,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x0 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0xFF, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -529,7 +529,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x0 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0xFF, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -541,7 +541,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x0 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0xFF, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -552,7 +552,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x0 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0xFF, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -563,7 +563,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x0 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0xFF, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -574,7 +574,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x0 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0xFF, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -586,7 +586,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x0 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0xFF, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -598,7 +598,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x0 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0xFF, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -615,7 +615,8 @@ TEST_CASE(Utf8Decode) {
     for (size_t i = 0; i < strlen(src); ++i) {
       for (size_t j = 1; j < (strlen(src) - i); ++j) {
         memset(dst, 0xFF, sizeof(dst));
-        bool is_valid = Utf8::Decode(&src[i], dst, ARRAY_SIZE(dst));
+        bool is_valid = Utf8::DecodeCStringToUTF32(&src[i],
+                                                   dst, ARRAY_SIZE(dst));
         EXPECT(!is_valid);
         EXPECT(memcmp(expected, dst, sizeof(expected)));
       }
@@ -630,7 +631,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xFE };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -641,7 +642,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xFF };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -652,7 +653,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xFF };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -667,7 +668,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x2F };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -678,7 +679,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x2F };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -689,7 +690,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x2F };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -700,7 +701,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x2F };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -711,7 +712,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x2F };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -724,7 +725,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x7F };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -735,7 +736,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x7FF };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -746,7 +747,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xFFFF };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -757,7 +758,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x1FFFFF };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -768,7 +769,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x3FFFFFF };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -781,7 +782,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x0 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0xFF, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -792,7 +793,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x0 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0xFF, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -803,7 +804,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x0 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0xFF, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -814,7 +815,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x0 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0xFF, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -825,7 +826,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0x0 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0xFF, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -838,7 +839,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xD800 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -849,7 +850,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xDB7F };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -860,7 +861,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xDB80 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -871,7 +872,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xDBFF };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -882,7 +883,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xDC00 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -893,7 +894,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xDF80 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -904,7 +905,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xDFFF };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -917,7 +918,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xD800, 0xDC00 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -928,7 +929,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xD800, 0xDFFF };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -939,7 +940,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xDB7F, 0xDC00 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -950,7 +951,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xDB7F, 0xDFFF };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -961,7 +962,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xDB80, 0xDC00 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -972,7 +973,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xDB80, 0xDFFF };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -983,7 +984,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xDBFF, 0xDC00 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -994,7 +995,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xDBFF, 0xDFFF };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(!is_valid);
     EXPECT(memcmp(expected, dst, sizeof(expected)));
   }
@@ -1007,7 +1008,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xFFFE };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(is_valid);
     EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
@@ -1018,7 +1019,7 @@ TEST_CASE(Utf8Decode) {
     uint32_t expected[] = { 0xFFFF };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
-    bool is_valid = Utf8::Decode(src, dst, ARRAY_SIZE(dst));
+    bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
     EXPECT(is_valid);
     EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }

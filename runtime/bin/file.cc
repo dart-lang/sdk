@@ -411,7 +411,7 @@ void FUNCTION_NAME(File_Directory)(Dart_NativeArguments args) {
   char* path = File::GetContainingDirectory(str_copy);
   free(str_copy);
   if (path != NULL) {
-    Dart_SetReturnValue(args, Dart_NewString(path));
+    Dart_SetReturnValue(args, DartUtils::NewString(path));
     free(path);
   } else {
     Dart_Handle err = DartUtils::NewDartOSError();
@@ -428,7 +428,7 @@ void FUNCTION_NAME(File_FullPath)(Dart_NativeArguments args) {
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   char* path = File::GetCanonicalPath(str);
   if (path != NULL) {
-    Dart_SetReturnValue(args, Dart_NewString(path));
+    Dart_SetReturnValue(args, DartUtils::NewString(path));
     free(path);
   } else {
     Dart_Handle err = DartUtils::NewDartOSError();

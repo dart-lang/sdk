@@ -117,11 +117,6 @@ class ObjectStore {
     two_byte_string_class_ = value.raw();
   }
 
-  RawClass* four_byte_string_class() const { return four_byte_string_class_; }
-  void set_four_byte_string_class(const Class& value) {
-    four_byte_string_class_ = value.raw();
-  }
-
   RawClass* external_one_byte_string_class() const {
     return external_one_byte_string_class_;
   }
@@ -134,13 +129,6 @@ class ObjectStore {
   }
   void set_external_two_byte_string_class(const Class& value) {
     external_two_byte_string_class_ = value.raw();
-  }
-
-  RawClass* external_four_byte_string_class() const {
-    return external_four_byte_string_class_;
-  }
-  void set_external_four_byte_string_class(const Class& value) {
-    external_four_byte_string_class_ = value.raw();
   }
 
   RawType* bool_type() const { return bool_type_; }
@@ -494,10 +482,8 @@ class ObjectStore {
   RawType* string_interface_;
   RawClass* one_byte_string_class_;
   RawClass* two_byte_string_class_;
-  RawClass* four_byte_string_class_;
   RawClass* external_one_byte_string_class_;
   RawClass* external_two_byte_string_class_;
-  RawClass* external_four_byte_string_class_;
   RawType* bool_type_;
   RawClass* bool_class_;
   RawType* list_interface_;
