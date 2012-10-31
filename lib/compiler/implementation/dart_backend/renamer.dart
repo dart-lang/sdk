@@ -122,6 +122,9 @@ void renamePlaceholders(
             "Factory constructors for external interfaces are not supported.");
       }
       name = name.substring(prefix.length);
+      if (!element.getLibrary().isPlatformLibrary) {
+        name = renameString(element.getLibrary(), name);
+      }
       result.add(name);
     } else {
       assert(!placeholder.isRedirectingCall);
