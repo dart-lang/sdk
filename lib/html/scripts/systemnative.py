@@ -807,6 +807,8 @@ class DartiumBackend(object):
     # as it's a single instance.
     if self._interface.id == 'CSSStyleDeclaration' and operation.id == 'setProperty' and argument.id == 'priority':
       return False
+    if argument.type.id == 'Dictionary':
+      return False
     return True
 
   def _GenerateCPPIncludes(self, includes):

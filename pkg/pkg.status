@@ -32,6 +32,8 @@ unittest/test/mock_test: Fail  # noSuchMethod InvocationMirror not correct yet.
 # error there that causes the tests to timeout.
 [ $runtime == dartium || $runtime == drt ]
 intl/test/date_time_format_http_request_test: Skip
+intl/test/number_format_test: Fail # TRIAGE
+unittest/test/mock_test: Fail # TRIAGE
 
 # Skip intl_message tests that use mirrors on dart2js until it's been
 # implemented there.

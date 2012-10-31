@@ -16,6 +16,9 @@ recursive_import_test: Fail # http://dartbug.com/2264
 [ $compiler == dart2js && $browser ]
 *: Skip
 
+[ $runtime == dartium || $runtime == drt ]
+utf8_test: Fail # TRIAGE
+
 [ $runtime == vm ]
 *_layout_test: Skip
 

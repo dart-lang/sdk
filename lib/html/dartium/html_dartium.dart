@@ -11021,29 +11021,9 @@ class _DirectoryEntryImpl extends _EntryImpl implements DirectoryEntry {
 
   DirectoryReader createReader() native "DirectoryEntry_createReader_Callback";
 
-  void getDirectory(/*DOMString*/ path, {/*Dictionary*/ options, /*EntryCallback*/ successCallback, /*ErrorCallback*/ errorCallback}) {
-    if (?options) {
-      _getDirectory_1(path, options, successCallback, errorCallback);
-      return;
-    }
-    _getDirectory_2(path);
-  }
+  void getDirectory(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) native "DirectoryEntry_getDirectory_Callback";
 
-  void _getDirectory_1(path, options, successCallback, errorCallback) native "DirectoryEntry_getDirectory_1_Callback";
-
-  void _getDirectory_2(path) native "DirectoryEntry_getDirectory_2_Callback";
-
-  void getFile(/*DOMString*/ path, {/*Dictionary*/ options, /*EntryCallback*/ successCallback, /*ErrorCallback*/ errorCallback}) {
-    if (?options) {
-      _getFile_1(path, options, successCallback, errorCallback);
-      return;
-    }
-    _getFile_2(path);
-  }
-
-  void _getFile_1(path, options, successCallback, errorCallback) native "DirectoryEntry_getFile_1_Callback";
-
-  void _getFile_2(path) native "DirectoryEntry_getFile_2_Callback";
+  void getFile(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) native "DirectoryEntry_getFile_Callback";
 
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]) native "DirectoryEntry_removeRecursively_Callback";
 
@@ -17249,16 +17229,7 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase {
 
   void close() native "IDBDatabase_close_Callback";
 
-  IDBObjectStore createObjectStore(/*DOMString*/ name, [/*Dictionary*/ options]) {
-    if (?options) {
-      return _createObjectStore_1(name, options);
-    }
-    return _createObjectStore_2(name);
-  }
-
-  IDBObjectStore _createObjectStore_1(name, options) native "IDBDatabase_createObjectStore_1_Callback";
-
-  IDBObjectStore _createObjectStore_2(name) native "IDBDatabase_createObjectStore_2_Callback";
+  IDBObjectStore createObjectStore(String name, [Map options]) native "IDBDatabase_createObjectStore_Callback";
 
   void deleteObjectStore(String name) native "IDBDatabase_deleteObjectStore_Callback";
 
@@ -17741,28 +17712,18 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
   IDBRequest _count_3(key_OR_range) native "IDBObjectStore_count_3_Callback";
 
   IDBIndex createIndex(/*DOMString*/ name, keyPath, [/*Dictionary*/ options]) {
-    if ((name is String || name == null) && (keyPath is List<String> || keyPath == null) && !?options) {
-      return _createIndex_1(name, keyPath);
-    }
     if ((name is String || name == null) && (keyPath is List<String> || keyPath == null) && (options is Map || options == null)) {
-      return _createIndex_2(name, keyPath, options);
-    }
-    if ((name is String || name == null) && (keyPath is String || keyPath == null) && !?options) {
-      return _createIndex_3(name, keyPath);
+      return _createIndex_1(name, keyPath, options);
     }
     if ((name is String || name == null) && (keyPath is String || keyPath == null) && (options is Map || options == null)) {
-      return _createIndex_4(name, keyPath, options);
+      return _createIndex_2(name, keyPath, options);
     }
     throw "Incorrect number or type of arguments";
   }
 
-  IDBIndex _createIndex_1(name, keyPath) native "IDBObjectStore_createIndex_1_Callback";
+  IDBIndex _createIndex_1(name, keyPath, options) native "IDBObjectStore_createIndex_1_Callback";
 
   IDBIndex _createIndex_2(name, keyPath, options) native "IDBObjectStore_createIndex_2_Callback";
-
-  IDBIndex _createIndex_3(name, keyPath) native "IDBObjectStore_createIndex_3_Callback";
-
-  IDBIndex _createIndex_4(name, keyPath, options) native "IDBObjectStore_createIndex_4_Callback";
 
   IDBRequest delete(key_OR_keyRange) {
     if ((key_OR_keyRange is IDBKeyRange || key_OR_keyRange == null)) {
@@ -25058,41 +25019,13 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "PeerConnection00_addEventListener_Callback";
 
-  void addStream(/*MediaStream*/ stream, [/*Dictionary*/ mediaStreamHints]) {
-    if (?mediaStreamHints) {
-      _addStream_1(stream, mediaStreamHints);
-      return;
-    }
-    _addStream_2(stream);
-  }
-
-  void _addStream_1(stream, mediaStreamHints) native "PeerConnection00_addStream_1_Callback";
-
-  void _addStream_2(stream) native "PeerConnection00_addStream_2_Callback";
+  void addStream(MediaStream stream, [Map mediaStreamHints]) native "PeerConnection00_addStream_Callback";
 
   void close() native "PeerConnection00_close_Callback";
 
-  SessionDescription createAnswer(/*DOMString*/ offer, [/*Dictionary*/ mediaHints]) {
-    if (?mediaHints) {
-      return _createAnswer_1(offer, mediaHints);
-    }
-    return _createAnswer_2(offer);
-  }
+  SessionDescription createAnswer(String offer, [Map mediaHints]) native "PeerConnection00_createAnswer_Callback";
 
-  SessionDescription _createAnswer_1(offer, mediaHints) native "PeerConnection00_createAnswer_1_Callback";
-
-  SessionDescription _createAnswer_2(offer) native "PeerConnection00_createAnswer_2_Callback";
-
-  SessionDescription createOffer([/*Dictionary*/ mediaHints]) {
-    if (?mediaHints) {
-      return _createOffer_1(mediaHints);
-    }
-    return _createOffer_2();
-  }
-
-  SessionDescription _createOffer_1(mediaHints) native "PeerConnection00_createOffer_1_Callback";
-
-  SessionDescription _createOffer_2() native "PeerConnection00_createOffer_2_Callback";
+  SessionDescription createOffer([Map mediaHints]) native "PeerConnection00_createOffer_Callback";
 
   bool $dom_dispatchEvent(Event event) native "PeerConnection00_dispatchEvent_Callback";
 
@@ -25106,17 +25039,7 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   void setRemoteDescription(int action, SessionDescription desc) native "PeerConnection00_setRemoteDescription_Callback";
 
-  void startIce([/*Dictionary*/ iceOptions]) {
-    if (?iceOptions) {
-      _startIce_1(iceOptions);
-      return;
-    }
-    _startIce_2();
-  }
-
-  void _startIce_1(iceOptions) native "PeerConnection00_startIce_1_Callback";
-
-  void _startIce_2() native "PeerConnection00_startIce_2_Callback";
+  void startIce([Map iceOptions]) native "PeerConnection00_startIce_Callback";
 
 }
 
