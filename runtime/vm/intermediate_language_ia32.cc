@@ -652,8 +652,12 @@ static Condition TokenKindToMintCondition(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ: return EQUAL;
     case Token::kNE: return NOT_EQUAL;
+    case Token::kLT: return LESS;
+    case Token::kGT: return GREATER;
+    case Token::kLTE: return LESS_EQUAL;
+    case Token::kGTE: return GREATER_EQUAL;
     default:
-      UNIMPLEMENTED();
+      UNREACHABLE();
       return OVERFLOW;
   }
 }
@@ -680,6 +684,71 @@ static void EmitUnboxedMintEqualityOp(FlowGraphCompiler* compiler,
     Register result = locs.out().reg();
     Label done, is_true;
     __ j(true_condition, &is_true);
+    __ LoadObject(result, compiler->bool_false());
+    __ jmp(&done);
+    __ Bind(&is_true);
+    __ LoadObject(result, compiler->bool_true());
+    __ Bind(&done);
+  }
+}
+
+
+static void EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
+                                        const LocationSummary& locs,
+                                        Token::Kind kind,
+                                        BranchInstr* branch) {
+  XmmRegister left = locs.in(0).xmm_reg();
+  XmmRegister right = locs.in(1).xmm_reg();
+  Register left_tmp = locs.temp(0).reg();
+  Register right_tmp = locs.temp(1).reg();
+  Register result = branch == NULL ? locs.out().reg() : kNoRegister;
+
+  Condition hi_cond = OVERFLOW, lo_cond = OVERFLOW;
+  switch (kind) {
+    case Token::kLT:
+      hi_cond = LESS;
+      lo_cond = BELOW;
+      break;
+    case Token::kGT:
+      hi_cond = GREATER;
+      lo_cond = ABOVE;
+      break;
+    case Token::kLTE:
+      hi_cond = LESS;
+      lo_cond = BELOW_EQUAL;
+      break;
+    case Token::kGTE:
+      hi_cond = GREATER;
+      lo_cond = ABOVE_EQUAL;
+      break;
+    default:
+      break;
+  }
+  ASSERT(hi_cond != OVERFLOW && lo_cond != OVERFLOW);
+  Label is_true, is_false;
+  // Compare upper halves first.
+  __ pextrd(left_tmp, left, Immediate(1));
+  __ pextrd(right_tmp, right, Immediate(1));
+  __ cmpl(left_tmp, right_tmp);
+  if (branch != NULL) {
+    __ j(hi_cond, compiler->GetBlockLabel(branch->true_successor()));
+    __ j(FlowGraphCompiler::FlipCondition(hi_cond),
+         compiler->GetBlockLabel(branch->false_successor()));
+  } else {
+    __ j(hi_cond, &is_true);
+    __ j(FlowGraphCompiler::FlipCondition(hi_cond), &is_false);
+  }
+
+  // If upper is equal, compare lower half.
+  __ pextrd(left_tmp, left, Immediate(0));
+  __ pextrd(right_tmp, right, Immediate(0));
+  __ cmpl(left_tmp, right_tmp);
+  if (branch != NULL) {
+    branch->EmitBranchOnCondition(compiler, lo_cond);
+  } else {
+    Label done;
+    __ j(lo_cond, &is_true);
+    __ Bind(&is_false);
     __ LoadObject(result, compiler->bool_false());
     __ jmp(&done);
     __ Bind(&is_true);
@@ -814,6 +883,17 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 LocationSummary* RelationalOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
+  if (operands_class_id() == kMintCid) {
+    const intptr_t kNumTemps = 2;
+    LocationSummary* locs =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    locs->set_in(0, Location::RequiresXmmRegister());
+    locs->set_in(1, Location::RequiresXmmRegister());
+    locs->set_temp(0, Location::RequiresRegister());
+    locs->set_temp(1, Location::RequiresRegister());
+    locs->set_out(Location::RequiresRegister());
+    return locs;
+  }
   if (operands_class_id() == kDoubleCid) {
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -842,6 +922,10 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary() const {
 void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (operands_class_id() == kSmiCid) {
     EmitSmiComparisonOp(compiler, *locs(), kind(), NULL);
+    return;
+  }
+  if (operands_class_id() == kMintCid) {
+    EmitUnboxedMintComparisonOp(compiler, *locs(), kind(), NULL);
     return;
   }
   if (operands_class_id() == kDoubleCid) {
@@ -907,6 +991,10 @@ void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                        BranchInstr* branch) {
   if (operands_class_id() == kSmiCid) {
     EmitSmiComparisonOp(compiler, *locs(), kind(), branch);
+    return;
+  }
+  if (operands_class_id() == kMintCid) {
+    EmitUnboxedMintComparisonOp(compiler, *locs(), kind(), branch);
     return;
   }
   if (operands_class_id() == kDoubleCid) {
@@ -2468,8 +2556,8 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Label* deopt  = compiler->AddDeoptStub(deopt_id(),
                                              kDeoptBinaryMintOp);
       Label done, overflow;
-      __ pextrd(lo, right, Immediate(0));  // Lower half left
-      __ pextrd(hi, right, Immediate(1));  // Upper half left
+      __ pextrd(lo, right, Immediate(0));  // Lower half
+      __ pextrd(hi, right, Immediate(1));  // Upper half
       __ subl(ESP, Immediate(2 * kWordSize));
       __ movq(Address(ESP, 0), left);
       if (op_kind() == Token::kADD) {

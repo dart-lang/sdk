@@ -1252,32 +1252,38 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
 static void HandleRelationalOp(FlowGraphOptimizer* optimizer,
                                RelationalOpInstr* comp,
                                Instruction* instr) {
-  if (!comp->HasICData()) return;
-
+  if (!comp->HasICData() || (comp->ic_data()->NumberOfChecks() == 0)) {
+    return;
+  }
   const ICData& ic_data = *comp->ic_data();
-  if (ic_data.NumberOfChecks() == 0) return;
-  // TODO(srdjan): Add multiple receiver type support.
-  if (ic_data.NumberOfChecks() != 1) return;
-  ASSERT(ic_data.HasOneTarget());
-
-  if (HasOnlyTwoSmis(ic_data)) {
-    optimizer->InsertBefore(
-        instr,
-        new CheckSmiInstr(comp->left()->Copy(), comp->deopt_id()),
-        instr->env(),
-        Definition::kEffect);
-    optimizer->InsertBefore(
-        instr,
-        new CheckSmiInstr(comp->right()->Copy(), comp->deopt_id()),
-        instr->env(),
-        Definition::kEffect);
-    comp->set_operands_class_id(kSmiCid);
-  } else if (ShouldSpecializeForDouble(ic_data)) {
-    comp->set_operands_class_id(kDoubleCid);
-  } else if (comp->ic_data()->AllReceiversAreNumbers()) {
-    comp->set_operands_class_id(kNumberCid);
+  if (ic_data.NumberOfChecks() == 1) {
+    ASSERT(ic_data.HasOneTarget());
+    if (HasOnlyTwoSmis(ic_data)) {
+      optimizer->InsertBefore(
+          instr,
+          new CheckSmiInstr(comp->left()->Copy(), comp->deopt_id()),
+          instr->env(),
+          Definition::kEffect);
+      optimizer->InsertBefore(
+          instr,
+          new CheckSmiInstr(comp->right()->Copy(), comp->deopt_id()),
+          instr->env(),
+          Definition::kEffect);
+      comp->set_operands_class_id(kSmiCid);
+    } else if (ShouldSpecializeForDouble(ic_data)) {
+      comp->set_operands_class_id(kDoubleCid);
+    } else if (HasTwoMintOrSmi(*comp->ic_data()) &&
+               FlowGraphCompiler::SupportsUnboxedMints()) {
+      comp->set_operands_class_id(kMintCid);
+    } else {
+      ASSERT(comp->operands_class_id() == kIllegalCid);
+    }
+  } else if (HasTwoMintOrSmi(*comp->ic_data()) &&
+             FlowGraphCompiler::SupportsUnboxedMints()) {
+    comp->set_operands_class_id(kMintCid);
   }
 }
+
 
 void FlowGraphOptimizer::VisitRelationalOp(RelationalOpInstr* instr) {
   HandleRelationalOp(this, instr, instr);
@@ -1334,8 +1340,6 @@ static void HandleEqualityCompare(FlowGraphOptimizer* optimizer,
   } else if (HasTwoMintOrSmi(*comp->ic_data()) &&
              FlowGraphCompiler::SupportsUnboxedMints()) {
     comp->set_receiver_class_id(kMintCid);
-  } else if (comp->ic_data()->AllReceiversAreNumbers()) {
-    comp->set_receiver_class_id(kNumberCid);
   }
 
   if (comp->receiver_class_id() != kIllegalCid) {

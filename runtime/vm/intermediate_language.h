@@ -2331,10 +2331,12 @@ class RelationalOpInstr : public ComparisonInstr {
 
   virtual bool CanDeoptimize() const {
     return (operands_class_id() != kDoubleCid)
+        && (operands_class_id() != kMintCid)
         && (operands_class_id() != kSmiCid);
   }
   virtual bool HasSideEffect() const {
     return (operands_class_id() != kDoubleCid)
+        && (operands_class_id() != kMintCid)
         && (operands_class_id() != kSmiCid);
   }
 
@@ -2350,7 +2352,9 @@ class RelationalOpInstr : public ComparisonInstr {
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((idx == 0) || (idx == 1));
-    return (operands_class_id() == kDoubleCid) ? kUnboxedDouble : kTagged;
+    if (operands_class_id() == kDoubleCid) return kUnboxedDouble;
+    if (operands_class_id() == kMintCid) return kUnboxedMint;
+    return kTagged;
   }
 
  private:
