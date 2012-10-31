@@ -46,9 +46,9 @@ unittest/test/mock_regexp_negative_test: Fail
 unittest/test/mock_stepwise_negative_test: Fail
 
 # pkg issue 6340
-dartdoc/test/dartdoc_search_test: Fail, OK
-dartdoc/test/markdown_test: Fail, OK
-dartdoc/test/dartdoc_test: Fail, OK
+dartdoc/test/dartdoc_search_test: Pass
+dartdoc/test/markdown_test: Pass
+dartdoc/test/dartdoc_test: Pass
 fixnum/test/int_32_test: Fail, OK
 fixnum/test/int_64_test: Fail, OK
 intl/test/bidi_format_test: Fail, OK
