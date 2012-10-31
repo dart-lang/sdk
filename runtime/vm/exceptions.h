@@ -51,8 +51,6 @@ class Exceptions : AllStatic {
     kIndexOutOfRange,
     kArgument,
     kNoSuchMethod,
-    kClosureArgumentMismatch,
-    kObjectNotClosure,
     kFormat,
     kStackOverflow,
     kOutOfMemory,

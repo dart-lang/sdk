@@ -171,8 +171,6 @@ LibTest/core/Queue/last_A02_t01: Fail, OK # co19 issue 291
 
 LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
 
-LibTest/core/Map/putIfAbsent_A01_t08: Fail, OK # co19 issue 276
-LibTest/core/Map/putIfAbsent_A01_t06: Fail, OK # co19 issue 276
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail, OK # co19 issue 276
 
 LibTest/core/List/iterator_next_A02_t01: Fail, OK # co19 issue 288
@@ -401,16 +399,11 @@ Language/11_Expressions/11_Instance_Creation/2_Const_A06_t01: Fail # http://dart
 Language/11_Expressions/11_Instance_Creation/2_Const_A06_t02: Fail # http://dartbug.com/5519
 Language/11_Expressions/11_Instance_Creation/2_Const_A10_t01: Fail # inherited from VM
 Language/11_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A04_t01: Fail # http://dartbug.com/5519
-Language/11_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t03: Fail # inherited from VM
-Language/11_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t04: Fail  # co19 issue 166
-Language/11_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t05: Fail # inherited from VM
-Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A02_t01: Fail # inherited from VM
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Fail # inherited from VM
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail # inherited from VM
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t02: Fail # inherited from VM
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail # inherited from VM
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail # inherited from VM
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A08_t01: Fail # inherited from VM
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t03: Fail # inherited from VM
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t04: Fail # http://dartbug.com/5519
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t06: Fail # inherited from VM
@@ -513,8 +506,6 @@ LibTest/core/Date/toString_A02_t01: Fail, OK # inherited from VM
 LibTest/core/Date/year_A01_t01: Fail, OK # inherited from VM
 LibTest/core/double/toRadixString_A01_t01: Fail # inherited from VM
 LibTest/core/Expect/throws_A02_t01: Fail, OK # Issue co19 - 42
-LibTest/core/Future/handleException_A01_t07: Fail # inherited from VM
-LibTest/core/Future/then_A01_t05: Fail # inherited from VM
 LibTest/core/int/operator_left_shift_A01_t02: Fail, OK # co19 issue 129
 LibTest/core/int/toRadixString_A01_t01: Fail # inherited from VM
 LibTest/core/Match/operator_subscript_A01_t01: Fail # inherited from VM

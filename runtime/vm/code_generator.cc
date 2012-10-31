@@ -1190,7 +1190,46 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureThroughGetter, 2) {
       return;  // Return closure object.
     }
   }
-  Exceptions::ThrowByType(Exceptions::kObjectNotClosure, invoke_arguments);
+  // The result instance is not a closure, try to invoke method "call" before
+  // throwing a NoSuchMethodError.
+
+  // TODO(regis): Factorize the following code.
+
+  // TODO(regis): Args should be passed.
+  const Array& function_args = Array::Handle();
+  const String& function_name = String::Handle(Symbols::Call());
+  GrowableArray<const Object*> dart_arguments(5);
+
+  // TODO(regis): Resolve and invoke "call" method, if existing.
+
+  const Object& null_object = Object::Handle();
+  dart_arguments.Add(&result);
+  dart_arguments.Add(&function_name);
+  dart_arguments.Add(&function_args);
+  dart_arguments.Add(&null_object);
+
+  // Report if a function "call" with different arguments has been found.
+  {
+    Class& instance_class = Class::Handle(result.clazz());
+    Function& function =
+        Function::Handle(instance_class.LookupDynamicFunction(function_name));
+    while (function.IsNull()) {
+      instance_class = instance_class.SuperClass();
+      if (instance_class.IsNull()) break;
+      function = instance_class.LookupDynamicFunction(function_name);
+    }
+    if (!function.IsNull()) {
+      const int total_num_parameters = function.NumParameters();
+      const Array& array = Array::Handle(Array::New(total_num_parameters - 1));
+      // Skip receiver.
+      for (int i = 1; i < total_num_parameters; i++) {
+        array.SetAt(i - 1, String::Handle(function.ParameterNameAt(i)));
+      }
+      dart_arguments.Add(&array);
+    }
+  }
+  Exceptions::ThrowByType(Exceptions::kNoSuchMethod, dart_arguments);
+  UNREACHABLE();
 }
 
 
@@ -1244,7 +1283,7 @@ DEFINE_RUNTIME_ENTRY(InvokeImplicitClosureFunction, 3) {
     named_arg_pos = Smi::New(named_arg_pos.Value() - 1);
     adjusted_arg_descriptor.SetAt(index + 1, named_arg_pos);
   }
-  adjusted_arg_descriptor.SetAt(len - 1, Object::Handle(Object::null()));
+  adjusted_arg_descriptor.SetAt(len - 1, Object::Handle());
   // It is too late to share the descriptor by canonicalizing it. However, it is
   // important that the argument names are canonicalized (i.e. are symbols).
 
@@ -1329,27 +1368,73 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
 }
 
 
-// Report that an object is not a closure.
+// A non-closure object was invoked as a closure, so call the "call" method
+// on it.
 // Arg0: non-closure object.
 // Arg1: arguments array.
+// TODO(regis): Rename this entry?
 DEFINE_RUNTIME_ENTRY(ReportObjectNotClosure, 2) {
   ASSERT(arguments.Count() ==
          kReportObjectNotClosureRuntimeEntry.argument_count());
-  const Instance& bad_closure = Instance::CheckedHandle(arguments.At(0));
-  if (bad_closure.IsNull()) {
-    GrowableArray<const Object*> args;
-    Exceptions::ThrowByType(Exceptions::kObjectNotClosure, args);
+  const Instance& instance = Instance::CheckedHandle(arguments.At(0));
+  const Array& function_args = Array::CheckedHandle(arguments.At(1));
+  const String& function_name = String::Handle(Symbols::Call());
+  GrowableArray<const Object*> dart_arguments(5);
+  if (instance.IsNull()) {
+    dart_arguments.Add(&function_name);
+    dart_arguments.Add(&function_args);
+    Exceptions::ThrowByType(Exceptions::kNullPointer, dart_arguments);
+    UNREACHABLE();
   }
-  GrowableArray<const Object*> args;
-  Exceptions::ThrowByType(Exceptions::kObjectNotClosure, args);
+
+  // TODO(regis): Resolve and invoke "call" method, if existing.
+
+  const Object& null_object = Object::Handle();
+  dart_arguments.Add(&instance);
+  dart_arguments.Add(&function_name);
+  dart_arguments.Add(&function_args);
+  dart_arguments.Add(&null_object);
+
+  // Report if a function "call" with different arguments has been found.
+  Class& instance_class = Class::Handle(instance.clazz());
+  Function& function =
+      Function::Handle(instance_class.LookupDynamicFunction(function_name));
+  while (function.IsNull()) {
+    instance_class = instance_class.SuperClass();
+    if (instance_class.IsNull()) break;
+    function = instance_class.LookupDynamicFunction(function_name);
+  }
+  if (!function.IsNull()) {
+    const int total_num_parameters = function.NumParameters();
+    const Array& array = Array::Handle(Array::New(total_num_parameters - 1));
+    // Skip receiver.
+    for (int i = 1; i < total_num_parameters; i++) {
+      array.SetAt(i - 1, String::Handle(function.ParameterNameAt(i)));
+    }
+    dart_arguments.Add(&array);
+  }
+  Exceptions::ThrowByType(Exceptions::kNoSuchMethod, dart_arguments);
+  UNREACHABLE();
 }
 
 
+// A closure object was invoked with incompatible arguments.
+// TODO(regis): Deprecated. This case should be handled by a noSuchMethod call.
 DEFINE_RUNTIME_ENTRY(ClosureArgumentMismatch, 0) {
   ASSERT(arguments.Count() ==
          kClosureArgumentMismatchRuntimeEntry.argument_count());
-  GrowableArray<const Object*> args;
-  Exceptions::ThrowByType(Exceptions::kClosureArgumentMismatch, args);
+  const Instance& instance = Instance::Handle();  // Incorrect. OK for now.
+  const Array& function_args = Array::Handle();  // Incorrect. OK for now.
+  const String& function_name = String::Handle(Symbols::Call());
+  GrowableArray<const Object*> dart_arguments(5);
+
+  const Object& null_object = Object::Handle();
+  dart_arguments.Add(&instance);
+  dart_arguments.Add(&function_name);
+  dart_arguments.Add(&function_args);
+  dart_arguments.Add(&null_object);
+  Exceptions::ThrowByType(Exceptions::kNoSuchMethod, dart_arguments);
+  UNREACHABLE();
 }
 
 

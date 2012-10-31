@@ -408,14 +408,6 @@ RawObject* Exceptions::Create(
       library = Library::CoreLibrary();
       class_name = Symbols::New("NoSuchMethodError");
       break;
-    case kClosureArgumentMismatch:
-      library = Library::CoreLibrary();
-      class_name = Symbols::New("_ClosureArgumentMismatchException");
-      break;
-    case kObjectNotClosure:
-      library = Library::CoreLibrary();
-      class_name = Symbols::New("_ObjectNotClosureException");
-      break;
     case kFormat:
       library = Library::CoreLibrary();
       class_name = Symbols::New("FormatException");

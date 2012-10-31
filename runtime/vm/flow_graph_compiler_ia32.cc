@@ -812,6 +812,7 @@ void FlowGraphCompiler::CopyParameters() {
   // dropped the spill slots.
   BitmapBuilder* empty_stack_bitmap = new BitmapBuilder();
   if (function.IsClosureFunction()) {
+    // TODO(regis): Call NoSuchMethod with "call" as name of original function.
     // We do not use GenerateCallRuntime because of the non-standard (empty)
     // stackmap used here.
     __ CallRuntime(kClosureArgumentMismatchRuntimeEntry);
@@ -959,6 +960,8 @@ void FlowGraphCompiler::CompileGraph() {
       __ cmpl(EAX, Immediate(Smi::RawValue(num_fixed_params)));
       __ j(EQUAL, &argc_in_range, Assembler::kNearJump);
       if (function.IsClosureFunction()) {
+        // TODO(regis): Call NoSuchMethod with "call" as name of original
+        // function.
         GenerateCallRuntime(function.token_pos(),
                             kClosureArgumentMismatchRuntimeEntry,
                             prologue_locs);

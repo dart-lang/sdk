@@ -71,7 +71,6 @@ Language/11_Expressions/11_Instance_Creation/1_New_A02_t03: Fail # TODO(vm-team)
 Language/11_Expressions/11_Instance_Creation/1_New_A02_t05: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/1_New_A09_t09: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/2_Const_A10_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t08: Fail # TODO(vm-team): Please triage this failure.
@@ -211,9 +210,6 @@ Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t01: Fail # iss
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail # issue 6085
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # issue 6085
 
-LibTest/core/Map/putIfAbsent_A01_t08: Fail, OK # co19 issue 276
-LibTest/core/Map/putIfAbsent_A01_t06: Fail, OK # co19 issue 276
-
 LibTest/core/EmptyQueueException/EmptyQueueException_A01_t01: Fail, OK # co19 issue 288
 LibTest/core/EmptyQueueException/toString_A01_t01: Fail, OK # co19 issue 288
 LibTest/core/List/iterator_next_A02_t01: Fail, OK # co19 issue 288
@@ -229,12 +225,12 @@ LibTest/core/NoSuchMethodError/toString_A01_t01: Fail, OK # co19 issue 300
 [ $compiler == none && $runtime == vm && $checked ]
 Language/12_Statements/05_If_A02_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/12_Statements/09_Switch_A05_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Statements/15_Assert_A04_t04: Fail # TODO(vm-team): Please triage this failure.
 Language/14_Types/7_Type_Void_A04_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/14_Types/7_Type_Void_A04_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/14_Types/7_Type_Void_A04_t04: Fail # TODO(vm-team): Please triage this failure.
 Language/14_Types/7_Type_Void_A04_t05: Fail # TODO(vm-team): Please triage this failure.
 LibTest/core/Map/putIfAbsent_A01_t07: Fail # TODO(vm-team): Please triage this failure.
+LibTest/core/Map/putIfAbsent_A01_t08: Fail # TODO(vm-team): Please triage this failure.
 
 Language/14_Types/7_Type_Void_A04_t02: Fail, OK # co19 issue 158
 Language/14_Types/7_Type_Void_A04_t03: Fail, OK # co19 issue 158
@@ -396,16 +392,10 @@ Language/07_Classes/07_Classes_A02_t31: Fail
 Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail
 Language/11_Expressions/05_Strings/1_String_Interpolation_A04_t02: Fail
 Language/11_Expressions/05_Strings_A20_t01: Fail
-Language/11_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t04: Fail  # co19 issue 166
-Language/11_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t05: Fail
-Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A02_t01: Fail
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A08_t01: Fail
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t02: Fail # Issue 1604, exception should be NoSuchMethodException instead of ObjectNotClosureException
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t03: Fail # Issue 1604, exception should be NoSuchMethodException instead of ObjectNotClosureException
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A05_t01: Fail # Issue 1604, exception should be NoSuchMethodException instead of ObjectNotClosureException
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A06_t02: Fail # Issue 1604, exception should be NoSuchMethodException instead of ObjectNotClosureException
-LibTest/core/Future/handleException_A01_t07: Fail
-LibTest/core/Future/then_A01_t05: Fail
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail
 LibTest/isolate/isolate_api/spawnUri_A01_t03: Crash
 LibTest/isolate/isolate_api/spawnUri_A01_t04: Crash
