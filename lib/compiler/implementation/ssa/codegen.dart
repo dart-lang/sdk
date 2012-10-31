@@ -159,6 +159,11 @@ class SsaCodeGeneratorTask extends CompilerTask {
           addBackendParameter(checkResultElement, parameters, parameterNames);
         }
       });
+      // Put the box parameter.
+      ClosureScope scopeData = closureData.capturingScopes[node];
+      if (scopeData != null) {
+        addBackendParameter(scopeData.boxElement, parameters, parameterNames);
+      }
     }
   }
 

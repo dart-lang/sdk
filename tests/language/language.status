@@ -28,8 +28,10 @@ pseudo_kw_illegal_test/10: Fail  # Issue 356
 pseudo_kw_illegal_test/14: Fail  # Issue 356
 
 # These bugs refer currently ongoing language discussions.
-constructor5_test: Fail          # (Discussion ongoing)
-constructor6_test: Fail          # (Discussion ongoing)
+constructor5_test: Fail           # (Discussion ongoing)
+
+constructor6_test: Fail           # Issue 6422
+closure_in_initializer_test: Fail # Issue 6422
 
 # Regular bugs which should be fixed.
 const_init6_negative_test: Fail       # Issue 811

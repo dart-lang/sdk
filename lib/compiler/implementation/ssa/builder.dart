@@ -322,15 +322,21 @@ class LocalsHandler {
    * If the scope (function or loop) [node] has captured variables then this
    * method creates a box and sets up the redirections.
    */
-  void enterScope(Node node) {
+  void enterScope(Node node, Element element) {
     // See if any variable in the top-scope of the function is captured. If yes
     // we need to create a box-object.
     ClosureScope scopeData = closureData.capturingScopes[node];
     if (scopeData != null) {
-      // The scope has captured variables. Create a box.
-      // TODO(floitsch): Clean up this hack. Should we create a box-object by
-      // just creating an empty object literal?
-      HInstruction box = createBox();
+      HInstruction box;
+      // The scope has captured variables.
+      if (element != null && element.isGenerativeConstructorBody()) {
+        // The box is passed as a parameter to a generative
+        // constructor body.
+        box = new HParameterValue(scopeData.boxElement);
+        builder.add(box);
+      } else {
+        box = createBox();
+      }
       // Add the box to the known locals.
       directLocals[scopeData.boxElement] = box;
       // Make sure that accesses to the boxed locals go into the box. We also
@@ -398,7 +404,7 @@ class LocalsHandler {
       });
     }
 
-    enterScope(node);
+    enterScope(node, element);
 
     // If the freeVariableMapping is not empty, then this function was a
     // nested closure that captures variables. Redirect the captured
@@ -610,7 +616,7 @@ class LocalsHandler {
       // redirections already now. This way the initializer can write its
       // values into the box.
       // For other loops the box will be created when entering the body.
-      enterScope(node);
+      enterScope(node, null);
     }
   }
 
@@ -641,7 +647,7 @@ class LocalsHandler {
     // If there are no declared boxed loop variables then we did not create the
     // box before the initializer and we have to create the box now.
     if (!scopeData.hasBoxedLoopVariables()) {
-      enterScope(node);
+      enterScope(node, null);
     }
   }
 
@@ -1170,16 +1176,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           compiler.enqueuer.resolution.getCachedElements(constructor);
 
       ClosureClassMap oldClosureData = localsHandler.closureData;
+      Node node = constructor.parseNode(compiler);
       localsHandler.closureData =
           compiler.closureToClassMapper.computeClosureToClassMapping(
-              constructor, constructor.parseNode(compiler), elements);
+              constructor, node, elements);
 
       params.orderedForEachParameter((Element parameterElement) {
         if (elements.isParameterChecked(parameterElement)) {
           addParameterCheckInstruction(parameterElement);
         }
       });
-
+      localsHandler.enterScope(node, constructor);
       buildInitializers(constructor, constructors, fieldValues);
       localsHandler.closureData = oldClosureData;
       elements = oldElements;
@@ -1369,6 +1376,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       FunctionSignature functionSignature = body.computeSignature(compiler);
       int arity = functionSignature.parameterCount;
       functionSignature.orderedForEachParameter((parameter) {
+        // TODO(ngeoffray): No need to pass the parameters that are
+        // captured and stored in a box. Because this information is
+        // not trivial to get in codegen.dart, we just pass the
+        // parameters anyway. We need to update both codegen.dart and
+        // builder.dart on how parameters are being passed.
         bodyCallInputs.add(localsHandler.readLocal(parameter));
       });
 
@@ -1386,6 +1398,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           bodyCallInputs.add(localsHandler.readLocal(fieldCheck));
         }
       });
+
+      // If there are locals that escape (ie used in closures), we
+      // pass the box to the constructor.
+      ClosureScope scopeData = parameterClosureData.capturingScopes[node];
+      if (scopeData != null) {
+        bodyCallInputs.add(localsHandler.readLocal(scopeData.boxElement));
+      }
 
       // TODO(ahe): The constructor name is statically resolved. See
       // SsaCodeGenerator.visitInvokeDynamicMethod. Is there a cleaner

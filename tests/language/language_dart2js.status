@@ -103,7 +103,6 @@ const_var_test: Fail # Map literals take 2 type arguments.
 map_literal3_test: Fail # Map literals take 2 type arguments.
 ct_const_test: Fail # We don't take the generic type into account yet.
 char_escape_test: Fail # Unhandled non-BMP character: U+10000
-constructor6_test: Fail # Closures inside initializers not implemented.
 default_factory_library_test: Fail # lib is not a type
 dynamic_test: Fail # cannot resolve type F1
 factory_redirection_test/none: Fail # Not implemented.
@@ -115,9 +114,6 @@ factory_redirection_test/05: Fail # Not implemented.
 factory_redirection_test/06: Fail # Not implemented.
 factory_redirection_test/07: Pass # For the wrong reason. Not implemented.
 factory3_test: Fail # internal error: visitIs for type variables not implemented
-function_literals2_test: Fail # Closures inside initializers not implemented.
-function_syntax_test/none: Fail # Closures inside initializers not implemented.
-function_test: Fail # internal error: Closures inside initializers not implemented
 function_type_alias2_test: Fail # cannot resolve type f1
 function_type_alias3_test: Fail # cannot resolve type F
 function_type_alias4_test: Fail # cannot resolve type F
@@ -147,7 +143,6 @@ get_set_syntax_test/14: Fail # Fixed by https://chromiumcodereview.appspot.com/1
 get_set_syntax_test/15: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/16: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 implicit_scope_test: Fail # duplicate definition of a="bar"
-library_prefixes_test: Fail # other is not a type
 many_generic_instanceof_test: Fail # cannot resolve type T
 method_binding_test: Fail # internal error: super property read not implemented.
 method_override_test: Fail # cannot resolve type GetKeysFunctionType
