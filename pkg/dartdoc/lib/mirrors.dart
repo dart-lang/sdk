@@ -458,19 +458,38 @@ abstract class MethodMirror implements MemberMirror {
   TypeMirror get returnType;
 
   /**
-   * Is [:true:] if this method is declared abstract.
+   * Is the reflectee abstract?
    */
   bool get isAbstract;
 
   /**
-   * Is [:true:] if this method is a constant constructor.
+   * Is the reflectee a regular function or method?
+   *
+   * A function or method is regular if it is not a getter, setter, or
+   * constructor.  Note that operators, by this definition, are
+   * regular methods.
    */
-  bool get isConst;
+  bool get isRegularMethod;
 
   /**
-   * Is [:true:] if this method is a factory method.
+   * Is the reflectee a const constructor?
    */
-  bool get isFactory;
+  bool get isConstConstructor;
+
+  /**
+   * Is the reflectee a generative constructor?
+   */
+  bool get isGenerativeConstructor;
+
+  /**
+   * Is the reflectee a redirecting constructor?
+   */
+  bool get isRedirectingConstructor;
+
+  /**
+   * Is the reflectee a factory constructor?
+   */
+  bool get isFactoryConstructor;
 
   /**
    * Returns the constructor name for named constructors and factory methods,

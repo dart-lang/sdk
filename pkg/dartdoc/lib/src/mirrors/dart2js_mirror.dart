@@ -112,9 +112,11 @@ MethodMirror _convertElementMethodToMethodMirror(Dart2JsContainerMirror library,
 }
 
 class Dart2JsMethodKind {
-  static const Dart2JsMethodKind NORMAL = const Dart2JsMethodKind("normal");
-  static const Dart2JsMethodKind CONSTRUCTOR
-      = const Dart2JsMethodKind("constructor");
+  static const Dart2JsMethodKind REGULAR = const Dart2JsMethodKind("regular");
+  static const Dart2JsMethodKind GENERATIVE =
+      const Dart2JsMethodKind("generative");
+  static const Dart2JsMethodKind REDIRECTING =
+      const Dart2JsMethodKind("redirecting");
   static const Dart2JsMethodKind CONST = const Dart2JsMethodKind("const");
   static const Dart2JsMethodKind FACTORY = const Dart2JsMethodKind("factory");
   static const Dart2JsMethodKind GETTER = const Dart2JsMethodKind("getter");
@@ -1322,6 +1324,7 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
       _displayName = _simpleName;
       _simpleName = '$_simpleName=';
     } else if (_function.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
+      // TODO(johnniwinther): Support detection of redirecting constructors.
       _constructorName = '';
       int dollarPos = _simpleName.indexOf('\$');
       if (dollarPos != -1) {
@@ -1335,7 +1338,7 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
       if (_function.modifiers.isConst()) {
         _kind = Dart2JsMethodKind.CONST;
       } else {
-        _kind = Dart2JsMethodKind.CONSTRUCTOR;
+        _kind = Dart2JsMethodKind.GENERATIVE;
       }
       _displayName = _simpleName;
     } else if (_function.modifiers.isFactory()) {
@@ -1366,7 +1369,7 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
       // Display name is 'operator operatorName'.
       _displayName = 'operator $_operatorName';
     } else {
-      _kind = Dart2JsMethodKind.NORMAL;
+      _kind = Dart2JsMethodKind.REGULAR;
       _displayName = _simpleName;
     }
   }
@@ -1385,7 +1388,8 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
   bool get isTopLevel => _objectMirror is LibraryMirror;
 
   bool get isConstructor
-      => _kind == Dart2JsMethodKind.CONSTRUCTOR || isConst || isFactory;
+      => isGenerativeConstructor || isConstConstructor ||
+         isFactoryConstructor || isRedirectingConstructor;
 
   bool get isMethod => !isConstructor;
 
@@ -1403,11 +1407,17 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
       mirrors, _function.computeSignature(mirrors.compiler).returnType,
       mirrors.compiler.types.dynamicType);
 
-  bool get isAbstract => _function.modifiers.isAbstract();
+  bool get isAbstract => _function.isAbstract(mirrors.compiler);
 
-  bool get isConst => _kind == Dart2JsMethodKind.CONST;
+  bool get isRegularMethod => !(isGetter || isSetter || isConstructor);
 
-  bool get isFactory => _kind == Dart2JsMethodKind.FACTORY;
+  bool get isConstConstructor => _kind == Dart2JsMethodKind.CONST;
+
+  bool get isGenerativeConstructor => _kind == Dart2JsMethodKind.GENERATIVE;
+
+  bool get isRedirectingConstructor => _kind == Dart2JsMethodKind.REDIRECTING;
+
+  bool get isFactoryConstructor => _kind == Dart2JsMethodKind.FACTORY;
 
   String get constructorName => _constructorName;
 

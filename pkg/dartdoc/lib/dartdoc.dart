@@ -1251,10 +1251,10 @@ class Dartdoc {
 
     if (member is MethodMirror) {
       if (member.isConstructor) {
-        if (member.isFactory) {
+        if (member.isFactoryConstructor) {
           write('factory ');
         } else {
-          write(member.isConst ? 'const ' : 'new ');
+          write(member.isConstConstructor ? 'const ' : 'new ');
         }
       } else if (member.isAbstract) {
         write('abstract ');

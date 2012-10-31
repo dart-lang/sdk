@@ -356,22 +356,23 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.stringEquals('mirrors_helper.Baz.method1', method1.qualifiedName,
                       "Unexpected method qualifiedName");
   Expect.equals(method1.owner, bazClass);
-  Expect.isFalse(method1.isTopLevel, "Method is top level");
-  Expect.isFalse(method1.isConstructor, "Method is constructor");
-  Expect.isFalse(method1.isField, "Method is field");
-  Expect.isTrue(method1.isMethod, "Method is not method");
-  Expect.isFalse(method1.isPrivate, "Method is private");
-  Expect.isTrue(method1.isStatic, "Method is not static");
-  Expect.isTrue(method1 is MethodMirror, "Method is not MethodMirror");
-  Expect.isFalse(method1.isConst, "Method is const");
-  Expect.isFalse(method1.isFactory, "Method is factory");
-  Expect.isNull(method1.constructorName,
-                "Method constructorName is non-null");
-  Expect.isFalse(method1.isGetter, "Method is getter");
-  Expect.isFalse(method1.isSetter, "Method is setter");
-  Expect.isFalse(method1.isOperator, "Method is operator");
-  Expect.isNull(method1.operatorName,
-                "Method operatorName is non-null");
+  Expect.isFalse(method1.isTopLevel);
+  Expect.isFalse(method1.isConstructor);
+  Expect.isFalse(method1.isField);
+  Expect.isTrue(method1.isMethod);
+  Expect.isFalse(method1.isPrivate);
+  Expect.isTrue(method1.isStatic);
+  Expect.isTrue(method1 is MethodMirror);
+  Expect.isTrue(method1.isRegularMethod);
+  Expect.isFalse(method1.isConstConstructor);
+  Expect.isFalse(method1.isGenerativeConstructor);
+  Expect.isFalse(method1.isRedirectingConstructor);
+  Expect.isFalse(method1.isFactoryConstructor);
+  Expect.isNull(method1.constructorName);
+  Expect.isFalse(method1.isGetter);
+  Expect.isFalse(method1.isSetter);
+  Expect.isFalse(method1.isOperator);
+  Expect.isNull(method1.operatorName);
 
   var dynamicType = method1.returnType;
   Expect.isNotNull(dynamicType, "Return type was null");
@@ -409,22 +410,23 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.stringEquals('mirrors_helper.Baz.method2', method2.qualifiedName,
                       "Unexpected method qualifiedName");
   Expect.equals(method2.owner, bazClass);
-  Expect.isFalse(method2.isTopLevel, "Method is top level");
-  Expect.isFalse(method2.isConstructor, "Method is constructor");
-  Expect.isFalse(method2.isField, "Method is field");
-  Expect.isTrue(method2.isMethod, "Method is not method");
-  Expect.isFalse(method2.isPrivate, "Method is private");
-  Expect.isFalse(method2.isStatic, "Method is static");
-  Expect.isTrue(method2 is MethodMirror, "Method is not MethodMirror");
-  Expect.isFalse(method2.isConst, "Method is const");
-  Expect.isFalse(method2.isFactory, "Method is factory");
-  Expect.isNull(method2.constructorName,
-                "Method constructorName is non-null");
-  Expect.isFalse(method2.isGetter, "Method is getter");
-  Expect.isFalse(method2.isSetter, "Method is setter");
-  Expect.isFalse(method2.isOperator, "Method is operator");
-  Expect.isNull(method2.operatorName,
-                "Method operatorName is non-null");
+  Expect.isFalse(method2.isTopLevel);
+  Expect.isFalse(method2.isConstructor);
+  Expect.isFalse(method2.isField);
+  Expect.isTrue(method2.isMethod);
+  Expect.isFalse(method2.isPrivate);
+  Expect.isFalse(method2.isStatic);
+  Expect.isTrue(method2 is MethodMirror);
+  Expect.isTrue(method2.isRegularMethod);
+  Expect.isFalse(method2.isConstConstructor);
+  Expect.isFalse(method2.isGenerativeConstructor);
+  Expect.isFalse(method2.isRedirectingConstructor);
+  Expect.isFalse(method2.isFactoryConstructor);
+  Expect.isNull(method2.constructorName);
+  Expect.isFalse(method2.isGetter);
+  Expect.isFalse(method2.isSetter);
+  Expect.isFalse(method2.isOperator);
+  Expect.isNull(method2.operatorName);
 
   var voidType = method2.returnType;
   Expect.isNotNull(voidType, "Return type was null");
@@ -475,22 +477,23 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.stringEquals('mirrors_helper.Baz.method3', method3.qualifiedName,
                       "Unexpected method qualifiedName");
   Expect.equals(method3.owner, bazClass);
-  Expect.isFalse(method3.isTopLevel, "Method is top level");
-  Expect.isFalse(method3.isConstructor, "Method is constructor");
-  Expect.isFalse(method3.isField, "Method is field");
-  Expect.isTrue(method3.isMethod, "Method is not method");
-  Expect.isFalse(method3.isPrivate, "Method is private");
-  Expect.isFalse(method3.isStatic, "Method is static");
-  Expect.isTrue(method3 is MethodMirror, "Method is not MethodMirror");
-  Expect.isFalse(method3.isConst, "Method is const");
-  Expect.isFalse(method3.isFactory, "Method is factory");
-  Expect.isNull(method3.constructorName,
-                "Method constructorName is non-null");
-  Expect.isFalse(method3.isGetter, "Method is getter");
-  Expect.isFalse(method3.isSetter, "Method is setter");
-  Expect.isFalse(method3.isOperator, "Method is operator");
-  Expect.isNull(method3.operatorName,
-                "Method operatorName is non-null");
+  Expect.isFalse(method3.isTopLevel);
+  Expect.isFalse(method3.isConstructor);
+  Expect.isFalse(method3.isField);
+  Expect.isTrue(method3.isMethod);
+  Expect.isFalse(method3.isPrivate);
+  Expect.isFalse(method3.isStatic);
+  Expect.isTrue(method3 is MethodMirror);
+  Expect.isTrue(method3.isRegularMethod);
+  Expect.isFalse(method3.isConstConstructor);
+  Expect.isFalse(method3.isGenerativeConstructor);
+  Expect.isFalse(method3.isRedirectingConstructor);
+  Expect.isFalse(method3.isFactoryConstructor);
+  Expect.isNull(method3.constructorName);
+  Expect.isFalse(method3.isGetter);
+  Expect.isFalse(method3.isSetter);
+  Expect.isFalse(method3.isOperator);
+  Expect.isNull(method3.operatorName);
 
   var method3ReturnType = method3.returnType;
   Expect.isNotNull(method3ReturnType, "Return type is null");
@@ -600,22 +603,23 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
                       operator_eq.qualifiedName,
                       "Unexpected method qualifiedName");
   Expect.equals(operator_eq.owner, bazClass);
-  Expect.isFalse(operator_eq.isTopLevel, "Method is top level");
-  Expect.isFalse(operator_eq.isConstructor, "Method is constructor");
-  Expect.isFalse(operator_eq.isField, "Method is field");
-  Expect.isTrue(operator_eq.isMethod, "Method is not method");
-  Expect.isFalse(operator_eq.isPrivate, "Method is private");
-  Expect.isFalse(operator_eq.isStatic, "Method is static");
-  Expect.isTrue(operator_eq is MethodMirror, "Method is not MethodMirror");
-  Expect.isFalse(operator_eq.isConst, "Method is const");
-  Expect.isFalse(operator_eq.isFactory, "Method is factory");
-  Expect.isNull(operator_eq.constructorName,
-                "Method constructorName is non-null");
-  Expect.isFalse(operator_eq.isGetter, "Method is getter");
-  Expect.isFalse(operator_eq.isSetter, "Method is setter");
-  Expect.isTrue(operator_eq.isOperator, "Method is not operator");
-  Expect.stringEquals('==', operator_eq.operatorName,
-                      "Unexpected operatorName");
+  Expect.isFalse(operator_eq.isTopLevel);
+  Expect.isFalse(operator_eq.isConstructor);
+  Expect.isFalse(operator_eq.isField);
+  Expect.isTrue(operator_eq.isMethod);
+  Expect.isFalse(operator_eq.isPrivate);
+  Expect.isFalse(operator_eq.isStatic);
+  Expect.isTrue(operator_eq is MethodMirror);
+  Expect.isTrue(operator_eq.isRegularMethod);
+  Expect.isFalse(operator_eq.isConstConstructor);
+  Expect.isFalse(operator_eq.isGenerativeConstructor);
+  Expect.isFalse(operator_eq.isRedirectingConstructor);
+  Expect.isFalse(operator_eq.isFactoryConstructor);
+  Expect.isNull(operator_eq.constructorName);
+  Expect.isFalse(operator_eq.isGetter);
+  Expect.isFalse(operator_eq.isSetter);
+  Expect.isTrue(operator_eq.isOperator);
+  Expect.stringEquals('==', operator_eq.operatorName);
 
   ////////////////////////////////////////////////////////////////////////////
   // int operator -() => 0;
@@ -629,23 +633,23 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
                       operator_negate.qualifiedName,
                       "Unexpected method qualifiedName");
   Expect.equals(operator_negate.owner, bazClass);
-  Expect.isFalse(operator_negate.isTopLevel, "Method is top level");
-  Expect.isFalse(operator_negate.isConstructor, "Method is constructor");
-  Expect.isFalse(operator_negate.isField, "Method is field");
-  Expect.isTrue(operator_negate.isMethod, "Method is not method");
-  Expect.isFalse(operator_negate.isPrivate, "Method is private");
-  Expect.isFalse(operator_negate.isStatic, "Method is static");
-  Expect.isTrue(operator_negate is MethodMirror,
-                "Method is not MethodMirror");
-  Expect.isFalse(operator_negate.isConst, "Method is const");
-  Expect.isFalse(operator_negate.isFactory, "Method is factory");
-  Expect.isNull(operator_negate.constructorName,
-                "Method constructorName is non-null");
-  Expect.isFalse(operator_negate.isGetter, "Method is getter");
-  Expect.isFalse(operator_negate.isSetter, "Method is setter");
-  Expect.isTrue(operator_negate.isOperator, "Method is not operator");
-  Expect.stringEquals('-', operator_negate.operatorName,
-                      "Unexpected operatorName");
+  Expect.isFalse(operator_negate.isTopLevel);
+  Expect.isFalse(operator_negate.isConstructor);
+  Expect.isFalse(operator_negate.isField);
+  Expect.isTrue(operator_negate.isMethod);
+  Expect.isFalse(operator_negate.isPrivate);
+  Expect.isFalse(operator_negate.isStatic);
+  Expect.isTrue(operator_negate is MethodMirror);
+  Expect.isTrue(operator_negate.isRegularMethod);
+  Expect.isFalse(operator_negate.isConstConstructor);
+  Expect.isFalse(operator_negate.isGenerativeConstructor);
+  Expect.isFalse(operator_negate.isRedirectingConstructor);
+  Expect.isFalse(operator_negate.isFactoryConstructor);
+  Expect.isNull(operator_negate.constructorName);
+  Expect.isFalse(operator_negate.isGetter);
+  Expect.isFalse(operator_negate.isSetter);
+  Expect.isTrue(operator_negate.isOperator);
+  Expect.stringEquals('-', operator_negate.operatorName);
 
 
   var bazClassConstructors = bazClass.constructors;
@@ -653,33 +657,54 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.equals(3, bazClassConstructors.length,
                 "Unexpected number of constructors");
 
+  ////////////////////////////////////////////////////////////////////////////
+  //   Baz();
+  ////////////////////////////////////////////////////////////////////////////
   var bazClassNonameConstructor = bazClassConstructors['Baz'];
   Expect.isNotNull(bazClassNonameConstructor);
   Expect.isTrue(bazClassNonameConstructor is MethodMirror);
   Expect.isTrue(bazClassNonameConstructor.isConstructor);
-  Expect.isFalse(bazClassNonameConstructor.isFactory);
+  Expect.isFalse(bazClassNonameConstructor.isRegularMethod);
+  Expect.isFalse(bazClassNonameConstructor.isConstConstructor);
+  Expect.isTrue(bazClassNonameConstructor.isGenerativeConstructor);
+  Expect.isFalse(bazClassNonameConstructor.isRedirectingConstructor);
+  Expect.isFalse(bazClassNonameConstructor.isFactoryConstructor);
   Expect.stringEquals('Baz', bazClassNonameConstructor.simpleName);
   Expect.stringEquals('Baz', bazClassNonameConstructor.displayName);
   Expect.stringEquals('mirrors_helper.Baz.Baz',
       bazClassNonameConstructor.qualifiedName);
   Expect.stringEquals('', bazClassNonameConstructor.constructorName);
 
+  ////////////////////////////////////////////////////////////////////////////
+  //   const Baz.named();
+  ////////////////////////////////////////////////////////////////////////////
   var bazClassNamedConstructor = bazClassConstructors['Baz.named'];
   Expect.isNotNull(bazClassNamedConstructor);
   Expect.isTrue(bazClassNamedConstructor is MethodMirror);
   Expect.isTrue(bazClassNamedConstructor.isConstructor);
-  Expect.isFalse(bazClassNamedConstructor.isFactory);
+  Expect.isFalse(bazClassNamedConstructor.isRegularMethod);
+  Expect.isTrue(bazClassNamedConstructor.isConstConstructor);
+  Expect.isFalse(bazClassNamedConstructor.isGenerativeConstructor);
+  Expect.isFalse(bazClassNamedConstructor.isRedirectingConstructor);
+  Expect.isFalse(bazClassNamedConstructor.isFactoryConstructor);
   Expect.stringEquals('Baz.named', bazClassNamedConstructor.simpleName);
   Expect.stringEquals('Baz.named', bazClassNamedConstructor.displayName);
   Expect.stringEquals('mirrors_helper.Baz.Baz.named',
       bazClassNamedConstructor.qualifiedName);
   Expect.stringEquals('named', bazClassNamedConstructor.constructorName);
 
+  ////////////////////////////////////////////////////////////////////////////
+  //   factory Baz.factory() => new Baz<E,F>();
+  ////////////////////////////////////////////////////////////////////////////
   var bazClassFactoryConstructor = bazClassConstructors['Baz.factory'];
   Expect.isNotNull(bazClassFactoryConstructor);
   Expect.isTrue(bazClassFactoryConstructor is MethodMirror);
   Expect.isTrue(bazClassFactoryConstructor.isConstructor);
-  Expect.isTrue(bazClassFactoryConstructor.isFactory);
+  Expect.isFalse(bazClassFactoryConstructor.isRegularMethod);
+  Expect.isFalse(bazClassFactoryConstructor.isConstConstructor);
+  Expect.isFalse(bazClassFactoryConstructor.isGenerativeConstructor);
+  Expect.isFalse(bazClassFactoryConstructor.isRedirectingConstructor);
+  Expect.isTrue(bazClassFactoryConstructor.isFactoryConstructor);
   Expect.stringEquals('Baz.factory', bazClassFactoryConstructor.simpleName);
   Expect.stringEquals('Baz.factory', bazClassFactoryConstructor.displayName);
   Expect.stringEquals('mirrors_helper.Baz.Baz.factory',
@@ -716,17 +741,20 @@ void testPrivate(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isTrue(privateGetter is MethodMirror);
   Expect.isTrue(privateGetter.isGetter);
   Expect.isTrue(privateGetter.isPrivate);
+  Expect.isFalse(privateGetter.isRegularMethod);
 
   var privateSetter = privateClass.members['_privateSetter='];
   Expect.isNotNull(privateSetter);
   Expect.isTrue(privateSetter is MethodMirror);
   Expect.isTrue(privateSetter.isSetter);
   Expect.isTrue(privateSetter.isPrivate);
+  Expect.isFalse(privateSetter.isRegularMethod);
 
   var privateMethod = privateClass.members['_privateMethod'];
   Expect.isNotNull(privateMethod);
   Expect.isTrue(privateMethod is MethodMirror);
   Expect.isTrue(privateMethod.isPrivate);
+  Expect.isTrue(privateMethod.isRegularMethod);
 
   var privateConstructor =
       privateClass.members['_PrivateClass._privateConstructor'];
@@ -734,11 +762,19 @@ void testPrivate(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isTrue(privateConstructor is MethodMirror);
   Expect.isTrue(privateConstructor.isConstructor);
   Expect.isTrue(privateConstructor.isPrivate);
+  Expect.isFalse(privateConstructor.isConstConstructor);
+  Expect.isFalse(privateConstructor.isRedirectingConstructor);
+  Expect.isTrue(privateConstructor.isGenerativeConstructor);
+  Expect.isFalse(privateConstructor.isFactoryConstructor);
 
   var privateFactoryConstructor =
       privateClass.members['_PrivateClass._privateFactoryConstructor'];
   Expect.isNotNull(privateFactoryConstructor);
   Expect.isTrue(privateFactoryConstructor is MethodMirror);
-  Expect.isTrue(privateFactoryConstructor.isFactory);
+  Expect.isTrue(privateFactoryConstructor.isConstructor);
   Expect.isTrue(privateFactoryConstructor.isPrivate);
+  Expect.isFalse(privateFactoryConstructor.isConstConstructor);
+  Expect.isFalse(privateFactoryConstructor.isRedirectingConstructor);
+  Expect.isFalse(privateFactoryConstructor.isGenerativeConstructor);
+  Expect.isTrue(privateFactoryConstructor.isFactoryConstructor);
 }
