@@ -51,6 +51,7 @@ public enum TypeErrorCode implements ErrorCode {
   NO_SUCH_NAMED_PARAMETER("no such named parameter \"%s\" defined"),
   NO_SUCH_TYPE("no such type \"%s\"", true),
   NOT_A_FUNCTION_TYPE("\"%s\" is not a function type"),
+  NOT_A_FUNCTION_TYPE_FIELD("'%s' is a field of type '%s', not a function; remove parentheses"),
   NOT_A_MEMBER_OF("\"%s\" is not a member of %s"),
   NOT_A_MEMBER_OF_INFERRED(ErrorSeverity.INFO, "\"%s\" is not a member of %s"),
   NOT_A_METHOD_IN("\"%s\" is not a method in %s"),

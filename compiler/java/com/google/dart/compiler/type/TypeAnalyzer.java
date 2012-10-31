@@ -1070,7 +1070,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
               if (Elements.isFieldWithGetter(field)) {
                 Type fieldType = field.getType();
                 if (!types.isAssignable(functionType, fieldType)) {
-                  onError(diagnosticNode, TypeErrorCode.NOT_A_FUNCTION_TYPE, fieldType);
+                  onError(diagnosticNode, TypeErrorCode.NOT_A_FUNCTION_TYPE_FIELD, field.getName(), fieldType);
                 }
               }
               return dynamicType;

@@ -4147,6 +4147,21 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.NOT_A_FUNCTION_TYPE, 10, 3, 3),
         errEx(TypeErrorCode.NOT_A_FUNCTION_TYPE, 11, 3, 9));
   }
+  
+  public void test_invokeNonFunction_getter() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int get foo => 0;",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.foo();",
+        "}");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.NOT_A_FUNCTION_TYPE_FIELD, 7, 5, 3));
+  }
 
   public void test_wrongOperandTypeForUnaryExpression() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
