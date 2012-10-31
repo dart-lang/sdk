@@ -137,6 +137,10 @@ LibTest/math/tan_A01_t01: Fail # TODO(dart2dart-team): Please triage this failur
 
 LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
 
+LibTest/core/String/String_class_A02_t01: Fail, OK # co19 issue 284
+LibTest/core/String/charCodeAt_A01_t01: Fail, OK # co19 issue 284
+LibTest/core/String/charCodes_A01_t01: Fail, OK # co19 issue 284
+
 LibTest/isolate/SendPort/send_A02_t02: Fail, OK # co19 issue 293
 LibTest/isolate/SendPort/send_A02_t03: Fail, OK # co19 issue 293
 LibTest/isolate/SendPort/send_A02_t04: Fail, OK # co19 issue 293
