@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of client_live_nav;
+
 List libraryList;
 InputElement searchInput;
 DivElement dropdown;
@@ -44,7 +46,7 @@ updateDropDown(Event event) {
   } else {
     // Search all entities.
     var searchText = new SearchText(text);
-    for (Map<String,Dynamic> library in libraryList)  {
+    for (Map<String,dynamic> library in libraryList)  {
       matchLibrary(results, searchText, library);
       matchLibraryMembers(results, searchText, library);
       matchTypes(results, searchText, library);
@@ -81,13 +83,13 @@ updateDropDown(Event event) {
 
 void matchAllMembers(List<Result> results, String memberText) {
   var searchText = new SearchText(memberText);
-  for (Map<String,Dynamic> library in libraryList)  {
+  for (Map<String,dynamic> library in libraryList)  {
     String libraryName = library[NAME];
     if (library.containsKey(TYPES)) {
-      for (Map<String,Dynamic> type in library[TYPES]) {
+      for (Map<String,dynamic> type in library[TYPES]) {
         String typeName = type[NAME];
         if (type.containsKey(MEMBERS)) {
-          for (Map<String,Dynamic> member in type[MEMBERS]) {
+          for (Map<String,dynamic> member in type[MEMBERS]) {
             StringMatch memberMatch = obtainMatch(searchText, member[NAME]);
             if (memberMatch != null) {
               results.add(new Result(memberMatch, member[KIND],
@@ -106,15 +108,15 @@ void matchAllMembersInType(List<Result> results,
                            String typeText, String memberText) {
   var searchText = new SearchText(typeText);
   var emptyText = new SearchText(memberText);
-  for (Map<String,Dynamic> library in libraryList)  {
+  for (Map<String,dynamic> library in libraryList)  {
     String libraryName = library[NAME];
     if (library.containsKey(TYPES)) {
-      for (Map<String,Dynamic> type in library[TYPES]) {
+      for (Map<String,dynamic> type in library[TYPES]) {
         String typeName = type[NAME];
         StringMatch typeMatch = obtainMatch(searchText, typeName);
         if (typeMatch != null) {
           if (type.containsKey(MEMBERS)) {
-            for (Map<String,Dynamic> member in type[MEMBERS]) {
+            for (Map<String,dynamic> member in type[MEMBERS]) {
               StringMatch memberMatch = obtainMatch(emptyText,
                   member[NAME]);
               results.add(new Result(memberMatch, member[KIND],
@@ -134,15 +136,15 @@ void matchMembersInType(List<Result> results,
   var searchText = new SearchText(text);
   var typeSearchText = new SearchText(typeText);
   var memberSearchText = new SearchText(memberText);
-  for (Map<String,Dynamic> library in libraryList)  {
+  for (Map<String,dynamic> library in libraryList)  {
     String libraryName = library[NAME];
     if (library.containsKey(TYPES)) {
-      for (Map<String,Dynamic> type in library[TYPES]) {
+      for (Map<String,dynamic> type in library[TYPES]) {
         String typeName = type[NAME];
         StringMatch typeMatch = obtainMatch(typeSearchText, typeName);
         if (typeMatch != null) {
           if (type.containsKey(MEMBERS)) {
-            for (Map<String,Dynamic> member in type[MEMBERS]) {
+            for (Map<String,dynamic> member in type[MEMBERS]) {
               // Check for constructor match.
               StringMatch constructorMatch = obtainMatch(searchText,
                   member[NAME]);
@@ -182,7 +184,7 @@ void matchLibraryMembers(List<Result> results, SearchText searchText,
                           Map library) {
   if (library.containsKey(MEMBERS)) {
     String libraryName = library[NAME];
-    for (Map<String,Dynamic> member in library[MEMBERS]) {
+    for (Map<String,dynamic> member in library[MEMBERS]) {
       StringMatch memberMatch = obtainMatch(searchText, member[NAME]);
       if (memberMatch != null) {
         results.add(new Result(memberMatch, member[KIND],
@@ -197,7 +199,7 @@ void matchTypes(List<Result> results, SearchText searchText,
                 Map library) {
   if (library.containsKey(TYPES)) {
     String libraryName = library[NAME];
-    for (Map<String,Dynamic> type in library[TYPES]) {
+    for (Map<String,dynamic> type in library[TYPES]) {
       String typeName = type[NAME];
       matchType(results, searchText, libraryName, type);
       matchTypeMembers(results, searchText, libraryName, type);
@@ -220,7 +222,7 @@ void matchTypeMembers(List<Result> results, SearchText searchText,
                       String libraryName, Map type) {
   if (type.containsKey(MEMBERS)) {
     String typeName = type[NAME];
-    for (Map<String,Dynamic> member in type[MEMBERS]) {
+    for (Map<String,dynamic> member in type[MEMBERS]) {
       StringMatch memberMatch = obtainMatch(searchText, member[NAME]);
       if (memberMatch != null) {
         results.add(new Result(memberMatch, member[KIND],

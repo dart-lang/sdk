@@ -14,27 +14,26 @@
  * members, finds the associated doc comments and builds crosslinked docs from
  * them.
  */
-#library('dartdoc');
+library dartdoc;
 
-#import('dart:io');
-#import('dart:math');
-#import('dart:uri');
-#import('dart:json');
-
-// TODO(rnystrom): Use "package:" URL (#4968).
-#import('mirrors.dart');
-#import('mirrors_util.dart');
-#import('src/mirrors/dart2js_mirror.dart', prefix: 'dart2js');
-#import('classify.dart');
-#import('markdown.dart', prefix: 'md');
-#import('../../../lib/compiler/implementation/scanner/scannerlib.dart',
-        prefix: 'dart2js');
-#import('../../../lib/_internal/libraries.dart');
+import 'dart:io';
+import 'dart:math';
+import 'dart:uri';
+import 'dart:json';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-#source('src/dartdoc/comment_map.dart');
-#source('src/dartdoc/nav.dart');
-#source('src/dartdoc/utils.dart');
+import 'mirrors.dart';
+import 'mirrors_util.dart';
+import 'src/mirrors/dart2js_mirror.dart' as dart2js;
+import 'classify.dart';
+import 'markdown.dart' as md;
+import '../../../lib/compiler/implementation/scanner/scannerlib.dart' as dart2js;
+import '../../../lib/_internal/libraries.dart';
+
+// TODO(rnystrom): Use "package:" URL (#4968).
+part 'src/dartdoc/comment_map.dart';
+part 'src/dartdoc/nav.dart';
+part 'src/dartdoc/utils.dart';
 
 /**
  * Generates completely static HTML containing everything you need to browse
@@ -1051,7 +1050,7 @@ class Dartdoc {
           if (!showPrivate && member.isPrivate) return;
 
           bool inherit = true;
-          if (type !== host) {
+          if (type != host) {
             if (member.isPrivate) {
               // Don't inherit private members.
               inherit = false;
@@ -1169,7 +1168,7 @@ class Dartdoc {
       } else {
         DocComment getterComment = getMemberComment(getter);
         DocComment setterComment = getMemberComment(setter);
-        if (getter.owner !== setter.owner ||
+        if (getter.owner != setter.owner ||
             getterComment != null && setterComment != null) {
           // Both have comments or are not declared in the same class
           // => Documents separately.
@@ -1423,7 +1422,7 @@ class Dartdoc {
 
   void docComment(ContainerMirror host, DocComment comment) {
     if (comment != null) {
-      if (comment.inheritedFrom !== null) {
+      if (comment.inheritedFrom != null) {
         writeln('<div class="inherited">');
         writeln(comment.html);
         write('<div class="docs-inherited-from">docs inherited from ');
@@ -1567,12 +1566,12 @@ class Dartdoc {
                [String paramName = null]) {
     // Don't bother explicitly displaying Dynamic.
     if (type.isDynamic) {
-      if (paramName !== null) write(paramName);
+      if (paramName != null) write(paramName);
       return;
     }
 
     // For parameters, handle non-typedefed function types.
-    if (paramName !== null && type is FunctionTypeMirror) {
+    if (paramName != null && type is FunctionTypeMirror) {
       annotateType(enclosingType, type.returnType);
       write(paramName);
 
@@ -1583,7 +1582,7 @@ class Dartdoc {
     linkToType(enclosingType, type);
 
     write(' ');
-    if (paramName !== null) write(paramName);
+    if (paramName != null) write(paramName);
   }
 
   /** Writes a link to a human-friendly string representation for a type. */
@@ -1641,7 +1640,7 @@ class Dartdoc {
   typeReference(ClassMirror type) {
     // TODO(rnystrom): Do we need to handle ParameterTypes here like
     // annotation() does?
-    return a(typeUrl(type), typeName(type), css: 'crossref');
+    return a(typeUrl(type), typeName(type), 'crossref');
   }
 
   /** Generates a human-friendly string representation for a type. */

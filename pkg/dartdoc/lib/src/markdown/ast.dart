@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of markdown;
+
 /// Base class for any AST item. Roughly corresponds to Node in the DOM. Will
 /// be either an Element or Text.
 abstract class Node {

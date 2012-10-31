@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of client_live_nav;
+
 /**
  * [SearchText] represent the search field text. The text is viewed in three
  * ways: [text] holds the original search text, used for performing

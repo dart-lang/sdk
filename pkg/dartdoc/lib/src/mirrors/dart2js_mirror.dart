@@ -60,10 +60,10 @@ Dart2JsTypeMirror _convertTypeToTypeMirror(
     DartType type,
     InterfaceType defaultType,
     [FunctionSignature functionSignature]) {
-  if (type === null) {
+  if (type == null) {
     return new Dart2JsInterfaceTypeMirror(system, defaultType);
   } else if (type is InterfaceType) {
-    if (type === system.compiler.types.dynamicType) {
+    if (type == system.compiler.types.dynamicType) {
       return new Dart2JsDynamicMirror(system, type);
     } else {
       return new Dart2JsInterfaceTypeMirror(system, type);
@@ -90,10 +90,10 @@ Collection<Dart2JsMemberMirror> _convertElementMemberToMemberMirrors(
     return <Dart2JsMemberMirror>[new Dart2JsMethodMirror(library, element)];
   } else if (element is AbstractFieldElement) {
     var members = <Dart2JsMemberMirror>[];
-    if (element.getter !== null) {
+    if (element.getter != null) {
       members.add(new Dart2JsMethodMirror(library, element.getter));
     }
-    if (element.setter !== null) {
+    if (element.setter != null) {
       members.add(new Dart2JsMethodMirror(library, element.setter));
     }
     return members;
@@ -154,7 +154,7 @@ String _getOperatorFromOperatorName(String name) {
     'or': '|',
   };
   String newName = mapping[name];
-  if (newName === null) {
+  if (newName == null) {
     throw new Exception('Unhandled operator name: $name');
   }
   return newName;
@@ -320,9 +320,9 @@ class Dart2JsCompilation implements Compilation {
                String message, diagnostics.Diagnostic kind) {
     if (isAborting) return;
     bool fatal =
-        kind === diagnostics.Diagnostic.CRASH ||
-        kind === diagnostics.Diagnostic.ERROR;
-    if (uri === null) {
+        kind == diagnostics.Diagnostic.CRASH ||
+        kind == diagnostics.Diagnostic.ERROR;
+    if (uri == null) {
       if (!fatal) {
         return;
       }
@@ -340,7 +340,7 @@ class Dart2JsCompilation implements Compilation {
       : cwd = getCurrentDirectory(), sourceFiles = <String, SourceFile>{} {
     var libraryUri = cwd.resolve(libraryRoot.toString());
     var packageUri;
-    if (packageRoot !== null) {
+    if (packageRoot != null) {
       packageUri = cwd.resolve(packageRoot.toString());
     } else {
       packageUri = libraryUri;
@@ -357,7 +357,7 @@ class Dart2JsCompilation implements Compilation {
       : cwd = getCurrentDirectory(), sourceFiles = <String, SourceFile>{} {
     var libraryUri = cwd.resolve(libraryRoot.toString());
     var packageUri;
-    if (packageRoot !== null) {
+    if (packageRoot != null) {
       packageUri = cwd.resolve(packageRoot.toString());
     } else {
       packageUri = libraryUri;
@@ -555,10 +555,10 @@ class Dart2JsLibraryMirror extends Dart2JsContainerMirror
    * provide a 'library name' for scripts, to use for instance in dartdoc.
    */
   String get simpleName {
-    if (_library.libraryTag !== null) {
+    if (_library.libraryTag != null) {
       // TODO(ahe): Remove StringNode check when old syntax is removed.
       StringNode name = _library.libraryTag.name.asStringNode();
-      if (name !== null) {
+      if (name != null) {
         return name.dartString.slowToString();
       } else {
         return _library.libraryTag.name.toString();
@@ -699,7 +699,7 @@ class Dart2JsParameterMirror extends Dart2JsMemberMirror
   }
 
   bool get hasDefaultValue {
-    return _variableElement.cachedNode !== null &&
+    return _variableElement.cachedNode != null &&
         _variableElement.cachedNode is SendSet;
   }
 
@@ -720,7 +720,7 @@ class Dart2JsFieldParameterMirror extends Dart2JsParameterMirror {
   FieldParameterElement get _fieldParameterElement => _element;
 
   TypeMirror get type {
-    if (_fieldParameterElement.variables.cachedNode.type !== null) {
+    if (_fieldParameterElement.variables.cachedNode.type != null) {
       return super.type;
     }
     return _convertTypeToTypeMirror(mirrors,
@@ -859,7 +859,7 @@ class Dart2JsClassMirror extends Dart2JsContainerMirror
   }
 
   bool operator ==(Object other) {
-    if (this === other) {
+    if (identical(this, other)) {
       return true;
     }
     if (other is! ClassMirror) {
@@ -868,7 +868,7 @@ class Dart2JsClassMirror extends Dart2JsContainerMirror
     if (library != other.library) {
       return false;
     }
-    if (isOriginalDeclaration !== other.isOriginalDeclaration) {
+    if (!identical(isOriginalDeclaration, other.isOriginalDeclaration)) {
       return false;
     }
     return qualifiedName == other.qualifiedName;
@@ -896,7 +896,7 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
 
   SourceLocation get location {
     var node = _typedef.element.parseNode(_diagnosticListener);
-    if (node !== null) {
+    if (node != null) {
       var script = _typedef.element.getCompilationUnit().script;
       var span = mirrors.compiler.spanFromNode(node, script.uri);
       return new Dart2JsLocation(script, span);
@@ -962,14 +962,14 @@ class Dart2JsTypeVariableMirror extends Dart2JsTypeElementMirror
                             TypeVariableType typeVariableType)
     : this._typeVariableType = typeVariableType,
       super(system, typeVariableType) {
-      assert(_typeVariableType !== null);
+      assert(_typeVariableType != null);
   }
 
 
   String get qualifiedName => '${declarer.qualifiedName}.${simpleName}';
 
   ClassMirror get declarer {
-    if (_declarer === null) {
+    if (_declarer == null) {
       if (_typeVariableType.element.enclosingElement.isClass()) {
         _declarer = new Dart2JsClassMirror(mirrors,
             _typeVariableType.element.enclosingElement);
@@ -994,7 +994,7 @@ class Dart2JsTypeVariableMirror extends Dart2JsTypeElementMirror
       mirrors.compiler.objectClass.computeType(mirrors.compiler));
 
   bool operator ==(Object other) {
-    if (this === other) {
+    if (identical(this, other)) {
       return true;
     }
     if (other is! TypeVariableMirror) {
@@ -1136,7 +1136,7 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
   ClassMirror get defaultFactory => originalDeclaration.defaultFactory;
 
   bool operator ==(Object other) {
-    if (this === other) {
+    if (identical(this, other)) {
       return true;
     }
     if (other is! ClassMirror) {
@@ -1168,7 +1168,7 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeElementMirror
   Dart2JsFunctionTypeMirror(Dart2JsMirrorSystem system,
                              FunctionType functionType, this._functionSignature)
       : super(system, functionType) {
-    assert (_functionSignature !== null);
+    assert (_functionSignature != null);
   }
 
   FunctionType get _functionType => _type;
@@ -1179,7 +1179,7 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeElementMirror
   // TODO(johnniwinther): Substitute type arguments for type variables.
   Map<String, MemberMirror> get members {
     var method = callMethod;
-    if (method !== null) {
+    if (method != null) {
       var map = new Map<String, MemberMirror>.from(
           originalDeclaration.members);
       var name = method.qualifiedName;
@@ -1256,7 +1256,7 @@ class Dart2JsVoidMirror extends Dart2JsTypeElementMirror {
   bool get isVoid => true;
 
   bool operator ==(Object other) {
-    if (this === other) {
+    if (identical(this, other)) {
       return true;
     }
     if (other is! TypeMirror) {
@@ -1288,7 +1288,7 @@ class Dart2JsDynamicMirror extends Dart2JsTypeElementMirror {
   bool get isDynamic => true;
 
   bool operator ==(Object other) {
-    if (this === other) {
+    if (identical(this, other)) {
       return true;
     }
     if (other is! TypeMirror) {
@@ -1431,7 +1431,7 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
 
   SourceLocation get location {
     var node = _function.parseNode(_diagnosticListener);
-    if (node !== null) {
+    if (node != null) {
       var script = _function.getCompilationUnit().script;
       var span = mirrors.compiler.spanFromNode(node, script.uri);
       return new Dart2JsLocation(script, span);

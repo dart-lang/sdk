@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('mirrors.util');
+library mirrors_util;
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-#import('mirrors.dart');
-#import('../../../lib/compiler/implementation/util/characters.dart');
+import 'mirrors.dart';
+import '../../../lib/compiler/implementation/util/characters.dart';
 
 //------------------------------------------------------------------------------
 // Utility functions for using the Mirror API
@@ -22,9 +22,9 @@ Iterable<ClassMirror> computeSubdeclarations(ClassMirror type) {
   type.mirrors.libraries.forEach((_, library) {
     for (ClassMirror otherType in library.classes.values) {
       var superClass = otherType.superclass;
-      if (superClass !== null) {
+      if (superClass != null) {
         superClass = superClass.originalDeclaration;
-        if (type.library === superClass.library) {
+        if (type.library == superClass.library) {
           if (superClass == type) {
              subtypes.add(otherType);
           }
@@ -33,7 +33,7 @@ Iterable<ClassMirror> computeSubdeclarations(ClassMirror type) {
       final superInterfaces = otherType.superinterfaces;
       for (ClassMirror superInterface in superInterfaces) {
         superInterface = superInterface.originalDeclaration;
-        if (type.library === superInterface.library) {
+        if (type.library == superInterface.library) {
           if (superInterface == type) {
             subtypes.add(otherType);
           }
@@ -106,7 +106,7 @@ class HierarchyIterator implements Iterator<ClassMirror> {
   }
 
   ClassMirror push(ClassMirror type) {
-    if (type.superclass !== null) {
+    if (type.superclass != null) {
       if (type.superclass.isObject) {
         object = type.superclass;
       } else {
@@ -120,7 +120,7 @@ class HierarchyIterator implements Iterator<ClassMirror> {
   ClassMirror next() {
     ClassMirror type;
     if (queue.isEmpty) {
-      if (object === null) {
+      if (object == null) {
         throw new StateError("No more elements");
       }
       type = object;
@@ -131,5 +131,5 @@ class HierarchyIterator implements Iterator<ClassMirror> {
     }
   }
 
-  bool get hasNext => !queue.isEmpty || object !== null;
+  bool get hasNext => !queue.isEmpty || object != null;
 }

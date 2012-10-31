@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dartdoc;
+
 // Generic utility functions.
 
 /** Turns [name] into something that's safe to use as a file name. */
@@ -29,7 +31,7 @@ String repeat(String text, int count, {String separator}) {
   final buffer = new StringBuffer();
   for (int i = 0; i < count; i++) {
     buffer.add(text);
-    if ((i < count - 1) && (separator !== null)) buffer.add(separator);
+    if ((i < count - 1) && (separator != null)) buffer.add(separator);
   }
 
   return buffer.toString();

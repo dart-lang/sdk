@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dartdoc;
+
 /**
  * The cached lookup-table to associate doc comments with spans. The outer map
  * is from filenames to doc comments in that file. The inner map maps from the

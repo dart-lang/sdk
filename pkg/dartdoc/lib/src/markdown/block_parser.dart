@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of markdown;
+
 /// The line contains only whitespace or is empty.
 const _RE_EMPTY = const RegExp(r'^([ \t]*)$');
 
