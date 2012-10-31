@@ -1123,59 +1123,67 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 // Tries to optimize instance call by replacing it with a faster instruction
 // (e.g, binary op, field load, ..).
 void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
-  if (instr->HasICData() && (instr->ic_data()->NumberOfChecks() > 0)) {
-    const Token::Kind op_kind = instr->token_kind();
-    if ((op_kind == Token::kASSIGN_INDEX) &&
-        TryReplaceWithStoreIndexed(instr)) {
-      return;
-    }
-    if ((op_kind == Token::kINDEX) && TryReplaceWithLoadIndexed(instr)) {
-      return;
-    }
-    if (Token::IsBinaryOperator(op_kind) &&
-        TryReplaceWithBinaryOp(instr, op_kind)) {
-      return;
-    }
-    if (Token::IsPrefixOperator(op_kind) &&
-        TryReplaceWithUnaryOp(instr, op_kind)) {
-      return;
-    }
-    if ((op_kind == Token::kGET) && TryInlineInstanceGetter(instr)) {
-      return;
-    }
-    if ((op_kind == Token::kSET) && TryInlineInstanceSetter(instr)) {
-      return;
-    }
-    if (TryInlineInstanceMethod(instr)) {
-      return;
-    }
-    const ICData& unary_checks =
-        ICData::ZoneHandle(instr->ic_data()->AsUnaryClassChecks());
-    if (!InstanceCallNeedsClassCheck(instr)) {
-      const bool call_with_checks = false;
-      PolymorphicInstanceCallInstr* call =
-          new PolymorphicInstanceCallInstr(instr, unary_checks,
-                                           call_with_checks);
-      instr->ReplaceWith(call, current_iterator());
-      return;
-    }
-    if (instr->ic_data()->NumberOfChecks() <= FLAG_max_polymorphic_checks) {
-      bool call_with_checks;
-      if (unary_checks.HasOneTarget()) {
-        // Type propagation has not run yet, we cannot eliminate the check.
-        AddCheckClass(instr, instr->ArgumentAt(0)->value()->Copy());
-        // Call can still deoptimize, do not detach environment from instr.
-        call_with_checks = false;
-      } else {
-        call_with_checks = true;
-      }
-      PolymorphicInstanceCallInstr* call =
-          new PolymorphicInstanceCallInstr(instr, unary_checks,
-                                           call_with_checks);
-      instr->ReplaceWith(call, current_iterator());
-    }
+  if (!instr->HasICData() || (instr->ic_data()->NumberOfChecks() == 0)) {
+    // An instance call without ICData will trigger deoptimization.
+    return;
   }
-  // An instance call without ICData will trigger deoptimization.
+
+  const ICData& unary_checks =
+      ICData::ZoneHandle(instr->ic_data()->AsUnaryClassChecks());
+  if ((unary_checks.NumberOfChecks() > FLAG_max_polymorphic_checks) &&
+      InstanceCallNeedsClassCheck(instr)) {
+    // Too many checks, leave it megamorphic.
+    return;
+  }
+
+  const Token::Kind op_kind = instr->token_kind();
+  if ((op_kind == Token::kASSIGN_INDEX) &&
+      TryReplaceWithStoreIndexed(instr)) {
+    return;
+  }
+  if ((op_kind == Token::kINDEX) && TryReplaceWithLoadIndexed(instr)) {
+    return;
+  }
+  if (Token::IsBinaryOperator(op_kind) &&
+      TryReplaceWithBinaryOp(instr, op_kind)) {
+    return;
+  }
+  if (Token::IsPrefixOperator(op_kind) &&
+      TryReplaceWithUnaryOp(instr, op_kind)) {
+    return;
+  }
+  if ((op_kind == Token::kGET) && TryInlineInstanceGetter(instr)) {
+    return;
+  }
+  if ((op_kind == Token::kSET) && TryInlineInstanceSetter(instr)) {
+    return;
+  }
+  if (TryInlineInstanceMethod(instr)) {
+    return;
+  }
+  if (!InstanceCallNeedsClassCheck(instr)) {
+    const bool call_with_checks = false;
+    PolymorphicInstanceCallInstr* call =
+        new PolymorphicInstanceCallInstr(instr, unary_checks,
+                                         call_with_checks);
+    instr->ReplaceWith(call, current_iterator());
+    return;
+  }
+  if (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
+    bool call_with_checks;
+    if (unary_checks.HasOneTarget()) {
+      // Type propagation has not run yet, we cannot eliminate the check.
+      AddCheckClass(instr, instr->ArgumentAt(0)->value()->Copy());
+      // Call can still deoptimize, do not detach environment from instr.
+      call_with_checks = false;
+    } else {
+      call_with_checks = true;
+    }
+    PolymorphicInstanceCallInstr* call =
+        new PolymorphicInstanceCallInstr(instr, unary_checks,
+                                         call_with_checks);
+    instr->ReplaceWith(call, current_iterator());
+  }
 }
 
 
