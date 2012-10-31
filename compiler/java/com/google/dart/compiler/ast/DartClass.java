@@ -33,32 +33,34 @@ public class DartClass extends DartDeclaration<DartIdentifier> {
   private final int tokenOffset;
   private final int tokenLength;
   private final int defaultTokenOffset;
+  private final int implementsOffset;
   private final int openBraceOffset;
   private final int closeBraceOffset;
 
-
   public DartClass(int tokenOffset, int tokenLength, DartIdentifier name,
-      DartStringLiteral nativeName, DartTypeNode superclass, List<DartTypeNode> interfaces,
-      int defaultTokenOffset,
-      int openBraceOffset, int closeBraceOffset, List<DartNode> members,
-      List<DartTypeParameter> typeParameters, Modifiers modifiers) {
-    this(tokenOffset, tokenLength, name, nativeName, superclass, interfaces, defaultTokenOffset, openBraceOffset,
-        closeBraceOffset, members, typeParameters, null, false, modifiers);
+      DartStringLiteral nativeName, DartTypeNode superclass, int implementsOffset,
+      List<DartTypeNode> interfaces, int defaultTokenOffset, int openBraceOffset,
+      int closeBraceOffset, List<DartNode> members, List<DartTypeParameter> typeParameters,
+      Modifiers modifiers) {
+    this(tokenOffset, tokenLength, name, nativeName, superclass, implementsOffset, interfaces,
+        defaultTokenOffset, openBraceOffset, closeBraceOffset, members, typeParameters, null,
+        false, modifiers);
   }
 
   public DartClass(int tokenOffset, int tokenLength, DartIdentifier name, DartTypeNode superclass,
-      List<DartTypeNode> interfaces, int defaultTokenOffset, int openBraceOffset, int closeBraceOffset,
-      List<DartNode> members, List<DartTypeParameter> typeParameters,
-      DartParameterizedTypeNode defaultClass) {
-    this(tokenOffset, tokenLength, name, null, superclass, interfaces, defaultTokenOffset, openBraceOffset,
-        closeBraceOffset, members, typeParameters, defaultClass, true, Modifiers.NONE);
+      int implementsOffset, List<DartTypeNode> interfaces, int defaultTokenOffset,
+      int openBraceOffset, int closeBraceOffset, List<DartNode> members,
+      List<DartTypeParameter> typeParameters, DartParameterizedTypeNode defaultClass) {
+    this(tokenOffset, tokenLength, name, null, superclass, implementsOffset, interfaces,
+        defaultTokenOffset, openBraceOffset, closeBraceOffset, members, typeParameters,
+        defaultClass, true, Modifiers.NONE);
   }
 
   public DartClass(int tokenOffset, int tokenLength, DartIdentifier name,
-      DartStringLiteral nativeName, DartTypeNode superclass, List<DartTypeNode> interfaces,
-     int defaultTokenOffset, int openBraceOffset, int closeBraceOffset, List<DartNode> members,
-      List<DartTypeParameter> typeParameters, DartParameterizedTypeNode defaultClass,
-      boolean isInterface, Modifiers modifiers) {
+      DartStringLiteral nativeName, DartTypeNode superclass, int implementsOffset,
+      List<DartTypeNode> interfaces, int defaultTokenOffset, int openBraceOffset,
+      int closeBraceOffset, List<DartNode> members, List<DartTypeParameter> typeParameters,
+      DartParameterizedTypeNode defaultClass, boolean isInterface, Modifiers modifiers) {
     super(name);
     this.tokenOffset = tokenOffset;
     this.tokenLength = tokenLength;
@@ -69,6 +71,7 @@ public class DartClass extends DartDeclaration<DartIdentifier> {
     this.closeBraceOffset = closeBraceOffset;
     this.members.addAll(members);
     this.typeParameters.addAll(typeParameters);
+    this.implementsOffset = implementsOffset;
     this.interfaces.addAll(interfaces);
     this.defaultClass = becomeParentOf(defaultClass);
     this.isInterface = isInterface;
@@ -132,6 +135,10 @@ public class DartClass extends DartDeclaration<DartIdentifier> {
 
   public List<DartTypeParameter> getTypeParameters() {
     return typeParameters;
+  }
+  
+  public int getImplementsOffset() {
+    return implementsOffset;
   }
 
   public List<DartTypeNode> getInterfaces() {

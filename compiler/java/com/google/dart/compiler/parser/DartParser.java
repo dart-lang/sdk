@@ -632,12 +632,13 @@ public class DartParser extends CompletionHooksParserBase {
 
     List<ImportCombinator> combinators = new ArrayList<ImportCombinator>();
     while (peekPseudoKeyword(0, HIDE_KEYWORD) || peekPseudoKeyword(0, SHOW_KEYWORD)) {
+      beginImportCombinator();
       if (optionalPseudoKeyword(HIDE_KEYWORD)) {
         List<DartIdentifier> hiddenNames = parseIdentifierList();
-        combinators.add(new ImportHideCombinator(hiddenNames));
+        combinators.add(done(new ImportHideCombinator(hiddenNames)));
       } else if (optionalPseudoKeyword(SHOW_KEYWORD)) {
         List<DartIdentifier> shownNames = parseIdentifierList();
-        combinators.add(new ImportShowCombinator(shownNames));
+        combinators.add(done(new ImportShowCombinator(shownNames)));
       }
     }
 
@@ -768,9 +769,10 @@ public class DartParser extends CompletionHooksParserBase {
     beginPartOfDirective();
     next(); // "part"
     next(); // "of"
+    int ofOffset=  position();
     DartExpression libraryName = parseLibraryName();
     expect(Token.SEMICOLON);
-    return done(new DartPartOfDirective(libraryName));
+    return done(new DartPartOfDirective(ofOffset, libraryName));
   }
 
   private void parseResourceDirective() {
@@ -947,6 +949,7 @@ public class DartParser extends CompletionHooksParserBase {
 
     // Parse the extends and implements clauses.
     DartTypeNode superType = null;
+    int implementsOffset = -1;
     List<DartTypeNode> interfaces = null;
     if (isParsingInterface) {
       if (optional(Token.EXTENDS)) {
@@ -957,6 +960,7 @@ public class DartParser extends CompletionHooksParserBase {
         superType = parseTypeAnnotation();
       }
       if (optionalPseudoKeyword(IMPLEMENTS_KEYWORD)) {
+        implementsOffset = position();
         interfaces = parseTypeAnnotationList();
       }
     }
@@ -1004,12 +1008,13 @@ public class DartParser extends CompletionHooksParserBase {
     }
 
     if (isParsingInterface) {
-      return done(new DartClass(tokenOffset, tokenLength, name, superType, interfaces,
-          defaultTokenOffset, openBraceOffset, closeBraceOffset, members, typeParameters,
-          defaultClass));
+      return done(new DartClass(tokenOffset, tokenLength, name, superType, implementsOffset,
+          interfaces, defaultTokenOffset, openBraceOffset, closeBraceOffset, members,
+          typeParameters, defaultClass));
     } else {
-      return done(new DartClass(tokenOffset, tokenLength, name, nativeName, superType, interfaces,
-          defaultTokenOffset, openBraceOffset, closeBraceOffset, members, typeParameters, modifiers));
+      return done(new DartClass(tokenOffset, tokenLength, name, nativeName, superType,
+          implementsOffset, interfaces, defaultTokenOffset, openBraceOffset, closeBraceOffset,
+          members, typeParameters, modifiers));
     }
   }
 

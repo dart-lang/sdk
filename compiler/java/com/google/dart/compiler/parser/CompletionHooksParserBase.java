@@ -240,6 +240,10 @@ public abstract class CompletionHooksParserBase extends AbstractParser {
   protected void beginImportDirective() {
     begin();
   }
+  
+  protected void beginImportCombinator() {
+    begin();
+  }
 
   protected void beginInitializer() {
     begin();

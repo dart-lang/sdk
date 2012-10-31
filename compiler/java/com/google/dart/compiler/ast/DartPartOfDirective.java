@@ -8,10 +8,16 @@ package com.google.dart.compiler.ast;
  * Implements the "part of" directive.
  */
 public class DartPartOfDirective extends DartDirective {
-  private DartExpression name;
+  private final int ofOffset;
+  private final DartExpression name;
 
-  public DartPartOfDirective(DartExpression name) {
+  public DartPartOfDirective(int ofOffset, DartExpression name) {
+    this.ofOffset = ofOffset;
     this.name = becomeParentOf(name);
+  }
+
+  public int getOfOffset() {
+    return ofOffset;
   }
 
   public DartExpression getName() {
