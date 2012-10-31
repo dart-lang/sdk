@@ -60,7 +60,7 @@ main() {
             }
             break;
         }
-        throw new NoSuchMethodError(element, name, args);
+        throw new NoSuchMethodError(element, name, args, {});
       }
       dynamicUnknownElementDispatcher = dispatch;
 
