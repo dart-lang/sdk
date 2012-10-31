@@ -981,7 +981,7 @@ class Dartdoc {
     }
 
     write('typedef ');
-    annotateType(type, type.definition, type.simpleName);
+    annotateType(type, type.value, type.simpleName);
 
     write(''' <a class="anchor-link" href="#${type.simpleName}"
               title="Permalink to ${type.simpleName}">#</a>''');
@@ -1659,9 +1659,9 @@ class Dartdoc {
       final typeParams = [];
       for (final typeParam in type.originalDeclaration.typeVariables) {
         if (showBounds &&
-            (typeParam.bound != null) &&
-            !typeParam.bound.isObject) {
-          final bound = typeName(typeParam.bound, showBounds: true);
+            (typeParam.upperBound != null) &&
+            !typeParam.upperBound.isObject) {
+          final bound = typeName(typeParam.upperBound, showBounds: true);
           typeParams.add('${typeParam.simpleName} extends $bound');
         } else {
           typeParams.add(typeParam.simpleName);

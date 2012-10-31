@@ -349,18 +349,9 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
  */
 abstract class TypeVariableMirror implements TypeMirror {
   /**
-   * Return a mirror on the class, interface, or typedef that declared the
-   * type variable.
-   */
-  // Should not be called [declaration] as we then would have two [TypeMirror]
-  // subtypes ([InterfaceMirror] and [TypeVariableMirror]) which have
-  // [declaration()] methods but with different semantics.
-  ClassMirror get declarer;
-
-  /**
    * Returns the bound of the type parameter.
    */
-  TypeMirror get bound;
+  TypeMirror get upperBound;
 }
 
 /**
@@ -388,10 +379,11 @@ abstract class FunctionTypeMirror implements ClassMirror {
  */
 abstract class TypedefMirror implements ClassMirror {
   /**
-   * Returns the defining type for this typedef. For instance [:void f(int):]
-   * for a [:typedef void f(int):].
+   * The defining type for this typedef.
+   *
+   * For instance [:void f(int):] for a [:typedef void f(int):].
    */
-  TypeMirror get definition;
+  TypeMirror get value;
 }
 
 /**

@@ -905,7 +905,7 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
     return _typeVariables;
   }
 
-  TypeMirror get definition {
+  TypeMirror get value {
     if (_definition === null) {
       // TODO(johnniwinther): Should be [ensureResolved].
       system.compiler.resolveTypedef(_typedef.element);
@@ -965,9 +965,11 @@ class Dart2JsTypeVariableMirror extends Dart2JsTypeElementMirror
 
   LibraryMirror get library => declarer.library;
 
+  DeclarationMirror get owner => declarer;
+
   bool get isTypeVariable => true;
 
-  TypeMirror get bound => _convertTypeToTypeMirror(
+  TypeMirror get upperBound => _convertTypeToTypeMirror(
       system,
       _typeVariableType.element.bound,
       system.compiler.objectClass.computeType(system.compiler));

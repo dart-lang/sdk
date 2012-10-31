@@ -322,8 +322,8 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
                       "Unexpected qualifiedName");
   Expect.equals(bazClass, bazE.declarer,
                 "Unexpected type variable declarer");
-  var bazEbound = bazE.bound;
-  Expect.isNotNull(bazEbound, "Missing type variable bound");
+  var bazEbound = bazE.upperBound;
+  Expect.isNotNull(bazEbound);
   Expect.isFalse(bazEbound.isOriginalDeclaration);
   Expect.isTrue(bazEbound.isObject, "Bound is not object");
 
@@ -333,8 +333,8 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.stringEquals('mirrors_helper.Baz.F', bazF.qualifiedName,
                       "Unexpected qualifiedName");
   Expect.equals(bazClass, bazF.declarer);
-  var bazFbound = bazF.bound;
-  Expect.isNotNull(bazFbound, "Missing type variable bound");
+  var bazFbound = bazF.upperBound;
+  Expect.isNotNull(bazFbound);
   Expect.isFalse(bazFbound.isOriginalDeclaration);
   Expect.stringEquals("mirrors_helper.Foo", bazFbound.qualifiedName,
                       "Bound is not Foo");
@@ -574,7 +574,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isNotNull(funcTypedefTypeVariables);
   Expect.equals(2, funcTypedefTypeVariables.length);
 
-  var funcTypedefDefinition = funcTypedef.definition;
+  var funcTypedefDefinition = funcTypedef.value;
   Expect.isNotNull(funcTypedefDefinition);
   Expect.isTrue(funcTypedefDefinition is FunctionTypeMirror);
 
