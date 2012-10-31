@@ -19,7 +19,7 @@
 Iterable<ClassMirror> computeSubdeclarations(ClassMirror type) {
   type = type.originalDeclaration;
   var subtypes = <ClassMirror>[];
-  type.system.libraries.forEach((_, library) {
+  type.mirrors.libraries.forEach((_, library) {
     for (ClassMirror otherType in library.classes.values) {
       var superClass = otherType.superclass;
       if (superClass !== null) {

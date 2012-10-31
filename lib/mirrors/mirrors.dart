@@ -42,7 +42,7 @@ abstract class MirrorSystem {
   IsolateMirror get isolate;
 
   /**
-   * A mirror on the [:Dynamic:] type.
+   * A mirror on the [:dynamic:] type.
    */
   TypeMirror get dynamicType;
 

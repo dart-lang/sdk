@@ -56,6 +56,16 @@ abstract class MirrorSystem {
    * Returns an unmodifiable map of all libraries in this mirror system.
    */
   Map<String, LibraryMirror> get libraries;
+
+  /**
+   * A mirror on the [:dynamic:] type.
+   */
+  TypeMirror get dynamicType;
+
+  /**
+   * A mirror on the [:void:] type.
+   */
+  TypeMirror get voidType;
 }
 
 
@@ -68,7 +78,7 @@ abstract class Mirror {
   /**
    * Returns the mirror system which contains this mirror.
    */
-  MirrorSystem get system;
+  MirrorSystem get mirrors;
 }
 
 abstract class DeclarationMirror implements Mirror {
@@ -208,7 +218,7 @@ abstract class TypeMirror implements DeclarationMirror {
   bool get isObject;
 
   /**
-   * Is [:true:] iff this type is the [:Dynamic:] type.
+   * Is [:true:] iff this type is the [:dynamic:] type.
    */
   bool get isDynamic;
 
