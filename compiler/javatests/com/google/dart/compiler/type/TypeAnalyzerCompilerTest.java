@@ -4328,6 +4328,17 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ParserErrorCode.EXTERNAL_METHOD_BODY, 6, 26, 2));
   }
 
+  public void test_cascade_type() throws Exception {
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  String s = '';",
+        "  var v = s..length;",
+        "}",
+        "");
+    assertInferredElementTypeString(testUnit, "v", "String");
+  }
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=4315

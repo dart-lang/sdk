@@ -32,6 +32,7 @@ import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
 import com.google.dart.compiler.ast.DartBreakStatement;
+import com.google.dart.compiler.ast.DartCascadeExpression;
 import com.google.dart.compiler.ast.DartCase;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartClass;
@@ -1439,6 +1440,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitBreakStatement(DartBreakStatement node) {
       return voidType;
+    }
+
+    @Override
+    public Type visitCascadeExpression(DartCascadeExpression node) {
+      DartExpression target = node.getTarget();
+      Type type = nonVoidTypeOf(target);
+      node.visitChildren(this);
+      return type;
     }
 
     @Override
