@@ -31,6 +31,12 @@ public class DartIdentifier extends DartExpression {
   }
 
   @Override
+  // Note: final added for performance reasons.
+  public final String toString() {
+    return name;
+  }
+
+  @Override
   public boolean isAssignable() {
     return true;
   }
@@ -60,7 +66,7 @@ public class DartIdentifier extends DartExpression {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public final void visitChildren(ASTVisitor<?> visitor) {
   }
 
   @Override

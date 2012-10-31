@@ -557,9 +557,9 @@ public class MemberBuilder {
      * Checks that top-level "main()" has no parameters.
      */
     private void checkTopLevelMainFunction(DartMethodDefinition method) {
-      if (Objects.equal(method.getName().toSource(), "main")
+      if (!method.getFunction().getParameters().isEmpty()
           && currentHolder instanceof LibraryElement
-          && !method.getFunction().getParameters().isEmpty()) {
+          && Objects.equal(method.getName().toString(), "main")) {
         resolutionError(method.getName(), ResolverErrorCode.MAIN_FUNCTION_PARAMETERS);
       }
     }

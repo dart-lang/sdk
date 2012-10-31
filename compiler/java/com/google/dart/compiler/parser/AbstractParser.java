@@ -38,6 +38,7 @@ abstract class AbstractParser {
     private Map<String, List<Token>> methods;
 
     private void init(StackTraceElement[] stackTrace) {
+      // This method, she is slow.
       if (classes == null) {
         classes = Maps.newHashMap();
         methods = Maps.newHashMap();

@@ -7,6 +7,7 @@ package com.google.dart.compiler.resolver;
 import com.google.dart.compiler.type.InterfaceType;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -54,7 +55,10 @@ class ClassScope extends Scope {
         }
       }
     }
-    for (InterfaceType supertype : classElement.getInterfaces()) {
+    
+    List<InterfaceType> interfaces = classElement.getInterfaces();
+    for (int i = 0, size = interfaces.size(); i < size; i++) {
+      InterfaceType supertype = interfaces.get(i);
       Element enclosing = supertype.getElement().getEnclosingElement();
       ClassElement superclassElement = supertype.getElement();
       if (!examinedTypes.contains(superclassElement)) {

@@ -382,19 +382,22 @@ public class DartParser extends CompletionHooksParserBase {
    * @param node the node with which the metadata is to be associated
    * @param metadata the metadata to be associated with the node
    */
-  private void setMetadata(DartNodeWithMetadata node, List<DartAnnotation> metadata) {
-    node.setMetadata(metadata);
-    if (node instanceof DartDeclaration<?>) {
-      for (DartAnnotation annotation : metadata) {
-        DartExpression nameNode = annotation.getName();
-        if (nameNode instanceof DartIdentifier) {
-          String name = ((DartIdentifier) nameNode).getName();
-          if (name.equals("deprecated")) {
-            DartDeclaration<?> declaration = (DartDeclaration<?>) node;
-            declaration.setObsoleteMetadata(declaration.getObsoleteMetadata().makeDeprecated());
-          } else if (name.equals("override")) {
-            DartDeclaration<?> declaration = (DartDeclaration<?>) node;
-            declaration.setObsoleteMetadata(declaration.getObsoleteMetadata().makeOverride());
+  private void setMetadata(DartNodeWithMetadata node, List<DartAnnotation> annotations) {
+    if (annotations != null && !annotations.isEmpty()) {
+      node.setMetadata(annotations);
+      if (node instanceof DartDeclaration<?>) {
+        for (int i = 0, size = annotations.size(); i < size; i++) {
+          DartAnnotation annotation = annotations.get(i);
+          DartExpression nameNode = annotation.getName();
+          if (nameNode instanceof DartIdentifier) {
+            String name = ((DartIdentifier) nameNode).getName();
+            if (name.equals("deprecated")) {
+              DartDeclaration<?> declaration = (DartDeclaration<?>) node;
+              declaration.setObsoleteMetadata(declaration.getObsoleteMetadata().makeDeprecated());
+            } else if (name.equals("override")) {
+              DartDeclaration<?> declaration = (DartDeclaration<?>) node;
+              declaration.setObsoleteMetadata(declaration.getObsoleteMetadata().makeOverride());
+            }
           }
         }
       }
@@ -1738,7 +1741,8 @@ public class DartParser extends CompletionHooksParserBase {
         reportError(position(), ParserErrorCode.ILLEGAL_NUMBER_OF_PARAMETERS);
       }
       // In methods with required arity each parameter is required.
-      for (DartParameter parameter : parameters) {
+      for (int i = 0, size = parameters.size(); i < size; i++) {
+        DartParameter parameter = parameters.get(i);
         if (parameter.getModifiers().isOptional()) {
           reportError(parameter, ParserErrorCode.OPTIONAL_POSITIONAL_PARAMETER_NOT_ALLOWED);
         }
@@ -1751,7 +1755,8 @@ public class DartParser extends CompletionHooksParserBase {
         reportError(position(), ParserErrorCode.ILLEGAL_NUMBER_OF_PARAMETERS);
       }
       // In methods with required arity each parameter is required.
-      for (DartParameter parameter : parameters) {
+      for (int i = 0, size = parameters.size(); i < size; i++) {
+        DartParameter parameter = parameters.get(i);
         if (parameter.getModifiers().isNamed()) {
           reportError(parameter, ParserErrorCode.NAMED_PARAMETER_NOT_ALLOWED);
         }
@@ -2303,7 +2308,8 @@ public class DartParser extends CompletionHooksParserBase {
    */
   private void validateNoDefaultParameterValues(List<DartParameter> parameters,
       ErrorCode errorCode) {
-    for (DartParameter parameter : parameters) {
+    for (int i = 0, size = parameters.size(); i < size; i++) {
+      DartParameter parameter = parameters.get(i);
       DartExpression defaultExpr = parameter.getDefaultExpr();
       if (defaultExpr != null) {
         reportError(defaultExpr,  errorCode);
