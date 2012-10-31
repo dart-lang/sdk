@@ -20,6 +20,8 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, propagate_ic_data, true,
+    "Propagate IC data from unoptimized to optimized IC calls.");
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(int, max_polymorphic_checks);
 
@@ -1846,6 +1848,13 @@ LocationSummary* InstanceCallInstr::MakeLocationSummary() const {
 
 
 void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ICData& call_ic_data = ICData::ZoneHandle(ic_data()->raw());
+  if (!FLAG_propagate_ic_data || !compiler->is_optimizing()) {
+    call_ic_data = ICData::New(compiler->parsed_function().function(),
+                               function_name(),
+                               deopt_id(),
+                               checked_argument_count());
+  }
   if (compiler->is_optimizing()) {
     if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
       const ICData& unary_ic_data =
@@ -1866,17 +1875,12 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
                                    deopt_id(),
                                    token_pos());
-    const ICData& initial_ic_data = ICData::ZoneHandle(
-        ICData::New(compiler->parsed_function().function(),
-                    function_name(),
-                    deopt_id(),
-                    checked_argument_count()));
     compiler->GenerateInstanceCall(deopt_id(),
                                    token_pos(),
                                    ArgumentCount(),
                                    argument_names(),
                                    locs(),
-                                   initial_ic_data);
+                                   call_ic_data);
   }
 }
 

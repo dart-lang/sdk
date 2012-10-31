@@ -21,6 +21,7 @@ namespace dart {
 
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, trace_functions);
+DECLARE_FLAG(bool, propagate_ic_data);
 
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed register EAX.
@@ -356,7 +357,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   __ j(EQUAL, &check_identity, Assembler::kNearJump);
 
   ICData& equality_ic_data = ICData::ZoneHandle();
-  if (compiler->is_optimizing()) {
+  if (compiler->is_optimizing() && FLAG_propagate_ic_data) {
     ASSERT(!original_ic_data.IsNull());
     equality_ic_data = original_ic_data.AsUnaryClassChecks();
   } else {
@@ -996,7 +997,7 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t kNumArguments = 2;
   const intptr_t kNumArgsChecked = 2;  // Type-feedback.
   ICData& relational_ic_data = ICData::ZoneHandle(ic_data()->raw());
-  if (compiler->is_optimizing()) {
+  if (compiler->is_optimizing() && FLAG_propagate_ic_data) {
     ASSERT(!ic_data()->IsNull());
     relational_ic_data = ic_data()->AsUnaryClassChecks();
   } else {

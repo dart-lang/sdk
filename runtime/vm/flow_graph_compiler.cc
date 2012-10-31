@@ -26,10 +26,10 @@ DEFINE_FLAG(bool, trace_functions, false, "Trace entry of each function.");
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, intrinsify);
+DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(bool, report_usage_count);
 DECLARE_FLAG(bool, trace_functions);
 DECLARE_FLAG(int, optimization_counter_threshold);
-
 
 void CompilerDeoptInfo::BuildReturnAddress(DeoptInfoBuilder* builder,
                                            const Function& function,
@@ -476,6 +476,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
     LocationSummary* locs,
     const ICData& ic_data) {
   ASSERT(!ic_data.IsNull());
+  ASSERT(FLAG_propagate_ic_data || (ic_data.NumberOfChecks() == 0));
   // Because optimized code should not waste time.
   ASSERT(!is_optimizing() || ic_data.num_args_tested() == 1);
   const Array& arguments_descriptor =
