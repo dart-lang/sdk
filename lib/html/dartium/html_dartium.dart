@@ -13367,11 +13367,18 @@ class _ElementImpl extends _NodeImpl implements Element {
   // Hooks to support custom WebComponents.
   var xtag;
 
-  noSuchMethod(String name, List args) {
+  noSuchMethod(InvocationMirror invocation) {
     if (dynamicUnknownElementDispatcher == null) {
-      throw new NoSuchMethodError(this, name, args);
+      throw new NoSuchMethodError(this, invocation.memberName,
+                                        invocation.positionalArguments,
+                                        invocation.namedArguments);
     } else {
-      return dynamicUnknownElementDispatcher(this, name, args);
+      String hackedName = invocation.memberName;
+      if (invocation.isGetter) hackedName = "get:$hackedName";
+      if (invocation.isSetter) hackedName = "set:$hackedName";
+      return dynamicUnknownElementDispatcher(this,
+                                             hackedName,
+                                             invociation.positionalArguments);
     }
   }
 

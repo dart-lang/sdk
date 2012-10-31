@@ -19,8 +19,11 @@ patch class Object {
 
   patch String toString() => Primitives.objectToString(this);
 
-  patch Dynamic noSuchMethod(String name, List args) {
-    throw new NoSuchMethodError(this, name, args);
+  patch dynamic noSuchMethod(InvocationMirror invocation) {
+    throw new NoSuchMethodError(this,
+                                invocation.memberName,
+                                invocation.positionalArguments,
+                                invocation.namedArguments);
   }
 
   patch Type get runtimeType {

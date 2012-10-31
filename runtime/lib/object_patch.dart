@@ -23,8 +23,14 @@ patch class Object {
   // A statically dispatched version of Object.toString.
   static String _toString(obj) native "Object_toString";
 
-  /* patch */ Dynamic noSuchMethod(String functionName, List args)
+  dynamic _noSuchMethod(String functionName, List args)
       native "Object_noSuchMethod";
+
+  /* patch */ dynamic noSuchMethod(InvocationMirror invocation) {
+    var methodName = invocation.memberName;
+    var args = invocation.positionalArguments;
+    return _noSuchMethod(methodName, args);
+  }
 
   /* patch */ Type get runtimeType native "Object_runtimeType";
 }

@@ -357,8 +357,14 @@ class Parser : public ValueObject {
   void AddInterfaces(intptr_t interfaces_pos,
                      const Class& cls,
                      const Array& interfaces);
+  StaticCallNode* BuildInvocationMirrorAllocation(
+      intptr_t call_pos,
+      const String& function_name,
+      const ArgumentListNode& function_args);
   ArgumentListNode* BuildNoSuchMethodArguments(
-      const String& function_name, const ArgumentListNode& function_args);
+      intptr_t call_pos,
+      const String& function_name,
+      const ArgumentListNode& function_args);
   RawFunction* GetSuperFunction(intptr_t token_pos,
                                 const String& name,
                                 bool resolve_getter,

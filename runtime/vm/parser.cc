@@ -1313,23 +1313,47 @@ static RawClass* LookupCoreClass(const String& class_name) {
 }
 
 
-ArgumentListNode* Parser::BuildNoSuchMethodArguments(
+StaticCallNode* Parser::BuildInvocationMirrorAllocation(
+    intptr_t call_pos,
     const String& function_name,
     const ArgumentListNode& function_args) {
-  ASSERT(function_args.length() >= 1);  // The receiver is the first argument.
   const intptr_t args_pos = function_args.token_pos();
+  // Build arguments to the call to the static
+  // InvocationMirror._allocateInvocationMirror method.
   ArgumentListNode* arguments = new ArgumentListNode(args_pos);
-  arguments->Add(function_args.NodeAt(0));
-  // The second argument is the original function name.
-  // TODO(regis): This will change once mirrors are supported.
+  // The first argument is the original function name.
   arguments->Add(new LiteralNode(args_pos, function_name));
-  // The third argument is an array containing the original function arguments.
+  // The second argument is an array containing the original function arguments.
   ArrayNode* args_array = new ArrayNode(
       args_pos, Type::ZoneHandle(Type::ListInterface()));
   for (intptr_t i = 1; i < function_args.length(); i++) {
     args_array->AddElement(function_args.NodeAt(i));
   }
   arguments->Add(args_array);
+  // Lookup the static InvocationMirror._allocateInvocationMirror method.
+  const Class& mirror_class = Class::Handle(
+      LookupCoreClass(String::Handle(Symbols::InvocationMirror())));
+  ASSERT(!mirror_class.IsNull());
+  const String& allocation_function_name =
+      String::Handle(Symbols::AllocateInvocationMirror());
+  const Function& allocation_function = Function::ZoneHandle(
+      mirror_class.LookupStaticFunction(allocation_function_name));
+  ASSERT(!allocation_function.IsNull());
+  return new StaticCallNode(call_pos, allocation_function, arguments);
+}
+
+
+ArgumentListNode* Parser::BuildNoSuchMethodArguments(
+    intptr_t call_pos,
+    const String& function_name,
+    const ArgumentListNode& function_args) {
+  ASSERT(function_args.length() >= 1);  // The receiver is the first argument.
+  const intptr_t args_pos = function_args.token_pos();
+  ArgumentListNode* arguments = new ArgumentListNode(args_pos);
+  arguments->Add(function_args.NodeAt(0));
+  // The second argument is the invocation mirror.
+  arguments->Add(BuildInvocationMirrorAllocation(
+      call_pos, function_name, function_args));
   return arguments;
 }
 
@@ -1365,7 +1389,8 @@ AstNode* Parser::ParseSuperCall(const String& function_name) {
   arguments->Add(receiver);
   ParseActualParameters(arguments, kAllowConst);
   if (is_no_such_method) {
-    arguments = BuildNoSuchMethodArguments(function_name, *arguments);
+    arguments = BuildNoSuchMethodArguments(
+        supercall_pos, function_name, *arguments);
   }
   return new StaticCallNode(supercall_pos, super_function, arguments);
 }
@@ -1404,8 +1429,8 @@ AstNode* Parser::BuildUnarySuperOperator(Token::Kind op, PrimaryNode* super) {
     op_arguments->Add(receiver);
     CheckFunctionIsCallable(super_pos, super_operator);
     if (is_no_such_method) {
-      op_arguments = BuildNoSuchMethodArguments(operator_function_name,
-                                                *op_arguments);
+      op_arguments = BuildNoSuchMethodArguments(
+          super_pos, operator_function_name, *op_arguments);
     }
     super_op = new StaticCallNode(super_pos, super_operator, op_arguments);
   } else {
@@ -1461,8 +1486,8 @@ AstNode* Parser::ParseSuperOperator() {
 
     CheckFunctionIsCallable(operator_pos, super_operator);
     if (is_no_such_method) {
-      op_arguments = BuildNoSuchMethodArguments(operator_function_name,
-                                                *op_arguments);
+      op_arguments = BuildNoSuchMethodArguments(
+          operator_pos, operator_function_name, *op_arguments);
     }
     super_op = new StaticCallNode(operator_pos, super_operator, op_arguments);
     if (negate_result) {

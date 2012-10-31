@@ -25,6 +25,7 @@ getRuntimeTypeInfo(o) {}
 setRuntimeTypeInfo(o, i) {}
 eqNull(a) {}
 eqNullB(a) {}
+class JSInvocationMirror {}  // Should be in helper.
 """;
 
 const String RECURSIVE_MAIN = """

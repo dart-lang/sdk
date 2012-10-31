@@ -2707,31 +2707,61 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
     AstNode* receiver,
     const String& method_name,
     ArgumentListNode* method_arguments) {
-  const String& no_such_method_name =
-      String::ZoneHandle(Symbols::NoSuchMethod());
-  const Function& no_such_method_func = Function::ZoneHandle(
-      Resolver::ResolveDynamicAnyArgs(target_class, no_such_method_name));
-  // We are guaranteed to find noSuchMethod of class Object.
-  ASSERT(!no_such_method_func.IsNull());
+  // Build the graph to allocate an InvocationMirror object by calling
+  // the static allocation method.
+  const String& mirror_name = String::Handle(Symbols::InvocationMirror());
+  const Library& corelib = Library::Handle(Library::CoreLibrary());
+  const Class& mirror_class = Class::Handle(
+      corelib.LookupClassAllowPrivate(mirror_name));
+  ASSERT(!mirror_class.IsNull());
+  const String& function_name = String::Handle(
+      Symbols::AllocateInvocationMirror());
+  const Function& allocation_function = Function::ZoneHandle(
+      Resolver::ResolveStaticByName(mirror_class,
+                                    function_name,
+                                    Resolver::kIsQualified));
+  ASSERT(!allocation_function.IsNull());
 
+  // Evaluate the receiver before the arguments. This will be used
+  // as an argument to the noSuchMethod call.
+  ValueGraphVisitor for_receiver(owner(), temp_index());
+  receiver->Visit(&for_receiver);
+  Append(for_receiver);
+  PushArgumentInstr* push_receiver = PushArgument(for_receiver.value());
+
+  // Allocate the arguments and pass them into the construction
+  // of the InvocationMirror.
   const intptr_t args_pos = method_arguments->token_pos();
   ArgumentListNode* arguments = new ArgumentListNode(args_pos);
-  // The first argument is the receiver.
-  arguments->Add(receiver);
-  // The second argument is the original method name.
-  // TODO(regis): This will change once mirrors are supported.
+  // The first argument is the original method name.
   arguments->Add(new LiteralNode(args_pos, method_name));
-  // The third argument is an array containing the original method arguments.
+  // The second argument is an array containing the original method arguments.
   ArrayNode* args_array =
       new ArrayNode(args_pos, Type::ZoneHandle(Type::ListInterface()));
   for (intptr_t i = 0; i < method_arguments->length(); i++) {
     args_array->AddElement(method_arguments->NodeAt(i));
   }
   arguments->Add(args_array);
-
-  ZoneGrowableArray<PushArgumentInstr*>* args =
+  ZoneGrowableArray<PushArgumentInstr*>* allocation_args =
       new ZoneGrowableArray<PushArgumentInstr*>(arguments->length());
-  BuildPushArguments(*arguments, args);
+  BuildPushArguments(*arguments, allocation_args);
+  StaticCallInstr* allocation = new StaticCallInstr(args_pos,
+                                                    allocation_function,
+                                                    Array::ZoneHandle(),
+                                                    allocation_args);
+  Value* invocation_mirror = Bind(allocation);
+  PushArgumentInstr* push_invocation_mirror = PushArgument(invocation_mirror);
+  // Lookup noSuchMethod and call it with the receiver and the InvocationMirror.
+  const String& no_such_method_name =
+      String::ZoneHandle(Symbols::NoSuchMethod());
+  const Function& no_such_method_func = Function::ZoneHandle(
+      Resolver::ResolveDynamicAnyArgs(target_class, no_such_method_name));
+  // We are guaranteed to find noSuchMethod of class Object.
+  ASSERT(!no_such_method_func.IsNull());
+  ZoneGrowableArray<PushArgumentInstr*>* args =
+      new ZoneGrowableArray<PushArgumentInstr*>(2);
+  args->Add(push_receiver);
+  args->Add(push_invocation_mirror);
   return new StaticCallInstr(args_pos,
                              no_such_method_func,
                              Array::ZoneHandle(),
