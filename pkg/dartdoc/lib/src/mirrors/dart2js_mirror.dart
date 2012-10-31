@@ -420,8 +420,8 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
   final Element _element;
 
   Dart2JsElementMirror(this.mirrors, this._element) {
-    assert (mirrors !== null);
-    assert (_element !== null);
+    assert (mirrors != null);
+    assert (_element != null);
   }
 
   String get simpleName => _element.name.slowToString();
@@ -494,7 +494,7 @@ abstract class Dart2JsContainerMirror extends Dart2JsElementMirror
   Dart2JsContainerMirror(Dart2JsMirrorSystem system, Element element)
       : super(system, element);
 
-  abstract void _ensureMembers();
+  void _ensureMembers();
 
   Map<String, MemberMirror> get members {
     _ensureMembers();
@@ -761,7 +761,7 @@ class Dart2JsClassMirror extends Dart2JsContainerMirror
   SourceLocation get location {
     if (_class is PartialClassElement) {
       var node = _class.parseNode(mirrors.compiler);
-      if (node !== null) {
+      if (node != null) {
         var script = _class.getCompilationUnit().script;
         var span = mirrors.compiler.spanFromNode(node, script.uri);
         return new Dart2JsLocation(script, span);
@@ -925,7 +925,7 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
   }
 
   TypeMirror get value {
-    if (_definition === null) {
+    if (_definition == null) {
       // TODO(johnniwinther): Should be [ensureResolved].
       mirrors.compiler.resolveTypedef(_typedef.element);
       _definition = _convertTypeToTypeMirror(
@@ -1226,7 +1226,7 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeElementMirror
   }
 
   List<ParameterMirror> get parameters {
-    if (_parameters === null) {
+    if (_parameters == null) {
       _parameters = _parametersFromFunctionSignature(mirrors, callMethod,
                                                      _functionSignature);
     }
@@ -1473,7 +1473,7 @@ class Dart2JsFieldMirror extends Dart2JsMemberMirror implements VariableMirror {
   SourceLocation get location {
     var script = _variable.getCompilationUnit().script;
     var node = _variable.variables.parseNode(_diagnosticListener);
-    if (node !== null) {
+    if (node != null) {
       var span = mirrors.compiler.spanFromNode(node, script.uri);
       return new Dart2JsLocation(script, span);
     } else {
