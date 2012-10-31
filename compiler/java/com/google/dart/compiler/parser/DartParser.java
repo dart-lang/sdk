@@ -11,6 +11,7 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.ErrorSeverity;
 import com.google.dart.compiler.InternalCompilerException;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.PackageLibraryManager;
@@ -370,6 +371,7 @@ public class DartParser extends CompletionHooksParserBase {
         DartParserCommentsHelper.addComments(unit, source, sourceCode, commentLocs);
       }
       // done
+      unit.setHasParseErrors(errorCount != 0);
       return done(unit);
     } catch (StringInterpolationParseError exception) {
       throw new InternalCompilerException("Failed to parse " + source.getUri(), exception);
@@ -5363,8 +5365,11 @@ public class DartParser extends CompletionHooksParserBase {
    * 
    * @return whether the current error should be reported
    */
-  private boolean incErrorCount() {
-    errorCount++;
+  private boolean incErrorCount(ErrorCode errorCode) {
+    // count only errors, but not warnings (such as "abstract")
+    if (errorCode.getErrorSeverity() == ErrorSeverity.ERROR) {
+      errorCount++;
+    }
     
     if (errorCount >= MAX_DEFAULT_ERRORS) {
       if (errorCount == MAX_DEFAULT_ERRORS) {
@@ -5389,7 +5394,7 @@ public class DartParser extends CompletionHooksParserBase {
   @Override
   protected void reportError(int position, ErrorCode errorCode, Object... arguments) {
     // TODO(devoncarew): we're not correctly identifying dart:html as a core library
-    if (incErrorCount()) {
+    if (incErrorCount(errorCode)) {
       super.reportError(position, errorCode, arguments);
     }
   }
@@ -5397,13 +5402,13 @@ public class DartParser extends CompletionHooksParserBase {
   @Override
   protected void reportErrorAtPosition(int startPosition, int endPosition,
       ErrorCode errorCode, Object... arguments) {
-    if (incErrorCount()) {
+    if (incErrorCount(errorCode)) {
       super.reportErrorAtPosition(startPosition, endPosition, errorCode, arguments);
     }
   }
 
   private void reportError(DartCompilationError dartError) {
-    if (incErrorCount()) {
+    if (incErrorCount(dartError.getErrorCode())) {
       ctx.error(dartError);
       errorHistory.add(dartError.hashCode());
     }

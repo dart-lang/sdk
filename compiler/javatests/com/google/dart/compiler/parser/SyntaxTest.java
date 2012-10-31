@@ -55,6 +55,16 @@ public class SyntaxTest extends AbstractParserTest {
         "export 'a.dart';"));
   }
 
+  public void test_hasParseErrors_true() {
+    DartUnit unit = parseSource("garbage").getDartUnit();
+    assertTrue(unit.hasParseErrors());
+  }
+  
+  public void test_hasParseErrors_false() {
+    DartUnit unit = parseSource("// empty").getDartUnit();
+    assertFalse(unit.hasParseErrors());
+  }
+  
   public void test_importDirective_noUri() {
     DartUnit unit = parseUnit("test.dart", Joiner.on("\n").join(
         "library lib;",

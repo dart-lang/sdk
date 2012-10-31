@@ -24,6 +24,8 @@ public class DartUnit extends DartNode {
   private final NodeList<DartComment> comments = NodeList.create(this);
   private final DartSource source;
   private final boolean isDiet;
+  
+  private boolean hasParseErrors;
 
   public DartUnit(DartSource source, boolean isDiet) {
     this.source = source;
@@ -67,6 +69,14 @@ public class DartUnit extends DartNode {
    */
   public boolean isDiet() {
     return isDiet;
+  }
+
+  public void setHasParseErrors(boolean hasParseErrors) {
+    this.hasParseErrors = hasParseErrors;
+  }
+  
+  public boolean hasParseErrors() {
+    return hasParseErrors;
   }
 
   /**
