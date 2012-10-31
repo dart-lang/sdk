@@ -9,9 +9,9 @@
  * the test bots.
  */
 
-#library('date_time_format_test_2');
-#import('date_time_format_local_test_stub.dart');
-#import('date_time_format_test_core.dart');
+library date_time_format_test_2;
+import 'date_time_format_local_test_stub.dart';
+import 'date_time_format_test_core.dart';
 
 main() {
   runWith(evenLocales);

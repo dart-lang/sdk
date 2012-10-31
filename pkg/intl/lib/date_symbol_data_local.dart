@@ -14,10 +14,10 @@
  * removed after those changes land to CLDR.
  */
 
-#library("date_symbol_data");
-#import("date_symbols.dart");
-#import("src/date_format_internal.dart");
-#import("date_time_patterns.dart");
+library date_symbol_data;
+import "date_symbols.dart";
+import "src/date_format_internal.dart";
+import "date_time_patterns.dart";
 
 /**
  * This should be called for at least one [locale] before any date

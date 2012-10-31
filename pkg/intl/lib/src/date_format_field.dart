@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of intl;
+
 /**
  * This is a private class internal to DateFormat which is used for formatting
  * particular fields in a template. e.g. if the format is hh:mm:ss then the

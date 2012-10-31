@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('intl_test');
+library intl_test;
 
-#import('../lib/intl.dart');
+import '../lib/intl.dart';
 // TODO(rnystrom): Use "package:" import when test.dart supports it (#4968).
-#import('../../unittest/unittest.dart');
-#import('../lib/date_symbol_data_local.dart');
+import '../../unittest/unittest.dart';
+import '../lib/date_symbol_data_local.dart';
 
 main() {
   test("Locale setting doesn't verify the core locale", () {
