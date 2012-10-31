@@ -67,9 +67,14 @@ main() {
   // is not currently implemented in dart2js.
   // TODO(johnniwinther): Add tests of Location and Source.
   testPrivate(mirrors, helperLibrary, classes);
-  // TODO(johnniwinther): Add tests  of [LibraryMirror.functions],
-  // [LibraryMirror.getters], [LibraryMirror.setters] and
-  // [LibraryMirror.members].
+  // TODO(johnniwinther): Add thorough tests of [LibraryMirror.functions],
+  // [LibraryMirror.getters], [LibraryMirror.setters], [LibraryMirror.members],
+  // and [LibraryMirror.variable].
+  Expect.isNotNull(helperLibrary.functions);
+  Expect.isNotNull(helperLibrary.members);
+  Expect.isNotNull(helperLibrary.getters);
+  Expect.isNotNull(helperLibrary.setters);
+  Expect.isNotNull(helperLibrary.variables);
 }
 
 // Testing class Foo:
@@ -141,6 +146,15 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isNotNull(fooClassConstructors, "Constructors map is null");
   Expect.isTrue(fooClassConstructors.isEmpty,
                 "Constructors map is unempty");
+
+  // TODO(johnniwinther): Add thorough tests of [ClassMirror.functions],
+  // [ClassMirror.getters], [ClassMirror.setters], [ClassMirror.members],
+  // and [ClassMirror.variable].
+  Expect.isNotNull(fooClass.functions);
+  Expect.isNotNull(fooClass.members);
+  Expect.isNotNull(fooClass.getters);
+  Expect.isNotNull(fooClass.setters);
+  Expect.isNotNull(fooClass.variables);
 }
 
 // Testing interface Bar:
@@ -696,7 +710,7 @@ void testPrivate(MirrorSystem system, LibraryMirror helperLibrary,
 
   var privateField = privateClass.declaredMembers['_privateField'];
   Expect.isNotNull(privateField);
-  Expect.isTrue(privateField is FieldMirror);
+  Expect.isTrue(privateField is VariableMirror);
   Expect.isTrue(privateField.isPrivate);
 
   var privateGetter = privateClass.declaredMembers['_privateGetter'];

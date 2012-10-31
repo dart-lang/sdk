@@ -1035,7 +1035,7 @@ class Dartdoc {
           } else {
             staticMethods.add(member);
           }
-        } else if (member is FieldMirror) {
+        } else if (member is VariableMirror) {
           staticGetters[member.displayName] = member;
         }
       }
@@ -1102,7 +1102,7 @@ class Dartdoc {
             allMethodsInherited = false;
           }
         }
-      } else if (member is FieldMirror) {
+      } else if (member is VariableMirror) {
         instanceGetters[member.displayName] = member;
         if (member.owner == host) {
           allPropertiesInherited = false;
@@ -1154,7 +1154,7 @@ class Dartdoc {
       MemberMirror getter = getters[name];
       MemberMirror setter = setters[name];
       if (setter == null) {
-        if (getter is FieldMirror) {
+        if (getter is VariableMirror) {
           // We have a field.
           docField(host, getter);
         } else {
@@ -1173,13 +1173,13 @@ class Dartdoc {
             getterComment != null && setterComment != null) {
           // Both have comments or are not declared in the same class
           // => Documents separately.
-          if (getter is FieldMirror) {
+          if (getter is VariableMirror) {
             // Document field as a getter (setter is inherited).
             docField(host, getter, asGetter: true);
           } else {
             docMethod(host, getter);
           }
-          if (setter is FieldMirror) {
+          if (setter is VariableMirror) {
             // Document field as a setter (getter is inherited).
             docField(host, setter, asSetter: true);
           } else {
@@ -1219,7 +1219,7 @@ class Dartdoc {
 
     bool isAbstract = false;
     String name = member.displayName;
-    if (member is FieldMirror) {
+    if (member is VariableMirror) {
       if (asGetter) {
         // Getter.
         name = 'get $name';
@@ -1264,7 +1264,7 @@ class Dartdoc {
         annotateType(host, member.returnType);
       }
     } else {
-      assert(member is FieldMirror);
+      assert(member is VariableMirror);
       if (asGetter) {
         annotateType(host, member.type);
       } else {
@@ -1279,7 +1279,7 @@ class Dartdoc {
         docParamList(host, member.parameters);
       }
     } else {
-      assert(member is FieldMirror);
+      assert(member is VariableMirror);
       if (!asGetter) {
         write('(');
         annotateType(host, member.type);
@@ -1308,7 +1308,7 @@ class Dartdoc {
     writeln('</div>');
   }
 
-  void docField(ObjectMirror host, FieldMirror field,
+  void docField(ObjectMirror host, VariableMirror field,
                 {bool asGetter: false, bool asSetter: false}) {
     if (asGetter) {
       docMethod(host, field, asGetter: true);
@@ -1343,7 +1343,7 @@ class Dartdoc {
     bool isConst = false;
     bool isFinal;
     TypeMirror type;
-    if (getter is FieldMirror) {
+    if (getter is VariableMirror) {
       assert(setter == null);
       isConst = getter.isConst;
       isFinal = getter.isFinal;

@@ -478,14 +478,54 @@ class Dart2JsMirrorSystem implements MirrorSystem, Dart2JsMirror {
 
 abstract class Dart2JsObjectMirror extends Dart2JsElementMirror
     implements ObjectMirror {
+  Map<String, MemberMirror> _members;
+
   Dart2JsObjectMirror(Dart2JsMirrorSystem system, Element element)
       : super(system, element);
+
+  abstract void _ensureMembers();
+
+  Map<String, MemberMirror> get declaredMembers {
+    _ensureMembers();
+    return new ImmutableMapWrapper<String, MemberMirror>(_members);
+  }
+
+  Map<String, Mirror> get members => declaredMembers;
+
+  Map<String, MethodMirror> get functions {
+    _ensureMembers();
+    return new AsFilteredImmutableMap<String, MemberMirror, MethodMirror>(
+        _members,
+        (MemberMirror member) => member is MethodMirror);
+  }
+
+  Map<String, MethodMirror> get getters {
+    _ensureMembers();
+    return new AsFilteredImmutableMap<String, MemberMirror, MethodMirror>(
+        _members,
+        (MemberMirror member) =>
+            member is MethodMirror && (member as MethodMirror).isGetter);
+  }
+
+  Map<String, MethodMirror> get setters {
+    _ensureMembers();
+    return new AsFilteredImmutableMap<String, MemberMirror, MethodMirror>(
+        _members,
+        (MemberMirror member) =>
+            member is MethodMirror && (member as MethodMirror).isSetter);
+  }
+
+  Map<String, VariableMirror> get variables {
+    _ensureMembers();
+    return new AsFilteredImmutableMap<String, MemberMirror, VariableMirror>(
+        _members,
+        (MemberMirror member) => member is VariableMirror);
+  }
 }
 
 class Dart2JsLibraryMirror extends Dart2JsObjectMirror
     implements LibraryMirror {
   Map<String, ClassMirror> _classes;
-  Map<String, MemberMirror> _members;
 
   Dart2JsLibraryMirror(Dart2JsMirrorSystem system, LibraryElement library)
       : super(system, library);
@@ -528,8 +568,9 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
       _classes = <String, ClassMirror>{};
       _library.forEachLocalMember((Element e) {
         if (e.isClass()) {
-          e.ensureResolved(system.compiler);
-          var type = new Dart2JsClassMirror.fromLibrary(this, e);
+          ClassElement classElement = e;
+          classElement.ensureResolved(system.compiler);
+          var type = new Dart2JsClassMirror.fromLibrary(this, classElement);
           assert(invariant(_library, !_classes.containsKey(type.simpleName),
               message: "Type name '${type.simpleName}' "
                        "is not unique in $_library."));
@@ -558,31 +599,6 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
         }
       });
     }
-  }
-
-  Map<String, MemberMirror> get declaredMembers {
-    _ensureMembers();
-    return new ImmutableMapWrapper<String, MemberMirror>(_members);
-  }
-
-  Map<String, Mirror> get members => declaredMembers;
-
-  Map<String, MethodMirror> get functions {
-    _ensureMembers();
-    return new FilteredImmutableMap(_members,
-        (MemberMirror member) => member is MethodMirror);
-  }
-
-  Map<String, MethodMirror> get getters {
-    _ensureMembers();
-    return new FilteredImmutableMap(_members,
-        (MemberMirror member) => member is MethodMirror && member.isGetter);
-  }
-
-  Map<String, MethodMirror> get setters {
-    _ensureMembers();
-    return new FilteredImmutableMap(_members,
-        (MemberMirror member) => member is MethodMirror && member.isSetter);
   }
 
   Map<String, ClassMirror> get classes {
@@ -671,7 +687,7 @@ class Dart2JsParameterMirror extends Dart2JsElementMirror
 
   bool get isInitializingFormal => false;
 
-  FieldMirror get initializedField => null;
+  VariableMirror get initializedField => null;
 }
 
 class Dart2JsFieldParameterMirror extends Dart2JsParameterMirror {
@@ -696,7 +712,7 @@ class Dart2JsFieldParameterMirror extends Dart2JsParameterMirror {
 
   bool get isInitializingFormal => true;
 
-  FieldMirror get initializedField => new Dart2JsFieldMirror(
+  VariableMirror get initializedField => new Dart2JsFieldMirror(
       _method.owner, _fieldParameterElement.fieldElement);
 }
 
@@ -706,7 +722,6 @@ class Dart2JsFieldParameterMirror extends Dart2JsParameterMirror {
 class Dart2JsClassMirror extends Dart2JsObjectMirror
     implements Dart2JsTypeMirror, ClassMirror {
   final Dart2JsLibraryMirror library;
-  Map<String, Dart2JsMemberMirror> _members;
   List<TypeVariableMirror> _typeVariables;
 
   Dart2JsClassMirror(Dart2JsMirrorSystem system, ClassElement _class)
@@ -748,29 +763,12 @@ class Dart2JsClassMirror extends Dart2JsObjectMirror
     }
   }
 
-  Map<String, MemberMirror> get declaredMembers {
-    _ensureMembers();
-    return new ImmutableMapWrapper<String, MemberMirror>(_members);
-  }
+  Map<String, MethodMirror> get methods => functions;
 
-  Map<String, Mirror> get members => declaredMembers;
-
-  Map<String, MethodMirror> get methods {
+  Map<String, MethodMirror> get constructors {
     _ensureMembers();
-    return new FilteredImmutableMap(_members,
-        (MemberMirror member) => member is MethodMirror);
-  }
-
-  Map<String, MethodMirror> get getters {
-    _ensureMembers();
-    return new FilteredImmutableMap(_members,
-        (MemberMirror member) => member is MethodMirror && member.isGetter);
-  }
-
-  Map<String, MethodMirror> get setters {
-    _ensureMembers();
-    return new FilteredImmutableMap(_members,
-        (MemberMirror member) => member is MethodMirror && member.isSetter);
+    return new AsFilteredImmutableMap<String, MemberMirror, MethodMirror>(
+        _members, (m) => m.isConstructor ? m : null);
   }
 
   bool get isObject => _class == system.compiler.objectClass;
@@ -829,12 +827,6 @@ class Dart2JsClassMirror extends Dart2JsObjectMirror
       }
     }
     return _typeVariables;
-  }
-
-  Map<String, MethodMirror> get constructors {
-    _ensureMembers();
-    return new AsFilteredImmutableMap<String, MemberMirror, MethodMirror>(
-        _members, (m) => m.isConstructor ? m : null);
   }
 
   /**
@@ -1047,6 +1039,8 @@ abstract class Dart2JsTypeElementMirror extends Dart2JsProxyMirror
 
   Map<String, MethodMirror> get setters => const <String, MethodMirror>{};
 
+  Map<String, VariableMirror> get variables => const <String, VariableMirror>{};
+
   ClassMirror get defaultFactory => null;
 }
 
@@ -1120,6 +1114,9 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
   Map<String, MethodMirror> get getters => originalDeclaration.getters;
+
+  // TODO(johnniwinther): Substitute type arguments for type variables.
+  Map<String, VariableMirror> get variables => originalDeclaration.variables;
 
   // TODO(johnniwinther): Substitute type arguments for type variables?
   ClassMirror get defaultFactory => originalDeclaration.defaultFactory;
@@ -1425,7 +1422,7 @@ class Dart2JsMethodMirror extends Dart2JsElementMirror
 }
 
 class Dart2JsFieldMirror extends Dart2JsElementMirror
-    implements Dart2JsMemberMirror, FieldMirror {
+    implements Dart2JsMemberMirror, VariableMirror {
   Dart2JsObjectMirror _objectMirror;
   VariableElement _variable;
 

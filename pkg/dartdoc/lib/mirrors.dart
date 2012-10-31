@@ -182,6 +182,12 @@ abstract class LibraryMirror implements ObjectMirror, DeclarationMirror {
   Map<String, MethodMirror> get setters;
 
   /**
+   * An immutable map from names to mirrors for all variable
+   * declarations in this library.
+   */
+  Map<String, VariableMirror> get variables;
+
+  /**
    * Returns the canonical URI for this library.
    */
   Uri get uri;
@@ -321,6 +327,12 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
   Map<String, MethodMirror> get setters;
 
   /**
+   * An immutable map from names to mirrors for all variable
+   * declarations for this type.
+   */
+  Map<String, VariableMirror> get variables;
+
+  /**
    * An immutable map from names to mirrors for all constructor
    * declarations for this type.
    */
@@ -416,7 +428,7 @@ abstract class MemberMirror implements DeclarationMirror {
 /**
  * A field.
  */
-abstract class FieldMirror implements MemberMirror {
+abstract class VariableMirror implements MemberMirror {
 
   /**
    * Returns true if this field is final.
@@ -526,7 +538,7 @@ abstract class ParameterMirror implements Mirror {
   /**
    * Returns the initialized field, if this parameter is an initializing formal.
    */
-  FieldMirror get initializedField;
+  VariableMirror get initializedField;
 }
 
 /**
