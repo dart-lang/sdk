@@ -34,11 +34,7 @@ void expectHasBody(compiler, Element element) {
 void expectHasNoBody(compiler, Element element) {
     var node = element.parseNode(compiler);
     Expect.isNotNull(node, "Element isn't parseable, when a body was expected");
-    Expect.isNotNull(node.body);
-    // If the element has no body it is a Block with identical begin and end
-    // tokens (the semicolon).
-    Expect.isTrue(node.body is Block);
-    Expect.identical(node.body.getBeginToken(), node.body.getEndToken());
+    Expect.isFalse(node.hasBody());
 }
 
 Element ensure(compiler,

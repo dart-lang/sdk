@@ -353,6 +353,8 @@ class Element implements Spannable {
   FunctionElement asFunctionElement() => null;
 
   static bool isInvalid(Element e) => e == null || e.isErroneous();
+
+  bool isAbstract(Compiler compiler) => modifiers.isAbstract();
 }
 
 /**
@@ -1184,7 +1186,7 @@ class FunctionElement extends Element {
     return type;
   }
 
-  Node parseNode(DiagnosticListener listener) {
+  FunctionExpression parseNode(DiagnosticListener listener) {
     if (patch == null) {
       if (modifiers.isExternal()) {
         listener.cancel("Compiling external function with no implementation.",
@@ -1206,6 +1208,15 @@ class FunctionElement extends Element {
     } else {
       return super.toString();
     }
+  }
+
+  bool isAbstract(Compiler compiler) {
+    if (super.isAbstract(compiler)) return true;
+    if (modifiers.isExternal()) return false;
+    if (isFunction() || isAccessor()) {
+      return !parseNode(compiler).hasBody();
+    }
+    return false;
   }
 }
 

@@ -456,11 +456,7 @@ Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t09: Fail, OK # co
 Language/03_Overview/1_Scoping_A01_t40: Fail, OK # co19 issue 188
 Language/03_Overview/1_Scoping_A01_t41: Fail, OK # co19 issue 188
 
-Language/07_Classes/4_Abstract_Instance_Members_A02_t02: Fail, OK # co19 issue 194
-
 Language/06_Functions/4_External_Functions_A01_t01: Fail, OK # http://dartbug.com/5021
-
-Language/07_Classes/4_Abstract_Instance_Members_A02_t01: Fail, OK # co19 issue 195
 
 Language/03_Overview/2_Privacy_A01_t09: Fail, OK # co19 issue 198
 Language/03_Overview/2_Privacy_A01_t10: Fail, OK # co19 issue 198
@@ -505,6 +501,12 @@ LibTest/core/int/toDouble_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toRadixString_A01_t01: Fail, OK # Bad test: uses Expect.fail, Expect.throws, assumes case of result, and uses unsupported radixes.
 LibTest/core/String/contains_A01_t02: Fail, OK # co19 issue 105.
 Language/07_Classes/1_Instance_Methods/2_Operators_A02_t01: Fail, OK # Expects negative result from bit-operation.
+
+
+[ $compiler == dart2js && $system == macos ]
+LibTest/math/acos_A01_t01: Fail, OK # co19 issue 44
+LibTest/math/asin_A01_t01: Fail, OK # co19 issue 44
+LibTest/math/atan_A01_t01: Fail, OK # co19 issue 44
 
 
 #

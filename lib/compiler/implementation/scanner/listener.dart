@@ -1387,7 +1387,11 @@ class NodeListener extends ElementListener {
   }
 
   void endFunctionBody(int count, Token beginToken, Token endToken) {
-    pushNode(new Block(makeNodeList(count, beginToken, endToken, null)));
+    if (count == 0 && beginToken == null) {
+      pushNode(new EmptyStatement(endToken));
+    } else {
+      pushNode(new Block(makeNodeList(count, beginToken, endToken, null)));
+    }
   }
 
   void handleNoFunctionBody(Token token) {

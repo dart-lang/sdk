@@ -586,9 +586,8 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
 
     if (member.isFunction()
         || member.isGenerativeConstructorBody()
-        || member.isGetter()
-        || member.isSetter()) {
-      if (member.modifiers.isAbstract()) return;
+        || member.isAccessor()) {
+      if (member.isAbstract(compiler)) return;
       CodeBuffer codeBuffer = compiler.codegenWorld.generatedCode[member];
       if (codeBuffer == null) return;
       defineInstanceMember(namer.getName(member), codeBuffer);

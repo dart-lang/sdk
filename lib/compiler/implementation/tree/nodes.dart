@@ -635,12 +635,12 @@ class FunctionExpression extends Expression {
     if (body != null) body.accept(visitor);
   }
 
-  bool hasBody() {
-    // TODO(karlklose,ahe): refactor AST nodes (issue 1713).
-    if (body.asReturn() != null) return true;
-    NodeList statements = body.asBlock().statements;
-    return (!statements.nodes.isEmpty ||
-            !identical(statements.getBeginToken().kind, $SEMICOLON));
+  bool hasBody() => body.asEmptyStatement() == null;
+
+  bool hasEmptyBody() {
+    Block block = body.asBlock();
+    if (block == null) return false;
+    return block.statements.isEmpty;
   }
 
   Token getBeginToken() {

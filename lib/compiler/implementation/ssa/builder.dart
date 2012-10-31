@@ -970,10 +970,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (constructor is SynthesizedConstructorElement) return null;
     FunctionExpression node = constructor.parseNode(compiler);
     // If we know the body doesn't have any code, we don't generate it.
-    if (node.body.asBlock() != null) {
-      NodeList statements = node.body.asBlock().statements;
-      if (statements.isEmpty) return null;
-    }
+    if (!node.hasBody()) return null;
+    if (node.hasEmptyBody()) return null;
     ClassElement classElement = constructor.getEnclosingClass();
     ConstructorBodyElement bodyElement;
     for (Link<Element> backendMembers = classElement.backendMembers;
