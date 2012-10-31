@@ -108,7 +108,7 @@ class HtmlDiff {
       htmlTypesToDom.putIfAbsent(htmlType.qualifiedName,
           () => new Set()).addAll(domTypes);
 
-      htmlType.declaredMembers.forEach(
+      htmlType.members.forEach(
           (_, m) => _addMemberDiff(m, domTypes));
     }
   }

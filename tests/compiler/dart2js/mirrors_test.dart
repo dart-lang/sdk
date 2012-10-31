@@ -138,7 +138,7 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
 
   Expect.isNull(fooClass.defaultFactory);
 
-  var fooClassMembers = fooClass.declaredMembers;
+  var fooClassMembers = fooClass.members;
   Expect.isNotNull(fooClassMembers, "Declared members map is null");
   Expect.isTrue(fooClassMembers.isEmpty, "Declared members map is unempty");
 
@@ -226,7 +226,7 @@ void testBar(MirrorSystem system, LibraryMirror helperLibrary,
 
   Expect.isNull(barInterface.defaultFactory);
 
-  var barInterfaceMembers = barInterface.declaredMembers;
+  var barInterfaceMembers = barInterface.members;
   Expect.isNotNull(barInterfaceMembers, "Declared members map is null");
   Expect.isTrue(barInterfaceMembers.isEmpty,
                 "Declared members map is unempty");
@@ -341,7 +341,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
 
   Expect.isNull(bazClass.defaultFactory);
 
-  var bazClassMembers = bazClass.declaredMembers;
+  var bazClassMembers = bazClass.members;
   Expect.isNotNull(bazClassMembers, "Declared members map is null");
   Expect.equals(8, bazClassMembers.length,
                 "Unexpected number of declared members");
@@ -553,10 +553,8 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isNull(funcTypedef.superclass, "Non-null superclass on typedef");
   Expect.isNotNull(funcTypedef.superinterfaces);
   Expect.isTrue(funcTypedef.superinterfaces.isEmpty);
-  Expect.isNotNull(funcTypedef.declaredMembers,
-                   "Declared members map is null on type def");
-  Expect.isTrue(funcTypedef.declaredMembers.isEmpty,
-                "Non-empty declared members map on typedef");
+  Expect.isNotNull(funcTypedef.members);
+  Expect.isTrue(funcTypedef.members.isEmpty);
 
   // TODO(johnniwinther): Returned typedef should not be the original
   // declaration:
@@ -708,37 +706,37 @@ void testPrivate(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isTrue(privateClass.isClass);
   Expect.isTrue(privateClass.isPrivate);
 
-  var privateField = privateClass.declaredMembers['_privateField'];
+  var privateField = privateClass.members['_privateField'];
   Expect.isNotNull(privateField);
   Expect.isTrue(privateField is VariableMirror);
   Expect.isTrue(privateField.isPrivate);
 
-  var privateGetter = privateClass.declaredMembers['_privateGetter'];
+  var privateGetter = privateClass.members['_privateGetter'];
   Expect.isNotNull(privateGetter);
   Expect.isTrue(privateGetter is MethodMirror);
   Expect.isTrue(privateGetter.isGetter);
   Expect.isTrue(privateGetter.isPrivate);
 
-  var privateSetter = privateClass.declaredMembers['_privateSetter='];
+  var privateSetter = privateClass.members['_privateSetter='];
   Expect.isNotNull(privateSetter);
   Expect.isTrue(privateSetter is MethodMirror);
   Expect.isTrue(privateSetter.isSetter);
   Expect.isTrue(privateSetter.isPrivate);
 
-  var privateMethod = privateClass.declaredMembers['_privateMethod'];
+  var privateMethod = privateClass.members['_privateMethod'];
   Expect.isNotNull(privateMethod);
   Expect.isTrue(privateMethod is MethodMirror);
   Expect.isTrue(privateMethod.isPrivate);
 
   var privateConstructor =
-      privateClass.declaredMembers['_PrivateClass._privateConstructor'];
+      privateClass.members['_PrivateClass._privateConstructor'];
   Expect.isNotNull(privateConstructor);
   Expect.isTrue(privateConstructor is MethodMirror);
   Expect.isTrue(privateConstructor.isConstructor);
   Expect.isTrue(privateConstructor.isPrivate);
 
   var privateFactoryConstructor =
-      privateClass.declaredMembers['_PrivateClass._privateFactoryConstructor'];
+      privateClass.members['_PrivateClass._privateFactoryConstructor'];
   Expect.isNotNull(privateFactoryConstructor);
   Expect.isTrue(privateFactoryConstructor is MethodMirror);
   Expect.isTrue(privateFactoryConstructor.isFactory);

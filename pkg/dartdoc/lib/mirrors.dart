@@ -133,29 +133,29 @@ abstract class DeclarationMirror implements Mirror {
 }
 
 /**
- * Common interface for interface types and libraries.
+ * Common interface for classes and libraries.
  */
-abstract class ObjectMirror implements Mirror {
+abstract class ContainerMirror implements Mirror {
 
   /**
-   * Returns an unmodifiable map of the members of declared in this type or
-   * library.
+   * An immutable map from from names to mirrors for all members in this
+   * container.
    */
-  Map<String, MemberMirror> get declaredMembers;
+  Map<String, MemberMirror> get members;
 }
 
 /**
  * A library.
  */
-abstract class LibraryMirror implements ObjectMirror, DeclarationMirror {
+abstract class LibraryMirror implements ContainerMirror, DeclarationMirror {
   /**
-   * An immutable map from from names to mirrors for all members in
-   * this library.
+   * An immutable map from from names to mirrors for all members in this
+   * library.
    *
-   * The members of a library are its top-level classes,
-   * functions, variables, getters, and setters.
+   * The members of a library are its top-level classes, functions, variables,
+   * getters, and setters.
    */
-  Map<String, Mirror> get members;
+  Map<String, MemberMirror> get members;
 
   /**
    * An immutable map from names to mirrors for all class
@@ -236,7 +236,7 @@ abstract class TypeMirror implements DeclarationMirror {
 /**
  * A class or interface type.
  */
-abstract class ClassMirror implements TypeMirror, ObjectMirror {
+abstract class ClassMirror implements TypeMirror, ContainerMirror {
   /**
    * A mirror on the original declaration of this type.
    *
@@ -305,7 +305,7 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    *
    * This does not include inherited members.
    */
-  Map<String, Mirror> get members;
+  Map<String, MemberMirror> get members;
 
   /**
    * An immutable map from names to mirrors for all method,

@@ -45,7 +45,7 @@ Iterable<ClassMirror> computeSubdeclarations(ClassMirror type) {
 }
 
 LibraryMirror findLibrary(MemberMirror member) {
-  ObjectMirror owner = member.owner;
+  ContainerMirror owner = member.owner;
   if (owner is LibraryMirror) {
     return owner;
   } else if (owner is TypeMirror) {
