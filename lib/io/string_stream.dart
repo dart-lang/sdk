@@ -30,6 +30,9 @@ abstract class _StringDecoder {
   // no line break is present. The line break character sequence is
   // discarded.
   String get decodedLine;
+
+  // Set the handler that will be called if an error ocurs while decoding.
+  void set onError(Function callback);
 }
 
 
@@ -166,6 +169,7 @@ abstract class _StringDecoderBase implements _StringDecoder {
   int _charOffset = 0;  // Character number of the first character in the list.
   int _charCount = 0;  // Total number of characters decoded.
   int _lastCharCode = -1;
+  Function onError;
 
   final int LF = 10;
   final int CR = 13;
@@ -221,7 +225,13 @@ class _AsciiDecoder extends _StringDecoderBase {
     while (_bufferList.length > 0) {
       int byte = _bufferList.next();
       if (byte > 127) {
-        throw new DecoderException("Illegal ASCII character $byte");
+        var error = new DecoderException("Illegal ASCII character $byte");
+        if (onError != null) {
+          onError(error);
+          return false;
+        } else {
+          throw error;
+        }
       }
       addChar(byte);
     }
@@ -409,6 +419,11 @@ class _StringInputStream implements StringInputStream {
 
   void set onError(void callback(e)) {
     _input.onError = callback;
+    _decoder.onError = (e) { 
+      _clientCloseHandler = null;
+      _input.close();
+      callback(e);
+    };
   }
 
   void _onData() {
@@ -425,9 +440,8 @@ class _StringInputStream implements StringInputStream {
 
   void _onClosed() {
     _inputClosed = true;
-    if (_decoder.isEmpty && _clientCloseHandler != null) {
+    if (_decoder.isEmpty && _clientCloseHandler !=  null) {
       _clientCloseHandler();
-      _closed = true;
     } else {
       _checkScheduleCallback();
     }

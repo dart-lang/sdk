@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #import("dart:io");
+#import("dart:isolate");
 
 void testUtf8() {
   List<int> data = [0x01,
@@ -298,6 +299,23 @@ testErrorHandler() {
   Expect.equals(1, errors);
 }
 
+testEncodingErrorWithHandler() {
+  var port = new ReceivePort();    
+  var errors = 0;
+  var expected = [206, 187, 120, 46, 32, 120, 10];
+  ListInputStream input = new ListInputStream();
+  input.write(expected);
+  var stringStream = new StringInputStream(input, Encoding.ASCII);
+  stringStream.onData = () {
+    Expect.fail("We should not get any data");
+  };
+  stringStream.onError = (e) {
+    port.close();
+    Expect.isTrue(e is Exception);
+  };
+}
+
+
 main() {
   testUtf8();
   testLatin1();
@@ -307,4 +325,5 @@ main() {
   testReadChunks();
   testReadMixed();
   testErrorHandler();
+  testEncodingErrorWithHandler();
 }
