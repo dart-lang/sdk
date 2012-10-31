@@ -61,6 +61,10 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dart2js ]
+final_variable_assignment_test/01: Fail
+final_variable_assignment_test/02: Fail
+final_variable_assignment_test/03: Fail
+final_variable_assignment_test/04: Fail
 bad_constructor_test/04: Fail # http://dartbug.com/5519
 bad_constructor_test/05: Fail # http://dartbug.com/5519
 bad_constructor_test/06: Fail # http://dartbug.com/5519

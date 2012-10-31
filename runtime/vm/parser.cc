@@ -6776,7 +6776,8 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
 
 
 bool Parser::IsAssignableExpr(AstNode* expr) {
-  return (expr->IsLoadLocalNode() && !expr->AsLoadLocalNode()->HasPseudo())
+  return (expr->IsLoadLocalNode() && !expr->AsLoadLocalNode()->HasPseudo()
+          && (!expr->AsLoadLocalNode()->local().is_final()))
       || expr->IsLoadStaticFieldNode()
       || expr->IsStaticGetterNode()
       || expr->IsInstanceGetterNode()
@@ -6987,6 +6988,9 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original, AstNode* rhs) {
         Field::SetterSymbol(original->AsStaticGetterNode()->field_name()));
     result = ThrowNoSuchMethodError(original->token_pos(), setter_name);
   }
+  // TODO(hausner): if we decide to throw a no such method error on
+  // assignment to a final variable, we need to do the same as in the
+  // StaticGetterNode above.
   if ((result != NULL) &&
       (result->IsStoreIndexedNode() ||
        result->IsInstanceSetterNode() ||
@@ -7160,6 +7164,7 @@ AstNode* Parser::ParseUnaryExpr() {
         expr,
         new LiteralNode(op_pos, Smi::ZoneHandle(Smi::New(1))));
     AstNode* store = CreateAssignmentNode(left_expr, add);
+    ASSERT(store != NULL);
     expr = store;
   } else {
     expr = ParsePostfixExpr();

@@ -316,6 +316,10 @@ type_variable_bounds_test/07: Pass
 
 
 [ $compiler == none && $runtime == drt ]
+final_variable_assignment_test/01: Fail
+final_variable_assignment_test/02: Fail
+final_variable_assignment_test/03: Fail
+final_variable_assignment_test/04: Fail
 gc_test: Skip # Issue 1487
 prefix_new_test: Fail
 import_combinators_test: Fail
@@ -359,6 +363,12 @@ call_nonexistent_constructor_test: Fail
 
 # Renaming type from platform library:
 dynamic_test: Fail
+
+# Missing compile-time error when modifying final local variables
+final_variable_assignment_test/01: Fail
+final_variable_assignment_test/02: Fail
+final_variable_assignment_test/03: Fail
+final_variable_assignment_test/04: Fail
 
 # Factory for another interface (will be obsolete soon).
 # factory2_negative_test: Fail
