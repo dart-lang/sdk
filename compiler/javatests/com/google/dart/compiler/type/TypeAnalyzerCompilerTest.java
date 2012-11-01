@@ -4340,6 +4340,93 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
+   * There should be no problem reported, because assignment of "a" cascade to "b" with type "B"
+   * implicitly set type of "a" to "B".
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6107
+   */
+  public void test_cascade_inferType_varDeclaration() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "class B extends A {",
+        "  bMethod() {}",
+        "}",
+        "main() {",
+        "  A a = new B();",
+        "  B b = a..bMethod();",
+        "}",
+        "");
+    assertErrors(result.getErrors());
+  }
+  
+  /**
+   * There should be no problem reported, because assignment of "a" cascade to "b" with type "B"
+   * implicitly set type of "a" to "B".
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6107
+   */
+  public void test_cascade_inferType_varAssignment() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "class B extends A {",
+        "  bMethod() {}",
+        "}",
+        "main() {",
+        "  A a = new B();",
+        "  B b = null;",
+        "  b = a..bMethod();",
+        "}",
+        "");
+    assertErrors(result.getErrors());
+  }
+
+  /**
+   * We assign "a" to field "Holder.b" of type "B", so implicitly set type of "a" to "B".
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6107
+   */
+  public void test_cascade_inferType_fieldDeclaration() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Holder {",
+        "  B b = getA()..bMethod();",
+        "}",
+        "class A {}",
+        "class B extends A {",
+        "  bMethod() {}",
+        "}",
+        "A getA() => new B();",
+        "");
+    assertErrors(result.getErrors());
+  }
+  
+  /**
+   * We assign "a" to field "Holder.b" of type "B", so implicitly set type of "a" to "B".
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6107
+   */
+  public void test_cascade_inferType_fieldAssignment() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Holder {",
+        "  B b;",
+        "}",
+        "class A {}",
+        "class B extends A {",
+        "  bMethod() {}",
+        "}",
+        "main() {",
+        "  A a = new B();",
+        "  Holder holder = new Holder();",
+        "  holder.b = a..bMethod();",
+        "}",
+        "");
+    assertErrors(result.getErrors());
+  }
+
+  /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=4315
    */

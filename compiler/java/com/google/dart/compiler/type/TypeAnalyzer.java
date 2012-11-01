@@ -784,36 +784,36 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
       }
 
-      /**
-       * @return the {@link Type} which is both "a" and "b" types. May be "dynamic" if "a" and "b"
-       *         don't form hierarchy.
-       */
-      Type getUnionType(Type curType, Type newType) {
-        if (TypeKind.of(curType) == TypeKind.DYNAMIC) {
-          return newType;
-        }
-        if (TypeKind.of(newType) == TypeKind.DYNAMIC) {
-          return curType;
-        }
-        if (types.isSubtype(curType, newType)) {
-          return curType;
-        }
-        if (types.isSubtype(newType, curType)) {
-          return newType;
-        }
-        // if InterfaceType, use union
-        if (curType instanceof InterfaceType && newType instanceof InterfaceType) {
-          return types.unionTypes(ImmutableList.of((InterfaceType) curType, (InterfaceType) newType));
-        }
-        // keep type as is
-        return curType;
-      }
-
       void restore() {
         for (Entry<VariableElement, Type> entry : typesMap.entrySet()) {
           Elements.setType(entry.getKey(), entry.getValue());
         }
       }
+    }
+
+    /**
+     * @return the {@link Type} which is both "a" and "b" types. May be "dynamic" if "a" and "b"
+     *         don't form hierarchy.
+     */
+    private Type getUnionType(Type curType, Type newType) {
+      if (TypeKind.of(curType) == TypeKind.DYNAMIC) {
+        return newType;
+      }
+      if (TypeKind.of(newType) == TypeKind.DYNAMIC) {
+        return curType;
+      }
+      if (types.isSubtype(curType, newType)) {
+        return curType;
+      }
+      if (types.isSubtype(newType, curType)) {
+        return newType;
+      }
+      // if InterfaceType, use union
+      if (curType instanceof InterfaceType && newType instanceof InterfaceType) {
+        return types.unionTypes(ImmutableList.of((InterfaceType) curType, (InterfaceType) newType));
+      }
+      // keep type as is
+      return curType;
     }
 
     /**
@@ -1174,33 +1174,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       {
         Set<String> usedNamedParametersPositional = Sets.newHashSet();
         Set<String> usedNamedParametersNamed = Sets.newHashSet();
-        // Prepare named parameters.
         Map<String, Type> namedParameterTypes = ftype.getNamedParameterTypes();
-        Iterator<Entry<String, Type>> namedParameterTypesIterator =
-            namedParameterTypes.entrySet().iterator();
-//        // Check positional arguments for named parameters.
-//        while (namedParameterTypesIterator.hasNext()
-//            && argumentTypes.hasNext()
-//            && !(argumentNodes.get(argumentIndex) instanceof DartNamedExpression)) {
-//          Entry<String, Type> namedEntry = namedParameterTypesIterator.next();
-//          String parameterName = namedEntry.getKey();
-//          usedNamedParametersPositional.add(parameterName);
-//          Type namedType = namedEntry.getValue();
-//          namedType.getClass(); // quick null check
-//          Type argumentType = argumentTypes.next();
-//          argumentType.getClass(); // quick null check
-//          DartExpression argumentNode = argumentNodes.get(argumentIndex);
-//          if (parameters != null) {
-//            argumentNode.setInvocationParameterId(parameters.get(argumentIndex));
-//          } else {
-//            argumentNode.setInvocationParameterId(argumentIndex);
-//          }
-//          if (checkAssignable(argumentNode, namedType, argumentType)) {
-//            inferFunctionLiteralParametersTypes(argumentNode, namedType);
-//          }
-//          argumentIndex++;
-//        }
-        // Check named arguments for named parameters.
         while (argumentTypes.hasNext()
             && argumentNodes.get(argumentIndex) instanceof DartNamedExpression) {
           DartNamedExpression namedExpression =
@@ -1348,11 +1322,18 @@ public class TypeAnalyzer implements DartCompilationPhase {
       if (node == null) {
         return dynamicType;
       }
+      // prepare new type
       Type result = node.accept(this);
       if (result == null) {
          return dynamicType;
       }
-      node.setType(result);
+      // set new type, or keep existing
+      if (node.getType() == null) {
+        node.setType(result);
+      } else {
+        result = node.getType();
+      }
+      // done
       return result;
     }
 
@@ -1446,8 +1427,55 @@ public class TypeAnalyzer implements DartCompilationPhase {
     public Type visitCascadeExpression(DartCascadeExpression node) {
       DartExpression target = node.getTarget();
       Type type = nonVoidTypeOf(target);
+      node.setType(type);
+      inferCascadeType(node);
       node.visitChildren(this);
       return type;
+    }
+
+    /**
+     * Infers {@link Type} of {@link DartCascadeExpression} from context.
+     */
+    private void inferCascadeType(DartCascadeExpression node) {
+      // field declaration
+      if (node.getParent() instanceof DartField) {
+        DartField field = (DartField) node.getParent();
+        Type varType = field.getElement().getType();
+        setCascadeUnionType(node, varType);
+      }
+      // variable declaration
+      if (node.getParent() instanceof DartVariable) {
+        DartVariable var = (DartVariable) node.getParent();
+        Type varType = var.getElement().getType();
+        setCascadeUnionType(node, varType);
+      }
+      // assignment
+      if (node.getParent() instanceof DartBinaryExpression) {
+        DartBinaryExpression binary = (DartBinaryExpression) node.getParent();
+        if (binary.getOperator() == Token.ASSIGN && binary.getArg2() == node
+            && binary.getArg1() != null) {
+          Element leftElement = binary.getArg1().getElement();
+          if (leftElement != null) {
+            Type varType = leftElement.getType();
+            setCascadeUnionType(node, varType);
+          }
+        }
+      }
+    }
+
+    /**
+     * Sets for given {@link DartCascadeExpression} and its target {@link Type} which is union of
+     * existing type and "newType".
+     */
+    private void setCascadeUnionType(DartCascadeExpression node, Type newType) {
+      DartExpression target = node.getTarget();
+      Type type = node.getType();
+      if (isExclicitlySpecifiedType(newType) && types.isAssignable(type, newType)) {
+        Type unionType = getUnionType(type, newType);
+        unionType = Types.makeInferred(unionType);
+        node.setType(unionType);
+        target.setType(unionType);
+      }
     }
 
     @Override
@@ -3497,26 +3525,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
         }
         return defaults;
-      }
-
-      private int getNumRequiredParameters(List<VariableElement> parameters) {
-        int numRequired = 0;
-        for (VariableElement parameter : parameters) {
-          if (!parameter.isNamed()) {
-            numRequired++;
-          }
-        }
-        return numRequired;
-      }
-
-      private List<VariableElement> getNamedParameters(List<VariableElement> parameters) {
-        List<VariableElement> named = Lists.newArrayList();
-        for (VariableElement v : parameters) {
-          if (v.isNamed()) {
-            named.add(v);
-          }
-        }
-        return named;
       }
     }
   }
