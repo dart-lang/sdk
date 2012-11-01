@@ -53,6 +53,7 @@ unknownelement_test: Fail # Issue 4189
 
 [ $runtime == dartium || $runtime == chrome || $runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == opera ]
 history_test: Fail
+audiocontext_test: Fail # After WebKit roll due to renamed method?
 
 [$runtime == ie10 ]
 # TODO(efortuna, blois): Triage.
