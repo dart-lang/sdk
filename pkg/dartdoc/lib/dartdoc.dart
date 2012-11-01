@@ -744,8 +744,9 @@ class Dartdoc {
     docMembers(library);
 
     // Document the types.
-    final classes = <ClassMirror>[];
     final interfaces = <ClassMirror>[];
+    final abstractClasses = <ClassMirror>[];
+    final classes = <ClassMirror>[];
     final typedefs = <TypedefMirror>[];
     final exceptions = <ClassMirror>[];
 
@@ -755,7 +756,11 @@ class Dartdoc {
       if (isException(type)) {
         exceptions.add(type);
       } else if (type.isClass) {
-        classes.add(type);
+        if (type.isAbstract) {
+          abstractClasses.add(type);
+        } else {
+          classes.add(type);
+        }
       } else if (type.isInterface){
         interfaces.add(type);
       } else if (type is TypedefMirror) {
@@ -765,8 +770,9 @@ class Dartdoc {
       }
     }
 
-    docTypes(classes, 'Classes');
     docTypes(interfaces, 'Interfaces');
+    docTypes(abstractClasses, 'Abstract Classes');
+    docTypes(classes, 'Classes');
     docTypes(typedefs, 'Typedefs');
     docTypes(exceptions, 'Exceptions');
 
@@ -1837,7 +1843,8 @@ class Dartdoc {
    * Returns [:true:] if [type] should be regarded as an exception.
    */
   bool isException(TypeMirror type) {
-    return type.simpleName.endsWith('Exception');
+    return type.simpleName.endsWith('Exception') ||
+        type.simpleName.endsWith('Error');
   }
 }
 
