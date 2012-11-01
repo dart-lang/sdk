@@ -170,10 +170,8 @@ def start_browser(browser, executable_path, html_out):
     profile.set_preference('dom.max_chrome_script_run_time', 0)
     profile.set_preference('app.update.auto', True)
     profile.set_preference('app.update.enabled', True)
-    xpi = os.path.join(script_dir, 'extensions', 'firefox',                               'ConsoleCollector.xpi')
-    profile.add_extension(xpi);
     return selenium.webdriver.Firefox(firefox_profile=profile)
-  elif ((browser == 'ie9' or browser == 'ie10') and 
+  elif ((browser == 'ie9' or browser == 'ie10') and
       platform.system() == 'Windows'):
     return selenium.webdriver.Ie()
   elif browser == 'safari' and platform.system() == 'Darwin':
@@ -245,12 +243,6 @@ def report_results(mode, source, browser):
       index += len('<body>')
       end_index = source.find('</body')
       print unicode(source[index : end_index]).encode("utf-8")
-      if type(browser) is selenium.webdriver.firefox.webdriver.WebDriver:
-        logs = browser.execute_script("return window.ConsoleCollector.read()");
-        for msg in logs:
-          print('%s:%s:%s:%s %s' %(
-              msg['source'], msg['line'], msg['column'],
-              msg['category'], msg['message']))
       return 1
 
 
