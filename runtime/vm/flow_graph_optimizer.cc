@@ -876,19 +876,8 @@ bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
   if (function.IsDynamicFunction() &&
       callee_receiver->IsParameter() &&
       (callee_receiver->AsParameter()->index() == 0)) {
-    const intptr_t static_receiver_cid = Class::Handle(function.Owner()).id();
-    ZoneGrowableArray<intptr_t>* subclass_cids =
-        CHA::GetSubclassIdsOf(static_receiver_cid);
-    if (subclass_cids->is_empty()) {
-      // No subclasses, no check needed.
-      return false;
-    }
-    ZoneGrowableArray<Function*>* overriding_functions =
-        CHA::GetNamedInstanceFunctionsOf(*subclass_cids, call->function_name());
-    if (overriding_functions->is_empty()) {
-      // No overriding functions.
-      return false;
-    }
+    return CHA::HasOverride(Class::Handle(function.Owner()),
+                            call->function_name());
   }
   return true;
 }
@@ -1155,7 +1144,8 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   if ((op_kind == Token::kGET) && TryInlineInstanceGetter(instr)) {
     return;
   }
-  if ((op_kind == Token::kSET) && TryInlineInstanceSetter(instr)) {
+  if ((op_kind == Token::kSET) &&
+      TryInlineInstanceSetter(instr, unary_checks)) {
     return;
   }
   if (TryInlineInstanceMethod(instr)) {
@@ -1198,15 +1188,16 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
 }
 
 
-bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
+bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
+                                                 const ICData& unary_ic_data) {
+  ASSERT((unary_ic_data.NumberOfChecks() > 0) &&
+      (unary_ic_data.num_args_tested() == 1));
   if (FLAG_enable_type_checks) {
     // TODO(srdjan): Add assignable check node if --enable_type_checks.
     return false;
   }
 
   ASSERT(instr->HasICData());
-  const ICData& unary_ic_data =
-      ICData::Handle(instr->ic_data()->AsUnaryClassChecks());
   if (unary_ic_data.NumberOfChecks() == 0) {
     // No type feedback collected.
     return false;

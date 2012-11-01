@@ -63,7 +63,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool TryReplaceWithUnaryOp(InstanceCallInstr* call, Token::Kind op_kind);
 
   bool TryInlineInstanceGetter(InstanceCallInstr* call);
-  bool TryInlineInstanceSetter(InstanceCallInstr* call);
+  bool TryInlineInstanceSetter(InstanceCallInstr* call,
+                               const ICData& unary_ic_data);
 
   bool TryInlineInstanceMethod(InstanceCallInstr* call);
 
