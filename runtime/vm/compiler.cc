@@ -132,10 +132,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
                        &CompilerStats::graphbuilder_timer,
                        isolate);
       if (optimized) {
-        // Transition to optimized code only from unoptimized code ...
-        // for now.
         ASSERT(parsed_function.function().HasCode());
-        ASSERT(!parsed_function.function().HasOptimizedCode());
         // Extract type feedback before the graph is built, as the graph
         // builder uses it to attach it to nodes.
         // Do not use type feedback to optimize a function that was
@@ -280,8 +277,8 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       graph_compiler.FinalizeExceptionHandlers(code);
       graph_compiler.FinalizeComments(code);
       if (optimized) {
+        CodePatcher::PatchEntry(Code::Handle(function.CurrentCode()));
         function.SetCode(code);
-        CodePatcher::PatchEntry(Code::Handle(function.unoptimized_code()));
         if (FLAG_trace_compiler) {
           OS::Print("--> patching entry %#"Px"\n",
                     Code::Handle(function.unoptimized_code()).EntryPoint());
