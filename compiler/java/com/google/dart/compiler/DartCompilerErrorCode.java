@@ -22,7 +22,7 @@ public enum DartCompilerErrorCode implements ErrorCode {
   MIRRORS_NOT_FULLY_IMPLEMENTED(ErrorSeverity.WARNING, "dart:mirrors is not fully implemented yet"),
   MISSING_LIBRARY_DIRECTIVE("a library which is imported is missing a library directive: %s"),
   MISSING_SOURCE("Cannot find referenced source: %s"),
-  MISSING_PART_OF_DIRECTIVE("Missing 'part of' directive"),
+  MISSING_PART_OF_DIRECTIVE("Unit is part of library '%s', but has no 'part of' directive"),
   UNIT_WAS_ALREADY_INCLUDED("Unit '%s' was already included"),
   WRONG_PART_OF_NAME(
       ErrorSeverity.WARNING,

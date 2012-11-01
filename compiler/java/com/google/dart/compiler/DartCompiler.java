@@ -727,7 +727,7 @@ public class DartCompiler {
             // TODO(scheglov) Remove after http://code.google.com/p/dart/issues/detail?id=6121
             if (!StringUtils.startsWith(lib.getName(), "dart:")) {
               context.onError(new DartCompilationError(unitSource,
-                  DartCompilerErrorCode.MISSING_PART_OF_DIRECTIVE));
+                  DartCompilerErrorCode.MISSING_PART_OF_DIRECTIVE, lib.getName()));
             }
           } else if (directives.size() == 1 && directives.get(0) instanceof DartPartOfDirective) {
             DartPartOfDirective directive = (DartPartOfDirective) directives.get(0);
