@@ -176,28 +176,38 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
     length = (length + 1) / 2;
   }
 
-  // Send data in chunks of maximum 16KB.
-  const intptr_t max_chunk_length =
-      dart::Utils::Minimum(length, static_cast<intptr_t>(16 * KB));
-  uint8_t* buffer = new uint8_t[max_chunk_length];
   intptr_t total_bytes_written = 0;
   intptr_t bytes_written = 0;
-  do {
-    intptr_t chunk_length =
-        dart::Utils::Minimum(max_chunk_length, length - total_bytes_written);
-    result = Dart_ListGetAsBytes(buffer_obj,
-                                 offset + total_bytes_written,
-                                 buffer,
-                                 chunk_length);
+  if (Dart_IsByteArrayExternal(buffer_obj)) {
+    void* buffer = NULL;
+    result = Dart_ExternalByteArrayGetData(buffer_obj, &buffer);
     if (Dart_IsError(result)) {
-      delete[] buffer;
       Dart_PropagateError(result);
     }
-    bytes_written =
-        Socket::Write(socket, reinterpret_cast<void*>(buffer), chunk_length);
-    total_bytes_written += bytes_written;
-  } while (bytes_written > 0 && total_bytes_written < length);
-  delete[] buffer;
+    bytes_written = Socket::Write(socket, buffer, length);
+    total_bytes_written = bytes_written;
+  } else {
+    // Send data in chunks of maximum 16KB.
+    const intptr_t max_chunk_length =
+        dart::Utils::Minimum(length, static_cast<intptr_t>(16 * KB));
+    uint8_t* buffer = new uint8_t[max_chunk_length];
+    do {
+      intptr_t chunk_length =
+          dart::Utils::Minimum(max_chunk_length, length - total_bytes_written);
+      result = Dart_ListGetAsBytes(buffer_obj,
+                                   offset + total_bytes_written,
+                                   buffer,
+                                   chunk_length);
+      if (Dart_IsError(result)) {
+        delete[] buffer;
+        Dart_PropagateError(result);
+      }
+      bytes_written =
+          Socket::Write(socket, reinterpret_cast<void*>(buffer), chunk_length);
+      total_bytes_written += bytes_written;
+    } while (bytes_written > 0 && total_bytes_written < length);
+    delete[] buffer;
+  }
   if (bytes_written >= 0) {
     Dart_SetReturnValue(args, Dart_NewInteger(total_bytes_written));
   } else {
