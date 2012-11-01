@@ -134,9 +134,9 @@ namespace dart {
                                                                                \
   /* Support for Dart scripts. */                                              \
   TOK(kSCRIPTTAG, "#!", 0, kNoAttribute)                                       \
-  TOK(kLIBRARY, "#library", 0, kNoAttribute)                                   \
-  TOK(kIMPORT, "#import", 0, kNoAttribute)                                     \
-  TOK(kSOURCE, "#source", 0, kNoAttribute)                                     \
+  TOK(kLEGACY_LIBRARY, "#library", 0, kNoAttribute)                            \
+  TOK(kLEGACY_IMPORT, "#import", 0, kNoAttribute)                              \
+  TOK(kLEGACY_SOURCE, "#source", 0, kNoAttribute)                              \
 
 // List of keywords. The list must be alphabetically ordered. The
 // keyword recognition code depends on the ordering.
@@ -154,6 +154,7 @@ namespace dart {
   KW(kDEFAULT, "default", 0, kKeyword)                                         \
   KW(kDO, "do", 0, kKeyword)                                                   \
   KW(kELSE, "else", 0, kKeyword)                                               \
+  KW(kEXPORT, "export", 0, kPseudoKeyword)                                     \
   KW(kEXTENDS, "extends", 0, kKeyword)                                         \
   KW(kEXTERNAL, "external", 0, kPseudoKeyword)                                 \
   KW(kFACTORY, "factory", 0, kPseudoKeyword)                                   \
@@ -164,12 +165,15 @@ namespace dart {
   KW(kGET, "get", 0, kPseudoKeyword)                                           \
   KW(kIF, "if", 0, kKeyword)                                                   \
   KW(kIMPLEMENTS, "implements", 0, kPseudoKeyword)                             \
+  KW(kIMPORT, "import", 0, kPseudoKeyword)                                     \
   KW(kIN, "in", 0, kKeyword)                                                   \
   KW(kINTERFACE, "interface", 0, kPseudoKeyword)                               \
   KW(kIS, "is", 10, kKeyword)                                                  \
+  KW(kLIBRARY, "library", 0, kPseudoKeyword)                                   \
   KW(kNEW, "new", 0, kKeyword)                                                 \
   KW(kNULL, "null", 0, kKeyword)                                               \
   KW(kOPERATOR, "operator", 0, kPseudoKeyword)                                 \
+  KW(kPART, "part", 0, kPseudoKeyword)                                         \
   KW(kRETURN, "return", 0, kKeyword)                                           \
   KW(kSET, "set", 0, kPseudoKeyword)                                           \
   KW(kSTATIC, "static", 0, kPseudoKeyword)                                     \
