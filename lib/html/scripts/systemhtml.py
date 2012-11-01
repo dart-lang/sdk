@@ -13,6 +13,8 @@ from generator import *
 _js_custom_members = set([
     'AudioBufferSourceNode.start',
     'AudioBufferSourceNode.stop',
+    'AudioContext.createGain',
+    'AudioContext.createScriptProcessor',
     'CSSStyleDeclaration.setProperty',
     'Element.insertAdjacentElement',
     'Element.insertAdjacentHTML',

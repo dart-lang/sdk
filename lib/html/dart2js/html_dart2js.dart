@@ -845,6 +845,9 @@ abstract class AudioContextEvents implements Events {
 
   EventListenerList get complete;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 class _AudioContextImpl extends _EventTargetImpl implements AudioContext native "*AudioContext" {
 
@@ -879,8 +882,6 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext native 
 
   _DynamicsCompressorNodeImpl createDynamicsCompressor() native;
 
-  _GainNodeImpl createGain() native;
-
   _MediaElementAudioSourceNodeImpl createMediaElementSource(_MediaElementImpl mediaElement) native;
 
   _MediaStreamAudioSourceNodeImpl createMediaStreamSource(_MediaStreamImpl mediaStream) native;
@@ -889,8 +890,6 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext native 
 
   _PannerNodeImpl createPanner() native;
 
-  _ScriptProcessorNodeImpl createScriptProcessor(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) native;
-
   _WaveShaperNodeImpl createWaveShaper() native;
 
   _WaveTableImpl createWaveTable(_Float32ArrayImpl real, _Float32ArrayImpl imag) native;
@@ -898,6 +897,39 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext native 
   void decodeAudioData(_ArrayBufferImpl audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native;
 
   void startRendering() native;
+
+  void createGain() {
+    if (JS('bool', '#.createGain !== undefined', this)) {
+      return JS('void', '#.createGain()', this);
+    } else {
+      return JS('void', '#.createGainNode()', this);
+    }
+  }
+
+  void createScriptProcessor(int bufferSize, [int numberOfInputChannels, int
+      numberOfOutputChannels]) {
+    if (JS('bool', '#.createScriptProcessor !== undefined', this)) {
+      if (?numberOfOutputChannels) {
+        return JS('void', '#.createScriptProcessor(#, #, #)', this, bufferSize,
+            numberOfInputChannels, numberOfOutputChannels);
+      } else if (?numberOfInputChannels) {
+        return JS('void', '#.createScriptProcessor(#, #)', this, bufferSize,
+            numberOfInputChannels);
+      } else {
+        return JS('void', '#.createScriptProcessor(#)', this, bufferSize);
+      }
+    } else {
+      if (?numberOfOutputChannels) {
+        return JS('void', '#.createJavaScriptNode(#, #, #)', this, bufferSize,
+            numberOfInputChannels, numberOfOutputChannels);
+      } else if (?numberOfInputChannels) {
+        return JS('void', '#.createJavaScriptNode(#, #)', this, bufferSize,
+            numberOfInputChannels);
+      } else {
+        return JS('void', '#.createJavaScriptNode(#)', this, bufferSize);
+      }
+    }
+  }
 }
 
 class _AudioContextEventsImpl extends _EventsImpl implements AudioContextEvents {

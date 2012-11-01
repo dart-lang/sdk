@@ -29,7 +29,7 @@ main() {
 
   test('audioRenames', () {
     AudioContext context = new AudioContext();
-    GainNode gainNode = context.createGainNode();
+    GainNode gainNode = context.createGain();
     gainNode.connect(context.destination, 0, 0);
     expect(gainNode is GainNode, isTrue);
 
@@ -38,6 +38,6 @@ main() {
     expect(context.createChannelSplitter() is ChannelSplitterNode, isTrue);
     expect(context.createOscillator() is OscillatorNode, isTrue);
     expect(context.createPanner() is PannerNode, isTrue);
-    expect(context.createJavaScriptNode(4096) is ScriptProcessorNode, isTrue);
+    expect(context.createScriptProcessor(4096) is ScriptProcessorNode, isTrue);
   });
 }
