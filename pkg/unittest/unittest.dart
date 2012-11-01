@@ -656,7 +656,7 @@ void _handleCallbackFunctionComplete(testNum) {
   _defer(() {
     if (_currentTest != testNum) {
       if (_tests[testNum].result == PASS) {
-        _tests[testNum].error("Unexpected extra callbacks");
+        _tests[testNum].error("Unexpected extra callbacks", '');
       }
       return; // Extraneous callback.
     }
