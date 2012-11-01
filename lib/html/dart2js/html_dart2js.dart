@@ -683,8 +683,11 @@ abstract class AudioBufferSourceNode implements AudioSourceNode {
   /** @domName AudioBufferSourceNode.loop */
   bool loop;
 
-  /** @domName AudioBufferSourceNode.looping */
-  bool looping;
+  /** @domName AudioBufferSourceNode.loopEnd */
+  num loopEnd;
+
+  /** @domName AudioBufferSourceNode.loopStart */
+  num loopStart;
 
   /** @domName AudioBufferSourceNode.playbackRate */
   AudioParam get playbackRate;
@@ -740,7 +743,9 @@ class _AudioBufferSourceNodeImpl extends _AudioSourceNodeImpl implements AudioBu
 
   bool loop;
 
-  bool looping;
+  num loopEnd;
+
+  num loopStart;
 
   final _AudioParamImpl playbackRate;
 
@@ -799,17 +804,14 @@ abstract class AudioContext implements EventTarget {
   /** @domName AudioContext.createConvolver */
   ConvolverNode createConvolver();
 
-  /** @domName AudioContext.createDelayNode */
-  DelayNode createDelayNode([num maxDelayTime]);
+  /** @domName AudioContext.createDelay */
+  DelayNode createDelay([num maxDelayTime]);
 
   /** @domName AudioContext.createDynamicsCompressor */
   DynamicsCompressorNode createDynamicsCompressor();
 
-  /** @domName AudioContext.createGainNode */
-  GainNode createGainNode();
-
-  /** @domName AudioContext.createJavaScriptNode */
-  ScriptProcessorNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]);
+  /** @domName AudioContext.createGain */
+  GainNode createGain();
 
   /** @domName AudioContext.createMediaElementSource */
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement);
@@ -822,6 +824,9 @@ abstract class AudioContext implements EventTarget {
 
   /** @domName AudioContext.createPanner */
   PannerNode createPanner();
+
+  /** @domName AudioContext.createScriptProcessor */
+  ScriptProcessorNode createScriptProcessor(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]);
 
   /** @domName AudioContext.createWaveShaper */
   WaveShaperNode createWaveShaper();
@@ -870,13 +875,11 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext native 
 
   _ConvolverNodeImpl createConvolver() native;
 
-  _DelayNodeImpl createDelayNode([num maxDelayTime]) native;
+  _DelayNodeImpl createDelay([num maxDelayTime]) native;
 
   _DynamicsCompressorNodeImpl createDynamicsCompressor() native;
 
-  _GainNodeImpl createGainNode() native;
-
-  _ScriptProcessorNodeImpl createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) native;
+  _GainNodeImpl createGain() native;
 
   _MediaElementAudioSourceNodeImpl createMediaElementSource(_MediaElementImpl mediaElement) native;
 
@@ -885,6 +888,8 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext native 
   _OscillatorNodeImpl createOscillator() native;
 
   _PannerNodeImpl createPanner() native;
+
+  _ScriptProcessorNodeImpl createScriptProcessor(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) native;
 
   _WaveShaperNodeImpl createWaveShaper() native;
 
@@ -1058,8 +1063,8 @@ abstract class AudioParam {
   /** @domName AudioParam.linearRampToValueAtTime */
   void linearRampToValueAtTime(num value, num time);
 
-  /** @domName AudioParam.setTargetValueAtTime */
-  void setTargetValueAtTime(num targetValue, num time, num timeConstant);
+  /** @domName AudioParam.setTargetAtTime */
+  void setTargetAtTime(num target, num time, num timeConstant);
 
   /** @domName AudioParam.setValueAtTime */
   void setValueAtTime(num value, num time);
@@ -1088,7 +1093,7 @@ class _AudioParamImpl implements AudioParam native "*AudioParam" {
 
   void linearRampToValueAtTime(num value, num time) native;
 
-  void setTargetValueAtTime(num targetValue, num time, num timeConstant) native;
+  void setTargetAtTime(num target, num time, num timeConstant) native;
 
   void setValueAtTime(num value, num time) native;
 
@@ -15327,10 +15332,10 @@ abstract class IDBCursor {
   String get direction;
 
   /** @domName IDBCursor.key */
-  dynamic get key;
+  Object get key;
 
   /** @domName IDBCursor.primaryKey */
-  dynamic get primaryKey;
+  Object get primaryKey;
 
   /** @domName IDBCursor.source */
   dynamic get source;
@@ -15352,11 +15357,9 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
 
   final String direction;
 
-  dynamic get key => _convertNativeToDart_IDBKey(this._key);
-  dynamic get _key => JS("dynamic", "#.key", this);
+  final Object key;
 
-  dynamic get primaryKey => _convertNativeToDart_IDBKey(this._primaryKey);
-  dynamic get _primaryKey => JS("dynamic", "#.primaryKey", this);
+  final Object primaryKey;
 
   final dynamic source;
 
@@ -15392,13 +15395,12 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
 abstract class IDBCursorWithValue implements IDBCursor {
 
   /** @domName IDBCursorWithValue.value */
-  dynamic get value;
+  Object get value;
 }
 
 class _IDBCursorWithValueImpl extends _IDBCursorImpl implements IDBCursorWithValue native "*IDBCursorWithValue" {
 
-  dynamic get value => _convertNativeToDart_IDBAny(this._value);
-  dynamic get _value => JS("dynamic", "#.value", this);
+  final Object value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23288,7 +23290,7 @@ abstract class RTCPeerConnection implements EventTarget {
   void addIceCandidate(RTCIceCandidate candidate);
 
   /** @domName RTCPeerConnection.addStream */
-  void addStream(MediaStream stream, Map mediaConstraints);
+  void addStream(MediaStream stream, [Map mediaConstraints]);
 
   /** @domName RTCPeerConnection.close */
   void close();
@@ -23297,7 +23299,7 @@ abstract class RTCPeerConnection implements EventTarget {
   void createAnswer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]);
 
   /** @domName RTCPeerConnection.createDataChannel */
-  RTCDataChannel createDataChannel(String label, Map options);
+  RTCDataChannel createDataChannel(String label, [Map options]);
 
   /** @domName RTCPeerConnection.createOffer */
   void createOffer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]);
@@ -23321,7 +23323,7 @@ abstract class RTCPeerConnection implements EventTarget {
   void setRemoteDescription(RTCSessionDescription description, [VoidCallback successCallback, RTCErrorCallback failureCallback]);
 
   /** @domName RTCPeerConnection.updateIce */
-  void updateIce(Map configuration, Map mediaConstraints);
+  void updateIce([Map configuration, Map mediaConstraints]);
 }
 
 abstract class RTCPeerConnectionEvents implements Events {
@@ -23362,34 +23364,53 @@ class _RTCPeerConnectionImpl extends _EventTargetImpl implements RTCPeerConnecti
 
   void addIceCandidate(_RTCIceCandidateImpl candidate) native;
 
-  void addStream(_MediaStreamImpl stream, Map mediaConstraints) {
-    var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
-    _addStream_1(stream, mediaConstraints_1);
+  void addStream(_MediaStreamImpl stream, [mediaConstraints]) {
+    if (?mediaConstraints) {
+      var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
+      _addStream_1(stream, mediaConstraints_1);
+      return;
+    }
+    _addStream_2(stream);
     return;
   }
   void _addStream_1(_MediaStreamImpl stream, mediaConstraints) native "addStream";
+  void _addStream_2(_MediaStreamImpl stream) native "addStream";
 
   void close() native;
 
   void createAnswer(RTCSessionDescriptionCallback successCallback, [failureCallback, mediaConstraints]) {
-    var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
-    _createAnswer_1(successCallback, failureCallback, mediaConstraints_1);
+    if (?mediaConstraints) {
+      var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
+      _createAnswer_1(successCallback, failureCallback, mediaConstraints_1);
+      return;
+    }
+    _createAnswer_2(successCallback, failureCallback);
     return;
   }
   void _createAnswer_1(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback, mediaConstraints) native "createAnswer";
+  void _createAnswer_2(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback) native "createAnswer";
 
-  _RTCDataChannelImpl createDataChannel(String label, Map options) {
-    var options_1 = _convertDartToNative_Dictionary(options);
-    return _createDataChannel_1(label, options_1);
+  _RTCDataChannelImpl createDataChannel(String label, [options]) {
+    if (?options) {
+      var options_1 = _convertDartToNative_Dictionary(options);
+      return _createDataChannel_1(label, options_1);
+    }
+    return _createDataChannel_2(label);
   }
   _RTCDataChannelImpl _createDataChannel_1(label, options) native "createDataChannel";
+  _RTCDataChannelImpl _createDataChannel_2(label) native "createDataChannel";
 
   void createOffer(RTCSessionDescriptionCallback successCallback, [failureCallback, mediaConstraints]) {
-    var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
-    _createOffer_1(successCallback, failureCallback, mediaConstraints_1);
+    if (?mediaConstraints) {
+      var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
+      _createOffer_1(successCallback, failureCallback, mediaConstraints_1);
+      return;
+    }
+    _createOffer_2(successCallback, failureCallback);
     return;
   }
   void _createOffer_1(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback, mediaConstraints) native "createOffer";
+  void _createOffer_2(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback) native "createOffer";
 
   bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
 
@@ -23403,13 +23424,24 @@ class _RTCPeerConnectionImpl extends _EventTargetImpl implements RTCPeerConnecti
 
   void setRemoteDescription(_RTCSessionDescriptionImpl description, [VoidCallback successCallback, RTCErrorCallback failureCallback]) native;
 
-  void updateIce(Map configuration, Map mediaConstraints) {
-    var configuration_1 = _convertDartToNative_Dictionary(configuration);
-    var mediaConstraints_2 = _convertDartToNative_Dictionary(mediaConstraints);
-    _updateIce_1(configuration_1, mediaConstraints_2);
+  void updateIce([configuration, mediaConstraints]) {
+    if (?mediaConstraints) {
+      var configuration_1 = _convertDartToNative_Dictionary(configuration);
+      var mediaConstraints_2 = _convertDartToNative_Dictionary(mediaConstraints);
+      _updateIce_1(configuration_1, mediaConstraints_2);
+      return;
+    }
+    if (?configuration) {
+      var configuration_3 = _convertDartToNative_Dictionary(configuration);
+      _updateIce_2(configuration_3);
+      return;
+    }
+    _updateIce_3();
     return;
   }
   void _updateIce_1(configuration, mediaConstraints) native "updateIce";
+  void _updateIce_2(configuration) native "updateIce";
+  void _updateIce_3() native "updateIce";
 }
 
 class _RTCPeerConnectionEventsImpl extends _EventsImpl implements RTCPeerConnectionEvents {

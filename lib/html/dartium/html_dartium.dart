@@ -862,8 +862,11 @@ abstract class AudioBufferSourceNode implements AudioSourceNode {
   /** @domName AudioBufferSourceNode.loop */
   bool loop;
 
-  /** @domName AudioBufferSourceNode.looping */
-  bool looping;
+  /** @domName AudioBufferSourceNode.loopEnd */
+  num loopEnd;
+
+  /** @domName AudioBufferSourceNode.loopStart */
+  num loopStart;
 
   /** @domName AudioBufferSourceNode.playbackRate */
   AudioParam get playbackRate;
@@ -895,9 +898,13 @@ class _AudioBufferSourceNodeImpl extends _AudioSourceNodeImpl implements AudioBu
 
   void set loop(bool value) native "AudioBufferSourceNode_loop_Setter";
 
-  bool get looping native "AudioBufferSourceNode_looping_Getter";
+  num get loopEnd native "AudioBufferSourceNode_loopEnd_Getter";
 
-  void set looping(bool value) native "AudioBufferSourceNode_looping_Setter";
+  void set loopEnd(num value) native "AudioBufferSourceNode_loopEnd_Setter";
+
+  num get loopStart native "AudioBufferSourceNode_loopStart_Getter";
+
+  void set loopStart(num value) native "AudioBufferSourceNode_loopStart_Setter";
 
   AudioParam get playbackRate native "AudioBufferSourceNode_playbackRate_Getter";
 
@@ -974,17 +981,14 @@ abstract class AudioContext implements EventTarget {
   /** @domName AudioContext.createConvolver */
   ConvolverNode createConvolver();
 
-  /** @domName AudioContext.createDelayNode */
-  DelayNode createDelayNode([num maxDelayTime]);
+  /** @domName AudioContext.createDelay */
+  DelayNode createDelay([num maxDelayTime]);
 
   /** @domName AudioContext.createDynamicsCompressor */
   DynamicsCompressorNode createDynamicsCompressor();
 
-  /** @domName AudioContext.createGainNode */
-  GainNode createGainNode();
-
-  /** @domName AudioContext.createJavaScriptNode */
-  ScriptProcessorNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]);
+  /** @domName AudioContext.createGain */
+  GainNode createGain();
 
   /** @domName AudioContext.createMediaElementSource */
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement);
@@ -997,6 +1001,9 @@ abstract class AudioContext implements EventTarget {
 
   /** @domName AudioContext.createPanner */
   PannerNode createPanner();
+
+  /** @domName AudioContext.createScriptProcessor */
+  ScriptProcessorNode createScriptProcessor(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]);
 
   /** @domName AudioContext.createWaveShaper */
   WaveShaperNode createWaveShaper();
@@ -1080,36 +1087,20 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 
   ConvolverNode createConvolver() native "AudioContext_createConvolver_Callback";
 
-  DelayNode createDelayNode([/*double*/ maxDelayTime]) {
+  DelayNode createDelay([/*double*/ maxDelayTime]) {
     if (?maxDelayTime) {
-      return _createDelayNode_1(maxDelayTime);
+      return _createDelay_1(maxDelayTime);
     }
-    return _createDelayNode_2();
+    return _createDelay_2();
   }
 
-  DelayNode _createDelayNode_1(maxDelayTime) native "AudioContext_createDelayNode_1_Callback";
+  DelayNode _createDelay_1(maxDelayTime) native "AudioContext_createDelay_1_Callback";
 
-  DelayNode _createDelayNode_2() native "AudioContext_createDelayNode_2_Callback";
+  DelayNode _createDelay_2() native "AudioContext_createDelay_2_Callback";
 
   DynamicsCompressorNode createDynamicsCompressor() native "AudioContext_createDynamicsCompressor_Callback";
 
-  GainNode createGainNode() native "AudioContext_createGainNode_Callback";
-
-  ScriptProcessorNode createJavaScriptNode(/*unsigned long*/ bufferSize, [/*unsigned long*/ numberOfInputChannels, /*unsigned long*/ numberOfOutputChannels]) {
-    if (?numberOfOutputChannels) {
-      return _createJavaScriptNode_1(bufferSize, numberOfInputChannels, numberOfOutputChannels);
-    }
-    if (?numberOfInputChannels) {
-      return _createJavaScriptNode_2(bufferSize, numberOfInputChannels);
-    }
-    return _createJavaScriptNode_3(bufferSize);
-  }
-
-  ScriptProcessorNode _createJavaScriptNode_1(bufferSize, numberOfInputChannels, numberOfOutputChannels) native "AudioContext_createJavaScriptNode_1_Callback";
-
-  ScriptProcessorNode _createJavaScriptNode_2(bufferSize, numberOfInputChannels) native "AudioContext_createJavaScriptNode_2_Callback";
-
-  ScriptProcessorNode _createJavaScriptNode_3(bufferSize) native "AudioContext_createJavaScriptNode_3_Callback";
+  GainNode createGain() native "AudioContext_createGain_Callback";
 
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement) native "AudioContext_createMediaElementSource_Callback";
 
@@ -1118,6 +1109,22 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
   OscillatorNode createOscillator() native "AudioContext_createOscillator_Callback";
 
   PannerNode createPanner() native "AudioContext_createPanner_Callback";
+
+  ScriptProcessorNode createScriptProcessor(/*unsigned long*/ bufferSize, [/*unsigned long*/ numberOfInputChannels, /*unsigned long*/ numberOfOutputChannels]) {
+    if (?numberOfOutputChannels) {
+      return _createScriptProcessor_1(bufferSize, numberOfInputChannels, numberOfOutputChannels);
+    }
+    if (?numberOfInputChannels) {
+      return _createScriptProcessor_2(bufferSize, numberOfInputChannels);
+    }
+    return _createScriptProcessor_3(bufferSize);
+  }
+
+  ScriptProcessorNode _createScriptProcessor_1(bufferSize, numberOfInputChannels, numberOfOutputChannels) native "AudioContext_createScriptProcessor_1_Callback";
+
+  ScriptProcessorNode _createScriptProcessor_2(bufferSize, numberOfInputChannels) native "AudioContext_createScriptProcessor_2_Callback";
+
+  ScriptProcessorNode _createScriptProcessor_3(bufferSize) native "AudioContext_createScriptProcessor_3_Callback";
 
   WaveShaperNode createWaveShaper() native "AudioContext_createWaveShaper_Callback";
 
@@ -1340,8 +1347,8 @@ abstract class AudioParam {
   /** @domName AudioParam.linearRampToValueAtTime */
   void linearRampToValueAtTime(num value, num time);
 
-  /** @domName AudioParam.setTargetValueAtTime */
-  void setTargetValueAtTime(num targetValue, num time, num timeConstant);
+  /** @domName AudioParam.setTargetAtTime */
+  void setTargetAtTime(num target, num time, num timeConstant);
 
   /** @domName AudioParam.setValueAtTime */
   void setValueAtTime(num value, num time);
@@ -1377,7 +1384,7 @@ class _AudioParamImpl extends NativeFieldWrapperClass1 implements AudioParam {
 
   void linearRampToValueAtTime(num value, num time) native "AudioParam_linearRampToValueAtTime_Callback";
 
-  void setTargetValueAtTime(num targetValue, num time, num timeConstant) native "AudioParam_setTargetValueAtTime_Callback";
+  void setTargetAtTime(num target, num time, num timeConstant) native "AudioParam_setTargetAtTime_Callback";
 
   void setValueAtTime(num value, num time) native "AudioParam_setValueAtTime_Callback";
 
@@ -17010,10 +17017,10 @@ abstract class IDBCursor {
   String get direction;
 
   /** @domName IDBCursor.key */
-  dynamic get key;
+  Object get key;
 
   /** @domName IDBCursor.primaryKey */
-  dynamic get primaryKey;
+  Object get primaryKey;
 
   /** @domName IDBCursor.source */
   dynamic get source;
@@ -17040,9 +17047,9 @@ class _IDBCursorImpl extends NativeFieldWrapperClass1 implements IDBCursor {
 
   String get direction native "IDBCursor_direction_Getter";
 
-  dynamic get key native "IDBCursor_key_Getter";
+  Object get key native "IDBCursor_key_Getter";
 
-  dynamic get primaryKey native "IDBCursor_primaryKey_Getter";
+  Object get primaryKey native "IDBCursor_primaryKey_Getter";
 
   dynamic get source native "IDBCursor_source_Getter";
 
@@ -17075,7 +17082,7 @@ class _IDBCursorImpl extends NativeFieldWrapperClass1 implements IDBCursor {
 abstract class IDBCursorWithValue implements IDBCursor {
 
   /** @domName IDBCursorWithValue.value */
-  dynamic get value;
+  Object get value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17085,7 +17092,7 @@ abstract class IDBCursorWithValue implements IDBCursor {
 
 class _IDBCursorWithValueImpl extends _IDBCursorImpl implements IDBCursorWithValue {
 
-  dynamic get value native "IDBCursorWithValue_value_Getter";
+  Object get value native "IDBCursorWithValue_value_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25827,7 +25834,7 @@ abstract class RTCPeerConnection implements EventTarget {
   void addIceCandidate(RTCIceCandidate candidate);
 
   /** @domName RTCPeerConnection.addStream */
-  void addStream(MediaStream stream, Map mediaConstraints);
+  void addStream(MediaStream stream, [Map mediaConstraints]);
 
   /** @domName RTCPeerConnection.close */
   void close();
@@ -25836,7 +25843,7 @@ abstract class RTCPeerConnection implements EventTarget {
   void createAnswer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]);
 
   /** @domName RTCPeerConnection.createDataChannel */
-  RTCDataChannel createDataChannel(String label, Map options);
+  RTCDataChannel createDataChannel(String label, [Map options]);
 
   /** @domName RTCPeerConnection.createOffer */
   void createOffer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]);
@@ -25860,7 +25867,7 @@ abstract class RTCPeerConnection implements EventTarget {
   void setRemoteDescription(RTCSessionDescription description, [VoidCallback successCallback, RTCErrorCallback failureCallback]);
 
   /** @domName RTCPeerConnection.updateIce */
-  void updateIce(Map configuration, Map mediaConstraints);
+  void updateIce([Map configuration, Map mediaConstraints]);
 }
 
 abstract class RTCPeerConnectionEvents implements Events {
@@ -25906,13 +25913,13 @@ class _RTCPeerConnectionImpl extends _EventTargetImpl implements RTCPeerConnecti
 
   void addIceCandidate(RTCIceCandidate candidate) native "RTCPeerConnection_addIceCandidate_Callback";
 
-  void addStream(MediaStream stream, Map mediaConstraints) native "RTCPeerConnection_addStream_Callback";
+  void addStream(MediaStream stream, [Map mediaConstraints]) native "RTCPeerConnection_addStream_Callback";
 
   void close() native "RTCPeerConnection_close_Callback";
 
   void createAnswer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]) native "RTCPeerConnection_createAnswer_Callback";
 
-  RTCDataChannel createDataChannel(String label, Map options) native "RTCPeerConnection_createDataChannel_Callback";
+  RTCDataChannel createDataChannel(String label, [Map options]) native "RTCPeerConnection_createDataChannel_Callback";
 
   void createOffer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]) native "RTCPeerConnection_createOffer_Callback";
 
@@ -25928,7 +25935,7 @@ class _RTCPeerConnectionImpl extends _EventTargetImpl implements RTCPeerConnecti
 
   void setRemoteDescription(RTCSessionDescription description, [VoidCallback successCallback, RTCErrorCallback failureCallback]) native "RTCPeerConnection_setRemoteDescription_Callback";
 
-  void updateIce(Map configuration, Map mediaConstraints) native "RTCPeerConnection_updateIce_Callback";
+  void updateIce([Map configuration, Map mediaConstraints]) native "RTCPeerConnection_updateIce_Callback";
 
 }
 
