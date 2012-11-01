@@ -84,14 +84,14 @@ static int32_t StringValueAt(const String& str, const Integer& index) {
     if ((index < 0) || (index >= str.Length())) {
       GrowableArray<const Object*> arguments;
       arguments.Add(&smi);
-      Exceptions::ThrowByType(Exceptions::kIndexOutOfRange, arguments);
+      Exceptions::ThrowByType(Exceptions::kRange, arguments);
     }
     return str.CharAt(index);
   } else {
     // An index larger than Smi is always illegal.
     GrowableArray<const Object*> arguments;
     arguments.Add(&index);
-    Exceptions::ThrowByType(Exceptions::kIndexOutOfRange, arguments);
+    Exceptions::ThrowByType(Exceptions::kRange, arguments);
     return 0;
   }
 }

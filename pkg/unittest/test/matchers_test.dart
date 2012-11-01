@@ -125,14 +125,14 @@ void main() {
             "IllegalJSRegExpException.");
     });
 
-    test('throwsIndexOutOfRangeException', () {
-      shouldPass(() { throw new IndexOutOfRangeException(0); },
-          throwsIndexOutOfRangeException);
+    test('throwsRangeError', () {
+      shouldPass(() { throw new RangeError.value(0); },
+          throwsRangeError);
       shouldFail(() { throw new Exception(); },
-          throwsIndexOutOfRangeException,
-        "Expected: throws an exception which matches IndexOutOfRangeException "
+          throwsRangeError,
+        "Expected: throws an exception which matches RangeError "
         "but:  exception <Exception> does not match "
-            "IndexOutOfRangeException.");
+            "RangeError.");
     });
 
     test('throwsNoSuchMethodError', () {

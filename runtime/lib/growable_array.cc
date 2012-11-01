@@ -22,7 +22,7 @@ DEFINE_NATIVE_ENTRY(GrowableObjectArray_allocate, 2) {
     const Integer& index = Integer::Handle(Integer::New(data.Length()));
     GrowableArray<const Object*> args;
     args.Add(&index);
-    Exceptions::ThrowByType(Exceptions::kIndexOutOfRange, args);
+    Exceptions::ThrowByType(Exceptions::kRange, args);
   }
   const GrowableObjectArray& new_array =
       GrowableObjectArray::Handle(GrowableObjectArray::New(data));
@@ -38,7 +38,7 @@ DEFINE_NATIVE_ENTRY(GrowableObjectArray_getIndexed, 2) {
   if ((index.Value() < 0) || (index.Value() >= array.Length())) {
     GrowableArray<const Object*> args;
     args.Add(&index);
-    Exceptions::ThrowByType(Exceptions::kIndexOutOfRange, args);
+    Exceptions::ThrowByType(Exceptions::kRange, args);
   }
   const Instance& obj = Instance::CheckedHandle(array.At(index.Value()));
   return obj.raw();
@@ -52,7 +52,7 @@ DEFINE_NATIVE_ENTRY(GrowableObjectArray_setIndexed, 3) {
   if ((index.Value() < 0) || (index.Value() >= array.Length())) {
     GrowableArray<const Object*> args;
     args.Add(&index);
-    Exceptions::ThrowByType(Exceptions::kIndexOutOfRange, args);
+    Exceptions::ThrowByType(Exceptions::kRange, args);
   }
   GET_NATIVE_ARGUMENT(Instance, value, arguments->At(2));
   array.SetAt(index.Value(), value);
@@ -81,7 +81,7 @@ DEFINE_NATIVE_ENTRY(GrowableObjectArray_setLength, 2) {
   if ((length.Value() < 0) || (length.Value() > array.Capacity())) {
     GrowableArray<const Object*> args;
     args.Add(&length);
-    Exceptions::ThrowByType(Exceptions::kIndexOutOfRange, args);
+    Exceptions::ThrowByType(Exceptions::kRange, args);
   }
   array.SetLength(length.Value());
   return Object::null();

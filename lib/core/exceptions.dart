@@ -24,18 +24,6 @@ class _ExceptionImplementation implements Exception {
 
 
 /**
- * Exception thrown because of an index outside of the valid range.
- */
-class IndexOutOfRangeException implements Exception {
-  const IndexOutOfRangeException(this._value);
-
-  String toString() => "IndexOutOfRangeException: $_value";
-
-  final _value;
-}
-
-
-/**
  * Exception thrown when a string or some other data does not have an expected
  * format and cannot be parsed or processed.
  */

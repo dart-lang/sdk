@@ -17,6 +17,6 @@ foo() {
 
 main() {
   Expect.throws(() => foo(),
-                (e) => e is IndexOutOfRangeException);
+                (e) => e is RangeError);
 }
 

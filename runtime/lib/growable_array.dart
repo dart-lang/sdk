@@ -49,7 +49,7 @@ class _GrowableObjectArray<T> implements List<T> {
       throw new ArgumentError("invalid length specified $length");
     }
     if (start < 0 || start > this.length) {
-      throw new IndexOutOfRangeException(start);
+      throw new RangeError.value(start);
     }
     var old_length = this.length;
     this.length = old_length + length;  // Will expand if needed.

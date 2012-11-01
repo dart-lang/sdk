@@ -4,7 +4,7 @@
 
 // Dart test for testing out of range exceptions on arrays.
 
-class IndexOutOfRangeExceptionTest {
+class RangeErrorTest {
   static testRead() {
     testListRead([], 0);
     testListRead([], -1);
@@ -52,7 +52,7 @@ class IndexOutOfRangeExceptionTest {
     var exception = null;
     try {
       var e = list[index];
-    } on IndexOutOfRangeException catch (e) {
+    } on RangeError catch (e) {
       exception = e;
     }
     Expect.equals(true, exception != null);
@@ -62,7 +62,7 @@ class IndexOutOfRangeExceptionTest {
     var exception = null;
     try {
       list[index] = null;
-    } on IndexOutOfRangeException catch (e) {
+    } on RangeError catch (e) {
       exception = e;
     }
     Expect.equals(true, exception != null);
@@ -70,5 +70,5 @@ class IndexOutOfRangeExceptionTest {
 }
 
 main() {
-  IndexOutOfRangeExceptionTest.testMain();
+  RangeErrorTest.testMain();
 }

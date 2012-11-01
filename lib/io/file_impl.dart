@@ -198,7 +198,7 @@ class _FileOutputStream extends _BaseOutputStream implements OutputStream {
     // A copy is required by the interface.
     var length = buffer.length - offset;
     if (len != null) {
-      if (len > length) throw new IndexOutOfRangeException(len);
+      if (len > length) throw new RangeError.value(len);
       length = len;
     }
     var copy = new Uint8List(length);
@@ -772,10 +772,10 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   }
 
   static void _checkReadWriteListArguments(int length, int offset, int bytes) {
-    if (offset < 0) throw new IndexOutOfRangeException(offset);
-    if (bytes < 0) throw new IndexOutOfRangeException(bytes);
+    if (offset < 0) throw new RangeError.value(offset);
+    if (bytes < 0) throw new RangeError.value(bytes);
     if ((offset + bytes) > length) {
-      throw new IndexOutOfRangeException(offset + bytes);
+      throw new RangeError.value(offset + bytes);
     }
   }
 

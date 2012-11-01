@@ -28,7 +28,7 @@ class StringTest {
     bool exception_caught = false;
     try {
       var c = a[20];  // Throw exception.
-    } on IndexOutOfRangeException catch (e) {
+    } on RangeError catch (e) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);

@@ -453,16 +453,16 @@ class _IllegalJSRegExpException extends TypeMatcher {
   bool matches(item, MatchState matchState) => item is IllegalJSRegExpException;
 }
 
-/** A matcher for IndexOutOfRangeExceptions. */
-const isIndexOutOfRangeException = const _IndexOutOfRangeException();
+/** A matcher for RangeErrors. */
+const isRangeError = const _RangeError();
 
-/** A matcher for functions that throw IndexOutOfRangeException. */
-const Matcher throwsIndexOutOfRangeException =
-    const Throws(isIndexOutOfRangeException);
+/** A matcher for functions that throw RangeError */
+const Matcher throwsRangeError =
+    const Throws(isRangeError);
 
-class _IndexOutOfRangeException extends TypeMatcher {
-  const _IndexOutOfRangeException() : super("IndexOutOfRangeException");
-  bool matches(item, MatchState matchState) => item is IndexOutOfRangeException;
+class _RangeError extends TypeMatcher {
+  const _RangeError() : super("RangeError");
+  bool matches(item, MatchState matchState) => item is RangeError;
 }
 
 /** A matcher for NoSuchMethodErrors. */

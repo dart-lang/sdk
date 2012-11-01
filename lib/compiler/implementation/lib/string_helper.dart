@@ -13,7 +13,7 @@ class StringMatch implements Match {
 
   String group(int group_) {
     if (group_ != 0) {
-      throw new IndexOutOfRangeException(group_);
+      throw new RangeError.value(group_);
     }
     return pattern;
   }

@@ -27,13 +27,13 @@ interface List<E> extends Collection<E>, Sequence<E>
 
   /**
    * Returns the element at the given [index] in the list or throws
-   * an [IndexOutOfRangeException] if [index] is out of bounds.
+   * an [RangeError] if [index] is out of bounds.
    */
   E operator [](int index);
 
   /**
    * Sets the entry at the given [index] in the list to [value].
-   * Throws an [IndexOutOfRangeException] if [index] is out of bounds.
+   * Throws an [RangeError] if [index] is out of bounds.
    */
   void operator []=(int index, E value);
 
@@ -108,7 +108,7 @@ interface List<E> extends Collection<E>, Sequence<E>
    * down by one position.
    * Returns the removed element.
    * Throws an [ArgumentError] if [index] is not an [int].
-   * Throws an [IndexOutOfRangeException] if the [index] does not point inside
+   * Throws an [RangeError] if the [index] does not point inside
    * the list.
    * Throws an [UnsupportedError], and doesn't remove the element,
    * if the length of the list cannot be changed.
@@ -133,7 +133,7 @@ interface List<E> extends Collection<E>, Sequence<E>
    * starting at  [start].
    * Returns an empty list if [length] is 0.
    * Throws an [ArgumentError] if [length] is negative.
-   * Throws an [IndexOutOfRangeException] if [start] or
+   * Throws an [RangeError] if [start] or
    * [:start + length - 1:] are out of range.
    */
   List<E> getRange(int start, int length);
@@ -143,7 +143,7 @@ interface List<E> extends Collection<E>, Sequence<E>
    * at [startFrom], into the list, starting at [start].
    * If [length] is 0, this method does not do anything.
    * Throws an [ArgumentError] if [length] is negative.
-   * Throws an [IndexOutOfRangeException] if [start] or
+   * Throws an [RangeError] if [start] or
    * [:start + length - 1:] are out of range for [:this:], or if
    * [startFrom] or [:startFrom + length - 1:] are out of range for [from].
    */
@@ -155,7 +155,7 @@ interface List<E> extends Collection<E>, Sequence<E>
    * not extendable.
    * If [length] is 0, this method does not do anything.
    * Throws an [ArgumentError] if [length] is negative.
-   * Throws an [IndexOutOfRangeException] if [start] or
+   * Throws an [RangeError] if [start] or
    * [:start + length: - 1] are out of range.
    */
   void removeRange(int start, int length);
@@ -169,7 +169,7 @@ interface List<E> extends Collection<E>, Sequence<E>
    * If [start] is the length of the list, this method inserts the
    * range at the end of the list.
    * Throws an [ArgumentError] if [length] is negative.
-   * Throws an [IndexOutOfRangeException] if [start] is negative or if
+   * Throws an [RangeError] if [start] is negative or if
    * [start] is greater than the length of the list.
    */
   void insertRange(int start, int length, [E initialValue]);

@@ -396,9 +396,9 @@ RawObject* Exceptions::Create(
   Library& library = Library::Handle();
   String& class_name = String::Handle();
   switch (type) {
-    case kIndexOutOfRange:
+    case kRange:
       library = Library::CoreLibrary();
-      class_name = Symbols::New("IndexOutOfRangeException");
+      class_name = Symbols::New("RangeError");
       break;
     case kArgument:
       library = Library::CoreLibrary();

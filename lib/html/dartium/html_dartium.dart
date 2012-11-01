@@ -44207,14 +44207,13 @@ class _Lists {
    * [:start + length:].
    * Returns an empty list if [length] is 0.
    * Throws an [ArgumentError] if [length] is negative.
-   * Throws an [IndexOutOfRangeException] if [start] or
-   * [:start + length:] are out of range.
+   * Throws a [RangeError] if [start] or [:start + length:] are out of range.
    */
   static List getRange(List a, int start, int length, List accumulator) {
     if (length < 0) throw new ArgumentError('length');
-    if (start < 0) throw new IndexOutOfRangeException(start);
+    if (start < 0) throw new RangeError.value(start);
     int end = start + length;
-    if (end > a.length) throw new IndexOutOfRangeException(end);
+    if (end > a.length) throw new RangeError.value(end);
     for (int i = start; i < end; i++) {
       accumulator.add(a[i]);
     }

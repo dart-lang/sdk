@@ -872,7 +872,7 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(10);
       openedFile.readListSync(buffer, 0, 12);
-    } on IndexOutOfRangeException catch (ex) {
+    } on RangeError catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -883,7 +883,7 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(10);
       openedFile.readListSync(buffer, 6, 6);
-    } on IndexOutOfRangeException catch (ex) {
+    } on RangeError catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -894,7 +894,7 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(10);
       openedFile.readListSync(buffer, -1, 1);
-    } on IndexOutOfRangeException catch (ex) {
+    } on RangeError catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -905,7 +905,7 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(10);
       openedFile.readListSync(buffer, 0, -1);
-    } on IndexOutOfRangeException catch (ex) {
+    } on RangeError catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -916,7 +916,7 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(10);
       openedFile.writeListSync(buffer, 0, 12);
-    } on IndexOutOfRangeException catch (ex) {
+    } on RangeError catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -927,7 +927,7 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(10);
       openedFile.writeListSync(buffer, 6, 6);
-    } on IndexOutOfRangeException catch (ex) {
+    } on RangeError catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -938,7 +938,7 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(10);
       openedFile.writeListSync(buffer, -1, 1);
-    } on IndexOutOfRangeException catch (ex) {
+    } on RangeError catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -949,7 +949,7 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(10);
       openedFile.writeListSync(buffer, 0, -1);
-    } on IndexOutOfRangeException catch (ex) {
+    } on RangeError catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;

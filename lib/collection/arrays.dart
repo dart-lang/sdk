@@ -82,11 +82,11 @@ class Arrays {
     }
     if (start < 0 ) {
       String message = "$start must be greater than or equal to 0";
-      throw new IndexOutOfRangeException(message);
+      throw new RangeError(message);
     }
     if (start + length > a.length) {
       String message = "$start + $length must be in the range [0..${a.length})";
-      throw new IndexOutOfRangeException(message);
+      throw new RangeError(message);
     }
   }
 }

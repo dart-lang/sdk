@@ -128,7 +128,7 @@ class SocketExceptionTest {
       try {
         List<int> buffer = new List<int>(10);
         client.readList(buffer, -1, 1);
-      } on IndexOutOfRangeException catch (ex) {
+      } on RangeError catch (ex) {
         exceptionCaught = true;
       } on Exception catch (ex) {
         wrongExceptionCaught = true;
@@ -140,7 +140,7 @@ class SocketExceptionTest {
       try {
         List<int> buffer = new List<int>(10);
         client.readList(buffer, 0, -1);
-      } on IndexOutOfRangeException catch (ex) {
+      } on RangeError catch (ex) {
         exceptionCaught = true;
       } on Exception catch (ex) {
         wrongExceptionCaught = true;
@@ -152,7 +152,7 @@ class SocketExceptionTest {
       try {
         List<int> buffer = new List<int>(10);
         client.writeList(buffer, -1, 1);
-      } on IndexOutOfRangeException catch (ex) {
+      } on RangeError catch (ex) {
         exceptionCaught = true;
       } on Exception catch (ex) {
         wrongExceptionCaught = true;
@@ -164,7 +164,7 @@ class SocketExceptionTest {
       try {
         List<int> buffer = new List<int>(10);
         client.writeList(buffer, 0, -1);
-      } on IndexOutOfRangeException catch (ex) {
+      } on RangeError catch (ex) {
         exceptionCaught = true;
       } on Exception catch (ex) {
         wrongExceptionCaught = true;

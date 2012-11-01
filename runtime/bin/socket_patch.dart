@@ -395,13 +395,13 @@ class _Socket extends _SocketBase implements Socket {
         return 0;
       }
       if (offset < 0) {
-        throw new IndexOutOfRangeException(offset);
+        throw new RangeError.value(offset);
       }
       if (bytes < 0) {
-        throw new IndexOutOfRangeException(bytes);
+        throw new RangeError.value(bytes);
       }
       if ((offset + bytes) > buffer.length) {
-        throw new IndexOutOfRangeException(offset + bytes);
+        throw new RangeError.value(offset + bytes);
       }
       var result = _readList(buffer, offset, bytes);
       if (result is OSError) {
@@ -426,13 +426,13 @@ class _Socket extends _SocketBase implements Socket {
         return 0;
       }
       if (offset < 0) {
-        throw new IndexOutOfRangeException(offset);
+        throw new RangeError.value(offset);
       }
       if (bytes < 0) {
-        throw new IndexOutOfRangeException(bytes);
+        throw new RangeError.value(bytes);
       }
       if ((offset + bytes) > buffer.length) {
-        throw new IndexOutOfRangeException(offset + bytes);
+        throw new RangeError.value(offset + bytes);
       }
       _BufferAndOffset bufferAndOffset =
           _ensureFastAndSerializableBuffer(buffer, offset, bytes);

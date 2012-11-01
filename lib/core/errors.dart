@@ -42,6 +42,36 @@ class CastError implements Error {
 }
 
 /**
+ * Exception thrown because of an index outside of the valid range.
+ *
+ * Temporarily extends [Exception] for backwards compatiblity.
+ */
+class RangeError extends ArgumentError implements Exception {
+  // TODO(lrn): This constructor should be called only with string values.
+  // It currently isn't in all cases.
+  /** Create a new [RangeError] with the given [message]. */
+  RangeError(var message) : super("$message");
+
+  /** Create a new [RangeError] with a message for the given [value]. */
+  RangeError.value(num value) : super("value $value");
+
+  String toString() => "RangeError: $message";
+}
+
+/**
+ * Temporary backwards compatibilty class.
+ *
+ * This class allows code throwing the old [IndexOutOfRangeException] to
+ * work until they change to the new [RangeError] name.
+ * Code **catching** IndexOutOfRangeException will fail to catch
+ * the [RangeError] objects that are now thrown.
+ */
+class IndexOutOfRangeException extends ArgumentError {
+  IndexOutOfRangeException(var message) : super(message);
+}
+
+
+/**
  * Temporary backwards compatibility class.
  *
  * Removed when users have had time to change to using [ArgumentError].

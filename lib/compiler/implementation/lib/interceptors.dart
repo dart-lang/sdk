@@ -19,7 +19,7 @@ removeAt$1(var receiver, var index) {
   if (isJsArray(receiver)) {
     if (index is !int) throw new ArgumentError(index);
     if (index < 0 || index >= receiver.length) {
-      throw new IndexOutOfRangeException(index);
+      throw new RangeError.value(index);
     }
     checkGrowable(receiver, 'removeAt');
     return JS("Object", r'#.splice(#, 1)[0]', receiver, index);
@@ -30,7 +30,7 @@ removeAt$1(var receiver, var index) {
 removeLast(var receiver) {
   if (isJsArray(receiver)) {
     checkGrowable(receiver, 'removeLast');
-    if (receiver.length == 0) throw new IndexOutOfRangeException(-1);
+    if (receiver.length == 0) throw new RangeError.value(-1);
     return JS('Object', r'#.pop()', receiver);
   }
   return UNINTERCEPTED(receiver.removeLast());
@@ -56,7 +56,7 @@ set$length(receiver, newLength) {
   if (isJsArray(receiver)) {
     checkNull(newLength); // TODO(ahe): This is not specified but co19 tests it.
     if (newLength is !int) throw new ArgumentError(newLength);
-    if (newLength < 0) throw new IndexOutOfRangeException(newLength);
+    if (newLength < 0) throw new RangeError.value(newLength);
     checkGrowable(receiver, 'set length');
     JS('void', r'#.length = #', receiver, newLength);
   } else {
@@ -93,8 +93,8 @@ iterator(receiver) {
 charCodeAt(var receiver, int index) {
   if (receiver is String) {
     if (index is !num) throw new ArgumentError(index);
-    if (index < 0) throw new IndexOutOfRangeException(index);
-    if (index >= receiver.length) throw new IndexOutOfRangeException(index);
+    if (index < 0) throw new RangeError.value(index);
+    if (index >= receiver.length) throw new RangeError.value(index);
     return JS('int', r'#.charCodeAt(#)', receiver, index);
   } else {
     return UNINTERCEPTED(receiver.charCodeAt(index));
@@ -196,10 +196,10 @@ getRange(receiver, start, length) {
   if (start is !int) throw new ArgumentError(start);
   if (length is !int) throw new ArgumentError(length);
   if (length < 0) throw new ArgumentError(length);
-  if (start < 0) throw new IndexOutOfRangeException(start);
+  if (start < 0) throw new RangeError.value(start);
   var end = start + length;
   if (end > receiver.length) {
-    throw new IndexOutOfRangeException(length);
+    throw new RangeError.value(length);
   }
   if (length < 0) throw new ArgumentError(length);
   return JS('Object', r'#.slice(#, #)', receiver, start, end);
@@ -299,10 +299,10 @@ removeRange(receiver, start, length) {
   if (length < 0) throw new ArgumentError(length);
   var receiverLength = JS('num', r'#.length', receiver);
   if (start < 0 || start >= receiverLength) {
-    throw new IndexOutOfRangeException(start);
+    throw new RangeError.value(start);
   }
   if (start + length > receiverLength) {
-    throw new IndexOutOfRangeException(start + length);
+    throw new RangeError.value(start + length);
   }
   Arrays.copy(receiver,
               start + length,
@@ -334,9 +334,9 @@ setRange$4(receiver, start, length, from, startFrom) {
   if (length is !int) throw new ArgumentError(length);
   if (startFrom is !int) throw new ArgumentError(startFrom);
   if (length < 0) throw new ArgumentError(length);
-  if (start < 0) throw new IndexOutOfRangeException(start);
+  if (start < 0) throw new RangeError.value(start);
   if (start + length > receiver.length) {
-    throw new IndexOutOfRangeException(start + length);
+    throw new RangeError.value(start + length);
   }
 
   Arrays.copy(from, startFrom, receiver, start, length);
@@ -596,9 +596,9 @@ substring$2(receiver, startIndex, endIndex) {
   var length = receiver.length;
   if (endIndex == null) endIndex = length;
   checkNum(endIndex);
-  if (startIndex < 0 ) throw new IndexOutOfRangeException(startIndex);
-  if (startIndex > endIndex) throw new IndexOutOfRangeException(startIndex);
-  if (endIndex > length) throw new IndexOutOfRangeException(endIndex);
+  if (startIndex < 0 ) throw new RangeError.value(startIndex);
+  if (startIndex > endIndex) throw new RangeError.value(startIndex);
+  if (endIndex > length) throw new RangeError.value(endIndex);
   return substringUnchecked(receiver, startIndex, endIndex);
 }
 

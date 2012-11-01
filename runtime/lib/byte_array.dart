@@ -308,13 +308,13 @@ int _toUint64(int value) {
 
 void _rangeCheck(int listLength, int start, int length) {
   if (length < 0) {
-    throw new IndexOutOfRangeException(length);
+    throw new RangeError.value(length);
   }
   if (start < 0) {
-    throw new IndexOutOfRangeException(start);
+    throw new RangeError.value(start);
   }
   if (start + length > listLength) {
-    throw new IndexOutOfRangeException(start + length);
+    throw new RangeError.value(start + length);
   }
 }
 
@@ -1717,7 +1717,7 @@ class _Int8ArrayView extends _ByteArrayViewBase implements Int8List {
   int operator[](int index) {
     if (index < 0 || index >= _length) {
       String message = "$index must be in the range [0..$_length)";
-      throw new IndexOutOfRangeException(message);
+      throw new RangeError(message);
     }
     return _array.getInt8(_offset + (index * _BYTES_PER_ELEMENT));
   }
@@ -1725,7 +1725,7 @@ class _Int8ArrayView extends _ByteArrayViewBase implements Int8List {
   void operator[]=(int index, int value) {
     if (index < 0 || index >= _length) {
       String message = "$index must be in the range [0..$_length)";
-      throw new IndexOutOfRangeException(message);
+      throw new RangeError(message);
     }
     _array.setInt8(_offset + (index * _BYTES_PER_ELEMENT), _toInt8(value));
   }
@@ -1789,7 +1789,7 @@ class _Uint8ArrayView extends _ByteArrayViewBase implements Uint8List {
   int operator[](int index) {
     if (index < 0 || index >= _length) {
       String message = "$index must be in the range [0..$_length)";
-      throw new IndexOutOfRangeException(message);
+      throw new RangeError(message);
     }
     return _array.getUint8(_offset + (index * _BYTES_PER_ELEMENT));
   }
@@ -1797,7 +1797,7 @@ class _Uint8ArrayView extends _ByteArrayViewBase implements Uint8List {
   void operator[]=(int index, int value) {
     if (index < 0 || index >= _length) {
       String message = "$index must be in the range [0..$_length)";
-      throw new IndexOutOfRangeException(message);
+      throw new RangeError(message);
     }
     _array.setUint8(_offset + (index * _BYTES_PER_ELEMENT), _toUint8(value));
   }
@@ -1861,7 +1861,7 @@ class _Int16ArrayView extends _ByteArrayViewBase implements Int16List {
   int operator[](int index) {
     if (index < 0 || index >= _length) {
       String message = "$index must be in the range [0..$_length)";
-      throw new IndexOutOfRangeException(message);
+      throw new RangeError(message);
     }
     return _array.getInt16(_offset + (index * _BYTES_PER_ELEMENT));
   }
@@ -1869,7 +1869,7 @@ class _Int16ArrayView extends _ByteArrayViewBase implements Int16List {
   void operator[]=(int index, int value) {
     if (index < 0 || index >= _length) {
       String message = "$index must be in the range [0..$_length)";
-      throw new IndexOutOfRangeException(message);
+      throw new RangeError(message);
     }
     _array.setInt16(_offset + (index * _BYTES_PER_ELEMENT), _toInt16(value));
   }
@@ -1933,7 +1933,7 @@ class _Uint16ArrayView extends _ByteArrayViewBase implements Uint16List {
   int operator[](int index) {
     if (index < 0 || index >= _length) {
       String message = "$index must be in the range [0..$_length)";
-      throw new IndexOutOfRangeException(message);
+      throw new RangeError(message);
     }
     return _array.getUint16(_offset + (index * _BYTES_PER_ELEMENT));
   }
@@ -1941,7 +1941,7 @@ class _Uint16ArrayView extends _ByteArrayViewBase implements Uint16List {
   void operator[]=(int index, int value) {
     if (index < 0 || index >= _length) {
       String message = "$index must be in the range [0..$_length)";
-      throw new IndexOutOfRangeException(message);
+      throw new RangeError(message);
     }
     _array.setUint16(_offset + (index * _BYTES_PER_ELEMENT), _toUint16(value));
   }
@@ -2005,7 +2005,7 @@ class _Int32ArrayView extends _ByteArrayViewBase implements Int32List {
   int operator[](int index) {
     if (index < 0 || index >= _length) {
       String message = "$index must be in the range [0..$_length)";
-      throw new IndexOutOfRangeException(message);
+      throw new RangeError(message);
     }
     return _array.getInt32(_offset + (index * _BYTES_PER_ELEMENT));
   }
@@ -2013,7 +2013,7 @@ class _Int32ArrayView extends _ByteArrayViewBase implements Int32List {
   void operator[]=(int index, int value) {
     if (index < 0 || index >= _length) {
       String message = "$index must be in the range [0..$_length)";
-      throw new IndexOutOfRangeException(message);
+      throw new RangeError(message);
     }
     _array.setInt32(_offset + (index * _BYTES_PER_ELEMENT), _toInt32(value));
   }
@@ -2077,7 +2077,7 @@ class _Uint32ArrayView extends _ByteArrayViewBase implements Uint32List {
   int operator[](int index) {
     if (index < 0 || index >= _length) {
       String message = "$index must be in the range [0..$_length)";
-      throw new IndexOutOfRangeException(message);
+      throw new RangeError(message);
     }
     return _array.getUint32(_offset + (index * _BYTES_PER_ELEMENT));
   }
@@ -2085,7 +2085,7 @@ class _Uint32ArrayView extends _ByteArrayViewBase implements Uint32List {
   void operator[]=(int index, int value) {
     if (index < 0 || index >= _length) {
       String message = "$index must be in the range [0..$_length)";
-      throw new IndexOutOfRangeException(message);
+      throw new RangeError(message);
     }
     _array.setUint32(_offset + (index * _BYTES_PER_ELEMENT), _toUint32(value));
   }
@@ -2149,7 +2149,7 @@ class _Int64ArrayView extends _ByteArrayViewBase implements Int64List {
   int operator[](int index) {
     if (index < 0 || index >= _length) {
       String message = "$index must be in the range [0..$_length)";
-      throw new IndexOutOfRangeException(message);
+      throw new RangeError(message);
     }
     return _array.getInt64(_offset + (index * _BYTES_PER_ELEMENT));
   }
@@ -2157,7 +2157,7 @@ class _Int64ArrayView extends _ByteArrayViewBase implements Int64List {
   void operator[]=(int index, int value) {
     if (index < 0 || index >= _length) {
       String message = "$index must be in the range [0..$_length)";
-      throw new IndexOutOfRangeException(message);
+      throw new RangeError(message);
     }
     _array.setInt64(_offset + (index * _BYTES_PER_ELEMENT), _toInt64(value));
   }
@@ -2221,7 +2221,7 @@ class _Uint64ArrayView extends _ByteArrayViewBase implements Uint64List {
   int operator[](int index) {
     if (index < 0 || index >= _length) {
       String message = "$index must be in the range [0..$_length)";
-      throw new IndexOutOfRangeException(message);
+      throw new RangeError(message);
     }
     return _array.getUint64(_offset + (index * _BYTES_PER_ELEMENT));
   }
@@ -2229,7 +2229,7 @@ class _Uint64ArrayView extends _ByteArrayViewBase implements Uint64List {
   void operator[]=(int index, int value) {
     if (index < 0 || index >= _length) {
       String message = "$index must be in the range [0..$_length)";
-      throw new IndexOutOfRangeException(message);
+      throw new RangeError(message);
     }
     _array.setUint64(_offset + (index * _BYTES_PER_ELEMENT), _toUint64(value));
   }
@@ -2293,7 +2293,7 @@ class _Float32ArrayView extends _ByteArrayViewBase implements Float32List {
   double operator[](int index) {
     if (index < 0 || index >= _length) {
       String message = "$index must be in the range [0..$_length)";
-      throw new IndexOutOfRangeException(message);
+      throw new RangeError(message);
     }
     return _array.getFloat32(_offset + (index * _BYTES_PER_ELEMENT));
   }
@@ -2301,7 +2301,7 @@ class _Float32ArrayView extends _ByteArrayViewBase implements Float32List {
   void operator[]=(int index, double value) {
     if (index < 0 || index >= _length) {
       String message = "$index must be in the range [0..$_length)";
-      throw new IndexOutOfRangeException(message);
+      throw new RangeError(message);
     }
     _array.setFloat32(_offset + (index * _BYTES_PER_ELEMENT), value);
   }
@@ -2365,7 +2365,7 @@ class _Float64ArrayView extends _ByteArrayViewBase implements Float64List {
   double operator[](int index) {
     if (index < 0 || index >= _length) {
       String message = "$index must be in the range [0..$_length)";
-      throw new IndexOutOfRangeException(message);
+      throw new RangeError(message);
     }
     return _array.getFloat64(_offset + (index * _BYTES_PER_ELEMENT));
   }
@@ -2373,7 +2373,7 @@ class _Float64ArrayView extends _ByteArrayViewBase implements Float64List {
   void operator[]=(int index, double value) {
     if (index < 0 || index >= _length) {
       String message = "$index must be in the range [0..$_length)";
-      throw new IndexOutOfRangeException(message);
+      throw new RangeError(message);
     }
     _array.setFloat64(_offset + (index * _BYTES_PER_ELEMENT), value);
   }

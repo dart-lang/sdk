@@ -300,7 +300,7 @@ index$slow(var a, var index) {
       if (!identical(index.truncate(), index)) throw new ArgumentError(index);
     }
     if (index < 0 || index >= a.length) {
-      throw new IndexOutOfRangeException(index);
+      throw new RangeError.value(index);
     }
     return JS('Object', r'#[#]', a, index);
   }
@@ -313,7 +313,7 @@ void indexSet$slow(var a, var index, var value) {
       throw new ArgumentError(index);
     }
     if (index < 0 || index >= a.length) {
-      throw new IndexOutOfRangeException(index);
+      throw new RangeError.value(index);
     }
     checkMutable(a, 'indexed set');
     JS('Object', r'#[#] = #', a, index, value);
@@ -729,7 +729,7 @@ iae(argument) {
  * access.
  */
 ioore(index) {
-  throw new IndexOutOfRangeException(index);
+  throw new RangeError.value(index);
 }
 
 listInsertRange(receiver, start, length, initialValue) {
@@ -744,7 +744,7 @@ listInsertRange(receiver, start, length, initialValue) {
 
   var receiverLength = JS('num', r'#.length', receiver);
   if (start < 0 || start > receiverLength) {
-    throw new IndexOutOfRangeException(start);
+    throw new RangeError.value(start);
   }
   receiver.length = receiverLength + length;
   Arrays.copy(receiver,

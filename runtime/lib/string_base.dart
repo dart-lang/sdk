@@ -144,13 +144,13 @@ class _StringBase {
     if (endIndex === null) endIndex = this.length;
 
     if ((startIndex < 0) || (startIndex > this.length)) {
-      throw new IndexOutOfRangeException(startIndex);
+      throw new RangeError.value(startIndex);
     }
     if ((endIndex < 0) || (endIndex > this.length)) {
-      throw new IndexOutOfRangeException(endIndex);
+      throw new RangeError.value(endIndex);
     }
     if (startIndex > endIndex) {
-      throw new IndexOutOfRangeException(startIndex);
+      throw new RangeError.value(startIndex);
     }
     return _substringUnchecked(startIndex, endIndex);
   }
@@ -468,7 +468,7 @@ class _StringMatch implements Match {
 
   String group(int group) {
     if (group != 0) {
-      throw new IndexOutOfRangeException(group);
+      throw new RangeError.value(group);
     }
     return pattern;
   }

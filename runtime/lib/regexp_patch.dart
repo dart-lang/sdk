@@ -18,7 +18,7 @@ class _JSRegExpMatch implements Match {
 
   String group(int groupIdx) {
     if (groupIdx < 0 || groupIdx > regexp._groupCount) {
-      throw new IndexOutOfRangeException(groupIdx);
+      throw new RangeError.value(groupIdx);
     }
     int startIndex = _start(groupIdx);
     int endIndex = _end(groupIdx);
