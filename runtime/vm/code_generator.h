@@ -84,6 +84,7 @@ DECLARE_RUNTIME_ENTRY(UpdateICDataTwoArgs);
   V(UnboxInteger)                                                              \
   V(CheckClass)                                                                \
   V(CheckSmi)                                                                  \
+  V(CheckArrayBound)                                                           \
   V(AtCall)                                                                    \
   V(NumReasons)                                                                \
 

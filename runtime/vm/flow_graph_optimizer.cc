@@ -470,10 +470,20 @@ intptr_t FlowGraphOptimizer::PrepareIndexedOp(InstanceCallInstr* call,
                new CheckSmiInstr((*index)->Copy(), call->deopt_id()),
                call->env(),
                Definition::kEffect);
-  // If both index and array are constants, then the bound check always
-  // succeeded.
-  // TODO(srdjan): Remove once constant propagation lands.
-  if (!((*array)->BindsToConstant() && (*index)->BindsToConstant())) {
+  // If both index and array are constants, then do a compile-time check.
+  // TODO(srdjan): Remove once constant propagation handles bounds checks.
+  bool skip_check = false;
+  if ((*array)->BindsToConstant() && (*index)->BindsToConstant()) {
+    ConstantInstr* array_def = (*array)->definition()->AsConstant();
+    const ImmutableArray& constant_array =
+        ImmutableArray::Cast(array_def->value());
+    ConstantInstr* index_def = (*index)->definition()->AsConstant();
+    if (index_def->value().IsSmi()) {
+      intptr_t constant_index = Smi::Cast(index_def->value()).Value();
+      skip_check = (constant_index < constant_array.Length());
+    }
+  }
+  if (!skip_check) {
     // Insert array bounds check.
     InsertBefore(call,
                  new CheckArrayBoundInstr((*array)->Copy(),
@@ -1085,6 +1095,46 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   ic_data.GetCheckAt(0, &class_ids, &target);
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(target);
+  if ((recognized_kind == MethodRecognizer::kStringBaseCharCodeAt) &&
+      (ic_data.NumberOfChecks() == 1) &&
+      ((class_ids[0] == kOneByteStringCid) ||
+       (class_ids[0] == kTwoByteStringCid))) {
+    Value* str= call->ArgumentAt(0)->value();
+    Value* index = call->ArgumentAt(1)->value();
+    AddCheckClass(call, str->Copy());
+    InsertBefore(call,
+                 new CheckSmiInstr(index->Copy(), call->deopt_id()),
+                 call->env(),
+                 Definition::kEffect);
+    // If both index and string are constants, then do a compile-time check.
+    // TODO(srdjan): Remove once constant propagation handles bounds checks.
+    bool skip_check = false;
+    if (str->BindsToConstant() && index->BindsToConstant()) {
+      ConstantInstr* string_def = str->definition()->AsConstant();
+      const String& constant_string =
+          String::Cast(string_def->value());
+      ConstantInstr* index_def = index->definition()->AsConstant();
+      if (index_def->value().IsSmi()) {
+        intptr_t constant_index = Smi::Cast(index_def->value()).Value();
+        skip_check = (constant_index < constant_string.Length());
+      }
+    }
+    if (!skip_check) {
+      // Insert bounds check.
+      InsertBefore(call,
+                   new CheckArrayBoundInstr(str->Copy(),
+                                            index->Copy(),
+                                            class_ids[0],
+                                            call),
+                   call->env(),
+                   Definition::kEffect);
+    }
+    StringCharCodeAtInstr* instr =
+        new StringCharCodeAtInstr(str, index, class_ids[0]);
+    call->ReplaceWith(instr, current_iterator());
+    RemovePushArguments(call);
+    return true;
+  }
 
   if ((recognized_kind == MethodRecognizer::kIntegerToDouble) &&
       (class_ids[0] == kSmiCid)) {
@@ -3217,6 +3267,11 @@ void ConstantPropagator::VisitRelationalOp(RelationalOpInstr* instr) {
 
 
 void ConstantPropagator::VisitNativeCall(NativeCallInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitStringCharCodeAt(StringCharCodeAtInstr* instr) {
   SetValue(instr, non_constant_);
 }
 

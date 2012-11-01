@@ -945,9 +945,49 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 static bool CanBeImmediateIndex(Value* index) {
   if (!index->definition()->IsConstant()) return false;
   const Object& constant = index->definition()->AsConstant()->value();
+  if (!constant.IsSmi()) return false;
   const Smi& smi_const = Smi::Cast(constant);
   int64_t disp = smi_const.AsInt64Value() * kWordSize + sizeof(RawArray);
   return Utils::IsInt(32, disp);
+}
+
+
+LocationSummary* StringCharCodeAtInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RequiresRegister());
+  // TODO(fschneider): Allow immediate operands for the index.
+  locs->set_in(1, Location::RequiresRegister());
+  locs->set_out(Location::RequiresRegister());
+  return locs;
+}
+
+
+void StringCharCodeAtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register str = locs()->in(0).reg();
+  Register index = locs()->in(1).reg();
+  Register result = locs()->out().reg();
+
+  ASSERT((class_id() == kOneByteStringCid) ||
+         (class_id() == kTwoByteStringCid));
+  if (class_id() == kOneByteStringCid) {
+    __ SmiUntag(index);
+    __ movzxb(result, FieldAddress(str,
+                                   index,
+                                   TIMES_1,
+                                   OneByteString::data_offset()));
+    __ SmiTag(index);  // Retag index.
+    __ SmiTag(result);
+  } else {
+    // Don't untag smi-index and use TIMES_1 for two byte strings.
+    __ movzxw(result, FieldAddress(str,
+                                   index,
+                                   TIMES_1,
+                                   TwoByteString::data_offset()));
+    __ SmiTag(result);
+  }
 }
 
 
@@ -2231,30 +2271,17 @@ LocationSummary* CheckArrayBoundInstr::MakeLocationSummary() const {
 
 
 void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const DeoptReasonId deopt_reason =
-      (array_type() == kGrowableObjectArrayCid) ?
-          kDeoptLoadIndexedGrowableArray : kDeoptLoadIndexedFixedArray;
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                        deopt_reason);
-  ASSERT((array_type() == kArrayCid) ||
-         (array_type() == kImmutableArrayCid) ||
-         (array_type() == kGrowableObjectArrayCid) ||
-         (array_type() == kFloat64ArrayCid) ||
-         (array_type() == kFloat32ArrayCid));
-  intptr_t length_offset = -1;
-  if (array_type() == kGrowableObjectArrayCid) {
-    length_offset = GrowableObjectArray::length_offset();
-  } else if (array_type() == kFloat64ArrayCid) {
-    length_offset = Float64Array::length_offset();
-  } else if (array_type() == kFloat32ArrayCid) {
-    length_offset = Float32Array::length_offset();
-  } else {
-    length_offset = Array::length_offset();
+                                        kDeoptCheckArrayBound);
+  if (locs()->in(0).IsConstant() && locs()->in(1).IsConstant()) {
+    // Unconditionally deoptimize for constant bounds checks because they
+    // only occur only when index is out-of-bounds.
+    __ jmp(deopt);
+    return;
   }
 
-  // This case should not have created a bound check instruction.
-  ASSERT(!(locs()->in(0).IsConstant() && locs()->in(1).IsConstant()));
 
+  intptr_t length_offset = LengthOffsetFor(array_type());
   if (locs()->in(1).IsConstant()) {
     Register receiver = locs()->in(0).reg();
     const Object& constant = locs()->in(1).constant();
@@ -2264,12 +2291,14 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ cmpq(FieldAddress(receiver, length_offset), Immediate(imm));
     __ j(BELOW_EQUAL, deopt);
   } else if (locs()->in(0).IsConstant()) {
-    const Object& constant = locs()->in(0).constant();
-    ASSERT(constant.IsArray());
-    const Array& array =  Array::Cast(constant);
+    ASSERT(locs()->in(0).constant().IsArray() ||
+           locs()->in(0).constant().IsString());
+    intptr_t length = locs()->in(0).constant().IsArray()
+        ? Array::Cast(locs()->in(0).constant()).Length()
+        : String::Cast(locs()->in(0).constant()).Length();
     Register index = locs()->in(1).reg();
     __ cmpq(index,
-        Immediate(reinterpret_cast<int64_t>(Smi::New(array.Length()))));
+        Immediate(reinterpret_cast<int64_t>(Smi::New(length))));
     __ j(ABOVE_EQUAL, deopt);
   } else {
     Register receiver = locs()->in(0).reg();

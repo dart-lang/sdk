@@ -3878,6 +3878,8 @@ class TwoByteString : public String {
   static const intptr_t kBytesPerElement = 2;
   static const intptr_t kMaxElements = String::kMaxElements;
 
+  static intptr_t data_offset() { return OFFSET_OF(RawTwoByteString, data_); }
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawTwoByteString) == OFFSET_OF(RawTwoByteString, data_));
     return 0;

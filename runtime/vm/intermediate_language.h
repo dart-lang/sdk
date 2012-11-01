@@ -37,6 +37,7 @@ class Range;
   V(_GrowableObjectArray, get:capacity, GrowableArrayCapacity)                 \
   V(_StringBase, get:length, StringBaseLength)                                 \
   V(_StringBase, get:isEmpty, StringBaseIsEmpty)                               \
+  V(_StringBase, charCodeAt, StringBaseCharCodeAt)                             \
   V(_IntegerImplementation, toDouble, IntegerToDouble)                         \
   V(_Double, toInt, DoubleToInteger)                                           \
   V(::, sqrt, MathSqrt)                                                        \
@@ -263,6 +264,7 @@ class EmbeddedArray<T, 0> {
   M(UnaryMintOp)                                                               \
   M(CheckArrayBound)                                                           \
   M(Constraint)                                                                \
+  M(StringCharCodeAt)
 
 
 #define FORWARD_DECLARATION(type) class type##Instr;
@@ -525,6 +527,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class CheckSmiInstr;
   friend class CheckArrayBoundInstr;
   friend class CheckEitherNonSmiInstr;
+  friend class StringCharCodeAtInstr;
   friend class LICM;
 
   intptr_t deopt_id_;
@@ -2635,6 +2638,42 @@ class StoreStaticFieldInstr : public TemplateDefinition<1> {
 };
 
 
+class StringCharCodeAtInstr : public TemplateDefinition<2> {
+ public:
+  StringCharCodeAtInstr(Value* receiver,
+                        Value* index,
+                        intptr_t class_id)
+      : class_id_(class_id) {
+    ASSERT(receiver != NULL);
+    ASSERT(index != NULL);
+    inputs_[0] = receiver;
+    inputs_[1] = index;
+  }
+
+  DECLARE_INSTRUCTION(StringCharCodeAt)
+  virtual RawAbstractType* CompileType() const;
+
+  Value* receiver() const { return inputs_[0]; }
+  Value* index() const { return inputs_[1]; }
+  intptr_t class_id() const { return class_id_; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const;
+
+  virtual bool AttributesEqual(Instruction* other) const;
+
+  virtual bool AffectedBySideEffect() const { return true; }
+
+ private:
+  const intptr_t class_id_;
+
+  DISALLOW_COPY_AND_ASSIGN(StringCharCodeAtInstr);
+};
+
+
 class LoadIndexedInstr : public TemplateDefinition<2> {
  public:
   LoadIndexedInstr(Value* array, Value* index, intptr_t class_id)
@@ -3979,6 +4018,9 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
 
  private:
   intptr_t array_type_;
+
+  // Returns the length offset for array and string types.
+  static intptr_t LengthOffsetFor(intptr_t class_id);
 
   DISALLOW_COPY_AND_ASSIGN(CheckArrayBoundInstr);
 };

@@ -153,6 +153,13 @@ bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
 }
 
 
+bool StringCharCodeAtInstr::AttributesEqual(Instruction* other) const {
+  StringCharCodeAtInstr* other_load = other->AsStringCharCodeAt();
+  ASSERT(other_load != NULL);
+  return class_id() == other_load->class_id();
+}
+
+
 bool LoadIndexedInstr::AttributesEqual(Instruction* other) const {
   LoadIndexedInstr* other_load = other->AsLoadIndexed();
   ASSERT(other_load != NULL);
@@ -1110,6 +1117,16 @@ RawAbstractType* NativeCallInstr::CompileType() const {
   // the enclosing native Dart function. However, we prefer to check the type
   // of the value returned from the native call.
   return Type::DynamicType();
+}
+
+
+RawAbstractType* StringCharCodeAtInstr::CompileType() const {
+  return Type::IntType();
+}
+
+
+intptr_t StringCharCodeAtInstr::ResultCid() const {
+  return kSmiCid;
 }
 
 
@@ -2612,6 +2629,26 @@ bool CheckArrayBoundInstr::IsRedundant(RangeBoundary length) {
   return false;
 }
 
+
+intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
+  switch (class_id) {
+    case kGrowableObjectArrayCid:
+      return GrowableObjectArray::length_offset();
+    case kFloat64ArrayCid:
+      return Float64Array::length_offset();
+    case kFloat32ArrayCid:
+      return Float32Array::length_offset();
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
+      return String::length_offset();
+    case kArrayCid:
+    case kImmutableArrayCid:
+      return Array::length_offset();
+    default:
+      UNREACHABLE();
+      return -1;
+  }
+}
 
 #undef __
 
