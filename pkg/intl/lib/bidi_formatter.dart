@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of intl;
+
 /**
  * Bidi stands for Bi-directional text.
  * According to [Wikipedia](http://en.wikipedia.org/wiki/Bi-directional_text):

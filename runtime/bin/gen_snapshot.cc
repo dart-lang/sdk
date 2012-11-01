@@ -153,7 +153,7 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
   if (!Dart_IsLibrary(library)) {
     return Dart_Error("not a library");
   }
-  if (!Dart_IsString8(url)) {
+  if (!Dart_IsString(url)) {
     return Dart_Error("url is not a string");
   }
   const char* url_string = NULL;
@@ -183,7 +183,7 @@ static Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
   if (Dart_IsError(source)) {
     return source;  // source contains the error string.
   }
-  Dart_Handle url = Dart_NewString(script_name);
+  Dart_Handle url = DartUtils::NewString(script_name);
 
   return Dart_LoadScript(url, source);
 }

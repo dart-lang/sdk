@@ -7,13 +7,13 @@ main() {
   useHtmlConfiguration();
   test('GetItem', () {
     final value = window.localStorage['does not exist'];
-    Expect.isNull(value);
+    expect(value, isNull);
   });
   test('SetItem', () {
     final key = 'foo';
     final value = 'bar';
     window.localStorage[key] = value;
     final stored = window.localStorage[key];
-    Expect.equals(value, stored);
+    expect(stored, value);
   });
 }

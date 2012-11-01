@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
+part of intl;
+
 /**
  * A class for holding onto the data for a date so that it can be built
  * up incrementally.
@@ -71,7 +74,7 @@ class _Stream {
 
   bool atEnd() => index >= contents.length;
 
-  Dynamic next() => contents[index++];
+  next() => contents[index++];
 
   /**
    * Return the next [howMany] items, or as many as there are remaining.

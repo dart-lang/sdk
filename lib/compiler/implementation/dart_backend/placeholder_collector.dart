@@ -24,6 +24,16 @@ class FunctionScope {
   }
 }
 
+class ConstructorPlaceholder {
+  final Node node;
+  final DartType type;
+  final bool isRedirectingCall;
+  ConstructorPlaceholder(this.node, this.type)
+      : this.isRedirectingCall = false;
+  ConstructorPlaceholder.redirectingCall(this.node)
+      : this.type = null, this.isRedirectingCall = true;
+}
+
 class DeclarationTypePlaceholder {
   final TypeAnnotation typeNode;
   final bool requiresVar;
@@ -41,7 +51,12 @@ class SendVisitor extends ResolvedVisitor {
   visitForeignSend(Send node) {}
 
   visitSuperSend(Send node) {
-    collector.tryMakeMemberPlaceholder(node.selector);
+    Element element = elements[node];
+    if (element != null && element.isConstructor()) {
+      collector.makeRedirectingConstructorPlaceholder(node.selector, element);
+    } else {
+      collector.tryMakeMemberPlaceholder(node.selector);
+    }
   }
 
   visitDynamicSend(Send node) {
@@ -98,30 +113,7 @@ class SendVisitor extends ResolvedVisitor {
       if (node.receiver is Identifier
           && node.receiver.asIdentifier().isThis()) {
         assert(node.selector is Identifier);
-        collector.tryMakeMemberPlaceholder(node.selector);
-      }
-      // Field names can be exposed as names of optional arguments, e.g.
-      // class C {
-      //   final field;
-      //   C([this.field]);
-      // }
-      // Do not forget to rename them as well.
-      FunctionElement functionElement = element;
-      Link<Element> optionalParameters =
-          functionElement.functionSignature.optionalParameters;
-      for (final argument in node.argumentsNode) {
-        NamedArgument named = argument.asNamedArgument();
-        if (named == null) continue;
-        Identifier name = named.name;
-        String nameAsString = name.source.slowToString();
-        for (final parameter in optionalParameters) {
-          if (identical(parameter.kind, ElementKind.FIELD_PARAMETER)) {
-            if (parameter.name.slowToString() == nameAsString) {
-              collector.tryMakeMemberPlaceholder(name);
-              break;
-            }
-          }
-        }
+        collector.makeRedirectingConstructorPlaceholder(node.selector, element);
       }
       return;
     }
@@ -136,7 +128,7 @@ class SendVisitor extends ResolvedVisitor {
   }
 
   internalError(String reason, {Node node}) {
-    collector.internalError(reason, node);
+    collector.internalError(reason, node: node);
   }
 }
 
@@ -146,11 +138,12 @@ class PlaceholderCollector extends Visitor {
   final Map<Element, ElementAst> elementAsts;
   final Set<Node> nullNodes;  // Nodes that should not be in output.
   final Set<Identifier> unresolvedNodes;
-  final Map<Element, Set<Identifier>> elementNodes;
+  final Map<Element, Set<Node>> elementNodes;
   final Map<FunctionElement, FunctionScope> functionScopes;
   final Map<LibraryElement, Set<Identifier>> privateNodes;
   final List<DeclarationTypePlaceholder> declarationTypePlaceholders;
   final Map<String, Set<Identifier>> memberPlaceholders;
+  final Map<Element, List<ConstructorPlaceholder>> constructorPlaceholders;
   Map<String, LocalPlaceholder> currentLocalPlaceholders;
   Element currentElement;
   FunctionElement topmostEnclosingFunction;
@@ -165,59 +158,19 @@ class PlaceholderCollector extends Visitor {
   PlaceholderCollector(this.compiler, this.fixedMemberNames, this.elementAsts) :
       nullNodes = new Set<Node>(),
       unresolvedNodes = new Set<Identifier>(),
-      elementNodes = new Map<Element, Set<Identifier>>(),
+      elementNodes = new Map<Element, Set<Node>>(),
       functionScopes = new Map<FunctionElement, FunctionScope>(),
       privateNodes = new Map<LibraryElement, Set<Identifier>>(),
       declarationTypePlaceholders = new List<DeclarationTypePlaceholder>(),
-      memberPlaceholders = new Map<String, Set<Identifier>>();
-
-  void tryMakeConstructorNamePlaceholder(
-      FunctionExpression constructor, ClassElement element) {
-    Node nameNode = constructor.name;
-    if (nameNode is Send) nameNode = nameNode.receiver;
-    if (nameNode.asIdentifier().token.slowToString()
-        == element.name.slowToString()) {
-      makeElementPlaceholder(nameNode, element);
-    }
-  }
+      memberPlaceholders = new Map<String, Set<Identifier>>(),
+      constructorPlaceholders =
+          new Map<Element, List<ConstructorPlaceholder>>();
 
   void collectFunctionDeclarationPlaceholders(
       FunctionElement element, FunctionExpression node) {
     if (element.isGenerativeConstructor() || element.isFactoryConstructor()) {
-      // Two complicated cases for class/interface renaming:
-      // 1) class which implements constructors of other interfaces, but not
-      //    implements interfaces themselves:
-      //      0.dart: class C { I(); }
-      //      1.dart and 2.dart: interface I default C { I(); }
-      //    now we have to duplicate our I() constructor in C class with
-      //    proper names.
-      // 2) (even worse for us):
-      //      0.dart: class C { C(); }
-      //      1.dart: interface C default p0.C { C(); }
-      //    the second case is just a bug now.
-      tryMakeConstructorNamePlaceholder(node, element.getEnclosingClass());
-
-      // If we have interface constructor, make sure that we put placeholder
-      // for its default factory implementation.
-      // Example:
-      // interface I default C { I();}
-      // class C { factory I() {} }
-      // 2 cases:
-      // Plain interface name. Rename it unless it is the default
-      // constructor for enclosing class.
-      // Example:
-      // interface I { I(); }
-      // class C implements I { C(); }  don't rename this case.
-      // OR I.named() inside C, rename first part.
-      if (element.defaultImplementation != null
-          && !identical(element.defaultImplementation, element)) {
-        FunctionElement implementingFactory = element.defaultImplementation;
-        if (implementingFactory is !SynthesizedConstructorElement) {
-          tryMakeConstructorNamePlaceholder(
-              elementAsts[implementingFactory].ast,
-              element.getEnclosingClass());
-        }
-      }
+      DartType type = element.getEnclosingClass().type.asRaw();
+      makeConstructorPlaceholder(node.name, element, type);
     } else if (Elements.isStaticOrTopLevel(element)) {
       // Note: this code should only rename private identifiers for class'
       // fields/getters/setters/methods.  Top-level identifiers are renamed
@@ -331,7 +284,7 @@ class PlaceholderCollector extends Visitor {
     nullNodes.add(node);
   }
 
-  void makeElementPlaceholder(Identifier node, Element element) {
+  void makeElementPlaceholder(Node node, Element element) {
     assert(element != null);
     if (identical(element, entryFunction)) return;
     if (identical(element.getLibrary(), coreLibrary)) return;
@@ -341,9 +294,9 @@ class PlaceholderCollector extends Visitor {
     if (element == compiler.types.dynamicType.element) {
       internalError(
           'Should never make element placeholder for dynamic type element',
-          node);
+          node: node);
     }
-    elementNodes.putIfAbsent(element, () => new Set<Identifier>()).add(node);
+    elementNodes.putIfAbsent(element, () => new Set<Node>()).add(node);
   }
 
   void makePrivateIdentifier(Identifier node) {
@@ -369,6 +322,18 @@ class PlaceholderCollector extends Visitor {
     getLocalPlaceholder().nodes.add(identifier);
   }
 
+  void makeConstructorPlaceholder(Node node, Element element, DartType type) {
+    assert(type != null);
+    constructorPlaceholders
+        .putIfAbsent(element, () => <ConstructorPlaceholder>[])
+            .add(new ConstructorPlaceholder(node, type));
+  }
+  void makeRedirectingConstructorPlaceholder(Node node, Element element) {
+    constructorPlaceholders
+        .putIfAbsent(element, () => <ConstructorPlaceholder>[])
+            .add(new ConstructorPlaceholder.redirectingCall(node));
+  }
+
   void internalError(String reason, {Node node}) {
     compiler.cancel(reason, node: node);
   }
@@ -378,6 +343,45 @@ class PlaceholderCollector extends Visitor {
   visit(Node node) => (node == null) ? null : node.accept(this);
 
   visitNode(Node node) { node.visitChildren(this); }  // We must go deeper.
+
+  visitNewExpression(NewExpression node) {
+    Send send = node.send;
+    InterfaceType type = treeElements.getType(node);
+    assert(type != null);
+    Element constructor = treeElements[send];
+    assert(constructor != null);
+    assert(send.receiver == null);
+    if (constructor is !ErroneousElement) {
+      makeConstructorPlaceholder(node.send.selector, constructor, type);
+      // TODO(smok): Should this be in visitNamedArgument?
+      // Field names can be exposed as names of optional arguments, e.g.
+      // class C {
+      //   final field;
+      //   C([this.field]);
+      // }
+      // Do not forget to rename them as well.
+      FunctionElement constructorFunction = constructor;
+      Link<Element> optionalParameters =
+          constructorFunction.functionSignature.optionalParameters;
+      for (final argument in send.argumentsNode) {
+        NamedArgument named = argument.asNamedArgument();
+        if (named == null) continue;
+        Identifier name = named.name;
+        String nameAsString = name.source.slowToString();
+        for (final parameter in optionalParameters) {
+          if (identical(parameter.kind, ElementKind.FIELD_PARAMETER)) {
+            if (parameter.name.slowToString() == nameAsString) {
+              tryMakeMemberPlaceholder(name);
+              break;
+            }
+          }
+        }
+      }
+    } else {
+      makeUnresolvedPlaceholder(node.send.selector);
+    }
+    visit(node.send.argumentsNode);
+  }
 
   visitSend(Send send) {
     new SendVisitor(this, treeElements).visitSend(send);
@@ -448,62 +452,21 @@ class PlaceholderCollector extends Visitor {
     }
     // We call [resolveReturnType] to allow having 'void'.
     final type = compiler.resolveReturnType(currentElement, node);
-    bool hasPrefix = false;
     if (type is InterfaceType || type is TypedefType) {
-      Node target = node.typeName;
-      if (node.typeName is Send) {
-        final send = node.typeName.asSend();
-        Identifier receiver = send.receiver;
-        Identifier selector = send.selector;
-        Element potentialPrefix =
-            currentElement.getLibrary().findLocal(receiver.source);
-        if (potentialPrefix != null && potentialPrefix.isPrefix()) {
-          // prefix.Class case.
-          hasPrefix = true;
-        } else {
-          // Class.namedContructor case.
-          target = receiver;
-          // If element is unresolved, mark namedConstructor as unresolved.
-          if (treeElements[node] == null) {
-            makeUnresolvedPlaceholder(selector);
-          }
-        }
-      }
       // TODO(antonm): is there a better way to detect unresolved types?
       // Corner case: dart:core type with a prefix.
       // Most probably there are some additional problems with
       // coreLibPrefix.topLevels.
-      Element typeElement = type.element;
-      Element dynamicTypeElement = compiler.types.dynamicType.element;
-      if (hasPrefix &&
-          (identical(typeElement.getLibrary(), coreLibrary) ||
-          identical(typeElement, dynamicTypeElement))) {
-        makeNullPlaceholder(node.typeName.asSend().receiver);
+      if (!identical(type.element, compiler.types.dynamicType.element)) {
+        makeTypePlaceholder(node.typeName, type);
       } else {
-        if (hasPrefix) {
-          assert(node.typeName is Send);
-          Send typeName = node.typeName;
-          assert(typeName.receiver is Identifier);
-          assert(typeName.selector is Identifier);
-          makeNullPlaceholder(typeName.receiver);
-        }
-        if (!identical(typeElement, dynamicTypeElement)) {
-          makeTypePlaceholder(target, type);
-        } else {
-          if (!isDynamicType(node)) makeUnresolvedPlaceholder(target);
-        }
+        if (!isDynamicType(node)) makeUnresolvedPlaceholder(node.typeName);
       }
     }
-    // Trying to differentiate new A.foo() and lib.A cases. In the latter case
-    // we don't want to go deeper into typeName.
-    if (hasPrefix) {
-      // Visit only type arguments, otherwise in case of lib.Class type
-      // annotation typeName is Send and we go to visitGetterSend, as a result
-      // "Class" is added to member placeholders.
-      visit(node.typeArguments);
-    } else {
-      node.visitChildren(this);
-    }
+    // Visit only type arguments, otherwise in case of lib.Class type
+    // annotation typeName is Send and we go to visitGetterSend, as a result
+    // "Class" is added to member placeholders.
+    visit(node.typeArguments);
   }
 
   visitVariableDefinitions(VariableDefinitions node) {

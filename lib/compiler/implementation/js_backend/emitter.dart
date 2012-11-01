@@ -443,41 +443,30 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
 
   void addParameterStubs(FunctionElement member,
                          DefineMemberFunction defineInstanceMember) {
-    // TODO(5074): Update this comment once we remove support for
-    // the deprecated parameter specification.
     // We fill the lists depending on the selector. For example,
     // take method foo:
-    //    foo(a, b, [c, d]);
+    //    foo(a, b, {c, d});
     //
     // We may have multiple ways of calling foo:
-    // (1) foo(1, 2, 3, 4)
-    // (2) foo(1, 2);
-    // (3) foo(1, 2, 3);
-    // (4) foo(1, 2, c: 3);
-    // (5) foo(1, 2, d: 4);
-    // (6) foo(1, 2, c: 3, d: 4);
-    // (7) foo(1, 2, d: 4, c: 3);
+    // (1) foo(1, 2);
+    // (2) foo(1, 2, c: 3);
+    // (3) foo(1, 2, d: 4);
+    // (4) foo(1, 2, c: 3, d: 4);
+    // (5) foo(1, 2, d: 4, c: 3);
     //
     // What we generate at the call sites are:
-    // (1) foo$4(1, 2, 3, 4)
-    // (2) foo$2(1, 2);
-    // (3) foo$3(1, 2, 3);
-    // (4) foo$3$c(1, 2, 3);
-    // (5) foo$3$d(1, 2, 4);
-    // (6) foo$4$c$d(1, 2, 3, 4);
-    // (7) foo$4$c$d(1, 2, 3, 4);
+    // (1) foo$2(1, 2);
+    // (2) foo$3$c(1, 2, 3);
+    // (3) foo$3$d(1, 2, 4);
+    // (4) foo$4$c$d(1, 2, 3, 4);
+    // (5) foo$4$c$d(1, 2, 3, 4);
     //
     // The stubs we generate are (expressed in Dart):
-    // (1) No stub generated, call is direct.
-    // (2) foo$2(a, b) => foo$4(a, b, null, null)
-    // (3) foo$3(a, b, c) => foo$4(a, b, c, null)
-    // (4) foo$3$c(a, b, c) => foo$4(a, b, c, null);
-    // (5) foo$3$d(a, b, d) => foo$4(a, b, null, d);
-    // (6) foo$4$c$d(a, b, c, d) => foo$4(a, b, c, d);
-    // (7) Same as (5).
-    //
-    // We need to generate a stub for (5) because the order of the
-    // stub arguments and the real method may be different.
+    // (1) foo$2(a, b) => foo$4$c$d(a, b, null, null)
+    // (2) foo$3$c(a, b, c) => foo$4$c$d(a, b, c, null);
+    // (3) foo$3$d(a, b, d) => foo$4$c$d(a, b, null, d);
+    // (4) No stub generated, call is direct.
+    // (5) No stub generated, call is direct.
 
     // Keep a cache of which stubs have already been generated, to
     // avoid duplicates. Note that even if selectors are
@@ -488,9 +477,6 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
         && member.name == Namer.CLOSURE_INVOCATION_NAME) {
       // If [Function.apply] is called, we pessimistically compile all
       // possible stubs for this closure.
-      // TODO(5074): This functionality only supports the new
-      // parameter specification, and this comment should be removed
-      // once the old specification is not supported.
       FunctionSignature signature = member.computeSignature(compiler);
       Set<Selector> selectors = signature.optionalParametersAreNamed
           ? computeNamedSelectors(signature, member)
@@ -600,9 +586,8 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
 
     if (member.isFunction()
         || member.isGenerativeConstructorBody()
-        || member.isGetter()
-        || member.isSetter()) {
-      if (member.modifiers.isAbstract()) return;
+        || member.isAccessor()) {
+      if (member.isAbstract(compiler)) return;
       CodeBuffer codeBuffer = compiler.codegenWorld.generatedCode[member];
       if (codeBuffer == null) return;
       defineInstanceMember(namer.getName(member), codeBuffer);
@@ -1268,8 +1253,8 @@ $classesCollector.$mangledName = {'':
     // Do not generate no such method handlers if there is no class.
     if (compiler.codegenWorld.instantiatedClasses.isEmpty) return;
 
-    String noSuchMethodName =
-        namer.publicInstanceMethodNameByArity(Compiler.NO_SUCH_METHOD, 2);
+    String noSuchMethodName = namer.publicInstanceMethodNameByArity(
+        Compiler.NO_SUCH_METHOD, Compiler.NO_SUCH_METHOD_ARG_COUNT);
 
     // Keep track of the JavaScript names we've already added so we
     // do not introduce duplicates (bad for code size).
@@ -1294,14 +1279,36 @@ $classesCollector.$mangledName = {'':
     }
 
     CodeBuffer generateMethod(String methodName, Selector selector) {
+      // Values match JSInvocationMirror in js-helper library.
+      const int METHOD = 0;
+      const int GETTER = 1;
+      const int SETTER = 2;
+      int type = METHOD;
+      if (selector.isGetter()) {
+        type = GETTER;
+      } else if (selector.isSetter()) {
+        type = SETTER;
+      }
       CodeBuffer args = new CodeBuffer();
       for (int i = 0; i < selector.argumentCount; i++) {
         if (i != 0) args.add(', ');
         args.add('\$$i');
       }
+      CodeBuffer argNames = new CodeBuffer();
+      List<SourceString> names = selector.getOrderedNamedArguments();
+      for (int i = 0; i < names.length; i++) {
+        if (i != 0) argNames.add(', ');
+        argNames.add('"');
+        argNames.add(names[i].slowToString());
+        argNames.add('"');
+      }
+      String internalName = namer.instanceMethodInvocationName(
+          selector.library, new SourceString(methodName), selector);
       CodeBuffer buffer = new CodeBuffer();
       buffer.add('function($args) {\n');
-      buffer.add('  return this.$noSuchMethodName("$methodName", [$args]);\n');
+      buffer.add('  return this.$noSuchMethodName('
+                     '\$.createInvocationMirror("$methodName", "$internalName",'
+                     ' $type, [$args], [$argNames]));\n');
       buffer.add(' }');
       return buffer;
     }
@@ -1438,9 +1445,6 @@ $classesCollector.$mangledName = {'':
 
     // TODO(ngeoffray): These globals are currently required by the isolate
     // library. They should be removed.
-    String runtimeTypeCache =
-        compiler.enabledRuntimeType ? "  context.runtimeTypeCache = {}\n" : "";
-
     buffer.add("""
 var \$globalThis = $currentIsolate;
 var \$globalState;
@@ -1452,7 +1456,7 @@ function \$static_init(){};
 
 function \$initGlobals(context) {
   context.isolateStatics = new ${namer.ISOLATE}();
-$runtimeTypeCache}
+}
 function \$setGlobals(context) {
   $currentIsolate = context.isolateStatics;
   \$globalThis = $currentIsolate;
@@ -1527,9 +1531,6 @@ if (typeof document != 'undefined' && document.readyState != 'complete') {
       // constants to be set up.
       emitStaticNonFinalFieldInitializations(mainBuffer);
       emitLazilyInitializedStaticFields(mainBuffer);
-      if (compiler.enabledRuntimeType && !compiler.hasIsolateSupport()) {
-        mainBuffer.add('$isolateProperties.runtimeTypeCache = {};\n');
-      }
 
       isolateProperties = isolatePropertiesName;
       // The following code should not use the short-hand for the

@@ -12,6 +12,7 @@ namespace dart {
 
 template <typename T> class GrowableArray;
 template <typename T> class DirectChainedHashMap;
+template <typename T> class PointerKeyValueTrait;
 
 class FlowGraphOptimizer : public FlowGraphVisitor {
  public:
@@ -163,7 +164,7 @@ class DominatorBasedCSE : public AllStatic {
  private:
   static bool OptimizeRecursive(
       BlockEntryInstr* entry,
-      DirectChainedHashMap<Instruction*>* map);
+      DirectChainedHashMap<PointerKeyValueTrait<Instruction> >* map);
 };
 
 

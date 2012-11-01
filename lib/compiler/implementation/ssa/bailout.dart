@@ -192,7 +192,7 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
 
   void visitInstruction(HInstruction instruction) {
     HType speculativeType = types[instruction];
-    HType computedType = instruction.computeTypeFromInputTypes(types);
+    HType computedType = instruction.computeTypeFromInputTypes(types, compiler);
     // Currently the type in [types] is the speculative type each instruction
     // would like to have. We start by recomputing the type non-speculatively.
     // If we add a type guard then the guard will expose the speculative type.

@@ -315,6 +315,9 @@ AstNode* LoadLocalNode::MakeAssignmentNode(AstNode* rhs) {
 
 
 AstNode* LoadStaticFieldNode::MakeAssignmentNode(AstNode* rhs) {
+  if (field().is_final()) {
+    return NULL;
+  }
   return new StoreStaticFieldNode(token_pos(), field(), rhs);
 }
 
@@ -325,7 +328,8 @@ AstNode* InstanceGetterNode::MakeAssignmentNode(AstNode* rhs) {
 
 
 AstNode* LoadIndexedNode::MakeAssignmentNode(AstNode* rhs) {
-  return new StoreIndexedNode(token_pos(), array(), index_expr(), rhs);
+  return new StoreIndexedNode(token_pos(), array(), index_expr(),
+                              rhs, super_class());
 }
 
 
@@ -361,6 +365,9 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
     const Field& field =
         Field::ZoneHandle(cls().LookupStaticField(field_name()));
     if (!field.IsNull()) {
+      if (field.is_final()) {
+        return NULL;
+      }
 #if defined(DEBUG)
       const String& getter_name =
           String::Handle(Field::GetterName(field_name()));

@@ -2,18 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('mirrors');
+library mirrors;
 
-#import('dart:io');
-#import('dart:uri');
+import 'dart:io';
+import 'dart:uri';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-#import('src/mirrors/dart2js_mirror.dart');
+import 'src/mirrors/dart2js_mirror.dart';
 
 /**
  * [Compilation] encapsulates the compilation of a program.
  */
-class Compilation {
+abstract class Compilation {
   /**
    * Creates a new compilation which has [script] as its entry point.
    */
@@ -45,7 +45,7 @@ class Compilation {
   /**
    * Returns a future for the compiled JavaScript code.
    */
-  abstract Future<String> compileToJavaScript();
+  Future<String> compileToJavaScript();
 }
 
 /**
@@ -56,6 +56,16 @@ abstract class MirrorSystem {
    * Returns an unmodifiable map of all libraries in this mirror system.
    */
   Map<String, LibraryMirror> get libraries;
+
+  /**
+   * A mirror on the [:dynamic:] type.
+   */
+  TypeMirror get dynamicType;
+
+  /**
+   * A mirror on the [:void:] type.
+   */
+  TypeMirror get voidType;
 }
 
 
@@ -65,6 +75,13 @@ abstract class MirrorSystem {
 abstract class Mirror {
   static const String UNARY_MINUS = 'unary-';
 
+  /**
+   * Returns the mirror system which contains this mirror.
+   */
+  MirrorSystem get mirrors;
+}
+
+abstract class DeclarationMirror implements Mirror {
   /**
    * The simple name of the entity. The simple name is unique within the
    * scope of the entity declaration.
@@ -97,41 +114,88 @@ abstract class Mirror {
   String get qualifiedName;
 
   /**
-   * Returns the mirror system which contains this mirror.
+   * The source location of this Dart language entity.
    */
-  MirrorSystem get system;
+  SourceLocation get location;
+
+  /**
+   * A mirror on the owner of this function. This is the declaration immediately
+   * surrounding the reflectee.
+   *
+   * Note that for libraries, the owner will be [:null:].
+   */
+  DeclarationMirror get owner;
+
+  /**
+   * Is this declaration private?
+   *
+   * Note that for libraries, this will be [:false:].
+   */
+  bool get isPrivate;
+
+  /**
+   * Is this declaration top-level?
+   *
+   * This is defined to be equivalent to:
+   *    [:mirror.owner != null && mirror.owner is LibraryMirror:]
+   */
+  bool get isTopLevel;
 }
 
 /**
- * Common interface for interface types and libraries.
+ * Common interface for classes and libraries.
  */
-abstract class ObjectMirror implements Mirror {
+abstract class ContainerMirror implements Mirror {
 
   /**
-   * Returns an unmodifiable map of the members of declared in this type or
-   * library.
+   * An immutable map from from names to mirrors for all members in this
+   * container.
    */
-  Map<String, MemberMirror> get declaredMembers;
+  Map<String, MemberMirror> get members;
 }
 
 /**
  * A library.
  */
-abstract class LibraryMirror extends ObjectMirror {
+abstract class LibraryMirror implements ContainerMirror, DeclarationMirror {
   /**
-   * The name of the library, as given in #library().
+   * An immutable map from from names to mirrors for all members in this
+   * library.
+   *
+   * The members of a library are its top-level classes, functions, variables,
+   * getters, and setters.
    */
-  String get simpleName;
+  Map<String, MemberMirror> get members;
 
   /**
-   * Returns an iterable over all types in the library.
+   * An immutable map from names to mirrors for all class
+   * declarations in this library.
    */
-  Map<String, InterfaceMirror> get types;
+  Map<String, ClassMirror> get classes;
 
   /**
-   * Returns the source location for this library.
+   * An immutable map from names to mirrors for all function, getter,
+   * and setter declarations in this library.
    */
-  Location get location;
+  Map<String, MethodMirror> get functions;
+
+  /**
+   * An immutable map from names to mirrors for all getter
+   * declarations in this library.
+   */
+  Map<String, MethodMirror> get getters;
+
+  /**
+   * An immutable map from names to mirrors for all setter
+   * declarations in this library.
+   */
+  Map<String, MethodMirror> get setters;
+
+  /**
+   * An immutable map from names to mirrors for all variable
+   * declarations in this library.
+   */
+  Map<String, VariableMirror> get variables;
 
   /**
    * Returns the canonical URI for this library.
@@ -142,12 +206,7 @@ abstract class LibraryMirror extends ObjectMirror {
 /**
  * Common interface for classes, interfaces, typedefs and type variables.
  */
-abstract class TypeMirror implements Mirror {
-  /**
-   * Returns the source location for this type.
-   */
-  Location get location;
-
+abstract class TypeMirror implements DeclarationMirror {
   /**
    * Returns the library in which this member resides.
    */
@@ -159,7 +218,7 @@ abstract class TypeMirror implements Mirror {
   bool get isObject;
 
   /**
-   * Is [:true:] iff this type is the [:Dynamic:] type.
+   * Is [:true:] iff this type is the [:dynamic:] type.
    */
   bool get isDynamic;
 
@@ -187,22 +246,28 @@ abstract class TypeMirror implements Mirror {
 /**
  * A class or interface type.
  */
-abstract class InterfaceMirror implements TypeMirror, ObjectMirror {
+abstract class ClassMirror implements TypeMirror, ContainerMirror {
   /**
-   * Returns the defining type, i.e. declaration of a type.
+   * A mirror on the original declaration of this type.
+   *
+   * For most classes, they are their own original declaration.  For
+   * generic classes, however, there is a distinction between the
+   * original class declaration, which has unbound type variables, and
+   * the instantiations of generic classes, which have bound type
+   * variables.
    */
-  InterfaceMirror get declaration;
+  ClassMirror get originalDeclaration;
 
   /**
    * Returns the super class of this type, or null if this type is [Object] or a
    * typedef.
    */
-  InterfaceMirror get superclass;
+  ClassMirror get superclass;
 
   /**
    * Returns a list of the interfaces directly implemented by this type.
    */
-  List<InterfaceMirror> get interfaces;
+  List<ClassMirror> get superinterfaces;
 
   /**
    * Is [:true:] iff this type is a class.
@@ -215,14 +280,15 @@ abstract class InterfaceMirror implements TypeMirror, ObjectMirror {
   bool get isInterface;
 
   /**
-   * Is [:true:] if this type is private.
+   * Is this the original declaration of this type?
+   *
+   * For most classes, they are their own original declaration.  For
+   * generic classes, however, there is a distinction between the
+   * original class declaration, which has unbound type variables, and
+   * the instantiations of generic classes, which have bound type
+   * variables.
    */
-  bool get isPrivate;
-
-  /**
-   * Is [:true:] if this type is the declaration of a type.
-   */
-  bool get isDeclaration;
+  bool get isOriginalDeclaration;
 
   /**
    * Is [:true:] if this class is declared abstract.
@@ -240,14 +306,52 @@ abstract class InterfaceMirror implements TypeMirror, ObjectMirror {
   List<TypeVariableMirror> get typeVariables;
 
   /**
-   * Returns an immutable map of the constructors in this interface.
+   * An immutable map from from names to mirrors for all members of
+   * this type.
+   *
+   * The members of a type are its methods, fields, getters, and
+   * setters.  Note that constructors and type variables are not
+   * considered to be members of a type.
+   *
+   * This does not include inherited members.
+   */
+  Map<String, MemberMirror> get members;
+
+  /**
+   * An immutable map from names to mirrors for all method,
+   * declarations for this type.  This does not include getters and
+   * setters.
+   */
+  Map<String, MethodMirror> get methods;
+
+  /**
+   * An immutable map from names to mirrors for all getter
+   * declarations for this type.
+   */
+  Map<String, MethodMirror> get getters;
+
+  /**
+   * An immutable map from names to mirrors for all setter
+   * declarations for this type.
+   */
+  Map<String, MethodMirror> get setters;
+
+  /**
+   * An immutable map from names to mirrors for all variable
+   * declarations for this type.
+   */
+  Map<String, VariableMirror> get variables;
+
+  /**
+   * An immutable map from names to mirrors for all constructor
+   * declarations for this type.
    */
   Map<String, MethodMirror> get constructors;
 
   /**
    * Returns the default type for this interface.
    */
-  InterfaceMirror get defaultType;
+  ClassMirror get defaultFactory;
 }
 
 /**
@@ -255,24 +359,15 @@ abstract class InterfaceMirror implements TypeMirror, ObjectMirror {
  */
 abstract class TypeVariableMirror implements TypeMirror {
   /**
-   * Return a mirror on the class, interface, or typedef that declared the
-   * type variable.
-   */
-  // Should not be called [declaration] as we then would have two [TypeMirror]
-  // subtypes ([InterfaceMirror] and [TypeVariableMirror]) which have
-  // [declaration()] methods but with different semantics.
-  InterfaceMirror get declarer;
-
-  /**
    * Returns the bound of the type parameter.
    */
-  TypeMirror get bound;
+  TypeMirror get upperBound;
 }
 
 /**
  * A function type.
  */
-abstract class FunctionTypeMirror implements InterfaceMirror {
+abstract class FunctionTypeMirror implements ClassMirror {
   /**
    * Returns the return type of this function type.
    */
@@ -292,35 +387,19 @@ abstract class FunctionTypeMirror implements InterfaceMirror {
 /**
  * A typedef.
  */
-abstract class TypedefMirror implements InterfaceMirror {
+abstract class TypedefMirror implements ClassMirror {
   /**
-   * Returns the defining type for this typedef. For instance [:void f(int):]
-   * for a [:typedef void f(int):].
+   * The defining type for this typedef.
+   *
+   * For instance [:void f(int):] for a [:typedef void f(int):].
    */
-  TypeMirror get definition;
+  TypeMirror get value;
 }
 
 /**
  * A member of a type, i.e. a field, method or constructor.
  */
-abstract class MemberMirror implements Mirror {
-  /**
-   * Returns the source location for this member.
-   */
-  Location get location;
-
-  /**
-   * Returns a mirror on the declaration immediately surrounding the reflectee.
-   * This could be a class, interface, library or another method or function.
-   */
-  ObjectMirror get surroundingDeclaration;
-
-  /**
-   * Returns true if this is a top level member, i.e. a member not within a
-   * type.
-   */
-  bool get isTopLevel;
-
+abstract class MemberMirror implements DeclarationMirror {
   /**
    * Returns true if this member is a constructor.
    */
@@ -337,11 +416,6 @@ abstract class MemberMirror implements Mirror {
   bool get isMethod;
 
   /**
-   * Returns true if this member is private.
-   */
-  bool get isPrivate;
-
-  /**
    * Returns true if this member is static.
    */
   bool get isStatic;
@@ -350,7 +424,7 @@ abstract class MemberMirror implements Mirror {
 /**
  * A field.
  */
-abstract class FieldMirror implements MemberMirror {
+abstract class VariableMirror implements MemberMirror {
 
   /**
    * Returns true if this field is final.
@@ -384,19 +458,38 @@ abstract class MethodMirror implements MemberMirror {
   TypeMirror get returnType;
 
   /**
-   * Is [:true:] if this method is declared abstract.
+   * Is the reflectee abstract?
    */
   bool get isAbstract;
 
   /**
-   * Is [:true:] if this method is a constant constructor.
+   * Is the reflectee a regular function or method?
+   *
+   * A function or method is regular if it is not a getter, setter, or
+   * constructor.  Note that operators, by this definition, are
+   * regular methods.
    */
-  bool get isConst;
+  bool get isRegularMethod;
 
   /**
-   * Is [:true:] if this method is a factory method.
+   * Is the reflectee a const constructor?
    */
-  bool get isFactory;
+  bool get isConstConstructor;
+
+  /**
+   * Is the reflectee a generative constructor?
+   */
+  bool get isGenerativeConstructor;
+
+  /**
+   * Is the reflectee a redirecting constructor?
+   */
+  bool get isRedirectingConstructor;
+
+  /**
+   * Is the reflectee a factory constructor?
+   */
+  bool get isFactoryConstructor;
 
   /**
    * Returns the constructor name for named constructors and factory methods,
@@ -429,7 +522,7 @@ abstract class MethodMirror implements MemberMirror {
 /**
  * A formal parameter.
  */
-abstract class ParameterMirror implements Mirror {
+abstract class ParameterMirror implements VariableMirror {
   /**
    * Returns the type of this parameter.
    */
@@ -441,14 +534,19 @@ abstract class ParameterMirror implements Mirror {
   String get defaultValue;
 
   /**
-   * Returns true if this parameter has a default value.
+   * Does this parameter have a default value?
    */
   bool get hasDefaultValue;
 
   /**
-   * Returns true if this parameter is optional.
+   * Is this parameter optional?
    */
   bool get isOptional;
+
+  /**
+   * Is this parameter named?
+   */
+  bool get isNamed;
 
   /**
    * Returns [:true:] iff this parameter is an initializing formal of a
@@ -460,15 +558,15 @@ abstract class ParameterMirror implements Mirror {
   /**
    * Returns the initialized field, if this parameter is an initializing formal.
    */
-  FieldMirror get initializedField;
+  VariableMirror get initializedField;
 }
 
 /**
- * A [Location] describes the span of an entity in Dart source code.
- * A [Location] should be the minimum span that encloses the declaration of the
- * mirrored entity.
+ * A [SourceLocation] describes the span of an entity in Dart source code.
+ * A [SourceLocation] should be the minimum span that encloses the declaration
+ * of the mirrored entity.
  */
-abstract class Location {
+abstract class SourceLocation {
   /**
    * The character position where the location begins.
    */
@@ -480,7 +578,7 @@ abstract class Location {
   int get end;
 
   /**
-   * Returns the [Source] in which this [Location] indexes.
+   * Returns the [Source] in which this [SourceLocation] indexes.
    * If [:loc:] is a location, [:loc.source().text()[loc.start]:] is where it
    * starts, and [:loc.source().text()[loc.end]:] is where it ends.
    */

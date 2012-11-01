@@ -30,7 +30,7 @@ class ConstantHandler extends CompilerTask {
 
 
   ConstantHandler(Compiler compiler, this.constantSystem)
-      : initialVariableValues = new Map<VariableElement, Dynamic>(),
+      : initialVariableValues = new Map<VariableElement, dynamic>(),
         compiledConstants = new Set<Constant>(),
         pendingVariables = new Set<VariableElement>(),
         lazyStatics = new Set<VariableElement>(),

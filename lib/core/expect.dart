@@ -264,13 +264,16 @@ class Expect {
                       String reason = null]) {
     try {
       f();
-    } catch (e) {
+    } catch (e, s) {
       if (check !== null) {
-        Expect.isTrue(check(e));
+        if (!check(e)) {
+          String msg = reason == null ? "" : reason;
+          _fail("Expect.throws($msg): Unexpected '$e'\n$s");
+        }
       }
       return;
     }
-    String msg = _getMessage(reason);
+    String msg = reason == null ? "" : reason;
     _fail('Expect.throws($msg) fails');
   }
 

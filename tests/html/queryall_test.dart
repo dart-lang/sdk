@@ -10,6 +10,11 @@
 main() {
   useHtmlConfiguration();
 
+  var isElement = predicate((x) => x is Element, 'is an Element');
+  var isCanvasElement =
+      predicate((x) => x is CanvasElement, 'is a CanvasElement');
+  var isDivElement = predicate((x) => x is DivElement, 'is a isDivElement');
+
   var div = new DivElement();
   div.id = 'test';
   document.body.nodes.add(div);
@@ -26,7 +31,7 @@ main() {
   test('queryAll', () {
       List<Node> all = queryAll('*');
       for (var e in all) {
-        expect(e is Element, isTrue);
+        expect(e, isElement);
       }
     });
 
@@ -42,7 +47,7 @@ main() {
   test('queryAll-canvas', () {
       List<CanvasElement> all = queryAll('canvas');
       for (var e in all) {
-        expect(e is CanvasElement, isTrue);
+        expect(e, isCanvasElement);
       }
       expect(all.length, equals(2));
     });
@@ -66,11 +71,11 @@ main() {
   test('node.queryAll', () {
       List<Element> list = div.queryAll('*');
       expect(list.length, equals(5));
-      expect(list[0] is DivElement, isTrue);
-      expect(list[1] is CanvasElement, isTrue);
-      expect(list[2] is DivElement, isTrue);
-      expect(list[3] is DivElement, isTrue);
-      expect(list[4] is CanvasElement, isTrue);
+      expect(list[0], isDivElement);
+      expect(list[1], isCanvasElement);
+      expect(list[2], isDivElement);
+      expect(list[3], isDivElement);
+      expect(list[4], isCanvasElement);
     });
 
   test('immutable', () {

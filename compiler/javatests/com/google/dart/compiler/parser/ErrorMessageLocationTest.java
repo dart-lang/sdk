@@ -20,7 +20,7 @@ public class ErrorMessageLocationTest extends TestCase {
   public void testUnexpectedTokenErrorMessage() {
     String sourceCode =
         "// Empty comment\n" +
-        "interface foo while Bar {\n" +
+        "class foo while Bar {\n" +
         "}";
 
     DartParserRunner runner = DartParserRunner.parse(getName(), sourceCode);
@@ -30,7 +30,7 @@ public class ErrorMessageLocationTest extends TestCase {
     DartCompilationError actualError = actualErrors.get(0);
 
     String errorTokenString = "while";
-    assertEquals(15, actualError.getColumnNumber());
+    assertEquals(11, actualError.getColumnNumber());
     assertEquals(errorTokenString.length(), actualError.getLength());
     assertEquals(2, actualError.getLineNumber());
     assertEquals(sourceCode.indexOf(errorTokenString), actualError.getStartPosition());

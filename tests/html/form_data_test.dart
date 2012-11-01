@@ -13,16 +13,18 @@ void main() {
   // both a server and fire up a browser.
   useHtmlConfiguration();
 
+  var isFormData = predicate((x) => x is FormData, 'is a FormData');
+
   test('constructorTest1', () {
     var form = new FormData();
     expect(form, isNotNull);
-    expect(form is FormData);
+    expect(form, isFormData);
   });
 
   test('constructorTest2', () {
     var form = new FormData(new FormElement());
     expect(form, isNotNull);
-    expect(form is FormData);
+    expect(form, isFormData);
   });
 
   test('appendTest', () {

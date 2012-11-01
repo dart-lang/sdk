@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 String getHtmlContents(String title,
-                       String controllerScript,
-                       String dartJsScript,
+                       Path controllerScript,
+                       Path dartJsScript,
                        String scriptType,
-                       String sourceScript) =>
+                       Path sourceScript) =>
 """
 <!DOCTYPE html>
 <html>

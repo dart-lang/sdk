@@ -10,8 +10,10 @@ test(args) {
   future.then((process) {
     process.onExit = (exitCode) {
       Expect.equals(0, exitCode);
-      process.close();
     };
+    // Drain stdout and stderr.
+    process.stdout.onData = process.stdout.read;
+    process.stderr.onData = process.stderr.read;
   });
 }
 

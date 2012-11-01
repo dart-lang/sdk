@@ -27,9 +27,11 @@ DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
 DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
 DEFINE_FLAG(bool, trace_range_analysis, false, "Trace range analysis progress");
 DEFINE_FLAG(bool, trace_constant_propagation, false,
-            "Print constant propagation and useless code elimination.");
+    "Print constant propagation and useless code elimination.");
 DEFINE_FLAG(bool, array_bounds_check_elimination, true,
-            "Eliminate redundant bounds checks.");
+    "Eliminate redundant bounds checks.");
+DEFINE_FLAG(int, max_polymorphic_checks, 4,
+    "Maximum number of polymorphic check, otherwise it is megamorphic.");
 
 
 void FlowGraphOptimizer::ApplyICData() {
@@ -1121,60 +1123,67 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 // Tries to optimize instance call by replacing it with a faster instruction
 // (e.g, binary op, field load, ..).
 void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
-  if (instr->HasICData() && (instr->ic_data()->NumberOfChecks() > 0)) {
-    const Token::Kind op_kind = instr->token_kind();
-    if ((op_kind == Token::kASSIGN_INDEX) &&
-        TryReplaceWithStoreIndexed(instr)) {
-      return;
-    }
-    if ((op_kind == Token::kINDEX) && TryReplaceWithLoadIndexed(instr)) {
-      return;
-    }
-    if (Token::IsBinaryOperator(op_kind) &&
-        TryReplaceWithBinaryOp(instr, op_kind)) {
-      return;
-    }
-    if (Token::IsPrefixOperator(op_kind) &&
-        TryReplaceWithUnaryOp(instr, op_kind)) {
-      return;
-    }
-    if ((op_kind == Token::kGET) && TryInlineInstanceGetter(instr)) {
-      return;
-    }
-    if ((op_kind == Token::kSET) && TryInlineInstanceSetter(instr)) {
-      return;
-    }
-    if (TryInlineInstanceMethod(instr)) {
-      return;
-    }
-    const ICData& unary_checks =
-        ICData::ZoneHandle(instr->ic_data()->AsUnaryClassChecks());
-    if (!InstanceCallNeedsClassCheck(instr)) {
-      const bool call_with_checks = false;
-      PolymorphicInstanceCallInstr* call =
-          new PolymorphicInstanceCallInstr(instr, unary_checks,
-                                           call_with_checks);
-      instr->ReplaceWith(call, current_iterator());
-      return;
-    }
-    const intptr_t kMaxChecks = 4;
-    if (instr->ic_data()->NumberOfChecks() <= kMaxChecks) {
-      bool call_with_checks;
-      if (unary_checks.HasOneTarget()) {
-        // Type propagation has not run yet, we cannot eliminate the check.
-        AddCheckClass(instr, instr->ArgumentAt(0)->value()->Copy());
-        // Call can still deoptimize, do not detach environment from instr.
-        call_with_checks = false;
-      } else {
-        call_with_checks = true;
-      }
-      PolymorphicInstanceCallInstr* call =
-          new PolymorphicInstanceCallInstr(instr, unary_checks,
-                                           call_with_checks);
-      instr->ReplaceWith(call, current_iterator());
-    }
+  if (!instr->HasICData() || (instr->ic_data()->NumberOfChecks() == 0)) {
+    // An instance call without ICData will trigger deoptimization.
+    return;
   }
-  // An instance call without ICData will trigger deoptimization.
+
+  const ICData& unary_checks =
+      ICData::ZoneHandle(instr->ic_data()->AsUnaryClassChecks());
+  if ((unary_checks.NumberOfChecks() > FLAG_max_polymorphic_checks) &&
+      InstanceCallNeedsClassCheck(instr)) {
+    // Too many checks, leave it megamorphic.
+    return;
+  }
+
+  const Token::Kind op_kind = instr->token_kind();
+  if ((op_kind == Token::kASSIGN_INDEX) &&
+      TryReplaceWithStoreIndexed(instr)) {
+    return;
+  }
+  if ((op_kind == Token::kINDEX) && TryReplaceWithLoadIndexed(instr)) {
+    return;
+  }
+  if (Token::IsBinaryOperator(op_kind) &&
+      TryReplaceWithBinaryOp(instr, op_kind)) {
+    return;
+  }
+  if (Token::IsPrefixOperator(op_kind) &&
+      TryReplaceWithUnaryOp(instr, op_kind)) {
+    return;
+  }
+  if ((op_kind == Token::kGET) && TryInlineInstanceGetter(instr)) {
+    return;
+  }
+  if ((op_kind == Token::kSET) && TryInlineInstanceSetter(instr)) {
+    return;
+  }
+  if (TryInlineInstanceMethod(instr)) {
+    return;
+  }
+  if (!InstanceCallNeedsClassCheck(instr)) {
+    const bool call_with_checks = false;
+    PolymorphicInstanceCallInstr* call =
+        new PolymorphicInstanceCallInstr(instr, unary_checks,
+                                         call_with_checks);
+    instr->ReplaceWith(call, current_iterator());
+    return;
+  }
+  if (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
+    bool call_with_checks;
+    if (unary_checks.HasOneTarget()) {
+      // Type propagation has not run yet, we cannot eliminate the check.
+      AddCheckClass(instr, instr->ArgumentAt(0)->value()->Copy());
+      // Call can still deoptimize, do not detach environment from instr.
+      call_with_checks = false;
+    } else {
+      call_with_checks = true;
+    }
+    PolymorphicInstanceCallInstr* call =
+        new PolymorphicInstanceCallInstr(instr, unary_checks,
+                                         call_with_checks);
+    instr->ReplaceWith(call, current_iterator());
+  }
 }
 
 
@@ -1251,32 +1260,38 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
 static void HandleRelationalOp(FlowGraphOptimizer* optimizer,
                                RelationalOpInstr* comp,
                                Instruction* instr) {
-  if (!comp->HasICData()) return;
-
+  if (!comp->HasICData() || (comp->ic_data()->NumberOfChecks() == 0)) {
+    return;
+  }
   const ICData& ic_data = *comp->ic_data();
-  if (ic_data.NumberOfChecks() == 0) return;
-  // TODO(srdjan): Add multiple receiver type support.
-  if (ic_data.NumberOfChecks() != 1) return;
-  ASSERT(ic_data.HasOneTarget());
-
-  if (HasOnlyTwoSmis(ic_data)) {
-    optimizer->InsertBefore(
-        instr,
-        new CheckSmiInstr(comp->left()->Copy(), comp->deopt_id()),
-        instr->env(),
-        Definition::kEffect);
-    optimizer->InsertBefore(
-        instr,
-        new CheckSmiInstr(comp->right()->Copy(), comp->deopt_id()),
-        instr->env(),
-        Definition::kEffect);
-    comp->set_operands_class_id(kSmiCid);
-  } else if (ShouldSpecializeForDouble(ic_data)) {
-    comp->set_operands_class_id(kDoubleCid);
-  } else if (comp->ic_data()->AllReceiversAreNumbers()) {
-    comp->set_operands_class_id(kNumberCid);
+  if (ic_data.NumberOfChecks() == 1) {
+    ASSERT(ic_data.HasOneTarget());
+    if (HasOnlyTwoSmis(ic_data)) {
+      optimizer->InsertBefore(
+          instr,
+          new CheckSmiInstr(comp->left()->Copy(), comp->deopt_id()),
+          instr->env(),
+          Definition::kEffect);
+      optimizer->InsertBefore(
+          instr,
+          new CheckSmiInstr(comp->right()->Copy(), comp->deopt_id()),
+          instr->env(),
+          Definition::kEffect);
+      comp->set_operands_class_id(kSmiCid);
+    } else if (ShouldSpecializeForDouble(ic_data)) {
+      comp->set_operands_class_id(kDoubleCid);
+    } else if (HasTwoMintOrSmi(*comp->ic_data()) &&
+               FlowGraphCompiler::SupportsUnboxedMints()) {
+      comp->set_operands_class_id(kMintCid);
+    } else {
+      ASSERT(comp->operands_class_id() == kIllegalCid);
+    }
+  } else if (HasTwoMintOrSmi(*comp->ic_data()) &&
+             FlowGraphCompiler::SupportsUnboxedMints()) {
+    comp->set_operands_class_id(kMintCid);
   }
 }
+
 
 void FlowGraphOptimizer::VisitRelationalOp(RelationalOpInstr* instr) {
   HandleRelationalOp(this, instr, instr);
@@ -1333,8 +1348,6 @@ static void HandleEqualityCompare(FlowGraphOptimizer* optimizer,
   } else if (HasTwoMintOrSmi(*comp->ic_data()) &&
              FlowGraphCompiler::SupportsUnboxedMints()) {
     comp->set_receiver_class_id(kMintCid);
-  } else if (comp->ic_data()->AllReceiversAreNumbers()) {
-    comp->set_receiver_class_id(kNumberCid);
   }
 
   if (comp->receiver_class_id() != kIllegalCid) {
@@ -1455,9 +1468,8 @@ void SminessPropagator::AddToWorklist(PhiInstr* phi) {
 
 
 PhiInstr* SminessPropagator::RemoveLastFromWorklist() {
-  PhiInstr* phi = worklist_.Last();
+  PhiInstr* phi = worklist_.RemoveLast();
   ASSERT(in_worklist_->Contains(phi->ssa_temp_index()));
-  worklist_.RemoveLast();
   in_worklist_->Remove(phi->ssa_temp_index());
   return phi;
 }
@@ -1618,6 +1630,13 @@ class RangeAnalysis : public ValueObject {
                                        Range* constraint,
                                        Instruction* after);
 
+  void ConstrainValueAfterBranch(Definition* defn, Value* use);
+  void ConstrainValueAfterCheckArrayBound(Definition* defn,
+                                          CheckArrayBoundInstr* check);
+  Definition* LoadArrayLength(CheckArrayBoundInstr* check);
+
+
+
   // Replace uses of the definition def that are dominated by instruction dom
   // with uses of other definition.
   void RenameDominatedUses(Definition* def,
@@ -1675,6 +1694,42 @@ class RangeAnalysis : public ValueObject {
   // Worklist for induction variables analysis.
   GrowableArray<Definition*> worklist_;
   BitVector* marked_defns_;
+
+  class ArrayLengthData : public ValueObject {
+   public:
+    ArrayLengthData(Definition* array, Definition* array_length)
+        : array_(array), array_length_(array_length) { }
+
+    Definition* array() const { return array_; }
+    Definition* array_length() const { return array_length_; }
+
+    typedef Definition* Value;
+    typedef Definition* Key;
+    typedef class ArrayLengthData Pair;
+
+    // KeyValueTrait members.
+    static Key KeyOf(const ArrayLengthData& data) {
+      return data.array();
+    }
+
+    static Value ValueOf(const ArrayLengthData& data) {
+      return data.array_length();
+    }
+
+    static inline intptr_t Hashcode(Key key) {
+      return reinterpret_cast<intptr_t>(key);
+    }
+
+    static inline bool IsKeyEqual(const ArrayLengthData& kv, Key key) {
+      return kv.array() == key;
+    }
+
+   private:
+    Definition* array_;
+    Definition* array_length_;
+  };
+
+  DirectChainedHashMap<ArrayLengthData> array_lengths_;
 
   DISALLOW_COPY_AND_ASSIGN(RangeAnalysis);
 };
@@ -1864,50 +1919,108 @@ ConstraintInstr* RangeAnalysis::InsertConstraintFor(Definition* defn,
 }
 
 
+void RangeAnalysis::ConstrainValueAfterBranch(Definition* defn, Value* use) {
+  BranchInstr* branch = use->instruction()->AsBranch();
+  RelationalOpInstr* rel_op = branch->comparison()->AsRelationalOp();
+  if ((rel_op != NULL) && (rel_op->operands_class_id() == kSmiCid)) {
+    // Found comparison of two smis. Constrain defn at true and false
+    // successors using the other operand as a boundary.
+    Definition* boundary;
+    Token::Kind op_kind;
+    if (use->use_index() == 0) {  // Left operand.
+      boundary = rel_op->InputAt(1)->definition();
+      op_kind = rel_op->kind();
+    } else {
+      ASSERT(use->use_index() == 1);  // Right operand.
+      boundary = rel_op->InputAt(0)->definition();
+      // InsertConstraintFor assumes that defn is left operand of a
+      // comparison if it is right operand flip the comparison.
+      op_kind = FlipComparison(rel_op->kind());
+    }
+
+    // Constrain definition at the true successor.
+    ConstraintInstr* true_constraint =
+        InsertConstraintFor(defn,
+                            ConstraintRange(op_kind, boundary),
+                            branch->true_successor());
+    // Mark true_constraint an artificial use of boundary. This ensures
+    // that constraint's range is recalculated if boundary's range changes.
+    if (true_constraint != NULL) true_constraint->AddDependency(boundary);
+
+    // Constrain definition with a negated condition at the false successor.
+    ConstraintInstr* false_constraint =
+        InsertConstraintFor(
+            defn,
+            ConstraintRange(NegateComparison(op_kind), boundary),
+            branch->false_successor());
+    // Mark false_constraint an artificial use of boundary. This ensures
+    // that constraint's range is recalculated if boundary's range changes.
+    if (false_constraint != NULL) false_constraint->AddDependency(boundary);
+  }
+}
+
 void RangeAnalysis::InsertConstraintsFor(Definition* defn) {
   for (Value* use = defn->input_use_list();
        use != NULL;
        use = use->next_use()) {
     if (use->instruction()->IsBranch()) {
-      BranchInstr* branch = use->instruction()->AsBranch();
-      RelationalOpInstr* rel_op = branch->comparison()->AsRelationalOp();
-      if ((rel_op != NULL) && (rel_op->operands_class_id() == kSmiCid)) {
-        // Found comparison of two smis. Constrain defn at true and false
-        // successors using the other operand as a boundary.
-        Definition* boundary;
-        Token::Kind op_kind;
-        if (use->use_index() == 0) {  // Left operand.
-          boundary = rel_op->InputAt(1)->definition();
-          op_kind = rel_op->kind();
-        } else {
-          ASSERT(use->use_index() == 1);  // Right operand.
-          boundary = rel_op->InputAt(0)->definition();
-          // InsertConstraintFor assumes that defn is left operand of a
-          // comparison if it is right operand flip the comparison.
-          op_kind = FlipComparison(rel_op->kind());
-        }
-
-        // Constrain definition at the true successor.
-        ConstraintInstr* true_constraint =
-            InsertConstraintFor(defn,
-                                ConstraintRange(op_kind, boundary),
-                                branch->true_successor());
-        // Mark true_constraint an artificial use of boundary. This ensures
-        // that constraint's range is recalculated if boundary's range changes.
-        if (true_constraint != NULL) true_constraint->AddDependency(boundary);
-
-        // Constrain definition with a negated condition at the false successor.
-        ConstraintInstr* false_constraint =
-            InsertConstraintFor(
-                defn,
-                ConstraintRange(NegateComparison(op_kind), boundary),
-                branch->false_successor());
-        // Mark false_constraint an artificial use of boundary. This ensures
-        // that constraint's range is recalculated if boundary's range changes.
-        if (false_constraint != NULL) false_constraint->AddDependency(boundary);
-      }
+      ConstrainValueAfterBranch(defn, use);
+    } else if (use->instruction()->IsCheckArrayBound()) {
+      ConstrainValueAfterCheckArrayBound(
+          defn,
+          use->instruction()->AsCheckArrayBound());
     }
   }
+}
+
+
+Definition* RangeAnalysis::LoadArrayLength(CheckArrayBoundInstr* check) {
+  Definition* array = check->array()->definition();
+
+  Definition* length = array_lengths_.Lookup(array);
+  if (length != NULL) return length;
+
+  StaticCallInstr* allocation = array->AsStaticCall();
+  if ((allocation != NULL) &&
+      allocation->is_known_constructor() &&
+      (allocation->ResultCid() == kArrayCid)) {
+    // For fixed length arrays check if array is the result of a constructor
+    // call. In this case we can use the length passed to the constructor
+    // instead of loading it from array itself.
+    length = allocation->ArgumentAt(1)->value()->definition();
+  } else {
+    // Load length from the array. Do not insert instruction into the graph.
+    // It will only be used in range boundaries.
+    LoadFieldInstr* length_load = new LoadFieldInstr(
+        check->array()->Copy(),
+        Array::length_offset(),
+        Type::ZoneHandle(Type::SmiType()),
+        true);  // Immutable.
+    length_load->set_recognized_kind(MethodRecognizer::kObjectArrayLength);
+    length_load->set_result_cid(kSmiCid);
+    length_load->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
+    length = length_load;
+  }
+
+  ASSERT(length != NULL);
+  array_lengths_.Insert(ArrayLengthData(array, length));
+  return length;
+}
+
+
+void RangeAnalysis::ConstrainValueAfterCheckArrayBound(
+    Definition* defn, CheckArrayBoundInstr* check) {
+  if ((check->array_type() != kArrayCid) &&
+      (check->array_type() != kImmutableArrayCid)) {
+    return;
+  }
+
+  Definition* length = LoadArrayLength(check);
+
+  Range* constraint_range = new Range(
+      RangeBoundary::FromConstant(0),
+      RangeBoundary::FromDefinition(length, -1));
+  InsertConstraintFor(defn, constraint_range, check);
 }
 
 
@@ -1978,8 +2091,7 @@ Range* RangeAnalysis::InferInductionVariableRange(JoinEntryInstr* loop_header,
   ResetWorklist();
   MarkDefinition(var);
   while (!worklist_.is_empty()) {
-    Definition* defn = worklist_.Last();
-    worklist_.RemoveLast();
+    Definition* defn = worklist_.RemoveLast();
 
     if (defn->IsPhi()) {
       PhiInstr* phi = defn->AsPhi();
@@ -2097,9 +2209,11 @@ void RangeAnalysis::InferRangesRecursive(BlockEntryInstr* block) {
         smi_definitions_->Contains(defn->ssa_temp_index())) {
       defn->InferRange();
     } else if (FLAG_array_bounds_check_elimination &&
-               current->IsCheckArrayBound() &&
-               current->AsCheckArrayBound()->IsRedundant()) {
-      it.RemoveCurrentFromGraph();
+               current->IsCheckArrayBound()) {
+      CheckArrayBoundInstr* check = current->AsCheckArrayBound();
+      RangeBoundary array_length =
+          RangeBoundary::FromDefinition(LoadArrayLength(check));
+      if (check->IsRedundant(array_length)) it.RemoveCurrentFromGraph();
     }
   }
 
@@ -2547,7 +2661,7 @@ static bool IsLoadEliminationCandidate(Definition* def) {
 
 
 static intptr_t NumberLoadExpressions(FlowGraph* graph) {
-  DirectChainedHashMap<Definition*> map;
+  DirectChainedHashMap<PointerKeyValueTrait<Definition> > map;
   intptr_t expr_id = 0;
   for (BlockIterator it = graph->reverse_postorder_iterator();
        !it.Done();
@@ -2737,7 +2851,7 @@ bool DominatorBasedCSE::Optimize(FlowGraph* graph) {
     }
   }
 
-  DirectChainedHashMap<Instruction*> map;
+  DirectChainedHashMap<PointerKeyValueTrait<Instruction> > map;
   changed = OptimizeRecursive(graph->graph_entry(), &map) || changed;
 
   return changed;
@@ -2746,7 +2860,7 @@ bool DominatorBasedCSE::Optimize(FlowGraph* graph) {
 
 bool DominatorBasedCSE::OptimizeRecursive(
     BlockEntryInstr* block,
-    DirectChainedHashMap<Instruction*>* map) {
+    DirectChainedHashMap<PointerKeyValueTrait<Instruction> >* map) {
   bool changed = false;
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
     Instruction* current = it.Current();
@@ -2766,7 +2880,8 @@ bool DominatorBasedCSE::OptimizeRecursive(
   for (intptr_t i = 0; i < num_children; ++i) {
     BlockEntryInstr* child = block->dominated_blocks()[i];
     if (i  < num_children - 1) {
-      DirectChainedHashMap<Instruction*> child_map(*map);  // Copy map.
+      // Copy map.
+      DirectChainedHashMap<PointerKeyValueTrait<Instruction> > child_map(*map);
       changed = OptimizeRecursive(child, &child_map) || changed;
     } else {
       // Reuse map for the last child.
@@ -3066,8 +3181,18 @@ void ConstantPropagator::VisitStoreLocal(StoreLocalInstr* instr) {
 void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
+
   if (IsNonConstant(left) || IsNonConstant(right)) {
-    SetValue(instr, non_constant_);
+    // TODO(vegorov): incorporate nullability information into the lattice.
+    if ((left.IsNull() && (instr->right()->ResultCid() != kDynamicCid)) ||
+        (right.IsNull() && (instr->left()->ResultCid() != kDynamicCid))) {
+      bool result = left.IsNull() ? (instr->right()->ResultCid() == kNullCid)
+                                  : (instr->left()->ResultCid() == kNullCid);
+      if (instr->kind() == Token::kNE_STRICT) result = !result;
+      SetValue(instr, Bool::ZoneHandle(Bool::Get(result)));
+    } else {
+      SetValue(instr, non_constant_);
+    }
   } else if (IsConstant(left) && IsConstant(right)) {
     bool result = (left.raw() == right.raw());
     if (instr->kind() == Token::kNE_STRICT) result = !result;
@@ -3380,8 +3505,7 @@ void ConstantPropagator::Analyze() {
   while (true) {
     if (block_worklist_.is_empty()) {
       if (definition_worklist_.is_empty()) break;
-      Definition* definition = definition_worklist_.Last();
-      definition_worklist_.RemoveLast();
+      Definition* definition = definition_worklist_.RemoveLast();
       definition_marks_->Remove(definition->ssa_temp_index());
       Value* use = definition->input_use_list();
       while (use != NULL) {
@@ -3389,8 +3513,7 @@ void ConstantPropagator::Analyze() {
         use = use->next_use();
       }
     } else {
-      BlockEntryInstr* block = block_worklist_.Last();
-      block_worklist_.RemoveLast();
+      BlockEntryInstr* block = block_worklist_.RemoveLast();
       block->Accept(this);
     }
   }
@@ -3403,6 +3526,8 @@ void ConstantPropagator::Transform() {
     FlowGraphPrinter printer(*graph_);
     printer.PrintBlocks();
   }
+
+  GrowableArray<PhiInstr*> redundant_phis(10);
 
   // We will recompute dominators, block ordering, block ids, block last
   // instructions, previous pointers, predecessors, etc. after eliminating
@@ -3446,6 +3571,7 @@ void ConstantPropagator::Transform() {
             PhiInstr* phi = (*phis)[phi_idx];
             if (phi == NULL) continue;
             phi->inputs_.TruncateTo(live_count);
+            if (live_count == 1) redundant_phis.Add(phi);
           }
         }
       }
@@ -3520,6 +3646,12 @@ void ConstantPropagator::Transform() {
   GrowableArray<BitVector*> dominance_frontier;
   graph_->ComputeDominators(&dominance_frontier);
   graph_->ComputeUseLists();
+
+  for (intptr_t i = 0; i < redundant_phis.length(); i++) {
+    PhiInstr* phi = redundant_phis[i];
+    phi->ReplaceUsesWith(phi->InputAt(0)->definition());
+    phi->mark_dead();
+  }
 
   if (FLAG_trace_constant_propagation) {
     OS::Print("\n==== After constant propagation ====\n");

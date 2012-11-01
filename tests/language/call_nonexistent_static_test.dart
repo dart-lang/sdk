@@ -22,7 +22,7 @@ expectNsme([void fun()]) {
 }
 
 alwaysThrows() {
-  throw new NoSuchMethodError(null, 'foo', []);
+  throw new NoSuchMethodError(null, 'foo', [], {});
 }
 
 test01() {

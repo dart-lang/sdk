@@ -18,7 +18,7 @@ void FUNCTION_NAME(Directory_Current)(Dart_NativeArguments args) {
   Dart_EnterScope();
   char* current = Directory::Current();
   if (current != NULL) {
-    Dart_SetReturnValue(args, Dart_NewString(current));
+    Dart_SetReturnValue(args, DartUtils::NewString(current));
     free(current);
   }
   Dart_ExitScope();
@@ -64,7 +64,7 @@ void FUNCTION_NAME(Directory_CreateTemp)(Dart_NativeArguments args) {
   Dart_Handle path = Dart_GetNativeArgument(args, 0);
   char* result = Directory::CreateTemp(DartUtils::GetStringValue(path));
   if (result != NULL) {
-    Dart_SetReturnValue(args, Dart_NewString(result));
+    Dart_SetReturnValue(args, DartUtils::NewString(result));
     free(result);
   } else {
     Dart_Handle err = DartUtils::NewDartOSError();

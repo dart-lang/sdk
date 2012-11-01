@@ -458,6 +458,10 @@ class PrimaryNode : public AstNode {
 
   const Object& primary() const { return primary_; }
 
+  bool IsSuper() const {
+    return primary().IsString() && (primary().raw() == Symbols::Super());
+  }
+
   virtual void VisitChildren(AstNodeVisitor* visitor) const;
 
   DECLARE_COMMON_NODE_FUNCTIONS(PrimaryNode);
@@ -1114,14 +1118,23 @@ class StoreStaticFieldNode : public AstNode {
 
 class LoadIndexedNode : public AstNode {
  public:
-  LoadIndexedNode(intptr_t token_pos, AstNode* array, AstNode* index)
-      : AstNode(token_pos), array_(array), index_expr_(index) {
+  LoadIndexedNode(intptr_t token_pos,
+                  AstNode* array,
+                  AstNode* index,
+                  const Class& super_class)
+      : AstNode(token_pos),
+        array_(array),
+        index_expr_(index),
+        super_class_(super_class) {
     ASSERT(array_ != NULL);
     ASSERT(index_expr_ != NULL);
+    ASSERT(super_class_.IsZoneHandle());
   }
 
   AstNode* array() const { return array_; }
   AstNode* index_expr() const { return index_expr_; }
+  const Class& super_class() const { return super_class_; }
+  bool IsSuperLoad() const { return !super_class_.IsNull(); }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     array()->Visit(visitor);
@@ -1135,6 +1148,7 @@ class LoadIndexedNode : public AstNode {
  private:
   AstNode* array_;
   AstNode* index_expr_;
+  const Class& super_class_;
   DISALLOW_IMPLICIT_CONSTRUCTORS(LoadIndexedNode);
 };
 
@@ -1142,16 +1156,26 @@ class LoadIndexedNode : public AstNode {
 class StoreIndexedNode : public AstNode {
  public:
   StoreIndexedNode(intptr_t token_pos,
-                   AstNode* array, AstNode* index, AstNode* value)
-    : AstNode(token_pos), array_(array), index_expr_(index), value_(value) {
+                   AstNode* array,
+                   AstNode* index,
+                   AstNode* value,
+                   const Class& super_class)
+    : AstNode(token_pos),
+      array_(array),
+      index_expr_(index),
+      value_(value),
+      super_class_(super_class) {
     ASSERT(array_ != NULL);
     ASSERT(index_expr_ != NULL);
     ASSERT(value_ != NULL);
+    ASSERT(super_class_.IsZoneHandle());
   }
 
   AstNode* array() const { return array_; }
   AstNode* index_expr() const { return index_expr_; }
   AstNode* value() const { return value_; }
+  const Class& super_class() const { return super_class_; }
+  bool IsSuperStore() const { return !super_class_.IsNull(); }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     array()->Visit(visitor);
@@ -1165,6 +1189,7 @@ class StoreIndexedNode : public AstNode {
   AstNode* array_;
   AstNode* index_expr_;
   AstNode* value_;
+  const Class& super_class_;
   DISALLOW_IMPLICIT_CONSTRUCTORS(StoreIndexedNode);
 };
 

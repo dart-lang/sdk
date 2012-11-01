@@ -20,7 +20,7 @@ void testCreateByteArray() {
   for (int i = 0; i < 10; i++) {
     Expect.equals(0, byteArray[i]);
   }
-  
+
 }
 
 void testUnsignedByteArrayRange() {
@@ -31,7 +31,7 @@ void testUnsignedByteArrayRange() {
   Expect.equals(255, byteArray[1]);
   byteArray[1] = 0;
   Expect.equals(0, byteArray[1]);
-  
+
   Expect.throws(() {
     byteArray[1] = 1.2;
   });
@@ -131,7 +131,7 @@ void testSubArray() {
   Expect.equals(10, array.subByteArray(0, null).lengthInBytes());
   Expect.equals(10, array.subByteArray().lengthInBytes());
   testThrowsIndex(function) {
-    Expect.throws(function, (e) => e is IndexOutOfRangeException);
+    Expect.throws(function, (e) => e is RangeError);
   }
   testThrowsIndex(() => array.subByteArray(0, -1));
   testThrowsIndex(() => array.subByteArray(1, -1));

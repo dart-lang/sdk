@@ -34,9 +34,9 @@ main() {
 
     SendPortSync port = window.lookupPort('test');
     var result = port.callSync('sent');
-    Expect.equals('received', result);
+    expect(result, 'received');
 
     result = port.callSync('ignore');
-    Expect.isNull(result);
+    expect(result, isNull);
   });
 }

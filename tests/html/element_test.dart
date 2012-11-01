@@ -8,12 +8,12 @@
 #import('dart:html');
 
 expectLargeRect(ClientRect rect) {
-  Expect.equals(rect.top, 0);
-  Expect.equals(rect.left, 0);
-  Expect.isTrue(rect.width > 100);
-  Expect.isTrue(rect.height > 100);
-  Expect.equals(rect.bottom, rect.top + rect.height);
-  Expect.equals(rect.right, rect.left + rect.width);
+  expect(rect.top, 0);
+  expect(rect.left, 0);
+  expect(rect.width, greaterThan(100));
+  expect(rect.height, greaterThan(100));
+  expect(rect.bottom, rect.top + rect.height);
+  expect(rect.right, rect.left + rect.width);
 }
 
 void testEventHelper(EventListenerList listenerList, String type,
@@ -38,22 +38,36 @@ void testMultipleEventHelper(EventListenerList listenerList, List<String> types,
     listenerList.dispatch(event);
   }
 
-  Expect.isTrue(firedWhenAddedToListenerList);
+  expect(firedWhenAddedToListenerList, isTrue);
   if (registerOnEventListener != null) {
-    Expect.isTrue(firedOnEvent);
+    expect(firedOnEvent, isTrue);
   }
 }
 
 void testConstructorHelper(String tag, String htmlSnippet,
     String expectedText, Function isExpectedClass) {
-  Expect.isTrue(isExpectedClass(new Element.tag(tag)));
+  expect(isExpectedClass(new Element.tag(tag)), isTrue);
   final elementFromSnippet = new Element.html(htmlSnippet);
-  Expect.isTrue(isExpectedClass(elementFromSnippet));
-  Expect.equals(expectedText, elementFromSnippet.text);
+  expect(isExpectedClass(elementFromSnippet), isTrue);
+  expect(elementFromSnippet.text, expectedText);
 }
 
 main() {
   useHtmlConfiguration();
+
+  var isHRElement = predicate((x) => x is HRElement, 'is a HRElement');
+  var isBRElement = predicate((x) => x is BRElement, 'is a BRElement');
+  var isInputElement =
+      predicate((x) => x is InputElement, 'is an InputElement');
+  var isImageElement =
+      predicate((x) => x is ImageElement, 'is an ImageElement');
+  var isSpanElement = predicate((x) => x is SpanElement, 'is a SpanElement');
+  var isAnchorElement =
+      predicate((x) => x is AnchorElement, 'is an AnchorElement');
+  var isElementList =
+      predicate((x) => x is List<Element>, 'is a List<Element>');
+  var isHeadingElement =
+      predicate((x) => x is HeadingElement, 'is a HeadingElement');
 
   Element makeElement() => new Element.tag('div');
 
@@ -63,7 +77,7 @@ main() {
   test('computedStyle', () {
     final element = document.body;
     element.computedStyle.then(expectAsync1((style) {
-      Expect.equals(style.getPropertyValue('left'), 'auto');
+      expect(style.getPropertyValue('left'), 'auto');
     }));
   });
 
@@ -113,12 +127,11 @@ main() {
 
   group('constructors', () {
     test('error', () {
-      Expect.throws(() => new Element.html('<br/><br/>'),
-          (e) => e is ArgumentError);
+      expect(() => new Element.html('<br/><br/>'), throwsArgumentError);
     });
 
     test('.html has no parent', () =>
-        Expect.isNull(new Element.html('<br/>').parent));
+        expect(new Element.html('<br/>').parent, isNull));
 
     test('a', () => testConstructorHelper('a', '<a>foo</a>', 'foo',
         (element) => element is AnchorElement));
@@ -434,136 +447,136 @@ main() {
                    data-foo2="bar2" dir="rtl">
                </div>''');
         final attributes = element.attributes;
-        Expect.equals(attributes['class'], 'foo');
-        Expect.equals(attributes['style'], 'overflow: hidden');
-        Expect.equals(attributes['data-foo'], 'bar');
-        Expect.equals(attributes['data-foo2'], 'bar2');
-        Expect.equals(attributes.length, 5);
-        Expect.equals(element.dataAttributes.length, 2);
+        expect(attributes['class'], 'foo');
+        expect(attributes['style'], 'overflow: hidden');
+        expect(attributes['data-foo'], 'bar');
+        expect(attributes['data-foo2'], 'bar2');
+        expect(attributes.length, 5);
+        expect(element.dataAttributes.length, 2);
         element.dataAttributes['foo'] = 'baz';
-        Expect.equals(element.dataAttributes['foo'], 'baz');
-        Expect.equals(attributes['data-foo'], 'baz');
+        expect(element.dataAttributes['foo'], 'baz');
+        expect(attributes['data-foo'], 'baz');
         attributes['data-foo2'] = 'baz2';
-        Expect.equals(attributes['data-foo2'], 'baz2');
-        Expect.equals(element.dataAttributes['foo2'], 'baz2');
-        Expect.equals(attributes['dir'], 'rtl');
+        expect(attributes['data-foo2'], 'baz2');
+        expect(element.dataAttributes['foo2'], 'baz2');
+        expect(attributes['dir'], 'rtl');
 
         final dataAttributes = element.dataAttributes;
         dataAttributes.remove('foo2');
-        Expect.equals(attributes.length, 4);
-        Expect.equals(dataAttributes.length, 1);
+        expect(attributes.length, 4);
+        expect(dataAttributes.length, 1);
         attributes.remove('style');
-        Expect.equals(attributes.length, 3);
+        expect(attributes.length, 3);
         dataAttributes['foo3'] = 'baz3';
-        Expect.equals(dataAttributes.length, 2);
-        Expect.equals(attributes.length, 4);
+        expect(dataAttributes.length, 2);
+        expect(attributes.length, 4);
         attributes['style'] = 'width: 300px;';
-        Expect.equals(attributes.length, 5);
+        expect(attributes.length, 5);
       });
 
       test('coercion', () {
         final element = new Element.tag('div');
         element.attributes['foo'] = 42;
         element.attributes['bar'] = 3.1;
-        Expect.equals(element.attributes['foo'], '42');
-        Expect.equals(element.attributes['bar'], '3.1');
+        expect(element.attributes['foo'], '42');
+        expect(element.attributes['bar'], '3.1');
       });
   });
 
   group('elements', () {
     test('is a subset of nodes', () {
       var el = new Element.html("<div>Foo<br/><img/></div>");
-      Expect.equals(3, el.nodes.length);
-      Expect.equals(2, el.elements.length);
-      Expect.equals(el.nodes[1], el.elements[0]);
-      Expect.equals(el.nodes[2], el.elements[1]);
+      expect(el.nodes.length, 3);
+      expect(el.elements.length, 2);
+      expect(el.nodes[1], el.elements[0]);
+      expect(el.nodes[2], el.elements[1]);
     });
 
     test('changes when an element is added to nodes', () {
       var el = new Element.html("<div>Foo<br/><img/></div>");
       el.nodes.add(new Element.tag('hr'));
-      Expect.equals(3, el.elements.length);
-      Expect.isTrue(el.elements[2] is HRElement);
-      Expect.equals(el.nodes[3], el.elements[2]);
+      expect(el.elements.length, 3);
+      expect(el.elements[2], isHRElement);
+      expect(el.nodes[3], el.elements[2]);
     });
 
     test('changes nodes when an element is added', () {
       var el = new Element.html("<div>Foo<br/><img/></div>");
       el.elements.add(new Element.tag('hr'));
-      Expect.equals(4, el.nodes.length);
-      Expect.isTrue(el.nodes[3] is HRElement);
-      Expect.equals(el.elements[2], el.nodes[3]);
+      expect(el.nodes.length, 4);
+      expect(el.nodes[3], isHRElement);
+      expect(el.elements[2], el.nodes[3]);
     });
 
     test('last', () {
       var el = makeElementWithChildren();
-      Expect.isTrue(el.elements.last is InputElement);
+      expect(el.elements.last, isInputElement);
     });
 
     test('forEach', () {
       var els = [];
       var el = makeElementWithChildren();
       el.elements.forEach((n) => els.add(n));
-      Expect.isTrue(els[0] is BRElement);
-      Expect.isTrue(els[1] is ImageElement);
-      Expect.isTrue(els[2] is InputElement);
+      expect(els[0], isBRElement);
+      expect(els[1], isImageElement);
+      expect(els[2], isInputElement);
     });
 
     test('filter', () {
       var filtered = makeElementWithChildren().elements.
         filter((n) => n is ImageElement);
-      Expect.equals(1, filtered.length);
-      Expect.isTrue(filtered[0] is ImageElement);
-      Expect.isTrue(filtered is List<Element>);
+      expect(1, filtered.length);
+      expect(filtered[0], isImageElement);
+      expect(filtered, isElementList);
     });
 
     test('every', () {
       var el = makeElementWithChildren();
-      Expect.isTrue(el.elements.every((n) => n is Element));
-      Expect.isFalse(el.elements.every((n) => n is InputElement));
+      expect(el.elements.every((n) => n is Element), isTrue);
+      expect(el.elements.every((n) => n is InputElement), isFalse);
     });
 
     test('some', () {
       var el = makeElementWithChildren();
-      Expect.isTrue(el.elements.some((n) => n is InputElement));
-      Expect.isFalse(el.elements.some((n) => n is SVGElement));
+      expect(el.elements.some((n) => n is InputElement), isTrue);
+      expect(el.elements.some((n) => n is SVGElement), isFalse);
     });
 
     test('isEmpty', () {
-      Expect.isTrue(makeElement().elements.isEmpty);
-      Expect.isFalse(makeElementWithChildren().elements.isEmpty);
+      expect(makeElement().elements.isEmpty, isTrue);
+      expect(makeElementWithChildren().elements.isEmpty, isFalse);
     });
 
     test('length', () {
-      Expect.equals(0, makeElement().elements.length);
-      Expect.equals(3, makeElementWithChildren().elements.length);
+      expect(makeElement().elements.length, 0);
+      expect(makeElementWithChildren().elements.length, 3);
     });
 
     test('[]', () {
       var el = makeElementWithChildren();
-      Expect.isTrue(el.elements[0] is BRElement);
-      Expect.isTrue(el.elements[1] is ImageElement);
-      Expect.isTrue(el.elements[2] is InputElement);
+      expect(el.elements[0], isBRElement);
+      expect(el.elements[1], isImageElement);
+      expect(el.elements[2], isInputElement);
     });
 
     test('[]=', () {
       var el = makeElementWithChildren();
       el.elements[1] = new Element.tag('hr');
-      Expect.isTrue(el.elements[0] is BRElement);
-      Expect.isTrue(el.elements[1] is HRElement);
-      Expect.isTrue(el.elements[2] is InputElement);
+      expect(el.elements[0], isBRElement);
+      expect(el.elements[1], isHRElement);
+      expect(el.elements[2], isInputElement);
     });
 
     test('add', () {
       var el = makeElement();
       el.elements.add(new Element.tag('hr'));
-      Expect.isTrue(el.elements.last is HRElement);
+      expect(el.elements.last, isHRElement);
     });
 
     test('addLast', () {
       var el = makeElement();
       el.elements.addLast(new Element.tag('hr'));
-      Expect.isTrue(el.elements.last is HRElement);
+      expect(el.elements.last, isHRElement);
     });
 
     test('iterator', () {
@@ -572,9 +585,9 @@ main() {
       for (var subel in el.elements) {
         els.add(subel);
       }
-      Expect.isTrue(els[0] is BRElement);
-      Expect.isTrue(els[1] is ImageElement);
-      Expect.isTrue(els[2] is InputElement);
+      expect(els[0], isBRElement);
+      expect(els[1], isImageElement);
+      expect(els[2], isInputElement);
     });
 
     test('addAll', () {
@@ -584,31 +597,31 @@ main() {
         new Element.tag('a'),
         new Element.tag('h1')
       ]);
-      Expect.isTrue(el.elements[0] is BRElement);
-      Expect.isTrue(el.elements[1] is ImageElement);
-      Expect.isTrue(el.elements[2] is InputElement);
-      Expect.isTrue(el.elements[3] is SpanElement);
-      Expect.isTrue(el.elements[4] is AnchorElement);
-      Expect.isTrue(el.elements[5] is HeadingElement);
+      expect(el.elements[0], isBRElement);
+      expect(el.elements[1], isImageElement);
+      expect(el.elements[2], isInputElement);
+      expect(el.elements[3], isSpanElement);
+      expect(el.elements[4], isAnchorElement);
+      expect(el.elements[5], isHeadingElement);
     });
 
     test('clear', () {
       var el = makeElementWithChildren();
       el.elements.clear();
-      Expect.listEquals([], el.elements);
+      expect(el.elements, equals([]));
     });
 
     test('removeLast', () {
       var el = makeElementWithChildren();
-      Expect.isTrue(el.elements.removeLast() is InputElement);
-      Expect.equals(2, el.elements.length);
-      Expect.isTrue(el.elements.removeLast() is ImageElement);
-      Expect.equals(1, el.elements.length);
+      expect(el.elements.removeLast(), isInputElement);
+      expect(el.elements.length, 2);
+      expect(el.elements.removeLast(), isImageElement);
+      expect(el.elements.length, 1);
     });
 
     test('getRange', () {
       var el = makeElementWithChildren();
-      Expect.isTrue(el.elements.getRange(1, 1) is List<Element>);
+      expect(el.elements.getRange(1, 1), isElementList);
     });
   });
 
@@ -631,61 +644,61 @@ main() {
 
     void testUnsupported(String name, void f()) {
       test(name, () {
-        Expect.throws(f, (e) => e is UnsupportedError);
+        expect(f, throwsUnsupportedError);
       });
     }
 
     test('last', () {
-      Expect.isTrue(getQueryAll().last is HRElement);
+      expect(getQueryAll().last, isHRElement);
     });
 
     test('forEach', () {
       var els = [];
       getQueryAll().forEach((el) => els.add(el));
-      Expect.isTrue(els[0] is AnchorElement);
-      Expect.isTrue(els[1] is SpanElement);
-      Expect.isTrue(els[2] is HRElement);
+      expect(els[0], isAnchorElement);
+      expect(els[1], isSpanElement);
+      expect(els[2], isHRElement);
     });
 
     test('map', () {
       var texts = getQueryAll().map((el) => el.text);
-      Expect.listEquals(['Dart!', 'Hello', ''], texts);
+      expect(texts, equals(['Dart!', 'Hello', '']));
     });
 
     test('filter', () {
       var filtered = getQueryAll().filter((n) => n is SpanElement);
-      Expect.equals(1, filtered.length);
-      Expect.isTrue(filtered[0] is SpanElement);
-      Expect.isTrue(filtered is List<Element>);
+      expect(filtered.length, 1);
+      expect(filtered[0], isSpanElement);
+      expect(filtered, isElementList);
     });
 
     test('every', () {
       var el = getQueryAll();
-      Expect.isTrue(el.every((n) => n is Element));
-      Expect.isFalse(el.every((n) => n is SpanElement));
+      expect(el.every((n) => n is Element), isTrue);
+      expect(el.every((n) => n is SpanElement), isFalse);
     });
 
     test('some', () {
       var el = getQueryAll();
-      Expect.isTrue(el.some((n) => n is SpanElement));
-      Expect.isFalse(el.some((n) => n is SVGElement));
+      expect(el.some((n) => n is SpanElement), isTrue);
+      expect(el.some((n) => n is SVGElement), isFalse);
     });
 
     test('isEmpty', () {
-      Expect.isTrue(getEmptyQueryAll().isEmpty);
-      Expect.isFalse(getQueryAll().isEmpty);
+      expect(getEmptyQueryAll().isEmpty, isTrue);
+      expect(getQueryAll().isEmpty, isFalse);
     });
 
     test('length', () {
-      Expect.equals(0, getEmptyQueryAll().length);
-      Expect.equals(3, getQueryAll().length);
+      expect(getEmptyQueryAll().length, 0);
+      expect(getQueryAll().length, 3);
     });
 
     test('[]', () {
       var els = getQueryAll();
-      Expect.isTrue(els[0] is AnchorElement);
-      Expect.isTrue(els[1] is SpanElement);
-      Expect.isTrue(els[2] is HRElement);
+      expect(els[0], isAnchorElement);
+      expect(els[1], isSpanElement);
+      expect(els[2], isHRElement);
     });
 
     test('iterator', () {
@@ -693,13 +706,13 @@ main() {
       for (var subel in getQueryAll()) {
         els.add(subel);
       }
-      Expect.isTrue(els[0] is AnchorElement);
-      Expect.isTrue(els[1] is SpanElement);
-      Expect.isTrue(els[2] is HRElement);
+      expect(els[0], isAnchorElement);
+      expect(els[1], isSpanElement);
+      expect(els[2], isHRElement);
     });
 
     test('getRange', () {
-      Expect.isTrue(getQueryAll().getRange(1, 1) is List<Element>);
+      expect(getQueryAll().getRange(1, 1) is List<Element>, isTrue);
     });
 
     testUnsupported('[]=', () => getQueryAll()[1] = new Element.tag('br'));
@@ -733,16 +746,16 @@ main() {
 
     test('filter', () {
       var filtered = makeElList().filter((n) => n is ImageElement);
-      Expect.equals(1, filtered.length);
-      Expect.isTrue(filtered[0] is ImageElement);
-      Expect.isTrue(filtered is List<Element>);
+      expect(filtered.length, 1);
+      expect(filtered[0], isImageElement);
+      expect(filtered, isElementList);
     });
 
     test('getRange', () {
       var range = makeElList().getRange(1, 2);
-      Expect.isTrue(range is List<Element>);
-      Expect.isTrue(range[0] is ImageElement);
-      Expect.isTrue(range[1] is InputElement);
+      expect(range, isElementList);
+      expect(range[0], isImageElement);
+      expect(range[1], isInputElement);
     });
   });
 }

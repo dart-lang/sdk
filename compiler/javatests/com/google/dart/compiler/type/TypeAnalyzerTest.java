@@ -303,7 +303,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
 
   public void testCyclicTypeVariable() {
     Map<String, ClassNodeElement> classes = loadSource(
-        "interface A<T> { }",
+        "abstract class A<T> { }",
         "typedef funcType<T>(T arg);",
         "class B<T extends T> {}",
         "class C<T extends A<T>> {}",
@@ -333,18 +333,6 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("do { int i = 0.5; } while (null);",
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-  }
-
-  public void testFactory() {
-    analyzeClasses(loadSource(
-        "interface Foo default Bar {",
-        "  Foo(String argument);",
-        "}",
-        "interface Baz {}",
-        "class Bar implements Foo, Baz {",
-        "  Bar(String argument) {}",
-        "}"));
-    analyzeFail("Baz x = new Foo('');", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
   public void testFieldAccess() {
@@ -540,13 +528,13 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
         "}",
         "class C<U> {",
         "}",
-        "interface I<S> extends I2<bool> {",
+        "abstract class I<S> extends I2<bool> {",
         "}",
         "class G<V> {",
         "}",
-        "interface I1<W> {",
+        "abstract class I1<W> {",
         "}",
-        "interface I2<X> {",
+        "abstract class I2<X> {",
         "}",
         "class D implements I2<int> {",
         "}",
@@ -554,7 +542,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
         "}");
     analyzeClasses(classes);
     assertEquals("[]", object.getAllSupertypes().toString());
-    assertEquals("[I<int>, I1<String>, I2<bool>, B<String>, C<G<String>>, Object]",
+    assertEquals("[B<String>, I<int>, I1<String>, I2<bool>, C<G<String>>, Object]",
                  classes.get("A").getAllSupertypes().toString());
     assertEquals("[I<int>, I1<B.T>, I2<bool>, C<G<B.T>>, Object]",
                  classes.get("B").getAllSupertypes().toString());
@@ -564,7 +552,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     assertEquals("[Object]", classes.get("I1").getAllSupertypes().toString());
     assertEquals("[Object]", classes.get("I2").getAllSupertypes().toString());
     assertEquals("[I2<int>, Object]", classes.get("D").getAllSupertypes().toString());
-    assertEquals("[I2<int>, D, Object]", classes.get("E").getAllSupertypes().toString());
+    assertEquals("[I2<int>, D, I2<int>, Object]", classes.get("E").getAllSupertypes().toString());
   }
 
   public void testIdentifiers() {
@@ -592,7 +580,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
 
   public void testImplementsAndOverrides() {
     analyzeClasses(loadSource(
-        "interface Interface {",
+        "abstract class Interface {",
         "  void foo(int x);",
         "  void bar();",
         "}",
@@ -620,7 +608,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
 
   public void testImplementsAndOverrides2() {
     analyzeClasses(loadSource(
-        "interface Interface {",
+        "abstract class Interface {",
         "  void foo(int x);",
         "}",
         // Abstract class not reported until first instantiation.
@@ -704,27 +692,6 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     checkSimpleType(string.getType(), "'fisk'");
     checkSimpleType(string.getType(), "'f${null}sk'");
   }
-
-  public void testLoadInterfaces() {
-    loadFile("interfaces.dart");
-    ClassElement superElement = (ClassElement)coreElements.get("Super");
-    assertNotNull("no element for Super", superElement);
-    assertEquals(object.getType(), superElement.getSupertype());
-    assertEquals(0, superElement.getInterfaces().size());
-    ClassElement sub = (ClassElement)coreElements.get("Sub");
-    assertNotNull("no element for Sub", sub);
-    assertEquals(object.getType(), sub.getSupertype());
-    assertEquals(1, sub.getInterfaces().size());
-    assertEquals(superElement, sub.getInterfaces().get(0).getElement());
-    InterfaceType superString = itype(superElement, itype(string));
-    InterfaceType subString = itype(sub, itype(string));
-    Types types = getTypes();
-    assertEquals("Super<String>", String.valueOf(types.asInstanceOf(superString, superElement)));
-    assertEquals("Super<String>", String.valueOf(types.asInstanceOf(subString, superElement)));
-    assertEquals("Sub<String>", String.valueOf(types.asInstanceOf(subString, sub)));
-    assertNull(types.asInstanceOf(superString, sub));
-  }
-
 
   public void testMapLiteral() {
     analyze("{ var x = {\"key\": 42}; }");
@@ -818,52 +785,6 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyze("VoidFunction f = foo() {};");
   }
 
-  public void testNewExpression() {
-    analyzeClasses(loadSource(
-        "class Foo {",
-        "  Foo(int x) {}",
-        "  Foo.foo() {}",
-        "  Foo.bar([int i = null]) {}",
-        "}",
-        "interface Bar<T> default Baz<T> {",
-        "  Bar.make();",
-        "}",
-        "class Baz<T> {",
-        "  factory Bar.make(T x) { return null; }",
-        "}",
-        "class Foobar<T extends String> {",
-        "}"));
-
-    analyze("Foo x = new Foo(0);");
-    analyzeFail("Foo x = new Foo();", TypeErrorCode.MISSING_ARGUMENT);
-    analyzeFail("Foo x = new Foo('');", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("Foo x = new Foo(0, null);", TypeErrorCode.EXTRA_ARGUMENT);
-
-    analyze("Foo x = new Foo.foo();");
-    analyzeFail("Foo x = new Foo.foo(null);", TypeErrorCode.EXTRA_ARGUMENT);
-
-    analyze("Foo x = new Foo.bar();");
-    analyze("Foo x = new Foo.bar(0);");
-    analyzeFail("Foo x = new Foo.bar('');", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("Foo x = new Foo.bar(0, null);", TypeErrorCode.EXTRA_ARGUMENT);
-    analyzeFail("var x = new Foobar<num>();", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyze("Bar<String> x = new Bar.make('');");
-  }
-
-  public void testAssignableTypeArg() {
-      analyzeClasses(loadSource(
-          "interface Bar<T> default Baz<T> {",
-          "  Bar.make();",
-          "}",
-          "class Baz<T> {",
-          "  Baz(T x) { return null; }",
-          "  factory Bar.make(T x) { return null; }",
-          "}"));
-      analyze("Baz<String> x = new Baz<String>('');");
-      analyze("Bar<String> x = new Bar.make('');");
-      analyze("Bar<String> x = new Bar<String>.make('');");
-  }
-
   public void testOddStuff() {
     Map<String, ClassNodeElement> classes = analyzeClasses(loadSource(
         "class Class {",
@@ -937,19 +858,6 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
       analyzeIn(cls, field + ".a", 0);
       analyzeIn(cls, field + ".a()", 1);
     }
-  }
-
-  public void testRawTypes() {
-    loadFile("interfaces.dart");
-
-    analyze("{ Sub s; }");
-    analyze("{ var s = new Sub(); }");
-    analyze("{ Sub s = new Sub(); }");
-    analyze("{ Sub<String> s = new Sub(); }");
-    analyze("{ Sub<String> s; }");
-    analyze("{ var s = new Sub<String>(); }");
-    analyze("{ Sub s = new Sub<String>(); }");
-    analyze("{ Sub<String> s = new Sub<String>(); }");
   }
 
   public void testReturn() {
@@ -1058,17 +966,6 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyzeClass(classes.get("B"), 0);
   }
 
-  public void testSuperInterfaces() {
-    // If this test is failing, first debug any failures in testLoadInterfaces.
-    loadFile("interfaces.dart");
-    analyze("Super<String> s = new Sub<String>();");
-    analyze("Super<Object> o = new Sub<String>();");
-    analyzeFail("Super<String> f1 = new Sub<int>();",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("Sub<String> f2 = new Sub<int>();",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-  }
-
   public void testSwitch() {
     analyze("{ int i = 27; switch(i) { case i: break; } }");
     analyzeFail(
@@ -1122,16 +1019,6 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyzeIn(cls, "foo() { T t = 1; }()", 1);
     analyzeIn(cls, "foo() { T t = ''; }()", 1);
     analyzeIn(cls, "foo() { T t = true; }()", 1);
-  }
-
-  public void testDefaultTypeArgs() {
-    Map<String, ClassNodeElement> source = loadSource(
-        "class Object{}",
-        "interface List<T> {}",
-        "interface A<K,V> default B<K, V extends List<K>> {}",
-        "class B<K, V extends List<K>> {",
-        "}");
-        analyzeClasses(source);
   }
 
   public void testUnaryOperators() {
@@ -1356,25 +1243,10 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
-  public void testValidateFactoryBounds() {
-    Map<String, ClassNodeElement> source = loadSource(
-        "class Object {}",
-        "interface Foo {}",
-        "interface Bar extends Foo {}",
-        "interface IA<T> default A<T extends Foo> { IA(); }",
-        "class A<T extends Foo> implements IA<T> {",
-        "  factory A() {}",
-        "}");
-    analyzeClasses(source);
-    analyze("{ var val1 = new IA<Foo>(); }");
-    analyze("{ var val1 = new IA<Bar>(); }");
-    analyzeFail("{ var val1 = new IA<String>(); }",TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-  }
-
   public void testStringConcat() {
     Map<String, ClassNodeElement> source = loadSource(
         "class Object {}",
-        "interface Foo {",
+        "abstract class Foo {",
         "  operator +(arg1);" +
         "}",
         "Foo a = new Foo();",

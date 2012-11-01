@@ -17,8 +17,9 @@ class ReturnInfo {
       : this.returnType = null,
         compiledFunctions = new List<Element>();
 
-  void update(HType type, Recompile recompile) {
-    HType newType = returnType != null ? returnType.union(type) : type;
+  void update(HType type, Recompile recompile, Compiler compiler) {
+    HType newType =
+        returnType != null ? returnType.union(type, compiler) : type;
     if (newType != returnType) {
       if (returnType == null && identical(newType, HType.UNKNOWN)) {
         // If the first actual piece of information is not providing any type
@@ -120,14 +121,14 @@ class HTypeList {
   int get length => types.length;
   HType operator[](int index) => types[index];
 
-  HTypeList union(HTypeList other) {
+  HTypeList union(HTypeList other, Compiler compiler) {
     if (allUnknown) return this;
     if (other.allUnknown) return other;
     if (length != other.length) return HTypeList.ALL_UNKNOWN;
     bool onlyUnknown = true;
     HTypeList result = this;
     for (int i = 0; i < length; i++) {
-      HType newType = this[i].union(other[i]);
+      HType newType = this[i].union(other[i], compiler);
       if (result == this && newType != this[i]) {
         // Create a new argument types object with the matching types copied.
         result = new HTypeList(length);
@@ -147,7 +148,7 @@ class HTypeList {
    * is returned. Otherwise a different [HTypeList] object is returned
    * with the type union information.
    */
-  HTypeList unionWithInvoke(HInvoke node, HTypeMap types) {
+  HTypeList unionWithInvoke(HInvoke node, HTypeMap types, Compiler compiler) {
     // Union an all unknown list with something stays all unknown.
     if (allUnknown) return this;
 
@@ -159,7 +160,7 @@ class HTypeList {
     bool onlyUnknown = true;
     HTypeList result = this;
     for (int i = 0; i < length; i++) {
-      HType newType = this[i].union(types[node.inputs[i + 1]]);
+      HType newType = this[i].union(types[node.inputs[i + 1]], compiler);
       if (result == this && newType != this[i]) {
         // Create a new argument types object with the matching types copied.
         result = new HTypeList(length);
@@ -307,7 +308,7 @@ class FieldTypesRegistry {
     HType newType;
 
     if (oldType != null) {
-      newType = oldType.union(type);
+      newType = oldType.union(type, compiler);
     } else {
       newType = type;
     }
@@ -403,7 +404,7 @@ class FieldTypesRegistry {
     // initializer list.
     HType result = constructorType != null ? constructorType : initializerType;
     HType type = fieldTypeMap[field];
-    if (type != null) result = result.union(type);
+    if (type != null) result = result.union(type, compiler);
     return result;
   }
 
@@ -480,7 +481,8 @@ class ArgumentTypesRegistry {
       staticTypeMap[element] = new HTypeList.fromStaticInvocation(node, types);
     } else {
       if (oldTypes.allUnknown) return;
-      HTypeList newTypes = oldTypes.unionWithInvoke(node, types);
+      HTypeList newTypes =
+          oldTypes.unionWithInvoke(node, types, backend.compiler);
       if (identical(newTypes, oldTypes)) return;
       staticTypeMap[element] = newTypes;
       if (optimizedStaticFunctions.contains(element)) {
@@ -522,7 +524,8 @@ class ArgumentTypesRegistry {
       selectorTypeMap[selector] = providedTypes;
     } else {
       HTypeList oldTypes = selectorTypeMap[selector];
-      HTypeList newTypes = oldTypes.unionWithInvoke(node, types);
+      HTypeList newTypes =
+           oldTypes.unionWithInvoke(node, types, backend.compiler);
       if (identical(newTypes, oldTypes)) return;
       selectorTypeMap[selector] = newTypes;
     }
@@ -589,7 +592,7 @@ class ArgumentTypesRegistry {
                                                   defaultValueTypes);
       }
       assert(types.allUnknown || types.length == signature.parameterCount);
-      found = (found == null) ? types : found.union(types);
+      found = (found == null) ? types : found.union(types, compiler);
       return !found.allUnknown;
     });
     return found != null ? found : HTypeList.ALL_UNKNOWN;
@@ -841,7 +844,7 @@ class JavaScriptBackend extends Backend {
     assert(invariant(element, element.isDeclaration));
     ReturnInfo info = returnInfo[element];
     if (info != null) {
-      info.update(returnType, scheduleForRecompilation);
+      info.update(returnType, scheduleForRecompilation, compiler);
     } else {
       returnInfo[element] = new ReturnInfo(returnType);
     }

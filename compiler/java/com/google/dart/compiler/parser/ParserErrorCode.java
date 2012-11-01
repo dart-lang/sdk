@@ -33,8 +33,10 @@ public enum ParserErrorCode implements ErrorCode {
   DEFAULT_POSITIONAL_PARAMETER("Positional parameters cannot have default values"),
   DEPRECATED_CATCH("This style of catch clause has been deprecated. Please use the 'on' <type> " +
       "'catch' '(' <identifier> (',' <identifier>)? ')' form."),
-  DEPRECATED_GETTER(ErrorSeverity.WARNING, "The presence of parentheses afer the name of the getter "
+  DEPRECATED_ABSTRACT_METHOD(ErrorSeverity.WARNING, "Modifier 'abstract' is deprecated for methods without body. Remove it."),
+  DEPRECATED_GETTER("The presence of parentheses after the name of the getter "
       + "has been deprecated and will soon be disallowed. Please remove the parentheses."),
+  DEPRECATED_INTERFACE("Deprecated declaration of the 'interface', use abstract 'class' instead"),
   DEPRECATED_USE_OF_FACTORY_KEYWORD("Deprecated use of the 'factory' keyword: use 'default' instead"),
   DEPRECATED_RAW_STRING("The use of '@' to prefix a raw string has been deprecated; use 'r' instead"),
   DEPRECATED_RESOURCE_DIRECTIVE("The #resource directive has been deprecated and will soon be disallowed"),
@@ -73,9 +75,9 @@ public enum ParserErrorCode implements ErrorCode {
   EXPECTED_TOKEN("Unexpected token '%s' (expected '%s')"),
   // TODO(zundel): error message needs JUnit test
   EXPECTED_VAR_FINAL_OR_TYPE("Expected 'var', 'final' or type"),
+  EXTERNAL_ABSTRACT("External methods cannot be abstract"),
   EXTERNAL_ONLY_METHOD("Only a top-level function, a method, a getter, a setter or an non-redirecting constructor can be specified as external"),
   EXTERNAL_METHOD_BODY("External methods cannot have body"),
-  EXTERNAL_ABSTRACT("External methods cannot be abstract"),
   INVALID_SEPARATOR_FOR_NAMED("Use ':' between a named parameter and its value"),
   INVALID_SEPARATOR_FOR_OPTIONAL("Use '=' between an optional parameter and its value"),
   // TODO(zundel): this error message is out of date
@@ -117,6 +119,7 @@ public enum ParserErrorCode implements ErrorCode {
   ONLY_ONE_LIBRARY_DIRECTIVE("Only one library directive may be declared in a file"),
   OPERATOR_CANNOT_BE_STATIC("Operators cannot be static"),
   OPERATOR_IS_NOT_USER_DEFINABLE("Operator is not user definable"),
+  OPTIONAL_POSITIONAL_PARAMETER_NOT_ALLOWED("Optional positional parameter is not allowed for operator or setter method"),
   POSITIONAL_AFTER_NAMED_ARGUMENT("Positional argument after named argument"),
   REDIRECTING_CONSTRUCTOR_CANNOT_HAVE_A_BODY("Redirecting constructor cannot have a body"),
   REDIRECTING_CONSTRUCTOR_PARAM("Redirecting constructor cannot have initializers"),

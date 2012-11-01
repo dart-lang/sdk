@@ -7,13 +7,13 @@ abstract class Strings {
    * Joins all the given strings to create a new string.
    */
   static String join(List<String> strings, String separator) {
-    return StringImplementation.join(strings, separator);
+    return _StringImpl.join(strings, separator);
   }
 
   /**
    * Concatenates all the given strings to create a new string.
    */
   static String concatAll(List<String> strings) {
-    return StringImplementation.concatAll(strings);
+    return _StringImpl.concatAll(strings);
   }
 }

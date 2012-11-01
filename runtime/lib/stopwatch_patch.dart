@@ -4,7 +4,7 @@
 
 // A VM patch of the stopwatch part of dart:core.
 
-patch class StopwatchImplementation {
+patch class _StopwatchImpl {
   // Returns the current clock tick.
   /* patch */ static int _now() native "Stopwatch_now";
 

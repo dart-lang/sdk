@@ -872,7 +872,7 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(10);
       openedFile.readListSync(buffer, 0, 12);
-    } on IndexOutOfRangeException catch (ex) {
+    } on RangeError catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -883,7 +883,7 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(10);
       openedFile.readListSync(buffer, 6, 6);
-    } on IndexOutOfRangeException catch (ex) {
+    } on RangeError catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -894,7 +894,7 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(10);
       openedFile.readListSync(buffer, -1, 1);
-    } on IndexOutOfRangeException catch (ex) {
+    } on RangeError catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -905,7 +905,7 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(10);
       openedFile.readListSync(buffer, 0, -1);
-    } on IndexOutOfRangeException catch (ex) {
+    } on RangeError catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -916,7 +916,7 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(10);
       openedFile.writeListSync(buffer, 0, 12);
-    } on IndexOutOfRangeException catch (ex) {
+    } on RangeError catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -927,7 +927,7 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(10);
       openedFile.writeListSync(buffer, 6, 6);
-    } on IndexOutOfRangeException catch (ex) {
+    } on RangeError catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -938,7 +938,7 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(10);
       openedFile.writeListSync(buffer, -1, 1);
-    } on IndexOutOfRangeException catch (ex) {
+    } on RangeError catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -949,7 +949,7 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(10);
       openedFile.writeListSync(buffer, 0, -1);
-    } on IndexOutOfRangeException catch (ex) {
+    } on RangeError catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -1218,6 +1218,59 @@ class FileTest {
     Expect.isFalse(file.existsSync());
   }
 
+  static void testWriteStringUtf8() {
+    var file = new File('${tempDirectory.path}/out_write_string');
+    var string = new String.fromCharCodes([0x192]);
+    file.open(FileMode.WRITE).then((openedFile) {
+      openedFile.writeString(string).then((_) {
+        openedFile.length().then((l) {
+          Expect.equals(2, l);
+          openedFile.close().then((_) {
+            file.open(FileMode.APPEND).then((openedFile) {
+              openedFile.setPosition(2).then((_) {
+                openedFile.writeString(string).then((_) {
+                  openedFile.length().then((l) {
+                    Expect.equals(4, l);
+                    openedFile.close().then((_) {
+                      file.readAsText().then((readBack) {
+                        Expect.stringEquals(readBack, '$string$string');
+                        file.delete().then((_) {
+                          file.exists().then((e) {
+                           Expect.isFalse(e);
+                           asyncTestDone("testWriteStringUtf8");
+                          });
+                        });
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+    asyncTestStarted();
+  }
+
+  static void testWriteStringUtf8Sync() {
+    var file = new File('${tempDirectory.path}/out_write_string_sync');
+    var string = new String.fromCharCodes([0x192]);
+    var openedFile = file.openSync(FileMode.WRITE);
+    openedFile.writeStringSync(string);
+    Expect.equals(2, openedFile.lengthSync());
+    openedFile.closeSync();
+    openedFile = file.openSync(FileMode.APPEND);
+    openedFile.setPositionSync(2);
+    openedFile.writeStringSync(string);
+    Expect.equals(4, openedFile.lengthSync());
+    openedFile.closeSync();
+    var readBack = file.readAsTextSync();
+    Expect.stringEquals(readBack, '$string$string');
+    file.deleteSync();
+    Expect.isFalse(file.existsSync());
+  }
+
   // Helper method to be able to run the test from the runtime
   // directory, or the top directory.
   static String getFilename(String path) =>
@@ -1273,6 +1326,8 @@ class FileTest {
       testWriteVariousLists();
       testDirectory();
       testDirectorySync();
+      testWriteStringUtf8();
+      testWriteStringUtf8Sync();
     });
   }
 }

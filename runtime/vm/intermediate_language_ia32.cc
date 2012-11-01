@@ -21,6 +21,7 @@ namespace dart {
 
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, trace_functions);
+DECLARE_FLAG(bool, propagate_ic_data);
 
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed register EAX.
@@ -310,7 +311,7 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
     locs->set_out(Location::RequiresRegister());
     return locs;
   }
-  if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
+  if (IsPolymorphic()) {
     const intptr_t kNumTemps = 1;
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
@@ -335,7 +336,8 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                        intptr_t deopt_id,
                                        intptr_t token_pos,
                                        Token::Kind kind,
-                                       LocationSummary* locs) {
+                                       LocationSummary* locs,
+                                       const ICData& original_ic_data) {
   if (!compiler->is_optimizing()) {
     compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
                                    deopt_id,
@@ -354,27 +356,56 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   __ cmpl(Address(ESP, 1 * kWordSize), raw_null);
   __ j(EQUAL, &check_identity, Assembler::kNearJump);
 
-  const ICData& ic_data = compiler->GenerateInstanceCall(deopt_id,
-                                                         token_pos,
-                                                         operator_name,
-                                                         kNumberOfArguments,
-                                                         kNoArgumentNames,
-                                                         kNumArgumentsChecked,
-                                                         locs);
+  ICData& equality_ic_data = ICData::ZoneHandle();
+  if (compiler->is_optimizing() && FLAG_propagate_ic_data) {
+    ASSERT(!original_ic_data.IsNull());
+    equality_ic_data = original_ic_data.AsUnaryClassChecks();
+  } else {
+    equality_ic_data = ICData::New(compiler->parsed_function().function(),
+                                   operator_name,
+                                   deopt_id,
+                                   kNumArgumentsChecked);
+  }
+  compiler->GenerateInstanceCall(deopt_id,
+                                 token_pos,
+                                 kNumberOfArguments,
+                                 kNoArgumentNames,
+                                 locs,
+                                 equality_ic_data);
   Label check_ne;
   __ jmp(&check_ne);
 
   __ Bind(&check_identity);
-  // Call stub, load IC data in register. The stub will update ICData if
-  // necessary.
-  Register ic_data_reg = locs->temp(0).reg();
-  ASSERT(ic_data_reg == ECX);  // Stub depends on it.
-  __ LoadObject(ic_data_reg, ic_data);
-  compiler->GenerateCall(token_pos,
-                         &StubCode::EqualityWithNullArgLabel(),
-                         PcDescriptors::kOther,
-                         locs);
-  __ Drop(2);
+  Label equality_done;
+  if (compiler->is_optimizing()) {
+    // No need to update IC data.
+    Label is_true;
+    __ popl(EAX);
+    __ popl(EDX);
+    __ cmpl(EAX, EDX);
+    __ j(EQUAL, &is_true);
+    __ LoadObject(EAX, (kind == Token::kEQ) ? compiler->bool_false()
+                                            : compiler->bool_true());
+    __ jmp(&equality_done);
+    __ Bind(&is_true);
+    __ LoadObject(EAX, (kind == Token::kEQ) ? compiler->bool_true()
+                                            : compiler->bool_false());
+    if (kind == Token::kNE) {
+      // Skip not-equal result conversion.
+      __ jmp(&equality_done);
+    }
+  } else {
+    // Call stub, load IC data in register. The stub will update ICData if
+    // necessary.
+    Register ic_data_reg = locs->temp(0).reg();
+    ASSERT(ic_data_reg == ECX);  // Stub depends on it.
+    __ LoadObject(ic_data_reg, equality_ic_data);
+    compiler->GenerateCall(token_pos,
+                           &StubCode::EqualityWithNullArgLabel(),
+                           PcDescriptors::kOther,
+                           locs);
+    __ Drop(2);
+  }
   __ Bind(&check_ne);
   if (kind == Token::kNE) {
     Label false_label, true_label, done;
@@ -388,6 +419,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
     __ LoadObject(EAX, compiler->bool_false());
     __ Bind(&done);
   }
+  __ Bind(&equality_done);
 }
 
 
@@ -645,8 +677,12 @@ static Condition TokenKindToMintCondition(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ: return EQUAL;
     case Token::kNE: return NOT_EQUAL;
+    case Token::kLT: return LESS;
+    case Token::kGT: return GREATER;
+    case Token::kLTE: return LESS_EQUAL;
+    case Token::kGTE: return GREATER_EQUAL;
     default:
-      UNIMPLEMENTED();
+      UNREACHABLE();
       return OVERFLOW;
   }
 }
@@ -673,6 +709,71 @@ static void EmitUnboxedMintEqualityOp(FlowGraphCompiler* compiler,
     Register result = locs.out().reg();
     Label done, is_true;
     __ j(true_condition, &is_true);
+    __ LoadObject(result, compiler->bool_false());
+    __ jmp(&done);
+    __ Bind(&is_true);
+    __ LoadObject(result, compiler->bool_true());
+    __ Bind(&done);
+  }
+}
+
+
+static void EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
+                                        const LocationSummary& locs,
+                                        Token::Kind kind,
+                                        BranchInstr* branch) {
+  XmmRegister left = locs.in(0).xmm_reg();
+  XmmRegister right = locs.in(1).xmm_reg();
+  Register left_tmp = locs.temp(0).reg();
+  Register right_tmp = locs.temp(1).reg();
+  Register result = branch == NULL ? locs.out().reg() : kNoRegister;
+
+  Condition hi_cond = OVERFLOW, lo_cond = OVERFLOW;
+  switch (kind) {
+    case Token::kLT:
+      hi_cond = LESS;
+      lo_cond = BELOW;
+      break;
+    case Token::kGT:
+      hi_cond = GREATER;
+      lo_cond = ABOVE;
+      break;
+    case Token::kLTE:
+      hi_cond = LESS;
+      lo_cond = BELOW_EQUAL;
+      break;
+    case Token::kGTE:
+      hi_cond = GREATER;
+      lo_cond = ABOVE_EQUAL;
+      break;
+    default:
+      break;
+  }
+  ASSERT(hi_cond != OVERFLOW && lo_cond != OVERFLOW);
+  Label is_true, is_false;
+  // Compare upper halves first.
+  __ pextrd(left_tmp, left, Immediate(1));
+  __ pextrd(right_tmp, right, Immediate(1));
+  __ cmpl(left_tmp, right_tmp);
+  if (branch != NULL) {
+    __ j(hi_cond, compiler->GetBlockLabel(branch->true_successor()));
+    __ j(FlowGraphCompiler::FlipCondition(hi_cond),
+         compiler->GetBlockLabel(branch->false_successor()));
+  } else {
+    __ j(hi_cond, &is_true);
+    __ j(FlowGraphCompiler::FlipCondition(hi_cond), &is_false);
+  }
+
+  // If upper is equal, compare lower half.
+  __ pextrd(left_tmp, left, Immediate(0));
+  __ pextrd(right_tmp, right, Immediate(0));
+  __ cmpl(left_tmp, right_tmp);
+  if (branch != NULL) {
+    branch->EmitBranchOnCondition(compiler, lo_cond);
+  } else {
+    Label done;
+    __ j(lo_cond, &is_true);
+    __ Bind(&is_false);
     __ LoadObject(result, compiler->bool_false());
     __ jmp(&done);
     __ Bind(&is_true);
@@ -738,7 +839,7 @@ void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                            deopt_id());
     return;
   }
-  if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
+  if (IsPolymorphic()) {
     EmitGenericEqualityCompare(compiler, locs(), kind(), kNoBranch, *ic_data(),
                                deopt_id(), token_pos());
     return;
@@ -747,7 +848,12 @@ void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register right = locs()->in(1).reg();
   __ pushl(left);
   __ pushl(right);
-  EmitEqualityAsInstanceCall(compiler, deopt_id(), token_pos(), kind(), locs());
+  EmitEqualityAsInstanceCall(compiler,
+                             deopt_id(),
+                             token_pos(),
+                             kind(),
+                             locs(),
+                             *ic_data());
   ASSERT(locs()->out().reg() == EAX);
 }
 
@@ -775,7 +881,7 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                            deopt_id());
     return;
   }
-  if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
+  if (IsPolymorphic()) {
     EmitGenericEqualityCompare(compiler, locs(), kind(), branch, *ic_data(),
                                deopt_id(), token_pos());
     return;
@@ -788,7 +894,8 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                              deopt_id(),
                              token_pos(),
                              Token::kEQ,  // kNE reverse occurs at branch.
-                             locs());
+                             locs(),
+                             *ic_data());
   if (branch->is_checked()) {
     EmitAssertBoolean(EAX, token_pos(), locs(), compiler);
   }
@@ -801,6 +908,17 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 LocationSummary* RelationalOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
+  if (operands_class_id() == kMintCid) {
+    const intptr_t kNumTemps = 2;
+    LocationSummary* locs =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    locs->set_in(0, Location::RequiresXmmRegister());
+    locs->set_in(1, Location::RequiresXmmRegister());
+    locs->set_temp(0, Location::RequiresRegister());
+    locs->set_temp(1, Location::RequiresRegister());
+    locs->set_out(Location::RequiresRegister());
+    return locs;
+  }
   if (operands_class_id() == kDoubleCid) {
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -829,6 +947,10 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary() const {
 void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (operands_class_id() == kSmiCid) {
     EmitSmiComparisonOp(compiler, *locs(), kind(), NULL);
+    return;
+  }
+  if (operands_class_id() == kMintCid) {
+    EmitUnboxedMintComparisonOp(compiler, *locs(), kind(), NULL);
     return;
   }
   if (operands_class_id() == kDoubleCid) {
@@ -874,13 +996,22 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   const intptr_t kNumArguments = 2;
   const intptr_t kNumArgsChecked = 2;  // Type-feedback.
+  ICData& relational_ic_data = ICData::ZoneHandle(ic_data()->raw());
+  if (compiler->is_optimizing() && FLAG_propagate_ic_data) {
+    ASSERT(!ic_data()->IsNull());
+    relational_ic_data = ic_data()->AsUnaryClassChecks();
+  } else {
+    relational_ic_data = ICData::New(compiler->parsed_function().function(),
+                                     function_name,
+                                     deopt_id(),
+                                     kNumArgsChecked);
+  }
   compiler->GenerateInstanceCall(deopt_id(),
                                  token_pos(),
-                                 function_name,
                                  kNumArguments,
                                  Array::ZoneHandle(),  // No optional arguments.
-                                 kNumArgsChecked,
-                                 locs());
+                                 locs(),
+                                 relational_ic_data);
 }
 
 
@@ -888,6 +1019,10 @@ void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                        BranchInstr* branch) {
   if (operands_class_id() == kSmiCid) {
     EmitSmiComparisonOp(compiler, *locs(), kind(), branch);
+    return;
+  }
+  if (operands_class_id() == kMintCid) {
+    EmitUnboxedMintComparisonOp(compiler, *locs(), kind(), branch);
     return;
   }
   if (operands_class_id() == kDoubleCid) {
@@ -1738,9 +1873,14 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Label call_method, done;
       // Check if count too large for handling it inlined.
       __ movl(temp, left);
-      __ cmpl(right,
+      Range* right_range = this->right()->definition()->range();
+      const bool right_needs_check =
+          (right_range == NULL) || !right_range->IsWithin(0, (Smi::kBits - 1));
+      if (right_needs_check) {
+        __ cmpl(right,
           Immediate(reinterpret_cast<int32_t>(Smi::New(Smi::kBits))));
-      __ j(ABOVE_EQUAL, &call_method, Assembler::kNearJump);
+        __ j(ABOVE_EQUAL, &call_method, Assembler::kNearJump);
+      }
       Register right_temp = locs()->temp(1).reg();
       ASSERT(right_temp == ECX);  // Count must be in ECX
       __ movl(right_temp, right);
@@ -2444,8 +2584,8 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Label* deopt  = compiler->AddDeoptStub(deopt_id(),
                                              kDeoptBinaryMintOp);
       Label done, overflow;
-      __ pextrd(lo, right, Immediate(0));  // Lower half left
-      __ pextrd(hi, right, Immediate(1));  // Upper half left
+      __ pextrd(lo, right, Immediate(0));  // Lower half
+      __ pextrd(hi, right, Immediate(1));  // Upper half
       __ subl(ESP, Immediate(2 * kWordSize));
       __ movq(Address(ESP, 0), left);
       if (op_kind() == Token::kADD) {

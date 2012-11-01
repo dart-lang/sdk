@@ -20,8 +20,10 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, propagate_ic_data, true,
+    "Propagate IC data from unoptimized to optimized IC calls.");
 DECLARE_FLAG(bool, enable_type_checks);
-
+DECLARE_FLAG(int, max_polymorphic_checks);
 
 Definition::Definition()
     : range_(NULL),
@@ -1074,6 +1076,13 @@ intptr_t EqualityCompareInstr::ResultCid() const {
 }
 
 
+bool EqualityCompareInstr::IsPolymorphic() const {
+  return HasICData() &&
+      (ic_data()->NumberOfChecks() > 0) &&
+      (ic_data()->NumberOfChecks() <= FLAG_max_polymorphic_checks);
+}
+
+
 RawAbstractType* RelationalOpInstr::CompileType() const {
   if ((operands_class_id() == kSmiCid) ||
       (operands_class_id() == kDoubleCid) ||
@@ -1839,31 +1848,39 @@ LocationSummary* InstanceCallInstr::MakeLocationSummary() const {
 
 
 void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ICData& call_ic_data = ICData::ZoneHandle(ic_data()->raw());
+  if (!FLAG_propagate_ic_data || !compiler->is_optimizing()) {
+    call_ic_data = ICData::New(compiler->parsed_function().function(),
+                               function_name(),
+                               deopt_id(),
+                               checked_argument_count());
+  }
   if (compiler->is_optimizing()) {
     if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
+      const ICData& unary_ic_data =
+          ICData::ZoneHandle(ic_data()->AsUnaryClassChecks());
       compiler->GenerateInstanceCall(deopt_id(),
                                      token_pos(),
-                                     function_name(),
                                      ArgumentCount(),
                                      argument_names(),
-                                     checked_argument_count(),
-                                     locs());
+                                     locs(),
+                                     unary_ic_data);
     } else {
       Label* deopt =
           compiler->AddDeoptStub(deopt_id(), kDeoptInstanceCallNoICData);
       __ jmp(deopt);
     }
   } else {
+    ASSERT(!HasICData());
     compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
                                    deopt_id(),
                                    token_pos());
     compiler->GenerateInstanceCall(deopt_id(),
                                    token_pos(),
-                                   function_name(),
                                    ArgumentCount(),
                                    argument_names(),
-                                   checked_argument_count(),
-                                   locs());
+                                   locs(),
+                                   call_ic_data);
   }
 }
 
@@ -2117,13 +2134,15 @@ RangeBoundary RangeBoundary::UpperBound() const {
 }
 
 
+static bool AreEqualDefinitions(Definition* a, Definition* b) {
+  return (a == b) || (!a->AffectedBySideEffect() && a->Equals(b));
+}
+
+
 // Returns true if two range boundaries refer to the same symbol.
 static bool DependOnSameSymbol(const RangeBoundary& a, const RangeBoundary& b) {
-  if (!a.IsSymbol() || !b.IsSymbol()) return false;
-  if (a.symbol() == b.symbol()) return true;
-
-  return !a.symbol()->AffectedBySideEffect() &&
-      a.symbol()->Equals(b.symbol());
+  return a.IsSymbol() && b.IsSymbol() &&
+      AreEqualDefinitions(a.symbol(), b.symbol());
 }
 
 
@@ -2449,12 +2468,6 @@ static bool IsArrayLength(Definition* defn) {
 }
 
 
-static bool IsLengthOf(Definition* defn, Definition* array) {
-  return IsArrayLength(defn) &&
-      (defn->AsLoadField()->value()->definition() == array);
-}
-
-
 void BinarySmiOpInstr::InferRange() {
   // TODO(vegorov): canonicalize BinarySmiOp to always have constant on the
   // right and a non-constant on the left.
@@ -2513,6 +2526,23 @@ void BinarySmiOpInstr::InferRange() {
       }
       break;
 
+    case Token::kBIT_AND:
+      if (Range::ConstantMin(right_range).value() >= 0) {
+        min = RangeBoundary::FromConstant(0);
+        max = Range::ConstantMax(right_range);
+        break;
+      }
+      if (Range::ConstantMin(left_range).value() >= 0) {
+        min = RangeBoundary::FromConstant(0);
+        max = Range::ConstantMax(left_range);
+        break;
+      }
+
+      if (range_ == NULL) {
+        range_ = Range::Unknown();
+      }
+      return;
+
     default:
       if (range_ == NULL) {
         range_ = Range::Unknown();
@@ -2530,7 +2560,15 @@ void BinarySmiOpInstr::InferRange() {
 }
 
 
-bool CheckArrayBoundInstr::IsRedundant() {
+// Inclusive.
+bool Range::IsWithin(intptr_t min_int, intptr_t max_int) const {
+  if (min().LowerBound().value() < min_int) return false;
+  if (max().UpperBound().value() > max_int) return false;
+  return true;
+}
+
+
+bool CheckArrayBoundInstr::IsRedundant(RangeBoundary length) {
   // Check that array has an immutable length.
   if ((array_type() != kArrayCid) && (array_type() != kImmutableArrayCid)) {
     return false;
@@ -2546,13 +2584,21 @@ bool CheckArrayBoundInstr::IsRedundant() {
 
   RangeBoundary max = CanonicalizeBoundary(index_range->max(),
                                            RangeBoundary::OverflowedMaxSmi());
+
+  if (max.Overflowed()) return false;
+
+  // Try to compare constant boundaries.
+  if (max.UpperBound().value() < length.LowerBound().value()) {
+    return true;
+  }
+
+  length = CanonicalizeBoundary(length, RangeBoundary::OverflowedMaxSmi());
+  if (length.Overflowed()) return false;
+
+  // Try symbolic comparison.
   do {
-    if (max.IsSymbol() &&
-        (max.offset() < 0) &&
-        IsLengthOf(max.symbol(), array()->definition())) {
-      return true;
-    }
-  } while (CanonicalizeMaxBoundary(&max));
+    if (DependOnSameSymbol(max, length)) return max.offset() < length.offset();
+  } while (CanonicalizeMaxBoundary(&max) || CanonicalizeMinBoundary(&length));
 
   // Failed to prove that maximum is bounded with array length.
   return false;

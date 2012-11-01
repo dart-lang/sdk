@@ -446,7 +446,21 @@ static FieldElementImplementation fieldFromNode(DartField node,
     int num = 0;
     List<VariableElement> parameters = method.getParameters();
     for (VariableElement parameter : parameters) {
-      if (!parameter.isNamed()) {
+      if (!parameter.isOptional() && !parameter.isNamed()) {
+        num++;
+      }
+    }
+    return num;
+  }
+  
+  /**
+   * @return the number of optional positional parameters in given {@link MethodElement}.
+   */
+  public static int getNumberOfOptionalPositionalParameters(MethodElement method) {
+    int num = 0;
+    List<VariableElement> parameters = method.getParameters();
+    for (VariableElement parameter : parameters) {
+      if (parameter.isOptional()) {
         num++;
       }
     }
@@ -713,6 +727,21 @@ static FieldElementImplementation fieldFromNode(DartField node,
     }
     return false;
   }
+  
+  /**
+   * @return <code>true</code> if given {@link Source} represents library with given name.
+   */
+  public static boolean isDart2JsLibrarySource(Source source) {
+    if (source instanceof DartSource) {
+      DartSource dartSource = (DartSource) source;
+      LibrarySource library = dartSource.getLibrary();
+      if (library != null) {
+        String libraryName = library.getName();
+        return libraryName.contains("lib/compiler/implementation/");
+      }
+    }
+    return false;
+  }
 
   /**
    * @return <code>true</code> if given {@link Source} represents code library declaration or
@@ -726,6 +755,10 @@ static FieldElementImplementation fieldFromNode(DartField node,
         // New core library file names
         || Elements.isLibrarySource(source, "/core/core.dart")
         || Elements.isLibrarySource(source, "/core/coreimpl.dart");
+  }
+  
+  public static boolean isHtmlLibrarySource(Source source) {
+    return Elements.isLibrarySource(source, "/html/dartium/html_dartium.dart");
   }
 
   /**

@@ -13,3 +13,10 @@ crypto/sha1_test: Slow, Pass
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
 *: Skip
+
+[ $compiler == dartc ]
+# lib issue 6322
+crypto/hmac_sha1_test: Fail, OK
+crypto/hmac_sha256_test: Fail, OK
+crypto/sha1_test: Fail, OK
+crypto/sha256_test: Fail, OK

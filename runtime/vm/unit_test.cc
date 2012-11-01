@@ -53,7 +53,7 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   if (!Dart_IsLibrary(library)) {
     return Dart_Error("not a library");
   }
-  if (!Dart_IsString8(url)) {
+  if (!Dart_IsString(url)) {
     return Dart_Error("url is not a string");
   }
   const char* url_chars = NULL;
@@ -100,8 +100,8 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
 
 Dart_Handle TestCase::LoadTestScript(const char* script,
                                      Dart_NativeEntryResolver resolver) {
-  Dart_Handle url = Dart_NewString(TestCase::url());
-  Dart_Handle source = Dart_NewString(script);
+  Dart_Handle url = NewString(TestCase::url());
+  Dart_Handle source = NewString(script);
   Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
   EXPECT_VALID(result);
   EXPECT_VALID(result);
@@ -114,7 +114,7 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
 
 
 Dart_Handle TestCase::lib() {
-  Dart_Handle url = Dart_NewString(TestCase::url());
+  Dart_Handle url = NewString(TestCase::url());
   Dart_Handle lib = Dart_LookupLibrary(url);
   DART_CHECK_VALID(lib);
   ASSERT(Dart_IsLibrary(lib));

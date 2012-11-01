@@ -30,6 +30,10 @@ spawn_uri_negative_test: Fail, OK # Fails at runtime.
 spawn_uri_vm_negative_test: Fail, OK # Fails at runtime.
 unresolved_ports_negative_test: Fail, OK # Fails at runtime.
 
+# packages issue 6340
+compute_this_script_browser_test: Fail, OK
+
+
 [ $compiler == dart2js ]
 serialization_test: Fail # Tries to access class TestingOnly declared in isolate_patch.dart
 

@@ -27,9 +27,10 @@ class ProcessWorkingDirectoryTest {
     processFuture.then((process) {
       process.onExit = (int exitCode) {
         Expect.equals(exitCode, 99);
-        process.close();
         directory.deleteSync();
       };
+      process.stdout.onData = process.stdout.read;
+      process.stderr.onData = process.stderr.read;
     });
     processFuture.handleException((error) {
       directory.deleteSync();
@@ -48,7 +49,6 @@ class ProcessWorkingDirectoryTest {
                                options);
     future.then((process) {
       Expect.fail("bad process completed");
-      process.close();
       directory.deleteSync();
     });
 

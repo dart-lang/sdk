@@ -23,7 +23,9 @@ public class DartFunction extends DartNode {
       DartTypeNode returnTypeNode) {
     this.parametersOptionalOpen = parametersOptionalOpen;
     this.parametersOptionalClose = parametersOptionalClose;
-    this.parameters.addAll(parameters);
+    if (parameters != null && !parameters.isEmpty()) {
+      this.parameters.addAll(parameters);
+    }
     this.parametersCloseParen = parametersCloseParen;
     this.body = becomeParentOf(body);
     this.returnTypeNode = becomeParentOf(returnTypeNode);

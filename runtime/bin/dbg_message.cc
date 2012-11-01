@@ -109,11 +109,11 @@ static void FormatEncodedString(dart::TextBuffer* buf, Dart_Handle str) {
   intptr_t str_len = 0;
   Dart_Handle res = Dart_StringLength(str, &str_len);
   ASSERT_NOT_ERROR(res);
-  uint32_t* codepoints =
-      reinterpret_cast<uint32_t*>(malloc(str_len * sizeof(uint32_t)));
+  uint16_t* codepoints =
+      reinterpret_cast<uint16_t*>(malloc(str_len * sizeof(uint16_t)));
   ASSERT(codepoints != NULL);
   intptr_t actual_len = str_len;
-  res = Dart_StringGet32(str, codepoints, &actual_len);
+  res = Dart_StringToUTF16(str, codepoints, &actual_len);
   ASSERT_NOT_ERROR(res);
   ASSERT(str_len == actual_len);
   buf->AddChar('\"');
@@ -692,7 +692,7 @@ bool DbgMessage::HandleGetSourceCmd(DbgMessage* in_msg) {
   intptr_t lib_id = msg_parser.GetIntParam("libraryId");
   char* url_chars = msg_parser.GetStringParam("url");
   ASSERT(url_chars != NULL);
-  Dart_Handle url = Dart_NewString(url_chars);
+  Dart_Handle url = DartUtils::NewString(url_chars);
   ASSERT_NOT_ERROR(url);
   free(url_chars);
   url_chars = NULL;
@@ -732,7 +732,7 @@ bool DbgMessage::HandleSetBpCmd(DbgMessage* in_msg) {
   int msg_id = msg_parser.MessageId();
   char* url_chars = msg_parser.GetStringParam("url");
   ASSERT(url_chars != NULL);
-  Dart_Handle url = Dart_NewString(url_chars);
+  Dart_Handle url = DartUtils::NewString(url_chars);
   ASSERT_NOT_ERROR(url);
   free(url_chars);
   url_chars = NULL;

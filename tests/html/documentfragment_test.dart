@@ -11,6 +11,9 @@
 main() {
   useHtmlConfiguration();
 
+  var isAnchorElement =
+      predicate((x) => x is AnchorElement, 'is an AnchorElement');
+
   Collection<String> _nodeStrings(Collection<Node> input) {
     var out = new List<String>();
     for (Node n in input) {
@@ -32,19 +35,19 @@ main() {
         return;
       }
     }
-    Expect.fail('Expected immutability error');
+    expect(true, isFalse, reason: 'Expected immutability error');
   };
 
   void expectEmptyStyleDeclaration(CSSStyleDeclaration style) {
-    Expect.equals("", style.cssText);
-    Expect.equals("", style.getPropertyPriority('color'));
-    Expect.equals("", style.item(0));
-    Expect.equals(0, style.length);
+    expect(style.cssText, equals(''));
+    expect(style.getPropertyPriority('color'), equals(''));
+    expect(style.item(0), equals(''));
+    expect(style.length, isZero);
     // TODO(jacobr): these checks throw NotImplementedExceptions in dartium.
-    // Expect.isNull(style.parentRule);
-    // Expect.isNull(style.getPropertyCSSValue('color'));
-    // Expect.isNull(style.getPropertyShorthand('color'));
-    // Expect.isFalse(style.isPropertyImplicit('color'));
+    // expect(style.parentRule, isNull);
+    // expect(style.getPropertyCSSValue('color'), isNull);
+    // expect(style.getPropertyShorthand('color'), isNull);
+    // expect(style.isPropertyImplicit('color'), isFalse);
 
     // Ideally these would throw errors, but it's not possible to create a class
     // that'll intercept these calls without implementing the entire
@@ -57,23 +60,23 @@ main() {
   group('constructors', () {
     test('0-argument makes an empty fragment', () {
       final fragment = new DocumentFragment();
-      Expect.listEquals([], fragment.elements);
+      expect(fragment.elements, equals([]));
     });
 
     test('.html parses input as HTML', () {
       final fragment = new DocumentFragment.html('<a>foo</a>');
-      Expect.isTrue(fragment.elements[0] is AnchorElement);
+      expect(fragment.elements[0], isAnchorElement);
     });
 
     // test('.svg parses input as SVG', () {
     //   final fragment = new DocumentFragment.svg('<a>foo</a>');
-    //   Expect.isTrue(fragment.elements[0] is SVGAElement);
+    //   expect(fragment.elements[0] is SVGAElement, isTrue);
     // });
 
     // TODO(nweiz): enable this once XML is ported.
     // test('.xml parses input as XML', () {
     //   final fragment = new DocumentFragment.xml('<a>foo</a>');
-    //   Expect.isTrue(fragment.elements[0] is XMLElement);
+    //   expect(fragment.elements[0] is XMLElement, isTrue);
     // });
   });
 
@@ -116,63 +119,66 @@ main() {
 
     test('is initially empty', () {
       elements = new DocumentFragment().elements;
-      Expect.listEquals([], elements);
-      Expect.isTrue(elements.isEmpty);
+      expect(elements, equals([]));
+      expect(elements.isEmpty, isTrue);
     });
 
     test('filters out non-element nodes', () {
       init();
-      Expect.listEquals(["1", "A", "B", "2", "I", "3", "U"],
-                        _nodeStrings(fragment.nodes));
-      Expect.listEquals(["A", "B", "I", "U"], _nodeStrings(elements));
+      expect(_nodeStrings(fragment.nodes),
+          orderedEquals(["1", "A", "B", "2", "I", "3", "U"]));
+      expect(_nodeStrings(elements),
+          orderedEquals(["A", "B", "I", "U"]));
     });
 
     test('only indexes elements, not other nodes', () {
       init();
       elements[1] = new Element.tag("BR");
-      Expect.listEquals(["1", "A", "BR", "2", "I", "3", "U"],
-                        _nodeStrings(fragment.nodes));
-      Expect.listEquals(["A", "BR", "I", "U"], _nodeStrings(elements));
+      expect(_nodeStrings(fragment.nodes),
+          orderedEquals(["1", "A", "BR", "2", "I", "3", "U"]));
+      expect(_nodeStrings(elements),
+          orderedEquals(["A", "BR", "I", "U"]));
     });
 
     test('adds to both elements and nodes', () {
       init();
       elements.add(new Element.tag("UL"));
-      Expect.listEquals(["1", "A", "B", "2", "I", "3", "U", "UL"],
-                        _nodeStrings(fragment.nodes));
-      Expect.listEquals(["A", "B", "I", "U", "UL"], _nodeStrings(elements));
+      expect(_nodeStrings(fragment.nodes),
+          orderedEquals(["1", "A", "B", "2", "I", "3", "U", "UL"]));
+      expect(_nodeStrings(elements),
+          orderedEquals(["A", "B", "I", "U", "UL"]));
     });
 
     test('removes only elements, from both elements and nodes', () {
       init();
-      Expect.equals("U", elements.removeLast().tagName);
-      Expect.listEquals(["1", "A", "B", "2", "I", "3"],
-                        _nodeStrings(fragment.nodes));
-      Expect.listEquals(["A", "B", "I"], _nodeStrings(elements));
+      expect(elements.removeLast().tagName, equals('U'));
+      expect(_nodeStrings(fragment.nodes),
+          orderedEquals(["1", "A", "B", "2", "I", "3"]));
+      expect(_nodeStrings(elements),
+          orderedEquals(["A", "B", "I"]));
 
-      Expect.equals("I", elements.removeLast().tagName);
-      Expect.listEquals(["1", "A", "B", "2", "3"],
-                        _nodeStrings(fragment.nodes));
-      Expect.listEquals(["A", "B"], _nodeStrings(elements));
+      expect(elements.removeLast().tagName, "I");
+      expect(_nodeStrings(fragment.nodes), 
+          equals(["1", "A", "B", "2", "3"]));
+      expect(_nodeStrings(elements), equals(["A", "B"]));
     });
 
     test('accessors are wrapped', () {
       init();
-      Expect.equals("A", elements[0].tagName);
-      Expect.listEquals(
-          ["I"], _nodeStrings(elements.filter((e) => e.tagName == "I")));
-      Expect.isTrue(elements.every((e) => e is Element));
-      Expect.isTrue(elements.some((e) => e.tagName == "U"));
-      Expect.isFalse(elements.isEmpty);
-      Expect.equals(4, elements.length);
-      Expect.equals("I", elements[2].tagName);
-      Expect.equals("U", elements.last.tagName);
+      expect(elements[0].tagName, "A");
+      expect(_nodeStrings(elements.filter((e) => e.tagName == "I")), ["I"]);
+      expect(elements.every((e) => e is Element), isTrue);
+      expect(elements.some((e) => e.tagName == "U"), isTrue);
+      expect(elements.isEmpty, isFalse);
+      expect(elements.length, 4);
+      expect(elements[2].tagName, "I");
+      expect(elements.last.tagName, "U");
     });
 
     test('setting elements overwrites nodes as well', () {
       init();
       fragment.elements = [new Element.tag("DIV"), new Element.tag("HEAD")];
-      Expect.listEquals(["DIV", "HEAD"], _nodeStrings(fragment.nodes));
+      expect(_nodeStrings(fragment.nodes), equals(["DIV", "HEAD"]));
     });
   });
 
@@ -180,14 +186,14 @@ main() {
     var fragment = new DocumentFragment();
     fragment.nodes.add(new Text("foo"));
     fragment.innerHTML = "<a>bar</a>baz";
-    Expect.listEquals(["A", "baz"], _nodeStrings(fragment.nodes));
+    expect(_nodeStrings(fragment.nodes), equals(["A", "baz"]));
   });
 
   test('getting innerHTML works', () {
     var fragment = new DocumentFragment();
     fragment.nodes.addAll([new Text("foo"), new Element.html("<A>bar</A>")]);
-    Expect.equals("foo<a>bar</a>", fragment.innerHTML);
-    Expect.equals("foo<a>bar</a>", fragment.outerHTML);
+    expect(fragment.innerHTML, "foo<a>bar</a>");
+    expect(fragment.outerHTML, "foo<a>bar</a>");
   });
 
   group('insertAdjacentElement', () {
@@ -195,30 +201,30 @@ main() {
 
     test('beforeBegin does nothing', () {
       var fragment = getFragment();
-      Expect.isNull(
-        fragment.insertAdjacentElement("beforeBegin", new Element.tag("b")));
-      Expect.equals("<a>foo</a>", fragment.innerHTML);
+      expect(fragment.insertAdjacentElement("beforeBegin",
+          new Element.tag("b")), isNull);
+      expect(fragment.innerHTML, "<a>foo</a>");
     });
 
     test('afterEnd does nothing', () {
       var fragment = getFragment();
-      Expect.isNull(
-        fragment.insertAdjacentElement("afterEnd", new Element.tag("b")));
-      Expect.equals("<a>foo</a>", fragment.innerHTML);
+      expect(fragment.insertAdjacentElement("afterEnd",
+          new Element.tag("b")), isNull);
+      expect(fragment.innerHTML, "<a>foo</a>");
     });
 
     test('afterBegin inserts the element', () {
       var fragment = getFragment();
       var el = new Element.tag("b");
-      Expect.equals(el, fragment.insertAdjacentElement("afterBegin", el));
-      Expect.equals("<b></b><a>foo</a>", fragment.innerHTML);
+      expect(fragment.insertAdjacentElement("afterBegin", el), equals(el));
+      expect(fragment.innerHTML, "<b></b><a>foo</a>");
     });
 
     test('beforeEnd inserts the element', () {
       var fragment = getFragment();
       var el = new Element.tag("b");
-      Expect.equals(el, fragment.insertAdjacentElement("beforeEnd", el));
-      Expect.equals("<a>foo</a><b></b>", fragment.innerHTML);
+      expect(fragment.insertAdjacentElement("beforeEnd", el), equals(el));
+      expect(fragment.innerHTML, "<a>foo</a><b></b>");
     });
   });
 
@@ -228,25 +234,25 @@ main() {
     test('beforeBegin does nothing', () {
       var fragment = getFragment();
       fragment.insertAdjacentText("beforeBegin", "foo");
-      Expect.equals("<a>foo</a>", fragment.innerHTML);
+      expect(fragment.innerHTML, "<a>foo</a>");
     });
 
     test('afterEnd does nothing', () {
       var fragment = getFragment();
       fragment.insertAdjacentText("afterEnd", "foo");
-      Expect.equals("<a>foo</a>", fragment.innerHTML);
+      expect(fragment.innerHTML, "<a>foo</a>");
     });
 
     test('afterBegin inserts the text', () {
       var fragment = getFragment();
       fragment.insertAdjacentText("afterBegin", "foo");
-      Expect.equals("foo<a>foo</a>", fragment.innerHTML);
+      expect(fragment.innerHTML, "foo<a>foo</a>");
     });
 
     test('beforeEnd inserts the text', () {
       var fragment = getFragment();
       fragment.insertAdjacentText("beforeEnd", "foo");
-      Expect.equals("<a>foo</a>foo", fragment.innerHTML);
+      expect(fragment.innerHTML, "<a>foo</a>foo");
     });
   });
 
@@ -256,25 +262,25 @@ main() {
     test('beforeBegin does nothing', () {
       var fragment = getFragment();
       fragment.insertAdjacentHTML("beforeBegin", "foo<br>");
-      Expect.equals("<a>foo</a>", fragment.innerHTML);
+      expect(fragment.innerHTML, "<a>foo</a>");
     });
 
     test('afterEnd does nothing', () {
       var fragment = getFragment();
       fragment.insertAdjacentHTML("afterEnd", "<br>foo");
-      Expect.equals("<a>foo</a>", fragment.innerHTML);
+      expect(fragment.innerHTML, "<a>foo</a>");
     });
 
     test('afterBegin inserts the HTML', () {
       var fragment = getFragment();
       fragment.insertAdjacentHTML("afterBegin", "foo<br>");
-      Expect.equals("foo<br><a>foo</a>", fragment.innerHTML);
+      expect(fragment.innerHTML, "foo<br><a>foo</a>");
     });
 
     test('beforeEnd inserts the HTML', () {
       var fragment = getFragment();
       fragment.insertAdjacentHTML("beforeEnd", "<br>foo");
-      Expect.equals("<a>foo</a><br>foo", fragment.innerHTML);
+      expect(fragment.innerHTML, "<a>foo</a><br>foo");
     });
   });
 
@@ -298,29 +304,29 @@ main() {
        expectEmptyRect(rect.offset);
        expectEmptyRect(rect.scroll);
        expectEmptyRect(rect.bounding);
-       Expect.isTrue(rect.clientRects.isEmpty);
+       expect(rect.clientRects.isEmpty, isTrue);
     }));
-    Expect.equals("false", fragment.contentEditable);
-    Expect.equals(-1, fragment.tabIndex);
-    Expect.equals("", fragment.id);
-    Expect.equals("", fragment.title);
-    Expect.equals("", fragment.tagName);
-    Expect.equals("", fragment.webkitdropzone);
-    Expect.equals("", fragment.webkitRegionOverflow);
-    Expect.isFalse(fragment.isContentEditable);
-    Expect.isFalse(fragment.draggable);
-    Expect.isFalse(fragment.hidden);
-    Expect.isFalse(fragment.spellcheck);
-    Expect.isFalse(fragment.translate);
-    Expect.isNull(fragment.nextElementSibling);
-    Expect.isNull(fragment.previousElementSibling);
-    Expect.isNull(fragment.offsetParent);
-    Expect.isNull(fragment.parent);
-    Expect.isTrue(fragment.attributes.isEmpty);
-    Expect.isTrue(fragment.classes.isEmpty);
-    Expect.isTrue(fragment.dataAttributes.isEmpty);
-    Expect.isFalse(fragment.matchesSelector("foo"));
-    Expect.isFalse(fragment.matchesSelector("*"));
+    expect(fragment.contentEditable, "false");
+    expect(fragment.tabIndex, -1);
+    expect(fragment.id, "");
+    expect(fragment.title, "");
+    expect(fragment.tagName, "");
+    expect(fragment.webkitdropzone, "");
+    expect(fragment.webkitRegionOverflow, "");
+    expect(fragment.isContentEditable, isFalse);
+    expect(fragment.draggable, isFalse);
+    expect(fragment.hidden, isFalse);
+    expect(fragment.spellcheck, isFalse);
+    expect(fragment.translate, isFalse);
+    expect(fragment.nextElementSibling, isNull);
+    expect(fragment.previousElementSibling, isNull);
+    expect(fragment.offsetParent, isNull);
+    expect(fragment.parent, isNull);
+    expect(fragment.attributes.isEmpty, isTrue);
+    expect(fragment.classes.isEmpty, isTrue);
+    expect(fragment.dataAttributes.isEmpty, isTrue);
+    expect(fragment.matchesSelector("foo"), isFalse);
+    expect(fragment.matchesSelector("*"), isFalse);
   });
 
   test('style', () {
@@ -348,7 +354,7 @@ main() {
   test('query searches the fragment', () {
     var fragment = new DocumentFragment.html(
       "<div class='foo'><a>foo</a><b>bar</b></div>");
-    Expect.equals("A", fragment.query(".foo a").tagName);
-    Expect.listEquals(["A", "B"], _nodeStrings(fragment.queryAll(".foo *")));
+    expect(fragment.query(".foo a").tagName, "A");
+    expect(_nodeStrings(fragment.queryAll(".foo *")), equals(["A", "B"]));
   });
 }

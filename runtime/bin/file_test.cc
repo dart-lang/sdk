@@ -24,7 +24,6 @@ UNIT_TEST_CASE(Read) {
   const char* kFilename = GetFileName("runtime/bin/file_test.cc");
   File* file = File::Open(kFilename, File::kRead);
   EXPECT(file != NULL);
-  EXPECT_STREQ(kFilename, file->name());
   char buffer[16];
   buffer[0] = '\0';
   EXPECT(file->ReadFully(buffer, 13));  // ReadFully returns true.

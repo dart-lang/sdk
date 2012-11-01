@@ -25,18 +25,18 @@ main() {
       final message = foo("Hello World");
       try {
         String x = win.foo(message);
-        Expect.fail('Should not reach here: $x');
+        expect(false, isTrue, reason: 'Should not reach here: $x');
       } on NoSuchMethodError catch (e) {
         // Expected exception.
       } on Exception catch (e) {
-        Expect.fail('Wrong exception: $e');
+        expect(false, isTrue, reason: 'Wrong exception: $e');
       }
     });
 
   test('foo', () {
       var win = things[inscrutable(0)];
       String x = win.foo('bar');
-      Expect.equals('not bar', x);
+      expect(x, 'not bar');
     });
 
   // Use dom.window direclty in case the compiler does type inference.
@@ -44,11 +44,11 @@ main() {
       final message = foo("Hello World");
       try {
         String x = dom.window.foo(message);
-        Expect.fail('Should not reach here: $x');
+        expect(false, isTrue, reason: 'Should not reach here: $x');
       } on NoSuchMethodError catch (e) {
         // Expected exception.
       } on Exception catch (e) {
-        Expect.fail('Wrong exception: $e');
+        expect(false, isTrue, reason: 'Wrong exception: $e');
       }
     });
 }

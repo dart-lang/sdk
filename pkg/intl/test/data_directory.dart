@@ -7,9 +7,9 @@
  * simple cases) for file-dependent programs being run from different
  * directories.
  */
-#library('data_directory');
+library data_directory;
 
-#import('dart:io');
+import 'dart:io';
 
 String get _sep => Platform.pathSeparator;
 

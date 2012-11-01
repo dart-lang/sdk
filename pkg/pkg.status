@@ -4,7 +4,7 @@
 
 # Run this test manually to verify that the fixnum library produces
 # the same results as native ints on a set of directed and random inputs.
-# Skip it when runnimng automated tests because it times out.  This
+# Skip it when running automated tests because it times out.  This
 # test only makes sense on runtimes that support 64-bit integer
 # arithmetic natively, i.e., the VM.
 fixnum/test/int_64_vm_test: Skip
@@ -26,11 +26,23 @@ intl/test/date_time_format_http_request_test: Skip # Timeout.
 [ $runtime == vm ]
 intl/test/find_default_locale_browser_test: Skip
 intl/test/date_time_format_http_request_test: Skip
+unittest/test/mock_test: Fail  # noSuchMethod InvocationMirror not correct yet.
 
-# Skip http request tests on Dartium while resolving an odd		
-# error there that causes the tests to timeout.	      
-[ $runtime == dartium || $runtime == drt ]		
-intl/test/date_time_format_http_request_test: Skip	      
+# Skip http request tests on Dartium while resolving an odd
+# error there that causes the tests to timeout.
+[ $runtime == dartium || $runtime == drt ]
+intl/test/date_time_format_http_request_test: Skip
+
+[ $runtime == drt && $compiler == none ]
+intl/test/bidi_format_test: Fail # New import syntax is not supported by test frameowrk
+intl/test/bidi_utils_test: Fail # New import syntax is not supported by test frameowrk
+intl/test/date_time_format_local_even_test: Fail # New import syntax is not supported by test frameowrk
+intl/test/date_time_format_local_odd_test: Fail # New import syntax is not supported by test frameowrk
+intl/test/find_default_locale_browser_test: Fail # New import syntax is not supported by test frameowrk
+intl/test/intl_message_basic_example_test: Fail # New import syntax is not supported by test frameowrk
+intl/test/intl_message_test: Fail # New import syntax is not supported by test frameowrk
+intl/test/intl_test: Fail # New import syntax is not supported by test frameowrk
+intl/test/number_format_test: Fail # New import syntax is not supported by test frameowrk
 
 # Skip intl_message tests that use mirrors on dart2js until it's been
 # implemented there.
@@ -42,9 +54,17 @@ intl/test/intl_message_basic_example_test: Skip
 unittest/test/mock_regexp_negative_test: Fail
 unittest/test/mock_stepwise_negative_test: Fail
 
+# pkg issue 6340
+fixnum/test/int_32_test: Fail, OK
+fixnum/test/int_64_test: Fail, OK
+unittest/test/matchers_test: Fail, OK
+
+
 [ $compiler == dart2js || $compiler == dartc ]
 unittest/test/instance_test: Skip
 
 [ $compiler == none && $runtime == drt ]
 dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
 
+[ $compiler == none && ($runtime == dartium || $runtime == drt) ]
+unittest/test/mock_test: Fail

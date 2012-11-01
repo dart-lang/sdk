@@ -8,10 +8,10 @@
  * local files or via HTTP request.
  */
 
-#library('lazy_locale_data');
-#import('dart:uri');
-#import('intl_helpers.dart');
-#import('dart:json');
+library lazy_locale_data;
+import 'dart:uri';
+import 'intl_helpers.dart';
+import 'dart:json';
 
 /**
  * This implements the very basic map-type operations which are used

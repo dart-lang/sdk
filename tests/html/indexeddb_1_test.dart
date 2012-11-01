@@ -7,7 +7,7 @@ const String DB_NAME = 'Test';
 const String STORE_NAME = 'TEST';
 const int VERSION = 1;
 
-testReadWrite(key, value, check,
+testReadWrite(key, value, matcher,
               [dbName = DB_NAME,
                storeName = STORE_NAME,
                version = VERSION]) => () {
@@ -30,7 +30,7 @@ testReadWrite(key, value, check,
     request.on.success.add(expectAsync1((e) {
       var object = e.target.result;
       db.close();
-      check(value, object);
+      expect(object, matcher);
     }));
     request.on.error.add(fail);
   }
@@ -83,7 +83,7 @@ testReadWrite(key, value, check,
   deleteRequest.on.error.add(fail);
 };
 
-testReadWriteTyped(key, value, check,
+testReadWriteTyped(key, value, matcher,
                    [dbName = DB_NAME,
                     storeName = STORE_NAME,
                     version = VERSION]) => () {
@@ -106,7 +106,7 @@ testReadWriteTyped(key, value, check,
     request.on.success.add(expectAsync1((e) {
       var object = e.target.result;
       db.close();
-      check(value, object);
+      expect(object, matcher);
     }));
     request.on.error.add(fail);
   }
@@ -160,18 +160,17 @@ testReadWriteTyped(key, value, check,
 };
 
 tests_dynamic() {
-  test('test1', testReadWrite(123, 'Hoot!', Expect.equals));
-  test('test2', testReadWrite(123, 12345, Expect.equals));
-  test('test3', testReadWrite(123, [1,2,3], Expect.listEquals));
-  test('test4', testReadWrite(123, const [2, 3, 4], Expect.listEquals));
+  test('test1', testReadWrite(123, 'Hoot!', equals('Hoot!')));
+  test('test2', testReadWrite(123, 12345, equals(12345)));
+  test('test3', testReadWrite(123, [1, 2, 3], equals([1, 2, 3])));
+  test('test4', testReadWrite(123, [2, 3, 4], equals([2, 3, 4])));
 }
 
 tests_typed() {
-  test('test1', testReadWriteTyped(123, 'Hoot!', Expect.equals));
-  test('test2', testReadWriteTyped(123, 12345, Expect.equals));
-  test('test3', testReadWriteTyped(123, [1,2,3], Expect.listEquals));
-  test('test4',
-            testReadWriteTyped(123, const [2, 3, 4], Expect.listEquals));
+  test('test1', testReadWriteTyped(123, 'Hoot!', equals('Hoot!')));
+  test('test2', testReadWriteTyped(123, 12345, equals(12345)));
+  test('test3', testReadWriteTyped(123, [1, 2, 3], equals([1, 2, 3])));
+  test('test4', testReadWriteTyped(123, [2, 3, 4], equals([2, 3, 4])));
 }
 
 main() {

@@ -10,6 +10,9 @@
 main() {
   useHtmlConfiguration();
 
+  var isSVGSVGElement =
+      predicate((x) => x is SVGSVGElement, 'is a SVGSVGElement');
+
   Collection<String> _nodeStrings(Collection<Node> input) {
     final out = new List<String>();
     for (Node n in input) {
@@ -25,9 +28,9 @@ main() {
 
   testConstructor(String tagName, Function isExpectedClass) {
     test(tagName, () {
-      Expect.isTrue(isExpectedClass(new SVGElement.tag(tagName)));
-      Expect.isTrue(isExpectedClass(
-          new SVGElement.svg('<$tagName></$tagName>')));
+      expect(isExpectedClass(new SVGElement.tag(tagName)), isTrue);
+      expect(isExpectedClass(
+          new SVGElement.svg('<$tagName></$tagName>')), isTrue);
     });
   }
 
@@ -40,23 +43,22 @@ main() {
   <path></path>
 </svg>""";
         final el = new SVGElement.svg(svg);
-        Expect.isTrue(el is SVGSVGElement);
-        Expect.equals("<circle></circle><path></path>", el.innerHTML);
-        Expect.equals(svg, el.outerHTML);
+        expect(el, isSVGSVGElement);
+        expect(el.innerHTML, "<circle></circle><path></path>");
+        expect(el.outerHTML, svg);
       });
 
       test('has no parent', () =>
-        Expect.isNull(new SVGElement.svg('<circle/>').parent));
+        expect(new SVGElement.svg('<circle/>').parent, isNull)
+      );
 
       test('empty', () {
-        Expect.throws(() => new SVGElement.svg(""),
-            (e) => e is ArgumentError);
+        expect(() => new SVGElement.svg(""), throwsArgumentError);
       });
 
       test('too many elements', () {
-        Expect.throws(
-            () => new SVGElement.svg("<circle></circle><path></path>"),
-            (e) => e is ArgumentError);
+        expect(() => new SVGElement.svg("<circle></circle><path></path>"),
+            throwsArgumentError);
       });
     });
 
@@ -149,8 +151,8 @@ main() {
     final el = new SVGSVGElement();
     el.elements.add(new SVGElement.tag("circle"));
     el.elements.add(new SVGElement.tag("path"));
-    Expect.equals('<svg version="1.1"><circle></circle><path></path></svg>',
-        el.outerHTML);
+    expect(el.outerHTML,
+        '<svg version="1.1"><circle></circle><path></path></svg>');
   });
 
   group('innerHTML', () {
@@ -158,7 +160,7 @@ main() {
       final el = new SVGSVGElement();
       el.elements.add(new SVGElement.tag("circle"));
       el.elements.add(new SVGElement.tag("path"));
-      Expect.equals('<circle></circle><path></path>', el.innerHTML);
+      expect(el.innerHTML, '<circle></circle><path></path>');
     });
 
     test('set', () {
@@ -166,7 +168,7 @@ main() {
       el.elements.add(new SVGElement.tag("circle"));
       el.elements.add(new SVGElement.tag("path"));
       el.innerHTML = '<rect></rect><a></a>';
-      Expect.listEquals(["rect", "a"], _nodeStrings(el.elements));
+      expect(_nodeStrings(el.elements), ["rect", "a"]);
     });
   });
 
@@ -178,13 +180,13 @@ main() {
   <path></path>
   text
 </svg>""");
-      Expect.listEquals(["circle", "path"], _nodeStrings(el.elements));
+      expect(_nodeStrings(el.elements), ["circle", "path"]);
     });
 
     test('set', () {
       final el = new SVGSVGElement();
       el.elements = [new SVGElement.tag("circle"), new SVGElement.tag("path")];
-      Expect.equals('<circle></circle><path></path>', el.innerHTML);
+      expect(el.innerHTML, '<circle></circle><path></path>');
     });
   });
 }

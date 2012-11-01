@@ -48,8 +48,8 @@ public class NodeList<E extends DartNode> extends AbstractList<E> {
    */
   public void accept(ASTVisitor<?> visitor) {
     if (elements != null) {
-      for (E element : elements) {
-        element.accept(visitor);
+      for (int i = 0, size = elements.size(); i < size; i++) {
+        elements.get(i).accept(visitor);
       }
     }
   }

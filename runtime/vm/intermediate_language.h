@@ -1177,6 +1177,7 @@ class PhiInstr : public Definition {
   // Phi is alive if it reaches a non-environment use.
   bool is_alive() const { return is_alive_; }
   void mark_alive() { is_alive_ = true; }
+  void mark_dead() { is_alive_ = false; }
 
   virtual Representation RequiredInputRepresentation(intptr_t i) const {
     return representation_;
@@ -1606,7 +1607,7 @@ class RangeBoundary : public ValueObject {
   static RangeBoundary Max(RangeBoundary a, RangeBoundary b);
 
   bool Overflowed() const {
-    return !Smi::IsValid(value());
+    return IsConstant() && !Smi::IsValid(value());
   }
 
   RangeBoundary Clamp() const {
@@ -1690,8 +1691,8 @@ class Range : public ZoneAllocated {
   void PrintTo(BufferFormatter* f) const;
   static const char* ToCString(Range* range);
 
-  const RangeBoundary& min() { return min_; }
-  const RangeBoundary& max() { return max_; }
+  const RangeBoundary& min() const { return min_; }
+  const RangeBoundary& max() const { return max_; }
 
   bool Equals(Range* other) {
     return min_.Equals(other->min_) && max_.Equals(other->max_);
@@ -1706,6 +1707,9 @@ class Range : public ZoneAllocated {
     if (range == NULL) return RangeBoundary::MaxSmi();
     return range->max().UpperBound();
   }
+
+  // Inclusive.
+  bool IsWithin(intptr_t min_int, intptr_t max_int) const;
 
  private:
   RangeBoundary min_;
@@ -2281,6 +2285,8 @@ class EqualityCompareInstr : public ComparisonInstr {
     return kTagged;
   }
 
+  bool IsPolymorphic() const;
+
  private:
   const ICData* ic_data_;
   const intptr_t token_pos_;
@@ -2325,10 +2331,12 @@ class RelationalOpInstr : public ComparisonInstr {
 
   virtual bool CanDeoptimize() const {
     return (operands_class_id() != kDoubleCid)
+        && (operands_class_id() != kMintCid)
         && (operands_class_id() != kSmiCid);
   }
   virtual bool HasSideEffect() const {
     return (operands_class_id() != kDoubleCid)
+        && (operands_class_id() != kMintCid)
         && (operands_class_id() != kSmiCid);
   }
 
@@ -2344,7 +2352,9 @@ class RelationalOpInstr : public ComparisonInstr {
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((idx == 0) || (idx == 1));
-    return (operands_class_id() == kDoubleCid) ? kUnboxedDouble : kTagged;
+    if (operands_class_id() == kDoubleCid) return kUnboxedDouble;
+    if (operands_class_id() == kMintCid) return kUnboxedMint;
+    return kTagged;
   }
 
  private:
@@ -2366,7 +2376,8 @@ class StaticCallInstr : public TemplateDefinition<0> {
         function_(function),
         argument_names_(argument_names),
         arguments_(arguments),
-        result_cid_(kDynamicCid) {
+        result_cid_(kDynamicCid),
+        is_known_constructor_(false) {
     ASSERT(function.IsZoneHandle());
     ASSERT(argument_names.IsZoneHandle());
   }
@@ -2393,12 +2404,21 @@ class StaticCallInstr : public TemplateDefinition<0> {
   virtual intptr_t ResultCid() const { return result_cid_; }
   void set_result_cid(intptr_t value) { result_cid_ = value; }
 
+  bool is_known_constructor() const { return is_known_constructor_; }
+  void set_is_known_constructor(bool is_known_constructor) {
+    is_known_constructor_ = is_known_constructor;
+  }
+
  private:
   const intptr_t token_pos_;
   const Function& function_;
   const Array& argument_names_;
   ZoneGrowableArray<PushArgumentInstr*>* arguments_;
   intptr_t result_cid_;  // For some library functions we know the result.
+
+  // Some library constructors have known semantics.
+  bool is_known_constructor_;
+
 
   DISALLOW_COPY_AND_ASSIGN(StaticCallInstr);
 };
@@ -3955,7 +3975,7 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
 
   intptr_t array_type() const { return array_type_; }
 
-  bool IsRedundant();
+  bool IsRedundant(RangeBoundary length);
 
  private:
   intptr_t array_type_;

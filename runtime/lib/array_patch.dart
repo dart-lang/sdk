@@ -5,7 +5,7 @@
 // Note that the optimizing compiler depends on the algorithm which
 // returns a _GrowableObjectArray if length is null, otherwise returns
 // fixed size array.
-patch class ListImplementation<E> {
+patch class _ListImpl<E> {
   /* patch */ factory List([int length = null]) {
     if (length === null) {
       return new _GrowableObjectArray<E>();
@@ -14,8 +14,8 @@ patch class ListImplementation<E> {
     }
   }
 
-  /* patch */ static _from(Iterable other) {
-    _GrowableObjectArray list = new _GrowableObjectArray();
+  /* patch */ factory List.from(Iterable<E> other) {
+    _GrowableObjectArray<E> list = new _GrowableObjectArray<E>();
     for (final e in other) {
       list.add(e);
     }

@@ -26,8 +26,27 @@ class TypeCheckerTask extends CompilerTask {
   }
 }
 
+class TypeKind {
+  final String id;
+
+  const TypeKind(String this.id);
+
+  static const TypeKind FUNCTION = const TypeKind('function');
+  static const TypeKind INTERFACE = const TypeKind('interface');
+  static const TypeKind STATEMENT = const TypeKind('statement');
+  static const TypeKind TYPEDEF = const TypeKind('typedef');
+  static const TypeKind TYPE_VARIABLE = const TypeKind('type variable');
+  static const TypeKind VOID = const TypeKind('void');
+
+  String toString() => id;
+}
+
 abstract class DartType {
   abstract SourceString get name;
+
+  abstract TypeKind get kind;
+
+  const DartType();
 
   /**
    * Returns the [Element] which declared this type.
@@ -53,12 +72,16 @@ abstract class DartType {
   abstract DartType unalias(Compiler compiler);
 
   abstract bool operator ==(other);
+
+  DartType asRaw() => this;
 }
 
-class TypeVariableType implements DartType {
+class TypeVariableType extends DartType {
   final TypeVariableElement element;
 
   TypeVariableType(this.element);
+
+  TypeKind get kind => TypeKind.TYPE_VARIABLE;
 
   SourceString get name => element.name;
 
@@ -77,9 +100,12 @@ class TypeVariableType implements DartType {
 /**
  * A statement type tracks whether a statement returns or may return.
  */
-class StatementType implements DartType {
+class StatementType extends DartType {
   final String stringName;
+
   Element get element => null;
+
+  TypeKind get kind => TypeKind.STATEMENT;
 
   SourceString get name => new SourceString(stringName);
 
@@ -106,9 +132,13 @@ class StatementType implements DartType {
   String toString() => stringName;
 }
 
-class VoidType implements DartType {
+class VoidType extends DartType {
   const VoidType(this.element);
+
+  TypeKind get kind => TypeKind.VOID;
+
   SourceString get name => element.name;
+
   final VoidElement element;
 
   DartType unalias(Compiler compiler) => this;
@@ -120,12 +150,14 @@ class VoidType implements DartType {
   String toString() => name.slowToString();
 }
 
-class InterfaceType implements DartType {
+class InterfaceType extends DartType {
   final Element element;
   final Link<DartType> arguments;
 
   const InterfaceType(this.element,
                       [this.arguments = const Link<DartType>()]);
+
+  TypeKind get kind => TypeKind.INTERFACE;
 
   SourceString get name => element.name;
 
@@ -158,9 +190,14 @@ class InterfaceType implements DartType {
     if (!identical(element, other.element)) return false;
     return arguments == other.arguments;
   }
+
+  InterfaceType asRaw() {
+    if (arguments.isEmpty) return this;
+    return new InterfaceType(element);
+  }
 }
 
-class FunctionType implements DartType {
+class FunctionType extends DartType {
   final Element element;
   DartType returnType;
   Link<DartType> parameterTypes;
@@ -169,6 +206,8 @@ class FunctionType implements DartType {
                Element this.element) {
     assert(element == null || invariant(element, element.isDeclaration));
   }
+
+  TypeKind get kind => TypeKind.FUNCTION;
 
   DartType unalias(Compiler compiler) => this;
 
@@ -213,12 +252,14 @@ class FunctionType implements DartType {
   }
 }
 
-class TypedefType implements DartType {
+class TypedefType extends DartType {
   final TypedefElement element;
   final Link<DartType> typeArguments;
 
   const TypedefType(this.element,
       [this.typeArguments = const Link<DartType>()]);
+
+  TypeKind get kind => TypeKind.TYPEDEF;
 
   SourceString get name => element.name;
 
@@ -521,7 +562,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
   }
 
   DartType lookupMethodType(Node node, ClassElement classElement,
-                        SourceString name) {
+                            SourceString name) {
     Element member = classElement.lookupLocalMember(name);
     if (member == null) {
       classElement.ensureResolved(compiler);

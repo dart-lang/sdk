@@ -42,9 +42,6 @@ class FlowGraphCompiler : public ValueObject {
   DescriptorList* pc_descriptors_list() const {
     return pc_descriptors_list_;
   }
-  const GrowableObjectArray& object_table() {
-    return object_table_;
-  }
   BlockEntryInstr* current_block() const { return current_block_; }
   void set_current_block(BlockEntryInstr* value) {
     current_block_ = value;
@@ -102,14 +99,12 @@ class FlowGraphCompiler : public ValueObject {
                           bool negate_result,
                           LocationSummary* locs);
 
-  // Returns ICData used in the instance call.
-  const ICData& GenerateInstanceCall(intptr_t deopt_id,
-                                     intptr_t token_pos,
-                                     const String& function_name,
-                                     intptr_t argument_count,
-                                     const Array& argument_names,
-                                     intptr_t checked_argument_count,
-                                     LocationSummary* locs);
+  void GenerateInstanceCall(intptr_t deopt_id,
+                            intptr_t token_pos,
+                            intptr_t argument_count,
+                            const Array& argument_names,
+                            LocationSummary* locs,
+                            const ICData& ic_data);
 
   void GenerateStaticCall(intptr_t deopt_id,
                           intptr_t token_pos,
@@ -315,7 +310,6 @@ class FlowGraphCompiler : public ValueObject {
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<CompilerDeoptInfo*> deopt_infos_;
   GrowableArray<SlowPathCode*> slow_path_code_;
-  const GrowableObjectArray& object_table_;
   const bool is_optimizing_;
 
   const Bool& bool_true_;

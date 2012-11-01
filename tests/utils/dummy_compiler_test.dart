@@ -33,6 +33,8 @@ Future<String> provider(Uri uri) {
                   eqNullB(a) {}""";
     } else if (uri.path.endsWith('_patch.dart')) {
       source = '';
+    } else if (uri.path.endsWith('js_helper.dart')) {
+      source = 'library jshelper; class JSInvocationMirror {}';
     } else {
       source = "#library('lib');";
     }

@@ -10,13 +10,16 @@
 main() {
   useHtmlConfiguration();
 
+  var isShadowRoot =
+      predicate((x) => x is ShadowRoot, 'is a ShadowRoot');
+
   test('ShadowRoot supported', () {
     var isSupported = ShadowRoot.supported;
 
     // If it's supported, then it should work. Otherwise should fail.
     if (isSupported) {
       var shadowRoot = new ShadowRoot(new DivElement());
-      expect(shadowRoot is ShadowRoot);
+      expect(shadowRoot, isShadowRoot);
     } else {
       expect(() => new ShadowRoot(new DivElement()), throws);
     }

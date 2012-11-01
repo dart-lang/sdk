@@ -3,11 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.resolver;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
 import com.google.dart.compiler.CompilerTestCase;
-import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
@@ -49,7 +47,6 @@ public class ResolverCompilerTest extends CompilerTestCase {
 
   public void test_parameters_withFunctionAlias() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "Test.dart",
         "typedef List<T> TypeAlias<T, U extends List<T>>(List<T> arg, U u);");
     assertErrors(libraryResult.getCompilationErrors());
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
@@ -75,10 +72,10 @@ public class ResolverCompilerTest extends CompilerTestCase {
    * This test succeeds if no exceptions are thrown.
    */
   public void test_recursiveTypes() throws Exception {
-    analyzeLibrary("test.dart", Joiner.on("\n").join(
+    analyzeLibrary(
         "class A extends A implements A {}",
         "class B extends C {}",
-        "class C extends B {}"));
+        "class C extends B {}");
   }
 
   /**
@@ -87,16 +84,13 @@ public class ResolverCompilerTest extends CompilerTestCase {
    */
   public void test_resolution_on_class_decls() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "Test.dart",
-        Joiner.on("\n").join(
             "class A {}",
-            "interface B<T> default C {}",
+            "abstract class B<T> {}",
             "class C<T> extends A implements B<T> {}",
             "class D extends C<int> {}",
             "class E implements C<int> {}",
             "class F<T extends A> {}",
-            "class G extends F<C<int>> {}",
-            "interface H<T> default C<T> {}"));
+            "class G extends F<C<int>> {}");
     assertErrors(libraryResult.getCompilationErrors());
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     List<DartNode> nodes = unit.getTopLevelNodes();
@@ -114,8 +108,6 @@ public class ResolverCompilerTest extends CompilerTestCase {
     assertEquals("F", F.getClassName());
     DartClass G = (DartClass) nodes.get(6);
     assertEquals("G", G.getClassName());
-    DartClass H = (DartClass) nodes.get(7);
-    assertEquals("H", H.getClassName());
 
     // class A
     assertNotNull(A.getName().getElement());
@@ -131,8 +123,6 @@ public class ResolverCompilerTest extends CompilerTestCase {
     assertNotNull(T.getName().getElement());
     assertTrue(T.getName().getElement() instanceof TypeVariableElement);
     assertEquals("T", T.getName().getName());
-    assertNotNull(B.getDefaultClass().getExpression().getElement());
-    assertSame(C.getElement(), B.getDefaultClass().getExpression().getElement());
 
     // class C<T> extends A implements B<T> {}
     assertNotNull(C.getName().getElement());
@@ -193,24 +183,6 @@ public class ResolverCompilerTest extends CompilerTestCase {
     assertEquals(
         "int",
         typeArg.getTypeArguments().get(0).getIdentifier().getElement().getOriginalName());
-
-    // class H<T> extends C<T> {}",
-    assertNotNull(H.getName().getElement());
-    assertSame(H.getElement(), H.getName().getElement());
-    assertEquals(1, H.getTypeParameters().size());
-    T = H.getTypeParameters().get(0);
-    assertNotNull(T);
-    assertNotNull(T.getName().getElement());
-    assertTrue(T.getName().getElement() instanceof TypeVariableElement);
-    assertNotNull(H.getDefaultClass().getExpression().getElement());
-    assertSame(C.getElement(), H.getDefaultClass().getExpression().getElement());
-    // This type parameter T resolves to the Type variable on the default class, so it
-    // isn't the same type variable instance specified in this interface declaration,
-    // though it must have the same name.
-    DartTypeParameter defaultT = H.getDefaultClass().getTypeParameters().get(0);
-    assertNotNull(defaultT.getName().getElement());
-    assertTrue(defaultT.getName().getElement() instanceof TypeVariableElement);
-    assertEquals(T.getName().getElement().getName(), defaultT.getName().getElement().getName());
   }
 
   /**
@@ -218,15 +190,13 @@ public class ResolverCompilerTest extends CompilerTestCase {
    */
   public void test_resolveConstructor_implicit() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "Test.dart",
-        Joiner.on("\n").join(
-            "class F {",
-            "}",
-            "class Test {",
-            "  foo() {",
-            "    new F();",
-            "  }",
-            "}"));
+        "class F {",
+        "}",
+        "class Test {",
+        "  foo() {",
+        "    new F();",
+        "  }",
+        "}");
     assertErrors(libraryResult.getCompilationErrors());
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     DartNewExpression newExpression = findNodeBySource(unit, "new F()");
@@ -237,15 +207,13 @@ public class ResolverCompilerTest extends CompilerTestCase {
 
   public void test_resolveConstructor_noSuchConstructor() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "Test.dart",
-        Joiner.on("\n").join(
-            "class A {",
-            "}",
-            "class Test {",
-            "  foo() {",
-            "    new A.foo();",
-            "  }",
-            "}"));
+        "class A {",
+        "}",
+        "class Test {",
+        "  foo() {",
+        "    new A.foo();",
+        "  }",
+        "}");
     assertErrors(
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 5, 11, 3));
@@ -257,513 +225,30 @@ public class ResolverCompilerTest extends CompilerTestCase {
 
   public void test_resolveConstructor_super_implicitDefault() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "Test.dart",
-        Joiner.on("\n").join(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "class A {",
-            "}",
-            "class B extends A {",
-            "  B() : super() {}",
-            "}",
-            ""));
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "}",
+        "class B extends A {",
+        "  B() : super() {}",
+        "}",
+        "");
     assertErrors(libraryResult.getErrors());
   }
 
   public void test_superMethodInvocation_inConstructorInitializer() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "Test.dart",
-        Joiner.on("\n").join(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "class A {",
-            "  foo() {}",
-            "}",
-            "class B extends A {",
-            "  var x;",
-            "  B() : x = super.foo() {}",
-            "}",
-            ""));
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {}",
+        "}",
+        "class B extends A {",
+        "  var x;",
+        "  B() : x = super.foo() {}",
+        "}",
+        "");
     assertErrors(
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.SUPER_METHOD_INVOCATION_IN_CONSTRUCTOR_INITIALIZER, 7, 13, 11));
-  }
-
-  /**
-   * We should be able to resolve implicit default constructor.
-   */
-  public void test_resolveInterfaceConstructor_implicitDefault_noInterface_noFactory()
-      throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "Test.dart",
-        Joiner.on("\n").join(
-            "interface I default F {",
-            "}",
-            "class F implements I {",
-            "}",
-            "class Test {",
-            "  foo() {",
-            "    new I();",
-            "  }",
-            "}"));
-    assertErrors(libraryResult.getCompilationErrors());
-    DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
-    DartNewExpression newExpression = findNodeBySource(unit, "new I()");
-    ConstructorElement constructorElement = newExpression.getElement();
-    assertNotNull(constructorElement);
-    assertEquals("", getElementSource(constructorElement));
-  }
-
-  /**
-   * We should be able to resolve implicit default constructor.
-   */
-  public void test_resolveInterfaceConstructor_implicitDefault_hasInterface_noFactory()
-      throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "Test.dart",
-        Joiner.on("\n").join(
-            "interface I default F {",
-            "}",
-            "class F implements I {",
-            "}",
-            "class Test {",
-            "  foo() {",
-            "    new I();",
-            "  }",
-            "}"));
-    assertErrors(libraryResult.getCompilationErrors());
-    DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
-    DartNewExpression newExpression = findNodeBySource(unit, "new I()");
-    ConstructorElement constructorElement = newExpression.getElement();
-    assertNotNull(constructorElement);
-    assertEquals("", getElementSource(constructorElement));
-  }
-
-  /**
-   * We should be able to resolve implicit default constructor.
-   */
-  public void test_resolveInterfaceConstructor_implicitDefault_noInterface_hasFactory()
-      throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "Test.dart",
-        Joiner.on("\n").join(
-            "interface I default F {",
-            "}",
-            "class F implements I {",
-            "  F();",
-            "}",
-            "class Test {",
-            "  foo() {",
-            "    new I();",
-            "  }",
-            "}"));
-    assertErrors(libraryResult.getCompilationErrors());
-    DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
-    DartNewExpression newExpression = findNodeBySource(unit, "new I()");
-    ConstructorElement constructorElement = newExpression.getElement();
-    assertEquals(true, getElementSource(constructorElement).contains("F()"));
-  }
-
-  /**
-   * If "const I()" is used, then constructor should be "const".
-   */
-  public void test_resolveInterfaceConstructor_const() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "Test.dart",
-        Joiner.on("\n").join(
-            "interface I default F {",
-            "  I(int x);",
-            "}",
-            "class F implements I {",
-            "  F(int y) {}",
-            "}",
-            "class Test {",
-            "  foo() {",
-            "    const I(0);",
-            "  }",
-            "}"));
-    assertErrors(
-        libraryResult.getCompilationErrors(),
-        errEx(ResolverErrorCode.CONST_AND_NONCONST_CONSTRUCTOR, 9, 5, 10));
-  }
-
-  /**
-   * From specification 0.05, 11/14/2011.
-   * <p>
-   * A constructor kI of I corresponds to a constructor kF of its factory class F if either
-   * <ul>
-   * <li>F does not implement I and kI and kF have the same name, OR
-   * <li>F implements I and either
-   * <ul>
-   * <li>kI is named NI and kF is named NF, OR
-   * <li>kI is named NI.id and kF is named NF.id.
-   * </ul>
-   * </ul>
-   * <p>
-   * http://code.google.com/p/dart/issues/detail?id=521
-   */
-  public void test_resolveInterfaceConstructor_whenFactoryImplementsInterface_nameIsIdentifier()
-      throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "Test.dart",
-        Joiner.on("\n").join(
-            "interface I default F {",
-            "  I(int x);",
-            "}",
-            "class F implements I {",
-            "  F(int y) {}",
-            "  factory I(int y) {}",
-            "}",
-            "class Test {",
-            "  foo() {",
-            "    new I(0);",
-            "  }",
-            "}"));
-    assertErrors(libraryResult.getCompilationErrors());
-    DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
-    DartNewExpression newExpression = findNodeBySource(unit, "new I(0)");
-    ConstructorElement constructorElement = newExpression.getElement();
-    assertEquals(true, getElementSource(constructorElement).contains("F(int y)"));
-  }
-
-  /**
-   * From specification 0.05, 11/14/2011.
-   * <p>
-   * A constructor kI of I corresponds to a constructor kF of its factory class F if either
-   * <ul>
-   * <li>F does not implement I and kI and kF have the same name, OR
-   * <li>F implements I and either
-   * <ul>
-   * <li>kI is named NI and kF is named NF , OR
-   * <li>kI is named NI.id and kF is named NF.id.
-   * </ul>
-   * </ul>
-   * <p>
-   * http://code.google.com/p/dart/issues/detail?id=521
-   */
-  public void test_resolveInterfaceConstructor_whenFactoryImplementsInterface_nameIsQualified()
-      throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "Test.dart",
-        Joiner.on("\n").join(
-            "interface I default F {",
-            "  I.foo(int x);",
-            "}",
-            "class F implements I {",
-            "  F.foo(int y) {}",
-            "  factory I.foo(int y) {}",
-            "}",
-            "class Test {",
-            "  foo() {",
-            "    new I.foo(0);",
-            "  }",
-            "}"));
-    assertErrors(libraryResult.getCompilationErrors());
-    DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
-    // "new I.foo()" - good
-    {
-      DartNewExpression newExpression = findNodeBySource(unit, "new I.foo(0)");
-      ConstructorElement constructorElement = newExpression.getElement();
-      assertEquals(true, getElementSource(constructorElement).contains("F.foo(int y)"));
-    }
-  }
-
-  /**
-   * From specification 0.05, 11/14/2011.
-   * <p>
-   * A constructor kI of I corresponds to a constructor kF of its factory class F if either
-   * <ul>
-   * <li>F does not implement I and kI and kF have the same name, OR
-   * <li>F implements I and either
-   * <ul>
-   * <li>kI is named NI and kF is named NF , OR
-   * <li>kI is named NI.id and kF is named NF.id.
-   * </ul>
-   * </ul>
-   * <p>
-   * http://code.google.com/p/dart/issues/detail?id=521
-   */
-  public void test_resolveInterfaceConstructor_whenFactoryImplementsInterface_negative()
-      throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "Test.dart",
-        Joiner.on("\n").join(
-            "interface I default F {",
-            "  I(int x);",
-            "  I.foo(int x);",
-            "}",
-            "class F implements I {",
-            "  factory I.foo(int x) {}",
-            "}",
-            "class Test {",
-            "  foo() {",
-            "    new I(0);",
-            "    new I.foo(0);",
-            "  }",
-            "}"));
-    // Check errors.
-    {
-      List<DartCompilationError> errors = libraryResult.getCompilationErrors();
-      assertErrors(
-          errors,
-          errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_UNRESOLVED, 2, 3, 9),
-          errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_UNRESOLVED, 3, 3, 13),
-          errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_UNRESOLVED, 10, 9, 1),
-          errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_UNRESOLVED, 11, 9, 5));
-      {
-        String message = errors.get(0).getMessage();
-        assertTrue(message, message.contains("'F'"));
-        assertTrue(message, message.contains("'F'"));
-      }
-      {
-        String message = errors.get(1).getMessage();
-        assertTrue(message, message.contains("'F.foo'"));
-        assertTrue(message, message.contains("'F'"));
-      }
-    }
-    DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
-    // "new I()" - no such constructor, has other constructors, so no implicit default.
-    {
-      DartNewExpression newExpression = findNodeBySource(unit, "new I(0)");
-      assertEquals(null, newExpression.getElement());
-    }
-    // "new I.foo()" - would be valid, if not "F implements I", but here invalid
-    {
-      DartNewExpression newExpression = findNodeBySource(unit, "new I.foo(0)");
-      assertEquals(null, newExpression.getElement());
-    }
-  }
-
-  /**
-   * From specification 0.05, 11/14/2011.
-   * <p>
-   * A constructor kI of I corresponds to a constructor kF of its factory class F if either
-   * <ul>
-   * <li>F does not implement I and kI and kF have the same name, OR
-   * <li>F implements I and either
-   * <ul>
-   * <li>kI is named NI and kF is named NF , OR
-   * <li>kI is named NI.id and kF is named NF.id.
-   * </ul>
-   * </ul>
-   * <p>
-   * http://code.google.com/p/dart/issues/detail?id=521
-   */
-  public void test_resolveInterfaceConstructor_noFactoryImplementsInterface() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "Test.dart",
-        Joiner.on("\n").join(
-            "interface I default F {",
-            "  I(int x);",
-            "  I.foo(int x);",
-            "}",
-            "class F {",
-            "  F.foo(int y) {}",
-            "  factory I(int y) {}",
-            "  factory I.foo(int y) {}",
-            "}",
-            "class Test {",
-            "  foo() {",
-            "    new I(0);",
-            "    new I.foo(0);",
-            "  }",
-            "}"));
-    assertErrors(libraryResult.getCompilationErrors());
-    DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
-    // "new I()"
-    {
-      DartNewExpression newExpression = findNodeBySource(unit, "new I(0)");
-      ConstructorElement constructorElement = newExpression.getElement();
-      assertEquals(true, getElementSource(constructorElement).contains("I(int y)"));
-    }
-    // "new I.foo()"
-    {
-      DartNewExpression newExpression = findNodeBySource(unit, "new I.foo(0)");
-      ConstructorElement constructorElement = newExpression.getElement();
-      assertEquals(true, getElementSource(constructorElement).contains("I.foo(int y)"));
-    }
-  }
-
-  /**
-   * From specification 0.05, 11/14/2011.
-   * <p>
-   * A constructor kI of I corresponds to a constructor kF of its factory class F if either
-   * <ul>
-   * <li>F does not implement I and kI and kF have the same name, OR
-   * <li>F implements I and either
-   * <ul>
-   * <li>kI is named NI and kF is named NF , OR
-   * <li>kI is named NI.id and kF is named NF.id.
-   * </ul>
-   * </ul>
-   * <p>
-   * http://code.google.com/p/dart/issues/detail?id=521
-   */
-  public void test_resolveInterfaceConstructor_noFactoryImplementsInterface_negative()
-      throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "Test.dart",
-        Joiner.on("\n").join(
-            "interface I default F {",
-            "  I.foo(int x);",
-            "}",
-            "class F {",
-            "}",
-            "class Test {",
-            "  foo() {",
-            "    new I.foo(0);",
-            "  }",
-            "}"));
-    // Check errors.
-    {
-      List<DartCompilationError> errors = libraryResult.getCompilationErrors();
-      assertErrors(
-          errors,
-          errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_UNRESOLVED, 2, 3, 13),
-          errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_UNRESOLVED, 8, 9, 5));
-      {
-        String message = errors.get(0).getMessage();
-        assertTrue(message, message.contains("'I.foo'"));
-        assertTrue(message, message.contains("'F'"));
-      }
-    }
-    DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
-    // "new I.foo()"
-    {
-      DartNewExpression newExpression = findNodeBySource(unit, "new I.foo(0)");
-      assertEquals(null, newExpression.getElement());
-    }
-  }
-
-  /**
-   * From specification 0.05, 11/14/2011.
-   * <p>
-   * It is a compile-time error if kI and kF do not have the same number of required parameters.
-   * <p>
-   * http://code.google.com/p/dart/issues/detail?id=521
-   */
-  public void test_resolveInterfaceConstructor_hasByName_negative_notSameNumberOfRequiredParameters()
-      throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "Test.dart",
-        Joiner.on("\n").join(
-            "interface I default F {",
-            "  I.foo(int x);",
-            "}",
-            "class F implements I {",
-            "  factory F.foo() {}",
-            "}",
-            "class Test {",
-            "  foo() {",
-            "    new I.foo();",
-            "  }",
-            "}"));
-    assertErrors(libraryResult.getTypeErrors());
-    // Check errors.
-    {
-      List<DartCompilationError> errors = libraryResult.getCompilationErrors();
-      assertErrors(
-          errors,
-          errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_NUMBER_OF_REQUIRED_PARAMETERS, 2, 3, 13));
-      {
-        String message = errors.get(0).getMessage();
-        assertTrue(message, message.contains("'F.foo'"));
-        assertTrue(message, message.contains("'F'"));
-        assertTrue(message, message.contains("0"));
-        assertTrue(message, message.contains("1"));
-        assertTrue(message, message.contains("'F.foo'"));
-      }
-    }
-    DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
-    // "new I.foo()" - resolved, but we produce error.
-    {
-      DartNewExpression newExpression = findNodeBySource(unit, "new I.foo()");
-      ConstructorElement constructorElement = newExpression.getElement();
-      assertEquals(true, getElementSource(constructorElement).contains("F.foo()"));
-    }
-  }
-
-  /**
-   * From specification 0.05, 11/14/2011.
-   * <p>
-   * It is a compile-time error if kI and kF do not have identically named optional parameters,
-   * declared in the same order.
-   * <p>
-   * http://code.google.com/p/dart/issues/detail?id=521
-   */
-  public void test_resolveInterfaceConstructor_hasByName_negative_notSameNamedParameters()
-      throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "Test.dart",
-        Joiner.on("\n").join(
-            "interface I default F {",
-            "  I.foo(int a, [int b, int c]);",
-            "  I.bar(int a, [int b, int c]);",
-            "  I.baz(int a, [int b]);",
-            "}",
-            "class F implements I {",
-            "  factory F.foo(int any, [int b = 1]) {}",
-            "  factory F.bar(int any, [int c = 1, int b = 2]) {}",
-            "  factory F.baz(int any, [int c = 1]) {}",
-            "}",
-            "class Test {",
-            "  foo() {",
-            "    new I.foo(0);",
-            "    new I.bar(0);",
-            "    new I.baz(0);",
-            "  }",
-            "}"));
-    assertErrors(libraryResult.getTypeErrors());
-    // Check errors.
-    {
-      List<DartCompilationError> errors = libraryResult.getCompilationErrors();
-      assertErrors(
-          errors,
-          errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_NAMED_PARAMETERS, 2, 3, 29),
-          errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_NAMED_PARAMETERS, 3, 3, 29),
-          errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_NAMED_PARAMETERS, 4, 3, 22));
-      {
-        String message = errors.get(0).getMessage();
-        assertTrue(message, message.contains("'I.foo'"));
-        assertTrue(message, message.contains("'F'"));
-        assertTrue(message, message.contains("[b]"));
-        assertTrue(message, message.contains("[b, c]"));
-        assertTrue(message, message.contains("'F.foo'"));
-      }
-      {
-        String message = errors.get(1).getMessage();
-        assertTrue(message, message.contains("'I.bar'"));
-        assertTrue(message, message.contains("'F'"));
-        assertTrue(message, message.contains("[c, b]"));
-        assertTrue(message, message.contains("[b, c]"));
-        assertTrue(message, message.contains("'F.bar'"));
-      }
-      {
-        String message = errors.get(2).getMessage();
-        assertTrue(message, message.contains("'I.baz'"));
-        assertTrue(message, message.contains("'F'"));
-        assertTrue(message, message.contains("[b]"));
-        assertTrue(message, message.contains("[c]"));
-        assertTrue(message, message.contains("'F.baz'"));
-      }
-    }
-    DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
-    // "new I.foo()" - resolved, but we produce error.
-    {
-      DartNewExpression newExpression = findNodeBySource(unit, "new I.foo(0)");
-      ConstructorElement constructorElement = newExpression.getElement();
-      assertEquals(true, getElementSource(constructorElement).contains("F.foo("));
-    }
-    // "new I.bar()" - resolved, but we produce error.
-    {
-      DartNewExpression newExpression = findNodeBySource(unit, "new I.bar(0)");
-      ConstructorElement constructorElement = newExpression.getElement();
-      assertEquals(true, getElementSource(constructorElement).contains("F.bar("));
-    }
-    // "new I.baz()" - resolved, but we produce error.
-    {
-      DartNewExpression newExpression = findNodeBySource(unit, "new I.baz(0)");
-      ConstructorElement constructorElement = newExpression.getElement();
-      assertEquals(true, getElementSource(constructorElement).contains("F.baz("));
-    }
   }
 
   private static String getElementSource(Element element) throws Exception {
@@ -789,12 +274,10 @@ public class ResolverCompilerTest extends CompilerTestCase {
    */
   public void test_setElement_forName_inDeclarations() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "Test.dart",
-        Joiner.on("\n").join(
             "// filler filler filler filler filler filler filler filler filler filler",
             "class A<B extends A> {",
             "  var a1;",
-            "  get a2() {}",
+            "  get a2 {}",
             "  A() {}",
             "}",
             "var c;",
@@ -805,7 +288,7 @@ public class ResolverCompilerTest extends CompilerTestCase {
             "  h: d(0);",
             "}",
             "typedef i();",
-            ""));
+            "");
     assertErrors(libraryResult.getErrors());
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     // in class A

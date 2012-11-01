@@ -6,13 +6,6 @@
 
 {
   'sources': [
-    'array.cc',
-    'array.dart',
-    'array_patch.dart',
-    'growable_array.cc',
-    'growable_array.dart',
-    'immutable_map.dart',
-    'literal_factory.dart',
     'math.dart',
     'math.cc',
     'object.cc',
@@ -20,9 +13,5 @@
     'regexp_jsc.cc',
     'regexp_jsc.h',
     'regexp_patch.dart',
-    'stopwatch_patch.dart',
-    'string.cc',
-    'string_base.dart',
-    'string_patch.dart',
   ],
 }

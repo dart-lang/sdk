@@ -12,7 +12,7 @@ main() {
 
   test('basic', () {
       var b = new Blob([]);
-      expect(b.size, 0);
+      expect(b.size, isZero);
     });
 
   test('type1', () {
@@ -31,7 +31,8 @@ main() {
   test('endings2', () {
       // OPTIONALS var b = new Blob(['A\nB\n'], endings: 'native');
       var b = new Blob(['A\nB\n'], null, 'native');
-      expect(b.size, (x) => x == 4 || x == 6);
+      expect(b.size, (x) => x == 4 || x == 6,
+          reason: "b.size should be 4 or 6");
     });
 
   test('twoStrings', () {
@@ -43,7 +44,7 @@ main() {
   test('fromBlob1', () {
       var b1 = new Blob([]);
       var b2 = new Blob([b1]);
-      expect(b2.size, 0);
+      expect(b2.size, isZero);
     });
 
   test('fromBlob2', () {

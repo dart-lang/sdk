@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of client_live_nav;
+
 // Code shared between the different client-side libraries.
 
 // The names of the library and type that this page documents.

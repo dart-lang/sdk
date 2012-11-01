@@ -9,6 +9,21 @@
 
 main() {
 
+  var isString = predicate((x) => x is String, 'is a String');
+  var isStringList = predicate((x) => x is List<String>, 'is a List<String>');
+  var isSVGMatrix = predicate((x) => x is SVGMatrix, 'is a SVGMatrix');
+  var isSVGAnimatedBoolean = 
+      predicate((x) => x is SVGAnimatedBoolean, 'is an SVGAnimatedBoolean');
+  var isSVGAnimatedString = 
+      predicate((x) => x is SVGAnimatedString, 'is an SVGAnimatedString');
+  var isSVGRect = predicate((x) => x is SVGRect, 'is a SVGRect');
+  var isSVGAnimatedTransformList =
+      predicate((x) => x is SVGAnimatedTransformList,
+          'is an SVGAnimatedTransformList');
+  var isCSSStyleDeclaration =
+      predicate((x) => x is CSSStyleDeclaration, 'is a CSSStyleDeclaration');
+  var isCSSValue = predicate((x) => x is CSSValue, 'is a CSSValue');
+
   insertTestDiv() {
     var element = new Element.tag('div');
     element.innerHTML = r'''
@@ -28,14 +43,14 @@ main() {
   checkSVGTests(e) {
     // Just check that the operations seem to exist.
     var rx = e.requiredExtensions;
-    Expect.isTrue(rx is List<String>);
+    expect(rx, isStringList);
     var rf = e.requiredFeatures;
-    Expect.isTrue(rf is List<String>);
+    expect(rf, isStringList);
     var sl = e.systemLanguage;
-    Expect.isTrue(sl is List<String>);
+    expect(sl, isStringList);
 
     bool hasDoDo = e.hasExtension("DoDo");
-    Expect.isFalse(hasDoDo);
+    expect(hasDoDo, isFalse);
   }
 
   /**
@@ -49,8 +64,8 @@ main() {
     String space = e.xmlspace;
     e.xmlspace = space;
 
-    Expect.isTrue(lang is String);
-    Expect.isTrue(space is String);
+    expect(lang, isString);
+    expect(space, isString);
   }
 
   /**
@@ -59,9 +74,9 @@ main() {
    */
   checkSVGExternalResourcesRequired(e) {
     var b = e.externalResourcesRequired;
-    Expect.isTrue(b is SVGAnimatedBoolean);
-    Expect.isFalse(b.baseVal);
-    Expect.isFalse(b.animVal);
+    expect(b, isSVGAnimatedBoolean);
+    expect(b.baseVal, isFalse);
+    expect(b.animVal, isFalse);
   }
 
   /**
@@ -69,13 +84,13 @@ main() {
    */
   checkSVGStylable(e) {
     var className = e.$dom_svgClassName;
-    Expect.isTrue(className is SVGAnimatedString);
+    expect(className, isSVGAnimatedString);
 
     var s = e.style;
-    Expect.isTrue(s is CSSStyleDeclaration);
+    expect(s, isCSSStyleDeclaration);
 
     var attributeA = e.getPresentationAttribute('A');
-    Expect.isTrue(attributeA === null || attributeA is CSSValue);
+    expect(attributeA, anyOf(isNull, isCSSValue));
   }
 
   /**
@@ -84,19 +99,19 @@ main() {
   checkSVGLocatable(e) {
     var v1 = e.farthestViewportElement;
     var v2 = e.nearestViewportElement;
-    Expect.isTrue(v1 === v2);
+    expect(v1, same(v2));
 
     var bbox = e.getBBox();
-    Expect.isTrue(bbox is SVGRect);
+    expect(bbox, isSVGRect);
 
     var ctm = e.getCTM();
-    Expect.isTrue(ctm is SVGMatrix);
+    expect(ctm, isSVGMatrix);
 
     var sctm = e.getScreenCTM();
-    Expect.isTrue(sctm is SVGMatrix);
+    expect(sctm, isSVGMatrix);
 
     var xf2e = e.getTransformToElement(e);
-    Expect.isTrue(xf2e is SVGMatrix);
+    expect(xf2e, isSVGMatrix);
   }
 
   /**
@@ -105,7 +120,7 @@ main() {
    */
   checkSVGTransformable(e) {
     var trans = e.transform;
-    Expect.isTrue(trans is SVGAnimatedTransformList);
+    expect(trans, isSVGAnimatedTransformList);
   }
 
   testRect(name, checker) {

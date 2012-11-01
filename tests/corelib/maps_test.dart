@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library("MapsTest.dart");
-#import("dart:coreimpl");
+#import("dart:collection");
 
 main() {
   final key1 = "key1";

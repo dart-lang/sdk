@@ -78,11 +78,11 @@ class PipeServerGame {
       String srcFileName =
           getDataFilename("tests/standalone/io/readline_test1.dat");
 
-      SocketOutputStream socketOutput = _socket.outputStream;
+      OutputStream socketOutput = _socket.outputStream;
       InputStream fileInput = new File(srcFileName).openInputStream();
 
       fileInput.onClosed = () {
-        SocketInputStream socketInput = _socket.inputStream;
+        InputStream socketInput = _socket.inputStream;
         var tempDir = new Directory('').createTempSync();
         var dstFileName = tempDir.path.concat("/readline_test1.dat");
         var dstFile = new File(dstFileName);

@@ -12,7 +12,7 @@ main() {
     document.body.nodes.add(element);
 
     element = document.query('#test');
-    Expect.stringEquals('Hello World', element.innerHTML);
+    expect(element.innerHTML, 'Hello World');
     element.remove();
   });
   test('HTMLTable', () {
@@ -24,26 +24,26 @@ main() {
     row.nodes.add(new Element.tag('td'));
     row.nodes.add(new Element.tag('td'));
 
-    Expect.equals(2, row.cells.length);
+    expect(row.cells.length, 2);
 
     TableRowElement headerRow = table.rows[0];
-    Expect.equals(2, headerRow.cells.length);
+    expect(headerRow.cells.length, 2);
   });
   test('dataAttributes', () {
     Element div = new Element.tag('div');
 
-    Expect.isTrue(div.dataAttributes.isEmpty);
-    Expect.equals(null, div.dataAttributes['foo']);
-    Expect.isTrue(div.dataAttributes.isEmpty);
+    expect(div.dataAttributes.isEmpty, isTrue);
+    expect(div.dataAttributes['foo'], isNull);
+    expect(div.dataAttributes.isEmpty, isTrue);
 
     div.dataAttributes['foo'] = 'foo-value';
-    Expect.equals('foo-value', div.dataAttributes['foo']);
-    Expect.isFalse(div.dataAttributes.isEmpty);
+    expect(div.dataAttributes['foo'], 'foo-value');
+    expect(div.dataAttributes.isEmpty, isFalse);
 
-    Expect.isTrue(div.dataAttributes.containsValue('foo-value'));
-    Expect.isFalse(div.dataAttributes.containsValue('bar-value'));
-    Expect.isTrue(div.dataAttributes.containsKey('foo'));
-    Expect.isFalse(div.dataAttributes.containsKey('bar'));
+    expect(div.dataAttributes.containsValue('foo-value'), isTrue);
+    expect(div.dataAttributes.containsValue('bar-value'), isFalse);
+    expect(div.dataAttributes.containsKey('foo'), isTrue);
+    expect(div.dataAttributes.containsKey('bar'), isFalse);
 
     bool hasBeenInvoked;
     String f() {
@@ -52,12 +52,12 @@ main() {
     }
 
     hasBeenInvoked = false;
-    Expect.equals('bar-value', div.dataAttributes.putIfAbsent('bar', f));
-    Expect.isTrue(hasBeenInvoked);
+    expect(div.dataAttributes.putIfAbsent('bar', f), 'bar-value');
+    expect(hasBeenInvoked, isTrue);
 
     hasBeenInvoked = false;
-    Expect.equals('bar-value', div.dataAttributes.putIfAbsent('bar', f));
-    Expect.isFalse(hasBeenInvoked);
+    expect(div.dataAttributes.putIfAbsent('bar', f), 'bar-value');
+    expect(hasBeenInvoked, isFalse);
 
     final keys = <String> [];
     final values = <String> [];
@@ -65,27 +65,27 @@ main() {
         keys.add(key);
         values.add(value);
     });
-    Expect.setEquals(const <String> ['foo', 'bar'], keys);
-    Expect.setEquals(const <String> ['foo-value', 'bar-value'], values);
+    expect(keys, unorderedEquals(['foo', 'bar']));
+    expect(values, unorderedEquals(['foo-value', 'bar-value']));
 
-    Expect.setEquals(const <String> ['foo', 'bar'],
-                     new List<String>.from(div.dataAttributes.keys));
-    Expect.setEquals(const <String> ['foo-value', 'bar-value'],
-                     new List<String>.from(div.dataAttributes.values));
+    expect(new List<String>.from(div.dataAttributes.keys), 
+        unorderedEquals(['foo', 'bar']));
+    expect(new List<String>.from(div.dataAttributes.values),
+        unorderedEquals(['foo-value', 'bar-value']));
 
-    Expect.equals(2, div.dataAttributes.length);
-    Expect.isFalse(div.dataAttributes.isEmpty);
+    expect(div.dataAttributes.length, 2);
+    expect(div.dataAttributes.isEmpty, isFalse);
 
-    Expect.isNull(div.dataAttributes.remove('qux'));
-    Expect.equals(2, div.dataAttributes.length);
-    Expect.isFalse(div.dataAttributes.isEmpty);
+    expect(div.dataAttributes.remove('qux'), isNull);
+    expect(div.dataAttributes.length, 2);
+    expect(div.dataAttributes.isEmpty, isFalse);
 
-    Expect.equals('foo-value', div.dataAttributes.remove('foo'));
-    Expect.equals(1, div.dataAttributes.length);
-    Expect.isFalse(div.dataAttributes.isEmpty);
+    expect(div.dataAttributes.remove('foo'), 'foo-value');
+    expect(div.dataAttributes.length, 1);
+    expect(div.dataAttributes.isEmpty, isFalse);
 
     div.dataAttributes.clear();
-    Expect.equals(0, div.dataAttributes.length);
-    Expect.isTrue(div.dataAttributes.isEmpty);
+    expect(div.dataAttributes.length, 0);
+    expect(div.dataAttributes.isEmpty, isTrue);
   });
 }

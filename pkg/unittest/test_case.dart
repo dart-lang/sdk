@@ -8,6 +8,9 @@
  */
 
 /** Summarizes information about a single test case. */
+
+part of unittest;
+
 class TestCase {
   /** Identifier for this test. */
   final int id;

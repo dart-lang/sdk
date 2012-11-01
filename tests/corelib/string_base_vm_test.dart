@@ -55,14 +55,14 @@ class StringBaseTest {
     bool exception_caught = false;
     try {
       s.substring(5, 12);
-    } on IndexOutOfRangeException catch (ex) {
+    } on RangeError catch (ex) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);
     exception_caught = false;
     try {
       s.substring(5, 4);
-    } on IndexOutOfRangeException catch (ex) {
+    } on RangeError catch (ex) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);

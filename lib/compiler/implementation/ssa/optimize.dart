@@ -399,7 +399,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
     // We don't optimize on numbers to preserve the runtime semantics.
     if (!(left.isNumber(types) && right.isNumber(types)) &&
-        leftType.intersection(rightType).isConflicting()) {
+        leftType.intersection(rightType, compiler).isConflicting()) {
       return graph.addConstantBool(false, constantSystem);
     }
 
@@ -489,7 +489,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // If the intersection of the types is still the incoming type then
     // the incoming type was a subtype of the guarded type, and no check
     // is required.
-    HType combinedType = types[value].intersection(node.guardedType);
+    HType combinedType = types[value].intersection(node.guardedType, compiler);
     return (combinedType == types[value]) ? value : node;
   }
 
@@ -576,7 +576,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (types[value].canBeNull() && node.isBooleanConversionCheck) {
       return node;
     }
-    HType combinedType = types[value].intersection(types[node]);
+    HType combinedType = types[value].intersection(types[node], compiler);
     return (combinedType == types[value]) ? value : node;
   }
 
@@ -616,7 +616,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
     Element field =
         findConcreteFieldForDynamicAccess(node.receiver, node.selector);
-    if (field == null) return node;
+    if (field == null || !field.isAssignable()) return node;
     HInstruction value = node.inputs[1];
     if (compiler.enableTypeAssertions) {
       HInstruction other = value.convertType(
@@ -890,9 +890,13 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
       if (block.isLoopHeader()) {
         int changesFlags = loopChangesFlags[block.id];
         HLoopInformation info = block.loopInformation;
-        HBasicBlock last = info.getLastBackEdge();
-        for (int j = block.id; j <= last.id; j++) {
-          moveLoopInvariantCodeFromBlock(graph.blocks[j], block, changesFlags);
+        // Iterate over all blocks of this loop. Note that blocks in
+        // inner loops are not visited here, but we know they
+        // were visited before because we are iterating in post-order.
+        // So instructions that are GVN'ed in an inner loop are in their
+        // loop entry, and [info.blocks] contains this loop entry.
+        for (HBasicBlock other in info.blocks) {
+          moveLoopInvariantCodeFromBlock(other, block, changesFlags);
         }
       }
     }
@@ -901,6 +905,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
   void moveLoopInvariantCodeFromBlock(HBasicBlock block,
                                       HBasicBlock loopHeader,
                                       int changesFlags) {
+    assert(block.parentLoopHeader == loopHeader);
     HBasicBlock preheader = loopHeader.predecessors[0];
     int dependsFlags = HInstruction.computeDependsOnFlags(changesFlags);
     HInstruction instruction = block.first;
@@ -1256,7 +1261,8 @@ class SsaConstructionFieldTypes
           predecessorsFieldSetters.forEach((Element element, HType type) {
             HType currentType = currentFieldSetters[element];
             if (currentType != null) {
-              newFieldSetters[element] = currentType.union(type);
+              newFieldSetters[element] =
+                  currentType.union(type, backend.compiler);
             }
           });
           currentFieldSetters = newFieldSetters;

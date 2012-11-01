@@ -7,13 +7,17 @@ class _InvocationMirror implements InvocationMirror {
   static final int GETTER = 1;
   static final int SETTER = 2;
 
-  final String methodName;
+  final String memberName;
   final List positionalArguments;
   final Map<String,dynamic> namedArguments = null;
 
   final int _type;
 
-  _InvocationMirror(this.methodName, this._type, this.positionalArguments);
+  _InvocationMirror(this.memberName, this._type, this.positionalArguments);
+
+  static _allocateInvocationMirror(name, arguments) {
+    return new _InvocationMirror(name, METHOD, arguments);
+  }
 
   bool get isMethod => _type == METHOD;
   bool get isAccessor => _type != METHOD;

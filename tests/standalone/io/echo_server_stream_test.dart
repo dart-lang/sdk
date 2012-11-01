@@ -39,7 +39,7 @@ class EchoServerGame {
 
     void connectHandler() {
 
-      SocketOutputStream stream = _socket.outputStream;
+      OutputStream stream = _socket.outputStream;
 
       void dataSent() {
         InputStream inputStream = _socket.inputStream;
@@ -149,9 +149,8 @@ class EchoServer extends TestingServer {
     int offset = 0;
 
     void dataReceived() {
-      SocketOutputStream outputStream;
       int bytesRead;
-      outputStream = connection.outputStream;
+      OutputStream outputStream = connection.outputStream;
       bytesRead = inputStream.readInto(buffer, offset, MSGSIZE - offset);
       if (bytesRead > 0) {
         offset += bytesRead;

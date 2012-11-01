@@ -470,7 +470,6 @@ class FunctionSyntaxTest {
     expectEvaluatesTo(0, ()=> 4 % 2);
 
     // Negate.
-    expectEvaluatesTo(-3, ()=> ~2);
     expectEvaluatesTo(false, ()=> !true);
 
     // Postfix / prefix.

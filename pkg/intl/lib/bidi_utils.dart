@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of intl;
+
 /**
  * Bidi stands for Bi-directional text.
  * According to http://en.wikipedia.org/wiki/Bi-directional_text:
@@ -357,7 +359,7 @@ class Bidi {
     int index = 0;
     while (sum >= 0 || index > str.length) {
       int char = str.charCodeAt(index);
-      if (char == '('.charCodeAt(0)) sum++;
+      if (char == '('.charCodeAt(0))  sum++;
       else if (char == ')'.charCodeAt(0)) sum--;
       index++;
     }

@@ -21,13 +21,26 @@ import java.util.Set;
  * Negative Parser/Syntax tests.
  */
 public class NegativeParserTest extends CompilerTestCase {
+  public void test_deprecatedGetterSyntax() {
+    parseExpectErrors("get foo() {}", errEx(ParserErrorCode.DEPRECATED_GETTER, 1, 5, 3));
+  }
+
+  public void test_deprecatedAbstract() {
+    parseExpectWarnings(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A {",
+        "  abstract m();",
+        "}",
+        ""), errEx(ParserErrorCode.DEPRECATED_ABSTRACT_METHOD, 3, 3, 8));
+  }
+  
   public void testFieldInitializerInRedirectionConstructor1() {
     parseExpectErrors(
         "class A { A(x) { } A.foo() : this(5), y = 5; var y; }",
         errEx(ParserErrorCode.REDIRECTING_CONSTRUCTOR_OTHER, 1, 39, 5),
         errEx(ParserErrorCode.REDIRECTING_CONSTRUCTOR_ITSELF, 1, 30, 7));
   }
-
+  
   public void testFieldInitializerInRedirectionConstructor2() {
     parseExpectErrors(
         "class A { A(x) { } A.foo() : y = 5, this(5); var y; }",
@@ -175,9 +188,15 @@ public class NegativeParserTest extends CompilerTestCase {
         errEx(ParserErrorCode.DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_CLOSURE, 1, 41, 5));
   }
 
-  public void test_namedParameterValue_inSetter() {
+  public void test_optionalPositionalParameterValue_inSetter() {
     parseExpectErrors(
         "class A { set f([int b]); }",
+        errEx(ParserErrorCode.OPTIONAL_POSITIONAL_PARAMETER_NOT_ALLOWED, 1, 18, 5));
+  }
+  
+  public void test_namedParameterValue_inSetter() {
+    parseExpectErrors(
+        "class A { set f({int b}); }",
         errEx(ParserErrorCode.NAMED_PARAMETER_NOT_ALLOWED, 1, 18, 5));
   }
 
@@ -187,9 +206,15 @@ public class NegativeParserTest extends CompilerTestCase {
         errEx(ParserErrorCode.MISSING_OPTIONAL_PARAMETER_END, 1, 43, 1));
   }
 
-  public void test_namedParameterValue_inOperator() {
+  public void test_optionalPositionalParameterValue_inOperator() {
     parseExpectErrors(
         "class A { operator []=(int a, [int b]); }",
+        errEx(ParserErrorCode.OPTIONAL_POSITIONAL_PARAMETER_NOT_ALLOWED, 1, 32, 5));
+  }
+  
+  public void test_namedParameterValue_inOperator() {
+    parseExpectErrors(
+        "class A { operator []=(int a, {int b}); }",
         errEx(ParserErrorCode.NAMED_PARAMETER_NOT_ALLOWED, 1, 32, 5));
   }
 
@@ -352,6 +377,7 @@ public class NegativeParserTest extends CompilerTestCase {
   public void testDeprecatedFactoryInInterface() {
     parseExpectWarnings(
         "interface foo factory bar {}",
+        errEx(ParserErrorCode.DEPRECATED_INTERFACE, 1, 1, 9),
         errEx(ParserErrorCode.DEPRECATED_USE_OF_FACTORY_KEYWORD, 1, 15, 7));
   }
 
@@ -381,7 +407,17 @@ public class NegativeParserTest extends CompilerTestCase {
             "// filler filler filler filler filler filler filler filler filler filler",
             "abstract interface A {",
             "}"),
+        errEx(ParserErrorCode.DEPRECATED_INTERFACE, 2, 10, 9),
         errEx(ParserErrorCode.ABSTRACT_TOP_LEVEL_ELEMENT, 2, 1, 8));
+  }
+  
+  public void test_deprecatedInterface() {
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "interface A {",
+            "}"),
+            errEx(ParserErrorCode.DEPRECATED_INTERFACE, 2, 1, 9));
   }
 
   public void test_abstractTopLevel_typedef() {
@@ -394,17 +430,6 @@ public class NegativeParserTest extends CompilerTestCase {
     parseExpectErrors(
         "abstract void foo() {}",
         errEx(ParserErrorCode.ABSTRACT_TOP_LEVEL_ELEMENT, 1, 1, 8));
-  }
-
-  public void test_abstractMethodWithBody() {
-    parseExpectErrors(
-        Joiner.on("\n").join(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "class A {",
-            "  abstract foo() {",
-            "  }",
-            "}"),
-        errEx(ParserErrorCode.ABSTRACT_METHOD_WITH_BODY, 3, 12, 3));
   }
 
   public void test_incompleteExpressionInInterpolation() {
@@ -421,6 +446,7 @@ public class NegativeParserTest extends CompilerTestCase {
             "  foo() {",
             "  }",
             "}"),
+        errEx(ParserErrorCode.DEPRECATED_INTERFACE, 2, 1, 9),
         errEx(ParserErrorCode.INTERFACE_METHOD_WITH_BODY, 3, 3, 3));
   }
 
@@ -578,7 +604,7 @@ public class NegativeParserTest extends CompilerTestCase {
             "class MyClass {}",
             "class MyInterface {}",
             "topLevelMethod() {}",
-            "int get topLevelGetter() {return 0;}",
+            "int get topLevelGetter {return 0;}",
             "void set topLevelSetter(int v) {}",
             "typedef void MyTypeDef();",
             ""));
@@ -630,7 +656,7 @@ public class NegativeParserTest extends CompilerTestCase {
             "  }",
             "}",
             "topLevelMethod() {}",
-            "int get topLevelGetter() {return 0;}",
+            "int get topLevelGetter {return 0;}",
             "void set topLevelSetter(int setterParam) {}",
             "typedef void MyTypeDef();",
             ""));
@@ -750,6 +776,7 @@ public class NegativeParserTest extends CompilerTestCase {
             "interface A native 'N' {",
             "}",
             ""),
+        errEx(ParserErrorCode.DEPRECATED_INTERFACE, 2, 1, 9),
         errEx(ParserErrorCode.NATIVE_ONLY_CLASS, 2, 13, 6));
   }
 

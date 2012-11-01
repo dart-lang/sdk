@@ -125,14 +125,14 @@ void main() {
             "IllegalJSRegExpException.");
     });
 
-    test('throwsIndexOutOfRangeException', () {
-      shouldPass(() { throw new IndexOutOfRangeException(0); },
-          throwsIndexOutOfRangeException);
+    test('throwsRangeError', () {
+      shouldPass(() { throw new RangeError.value(0); },
+          throwsRangeError);
       shouldFail(() { throw new Exception(); },
-          throwsIndexOutOfRangeException,
-        "Expected: throws an exception which matches IndexOutOfRangeException "
+          throwsRangeError,
+        "Expected: throws an exception which matches RangeError "
         "but:  exception <Exception> does not match "
-            "IndexOutOfRangeException.");
+            "RangeError.");
     });
 
     test('throwsNoSuchMethodError', () {
@@ -170,8 +170,7 @@ void main() {
           throwsUnsupportedError);
       shouldFail(() { throw new Exception(); },
           throwsUnsupportedError,
-        "Expected: throws an exception which matches "
-            "UnsupportedError "
+        "Expected: throws an exception which matches UnsupportedError "
         "but:  exception <Exception> does not match "
             "UnsupportedError.");
     });
@@ -527,11 +526,9 @@ void main() {
 
   group('Predicate Matchers', () {
     test('isInstanceOf', () {
-      shouldFail(0, predicate((x) => x is String,
-                              description: "an instance of String"),
+      shouldFail(0, predicate((x) => x is String, "an instance of String"),
           "Expected: an instance of String but: was <0>.");
-      shouldPass('cow', predicate((x) => x is String,
-                                  description: "an instance of String"));
+      shouldPass('cow', predicate((x) => x is String, "an instance of String"));
     });
   });
 

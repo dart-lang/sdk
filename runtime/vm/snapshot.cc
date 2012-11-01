@@ -387,13 +387,6 @@ RawTwoByteString* SnapshotReader::NewTwoByteString(intptr_t len) {
 }
 
 
-RawFourByteString* SnapshotReader::NewFourByteString(intptr_t len) {
-  ALLOC_NEW_OBJECT_WITH_LEN(FourByteString,
-                            object_store()->four_byte_string_class(),
-                            len);
-}
-
-
 RawTypeArguments* SnapshotReader::NewTypeArguments(intptr_t len) {
   ALLOC_NEW_OBJECT_WITH_LEN(TypeArguments,
                             Object::type_arguments_class(),

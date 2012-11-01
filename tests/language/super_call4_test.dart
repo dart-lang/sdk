@@ -6,15 +6,13 @@
 // current class.
 
 class C {
-  // bool noSuchMethod(InvocationMirror im) {  // Issue 3622
-  bool noSuchMethod(String function_name, List args) {
+  bool noSuchMethod(InvocationMirror im) {
     return true;
   }
 }
 
 class D extends C {
-  // bool noSuchMethod(InvocationMirror im) {  // Issue 3622
-  bool noSuchMethod(String function_name, List args) {
+  bool noSuchMethod(InvocationMirror im) {
     return false;
   }
   test() {

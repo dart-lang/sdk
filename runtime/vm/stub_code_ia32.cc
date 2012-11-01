@@ -1557,8 +1557,18 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 // - Match not found -> jump to IC miss.
 void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
                                                  intptr_t num_args) {
-  const Immediate raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  ASSERT(num_args > 0);
+#if defined(DEBUG)
+  { Label ok;
+    // Check that the IC data array has NumberOfArgumentsChecked() == num_args.
+    // 'num_args_tested' is stored as an untagged int.
+    __ movl(EBX, FieldAddress(ECX, ICData::num_args_tested_offset()));
+    __ cmpl(EBX, Immediate(num_args));
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Incorrect stub for IC data");
+    __ Bind(&ok);
+  }
+#endif  // DEBUG
 
   __ movl(EBX, FieldAddress(ECX, ICData::function_offset()));
   Label is_hot;
@@ -1580,70 +1590,63 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ incl(FieldAddress(EBX, Function::usage_counter_offset()));
   __ Bind(&is_hot);
 
-  ASSERT(num_args > 0);
-  // Get receiver (first read number of arguments from argument descriptor array
-  // and then access the receiver from the stack).
-  __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
-  __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));  // EAX (argument_count) is Smi.
-
-  Label get_class_id_as_smi, ic_miss;
-  // ECX: IC data array.
-
-#if defined(DEBUG)
-  { Label ok;
-    // Check that the IC data array has NumberOfArgumentsChecked() == num_args.
-    // 'num_args_tested' is stored as an untagged int.
-    __ movl(EBX, FieldAddress(ECX, ICData::num_args_tested_offset()));
-    __ cmpl(EBX, Immediate(num_args));
-    __ j(EQUAL, &ok, Assembler::kNearJump);
-    __ Stop("Incorrect stub for IC data");
-    __ Bind(&ok);
-  }
-#endif  // DEBUG
-
   // Loop that checks if there is an IC data match.
+  Label loop, update, test, found, get_class_id_as_smi;
   // ECX: IC data object (preserved).
   __ movl(EBX, FieldAddress(ECX, ICData::ic_data_offset()));
   // EBX: ic_data_array with check entries: classes and target functions.
   __ leal(EBX, FieldAddress(EBX, Array::data_offset()));
   // EBX: points directly to the first ic data array element.
-  Label loop, found;
-  if (num_args == 1) {
-    __ call(&get_class_id_as_smi);
-    // EAX: receiver's class id Smi.
-    __ Bind(&loop);
-    __ movl(EDI, Address(EBX, 0));  // Get class id (Smi) to check.
-    __ cmpl(EAX, EDI);  // Class id match?
-    __ j(EQUAL, &found, Assembler::kNearJump);
-    __ addl(EBX, Immediate(kWordSize * 2));  // Next element (class + target).
-    __ cmpl(EDI, Immediate(Smi::RawValue(kIllegalCid)));  // Done?
-    __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
-  } else {
-    Label no_match;
-    __ Bind(&loop);
-    for (int i = 0; i < num_args; i++) {
+
+  // Get the receiver's class ID (first read number of arguments from
+  // argument descriptor array and then access the receiver from the stack).
+  __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
+  __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));  // EAX (argument_count) is smi.
+  __ call(&get_class_id_as_smi);
+  // EAX: receiver's class ID (smi).
+  __ movl(EDI, Address(EBX, 0));  // First class id (smi) to check.
+  __ jmp(&test);
+
+  __ Bind(&loop);
+  for (int i = 0; i < num_args; i++) {
+    if (i > 0) {
+      // If not the first, load the next argument's class ID.
       __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
       __ movl(EAX, Address(ESP, EAX, TIMES_2, - i * kWordSize));
       __ call(&get_class_id_as_smi);
+      // EAX: next argument class ID (smi).
       __ movl(EDI, Address(EBX, i * kWordSize));
-      __ cmpl(EAX, EDI);  // Class id match?
-      if (i < (num_args - 1)) {
-        __ j(NOT_EQUAL, &no_match);
-      } else {
-        // Last check, all checks before matched.
-        __ j(EQUAL, &found, Assembler::kNearJump);
-      }
+      // EDI: next class ID to check (smi).
     }
-    __ Bind(&no_match);
-    // Each test entry has (1 + num_args) array elements.
-    __ addl(EBX, Immediate(kWordSize * (1 + num_args)));  // Next element.
-    __ cmpl(EDI, Immediate(Smi::RawValue(kIllegalCid)));  // Done?
-    __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+    __ cmpl(EAX, EDI);  // Class id match?
+    if (i < (num_args - 1)) {
+      __ j(NOT_EQUAL, &update);  // Continue.
+    } else {
+      // Last check, all checks before matched.
+      __ j(EQUAL, &found, Assembler::kNearJump);  // Break.
+    }
   }
+  __ Bind(&update);
+  // Reload receiver class ID.  It has not been destroyed when num_args == 1.
+  if (num_args > 1) {
+    __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
+    __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));
+    __ call(&get_class_id_as_smi);
+  }
+  // Each test entry has (1 + num_args) array elements.
+  const intptr_t entry_size = (num_args + 1) * kWordSize;
+  __ addl(EBX, Immediate(entry_size));  // Next entry.
+  __ movl(EDI, Address(EBX, 0));  // Next class ID.
 
-  __ Bind(&ic_miss);
-  // Compute address of arguments (first read number of arguments from argument
-  // descriptor array and then compute address on the stack).
+  __ Bind(&test);
+  __ cmpl(EDI, Immediate(Smi::RawValue(kIllegalCid)));  // Done?
+  __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+
+  // IC miss.
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  // Compute address of arguments (first read number of arguments from
+  // argument descriptor array and then compute address on the stack).
   __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
   __ leal(EAX, Address(ESP, EAX, TIMES_2, 0));  // EAX is Smi.
   // Create a stub frame as we are pushing some objects on the stack before

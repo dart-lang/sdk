@@ -2,7 +2,7 @@
 #import('../../pkg/unittest/unittest.dart');
 #import('../../pkg/unittest/html_config.dart');
 #import('dart:html');
-#import('dart:coreimpl');
+#import('dart:collection');
 #import('utils.dart');
 
 // Write and re-read Maps: simple Maps; Maps with DAGs; Maps with cycles.

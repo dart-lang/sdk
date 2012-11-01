@@ -12,5 +12,5 @@ abstract class $ID$EXTENDS {
       _$(ID)FactoryProvider.create$(ID)_get(url, onSuccess);
 
   factory $ID.getWithCredentials(String url, onSuccess($ID request)) =>
-      _$(ID)FactoryProvider.create$(ID)getWithCredentials(url, onSuccess);
+      _$(ID)FactoryProvider.create$(ID)_getWithCredentials(url, onSuccess);
 $!MEMBERS}

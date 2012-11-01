@@ -19,7 +19,7 @@ main() {
           var div = parentDocument.$dom_createElement("div");
           div.id = "illegalFrameElement";
           parentDocument.body.nodes.add(div);
-          Expect.fail('Should not reach here.');
+          expect(false, isTrue, reason: 'Should not reach here.');
         } on NoSuchMethodError catch (e) {
           // Expected.
           window.top.postMessage('pass_frameElement', '*');
@@ -36,7 +36,7 @@ main() {
           var div = parentDocument.$dom_createElement("div");
           div.id = "illegalTop";
           parentDocument.body.nodes.add(div);
-          Expect.fail('Should not reach here.');
+          expect(false, isTrue, reason: 'Should not reach here.');
         } on NoSuchMethodError catch (e) {
           // Expected.
           window.top.postMessage('pass_top', '*');
@@ -53,7 +53,7 @@ main() {
           var div = parentDocument.$dom_createElement("div");
           div.id = "illegalParent";
           parentDocument.body.nodes.add(div);
-          Expect.fail('Should not reach here.');
+          expect(false, isTrue, reason: 'Should not reach here.');
         } on NoSuchMethodError catch (e) {
           // Expected.
           window.top.postMessage('pass_parent', '*');
@@ -85,7 +85,7 @@ main() {
           if (e.data == 'pass_$testName') {
             expectedVerify();
           }
-          expect(e.data != 'fail_$testName');
+          expect(e.data, isNot(equals('fail_$testName')));
         });
       });
     child.postMessage(testName, '*');

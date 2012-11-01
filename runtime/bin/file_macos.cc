@@ -126,13 +126,13 @@ File* File::Open(const char* name, FileOpenMode mode) {
       return NULL;
     }
   }
-  return new File(name, new FileHandle(fd));
+  return new File(new FileHandle(fd));
 }
 
 
 File* File::OpenStdio(int fd) {
   if (fd < 0 || 2 < fd) return NULL;
-  return new File(NULL, new FileHandle(fd));
+  return new File(new FileHandle(fd));
 }
 
 

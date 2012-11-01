@@ -15,7 +15,7 @@ namespace dart {
 
 // Checks to see if (index * num_bytes) is in the range
 // [0..array.ByteLength()).  without the risk of integer overflow.  If
-// the index is out of range, then an IndexOutOfRangeException is thrown.
+// the index is out of range, then a RangeError is thrown.
 static void RangeCheck(const ByteArray& array,
                        intptr_t index,
                        intptr_t num_bytes) {
@@ -25,7 +25,7 @@ static void RangeCheck(const ByteArray& array,
         index, (array.ByteLength() / num_bytes)));
     GrowableArray<const Object*> args;
     args.Add(&error);
-    Exceptions::ThrowByType(Exceptions::kIndexOutOfRange, args);
+    Exceptions::ThrowByType(Exceptions::kRange, args);
   }
 }
 

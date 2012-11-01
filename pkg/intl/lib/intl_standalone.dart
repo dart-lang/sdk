@@ -9,10 +9,10 @@
  * the operating system locale.
  */
 
-#library("intl_standalone");
+library intl_standalone;
 
-#import("dart:io");
-#import("intl.dart");
+import "dart:io";
+import "intl.dart";
 
 // TODO(alanknight): The need to do this by forcing the user to specially
 // import a particular library is a horrible hack, only done because there

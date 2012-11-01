@@ -44,7 +44,6 @@ void test(String shellScript, String dartScript, String type) {
   future.then((process) {
     process.onExit = (exitCode) {
       Expect.equals(0, exitCode);
-      process.close();
 
       // Check the expected file contents.
       if (type == "0") {
@@ -68,6 +67,9 @@ void test(String shellScript, String dartScript, String type) {
       // Cleanup test directory.
       dir.deleteRecursivelySync();
     };
+    // Drain out and err streams so they close.
+    process.stdout.onData = process.stdout.read;
+    process.stderr.onData = process.stderr.read;
   });
   future.handleException((ProcessException error) {
     dir.deleteRecursivelySync();

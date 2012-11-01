@@ -14,14 +14,27 @@ class String;
 
 class Utf8 : AllStatic {
  public:
+  enum Type {
+    kAscii = 0,  // ASCII character set.
+    kBMP,  // Basic Multilingual Plane.
+    kSMP,  // Supplementary Multilingual Plane.
+  };
+
   static const intptr_t kMaxOneByteChar   = 0x7F;
   static const intptr_t kMaxTwoByteChar   = 0x7FF;
   static const intptr_t kMaxThreeByteChar = 0xFFFF;
   static const intptr_t kMaxFourByteChar  = 0x10FFFF;
+  static const intptr_t kMaxBmpCodepoint  = 0xffff;
+  static const int32_t kLeadOffset = (0xD800 - (0x10000 >> 10));
+  static const int32_t kSurrogateOffset = (0x10000 - (0xD800 << 10) - 0xDC00);
 
-  static intptr_t CodePointCount(const char* str, intptr_t* width);
+  static void ConvertUTF32ToUTF16(int32_t codepoint, uint16_t* dst);
+  static intptr_t CodePointCount(const uint8_t* utf8_array,
+                                 intptr_t array_len,
+                                 Type* type);
 
-  static bool IsValid(const char* src);
+  // Returns true if 'utf8_array' is a valid UTF-8 string.
+  static bool IsValid(const uint8_t* utf8_array, intptr_t array_len);
 
   static intptr_t Length(int32_t ch);
   static intptr_t Length(const String& str);
@@ -29,10 +42,30 @@ class Utf8 : AllStatic {
   static intptr_t Encode(int32_t ch, char* dst);
   static intptr_t Encode(const String& src, char* dst, intptr_t len);
 
-  static intptr_t Decode(const char*, int32_t* ch);
-  static bool Decode(const char* src, uint8_t* dst, intptr_t len);
-  static bool Decode(const char* src, uint16_t* dst, intptr_t len);
-  static bool Decode(const char* src, uint32_t* dst, intptr_t len);
+  static intptr_t Decode(const uint8_t* utf8_array,
+                         intptr_t array_len,
+                         int32_t* ch);
+
+  static bool DecodeToAscii(const uint8_t* utf8_array,
+                            intptr_t array_len,
+                            uint8_t* dst,
+                            intptr_t len);
+  static bool DecodeToUTF16(const uint8_t* utf8_array,
+                            intptr_t array_len,
+                            uint16_t* dst,
+                            intptr_t len);
+  static bool DecodeToUTF32(const uint8_t* utf8_array,
+                            intptr_t array_len,
+                            uint32_t* dst,
+                            intptr_t len);
+  static bool DecodeCStringToUTF32(const char* str,
+                                   uint32_t* dst,
+                                   intptr_t len) {
+    ASSERT(str != NULL);
+    intptr_t array_len = strlen(str);
+    const uint8_t* utf8_array = reinterpret_cast<const uint8_t*>(str);
+    return DecodeToUTF32(utf8_array, array_len, dst, len);
+  }
 };
 
 

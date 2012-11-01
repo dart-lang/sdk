@@ -322,15 +322,21 @@ class LocalsHandler {
    * If the scope (function or loop) [node] has captured variables then this
    * method creates a box and sets up the redirections.
    */
-  void enterScope(Node node) {
+  void enterScope(Node node, Element element) {
     // See if any variable in the top-scope of the function is captured. If yes
     // we need to create a box-object.
     ClosureScope scopeData = closureData.capturingScopes[node];
     if (scopeData != null) {
-      // The scope has captured variables. Create a box.
-      // TODO(floitsch): Clean up this hack. Should we create a box-object by
-      // just creating an empty object literal?
-      HInstruction box = createBox();
+      HInstruction box;
+      // The scope has captured variables.
+      if (element != null && element.isGenerativeConstructorBody()) {
+        // The box is passed as a parameter to a generative
+        // constructor body.
+        box = new HParameterValue(scopeData.boxElement);
+        builder.add(box);
+      } else {
+        box = createBox();
+      }
       // Add the box to the known locals.
       directLocals[scopeData.boxElement] = box;
       // Make sure that accesses to the boxed locals go into the box. We also
@@ -398,7 +404,7 @@ class LocalsHandler {
       });
     }
 
-    enterScope(node);
+    enterScope(node, element);
 
     // If the freeVariableMapping is not empty, then this function was a
     // nested closure that captures variables. Redirect the captured
@@ -610,7 +616,7 @@ class LocalsHandler {
       // redirections already now. This way the initializer can write its
       // values into the box.
       // For other loops the box will be created when entering the body.
-      enterScope(node);
+      enterScope(node, null);
     }
   }
 
@@ -641,7 +647,7 @@ class LocalsHandler {
     // If there are no declared boxed loop variables then we did not create the
     // box before the initializer and we have to create the box now.
     if (!scopeData.hasBoxedLoopVariables()) {
-      enterScope(node);
+      enterScope(node, null);
     }
   }
 
@@ -867,7 +873,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   HGraph graph;
   LocalsHandler localsHandler;
   HInstruction rethrowableException;
-  Map<Element, HParameterValue> parameters;
+  Map<Element, HInstruction> parameters;
   final RuntimeTypeInformation rti;
 
   Map<TargetElement, JumpHandler> jumpTargets;
@@ -907,7 +913,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       stack = new List<HInstruction>(),
       activationVariables = new Map<Element, HLocalValue>(),
       jumpTargets = new Map<TargetElement, JumpHandler>(),
-      parameters = new Map<Element, HParameterValue>(),
+      parameters = new Map<Element, HInstruction>(),
       sourceElementStack = <Element>[work.element],
       inliningStack = <InliningState>[],
       rti = builder.compiler.codegenWorld.rti,
@@ -916,7 +922,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   static const MAX_INLINING_DEPTH = 3;
-  static const MAX_INLINING_SOURCE_SIZE = 100;
+  static const MAX_INLINING_SOURCE_SIZE = 128;
   List<InliningState> inliningStack;
   Element returnElement = null;
 
@@ -970,10 +976,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (constructor is SynthesizedConstructorElement) return null;
     FunctionExpression node = constructor.parseNode(compiler);
     // If we know the body doesn't have any code, we don't generate it.
-    if (node.body.asBlock() != null) {
-      NodeList statements = node.body.asBlock().statements;
-      if (statements.isEmpty) return null;
-    }
+    if (!node.hasBody()) return null;
+    if (node.hasEmptyBody()) return null;
     ClassElement classElement = constructor.getEnclosingClass();
     ConstructorBodyElement bodyElement;
     for (Link<Element> backendMembers = classElement.backendMembers;
@@ -1153,6 +1157,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       FunctionSignature params = constructor.computeSignature(compiler);
       params.orderedForEachParameter((Element parameter) {
         HInstruction argument = compiledArguments[index++];
+        // Because we are inlining the initializer, we must update
+        // what was given as parameter. This will be used in case
+        // there is a parameter check expression in the initializer.
+        parameters[parameter] = argument;
         localsHandler.updateLocal(parameter, argument);
         // Don't forget to update the field, if the parameter is of the
         // form [:this.x:].
@@ -1166,7 +1174,21 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       TreeElements oldElements = elements;
       elements =
           compiler.enqueuer.resolution.getCachedElements(constructor);
+
+      ClosureClassMap oldClosureData = localsHandler.closureData;
+      Node node = constructor.parseNode(compiler);
+      localsHandler.closureData =
+          compiler.closureToClassMapper.computeClosureToClassMapping(
+              constructor, node, elements);
+
+      params.orderedForEachParameter((Element parameterElement) {
+        if (elements.isParameterChecked(parameterElement)) {
+          addParameterCheckInstruction(parameterElement);
+        }
+      });
+      localsHandler.enterScope(node, constructor);
       buildInitializers(constructor, constructors, fieldValues);
+      localsHandler.closureData = oldClosureData;
       elements = oldElements;
     });
   }
@@ -1354,8 +1376,36 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       FunctionSignature functionSignature = body.computeSignature(compiler);
       int arity = functionSignature.parameterCount;
       functionSignature.orderedForEachParameter((parameter) {
+        // TODO(ngeoffray): No need to pass the parameters that are
+        // captured and stored in a box. Because this information is
+        // not trivial to get in codegen.dart, we just pass the
+        // parameters anyway. We need to update both codegen.dart and
+        // builder.dart on how parameters are being passed.
         bodyCallInputs.add(localsHandler.readLocal(parameter));
       });
+
+      // If parameters are checked, we pass the already computed
+      // boolean to the constructor body.
+      TreeElements elements =
+          compiler.enqueuer.resolution.getCachedElements(constructor);
+      Node node = constructor.parseNode(compiler);
+      ClosureClassMap parameterClosureData =
+          compiler.closureToClassMapper.getMappingForNestedFunction(node);
+      functionSignature.orderedForEachParameter((parameter) {
+        if (elements.isParameterChecked(parameter)) {
+          Element fieldCheck =
+              parameterClosureData.parametersWithSentinel[parameter];
+          bodyCallInputs.add(localsHandler.readLocal(fieldCheck));
+        }
+      });
+
+      // If there are locals that escape (ie used in closures), we
+      // pass the box to the constructor.
+      ClosureScope scopeData = parameterClosureData.capturingScopes[node];
+      if (scopeData != null) {
+        bodyCallInputs.add(localsHandler.readLocal(scopeData.boxElement));
+      }
+
       // TODO(ahe): The constructor name is statically resolved. See
       // SsaCodeGenerator.visitInvokeDynamicMethod. Is there a cleaner
       // way to do this?
@@ -1376,48 +1426,56 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   void addParameterCheckInstruction(Element element) {
-    // This is the code we emit for a parameter that is being checked
-    // on whether it was given at value at the call site:
-    //
-    // foo([a = 42) {
-    //   if (?a) print('parameter passed $a');
-    // }
-    //
-    // foo([a = 42]) {
-    //   var t1 = a === sentinel;
-    //   if (t1) a = 42;
-    //   if (!t1) print('parameter passed ' + a);
-    // }
+    HInstruction check;
+    Element checkResultElement =
+        localsHandler.closureData.parametersWithSentinel[element];
+    if (currentElement.isGenerativeConstructorBody()) {
+      // A generative constructor body receives extra parameters that
+      // indicate if a parameter was passed to the factory.
+      check = new HParameterValue(checkResultElement);
+      add(check);
+    } else {
+      // This is the code we emit for a parameter that is being checked
+      // on whether it was given at value at the call site:
+      //
+      // foo([a = 42) {
+      //   if (?a) print('parameter passed $a');
+      // }
+      //
+      // foo([a = 42]) {
+      //   var t1 = a === sentinel;
+      //   if (t1) a = 42;
+      //   if (!t1) print('parameter passed ' + a);
+      // }
 
-    // Fetch the original default value of [element];
-    ConstantHandler handler = compiler.constantHandler;
-    Constant constant = handler.compileVariable(element);
-    HConstant defaultValue = constant == null
-        ? graph.addConstantNull(constantSystem)
-        : graph.addConstant(constant);
+      // Fetch the original default value of [element];
+      ConstantHandler handler = compiler.constantHandler;
+      Constant constant = handler.compileVariable(element);
+      HConstant defaultValue = constant == null
+          ? graph.addConstantNull(constantSystem)
+          : graph.addConstant(constant);
 
-    // Emit the equality check with the sentinel.
-    HConstant sentinel = graph.addConstant(SentinelConstant.SENTINEL);
-    Element equalsHelper = interceptors.getTripleEqualsInterceptor();
-    HInstruction target = new HStatic(equalsHelper);
-    add(target);
-    HInstruction operand = parameters[element];
-    HInstruction check = new HIdentity(target, sentinel, operand);
-    add(check);
+      // Emit the equality check with the sentinel.
+      HConstant sentinel = graph.addConstant(SentinelConstant.SENTINEL);
+      Element equalsHelper = interceptors.getTripleEqualsInterceptor();
+      HInstruction target = new HStatic(equalsHelper);
+      add(target);
+      HInstruction operand = parameters[element];
+      check = new HIdentity(target, sentinel, operand);
+      add(check);
 
-    // If the check succeeds, we must update the parameter with the
-    // default value.
-    handleIf(element.parseNode(compiler),
-             () => stack.add(check),
-             () => localsHandler.updateLocal(element, defaultValue),
-             null);
+      // If the check succeeds, we must update the parameter with the
+      // default value.
+      handleIf(element.parseNode(compiler),
+               () => stack.add(check),
+               () => localsHandler.updateLocal(element, defaultValue),
+               null);
 
-    // Create the instruction that parameter checks will use.
-    check = new HNot(check);
-    add(check);
+      // Create the instruction that parameter checks will use.
+      check = new HNot(check);
+      add(check);
+    }
 
-    ClosureClassMap closureData = localsHandler.closureData;
-    Element checkResultElement = closureData.parametersWithSentinel[element];
     localsHandler.updateLocal(checkResultElement, check);
   }
 
@@ -2300,6 +2358,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     push(result);
   }
 
+  void pushInvokeHelper4(Element helper, HInstruction a0, HInstruction a1,
+                         HInstruction a2, HInstruction a3) {
+    HInstruction reference = new HStatic(helper);
+    add(reference);
+    List<HInstruction> inputs = <HInstruction>[reference, a0, a1, a2, a3];
+    HInstruction result = new HInvokeStatic(inputs);
+    push(result);
+  }
+
   visitOperatorSend(node) {
     assert(node.selector is Operator);
     if (!methodInterceptionEnabled) {
@@ -2500,6 +2567,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     addDynamicSendArgumentsToList(node, inputs);
 
+    Element element = elements[node];
+    if (element != null && compiler.world.hasNoOverridingMember(element)) {
+      if (tryInlineMethod(element, selector, node.arguments)) {
+        return;
+      }
+    }
     // The first entry in the inputs list is the receiver.
     pushWithPosition(new HInvokeDynamicMethod(selector, inputs), node);
 
@@ -2733,15 +2806,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else if (element.isFunction() || element.isGenerativeConstructor()) {
       // TODO(5347): Try to avoid the need for calling [implementation] before
       // calling [addStaticSendArgumentsToList].
+      FunctionElement function = element.implementation;
       bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
-                                                    element.implementation,
-                                                    inputs);
+                                                    function, inputs);
       if (!succeeded) {
-        // TODO(ngeoffray): Match the VM behavior and throw an
-        // exception at runtime.
-        compiler.cancel('Unimplemented non-matching static call', node: node);
+        generateWrongArgumentCountError(node, element, node.arguments);
+      } else {
+        push(new HInvokeSuper(inputs));
       }
-      push(new HInvokeSuper(inputs));
     } else {
       target = new HInvokeSuper(inputs);
       add(target);
@@ -2902,7 +2974,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         <HInstruction>[typeInfoSetter, newObject, runtimeInfo]));
   }
 
-  visitNewSend(Send node) {
+  visitNewSend(Send node, InterfaceType type) {
     bool isListConstructor = false;
     computeType(element) {
       Element originalElement = elements[node];
@@ -2940,16 +3012,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                                   constructor.implementation,
                                                   inputs);
     if (!succeeded) {
-      // TODO(ngeoffray): Match the VM behavior and throw an
-      // exception at runtime.
-      compiler.cancel('Unimplemented non-matching static call', node: node);
+      generateWrongArgumentCountError(node, constructor, node.arguments);
+      return;
     }
 
-    TypeAnnotation annotation = node.getTypeAnnotation();
-    if (annotation == null) {
-      compiler.internalError("malformed send in new expression");
-    }
-    InterfaceType type = elements.getType(annotation);
     if (type.element.modifiers.isAbstract() &&
         constructor.isGenerativeConstructor()) {
       generateAbstractClassInstantiationError(node, type.name.slowToString());
@@ -2983,7 +3049,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                 argumentNodes: node.arguments);
       return;
     }
-    if (identical(element, compiler.assertMethod) && !compiler.enableUserAssertions) {
+    if (identical(element, compiler.assertMethod)
+        && !compiler.enableUserAssertions) {
       stack.add(graph.addConstantNull(constantSystem));
       return;
     }
@@ -3002,9 +3069,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                                     element.implementation,
                                                     inputs);
       if (!succeeded) {
-        // TODO(ngeoffray): Match the VM behavior and throw an
-        // exception at runtime.
-        compiler.cancel('Unimplemented non-matching static call', node: node);
+        generateWrongArgumentCountError(node, element, node.arguments);
+        return;
       }
 
       // TODO(kasperl): Try to use the general inlining infrastructure for
@@ -3060,7 +3126,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   void generateThrowNoSuchMethod(Node diagnosticNode,
                                  String methodName,
                                  {Link<Node> argumentNodes,
-                                  List<HInstruction> argumentValues}) {
+                                  List<HInstruction> argumentValues,
+                                  List<String> existingArguments}) {
     Element helper =
         compiler.findHelper(const SourceString('throwNoSuchMethod'));
     Constant receiverConstant =
@@ -3080,7 +3147,40 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     HInstruction arguments = new HLiteralList(argumentValues);
     add(arguments);
-    pushInvokeHelper3(helper, receiver, name, arguments);
+    HInstruction existingNamesList;
+    if (existingArguments != null) {
+      List<HInstruction> existingNames = <HInstruction>[];
+      for (String name in existingArguments) {
+        HInstruction nameConstant =
+            graph.addConstantString(new DartString.literal(name),
+                                    diagnosticNode, constantSystem);
+        existingNames.add(nameConstant);
+      }
+      existingNamesList = new HLiteralList(existingNames);
+      add(existingNamesList);
+    } else {
+      existingNamesList = graph.addConstantNull(constantSystem);
+    }
+    pushInvokeHelper4(helper, receiver, name, arguments, existingNamesList);
+  }
+
+  /**
+   * Generate code to throw a [NoSuchMethodError] exception for calling a
+   * method with a wrong number of arguments or mismatching named optional
+   * arguments.
+   */
+  void generateWrongArgumentCountError(Node diagnosticNode,
+                                       FunctionElement function,
+                                       Link<Node> argumentNodes) {
+    List<String> existingArguments = <String>[];
+    FunctionSignature signature = function.computeSignature(compiler);
+    signature.forEachParameter((Element parameter) {
+      existingArguments.add(parameter.name.slowToString());
+    });
+    generateThrowNoSuchMethod(diagnosticNode,
+                              function.name.slowToString(),
+                              argumentNodes: argumentNodes,
+                              existingArguments: existingArguments);
   }
 
   visitNewExpression(NewExpression node) {
@@ -3104,7 +3204,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       Constant constant = handler.compileNodeWithDefinitions(node, elements);
       stack.add(graph.addConstant(constant));
     } else {
-      visitNewSend(node.send);
+      visitNewSend(node.send, elements.getType(node));
     }
   }
 

@@ -32,7 +32,6 @@
   V(File_Close, 1)                                                             \
   V(File_ReadByte, 1)                                                          \
   V(File_WriteByte, 2)                                                         \
-  V(File_WriteString, 2)                                                       \
   V(File_ReadList, 4)                                                          \
   V(File_WriteList, 4)                                                         \
   V(File_Position, 1)                                                          \
@@ -61,6 +60,7 @@
   V(ServerSocket_Accept, 2)                                                    \
   V(Socket_CreateConnect, 3)                                                   \
   V(Socket_Available, 1)                                                       \
+  V(Socket_Read, 2)                                                            \
   V(Socket_ReadList, 4)                                                        \
   V(Socket_WriteList, 4)                                                       \
   V(Socket_GetPort, 1)                                                         \
@@ -103,9 +103,9 @@ Dart_NativeFunction Builtin::NativeLookup(Dart_Handle name,
 // test/debug functionality in standalone dart mode.
 
 void Builtin::PrintString(FILE* out, Dart_Handle str) {
-  const uint8_t* characters = NULL;
-  intptr_t length;
-  Dart_Handle result = Dart_StringToBytes(str, &characters, &length);
+  const char* chars = NULL;
+
+  Dart_Handle result = Dart_StringToCString(str, &chars);
   if (Dart_IsError(result)) {
     // TODO(turnidge): Consider propagating some errors here.  What if
     // an isolate gets interrupted by the embedder in the middle of
@@ -113,7 +113,8 @@ void Builtin::PrintString(FILE* out, Dart_Handle str) {
     // interrupt.
     fputs(Dart_GetError(result), out);
   } else {
-    fwrite(characters, sizeof(*characters), length, out);
+    intptr_t length = strlen(chars);
+    fwrite(chars, sizeof(*chars), length, out);
   }
   fputc('\n', out);
   fflush(out);

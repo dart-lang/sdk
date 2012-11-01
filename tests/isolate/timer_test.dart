@@ -17,7 +17,7 @@ int iteration;
 
 void timeoutHandler(Timer timer) {
   int endTime = (new Date.now()).millisecondsSinceEpoch;
-  expect((endTime - startTime) >= timeout);
+  expect(endTime - startTime, greaterThanOrEqualTo(timeout));
   if (iteration < ITERATIONS) {
     iteration++;
     timeout = timeout - DECREASE;

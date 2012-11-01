@@ -8,6 +8,8 @@
 main() {
   useHtmlConfiguration();
 
+  var isSVGElement = predicate((x) => x is SVGElement, 'is a SVGElement');
+
   test('simpleRect', () {
       var div = new Element.tag('div');
       document.body.nodes.add(div);
@@ -19,14 +21,14 @@ main() {
 ''';
 
     var e = document.query('#svg1');
-    Expect.isTrue(e != null);
+    expect(e, isNotNull);
 
     SVGRectElement r = document.query('#rect1');
-    Expect.equals(10, r.x.baseVal.value);
-    Expect.equals(20, r.y.baseVal.value);
-    Expect.equals(40, r.height.baseVal.value);
-    Expect.equals(130, r.width.baseVal.value);
-    Expect.equals(5, r.rx.baseVal.value);
+    expect(r.x.baseVal.value, 10);
+    expect(r.y.baseVal.value, 20);
+    expect(r.height.baseVal.value, 40);
+    expect(r.width.baseVal.value, 130);
+    expect(r.rx.baseVal.value, 5);
   });
 
   test('trailing newline', () {
@@ -37,7 +39,7 @@ main() {
       </svg>
       """);
 
-  expect(logo is SVGElement, true);
+  expect(logo, isSVGElement);
 
   });
 }

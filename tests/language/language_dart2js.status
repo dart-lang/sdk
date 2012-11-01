@@ -38,9 +38,11 @@ type_parameter_test/02: Fail # Issue 4932
 type_parameter_test/03: Fail # Issue 4932
 type_parameter_test/04: Fail # Issue 4932
 
+super_call4_test: Fail # Badly generated noSuchMethod call.
+
 [ $compiler == dart2js && $unchecked ]
 assertion_test: Fail
-new_expression_type_args_test/02: Fail # dart2js fails to reject type variable within static member
+new_expression_type_args_test/02: Fail # Test does not conform with spec.
 
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.
@@ -59,6 +61,10 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dart2js ]
+final_variable_assignment_test/01: Fail
+final_variable_assignment_test/02: Fail
+final_variable_assignment_test/03: Fail
+final_variable_assignment_test/04: Fail
 bad_constructor_test/04: Fail # http://dartbug.com/5519
 bad_constructor_test/05: Fail # http://dartbug.com/5519
 bad_constructor_test/06: Fail # http://dartbug.com/5519
@@ -70,14 +76,6 @@ getter_no_setter_test/01: Fail # http://dartbug.com/5519
 illegal_invocation_test/03: Fail # http://dartbug.com/5519
 isnot_malformed_type_test/01: Fail # http://dartbug.com/5519
 not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
-not_enough_positional_arguments_test/02: Fail # http://dartbug.com/5519
-optional_named_parameters_test/01: Fail # http://dartbug.com/5519
-optional_named_parameters_test/03: Fail # http://dartbug.com/5519
-optional_named_parameters_test/05: Fail # http://dartbug.com/5519
-optional_named_parameters_test/07: Fail # http://dartbug.com/5519
-optional_named_parameters_test/09: Fail # http://dartbug.com/5519
-
-execute_finally8_test: Fail # http://dartbug.com/5643
 
 throw_expr_test: Fail
 metadata_test: Fail # Metadata on type parameters not supported.
@@ -94,12 +92,8 @@ function_type_alias_test: Fail
 function_type_alias2_test: Fail
 named_parameters_type_test: Fail
 positional_parameters_type_test: Fail
-named_parameters_test/01: Fail
-named_parameters_test/03: Fail
-named_parameters_test/05: Fail
-named_parameters_test/07: Fail
-named_parameters_test/09: Fail
 named_parameters_with_object_property_names_test: Fail
+named_parameters_aggregated_test/04: Fail # dart2js issue 5213
 
 # Fail "const EmptyLink<Element>" must be a compile-time constant if unchecked on linux.
 # Crash infinite loop on Mac and dart2js checked mode on linux.
@@ -111,7 +105,6 @@ const_var_test: Fail # Map literals take 2 type arguments.
 map_literal3_test: Fail # Map literals take 2 type arguments.
 ct_const_test: Fail # We don't take the generic type into account yet.
 char_escape_test: Fail # Unhandled non-BMP character: U+10000
-constructor6_test: Fail # Closures inside initializers not implemented.
 default_factory_library_test: Fail # lib is not a type
 dynamic_test: Fail # cannot resolve type F1
 factory_redirection_test/none: Fail # Not implemented.
@@ -122,10 +115,8 @@ factory_redirection_test/04: Pass # For the wrong reason. Not implemented.
 factory_redirection_test/05: Fail # Not implemented.
 factory_redirection_test/06: Fail # Not implemented.
 factory_redirection_test/07: Pass # For the wrong reason. Not implemented.
+constructor_redirect2_test/03: Fail # redirecting ctor with initializing formal
 factory3_test: Fail # internal error: visitIs for type variables not implemented
-function_literals2_test: Fail # Closures inside initializers not implemented.
-function_syntax_test/none: Fail # Closures inside initializers not implemented.
-function_test: Fail # internal error: Closures inside initializers not implemented
 function_type_alias2_test: Fail # cannot resolve type f1
 function_type_alias3_test: Fail # cannot resolve type F
 function_type_alias4_test: Fail # cannot resolve type F
@@ -155,7 +146,6 @@ get_set_syntax_test/14: Fail # Fixed by https://chromiumcodereview.appspot.com/1
 get_set_syntax_test/15: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/16: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 implicit_scope_test: Fail # duplicate definition of a="bar"
-library_prefixes_test: Fail # other is not a type
 many_generic_instanceof_test: Fail # cannot resolve type T
 method_binding_test: Fail # internal error: super property read not implemented.
 method_override_test: Fail # cannot resolve type GetKeysFunctionType
@@ -166,9 +156,6 @@ method_override2_test/03: Fail # accepts illegal override
 abstract_getter_test/01: Fail # instantiation of abstract class
 abstract_factory_constructor_test/01: Fail # instantiation of abstract class
 parameter_initializer6_negative_test: Fail # Issue 3502
-named_parameters2_test: Fail # Unimplemented non-matching static call
-named_parameters3_test: Fail # Unimplemented non-matching static call
-named_parameters4_test: Fail # Unimplemented non-matching static call
 named_parameters_aggregated_test/01: Fail # Presence of default values for optional params is not properly validated in type definitions.
 named_parameters_aggregated_test/03: Fail # Presence of default values for optional params is not properly validated in closure types.
 named_parameters_aggregated_test/05: Fail # Absence of positional parameters before named parameters does not trigger static type warning.

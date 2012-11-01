@@ -46,9 +46,11 @@ class BaseGrowableArray : public B {
     Last() = value;
   }
 
-  void RemoveLast() {
+  T& RemoveLast() {
     ASSERT(length_ > 0);
+    T& result = operator[](length_ - 1);
     length_--;
+    return result;
   }
 
   T& operator[](int index) const {

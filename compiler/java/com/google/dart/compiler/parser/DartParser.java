@@ -11,6 +11,7 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.ErrorSeverity;
 import com.google.dart.compiler.InternalCompilerException;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.PackageLibraryManager;
@@ -103,6 +104,7 @@ import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.parser.DartScanner.Location;
+import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.util.Lists;
 import com.google.dart.compiler.util.apache.StringUtils;
 
@@ -143,7 +145,7 @@ public class DartParser extends CompletionHooksParserBase {
   private static final String ABSTRACT_KEYWORD = "abstract";
   private static final String AS_KEYWORD = "as";
   private static final String CALL_KEYWORD = "call";
-  private static final String DYNAMIC_KEYWORD = "dynamic";
+  public static final String DYNAMIC_KEYWORD = "dynamic";
   private static final String EXPORT_KEYWORD = "export";
   private static final String EXTERNAL_KEYWORD = "external";
   private static final String FACTORY_KEYWORD = "factory";
@@ -331,6 +333,13 @@ public class DartParser extends CompletionHooksParserBase {
         } else if (peekPseudoKeyword(0, INTERFACE_KEYWORD) && peek(1).equals(Token.IDENTIFIER)) {
           consume(Token.IDENTIFIER);
           isParsingInterface = true;
+          // TODO(scheglov) remove after http://code.google.com/p/dart/issues/detail?id=6318 
+          if (!Elements.isCoreLibrarySource(source)
+              && !Elements.isLibrarySource(source, "/isolate/isolate.dart")
+              && !Elements.isLibrarySource(source, "crypto/crypto.dart")
+              && !Elements.isDart2JsLibrarySource(source)) {
+            reportError(position(), ParserErrorCode.DEPRECATED_INTERFACE);
+          }
           node = done(parseClass());
         } else if (peekPseudoKeyword(0, TYPEDEF_KEYWORD)
             && (peek(1).equals(Token.IDENTIFIER) || peek(1).equals(Token.VOID) || peek(1).equals(Token.AS))) {
@@ -362,6 +371,7 @@ public class DartParser extends CompletionHooksParserBase {
         DartParserCommentsHelper.addComments(unit, source, sourceCode, commentLocs);
       }
       // done
+      unit.setHasParseErrors(errorCount != 0);
       return done(unit);
     } catch (StringInterpolationParseError exception) {
       throw new InternalCompilerException("Failed to parse " + source.getUri(), exception);
@@ -374,19 +384,22 @@ public class DartParser extends CompletionHooksParserBase {
    * @param node the node with which the metadata is to be associated
    * @param metadata the metadata to be associated with the node
    */
-  private void setMetadata(DartNodeWithMetadata node, List<DartAnnotation> metadata) {
-    node.setMetadata(metadata);
-    if (node instanceof DartDeclaration<?>) {
-      for (DartAnnotation annotation : metadata) {
-        DartExpression nameNode = annotation.getName();
-        if (nameNode instanceof DartIdentifier) {
-          String name = ((DartIdentifier) nameNode).getName();
-          if (name.equals("deprecated")) {
-            DartDeclaration<?> declaration = (DartDeclaration<?>) node;
-            declaration.setObsoleteMetadata(declaration.getObsoleteMetadata().makeDeprecated());
-          } else if (name.equals("override")) {
-            DartDeclaration<?> declaration = (DartDeclaration<?>) node;
-            declaration.setObsoleteMetadata(declaration.getObsoleteMetadata().makeOverride());
+  private void setMetadata(DartNodeWithMetadata node, List<DartAnnotation> annotations) {
+    if (annotations != null && !annotations.isEmpty()) {
+      node.setMetadata(annotations);
+      if (node instanceof DartDeclaration<?>) {
+        for (int i = 0, size = annotations.size(); i < size; i++) {
+          DartAnnotation annotation = annotations.get(i);
+          DartExpression nameNode = annotation.getName();
+          if (nameNode instanceof DartIdentifier) {
+            String name = ((DartIdentifier) nameNode).getName();
+            if (name.equals("deprecated")) {
+              DartDeclaration<?> declaration = (DartDeclaration<?>) node;
+              declaration.setObsoleteMetadata(declaration.getObsoleteMetadata().makeDeprecated());
+            } else if (name.equals("override")) {
+              DartDeclaration<?> declaration = (DartDeclaration<?>) node;
+              declaration.setObsoleteMetadata(declaration.getObsoleteMetadata().makeOverride());
+            }
           }
         }
       }
@@ -624,12 +637,13 @@ public class DartParser extends CompletionHooksParserBase {
 
     List<ImportCombinator> combinators = new ArrayList<ImportCombinator>();
     while (peekPseudoKeyword(0, HIDE_KEYWORD) || peekPseudoKeyword(0, SHOW_KEYWORD)) {
+      beginImportCombinator();
       if (optionalPseudoKeyword(HIDE_KEYWORD)) {
         List<DartIdentifier> hiddenNames = parseIdentifierList();
-        combinators.add(new ImportHideCombinator(hiddenNames));
+        combinators.add(done(new ImportHideCombinator(hiddenNames)));
       } else if (optionalPseudoKeyword(SHOW_KEYWORD)) {
         List<DartIdentifier> shownNames = parseIdentifierList();
-        combinators.add(new ImportShowCombinator(shownNames));
+        combinators.add(done(new ImportShowCombinator(shownNames)));
       }
     }
 
@@ -760,9 +774,10 @@ public class DartParser extends CompletionHooksParserBase {
     beginPartOfDirective();
     next(); // "part"
     next(); // "of"
+    int ofOffset=  position();
     DartExpression libraryName = parseLibraryName();
     expect(Token.SEMICOLON);
-    return done(new DartPartOfDirective(libraryName));
+    return done(new DartPartOfDirective(ofOffset, libraryName));
   }
 
   private void parseResourceDirective() {
@@ -914,6 +929,9 @@ public class DartParser extends CompletionHooksParserBase {
    */
   private DartDeclaration<?> parseClass() {
     beginClassBody();
+    
+    int tokenOffset = ctx.getTokenLocation().getBegin();
+    int tokenLength = ctx.getTokenLocation().getEnd() - tokenOffset;
 
     // Parse modifiers.
     Modifiers modifiers = Modifiers.NONE;
@@ -936,6 +954,7 @@ public class DartParser extends CompletionHooksParserBase {
 
     // Parse the extends and implements clauses.
     DartTypeNode superType = null;
+    int implementsOffset = -1;
     List<DartTypeNode> interfaces = null;
     if (isParsingInterface) {
       if (optional(Token.EXTENDS)) {
@@ -946,14 +965,18 @@ public class DartParser extends CompletionHooksParserBase {
         superType = parseTypeAnnotation();
       }
       if (optionalPseudoKeyword(IMPLEMENTS_KEYWORD)) {
+        implementsOffset = position();
         interfaces = parseTypeAnnotationList();
       }
     }
 
     // Deal with factory clause for interfaces.
     DartParameterizedTypeNode defaultClass = null;
+    int defaultTokenOffset = -1;
     if (isParsingInterface &&
         (optionalDeprecatedFactory() || optional(Token.DEFAULT))) {
+      defaultTokenOffset = position();
+      beginTypeAnnotation();
       DartExpression qualified = parseQualified(false);
       List<DartTypeParameter> defaultTypeParameters = parseTypeParametersOpt();
       defaultClass = doneWithoutConsuming(new DartParameterizedTypeNode(qualified,
@@ -990,18 +1013,13 @@ public class DartParser extends CompletionHooksParserBase {
     }
 
     if (isParsingInterface) {
-      return done(new DartClass(name, superType, interfaces, openBraceOffset, closeBraceOffset,
-          members, typeParameters, defaultClass));
+      return done(new DartClass(tokenOffset, tokenLength, name, superType, implementsOffset,
+          interfaces, defaultTokenOffset, openBraceOffset, closeBraceOffset, members,
+          typeParameters, defaultClass));
     } else {
-      return done(new DartClass(name,
-          nativeName,
-          superType,
-          interfaces,
-          openBraceOffset,
-          closeBraceOffset,
-          members,
-          typeParameters,
-          modifiers));
+      return done(new DartClass(tokenOffset, tokenLength, name, nativeName, superType,
+          implementsOffset, interfaces, defaultTokenOffset, openBraceOffset, closeBraceOffset,
+          members, typeParameters, modifiers));
     }
   }
 
@@ -1257,9 +1275,6 @@ public class DartParser extends CompletionHooksParserBase {
       }
     }
     if (optionalPseudoKeyword(ABSTRACT_KEYWORD)) {
-      if (isParsingInterface) {
-        reportError(position(), ParserErrorCode.ABSTRACT_MEMBER_IN_INTERFACE);
-      }
       if (modifiers.isStatic()) {
         reportError(position(), ParserErrorCode.STATIC_MEMBERS_CANNOT_BE_ABSTRACT);
       }
@@ -1288,6 +1303,22 @@ public class DartParser extends CompletionHooksParserBase {
       }
       if (modifiers.isFactory()) {
         reportError(position(), ParserErrorCode.DISALLOWED_FACTORY_KEYWORD);
+      }
+    }
+    
+    // report "abstract" warning after all other checks to don't hide error with warning
+    // we ignore problems if there was already reported problem after given position
+    if (modifiers.isAbstract()) {
+      // TODO(scheglov) remove after http://code.google.com/p/dart/issues/detail?id=6322
+      // TODO(scheglov) remove after http://code.google.com/p/dart/issues/detail?id=6323
+      if (!Elements.isCoreLibrarySource(source)
+          && !Elements.isLibrarySource(source, "html/dartium/html_dartium.dart")
+          && !Elements.isLibrarySource(source, "/math/math.dart")
+          && !Elements.isLibrarySource(source, "/io/io_runtime.dart")
+          && !Elements.isLibrarySource(source, "/crypto/crypto.dart")
+          && !Elements.isLibrarySource(source, "/utf/utf.dart")
+          && !Elements.isDart2JsLibrarySource(source)) {
+        reportError(position(), ParserErrorCode.DEPRECATED_ABSTRACT_METHOD);
       }
     }
 
@@ -1692,12 +1723,16 @@ public class DartParser extends CompletionHooksParserBase {
 
     // Parse the parameters definitions.
     FormalParameters parametersInfo;
-    if (modifiers.isGetter() && peek(0) != Token.LPAREN) {
-      // TODO: For now the parameters are optional so that both the old and new style will be
-      // accepted, but eventually parameters should be disallowed.
+    if (modifiers.isGetter()) {
       parametersInfo = new FormalParameters(new ArrayList<DartParameter>(), -1, -1);
+      if (peek(0) == Token.LPAREN) {
+        // TODO(scheglov) remove after http://code.google.com/p/dart/issues/detail?id=6297
+        if (!Elements.isHtmlLibrarySource(source)) {
+          reportError(position(), ParserErrorCode.DEPRECATED_GETTER);
+        }
+        parametersInfo = parseFormalParameterList();
+      }
     } else {
-      //reportError(position(), ParserErrorCode.DEPRECATED_GETTER);
       parametersInfo = parseFormalParameterList();
     }
     List<DartParameter> parameters = parametersInfo.val;
@@ -1708,7 +1743,11 @@ public class DartParser extends CompletionHooksParserBase {
         reportError(position(), ParserErrorCode.ILLEGAL_NUMBER_OF_PARAMETERS);
       }
       // In methods with required arity each parameter is required.
-      for (DartParameter parameter : parameters) {
+      for (int i = 0, size = parameters.size(); i < size; i++) {
+        DartParameter parameter = parameters.get(i);
+        if (parameter.getModifiers().isOptional()) {
+          reportError(parameter, ParserErrorCode.OPTIONAL_POSITIONAL_PARAMETER_NOT_ALLOWED);
+        }
         if (parameter.getModifiers().isNamed()) {
           reportError(parameter, ParserErrorCode.NAMED_PARAMETER_NOT_ALLOWED);
         }
@@ -1718,7 +1757,8 @@ public class DartParser extends CompletionHooksParserBase {
         reportError(position(), ParserErrorCode.ILLEGAL_NUMBER_OF_PARAMETERS);
       }
       // In methods with required arity each parameter is required.
-      for (DartParameter parameter : parameters) {
+      for (int i = 0, size = parameters.size(); i < size; i++) {
+        DartParameter parameter = parameters.get(i);
         if (parameter.getModifiers().isNamed()) {
           reportError(parameter, ParserErrorCode.NAMED_PARAMETER_NOT_ALLOWED);
         }
@@ -2139,8 +2179,6 @@ public class DartParser extends CompletionHooksParserBase {
 
     if (isOptional) {
       modifiers = modifiers.makeOptional();
-      // TODO(brianwilkerson) Remove the line below when we no longer need to support the old syntax.
-      modifiers = modifiers.makeNamed();
     }
     if (isNamed) {
       modifiers = modifiers.makeNamed();
@@ -2272,7 +2310,8 @@ public class DartParser extends CompletionHooksParserBase {
    */
   private void validateNoDefaultParameterValues(List<DartParameter> parameters,
       ErrorCode errorCode) {
-    for (DartParameter parameter : parameters) {
+    for (int i = 0, size = parameters.size(); i < size; i++) {
+      DartParameter parameter = parameters.get(i);
       DartExpression defaultExpr = parameter.getDefaultExpr();
       if (defaultExpr != null) {
         reportError(defaultExpr,  errorCode);
@@ -4343,6 +4382,13 @@ public class DartParser extends CompletionHooksParserBase {
       if (!optional(Token.LPAREN)) {
         return false;
       }
+      // if it looks as "(Type name, ....)" then it may be function expression
+      boolean hasTwoIdentifiersComma;
+      {
+        int nameOffset = skipTypeName(0);
+        hasTwoIdentifiersComma = nameOffset != -1 && peek(nameOffset + 0) == Token.IDENTIFIER
+            && peek(nameOffset + 1) == Token.COMMA;
+      }
       // find matching parenthesis
       int count = 1;
       while (count != 0) {
@@ -4357,7 +4403,7 @@ public class DartParser extends CompletionHooksParserBase {
             break;
         }
       }
-      return (peek(0) == Token.ARROW || peek(0) == Token.LBRACE);
+      return (peek(0) == Token.ARROW || peek(0) == Token.LBRACE) || hasTwoIdentifiersComma;
     } finally {
       rollback();
     }
@@ -5319,8 +5365,11 @@ public class DartParser extends CompletionHooksParserBase {
    * 
    * @return whether the current error should be reported
    */
-  private boolean incErrorCount() {
-    errorCount++;
+  private boolean incErrorCount(ErrorCode errorCode) {
+    // count only errors, but not warnings (such as "abstract")
+    if (errorCode.getErrorSeverity() == ErrorSeverity.ERROR) {
+      errorCount++;
+    }
     
     if (errorCount >= MAX_DEFAULT_ERRORS) {
       if (errorCount == MAX_DEFAULT_ERRORS) {
@@ -5345,7 +5394,7 @@ public class DartParser extends CompletionHooksParserBase {
   @Override
   protected void reportError(int position, ErrorCode errorCode, Object... arguments) {
     // TODO(devoncarew): we're not correctly identifying dart:html as a core library
-    if (incErrorCount()) {
+    if (incErrorCount(errorCode)) {
       super.reportError(position, errorCode, arguments);
     }
   }
@@ -5353,13 +5402,13 @@ public class DartParser extends CompletionHooksParserBase {
   @Override
   protected void reportErrorAtPosition(int startPosition, int endPosition,
       ErrorCode errorCode, Object... arguments) {
-    if (incErrorCount()) {
+    if (incErrorCount(errorCode)) {
       super.reportErrorAtPosition(startPosition, endPosition, errorCode, arguments);
     }
   }
 
   private void reportError(DartCompilationError dartError) {
-    if (incErrorCount()) {
+    if (incErrorCount(dartError.getErrorCode())) {
       ctx.error(dartError);
       errorHistory.add(dartError.hashCode());
     }

@@ -105,10 +105,6 @@ abstract class Compiler implements DiagnosticListener {
 
   bool disableInlining = false;
 
-  // TODO(5074): Remove this field once we don't accept the
-  // deprecated parameter specification.
-  static final bool REJECT_NAMED_ARGUMENT_AS_POSITIONAL = true;
-
   final Tracer tracer;
 
   CompilerTask measuredTask;
@@ -132,9 +128,11 @@ abstract class Compiler implements DiagnosticListener {
   ClassElement nullClass;
   ClassElement listClass;
   ClassElement mapClass;
+  ClassElement jsInvocationMirrorClass;
   Element assertMethod;
   Element identicalFunction;
   Element functionApplyMethod;
+  Element invokeOnMethod;
 
   Element get currentElement => _currentElement;
   withCurrentElement(Element element, f()) {
@@ -142,6 +140,13 @@ abstract class Compiler implements DiagnosticListener {
     _currentElement = element;
     try {
       return f();
+    } on SpannableAssertionFailure catch (ex) {
+      if (!hasCrashed) {
+        SourceSpan span = spanFromSpannable(ex.node);
+        reportDiagnostic(span, ex.message, api.Diagnostic.ERROR);
+      }
+      hasCrashed = true;
+      throw;
     } on CompilerCancelledException catch (ex) {
       throw;
     } on StackOverflowError catch (ex) {
@@ -178,12 +183,15 @@ abstract class Compiler implements DiagnosticListener {
   static const SourceString MAIN = const SourceString('main');
   static const SourceString CALL_OPERATOR_NAME = const SourceString('call');
   static const SourceString NO_SUCH_METHOD = const SourceString('noSuchMethod');
+  static const int NO_SUCH_METHOD_ARG_COUNT = 1;
+  static const SourceString INVOKE_ON = const SourceString('invokeOn');
   static const SourceString RUNTIME_TYPE = const SourceString('runtimeType');
   static const SourceString START_ROOT_ISOLATE =
       const SourceString('startRootIsolate');
   bool enabledNoSuchMethod = false;
   bool enabledRuntimeType = false;
   bool enabledFunctionApply = false;
+  bool enabledInvokeOn = false;
 
   Stopwatch progress;
 
@@ -226,8 +234,9 @@ abstract class Compiler implements DiagnosticListener {
         new dart_backend.DartBackend(this, strips);
     constantHandler = new ConstantHandler(this, backend.constantSystem);
     enqueuer = new EnqueueTask(this);
-    tasks = [scanner, dietParser, parser, resolver, closureToClassMapper,
-             checker, typesTask, constantHandler, enqueuer];
+    tasks = [scanner, dietParser, parser, patchParser, libraryLoader,
+             resolver, closureToClassMapper, checker, typesTask,
+             constantHandler, enqueuer];
     tasks.addAll(backend.tasks);
   }
 
@@ -279,7 +288,7 @@ abstract class Compiler implements DiagnosticListener {
     } else if (token != null) {
       span = spanFromTokens(token, token);
     } else if (instruction != null) {
-      span = spanFromElement(currentElement);
+      span = spanFromHInstruction(instruction);
     } else if (element != null) {
       span = spanFromElement(element);
     } else {
@@ -287,6 +296,20 @@ abstract class Compiler implements DiagnosticListener {
     }
     reportDiagnostic(span, reason, api.Diagnostic.ERROR);
     throw new CompilerCancelledException(reason);
+  }
+
+  SourceSpan spanFromSpannable(Spannable node) {
+    if (node is Node) {
+      return spanFromNode(node);
+    } else if (node is Token) {
+      return spanFromTokens(node, node);
+    } else if (node is HInstruction) {
+      return spanFromHInstruction(node);
+    } else if (node is Element) {
+      return spanFromElement(node);
+    } else {
+      throw 'No error location.';
+    }
   }
 
   void reportFatalError(String reason, Element element,
@@ -325,6 +348,11 @@ abstract class Compiler implements DiagnosticListener {
     Selector selector = new Selector.noSuchMethod();
     enqueuer.resolution.registerInvocation(NO_SUCH_METHOD, selector);
     enqueuer.codegen.registerInvocation(NO_SUCH_METHOD, selector);
+
+    Element createInvocationMirrorElement =
+        findHelper(const SourceString('createInvocationMirror'));
+    enqueuer.resolution.addToWorkList(createInvocationMirrorElement);
+    enqueuer.codegen.addToWorkList(createInvocationMirrorElement);
   }
 
   void enableIsolateSupport(LibraryElement element) {
@@ -376,6 +404,8 @@ abstract class Compiler implements DiagnosticListener {
     functionClass = lookupSpecialClass(const SourceString('Function'));
     listClass = lookupSpecialClass(const SourceString('List'));
     mapClass = lookupSpecialClass(const SourceString('Map'));
+    jsInvocationMirrorClass =
+        lookupSpecialClass(const SourceString('JSInvocationMirror'));
     closureClass = lookupSpecialClass(const SourceString('Closure'));
     dynamicClass = lookupSpecialClass(const SourceString('Dynamic_'));
     nullClass = lookupSpecialClass(const SourceString('Null'));
@@ -408,6 +438,9 @@ abstract class Compiler implements DiagnosticListener {
     functionClass.ensureResolved(this);
     functionApplyMethod =
         functionClass.lookupLocalMember(const SourceString('apply'));
+    jsInvocationMirrorClass.ensureResolved(this);
+    invokeOnMethod = jsInvocationMirrorClass.lookupLocalMember(
+        const SourceString('invokeOn'));
   }
 
   void loadCoreImplLibrary() {
@@ -538,6 +571,7 @@ abstract class Compiler implements DiagnosticListener {
         internalErrorOnElement(work.element, "Work list is not empty.");
       });
     }
+    if (!REPORT_EXCESS_RESOLUTION) return;
     var resolved = new Set.from(enqueuer.resolution.resolvedElements.keys);
     for (Element e in codegenWorld.generatedCode.keys) {
       resolved.remove(e);
@@ -566,7 +600,6 @@ abstract class Compiler implements DiagnosticListener {
       }
     }
     log('Excess resolution work: ${resolved.length}.');
-    if (!REPORT_EXCESS_RESOLUTION) return;
     for (Element e in resolved) {
       SourceSpan span = spanFromElement(e);
       reportDiagnostic(span, 'Warning: $e resolved but not compiled.',
@@ -759,6 +792,17 @@ abstract class Compiler implements DiagnosticListener {
         : spanFromTokens(position, position, uri);
   }
 
+  SourceSpan spanFromHInstruction(HInstruction instruction) {
+    Element element = instruction.sourceElement;
+    if (element == null) element = currentElement;
+    var position = instruction.sourcePosition;
+    if (position == null) return spanFromElement(element);
+    Token token = position.token;
+    if (token == null) return spanFromElement(element);
+    Uri uri = element.getCompilationUnit().script.uri;
+    return spanFromTokens(token, token, uri);
+  }
+
   Script readScript(Uri uri, [Node node]) {
     unimplemented('Compiler.readScript');
   }
@@ -864,8 +908,8 @@ bool invariant(Spannable spannable, var condition, {String message: null}) {
   if (condition is Function){
     condition = condition();
   }
-  if (!condition && message != null) {
-    print('assertion failed: $message');
+  if (spannable == null || !condition) {
+    throw new SpannableAssertionFailure(spannable, message);
   }
-  return spannable != null && condition;
+  return true;
 }

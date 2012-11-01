@@ -17,6 +17,7 @@ import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.MockArtifactProvider;
 import com.google.dart.compiler.MockBundleLibrarySource;
 import com.google.dart.compiler.Source;
+import com.google.dart.compiler.util.apache.StringUtils;
 
 import junit.framework.AssertionFailedError;
 
@@ -104,6 +105,7 @@ public class IncrementalCompilationTest extends CompilerTestCase {
 
   public void testFullCompile() {
     compile();
+    System.out.println(StringUtils.join(errors, "\n"));
 
     // Assert that all artifacts are written.
     didWrite("someimpl.dart", EXTENSION_TIMESTAMP);

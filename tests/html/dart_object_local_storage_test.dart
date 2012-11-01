@@ -19,16 +19,16 @@ main() {
   body.nodes.add(element);
 
   test('body', () {
-      Expect.equals(body, document.body);
+      expect(body, equals(document.body));
   });
   test('localStorage', () {
-      Expect.equals(localStorage, window.localStorage);
+      expect(localStorage, equals(window.localStorage));
   });
   test('sessionStorage', () {
-      Expect.equals(sessionStorage, window.sessionStorage);
+      expect(sessionStorage, equals(window.sessionStorage));
   });
   test('unknown', () {
       var test = document.query('#test');
-      Expect.equals(element, test);
+      expect(element, equals(test));
   });
 }

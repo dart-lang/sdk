@@ -219,7 +219,7 @@ class Parser : public ValueObject {
   void ExpectToken(Token::Kind token_expected);
   void ExpectSemicolon();
   void UnexpectedToken();
-  String* ExpectClassIdentifier(const char* msg);
+  String* ExpectUserDefinedTypeIdentifier(const char* msg);
   String* ExpectIdentifier(const char* msg);
   bool IsLiteral(const char* literal);
 
@@ -357,8 +357,14 @@ class Parser : public ValueObject {
   void AddInterfaces(intptr_t interfaces_pos,
                      const Class& cls,
                      const Array& interfaces);
+  StaticCallNode* BuildInvocationMirrorAllocation(
+      intptr_t call_pos,
+      const String& function_name,
+      const ArgumentListNode& function_args);
   ArgumentListNode* BuildNoSuchMethodArguments(
-      const String& function_name, const ArgumentListNode& function_args);
+      intptr_t call_pos,
+      const String& function_name,
+      const ArgumentListNode& function_args);
   RawFunction* GetSuperFunction(intptr_t token_pos,
                                 const String& name,
                                 bool resolve_getter,
@@ -366,6 +372,7 @@ class Parser : public ValueObject {
   AstNode* ParseSuperCall(const String& function_name);
   AstNode* ParseSuperFieldAccess(const String& field_name);
   AstNode* ParseSuperOperator();
+  AstNode* BuildUnarySuperOperator(Token::Kind op, PrimaryNode* super);
 
   static void SetupDefaultsForOptionalParams(const ParamList* params,
                                              Array& default_values);

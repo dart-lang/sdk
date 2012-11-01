@@ -25,6 +25,8 @@ class ObjectPointerVisitor;
   V(TopLevel, "::")                                                            \
   V(DefaultLabel, ":L")                                                        \
   V(This, "this")                                                              \
+  V(Super, "super")                                                            \
+  V(Call, "call")                                                              \
   V(HasNext, "hasNext")                                                        \
   V(Next, "next")                                                              \
   V(Value, "value")                                                            \
@@ -41,7 +43,7 @@ class ObjectPointerVisitor;
   V(ThrowNew, "_throwNew")                                                     \
   V(ListLiteralFactoryClass, "_ListLiteralFactory")                            \
   V(ListLiteralFactory, "List.fromLiteral")                                    \
-  V(ListImplementation, "ListImplementation")                                  \
+  V(ListImplementation, "_ListImpl")                                           \
   V(ListFactory, "List.")                                                      \
   V(MapLiteralFactoryClass, "_MapLiteralFactory")                              \
   V(MapLiteralFactory, "Map.fromLiteral")                                      \
@@ -108,10 +110,8 @@ class ObjectPointerVisitor;
   V(ImmutableArray, "_ImmutableArray")                                         \
   V(OneByteString, "_OneByteString")                                           \
   V(TwoByteString, "_TwoByteString")                                           \
-  V(FourByteString, "_FourByteString")                                         \
   V(ExternalOneByteString, "_ExternalOneByteString")                           \
   V(ExternalTwoByteString, "_ExternalTwoByteString")                           \
-  V(ExternalFourByteString, "_ExternalFourByteString")                         \
   V(Stacktrace, "Stacktrace")                                                  \
   V(JSSyntaxRegExp, "JSSyntaxRegExp")                                          \
   V(Object, "Object")                                                          \
@@ -136,6 +136,8 @@ class ObjectPointerVisitor;
   V(_ExternalFloat32Array, "_ExternalFloat32Array")                            \
   V(_ExternalFloat64Array, "_ExternalFloat64Array")                            \
   V(_WeakProperty, "_WeakProperty")                                            \
+  V(InvocationMirror, "_InvocationMirror")                                     \
+  V(AllocateInvocationMirror, "_allocateInvocationMirror")                     \
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates

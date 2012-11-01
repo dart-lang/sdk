@@ -353,7 +353,8 @@ static void DisassembleCode(const Function& function, bool optimized) {
     Smi& reason = Smi::Handle();
     for (intptr_t i = 0; i < deopt_table_length; ++i) {
       DeoptTable::GetEntry(deopt_table, i, &offset, &info, &reason);
-      OS::Print("0x%"Px"  %s  (%s)\n",
+      OS::Print("%4"Pd": 0x%"Px"  %s  (%s)\n",
+                i,
                 start + offset.Value(),
                 info.ToCString(),
                 DeoptReasonToText(reason.Value()));

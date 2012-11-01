@@ -178,6 +178,11 @@ class TestServer {
     response.outputStream.close();
   }
 
+  void _flushHandler(HttpRequest request, HttpResponse response) {
+    response.outputStream.flush();
+    response.outputStream.close();
+  }
+
   void init() {
     // Setup request handlers.
     _requestHandlers = new Map();
@@ -208,6 +213,10 @@ class TestServer {
     _requestHandlers["/cookie2"] =
         (HttpRequest request, HttpResponse response) {
           _cookie2Handler(request, response);
+        };
+    _requestHandlers["/flush"] =
+        (HttpRequest request, HttpResponse response) {
+          _flushHandler(request, response);
         };
   }
 
@@ -405,9 +414,29 @@ void testCookies() {
   testServerMain.start();
 }
 
+void testFlush() {
+  TestServerMain testServerMain = new TestServerMain();
+  testServerMain.setServerStartedHandler((int port) {
+    HttpClient httpClient = new HttpClient();
+
+    HttpClientConnection conn = httpClient.get("127.0.0.1", port, "/flush");
+    conn.onRequest = (HttpClientRequest request) {
+      request.outputStream.flush();
+      request.outputStream.close();
+    };
+    conn.onResponse = (HttpClientResponse response) {
+      Expect.equals(HttpStatus.OK, response.statusCode);
+      httpClient.shutdown();
+      testServerMain.shutdown();
+    };
+  });
+  testServerMain.start();
+}
+
 void main() {
   testHost();
   testExpires();
   testContentType();
   testCookies();
+  testFlush();
 }

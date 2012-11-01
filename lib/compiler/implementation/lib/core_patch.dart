@@ -19,8 +19,11 @@ patch class Object {
 
   patch String toString() => Primitives.objectToString(this);
 
-  patch Dynamic noSuchMethod(String name, List args) {
-    throw new NoSuchMethodError(this, name, args);
+  patch dynamic noSuchMethod(InvocationMirror invocation) {
+    throw new NoSuchMethodError(this,
+                                invocation.memberName,
+                                invocation.positionalArguments,
+                                invocation.namedArguments);
   }
 
   patch Type get runtimeType {
@@ -140,4 +143,72 @@ patch class _DateImpl {
   patch int get millisecond => Primitives.getMilliseconds(this);
 
   patch int get weekday => Primitives.getWeekday(this);
+}
+
+
+// Patch for Stopwatch implementation.
+patch class _StopwatchImpl {
+  patch static int _frequency() => 1000;
+  patch static int _now() => Primitives.dateNow();
+}
+
+
+// Patch for List implementation.
+patch class _ListImpl<E> {
+  patch factory List([int length]) => Primitives.newList(length);
+
+  patch factory List.from(Iterable<E> other) {
+    var result = new List();
+    for (var element in other) {
+      result.add(element);
+    }
+    return result;
+  }
+}
+
+
+// Patch for String implementation.
+patch class _StringImpl {
+  patch factory String.fromCharCodes(List<int> charCodes) {
+    checkNull(charCodes);
+    if (!isJsArray(charCodes)) {
+      if (charCodes is !List) throw new ArgumentError(charCodes);
+      charCodes = new List.from(charCodes);
+    }
+    return Primitives.stringFromCharCodes(charCodes);
+  }
+
+  patch static String join(List<String> strings, String separator) {
+    checkNull(strings);
+    checkNull(separator);
+    if (separator is !String) throw new ArgumentError(separator);
+    return stringJoinUnchecked(_toJsStringArray(strings), separator);
+  }
+
+  patch static String concatAll(List<String> strings) {
+    return stringJoinUnchecked(_toJsStringArray(strings), "");
+  }
+
+  static List _toJsStringArray(List<String> strings) {
+    checkNull(strings);
+    var array;
+    final length = strings.length;
+    if (isJsArray(strings)) {
+      array = strings;
+      for (int i = 0; i < length; i++) {
+        final string = strings[i];
+        checkNull(string);
+        if (string is !String) throw new ArgumentError(string);
+      }
+    } else {
+      array = new List(length);
+      for (int i = 0; i < length; i++) {
+        final string = strings[i];
+        checkNull(string);
+        if (string is !String) throw new ArgumentError(string);
+        array[i] = string;
+      }
+    }
+    return array;
+  }
 }

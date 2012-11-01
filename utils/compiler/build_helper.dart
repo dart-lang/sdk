@@ -142,7 +142,9 @@ REM Does the path have a trailing slash? If so, remove it.
 if %SCRIPTPATH:~-1%==\ set SCRIPTPATH=%SCRIPTPATH:~0,-1%
 
 set arguments=%*
+set SNAPSHOTNAME=%SCRIPTPATH%dart2js.snapshot
+if exist %SNAPSHOTNAME% set SNAPSHOT=--use_script_snapshot=%SNAPSHOTNAME%
 
-"%SCRIPTPATH%\dart.exe"$options "%SCRIPTPATH%$pathWin" %arguments%
+"%SCRIPTPATH%\dart.exe"$options %SNAPSHOT% "%SCRIPTPATH%$pathWin" %arguments%
 '''.replaceAll('\n', '\r\n')];
 }

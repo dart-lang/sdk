@@ -48,7 +48,7 @@ class ListTest {
     a.forEach(f(element) { Expect.equals(null, element); });
     a[1] = 1;
     Expect.equals(1, a[1]);
-    Expect.throws(() => a[len], (e) => e is IndexOutOfRangeException);
+    Expect.throws(() => a[len], (e) => e is RangeError);
 
     Expect.throws(() {
       List a = new List(4);
@@ -58,7 +58,7 @@ class ListTest {
     Expect.throws(() {
       List a = new List(4);
       a.setRange(10, 1, a, 1);
-    }, (e) => e is IndexOutOfRangeException);
+    }, (e) => e is RangeError);
 
     a = new List(4);
     List b = new List(4);
@@ -101,7 +101,7 @@ class ListTest {
     List list = new List();
     // We cannot write just 'list.removeLast' due to issue 3769.
     Expect.throws(() => list.removeLast(),
-                  (e) => e is IndexOutOfRangeException);
+                  (e) => e is RangeError);
     Expect.equals(0, list.length);
   }
 }

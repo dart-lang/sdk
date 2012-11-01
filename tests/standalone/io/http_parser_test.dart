@@ -5,7 +5,7 @@
 #import('dart:math');
 #import('dart:scalarlist');
 
-#source("../../../runtime/bin/http_parser.dart");
+#source("../../../lib/io/http_parser.dart");
 
 class HttpParserTest {
   static void runAllTests() {
@@ -18,7 +18,7 @@ class HttpParserTest {
   static void _testParseRequest(String request,
                                 String expectedMethod,
                                 String expectedUri,
-                                {int expectedContentLength: -1,
+                                {int expectedContentLength: 0,
                                  int expectedBytesReceived: 0,
                                  Map expectedHeaders: null,
                                  bool chunked: false,

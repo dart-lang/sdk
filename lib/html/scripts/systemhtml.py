@@ -410,7 +410,7 @@ class HtmlDartInterfaceGenerator(object):
     # defined in the current interface as well as a parent.  In that case we
     # avoid making a duplicate definition and pray that the signatures match.
     secondary_parents = self._TransitiveSecondaryParents(interface)
-    for parent_interface in secondary_parents:
+    for parent_interface in sorted(secondary_parents):
       if isinstance(parent_interface, str):  # IsDartCollectionType(parent_interface)
         continue
       for attr in sorted(parent_interface.attributes, ConstantOutputOrder):
@@ -554,11 +554,16 @@ class HtmlDartInterfaceGenerator(object):
     """
     def walk(parents):
       for parent in parents:
-        if IsDartCollectionType(parent.type.id):
-          result.append(parent.type.id)
+        parent_name = parent.type.id
+        if parent_name == 'EventTarget':
+          # Currently EventTarget is implemented as a mixin, not a proper
+          # super interface---ignore its members.
           continue
-        if self._database.HasInterface(parent.type.id):
-          parent_interface = self._database.GetInterface(parent.type.id)
+        if IsDartCollectionType(parent_name):
+          result.append(parent_name)
+          continue
+        if self._database.HasInterface(parent_name):
+          parent_interface = self._database.GetInterface(parent_name)
           result.append(parent_interface)
           walk(parent_interface.parents)
 
@@ -910,7 +915,6 @@ class Dart2JSBackend(object):
     temp_version = [0]
 
     def GenerateCall(operation, argument_count, checks):
-      checks = filter(lambda e: e != 'true', checks)
       if checks:
         (stmts_emitter, call_emitter) = body.Emit(
             '    if ($CHECKS) {\n$!STMTS$!CALL    }\n',
@@ -976,18 +980,17 @@ class Dart2JSBackend(object):
           NATIVE=info.declared_name)
 
     def GenerateChecksAndCall(operation, argument_count):
-      checks = ['!?%s' % name for name in parameter_names]
+      checks = []
       for i in range(0, argument_count):
         argument = operation.arguments[i]
         parameter_name = parameter_names[i]
         test_type = self._DartType(argument.type.id)
         if test_type in ['dynamic', 'Object']:
-          checks[i] = '?%s' % parameter_name
-        elif test_type == parameter_types[i]:
-          checks[i] = 'true'
-        else:
-          checks[i] = '(%s is %s || %s == null)' % (
-              parameter_name, test_type, parameter_name)
+          checks.append('?%s' % parameter_name)
+        elif test_type != parameter_types[i]:
+          checks.append('(%s is %s || %s == null)' % (
+              parameter_name, test_type, parameter_name))
+      checks.extend(['!?%s' % name for name in parameter_names[argument_count:]])
       # There can be multiple presence checks.  We need them all since a later
       # optional argument could have been passed by name, leaving 'holes'.
       GenerateCall(operation, argument_count, checks)

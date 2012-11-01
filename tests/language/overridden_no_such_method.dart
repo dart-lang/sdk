@@ -7,9 +7,10 @@ class OverriddenNoSuchMethod {
 
   OverriddenNoSuchMethod() {}
 
-  noSuchMethod(var function_name, List args) {
-    Expect.equals("foo", function_name);
+  noSuchMethod(InvocationMirror mirror) {
+    Expect.equals("foo", mirror.memberName);
     // 'foo' was called with two parameters (not counting receiver).
+    List args = mirror.positionalArguments;
     Expect.equals(2, args.length);
     Expect.equals(101, args[0]);
     Expect.equals(202, args[1]);

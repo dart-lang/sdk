@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of markdown;
+
 /// Maintains the internal state needed to parse inline span elements in
 /// markdown.
 class InlineParser {
@@ -148,7 +150,7 @@ class InlineParser {
 }
 
 /// Represents one kind of markdown tag that can be parsed.
-class InlineSyntax {
+abstract class InlineSyntax {
   final RegExp pattern;
 
   InlineSyntax(String pattern)
@@ -168,7 +170,7 @@ class InlineSyntax {
     return false;
   }
 
-  abstract bool onMatch(InlineParser parser, Match match);
+  bool onMatch(InlineParser parser, Match match);
 }
 
 /// Matches stuff that should just be passed through as straight text.

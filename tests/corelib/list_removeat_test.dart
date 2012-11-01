@@ -11,10 +11,10 @@ void main() {
 
   // Index must be integer and in range.
   Expect.throws(() { l1.removeAt(-1); },
-                (e) => e is IndexOutOfRangeException,
+                (e) => e is RangeError,
                 "negative");
   Expect.throws(() { l1.removeAt(5); },
-                (e) => e is IndexOutOfRangeException,
+                (e) => e is RangeError,
                 "too large");
   Expect.throws(() { l1.removeAt(null); },
                 (e) => e is ArgumentError,
@@ -57,6 +57,6 @@ void main() {
   // Empty list is not special.
   var l4 = [];
   Expect.throws(() { l4.removeAt(0); },
-                (e) => e is IndexOutOfRangeException,
+                (e) => e is RangeError,
                 "empty");
 }

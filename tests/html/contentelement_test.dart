@@ -10,8 +10,11 @@
 main() {
   useHtmlConfiguration();
 
+  var isContentElement =
+      predicate((x) => x is ContentElement, 'is a ContentElement');
+
   test('constructor', () {
       var e = new ContentElement();
-      expect(e is ContentElement);
+      expect(e, isContentElement);
     });
 }

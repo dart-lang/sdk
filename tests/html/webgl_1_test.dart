@@ -16,6 +16,6 @@ main() {
       gl.compileShader(shader);
       var success =
           gl.getShaderParameter(shader, WebGLRenderingContext.COMPILE_STATUS);
-      Expect.isTrue(success);
+      expect(success, isTrue);
   });
 }

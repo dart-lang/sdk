@@ -14,8 +14,9 @@ testExit() {
   future.then((process) {
     process.onExit = (int exitCode) {
       Expect.isTrue(exitCode != 0);
-      process.close();
     };
+    process.stdout.onData = process.stdout.read;
+    process.stderr.onData = process.stderr.read;
   });
 }
 

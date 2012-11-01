@@ -5,7 +5,7 @@
 /**
  * A simple unit test library for running tests in a browser.
  */
-#library('unittest');
+#library('unittest_html_config');
 
 #import('dart:html');
 #import('unittest.dart');

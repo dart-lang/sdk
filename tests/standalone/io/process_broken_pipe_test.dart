@@ -15,11 +15,14 @@ main() {
     // Ignore error on stdin.
     process.stdin.onError = (e) => null;
 
+    // Drain stdout and stderr.
+    process.stdout.onData = () => process.stdout.read();
+    process.stderr.onData = () => process.stderr.read();
+
     // Write to the stdin after the process is terminated to test
     // writing to a broken pipe.
     process.onExit = (code) {
       Expect.isFalse(process.stdin.write([0]));
-      process.close();
     };
   });
 }

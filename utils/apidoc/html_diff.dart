@@ -101,14 +101,14 @@ class HtmlDiff {
       warn('Could not find $HTML_LIBRARY_NAME');
       return;
     }
-    for (InterfaceMirror htmlType in htmlLib.types.values) {
+    for (ClassMirror htmlType in htmlLib.classes.values) {
       final domTypes = htmlToDomTypes(htmlType);
       if (domTypes.isEmpty) continue;
 
       htmlTypesToDom.putIfAbsent(htmlType.qualifiedName,
           () => new Set()).addAll(domTypes);
 
-      htmlType.declaredMembers.forEach(
+      htmlType.members.forEach(
           (_, m) => _addMemberDiff(m, domTypes));
     }
   }
@@ -123,7 +123,7 @@ class HtmlDiff {
     var domMembers = htmlToDomMembers(htmlMember, domTypes);
     if (htmlMember == null && !domMembers.isEmpty) {
       warn('$HTML_LIBRARY_NAME member '
-           '${htmlMember.surroundingDeclaration.simpleName}.'
+           '${htmlMember.owner.simpleName}.'
            '${htmlMember.simpleName} has no corresponding '
            '$HTML_LIBRARY_NAME member.');
     }
@@ -139,7 +139,7 @@ class HtmlDiff {
    * [htmlType] from `dart:html`. This can be the empty list if no
    * correspondence is found.
    */
-  List<String> htmlToDomTypes(InterfaceMirror htmlType) {
+  List<String> htmlToDomTypes(ClassMirror htmlType) {
     if (htmlType.simpleName == null) return [];
     final tags = _getTags(comments.find(htmlType.location));
     if (tags.containsKey('domName')) {

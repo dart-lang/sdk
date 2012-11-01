@@ -48,11 +48,9 @@ class Exceptions : AllStatic {
                                       const String& malformed_error);
 
   enum ExceptionType {
-    kIndexOutOfRange,
+    kRange,
     kArgument,
     kNoSuchMethod,
-    kClosureArgumentMismatch,
-    kObjectNotClosure,
     kFormat,
     kStackOverflow,
     kOutOfMemory,

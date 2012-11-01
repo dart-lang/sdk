@@ -19,6 +19,7 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.common.ErrorExpectation;
 import com.google.dart.compiler.common.SourceInfo;
+import com.google.dart.compiler.end2end.inc.MemoryLibrarySource;
 import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.parser.DartParserRunner;
 import com.google.dart.compiler.resolver.Element;
@@ -187,10 +188,9 @@ public abstract class CompilerTestCase extends TestCase {
   }
 
   protected AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
-    String name = getName();
     testSource = makeCode(lines);
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(name, testSource);
-    testUnit = libraryResult.getLibraryUnitResult().getUnit(name);
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(testSource);
+    testUnit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     return libraryResult;
   }
 
@@ -199,26 +199,24 @@ public abstract class CompilerTestCase extends TestCase {
    * <p>
    * <b>Note:</b> if the IDE changes how it calls analyzeLibrary, this should
    * be changed to match.
-   *
-   * @param name the name to use for the source file
    * @param code the Dart code to parse/analyze
+   *
    * @return an {@link AnalyzeLibraryResult} containing the {@link LibraryUnit}
    *     and all the errors/warnings generated from the supplied code
    * @throws Exception
    */
-  protected AnalyzeLibraryResult analyzeLibrary(String name, String code)
+  protected AnalyzeLibraryResult analyzeLibrary(String code)
       throws Exception {
     AnalyzeLibraryResult result = new AnalyzeLibraryResult();
     result.source = code;
     // Prepare library.
-    MockLibrarySource lib = new MockLibrarySource();
+    MemoryLibrarySource lib = new MemoryLibrarySource("Test.dart");
+    lib.setContent("Test.dart", code);
     // Prepare unit.
     Map<URI, DartUnit> testUnits =  Maps.newHashMap();
     {
-      DartSource src = new DartSourceTest(name, code, lib);
+      DartSource src = lib.getSourceFor("Test.dart");
       DartUnit unit = makeParser(src, code, result).parseUnit();
-      // Remember unit.
-      lib.addSource(src);
       testUnits.put(src.getUri(), unit);
     }
     DartArtifactProvider provider = new MockArtifactProvider();

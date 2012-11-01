@@ -13,6 +13,9 @@
  * state, if set, will typically be a [Map] with a number of key-value
  * pairs containing relevant state information.
  */
+
+part of unittest;
+
 class MatchState {
   var state = null;
 
@@ -35,13 +38,13 @@ abstract class BaseMatcher implements Matcher {
    * [matchState] may be used to return additional info for
    * the use of [describeMismatch].
    */
-  abstract bool matches(item, MatchState matchState);
+  bool matches(item, MatchState matchState);
 
   /**
    * Creates a textual description of a matcher,
    * by appending to [mismatchDescription].
    */
-  abstract Description describe(Description mismatchDescription);
+  Description describe(Description mismatchDescription);
 
   /**
    * Generates a description of the matcher failed for a particular

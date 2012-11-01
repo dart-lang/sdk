@@ -12,7 +12,7 @@ const int VERSION = 1;
 class Test {
   fail(message) => (e) {
     guardAsync(() {
-      Expect.fail('IndexedDB failure: $message'); 
+      expect(false, isTrue, reason: 'IndexedDB failure: $message'); 
     });
   };
 
@@ -100,13 +100,13 @@ class Test {
         itemCount += 1;
         sumKeys += cursor.key;
         window.console.log('${cursor.key}  ${cursor.value}');
-        Expect.equals('Item ${cursor.key}', cursor.value);
+        expect(cursor.value, 'Item ${cursor.key}');
         cursor.continueFunction();
       } else {
         // Done
-        Expect.equals(99, lastKey);
-        Expect.equals(100, itemCount);
-        Expect.equals((100 * 99) ~/ 2, sumKeys);
+        expect(lastKey, 99);
+        expect(itemCount, 100);
+        expect(sumKeys, (100 * 99) ~/ 2);
       }
     }, count:101));
     cursorRequest.on.error.add(fail('openCursor'));
@@ -126,13 +126,13 @@ class Test {
         lastKey = cursor.key;
         itemCount += 1;
         sumKeys += cursor.key;
-        Expect.equals('Item ${cursor.key}', cursor.value);
+        expect(cursor.value, 'Item ${cursor.key}');
         cursor.continueFunction();
       } else {
         // Done
-        Expect.equals(0, lastKey);  // i.e. first key (scanned in reverse).
-        Expect.equals(100, itemCount);
-        Expect.equals((100 * 99) ~/ 2, sumKeys);
+        expect(lastKey, 0);  // i.e. first key (scanned in reverse).
+        expect(itemCount, 100);
+        expect(sumKeys, (100 * 99) ~/ 2);
       }
     }, count:101));
     cursorRequest.on.error.add(fail('openCursor'));

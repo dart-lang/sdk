@@ -14,7 +14,9 @@ public class DartBlock extends DartStatement {
   private final NodeList<DartStatement> statements = NodeList.create(this);
 
   public DartBlock(List<DartStatement> statements) {
-    this.statements.addAll(statements);
+    if (statements != null && !statements.isEmpty()) {
+      this.statements.addAll(statements);
+    }
   }
 
   public List<DartStatement> getStatements() {

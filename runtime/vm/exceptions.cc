@@ -396,9 +396,9 @@ RawObject* Exceptions::Create(
   Library& library = Library::Handle();
   String& class_name = String::Handle();
   switch (type) {
-    case kIndexOutOfRange:
+    case kRange:
       library = Library::CoreLibrary();
-      class_name = Symbols::New("IndexOutOfRangeException");
+      class_name = Symbols::New("RangeError");
       break;
     case kArgument:
       library = Library::CoreLibrary();
@@ -407,14 +407,6 @@ RawObject* Exceptions::Create(
     case kNoSuchMethod:
       library = Library::CoreLibrary();
       class_name = Symbols::New("NoSuchMethodError");
-      break;
-    case kClosureArgumentMismatch:
-      library = Library::CoreLibrary();
-      class_name = Symbols::New("_ClosureArgumentMismatchException");
-      break;
-    case kObjectNotClosure:
-      library = Library::CoreLibrary();
-      class_name = Symbols::New("_ObjectNotClosureException");
       break;
     case kFormat:
       library = Library::CoreLibrary();

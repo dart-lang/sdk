@@ -38,7 +38,8 @@ main() {
 
     test('empty options is syntax error', () {
         var mutationObserver = new MutationObserver(
-            (mutations, observer) { expect(false, 'Should not be reached'); });
+            (mutations, observer) { expect(false, isTrue,
+                reason: 'Should not be reached'); });
         expect(() { mutationObserver.observe(document, {}); },
                throws);
       });

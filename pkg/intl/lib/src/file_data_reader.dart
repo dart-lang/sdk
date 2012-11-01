@@ -7,10 +7,10 @@
  * be run in the browser.
  */
 
-#library('file_data_reader');
+library file_data_reader;
 
-#import('dart:io');
-#import('intl_helpers.dart');
+import 'dart:io';
+import 'intl_helpers.dart';
 
 class FileDataReader implements LocaleDataReader {
 

@@ -20,37 +20,29 @@ def debugLog(message):
 
 def getVersionPart(version_file, part):
   command = ['awk', '$1 == "%s" {print $2}' % (part), version_file]
-  debugLog("Getting version part: %s Running command %s" % (part, command))
   proc = subprocess.Popen(command,
                           stdout=subprocess.PIPE,
                           stderr=subprocess.STDOUT)
   result = proc.communicate()[0].split('\n')[0]
-  debugLog("Got result: %s" % result)
   return result
 
 def getRevision():
-  debugLog("Getting revision")
   is_svn = True
   if os.path.exists('.svn'):
-    debugLog("Using svn to get revision")
     cmd = ['svn', 'info']
   else:
     git_proc = subprocess.Popen(
         ['git', 'branch', '-r'],
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     if 'git-svn' in git_proc.communicate()[0]:
-      debugLog("Using git svn to get revision")
       cmd = ['git', 'svn', 'info']
     else:
       # Cannot get revision because we are not in svn or
       # git svn checkout.
-      debugLog("Could not get revision: not an svn or git-svn checkout?")
       return ''
-  debugLog("Running command to get revision: %s" % cmd)
   proc = subprocess.Popen(cmd,
                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
   revision = proc.communicate()[0].split('\n')[4].split(' ')[1]
-  debugLog("Got revision: %s" % revision)
   return revision
 
 def makeVersionString(version_file):
@@ -73,14 +65,11 @@ def makeVersionString(version_file):
   return version_string
 
 def makeFile(output_file, input_file, version_file):
-  debugLog("Making version file")
   version_cc_text = open(input_file).read()
   version_string = makeVersionString(version_file)
-  debugLog("Writing version to version_cc file: %s" % version_string)
   version_cc_text = version_cc_text.replace("{{VERSION_STR}}",
                                             version_string)
   version_time = time.ctime(time.time())
-  debugLog("Writing time to version_cc file: %s" % version_time)
   version_cc_text = version_cc_text.replace("{{BUILD_TIME}}",
                                             version_time)
   open(output_file, 'w').write(version_cc_text)
@@ -126,7 +115,5 @@ def main(args):
     return -1
 
 if __name__ == '__main__':
-  debugLog('starting make_version.py')
   exit_code = main(sys.argv)
-  debugLog('exiting make_version.py (exit code: %s)' % exit_code)
   sys.exit(exit_code)

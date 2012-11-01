@@ -9,7 +9,7 @@
 String trace = "";
 
 int E(int i) {
-  trace += "$i-";
+  trace = "$trace$i-";
   return i;
 }
 

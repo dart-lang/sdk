@@ -23,7 +23,7 @@ main() {
     void repeatHandler(Timer timer) {
       repeatTimer++;
       timer.cancel();
-      expect(repeatTimer == 1);
+      expect(repeatTimer, 1);
     }
 
     cancelTimer = new Timer(1000, expectAsync1(unreachable, count: 0));

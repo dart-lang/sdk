@@ -93,12 +93,6 @@ Token firstBeginToken(Node first, Node second) {
   return token;
 }
 
-class NodeAssertionFailure implements Exception {
-  final Node node;
-  final String message;
-  NodeAssertionFailure(this.node, this.message);
-}
-
 /**
  * A node in a syntax tree.
  *
@@ -337,22 +331,6 @@ class Send extends Expression {
   Send copyWithReceiver(Node newReceiver) {
     assert(receiver == null);
     return new Send(newReceiver, selector, argumentsNode);
-  }
-
-  /**
-   * Returns the type annotation of a connstructor call in an object
-   * instantiation.
-   */
-  TypeAnnotation getTypeAnnotation() {
-    if (selector is TypeAnnotation) {
-      return selector;
-    } else if (selector is Send) {
-      Send selectorSend = selector;
-      if (selectorSend.receiver is TypeAnnotation) {
-        return selectorSend.receiver;
-      }
-    }
-    return null;
   }
 }
 
@@ -657,12 +635,12 @@ class FunctionExpression extends Expression {
     if (body != null) body.accept(visitor);
   }
 
-  bool hasBody() {
-    // TODO(karlklose,ahe): refactor AST nodes (issue 1713).
-    if (body.asReturn() != null) return true;
-    NodeList statements = body.asBlock().statements;
-    return (!statements.nodes.isEmpty ||
-            !identical(statements.getBeginToken().kind, $SEMICOLON));
+  bool hasBody() => body.asEmptyStatement() == null;
+
+  bool hasEmptyBody() {
+    Block block = body.asBlock();
+    if (block == null) return false;
+    return block.statements.isEmpty;
   }
 
   Token getBeginToken() {
@@ -1304,8 +1282,8 @@ class StringJuxtaposition extends StringNode {
    */
   DartString get dartString {
     if (isInterpolation) {
-      throw new NodeAssertionFailure(this,
-                                     "Getting dartString on interpolation;");
+      throw new SpannableAssertionFailure(
+          this, "Getting dartString on interpolation;");
     }
     if (dartStringCache == null) {
       DartString firstString = first.accept(const GetDartStringVisitor());

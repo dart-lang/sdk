@@ -7,10 +7,10 @@
  * facility, and thus works only in the web browser.
  */
 
-#library('http_request_data_reader');
+library http_request_data_reader;
 
-#import('dart:html');
-#import('intl_helpers.dart');
+import 'dart:html';
+import 'intl_helpers.dart';
 
 class HTTPRequestDataReader implements LocaleDataReader {
 

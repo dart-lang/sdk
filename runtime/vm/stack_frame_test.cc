@@ -240,8 +240,8 @@ TEST_CASE(ValidateStackFrameIteration) {
   Dart_Handle lib = TestCase::LoadTestScript(
       kScriptChars,
       reinterpret_cast<Dart_NativeEntryResolver>(native_lookup));
-  Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("StackFrameTest"));
-  EXPECT_VALID(Dart_Invoke(cls, Dart_NewString("testMain"), 0, NULL));
+  Dart_Handle cls = Dart_GetClass(lib, NewString("StackFrameTest"));
+  EXPECT_VALID(Dart_Invoke(cls, NewString("testMain"), 0, NULL));
 }
 
 
@@ -257,7 +257,7 @@ TEST_CASE(ValidateNoSuchMethodStackFrameIteration) {
       "} "
       "class StackFrame2Test {"
       "  StackFrame2Test() {}"
-      "  noSuchMethod(var function_name, var args) {"
+      "  noSuchMethod(InvocationMirror im) {"
       "    /* We should have 8 general frames and 3 dart frames as follows:"
       "     * exit frame"
       "     * dart frame corresponding to StackFrame.frameCount"
@@ -283,8 +283,8 @@ TEST_CASE(ValidateNoSuchMethodStackFrameIteration) {
   Dart_Handle lib = TestCase::LoadTestScript(
       kScriptChars,
       reinterpret_cast<Dart_NativeEntryResolver>(native_lookup));
-  Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("StackFrame2Test"));
-  EXPECT_VALID(Dart_Invoke(cls, Dart_NewString("testMain"), 0, NULL));
+  Dart_Handle cls = Dart_GetClass(lib, NewString("StackFrame2Test"));
+  EXPECT_VALID(Dart_Invoke(cls, NewString("testMain"), 0, NULL));
 }
 #endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64.
 

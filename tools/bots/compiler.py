@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
-# Copyright (c) 2011 The Chromium Authors. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
 
 """
 Dart2js buildbot steps
@@ -294,5 +294,19 @@ def RunCompilerTests(build_info):
     CleanUpTemporaryFiles(build_info.system, build_info.runtime)
 
 
+def BuildCompiler(build_info):
+  """
+  Builds the SDK.
+
+  - build_info: the buildInfo object, containing information about what sort of
+      build and test to be run.
+  """
+  with bot.BuildStep('Build SDK and d8'):
+    args = [sys.executable, './tools/build.py', '--mode=' + build_info.mode,
+            'dart2js_bot']
+    print 'Build SDK and d8: %s' % (' '.join(args))
+    bot.RunProcess(args)
+
+
 if __name__ == '__main__':
-  bot.RunBot(GetBuildInfo, RunCompilerTests)
+  bot.RunBot(GetBuildInfo, RunCompilerTests, build_step=BuildCompiler)

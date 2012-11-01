@@ -174,7 +174,9 @@ def ParseAndroidListAvdResult(text):
         continue
       match = line_re.match(line)
       if match is None:
-        raise utils.Error('Match failed')
+        sys.stderr.write('Match fail %s\n' % str(line))
+        continue
+        #raise utils.Error('Match failed')
       entry[match.group(1)] = match.group(2)
     if len(entry) > 0:
       result.append(entry)

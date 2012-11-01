@@ -5,8 +5,18 @@
 /**
  * A library for writing dart unit tests.
  *
- * To import this library, specify the relative path to
- * pkg/unittest/unittest.dart.
+ * To import this library, use the pub package manager.
+ * Create a pubspec.yaml file in your project and add
+ * a dependency on unittest with the following lines:
+ *     dependencies:
+ *       unittest:
+ *         sdk: unittest
+ *         
+ * Then run 'pub install' from your project directory or using
+ * the DartEditor.
+ *         
+ * Please see [Pub Getting Started](http://pub.dartlang.org/doc)
+ * for more details about the pub package manager.
  *
  * ##Concepts##
  *
@@ -24,7 +34,7 @@
  *
  * A trivial test:
  *
- *     #import('path-to-dart/pkg/unittest/unitest.dart');
+ *     import 'package:unittest/unittest.dart';
  *     main() {
  *       test('this is a test', () {
  *         int x = 2 + 3;
@@ -34,7 +44,7 @@
  *
  * Multiple tests:
  *
- *     #import('path-to-dart/pkg/unittest/unitest.dart');
+ *     import 'package:unittest/unittest.dart';
  *     main() {
  *       test('this is a test', () {
  *         int x = 2 + 3;
@@ -48,7 +58,7 @@
  *
  * Multiple tests, grouped by category:
  *
- *     #import('path-to-dart/pkg/unittest/unitest.dart');
+ *     import 'package:unittest/unittest.dart';
  *     main() {
  *       group('group A', () {
  *         test('test A.1', () {
@@ -74,25 +84,25 @@
  * that callback is run. A count argument can be provided to specify the number
  * of times the callback should be called (the default is 1).
  *
- *     #import('path-to-dart/pkg/unittest/unitest.dart');
- *     #import('dart:html');
+ *     import 'package:unittest/unittest.dart';
+ *     import 'dart:isolate';
  *     main() {
- *       test('calllback is executed once', () {
+ *       test('callback is executed once', () {
  *         // wrap the callback of an asynchronous call with [expectAsync0] if
  *         // the callback takes 0 arguments...
- *         window.setTimeout(expectAsync0(() {
+ *         var timer = new Timer(0, (_) => expectAsync0(() {
  *           int x = 2 + 3;
  *           expect(x, equals(5));
- *         }), 0);
+ *         }));
  *       });
  *
- *       test('calllback is executed twice', () {
- *         var callback = expectAsync0(() {
+ *       test('callback is executed twice', () {
+ *         var callback = (_) => expectAsync0(() {
  *           int x = 2 + 3;
  *           expect(x, equals(5));
  *         }, count: 2); // <-- we can indicate multiplicity to [expectAsync0]
- *         window.setTimeout(callback, 0);
- *         window.setTimeout(callback, 0);
+ *         new Timer(0, callback);
+ *         new Timer(0, callback);
  *       });
  *     }
  *
@@ -115,43 +125,44 @@
  * arguments or that take named parameters. (this is not implemented yet,
  * but will be coming here soon).
  *
- *     #import('path-to-dart/pkg/unittest/unitest.dart');
- *     #import('dart:html');
+ *     import 'package:unittest/unittest.dart';
+ *     import 'dart:isolate';
  *     main() {
- *       test('calllback is executed', () {
+ *       test('callback is executed', () {
  *         // indicate ahead of time that an async callback is expected.
  *         var async = startAsync();
- *         window.setTimeout(() {
+ *         new Timer(0, (_) {
  *           // Guard the body of the callback, so errors are propagated
- *           // correctly
+ *           // correctly.
  *           guardAsync(() {
  *             int x = 2 + 3;
  *             expect(x, equals(5));
  *           });
  *           // indicate that the asynchronous callback was invoked.
  *           async.complete();
- *         }), 0);
+ *         });
  *       });
+ *     }
  *
  */
-#library('unittest');
+library unittest;
 
-#import('dart:isolate');
+import 'dart:isolate';
 
-#source('collection_matchers.dart');
-#source('config.dart');
-#source('core_matchers.dart');
-#source('description.dart');
-#source('expect.dart');
-#source('future_matchers.dart');
-#source('interfaces.dart');
-#source('map_matchers.dart');
-#source('matcher.dart');
-#source('mock.dart');
-#source('numeric_matchers.dart');
-#source('operator_matchers.dart');
-#source('string_matchers.dart');
-#source('test_case.dart');
+part 'collection_matchers.dart';
+part 'config.dart';
+part 'core_matchers.dart';
+part 'description.dart';
+part 'expect.dart';
+part 'future_matchers.dart';
+part 'interfaces.dart';
+part 'map_matchers.dart';
+part 'matcher.dart';
+part 'mock.dart';
+part 'numeric_matchers.dart';
+part 'operator_matchers.dart';
+part 'string_matchers.dart';
+part 'test_case.dart';
 
 /** [Configuration] used by the unittest library. */
 Configuration _config = null;
@@ -366,7 +377,7 @@ class _SpreadArgsHelper {
 
   _after() {
     if (_isDone()) {
-      _handleCallbackFunctionComplete();
+      _handleCallbackFunctionComplete(_testNum);
     }
   }
 
@@ -635,7 +646,7 @@ void tearDown(Function teardownTest) {
  * Called when one of the callback functions is done with all expected
  * calls.
  */
-void _handleCallbackFunctionComplete() {
+void _handleCallbackFunctionComplete(testNum) {
   // TODO (gram): we defer this to give the nextBatch recursive
   // stack a chance to unwind. This is a temporary hack but
   // really a bunch of code here needs to be fixed. We have a
@@ -643,6 +654,12 @@ void _handleCallbackFunctionComplete() {
   // which is recursively invoked in the case of async tests that
   // run synchronously. Bad things can then happen.
   _defer(() {
+    if (_currentTest != testNum) {
+      if (_tests[testNum].result == PASS) {
+        _tests[testNum].error("Unexpected extra callbacks", '');
+      }
+      return; // Extraneous callback.
+    }
     if (_currentTest < _tests.length) {
       final testCase = _tests[_currentTest];
       --testCase.callbackFunctionsOutstanding;
@@ -672,7 +689,7 @@ void _nextTestCase() {
  * TODO(gram) remove this when WebKit tests are working with new framework
  */
 void callbackDone() {
-  _handleCallbackFunctionComplete();
+  _handleCallbackFunctionComplete(_currentTest);
 }
 
 /**

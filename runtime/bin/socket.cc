@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "bin/io_buffer.h"
 #include "bin/socket.h"
 #include "bin/dartutils.h"
 #include "bin/thread.h"
@@ -54,6 +55,52 @@ void FUNCTION_NAME(Socket_Available)(Dart_NativeArguments args) {
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle socket_obj = Dart_GetNativeArgument(args, 0);
+  intptr_t socket = 0;
+  Socket::GetSocketIdNativeField(socket_obj, &socket);
+  intptr_t available = Socket::Available(socket);
+  if (available > 0) {
+    int64_t length = 0;
+    Dart_Handle length_obj = Dart_GetNativeArgument(args, 1);
+    if (DartUtils::GetInt64Value(length_obj, &length)) {
+      if (length == -1 || available < length) {
+        length = available;
+      }
+      uint8_t* buffer = NULL;
+      Dart_Handle result = IOBuffer::Allocate(length, &buffer);
+      if (Dart_IsError(result)) Dart_PropagateError(result);
+      ASSERT(buffer != NULL);
+      intptr_t bytes_read = Socket::Read(socket, buffer, length);
+      if (bytes_read == length) {
+        Dart_SetReturnValue(args, result);
+      } else if (bytes_read == 0) {
+        // On MacOS when reading from a tty Ctrl-D will result in one
+        // byte reported as available. Attempting to read it out will
+        // result in zero bytes read. When that happens there is no
+        // data which is indicated by a null return value.
+        Dart_SetReturnValue(args, Dart_Null());
+      } else {
+        ASSERT(bytes_read == -1);
+        Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+      }
+    } else {
+      OSError os_error(-1, "Invalid argument", OSError::kUnknown);
+      Dart_Handle err = DartUtils::NewDartOSError(&os_error);
+      if (Dart_IsError(err)) Dart_PropagateError(err);
+      Dart_SetReturnValue(args, err);
+    }
+  } else if (available == 0) {
+    Dart_SetReturnValue(args, Dart_Null());
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  }
+
   Dart_ExitScope();
 }
 
@@ -129,28 +176,38 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
     length = (length + 1) / 2;
   }
 
-  // Send data in chunks of maximum 16KB.
-  const intptr_t max_chunk_length =
-      dart::Utils::Minimum(length, static_cast<intptr_t>(16 * KB));
-  uint8_t* buffer = new uint8_t[max_chunk_length];
   intptr_t total_bytes_written = 0;
   intptr_t bytes_written = 0;
-  do {
-    intptr_t chunk_length =
-        dart::Utils::Minimum(max_chunk_length, length - total_bytes_written);
-    result = Dart_ListGetAsBytes(buffer_obj,
-                                 offset + total_bytes_written,
-                                 buffer,
-                                 chunk_length);
+  if (Dart_IsByteArrayExternal(buffer_obj)) {
+    void* buffer = NULL;
+    result = Dart_ExternalByteArrayGetData(buffer_obj, &buffer);
     if (Dart_IsError(result)) {
-      delete[] buffer;
       Dart_PropagateError(result);
     }
-    bytes_written =
-        Socket::Write(socket, reinterpret_cast<void*>(buffer), chunk_length);
-    total_bytes_written += bytes_written;
-  } while (bytes_written > 0 && total_bytes_written < length);
-  delete[] buffer;
+    bytes_written = Socket::Write(socket, buffer, length);
+    total_bytes_written = bytes_written;
+  } else {
+    // Send data in chunks of maximum 16KB.
+    const intptr_t max_chunk_length =
+        dart::Utils::Minimum(length, static_cast<intptr_t>(16 * KB));
+    uint8_t* buffer = new uint8_t[max_chunk_length];
+    do {
+      intptr_t chunk_length =
+          dart::Utils::Minimum(max_chunk_length, length - total_bytes_written);
+      result = Dart_ListGetAsBytes(buffer_obj,
+                                   offset + total_bytes_written,
+                                   buffer,
+                                   chunk_length);
+      if (Dart_IsError(result)) {
+        delete[] buffer;
+        Dart_PropagateError(result);
+      }
+      bytes_written =
+          Socket::Write(socket, reinterpret_cast<void*>(buffer), chunk_length);
+      total_bytes_written += bytes_written;
+    } while (bytes_written > 0 && total_bytes_written < length);
+    delete[] buffer;
+  }
   if (bytes_written >= 0) {
     Dart_SetReturnValue(args, Dart_NewInteger(total_bytes_written));
   } else {
@@ -186,7 +243,7 @@ void FUNCTION_NAME(Socket_GetRemotePeer)(Dart_NativeArguments args) {
   char host[INET_ADDRSTRLEN];
   if (Socket::GetRemotePeer(socket, host, &port)) {
     Dart_Handle list = Dart_NewList(2);
-    Dart_ListSetAt(list, 0, Dart_NewString(host));
+    Dart_ListSetAt(list, 0, Dart_NewStringFromCString(host));
     Dart_ListSetAt(list, 1, Dart_NewInteger(port));
     Dart_SetReturnValue(args, list);
   } else {

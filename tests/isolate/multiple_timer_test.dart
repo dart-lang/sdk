@@ -23,29 +23,29 @@ main() {
 
     void timeoutHandler1(Timer timer) {
       int endTime = (new Date.now()).millisecondsSinceEpoch;
-      expect((endTime - _startTime1) >= TIMEOUT1);
-      expect(_order[_message] == 0);
+      expect(endTime - _startTime1, greaterThanOrEqualTo(TIMEOUT1));
+      expect(_order[_message], 0);
       _message++;
     }
 
     void timeoutHandler2(Timer timer) {
       int endTime  = (new Date.now()).millisecondsSinceEpoch;
-      expect((endTime - _startTime2) >= TIMEOUT2);
-      expect(_order[_message] == 1);
+      expect(endTime - _startTime2, greaterThanOrEqualTo(TIMEOUT2));
+      expect(_order[_message], 1);
       _message++;
     }
 
     void timeoutHandler3(Timer timer) {
       int endTime = (new Date.now()).millisecondsSinceEpoch;
-      expect((endTime - _startTime3) >= TIMEOUT3);
-      expect(_order[_message] == 2);
+      expect(endTime - _startTime3, greaterThanOrEqualTo(TIMEOUT3));
+      expect(_order[_message], 2);
       _message++;
     }
 
     void timeoutHandler4(Timer timer) {
       int endTime  = (new Date.now()).millisecondsSinceEpoch;
-      expect((endTime - _startTime4) >= TIMEOUT4);
-      expect(_order[_message] == 3);
+      expect(endTime - _startTime4, greaterThanOrEqualTo(TIMEOUT4));
+      expect(_order[_message], 3);
       _message++;
     }
 

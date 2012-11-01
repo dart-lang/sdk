@@ -105,6 +105,8 @@ class Enqueuer {
       compiler.enabledRuntimeType = true;
     } else if (element == compiler.functionApplyMethod) {
       compiler.enabledFunctionApply = true;
+    } else if (element == compiler.invokeOnMethod) {
+      compiler.enabledInvokeOn = true;
     }
 
     // Enable isolate support if we start using something from the

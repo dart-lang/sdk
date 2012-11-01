@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface TestException1 {
+abstract class TestException1 {
   int foo();
 }
 
-interface TestException2 {
+abstract class TestException2 {
   int bar();
 }
 

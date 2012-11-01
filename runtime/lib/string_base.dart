@@ -33,7 +33,7 @@ class _StringBase {
     return _createFromCodePoints(objectArray);
   }
 
-  static String _createFromCodePoints(_ObjectArray<int> codePoints)
+  static String _createFromCodePoints(List<int> codePoints)
       native "StringBase_createFromCodePoints";
 
   String operator [](int index) native "String_charAt";
@@ -144,13 +144,13 @@ class _StringBase {
     if (endIndex === null) endIndex = this.length;
 
     if ((startIndex < 0) || (startIndex > this.length)) {
-      throw new IndexOutOfRangeException(startIndex);
+      throw new RangeError.value(startIndex);
     }
     if ((endIndex < 0) || (endIndex > this.length)) {
-      throw new IndexOutOfRangeException(endIndex);
+      throw new RangeError.value(endIndex);
     }
     if (startIndex > endIndex) {
-      throw new IndexOutOfRangeException(startIndex);
+      throw new RangeError.value(startIndex);
     }
     return _substringUnchecked(startIndex, endIndex);
   }
@@ -232,7 +232,7 @@ class _StringBase {
    */
   static String _interpolate(List values) {
     int numValues = values.length;
-    var stringList = new _ObjectArray(numValues);
+    var stringList = new List(numValues);
     for (int i = 0; i < numValues; i++) {
       stringList[i] = values[i].toString();
     }
@@ -349,7 +349,7 @@ class _StringBase {
     return _concatAll(stringsArray);
   }
 
-  static String _concatAll(_ObjectArray<String> strings)
+  static String _concatAll(List<String> strings)
       native "Strings_concatAll";
 }
 
@@ -468,7 +468,7 @@ class _StringMatch implements Match {
 
   String group(int group) {
     if (group != 0) {
-      throw new IndexOutOfRangeException(group);
+      throw new RangeError.value(group);
     }
     return pattern;
   }

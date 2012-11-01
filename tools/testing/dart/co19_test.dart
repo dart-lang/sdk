@@ -50,7 +50,7 @@ void main() {
     arguments.add('co19');
     configurations.addAll(optionsParser.parse(arguments));
   }
-  if (configurations == null || configurations.isEmpty()) return;
+  if (configurations == null || configurations.isEmpty) return;
 
   var firstConfiguration = configurations[0];
   Map<String, RegExp> selectors = firstConfiguration['selectors'];
@@ -60,9 +60,9 @@ void main() {
 
   var configurationIterator = configurations.iterator();
   void enqueueConfiguration(ProcessQueue queue) {
-    if (!configurationIterator.hasNext()) return;
+    if (!configurationIterator.hasNext) return;
     var configuration = configurationIterator.next();
-    for (String selector in selectors.getKeys()) {
+    for (String selector in selectors.keys) {
       if (selector == 'co19') {
         queue.addTestSuite(new Co19TestSuite(configuration));
       } else {

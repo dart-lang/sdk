@@ -39,7 +39,9 @@ public abstract class DartInvocation extends DartExpression {
   private NodeElement element;
 
   public DartInvocation(List<DartExpression> arguments) {
-    this.arguments.addAll(arguments);
+    if (arguments != null && !arguments.isEmpty()) {
+      this.arguments.addAll(arguments);
+    }
   }
 
   public DartExpression getTarget() {

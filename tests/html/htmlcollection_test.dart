@@ -33,13 +33,14 @@ main() {
   }
 
   useHtmlConfiguration();
+
   test('IsList', () {
     Element root = insertTestDiv();
 
     List<Element> eachChecked =
         document.query('#allChecked').elements;
 
-    Expect.isTrue(eachChecked is List);
+    expect(eachChecked, isList);
 
     root.remove();
   });
@@ -55,16 +56,16 @@ main() {
     List<Element> noneChecked =
         document.query('#noneChecked').elements;
 
-    Expect.equals(4, eachChecked.length);
-    Expect.equals(4, someChecked.length);
-    Expect.equals(4, noneChecked.length);
+    expect(eachChecked.length, 4);
+    expect(someChecked.length, 4);
+    expect(noneChecked.length, 4);
 
-    Expect.isTrue(eachChecked.every((x) => x.checked));
-    Expect.isFalse(eachChecked.every((x) => !x.checked));
-    Expect.isFalse(someChecked.every((x) => x.checked));
-    Expect.isFalse(someChecked.every((x) => !x.checked));
-    Expect.isFalse(noneChecked.every((x) => x.checked));
-    Expect.isTrue(noneChecked.every((x) => !x.checked));
+    expect(eachChecked.every((x) => x.checked), isTrue);
+    expect(eachChecked.every((x) => !x.checked), isFalse);
+    expect(someChecked.every((x) => x.checked), isFalse);
+    expect(someChecked.every((x) => !x.checked), isFalse);
+    expect(noneChecked.every((x) => x.checked), isFalse);
+    expect(noneChecked.every((x) => !x.checked), isTrue);
 
     root.remove();
   });
@@ -80,16 +81,16 @@ main() {
     List<Element> noneChecked =
         document.query('#noneChecked').elements;
 
-    Expect.equals(4, eachChecked.length);
-    Expect.equals(4, someChecked.length);
-    Expect.equals(4, noneChecked.length);
+    expect(eachChecked.length, 4);
+    expect(someChecked.length, 4);
+    expect(noneChecked.length, 4);
 
-    Expect.isTrue(eachChecked.some((x) => x.checked));
-    Expect.isFalse(eachChecked.some((x) => !x.checked));
-    Expect.isTrue(someChecked.some((x) => x.checked));
-    Expect.isTrue(someChecked.some((x) => !x.checked));
-    Expect.isFalse(noneChecked.some((x) => x.checked));
-    Expect.isTrue(noneChecked.some((x) => !x.checked));
+    expect(eachChecked.some((x) => x.checked), isTrue);
+    expect(eachChecked.some((x) => !x.checked), isFalse);
+    expect(someChecked.some((x) => x.checked), isTrue);
+    expect(someChecked.some((x) => !x.checked), isTrue);
+    expect(noneChecked.some((x) => x.checked), isFalse);
+    expect(noneChecked.some((x) => !x.checked), isTrue);
 
     root.remove();
   });
@@ -105,16 +106,16 @@ main() {
     List<Element> noneChecked =
         document.query('#noneChecked').elements;
 
-    Expect.equals(4, eachChecked.length);
-    Expect.equals(4, someChecked.length);
-    Expect.equals(4, noneChecked.length);
+    expect(eachChecked.length, 4);
+    expect(someChecked.length, 4);
+    expect(noneChecked.length, 4);
 
-    Expect.equals(4, eachChecked.filter((x) => x.checked).length);
-    Expect.equals(0, eachChecked.filter((x) => !x.checked).length);
-    Expect.equals(2, someChecked.filter((x) => x.checked).length);
-    Expect.equals(2, someChecked.filter((x) => !x.checked).length);
-    Expect.equals(0, noneChecked.filter((x) => x.checked).length);
-    Expect.equals(4, noneChecked.filter((x) => !x.checked).length);
+    expect(eachChecked.filter((x) => x.checked).length, 4);
+    expect(eachChecked.filter((x) => !x.checked).length, 0);
+    expect(someChecked.filter((x) => x.checked).length, 2);
+    expect(someChecked.filter((x) => !x.checked).length, 2);
+    expect(noneChecked.filter((x) => x.checked).length, 0);
+    expect(noneChecked.filter((x) => !x.checked).length, 4);
 
     root.remove();
   });
@@ -127,11 +128,11 @@ main() {
     List<Element> emptyDiv =
         document.query('#emptyDiv').elements;
 
-    Expect.equals(4, someChecked.length);
-    Expect.equals(0, emptyDiv.length);
+    expect(someChecked.length, 4);
+    expect(emptyDiv.length, 0);
 
-    Expect.isFalse(someChecked.isEmpty);
-    Expect.isTrue(emptyDiv.isEmpty);
+    expect(someChecked.isEmpty, isFalse);
+    expect(emptyDiv.isEmpty, isTrue);
 
     root.remove();
   });
@@ -156,16 +157,16 @@ main() {
     List<Element> noneChecked =
         document.query('#noneChecked').elements;
 
-    Expect.equals(4, eachChecked.length);
-    Expect.equals(4, someChecked.length);
-    Expect.equals(4, noneChecked.length);
+    expect(eachChecked.length, 4);
+    expect(someChecked.length, 4);
+    expect(noneChecked.length, 4);
 
-    Expect.equals(4, countWithForEach(eachChecked, (x) => x.checked));
-    Expect.equals(0, countWithForEach(eachChecked, (x) => !x.checked));
-    Expect.equals(2, countWithForEach(someChecked, (x) => x.checked));
-    Expect.equals(2, countWithForEach(someChecked, (x) => !x.checked));
-    Expect.equals(0, countWithForEach(noneChecked, (x) => x.checked));
-    Expect.equals(4, countWithForEach(noneChecked, (x) => !x.checked));
+    expect(countWithForEach(eachChecked, (x) => x.checked), 4);
+    expect(countWithForEach(eachChecked, (x) => !x.checked), 0);
+    expect(countWithForEach(someChecked, (x) => x.checked), 2);
+    expect(countWithForEach(someChecked, (x) => !x.checked), 2);
+    expect(countWithForEach(noneChecked, (x) => x.checked), 0);
+    expect(countWithForEach(noneChecked, (x) => !x.checked), 4);
 
     root.remove();
   });
@@ -190,16 +191,16 @@ main() {
     List<Element> noneChecked =
         document.query('#noneChecked').elements;
 
-    Expect.equals(4, eachChecked.length);
-    Expect.equals(4, someChecked.length);
-    Expect.equals(4, noneChecked.length);
+    expect(eachChecked.length, 4);
+    expect(someChecked.length, 4);
+    expect(noneChecked.length, 4);
 
-    Expect.equals(4, countWithForLoop(eachChecked, (x) => x.checked));
-    Expect.equals(0, countWithForLoop(eachChecked, (x) => !x.checked));
-    Expect.equals(2, countWithForLoop(someChecked, (x) => x.checked));
-    Expect.equals(2, countWithForLoop(someChecked, (x) => !x.checked));
-    Expect.equals(0, countWithForLoop(noneChecked, (x) => x.checked));
-    Expect.equals(4, countWithForLoop(noneChecked, (x) => !x.checked));
+    expect(countWithForLoop(eachChecked, (x) => x.checked), 4);
+    expect(countWithForLoop(eachChecked, (x) => !x.checked), 0);
+    expect(countWithForLoop(someChecked, (x) => x.checked), 2);
+    expect(countWithForLoop(someChecked, (x) => !x.checked), 2);
+    expect(countWithForLoop(noneChecked, (x) => x.checked), 0);
+    expect(countWithForLoop(noneChecked, (x) => !x.checked), 4);
 
     root.remove();
   });
@@ -209,9 +210,9 @@ main() {
     List<Element> someChecked =
         document.query('#someChecked').elements;
 
-    Expect.equals(4, someChecked.length);
+    expect(someChecked.length, 4);
 
-    Expect.equals(someChecked[3], someChecked.last);
+    expect(someChecked.last, equals(someChecked[3]));
 
     root.remove();
   });
@@ -224,24 +225,23 @@ main() {
     List<Element> noneChecked =
         document.query('#noneChecked').elements;
 
-    Expect.equals(4, someChecked.length);
-    Expect.equals(4, noneChecked.length);
+    expect(someChecked.length, 4);
+    expect(noneChecked.length, 4);
 
-    Expect.equals(0, someChecked.indexOf(someChecked[0], 0));
-    Expect.equals(1, someChecked.indexOf(someChecked[1], 0));
-    Expect.equals(2, someChecked.indexOf(someChecked[2], 0));
-    Expect.equals(3, someChecked.indexOf(someChecked[3], 0));
+    expect(someChecked.indexOf(someChecked[0], 0), 0);
+    expect(someChecked.indexOf(someChecked[1], 0), 1);
+    expect(someChecked.indexOf(someChecked[2], 0), 2);
+    expect(someChecked.indexOf(someChecked[3], 0), 3);
 
-    Expect.equals(-1, someChecked.indexOf(someChecked[0], 1));
-    Expect.equals(-1, someChecked.indexOf(someChecked[1], 2));
-    Expect.equals(-1, someChecked.indexOf(someChecked[2], 3));
-    Expect.equals(-1, someChecked.indexOf(someChecked[3], 4));
+    expect(someChecked.indexOf(someChecked[0], 1), -1);
+    expect(someChecked.indexOf(someChecked[1], 2), -1);
+    expect(someChecked.indexOf(someChecked[2], 3), -1);
+    expect(someChecked.indexOf(someChecked[3], 4), -1);
 
-
-    Expect.equals(-1, someChecked.indexOf(noneChecked[0], 0));
-    Expect.equals(-1, noneChecked.indexOf(someChecked[0], 0));
-    Expect.equals(-1, someChecked.indexOf(noneChecked[1], 0));
-    Expect.equals(-1, noneChecked.indexOf(someChecked[1], 0));
+    expect(someChecked.indexOf(noneChecked[0], 0), -1);
+    expect(noneChecked.indexOf(someChecked[0], 0), -1);
+    expect(someChecked.indexOf(noneChecked[1], 0), -1);
+    expect(noneChecked.indexOf(someChecked[1], 0), -1);
 
     root.remove();
   });
@@ -254,23 +254,23 @@ main() {
     List<Element> noneChecked =
         document.query('#noneChecked').elements;
 
-    Expect.equals(4, someChecked.length);
-    Expect.equals(4, noneChecked.length);
+    expect(someChecked.length, 4);
+    expect(noneChecked.length, 4);
 
-    Expect.equals(0, someChecked.lastIndexOf(someChecked[0], 3));
-    Expect.equals(1, someChecked.lastIndexOf(someChecked[1], 3));
-    Expect.equals(2, someChecked.lastIndexOf(someChecked[2], 3));
-    Expect.equals(3, someChecked.lastIndexOf(someChecked[3], 3));
+    expect(someChecked.lastIndexOf(someChecked[0], 3), 0);
+    expect(someChecked.lastIndexOf(someChecked[1], 3), 1);
+    expect(someChecked.lastIndexOf(someChecked[2], 3), 2);
+    expect(someChecked.lastIndexOf(someChecked[3], 3), 3);
 
-    Expect.equals(-1, someChecked.lastIndexOf(someChecked[0], -1));
-    Expect.equals(-1, someChecked.lastIndexOf(someChecked[1], 0));
-    Expect.equals(-1, someChecked.lastIndexOf(someChecked[2], 1));
-    Expect.equals(-1, someChecked.lastIndexOf(someChecked[3], 2));
+    expect(someChecked.lastIndexOf(someChecked[0], -1), -1);
+    expect(someChecked.lastIndexOf(someChecked[1], 0), -1);
+    expect(someChecked.lastIndexOf(someChecked[2], 1), -1);
+    expect(someChecked.lastIndexOf(someChecked[3], 2), -1);
 
-    Expect.equals(-1, someChecked.lastIndexOf(noneChecked[0], 3));
-    Expect.equals(-1, noneChecked.lastIndexOf(someChecked[0], 3));
-    Expect.equals(-1, someChecked.lastIndexOf(noneChecked[1], 3));
-    Expect.equals(-1, noneChecked.lastIndexOf(someChecked[1], 3));
+    expect(someChecked.lastIndexOf(noneChecked[0], 3), -1);
+    expect(noneChecked.lastIndexOf(someChecked[0], 3), -1);
+    expect(someChecked.lastIndexOf(noneChecked[1], 3), -1);
+    expect(noneChecked.lastIndexOf(someChecked[1], 3), -1);
 
     root.remove();
   });

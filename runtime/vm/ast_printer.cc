@@ -326,12 +326,16 @@ void AstPrinter::VisitStaticSetterNode(StaticSetterNode* node) {
 
 
 void AstPrinter::VisitLoadIndexedNode(LoadIndexedNode* node) {
-  VisitGenericAstNode(node);
+  OS::Print("(%s%s ", node->Name(), node->IsSuperLoad() ? " super" : "");
+  node->VisitChildren(this);
+  OS::Print(")");
 }
 
 
 void AstPrinter::VisitStoreIndexedNode(StoreIndexedNode* node) {
-  VisitGenericAstNode(node);
+  OS::Print("(%s%s ", node->Name(), node->IsSuperStore() ? " super" : "");
+  node->VisitChildren(this);
+  OS::Print(")");
 }
 
 

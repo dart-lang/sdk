@@ -3,15 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #import("dart:utf");
-#source("../../../runtime/bin/input_stream.dart");
-#source("../../../runtime/bin/output_stream.dart");
-#source("../../../runtime/bin/chunked_stream.dart");
-#source("../../../runtime/bin/string_stream.dart");
-#source("../../../runtime/bin/stream_util.dart");
-#source("../../../runtime/bin/http.dart");
-#source("../../../runtime/bin/http_impl.dart");
-#source("../../../runtime/bin/http_parser.dart");
-#source("../../../runtime/bin/http_utils.dart");
+#source("../../../lib/io/input_stream.dart");
+#source("../../../lib/io/output_stream.dart");
+#source("../../../lib/io/chunked_stream.dart");
+#source("../../../lib/io/string_stream.dart");
+#source("../../../lib/io/stream_util.dart");
+#source("../../../lib/io/http.dart");
+#source("../../../lib/io/http_impl.dart");
+#source("../../../lib/io/http_parser.dart");
+#source("../../../lib/io/http_utils.dart");
 
 void testParseEncodedString() {
   String encodedString = 'foo+bar%20foobar%25%26';

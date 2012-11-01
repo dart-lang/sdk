@@ -475,8 +475,7 @@ void FlowGraph::InsertPhis(
     }
 
     while (!worklist.is_empty()) {
-      BlockEntryInstr* current = worklist.Last();
-      worklist.RemoveLast();
+      BlockEntryInstr* current = worklist.RemoveLast();
       // Ensure a phi for each block in the dominance frontier of current.
       for (BitVector::Iterator it(dom_frontier[current->preorder_number()]);
            !it.Done();
@@ -584,8 +583,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
       // Update expression stack.
       ASSERT(env->length() > variable_count());
 
-      Definition* reaching_defn = env->Last();
-      env->RemoveLast();
+      Definition* reaching_defn = env->RemoveLast();
 
       Definition* input_defn = v->definition();
       if (input_defn->IsLoadLocal() || input_defn->IsStoreLocal()) {
@@ -682,8 +680,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
 
 void FlowGraph::MarkLivePhis(GrowableArray<PhiInstr*>* live_phis) {
   while (!live_phis->is_empty()) {
-    PhiInstr* phi = live_phis->Last();
-    live_phis->RemoveLast();
+    PhiInstr* phi = live_phis->RemoveLast();
     for (intptr_t i = 0; i < phi->InputCount(); i++) {
       Value* val = phi->InputAt(i);
       PhiInstr* used_phi = val->definition()->AsPhi();
@@ -712,8 +709,7 @@ static void FindLoop(BlockEntryInstr* m,
   }
 
   while (!stack.is_empty()) {
-    BlockEntryInstr* p = stack.Last();
-    stack.RemoveLast();
+    BlockEntryInstr* p = stack.RemoveLast();
     for (intptr_t i = 0; i < p->PredecessorCount(); ++i) {
       BlockEntryInstr* q = p->PredecessorAt(i);
       if (!loop->Contains(q->preorder_number())) {

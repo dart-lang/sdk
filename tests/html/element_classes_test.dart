@@ -28,26 +28,26 @@ main() {
   test('affects the "class" attribute', () {
     final el = makeElementWithClasses();
     el.classes.add('qux');
-    Expect.setEquals(['foo', 'bar', 'baz', 'qux'], extractClasses(el));
+    expect(extractClasses(el), unorderedEquals(['foo', 'bar', 'baz', 'qux']));
   });
 
   test('is affected by the "class" attribute', () {
     final el = makeElementWithClasses();
     el.attributes['class'] = 'foo qux';
-    Expect.setEquals(['foo', 'qux'], el.classes);
+    expect(el.classes, unorderedEquals(['foo', 'qux']));
   });
 
   test('classes=', () {
     final el = makeElementWithClasses();
     el.classes = ['foo', 'qux'];
-    Expect.setEquals(['foo', 'qux'], el.classes);
-    Expect.setEquals(['foo', 'qux'], extractClasses(el));
+    expect(el.classes, unorderedEquals(['foo', 'qux']));
+    expect(extractClasses(el), unorderedEquals(['foo', 'qux']));
   });
 
   test('toString', () {
-    Expect.setEquals(['foo', 'bar', 'baz'],
-        makeClassSet().toString().split(' '));
-    Expect.equals('', makeElement().classes.toString());
+    expect(makeClassSet().toString().split(' '), 
+        unorderedEquals(['foo', 'bar', 'baz']));
+    expect(makeElement().classes.toString(), '');
   });
 
   test('forEach', () {
@@ -55,7 +55,7 @@ main() {
     // TODO: Change to this when Issue 3484 is fixed.
     //    makeClassSet().forEach(classes.add);
     makeClassSet().forEach((c) => classes.add(c));
-    Expect.setEquals(['foo', 'bar', 'baz'], classes);
+    expect(classes, unorderedEquals(['foo', 'bar', 'baz']));
   });
 
   test('iterator', () {
@@ -63,108 +63,106 @@ main() {
     for (var el in makeClassSet()) {
       classes.add(el);
     }
-    Expect.setEquals(['foo', 'bar', 'baz'], classes);
+    expect(classes, unorderedEquals(['foo', 'bar', 'baz']));
   });
 
   test('map', () {
-    Expect.setEquals(['FOO', 'BAR', 'BAZ'],
-        makeClassSet().map((c) => c.toUpperCase()));
+    expect(makeClassSet().map((c) => c.toUpperCase()),
+        unorderedEquals(['FOO', 'BAR', 'BAZ']));
   });
 
   test('filter', () {
-    Expect.setEquals(['bar', 'baz'],
-        makeClassSet().filter((c) => c.contains('a')));
+    expect(makeClassSet().filter((c) => c.contains('a')),
+        unorderedEquals(['bar', 'baz']));
   });
 
   test('every', () {
-    Expect.isTrue(makeClassSet().every((c) => c is String));
-    Expect.isFalse(
-        makeClassSet().every((c) => c.contains('a')));
+    expect(makeClassSet().every((c) => c is String), isTrue);
+    expect(makeClassSet().every((c) => c.contains('a')), isFalse);
   });
 
   test('some', () {
-    Expect.isTrue(
-        makeClassSet().some((c) => c.contains('a')));
-    Expect.isFalse(makeClassSet().some((c) => c is num));
+    expect(makeClassSet().some((c) => c.contains('a')), isTrue);
+    expect(makeClassSet().some((c) => c is num), isFalse);
   });
 
   test('isEmpty', () {
-    Expect.isFalse(makeClassSet().isEmpty);
-    Expect.isTrue(makeElement().classes.isEmpty);
+    expect(makeClassSet().isEmpty, isFalse);
+    expect(makeElement().classes.isEmpty, isTrue);
   });
 
   test('length', () {
-    Expect.equals(3, makeClassSet().length);
-    Expect.equals(0, makeElement().classes.length);
+    expect(makeClassSet().length, 3);
+    expect(makeElement().classes.length, 0);
   });
 
   test('contains', () {
-    Expect.isTrue(makeClassSet().contains('foo'));
-    Expect.isFalse(makeClassSet().contains('qux'));
+    expect(makeClassSet().contains('foo'), isTrue);
+    expect(makeClassSet().contains('qux'), isFalse);
   });
 
   test('add', () {
     final classes = makeClassSet();
     classes.add('qux');
-    Expect.setEquals(['foo', 'bar', 'baz', 'qux'], classes);
+    expect(classes, unorderedEquals(['foo', 'bar', 'baz', 'qux']));
 
     classes.add('qux');
     final list = new List.from(classes);
     list.sort((a, b) => a.compareTo(b));
-    Expect.listEquals(['bar', 'baz', 'foo', 'qux'], list,
-        "The class set shouldn't have duplicate elements.");
+    expect(list, unorderedEquals(['bar', 'baz', 'foo', 'qux']),
+        reason: "The class set shouldn't have duplicate elements.");
   });
 
   test('remove', () {
     final classes = makeClassSet();
     classes.remove('bar');
-    Expect.setEquals(['foo', 'baz'], classes);
+    expect(classes, unorderedEquals(['foo', 'baz']));
     classes.remove('qux');
-    Expect.setEquals(['foo', 'baz'], classes);
+    expect(classes, unorderedEquals(['foo', 'baz']));
   });
 
   test('toggle', () {
     final classes = makeClassSet();
     classes.toggle('bar');
-    Expect.setEquals(['foo', 'baz'], classes);
+    expect(classes, unorderedEquals(['foo', 'baz']));
     classes.toggle('qux');
-    Expect.setEquals(['foo', 'baz', 'qux'], classes);
+    expect(classes, unorderedEquals(['foo', 'baz', 'qux']));
   });
 
   test('addAll', () {
     final classes = makeClassSet();
     classes.addAll(['bar', 'qux', 'bip']);
-    Expect.setEquals(['foo', 'bar', 'baz', 'qux', 'bip'], classes);
+    expect(classes, unorderedEquals(['foo', 'bar', 'baz', 'qux', 'bip']));
   });
 
   test('removeAll', () {
     final classes = makeClassSet();
     classes.removeAll(['bar', 'baz', 'qux']);
-    Expect.setEquals(['foo'], classes);
+    expect(classes, unorderedEquals(['foo']));
   });
 
   test('isSubsetOf', () {
     final classes = makeClassSet();
-    Expect.isTrue(classes.isSubsetOf(['foo', 'bar', 'baz']));
-    Expect.isTrue(classes.isSubsetOf(['foo', 'bar', 'baz', 'qux']));
-    Expect.isFalse(classes.isSubsetOf(['foo', 'bar', 'qux']));
+    expect(classes.isSubsetOf(['foo', 'bar', 'baz']), isTrue);
+    expect(classes.isSubsetOf(['foo', 'bar', 'baz', 'qux']), isTrue);
+    expect(classes.isSubsetOf(['foo', 'bar', 'qux']), isFalse);
   });
 
   test('containsAll', () {
     final classes = makeClassSet();
-    Expect.isTrue(classes.containsAll(['foo', 'baz']));
-    Expect.isFalse(classes.containsAll(['foo', 'qux']));
+    expect(classes.containsAll(['foo', 'baz']), isTrue);
+    expect(classes.containsAll(['foo', 'qux']), isFalse);
   });
 
   test('intersection', () {
     final classes = makeClassSet();
-    Expect.setEquals(['foo', 'baz'],
-        classes.intersection(['foo', 'qux', 'baz']));
+    expect(classes.intersection(['foo', 'qux', 'baz']),
+        unorderedEquals(['foo', 'baz']));
   });
 
   test('clear', () {
     final classes = makeClassSet();
     classes.clear();
-    Expect.setEquals([], classes);
+    expect(classes, equals([]));
   });
 }

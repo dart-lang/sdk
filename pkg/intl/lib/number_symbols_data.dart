@@ -14,8 +14,8 @@
  * removed after those changes land to CLDR.
  */
 
-#library("number_symbol_data");
-#import("number_symbols.dart");
+library number_symbol_data;
+import "number_symbols.dart";
 
 Map numberFormatSymbols = const {
   /**

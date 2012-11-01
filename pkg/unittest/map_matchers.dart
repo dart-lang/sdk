@@ -5,6 +5,9 @@
 /**
  * Returns a matcher which matches maps containing the given [value].
  */
+
+part of unittest;
+
 Matcher containsValue(value) => new _ContainsValue(value);
 
 class _ContainsValue extends BaseMatcher {

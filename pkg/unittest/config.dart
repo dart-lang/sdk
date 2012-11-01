@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/** This file is sourced by unitest.dart. */
+part of unittest;
 
 /**
  * Hooks to configure the unittest library for different platforms. This class
@@ -10,6 +10,7 @@
  * advantage of the platform can create a subclass and override methods from
  * this class.
  */
+
 class Configuration {
   TestCase currentTestCase = null;
 

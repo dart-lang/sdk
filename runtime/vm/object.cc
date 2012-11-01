@@ -37,9 +37,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, generate_gdb_symbols, false,
     "Generate symbols of generated dart functions for debugging with GDB");
-DEFINE_FLAG(bool, reject_named_argument_as_positional, true,
-    "Enforce new rules for optional parameters and disallow passing of named "
-    "arguments to optional positional formal parameters");
 DEFINE_FLAG(bool, show_internal_names, false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
@@ -588,12 +585,12 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = object_store->array_class();  // Was allocated above.
   name = Symbols::ObjectArray();
-  RegisterPrivateClass(cls, name, core_impl_lib);
+  RegisterPrivateClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->growable_object_array_class();  // Was allocated above.
   name = Symbols::GrowableObjectArray();
-  RegisterPrivateClass(cls, name, core_impl_lib);
+  RegisterPrivateClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ImmutableArray>();
@@ -601,42 +598,30 @@ RawError* Object::Init(Isolate* isolate) {
   cls.set_type_arguments_instance_field_offset(Array::type_arguments_offset());
   ASSERT(object_store->immutable_array_class() != object_store->array_class());
   name = Symbols::ImmutableArray();
-  RegisterPrivateClass(cls, name, core_impl_lib);
+  RegisterPrivateClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->one_byte_string_class();  // Was allocated above.
   name = Symbols::OneByteString();
-  RegisterPrivateClass(cls, name, core_impl_lib);
+  RegisterPrivateClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<TwoByteString>();
   object_store->set_two_byte_string_class(cls);
   name = Symbols::TwoByteString();
-  RegisterPrivateClass(cls, name, core_impl_lib);
-  pending_classes.Add(cls, Heap::kOld);
-
-  cls = Class::New<FourByteString>();
-  object_store->set_four_byte_string_class(cls);
-  name = Symbols::FourByteString();
-  RegisterPrivateClass(cls, name, core_impl_lib);
+  RegisterPrivateClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ExternalOneByteString>();
   object_store->set_external_one_byte_string_class(cls);
   name = Symbols::ExternalOneByteString();
-  RegisterPrivateClass(cls, name, core_impl_lib);
+  RegisterPrivateClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ExternalTwoByteString>();
   object_store->set_external_two_byte_string_class(cls);
   name = Symbols::ExternalTwoByteString();
-  RegisterPrivateClass(cls, name, core_impl_lib);
-  pending_classes.Add(cls, Heap::kOld);
-
-  cls = Class::New<ExternalFourByteString>();
-  object_store->set_external_four_byte_string_class(cls);
-  name = Symbols::ExternalFourByteString();
-  RegisterPrivateClass(cls, name, core_impl_lib);
+  RegisterPrivateClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Stacktrace>();
@@ -925,6 +910,15 @@ RawError* Object::Init(Isolate* isolate) {
   if (!error.IsNull()) {
     return error.raw();
   }
+  const Script& collection_script =
+      Script::Handle(Bootstrap::LoadCollectionScript(false));
+  const Library& collection_lib =
+      Library::Handle(Library::CollectionLibrary());
+  ASSERT(!collection_lib.IsNull());
+  error = Bootstrap::Compile(collection_lib, collection_script);
+  if (!error.IsNull()) {
+    return error.raw();
+  }
   const Script& math_script = Script::Handle(Bootstrap::LoadMathScript(false));
   const Library& math_lib = Library::Handle(Library::MathLibrary());
   ASSERT(!math_lib.IsNull());
@@ -1097,17 +1091,11 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<TwoByteString>();
   object_store->set_two_byte_string_class(cls);
 
-  cls = Class::New<FourByteString>();
-  object_store->set_four_byte_string_class(cls);
-
   cls = Class::New<ExternalOneByteString>();
   object_store->set_external_one_byte_string_class(cls);
 
   cls = Class::New<ExternalTwoByteString>();
   object_store->set_external_two_byte_string_class(cls);
-
-  cls = Class::New<ExternalFourByteString>();
-  object_store->set_external_four_byte_string_class(cls);
 
   cls = Class::New<Bool>();
   object_store->set_bool_class(cls);
@@ -1241,10 +1229,8 @@ RawString* Class::UserVisibleName() const {
       return Symbols::New("double");
     case kOneByteStringCid:
     case kTwoByteStringCid:
-    case kFourByteStringCid:
     case kExternalOneByteStringCid:
     case kExternalTwoByteStringCid:
-    case kExternalFourByteStringCid:
       return Symbols::New("String");
     case kArrayCid:
     case kImmutableArrayCid:
@@ -3413,80 +3399,23 @@ intptr_t Function::NumImplicitParameters() const {
 bool Function::AreValidArgumentCounts(int num_arguments,
                                       int num_named_arguments,
                                       String* error_message) const {
-  if (FLAG_reject_named_argument_as_positional) {
-    if (num_named_arguments > NumOptionalNamedParameters()) {
-      if (error_message != NULL) {
-        const intptr_t kMessageBufferSize = 64;
-        char message_buffer[kMessageBufferSize];
-        OS::SNPrint(message_buffer,
-                    kMessageBufferSize,
-                    "%d named passed, at most %"Pd" expected",
-                    num_named_arguments,
-                    NumOptionalNamedParameters());
-        *error_message = String::New(message_buffer);
-      }
-      return false;  // Too many named arguments.
-    }
-    const int num_pos_args = num_arguments - num_named_arguments;
-    const int num_opt_pos_params = NumOptionalPositionalParameters();
-    const int num_pos_params = num_fixed_parameters() + num_opt_pos_params;
-    if (num_pos_args > num_pos_params) {
-      if (error_message != NULL) {
-        const intptr_t kMessageBufferSize = 64;
-        char message_buffer[kMessageBufferSize];
-        // Hide implicit parameters to the user.
-        const intptr_t num_hidden_params = NumImplicitParameters();
-        OS::SNPrint(message_buffer,
-                    kMessageBufferSize,
-                    "%"Pd"%s passed, %s%"Pd" expected",
-                    num_pos_args - num_hidden_params,
-                    num_opt_pos_params > 0 ? " positional" : "",
-                    num_opt_pos_params > 0 ? "at most " : "",
-                    num_pos_params - num_hidden_params);
-        *error_message = String::New(message_buffer);
-      }
-      return false;  // Too many fixed and/or positional arguments.
-    }
-    if (num_pos_args < num_fixed_parameters()) {
-      if (error_message != NULL) {
-        const intptr_t kMessageBufferSize = 64;
-        char message_buffer[kMessageBufferSize];
-        // Hide implicit parameters to the user.
-        const intptr_t num_hidden_params = NumImplicitParameters();
-        OS::SNPrint(message_buffer,
-                    kMessageBufferSize,
-                    "%"Pd"%s passed, %s%"Pd" expected",
-                    num_pos_args - num_hidden_params,
-                    num_opt_pos_params > 0 ? " positional" : "",
-                    num_opt_pos_params > 0 ? "at least " : "",
-                    num_fixed_parameters() - num_hidden_params);
-        *error_message = String::New(message_buffer);
-      }
-      return false;  // Too few fixed and/or positional arguments.
-    }
-    return true;
-  }
-
-  // TODO(regis): Remove the following code once the flag is removed.
-
-  if (num_arguments > NumParameters()) {
+  if (num_named_arguments > NumOptionalNamedParameters()) {
     if (error_message != NULL) {
       const intptr_t kMessageBufferSize = 64;
       char message_buffer[kMessageBufferSize];
-      // Hide implicit parameters to the user.
-      const intptr_t num_hidden_params = NumImplicitParameters();
       OS::SNPrint(message_buffer,
                   kMessageBufferSize,
-                  "%"Pd" passed, %s%"Pd" expected",
-                  num_arguments - num_hidden_params,
-                  HasOptionalParameters() ? "at most " : "",
-                  NumParameters() - num_hidden_params);
+                  "%d named passed, at most %"Pd" expected",
+                  num_named_arguments,
+                  NumOptionalNamedParameters());
       *error_message = String::New(message_buffer);
     }
-    return false;  // Too many arguments.
+    return false;  // Too many named arguments.
   }
-  const int num_positional_args = num_arguments - num_named_arguments;
-  if (num_positional_args < num_fixed_parameters()) {
+  const int num_pos_args = num_arguments - num_named_arguments;
+  const int num_opt_pos_params = NumOptionalPositionalParameters();
+  const int num_pos_params = num_fixed_parameters() + num_opt_pos_params;
+  if (num_pos_args > num_pos_params) {
     if (error_message != NULL) {
       const intptr_t kMessageBufferSize = 64;
       char message_buffer[kMessageBufferSize];
@@ -3494,13 +3423,31 @@ bool Function::AreValidArgumentCounts(int num_arguments,
       const intptr_t num_hidden_params = NumImplicitParameters();
       OS::SNPrint(message_buffer,
                   kMessageBufferSize,
-                  "%"Pd" %spassed, %"Pd" expected",
-                  num_positional_args - num_hidden_params,
-                  HasOptionalParameters() ? "positional " : "",
+                  "%"Pd"%s passed, %s%"Pd" expected",
+                  num_pos_args - num_hidden_params,
+                  num_opt_pos_params > 0 ? " positional" : "",
+                  num_opt_pos_params > 0 ? "at most " : "",
+                  num_pos_params - num_hidden_params);
+      *error_message = String::New(message_buffer);
+    }
+    return false;  // Too many fixed and/or positional arguments.
+  }
+  if (num_pos_args < num_fixed_parameters()) {
+    if (error_message != NULL) {
+      const intptr_t kMessageBufferSize = 64;
+      char message_buffer[kMessageBufferSize];
+      // Hide implicit parameters to the user.
+      const intptr_t num_hidden_params = NumImplicitParameters();
+      OS::SNPrint(message_buffer,
+                  kMessageBufferSize,
+                  "%"Pd"%s passed, %s%"Pd" expected",
+                  num_pos_args - num_hidden_params,
+                  num_opt_pos_params > 0 ? " positional" : "",
+                  num_opt_pos_params > 0 ? "at least " : "",
                   num_fixed_parameters() - num_hidden_params);
       *error_message = String::New(message_buffer);
     }
-    return false;  // Too few arguments.
+    return false;  // Too few fixed and/or positional arguments.
   }
   return true;
 }
@@ -3616,63 +3563,35 @@ bool Function::HasCompatibleParametersWith(const Function& other) const {
   // compatible although it has an additional phase parameter.
   const intptr_t num_ignored_params =
       (other.IsRedirectingFactory() && IsConstructor()) ? 1 : 0;
-  if (FLAG_reject_named_argument_as_positional) {
-    // The default values of optional parameters can differ.
-    if (((num_fixed_params - num_ignored_params) != other_num_fixed_params) ||
-        (num_opt_pos_params < other_num_opt_pos_params) ||
-        (num_opt_named_params < other_num_opt_named_params)) {
-      return false;
-    }
-    if (other_num_opt_named_params == 0) {
-      return true;
-    }
-    // Check that for each optional named parameter of the other function there
-    // exists an optional named parameter of this function with an identical
-    // name.
-    // Note that SetParameterNameAt() guarantees that names are symbols, so we
-    // can compare their raw pointers.
-    const int num_params = num_fixed_params + num_opt_named_params;
-    const int other_num_params =
-        other_num_fixed_params + other_num_opt_named_params;
-    bool found_param_name;
-    String& other_param_name = String::Handle();
-    for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
-      other_param_name = other.ParameterNameAt(i);
-      found_param_name = false;
-      for (intptr_t j = num_fixed_params; j < num_params; j++) {
-        if (ParameterNameAt(j) == other_param_name.raw()) {
-          found_param_name = true;
-          break;
-        }
-      }
-      if (!found_param_name) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  // TODO(regis): Remove the following code once the flag is removed.
-
   // The default values of optional parameters can differ.
-  const intptr_t num_opt_params = num_opt_pos_params + num_opt_named_params;
-  const intptr_t other_num_opt_params =
-      other_num_opt_pos_params + other_num_opt_named_params;
   if (((num_fixed_params - num_ignored_params) != other_num_fixed_params) ||
-      (num_opt_params < other_num_opt_params)) {
+      (num_opt_pos_params < other_num_opt_pos_params) ||
+      (num_opt_named_params < other_num_opt_named_params)) {
     return false;
   }
-  // Check that for each optional named parameter of the other function there is
-  // a corresponding optional named parameter of this function with an identical
-  // name at the same position.
-  // Note that SetParameterNameAt() guarantees that names are symbols, so we can
-  // compare their raw pointers.
-  const int other_num_params = other_num_fixed_params + other_num_opt_params;
+  if (other_num_opt_named_params == 0) {
+    return true;
+  }
+  // Check that for each optional named parameter of the other function there
+  // exists an optional named parameter of this function with an identical
+  // name.
+  // Note that SetParameterNameAt() guarantees that names are symbols, so we
+  // can compare their raw pointers.
+  const int num_params = num_fixed_params + num_opt_named_params;
+  const int other_num_params =
+      other_num_fixed_params + other_num_opt_named_params;
+  bool found_param_name;
+  String& other_param_name = String::Handle();
   for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
-    const String& other_param_name = String::Handle(other.ParameterNameAt(i));
-    ASSERT(other_param_name.IsSymbol());
-    ASSERT(String::Handle(ParameterNameAt(i)).IsSymbol());
-    if (ParameterNameAt(i) != other_param_name.raw()) {
+    other_param_name = other.ParameterNameAt(i);
+    found_param_name = false;
+    for (intptr_t j = num_fixed_params; j < num_params; j++) {
+      if (ParameterNameAt(j) == other_param_name.raw()) {
+        found_param_name = true;
+        break;
+      }
+    }
+    if (!found_param_name) {
       return false;
     }
   }
@@ -3770,83 +3689,48 @@ bool Function::TypeTest(TypeTestKind test_kind,
       }
     }
   }
-  if (FLAG_reject_named_argument_as_positional) {
-    // Check the types of fixed and optional positional parameters.
-    for (intptr_t i = 0; i < num_fixed_params + other_num_opt_pos_params; i++) {
-      if (!TestParameterType(test_kind,
-                             i, i, type_arguments, other, other_type_arguments,
-                             malformed_error)) {
-        return false;
-      }
-    }
-    // Check the names and types of optional named parameters.
-    if (other_num_opt_named_params == 0) {
-      return true;
-    }
-    // Check that for each optional named parameter of type T of the other
-    // function type, there exists an optional named parameter of this function
-    // type with an identical name and with a type S that is a either a subtype
-    // or supertype of T (if test_kind == kIsSubtypeOf) or that is more specific
-    // than T (if test_kind == kIsMoreSpecificThan).
-    // Note that SetParameterNameAt() guarantees that names are symbols, so we
-    // can compare their raw pointers.
-    const int num_params = num_fixed_params + num_opt_named_params;
-    const int other_num_params =
-        other_num_fixed_params + other_num_opt_named_params;
-    bool found_param_name;
-    String& other_param_name = String::Handle();
-    for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
-      other_param_name = other.ParameterNameAt(i);
-      ASSERT(other_param_name.IsSymbol());
-      found_param_name = false;
-      for (intptr_t j = num_fixed_params; j < num_params; j++) {
-        ASSERT(String::Handle(ParameterNameAt(j)).IsSymbol());
-        if (ParameterNameAt(j) == other_param_name.raw()) {
-          found_param_name = true;
-          if (!TestParameterType(test_kind,
-                                 j, i,
-                                 type_arguments, other, other_type_arguments,
-                                 malformed_error)) {
-            return false;
-          }
-          break;
-        }
-      }
-      if (!found_param_name) {
-        return false;
-      }
-    }
-  }
-
-  // TODO(regis): Remove the following code once the flag is removed.
-
-  // Check the types of fixed parameters.
-  for (intptr_t i = 0; i < num_fixed_params; i++) {
+  // Check the types of fixed and optional positional parameters.
+  for (intptr_t i = 0; i < num_fixed_params + other_num_opt_pos_params; i++) {
     if (!TestParameterType(test_kind,
                            i, i, type_arguments, other, other_type_arguments,
                            malformed_error)) {
       return false;
     }
   }
-  // Check the names and types of optional parameters.
+  // Check the names and types of optional named parameters.
+  if (other_num_opt_named_params == 0) {
+    return true;
+  }
   // Check that for each optional named parameter of type T of the other
-  // function type, there is a corresponding optional named parameter of this
-  // function at the same position with an identical name and with a type S
-  // that is a either a subtype or supertype of T (if test_kind == kIsSubtypeOf)
-  // or that is more specific than T (if test_kind == kIsMoreSpecificThan).
+  // function type, there exists an optional named parameter of this function
+  // type with an identical name and with a type S that is a either a subtype
+  // or supertype of T (if test_kind == kIsSubtypeOf) or that is more specific
+  // than T (if test_kind == kIsMoreSpecificThan).
   // Note that SetParameterNameAt() guarantees that names are symbols, so we
   // can compare their raw pointers.
-  const intptr_t other_num_params = other_num_fixed_params +
-      other_num_opt_pos_params + other_num_opt_named_params;
+  const int num_params = num_fixed_params + num_opt_named_params;
+  const int other_num_params =
+      other_num_fixed_params + other_num_opt_named_params;
+  bool found_param_name;
   String& other_param_name = String::Handle();
   for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
     other_param_name = other.ParameterNameAt(i);
     ASSERT(other_param_name.IsSymbol());
-    ASSERT(String::Handle(ParameterNameAt(i)).IsSymbol());
-    if ((ParameterNameAt(i) != other_param_name.raw()) ||
-        !TestParameterType(test_kind,
-                           i, i, type_arguments, other, other_type_arguments,
-                           malformed_error)) {
+    found_param_name = false;
+    for (intptr_t j = num_fixed_params; j < num_params; j++) {
+      ASSERT(String::Handle(ParameterNameAt(j)).IsSymbol());
+      if (ParameterNameAt(j) == other_param_name.raw()) {
+        found_param_name = true;
+        if (!TestParameterType(test_kind,
+                               j, i,
+                               type_arguments, other, other_type_arguments,
+                               malformed_error)) {
+          return false;
+        }
+        break;
+      }
+    }
+    if (!found_param_name) {
       return false;
     }
   }
@@ -4017,14 +3901,15 @@ RawString* Function::BuildSignature(
   const String& kCommaSpace = String::Handle(Symbols::New(", "));
   const String& kColonSpace = String::Handle(Symbols::New(": "));
   const String& kLParen = String::Handle(Symbols::New("("));
-  const String& kRParen = String::Handle(Symbols::New(") => "));
+  const String& kRParenArrow = String::Handle(Symbols::New(") => "));
   const String& kLBracket = String::Handle(Symbols::New("["));
   const String& kRBracket = String::Handle(Symbols::New("]"));
   const String& kLBrace = String::Handle(Symbols::New("{"));
   const String& kRBrace = String::Handle(Symbols::New("}"));
   String& name = String::Handle();
-  if (!instantiate && !is_static()) {
-    // Prefix the signature with its type parameters, if any (e.g. "<K, V>").
+  if (!instantiate && !is_static() && (name_visibility == kInternalName)) {
+    // Prefix the signature with its class and type parameters, if any (e.g.
+    // "Map<K, V>(K) => bool").
     // The signature of static functions cannot be type parameterized.
     const String& kSpaceExtendsSpace =
         String::Handle(Symbols::New(" extends "));
@@ -4035,6 +3920,8 @@ RawString* Function::BuildSignature(
     const TypeArguments& type_parameters = TypeArguments::Handle(
         function_class.type_parameters());
     if (!type_parameters.IsNull()) {
+      const String& function_class_name = String::Handle(function_class.Name());
+      pieces.Add(function_class_name);
       intptr_t num_type_parameters = type_parameters.Length();
       pieces.Add(kLAngleBracket);
       TypeParameter& type_parameter = TypeParameter::Handle();
@@ -4044,7 +3931,7 @@ RawString* Function::BuildSignature(
         name = type_parameter.name();
         pieces.Add(name);
         bound = type_parameter.bound();
-        if (!bound.IsNull() && !bound.IsDynamicType()) {
+        if (!bound.IsNull() && !bound.IsObjectType()) {
           pieces.Add(kSpaceExtendsSpace);
           name = bound.BuildName(name_visibility);
           pieces.Add(name);
@@ -4085,8 +3972,7 @@ RawString* Function::BuildSignature(
     for (intptr_t i = num_fixed_params; i < num_params; i++) {
       // The parameter name of an optional positional parameter does not need
       // to be part of the signature, since it is not used.
-      if (!FLAG_reject_named_argument_as_positional ||
-          (num_opt_named_params > 0)) {
+      if (num_opt_named_params > 0) {
         name = ParameterNameAt(i);
         pieces.Add(name);
         pieces.Add(kColonSpace);
@@ -4108,7 +3994,7 @@ RawString* Function::BuildSignature(
       pieces.Add(kRBrace);
     }
   }
-  pieces.Add(kRParen);
+  pieces.Add(kRParenArrow);
   AbstractType& res_type = AbstractType::Handle(result_type());
   if (instantiate && !res_type.IsInstantiated()) {
     res_type = res_type.InstantiateFrom(instantiator);
@@ -5941,8 +5827,15 @@ void Library::InitCoreLibrary(Isolate* isolate) {
   const Library& math_lib = Library::Handle(Library::MathLibrary());
   const Namespace& math_ns = Namespace::Handle(
       Namespace::New(math_lib, Array::Handle(), Array::Handle()));
+  Library::InitCollectionLibrary(isolate);
+  const Library& collection_lib =
+      Library::Handle(Library::CollectionLibrary());
+  const Namespace& collection_ns = Namespace::Handle(
+      Namespace::New(collection_lib, Array::Handle(), Array::Handle()));
   core_lib.AddImport(math_ns);
   core_impl_lib.AddImport(math_ns);
+  core_lib.AddImport(collection_ns);
+  core_impl_lib.AddImport(collection_ns);
   isolate->object_store()->set_root_library(Library::Handle());
 
   // Hook up predefined classes without setting their library pointers. These
@@ -5950,6 +5843,18 @@ void Library::InitCoreLibrary(Isolate* isolate) {
   // isolates so setting their library pointers would be wrong.
   const Class& cls = Class::Handle(Object::dynamic_class());
   core_lib.AddObject(cls, String::Handle(cls.Name()));
+}
+
+
+void Library::InitCollectionLibrary(Isolate* isolate) {
+  const String& url = String::Handle(Symbols::New("dart:collection"));
+  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
+  lib.Register();
+  const Library& math_lib = Library::Handle(Library::MathLibrary());
+  const Namespace& math_ns = Namespace::Handle(
+      Namespace::New(math_lib, Array::Handle(), Array::Handle()));
+  lib.AddImport(math_ns);
+  isolate->object_store()->set_collection_library(lib);
 }
 
 
@@ -5994,10 +5899,11 @@ void Library::InitScalarlistLibrary(Isolate* isolate) {
   const String& url = String::Handle(Symbols::New("dart:scalarlist"));
   const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
   lib.Register();
-  const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
-  const Namespace& impl_ns = Namespace::Handle(
-      Namespace::New(core_impl_lib, Array::Handle(), Array::Handle()));
-  lib.AddImport(impl_ns);
+  const Library& collection_lib =
+      Library::Handle(Library::CollectionLibrary());
+  const Namespace& collection_ns = Namespace::Handle(
+      Namespace::New(collection_lib, Array::Handle(), Array::Handle()));
+  lib.AddImport(collection_ns);
   isolate->object_store()->set_scalarlist_library(lib);
 }
 
@@ -6112,6 +6018,11 @@ RawLibrary* Library::CoreLibrary() {
 
 RawLibrary* Library::CoreImplLibrary() {
   return Isolate::Current()->object_store()->core_impl_library();
+}
+
+
+RawLibrary* Library::CollectionLibrary() {
+  return Isolate::Current()->object_store()->collection_library();
 }
 
 
@@ -6837,6 +6748,47 @@ intptr_t DeoptInfo::FromIndex(intptr_t index) const {
 
 intptr_t DeoptInfo::Instruction(intptr_t index) const {
   return *(EntryAddr(index, kInstruction));
+}
+
+
+intptr_t DeoptInfo::TranslationLength() const {
+  intptr_t length = Length();
+  if (Instruction(length - 1) != DeoptInstr::kSuffix) return length;
+
+  // If the last command is a suffix, add in the length of the suffix and
+  // do not count the suffix command as a translation command.
+  intptr_t ignored = 0;
+  intptr_t suffix_length =
+      DeoptInstr::DecodeSuffix(FromIndex(length - 1), &ignored);
+  return length + suffix_length - 1;
+}
+
+
+void DeoptInfo::ToInstructions(const Array& table,
+                               GrowableArray<DeoptInstr*>* instructions) const {
+  ASSERT(instructions->is_empty());
+  Smi& offset = Smi::Handle();
+  DeoptInfo& info = DeoptInfo::Handle(raw());
+  Smi& reason = Smi::Handle();
+  intptr_t index = 0;
+  intptr_t length = TranslationLength();
+  while (index < length) {
+    intptr_t instruction = info.Instruction(index);
+    intptr_t from_index = info.FromIndex(index);
+    if (instruction == DeoptInstr::kSuffix) {
+      // Suffix instructions cause us to 'jump' to another translation,
+      // changing info, length and index.
+      intptr_t info_number = 0;
+      intptr_t suffix_length =
+          DeoptInstr::DecodeSuffix(from_index, &info_number);
+      DeoptTable::GetEntry(table, info_number, &offset, &info, &reason);
+      length = info.TranslationLength();
+      index = length - suffix_length;
+    } else {
+      instructions->Add(DeoptInstr::Create(instruction, from_index));
+      ++index;
+    }
+  }
 }
 
 
@@ -9851,17 +9803,22 @@ bool String::Equals(const Instance& other) const {
 
 
 bool String::Equals(const char* str) const {
+  ASSERT(str != NULL);
+  intptr_t len = strlen(str);
   for (intptr_t i = 0; i < this->Length(); ++i) {
     if (*str == '\0') {
       // Lengths don't match.
       return false;
     }
     int32_t ch;
-    intptr_t consumed = Utf8::Decode(str, &ch);
+    intptr_t consumed = Utf8::Decode(reinterpret_cast<const uint8_t*>(str),
+                                     len,
+                                     &ch);
     if (consumed == 0 || this->CharAt(i) != ch) {
       return false;
     }
     str += consumed;
+    len -= consumed;
   }
   return *str == '\0';
 }
@@ -9955,76 +9912,70 @@ RawInstance* String::Canonicalize() const {
 
 
 RawString* String::New(const char* str, Heap::Space space) {
-  intptr_t width = 0;
-  intptr_t len = Utf8::CodePointCount(str, &width);
-  if (width == 1) {
-    const OneByteString& onestr
+  ASSERT(str != NULL);
+  intptr_t array_len = strlen(str);
+  const uint8_t* utf8_array = reinterpret_cast<const uint8_t*>(str);
+  return String::New(utf8_array, array_len, space);
+}
+
+
+RawString* String::New(const uint8_t* utf8_array,
+                       intptr_t array_len,
+                       Heap::Space space) {
+  Utf8::Type type;
+  intptr_t len = Utf8::CodePointCount(utf8_array, array_len, &type);
+  if (type == Utf8::kAscii) {
+    const OneByteString& strobj
         = OneByteString::Handle(OneByteString::New(len, space));
     if (len > 0) {
       NoGCScope no_gc;
-      Utf8::Decode(str, onestr.CharAddr(0), len);
+      Utf8::DecodeToAscii(utf8_array, array_len, strobj.CharAddr(0), len);
     }
-    return onestr.raw();
-  } else if (width == 2) {
-    const TwoByteString& twostr =
-        TwoByteString::Handle(TwoByteString::New(len, space));
-    NoGCScope no_gc;
-    Utf8::Decode(str, twostr.CharAddr(0), len);
-    return twostr.raw();
+    return strobj.raw();
   }
-  ASSERT(width == 4);
-  const FourByteString& fourstr =
-      FourByteString::Handle(FourByteString::New(len, space));
+  ASSERT((type == Utf8::kBMP) || (type == Utf8::kSMP));
+  const TwoByteString& strobj =
+      TwoByteString::Handle(TwoByteString::New(len, space));
   NoGCScope no_gc;
-  Utf8::Decode(str, fourstr.CharAddr(0), len);
-  return fourstr.raw();
+  Utf8::DecodeToUTF16(utf8_array, array_len, strobj.CharAddr(0), len);
+  return strobj.raw();
 }
 
 
-RawString* String::New(const uint8_t* characters,
-                       intptr_t len,
-                       Heap::Space space) {
-  return OneByteString::New(characters, len, space);
-}
-
-
-RawString* String::New(const uint16_t* characters,
-                       intptr_t len,
+RawString* String::New(const uint16_t* utf16_array,
+                       intptr_t array_len,
                        Heap::Space space) {
   bool is_one_byte_string = true;
-  for (intptr_t i = 0; i < len; ++i) {
-    if (characters[i] > 0xFF) {
+  for (intptr_t i = 0; i < array_len; ++i) {
+    if (utf16_array[i] > 0x7F) {
       is_one_byte_string = false;
       break;
     }
   }
   if (is_one_byte_string) {
-    return OneByteString::New(characters, len, space);
+    return OneByteString::New(utf16_array, array_len, space);
   }
-  return TwoByteString::New(characters, len, space);
+  return TwoByteString::New(utf16_array, array_len, space);
 }
 
 
-RawString* String::New(const uint32_t* characters,
-                       intptr_t len,
+RawString* String::New(const uint32_t* utf32_array,
+                       intptr_t array_len,
                        Heap::Space space) {
   bool is_one_byte_string = true;
-  bool is_two_byte_string = true;
-  for (intptr_t i = 0; i < len; ++i) {
-    if (characters[i] > 0xFFFF) {
-      is_two_byte_string = false;
+  intptr_t utf16_len = array_len;
+  for (intptr_t i = 0; i < array_len; ++i) {
+    if (utf32_array[i] > 0x7F) {
       is_one_byte_string = false;
-      break;
-    } else if (characters[i] > 0xFF) {
-      is_one_byte_string = false;
+    }
+    if (utf32_array[i] > 0xFFFF) {
+      utf16_len += 1;
     }
   }
   if (is_one_byte_string) {
-    return OneByteString::New(characters, len, space);
-  } else if (is_two_byte_string) {
-    return TwoByteString::New(characters, len, space);
+    return OneByteString::New(utf32_array, array_len, space);
   }
-  return FourByteString::New(characters, len, space);
+  return TwoByteString::New(utf16_len, utf32_array, array_len, space);
 }
 
 
@@ -10038,11 +9989,9 @@ RawString* String::New(const String& str, Heap::Space space) {
   intptr_t char_size = str.CharSize();
   if (char_size == kOneByteChar) {
     result ^= OneByteString::New(len, space);
-  } else if (char_size == kTwoByteChar) {
-    result ^= TwoByteString::New(len, space);
   } else {
-    ASSERT(char_size == kFourByteChar);
-    result ^= FourByteString::New(len, space);
+    ASSERT(char_size == kTwoByteChar);
+    result ^= TwoByteString::New(len, space);
   }
   String::Copy(result, 0, str, 0, len);
   return result.raw();
@@ -10067,15 +10016,6 @@ RawString* String::NewExternal(const uint16_t* characters,
 }
 
 
-RawString* String::NewExternal(const uint32_t* characters,
-                               intptr_t len,
-                               void* peer,
-                               Dart_PeerFinalizer callback,
-                               Heap::Space space) {
-  return ExternalFourByteString::New(characters, len, peer, callback, space);
-}
-
-
 void String::Copy(const String& dst, intptr_t dst_offset,
                   const uint8_t* characters,
                   intptr_t len) {
@@ -10094,73 +10034,29 @@ void String::Copy(const String& dst, intptr_t dst_offset,
     for (intptr_t i = 0; i < len; ++i) {
       *twostr.CharAddr(i + dst_offset) = characters[i];
     }
-  } else {
-    ASSERT(dst.IsFourByteString());
-    const FourByteString& fourstr = FourByteString::Cast(dst);
-    NoGCScope no_gc;
-    for (intptr_t i = 0; i < len; ++i) {
-      *fourstr.CharAddr(i + dst_offset) = characters[i];
-    }
   }
 }
 
 
 void String::Copy(const String& dst, intptr_t dst_offset,
-                  const uint16_t* characters,
-                  intptr_t len) {
+                  const uint16_t* utf16_array,
+                  intptr_t array_len) {
   ASSERT(dst_offset >= 0);
-  ASSERT(len >= 0);
-  ASSERT(len <= (dst.Length() - dst_offset));
+  ASSERT(array_len >= 0);
+  ASSERT(array_len <= (dst.Length() - dst_offset));
   if (dst.IsOneByteString()) {
     const OneByteString& onestr = OneByteString::Cast(dst);
     NoGCScope no_gc;
-    for (intptr_t i = 0; i < len; ++i) {
-      ASSERT(characters[i] <= 0xFF);
-      *onestr.CharAddr(i + dst_offset) = characters[i];
-    }
-  } else if (dst.IsTwoByteString()) {
-    const TwoByteString& twostr = TwoByteString::Cast(dst);
-    NoGCScope no_gc;
-    if (len > 0) {
-      memmove(twostr.CharAddr(dst_offset), characters, len * 2);
+    for (intptr_t i = 0; i < array_len; ++i) {
+      ASSERT(utf16_array[i] <= 0x7F);
+      *onestr.CharAddr(i + dst_offset) = utf16_array[i];
     }
   } else {
-    ASSERT(dst.IsFourByteString());
-    const FourByteString& fourstr = FourByteString::Cast(dst);
-    NoGCScope no_gc;
-    for (intptr_t i = 0; i < len; ++i) {
-      *fourstr.CharAddr(i + dst_offset) = characters[i];
-    }
-  }
-}
-
-
-void String::Copy(const String& dst, intptr_t dst_offset,
-                  const uint32_t* characters,
-                  intptr_t len) {
-  ASSERT(dst_offset >= 0);
-  ASSERT(len >= 0);
-  ASSERT(len <= (dst.Length() - dst_offset));
-  if (dst.IsOneByteString()) {
-    const OneByteString& onestr = OneByteString::Cast(dst);
-    NoGCScope no_gc;
-    for (intptr_t i = 0; i < len; ++i) {
-      ASSERT(characters[i] <= 0xFF);
-      *onestr.CharAddr(i + dst_offset) = characters[i];
-    }
-  } else if (dst.IsTwoByteString()) {
+    ASSERT(dst.IsTwoByteString());
     const TwoByteString& twostr = TwoByteString::Cast(dst);
     NoGCScope no_gc;
-    for (intptr_t i = 0; i < len; ++i) {
-      ASSERT(characters[i] <= 0xFFFF);
-      *twostr.CharAddr(i + dst_offset) = characters[i];
-    }
-  } else {
-    ASSERT(dst.IsFourByteString());
-    const FourByteString& fourstr = FourByteString::Cast(dst);
-    NoGCScope no_gc;
-    if (len > 0) {
-      memmove(fourstr.CharAddr(dst_offset), characters, len * 4);
+    if (array_len > 0) {
+      memmove(twostr.CharAddr(dst_offset), utf16_array, (array_len * 2));
     }
   }
 }
@@ -10187,7 +10083,8 @@ void String::Copy(const String& dst, intptr_t dst_offset,
         NoGCScope no_gc;
         String::Copy(dst, dst_offset, onestr.CharAddr(0) + src_offset, len);
       }
-    } else if (char_size == kTwoByteChar) {
+    } else {
+      ASSERT(char_size == kTwoByteChar);
       if (src.IsTwoByteString()) {
         const TwoByteString& twostr = TwoByteString::Cast(src);
         NoGCScope no_gc;
@@ -10197,19 +10094,6 @@ void String::Copy(const String& dst, intptr_t dst_offset,
         const ExternalTwoByteString& twostr = ExternalTwoByteString::Cast(src);
         NoGCScope no_gc;
         String::Copy(dst, dst_offset, twostr.CharAddr(0) + src_offset, len);
-      }
-    } else {
-      ASSERT(char_size == kFourByteChar);
-      if (src.IsFourByteString()) {
-        const FourByteString& fourstr = FourByteString::Cast(src);
-        NoGCScope no_gc;
-        String::Copy(dst, dst_offset, fourstr.CharAddr(0) + src_offset, len);
-      } else {
-        ASSERT(src.IsExternalFourByteString());
-        const ExternalFourByteString& fourstr =
-            ExternalFourByteString::Cast(src);
-        NoGCScope no_gc;
-        String::Copy(dst, dst_offset, fourstr.CharAddr(0) + src_offset, len);
       }
     }
   }
@@ -10221,13 +10105,9 @@ RawString* String::EscapeSpecialCharacters(const String& str, bool raw_str) {
     const OneByteString& onestr = OneByteString::Cast(str);
     return onestr.EscapeSpecialCharacters(raw_str);
   }
-  if (str.IsTwoByteString()) {
-    const TwoByteString& twostr = TwoByteString::Cast(str);
-    return twostr.EscapeSpecialCharacters(raw_str);
-  }
-  ASSERT(str.IsFourByteString());
-  const FourByteString& fourstr = FourByteString::Cast(str);
-  return fourstr.EscapeSpecialCharacters(raw_str);
+  ASSERT(str.IsTwoByteString());
+  const TwoByteString& twostr = TwoByteString::Cast(str);
+  return twostr.EscapeSpecialCharacters(raw_str);
 }
 
 
@@ -10260,9 +10140,6 @@ RawString* String::Concat(const String& str1,
                           Heap::Space space) {
   ASSERT(!str1.IsNull() && !str2.IsNull());
   intptr_t char_size = Utils::Maximum(str1.CharSize(), str2.CharSize());
-  if (char_size == kFourByteChar) {
-    return FourByteString::Concat(str1, str2, space);
-  }
   if (char_size == kTwoByteChar) {
     return TwoByteString::Concat(str1, str2, space);
   }
@@ -10284,11 +10161,9 @@ RawString* String::ConcatAll(const Array& strings,
   }
   if (char_size == kOneByteChar) {
     return OneByteString::ConcatAll(strings, result_len, space);
-  } else if (char_size == kTwoByteChar) {
-    return TwoByteString::ConcatAll(strings, result_len, space);
   }
-  ASSERT(char_size == kFourByteChar);
-  return FourByteString::ConcatAll(strings, result_len, space);
+  ASSERT(char_size == kTwoByteChar);
+  return TwoByteString::ConcatAll(strings, result_len, space);
 }
 
 
@@ -10318,32 +10193,19 @@ RawString* String::SubString(const String& str,
   }
   String& result = String::Handle();
   bool is_one_byte_string = true;
-  bool is_two_byte_string = true;
   intptr_t char_size = str.CharSize();
   if (char_size == kTwoByteChar) {
     for (intptr_t i = begin_index; i < begin_index + length; ++i) {
-      if (str.CharAt(i) > 0xFF) {
+      if (str.CharAt(i) > 0x7F) {
         is_one_byte_string = false;
         break;
-      }
-    }
-  } else if (char_size == kFourByteChar) {
-    for (intptr_t i = begin_index; i < begin_index + length; ++i) {
-      if (str.CharAt(i) > 0xFFFF) {
-        is_one_byte_string = false;
-        is_two_byte_string = false;
-        break;
-      } else if (str.CharAt(i) > 0xFF) {
-        is_one_byte_string = false;
       }
     }
   }
   if (is_one_byte_string) {
     result ^= OneByteString::New(length, space);
-  } else if (is_two_byte_string) {
-    result ^= TwoByteString::New(length, space);
   } else {
-    result ^= FourByteString::New(length, space);
+    result ^= TwoByteString::New(length, space);
   }
   String::Copy(result, 0, str, begin_index, length);
   return result.raw();
@@ -10353,10 +10215,24 @@ RawString* String::SubString(const String& str,
 const char* String::ToCString() const {
   intptr_t len = Utf8::Length(*this);
   Zone* zone = Isolate::Current()->current_zone();
-  char* result = zone->Alloc<char>(len + 1);
-  Utf8::Encode(*this, result, len);
+  uint8_t* result = zone->Alloc<uint8_t>(len + 1);
+  ToUTF8(result, len);
   result[len] = 0;
-  return result;
+  return reinterpret_cast<const char*>(result);
+}
+
+
+void String::ToUTF8(uint8_t* utf8_array, intptr_t array_len) const {
+  if (CharSize() == kOneByteChar) {
+    const OneByteString& obj = OneByteString::Cast(*this);
+    ASSERT(array_len >= obj.Length());
+    if (obj.Length() > 0) {
+      memmove(utf8_array, obj.CharAddr(0), obj.Length());
+    }
+  } else {
+    ASSERT(array_len >= Utf8::Length(*this));
+    Utf8::Encode(*this, reinterpret_cast<char*>(utf8_array), array_len);
+  }
 }
 
 
@@ -10379,14 +10255,11 @@ RawString* String::Transform(int32_t (*mapping)(int32_t ch),
   if (!has_mapping) {
     return str.raw();
   }
-  if (dst_max <= 0xFF) {
+  if (dst_max <= 0x7F) {
     return OneByteString::Transform(mapping, str, space);
   }
-  if (dst_max <= 0xFFFF) {
-    return TwoByteString::Transform(mapping, str, space);
-  }
-  ASSERT(dst_max > 0xFFFF);
-  return FourByteString::Transform(mapping, str, space);
+  ASSERT(dst_max > 0x7F);
+  return TwoByteString::Transform(mapping, str, space);
 }
 
 
@@ -10517,7 +10390,10 @@ RawOneByteString* OneByteString::New(const uint8_t* characters,
                                      Heap::Space space) {
   const OneByteString& result =
       OneByteString::Handle(OneByteString::New(len, space));
-  String::Copy(result, 0, characters, len);
+  if (len > 0) {
+    NoGCScope no_gc;
+    memmove(result.CharAddr(0), characters, len);
+  }
   return result.raw();
 }
 
@@ -10527,7 +10403,10 @@ RawOneByteString* OneByteString::New(const uint16_t* characters,
                                      Heap::Space space) {
   const OneByteString& result =
       OneByteString::Handle(OneByteString::New(len, space));
-  String::Copy(result, 0, characters, len);
+  for (intptr_t i = 0; i < len; ++i) {
+    ASSERT(characters[i] <= 0x7F);
+    *result.CharAddr(i) = characters[i];
+  }
   return result.raw();
 }
 
@@ -10537,7 +10416,10 @@ RawOneByteString* OneByteString::New(const uint32_t* characters,
                                      Heap::Space space) {
   const OneByteString& result =
       OneByteString::Handle(OneByteString::New(len, space));
-  String::Copy(result, 0, characters, len);
+  for (intptr_t i = 0; i < len; ++i) {
+    ASSERT(characters[i] <= 0x7F);
+    *result.CharAddr(i) = characters[i];
+  }
   return result.raw();
 }
 
@@ -10593,7 +10475,7 @@ RawOneByteString* OneByteString::Transform(int32_t (*mapping)(int32_t ch),
       OneByteString::Handle(OneByteString::New(len, space));
   for (intptr_t i = 0; i < len; ++i) {
     int32_t ch = mapping(str.CharAt(i));
-    ASSERT(ch >= 0 && ch <= 0xFF);
+    ASSERT(ch >= 0 && ch <= 0x7F);
     *result.CharAddr(i) = ch;
   }
   return result.raw();
@@ -10659,22 +10541,42 @@ RawTwoByteString* TwoByteString::New(intptr_t len,
 }
 
 
-RawTwoByteString* TwoByteString::New(const uint16_t* characters,
-                                     intptr_t len,
+RawTwoByteString* TwoByteString::New(const uint16_t* utf16_array,
+                                     intptr_t array_len,
                                      Heap::Space space) {
+  ASSERT(array_len > 0);
   const TwoByteString& result =
-      TwoByteString::Handle(TwoByteString::New(len, space));
-  String::Copy(result, 0, characters, len);
+      TwoByteString::Handle(TwoByteString::New(array_len, space));
+  {
+    NoGCScope no_gc;
+    memmove(result.CharAddr(0), utf16_array, (array_len * 2));
+  }
   return result.raw();
 }
 
 
-RawTwoByteString* TwoByteString::New(const uint32_t* characters,
-                                     intptr_t len,
+RawTwoByteString* TwoByteString::New(intptr_t utf16_len,
+                                     const uint32_t* utf32_array,
+                                     intptr_t array_len,
                                      Heap::Space space) {
+  ASSERT((array_len > 0) && (utf16_len >= array_len));
   const TwoByteString& result =
-      TwoByteString::Handle(TwoByteString::New(len, space));
-  String::Copy(result, 0, characters, len);
+      TwoByteString::Handle(TwoByteString::New(utf16_len, space));
+  {
+    NoGCScope no_gc;
+    intptr_t j = 0;
+    for (intptr_t i = 0; i < array_len; ++i) {
+      if (utf32_array[i] > 0xffff) {
+        ASSERT(j < (utf16_len - 1));
+        Utf8::ConvertUTF32ToUTF16(utf32_array[i], result.CharAddr(j));
+        j += 2;
+      } else {
+        ASSERT(j < utf16_len);
+        *result.CharAddr(j) = utf32_array[i];
+        j += 1;
+      }
+    }
+  }
   return result.raw();
 }
 
@@ -10738,132 +10640,6 @@ RawTwoByteString* TwoByteString::Transform(int32_t (*mapping)(int32_t ch),
 
 
 const char* TwoByteString::ToCString() const {
-  return String::ToCString();
-}
-
-
-RawFourByteString* FourByteString::EscapeSpecialCharacters(bool raw_str) const {
-  intptr_t len = Length();
-  if (len > 0) {
-    intptr_t num_escapes = 0;
-    intptr_t index = 0;
-    for (intptr_t i = 0; i < len; i++) {
-      if (IsSpecialCharacter(*CharAddr(i)) ||
-          (!raw_str && (*CharAddr(i) == '\\'))) {
-        num_escapes += 1;
-      }
-    }
-    const FourByteString& dststr = FourByteString::Handle(
-        FourByteString::New(len + num_escapes, Heap::kNew));
-    for (intptr_t i = 0; i < len; i++) {
-      if (IsSpecialCharacter(*CharAddr(i))) {
-        *(dststr.CharAddr(index)) = '\\';
-        *(dststr.CharAddr(index + 1)) = SpecialCharacter(*CharAddr(i));
-        index += 2;
-      } else if (!raw_str && (*CharAddr(i) == '\\')) {
-        *(dststr.CharAddr(index)) = '\\';
-        *(dststr.CharAddr(index + 1)) = '\\';
-        index += 2;
-      } else {
-        *(dststr.CharAddr(index)) = *CharAddr(i);
-        index += 1;
-      }
-    }
-    return dststr.raw();
-  }
-  return FourByteString::null();
-}
-
-
-RawFourByteString* FourByteString::New(intptr_t len,
-                                       Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->four_byte_string_class() !=
-         Class::null());
-  if (len < 0 || len > kMaxElements) {
-    // This should be caught before we reach here.
-    FATAL1("Fatal error in FourByteString::New: invalid len %"Pd"\n", len);
-  }
-  FourByteString& result = FourByteString::Handle();
-  {
-    RawObject* raw = Object::Allocate(FourByteString::kClassId,
-                                      FourByteString::InstanceSize(len),
-                                      space);
-    NoGCScope no_gc;
-    result ^= raw;
-    result.SetLength(len);
-    result.SetHash(0);
-  }
-  return result.raw();
-}
-
-
-RawFourByteString* FourByteString::New(const uint32_t* characters,
-                                       intptr_t len,
-                                       Heap::Space space) {
-  const FourByteString& result =
-      FourByteString::Handle(FourByteString::New(len, space));
-  String::Copy(result, 0, characters, len);
-  return result.raw();
-}
-
-
-RawFourByteString* FourByteString::New(const FourByteString& str,
-                                       Heap::Space space) {
-  return FourByteString::New(str.CharAddr(0), str.Length(), space);
-}
-
-
-RawFourByteString* FourByteString::Concat(const String& str1,
-                                          const String& str2,
-                                          Heap::Space space) {
-  intptr_t len1 = str1.Length();
-  intptr_t len2 = str2.Length();
-  intptr_t len = len1 + len2;
-  const FourByteString& result =
-      FourByteString::Handle(FourByteString::New(len, space));
-  String::Copy(result, 0, str1, 0, len1);
-  String::Copy(result, len1, str2, 0, len2);
-  return result.raw();
-}
-
-
-RawFourByteString* FourByteString::ConcatAll(const Array& strings,
-                                             intptr_t len,
-                                             Heap::Space space) {
-  const FourByteString& result =
-      FourByteString::Handle(FourByteString::New(len, space));
-  String& str = String::Handle();
-  {
-    intptr_t strings_len = strings.Length();
-    intptr_t pos = 0;
-    for (intptr_t i = 0; i < strings_len; i++) {
-      str ^= strings.At(i);
-      intptr_t str_len = str.Length();
-      String::Copy(result, pos, str, 0, str_len);
-      pos += str_len;
-    }
-  }
-  return result.raw();
-}
-
-
-RawFourByteString* FourByteString::Transform(int32_t (*mapping)(int32_t ch),
-                                             const String& str,
-                                             Heap::Space space) {
-  ASSERT(!str.IsNull());
-  intptr_t len = str.Length();
-  const FourByteString& result =
-      FourByteString::Handle(FourByteString::New(len, space));
-  for (intptr_t i = 0; i < len; ++i) {
-    int32_t ch = mapping(str.CharAt(i));
-    ASSERT(ch >= 0 && ch <= 0x10FFFF);
-    *result.CharAddr(i) = ch;
-  }
-  return result.raw();
-}
-
-
-const char* FourByteString::ToCString() const {
   return String::ToCString();
 }
 
@@ -10972,48 +10748,6 @@ void ExternalTwoByteString::Finalize(Dart_Handle handle, void* peer) {
 
 
 const char* ExternalTwoByteString::ToCString() const {
-  return String::ToCString();
-}
-
-
-RawExternalFourByteString* ExternalFourByteString::New(
-    const uint32_t* data,
-    intptr_t len,
-    void* peer,
-    Dart_PeerFinalizer callback,
-    Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->
-         external_four_byte_string_class() != Class::null());
-  if (len < 0 || len > kMaxElements) {
-    // This should be caught before we reach here.
-    FATAL1("Fatal error in ExternalFourByteString::New: invalid len %"Pd"\n",
-           len);
-  }
-  ExternalFourByteString& result = ExternalFourByteString::Handle();
-  ExternalStringData<uint32_t>* external_data =
-      new ExternalStringData<uint32_t>(data, peer, callback);
-  {
-    RawObject* raw = Object::Allocate(ExternalFourByteString::kClassId,
-                                      ExternalFourByteString::InstanceSize(),
-                                      space);
-    NoGCScope no_gc;
-    result ^= raw;
-    result.SetLength(len);
-    result.SetHash(0);
-    result.SetExternalData(external_data);
-  }
-  AddFinalizer(result, external_data, ExternalFourByteString::Finalize);
-  return result.raw();
-}
-
-
-void ExternalFourByteString::Finalize(Dart_Handle handle, void* peer) {
-  delete reinterpret_cast<ExternalStringData<uint32_t>*>(peer);
-  DeleteWeakPersistentHandle(handle);
-}
-
-
-const char* ExternalFourByteString::ToCString() const {
   return String::ToCString();
 }
 

@@ -99,10 +99,10 @@ main() {
 
   var configurationIterator = configurations.iterator();
   void enqueueConfiguration(ProcessQueue queue) {
-    if (!configurationIterator.hasNext()) return;
+    if (!configurationIterator.hasNext) return;
 
     var conf = configurationIterator.next();
-    for (String key in selectors.getKeys()) {
+    for (String key in selectors.keys) {
       if (key == 'co19') {
         queue.addTestSuite(new Co19TestSuite(conf));
       } else if (conf['runtime'] == 'vm' && key == 'vm') {
@@ -127,7 +127,13 @@ main() {
   // Start global http server that serves the entire dart repo.
   // The http server is available on localhost:9876 for any
   // test that needs to load resources from the repo over http.
-  if (!listTests) startHttpServer('127.0.0.1', 9876);
+  if (!listTests) {
+    // Only start the server if we are running browser tests.
+    var runningBrowserTests = configurations.some((config) {
+      return TestUtils.isBrowserRuntime(config['runtime']);
+    });
+    if (runningBrowserTests) startHttpServer('127.0.0.1', 9876);
+  }
 
   // Start process queue.
   new ProcessQueue(maxProcesses,
@@ -135,9 +141,7 @@ main() {
                    startTime,
                    printTiming,
                    enqueueConfiguration,
-                   () {
-                     if (!listTests) terminateHttpServer();
-                   },
+                   () => terminateHttpServer(),
                    verbose,
                    listTests);
 }

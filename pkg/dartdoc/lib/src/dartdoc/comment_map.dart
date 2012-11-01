@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dartdoc;
+
 /**
  * The cached lookup-table to associate doc comments with spans. The outer map
  * is from filenames to doc comments in that file. The inner map maps from the
@@ -28,7 +30,7 @@ class CommentMap {
    *
    * If a comment is returned, it is guaranteed to be non-empty.
    */
-  String find(Location span) {
+  String find(SourceLocation span) {
     if (span == null) return null;
 
     _ensureFileParsed(span.source);

@@ -627,6 +627,77 @@ TEST_CASE(SerializeByteArray) {
 }
 
 
+#define TEST_TYPED_ARRAY(darttype, ctype)                                     \
+  {                                                                           \
+    StackZone zone(Isolate::Current());                                       \
+    uint8_t* buffer;                                                          \
+    MessageWriter writer(&buffer, &zone_allocator);                           \
+    const int kArrayLength = 127;                                             \
+    darttype& array = darttype::Handle(darttype::New(kArrayLength));          \
+    for (int i = 0; i < kArrayLength; i++) {                                  \
+      array.SetAt(i, i);                                                      \
+    }                                                                         \
+    writer.WriteMessage(array);                                               \
+    intptr_t buffer_len = writer.BytesWritten();                              \
+    SnapshotReader reader(buffer, buffer_len,                                 \
+                          Snapshot::kMessage, Isolate::Current());            \
+    darttype& serialized_array = darttype::Handle();                          \
+    serialized_array ^= reader.ReadObject();                                  \
+    for (int i = 0; i < kArrayLength; i++) {                                  \
+      EXPECT_EQ(static_cast<ctype>(i), serialized_array.At(i));               \
+    }                                                                         \
+  }
+
+
+#define TEST_EXTERNAL_TYPED_ARRAY(darttype, ctype)                            \
+  {                                                                           \
+    StackZone zone(Isolate::Current());                                       \
+    ctype data[] = { 0, 11, 22, 33, 44, 55, 66, 77 };                         \
+    intptr_t length = ARRAY_SIZE(data);                                       \
+    External##darttype& array = External##darttype::Handle(                   \
+        External##darttype::New(data, length, NULL, NULL));                   \
+    uint8_t* buffer;                                                          \
+    MessageWriter writer(&buffer, &zone_allocator);                           \
+    writer.WriteMessage(array);                                               \
+    intptr_t buffer_len = writer.BytesWritten();                              \
+    SnapshotReader reader(buffer, buffer_len,                                 \
+                          Snapshot::kMessage, Isolate::Current());            \
+    darttype& serialized_array = darttype::Handle();                          \
+    serialized_array ^= reader.ReadObject();                                  \
+    for (int i = 0; i < length; i++) {                                        \
+      EXPECT_EQ(static_cast<ctype>(data[i]), serialized_array.At(i));         \
+    }                                                                         \
+  }
+
+
+TEST_CASE(SerializeTypedArray) {
+  TEST_TYPED_ARRAY(Int8Array, int8_t);
+  TEST_TYPED_ARRAY(Uint8Array, uint8_t);
+  TEST_TYPED_ARRAY(Int16Array, int16_t);
+  TEST_TYPED_ARRAY(Uint16Array, uint16_t);
+  TEST_TYPED_ARRAY(Int32Array, int32_t);
+  TEST_TYPED_ARRAY(Uint32Array, uint32_t);
+  TEST_TYPED_ARRAY(Int64Array, int64_t);
+  TEST_TYPED_ARRAY(Uint64Array, uint64_t);
+  TEST_TYPED_ARRAY(Float32Array, float);
+  TEST_TYPED_ARRAY(Float64Array, double);
+}
+
+
+TEST_CASE(SerializeExternalTypedArray) {
+  TEST_EXTERNAL_TYPED_ARRAY(Int8Array, int8_t);
+  TEST_EXTERNAL_TYPED_ARRAY(Uint8Array, uint8_t);
+  TEST_EXTERNAL_TYPED_ARRAY(Int16Array, int16_t);
+  TEST_EXTERNAL_TYPED_ARRAY(Uint16Array, uint16_t);
+  TEST_EXTERNAL_TYPED_ARRAY(Int32Array, int32_t);
+  TEST_EXTERNAL_TYPED_ARRAY(Uint32Array, uint32_t);
+  TEST_EXTERNAL_TYPED_ARRAY(Int64Array, int64_t);
+  TEST_EXTERNAL_TYPED_ARRAY(Uint64Array, uint64_t);
+  TEST_EXTERNAL_TYPED_ARRAY(Float32Array, float);
+  TEST_EXTERNAL_TYPED_ARRAY(Float64Array, double);
+}
+
+
 TEST_CASE(SerializeEmptyByteArray) {
   StackZone zone(Isolate::Current());
 
@@ -874,8 +945,8 @@ UNIT_TEST_CASE(FullSnapshot) {
 
     // Invoke a function which returns an object.
     Dart_Handle cls =
-        Dart_GetClass(TestCase::lib(), Dart_NewString("FieldsTest"));
-    result = Dart_Invoke(cls, Dart_NewString("testMain"), 0, NULL);
+        Dart_GetClass(TestCase::lib(), NewString("FieldsTest"));
+    result = Dart_Invoke(cls, NewString("testMain"), 0, NULL);
     EXPECT_VALID(result);
     Dart_ExitScope();
   }
@@ -916,8 +987,8 @@ UNIT_TEST_CASE(FullSnapshot1) {
     writer.WriteFullSnapshot();
 
     // Invoke a function which returns an object.
-    Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("FieldsTest"));
-    Dart_Handle result = Dart_Invoke(cls, Dart_NewString("testMain"), 0, NULL);
+    Dart_Handle cls = Dart_GetClass(lib, NewString("FieldsTest"));
+    Dart_Handle result = Dart_Invoke(cls, NewString("testMain"), 0, NULL);
     EXPECT_VALID(result);
   }
 
@@ -933,8 +1004,8 @@ UNIT_TEST_CASE(FullSnapshot1) {
 
     // Invoke a function which returns an object.
     Dart_Handle cls = Dart_GetClass(TestCase::lib(),
-                                    Dart_NewString("FieldsTest"));
-    Dart_Handle result = Dart_Invoke(cls, Dart_NewString("testMain"), 0, NULL);
+                                    NewString("FieldsTest"));
+    Dart_Handle result = Dart_Invoke(cls, NewString("testMain"), 0, NULL);
     if (Dart_IsError(result)) {
       // Print the error.  It is probably an unhandled exception.
       fprintf(stderr, "%s\n", Dart_GetError(result));
@@ -1014,8 +1085,8 @@ UNIT_TEST_CASE(ScriptSnapshot) {
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
 
     // Load the library.
-    Dart_Handle import_lib = Dart_LoadLibrary(Dart_NewString("dart:import-lib"),
-                                              Dart_NewString(kLibScriptChars));
+    Dart_Handle import_lib = Dart_LoadLibrary(NewString("dart:import-lib"),
+                                              NewString(kLibScriptChars));
     EXPECT_VALID(import_lib);
 
     // Create a test library and Load up a test script in it.
@@ -1058,8 +1129,8 @@ UNIT_TEST_CASE(ScriptSnapshot) {
     EXPECT_EQ(expected_num_libs, actual_num_libs);
 
     // Invoke a function which returns an object.
-    Dart_Handle cls = Dart_GetClass(result, Dart_NewString("FieldsTest"));
-    result = Dart_Invoke(cls, Dart_NewString("testMain"), 0, NULL);
+    Dart_Handle cls = Dart_GetClass(result, NewString("FieldsTest"));
+    result = Dart_Invoke(cls, NewString("testMain"), 0, NULL);
     EXPECT_VALID(result);
     Dart_ExitScope();
   }
@@ -1099,7 +1170,7 @@ TEST_CASE(IntArrayMessage) {
 static Dart_CObject* GetDeserializedDartMessage(Dart_Handle lib,
                                                 const char* dart_function) {
   Dart_Handle result;
-  result = Dart_Invoke(lib, Dart_NewString(dart_function), 0, NULL);
+  result = Dart_Invoke(lib, NewString(dart_function), 0, NULL);
   EXPECT_VALID(result);
 
   // Serialize the list into a message.
@@ -1139,13 +1210,13 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
                                              NULL);
   EXPECT_VALID(lib);
   Dart_Handle smi_result;
-  smi_result = Dart_Invoke(lib, Dart_NewString("getSmi"), 0, NULL);
+  smi_result = Dart_Invoke(lib, NewString("getSmi"), 0, NULL);
   EXPECT_VALID(smi_result);
   Dart_Handle bigint_result;
-  bigint_result = Dart_Invoke(lib, Dart_NewString("getBigint"), 0, NULL);
+  bigint_result = Dart_Invoke(lib, NewString("getBigint"), 0, NULL);
   EXPECT_VALID(bigint_result);
   Dart_Handle string_result;
-  string_result = Dart_Invoke(lib, Dart_NewString("getString"), 0, NULL);
+  string_result = Dart_Invoke(lib, NewString("getString"), 0, NULL);
   EXPECT_VALID(string_result);
   EXPECT(Dart_IsString(string_result));
 
@@ -1903,9 +1974,9 @@ UNIT_TEST_CASE(PostCObject) {
   Dart_EnterScope();
 
   // xxx
-  Dart_Handle send_port = Dart_Invoke(lib, Dart_NewString("main"), 0, NULL);
+  Dart_Handle send_port = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(send_port);
-  Dart_Handle result = Dart_GetField(send_port, Dart_NewString("_id"));
+  Dart_Handle result = Dart_GetField(send_port, NewString("_id"));
   ASSERT(!Dart_IsError(result));
   ASSERT(Dart_IsInteger(result));
   int64_t send_port_id;

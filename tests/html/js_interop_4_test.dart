@@ -24,7 +24,7 @@ main() {
   // Test that our interop scheme also works from Dart to Dart.
   test('dart-to-dart-same-isolate', () {
     var fun = expectAsync1((message) {
-      Expect.listEquals(testData, message);
+      expect(message, orderedEquals(testData));
       return message.length;
     });
 
@@ -34,13 +34,13 @@ main() {
 
     var port2 = window.lookupPort('fun');
     var result = port2.callSync(testData);
-    Expect.equals(3, result);
+    expect(result, 3);
   });
 
   // Test across isolate boundary.
   test('dart-to-dart-cross-isolate', () {
     var fun1 = (message) {
-      Expect.listEquals(testData, message);
+      expect(message, orderedEquals(testData));
       return message.length;
     };
 
@@ -51,7 +51,7 @@ main() {
     // TODO(vsm): Investigate why this needs to be called asynchronously.
     var done = expectAsync0(() {});
     var fun2 = (message) {
-      Expect.equals(3, message);
+      expect(message, 3);
       window.setTimeout(done, 0);
     };
 

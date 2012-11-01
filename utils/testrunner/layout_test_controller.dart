@@ -129,6 +129,8 @@ runTextLayoutTest(testNum) {
   var stdout = new List();
   start = new Date.now();
   Process.start(drt, [url]).then((process) {
+    // Drain stderr to not leak resources.
+    process.stderr.onData = process.stderr.read;
     StringInputStream stdoutStringStream =
         new StringInputStream(process.stdout);
     stdoutStringStream.onLine = () {
@@ -213,6 +215,8 @@ runPixelLayoutTest(int testNum) {
   var stdout = new List();
   start = new Date.now();
   Process.start(drt, ["$url'-p"]).then((process) {
+    // Drain stderr to not leak resources.
+    process.stderr.onData = process.stderr.read;
     ListInputStream stdoutStream = process.stdout;
     stdoutStream.onData = () {
       if (!stdoutStream.closed) {

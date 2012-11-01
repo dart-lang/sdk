@@ -8,10 +8,15 @@ import "dart:uri";
 
 import "../../../lib/compiler/implementation/elements/elements.dart";
 import "../../../lib/compiler/implementation/tree/tree.dart";
-import '../../../lib/compiler/implementation/scanner/scannerlib.dart';
+import "../../../lib/compiler/implementation/scanner/scannerlib.dart";
 import "../../../lib/compiler/implementation/dart2jslib.dart" hide SourceString;
 import "../../../lib/compiler/implementation/source_file.dart";
 import "../../../lib/compiler/implementation/util/util.dart";
+
+export "../../../lib/compiler/implementation/dart2jslib.dart"
+       show DiagnosticListener;
+// TODO(ahe): We should have token library to export instead.
+export "../../../lib/compiler/implementation/scanner/scannerlib.dart";
 
 class LoggerCanceler implements DiagnosticListener {
   void cancel(String reason, {node, token, instruction, element}) {
@@ -25,16 +30,18 @@ class LoggerCanceler implements DiagnosticListener {
 
 Token scan(String text) => new StringScanner(text).tokenize();
 
-Node parseBodyCode(String text, Function parseMethod) {
+Node parseBodyCode(String text, Function parseMethod,
+                   {DiagnosticListener diagnosticHandler}) {
   Token tokens = scan(text);
-  LoggerCanceler lc = new LoggerCanceler();
+  if (diagnosticHandler == null) diagnosticHandler = new LoggerCanceler();
   Script script =
       new Script(
           new Uri.fromComponents(scheme: "source"),
           new MockFile(text));
   LibraryElement library = new LibraryElement(script);
   library.canUseNative = true;
-  NodeListener listener = new NodeListener(lc, library.entryCompilationUnit);
+  NodeListener listener =
+      new NodeListener(diagnosticHandler, library.entryCompilationUnit);
   Parser parser = new Parser(listener);
   Token endToken = parseMethod(parser, tokens);
   assert(endToken.kind == EOF_TOKEN);
@@ -54,8 +61,10 @@ Node parseFunction(String text, Compiler compiler) {
   return element.parseNode(compiler);
 }
 
-Node parseMember(String text) =>
-    parseBodyCode(text, (parser, tokens) => parser.parseMember(tokens));
+Node parseMember(String text, {DiagnosticListener diagnosticHandler}) {
+  return parseBodyCode(text, (parser, tokens) => parser.parseMember(tokens),
+                       diagnosticHandler: diagnosticHandler);
+}
 
 class MockFile extends SourceFile {
   MockFile(text)

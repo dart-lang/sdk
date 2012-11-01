@@ -9,7 +9,7 @@
  * 'http://go/generate_datetime_pattern_dart.cc' (Google internal)
  */
 
-#library('date_time_patterns');
+library date_time_patterns;
 
 /**
  * Returns a Map from locale names to another Map that goes from skeletons

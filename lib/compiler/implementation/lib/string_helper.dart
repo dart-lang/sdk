@@ -13,7 +13,7 @@ class StringMatch implements Match {
 
   String group(int group_) {
     if (group_ != 0) {
-      throw new IndexOutOfRangeException(group_);
+      throw new RangeError.value(group_);
     }
     return pattern;
   }
@@ -105,7 +105,7 @@ stringReplaceAllUnchecked(receiver, from, to) {
   } else {
     checkNull(from);
     // TODO(floitsch): implement generic String.replace (with patterns).
-    throw "StringImplementation.replaceAll(Pattern) UNIMPLEMENTED";
+    throw "String.replaceAll(Pattern) UNIMPLEMENTED";
   }
 }
 
@@ -118,7 +118,7 @@ stringReplaceFirstUnchecked(receiver, from, to) {
   } else {
     checkNull(from);
     // TODO(floitsch): implement generic String.replace (with patterns).
-    throw "StringImplementation.replace(Pattern) UNIMPLEMENTED";
+    throw "String.replace(Pattern) UNIMPLEMENTED";
   }
 }
 
@@ -129,7 +129,7 @@ stringSplitUnchecked(receiver, pattern) {
     var re = regExpGetNative(pattern);
     return JS('List', r'#.split(#)', receiver, re);
   } else {
-    throw "StringImplementation.split(Pattern) UNIMPLEMENTED";
+    throw "String.split(Pattern) UNIMPLEMENTED";
   }
 }
 

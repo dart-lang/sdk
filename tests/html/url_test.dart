@@ -38,7 +38,7 @@ main() {
       var blob = createImageBlob();
       var url = window.createObjectUrl(blob);
       expect(url.length, greaterThan(0));
-      expect(url.startsWith('blob:'));
+      expect(url, startsWith('blob:'));
 
       var img = new ImageElement();
       img.on.load.add(expectAsync1((_) {
@@ -46,7 +46,7 @@ main() {
       }));
       img.on.error.add((_) {
         guardAsync(() {
-          expect(true, isFalse, 'URL failed to load.');
+          expect(true, isFalse, reason: 'URL failed to load.');
         });
       });
       img.src = url;
@@ -55,7 +55,7 @@ main() {
     test('revokeObjectUrl', () {
       var blob = createImageBlob();
       var url = window.createObjectUrl(blob);
-      expect(url.startsWith('blob:'));
+      expect(url, startsWith('blob:'));
       window.revokeObjectUrl(url);
 
       var img = new ImageElement();
@@ -64,7 +64,7 @@ main() {
       }));
       img.on.load.add((_) {
         guardAsync(() {
-          expect(true, isFalse, 'URL should not have loaded.');
+          expect(true, isFalse, reason: 'URL should not have loaded.');
         });
       });
       img.src = url;

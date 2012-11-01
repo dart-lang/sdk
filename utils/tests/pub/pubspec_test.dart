@@ -36,9 +36,9 @@ dependencies:
 
         var foo = pubspec.dependencies[0];
         expect(foo.name, equals('foo'));
-        expect(foo.constraint.allows(new Version(1, 2, 3)));
-        expect(foo.constraint.allows(new Version(1, 2, 5)));
-        expect(!foo.constraint.allows(new Version(3, 4, 5)));
+        expect(foo.constraint.allows(new Version(1, 2, 3)), isTrue);
+        expect(foo.constraint.allows(new Version(1, 2, 5)), isTrue);
+        expect(foo.constraint.allows(new Version(3, 4, 5)), isFalse);
       });
 
       test("throws if the description isn't valid", () {

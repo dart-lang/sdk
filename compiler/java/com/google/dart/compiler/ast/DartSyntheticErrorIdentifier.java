@@ -26,7 +26,4 @@ public class DartSyntheticErrorIdentifier extends DartIdentifier {
     return tokenString;
   }
 
-  @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
-  }
 }

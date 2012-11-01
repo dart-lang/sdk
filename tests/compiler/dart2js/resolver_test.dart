@@ -5,7 +5,7 @@
 import 'dart:uri';
 
 import "../../../lib/compiler/implementation/dart2jslib.dart"
-    hide TreeElementMapping, TreeElements;
+    hide TreeElementMapping, TreeElements, SourceString;
 import "../../../lib/compiler/implementation/resolution/resolution.dart";
 import "../../../lib/compiler/implementation/elements/elements.dart";
 import "../../../lib/compiler/implementation/tree/tree.dart";

@@ -10,9 +10,12 @@
 main() {
   useHtmlConfiguration();
 
+  var isArrayBuffer =
+      predicate((x) => x is ArrayBuffer, 'is an ArrayBuffer');
+
   test('TransferableTest', () {
     window.on.message.add(expectAsync1((messageEvent) {
-      expect(messageEvent.data, new isInstanceOf<ArrayBuffer>());
+      expect(messageEvent.data, isArrayBuffer);
     }));
     final buffer = (new Float32Array(3)).buffer;
     window.postMessage(buffer, '*', [buffer]);

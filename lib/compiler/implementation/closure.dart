@@ -45,9 +45,7 @@ class ClosureTask extends CompilerTask {
     return measure(() {
       ClosureClassMap nestedClosureData = closureMappingCache[node];
       if (nestedClosureData == null) {
-        // TODO(floitsch): we can only assume that the reason for not having a
-        // closure data here is, because the function is inside an initializer.
-        compiler.unimplemented("Closures inside initializers", node: node);
+        compiler.internalError("No closure cache", node: node);
       }
       return nestedClosureData;
     });
@@ -366,8 +364,7 @@ class ClosureTranslator extends Visitor {
   }
 
   visitNewExpression(NewExpression node) {
-    TypeAnnotation annotation = node.send.getTypeAnnotation();
-    DartType type = elements.getType(annotation);
+    DartType type = elements.getType(node);
 
     bool hasTypeVariable(DartType type) {
       if (type is TypeVariableType) {
@@ -611,9 +608,8 @@ class ClosureTranslator extends Visitor {
       // TODO(ahe): This is problematic. The backend should not repeat
       // the work of the resolver. It is the resolver's job to create
       // parameters, etc. Other phases should only visit statements.
-      // TODO(floitsch): we avoid visiting the initializers on purpose so that
-      // we get an error-message later in the builder.
       if (node.parameters != null) node.parameters.accept(this);
+      if (node.initializers != null) node.initializers.accept(this);
       if (node.body != null) node.body.accept(this);
     });
   }

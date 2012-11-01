@@ -7,7 +7,7 @@
  * rather than confined to specific parts of it.
  */
 
-#library("intl_helpers");
+library intl_helpers;
 
 /**
  * This is used as a marker for a locale data map that hasn't been initialized,
@@ -39,7 +39,7 @@ class LocaleDataException implements Exception {
  *  An abstract superclass for data readers to keep the type system happy.
  */
 abstract class LocaleDataReader {
-  abstract Future read(String locale);
+  Future read(String locale);
 }
 
 /**

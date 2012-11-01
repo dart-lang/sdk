@@ -333,7 +333,8 @@ class ResolverTask extends CompilerTask {
   TreeElements resolveField(VariableElement element) {
     Node tree = element.parseNode(compiler);
     if(element.modifiers.isStatic() && element.variables.isTopLevel()) {
-      error(element.modifiers.getStatic(), MessageKind.TOP_LEVEL_VARIABLE_DECLARED_STATIC);
+      error(element.modifiers.getStatic(),
+            MessageKind.TOP_LEVEL_VARIABLE_DECLARED_STATIC);
     }
     ResolverVisitor visitor = visitorFor(element);
     initializerDo(tree, visitor.visit);
@@ -1058,23 +1059,21 @@ class TypeResolver {
   // flags instead of closures.
   // TODO(johnniwinther): Should never return [null] but instead an erroneous
   // type.
-  DartType resolveTypeAnnotation(TypeAnnotation node,
-                                 {Scope inScope, ClassElement inClass,
-                                 onFailure(Node, MessageKind, [List arguments]),
-                                 whenResolved(Node, Type)}) {
+  DartType resolveTypeAnnotation(
+      TypeAnnotation node,
+      Scope scope,
+      {onFailure(Node node, MessageKind kind, [List arguments]),
+       whenResolved(Node node, DartType type)}) {
     if (onFailure == null) {
       onFailure = (n, k, [arguments]) {};
     }
     if (whenResolved == null) {
       whenResolved = (n, t) {};
     }
-    if (inClass != null) {
-      inScope = inClass.buildScope();
-    }
-    if (inScope == null) {
+    if (scope == null) {
       compiler.internalError('resolveTypeAnnotation: no scope specified');
     }
-    return resolveTypeAnnotationInContext(inScope, node, onFailure,
+    return resolveTypeAnnotationInContext(scope, node, onFailure,
                                           whenResolved);
   }
 
@@ -1699,15 +1698,18 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     Selector selector = mapping.getSelector(node);
     if (selector == null) return;
 
-    // If we don't know what we're calling or if we are calling a getter,
-    // we need to register that fact that we may be calling a closure
-    // with the same arguments.
-    if (node.isCall &&
-        (Elements.isUnresolved(target) ||
-         target.isGetter() ||
-         Elements.isClosureSend(node, target))) {
-      Selector call = new Selector.callClosureFrom(selector);
-      world.registerDynamicInvocation(call.name, call);
+    if (node.isCall) {
+      if (Elements.isUnresolved(target) ||
+          target.isGetter() ||
+          Elements.isClosureSend(node, target)) {
+        // If we don't know what we're calling or if we are calling a getter,
+        // we need to register that fact that we may be calling a closure
+        // with the same arguments.
+        Selector call = new Selector.callClosureFrom(selector);
+        world.registerDynamicInvocation(call.name, call);
+      } else if (!selector.applies(target, compiler)) {
+        warnArgumentMismatch(node, target);
+      }
     }
 
     // TODO(ngeoffray): Warn if target is null and the send is
@@ -1715,6 +1717,13 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     useElement(node, target);
     registerSend(selector, target);
     return node.isPropertyAccess ? target : null;
+  }
+
+  void warnArgumentMismatch(Send node, Element target) {
+    // TODO(karlklose): we can be more precise about the reason of the
+    // mismatch.
+    warning(node.argumentsNode, MessageKind.INVALID_ARGUMENTS,
+            [target.name]);
   }
 
   visitSendSet(SendSet node) {
@@ -1917,31 +1926,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
    * [null], if there is no corresponding constructor, class or library.
    */
   FunctionElement resolveConstructor(NewExpression node) {
-    // Resolve the constructor that [node] refers to.
-    ConstructorResolver visitor =
-        new ConstructorResolver(compiler, this, node.isConst());
-    FunctionElement constructor = node.accept(visitor);
-    // Try to resolve the type that the new-expression constructs.
-    TypeAnnotation annotation = node.send.getTypeAnnotation();
-    if (Elements.isUnresolved(constructor)) {
-      // Resolve the type arguments. We cannot create a type and check the
-      // number of type arguments for this annotation, because we do not know
-      // the element.
-      Link arguments = const Link<Node>();
-      if (annotation.typeArguments != null) {
-        arguments = annotation.typeArguments.nodes;
-      }
-      for (Node argument in arguments) {
-        resolveTypeRequired(argument);
-      }
-    } else {
-      // Resolve and store the type this annotation resolves to. The type
-      // is used in the backend, e.g., for creating runtime type information.
-      // TODO(karlklose): This will resolve the class element again. Refactor
-      // so we can use the TypeResolver.
-      resolveTypeRequired(annotation);
-    }
-    return constructor;
+    return node.accept(new ConstructorResolver(compiler, this));
   }
 
   DartType resolveTypeRequired(TypeAnnotation node) {
@@ -1971,10 +1956,21 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   DartType resolveTypeAnnotation(TypeAnnotation node) {
+    // TODO(johnniwinther): Remove this together with the named arguments
+    // on [TypeResolver.resolveTypeAnnotation].
+    void checkAndUseType(TypeAnnotation annotation, DartType type) {
+      useType(annotation, type);
+      if (type != null &&
+          identical(type.kind, TypeKind.TYPE_VARIABLE) &&
+          enclosingElement.isInStaticMember()) {
+        warning(annotation, MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
+                [type]);
+      }
+    }
+
     Function report = typeRequired ? error : warning;
-    DartType type = typeResolver.resolveTypeAnnotation(node, inScope: scope,
-                                                       onFailure: report,
-                                                       whenResolved: useType);
+    DartType type = typeResolver.resolveTypeAnnotation(
+        node, scope, onFailure: report, whenResolved: checkAndUseType);
     if (type == null) return null;
     if (inCheckContext) {
       compiler.enqueuer.resolution.registerIsCheck(type);
@@ -2339,7 +2335,7 @@ class TypeDefinitionVisitor extends CommonResolverVisitor<DartType> {
       TypeVariableElement variableElement = typeVariable.element;
       if (typeNode.bound != null) {
         DartType boundType = typeResolver.resolveTypeAnnotation(
-            typeNode.bound, inScope: scope, onFailure: warning);
+            typeNode.bound, scope, onFailure: warning);
         if (boundType != null && boundType.element == variableElement) {
           // TODO(johnniwinther): Check for more general cycles, like
           // [: <A extends B, B extends C, C extends B> :].
@@ -2868,13 +2864,10 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
 
 class ConstructorResolver extends CommonResolverVisitor<Element> {
   final ResolverVisitor resolver;
-  // TODO(ngeoffray): have this context at the call site.
-  final bool inConstContext;
+  bool inConstContext = false;
+  DartType type;
 
-  ConstructorResolver(Compiler compiler,
-                      this.resolver,
-                      this.inConstContext)
-      : super(compiler);
+  ConstructorResolver(Compiler compiler, this.resolver) : super(compiler);
 
   visitNode(Node node) {
     throw 'not supported';
@@ -2927,6 +2920,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
   }
 
   visitNewExpression(NewExpression node) {
+    inConstContext = node.isConst();
     Node selector = node.send.selector;
     Element e = visit(selector);
     if (!Elements.isUnresolved(e) && identical(e.kind, ElementKind.CLASS)) {
@@ -2937,11 +2931,21 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
       }
       e = lookupConstructor(cls, selector, const SourceString(''));
     }
+    if (type == null) {
+      if (Elements.isUnresolved(e)) {
+        type = compiler.dynamicClass.computeType(compiler);
+      } else {
+        type = e.getEnclosingClass().computeType(compiler).asRaw();
+      }
+    }
+    resolver.mapping.setType(node, type);
     return e;
   }
 
   visitTypeAnnotation(TypeAnnotation node) {
-    return visit(node.typeName);
+    assert(invariant(node, type == null));
+    type = resolver.resolveTypeRequired(node);
+    return resolver.mapping[node];
   }
 
   visitSend(Send node) {

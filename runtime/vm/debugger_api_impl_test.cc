@@ -31,8 +31,8 @@ static void SetBreakpointAtEntry(const char* cname, const char* fname) {
   ASSERT(Dart_IsLibrary(script_lib));
   Dart_Breakpoint bpt;
   Dart_Handle res = Dart_SetBreakpointAtEntry(script_lib,
-                        Dart_NewString(cname),
-                        Dart_NewString(fname),
+                        NewString(cname),
+                        NewString(fname),
                         &bpt);
   EXPECT_VALID(res);
 }
@@ -42,7 +42,7 @@ static Dart_Handle Invoke(const char* func_name) {
   ASSERT(script_lib != NULL);
   ASSERT(!Dart_IsError(script_lib));
   ASSERT(Dart_IsLibrary(script_lib));
-  return Dart_Invoke(script_lib, Dart_NewString(func_name), 0, NULL);
+  return Dart_Invoke(script_lib, NewString(func_name), 0, NULL);
 }
 
 
@@ -632,9 +632,9 @@ static void ExprClosureBreakpointHandler(Dart_IsolateId isolate_id,
                                          Dart_StackTrace trace) {
   static const char* expected_trace[] = {"add", "main"};
   Dart_Handle add_locals = Dart_NewList(4);
-  Dart_ListSetAt(add_locals, 0, Dart_NewString("a"));
+  Dart_ListSetAt(add_locals, 0, NewString("a"));
   Dart_ListSetAt(add_locals, 1, Dart_NewInteger(10));
-  Dart_ListSetAt(add_locals, 2, Dart_NewString("b"));
+  Dart_ListSetAt(add_locals, 2, NewString("b"));
   Dart_ListSetAt(add_locals, 3, Dart_NewInteger(20));
   Dart_Handle expected_locals[] = {add_locals, Dart_Null()};
   breakpoint_hit_counter++;
@@ -657,7 +657,7 @@ TEST_CASE(Debug_ExprClosureBreakpoint) {
   LoadScript(kScriptChars);
   Dart_SetBreakpointHandler(&ExprClosureBreakpointHandler);
 
-  Dart_Handle script_url = Dart_NewString(TestCase::url());
+  Dart_Handle script_url = NewString(TestCase::url());
   intptr_t line_no = 5;  // In closure 'add'.
   Dart_Handle res = Dart_SetBreakpoint(script_url, line_no);
   EXPECT_VALID(res);
@@ -723,7 +723,7 @@ TEST_CASE(Debug_DeleteBreakpoint) {
 
   LoadScript(kScriptChars);
 
-  Dart_Handle script_url = Dart_NewString(TestCase::url());
+  Dart_Handle script_url = NewString(TestCase::url());
   intptr_t line_no = 4;  // In function 'foo'.
 
   Dart_SetBreakpointHandler(&DeleteBreakpointHandler);
@@ -751,7 +751,7 @@ static void InspectStaticFieldHandler(Dart_IsolateId isolate_id,
   ASSERT(script_lib != NULL);
   ASSERT(!Dart_IsError(script_lib));
   ASSERT(Dart_IsLibrary(script_lib));
-  Dart_Handle class_A = Dart_GetClass(script_lib, Dart_NewString("A"));
+  Dart_Handle class_A = Dart_GetClass(script_lib, NewString("A"));
   EXPECT_VALID(class_A);
 
   const int expected_num_fields = 2;
@@ -1015,7 +1015,7 @@ TEST_CASE(Debug_LookupSourceLine) {
     }
   }
 
-  Dart_Handle lib_url = Dart_NewString(TestCase::url());
+  Dart_Handle lib_url = NewString(TestCase::url());
   Dart_Handle source = Dart_GetScriptSource(lib_url, lib_url);
   EXPECT(Dart_IsString(source));
   char const* source_chars;
@@ -1040,8 +1040,8 @@ TEST_CASE(GetLibraryURLs) {
   EXPECT_NOTSUBSTRING(TestCase::url(), list_cstr);
 
   // Load a script.
-  Dart_Handle url = Dart_NewString(TestCase::url());
-  Dart_Handle source = Dart_NewString(kScriptChars);
+  Dart_Handle url = NewString(TestCase::url());
+  Dart_Handle source = NewString(kScriptChars);
   EXPECT_VALID(Dart_LoadScript(url, source));
 
   lib_list = Dart_GetLibraryURLs();

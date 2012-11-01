@@ -19,7 +19,7 @@ eventTest(String name, Event eventFn(), void validate(Event),
       validate(ev);
     });
     el.on[type].dispatch(eventFn());
-    Expect.isTrue(fired, 'Expected event to be dispatched.');
+    expect(fired, isTrue, reason: 'Expected event to be dispatched.');
   });
 }
 
@@ -29,33 +29,33 @@ main() {
   // Issue 1005.
   // eventTest('AnimationEvent', () => new AnimationEvent('foo', 'color', 0.5),
   //     (ev) {
-  //   Expect.equals('color', ev.animationName);
-  //   Expect.equals(0.5, ev.elapsedTime);
+  //   expect(ev.animationName, 'color');
+  //   expect(ev.elapsedTime, 0.5);
   // });
 
   // Issue 1005.
   // eventTest('BeforeLoadEvent',
   //    () => new BeforeLoadEvent('foo', 'http://example.url'),
-  //    (ev) { Expect.equals('http://example.url', ev.url); });
+  //    (ev) { expect(ev.url, 'http://example.url'); });
 
   // Issue 1005.
   // eventTest('CloseEvent',
   //     () => new CloseEvent('foo', 5, 'reason', wasClean: true),
   //     (ev) {
-  //   Expect.equals(5, ev.code);
-  //   Expect.equals('reason', ev.reason);
-  //   Expect.isTrue(ev.wasClean);
+  //   expect(ev.code, 5);
+  //   expect(ev.reason, 'reason');
+  //   expect(ev.wasClean, isTrue);
   // });
 
   eventTest('CompositionEvent',
       () => new CompositionEvent('compositionstart', window, 'data'),
-      (ev) { Expect.equals('data', ev.data); },
+      (ev) { expect(ev.data, 'data'); },
       type: 'compositionstart');
 
   // initCustomEvent is not yet implemented
   // eventTest('CustomEvent',
   //     () => new CustomEvent('foo', false, false, 'detail'),
-  //     (ev) { Expect.equals('detail', ev.detail); });
+  //     (ev) { expect(ev.detail, 'detail'); });
 
   // DeviceMotionEvent has no properties to itself, so just test that it doesn't
   // error out on creation and can be dispatched.
@@ -65,46 +65,46 @@ main() {
   // eventTest('DeviceOrientationEvent',
   //     () => new DeviceOrientationEvent('foo', 0.1, 0.2, 0.3),
   //     (ev) {
-  //   Expect.equals(0.1, ev.alpha);
-  //   Expect.equals(0.2, ev.beta);
-  //   Expect.equals(0.3, ev.gamma);
+  //   expect(ev.alpha, 0.1);
+  //   expect(ev.beta, 0.2);
+  //   expect(ev.gamma, 0.3);
   // });
 
   // Issue 1005.
   // eventTest('ErrorEvent',
   //     () => new ErrorEvent('foo', 'message', 'filename', 10),
   //     (ev) {
-  //   Expect.equals('message', ev.message);
-  //   Expect.equals('filename', ev.filename);
-  //   Expect.equals(10, ev.lineno);
+  //   expect('message', ev.message);
+  //   expect('filename', ev.filename);
+  //   expect(ev.lineno, 10);
   // });
 
   eventTest('Event',
       () => new Event('foo', canBubble: false, cancelable: false),
       (ev) {
-    Expect.equals('foo', ev.type);
-    Expect.isFalse(ev.bubbles);
-    Expect.isFalse(ev.cancelable);
+    expect(ev.type, equals('foo'));
+    expect(ev.bubbles, isFalse);
+    expect(ev.cancelable, isFalse);
   });
 
   eventTest('HashChangeEvent',
       () => new HashChangeEvent('foo', 'http://old.url', 'http://new.url'),
       (ev) {
-    Expect.equals('http://old.url', ev.oldURL);
-    Expect.equals('http://new.url', ev.newURL);
+    expect(ev.oldURL, equals('http//old.url'));
+    expect(ev.newURL, equals('http://new.url'));
   });
 
   eventTest('KeyboardEvent',
       () => new KeyboardEvent('foo', window, 'key', 10, ctrlKey: true,
           altKey: true, shiftKey: true, metaKey: true, altGraphKey: true),
       (ev) {
-    Expect.equals('key', ev.keyIdentifier);
-    Expect.equals(10, ev.keyLocation);
-    Expect.isTrue(ev.ctrlKey);
-    Expect.isTrue(ev.altKey);
-    Expect.isTrue(ev.shiftKey);
-    Expect.isTrue(ev.metaKey);
-    Expect.isTrue(ev.altGraphKey);
+    expect.equals(ev.keyIdentifier, equals('key'));
+    expect.equals(ev.keyLocation, equals(10));
+    expect(ev.ctrlKey, isTrue);
+    expect(ev.altKey, isTrue);
+    expect(ev.shiftKey, isTrue);
+    expect(ev.metaKey, isTrue);
+    expect(ev.altGraphKey, isTrue);
   });
 
   eventTest('MouseEvent',
@@ -114,30 +114,30 @@ main() {
           cancelable: true, ctrlKey: true, altKey: true, shiftKey: true,
           metaKey: true, relatedTarget: new Element.tag('div')),
       (ev) {
-    Expect.equals(1, ev.detail);
-    Expect.equals(2, ev.screenX);
-    Expect.equals(3, ev.screenY);
-    Expect.equals(4, ev.clientX);
-    Expect.equals(5, ev.clientY);
-    Expect.equals(4, ev.offsetX);  // Same as clientX.
-    Expect.equals(5, ev.offsetY);  // Same as clientY.
-    Expect.equals(6, ev.button);
-    Expect.isTrue(ev.ctrlKey);
-    Expect.isTrue(ev.altKey);
-    Expect.isTrue(ev.shiftKey);
-    Expect.isTrue(ev.metaKey);
-    Expect.equals('DIV', ev.relatedTarget.tagName);
+    expect(ev.detail, 1);
+    expect(ev.screenX, 2);
+    expect(ev.screenYi, 3);
+    expect(ev.clientX, 4);
+    expect(ev.clientY, 5);
+    expect(ev.offsetX, 4);  // Same as clientX.
+    expect(ev.offsetY, 5);  // Same as clientY.
+    expect(ev.button, 6);
+    expect(ev.ctrlKey, isTrue);
+    expect(ev.altKey, isTrue);
+    expect(ev.shiftKey, isTrue);
+    expect(ev.metaKey, isTrue);
+    expect(ev.relatedTarget.tagName, 'DIV');
   });
 
   eventTest('MutationEvent',
       () => new MutationEvent('foo', new Element.tag('div'), 'red', 'blue',
           'color', MutationEvent.MODIFICATION),
       (ev) {
-    Expect.equals('DIV', ev.relatedNode.tagName);
-    Expect.equals('red', ev.prevValue);
-    Expect.equals('blue', ev.newValue);
-    Expect.equals('color', ev.attrName);
-    Expect.equals(MutationEvent.MODIFICATION, ev.attrChange);
+    expect(ev.relatedNode.tagName, 'DIV');
+    expect.equals(ev.prevValue, 'red');
+    expect.equals(ev.newValue, 'blue');
+    expect.equals(ev.attrName, 'color');
+    expect.equals(ev.attrChange, equals(MutationEvent.MODIFICATION));
   });
 
   test('DOMMutationEvent', () {
@@ -150,19 +150,19 @@ main() {
   // eventTest('OverflowEvent',
   //     () => new OverflowEvent(OverflowEvent.BOTH, true, true),
   //     (ev) {
-  //   Expect.equals(OverflowEvent.BOTH, ev.orient);
-  //   Expect.isTrue(ev.horizontalOverflow);
-  //   Expect.isTrue(ev.verticalOverflow);
+  //   expect(ev.orient, OverflowEvent.BOTH);
+  //   expect(ev.horizontalOverflow, isTrue);
+  //   expect(ev.verticalOverflow, isTrue);
   // }, type: 'overflowchanged');
 
   // Issue 1005.
   // eventTest('PageTransitionEvent',
   //     () => new PageTransitionEvent('foo', persisted: true),
-  //     (ev) { Expect.isTrue(ev.persisted); });
+  //     (ev) { expect(ev.persisted, isTrue); });
 
   // initPopStateEvent is not yet implemented
   // eventTest('PopStateEvent', () => new PopStateEvent('foo', 'state'),
-  //     (ev) { Expect.equals('state', ev.state); }
+  //     (ev) { expect(ev.state, 'state'); }
 
   // Issue 1005.
   // eventTest('ProgressEvent',
@@ -171,9 +171,9 @@ main() {
   //     () => new ProgressEvent('foo', 5, canBubble: true, cancelable: true,
   //         lengthComputable: true, total: 10),
   //     (ev) {
-  //   Expect.equals(5, ev.loaded);
-  //   Expect.isTrue(ev.lengthComputable);
-  //   Expect.equals(10, ev.total);
+  //   expect(ev.loaded, 5);
+  //   expect(ev.lengthComputable, isTrue);
+  //   expect(ev.total, 10);
   // });
 
   eventTest('StorageEvent',
@@ -181,28 +181,28 @@ main() {
           window.localStorage, canBubble: true, cancelable: true,
           oldValue: 'old', newValue: 'new'),
       (ev) {
-    Expect.equals('key', ev.key);
-    Expect.equals('http://example.url', ev.url);
+    expect(ev.key, 'key');
+    expect(ev.url, 'http://example.url');
     // Equality isn't preserved for storageArea
-    Expect.isNotNull(ev.storageArea);
-    Expect.equals('old', ev.oldValue);
-    Expect.equals('new', ev.newValue);
+    expect.isNotNull(ev.storageArea);
+    expect(ev.oldValue, 'old');
+    expect(ev.newValue, 'new');
   });
 
   eventTest('TextEvent', () => new TextEvent('foo', window, 'data'),
-      (ev) { Expect.equals('data', ev.data); });
+      (ev) { expect(ev.data, 'data'); });
 
   // Issue 1005.
   // eventTest('TransitionEvent', () => new TransitionEvent('foo', 'color', 0.5),
   //     (ev) {
-  //   Expect.equals('color', ev.propertyName);
-  //   Expect.equals(0.5, ev.elapsedTime);
+  //   expect(ev.propertyName, 'color');
+  //   expect(ev.elapsedTime, 0.5);
   // });
 
   eventTest('UIEvent', () => new UIEvent('foo', window, 12),
       (ev) {
-    Expect.equals(window, ev.view);
-    Expect.equals(12, ev.detail);
+    expect(window, ev.view, window);
+    expect(12, ev.detail, 12);
   });
 
   eventTest('WheelEvent',
@@ -210,16 +210,16 @@ main() {
           altKey: true, shiftKey: true, metaKey: true),
       (ev) {
     // wheelDelta* properties are multiplied by 120 for some reason
-    Expect.equals(120, ev.wheelDeltaX);
-    Expect.equals(240, ev.wheelDeltaY);
-    Expect.equals(3, ev.screenX);
-    Expect.equals(4, ev.screenY);
-    Expect.equals(5, ev.clientX);
-    Expect.equals(6, ev.clientY);
-    Expect.isTrue(ev.ctrlKey);
-    Expect.isTrue(ev.altKey);
-    Expect.isTrue(ev.shiftKey);
-    Expect.isTrue(ev.metaKey);
+    expect(ev.wheelDeltaX, 120);
+    expect(ev.wheelDeltaY, 240);
+    expect(ev.screenX, 3);
+    expect(ev.screenY, 4);
+    expect(ev.clientX, 5);
+    expect(ev.clientY, 6);
+    expect(ev.ctrlKey, isTrue);
+    expect(ev.altKey, isTrue);
+    expect(ev.shiftKey, isTrue);
+    expect(ev.metaKey, isTrue);
   }, type: 'mousewheel');
 
   // HttpRequestProgressEvent has no properties to itself, so just test that

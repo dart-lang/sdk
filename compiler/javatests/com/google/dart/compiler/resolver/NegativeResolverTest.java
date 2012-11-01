@@ -246,20 +246,6 @@ public class NegativeResolverTest extends CompilerTestCase {
   }
 
   /**
-   * Section 7.8: It is a compile-time error if the extends clause of a class C includes a type
-   * expression that does not denote a class available in the lexical scope of C.
-   */
-  public void test_classExtendsInterface() {
-    checkSourceErrors(
-        makeCode(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "interface I {}",
-            "class A extends I {",
-            "}"),
-        errEx(ResolverErrorCode.NOT_A_CLASS, 3, 17, 1));
-  }
-
-  /**
    * Class can implement class, this causes implementation of an implicit interface.
    */
   public void test_classImplementsClass() {
@@ -267,17 +253,6 @@ public class NegativeResolverTest extends CompilerTestCase {
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {}",
         "class B implements A {",
-        "}"));
-  }
-
-  /**
-   * Interface can extend class, this causes implementation of an implicit interface.
-   */
-  public void test_interfaceExtendsClass() {
-    checkSourceErrors(makeCode(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {}",
-        "interface B extends A {",
         "}"));
   }
 
@@ -341,7 +316,7 @@ public class NegativeResolverTest extends CompilerTestCase {
     checkSourceErrors(
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler",
-            "get foo() {}",
+            "get foo {}",
             "set bar(x) {}",
             "class foo {}",
             "class bar{}"),
@@ -355,7 +330,7 @@ public class NegativeResolverTest extends CompilerTestCase {
             "// filler filler filler filler filler filler filler filler filler filler",
             "class foo {}",
             "class bar {}",
-            "get foo() {}",
+            "get foo {}",
             "set bar(x) {}"),
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 2, 7, 3),
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 4, 5, 3));
@@ -370,7 +345,7 @@ public class NegativeResolverTest extends CompilerTestCase {
   public void test_nameShadow_topLevel_getter_setter() {
     checkSourceErrors(makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "get bar() {}",
+        "get bar {}",
         "set bar(x) {}"));
   }
 
@@ -378,7 +353,7 @@ public class NegativeResolverTest extends CompilerTestCase {
     checkSourceErrors(makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
         "set bar(x) {}",
-        "get bar() {}"));
+        "get bar {}"));
   }
   
   public void test_nameShadow_topLevel_setter_variable() {
@@ -405,8 +380,8 @@ public class NegativeResolverTest extends CompilerTestCase {
     checkSourceErrors(
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler",
-            "get bar() {}",
-            "get bar() {}"),
+            "get bar {}",
+            "get bar {}"),
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 2, 5, 3),
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 5, 3));
     assertEquals(
@@ -648,7 +623,7 @@ public class NegativeResolverTest extends CompilerTestCase {
   public void test_nameShadow_field_interfaceMethodParameter() {
     checkSourceErrors(makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "interface A {",
+        "abstract class A {",
         "  var a;",
         "  foo(a);",
         "}"));
@@ -681,7 +656,7 @@ public class NegativeResolverTest extends CompilerTestCase {
             "// filler filler filler filler filler filler filler filler filler filler",
             "class A {",
             "  set foo(x) {}",
-            "  get foo() {}",
+            "  get foo {}",
             "  var foo;",
             "}"),
         errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 7, 3),
@@ -737,7 +712,7 @@ public class NegativeResolverTest extends CompilerTestCase {
             "// filler filler filler filler filler filler filler filler filler filler",
             "class A {",
             "  var foo;",
-            "  get foo() {}",
+            "  get foo {}",
             "}"),
         errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 7, 3),
         errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 7, 3));
@@ -751,9 +726,9 @@ public class NegativeResolverTest extends CompilerTestCase {
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler",
             "class A {",
-            "  get foo() {}",
+            "  get foo {}",
             "  set foo(x) {}",
-            "  get foo() {}",
+            "  get foo {}",
             "}"),
         errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 7, 3),
         errEx(ResolverErrorCode.DUPLICATE_MEMBER, 5, 7, 3));
@@ -768,7 +743,7 @@ public class NegativeResolverTest extends CompilerTestCase {
             "// filler filler filler filler filler filler filler filler filler filler",
             "class A {",
             "  set foo(x) {}",
-            "  get foo() {}",
+            "  get foo {}",
             "  set foo(x) {}",
             "}"),
         errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 7, 3),
@@ -783,7 +758,7 @@ public class NegativeResolverTest extends CompilerTestCase {
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler",
             "class A {",
-            "  get foo() {}",
+            "  get foo {}",
             "  var foo;",
             "}"),
         errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 7, 3),
@@ -864,10 +839,6 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.CONST_CONSTRUCTOR_MUST_CALL_CONST_SUPER, 3, 9, 1));
   }
 
-  public void testRawTypesNegativeTest() {
-    checkNumErrors("RawTypesNegativeTest.dart", 6);
-  }
-
   public void testConstConstructorNonFinalFieldsNegativeTest() {
     checkSourceErrors(
         makeCode(
@@ -881,7 +852,7 @@ public class NegativeResolverTest extends CompilerTestCase {
             "  final bar;",
             "  var baz;",
             "}",
-            "interface C {",
+            "abstract class C {",
             "  var x;",
             "}"),
         errEx(ResolverErrorCode.CONST_CLASS_WITH_NONFINAL_FIELDS, 3, 7, 1),
@@ -1046,17 +1017,6 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.THIS_IN_INITIALIZER_AS_EXPRESSION, 3, 25, 4),
         errEx(ResolverErrorCode.THIS_IN_INITIALIZER_AS_EXPRESSION, 4, 36, 4),
         errEx(ResolverErrorCode.THIS_IN_INITIALIZER_AS_EXPRESSION, 5, 25, 4));
-  }
-
-  public void testInterfaceWithConcreteConstructorAndDefaultNonImlplementing() throws Exception {
-    checkSourceErrors(
-        makeCode(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "class A {}",
-            "interface I default A {",
-            "  I();",
-            "}"),
-        errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_UNRESOLVED, 4, 3, 4));
   }
 
   public void test_resolvedTypeVariableBounds_inFunctionTypeAlias() throws Exception {

@@ -77,7 +77,7 @@ void ReadConfigurationInto(path, sections, onDone) {
       Match match = StripComment.firstMatch(line);
       line = (match == null) ? "" : match[0];
       line = line.trim();
-      if (line.isEmpty()) continue;
+      if (line.isEmpty) continue;
 
       match = HeaderPattern.firstMatch(line);
       if (match != null) {
@@ -177,7 +177,7 @@ class TestExpectations {
 
     // If no expectations were found the expectation is that the test
     // passes.
-    if (result.isEmpty()) {
+    if (result.isEmpty) {
       result.add(PASS);
     }
     return result;

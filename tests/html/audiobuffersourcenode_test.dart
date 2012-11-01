@@ -12,6 +12,6 @@ main() {
       AudioBufferSourceNode node = ctx.createBufferSource();
       node.start(ctx.currentTime, 0, 2);
       node.stop(ctx.currentTime + 2);
-      expect(node is AudioBufferSourceNode);
+      expect(node is AudioBufferSourceNode, isTrue);
   });
 }

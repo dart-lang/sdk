@@ -46,6 +46,7 @@ class Builtin {
   static const char builtin_source_[];
   static const char crypto_source_[];
   static const char io_source_[];
+  static const char io_patch_[];
   static const char json_source_[];
   static const char uri_source_[];
   static const char utf_source_[];
@@ -54,6 +55,8 @@ class Builtin {
   typedef struct {
     const char* url_;
     const char* source_;
+    const char* patch_url_;
+    const char* patch_source_;
     bool has_natives_;
   } builtin_lib_props;
   static builtin_lib_props builtin_libraries_[];

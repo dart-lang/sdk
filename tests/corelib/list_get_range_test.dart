@@ -37,7 +37,7 @@ main() {
 }
 
 void expectIOORE(Function f) {
-  Expect.throws(f, (e) => e is IndexOutOfRangeException);
+  Expect.throws(f, (e) => e is RangeError);
 }
 
 void expectIAE(Function f) {

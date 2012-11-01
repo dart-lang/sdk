@@ -11,6 +11,9 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, compress_deopt_info, true,
+            "Compress the size of the deoptimization info for optimized code.");
+
 DeoptimizationContext::DeoptimizationContext(intptr_t* to_frame_start,
                                              intptr_t to_frame_size,
                                              const Array& object_table,
@@ -61,7 +64,7 @@ class DeoptStackSlotInstr : public DeoptInstr {
   }
 
   virtual intptr_t from_index() const { return stack_slot_index_; }
-  virtual DeoptInstr::Kind kind() const { return kCopyStackSlot; }
+  virtual DeoptInstr::Kind kind() const { return kStackSlot; }
 
   virtual const char* ToCString() const {
     const char* format = "s%"Pd"";
@@ -94,7 +97,7 @@ class DeoptDoubleStackSlotInstr : public DeoptInstr {
   }
 
   virtual intptr_t from_index() const { return stack_slot_index_; }
-  virtual DeoptInstr::Kind kind() const { return kCopyDoubleStackSlot; }
+  virtual DeoptInstr::Kind kind() const { return kDoubleStackSlot; }
 
   virtual const char* ToCString() const {
     const char* format = "ds%"Pd"";
@@ -130,7 +133,7 @@ class DeoptInt64StackSlotInstr : public DeoptInstr {
   }
 
   virtual intptr_t from_index() const { return stack_slot_index_; }
-  virtual DeoptInstr::Kind kind() const { return kCopyInt64StackSlot; }
+  virtual DeoptInstr::Kind kind() const { return kInt64StackSlot; }
 
   virtual const char* ToCString() const {
     const char* format = "ms%"Pd"";
@@ -166,15 +169,15 @@ class DeoptInt64StackSlotInstr : public DeoptInstr {
 // Deoptimization instruction creating return address using function and
 // deopt-id stored at 'object_table_index'. Uses the deopt-after
 // continuation point.
-class DeoptRetAddrAfterInstr : public DeoptInstr {
+class DeoptRetAfterAddressInstr : public DeoptInstr {
  public:
-  DeoptRetAddrAfterInstr(intptr_t object_table_index, intptr_t deopt_id)
+  DeoptRetAfterAddressInstr(intptr_t object_table_index, intptr_t deopt_id)
       : object_table_index_(object_table_index), deopt_id_(deopt_id) {
     ASSERT(object_table_index >= 0);
     ASSERT(deopt_id >= 0);
   }
 
-  explicit DeoptRetAddrAfterInstr(intptr_t from_index)
+  explicit DeoptRetAfterAddressInstr(intptr_t from_index)
       : object_table_index_(ObjectTableIndex::decode(from_index)),
         deopt_id_(DeoptId::decode(from_index)) {
   }
@@ -183,7 +186,7 @@ class DeoptRetAddrAfterInstr : public DeoptInstr {
     return ObjectTableIndex::encode(object_table_index_) |
         DeoptId::encode(deopt_id_);
   }
-  virtual DeoptInstr::Kind kind() const { return kSetRetAfterAddress; }
+  virtual DeoptInstr::Kind kind() const { return kRetAfterAddress; }
 
   virtual const char* ToCString() const {
     const char* format = "ret aft oti:%"Pd"(%"Pd")";
@@ -211,22 +214,22 @@ class DeoptRetAddrAfterInstr : public DeoptInstr {
   const intptr_t object_table_index_;
   const intptr_t deopt_id_;
 
-  DISALLOW_COPY_AND_ASSIGN(DeoptRetAddrAfterInstr);
+  DISALLOW_COPY_AND_ASSIGN(DeoptRetAfterAddressInstr);
 };
 
 
 // Deoptimization instruction creating return address using function and
 // deopt-id stored at 'object_table_index'. Uses the deopt-before
 // continuation point.
-class DeoptRetAddrBeforeInstr : public DeoptInstr {
+class DeoptRetBeforeAddressInstr : public DeoptInstr {
  public:
-  DeoptRetAddrBeforeInstr(intptr_t object_table_index, intptr_t deopt_id)
+  DeoptRetBeforeAddressInstr(intptr_t object_table_index, intptr_t deopt_id)
       : object_table_index_(object_table_index), deopt_id_(deopt_id) {
     ASSERT(object_table_index >= 0);
-    ASSERT(deopt_id_ >= 0);
+    ASSERT(deopt_id >= 0);
   }
 
-  explicit DeoptRetAddrBeforeInstr(intptr_t from_index)
+  explicit DeoptRetBeforeAddressInstr(intptr_t from_index)
       : object_table_index_(ObjectTableIndex::decode(from_index)),
         deopt_id_(DeoptId::decode(from_index)) {
   }
@@ -235,7 +238,7 @@ class DeoptRetAddrBeforeInstr : public DeoptInstr {
     return ObjectTableIndex::encode(object_table_index_) |
         DeoptId::encode(deopt_id_);
   }
-  virtual DeoptInstr::Kind kind() const { return kSetRetBeforeAddress; }
+  virtual DeoptInstr::Kind kind() const { return kRetBeforeAddress; }
 
   virtual const char* ToCString() const {
     const char* format = "ret bef oti:%"Pd"(%"Pd")";
@@ -263,7 +266,7 @@ class DeoptRetAddrBeforeInstr : public DeoptInstr {
   const intptr_t object_table_index_;
   const intptr_t deopt_id_;
 
-  DISALLOW_COPY_AND_ASSIGN(DeoptRetAddrBeforeInstr);
+  DISALLOW_COPY_AND_ASSIGN(DeoptRetBeforeAddressInstr);
 };
 
 
@@ -276,7 +279,7 @@ class DeoptConstantInstr : public DeoptInstr {
   }
 
   virtual intptr_t from_index() const { return object_table_index_; }
-  virtual DeoptInstr::Kind kind() const { return kCopyConstant; }
+  virtual DeoptInstr::Kind kind() const { return kConstant; }
 
   virtual const char* ToCString() const {
     const char* format = "const oti:%"Pd"";
@@ -308,7 +311,7 @@ class DeoptRegisterInstr: public DeoptInstr {
       : reg_(static_cast<Register>(reg_as_int)) {}
 
   virtual intptr_t from_index() const { return static_cast<intptr_t>(reg_); }
-  virtual DeoptInstr::Kind kind() const { return kCopyRegister; }
+  virtual DeoptInstr::Kind kind() const { return kRegister; }
 
   virtual const char* ToCString() const {
     return Assembler::RegisterName(reg_);
@@ -334,7 +337,7 @@ class DeoptXmmRegisterInstr: public DeoptInstr {
       : reg_(static_cast<XmmRegister>(reg_as_int)) {}
 
   virtual intptr_t from_index() const { return static_cast<intptr_t>(reg_); }
-  virtual DeoptInstr::Kind kind() const { return kCopyXmmRegister; }
+  virtual DeoptInstr::Kind kind() const { return kXmmRegister; }
 
   virtual const char* ToCString() const {
     return Assembler::XmmRegisterName(reg_);
@@ -361,7 +364,7 @@ class DeoptInt64XmmRegisterInstr: public DeoptInstr {
       : reg_(static_cast<XmmRegister>(reg_as_int)) {}
 
   virtual intptr_t from_index() const { return static_cast<intptr_t>(reg_); }
-  virtual DeoptInstr::Kind kind() const { return kCopyInt64XmmRegister; }
+  virtual DeoptInstr::Kind kind() const { return kInt64XmmRegister; }
 
   virtual const char* ToCString() const {
     const char* format = "%s(m)";
@@ -402,7 +405,7 @@ class DeoptPcMarkerInstr : public DeoptInstr {
   }
 
   virtual intptr_t from_index() const { return object_table_index_; }
-  virtual DeoptInstr::Kind kind() const { return kSetPcMarker; }
+  virtual DeoptInstr::Kind kind() const { return kPcMarker; }
 
   virtual const char* ToCString() const {
     const char* format = "pcmark oti:%"Pd"";
@@ -444,7 +447,7 @@ class DeoptCallerFpInstr : public DeoptInstr {
   DeoptCallerFpInstr() {}
 
   virtual intptr_t from_index() const { return 0; }
-  virtual DeoptInstr::Kind kind() const { return kSetCallerFp; }
+  virtual DeoptInstr::Kind kind() const { return kCallerFp; }
 
   virtual const char* ToCString() const {
     return "callerfp";
@@ -469,7 +472,7 @@ class DeoptCallerPcInstr : public DeoptInstr {
   DeoptCallerPcInstr() {}
 
   virtual intptr_t from_index() const { return 0; }
-  virtual DeoptInstr::Kind kind() const { return kSetCallerPc; }
+  virtual DeoptInstr::Kind kind() const { return kCallerPc; }
 
   virtual const char* ToCString() const {
     return "callerpc";
@@ -486,25 +489,125 @@ class DeoptCallerPcInstr : public DeoptInstr {
 };
 
 
+// Deoptimization instruction that indicates the rest of this DeoptInfo is a
+// suffix of another one.  The suffix contains the info number (0 based
+// index in the deopt table of the DeoptInfo to share) and the length of the
+// suffix.
+class DeoptSuffixInstr : public DeoptInstr {
+ public:
+  DeoptSuffixInstr(intptr_t info_number, intptr_t suffix_length)
+      : info_number_(info_number), suffix_length_(suffix_length) {
+    ASSERT(info_number >= 0);
+    ASSERT(suffix_length >= 0);
+  }
+
+  explicit DeoptSuffixInstr(intptr_t from_index)
+      : info_number_(InfoNumber::decode(from_index)),
+        suffix_length_(SuffixLength::decode(from_index)) {
+  }
+
+  virtual intptr_t from_index() const {
+    return InfoNumber::encode(info_number_) |
+        SuffixLength::encode(suffix_length_);
+  }
+  virtual DeoptInstr::Kind kind() const { return kSuffix; }
+
+  virtual const char* ToCString() const {
+    const char* format = "suffix %"Pd":%"Pd;
+    intptr_t len = OS::SNPrint(NULL, 0, format, info_number_, suffix_length_);
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+    OS::SNPrint(chars, len + 1, format, info_number_, suffix_length_);
+    return chars;
+  }
+
+  void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
+    // The deoptimization info is uncompresses by translating away suffixes
+    // before executing the instructions.
+    UNREACHABLE();
+  }
+
+ private:
+  // Static decoder functions in DeoptInstr have access to the bitfield
+  // definitions.
+  friend class DeoptInstr;
+
+  static const intptr_t kFieldWidth = kBitsPerWord / 2;
+  class InfoNumber : public BitField<intptr_t, 0, kFieldWidth> { };
+  class SuffixLength : public BitField<intptr_t, kFieldWidth, kFieldWidth> { };
+
+  const intptr_t info_number_;
+  const intptr_t suffix_length_;
+
+  DISALLOW_COPY_AND_ASSIGN(DeoptSuffixInstr);
+};
+
+
+intptr_t DeoptInstr::DecodeSuffix(intptr_t from_index, intptr_t* info_number) {
+  *info_number = DeoptSuffixInstr::InfoNumber::decode(from_index);
+  return DeoptSuffixInstr::SuffixLength::decode(from_index);
+}
+
+
 DeoptInstr* DeoptInstr::Create(intptr_t kind_as_int, intptr_t from_index) {
   Kind kind = static_cast<Kind>(kind_as_int);
   switch (kind) {
-    case kCopyStackSlot: return new DeoptStackSlotInstr(from_index);
-    case kCopyDoubleStackSlot: return new DeoptDoubleStackSlotInstr(from_index);
-    case kCopyInt64StackSlot: return new DeoptInt64StackSlotInstr(from_index);
-    case kSetRetAfterAddress: return new DeoptRetAddrAfterInstr(from_index);
-    case kSetRetBeforeAddress:  return new DeoptRetAddrBeforeInstr(from_index);
-    case kCopyConstant:  return new DeoptConstantInstr(from_index);
-    case kCopyRegister:  return new DeoptRegisterInstr(from_index);
-    case kCopyXmmRegister: return new DeoptXmmRegisterInstr(from_index);
-    case kCopyInt64XmmRegister:
-        return new DeoptInt64XmmRegisterInstr(from_index);
-    case kSetPcMarker:   return new DeoptPcMarkerInstr(from_index);
-    case kSetCallerFp:   return new DeoptCallerFpInstr();
-    case kSetCallerPc:   return new DeoptCallerPcInstr();
+    case kStackSlot: return new DeoptStackSlotInstr(from_index);
+    case kDoubleStackSlot: return new DeoptDoubleStackSlotInstr(from_index);
+    case kInt64StackSlot: return new DeoptInt64StackSlotInstr(from_index);
+    case kRetAfterAddress: return new DeoptRetAfterAddressInstr(from_index);
+    case kRetBeforeAddress: return new DeoptRetBeforeAddressInstr(from_index);
+    case kConstant: return new DeoptConstantInstr(from_index);
+    case kRegister: return new DeoptRegisterInstr(from_index);
+    case kXmmRegister: return new DeoptXmmRegisterInstr(from_index);
+    case kInt64XmmRegister: return new DeoptInt64XmmRegisterInstr(from_index);
+    case kPcMarker: return new DeoptPcMarkerInstr(from_index);
+    case kCallerFp: return new DeoptCallerFpInstr();
+    case kCallerPc: return new DeoptCallerPcInstr();
+    case kSuffix: return new DeoptSuffixInstr(from_index);
   }
   UNREACHABLE();
   return NULL;
+}
+
+
+class DeoptInfoBuilder::TrieNode : public ZoneAllocated {
+ public:
+  // Construct the root node representing the implicit "shared" terminator
+  // at the end of each deopt info.
+  TrieNode() : instruction_(NULL), info_number_(-1), children_(16) { }
+
+  // Construct a node representing a written instruction.
+  TrieNode(DeoptInstr* instruction, intptr_t info_number)
+      : instruction_(instruction), info_number_(info_number), children_(4) { }
+
+  intptr_t info_number() const { return info_number_; }
+
+  void AddChild(TrieNode* child) {
+    if (child != NULL) children_.Add(child);
+  }
+
+  TrieNode* FindChild(const DeoptInstr& instruction) {
+    for (intptr_t i = 0; i < children_.length(); ++i) {
+      TrieNode* child = children_[i];
+      if (child->instruction_->Equals(instruction)) return child;
+    }
+    return NULL;
+  }
+
+ private:
+  const DeoptInstr* instruction_;  // Instruction that was written.
+  const intptr_t info_number_;  // Index of the deopt info it was written to.
+
+  GrowableArray<TrieNode*> children_;
+};
+
+
+DeoptInfoBuilder::DeoptInfoBuilder(const intptr_t num_args)
+    : instructions_(),
+      object_table_(GrowableObjectArray::Handle(GrowableObjectArray::New())),
+      num_args_(num_args),
+      trie_root_(new TrieNode()),
+      current_info_number_(0) {
 }
 
 
@@ -526,7 +629,8 @@ void DeoptInfoBuilder::AddReturnAddressBefore(const Function& function,
                                               intptr_t to_index) {
   const intptr_t object_table_index = FindOrAddObjectInTable(function);
   ASSERT(to_index == instructions_.length());
-  instructions_.Add(new DeoptRetAddrBeforeInstr(object_table_index, deopt_id));
+  instructions_.Add(new DeoptRetBeforeAddressInstr(object_table_index,
+                                                   deopt_id));
 }
 
 
@@ -535,7 +639,8 @@ void DeoptInfoBuilder::AddReturnAddressAfter(const Function& function,
                                              intptr_t to_index) {
   const intptr_t object_table_index = FindOrAddObjectInTable(function);
   ASSERT(to_index == instructions_.length());
-  instructions_.Add(new DeoptRetAddrAfterInstr(object_table_index, deopt_id));
+  instructions_.Add(new DeoptRetAfterAddressInstr(object_table_index,
+                                                  deopt_id));
 }
 
 
@@ -601,13 +706,47 @@ void DeoptInfoBuilder::AddCallerPc(intptr_t to_index) {
 }
 
 
-RawDeoptInfo* DeoptInfoBuilder::CreateDeoptInfo() const {
-  const intptr_t len = instructions_.length();
-  const DeoptInfo& deopt_info = DeoptInfo::Handle(DeoptInfo::New(len));
-  for (intptr_t i = 0; i < len; i++) {
+RawDeoptInfo* DeoptInfoBuilder::CreateDeoptInfo() {
+  intptr_t length = instructions_.length();
+
+  // Count the number of instructions that are a shared suffix of some deopt
+  // info already written.
+  TrieNode* suffix = trie_root_;
+  intptr_t suffix_length = 0;
+  if (FLAG_compress_deopt_info) {
+    for (intptr_t i = length - 1; i >= 0; --i) {
+      TrieNode* node = suffix->FindChild(*instructions_[i]);
+      if (node == NULL) break;
+      suffix = node;
+      ++suffix_length;
+    }
+  }
+
+  // Allocate space for the translation.  If the shared suffix is longer
+  // than one instruction, we replace it with a single suffix instruction.
+  if (suffix_length > 1) length -= (suffix_length - 1);
+  const DeoptInfo& deopt_info = DeoptInfo::Handle(DeoptInfo::New(length));
+
+  // Write the unshared instructions and build their sub-tree.
+  TrieNode* node = NULL;
+  intptr_t write_count = (suffix_length > 1) ? length - 1 : length;
+  for (intptr_t i = 0; i < write_count; ++i) {
     DeoptInstr* instr = instructions_[i];
     deopt_info.SetAt(i, instr->kind(), instr->from_index());
+    TrieNode* child = node;
+    node = new TrieNode(instr, current_info_number_);
+    node->AddChild(child);
   }
+  suffix->AddChild(node);
+
+  if (suffix_length > 1) {
+    DeoptInstr* instr =
+        new DeoptSuffixInstr(suffix->info_number(), suffix_length);
+    deopt_info.SetAt(length - 1, instr->kind(), instr->from_index());
+  }
+
+  instructions_.Clear();
+  ++current_info_number_;
   return deopt_info.raw();
 }
 

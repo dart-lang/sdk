@@ -358,9 +358,6 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
     case kTwoByteStringCid:
       // Two byte strings not supported.
       return AllocateDartCObjectUnsupported();
-    case kFourByteStringCid:
-      // Four byte strings not supported.
-      return AllocateDartCObjectUnsupported();
     case kUint8ArrayCid: {
       intptr_t len = ReadSmiValue();
       Dart_CObject* object = AllocateDartCObjectUint8Array(len);

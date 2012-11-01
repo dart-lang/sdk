@@ -29,6 +29,7 @@ class Api;
 class Assembler;
 class Closure;
 class Code;
+class DeoptInstr;
 class LocalScope;
 class Symbols;
 
@@ -1061,17 +1062,18 @@ class Function : public Object {
   RawString* QualifiedUserVisibleName() const;
   virtual RawString* DictionaryName() const { return name(); }
 
-  // Build a string of the form '<T, R>(T, [b: B, c: C]) => R' representing the
-  // internal signature of the given function.
+  // Build a string of the form 'C<T, R>(T, {b: B, c: C}) => R' representing the
+  // internal signature of the given function. In this example, T and R are
+  // type parameters of class C, the owner of the function.
   RawString* Signature() const {
     const bool instantiate = false;
     return BuildSignature(instantiate, kInternalName, TypeArguments::Handle());
   }
 
-  // Build a string of the form '(A, [b: B, c: C]) => D' representing the
+  // Build a string of the form '(A, {b: B, c: C}) => D' representing the
   // signature of the given function, where all generic types (e.g. '<T, R>' in
-  // '<T, R>(T, [b: B, c: C]) => R') are instantiated using the given
-  // instantiator type argument vector (e.g. '<A, D>').
+  // 'C<T, R>(T, {b: B, c: C}) => R') are instantiated using the given
+  // instantiator type argument vector of a C instance (e.g. '<A, D>').
   RawString* InstantiatedSignatureFrom(
       const AbstractTypeArguments& instantiator,
       NameVisibility name_visibility) const {
@@ -1909,6 +1911,7 @@ class Library : public Object {
   static bool IsKeyUsed(intptr_t key);
 
   static void InitCoreLibrary(Isolate* isolate);
+  static void InitCollectionLibrary(Isolate* isolate);
   static void InitMathLibrary(Isolate* isolate);
   static void InitIsolateLibrary(Isolate* isolate);
   static void InitMirrorsLibrary(Isolate* isolate);
@@ -1917,6 +1920,7 @@ class Library : public Object {
 
   static RawLibrary* CoreLibrary();
   static RawLibrary* CoreImplLibrary();
+  static RawLibrary* CollectionLibrary();
   static RawLibrary* MathLibrary();
   static RawLibrary* IsolateLibrary();
   static RawLibrary* MirrorsLibrary();
@@ -2328,7 +2332,12 @@ class DeoptInfo : public Object {
   };
 
  public:
+  // The number of instructions.
   intptr_t Length() const;
+
+  // The number of real (non-suffix) instructions needed to execute the
+  // deoptimization translation.
+  intptr_t TranslationLength() const;
 
   static RawDeoptInfo* New(intptr_t num_commands);
 
@@ -2356,6 +2365,11 @@ class DeoptInfo : public Object {
   intptr_t ToIndex(intptr_t index) const {
     return index;
   }
+
+  // Unpack the entire translation into an array of deoptimization
+  // instructions.  This copies any shared suffixes into the array.
+  void ToInstructions(const Array& table,
+                      GrowableArray<DeoptInstr*>* instructions) const;
 
  private:
   intptr_t* EntryAddr(intptr_t index, intptr_t entry_offset) const {
@@ -3612,13 +3626,12 @@ class String : public Instance {
 
   static const intptr_t kOneByteChar = 1;
   static const intptr_t kTwoByteChar = 2;
-  static const intptr_t kFourByteChar = 4;
 
   // All strings share the same maximum element count to keep things
   // simple.  We choose a value that will prevent integer overflow for
-  // 4 byte strings, since it is the worst case.
+  // 2 byte strings, since it is the worst case.
   static const intptr_t kSizeofRawString = sizeof(RawObject) + (2 * kWordSize);
-  static const intptr_t kMaxElements = kSmiMax / kFourByteChar;
+  static const intptr_t kMaxElements = kSmiMax / kTwoByteChar;
 
   intptr_t Length() const { return Smi::Value(raw_ptr()->length_); }
   static intptr_t length_offset() { return OFFSET_OF(RawString, length_); }
@@ -3659,30 +3672,42 @@ class String : public Instance {
     return NULL;
   }
 
-  static RawString* New(const char* str, Heap::Space space = Heap::kNew);
-  static RawString* New(const uint8_t* characters,
-                        intptr_t len,
+  void ToUTF8(uint8_t* utf8_array, intptr_t array_len) const;
+
+  // Creates a new String object from a C string that is assumed to contain
+  // UTF-8 encoded characters and '\0' is considered a termination character.
+  static RawString* New(const char* cstr, Heap::Space space = Heap::kNew);
+
+  // Creates a new String object from an array of UTF-8 encoded characters.
+  static RawString* New(const uint8_t* utf8_array,
+                        intptr_t array_len,
                         Heap::Space space = Heap::kNew);
-  static RawString* New(const uint16_t* characters,
-                        intptr_t len,
+
+  // Creates a new String object from an array of UTF-16 encoded characters.
+  static RawString* New(const uint16_t* utf16_array,
+                        intptr_t array_len,
                         Heap::Space space = Heap::kNew);
-  static RawString* New(const uint32_t* characters,
-                        intptr_t len,
+
+  // Creates a new String object from an array of UTF-32 encoded characters.
+  static RawString* New(const uint32_t* utf32_array,
+                        intptr_t array_len,
                         Heap::Space space = Heap::kNew);
+
+  // Create a new String object from another Dart String instance.
   static RawString* New(const String& str, Heap::Space space = Heap::kNew);
 
-  static RawString* NewExternal(const uint8_t* characters,
-                                intptr_t len,
+  // Creates a new External String object using the specified array of
+  // UTF-8 encoded characters as the external reference.
+  static RawString* NewExternal(const uint8_t* utf8_array,
+                                intptr_t array_len,
                                 void* peer,
                                 Dart_PeerFinalizer callback,
                                 Heap::Space = Heap::kNew);
-  static RawString* NewExternal(const uint16_t* characters,
-                                intptr_t len,
-                                void* peer,
-                                Dart_PeerFinalizer callback,
-                                Heap::Space = Heap::kNew);
-  static RawString* NewExternal(const uint32_t* characters,
-                                intptr_t len,
+
+  // Creates a new External String object using the specified array of
+  // UTF-16 encoded characters as the external reference.
+  static RawString* NewExternal(const uint16_t* utf16_array,
+                                intptr_t array_len,
                                 void* peer,
                                 Dart_PeerFinalizer callback,
                                 Heap::Space = Heap::kNew);
@@ -3694,10 +3719,6 @@ class String : public Instance {
   static void Copy(const String& dst,
                    intptr_t dst_offset,
                    const uint16_t* characters,
-                   intptr_t len);
-  static void Copy(const String& dst,
-                   intptr_t dst_offset,
-                   const uint32_t* characters,
                    intptr_t len);
   static void Copy(const String& dst,
                    intptr_t dst_offset,
@@ -3874,7 +3895,8 @@ class TwoByteString : public String {
   static RawTwoByteString* New(const uint16_t* characters,
                                intptr_t len,
                                Heap::Space space);
-  static RawTwoByteString* New(const uint32_t* characters,
+  static RawTwoByteString* New(intptr_t utf16_len,
+                               const uint32_t* characters,
                                intptr_t len,
                                Heap::Space space);
   static RawTwoByteString* New(const TwoByteString& str,
@@ -3898,64 +3920,6 @@ class TwoByteString : public String {
   }
 
   HEAP_OBJECT_IMPLEMENTATION(TwoByteString, String);
-  friend class Class;
-  friend class String;
-};
-
-
-class FourByteString : public String {
- public:
-  virtual int32_t CharAt(intptr_t index) const {
-    return *CharAddr(index);
-  }
-
-  virtual intptr_t CharSize() const {
-    return kFourByteChar;
-  }
-
-  RawFourByteString* EscapeSpecialCharacters(bool raw_str) const;
-
-  static const intptr_t kBytesPerElement = 4;
-  static const intptr_t kMaxElements = String::kMaxElements;
-
-  static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawFourByteString) == OFFSET_OF(RawFourByteString, data_));
-    return 0;
-  }
-
-  static intptr_t InstanceSize(intptr_t len) {
-    ASSERT(sizeof(RawTwoByteString) == kSizeofRawString);
-    ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(
-        sizeof(RawFourByteString) + (len * kBytesPerElement));
-  }
-
-  static RawFourByteString* New(intptr_t len,
-                                Heap::Space space);
-  static RawFourByteString* New(const uint32_t* characters,
-                                intptr_t len,
-                                Heap::Space space);
-  static RawFourByteString* New(const FourByteString& str,
-                                Heap::Space space);
-
-  static RawFourByteString* Concat(const String& str1,
-                                   const String& str2,
-                                   Heap::Space space);
-  static RawFourByteString* ConcatAll(const Array& strings,
-                                      intptr_t len,
-                                      Heap::Space space);
-
-  static RawFourByteString* Transform(int32_t (*mapping)(int32_t ch),
-                                      const String& str,
-                                      Heap::Space space);
-
- private:
-  uint32_t* CharAddr(intptr_t index) const {
-    ASSERT((index >= 0) && (index < Length()));
-    return &raw_ptr()->data_[index];
-  }
-
-  HEAP_OBJECT_IMPLEMENTATION(FourByteString, String);
   friend class Class;
   friend class String;
 };
@@ -4052,54 +4016,6 @@ class ExternalTwoByteString : public String {
   static void Finalize(Dart_Handle handle, void* peer);
 
   HEAP_OBJECT_IMPLEMENTATION(ExternalTwoByteString, String);
-  friend class Class;
-  friend class String;
-};
-
-
-class ExternalFourByteString : public String {
- public:
-  virtual int32_t CharAt(intptr_t index) const {
-    return *CharAddr(index);
-  }
-
-  virtual intptr_t CharSize() const {
-    return kFourByteChar;
-  }
-
-  virtual bool IsExternal() const { return true; }
-  virtual void* GetPeer() const {
-    return raw_ptr()->external_data_->peer();
-  }
-
-  // We use the same maximum elements for all strings.
-  static const intptr_t kBytesPerElement = 4;
-  static const intptr_t kMaxElements = String::kMaxElements;
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawExternalFourByteString));
-  }
-
-  static RawExternalFourByteString* New(const uint32_t* characters,
-                                        intptr_t len,
-                                        void* peer,
-                                        Dart_PeerFinalizer callback,
-                                        Heap::Space space = Heap::kNew);
-
- private:
-  const uint32_t* CharAddr(intptr_t index) const {
-    // TODO(iposva): Determine if we should throw an exception here.
-    ASSERT((index >= 0) && (index < Length()));
-    return &(raw_ptr()->external_data_->data()[index]);
-  }
-
-  void SetExternalData(ExternalStringData<uint32_t>* data) {
-    raw_ptr()->external_data_ = data;
-  }
-
-  static void Finalize(Dart_Handle handle, void* peer);
-
-  HEAP_OBJECT_IMPLEMENTATION(ExternalFourByteString, String);
   friend class Class;
   friend class String;
 };
@@ -4930,6 +4846,10 @@ class ExternalInt8Array : public ByteArray {
     raw_ptr()->external_data_->data()[index] = value;
   }
 
+  void* GetData() const {
+    return raw_ptr()->external_data_->data();
+  }
+
   void* GetPeer() const {
     return raw_ptr()->external_data_->peer();
   }
@@ -4982,6 +4902,10 @@ class ExternalUint8Array : public ByteArray {
   void SetAt(intptr_t index, uint8_t value) const {
     ASSERT((index >= 0) && (index < Length()));
     raw_ptr()->external_data_->data()[index] = value;
+  }
+
+  void* GetData() const {
+    return raw_ptr()->external_data_->data();
   }
 
   void* GetPeer() const {
@@ -5039,6 +4963,10 @@ class ExternalInt16Array : public ByteArray {
     raw_ptr()->external_data_->data()[index] = value;
   }
 
+  void* GetData() const {
+    return raw_ptr()->external_data_->data();
+  }
+
   void* GetPeer() const {
     return raw_ptr()->external_data_->peer();
   }
@@ -5091,6 +5019,10 @@ class ExternalUint16Array : public ByteArray {
   void SetAt(intptr_t index, int16_t value) const {
     ASSERT((index >= 0) && (index < Length()));
     raw_ptr()->external_data_->data()[index] = value;
+  }
+
+  void* GetData() const {
+    return raw_ptr()->external_data_->data();
   }
 
   void* GetPeer() const {
@@ -5147,6 +5079,10 @@ class ExternalInt32Array : public ByteArray {
     raw_ptr()->external_data_->data()[index] = value;
   }
 
+  void* GetData() const {
+    return raw_ptr()->external_data_->data();
+  }
+
   void* GetPeer() const {
     return raw_ptr()->external_data_->peer();
   }
@@ -5199,6 +5135,10 @@ class ExternalUint32Array : public ByteArray {
   void SetAt(intptr_t index, int32_t value) const {
     ASSERT((index >= 0) && (index < Length()));
     raw_ptr()->external_data_->data()[index] = value;
+  }
+
+  void* GetData() const {
+    return raw_ptr()->external_data_->data();
   }
 
   void* GetPeer() const {
@@ -5255,6 +5195,10 @@ class ExternalInt64Array : public ByteArray {
     raw_ptr()->external_data_->data()[index] = value;
   }
 
+  void* GetData() const {
+    return raw_ptr()->external_data_->data();
+  }
+
   void* GetPeer() const {
     return raw_ptr()->external_data_->peer();
   }
@@ -5307,6 +5251,10 @@ class ExternalUint64Array : public ByteArray {
   void SetAt(intptr_t index, int64_t value) const {
     ASSERT((index >= 0) && (index < Length()));
     raw_ptr()->external_data_->data()[index] = value;
+  }
+
+  void* GetData() const {
+    return raw_ptr()->external_data_->data();
   }
 
   void* GetPeer() const {
@@ -5363,6 +5311,10 @@ class ExternalFloat32Array : public ByteArray {
     raw_ptr()->external_data_->data()[index] = value;
   }
 
+  void* GetData() const {
+    return raw_ptr()->external_data_->data();
+  }
+
   void* GetPeer() const {
     return raw_ptr()->external_data_->peer();
   }
@@ -5415,6 +5367,10 @@ class ExternalFloat64Array : public ByteArray {
   void SetAt(intptr_t index, double value) const {
     ASSERT((index >= 0) && (index < Length()));
     raw_ptr()->external_data_->data()[index] = value;
+  }
+
+  void* GetData() const {
+    return raw_ptr()->external_data_->data();
   }
 
   void* GetPeer() const {

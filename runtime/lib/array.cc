@@ -39,7 +39,7 @@ DEFINE_NATIVE_ENTRY(ObjectArray_getIndexed, 2) {
   if ((index.Value() < 0) || (index.Value() >= array.Length())) {
     GrowableArray<const Object*> arguments;
     arguments.Add(&index);
-    Exceptions::ThrowByType(Exceptions::kIndexOutOfRange, arguments);
+    Exceptions::ThrowByType(Exceptions::kRange, arguments);
   }
   return array.At(index.Value());
 }
@@ -52,7 +52,7 @@ DEFINE_NATIVE_ENTRY(ObjectArray_setIndexed, 3) {
   if ((index.Value() < 0) || (index.Value() >= array.Length())) {
     GrowableArray<const Object*> arguments;
     arguments.Add(&index);
-    Exceptions::ThrowByType(Exceptions::kIndexOutOfRange, arguments);
+    Exceptions::ThrowByType(Exceptions::kRange, arguments);
   }
   array.SetAt(index.Value(), value);
   return Object::null();
@@ -85,12 +85,12 @@ DEFINE_NATIVE_ENTRY(ObjectArray_copyFromObjectArray, 5) {
   if ((isrc_start < 0) || ((isrc_start + icount) > source.Length())) {
     GrowableArray<const Object*> arguments;
     arguments.Add(&src_start);
-    Exceptions::ThrowByType(Exceptions::kIndexOutOfRange, arguments);
+    Exceptions::ThrowByType(Exceptions::kRange, arguments);
   }
   if ((idst_start < 0) || ((idst_start + icount) > dest.Length())) {
     GrowableArray<const Object*> arguments;
     arguments.Add(&dst_start);
-    Exceptions::ThrowByType(Exceptions::kIndexOutOfRange, arguments);
+    Exceptions::ThrowByType(Exceptions::kRange, arguments);
   }
 
   Object& src_obj = Object::Handle();

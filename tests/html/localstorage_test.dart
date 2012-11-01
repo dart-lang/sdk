@@ -25,56 +25,55 @@ main() {
   }
 
   testWithLocalStorage('containsValue', () {
-    Expect.isFalse(window.localStorage.containsValue('does not exist'));
-    Expect.isFalse(window.localStorage.containsValue('key1'));
-    Expect.isTrue(window.localStorage.containsValue('val1'));
-    Expect.isTrue(window.localStorage.containsValue('val3'));
+    expect(window.localStorage.containsValue('does not exist'), isFalse);
+    expect(window.localStorage.containsValue('key1'), isFalse);
+    expect(window.localStorage.containsValue('val1'), isTrue);
+    expect(window.localStorage.containsValue('val3'), isTrue);
   });
 
   testWithLocalStorage('containsKey', () {
-    Expect.isFalse(window.localStorage.containsKey('does not exist'));
-    Expect.isFalse(window.localStorage.containsKey('val1'));
-    Expect.isTrue(window.localStorage.containsKey('key1'));
-    Expect.isTrue(window.localStorage.containsKey('key3'));
+    expect(window.localStorage.containsKey('does not exist'), isFalse);
+    expect(window.localStorage.containsKey('val1'), isFalse);
+    expect(window.localStorage.containsKey('key1'), isTrue);
+    expect(window.localStorage.containsKey('key3'), isTrue);
   });
 
   testWithLocalStorage('[]', () {
-    Expect.isNull(window.localStorage['does not exist']);
-    Expect.equals('val1', window.localStorage['key1']);
-    Expect.equals('val3', window.localStorage['key3']);
+    expect(window.localStorage['does not exist'], isNull);
+    expect(window.localStorage['key1'], 'val1');
+    expect(window.localStorage['key3'], 'val3');
   });
 
   testWithLocalStorage('[]=', () {
-    Expect.isNull(window.localStorage['key4']);
+    expect(window.localStorage['key4'], isNull);
     window.localStorage['key4'] = 'val4';
-    Expect.equals('val4', window.localStorage['key4']);
+    expect(window.localStorage['key4'], 'val4');
 
-    Expect.equals('val3', window.localStorage['key3']);
+    expect(window.localStorage['key3'], 'val3');
     window.localStorage['key3'] = 'val3-new';
-    Expect.equals('val3-new', window.localStorage['key3']);
+    expect(window.localStorage['key3'], 'val3-new');
   });
 
   testWithLocalStorage('putIfAbsent', () {
-    Expect.isNull(window.localStorage['key4']);
-    Expect.equals('val4',
-        window.localStorage.putIfAbsent('key4', () => 'val4'));
-    Expect.equals('val4', window.localStorage['key4']);
+    expect(window.localStorage['key4'], isNull);
+    expect(window.localStorage.putIfAbsent('key4', () => 'val4'), 'val4');
+    expect(window.localStorage['key4'], 'val4');
 
-    Expect.equals('val3', window.localStorage['key3']);
-    Expect.equals('val3', window.localStorage.putIfAbsent(
-            'key3', () => Expect.fail('should not be called')));
-    Expect.equals('val3', window.localStorage['key3']);
+    expect(window.localStorage['key3'], 'val3');
+    expect(window.localStorage.putIfAbsent('key3',
+        () => expect(false, isTrue, reason: 'should not be called')), 'val3');
+    expect(window.localStorage['key3'], 'val3');
   });
 
   testWithLocalStorage('remove', () {
-    Expect.isNull(window.localStorage.remove('does not exist'));
-    Expect.equals('val3', window.localStorage.remove('key3'));
-    Expect.mapEquals({'key1': 'val1', 'key2': 'val2'}, window.localStorage);
+    expect(window.localStorage.remove('does not exist'), isNull);
+    expect(window.localStorage.remove('key3'), 'val3');
+    expect(window.localStorage, equals({'key1': 'val1', 'key2': 'val2'}));
   });
 
   testWithLocalStorage('clear', () {
     window.localStorage.clear();
-    Expect.mapEquals({}, window.localStorage);
+    expect(window.localStorage, equals({}));
   });
 
   testWithLocalStorage('forEach', () {
@@ -82,28 +81,28 @@ main() {
     window.localStorage.forEach((k, v) {
       results[k] = v;
     });
-    Expect.mapEquals({'key1': 'val1', 'key2': 'val2', 'key3': 'val3'},
-        results);
+    expect(results, equals({'key1': 'val1', 'key2': 'val2', 'key3': 'val3'}));
   });
 
   testWithLocalStorage('getKeys', () {
-    Expect.setEquals(['key1', 'key2', 'key3'], window.localStorage.keys);
+    expect(window.localStorage.keys,
+        unorderedEquals(['key1', 'key2', 'key3']));
   });
 
   testWithLocalStorage('getVals', () {
-    Expect.setEquals(['val1', 'val2', 'val3'],
-        window.localStorage.values);
+    expect(window.localStorage.values,
+        unorderedEquals(['val1', 'val2', 'val3']));
   });
 
   testWithLocalStorage('length', () {
-    Expect.equals(3, window.localStorage.length);
+    expect(window.localStorage.length, 3);
     window.localStorage.clear();
-    Expect.equals(0, window.localStorage.length);
+    expect(window.localStorage.length, 0);
   });
 
   testWithLocalStorage('isEmpty', () {
-    Expect.isFalse(window.localStorage.isEmpty);
+    expect(window.localStorage.isEmpty, isFalse);
     window.localStorage.clear();
-    Expect.isTrue(window.localStorage.isEmpty);
+    expect(window.localStorage.isEmpty, isTrue);
   });
 }

@@ -7,6 +7,17 @@
  * DumpRenderTree.
  */
 
+// Clear the console before every test run - this is Firebug specific code.
+if (typeof console == "object" && typeof console.clear == "function") {
+  console.clear();
+}
+// Set window onerror to make sure that we catch test harness errors across all
+// browsers.
+window.onerror = function (message, url, lineNumber) {
+  showErrorAndExit("\n\n" + url + ":" + lineNumber + ":\n" + message + "\n\n");
+  window.postMessage('unittest-suite-external-error', '*');
+};
+
 if (navigator.webkitStartDart) {
   navigator.webkitStartDart();
 }

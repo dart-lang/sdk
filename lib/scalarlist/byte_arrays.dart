@@ -34,7 +34,7 @@ abstract class ByteArray {
    * changes to the returned byte array are visible in this byte array
    * and vice-versa.
    *
-   * Throws [IndexOutOfRangeException] if [start] or [length] are negative, or
+   * Throws [RangeError] if [start] or [length] are negative, or
    * if `start + length` is greater than the length of this byte array.
    *
    * Throws [ArgumentError] if [length] is negative.
@@ -46,7 +46,7 @@ abstract class ByteArray {
    * specified [byteOffset] in this byte array, in two's complement binary
    * representation. The return value will be between -128 and 127, inclusive.
    *
-   * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
+   * Throws [RangeError] if [byteOffset] is negative, or
    * greater than or equal to the length of this byte array.
    */
   int getInt8(int byteOffset);
@@ -61,7 +61,7 @@ abstract class ByteArray {
    * array after the byte that was set by this call. This return value can
    * be passed as the [byteOffset] parameter to a subsequent `setXxx` call.
    *
-   * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
+   * Throws [RangeError] if [byteOffset] is negative, or
    * greater than or equal to the length of this byte array.
    *
    * Throws [ArgumentError] if [value] is less than -128 or
@@ -74,7 +74,7 @@ abstract class ByteArray {
    * [byteOffset] in this byte array, in unsigned binary form. The
    * return value will be between 0 and 255, inclusive.
    *
-   * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
+   * Throws [RangeError] if [byteOffset] is negative, or
    * greater than or equal to the length of this byte array.
    */
   int getUint8(int byteOffset);
@@ -89,7 +89,7 @@ abstract class ByteArray {
    * array after the byte that was set by this call. This return value can
    * be passed as the [byteOffset] parameter to a subsequent `setXxx` call.
    *
-   * Throws [IndexOutOfRangeException] if [byteOffset] is negative,
+   * Throws [RangeError] if [byteOffset] is negative,
    * or greater than or equal to the length of this byte array.
    *
    * Throws [ArgumentError] if [value] is negative or
@@ -103,7 +103,7 @@ abstract class ByteArray {
    * form. The return value will be between 2<sup>15</sup> and 2<sup>15 - 1,
    * inclusive.
    *
-   * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
+   * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 2` is greater than the length of this byte array.
    */
   int getInt16(int byteOffset);
@@ -118,7 +118,7 @@ abstract class ByteArray {
    * array after the last byte that was set by this call. This return value can
    * be passed as the [byteOffset] parameter to a subsequent `setXxx` call.
    *
-   * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
+   * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 2` is greater than the length of this byte array.
    *
    * Throws [ArgumentError] if [value] is less than 2<sup>15</sup>
@@ -131,7 +131,7 @@ abstract class ByteArray {
    * at the specified [byteOffset] in this byte array, in unsigned binary
    * form. The return value will be between 0 and  2<sup>16 - 1, inclusive.
    *
-   * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
+   * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 2` is greater than the length of this byte array.
    */
   int getUint16(int byteOffset);
@@ -146,7 +146,7 @@ abstract class ByteArray {
    * array after the last byte that was set by this call. This return value can
    * be passed as the [byteOffset] parameter to a subsequent `setXxx` call.
    *
-   * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
+   * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 2` is greater than the length of this byte array.
    *
    * Throws [ArgumentError] if [value] is negative or
@@ -160,7 +160,7 @@ abstract class ByteArray {
    * form. The return value will be between 2<sup>31</sup> and 2<sup>31 - 1,
    * inclusive.
    *
-   * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
+   * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this byte array.
    */
   int getInt32(int byteOffset);
@@ -175,7 +175,7 @@ abstract class ByteArray {
    * array after the last byte that was set by this call. This return value can
    * be passed as the [byteOffset] parameter to a subsequent `setXxx` call.
    *
-   * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
+   * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this byte array.
    *
    * Throws [ArgumentError] if [value] is less than 2<sup>31</sup>
@@ -201,7 +201,7 @@ abstract class ByteArray {
    * array after the last byte that was set by this call. This return value can
    * be passed as the [byteOffset] parameter to a subsequent `setXxx` call.
    *
-   * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
+   * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this byte array.
    *
    * Throws [ArgumentError] if [value] is negative or
@@ -215,7 +215,7 @@ abstract class ByteArray {
    * form. The return value will be between 2<sup>63</sup> and 2<sup>63 - 1,
    * inclusive.
    *
-   * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
+   * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this byte array.
    */
   int getInt64(int byteOffset);
@@ -230,7 +230,7 @@ abstract class ByteArray {
    * array after the last byte that was set by this call. This return value can
    * be passed as the [byteOffset] parameter to a subsequent `setXxx` call.
    *
-   * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
+   * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this byte array.
    *
    * Throws [ArgumentError] if [value] is less than 2<sup>63</sup>
@@ -243,7 +243,7 @@ abstract class ByteArray {
    * at the specified [byteOffset] in this byte array, in unsigned binary
    * form. The return value will be between 0 and  2<sup>64 - 1, inclusive.
    *
-   * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
+   * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this byte array.
    */
   int getUint64(int byteOffset);
@@ -258,7 +258,7 @@ abstract class ByteArray {
    * array after the last byte that was set by this call. This return value can
    * be passed as the [byteOffset] parameter to a subsequent `setXxx` call.
    *
-   * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
+   * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this byte array.
    *
    * Throws [ArgumentError] if [value] is negative or
@@ -271,7 +271,7 @@ abstract class ByteArray {
    * the specified [byteOffset] in this byte array, in IEEE 754
    * single-precision binary floating-point format (binary32).
    *
-   * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
+   * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this byte array.
    */
   double getFloat32(int byteOffset);
@@ -294,7 +294,7 @@ abstract class ByteArray {
    * array after the last byte that was set by this call. This return value can
    * be passed as the [byteOffset] parameter to a subsequent `setXxx` call.
    *
-   * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
+   * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this byte array.
    */
   int setFloat32(int byteOffset, double value);
@@ -304,7 +304,7 @@ abstract class ByteArray {
    * the specified [byteOffset] in this byte array, in IEEE 754
    * double-precision binary floating-point format (binary64).
    *
-   * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
+   * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this byte array.
    */
   double getFloat64(int byteOffset);
@@ -318,7 +318,7 @@ abstract class ByteArray {
    * array after the last byte that was set by this call. This return value can
    * be passed as the [byteOffset] parameter to a subsequent `setXxx` call.
    *
-   * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
+   * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this byte array.
    */
   int setFloat64(int byteOffset, double value);

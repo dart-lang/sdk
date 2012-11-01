@@ -976,16 +976,13 @@ void Parser::SkipBlock() {
         token_stack.Add(token);
         break;
       case Token::kRBRACE:
-        is_match = token_stack.Last() == Token::kLBRACE;
-        token_stack.RemoveLast();
+        is_match = token_stack.RemoveLast() == Token::kLBRACE;
         break;
       case Token::kRPAREN:
-        is_match = token_stack.Last() == Token::kLPAREN;
-        token_stack.RemoveLast();
+        is_match = token_stack.RemoveLast() == Token::kLPAREN;
         break;
       case Token::kRBRACK:
-        is_match = token_stack.Last() == Token::kLBRACK;
-        token_stack.RemoveLast();
+        is_match = token_stack.RemoveLast() == Token::kLBRACK;
         break;
       case Token::kEOS:
         unexpected_token_found = true;
@@ -1302,37 +1299,61 @@ static RawClass* LookupImplClass(const String& class_name) {
 }
 
 
-// Lookup class in the coreimpl lib which also contains various VM
+// Lookup class in the core lib which also contains various VM
 // helper methods and classes. Allow look up of private classes.
-static RawClass* LookupCoreImplClass(const String& class_name) {
-  const Library& coreimpl_lib = Library::Handle(Library::CoreImplLibrary());
+static RawClass* LookupCoreClass(const String& class_name) {
+  const Library& core_lib = Library::Handle(Library::CoreLibrary());
   String& name = String::Handle(class_name.raw());
   if (class_name.CharAt(0) == Scanner::kPrivateIdentifierStart) {
     // Private identifiers are mangled on a per script basis.
-    name = String::Concat(name, String::Handle(coreimpl_lib.private_key()));
+    name = String::Concat(name, String::Handle(core_lib.private_key()));
     name = Symbols::New(name);
   }
-  return coreimpl_lib.LookupClass(name);
+  return core_lib.LookupClass(name);
 }
 
 
-ArgumentListNode* Parser::BuildNoSuchMethodArguments(
+StaticCallNode* Parser::BuildInvocationMirrorAllocation(
+    intptr_t call_pos,
     const String& function_name,
     const ArgumentListNode& function_args) {
-  ASSERT(function_args.length() >= 1);  // The receiver is the first argument.
   const intptr_t args_pos = function_args.token_pos();
+  // Build arguments to the call to the static
+  // InvocationMirror._allocateInvocationMirror method.
   ArgumentListNode* arguments = new ArgumentListNode(args_pos);
-  arguments->Add(function_args.NodeAt(0));
-  // The second argument is the original function name.
-  // TODO(regis): This will change once mirrors are supported.
+  // The first argument is the original function name.
   arguments->Add(new LiteralNode(args_pos, function_name));
-  // The third argument is an array containing the original function arguments.
+  // The second argument is an array containing the original function arguments.
   ArrayNode* args_array = new ArrayNode(
       args_pos, Type::ZoneHandle(Type::ListInterface()));
   for (intptr_t i = 1; i < function_args.length(); i++) {
     args_array->AddElement(function_args.NodeAt(i));
   }
   arguments->Add(args_array);
+  // Lookup the static InvocationMirror._allocateInvocationMirror method.
+  const Class& mirror_class = Class::Handle(
+      LookupCoreClass(String::Handle(Symbols::InvocationMirror())));
+  ASSERT(!mirror_class.IsNull());
+  const String& allocation_function_name =
+      String::Handle(Symbols::AllocateInvocationMirror());
+  const Function& allocation_function = Function::ZoneHandle(
+      mirror_class.LookupStaticFunction(allocation_function_name));
+  ASSERT(!allocation_function.IsNull());
+  return new StaticCallNode(call_pos, allocation_function, arguments);
+}
+
+
+ArgumentListNode* Parser::BuildNoSuchMethodArguments(
+    intptr_t call_pos,
+    const String& function_name,
+    const ArgumentListNode& function_args) {
+  ASSERT(function_args.length() >= 1);  // The receiver is the first argument.
+  const intptr_t args_pos = function_args.token_pos();
+  ArgumentListNode* arguments = new ArgumentListNode(args_pos);
+  arguments->Add(function_args.NodeAt(0));
+  // The second argument is the invocation mirror.
+  arguments->Add(BuildInvocationMirrorAllocation(
+      call_pos, function_name, function_args));
   return arguments;
 }
 
@@ -1368,7 +1389,8 @@ AstNode* Parser::ParseSuperCall(const String& function_name) {
   arguments->Add(receiver);
   ParseActualParameters(arguments, kAllowConst);
   if (is_no_such_method) {
-    arguments = BuildNoSuchMethodArguments(function_name, *arguments);
+    arguments = BuildNoSuchMethodArguments(
+        supercall_pos, function_name, *arguments);
   }
   return new StaticCallNode(supercall_pos, super_function, arguments);
 }
@@ -1386,6 +1408,38 @@ static bool IsSimpleLocalOrLiteralNode(AstNode* node) {
 }
 
 
+AstNode* Parser::BuildUnarySuperOperator(Token::Kind op, PrimaryNode* super) {
+  ASSERT(super->IsSuper());
+  AstNode* super_op = NULL;
+  const intptr_t super_pos = super->token_pos();
+  if ((op == Token::kNEGATE) ||
+      (op == Token::kBIT_NOT)) {
+    // Resolve the operator function in the superclass.
+    const String& operator_function_name =
+        String::ZoneHandle(Symbols::New(Token::Str(op)));
+    const bool kResolveGetter = false;
+    bool is_no_such_method = false;
+    const Function& super_operator = Function::ZoneHandle(
+        GetSuperFunction(super_pos,
+                         operator_function_name,
+                         kResolveGetter,
+                         &is_no_such_method));
+    ArgumentListNode* op_arguments = new ArgumentListNode(super_pos);
+    AstNode* receiver = LoadReceiver(super_pos);
+    op_arguments->Add(receiver);
+    CheckFunctionIsCallable(super_pos, super_operator);
+    if (is_no_such_method) {
+      op_arguments = BuildNoSuchMethodArguments(
+          super_pos, operator_function_name, *op_arguments);
+    }
+    super_op = new StaticCallNode(super_pos, super_operator, op_arguments);
+  } else {
+    ErrorMsg(super_pos, "illegal super operator call");
+  }
+  return super_op;
+}
+
+
 AstNode* Parser::ParseSuperOperator() {
   TRACE_PARSER("ParseSuperOperator");
   AstNode* super_op = NULL;
@@ -1395,74 +1449,11 @@ AstNode* Parser::ParseSuperOperator() {
     ConsumeToken();
     AstNode* index_expr = ParseExpr(kAllowConst, kConsumeCascades);
     ExpectToken(Token::kRBRACK);
-
-    if (Token::IsAssignmentOperator(CurrentToken()) &&
-        (CurrentToken() != Token::kASSIGN)) {
-      // Compound assignment. Ensure side effects in index expression
-      // only execute once. If the index is not a local variable or an
-      // literal, evaluate and save in a temporary local.
-      if (!IsSimpleLocalOrLiteralNode(index_expr)) {
-        LocalVariable* temp =
-            CreateTempConstVariable(operator_pos, "lix");
-        AstNode* save = new StoreLocalNode(operator_pos, temp, index_expr);
-        current_block_->statements->Add(save);
-        index_expr = new LoadLocalNode(operator_pos, temp);
-      }
-    }
-
-    // Resolve the [] operator function in the superclass.
-    const String& index_operator_name =
-        String::ZoneHandle(Symbols::IndexToken());
-    const bool kResolveGetter = false;
-    bool is_no_such_method = false;
-    const Function& index_operator = Function::ZoneHandle(
-        GetSuperFunction(operator_pos,
-                         index_operator_name,
-                         kResolveGetter,
-                         &is_no_such_method));
-
-    ArgumentListNode* index_op_arguments = new ArgumentListNode(operator_pos);
     AstNode* receiver = LoadReceiver(operator_pos);
-    index_op_arguments->Add(receiver);
-    index_op_arguments->Add(index_expr);
-
-    if (is_no_such_method) {
-      index_op_arguments = BuildNoSuchMethodArguments(index_operator_name,
-                                                      *index_op_arguments);
-    }
-    super_op = new StaticCallNode(
-        operator_pos, index_operator, index_op_arguments);
-
-    if (Token::IsAssignmentOperator(CurrentToken())) {
-      Token::Kind assignment_op = CurrentToken();
-      ConsumeToken();
-      AstNode* value = ParseExpr(kAllowConst, kConsumeCascades);
-
-      value = ExpandAssignableOp(operator_pos, assignment_op, super_op, value);
-
-      // Resolve the []= operator function in the superclass.
-      const String& assign_index_operator_name =
-          String::ZoneHandle(Symbols::AssignIndexToken());
-      const bool kResolveGetter = false;
-      bool is_no_such_method = false;
-      const Function& assign_index_operator = Function::ZoneHandle(
-          GetSuperFunction(operator_pos,
-                           assign_index_operator_name,
-                           kResolveGetter,
-                           &is_no_such_method));
-
-      ArgumentListNode* operator_args = new ArgumentListNode(operator_pos);
-      operator_args->Add(LoadReceiver(operator_pos));
-      operator_args->Add(index_expr);
-      operator_args->Add(value);
-
-      if (is_no_such_method) {
-        operator_args = BuildNoSuchMethodArguments(assign_index_operator_name,
-                                                   *operator_args);
-      }
-      super_op = new StaticCallNode(
-          operator_pos, assign_index_operator, operator_args);
-    }
+    const Class& super_class = Class::ZoneHandle(current_class().SuperClass());
+    ASSERT(!super_class.IsNull());
+    super_op =
+        new LoadIndexedNode(operator_pos, receiver, index_expr, super_class);
   } else if (Token::CanBeOverloaded(CurrentToken()) ||
              (CurrentToken() == Token::kNE)) {
     Token::Kind op = CurrentToken();
@@ -1495,8 +1486,8 @@ AstNode* Parser::ParseSuperOperator() {
 
     CheckFunctionIsCallable(operator_pos, super_operator);
     if (is_no_such_method) {
-      op_arguments = BuildNoSuchMethodArguments(operator_function_name,
-                                                *op_arguments);
+      op_arguments = BuildNoSuchMethodArguments(
+          operator_pos, operator_function_name, *op_arguments);
     }
     super_op = new StaticCallNode(operator_pos, super_operator, op_arguments);
     if (negate_result) {
@@ -3110,7 +3101,7 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
   const intptr_t class_pos = TokenPos();
   ExpectToken(Token::kCLASS);
   const intptr_t classname_pos = TokenPos();
-  String& class_name = *ExpectClassIdentifier("class name expected");
+  String& class_name = *ExpectUserDefinedTypeIdentifier("class name expected");
   if (FLAG_trace_parser) {
     OS::Print("TopLevel parsing class '%s'\n", class_name.ToCString());
   }
@@ -3354,7 +3345,7 @@ void Parser::ParseFunctionTypeAlias(
 
   const intptr_t alias_name_pos = TokenPos();
   const String* alias_name =
-      ExpectClassIdentifier("function alias name expected");
+      ExpectUserDefinedTypeIdentifier("function alias name expected");
 
   // Parse the type parameters of the function type.
   ParseTypeParameters(alias_owner);
@@ -3436,7 +3427,8 @@ void Parser::ParseInterfaceDefinition(
   const intptr_t interface_pos = TokenPos();
   ExpectToken(Token::kINTERFACE);
   const intptr_t interfacename_pos = TokenPos();
-  String& interface_name = *ExpectClassIdentifier("interface name expected");
+  String& interface_name =
+      *ExpectUserDefinedTypeIdentifier("interface name expected");
   if (FLAG_trace_parser) {
     OS::Print("TopLevel parsing interface '%s'\n", interface_name.ToCString());
   }
@@ -3623,21 +3615,18 @@ void Parser::ParseTypeParameters(const Class& cls) {
     do {
       ConsumeToken();
       SkipMetadata();
-      if (CurrentToken() != Token::kIDENT) {
-        ErrorMsg("type parameter name expected");
-      }
-      String& type_parameter_name = *CurrentLiteral();
       const intptr_t type_parameter_pos = TokenPos();
+      String& type_parameter_name =
+          *ExpectUserDefinedTypeIdentifier("type parameter expected");
       // Check for duplicate type parameters.
       for (intptr_t i = 0; i < index; i++) {
         existing_type_parameter ^= type_parameters_array.At(i);
         existing_type_parameter_name = existing_type_parameter.name();
         if (existing_type_parameter_name.Equals(type_parameter_name)) {
-          ErrorMsg("duplicate type parameter '%s'",
+          ErrorMsg(type_parameter_pos, "duplicate type parameter '%s'",
                    type_parameter_name.ToCString());
         }
       }
-      ConsumeToken();
       if (CurrentToken() == Token::kEXTENDS) {
         ConsumeToken();
         // A bound may refer to the owner of the type parameter it applies to,
@@ -5837,7 +5826,7 @@ AstNode* Parser::ParseForStatement(String* label_name) {
 AstNode* Parser::MakeStaticCall(const String& cls_name,
                                 const String& func_name,
                                 ArgumentListNode* arguments) {
-  const Class& cls = Class::Handle(LookupImplClass(cls_name));
+  const Class& cls = Class::Handle(LookupCoreClass(cls_name));
   ASSERT(!cls.IsNull());
   const Function& func = Function::ZoneHandle(
       Resolver::ResolveStatic(cls,
@@ -6618,7 +6607,7 @@ void Parser::UnexpectedToken() {
 }
 
 
-String* Parser::ExpectClassIdentifier(const char* msg) {
+String* Parser::ExpectUserDefinedTypeIdentifier(const char* msg) {
   if (CurrentToken() != Token::kIDENT) {
     ErrorMsg("%s", msg);
   }
@@ -6720,6 +6709,10 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
   TRACE_PARSER("ParseBinaryExpr");
   ASSERT(min_preced >= 4);
   AstNode* left_operand = ParseUnaryExpr();
+  if (left_operand->IsPrimaryNode() &&
+      (left_operand->AsPrimaryNode()->IsSuper())) {
+    ErrorMsg(left_operand->token_pos(), "illegal use of 'super'");
+  }
   if (IsLiteral("as")) {  // Not a reserved word.
     token_kind_ = Token::kAS;
   }
@@ -6783,12 +6776,13 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
 
 
 bool Parser::IsAssignableExpr(AstNode* expr) {
-  return expr->IsPrimaryNode()
-      || (expr->IsLoadLocalNode() && !expr->AsLoadLocalNode()->HasPseudo())
+  return (expr->IsLoadLocalNode() && !expr->AsLoadLocalNode()->HasPseudo()
+          && (!expr->AsLoadLocalNode()->local().is_final()))
       || expr->IsLoadStaticFieldNode()
       || expr->IsStaticGetterNode()
       || expr->IsInstanceGetterNode()
-      || expr->IsLoadIndexedNode();
+      || expr->IsLoadIndexedNode()
+      || (expr->IsPrimaryNode() && !expr->AsPrimaryNode()->IsSuper());
 }
 
 
@@ -6936,11 +6930,14 @@ AstNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
           CreateTempConstVariable(token_pos, "lia");
       StoreLocalNode* save =
           new StoreLocalNode(token_pos, temp, left_node->array());
-      left_node =
-          new LoadIndexedNode(token_pos, save, left_node->index_expr());
+      left_node = new LoadIndexedNode(token_pos,
+                                      save,
+                                      left_node->index_expr(),
+                                      left_node->super_class());
       right_node = new LoadIndexedNode(token_pos,
                                        new LoadLocalNode(token_pos, temp),
-                                       right_node->index_expr());
+                                       right_node->index_expr(),
+                                       right_node->super_class());
     }
     if (!IsSimpleLocalOrLiteralNode(left_node->index_expr())) {
       LocalVariable* temp =
@@ -6949,10 +6946,12 @@ AstNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
           new StoreLocalNode(token_pos, temp, left_node->index_expr());
       left_node = new LoadIndexedNode(token_pos,
                                       left_node->array(),
-                                      save);
+                                      save,
+                                      left_node->super_class());
       right_node = new LoadIndexedNode(token_pos,
                                        right_node->array(),
-                                       new LoadLocalNode(token_pos, temp));
+                                       new LoadLocalNode(token_pos, temp),
+                                       right_node->super_class());
     }
     *expr = right_node;
     return left_node;
@@ -6989,6 +6988,9 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original, AstNode* rhs) {
         Field::SetterSymbol(original->AsStaticGetterNode()->field_name()));
     result = ThrowNoSuchMethodError(original->token_pos(), setter_name);
   }
+  // TODO(hausner): if we decide to throw a no such method error on
+  // assignment to a final variable, we need to do the same as in the
+  // StaticGetterNode above.
   if ((result != NULL) &&
       (result->IsStoreIndexedNode() ||
        result->IsInstanceSetterNode() ||
@@ -7140,6 +7142,8 @@ AstNode* Parser::ParseUnaryExpr() {
         ErrorMsg(op_pos, "unexpected operator '+'");
       }
       // Expression is the literal itself.
+    } else if (expr->IsPrimaryNode() && (expr->AsPrimaryNode()->IsSuper())) {
+      expr = BuildUnarySuperOperator(unary_op, expr->AsPrimaryNode());
     } else {
       expr = UnaryOpNode::UnaryOpOrLiteral(op_pos, unary_op, expr);
     }
@@ -7160,6 +7164,7 @@ AstNode* Parser::ParseUnaryExpr() {
         expr,
         new LiteralNode(op_pos, Smi::ZoneHandle(Smi::New(1))));
     AstNode* store = CreateAssignmentNode(left_expr, add);
+    ASSERT(store != NULL);
     expr = store;
   } else {
     expr = ParsePostfixExpr();
@@ -7407,6 +7412,9 @@ AstNode* Parser::LoadFieldIfUnresolved(AstNode* node) {
   }
   PrimaryNode* primary = node->AsPrimaryNode();
   if (primary->primary().IsString()) {
+    if (primary->IsSuper()) {
+      return primary;
+    }
     // In a static method, evaluation of an unresolved identifier causes a
     // NoSuchMethodError to be thrown.
     // In an instance method, we convert this into a getter call
@@ -7458,6 +7466,9 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
         if (left->AsPrimaryNode()->primary().IsFunction()) {
           left = LoadClosure(left->AsPrimaryNode());
         } else {
+          // Super field access handled in ParseSuperFieldAccess(),
+          // super calls handled in ParseSuperCall().
+          ASSERT(!left->AsPrimaryNode()->IsSuper());
           left = LoadFieldIfUnresolved(left);
         }
       }
@@ -7495,6 +7506,9 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
         }
       }
     } else if (CurrentToken() == Token::kLBRACK) {
+      // Super index operator handled in ParseSuperOperator().
+      ASSERT(!left->IsPrimaryNode() || !left->AsPrimaryNode()->IsSuper());
+
       const intptr_t bracket_pos = TokenPos();
       ConsumeToken();
       left = LoadFieldIfUnresolved(left);
@@ -7513,7 +7527,10 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           UNREACHABLE();  // Internal parser error.
         }
       }
-      selector = new LoadIndexedNode(bracket_pos, array, index);
+      selector =  new LoadIndexedNode(bracket_pos,
+                                      array,
+                                      index,
+                                      Class::ZoneHandle());
     } else if (CurrentToken() == Token::kLPAREN) {
       if (left->IsPrimaryNode()) {
         PrimaryNode* primary = left->AsPrimaryNode();
@@ -7537,6 +7554,9 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           }
         } else if (primary->primary().IsString()) {
           // Primary is an unresolved name.
+          if (primary->IsSuper()) {
+            ErrorMsg(primary->token_pos(), "illegal use of super");
+          }
           String& name = String::CheckedZoneHandle(primary->primary().raw());
           if (current_function().is_static()) {
             selector = ThrowNoSuchMethodError(primary->token_pos(), name);
@@ -7571,6 +7591,10 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           ErrorMsg(left->token_pos(),
                    "illegal use of class name '%s'",
                    cls_name.ToCString());
+        } else if (primary->IsSuper()) {
+          // Return "super" to handle unary super operator calls,
+          // or to report illegal use of "super" otherwise.
+          left = primary;
         } else {
           UNREACHABLE();  // Internal parser error.
         }
@@ -8645,7 +8669,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     String& list_literal_factory_class_name = String::Handle(
         Symbols::ListLiteralFactoryClass());
     const Class& list_literal_factory_class =
-        Class::Handle(LookupCoreImplClass(list_literal_factory_class_name));
+        Class::Handle(LookupCoreClass(list_literal_factory_class_name));
     ASSERT(!list_literal_factory_class.IsNull());
     const String& list_literal_factory_name =
         String::Handle(Symbols::ListLiteralFactory());
@@ -8870,7 +8894,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     String& map_literal_factory_class_name = String::Handle(
         Symbols::MapLiteralFactoryClass());
     const Class& map_literal_factory_class =
-        Class::Handle(LookupCoreImplClass(map_literal_factory_class_name));
+        Class::Handle(LookupCoreClass(map_literal_factory_class_name));
     ASSERT(!map_literal_factory_class.IsNull());
     const String& map_literal_factory_name =
         String::Handle(Symbols::MapLiteralFactory());
@@ -9251,7 +9275,7 @@ AstNode* Parser::ParseNewOperator() {
 
 String& Parser::Interpolate(ArrayNode* values) {
   const String& class_name = String::Handle(Symbols::StringBase());
-  const Class& cls = Class::Handle(LookupImplClass(class_name));
+  const Class& cls = Class::Handle(LookupCoreClass(class_name));
   ASSERT(!cls.IsNull());
   const String& func_name = String::Handle(Symbols::Interpolate());
   const Function& func =
@@ -9509,6 +9533,10 @@ AstNode* Parser::ParsePrimary() {
     if (current_function().is_static()) {
       ErrorMsg("cannot access superclass from static method");
     }
+    if (current_class().SuperClass() == Class::null()) {
+      ErrorMsg("class '%s' does not have a superclass",
+               String::Handle(current_class().Name()).ToCString());
+    }
     ConsumeToken();
     if (CurrentToken() == Token::kPERIOD) {
       ConsumeToken();
@@ -9523,7 +9551,8 @@ AstNode* Parser::ParsePrimary() {
         (CurrentToken() == Token::kNE)) {
       primary = ParseSuperOperator();
     } else {
-      ErrorMsg("illegal super call");
+      primary = new PrimaryNode(TokenPos(),
+                                String::ZoneHandle(Symbols::Super()));
     }
   } else if (CurrentToken() == Token::kCONDITIONAL) {
     primary = ParseArgumentDefinitionTest();

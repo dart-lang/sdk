@@ -42,6 +42,7 @@ const String DEFAULT_HELPERLIB = r'''
   stringTypeCheck(x) {}
   boolConversionCheck(x) {}
   abstract class JavaScriptIndexingBehavior {}
+  class JSInvocationMirror {}
   S() {}
   assertHelper(a){}''';
 
@@ -92,6 +93,7 @@ class MockCompiler extends Compiler {
     // We need to set the assert method to avoid calls with a 'null'
     // target being interpreted as a call to assert.
     jsHelperLibrary = createLibrary("helper", helperSource);
+    importHelperLibrary(coreLibrary);
     assertMethod = jsHelperLibrary.find(buildSourceString('assert'));
     interceptorsLibrary = createLibrary("interceptors", interceptorsSource);
 

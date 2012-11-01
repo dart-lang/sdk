@@ -255,7 +255,12 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
       p(")");
     }
     if (x.getDefaultExpr() != null) {
-      p(" = ");
+      if (x.getModifiers().isOptional()) {
+        p(" = ");
+      }
+      if (x.getModifiers().isNamed()) {
+        p(" : ");
+      }
       accept(x.getDefaultExpr());
     }
     return null;
@@ -280,7 +285,7 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
       p("set ");
     }
     // name
-    pFunctionDeclaration(x.getName(), func);
+    pFunctionDeclaration(x.getName(), func, !x.getModifiers().isGetter());
     p(" ");
     // initializers
     List<DartInitializer> inits = x.getInitializers();
@@ -338,30 +343,39 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
     }
   }
 
-  private void pFunctionDeclaration(DartNode name, DartFunction x) {
+  private void pFunctionDeclaration(DartNode name, DartFunction x, boolean includeParameters) {
     if (name != null) {
       accept(name);
     }
-    p("(");
-    pFormalParameters(x.getParameters());
-    p(")");
+    if (includeParameters) {
+      p("(");
+      pFormalParameters(x.getParameters());
+      p(")");
+    }
   }
 
   private void pFormalParameters(List<DartParameter> params) {
-    boolean first = true, hasNamed = false;
+    boolean first = true, hasPositional = false, hasNamed = false;
     for (DartParameter param : params) {
       if (!first) {
         p(", ");
       }
+      if (!hasPositional && param.getModifiers().isOptional()) {
+        hasPositional = true;
+        p("[");
+      }
       if (!hasNamed && param.getModifiers().isNamed()) {
         hasNamed = true;
-        p("[");
+        p("{");
       }
       accept(param);
       first = false;
     }
-    if (hasNamed) {
+    if (hasPositional) {
       p("]");
+    }
+    if (hasNamed) {
+      p("}");
     }
   }
   
@@ -793,7 +807,7 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
       p(" ");
     }
     DartIdentifier name = x.getName();
-    pFunctionDeclaration(name, x.getFunction());
+    pFunctionDeclaration(name, x.getFunction(), true);
     p(" ");
     if (x.getFunction().getBody() != null) {
       pBlock(x.getFunction().getBody(), false);

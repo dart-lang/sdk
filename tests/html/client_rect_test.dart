@@ -5,6 +5,9 @@
 
 main() {
 
+  var isClientRectList =
+      predicate((x) => x is List<ClientRect>, 'is a List<ClientRect>');
+
   insertTestDiv() {
     var element = new Element.tag('div');
     element.innerHTML = r'''
@@ -21,7 +24,7 @@ main() {
    test("ClientRectList test", () {
     insertTestDiv();
     var range = document.createRange();
-    List<ClientRect> rects = range.getClientRects();
-    Expect.isTrue(rects is List<ClientRect>);
+    var rects = range.getClientRects();
+    expect(rects, isClientRectList);
   });
 }

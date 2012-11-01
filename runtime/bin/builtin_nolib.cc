@@ -11,13 +11,13 @@
 
 
 Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
-  /*      url_                 source_          has_natives_  */
-  { DartUtils::kBuiltinLibURL, NULL,            true  },
-  { DartUtils::kJsonLibURL,    NULL,            false },
-  { DartUtils::kUriLibURL,     NULL,            false },
-  { DartUtils::kCryptoLibURL,  NULL,            false },
-  { DartUtils::kIOLibURL,      NULL,            true  },
-  { DartUtils::kUtfLibURL,     NULL,            false }
+  /* { url_, source_, patch_url_, patch_source_, has_natives_ } */
+  { DartUtils::kBuiltinLibURL, NULL, NULL, NULL, true },
+  { DartUtils::kJsonLibURL, NULL, NULL, NULL, false },
+  { DartUtils::kUriLibURL, NULL, NULL, NULL, false },
+  { DartUtils::kCryptoLibURL, NULL, NULL, NULL, false },
+  { DartUtils::kIOLibURL, NULL, NULL, NULL, true  },
+  { DartUtils::kUtfLibURL, NULL, NULL, NULL, false }
 };
 
 
@@ -33,7 +33,7 @@ void Builtin::SetNativeResolver(BuiltinLibraryId id) {
          kInvalidLibrary);
   ASSERT(id >= kBuiltinLibrary && id < kInvalidLibrary);
   if (builtin_libraries_[id].has_natives_) {
-    Dart_Handle url = Dart_NewString(builtin_libraries_[id].url_);
+    Dart_Handle url = DartUtils::NewString(builtin_libraries_[id].url_);
     Dart_Handle library = Dart_LookupLibrary(url);
     ASSERT(!Dart_IsError(library));
     // Setup the native resolver for built in library functions.
@@ -46,7 +46,7 @@ Dart_Handle Builtin::LoadAndCheckLibrary(BuiltinLibraryId id) {
   ASSERT((sizeof(builtin_libraries_) / sizeof(builtin_lib_props)) ==
          kInvalidLibrary);
   ASSERT(id >= kBuiltinLibrary && id < kInvalidLibrary);
-  Dart_Handle url = Dart_NewString(builtin_libraries_[id].url_);
+  Dart_Handle url = DartUtils::NewString(builtin_libraries_[id].url_);
   Dart_Handle library = Dart_LookupLibrary(url);
   if (Dart_IsError(library)) {
     ASSERT(id > kUtfLibrary);

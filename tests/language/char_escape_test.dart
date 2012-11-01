@@ -366,24 +366,24 @@ class CharEscapeTest {
 
     var v10000 = "\u{10000}";
     var v010000 = "\u{010000}";
-    Expect.equals(1, v10000.length);
-    Expect.equals(1, v010000.length);
+    Expect.equals(2, v10000.length);
+    Expect.equals(2, v010000.length);
     Expect.equals("\u{10000}", new String.fromCharCodes([0x10000]));
     Expect.equals("\u{010000}", new String.fromCharCodes([0x10000]));
 
     var v1FFFF = "\u{1FFFF}";
     var v01FFFF = "\u{01FFFF}";
-    Expect.equals(1, v1FFFF.length);
-    Expect.equals(1, v01FFFF.length);
+    Expect.equals(2, v1FFFF.length);
+    Expect.equals(2, v01FFFF.length);
     Expect.equals("\u{1FFFF}", new String.fromCharCodes([0x1FFFF]));
     Expect.equals("\u{01FFFF}", new String.fromCharCodes([0x1FFFF]));
 
     var v105555 = "\u{105555}";
-    Expect.equals(1, v105555.length);
+    Expect.equals(2, v105555.length);
     Expect.equals("\u{105555}", new String.fromCharCodes([0x105555]));
 
     var v10FFFF = "\u{10FFFF}";
-    Expect.equals(1, v10FFFF.length);
+    Expect.equals(2, v10FFFF.length);
     Expect.equals("\u{10FFFF}", new String.fromCharCodes([0x10FFFF]));
 
     var bs = "\b";

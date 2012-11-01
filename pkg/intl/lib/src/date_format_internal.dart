@@ -12,8 +12,8 @@
  * `initializeDateFormatting` method exposed there.
  */
 
-#library('date_format_internal');
-#import('intl_helpers.dart');
+library date_format_internal;
+import 'intl_helpers.dart';
 
 /**
  * This holds the symbols to be used for date/time formatting, indexed

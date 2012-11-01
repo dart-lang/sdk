@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import('parser_helper.dart');
-#import("../../../lib/compiler/implementation/scanner/scannerlib.dart");
-#import("../../../lib/compiler/implementation/tree/tree.dart");
-
+import 'parser_helper.dart';
+import '../../../lib/compiler/implementation/tree/tree.dart';
 
 void testNode(Node node, String expected, String text, [bool hard = true]) {
   var debug = 'text=$text,expected=$expected,node:${node}';

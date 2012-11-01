@@ -68,7 +68,7 @@ class DartiumBackend(object):
           '{\n'
           '    if (!m_callback.isIsolateAlive())\n'
           '        return false;\n'
-          '    DartIsolate::Scope scope(m_callback.isolate());\n'
+          '    DartIsolateScope scope(m_callback.isolate());\n'
           '    DartApiScope apiScope;\n'
           '    $ARGUMENTS_DECLARATION;\n'
           '    return m_callback.handleEvent($ARGUMENT_COUNT, arguments);\n'
@@ -499,12 +499,14 @@ class DartiumBackend(object):
       self._GenerateOperationNativeCallback(operation, operation.arguments[:argument_count], cpp_callback_name)
 
     def GenerateChecksAndCall(operation, argument_count):
-      checks = ['!?%s' % name for name in argument_names]
+      checks = []
       for i in range(0, argument_count):
         argument = operation.arguments[i]
         argument_name = argument_names[i]
-        checks[i] = '(%s is %s || %s == null)' % (
-            argument_name, self._DartType(argument.type.id), argument_name)
+        type = self._DartType(argument.type.id)
+        if type not in ['dynamic', 'Object']:
+          checks.append('(%s is %s || %s == null)' % (argument_name, type, argument_name))
+      checks.extend(['!?%s' % name for name in argument_names[argument_count:]])
       GenerateCall(operation, argument_count, checks)
 
     # TODO: Optimize the dispatch to avoid repeated checks.
@@ -600,7 +602,7 @@ class DartiumBackend(object):
       self._cpp_impl_includes.add('"DOMWindow.h"')
       runtime_check = emitter.Format(
           '        if (!ContextFeatures::$(FEATURE)Enabled(DartUtilities::domWindowForCurrentIsolate()->document())) {\n'
-          '            exception = Dart_NewString("Feature $FEATURE is not enabled");\n'
+          '            exception = Dart_NewStringFromCString("Feature $FEATURE is not enabled");\n'
           '            goto fail;\n'
           '        }',
           FEATURE=v8EnabledPerContext)
@@ -610,7 +612,7 @@ class DartiumBackend(object):
       self._cpp_impl_includes.add('"RuntimeEnabledFeatures.h"')
       runtime_check = emitter.Format(
           '        if (!RuntimeEnabledFeatures::$(FEATURE)Enabled()) {\n'
-          '            exception = Dart_NewString("Feature $FEATURE is not enabled");\n'
+          '            exception = Dart_NewStringFromCString("Feature $FEATURE is not enabled");\n'
           '            goto fail;\n'
           '        }',
           FEATURE=self._ToWebKitName(v8EnabledAtRuntime))
@@ -652,7 +654,7 @@ class DartiumBackend(object):
       body_emitter.Emit(
           '        ScriptExecutionContext* context = DartUtilities::scriptExecutionContext();\n'
           '        if (!context) {\n'
-          '            exception = Dart_NewString("Failed to retrieve a context");\n'
+          '            exception = Dart_NewStringFromCString("Failed to retrieve a context");\n'
           '            goto fail;\n'
           '        }\n\n')
 
@@ -661,7 +663,7 @@ class DartiumBackend(object):
       body_emitter.Emit(
           '        DOMWindow* domWindow = DartUtilities::domWindowForCurrentIsolate();\n'
           '        if (!domWindow) {\n'
-          '            exception = Dart_NewString("Failed to fetch domWindow");\n'
+          '            exception = Dart_NewStringFromCString("Failed to fetch domWindow");\n'
           '            goto fail;\n'
           '        }\n'
           '        Document* document = domWindow->document();\n')
@@ -804,6 +806,8 @@ class DartiumBackend(object):
     # Another option would be to adjust in IDLs, but let's keep it here for now
     # as it's a single instance.
     if self._interface.id == 'CSSStyleDeclaration' and operation.id == 'setProperty' and argument.id == 'priority':
+      return False
+    if argument.type.id == 'Dictionary':
       return False
     return True
 

@@ -110,6 +110,13 @@ class DartUtils {
   // Create a new Dart OSError object with the provided OS error.
   static Dart_Handle NewDartOSError(OSError* os_error);
 
+  // Create a new Dart String object from a C String.
+  static Dart_Handle NewString(const char* str) {
+    ASSERT((str != NULL) && (strlen(str) != 0));
+    return Dart_NewStringFromUTF8(reinterpret_cast<const uint8_t*>(str),
+                                  strlen(str));
+  }
+
   static void SetOriginalWorkingDirectory();
 
   // Global state that stores the original working directory..
@@ -122,6 +129,7 @@ class DartUtils {
   static const char* kCoreImplLibURL;
   static const char* kCryptoLibURL;
   static const char* kIOLibURL;
+  static const char* kIOLibPatchURL;
   static const char* kJsonLibURL;
   static const char* kUriLibURL;
   static const char* kUtfLibURL;

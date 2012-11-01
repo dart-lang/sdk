@@ -33,16 +33,20 @@ patch class Random {
 
 class _Random implements Random {
   // Internal state of the random number generator.
-  var _state;
+  var _state_lo;
+  var _state_hi;
 
-  _Random._internal(this._state);
+  _Random._internal(state)
+      : _state_lo = (state & _MASK_32), _state_hi = (state >> 32);
 
   // The algorithm used here is Multiply with Carry (MWC) with a Base b = 2^32.
   // http://en.wikipedia.org/wiki/Multiply-with-carry
   // The constant A is selected from "Numerical Recipes 3rd Edition" p.348 B1.
   int _nextInt32() {
-    _state = ((_A * (_state & _MASK_32)) + (_state >> 32)) & _MASK_64;
-    return _state & _MASK_32;
+    var state = ((_A * (_state_lo)) + _state_hi) & _MASK_64;
+    _state_lo = state & _MASK_32;
+    _state_hi = state >> 32;
+    return _state_lo;
   }
 
   int nextInt(int max) {
@@ -89,7 +93,6 @@ class _Random implements Random {
       _prng = new Random(new Date.now().millisecondsSinceEpoch);
     }
     // Trigger the PRNG once to change the internal state.
-    _prng._nextInt32();
-    return _prng._state;
+    return _prng._nextInt32();
   }
 }

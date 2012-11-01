@@ -63,8 +63,6 @@ void testInvalidUrl() {
   HttpClient client = new HttpClient();
   Expect.throws(
       () => client.getUrl(new Uri.fromString('ftp://www.google.com')));
-  Expect.throws(
-      () => client.getUrl(new Uri.fromString('http://usr:pwd@www.google.com')));
 }
 
 void testBadHostName() {

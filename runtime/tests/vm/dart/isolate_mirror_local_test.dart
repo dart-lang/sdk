@@ -304,7 +304,7 @@ void testLibrariesMap(Map libraries) {
   Expect.equals('dart:core.List', list_intf.qualifiedName);
   Expect.isFalse(list_intf.isPrivate);
   Expect.equals('Object', list_intf.superclass.simpleName);
-  Expect.equals('ListImplementation', list_intf.defaultFactory.simpleName);
+  Expect.equals('_ListImpl', list_intf.defaultFactory.simpleName);
   Expect.equals('dart:core', list_intf.owner.simpleName);
   Expect.isFalse(list_intf.isClass);
   Expect.equals('Collection', list_intf.superinterfaces[0].simpleName);

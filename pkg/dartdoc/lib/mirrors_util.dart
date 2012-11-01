@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('mirrors.util');
+library mirrors_util;
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-#import('mirrors.dart');
-#import('../../../lib/compiler/implementation/util/characters.dart');
+import 'mirrors.dart';
+import '../../../lib/compiler/implementation/util/characters.dart';
 
 //------------------------------------------------------------------------------
 // Utility functions for using the Mirror API
@@ -16,24 +16,24 @@
  * Returns an iterable over the type declarations directly inheriting from
  * the declaration of this type.
  */
-Iterable<InterfaceMirror> computeSubdeclarations(InterfaceMirror type) {
-  type = type.declaration;
-  var subtypes = <InterfaceMirror>[];
-  type.system.libraries.forEach((_, library) {
-    for (InterfaceMirror otherType in library.types.values) {
+Iterable<ClassMirror> computeSubdeclarations(ClassMirror type) {
+  type = type.originalDeclaration;
+  var subtypes = <ClassMirror>[];
+  type.mirrors.libraries.forEach((_, library) {
+    for (ClassMirror otherType in library.classes.values) {
       var superClass = otherType.superclass;
-      if (superClass !== null) {
-        superClass = superClass.declaration;
-        if (type.library === superClass.library) {
+      if (superClass != null) {
+        superClass = superClass.originalDeclaration;
+        if (type.library == superClass.library) {
           if (superClass == type) {
              subtypes.add(otherType);
           }
         }
       }
-      final superInterfaces = otherType.interfaces;
-      for (InterfaceMirror superInterface in superInterfaces) {
-        superInterface = superInterface.declaration;
-        if (type.library === superInterface.library) {
+      final superInterfaces = otherType.superinterfaces;
+      for (ClassMirror superInterface in superInterfaces) {
+        superInterface = superInterface.originalDeclaration;
+        if (type.library == superInterface.library) {
           if (superInterface == type) {
             subtypes.add(otherType);
           }
@@ -45,7 +45,7 @@ Iterable<InterfaceMirror> computeSubdeclarations(InterfaceMirror type) {
 }
 
 LibraryMirror findLibrary(MemberMirror member) {
-  ObjectMirror owner = member.surroundingDeclaration;
+  ContainerMirror owner = member.owner;
   if (owner is LibraryMirror) {
     return owner;
   } else if (owner is TypeMirror) {
@@ -58,7 +58,7 @@ LibraryMirror findLibrary(MemberMirror member) {
 /**
  * Returns the column of the start of a location.
  */
-int getLocationColumn(Location location) {
+int getLocationColumn(SourceLocation location) {
   String text = location.source.text;
   int index = location.start-1;
   var column = 0;
@@ -73,14 +73,14 @@ int getLocationColumn(Location location) {
   return column;
 }
 
-class HierarchyIterable implements Iterable<InterfaceMirror> {
+class HierarchyIterable implements Iterable<ClassMirror> {
   final bool includeType;
-  final InterfaceMirror type;
+  final ClassMirror type;
 
   HierarchyIterable(this.type, {bool includeType})
       : this.includeType = includeType;
 
-  Iterator<InterfaceMirror> iterator() =>
+  Iterator<ClassMirror> iterator() =>
       new HierarchyIterator(type, includeType: includeType);
 }
 
@@ -93,11 +93,11 @@ class HierarchyIterable implements Iterable<InterfaceMirror> {
  * visited in breadth first order and a superinterface is visited more than once
  * if implemented through multiple supertypes.
  */
-class HierarchyIterator implements Iterator<InterfaceMirror> {
-  final Queue<InterfaceMirror> queue = new Queue<InterfaceMirror>();
-  InterfaceMirror object;
+class HierarchyIterator implements Iterator<ClassMirror> {
+  final Queue<ClassMirror> queue = new Queue<ClassMirror>();
+  ClassMirror object;
 
-  HierarchyIterator(InterfaceMirror type, {bool includeType}) {
+  HierarchyIterator(ClassMirror type, {bool includeType}) {
     if (includeType) {
       queue.add(type);
     } else {
@@ -105,22 +105,22 @@ class HierarchyIterator implements Iterator<InterfaceMirror> {
     }
   }
 
-  InterfaceMirror push(InterfaceMirror type) {
-    if (type.superclass !== null) {
+  ClassMirror push(ClassMirror type) {
+    if (type.superclass != null) {
       if (type.superclass.isObject) {
         object = type.superclass;
       } else {
         queue.addFirst(type.superclass);
       }
     }
-    queue.addAll(type.interfaces);
+    queue.addAll(type.superinterfaces);
     return type;
   }
 
-  InterfaceMirror next() {
-    InterfaceMirror type;
+  ClassMirror next() {
+    ClassMirror type;
     if (queue.isEmpty) {
-      if (object === null) {
+      if (object == null) {
         throw new StateError("No more elements");
       }
       type = object;
@@ -131,5 +131,5 @@ class HierarchyIterator implements Iterator<InterfaceMirror> {
     }
   }
 
-  bool get hasNext => !queue.isEmpty || object !== null;
+  bool get hasNext => !queue.isEmpty || object != null;
 }

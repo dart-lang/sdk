@@ -6,11 +6,13 @@
 #import("dart:isolate");
 #import("dart:io");
 
-void testNoBody(int totalConnections) {
+void testNoBody(int totalConnections, bool explicitContentLength) {
   HttpServer server = new HttpServer();
   server.onError = (e) => Expect.fail("Unexpected error $e");
   server.listen("127.0.0.1", 0, backlog: totalConnections);
   server.defaultRequestHandler = (HttpRequest request, HttpResponse response) {
+    Expect.isNull(request.headers.value('content-length'));
+    Expect.equals(0, request.contentLength);
     response.contentLength = 0;
     OutputStream stream = response.outputStream;
     Expect.throws(() => stream.writeString("x"), (e) => e is HttpException);
@@ -25,11 +27,16 @@ void testNoBody(int totalConnections) {
     conn.onError = (e) => Expect.fail("Unexpected error $e");
     conn.onRequest = (HttpClientRequest request) {
       OutputStream stream = request.outputStream;
-      Expect.throws(() => stream.writeString("x"), (e) => e is HttpException);
+      if (explicitContentLength) {
+        request.contentLength = 0;
+        Expect.throws(() => stream.writeString("x"), (e) => e is HttpException);
+      }
       stream.close();
       Expect.throws(() => stream.writeString("x"), (e) => e is HttpException);
     };
     conn.onResponse = (HttpClientResponse response) {
+      Expect.equals("0", response.headers.value('content-length'));
+      Expect.equals(0, response.contentLength);
       count++;
       if (count == totalConnections) {
         client.shutdown();
@@ -44,6 +51,8 @@ void testBody(int totalConnections) {
   server.onError = (e) => Expect.fail("Unexpected error $e");
   server.listen("127.0.0.1", 0, backlog: totalConnections);
   server.defaultRequestHandler = (HttpRequest request, HttpResponse response) {
+    Expect.equals("2", request.headers.value('content-length'));
+    Expect.equals(2, request.contentLength);
     response.contentLength = 2;
     OutputStream stream = response.outputStream;
     stream.writeString("x");
@@ -70,6 +79,8 @@ void testBody(int totalConnections) {
       Expect.throws(() => stream.writeString("x"), (e) => e is HttpException);
     };
     conn.onResponse = (HttpClientResponse response) {
+      Expect.equals("2", response.headers.value('content-length'));
+      Expect.equals(2, response.contentLength);
       count++;
       if (count == totalConnections) {
         client.shutdown();
@@ -84,10 +95,12 @@ void testHttp10() {
   server.onError = (e) => Expect.fail("Unexpected error $e");
   server.listen("127.0.0.1", 0, backlog: 5);
   server.defaultRequestHandler = (HttpRequest request, HttpResponse response) {
+    Expect.isNull(request.headers.value('content-length'));
+    Expect.equals(0, request.contentLength);
+    response.contentLength = 0;
     OutputStream stream = response.outputStream;
     Expect.equals("1.0", request.protocolVersion);
     Expect.throws(() => stream.writeString("x"), (e) => e is HttpException);
-    response.contentLength = 0;
     stream.close();
   };
 
@@ -104,7 +117,8 @@ void testHttp10() {
 }
 
 void main() {
-  testNoBody(5);
+  testNoBody(5, false);
+  testNoBody(5, true);
   testBody(5);
   testHttp10();
 }

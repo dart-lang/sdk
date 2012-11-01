@@ -162,7 +162,14 @@ public class Types {
       return interTypes.get(0);
     }
     // create union
-    return new InterfaceTypeUnion(interTypes);
+    return unionTypes(interTypes);
+  }
+
+  /**
+   * @return the {@link InterfaceType} which is union of given ones.
+   */
+  public InterfaceType unionTypes(List<InterfaceType> types) {
+    return new InterfaceTypeUnion(types);
   }
 
   /**
@@ -355,6 +362,27 @@ public class Types {
         return false;
       }
     }
+
+    {
+      Map<String, Type> sOpti = s.getOptionalParameterTypes();
+      Map<String, Type> tOpti = t.getOptionalParameterTypes();
+      if (tOpti.size() < sOpti.size()) {
+        return false;
+      }
+      Iterator<Entry<String, Type>> tList = tOpti.entrySet().iterator();
+      Iterator<Entry<String, Type>> sList = sOpti.entrySet().iterator();
+      while (sList.hasNext()) {
+        if (!tList.hasNext()) {
+          return false;
+        }
+        Entry<String, Type> sEntry = sList.next();
+        Entry<String, Type> tEntry = tList.next();
+        if (!isAssignable(tEntry.getValue(), sEntry.getValue())) {
+          return false;
+        }
+      }
+    }
+    
     Map<String, Type> tNamed = t.getNamedParameterTypes();
     Map<String, Type> sNamed = s.getNamedParameterTypes();
     if (tNamed.isEmpty() && !sNamed.isEmpty()) {
@@ -366,23 +394,34 @@ public class Types {
     if (!sNamed.isEmpty()) {
       LinkedHashMap<String,Type> tMap = (LinkedHashMap<String, Type>)(tNamed);
       LinkedHashMap<String,Type> sMap = (LinkedHashMap<String, Type>)(sNamed);
-      Iterator<Entry<String, Type>> tList = tMap.entrySet().iterator();
-      Iterator<Entry<String, Type>> sList = sMap.entrySet().iterator();
-      // t named parameters must start with the named parameters of s
-      while (sList.hasNext()) {
-        if (!tList.hasNext()) {
-          return false;
-        }
-        Entry<String, Type> sEntry = sList.next();
-        Entry<String, Type> tEntry = tList.next();
-        if (!sEntry.getKey().equals(tEntry.getKey())) {
-          return false;
-        }
-        // Classic: parameter types are contravariant; Dart: assignable.
-        if (!isAssignable(tEntry.getValue(), sEntry.getValue())) {
+      if (!tMap.keySet().containsAll(sMap.keySet())) {
+        return false;
+      }
+      for (Entry<String, Type> entry : sMap.entrySet()) {
+        String name = entry.getKey();
+        Type sType = sMap.get(name);
+        Type tType = tMap.get(name);
+        if (!isAssignable(tType, sType)) {
           return false;
         }
       }
+//      Iterator<Entry<String, Type>> tList = tMap.entrySet().iterator();
+//      Iterator<Entry<String, Type>> sList = sMap.entrySet().iterator();
+//      // t named parameters must start with the named parameters of s
+//      while (sList.hasNext()) {
+//        if (!tList.hasNext()) {
+//          return false;
+//        }
+//        Entry<String, Type> sEntry = sList.next();
+//        Entry<String, Type> tEntry = tList.next();
+//        if (!sEntry.getKey().equals(tEntry.getKey())) {
+//          return false;
+//        }
+//        // Classic: parameter types are contravariant; Dart: assignable.
+//        if (!isAssignable(tEntry.getValue(), sEntry.getValue())) {
+//          return false;
+//        }
+//      }
     }
 
     // Classic: parameter types are contravariant; Dart: assignable.

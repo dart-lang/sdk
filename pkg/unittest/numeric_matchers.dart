@@ -6,6 +6,9 @@
  * Returns a matcher which matches if the match argument is greater
  * than the given [value].
  */
+
+part of unittest;
+
 Matcher greaterThan(value) =>
   new _OrderingComparison(value, false, false, true, 'a value greater than');
 

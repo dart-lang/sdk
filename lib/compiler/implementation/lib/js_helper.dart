@@ -5,6 +5,7 @@
 #library('dart:_js_helper');
 
 #import('dart:coreimpl');
+#import('dart:collection');
 
 #source('constant_map.dart');
 #source('native_helper.dart');
@@ -299,7 +300,7 @@ index$slow(var a, var index) {
       if (!identical(index.truncate(), index)) throw new ArgumentError(index);
     }
     if (index < 0 || index >= a.length) {
-      throw new IndexOutOfRangeException(index);
+      throw new RangeError.value(index);
     }
     return JS('Object', r'#[#]', a, index);
   }
@@ -312,7 +313,7 @@ void indexSet$slow(var a, var index, var value) {
       throw new ArgumentError(index);
     }
     if (index < 0 || index >= a.length) {
-      throw new IndexOutOfRangeException(index);
+      throw new RangeError.value(index);
     }
     checkMutable(a, 'indexed set');
     JS('Object', r'#[#] = #', a, index, value);
@@ -349,6 +350,63 @@ class ListIterator<T> implements Iterator<T> {
     var value = JS('Object', r'#[#]', list, i);
     i += 1;
     return value;
+  }
+}
+
+createInvocationMirror(name, internalName, type, arguments, argumentNames) =>
+    new JSInvocationMirror(name, internalName, type, arguments, argumentNames);
+
+class JSInvocationMirror implements InvocationMirror {
+  static const METHOD = 0;
+  static const GETTER = 1;
+  static const SETTER = 2;
+
+  final String memberName;
+  final String _internalName;
+  final int _kind;
+  final List _arguments;
+  final List _namedArgumentNames;
+  /** Map from argument name to index in _arguments. */
+  Map<String,dynamic> _namedIndices = null;
+
+  JSInvocationMirror(this.memberName,
+                     this._internalName,
+                     this._kind,
+                     this._arguments,
+                     this._namedArgumentNames);
+
+  bool get isMethod => _kind == METHOD;
+  bool get isGetter => _kind == GETTER;
+  bool get isSetter => _kind == SETTER;
+  bool get isAccessor => _kind != METHOD;
+
+  List get positionalArguments {
+    if (isGetter) return null;
+    var list = [];
+    var argumentCount =
+        _arguments.length - _namedArgumentNames.length;
+    for (var index = 0 ; index < argumentCount ; index++) {
+      list.add(_arguments[index]);
+    }
+    return list;
+  }
+
+  Map<String,dynamic> get namedArguments {
+    if (isAccessor) return null;
+    var map = <String,dynamic>{};
+    int namedArgumentCount = _namedArgumentNames.length;
+    int namedArgumentsStartIndex = _arguments.length - namedArgumentCount;
+    for (int i = 0; i < namedArgumentCount; i++) {
+      map[_namedArgumentNames[i]] = _arguments[namedArgumentsStartIndex + i];
+    }
+    return map;
+  }
+
+  invokeOn(Object object) {
+    List arguments = _arguments;
+    if (!isJsArray(arguments)) arguments = new List.from(arguments);
+    return JS("var", "#[#].apply(#, #)",
+              object, _internalName, object, arguments);
   }
 }
 
@@ -647,7 +705,7 @@ class Primitives {
     String selectorName = 'call\$$argumentCount$buffer';
     var jsFunction = JS('var', '#[#]', function, selectorName);
     if (jsFunction == null) {
-      throw new NoSuchMethodError(function, selectorName, arguments);
+      throw new NoSuchMethodError(function, selectorName, arguments, {});
     }
     // We bound 'this' to [function] because of how we compile
     // closures: escaped local variables are stored and accessed through
@@ -671,7 +729,7 @@ iae(argument) {
  * access.
  */
 ioore(index) {
-  throw new IndexOutOfRangeException(index);
+  throw new RangeError.value(index);
 }
 
 listInsertRange(receiver, start, length, initialValue) {
@@ -686,7 +744,7 @@ listInsertRange(receiver, start, length, initialValue) {
 
   var receiverLength = JS('num', r'#.length', receiver);
   if (start < 0 || start > receiverLength) {
-    throw new IndexOutOfRangeException(start);
+    throw new RangeError.value(start);
   }
   receiver.length = receiverLength + length;
   Arrays.copy(receiver,
@@ -888,7 +946,7 @@ unwrapException(ex) {
         type == 'non_object_property_load') {
       return new NullPointerException();
     } else if (type == 'undefined_method') {
-      return new NoSuchMethodError('', name, []);
+      return new NoSuchMethodError('', name, [], {});
     }
 
     var ieErrorCode = JS('int', '#.number & 0xffff', ex);
@@ -909,7 +967,7 @@ unwrapException(ex) {
         // Object doesn't support property or method 'foo' which sets the error
         // code 438 in IE.
         // TODO(kasperl): Compute the right name if possible.
-        return new NoSuchMethodError('', '<unknown>', []);
+        return new NoSuchMethodError('', '<unknown>', [], {});
       }
     }
 
@@ -1375,8 +1433,9 @@ void assertHelper(condition) {
  * Called by generated code when a method that must be statically
  * resolved cannot be found.
  */
-void throwNoSuchMethod(obj, name, arguments) {
-  throw new NoSuchMethodError(obj, name, arguments);
+void throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {
+  throw new NoSuchMethodError(obj, name, arguments, const {},
+                              expectedArgumentNames);
 }
 
 /**
@@ -1393,15 +1452,15 @@ class TypeImpl implements Type {
   toString() => typeName;
 }
 
+var runtimeTypeCache = JS('var', '{}');
+
 Type getOrCreateCachedRuntimeType(String key) {
-  Type runtimeType =
-      JS('Type', r'#.runtimeTypeCache[#]', JS_CURRENT_ISOLATE(), key);
-  if (runtimeType == null) {
-    runtimeType = new TypeImpl(key);
-    JS('void', r'#.runtimeTypeCache[#] = #', JS_CURRENT_ISOLATE(), key,
-       runtimeType);
+  Type result = JS('Type', r'#[#]', runtimeTypeCache, key);
+  if (result == null) {
+    result = new TypeImpl(key);
+    JS('var', r'#[#] = #', runtimeTypeCache, key, result);
   }
-  return runtimeType;
+  return result;
 }
 
 String getRuntimeTypeString(var object) {

@@ -27,10 +27,12 @@ DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 3) {
     args.Add(&func_args);
     Exceptions::ThrowByType(Exceptions::kNullPointer, args);
   }
+  const Object& null_object = Object::Handle(Object::null());
   GrowableArray<const Object*> dart_arguments(3);
   dart_arguments.Add(&instance);
   dart_arguments.Add(&function_name);
   dart_arguments.Add(&func_args);
+  dart_arguments.Add(&null_object);
 
   // Report if a function with same name (but different arguments) has been
   // found.

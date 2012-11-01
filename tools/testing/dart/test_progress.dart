@@ -143,21 +143,21 @@ class ProgressIndicator {
         }
       }
     }
-    if (!test.output.diagnostics.isEmpty()) {
+    if (!test.output.diagnostics.isEmpty) {
       String prefix = 'diagnostics:';
       for (var s in test.output.diagnostics) {
         output.add('$prefix ${s}');
         prefix = '   ';
       }
     }
-    if (!test.output.stdout.isEmpty()) {
+    if (!test.output.stdout.isEmpty) {
       output.add('');
       output.add('stdout:');
       for (var s in test.output.stdout) {
         output.add(s);
       }
     }
-    if (!test.output.stderr.isEmpty()) {
+    if (!test.output.stderr.isEmpty) {
       output.add('');
       output.add('stderr:');
       for (var s in test.output.stderr) {
@@ -166,7 +166,7 @@ class ProgressIndicator {
     }
     for (Command c in test.commands) {
       output.add('');
-      String message = (c == test.commands.last()
+      String message = (c == test.commands.last
           ? "Command line" : "Compilation command");
       output.add('$message: ${c.commandLine}');
     }
@@ -228,7 +228,7 @@ abstract class CompactIndicator extends ProgressIndicator {
       : super(startTime, printTiming);
 
   void allDone() {
-    stdout.write('\n'.charCodes());
+    stdout.write('\n'.charCodes);
     _printFailureSummary();
     _printTimingInformation();
     if (_failedTests > 0) {
@@ -245,7 +245,7 @@ abstract class CompactIndicator extends ProgressIndicator {
     if (!_allTestsKnown && SummaryReport.total > 0) {
       // Clear progress indicator before printing summary report.
       stdout.write(
-          '\r                                               \r'.charCodes());
+          '\r                                               \r'.charCodes);
       SummaryReport.printReport();
     }
     _allTestsKnown = true;
@@ -271,7 +271,7 @@ class CompactProgressIndicator extends CompactIndicator {
     var progressLine =
         '\r[${_timeString(d)} | $progressPadded% | '
         '+$passedPadded | -$failedPadded]';
-    stdout.write(progressLine.charCodes());
+    stdout.write(progressLine.charCodes);
   }
 }
 
@@ -287,10 +287,10 @@ class ColorProgressIndicator extends CompactIndicator {
 
   addColorWrapped(List<int> codes, String string, int color) {
     codes.add(27);
-    codes.addAll('[${color}m'.charCodes());
-    codes.addAll(string.charCodes());
+    codes.addAll('[${color}m'.charCodes);
+    codes.addAll(string.charCodes);
     codes.add(27);
-    codes.addAll('[0m'.charCodes());
+    codes.addAll('[0m'.charCodes);
   }
 
   void _printProgress() {
@@ -300,12 +300,12 @@ class ColorProgressIndicator extends CompactIndicator {
     var failedPadded = _pad(_failedTests.toString(), 5);
     Duration d = (new Date.now()).difference(_startTime);
     var progressLine = [];
-    progressLine.addAll('\r[${_timeString(d)} | $progressPadded% | '.charCodes());
+    progressLine.addAll('\r[${_timeString(d)} | $progressPadded% | '.charCodes);
     addColorWrapped(progressLine, '+$passedPadded ', GREEN);
-    progressLine.addAll('| '.charCodes());
+    progressLine.addAll('| '.charCodes);
     var failedColor = (_failedTests != 0) ? RED : NONE;
     addColorWrapped(progressLine, '-$failedPadded', failedColor);
-    progressLine.addAll(']'.charCodes());
+    progressLine.addAll(']'.charCodes);
     stdout.write(progressLine);
   }
 
@@ -385,7 +385,7 @@ class BuildbotProgressIndicator extends ProgressIndicator {
   }
 
   void _printFailureSummary() {
-    if (!_failureSummary.isEmpty()) {
+    if (!_failureSummary.isEmpty) {
       print('@@@STEP_FAILURE@@@');
       print('@@@BUILD_STEP $stepName failures@@@');
     }

@@ -97,6 +97,58 @@ class _AbstractWorkerEventsImpl extends _EventsImpl implements AbstractWorkerEve
 
 // WARNING: Do not edit - generated code.
 
+/// @domName AnalyserNode
+abstract class AnalyserNode implements AudioNode {
+
+  /** @domName AnalyserNode.fftSize */
+  int fftSize;
+
+  /** @domName AnalyserNode.frequencyBinCount */
+  int get frequencyBinCount;
+
+  /** @domName AnalyserNode.maxDecibels */
+  num maxDecibels;
+
+  /** @domName AnalyserNode.minDecibels */
+  num minDecibels;
+
+  /** @domName AnalyserNode.smoothingTimeConstant */
+  num smoothingTimeConstant;
+
+  /** @domName AnalyserNode.getByteFrequencyData */
+  void getByteFrequencyData(Uint8Array array);
+
+  /** @domName AnalyserNode.getByteTimeDomainData */
+  void getByteTimeDomainData(Uint8Array array);
+
+  /** @domName AnalyserNode.getFloatFrequencyData */
+  void getFloatFrequencyData(Float32Array array);
+}
+
+class _AnalyserNodeImpl extends _AudioNodeImpl implements AnalyserNode native "*AnalyserNode" {
+
+  int fftSize;
+
+  final int frequencyBinCount;
+
+  num maxDecibels;
+
+  num minDecibels;
+
+  num smoothingTimeConstant;
+
+  void getByteFrequencyData(_Uint8ArrayImpl array) native;
+
+  void getByteTimeDomainData(_Uint8ArrayImpl array) native;
+
+  void getFloatFrequencyData(_Float32ArrayImpl array) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName HTMLAnchorElement
 abstract class AnchorElement implements Element {
 
@@ -631,8 +683,11 @@ abstract class AudioBufferSourceNode implements AudioSourceNode {
   /** @domName AudioBufferSourceNode.loop */
   bool loop;
 
-  /** @domName AudioBufferSourceNode.looping */
-  bool looping;
+  /** @domName AudioBufferSourceNode.loopEnd */
+  num loopEnd;
+
+  /** @domName AudioBufferSourceNode.loopStart */
+  num loopStart;
 
   /** @domName AudioBufferSourceNode.playbackRate */
   AudioParam get playbackRate;
@@ -688,36 +743,14 @@ class _AudioBufferSourceNodeImpl extends _AudioSourceNodeImpl implements AudioBu
 
   bool loop;
 
-  bool looping;
+  num loopEnd;
+
+  num loopStart;
 
   final _AudioParamImpl playbackRate;
 
   final int playbackState;
 
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-/// @domName AudioChannelMerger
-abstract class AudioChannelMerger implements AudioNode {
-}
-
-class _AudioChannelMergerImpl extends _AudioNodeImpl implements AudioChannelMerger native "*AudioChannelMerger" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-/// @domName AudioChannelSplitter
-abstract class AudioChannelSplitter implements AudioNode {
-}
-
-class _AudioChannelSplitterImpl extends _AudioNodeImpl implements AudioChannelSplitter native "*AudioChannelSplitter" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -751,7 +784,7 @@ abstract class AudioContext implements EventTarget {
   num get sampleRate;
 
   /** @domName AudioContext.createAnalyser */
-  RealtimeAnalyserNode createAnalyser();
+  AnalyserNode createAnalyser();
 
   /** @domName AudioContext.createBiquadFilter */
   BiquadFilterNode createBiquadFilter();
@@ -763,25 +796,22 @@ abstract class AudioContext implements EventTarget {
   AudioBufferSourceNode createBufferSource();
 
   /** @domName AudioContext.createChannelMerger */
-  AudioChannelMerger createChannelMerger([int numberOfInputs]);
+  ChannelMergerNode createChannelMerger([int numberOfInputs]);
 
   /** @domName AudioContext.createChannelSplitter */
-  AudioChannelSplitter createChannelSplitter([int numberOfOutputs]);
+  ChannelSplitterNode createChannelSplitter([int numberOfOutputs]);
 
   /** @domName AudioContext.createConvolver */
   ConvolverNode createConvolver();
 
-  /** @domName AudioContext.createDelayNode */
-  DelayNode createDelayNode([num maxDelayTime]);
+  /** @domName AudioContext.createDelay */
+  DelayNode createDelay([num maxDelayTime]);
 
   /** @domName AudioContext.createDynamicsCompressor */
   DynamicsCompressorNode createDynamicsCompressor();
 
-  /** @domName AudioContext.createGainNode */
-  AudioGainNode createGainNode();
-
-  /** @domName AudioContext.createJavaScriptNode */
-  JavaScriptAudioNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]);
+  /** @domName AudioContext.createGain */
+  GainNode createGain();
 
   /** @domName AudioContext.createMediaElementSource */
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement);
@@ -790,10 +820,13 @@ abstract class AudioContext implements EventTarget {
   MediaStreamAudioSourceNode createMediaStreamSource(MediaStream mediaStream);
 
   /** @domName AudioContext.createOscillator */
-  Oscillator createOscillator();
+  OscillatorNode createOscillator();
 
   /** @domName AudioContext.createPanner */
-  AudioPannerNode createPanner();
+  PannerNode createPanner();
+
+  /** @domName AudioContext.createScriptProcessor */
+  ScriptProcessorNode createScriptProcessor(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]);
 
   /** @domName AudioContext.createWaveShaper */
   WaveShaperNode createWaveShaper();
@@ -828,7 +861,7 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext native 
 
   final num sampleRate;
 
-  _RealtimeAnalyserNodeImpl createAnalyser() native;
+  _AnalyserNodeImpl createAnalyser() native;
 
   _BiquadFilterNodeImpl createBiquadFilter() native;
 
@@ -836,27 +869,27 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext native 
 
   _AudioBufferSourceNodeImpl createBufferSource() native;
 
-  _AudioChannelMergerImpl createChannelMerger([int numberOfInputs]) native;
+  _ChannelMergerNodeImpl createChannelMerger([int numberOfInputs]) native;
 
-  _AudioChannelSplitterImpl createChannelSplitter([int numberOfOutputs]) native;
+  _ChannelSplitterNodeImpl createChannelSplitter([int numberOfOutputs]) native;
 
   _ConvolverNodeImpl createConvolver() native;
 
-  _DelayNodeImpl createDelayNode([num maxDelayTime]) native;
+  _DelayNodeImpl createDelay([num maxDelayTime]) native;
 
   _DynamicsCompressorNodeImpl createDynamicsCompressor() native;
 
-  _AudioGainNodeImpl createGainNode() native;
-
-  _JavaScriptAudioNodeImpl createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) native;
+  _GainNodeImpl createGain() native;
 
   _MediaElementAudioSourceNodeImpl createMediaElementSource(_MediaElementImpl mediaElement) native;
 
   _MediaStreamAudioSourceNodeImpl createMediaStreamSource(_MediaStreamImpl mediaStream) native;
 
-  _OscillatorImpl createOscillator() native;
+  _OscillatorNodeImpl createOscillator() native;
 
-  _AudioPannerNodeImpl createPanner() native;
+  _PannerNodeImpl createPanner() native;
+
+  _ScriptProcessorNodeImpl createScriptProcessor(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) native;
 
   _WaveShaperNodeImpl createWaveShaper() native;
 
@@ -919,23 +952,6 @@ abstract class AudioGain implements AudioParam {
 }
 
 class _AudioGainImpl extends _AudioParamImpl implements AudioGain native "*AudioGain" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-/// @domName AudioGainNode
-abstract class AudioGainNode implements AudioNode {
-
-  /** @domName AudioGainNode.gain */
-  AudioGain get gain;
-}
-
-class _AudioGainNodeImpl extends _AudioNodeImpl implements AudioGainNode native "*AudioGainNode" {
-
-  final _AudioGainImpl gain;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1017,95 +1033,6 @@ class _AudioNodeImpl implements AudioNode native "*AudioNode" {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName AudioPannerNode
-abstract class AudioPannerNode implements AudioNode {
-
-  static const int EQUALPOWER = 0;
-
-  static const int EXPONENTIAL_DISTANCE = 2;
-
-  static const int HRTF = 1;
-
-  static const int INVERSE_DISTANCE = 1;
-
-  static const int LINEAR_DISTANCE = 0;
-
-  static const int SOUNDFIELD = 2;
-
-  /** @domName AudioPannerNode.coneGain */
-  AudioGain get coneGain;
-
-  /** @domName AudioPannerNode.coneInnerAngle */
-  num coneInnerAngle;
-
-  /** @domName AudioPannerNode.coneOuterAngle */
-  num coneOuterAngle;
-
-  /** @domName AudioPannerNode.coneOuterGain */
-  num coneOuterGain;
-
-  /** @domName AudioPannerNode.distanceGain */
-  AudioGain get distanceGain;
-
-  /** @domName AudioPannerNode.distanceModel */
-  int distanceModel;
-
-  /** @domName AudioPannerNode.maxDistance */
-  num maxDistance;
-
-  /** @domName AudioPannerNode.panningModel */
-  int panningModel;
-
-  /** @domName AudioPannerNode.refDistance */
-  num refDistance;
-
-  /** @domName AudioPannerNode.rolloffFactor */
-  num rolloffFactor;
-
-  /** @domName AudioPannerNode.setOrientation */
-  void setOrientation(num x, num y, num z);
-
-  /** @domName AudioPannerNode.setPosition */
-  void setPosition(num x, num y, num z);
-
-  /** @domName AudioPannerNode.setVelocity */
-  void setVelocity(num x, num y, num z);
-}
-
-class _AudioPannerNodeImpl extends _AudioNodeImpl implements AudioPannerNode native "*AudioPannerNode" {
-
-  final _AudioGainImpl coneGain;
-
-  num coneInnerAngle;
-
-  num coneOuterAngle;
-
-  num coneOuterGain;
-
-  final _AudioGainImpl distanceGain;
-
-  int distanceModel;
-
-  num maxDistance;
-
-  int panningModel;
-
-  num refDistance;
-
-  num rolloffFactor;
-
-  void setOrientation(num x, num y, num z) native;
-
-  void setPosition(num x, num y, num z) native;
-
-  void setVelocity(num x, num y, num z) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 /// @domName AudioParam
 abstract class AudioParam {
 
@@ -1136,8 +1063,8 @@ abstract class AudioParam {
   /** @domName AudioParam.linearRampToValueAtTime */
   void linearRampToValueAtTime(num value, num time);
 
-  /** @domName AudioParam.setTargetValueAtTime */
-  void setTargetValueAtTime(num targetValue, num time, num timeConstant);
+  /** @domName AudioParam.setTargetAtTime */
+  void setTargetAtTime(num target, num time, num timeConstant);
 
   /** @domName AudioParam.setValueAtTime */
   void setValueAtTime(num value, num time);
@@ -1166,7 +1093,7 @@ class _AudioParamImpl implements AudioParam native "*AudioParam" {
 
   void linearRampToValueAtTime(num value, num time) native;
 
-  void setTargetValueAtTime(num targetValue, num time, num timeConstant) native;
+  void setTargetAtTime(num target, num time, num timeConstant) native;
 
   void setValueAtTime(num value, num time) native;
 
@@ -7823,6 +7750,30 @@ class _CanvasRenderingContextImpl implements CanvasRenderingContext native "*Can
 
 // WARNING: Do not edit - generated code.
 
+/// @domName ChannelMergerNode
+abstract class ChannelMergerNode implements AudioNode {
+}
+
+class _ChannelMergerNodeImpl extends _AudioNodeImpl implements ChannelMergerNode native "*ChannelMergerNode" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName ChannelSplitterNode
+abstract class ChannelSplitterNode implements AudioNode {
+}
+
+class _ChannelSplitterNodeImpl extends _AudioNodeImpl implements ChannelSplitterNode native "*ChannelSplitterNode" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName CharacterData
 abstract class CharacterData implements Node {
 
@@ -8259,6 +8210,9 @@ abstract class ContentElement implements Element {
 
   /** @domName HTMLContentElement.select */
   String select;
+
+  /** @domName HTMLContentElement.getDistributedNodes */
+  List<Node> getDistributedNodes();
 }
 
 class _ContentElementImpl extends _ElementImpl implements ContentElement native "*HTMLContentElement" {
@@ -8266,6 +8220,8 @@ class _ContentElementImpl extends _ElementImpl implements ContentElement native 
   bool resetStyleInheritance;
 
   String select;
+
+  List<Node> getDistributedNodes() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9313,7 +9269,7 @@ abstract class DOMTokenList {
   String toString();
 
   /** @domName DOMTokenList.toggle */
-  bool toggle(String token);
+  bool toggle(String token, [bool force]);
 }
 
 class _DOMTokenListImpl implements DOMTokenList native "*DOMTokenList" {
@@ -9326,7 +9282,7 @@ class _DOMTokenListImpl implements DOMTokenList native "*DOMTokenList" {
 
   String toString() native;
 
-  bool toggle(String token) native;
+  bool toggle(String token, [bool force]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14484,6 +14440,23 @@ class _FrameSetElementEventsImpl extends _ElementEventsImpl implements FrameSetE
 
 // WARNING: Do not edit - generated code.
 
+/// @domName GainNode
+abstract class GainNode implements AudioNode {
+
+  /** @domName GainNode.gain */
+  AudioGain get gain;
+}
+
+class _GainNodeImpl extends _AudioNodeImpl implements GainNode native "*GainNode" {
+
+  final _AudioGainImpl gain;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName Gamepad
 abstract class Gamepad {
 
@@ -15047,7 +15020,7 @@ abstract class HttpRequest implements EventTarget {
       _HttpRequestFactoryProvider.createHttpRequest_get(url, onSuccess);
 
   factory HttpRequest.getWithCredentials(String url, onSuccess(HttpRequest request)) =>
-      _HttpRequestFactoryProvider.createHttpRequestgetWithCredentials(url, onSuccess);
+      _HttpRequestFactoryProvider.createHttpRequest_getWithCredentials(url, onSuccess);
 
   factory HttpRequest() => _HttpRequestFactoryProvider.createHttpRequest();
 
@@ -15359,10 +15332,10 @@ abstract class IDBCursor {
   String get direction;
 
   /** @domName IDBCursor.key */
-  dynamic get key;
+  Object get key;
 
   /** @domName IDBCursor.primaryKey */
-  dynamic get primaryKey;
+  Object get primaryKey;
 
   /** @domName IDBCursor.source */
   dynamic get source;
@@ -15384,11 +15357,9 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
 
   final String direction;
 
-  dynamic get key => _convertNativeToDart_IDBKey(this._key);
-  dynamic get _key => JS("dynamic", "#.key", this);
+  final Object key;
 
-  dynamic get primaryKey => _convertNativeToDart_IDBKey(this._primaryKey);
-  dynamic get _primaryKey => JS("dynamic", "#.primaryKey", this);
+  final Object primaryKey;
 
   final dynamic source;
 
@@ -15424,13 +15395,12 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
 abstract class IDBCursorWithValue implements IDBCursor {
 
   /** @domName IDBCursorWithValue.value */
-  dynamic get value;
+  Object get value;
 }
 
 class _IDBCursorWithValueImpl extends _IDBCursorImpl implements IDBCursorWithValue native "*IDBCursorWithValue" {
 
-  dynamic get value => _convertNativeToDart_IDBAny(this._value);
-  dynamic get _value => JS("dynamic", "#.value", this);
+  final Object value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16191,14 +16161,6 @@ class _IDBOpenDBRequestImpl extends _IDBRequestImpl implements IDBOpenDBRequest 
 
   _IDBOpenDBRequestEventsImpl get on =>
     new _IDBOpenDBRequestEventsImpl(this);
-
-  // From EventTarget
-
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
-
-  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
-
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
 class _IDBOpenDBRequestEventsImpl extends _IDBRequestEventsImpl implements IDBOpenDBRequestEvents {
@@ -16442,14 +16404,6 @@ class _IDBVersionChangeRequestImpl extends _IDBRequestImpl implements IDBVersion
 
   _IDBVersionChangeRequestEventsImpl get on =>
     new _IDBVersionChangeRequestEventsImpl(this);
-
-  // From EventTarget
-
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
-
-  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
-
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
 class _IDBVersionChangeRequestEventsImpl extends _IDBRequestEventsImpl implements IDBVersionChangeRequestEvents {
@@ -16761,6 +16715,9 @@ abstract class InputElement implements Element {
   /** @domName HTMLInputElement.defaultValue */
   String defaultValue;
 
+  /** @domName HTMLInputElement.dirName */
+  String dirName;
+
   /** @domName HTMLInputElement.disabled */
   bool disabled;
 
@@ -16893,6 +16850,9 @@ abstract class InputElement implements Element {
   /** @domName HTMLInputElement.setCustomValidity */
   void setCustomValidity(String error);
 
+  /** @domName HTMLInputElement.setRangeText */
+  void setRangeText(String replacement, [int start, int end, String selectionMode]);
+
   /** @domName HTMLInputElement.setSelectionRange */
   void setSelectionRange(int start, int end, [String direction]);
 
@@ -16928,6 +16888,8 @@ class _InputElementImpl extends _ElementImpl implements InputElement native "*HT
   bool defaultChecked;
 
   String defaultValue;
+
+  String dirName;
 
   bool disabled;
 
@@ -17016,6 +16978,8 @@ class _InputElementImpl extends _ElementImpl implements InputElement native "*HT
   void select() native;
 
   void setCustomValidity(String error) native;
+
+  void setRangeText(String replacement, [int start, int end, String selectionMode]) native;
 
   void setSelectionRange(int start, int end, [String direction]) native;
 
@@ -17385,50 +17349,6 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
   void setElements(Object array, [int offset]) native "set";
 
   _Int8ArrayImpl subarray(int start, [int end]) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-/// @domName JavaScriptAudioNode
-abstract class JavaScriptAudioNode implements AudioNode, EventTarget {
-
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
-  JavaScriptAudioNodeEvents get on;
-
-  /** @domName JavaScriptAudioNode.bufferSize */
-  int get bufferSize;
-}
-
-abstract class JavaScriptAudioNodeEvents implements Events {
-
-  EventListenerList get audioProcess;
-}
-
-class _JavaScriptAudioNodeImpl extends _AudioNodeImpl implements JavaScriptAudioNode native "*JavaScriptAudioNode" {
-
-  _JavaScriptAudioNodeEventsImpl get on =>
-    new _JavaScriptAudioNodeEventsImpl(this);
-
-  final int bufferSize;
-
-  // From EventTarget
-
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
-
-  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
-
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
-}
-
-class _JavaScriptAudioNodeEventsImpl extends _EventsImpl implements JavaScriptAudioNodeEvents {
-  _JavaScriptAudioNodeEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get audioProcess => this['audioprocess'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17929,14 +17849,6 @@ abstract class LocalMediaStream implements MediaStream, EventTarget {
 class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream native "*LocalMediaStream" {
 
   void stop() native;
-
-  // From EventTarget
-
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
-
-  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
-
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21863,6 +21775,18 @@ typedef void NotificationPermissionCallback(String permission);
 
 // WARNING: Do not edit - generated code.
 
+/// @domName OESElementIndexUint
+abstract class OESElementIndexUint {
+}
+
+class _OESElementIndexUintImpl implements OESElementIndexUint native "*OESElementIndexUint" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName OESStandardDerivatives
 abstract class OESStandardDerivatives {
 
@@ -22185,8 +22109,8 @@ class _OptionElementImpl extends _ElementImpl implements OptionElement native "*
 
 // WARNING: Do not edit - generated code.
 
-/// @domName Oscillator
-abstract class Oscillator implements AudioSourceNode {
+/// @domName OscillatorNode
+abstract class OscillatorNode implements AudioSourceNode {
 
   static const int CUSTOM = 4;
 
@@ -22206,29 +22130,29 @@ abstract class Oscillator implements AudioSourceNode {
 
   static const int UNSCHEDULED_STATE = 0;
 
-  /** @domName Oscillator.detune */
+  /** @domName OscillatorNode.detune */
   AudioParam get detune;
 
-  /** @domName Oscillator.frequency */
+  /** @domName OscillatorNode.frequency */
   AudioParam get frequency;
 
-  /** @domName Oscillator.playbackState */
+  /** @domName OscillatorNode.playbackState */
   int get playbackState;
 
-  /** @domName Oscillator.type */
+  /** @domName OscillatorNode.type */
   int type;
 
-  /** @domName Oscillator.setWaveTable */
+  /** @domName OscillatorNode.setWaveTable */
   void setWaveTable(WaveTable waveTable);
 
-  /** @domName Oscillator.start */
+  /** @domName OscillatorNode.start */
   void start(num when);
 
-  /** @domName Oscillator.stop */
+  /** @domName OscillatorNode.stop */
   void stop(num when);
 }
 
-class _OscillatorImpl extends _AudioSourceNodeImpl implements Oscillator native "*Oscillator" {
+class _OscillatorNodeImpl extends _AudioSourceNodeImpl implements OscillatorNode native "*OscillatorNode" {
 
   final _AudioParamImpl detune;
 
@@ -22389,6 +22313,95 @@ abstract class PageTransitionEvent implements Event {
 class _PageTransitionEventImpl extends _EventImpl implements PageTransitionEvent native "*PageTransitionEvent" {
 
   final bool persisted;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName PannerNode
+abstract class PannerNode implements AudioNode {
+
+  static const int EQUALPOWER = 0;
+
+  static const int EXPONENTIAL_DISTANCE = 2;
+
+  static const int HRTF = 1;
+
+  static const int INVERSE_DISTANCE = 1;
+
+  static const int LINEAR_DISTANCE = 0;
+
+  static const int SOUNDFIELD = 2;
+
+  /** @domName PannerNode.coneGain */
+  AudioGain get coneGain;
+
+  /** @domName PannerNode.coneInnerAngle */
+  num coneInnerAngle;
+
+  /** @domName PannerNode.coneOuterAngle */
+  num coneOuterAngle;
+
+  /** @domName PannerNode.coneOuterGain */
+  num coneOuterGain;
+
+  /** @domName PannerNode.distanceGain */
+  AudioGain get distanceGain;
+
+  /** @domName PannerNode.distanceModel */
+  int distanceModel;
+
+  /** @domName PannerNode.maxDistance */
+  num maxDistance;
+
+  /** @domName PannerNode.panningModel */
+  int panningModel;
+
+  /** @domName PannerNode.refDistance */
+  num refDistance;
+
+  /** @domName PannerNode.rolloffFactor */
+  num rolloffFactor;
+
+  /** @domName PannerNode.setOrientation */
+  void setOrientation(num x, num y, num z);
+
+  /** @domName PannerNode.setPosition */
+  void setPosition(num x, num y, num z);
+
+  /** @domName PannerNode.setVelocity */
+  void setVelocity(num x, num y, num z);
+}
+
+class _PannerNodeImpl extends _AudioNodeImpl implements PannerNode native "*PannerNode" {
+
+  final _AudioGainImpl coneGain;
+
+  num coneInnerAngle;
+
+  num coneOuterAngle;
+
+  num coneOuterGain;
+
+  final _AudioGainImpl distanceGain;
+
+  int distanceModel;
+
+  num maxDistance;
+
+  int panningModel;
+
+  num refDistance;
+
+  num rolloffFactor;
+
+  void setOrientation(num x, num y, num z) native;
+
+  void setPosition(num x, num y, num z) native;
+
+  void setVelocity(num x, num y, num z) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23277,7 +23290,7 @@ abstract class RTCPeerConnection implements EventTarget {
   void addIceCandidate(RTCIceCandidate candidate);
 
   /** @domName RTCPeerConnection.addStream */
-  void addStream(MediaStream stream, Map mediaConstraints);
+  void addStream(MediaStream stream, [Map mediaConstraints]);
 
   /** @domName RTCPeerConnection.close */
   void close();
@@ -23286,7 +23299,7 @@ abstract class RTCPeerConnection implements EventTarget {
   void createAnswer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]);
 
   /** @domName RTCPeerConnection.createDataChannel */
-  RTCDataChannel createDataChannel(String label, Map options);
+  RTCDataChannel createDataChannel(String label, [Map options]);
 
   /** @domName RTCPeerConnection.createOffer */
   void createOffer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]);
@@ -23310,7 +23323,7 @@ abstract class RTCPeerConnection implements EventTarget {
   void setRemoteDescription(RTCSessionDescription description, [VoidCallback successCallback, RTCErrorCallback failureCallback]);
 
   /** @domName RTCPeerConnection.updateIce */
-  void updateIce(Map configuration, Map mediaConstraints);
+  void updateIce([Map configuration, Map mediaConstraints]);
 }
 
 abstract class RTCPeerConnectionEvents implements Events {
@@ -23351,34 +23364,53 @@ class _RTCPeerConnectionImpl extends _EventTargetImpl implements RTCPeerConnecti
 
   void addIceCandidate(_RTCIceCandidateImpl candidate) native;
 
-  void addStream(_MediaStreamImpl stream, Map mediaConstraints) {
-    var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
-    _addStream_1(stream, mediaConstraints_1);
+  void addStream(_MediaStreamImpl stream, [mediaConstraints]) {
+    if (?mediaConstraints) {
+      var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
+      _addStream_1(stream, mediaConstraints_1);
+      return;
+    }
+    _addStream_2(stream);
     return;
   }
   void _addStream_1(_MediaStreamImpl stream, mediaConstraints) native "addStream";
+  void _addStream_2(_MediaStreamImpl stream) native "addStream";
 
   void close() native;
 
   void createAnswer(RTCSessionDescriptionCallback successCallback, [failureCallback, mediaConstraints]) {
-    var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
-    _createAnswer_1(successCallback, failureCallback, mediaConstraints_1);
+    if (?mediaConstraints) {
+      var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
+      _createAnswer_1(successCallback, failureCallback, mediaConstraints_1);
+      return;
+    }
+    _createAnswer_2(successCallback, failureCallback);
     return;
   }
   void _createAnswer_1(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback, mediaConstraints) native "createAnswer";
+  void _createAnswer_2(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback) native "createAnswer";
 
-  _RTCDataChannelImpl createDataChannel(String label, Map options) {
-    var options_1 = _convertDartToNative_Dictionary(options);
-    return _createDataChannel_1(label, options_1);
+  _RTCDataChannelImpl createDataChannel(String label, [options]) {
+    if (?options) {
+      var options_1 = _convertDartToNative_Dictionary(options);
+      return _createDataChannel_1(label, options_1);
+    }
+    return _createDataChannel_2(label);
   }
   _RTCDataChannelImpl _createDataChannel_1(label, options) native "createDataChannel";
+  _RTCDataChannelImpl _createDataChannel_2(label) native "createDataChannel";
 
   void createOffer(RTCSessionDescriptionCallback successCallback, [failureCallback, mediaConstraints]) {
-    var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
-    _createOffer_1(successCallback, failureCallback, mediaConstraints_1);
+    if (?mediaConstraints) {
+      var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
+      _createOffer_1(successCallback, failureCallback, mediaConstraints_1);
+      return;
+    }
+    _createOffer_2(successCallback, failureCallback);
     return;
   }
   void _createOffer_1(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback, mediaConstraints) native "createOffer";
+  void _createOffer_2(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback) native "createOffer";
 
   bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
 
@@ -23392,13 +23424,24 @@ class _RTCPeerConnectionImpl extends _EventTargetImpl implements RTCPeerConnecti
 
   void setRemoteDescription(_RTCSessionDescriptionImpl description, [VoidCallback successCallback, RTCErrorCallback failureCallback]) native;
 
-  void updateIce(Map configuration, Map mediaConstraints) {
-    var configuration_1 = _convertDartToNative_Dictionary(configuration);
-    var mediaConstraints_2 = _convertDartToNative_Dictionary(mediaConstraints);
-    _updateIce_1(configuration_1, mediaConstraints_2);
+  void updateIce([configuration, mediaConstraints]) {
+    if (?mediaConstraints) {
+      var configuration_1 = _convertDartToNative_Dictionary(configuration);
+      var mediaConstraints_2 = _convertDartToNative_Dictionary(mediaConstraints);
+      _updateIce_1(configuration_1, mediaConstraints_2);
+      return;
+    }
+    if (?configuration) {
+      var configuration_3 = _convertDartToNative_Dictionary(configuration);
+      _updateIce_2(configuration_3);
+      return;
+    }
+    _updateIce_3();
     return;
   }
   void _updateIce_1(configuration, mediaConstraints) native "updateIce";
+  void _updateIce_2(configuration) native "updateIce";
+  void _updateIce_3() native "updateIce";
 }
 
 class _RTCPeerConnectionEventsImpl extends _EventsImpl implements RTCPeerConnectionEvents {
@@ -23761,58 +23804,6 @@ class _RangeImpl implements Range native "*Range" {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName RealtimeAnalyserNode
-abstract class RealtimeAnalyserNode implements AudioNode {
-
-  /** @domName RealtimeAnalyserNode.fftSize */
-  int fftSize;
-
-  /** @domName RealtimeAnalyserNode.frequencyBinCount */
-  int get frequencyBinCount;
-
-  /** @domName RealtimeAnalyserNode.maxDecibels */
-  num maxDecibels;
-
-  /** @domName RealtimeAnalyserNode.minDecibels */
-  num minDecibels;
-
-  /** @domName RealtimeAnalyserNode.smoothingTimeConstant */
-  num smoothingTimeConstant;
-
-  /** @domName RealtimeAnalyserNode.getByteFrequencyData */
-  void getByteFrequencyData(Uint8Array array);
-
-  /** @domName RealtimeAnalyserNode.getByteTimeDomainData */
-  void getByteTimeDomainData(Uint8Array array);
-
-  /** @domName RealtimeAnalyserNode.getFloatFrequencyData */
-  void getFloatFrequencyData(Float32Array array);
-}
-
-class _RealtimeAnalyserNodeImpl extends _AudioNodeImpl implements RealtimeAnalyserNode native "*RealtimeAnalyserNode" {
-
-  int fftSize;
-
-  final int frequencyBinCount;
-
-  num maxDecibels;
-
-  num minDecibels;
-
-  num smoothingTimeConstant;
-
-  void getByteFrequencyData(_Uint8ArrayImpl array) native;
-
-  void getByteTimeDomainData(_Uint8ArrayImpl array) native;
-
-  void getFloatFrequencyData(_Float32ArrayImpl array) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 /// @domName Rect
 abstract class Rect {
 
@@ -24149,42 +24140,15 @@ class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement native "*S
 
   final _SVGAnimatedStringImpl target;
 
-  // From SVGURIReference
+  // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedStringImpl href;
-
-  // From SVGTests
-
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -24199,6 +24163,33 @@ class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement native "*S
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
+
+  // From SVGURIReference
+
+  final _SVGAnimatedStringImpl href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24895,20 +24886,6 @@ class _SVGAnimationElementImpl extends _SVGElementImpl implements SVGAnimationEl
 
   num getStartTime() native;
 
-  // From SVGTests
-
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
   // From ElementTimeControl
 
   void beginElement() native;
@@ -24918,6 +24895,20 @@ class _SVGAnimationElementImpl extends _SVGElementImpl implements SVGAnimationEl
   void endElement() native;
 
   void endElementAt(num offset) native;
+
+  // From SVGExternalResourcesRequired
+
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24946,38 +24937,15 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
 
   final _SVGAnimatedLengthImpl r;
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -24992,6 +24960,29 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25010,38 +25001,15 @@ class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElem
 
   final _SVGAnimatedEnumerationImpl clipPathUnits;
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -25056,6 +25024,29 @@ class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElem
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25183,9 +25174,9 @@ class _SVGCursorElementImpl extends _SVGElementImpl implements SVGCursorElement 
 
   final _SVGAnimatedLengthImpl y;
 
-  // From SVGURIReference
+  // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedStringImpl href;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGTests
 
@@ -25197,9 +25188,9 @@ class _SVGCursorElementImpl extends _SVGElementImpl implements SVGCursorElement 
 
   bool hasExtension(String extension) native;
 
-  // From SVGExternalResourcesRequired
+  // From SVGURIReference
 
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
+  final _SVGAnimatedStringImpl href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25213,38 +25204,15 @@ abstract class SVGDefsElement implements SVGElement, SVGTests, SVGLangSpace, SVG
 
 class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement native "*SVGDefsElement" {
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -25259,6 +25227,29 @@ class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement nati
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25754,38 +25745,15 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
 
   final _SVGAnimatedLengthImpl ry;
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -25800,6 +25768,29 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26552,16 +26543,6 @@ class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElemen
 
   final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
 
-  // From SVGURIReference
-
-  final _SVGAnimatedStringImpl href;
-
-  // From SVGLangSpace
-
-  String xmllang;
-
-  String xmlspace;
-
   // From SVGExternalResourcesRequired
 
   final _SVGAnimatedBooleanImpl externalResourcesRequired;
@@ -26578,6 +26559,12 @@ class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElemen
 
   final _SVGAnimatedLengthImpl y;
 
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
   // From SVGStylable
 
   _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
@@ -26586,6 +26573,10 @@ class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElemen
   // final _CSSStyleDeclarationImpl style;
 
   _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGURIReference
+
+  final _SVGAnimatedStringImpl href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27051,19 +27042,15 @@ class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement 
 
   void setFilterRes(int filterResX, int filterResY) native;
 
-  // From SVGURIReference
+  // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedStringImpl href;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
@@ -27073,6 +27060,10 @@ class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement 
   // final _CSSStyleDeclarationImpl style;
 
   _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGURIReference
+
+  final _SVGAnimatedStringImpl href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27217,38 +27208,15 @@ class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeign
 
   final _SVGAnimatedLengthImpl y;
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -27263,6 +27231,29 @@ class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeign
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27276,38 +27267,15 @@ abstract class SVGGElement implements SVGElement, SVGTests, SVGLangSpace, SVGExt
 
 class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement native "*SVGGElement" {
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -27322,6 +27290,29 @@ class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement native "*S
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27377,10 +27368,6 @@ class _SVGGlyphRefElementImpl extends _SVGElementImpl implements SVGGlyphRefElem
 
   num y;
 
-  // From SVGURIReference
-
-  final _SVGAnimatedStringImpl href;
-
   // From SVGStylable
 
   _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
@@ -27389,6 +27376,10 @@ class _SVGGlyphRefElementImpl extends _SVGElementImpl implements SVGGlyphRefElem
   // final _CSSStyleDeclarationImpl style;
 
   _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGURIReference
+
+  final _SVGAnimatedStringImpl href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27425,10 +27416,6 @@ class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElem
 
   final _SVGAnimatedEnumerationImpl spreadMethod;
 
-  // From SVGURIReference
-
-  final _SVGAnimatedStringImpl href;
-
   // From SVGExternalResourcesRequired
 
   final _SVGAnimatedBooleanImpl externalResourcesRequired;
@@ -27441,6 +27428,10 @@ class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElem
   // final _CSSStyleDeclarationImpl style;
 
   _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGURIReference
+
+  final _SVGAnimatedStringImpl href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27491,42 +27482,15 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement na
 
   final _SVGAnimatedLengthImpl y;
 
-  // From SVGURIReference
+  // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedStringImpl href;
-
-  // From SVGTests
-
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -27541,6 +27505,33 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement na
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
+
+  // From SVGURIReference
+
+  final _SVGAnimatedStringImpl href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27788,38 +27779,15 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement nati
 
   final _SVGAnimatedLengthImpl y2;
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -27834,6 +27802,29 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement nati
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27906,13 +27897,13 @@ abstract class SVGMPathElement implements SVGElement, SVGURIReference, SVGExtern
 
 class _SVGMPathElementImpl extends _SVGElementImpl implements SVGMPathElement native "*SVGMPathElement" {
 
-  // From SVGURIReference
-
-  final _SVGAnimatedStringImpl href;
-
   // From SVGExternalResourcesRequired
 
   final _SVGAnimatedBooleanImpl externalResourcesRequired;
+
+  // From SVGURIReference
+
+  final _SVGAnimatedStringImpl href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27983,15 +27974,21 @@ class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement 
 
   void setOrientToAuto() native;
 
+  // From SVGExternalResourcesRequired
+
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
+
+  // From SVGFitToViewBox
+
+  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
+
+  final _SVGAnimatedRectImpl viewBox;
+
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
@@ -28001,12 +27998,6 @@ class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement 
   // final _CSSStyleDeclarationImpl style;
 
   _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGFitToViewBox
-
-  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
-
-  final _SVGAnimatedRectImpl viewBox;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28050,25 +28041,15 @@ class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement nati
 
   final _SVGAnimatedLengthImpl y;
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
@@ -28078,6 +28059,16 @@ class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement nati
   // final _CSSStyleDeclarationImpl style;
 
   _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28551,38 +28542,15 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement nati
 
   num getTotalLength() native;
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -28597,6 +28565,29 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement nati
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29360,9 +29351,30 @@ class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElemen
 
   final _SVGAnimatedLengthImpl y;
 
-  // From SVGURIReference
+  // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedStringImpl href;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
+
+  // From SVGFitToViewBox
+
+  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
+
+  final _SVGAnimatedRectImpl viewBox;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -29374,30 +29386,9 @@ class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElemen
 
   bool hasExtension(String extension) native;
 
-  // From SVGLangSpace
+  // From SVGURIReference
 
-  String xmllang;
-
-  String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGFitToViewBox
-
-  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
-
-  final _SVGAnimatedRectImpl viewBox;
+  final _SVGAnimatedStringImpl href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29500,38 +29491,15 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
 
   final _SVGPointListImpl points;
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -29546,6 +29514,29 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29569,38 +29560,15 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
 
   final _SVGPointListImpl points;
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -29615,6 +29583,29 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29771,38 +29762,15 @@ class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement nati
 
   final _SVGAnimatedLengthImpl y;
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -29817,6 +29785,29 @@ class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement nati
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 
 class _SVGRectImpl implements SVGRect native "*SVGRect" {
@@ -30057,34 +30048,21 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement native
 
   void unsuspendRedrawAll() native;
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
-  final _SVGStringListImpl requiredFeatures;
+  // From SVGFitToViewBox
 
-  final _SVGStringListImpl systemLanguage;
+  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
 
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedRectImpl viewBox;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
 
   // From SVGLocatable
 
@@ -30100,11 +30078,24 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement native
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
 
-  // From SVGFitToViewBox
+  // From SVGStylable
 
-  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
-  final _SVGAnimatedRectImpl viewBox;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
 
   // From SVGZoomAndPan
 
@@ -30127,13 +30118,13 @@ class _SVGScriptElementImpl extends _SVGElementImpl implements SVGScriptElement 
 
   String type;
 
-  // From SVGURIReference
-
-  final _SVGAnimatedStringImpl href;
-
   // From SVGExternalResourcesRequired
 
   final _SVGAnimatedBooleanImpl externalResourcesRequired;
+
+  // From SVGURIReference
+
+  final _SVGAnimatedStringImpl href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30381,38 +30372,15 @@ abstract class SVGSwitchElement implements SVGElement, SVGTests, SVGLangSpace, S
 
 class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement native "*SVGSwitchElement" {
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -30427,6 +30395,29 @@ class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement 
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30440,15 +30431,21 @@ abstract class SVGSymbolElement implements SVGElement, SVGLangSpace, SVGExternal
 
 class _SVGSymbolElementImpl extends _SVGElementImpl implements SVGSymbolElement native "*SVGSymbolElement" {
 
+  // From SVGExternalResourcesRequired
+
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
+
+  // From SVGFitToViewBox
+
+  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
+
+  final _SVGAnimatedRectImpl viewBox;
+
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
@@ -30458,12 +30455,6 @@ class _SVGSymbolElementImpl extends _SVGElementImpl implements SVGSymbolElement 
   // final _CSSStyleDeclarationImpl style;
 
   _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGFitToViewBox
-
-  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
-
-  final _SVGAnimatedRectImpl viewBox;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30587,25 +30578,15 @@ class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextConte
 
   void selectSubString(int offset, int length) native;
 
-  // From SVGTests
+  // From SVGExternalResourcesRequired
 
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
@@ -30615,6 +30596,16 @@ class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextConte
   // final _CSSStyleDeclarationImpl style;
 
   _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30627,10 +30618,6 @@ abstract class SVGTextElement implements SVGTextPositioningElement, SVGTransform
 }
 
 class _SVGTextElementImpl extends _SVGTextPositioningElementImpl implements SVGTextElement native "*SVGTextElement" {
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -30645,6 +30632,10 @@ class _SVGTextElementImpl extends _SVGTextPositioningElementImpl implements SVGT
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31053,42 +31044,15 @@ class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement native
 
   final _SVGAnimatedLengthImpl y;
 
-  // From SVGURIReference
+  // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedStringImpl href;
-
-  // From SVGTests
-
-  final _SVGStringListImpl requiredExtensions;
-
-  final _SVGStringListImpl requiredFeatures;
-
-  final _SVGStringListImpl systemLanguage;
-
-  bool hasExtension(String extension) native;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGLangSpace
 
   String xmllang;
 
   String xmlspace;
-
-  // From SVGExternalResourcesRequired
-
-  final _SVGAnimatedBooleanImpl externalResourcesRequired;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationImpl style;
-
-  _CSSValueImpl getPresentationAttribute(String name) native;
-
-  // From SVGTransformable
-
-  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
@@ -31103,6 +31067,33 @@ class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement native
   _SVGMatrixImpl getScreenCTM() native;
 
   _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  final _SVGStringListImpl requiredExtensions;
+
+  final _SVGStringListImpl requiredFeatures;
+
+  final _SVGStringListImpl systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGTransformable
+
+  final _SVGAnimatedTransformListImpl transform;
+
+  // From SVGURIReference
+
+  final _SVGAnimatedStringImpl href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31364,6 +31355,42 @@ class _ScriptElementImpl extends _ElementImpl implements ScriptElement native "*
   String src;
 
   String type;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName ScriptProcessorNode
+abstract class ScriptProcessorNode implements AudioNode, EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  ScriptProcessorNodeEvents get on;
+
+  /** @domName ScriptProcessorNode.bufferSize */
+  int get bufferSize;
+}
+
+abstract class ScriptProcessorNodeEvents implements Events {
+
+  EventListenerList get audioProcess;
+}
+
+class _ScriptProcessorNodeImpl extends _AudioNodeImpl implements ScriptProcessorNode native "*ScriptProcessorNode" {
+
+  _ScriptProcessorNodeEventsImpl get on =>
+    new _ScriptProcessorNodeEventsImpl(this);
+
+  final int bufferSize;
+}
+
+class _ScriptProcessorNodeEventsImpl extends _EventsImpl implements ScriptProcessorNodeEvents {
+  _ScriptProcessorNodeEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get audioProcess => this['audioprocess'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33395,6 +33422,9 @@ abstract class TextAreaElement implements Element {
   /** @domName HTMLTextAreaElement.defaultValue */
   String defaultValue;
 
+  /** @domName HTMLTextAreaElement.dirName */
+  String dirName;
+
   /** @domName HTMLTextAreaElement.disabled */
   bool disabled;
 
@@ -33461,6 +33491,9 @@ abstract class TextAreaElement implements Element {
   /** @domName HTMLTextAreaElement.setCustomValidity */
   void setCustomValidity(String error);
 
+  /** @domName HTMLTextAreaElement.setRangeText */
+  void setRangeText(String replacement, [int start, int end, String selectionMode]);
+
   /** @domName HTMLTextAreaElement.setSelectionRange */
   void setSelectionRange(int start, int end, [String direction]);
 }
@@ -33472,6 +33505,8 @@ class _TextAreaElementImpl extends _ElementImpl implements TextAreaElement nativ
   int cols;
 
   String defaultValue;
+
+  String dirName;
 
   bool disabled;
 
@@ -33516,6 +33551,8 @@ class _TextAreaElementImpl extends _ElementImpl implements TextAreaElement nativ
   void select() native;
 
   void setCustomValidity(String error) native;
+
+  void setRangeText(String replacement, [int start, int end, String selectionMode]) native;
 
   void setSelectionRange(int start, int end, [String direction]) native;
 }
@@ -36148,7 +36185,7 @@ abstract class WebGLRenderingContext implements CanvasRenderingContext {
   int getError();
 
   /** @domName WebGLRenderingContext.getExtension */
-  void getExtension(String name);
+  Object getExtension(String name);
 
   /** @domName WebGLRenderingContext.getFramebufferAttachmentParameter */
   Object getFramebufferAttachmentParameter(int target, int attachment, int pname);
@@ -36504,7 +36541,7 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   int getError() native;
 
-  void getExtension(String name) native;
+  Object getExtension(String name) native;
 
   Object getFramebufferAttachmentParameter(int target, int attachment, int pname) native;
 
@@ -40857,14 +40894,13 @@ class _Lists {
    * [:start + length:].
    * Returns an empty list if [length] is 0.
    * Throws an [ArgumentError] if [length] is negative.
-   * Throws an [IndexOutOfRangeException] if [start] or
-   * [:start + length:] are out of range.
+   * Throws a [RangeError] if [start] or [:start + length:] are out of range.
    */
   static List getRange(List a, int start, int length, List accumulator) {
     if (length < 0) throw new ArgumentError('length');
-    if (start < 0) throw new IndexOutOfRangeException(start);
+    if (start < 0) throw new RangeError.value(start);
     int end = start + length;
-    if (end > a.length) throw new IndexOutOfRangeException(end);
+    if (end > a.length) throw new RangeError.value(end);
     for (int i = start; i < end; i++) {
       accumulator.add(a[i]);
     }

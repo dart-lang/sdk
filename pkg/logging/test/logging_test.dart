@@ -12,21 +12,21 @@
 main() {
   test('level comparison is a valid comparator', () {
     var level1 = const Level('NOT_REAL1', 253);
-    expect(level1 == level1);
-    expect(level1 <= level1);
-    expect(level1 >= level1);
+    expect(level1 == level1, isTrue);
+    expect(level1 <= level1, isTrue);
+    expect(level1 >= level1, isTrue);
     expect(level1 < level1, isFalse);
     expect(level1 > level1, isFalse);
 
     var level2 = const Level('NOT_REAL2', 455);
-    expect(level1 <= level2);
-    expect(level1 < level2);
-    expect(level2 >= level1);
-    expect(level2 > level1);
+    expect(level1 <= level2, isTrue);
+    expect(level1 < level2, isTrue);
+    expect(level2 >= level1, isTrue);
+    expect(level2 > level1, isTrue);
 
     var level3 = const Level('NOT_REAL3', 253);
-    expect(level1 !== level3); // different instances
-    expect(level1 == level3); // same value.
+    expect(level1 !== level3, isTrue); // different instances
+    expect(level1 == level3, isTrue); // same value.
   });
 
   test('default levels are in order', () {
@@ -37,7 +37,7 @@ main() {
 
     for (int i = 0; i < levels.length; i++) {
       for (int j = i + 1; j < levels.length; j++) {
-        expect(levels[i] < levels[j]);
+        expect(levels[i] < levels[j], isTrue);
       }
     }
   });
@@ -91,10 +91,10 @@ main() {
     Logger a = new Logger('a');
     Logger b = new Logger('a.b');
     Logger c = new Logger('a.c');
-    expect(a == b.parent);
-    expect(a == c.parent);
-    expect(a.children['b'] == b);
-    expect(a.children['c'] == c);
+    expect(a == b.parent, isTrue);
+    expect(a == c.parent, isTrue);
+    expect(a.children['b'] == b, isTrue);
+    expect(a.children['c'] == c, isTrue);
   });
 
   test('loggers are singletons', () {
@@ -102,10 +102,10 @@ main() {
     Logger a2 = new Logger('a');
     Logger b = new Logger('a.b');
     Logger root = Logger.root;
-    expect(a1 === a2);
-    expect(a1 === b.parent);
-    expect(root === a1.parent);
-    expect(root === new Logger(''));
+    expect(a1 === a2, isTrue);
+    expect(a1 === b.parent, isTrue);
+    expect(root === a1.parent, isTrue);
+    expect(root === new Logger(''), isTrue);
   });
 
   group('mutating levels', () {
@@ -172,12 +172,12 @@ main() {
       c.level = Level.ALL;
       e.level = Level.OFF;
 
-      expect(root.isLoggable(Level.SHOUT));
-      expect(root.isLoggable(Level.SEVERE));
-      expect(!root.isLoggable(Level.WARNING));
-      expect(c.isLoggable(Level.FINEST));
-      expect(c.isLoggable(Level.FINE));
-      expect(!e.isLoggable(Level.SHOUT));
+      expect(root.isLoggable(Level.SHOUT), isTrue);
+      expect(root.isLoggable(Level.SEVERE), isTrue);
+      expect(root.isLoggable(Level.WARNING), isFalse);
+      expect(c.isLoggable(Level.FINEST), isTrue);
+      expect(c.isLoggable(Level.FINE), isTrue);
+      expect(!e.isLoggable(Level.SHOUT), isTrue);
     });
 
     test('add/remove handlers - no hierarchy', () {

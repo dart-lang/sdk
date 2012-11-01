@@ -19,7 +19,7 @@ class TestValue {
 
 
 TEST_CASE(DirectChainedHashMap) {
-  DirectChainedHashMap<TestValue*> map;
+  DirectChainedHashMap<PointerKeyValueTrait<TestValue> > map;
   EXPECT(map.IsEmpty());
   TestValue v1(0);
   TestValue v2(1);
@@ -30,7 +30,7 @@ TEST_CASE(DirectChainedHashMap) {
   EXPECT(map.Lookup(&v1) == &v1);
   EXPECT(map.Lookup(&v2) == &v2);
   EXPECT(map.Lookup(&v3) == &v1);
-  DirectChainedHashMap<TestValue*> map2(map);
+  DirectChainedHashMap<PointerKeyValueTrait<TestValue> > map2(map);
   EXPECT(map2.Lookup(&v1) == &v1);
   EXPECT(map2.Lookup(&v2) == &v2);
   EXPECT(map2.Lookup(&v3) == &v1);

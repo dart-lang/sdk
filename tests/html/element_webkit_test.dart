@@ -37,9 +37,9 @@ void testEventHelper(EventListenerList listenerList, type,
   final event = new Event(type);
   listenerList.dispatch(event);
 
-  Expect.isTrue(firedWhenAddedToListenerList);
+  expect(firedWhenAddedToListenerList, isTrue);
   if (registerOnEventListener != null) {
-    Expect.isTrue(firedOnEvent);
+    expect(firedOnEvent, isTrue);
   }
 }
 
