@@ -179,7 +179,7 @@ exceptions_test: Fail
 instance_of_test: Fail
 mutationobserver_test: Fail
 native_gc_test: Fail
-node_test: Fail, Crash # Issue 6457
+node_test: Skip # Issue 6457
 serialized_script_value_test: Fail
 svgelement2_test: Fail
 svgelement_test: Fail
