@@ -4120,7 +4120,7 @@ class Array : public Instance {
   static RawArray* MakeArray(const GrowableObjectArray& growable_array);
 
  protected:
-  static RawArray* New(const Class& cls,
+  static RawArray* New(intptr_t class_id,
                        intptr_t len,
                        Heap::Space space = Heap::kNew);
 
@@ -4276,18 +4276,18 @@ class ByteArray : public Instance {
   virtual uint8_t* ByteAddr(intptr_t byte_offset) const;
 
   template<typename HandleT, typename RawT>
-  static RawT* NewImpl(const Class& cls,
+  static RawT* NewImpl(intptr_t class_id,
                        intptr_t len,
                        Heap::Space space);
 
   template<typename HandleT, typename RawT, typename ElementT>
-  static RawT* NewImpl(const Class& cls,
+  static RawT* NewImpl(intptr_t class_id,
                        const ElementT* data,
                        intptr_t len,
                        Heap::Space space);
 
   template<typename HandleT, typename RawT, typename ElementT>
-  static RawT* NewExternalImpl(const Class& cls,
+  static RawT* NewExternalImpl(intptr_t class_id,
                                ElementT* data,
                                intptr_t len,
                                void* peer,

@@ -2032,10 +2032,7 @@ RawExternal##name##Array* External##name##Array::ReadFrom(                     \
   void* peer = reinterpret_cast<void*>(reader->ReadIntptrValue());             \
   Dart_PeerFinalizer callback =                                                \
       reinterpret_cast<Dart_PeerFinalizer>(reader->ReadIntptrValue());         \
-  const Class& cls = Class::Handle(                                            \
-      reader->isolate()->object_store()->external_##lname##_array_class());    \
-  return NewExternalImpl<External##name##Array, RawExternal##name##Array>(     \
-      cls, data, length, peer, callback, HEAP_SPACE(kind));                    \
+  return New(data, length, peer, callback, HEAP_SPACE(kind));                  \
 }                                                                              \
 
 
