@@ -41,8 +41,7 @@ def PubSteps(build_info):
     print 'Generating API Docs: %s' % (' '.join(args))
     bot.RunProcess(args)
 
-  # TODO(rnystrom): Eventually test other targets here like 'utils'?
-  bot.RunTest('pub', build_info, ['pub'])
+  bot.RunTest('pub', build_info, ['pub', 'pkg'])
 
 
 if __name__ == '__main__':
