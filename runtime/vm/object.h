@@ -4846,6 +4846,10 @@ class ExternalInt8Array : public ByteArray {
     raw_ptr()->external_data_->data()[index] = value;
   }
 
+  void* GetData() const {
+    return raw_ptr()->external_data_->data();
+  }
+
   void* GetPeer() const {
     return raw_ptr()->external_data_->peer();
   }
@@ -4898,6 +4902,10 @@ class ExternalUint8Array : public ByteArray {
   void SetAt(intptr_t index, uint8_t value) const {
     ASSERT((index >= 0) && (index < Length()));
     raw_ptr()->external_data_->data()[index] = value;
+  }
+
+  void* GetData() const {
+    return raw_ptr()->external_data_->data();
   }
 
   void* GetPeer() const {
@@ -4953,6 +4961,10 @@ class ExternalInt16Array : public ByteArray {
   void SetAt(intptr_t index, int16_t value) const {
     ASSERT((index >= 0) && (index < Length()));
     raw_ptr()->external_data_->data()[index] = value;
+  }
+
+  void* GetData() const {
+    return raw_ptr()->external_data_->data();
   }
 
   void* GetPeer() const {
@@ -5067,6 +5079,10 @@ class ExternalInt32Array : public ByteArray {
     raw_ptr()->external_data_->data()[index] = value;
   }
 
+  void* GetData() const {
+    return raw_ptr()->external_data_->data();
+  }
+
   void* GetPeer() const {
     return raw_ptr()->external_data_->peer();
   }
@@ -5119,6 +5135,10 @@ class ExternalUint32Array : public ByteArray {
   void SetAt(intptr_t index, int32_t value) const {
     ASSERT((index >= 0) && (index < Length()));
     raw_ptr()->external_data_->data()[index] = value;
+  }
+
+  void* GetData() const {
+    return raw_ptr()->external_data_->data();
   }
 
   void* GetPeer() const {
@@ -5175,6 +5195,10 @@ class ExternalInt64Array : public ByteArray {
     raw_ptr()->external_data_->data()[index] = value;
   }
 
+  void* GetData() const {
+    return raw_ptr()->external_data_->data();
+  }
+
   void* GetPeer() const {
     return raw_ptr()->external_data_->peer();
   }
@@ -5227,6 +5251,10 @@ class ExternalUint64Array : public ByteArray {
   void SetAt(intptr_t index, int64_t value) const {
     ASSERT((index >= 0) && (index < Length()));
     raw_ptr()->external_data_->data()[index] = value;
+  }
+
+  void* GetData() const {
+    return raw_ptr()->external_data_->data();
   }
 
   void* GetPeer() const {
@@ -5283,6 +5311,10 @@ class ExternalFloat32Array : public ByteArray {
     raw_ptr()->external_data_->data()[index] = value;
   }
 
+  void* GetData() const {
+    return raw_ptr()->external_data_->data();
+  }
+
   void* GetPeer() const {
     return raw_ptr()->external_data_->peer();
   }
@@ -5335,6 +5367,10 @@ class ExternalFloat64Array : public ByteArray {
   void SetAt(intptr_t index, double value) const {
     ASSERT((index >= 0) && (index < Length()));
     raw_ptr()->external_data_->data()[index] = value;
+  }
+
+  void* GetData() const {
+    return raw_ptr()->external_data_->data();
   }
 
   void* GetPeer() const {
