@@ -1397,11 +1397,13 @@ class Dartdoc {
     write('(');
     bool first = true;
     bool inOptionals = false;
+    bool isNamed = false;
     for (final parameter in parameters) {
       if (!first) write(', ');
 
       if (!inOptionals && parameter.isOptional) {
-        write('[');
+        isNamed = parameter.isNamed;
+        write(isNamed ? '{' : '[');
         inOptionals = true;
       }
 
@@ -1409,14 +1411,16 @@ class Dartdoc {
 
       // Show the default value for named optional parameters.
       if (parameter.isOptional && parameter.hasDefaultValue) {
-        write(' = ');
+        write(isNamed ? ': ' : ' = ');
         write(parameter.defaultValue);
       }
 
       first = false;
     }
 
-    if (inOptionals) write(']');
+    if (inOptionals) {
+      write(isNamed ? '}' : ']');
+    }
     write(')');
   }
 
