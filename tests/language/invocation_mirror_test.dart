@@ -6,7 +6,10 @@
 
 /** Class with noSuchMethod that returns the mirror */
 class N {
-  noSuchMethod(InvocationMirror m) => m;
+  // Storage for the last argument to noSuchMethod.
+  // Needed for setters, which don't evaluate to the return value.
+  var last;
+  noSuchMethod(InvocationMirror m) => last = m;
 
   get wut => this;
 
@@ -31,38 +34,40 @@ class C extends N {
  */
 testInvocationMirror(InvocationMirror im, String name,
                      [List positional, Map named]) {
-  Expect.isTrue(im is InvocationMirror);
-  Expect.equals(name, im.memberName);
+  Expect.isTrue(im is InvocationMirror, "is InvocationMirror");
+  Expect.equals(name, im.memberName, "name");
   if (named == null) {
-    Expect.isTrue(im.isAccessor);
-    Expect.isFalse(im.isMethod);
+    Expect.isTrue(im.isAccessor, "$name:isAccessor");
+    Expect.isFalse(im.isMethod, "$name:isMethod");
     if (positional == null) {
-      Expect.isTrue(im.isGetter);
-      Expect.isFalse(im.isSetter);
-      Expect.equals(null, im.positionalArguments);
-      Expect.equals(null, im.positionalArguments);
+      Expect.isTrue(im.isGetter, "$name:isGetter");
+      Expect.isFalse(im.isSetter, "$name:isSetter");
+      Expect.equals(null, im.positionalArguments, "$name:positional");
+      Expect.equals(null, im.namedArguments, "$name:named");
       return;
     }
-    Expect.isTrue(im.isSetter);
-    Expect.isFalse(im.isGetter);
-    Expect.equals(1, im.positionalArguments.length);
-    Expect.equals(positional[0], im.positionalArguments[0]);
-    Expect.equals(null, im.namedArguments);
+    Expect.isTrue(im.isSetter, "$name:isSetter");
+    Expect.isFalse(im.isGetter, "$name:isGetter");
+    Expect.equals(1, im.positionalArguments.length, "$name:#positional");
+    Expect.equals(positional[0], im.positionalArguments[0],
+                  "$name:positional[0]");
+    Expect.equals(null, im.namedArguments, "$name:named");
     return;
   }
-  Expect.isTrue(im.isMethod);
-  Expect.isFalse(im.isAccessor);
-  Expect.isFalse(im.isSetter);
-  Expect.isFalse(im.isGetter);
+  Expect.isTrue(im.isMethod, "$name:isMethod");
+  Expect.isFalse(im.isAccessor, "$name:isAccessor");
+  Expect.isFalse(im.isSetter, "$name:isSetter");
+  Expect.isFalse(im.isGetter, "$name:isGetter");
 
   Expect.equals(positional.length, im.positionalArguments.length);
   for (int i = 0; i < positional.length; i++) {
-    Expect.equals(positional[i], im.positionalArguments[i]);
+    Expect.equals(positional[i], im.positionalArguments[i],
+                  "$name:positional[$i]");
   }
-  Expect.equals(named.length, im.namedArguments.length);
+  Expect.equals(named.length, im.namedArguments.length, "$name:#named");
   named.forEach((k, v) {
-    Expect.isTrue(im.namedArguments.containsKey(k));
-    Expect.equals(v, im.namedArguments[k]);
+    Expect.isTrue(im.namedArguments.containsKey(k), "$name:?named[$k]");
+    Expect.equals(v, im.namedArguments[k], "$name:named[$k]");
   });
 }
 
@@ -74,7 +79,7 @@ testInvocationMirrors() {
 
   // Missing property/method access.
   testInvocationMirror(n.bar, 'bar');
-  testInvocationMirror(n.bar = 42, 'bar=', [42]);
+  testInvocationMirror((n..bar = 42).last, 'bar=', [42]);
   testInvocationMirror(n.bar(), 'bar', [], {});
   testInvocationMirror(n.bar(42), 'bar', [42], {});
   testInvocationMirror(n.bar(x: 42), 'bar', [], {"x": 42});
@@ -87,9 +92,9 @@ testInvocationMirrors() {
   // Missing operator access.
   testInvocationMirror(n + 4, '+', [4], {});
   testInvocationMirror(n - 4, '-', [4], {});
-  testInvocationMirror(-n, '+', [], {});
+  testInvocationMirror(-n, '-', [], {});
   testInvocationMirror(n[42], '[]', [42], {});
-  testInvocationMirror(n[37] = 42, '[]=', [37, 42], {});
+  testInvocationMirror((n..[37] = 42).last, '[]=', [37, 42], {});
 
   // Calling as function when it's not.
   testInvocationMirror(n(), 'call', [], {});
@@ -108,17 +113,17 @@ testInvocationMirrors() {
   testInvocationMirror(n.flif(37, 42), "flif", [37, 42], {});
   testInvocationMirror(n.flif(x: 42), "flif", [], {"x": 42});
   testInvocationMirror(n.flif(37, x: 42), "flif", [37], {"x": 42});
-  testInvocationMirror(n.flif = 42, "flif=", [42]);
+  testInvocationMirror((n..flif = 42).last, "flif=", [42]);
 
   testInvocationMirror(n.flaf(37, 42), "flaf", [37, 42], {});
   testInvocationMirror(n.flaf(x: 42), "flaf", [], {"x": 42});
   testInvocationMirror(n.flaf(37, x: 42), "flaf", [37], {"x": 42});
-  testInvocationMirror(n.flaf = 42, "flaf=", [42]);
+  testInvocationMirror((n..flaf = 42).last, "flaf=", [42]);
 
   testInvocationMirror(n.flof(37, 42), "flof", [37, 42], {});
   testInvocationMirror(n.flof(x: 42), "flof", [], {"x": 42});
   testInvocationMirror(n.flof(37, y: 42), "flof", [37], {"y": 42});
-  testInvocationMirror(n.flof = 42, "flof=", [42]);
+  testInvocationMirror((n..flof = 42).last, "flof=", [42]);
 
   // Reading works.
   Expect.isTrue(n.flif is Function);
@@ -126,12 +131,12 @@ testInvocationMirrors() {
   Expect.isTrue(n.flof is Function);
 
   // Writing to read-only fields.
-  testInvocationMirror(n.wut = 42, "wut=", [42]);
-  testInvocationMirror(n.plif = 42, "plif=", [42]);
-  testInvocationMirror(n.plaf = 42, "plaf=", [42]);
+  testInvocationMirror((n..wut = 42).last, "wut=", [42]);
+  testInvocationMirror((n..plif = 42).last, "plif=", [42]);
+  testInvocationMirror((n..plaf = 42).last, "plaf=", [42]);
 
   // Trick call to n.call - wut is a getter returning n again.
-  testInvocationMirror(n.wut(42), "call", [42]);
+  testInvocationMirror(n.wut(42), "call", [42], {});
 
   // Closurizing a method means that calling it badly will not hit the
   // original receivers noSuchMethod, only the one inherited from Object
