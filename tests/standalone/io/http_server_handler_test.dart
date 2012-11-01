@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
-#import("dart:io");
-#import("dart:isolate");
+import 'dart:io';
+import 'dart:isolate';
 
 class Handler1 {
   void onRequest(HttpRequest request, HttpResponse response) {

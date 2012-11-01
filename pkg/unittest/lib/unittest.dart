@@ -11,10 +11,10 @@
  *     dependencies:
  *       unittest:
  *         sdk: unittest
- *         
+ *
  * Then run 'pub install' from your project directory or using
  * the DartEditor.
- *         
+ *
  * Please see [Pub Getting Started](http://pub.dartlang.org/doc)
  * for more details about the pub package manager.
  *
@@ -148,21 +148,11 @@
 library unittest;
 
 import 'dart:isolate';
+import 'matcher.dart';
+export 'matcher.dart';
 
-part 'collection_matchers.dart';
-part 'config.dart';
-part 'core_matchers.dart';
-part 'description.dart';
-part 'expect.dart';
-part 'future_matchers.dart';
-part 'interfaces.dart';
-part 'map_matchers.dart';
-part 'matcher.dart';
-part 'mock.dart';
-part 'numeric_matchers.dart';
-part 'operator_matchers.dart';
-part 'string_matchers.dart';
-part 'test_case.dart';
+part 'src/config.dart';
+part 'src/test_case.dart';
 
 /** [Configuration] used by the unittest library. */
 Configuration _config = null;
@@ -860,6 +850,8 @@ ensureInitialized() {
     return;
   }
   _initialized = true;
+  // Hook our async guard into the matcher library.
+  wrapAsync = expectAsync1;
 
   _tests = <TestCase>[];
   _testRunner = _nextBatch;

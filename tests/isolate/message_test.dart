@@ -5,9 +5,9 @@
 // Dart test program for testing serialization of messages.
 // VMOptions=--enable_type_checks --enable_asserts
 
-#library('MessageTest');
-#import("dart:isolate");
-#import('../../pkg/unittest/unittest.dart');
+library MessageTest;
+import 'dart:isolate';
+import '../../pkg/unittest/lib/unittest.dart';
 
 // ---------------------------------------------------------------------------
 // Message passing test.
@@ -29,14 +29,14 @@ class MessageTest {
   ];
 
   static void VerifyMap(Map expected, Map actual) {
-    Expect.equals(true, expected is Map);
-    Expect.equals(true, actual is Map);
-    Expect.equals(expected.length, actual.length);
+    expect(expected, isMap);
+    expect(actual,  isMap);
+    expect(actual.length, expected.length);
     testForEachMap(key, value) {
       if (value is List) {
         VerifyList(value, actual[key]);
       } else {
-        Expect.equals(value, actual[key]);
+        expect(actual[key], value);
       }
     }
     expected.forEach(testForEachMap);
@@ -49,16 +49,16 @@ class MessageTest {
       } else if (expected[i] is Map) {
         VerifyMap(expected[i], actual[i]);
       } else {
-        Expect.equals(expected[i], actual[i]);
+        expect(actual[i], expected[i]);
       }
     }
   }
 
   static void VerifyObject(int index, var actual) {
     var expected = elms[index];
-    Expect.equals(true, expected is List);
-    Expect.equals(true, actual is List);
-    Expect.equals(expected.length, actual.length);
+    expect(expected, isList);
+    expect(actual, isList);
+    expect(actual.length, expected.length);
     VerifyList(expected, actual);
   }
 }
@@ -107,22 +107,22 @@ main() {
     sendObject[3] = sendObject;
     sendObject[4] = local_list3;
     remote.call(sendObject).then((var replyObject) {
-      Expect.equals(true, sendObject is List);
-      Expect.equals(true, replyObject is List);
-      Expect.equals(sendObject.length, replyObject.length);
-      Expect.equals(true, replyObject[1] === replyObject);
-      Expect.equals(true, replyObject[3] === replyObject);
-      Expect.equals(true, replyObject[0] === replyObject[2][1]);
-      Expect.equals(true, replyObject[0] === replyObject[2][2]);
-      Expect.equals(true, replyObject[2] === replyObject[4][0]);
-      Expect.equals(true, replyObject[0][0] === replyObject[0][2]);
+      expect(sendObject, isList);
+      expect(replyObject, isList);
+      expect(sendObject.length, equals(replyObject.length));
+      expect(replyObject[1], same(replyObject));
+      expect(replyObject[3], same(replyObject));
+      expect(replyObject[0], same(replyObject[2][1]));
+      expect(replyObject[0], same(replyObject[2][2]));
+      expect(replyObject[2], same(replyObject[4][0]));
+      expect(replyObject[0][0], same(replyObject[0][2]));
       // Bigint literals are not canonicalized so do a == check.
-      Expect.equals(true, replyObject[0][3] == replyObject[4][4]);
+      expect(replyObject[0][3], equals(replyObject[4][4]));
     });
 
     // Shutdown the MessageServer.
     remote.call(-1).then(expectAsync1((int message) {
-        Expect.equals(MessageTest.elms.length + 1, message);
+        expect(message, MessageTest.elms.length + 1);
       }));
   });
 }

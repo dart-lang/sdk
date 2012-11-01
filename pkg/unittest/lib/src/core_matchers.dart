@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of unittest;
+part of matcher;
 
 /**
  * Returns a matcher that matches empty strings, maps or collections.
@@ -284,7 +284,7 @@ class Throws extends BaseMatcher {
     if (item is Future) {
       // Queue up an asynchronous expectation that validates when the future
       // completes.
-      item.onComplete(expectAsync1((future) {
+      item.onComplete(wrapAsync((future) {
         if (future.hasValue) {
           expect(false, isTrue, reason:
               "Expected future to fail, but succeeded with '${future.value}'.");
@@ -456,7 +456,7 @@ class _IllegalJSRegExpException extends TypeMatcher {
 /** A matcher for RangeErrors. */
 const isRangeError = const _RangeError();
 
-/** A matcher for functions that throw RangeError */
+/** A matcher for functions that throw RangeError. */
 const Matcher throwsRangeError =
     const Throws(isRangeError);
 

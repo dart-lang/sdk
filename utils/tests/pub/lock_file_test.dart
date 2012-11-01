@@ -4,7 +4,7 @@
 
 library lock_file_test;
 
-import '../../../pkg/unittest/unittest.dart';
+import '../../../pkg/unittest/lib/unittest.dart';
 import '../../pub/lock_file.dart';
 import '../../pub/package.dart';
 import '../../pub/source.dart';

@@ -9,9 +9,9 @@
 // so the outer timeout doesn't fire. So I removed all such tests.
 // I'd like to revisit this at some point.
 
-#library('unittestTest');
-#import('dart:isolate');
-#import('../../../pkg/unittest/unittest.dart');
+library unittestTest;
+import 'dart:isolate';
+import '../../../pkg/unittest/lib/unittest.dart';
 
 var tests; // array of test names
 var expected; // array of test expected results (from buildStatusString)

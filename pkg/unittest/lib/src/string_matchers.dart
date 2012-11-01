@@ -7,7 +7,7 @@
  * is equal to [value] when compared case-insensitively.
  */
 
-part of unittest;
+part of matcher;
 
 Matcher equalsIgnoringCase(String value) => new _IsEqualIgnoringCase(value);
 

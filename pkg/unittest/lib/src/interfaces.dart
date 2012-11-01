@@ -14,7 +14,7 @@
  * error formatter with another.
  */
 
-part of unittest;
+part of matcher;
 
 typedef String ErrorFormatter(actual, Matcher matcher, String reason,
     MatchState matchState, bool verbose);

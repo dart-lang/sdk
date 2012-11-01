@@ -8,11 +8,10 @@
  * Provides enhanced HTML output with collapsible group headers
  * and other at-a-glance information about the test results.
  */
-#library('unittest_html_enhanced_config');
+library unittest_html_enhanced_config;
 
-#import('dart:html');
-#import('unittest.dart');
-
+import 'dart:html';
+import 'unittest.dart';
 
 class HtmlEnhancedConfiguration extends Configuration {
   /** Whether this is run within dartium layout tests. */

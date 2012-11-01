@@ -1,7 +1,7 @@
-#library('ElementTest');
-#import('../../pkg/unittest/unittest.dart');
-#import('../../pkg/unittest/html_config.dart');
-#import('dart:html');
+library ElementTest;
+import '../../pkg/unittest/lib/unittest.dart';
+import '../../pkg/unittest/lib/html_config.dart';
+import 'dart:html';
 
 main() {
   useHtmlConfiguration();

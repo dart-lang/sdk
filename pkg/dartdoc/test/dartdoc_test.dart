@@ -3,14 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Unit tests for doc.
-#library('dartdoc_tests');
+library dartdocTests;
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-#import('../lib/dartdoc.dart', prefix: 'dd');
-#import('../lib/markdown.dart', prefix: 'md');
+import '../lib/dartdoc.dart' as dd;
+import '../lib/markdown.dart' as md;
 
 // TODO(rnystrom): Better path to unittest.
-#import('../../unittest/unittest.dart');
+import '../../../pkg/unittest/lib/unittest.dart';
 
 main() {
   group('countOccurrences', () {

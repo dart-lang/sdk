@@ -5,10 +5,9 @@
 // Dart test program for testing serialization of messages.
 // VMOptions=--enable_type_checks --enable_asserts
 
-#library('Message2Test');
-#import("dart:isolate");
-
-#import('../../pkg/unittest/unittest.dart');
+library Message2Test;
+import 'dart:isolate';
+import '../../pkg/unittest/lib/unittest.dart';
 
 // ---------------------------------------------------------------------------
 // Message passing test 2.
@@ -16,14 +15,14 @@
 
 class MessageTest {
   static void mapEqualsDeep(Map expected, Map actual) {
-    Expect.equals(true, expected is Map);
-    Expect.equals(true, actual is Map);
-    Expect.equals(expected.length, actual.length);
+    expect(expected, isMap);
+    expect(actual, isMap);
+    expect(actual.length, expected.length);
     testForEachMap(key, value) {
       if (value is List) {
         listEqualsDeep(value, actual[key]);
       } else {
-        Expect.equals(value, actual[key]);
+        expect(actual[key], value);
       }
     }
     expected.forEach(testForEachMap);
@@ -36,7 +35,7 @@ class MessageTest {
       } else if (expected[i] is Map) {
         mapEqualsDeep(expected[i], actual[i]);
       } else {
-        Expect.equals(expected[i], actual[i]);
+        expect(actual[i], expected[i]);
       }
     }
   }

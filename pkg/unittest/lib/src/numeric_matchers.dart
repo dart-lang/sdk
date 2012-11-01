@@ -7,7 +7,7 @@
  * than the given [value].
  */
 
-part of unittest;
+part of matcher;
 
 Matcher greaterThan(value) =>
   new _OrderingComparison(value, false, false, true, 'a value greater than');

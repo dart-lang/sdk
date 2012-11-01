@@ -6,7 +6,7 @@ library intl_test;
 
 import '../lib/intl.dart';
 // TODO(rnystrom): Use "package:" import when test.dart supports it (#4968).
-import '../../unittest/unittest.dart';
+import '../../../pkg/unittest/lib/unittest.dart';
 import '../lib/date_symbol_data_local.dart';
 
 main() {

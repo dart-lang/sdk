@@ -7,7 +7,7 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/unittest.dart';
+import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
   test('checks out and updates a package from Git', () {

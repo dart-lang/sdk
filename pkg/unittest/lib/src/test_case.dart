@@ -105,7 +105,7 @@ class TestCase {
     _complete();
   }
 
-  void fail(String messageText, String stack) {
+  void fail(String messageText, [String stack = '']) {
     if (result != null) {
       if (result == PASS) {
         error('Test failed after initially passing: $messageText', stack);
@@ -120,7 +120,7 @@ class TestCase {
     }
   }
 
-  void error(String messageText, String stack) {
+  void error(String messageText, [String stack = '']) {
     result = ERROR;
     message = messageText;
     stackTrace = stack;

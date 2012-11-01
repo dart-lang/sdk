@@ -1,8 +1,8 @@
-#library('SerializedScriptValueTest');
-#import('../../pkg/unittest/unittest.dart');
-#import('../../pkg/unittest/html_config.dart');
-#import('dart:html');
-#import('utils.dart');
+library SerializedScriptValueTest;
+import '../../pkg/unittest/lib/unittest.dart';
+import '../../pkg/unittest/lib/html_config.dart';
+import 'dart:html';
+import 'utils.dart';
 
 serializationTest(name, value) => test(name, () {
       // To check how value is serialized and deserialized, we create a MessageEvent.

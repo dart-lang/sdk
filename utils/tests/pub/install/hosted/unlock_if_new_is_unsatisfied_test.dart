@@ -7,7 +7,7 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/unittest.dart';
+import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
   test("unlocks dependencies if necessary to ensure that a new dependency "

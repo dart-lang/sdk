@@ -6,9 +6,9 @@
 // Note: the following comment is used by test.dart to additionally compile the
 // other isolate's code.
 // OtherScripts=spawn_uri_child_isolate.dart
-#library('spawn_tests');
-#import('../../pkg/unittest/unittest.dart');
-#import('dart:isolate');
+library spawn_tests;
+import 'dart:isolate';
+import '../../pkg/unittest/lib/unittest.dart';
 
 main() {
   test('isolate fromUri - negative test', () {

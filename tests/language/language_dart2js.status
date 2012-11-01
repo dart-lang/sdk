@@ -340,7 +340,6 @@ part2_test: Fail # TODO(ahe): Enable wrapper-less tests on Firefox/Windows.
 part_test: Fail # TODO(ahe): Enable wrapper-less tests on Firefox/Windows.
 export_test: Fail # Issue 5785 (root cause: issue 2264)
 export_cyclic_test: Fail # Issue 5785 (root cause: issue 2264)
-import_combinators_test: Fail # Issue 5785 (root cause: issue 2264)
 first_class_types_libraries_test: Fail
 local_export_test: Fail # TODO(ahe): Enable wrapper-less tests on Firefox/Windows.
 

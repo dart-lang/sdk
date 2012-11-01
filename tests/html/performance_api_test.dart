@@ -1,7 +1,7 @@
-#library('PerformanceApiTest');
-#import('../../pkg/unittest/unittest.dart');
-#import('../../pkg/unittest/html_config.dart');
-#import('dart:html');
+library PerformanceApiTest;
+import '../../pkg/unittest/lib/unittest.dart';
+import '../../pkg/unittest/lib/html_config.dart';
+import 'dart:html';
 
 main() {
   useHtmlConfiguration();

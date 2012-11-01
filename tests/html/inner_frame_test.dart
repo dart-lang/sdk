@@ -1,7 +1,7 @@
-#library('InnerFrameTest');
-#import('../../pkg/unittest/unittest.dart');
-#import('../../pkg/unittest/html_config.dart');
-#import('dart:html');
+library InnerFrameTest;
+import '../../pkg/unittest/lib/unittest.dart';
+import '../../pkg/unittest/lib/html_config.dart';
+import 'dart:html';
 
 main() {
   if (window != window.top) {

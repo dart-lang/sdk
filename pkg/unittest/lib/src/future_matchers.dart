@@ -12,7 +12,7 @@
  * [throwsA].
  */
 
-part of unittest;
+part of matcher;
 
 Matcher completes = const _Completes(null);
 
@@ -35,7 +35,7 @@ class _Completes extends BaseMatcher {
   bool matches(item, MatchState matchState) {
     if (item is! Future) return false;
 
-    item.onComplete(expectAsync1((future) {
+    item.onComplete(wrapAsync((future) {
       var reason = 'Expected future to complete successfully, but it failed '
         'with ${future.exception}';
       if (future.stackTrace != null) {

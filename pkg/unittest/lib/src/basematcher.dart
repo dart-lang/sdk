@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of matcher;
+
 /**
  * MatchState is a simple wrapper around an arbitrary object.
  * [Matcher] [matches] methods can use this to store useful
@@ -13,9 +15,6 @@
  * state, if set, will typically be a [Map] with a number of key-value
  * pairs containing relevant state information.
  */
-
-part of unittest;
-
 class MatchState {
   var state = null;
 

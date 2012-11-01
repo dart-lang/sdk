@@ -7,7 +7,7 @@
  * could be supported.
  */
 
-part of unittest;
+part of matcher;
 
 class StringDescription implements Description {
   var _out;

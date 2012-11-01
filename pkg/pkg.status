@@ -9,6 +9,12 @@
 # arithmetic natively, i.e., the VM.
 fixnum/test/int_64_vm_test: Skip
 
+# Skip mock tests for now until the noSuchMethod code is fixed.
+
+unittest/test/mock_test: Skip
+unittest/test/mock_regexp_negative_test: Skip
+unittest/test/mock_stepwise_negative_test: Skip
+
 [$compiler == dart2dart]
 *: Skip
 
@@ -34,7 +40,8 @@ unittest/test/mock_test: Fail  # noSuchMethod InvocationMirror not correct yet.
 intl/test/date_time_format_http_request_test: Skip
 
 [ $runtime == drt && $compiler == none ]
-intl/test/number_format_test: Fail # New import syntax is not supported by test frameowrk
+
+intl/test/number_format_test: Fail
 
 # Skip intl_message tests that use mirrors on dart2js until it's been
 # implemented there.
@@ -58,5 +65,3 @@ unittest/test/instance_test: Skip
 [ $compiler == none && $runtime == drt ]
 dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
 
-[ $compiler == none && ($runtime == dartium || $runtime == drt) ]
-unittest/test/mock_test: Fail

@@ -57,13 +57,12 @@ type_error_test: Fail # http://dartbug.com/5280
 
 compile_time_constant10_test/none: Fail # issue 5214
 
-export_cyclic_test: Crash # issue 6060
-
 call_through_null_getter_test: Fail # issue 6124
 
 invocation_mirror_test: Fail # issue 3326, 3622.
 no_such_method_test: Fail # issue 3326, 3622.
 
+export_cyclic_test: Fail, Crash # issue 6060
 invocation_mirror_indirect_test: Fail # Issue 3326
 
 [ $compiler == none && ($system == macos || $system == linux) && $arch == ia32 && $checked ]
@@ -319,10 +318,6 @@ final_variable_assignment_test/02: Fail
 final_variable_assignment_test/03: Fail
 final_variable_assignment_test/04: Fail
 gc_test: Skip # Issue 1487
-import_combinators_test: Fail
-export_cyclic_test: Fail # Issue 5785
-first_class_types_libraries_test: Fail # Issue 2264
-local_export_test: Fail # http://dartbug.com/2264
 
 
 [ $runtime == dartium ]

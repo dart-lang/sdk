@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('utils_test');
+library utils_test;
 
-#import('../../../pkg/unittest/unittest.dart');
-#import('../../archive/utils.dart');
+import '../../../pkg/unittest/lib/unittest.dart';
+import '../../archive/utils.dart';
 
 main() {
   // TODO(nweiz): re-enable this once issue 4378 is fixed.

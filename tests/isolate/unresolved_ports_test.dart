@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // spawns multiple isolates and sends unresolved ports between them.
-#library('unresolved_ports');
-#import('dart:isolate');
-#import('../../pkg/unittest/unittest.dart');
+library unresolved_ports;
+import 'dart:isolate';
+import '../../pkg/unittest/lib/unittest.dart';
 
 // This test does the following:
 //  - main spawns two isolates: 'tim' and 'beth'

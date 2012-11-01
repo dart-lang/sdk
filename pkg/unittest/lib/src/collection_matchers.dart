@@ -7,7 +7,7 @@
  * match the given [matcher].
  */
 
-part of unittest;
+part of matcher;
 
 Matcher everyElement(matcher) => new _EveryElement(wrapMatcher(matcher));
 

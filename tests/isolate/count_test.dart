@@ -2,20 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("CountTest");
-#import('dart:isolate');
-#import('../../pkg/unittest/unittest.dart');
+library CountTest;
+import '../../pkg/unittest/lib/unittest.dart';
+import 'dart:isolate';
 
 void countMessages() {
   int count = 0;
   port.receive((int message, SendPort replyTo) {
     if (message == -1) {
-      Expect.equals(10, count);
+      expect(count, 10);
       replyTo.send(-1, null);
       port.close();
       return;
     }
-    Expect.equals(count, message);
+    expect(message, count);
     count++;
     replyTo.send(message * 2, null);
   });
@@ -30,12 +30,12 @@ void main() {
 
     local.receive(expectAsync2((int message, SendPort replyTo) {
       if (message == -1) {
-        Expect.equals(11, count);
+        expect(count, 11);
         local.close();
         return;
       }
 
-      Expect.equals((count - 1) * 2, message);
+      expect(message, (count - 1) * 2);
       remote.send(count++, reply);
       if (count == 10) {
         remote.send(-1, reply);

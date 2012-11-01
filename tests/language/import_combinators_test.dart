@@ -4,6 +4,7 @@
 
 // Dart test program importing with show/hide combinators.
 
+library importCombinatorsTest;
 import "import1_lib.dart" show hide, show hide ugly;
 import "export1_lib.dart";
 import "dart:math" as M show E;

@@ -1,7 +1,7 @@
-#library('WebGL1Test');
-#import('../../pkg/unittest/unittest.dart');
-#import('../../pkg/unittest/html_config.dart');
-#import('dart:html');
+library WebGL1Test;
+import '../../pkg/unittest/lib/unittest.dart';
+import '../../pkg/unittest/lib/html_config.dart';
+import 'dart:html';
 
 // Test that WebGL is present in dart:html API
 

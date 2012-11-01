@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // negative test to ensure that API_unresolvedPortsTest works.
-#library('unresolved_ports');
-#import('dart:isolate');
-#import('../../pkg/unittest/unittest.dart');
+library unresolved_ports;
+import 'dart:isolate';
+import '../../pkg/unittest/lib/unittest.dart';
 
 bethIsolate() {
   port.receive(expectAsync2((msg, reply) => msg[1].send(

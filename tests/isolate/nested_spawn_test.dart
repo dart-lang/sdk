@@ -4,16 +4,16 @@
 
 // Dart test program for testing that isolates can spawn other isolates.
 
-#library('NestedSpawnTest');
-#import("dart:isolate");
-#import('../../pkg/unittest/unittest.dart');
+library NestedSpawnTest;
+import 'dart:isolate';
+import '../../pkg/unittest/lib/unittest.dart';
 
 void isolateA() {
   port.receive((msg, replyTo) {
-    Expect.equals("launch nested!", msg);
+    expect(msg, "launch nested!");
     SendPort p = spawnFunction(isolateB);
     p.call("alive?").then((msg) {
-      Expect.equals("and kicking", msg);
+      expect(msg, "and kicking");
       replyTo.send(499, null);
       port.close();
     });
@@ -22,7 +22,7 @@ void isolateA() {
 
 void isolateB() {
   port.receive((msg, replyTo) {
-    Expect.equals("alive?", msg);
+    expect(msg, "alive?");
     replyTo.send("and kicking", null);
     port.close();
   });
@@ -33,7 +33,7 @@ main() {
   test("spawned isolates can spawn nested isolates", () {
     SendPort port = spawnFunction(isolateA);
     port.call("launch nested!").then(expectAsync1((msg) {
-      Expect.equals(499, msg);
+      expect(msg, 499);
     }));
   });
 }

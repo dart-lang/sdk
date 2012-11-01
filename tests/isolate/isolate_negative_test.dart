@@ -4,9 +4,9 @@
 
 // Dart test program for testing that isolates are spawned.
 
-#library('IsolateNegativeTest');
-#import('dart:isolate');
-#import('../../pkg/unittest/unittest.dart');
+library IsolateNegativeTest;
+import 'dart:isolate';
+import '../../pkg/unittest/lib/unittest.dart';
 
 void entry() {
   port.receive((ignored, replyTo) {
@@ -18,7 +18,7 @@ main() {
   test("ensure isolate code is executed", () {
     SendPort port = spawnFunction(entry);
     port.call("foo").then(expectAsync1((message) {
-      Expect.equals(true, "Expected fail");   // <=-------- Should fail here.
+      expect("Expected fail", isTrue);   // <=-------- Should fail here.
     }));
   });
 }

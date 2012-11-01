@@ -16,7 +16,7 @@ import '../../pub/source_registry.dart';
 import '../../pub/utils.dart';
 import '../../pub/version.dart';
 import '../../pub/version_solver.dart';
-import '../../../pkg/unittest/unittest.dart';
+import '../../../pkg/unittest/lib/unittest.dart';
 
 final noVersion = 'no version';
 final disjointConstraint = 'disjoint';

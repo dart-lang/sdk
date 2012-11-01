@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of unittest;
+library mock;
+import 'matcher.dart';
 
 /**
  * The error formatter for mocking is a bit different from the default one
@@ -40,9 +41,10 @@ class _MockFailureHandler implements FailureHandler {
 
 _MockFailureHandler _mockFailureHandler = null;
 
-/**
- * [_noArg] is a sentinel value representing no argument.
- */
+/** Sentinel value for representing no argument. */
+class _Sentinel {
+  const _Sentinel();
+}
 const _noArg = const _Sentinel();
 
 /** The ways in which a call to a mock method can be handled. */
@@ -1270,23 +1272,16 @@ class Mock {
   }
 
   /**
-   * This is the handler for method calls. We loo through the list
+   * This is the handler for method calls. We loop through the list
    * of [Behavior]s, and find the first match that still has return
    * values available, and then do the action specified by that
    * return value. If we find no [Behavior] to apply an exception is
    * thrown.
    */
-  noSuchMethod(InvocationMirror invocation) {
-    String method = invocation.memberName;
-    // Remove this when InvocationMirror works correctly.
-    if (method.startsWith("get:")) method = method.substring(4);
-
-    if (invocation.isGetter) {
-      method = 'get $method';
+  noSuchMethod(String method, List args) {
+    if (method.startsWith('get:')) {
+      method = 'get ${method.substring(4)}';
     }
-    List args = invocation.positionalArguments;
-    // TODO: Handle named arguments too.
-
     bool matchedMethodName = false;
     MatchState matchState = new MatchState();
     for (String k in _behaviors.keys) {

@@ -5,9 +5,9 @@
 // Things that should be "auto-generated" are between AUTO START and
 // AUTO END (or just AUTO if it's a single line).
 
-#library("MintMakerTest");
-#import("dart:isolate");
-#import('../../pkg/unittest/unittest.dart');
+library MintMakerTest;
+import 'dart:isolate';
+import '../../pkg/unittest/lib/unittest.dart';
 
 class Mint {
   Mint() : registry_ = new Map<SendPort, Purse>() {
@@ -222,18 +222,18 @@ main() {
     deferred {
       MintWrapper mint = asynccall mintMaker.createMint();
       PurseWrapper purse = asynccall mint.createPurse(100);
-      Expect.equals(100, asynccall purse.queryBalance());
+      expect(asynccall purse.queryBalance(), 100);
 
       PurseWrapper sprouted = asynccall purse.sproutPurse();
-      Expect.equals(0, asynccall sprouted.queryBalance());
+      expect(asynccall sprouted.queryBalance(), 0);
 
       asynccall sprouted.deposit(purse, 5);
-      Expect.equals(0 + 5, asynccall sprouted.queryBalance());
-      Expect.equals(100 - 5, asynccall purse.queryBalance());
+      expect(asynccall sprouted.queryBalance(), 0 + 5);
+      expect(asynccall purse.queryBalance(), 100 - 5);
 
       asynccall sprouted.deposit(purse, 42);
-      Expect.equals(0 + 5 + 42, asynccall sprouted.queryBalance());
-      Expect.equals(100 - 5 - 42, asynccall purse.queryBalance());
+      expect(asynccall sprouted.queryBalance(), 0 + 5 + 42);
+      expect(asynccall purse.queryBalance(), 100 - 5 - 42);
     }
   }
   */
@@ -244,18 +244,18 @@ main() {
     Wrapper<MintMaker> mintMaker = spawnMintMaker();
     Future<Mint> mint = mintMaker...createMint();
     Future<Purse> purse = mint...createPurse(100);
-    Expect.equals(100, purse.queryBalance());
+    expect(purse.queryBalance(), 100);
 
     Future<Purse> sprouted = purse...sproutPurse();
-    Expect.equals(0, sprouted.queryBalance());
+    expect(0, sprouted.queryBalance());
 
     sprouted...deposit(purse, 5);
-    Expect.equals(0 + 5, sprouted.queryBalance());
-    Expect.equals(100 - 5, purse.queryBalance());
+    expect(sprouted.queryBalance(), 0 + 5);
+    expect(purse.queryBalance(), 100 - 5);
 
     sprouted...deposit(purse, 42);
-    Expect.equals(0 + 5 + 42, sprouted.queryBalance());
-    Expect.equals(100 - 5 - 42, purse.queryBalance());
+    expect(sprouted.queryBalance(), 0 + 5 + 42);
+    expect(purse.queryBalance(), 100 - 5 - 42);
   }
   */
 }

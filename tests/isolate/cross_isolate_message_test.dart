@@ -5,9 +5,9 @@
 // Dart test program for testing that isolates can communicate to isolates
 // other than the main isolate.
 
-#library('CrossIsolateMessageTest');
-#import('dart:isolate');
-#import('../../pkg/unittest/unittest.dart');
+library CrossIsolateMessageTest;
+import 'dart:isolate';
+import '../../pkg/unittest/lib/unittest.dart';
 
 void crossIsolate1() {
   port.receive((msg, replyTo) {
@@ -44,12 +44,12 @@ main() {
     // Create a new receive port and send it to isolate2.
     ReceivePort myPort = new ReceivePort();
     port2.call(myPort.toSendPort()).then(expectAsync1((msg) {
-      Expect.equals("ready", msg[0]);
+      expect(msg[0], "ready");
       // Send port of isolate2 to isolate1.
       port1.call(msg[1]).then(expectAsync1((msg) {
-        Expect.equals("ready", msg[0]);
+        expect(msg[0], "ready");
         myPort.receive(expectAsync2((msg, replyTo) {
-          Expect.equals(499, msg);
+          expect(msg, 499);
           myPort.close();
         }));
         msg[1].send(42, null);

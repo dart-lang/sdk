@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Example of spawning an isolate from a function.
-#library('spawn_tests');
-#import('dart:isolate');
-#import('../../pkg/unittest/unittest.dart');
+library spawn_tests;
+import 'dart:isolate';
+import '../../pkg/unittest/lib/unittest.dart';
 
 child() {
   port.receive((msg, reply) => reply.send('re: $msg'));

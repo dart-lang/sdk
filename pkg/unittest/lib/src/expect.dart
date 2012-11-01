@@ -2,7 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of unittest;
+part of matcher;
+
+/**
+ * Some matchers, like those for Futures and exception testing,
+ * can fail in asynchronous sections, and throw exceptions.
+ * A user of this library will typically want to catch and handle 
+ * such exceptions. The [wrapAsync] property is a function that
+ * can wrap callbacks used by these Matchers so that they can be
+ * used safely. For example, the unittest library will set this
+ * to be expectAsync1. By default this is an identity function.
+ */
+Function wrapAsync = (f) => f;
 
 /**
  * This is the main assertion function. It asserts that [actual]
@@ -23,14 +34,6 @@ part of unittest;
  * In some cases extra diagnostic info can be produced on failure (for
  * example, stack traces on mismatched exceptions). To enable these,
  * [verbose] should be specified as true;
- *
- * expect() is a 3rd generation assertion mechanism, drawing
- * inspiration from [Hamcrest] and Ladislav Thon's [dart-matchers]
- * library.
- *
- * See [Hamcrest] http://en.wikipedia.org/wiki/Hamcrest
- *     [Hamcrest] http://code.google.com/p/hamcrest/
- *     [dart-matchers] https://github.com/Ladicek/dart-matchers
  */
 void expect(actual, matcher, {String reason, FailureHandler failureHandler,
             bool verbose : false}) {

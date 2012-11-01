@@ -7,7 +7,7 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/unittest.dart';
+import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
   test('doesn\'t require the repository name to match the name in the '
