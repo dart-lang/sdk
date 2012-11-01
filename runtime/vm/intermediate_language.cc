@@ -2118,8 +2118,7 @@ RangeBoundary RangeBoundary::FromDefinition(Definition* defn, intptr_t offs) {
 
 RangeBoundary RangeBoundary::LowerBound() const {
   if (IsConstant()) return *this;
-  if (symbol()->range() == NULL) return MinSmi();
-  return Add(symbol()->range()->min().LowerBound(),
+  return Add(Range::ConstantMin(symbol()->range()),
              RangeBoundary::FromConstant(offset_),
              MinSmi());
 }
@@ -2127,14 +2126,23 @@ RangeBoundary RangeBoundary::LowerBound() const {
 
 RangeBoundary RangeBoundary::UpperBound() const {
   if (IsConstant()) return *this;
-  if (symbol()->range() == NULL) return MaxSmi();
-  return Add(symbol()->range()->max().UpperBound(),
+  return Add(Range::ConstantMax(symbol()->range()),
              RangeBoundary::FromConstant(offset_),
              MaxSmi());
 }
 
 
+static Definition* UnwrapConstraint(Definition* defn) {
+  while (defn->IsConstraint()) {
+    defn = defn->AsConstraint()->value()->definition();
+  }
+  return defn;
+}
+
+
 static bool AreEqualDefinitions(Definition* a, Definition* b) {
+  a = UnwrapConstraint(a);
+  b = UnwrapConstraint(b);
   return (a == b) || (!a->AffectedBySideEffect() && a->Equals(b));
 }
 
