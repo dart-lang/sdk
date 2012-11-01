@@ -890,9 +890,13 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
       if (block.isLoopHeader()) {
         int changesFlags = loopChangesFlags[block.id];
         HLoopInformation info = block.loopInformation;
-        HBasicBlock last = info.getLastBackEdge();
-        for (int j = block.id; j <= last.id; j++) {
-          moveLoopInvariantCodeFromBlock(graph.blocks[j], block, changesFlags);
+        // Iterate over all blocks of this loop. Note that blocks in
+        // inner loops are not visited here, but we know they
+        // were visited before because we are iterating in post-order.
+        // So instructions that are GVN'ed in an inner loop are in their
+        // loop entry, and [info.blocks] contains this loop entry.
+        for (HBasicBlock other in info.blocks) {
+          moveLoopInvariantCodeFromBlock(other, block, changesFlags);
         }
       }
     }
@@ -901,6 +905,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
   void moveLoopInvariantCodeFromBlock(HBasicBlock block,
                                       HBasicBlock loopHeader,
                                       int changesFlags) {
+    assert(block.parentLoopHeader == loopHeader);
     HBasicBlock preheader = loopHeader.predecessors[0];
     int dependsFlags = HInstruction.computeDependsOnFlags(changesFlags);
     HInstruction instruction = block.first;
