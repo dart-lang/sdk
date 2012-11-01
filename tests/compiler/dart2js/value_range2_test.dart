@@ -12,15 +12,23 @@ Value instructionValue = info.newInstructionValue(new HReturn(null));
 Value lengthValue = info.newLengthValue(new HReturn(null));
 
 Range createSingleRange(Value value) => info.newRange(value, value);
-Range createSingleIntRange(int value) => createSingleRange(info.newIntValue(value));
+
+Range createSingleIntRange(int value) {
+  return createSingleRange(info.newIntValue(value));
+}
+
 Range createSingleInstructionRange() => createSingleRange(instructionValue);
+
 Range createSingleLengthRange() => createSingleRange(lengthValue);
+
 Range createIntRange(int lower, int upper) {
   return info.newRange(info.newIntValue(lower), info.newIntValue(upper));
 }
+
 Range createLengthRange(int lower) {
   return info.newRange(info.newIntValue(lower), lengthValue);
 }
+
 Range createInstructionRange(int lower) {
   return info.newRange(info.newIntValue(lower), instructionValue);
 }
