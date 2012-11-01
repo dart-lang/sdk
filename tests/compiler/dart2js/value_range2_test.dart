@@ -4,22 +4,25 @@
 
 import "../../../lib/compiler/implementation/ssa/ssa.dart";
 import "../../../lib/compiler/implementation/dart2jslib.dart";
+import "../../../lib/compiler/implementation/js_backend/js_backend.dart";
 
-Value instructionValue = new InstructionValue(new HReturn(null));
-Value lengthValue = new LengthValue(new HReturn(null));
+ValueRangeInfo info = new ValueRangeInfo(const JavaScriptConstantSystem());
 
-Range createSingleRange(Value value) => new Range(value, value);
-Range createSingleIntRange(int value) => createSingleRange(new IntValue(value));
+Value instructionValue = info.newInstructionValue(new HReturn(null));
+Value lengthValue = info.newLengthValue(new HReturn(null));
+
+Range createSingleRange(Value value) => info.newRange(value, value);
+Range createSingleIntRange(int value) => createSingleRange(info.newIntValue(value));
 Range createSingleInstructionRange() => createSingleRange(instructionValue);
 Range createSingleLengthRange() => createSingleRange(lengthValue);
 Range createIntRange(int lower, int upper) {
-  return new Range(new IntValue(lower), new IntValue(upper));
+  return info.newRange(info.newIntValue(lower), info.newIntValue(upper));
 }
 Range createLengthRange(int lower) {
-  return new Range(new IntValue(lower), lengthValue);
+  return info.newRange(info.newIntValue(lower), lengthValue);
 }
 Range createInstructionRange(int lower) {
-  return new Range(new IntValue(lower), instructionValue);
+  return info.newRange(info.newIntValue(lower), instructionValue);
 }
 
 Range instruction = createSingleInstructionRange();
@@ -35,9 +38,9 @@ Range _0_length = createLengthRange(0);
 Range _0_instruction = createInstructionRange(0);
 
 checkAndRange(Range one, Range two, lower, upper) {
-  if (lower is num) lower = new IntValue(lower);
-  if (upper is num) upper = new IntValue(upper);
-  Range range = new Range(lower, upper);
+  if (lower is num) lower = info.newIntValue(lower);
+  if (upper is num) upper = info.newIntValue(upper);
+  Range range = info.newRange(lower, upper);
   Expect.equals(range, one & two);
 }
 
@@ -47,33 +50,33 @@ checkSubRange(Range one, Range two, [lower, upper]) {
     // Create a bound just like our current implementation in dart2js does.
     if (two is IntValue) {
       if (two.isNegative) {
-        return new AddValue(one, -two);
+        return info.newAddValue(one, -two);
       } else if (two.isZero) {
         return one;
       }
     }
     if (one is IntValue) {
       if (one.isNegative) {
-        return new SubtractValue(-two, -one);
+        return info.newSubtractValue(-two, -one);
       } else if (one.isZero) {
         return -two;
       }
     }
-    return new SubtractValue(one, two);
+    return info.newSubtractValue(one, two);
   }
 
   if (lower == null) {
     lower = buildBound(one.lower, two.upper);
   } else if (lower is num) {
-    lower = new IntValue(lower);
+    lower = info.newIntValue(lower);
   }
   if (upper == null) {
     upper = buildBound(one.upper, two.lower);
   } else if (upper is num) {
-    upper = new IntValue(upper);
+    upper = info.newIntValue(upper);
   }
 
-  Expect.equals(new Range(lower, upper), one - two);
+  Expect.equals(info.newRange(lower, upper), one - two);
 }
 
 checkNegateRange(Range range, [arg1, arg2]) {
@@ -82,20 +85,20 @@ checkNegateRange(Range range, [arg1, arg2]) {
   } else {
     Value low, up;
     if (arg1 is num) {
-      low = new IntValue(arg1);
+      low = info.newIntValue(arg1);
     } else if (arg1 == null) {
-      low = new NegateValue(range.upper);
+      low = info.newNegateValue(range.upper);
     } else {
       low = arg1;
     }
     if (arg2 is num) {
-      up = new IntValue(arg2);
+      up = info.newIntValue(arg2);
     } else if (arg2 == null) {
-      up = new NegateValue(range.lower);
+      up = info.newNegateValue(range.lower);
     } else {
       up = arg2;
     }
-    Expect.equals(new Range(low, up), -range);
+    Expect.equals(info.newRange(low, up), -range);
   }
 }
 
@@ -112,6 +115,8 @@ testNegate() {
   checkNegateRange(_0_length, -lengthValue, 0);
   checkNegateRange(_0_instruction, -instructionValue, 0);
 }
+
+bits32(value) => value & 0xFFFFFFFF;
 
 testAnd() {
   checkAndRange(
@@ -162,7 +167,7 @@ testAnd() {
 
   checkAndRange(nFF, FF, 1, 1);
   checkAndRange(nFF, FA, 0, 0);
-  checkAndRange(nFF, nFF, -0xFF, -0xFF);
+  checkAndRange(nFF, nFF, bits32(-0xFF), bits32(-0xFF));
   checkAndRange(nFF, length, 0, length.upper);
   checkAndRange(nFF, _FA_FF, 0, 0xFF);
   checkAndRange(nFF, _0_FF, 0, 0xFF);
