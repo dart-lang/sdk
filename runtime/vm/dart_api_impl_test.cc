@@ -780,6 +780,7 @@ TEST_CASE(ByteArrayAccess) {
   Dart_Handle byte_array1 = Dart_NewByteArray(10);
   EXPECT_VALID(byte_array1);
   EXPECT(Dart_IsByteArray(byte_array1));
+  EXPECT(!Dart_IsByteArrayExternal(byte_array1));
   EXPECT(Dart_IsList(byte_array1));
 
   intptr_t length = 0;
@@ -1073,7 +1074,12 @@ TEST_CASE(ExternalByteArrayAccess) {
   Dart_Handle obj = Dart_NewExternalByteArray(data, data_length, NULL, NULL);
   EXPECT_VALID(obj);
   EXPECT(Dart_IsByteArray(obj));
+  EXPECT(Dart_IsByteArrayExternal(obj));
   EXPECT(Dart_IsList(obj));
+
+  void* raw_data = NULL;
+  EXPECT_VALID(Dart_ExternalByteArrayGetData(obj, &raw_data));
+  EXPECT(raw_data == data);
 
   void* peer = &data;  // just a non-NULL value
   EXPECT_VALID(Dart_ExternalByteArrayGetPeer(obj, &peer));

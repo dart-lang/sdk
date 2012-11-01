@@ -338,6 +338,7 @@ class RawObject {
   static bool IsExternalStringClassId(intptr_t index);
   static bool IsBuiltinListClassId(intptr_t index);
   static bool IsByteArrayClassId(intptr_t index);
+  static bool IsExternalByteArrayClassId(intptr_t index);
 
  protected:
   uword tags_;  // Various object tags (bits).
@@ -1590,6 +1591,21 @@ inline bool RawObject::IsByteArrayClassId(intptr_t index) {
          kExternalFloat64ArrayCid == kByteArrayCid + 20 &&
          kStacktraceCid == kByteArrayCid + 21);
   return (index >= kByteArrayCid && index <= kExternalFloat64ArrayCid);
+}
+
+inline bool RawObject::IsExternalByteArrayClassId(intptr_t index) {
+  // Make sure this function is updated when new ByteArray types are added.
+  ASSERT(kExternalUint8ArrayCid == kExternalInt8ArrayCid + 1 &&
+         kExternalInt16ArrayCid == kExternalInt8ArrayCid + 2 &&
+         kExternalUint16ArrayCid == kExternalInt8ArrayCid + 3 &&
+         kExternalInt32ArrayCid == kExternalInt8ArrayCid + 4 &&
+         kExternalUint32ArrayCid == kExternalInt8ArrayCid + 5 &&
+         kExternalInt64ArrayCid == kExternalInt8ArrayCid + 6 &&
+         kExternalUint64ArrayCid == kExternalInt8ArrayCid + 7 &&
+         kExternalFloat32ArrayCid == kExternalInt8ArrayCid + 8 &&
+         kExternalFloat64ArrayCid == kExternalInt8ArrayCid + 9 &&
+         kStacktraceCid == kExternalInt8ArrayCid + 10);
+  return (index >= kExternalInt8ArrayCid && index <= kExternalFloat64ArrayCid);
 }
 
 }  // namespace dart

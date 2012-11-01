@@ -5009,6 +5009,10 @@ class ExternalUint16Array : public ByteArray {
     raw_ptr()->external_data_->data()[index] = value;
   }
 
+  void* GetData() const {
+    return raw_ptr()->external_data_->data();
+  }
+
   void* GetPeer() const {
     return raw_ptr()->external_data_->peer();
   }

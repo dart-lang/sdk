@@ -1598,8 +1598,6 @@ DART_EXPORT Dart_Handle Dart_ExternalStringGetPeer(Dart_Handle object,
   }
 
   // It's not an external string, return appropriate error.
-  // Note: this is invoked outside of the NoGCScope'd block above, since
-  // error messages allocate new handles.
   if (!RawObject::IsStringClassId(Api::ClassId(object))) {
     RETURN_TYPE_ERROR(Isolate::Current(), object, String);
   } else {
@@ -2095,6 +2093,11 @@ DART_EXPORT bool Dart_IsByteArray(Dart_Handle object) {
 }
 
 
+DART_EXPORT bool Dart_IsByteArrayExternal(Dart_Handle object) {
+  return RawObject::IsExternalByteArrayClassId(Api::ClassId(object));
+}
+
+
 DART_EXPORT Dart_Handle Dart_NewByteArray(intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
@@ -2115,6 +2118,23 @@ DART_EXPORT Dart_Handle Dart_NewExternalByteArray(uint8_t* data,
   CHECK_LENGTH(length, ExternalUint8Array::kMaxElements);
   return Api::NewHandle(
       isolate, ExternalUint8Array::New(data, length, peer, callback));
+}
+
+
+DART_EXPORT Dart_Handle Dart_ExternalByteArrayGetData(Dart_Handle object,
+                                                      void** data) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const ExternalUint8Array& array =
+      Api::UnwrapExternalUint8ArrayHandle(isolate, object);
+  if (array.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, object, ExternalUint8Array);
+  }
+  if (data == NULL) {
+    RETURN_NULL_ERROR(data);
+  }
+  *data = array.GetData();
+  return Api::Success(isolate);
 }
 
 

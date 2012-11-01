@@ -1568,6 +1568,14 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
 DART_EXPORT bool Dart_IsByteArray(Dart_Handle object);
 
 /**
+ * Is this object an external ByteArray?
+ *
+ * An external ByteArray is a ByteArray which references a fixed array of
+ * bytes which is external to the Dart heap.
+ */
+DART_EXPORT bool Dart_IsByteArrayExternal(Dart_Handle object);
+
+/**
  * Returns a ByteArray of the desired length.
  *
  * \param length The length of the array.
@@ -1591,6 +1599,12 @@ DART_EXPORT Dart_Handle Dart_NewExternalByteArray(uint8_t* data,
                                                   intptr_t length,
                                                   void* peer,
                                                   Dart_PeerFinalizer callback);
+
+/**
+ * Retrieves the data pointer associated with an external ByteArray.
+ */
+DART_EXPORT Dart_Handle Dart_ExternalByteArrayGetData(Dart_Handle object,
+                                                      void** data);
 
 /**
  * Retrieves the peer pointer associated with an external ByteArray.
