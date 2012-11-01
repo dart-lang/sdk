@@ -13,6 +13,8 @@ class Printer implements NodeVisitor {
   bool atStatementBegin = false;
   final DanglingElseVisitor danglingElseVisitor;
   final Namer namer;
+  bool pendingSemicolon = false;
+  bool pendingSpace = false;
 
   Printer(leg.Compiler compiler)
       : shouldCompressOutput = compiler.enableMinification,
@@ -42,6 +44,16 @@ class Printer implements NodeVisitor {
 
   void out(String str) {
     if (str != "") {
+      const identifierRegexp = const RegExp(r'^[a-zA-Z_0-9$]');
+      if (pendingSemicolon && (!shouldCompressOutput || str != "}")) {
+        outBuffer.add(";");
+      }
+      if (pendingSpace &&
+          (!shouldCompressOutput || identifierRegexp.hasMatch(str))) {
+        outBuffer.add(" ");
+      }
+      pendingSpace = false;
+      pendingSemicolon = false;
       outBuffer.add(str);
       lastAddedString = str;
     }
@@ -143,7 +155,7 @@ class Printer implements NodeVisitor {
     indent();
     visitNestedExpression(expressionStatement.expression, EXPRESSION,
                           newInForInit: false, newAtStatementBegin: true);
-    outLn(";");
+    pendingSemicolon = true;
   }
 
   visitEmptyStatement(EmptyStatement nop) {
@@ -179,7 +191,7 @@ class Printer implements NodeVisitor {
       }
       out("else");
       if (elsePart is If) {
-        out(" ");
+        pendingSpace = true;
         ifOut(elsePart, false);
       } else {
         blockBody(elsePart, needsSeparation: true, needsNewline: true);
@@ -221,7 +233,8 @@ class Printer implements NodeVisitor {
     out("(");
     visitNestedExpression(loop.leftHandSide, EXPRESSION,
                           newInForInit: true, newAtStatementBegin: false);
-    out(" in ");
+    out(" in");
+    pendingSpace = true;
     visitNestedExpression(loop.object, EXPRESSION,
                           newInForInit: false, newAtStatementBegin: false);
     out(")");
@@ -250,41 +263,46 @@ class Printer implements NodeVisitor {
     out("(");
     visitNestedExpression(loop.condition, EXPRESSION,
                           newInForInit: false, newAtStatementBegin: false);
-    outLn(");");
+    outLn(")");
+    pendingSemicolon = true;
   }
 
   visitContinue(Continue node) {
     if (node.targetLabel == null) {
-      outIndentLn("continue;");
+      outIndentLn("continue");
     } else {
-      outIndentLn("continue ${node.targetLabel};");
+      outIndentLn("continue ${node.targetLabel}");
     }
+    pendingSemicolon = true;
   }
 
   visitBreak(Break node) {
     if (node.targetLabel == null) {
-      outIndentLn("break;");
+      outIndentLn("break");
     } else {
-      outIndentLn("break ${node.targetLabel};");
+      outIndentLn("break ${node.targetLabel}");
     }
+    pendingSemicolon = true;
   }
 
   visitReturn(Return node) {
     if (node.value == null) {
-      outIndentLn("return;");
+      outIndentLn("return");
     } else {
-      outIndent("return ");
+      outIndent("return");
+      pendingSpace = true;
       visitNestedExpression(node.value, EXPRESSION,
                             newInForInit: false, newAtStatementBegin: false);
-      outLn(";");
     }
+    pendingSemicolon = true;
   }
 
   visitThrow(Throw node) {
-    outIndent("throw ");
+    outIndent("throw");
+    pendingSpace = true;
     visitNestedExpression(node.expression, EXPRESSION,
                           newInForInit: false, newAtStatementBegin: false);
-    outLn(";");
+    pendingSemicolon = true;
   }
 
   visitTry(Try node) {
@@ -329,7 +347,8 @@ class Printer implements NodeVisitor {
   }
 
   visitCase(Case node) {
-    outIndent("case ");
+    outIndent("case");
+    pendingSpace = true;
     visitNestedExpression(node.expression, EXPRESSION,
                           newInForInit: false, newAtStatementBegin: false);
     outLn(":");
