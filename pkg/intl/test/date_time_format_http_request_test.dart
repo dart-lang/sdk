@@ -13,7 +13,7 @@ import '../lib/intl.dart';
 import '../lib/date_symbol_data_http_request.dart';
 import 'date_time_format_test_core.dart';
 import 'dart:html';
-import '../../../pkg/unittest/lib/unittest.dart')
+import '../../../pkg/unittest/lib/unittest.dart';
 
 var url = "http://localhost:9876/pkg/intl/lib/src/data/dates/";
 

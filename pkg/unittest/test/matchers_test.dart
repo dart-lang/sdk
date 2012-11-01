@@ -135,7 +135,7 @@ void main() {
     });
 
     test('throwsNoSuchMethodError', () {
-      shouldPass(() { throw new NoSuchMethodError(null, '', null); },
+      shouldPass(() { throw new NoSuchMethodError(null, '', null, null); },
           throwsNoSuchMethodError);
       shouldFail(() { throw new Exception(); },
           throwsNoSuchMethodError,

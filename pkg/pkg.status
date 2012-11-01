@@ -53,12 +53,6 @@ intl/test/intl_message_basic_example_test: Skip
 unittest/test/mock_regexp_negative_test: Fail
 unittest/test/mock_stepwise_negative_test: Fail
 
-# pkg issue 6340
-fixnum/test/int_32_test: Fail, OK
-fixnum/test/int_64_test: Fail, OK
-unittest/test/matchers_test: Fail, OK
-
-
 [ $compiler == dart2js || $compiler == dartc ]
 unittest/test/instance_test: Skip
 
