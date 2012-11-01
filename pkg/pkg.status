@@ -33,7 +33,7 @@ unittest/test/mock_test: Fail  # noSuchMethod InvocationMirror not correct yet.
 [ $runtime == dartium || $runtime == drt ]
 intl/test/date_time_format_http_request_test: Skip
 
-[ $runtime == drt ]
+[ $runtime == drt && $compiler == none ]
 intl/test/bidi_format_test: Fail # New import syntax is not supported by test frameowrk
 intl/test/bidi_utils_test: Fail # New import syntax is not supported by test frameowrk
 intl/test/date_time_format_local_even_test: Fail # New import syntax is not supported by test frameowrk
