@@ -5,7 +5,7 @@
 
 class NoSuchMethodTest {
 
-  foo({a = 10, b = 20}) {
+  foo({a : 10, b : 20}) {
     return (10 * a) + b;
   }
 
