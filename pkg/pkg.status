@@ -31,7 +31,16 @@ unittest/test/mock_test: Fail  # noSuchMethod InvocationMirror not correct yet.
 # Skip http request tests on Dartium while resolving an odd
 # error there that causes the tests to timeout.
 [ $runtime == dartium || $runtime == drt ]
+intl/test/bidi_format_test: Fail # New import syntax is not supported by test frameowrk
+intl/test/bidi_utils_test: Fail # New import syntax is not supported by test frameowrk
 intl/test/date_time_format_http_request_test: Skip
+intl/test/date_time_format_local_even_test: Fail # New import syntax is not supported by test frameowrk
+intl/test/date_time_format_local_odd_test: Fail # New import syntax is not supported by test frameowrk
+intl/test/find_default_locale_browser_test: Fail # New import syntax is not supported by test frameowrk
+intl/test/intl_message_basic_example_test: Fail # New import syntax is not supported by test frameowrk
+intl/test/intl_message_test: Fail # New import syntax is not supported by test frameowrk
+intl/test/intl_test: Fail # New import syntax is not supported by test frameowrk
+intl/test/number_format_test: Fail # New import syntax is not supported by test frameowrk
 
 # Skip intl_message tests that use mirrors on dart2js until it's been
 # implemented there.
