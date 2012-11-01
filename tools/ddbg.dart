@@ -62,7 +62,7 @@ void quitShell() {
 }
 
 
-Future sendCmd(Map<String, Dynamic> cmd) {
+Future sendCmd(Map<String, dynamic> cmd) {
   var completer = new Completer();
   int id = cmd["id"];
   outstandingCommands[id] = completer;

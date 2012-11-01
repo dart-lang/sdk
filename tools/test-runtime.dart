@@ -92,7 +92,13 @@ main() {
   // Start global http server that serves the entire dart repo.
   // The http server is available on localhost:9876 for any
   // test that needs to load resources from the repo over http.
-  startHttpServer('127.0.0.1', 9876);
+  if (!listTests) {
+    // Only start the server if we are running browser tests.
+    var runningBrowserTests = configurations.some((config) {
+      return TestUtils.isBrowserRuntime(config['runtime']);
+    });
+    if (runningBrowserTests) startHttpServer('127.0.0.1', 9876);
+  }
 
   // Start process queue.
   new ProcessQueue(

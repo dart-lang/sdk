@@ -46,5 +46,5 @@ void startHttpServer(String host, int port) {
 }
 
 terminateHttpServer() {
-  _httpServer.close();
+  if (_httpServer != null) _httpServer.close();
 }
