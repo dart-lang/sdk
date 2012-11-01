@@ -898,36 +898,27 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext native 
 
   void startRendering() native;
 
-  void createGain() {
+  GainNode createGain() {
     if (JS('bool', '#.createGain !== undefined', this)) {
-      return JS('void', '#.createGain()', this);
+      return JS('GainNode', '#.createGain()', this);
     } else {
-      return JS('void', '#.createGainNode()', this);
+      return JS('GainNode', '#.createGainNode()', this);
     }
   }
 
-  void createScriptProcessor(int bufferSize, [int numberOfInputChannels, int
-      numberOfOutputChannels]) {
-    if (JS('bool', '#.createScriptProcessor !== undefined', this)) {
-      if (?numberOfOutputChannels) {
-        return JS('void', '#.createScriptProcessor(#, #, #)', this, bufferSize,
-            numberOfInputChannels, numberOfOutputChannels);
-      } else if (?numberOfInputChannels) {
-        return JS('void', '#.createScriptProcessor(#, #)', this, bufferSize,
-            numberOfInputChannels);
-      } else {
-        return JS('void', '#.createScriptProcessor(#)', this, bufferSize);
-      }
+  ScriptProcessorNode createScriptProcessor(int bufferSize,
+      [int numberOfInputChannels, int numberOfOutputChannels]) {
+    var function = JS('dynamic', '#.createScriptProcessor || '
+        '#.createJavaScriptNode', this, this);
+    if (?numberOfOutputChannels) {
+      return JS('ScriptProcessorNode', '#.call(#, #, #, #)', function, this,
+          bufferSize, numberOfInputChannels, numberOfOutputChannels);
+    } else if (?numberOfInputChannels) {
+      return JS('ScriptProcessorNode', '#.call(#, #, #)', function, this,
+          bufferSize, numberOfInputChannels);
     } else {
-      if (?numberOfOutputChannels) {
-        return JS('void', '#.createJavaScriptNode(#, #, #)', this, bufferSize,
-            numberOfInputChannels, numberOfOutputChannels);
-      } else if (?numberOfInputChannels) {
-        return JS('void', '#.createJavaScriptNode(#, #)', this, bufferSize,
-            numberOfInputChannels);
-      } else {
-        return JS('void', '#.createJavaScriptNode(#)', this, bufferSize);
-      }
+      return JS('ScriptProcessorNode', '#.call(#, #)', function, this,
+          bufferSize);
     }
   }
 }
@@ -38581,7 +38572,7 @@ abstract class KeyLocation {
    */
   static const int JOYSTICK = 5;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
