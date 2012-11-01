@@ -24,7 +24,6 @@ Language/05_Variables/05_Variables_A05_t12: Fail # TODO(ahe): Please triage this
 Language/05_Variables/05_Variables_A05_t13: Fail # TODO(ahe): Please triage this failure.
 Language/05_Variables/05_Variables_A05_t14: Fail # TODO(ahe): Please triage this failure.
 Language/05_Variables/05_Variables_A05_t15: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A06_t01: Fail # TODO(ahe): Please triage this failure.
 Language/05_Variables/05_Variables_A07_t01: Fail # TODO(ahe): Please triage this failure.
 Language/05_Variables/05_Variables_A07_t02: Fail # TODO(ahe): Please triage this failure.
 Language/05_Variables/05_Variables_A07_t03: Fail # TODO(ahe): Please triage this failure.

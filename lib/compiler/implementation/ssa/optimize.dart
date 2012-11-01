@@ -616,7 +616,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
     Element field =
         findConcreteFieldForDynamicAccess(node.receiver, node.selector);
-    if (field == null) return node;
+    if (field == null || !field.isAssignable()) return node;
     HInstruction value = node.inputs[1];
     if (compiler.enableTypeAssertions) {
       HInstruction other = value.convertType(
