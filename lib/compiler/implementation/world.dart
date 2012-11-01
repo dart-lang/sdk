@@ -132,6 +132,14 @@ class World {
     return typesImplementedBySubclasses.contains(type.element);
   }
 
+  bool hasNoOverridingMember(Element element) {
+    ClassElement cls = element.getEnclosingClass();
+    Set<ClassElement> subclasses = compiler.world.subtypes[cls];
+    // TODO(ngeoffray): Implement the full thing.
+    return subclasses == null || subclasses.isEmpty;
+  }
+
+
 
   void registerUsedElement(Element element) {
     if (element.isMember()) {

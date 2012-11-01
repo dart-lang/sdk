@@ -922,7 +922,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   static const MAX_INLINING_DEPTH = 3;
-  static const MAX_INLINING_SOURCE_SIZE = 100;
+  static const MAX_INLINING_SOURCE_SIZE = 128;
   List<InliningState> inliningStack;
   Element returnElement = null;
 
@@ -2567,6 +2567,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     addDynamicSendArgumentsToList(node, inputs);
 
+    Element element = elements[node];
+    if (element != null && compiler.world.hasNoOverridingMember(element)) {
+      if (tryInlineMethod(element, selector, node.arguments)) {
+        return;
+      }
+    }
     // The first entry in the inputs list is the receiver.
     pushWithPosition(new HInvokeDynamicMethod(selector, inputs), node);
 
