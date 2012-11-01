@@ -27,6 +27,7 @@
           '-fPIC',
           '-fvisibility=hidden',
           '-fvisibility-inlines-hidden',
+          '-fno-omit-frame-pointer',
         ],
         'ldflags': [
           '-rdynamic',
