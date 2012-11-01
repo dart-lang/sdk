@@ -68,7 +68,10 @@ import java.util.Set;
 public class CompileTimeConstantAnalyzer {
 
   private class ExpressionVisitor extends ASTVisitor<Void> {
-    private ExpressionVisitor() {
+    private final boolean shouldBeStatic;
+
+    private ExpressionVisitor(boolean shouldBeStatic) {
+      this.shouldBeStatic = shouldBeStatic;
     }
 
     private boolean checkBoolean(DartNode x, Type type) {
@@ -367,6 +370,8 @@ public class CompileTimeConstantAnalyzer {
       }
 
       Element element = x.getElement();
+      boolean elementIsStatic = element != null
+          && (element.getModifiers().isStatic() || Elements.isTopLevel(element));
       switch (ElementKind.of(element)) {
         case CLASS:
         case PARAMETER:
@@ -375,6 +380,11 @@ public class CompileTimeConstantAnalyzer {
 
         case FIELD:
           FieldElement fieldElement = (FieldElement) element;
+
+          if (shouldBeStatic && !elementIsStatic) {
+            context.onError(new DartCompilationError(x, ResolverErrorCode.NOT_A_STATIC_FIELD,
+                fieldElement.getName()));
+          }
 
           // Check for circular references.
           if (element != null && visitedElements.contains(element)) {
@@ -417,7 +427,7 @@ public class CompileTimeConstantAnalyzer {
           return null;
 
         case METHOD:
-          if (!element.getModifiers().isStatic() && !Elements.isTopLevel(element)) {
+          if (!elementIsStatic) {
             expectedConstant(x);
           }
           return null;
@@ -628,7 +638,7 @@ public class CompileTimeConstantAnalyzer {
     public Void visitField(DartField node) {
       if (node.getParent() != null) {
         if (node.getModifiers().isConstant()) {
-          Type type = checkConstantExpression(node.getValue());
+          Type type = checkConstantExpression(node.getValue(), node.getModifiers().isStatic());
           if (node.getElement().getType().equals(dynamicType)) {
             node.getElement().setConstantType(type);
           }
@@ -787,8 +797,12 @@ public class CompileTimeConstantAnalyzer {
   }
 
   private Type checkConstantExpression(DartExpression expression) {
+    return checkConstantExpression(expression, false);
+  }
+  
+  private Type checkConstantExpression(DartExpression expression, boolean shouldBeStatic) {
     if (expression != null) {
-      ExpressionVisitor visitor = new ExpressionVisitor();
+      ExpressionVisitor visitor = new ExpressionVisitor(shouldBeStatic);
       expression.accept(visitor);
       return visitor.getMostSpecificType(expression);
     }

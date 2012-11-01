@@ -136,7 +136,6 @@ class_literal_test/27 : Fail # language change 3368
 class_literal_test/28 : Fail # language change 3368
 class_literal_test/29 : Fail # language change 3368
 closure_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
-compile_time_constant_test/02: Fail # issue 5987.
 compile_time_constant10_test/none: Fail # issue 5215.
 constructor3_negative_test: Fail # Runtime only test, rewrite as multitest
 constructor_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest

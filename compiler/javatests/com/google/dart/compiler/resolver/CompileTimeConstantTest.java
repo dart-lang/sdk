@@ -109,6 +109,22 @@ public class CompileTimeConstantTest extends ResolverTestCase {
 
   /**
    * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5987
+   */
+  public void test_referenceConstInstance_formConstStatic() throws Exception {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Object {}",
+            "class A {",
+            "  const x = 499;",
+            "  static const bar = x;",
+            "}"),
+        errEx(ResolverErrorCode.NOT_A_STATIC_FIELD, 5, 22, 1));
+  }
+
+  /**
+   * <p>
    * http://code.google.com/p/dart/issues/detail?id=1655
    */
   public void test_constConstructor_nonConstInitializerValue() {
