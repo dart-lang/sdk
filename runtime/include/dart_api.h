@@ -1323,12 +1323,10 @@ DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle double_obj, double* value);
  */
 DART_EXPORT bool Dart_IsString(Dart_Handle object);
 
-
 /**
  * Is this object an ASCII String?
  */
 DART_EXPORT bool Dart_IsAsciiString(Dart_Handle object);
-
 
 /**
  * Gets the length of a String.
