@@ -158,7 +158,6 @@ library6_negative_test: Fail # still a valid test? Issue 3650
 list_literal4_test: Fail # Issue 1343
 map_literal4_test: Fail # Issue 1343
 named_parameters_with_object_property_names_test: Fail # Issue 2137
-no_such_method_test: Fail
 many_overridden_no_such_method_test: Fail
 no_such_method_negative_test: Fail # Runtime only test, rewrite as multitest
 override_field_test/03: Fail # still a valid test? Issue 3894
