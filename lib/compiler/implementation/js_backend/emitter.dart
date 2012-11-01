@@ -1445,9 +1445,6 @@ $classesCollector.$mangledName = {'':
 
     // TODO(ngeoffray): These globals are currently required by the isolate
     // library. They should be removed.
-    String runtimeTypeCache =
-        compiler.enabledRuntimeType ? "  context.runtimeTypeCache = {}\n" : "";
-
     buffer.add("""
 var \$globalThis = $currentIsolate;
 var \$globalState;
@@ -1459,7 +1456,7 @@ function \$static_init(){};
 
 function \$initGlobals(context) {
   context.isolateStatics = new ${namer.ISOLATE}();
-$runtimeTypeCache}
+}
 function \$setGlobals(context) {
   $currentIsolate = context.isolateStatics;
   \$globalThis = $currentIsolate;
@@ -1534,9 +1531,6 @@ if (typeof document != 'undefined' && document.readyState != 'complete') {
       // constants to be set up.
       emitStaticNonFinalFieldInitializations(mainBuffer);
       emitLazilyInitializedStaticFields(mainBuffer);
-      if (compiler.enabledRuntimeType && !compiler.hasIsolateSupport()) {
-        mainBuffer.add('$isolateProperties.runtimeTypeCache = {};\n');
-      }
 
       isolateProperties = isolatePropertiesName;
       // The following code should not use the short-hand for the

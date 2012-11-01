@@ -1452,15 +1452,15 @@ class TypeImpl implements Type {
   toString() => typeName;
 }
 
+var runtimeTypeCache = JS('var', '{}');
+
 Type getOrCreateCachedRuntimeType(String key) {
-  Type runtimeType =
-      JS('Type', r'#.runtimeTypeCache[#]', JS_CURRENT_ISOLATE(), key);
-  if (runtimeType == null) {
-    runtimeType = new TypeImpl(key);
-    JS('void', r'#.runtimeTypeCache[#] = #', JS_CURRENT_ISOLATE(), key,
-       runtimeType);
+  Type result = JS('Type', r'#[#]', runtimeTypeCache, key);
+  if (result == null) {
+    result = new TypeImpl(key);
+    JS('var', r'#[#] = #', runtimeTypeCache, key, result);
   }
-  return runtimeType;
+  return result;
 }
 
 String getRuntimeTypeString(var object) {
