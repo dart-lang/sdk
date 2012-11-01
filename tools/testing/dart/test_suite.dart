@@ -976,13 +976,13 @@ class StandardTestSuite implements TestSuite {
     RegExp staticCleanRegExp = const RegExp(r"// @static-clean");
     RegExp leadingHashRegExp = const RegExp(r"^#", multiLine: true);
     RegExp isolateStubsRegExp = const RegExp(r"// IsolateStubs=(.*)");
+    // TODO(gram) Clean these up once the old directives are not supported.
     RegExp domImportRegExp =
-        const RegExp(r"^#import.*(dart:(dom|html)|html\.dart).*\)",
-                     multiLine: true);
+        const RegExp(r"^[#]?import.*dart:html", multiLine: true);
     RegExp libraryDefinitionRegExp =
-        const RegExp(r"^#library\(", multiLine: true);
+        const RegExp(r"^[#]?library[\( ]", multiLine: true);
     RegExp sourceOrImportRegExp =
-        const RegExp(r"^#(source|import|resource)\(", multiLine: true);
+        const RegExp("^(#source|#import|part)[ \t]+[\('\"]", multiLine: true);
 
     // Read the entire file into a byte buffer and transform it to a
     // String. This will treat the file as ascii but the only parts

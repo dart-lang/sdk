@@ -47,19 +47,17 @@ String getHtmlLayoutContents(String scriptType, String sourceScript) =>
 
 String wrapDartTestInLibrary(Path test) =>
 """
-#library('libraryWrapper');
-#source('$test');
+library libraryWrapper;
+part '$test';
 """;
 
 String dartTestWrapper(Path dartHome, Path library) =>
 """
-#library('test');
+library test;
 
-#import('${dartHome.append('pkg/unittest/unittest.dart')}', prefix: 'unittest');
-#import('${dartHome.append('pkg/unittest/html_config.dart')}',
-        prefix: 'config');
-
-#import('${library}', prefix: "Test");
+import '${dartHome.append('pkg/unittest/unittest.dart')}' as unittest;
+import '${dartHome.append('pkg/unittest/html_config.dart')}' as config;
+import '${library}' as Test;
 
 main() {
   config.useHtmlConfiguration();
