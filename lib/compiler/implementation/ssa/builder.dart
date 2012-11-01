@@ -2558,6 +2558,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return;
     }
 
+    Element element = elements[node];
+    if (element != null && compiler.world.hasNoOverridingMember(element)) {
+      if (tryInlineMethod(element, selector, node.arguments)) {
+        return;
+      }
+    }
+
     if (node.receiver == null) {
       inputs.add(localsHandler.readThis());
     } else {
@@ -2566,13 +2573,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     addDynamicSendArgumentsToList(node, inputs);
-
-    Element element = elements[node];
-    if (element != null && compiler.world.hasNoOverridingMember(element)) {
-      if (tryInlineMethod(element, selector, node.arguments)) {
-        return;
-      }
-    }
     // The first entry in the inputs list is the receiver.
     pushWithPosition(new HInvokeDynamicMethod(selector, inputs), node);
 
