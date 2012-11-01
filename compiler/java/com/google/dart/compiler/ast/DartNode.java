@@ -117,10 +117,7 @@ public abstract class DartNode extends AbstractNode {
    * @param visitor the visitor that will be used to visit the child
    */
   protected void safelyVisitChild(DartNode child, ASTVisitor<?> visitor) {
-    // Inline the DartIdentifier path - it's by far the most common.
-    if (child instanceof DartIdentifier) {
-      visitor.visitIdentifier((DartIdentifier)child);
-    } else if (child != null) {
+    if (child != null) {
       child.accept(visitor);
     }
   }
