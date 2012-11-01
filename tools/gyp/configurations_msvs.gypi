@@ -17,6 +17,7 @@
             'ExceptionHandling': '0',
             'RuntimeTypeInfo': 'false',
             'OmitFramePointers': 'false',
+            'RuntimeLibrary': '1',  # /MTd - Multi-threaded, static (debug)
           },
           'VCLinkerTool': {
             'LinkIncremental': '2',
@@ -37,6 +38,7 @@
             'RuntimeTypeInfo': 'false',
             'OmitFramePointers': 'false',
             'StringPooling': 'true',
+            'RuntimeLibrary': '0',  # /MT - Multi-threaded, static
           },
           'VCLinkerTool': {
             'LinkIncremental': '1',
