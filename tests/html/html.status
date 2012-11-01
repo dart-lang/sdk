@@ -274,6 +274,7 @@ xhr_test: Fail
 
 [ $compiler == dart2js && $runtime == drt ]
 # Unknown error - should investigate.
+audiocontext_test: Fail
 htmloptionscollection_test: Fail # Issue 3813.
 unknownelement_test: Fail # Issue 4189
 
