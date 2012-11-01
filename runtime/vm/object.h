@@ -1273,6 +1273,17 @@ class Function : public Object {
   bool IsInlineable() const;
   void set_is_inlinable(bool value) const;
 
+  enum IntrinsicKind {
+    kUnknownIntrinsic = 0,  // Initial value.
+    kIsIntrinsic,
+    kIsNotIntrinsic,
+  };
+
+  IntrinsicKind intrinsic_kind() const {
+    return IntrinsicKindBits::decode(raw_ptr()->kind_tag_);
+  }
+  void set_intrinsic_kind(IntrinsicKind value) const;
+
   bool HasOptimizedCode() const;
 
   // Returns true if the argument counts are valid for calling this function.
@@ -1402,15 +1413,17 @@ class Function : public Object {
 
  private:
   enum KindTagBits {
-    kStaticBit = 1,
-    kConstBit,
-    kOptimizableBit,
-    kInlinableBit,
-    kHasFinallyBit,
-    kNativeBit,
-    kAbstractBit,
-    kExternalBit,
-    kKindTagBit,
+    kStaticBit = 0,
+    kConstBit = 1,
+    kOptimizableBit = 2,
+    kInlinableBit = 3,
+    kHasFinallyBit = 4,
+    kNativeBit = 5,
+    kAbstractBit = 6,
+    kExternalBit = 7,
+    kIntrinsicTagBit = 8,
+    kIntrinsicTagSize = 2,
+    kKindTagBit = 10,
     kKindTagSize = 4,
   };
   class StaticBit : public BitField<bool, kStaticBit, 1> {};
@@ -1421,6 +1434,9 @@ class Function : public Object {
   class NativeBit : public BitField<bool, kNativeBit, 1> {};
   class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
   class ExternalBit : public BitField<bool, kExternalBit, 1> {};
+  class IntrinsicKindBits :
+    public BitField<Function::IntrinsicKind,
+                    kIntrinsicTagBit, kIntrinsicTagSize> {};  // NOLINT
   class KindBits :
     public BitField<RawFunction::Kind, kKindTagBit, kKindTagSize> {};  // NOLINT
 

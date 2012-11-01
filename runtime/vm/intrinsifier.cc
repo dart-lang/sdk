@@ -69,31 +69,32 @@ static bool TestFunction(const Function& function,
 
 bool Intrinsifier::CanIntrinsify(const Function& function) {
   if (!FLAG_intrinsify) return false;
-  // Closure functions may have different arguments.
   if (function.IsClosureFunction()) return false;
+  // Intrinsic kind is set lazily below.
+  if (function.intrinsic_kind() == Function::kIsIntrinsic) return true;
+  if (function.intrinsic_kind() == Function::kIsNotIntrinsic) return false;
+  // Closure functions may have different arguments.
   const char* function_name = String::Handle(function.name()).ToCString();
   const Class& function_class = Class::Handle(function.Owner());
-  const char* class_name = String::Handle(function_class.Name()).ToCString();
   // Only core, math and scalarlist library methods can be intrinsified.
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
-  const Library& math_lib = Library::Handle(Library::MathLibrary());
-  const Library& scalarlist_lib = Library::Handle(Library::ScalarlistLibrary());
-  if ((function_class.library() != core_lib.raw()) &&
-      (function_class.library() != core_impl_lib.raw()) &&
-      (function_class.library() != math_lib.raw()) &&
-      (function_class.library() != scalarlist_lib.raw())) {
+  if ((function_class.library() != Library::CoreLibrary()) &&
+      (function_class.library() != Library::CoreImplLibrary()) &&
+      (function_class.library() != Library::MathLibrary()) &&
+      (function_class.library() != Library::ScalarlistLibrary())) {
     return false;
   }
+  const char* class_name = String::Handle(function_class.Name()).ToCString();
 #define FIND_INTRINSICS(test_class_name, test_function_name, destination)      \
   if (TestFunction(function,                                                   \
                    class_name, function_name,                                  \
                    #test_class_name, #test_function_name)) {                   \
+    function.set_intrinsic_kind(Function::kIsIntrinsic);                       \
     return true;                                                               \
   }                                                                            \
 
 INTRINSIC_LIST(FIND_INTRINSICS);
 #undef FIND_INTRINSICS
+  function.set_intrinsic_kind(Function::kIsNotIntrinsic);
   return false;
 }
 

@@ -3280,6 +3280,11 @@ void Function::set_kind(RawFunction::Kind value) const {
 }
 
 
+void Function::set_intrinsic_kind(IntrinsicKind value) const {
+  set_kind_tag(IntrinsicKindBits::update(value, raw_ptr()->kind_tag_));
+}
+
+
 void Function::set_is_static(bool value) const {
   set_kind_tag(StaticBit::update(value, raw_ptr()->kind_tag_));
 }
@@ -3776,6 +3781,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_const(is_const);
   result.set_is_abstract(is_abstract);
   result.set_is_external(is_external);
+  result.set_intrinsic_kind(kUnknownIntrinsic);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_end_token_pos(token_pos);
