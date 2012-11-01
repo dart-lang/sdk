@@ -64,6 +64,14 @@ class Printer implements NodeVisitor {
     lineOut();
   }
 
+  void outSemicolonLn() {
+    if (shouldCompressOutput) {
+      pendingSemicolon = true;
+    } else {
+      out(";\n");
+    }
+  }
+
   void outIndent(String str) { indent(); out(str); }
   void outIndentLn(String str) { indent(); outLn(str); }
   void indent() {
@@ -155,7 +163,7 @@ class Printer implements NodeVisitor {
     indent();
     visitNestedExpression(expressionStatement.expression, EXPRESSION,
                           newInForInit: false, newAtStatementBegin: true);
-    pendingSemicolon = true;
+    outSemicolonLn();
   }
 
   visitEmptyStatement(EmptyStatement nop) {
@@ -263,8 +271,8 @@ class Printer implements NodeVisitor {
     out("(");
     visitNestedExpression(loop.condition, EXPRESSION,
                           newInForInit: false, newAtStatementBegin: false);
-    outLn(")");
-    pendingSemicolon = true;
+    out(")");
+    outSemicolonLn();
   }
 
   visitContinue(Continue node) {
@@ -294,7 +302,7 @@ class Printer implements NodeVisitor {
       visitNestedExpression(node.value, EXPRESSION,
                             newInForInit: false, newAtStatementBegin: false);
     }
-    pendingSemicolon = true;
+    outSemicolonLn();
   }
 
   visitThrow(Throw node) {
@@ -302,7 +310,7 @@ class Printer implements NodeVisitor {
     pendingSpace = true;
     visitNestedExpression(node.expression, EXPRESSION,
                           newInForInit: false, newAtStatementBegin: false);
-    pendingSemicolon = true;
+    outSemicolonLn();
   }
 
   visitTry(Try node) {
