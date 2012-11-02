@@ -22,6 +22,9 @@ gc_test: Fail # Issue 1487
 field_override_test/none: Fail  # Issue 742: field shadowing now allowed
 field_override_test/01: Fail    # Issue 742: field shadowing now allowed
 super_field_access_test: Fail    # Issue 742: field shadowing now allowed
+pseudo_kw_illegal_test/03: Fail  # Issue 356
+pseudo_kw_illegal_test/08: Fail  # Issue 356
+pseudo_kw_illegal_test/10: Fail  # Issue 356
 pseudo_kw_illegal_test/14: Fail  # Issue 356
 
 # These bugs refer currently ongoing language discussions.
