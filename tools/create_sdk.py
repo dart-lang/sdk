@@ -290,6 +290,10 @@ def Main(argv):
                        'lib', 'dartdoc.dart')],
                  [("_internal/dartdoc/lib/src/client/client",
                    "lib/_internal/dartdoc/lib/src/client/client")])
+  ReplaceInFiles([join(SDK_tmp, 'lib', '_internal', 'dartdoc', 
+                       'bin', 'dartdoc.dart')],
+                 [("../../../../../pkg/args/lib/args.dart",
+                   "../../../../pkg/args/lib/args.dart")])
 
   # Write the 'version' file
   versionFile = open(os.path.join(SDK_tmp, 'version'), 'w')
