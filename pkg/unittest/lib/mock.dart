@@ -1278,8 +1278,13 @@ class Mock {
    * return value. If we find no [Behavior] to apply an exception is
    * thrown.
    */
-  noSuchMethod(String method, List args) {
-    if (method.startsWith('get:')) {
+  noSuchMethod(InvocationMirror invocation) {
+    var method = invocation.memberName;
+    var args = invocation.positionalArguments;
+    if (invocation.isGetter) {
+      method = 'get $method';
+    } else if (method.startsWith('get:')) {
+      // TODO(gram): Remove this when VM handles the isGetter version above.
       method = 'get ${method.substring(4)}';
     }
     bool matchedMethodName = false;
@@ -1317,6 +1322,9 @@ class Mock {
           }
           throw value;
         } else if (action == Action.PROXY) {
+          // TODO(gram): Replace all this with:
+          //     var rtn = invocation.invokeOn(value);
+          // once that is supported.
           var rtn;
           switch (args.length) {
             case 0:
