@@ -1523,6 +1523,30 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 }
 
 
+// Loads function into 'temp_reg', preserves 'ic_reg'.
+void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
+                                             Register ic_reg,
+                                             Register temp_reg) {
+  __ movq(temp_reg, FieldAddress(ic_reg, ICData::function_offset()));
+  Label is_hot;
+  if (FlowGraphCompiler::CanOptimize()) {
+    ASSERT(FLAG_optimization_counter_threshold > 1);
+    // The usage_counter is always less than FLAG_optimization_counter_threshold
+    // except when the function gets optimized.
+    __ cmpq(FieldAddress(temp_reg, Function::usage_counter_offset()),
+        Immediate(FLAG_optimization_counter_threshold - 1));
+    // Do not increment to equality with threshold, since a counter greater
+    // than threshold denotes a function that was already optimized.
+    // The equality should be reached only at exit of the method
+    // (return instruction).
+    __ j(EQUAL, &is_hot, Assembler::kNearJump);
+    // As long as VM has no OSR do not optimize in the middle of the function
+    // but only at exit so that we have collected all type feedback before
+    // optimizing.
+  }
+  __ incq(FieldAddress(temp_reg, Function::usage_counter_offset()));
+  __ Bind(&is_hot);
+}
 
 // Generate inline cache check for 'num_args'.
 //  RBX: Inline cache data object.
@@ -1549,26 +1573,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ Bind(&ok);
   }
 #endif  // DEBUG
-
-  __ movq(RCX, FieldAddress(RBX, ICData::function_offset()));
-  Label is_hot;
-  if (FlowGraphCompiler::CanOptimize()) {
-    ASSERT(FLAG_optimization_counter_threshold > 1);
-    // The usage_counter is always less than FLAG_optimization_counter_threshold
-    // except when the function gets optimized.
-    __ cmpq(FieldAddress(RCX, Function::usage_counter_offset()),
-        Immediate(FLAG_optimization_counter_threshold - 1));
-    // Do not increment to equality with threshold, since a counter greater
-    // than threshold denotes a function that was already optimized.
-    // The equality should be reached only at exit of the method
-    // (return instruction).
-    __ j(EQUAL, &is_hot, Assembler::kNearJump);
-    // As long as VM has no OSR do not optimize in the middle of the function
-    // but only at exit so that we have collected all type feedback before
-    // optimizing.
-  }
-  __ incq(FieldAddress(RCX, Function::usage_counter_offset()));
-  __ Bind(&is_hot);
 
   // Loop that checks if there is an IC data match.
   Label loop, update, test, found, get_class_id_as_smi;
@@ -1689,29 +1693,37 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
 
 // Use inline cache data array to invoke the target or continue in inline
 // cache miss handler. Stub for 1-argument check (receiver class).
-//  RCX: Inline cache data array
-//  RDX: Arguments array
-//  TOS(0): return address
-// Inline cache data array structure:
+//  RBX: Inline cache data object.
+//  RDX: Arguments array.
+//  TOS(0): Return address.
+// Inline cache data object structure:
 // 0: function-name
 // 1: N, number of arguments checked.
 // 2 .. (length - 1): group of checks, each check containing:
 //   - N classes.
 //   - 1 target function.
 void StubCode::GenerateOneArgCheckInlineCacheStub(Assembler* assembler) {
+  GenerateUsageCounterIncrement(assembler, RBX, RCX);
   return GenerateNArgsCheckInlineCacheStub(assembler, 1);
 }
 
 
 void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
+  GenerateUsageCounterIncrement(assembler, RBX, RCX);
   return GenerateNArgsCheckInlineCacheStub(assembler, 2);
 }
 
 
 void StubCode::GenerateThreeArgsCheckInlineCacheStub(Assembler* assembler) {
+  GenerateUsageCounterIncrement(assembler, RBX, RCX);
   return GenerateNArgsCheckInlineCacheStub(assembler, 3);
 }
 
+// Megamorphic call is currently implemented as IC call but through a stub
+// that does not check/count function invocations.
+void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
+  return GenerateNArgsCheckInlineCacheStub(assembler, 1);
+}
 
 //  RBX: Function object.
 //  R10: Arguments array.

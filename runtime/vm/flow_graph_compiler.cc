@@ -477,23 +477,27 @@ void FlowGraphCompiler::GenerateInstanceCall(
     const ICData& ic_data) {
   ASSERT(!ic_data.IsNull());
   ASSERT(FLAG_propagate_ic_data || (ic_data.NumberOfChecks() == 0));
-  // Because optimized code should not waste time.
-  ASSERT(!is_optimizing() || ic_data.num_args_tested() == 1);
   const Array& arguments_descriptor =
       DartEntry::ArgumentsDescriptor(argument_count, argument_names);
   uword label_address = 0;
-  switch (ic_data.num_args_tested()) {
-    case 1:
-      label_address = StubCode::OneArgCheckInlineCacheEntryPoint();
-      break;
-    case 2:
-      label_address = StubCode::TwoArgsCheckInlineCacheEntryPoint();
-      break;
-    case 3:
-      label_address = StubCode::ThreeArgsCheckInlineCacheEntryPoint();
-      break;
-    default:
-      UNIMPLEMENTED();
+  if (is_optimizing()) {
+    // Megamorphic call requires one argument ICData.
+    ASSERT(ic_data.num_args_tested() == 1);
+    label_address = StubCode::MegamorphicCallEntryPoint();
+  } else {
+    switch (ic_data.num_args_tested()) {
+      case 1:
+        label_address = StubCode::OneArgCheckInlineCacheEntryPoint();
+        break;
+      case 2:
+        label_address = StubCode::TwoArgsCheckInlineCacheEntryPoint();
+        break;
+      case 3:
+        label_address = StubCode::ThreeArgsCheckInlineCacheEntryPoint();
+        break;
+      default:
+        UNIMPLEMENTED();
+    }
   }
   ExternalLabel target_label("InlineCache", label_address);
 
