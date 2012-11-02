@@ -12,8 +12,13 @@ fixnum/test/int_64_vm_test: Skip
 [$compiler == dart2dart]
 *: Skip
 
+# Don't compiile tests that use dart:io to JS
+[ $compiler == dart2js || $compiler == dart2dart || $compiler == dartc ]
+http/test/*: Skip
+
 # Skip tests that use local file access if we're running in any browser
 [ $runtime == opera || $runtime == ff || $runtime == ie9 || $runtime == dartium || $runtime == chrome || $runtime == safari || $runtime == drt ]
+http/test/*: Skip
 intl/test/date_time_format_file_even_test: Skip
 intl/test/date_time_format_file_odd_test: Skip
 intl/test/find_default_locale_standalone_test: Skip
