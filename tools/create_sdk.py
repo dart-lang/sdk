@@ -277,16 +277,16 @@ def Main(argv):
     ReplaceInFiles([join(SDK_tmp, 'bin', 'dart2js.bat'),
                     join(SDK_tmp, 'bin', 'dartdoc.bat'),
                     join(SDK_tmp, 'bin', 'pub.bat')],
-                   [("..\\..\\sdk\\lib", "..\\lib")])
+                   [(r'..\\..\\sdk\\lib', r'..\lib')])
   else:
     ReplaceInFiles([join(SDK_tmp, 'bin', 'dart2js'),
                     join(SDK_tmp, 'bin', 'dartdoc'),
                     join(SDK_tmp, 'bin', 'pub')],
-                   [("../../sdk/lib", "../lib")])
+                   [('../../sdk/lib', '../lib')])
 
   # Fix up dartdoc.
   # TODO(dgrove): Remove this once sdk and dart-sdk match.
-  ReplaceInFiles([join(SDK_tmp, 'lib', '_internal', 'dartdoc', 
+  ReplaceInFiles([join(SDK_tmp, 'lib', '_internal', 'dartdoc',
                        'lib', 'dartdoc.dart')],
                  [("_internal/dartdoc/lib/src/client/client",
                    "lib/_internal/dartdoc/lib/src/client/client")])
