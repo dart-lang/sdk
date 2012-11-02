@@ -75,7 +75,7 @@ class _Path implements Path {
       }
       return new Path(sb.toString());
     }
-    throw new NotImplementedException(
+    throw new UnimplementedError(
       "Unimplemented case of Path.relativeTo(base):\n"
       "  Only absolute paths are handled at present.\n"
       "  Arguments: $_path.relativeTo($base)");

@@ -27,7 +27,7 @@ class _Utils {
 
   static Map createMap() => {};
 
-  static makeNotImplementedException(String fileName, int lineNo) {
+  static makeUnimplementedError(String fileName, int lineNo) {
     return new UnsupportedError('[info: $fileName:$lineNo]');
   }
 

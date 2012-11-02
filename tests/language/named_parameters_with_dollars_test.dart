@@ -37,8 +37,8 @@ format(thing) {
 makeTestClass(n) => [new TestClass(), new Decoy(), 'string'][n % 3];
 
 class Decoy {
-  method([a$b, b, a]) { throw const NotImplementedException(); }
-  psycho([$$$, $$, $])  { throw const NotImplementedException(); }
+  method([a$b, b, a]) { throw new UnimplementedError(); }
+  psycho([$$$, $$, $])  { throw new UnimplementedError(); }
 }
 
 testDollar() {

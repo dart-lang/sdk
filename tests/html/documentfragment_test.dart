@@ -43,7 +43,7 @@ main() {
     expect(style.getPropertyPriority('color'), equals(''));
     expect(style.item(0), equals(''));
     expect(style.length, isZero);
-    // TODO(jacobr): these checks throw NotImplementedExceptions in dartium.
+    // TODO(jacobr): these checks throw UnimplementedErrors in dartium.
     // expect(style.parentRule, isNull);
     // expect(style.getPropertyCSSValue('color'), isNull);
     // expect(style.getPropertyShorthand('color'), isNull);

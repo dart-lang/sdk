@@ -95,7 +95,7 @@ class _LocalMirrorSystemImpl implements MirrorSystem {
 
 abstract class _LocalMirrorImpl implements Mirror {
   int get hashCode {
-    throw new NotImplementedException('Mirror.hashCode is not implemented');
+    throw new UnimplementedError('Mirror.hashCode is not implemented');
   }
 
   // Local mirrors always return the same MirrorSystem.  This field
@@ -144,7 +144,7 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
                                 List positionalArguments,
                                 [Map<String,Dynamic> namedArguments]) {
     if (namedArguments != null) {
-      throw new NotImplementedException(
+      throw new UnimplementedError(
           'named argument support is not implemented');
     }
     // Walk the arguments and make sure they are legal.
@@ -300,14 +300,14 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
   final MethodMirror function;
 
   String get source {
-    throw new NotImplementedException(
+    throw new UnimplementedError(
         'ClosureMirror.source is not implemented');
   }
 
   Future<InstanceMirror> apply(List<Object> positionalArguments,
                                [Map<String,Object> namedArguments]) {
     if (namedArguments != null) {
-      throw new NotImplementedException(
+      throw new UnimplementedError(
           'named argument support is not implemented');
     }
     // Walk the arguments and make sure they are legal.
@@ -326,7 +326,7 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
   }
 
   Future<InstanceMirror> findInContext(String name) {
-    throw new NotImplementedException(
+    throw new UnimplementedError(
         'ClosureMirror.findInContext() is not implemented');
   }
 
@@ -345,13 +345,13 @@ class _LazyTypeMirror {
       } else if (typeName == 'void') {
         return mirrors.voidType;
       } else {
-        throw new NotImplementedException(
+        throw new UnimplementedError(
             "Mirror for type '$typeName' is not implemented");
       }
     }
     var resolved = mirrors.libraries[libraryName].members[typeName];
     if (resolved == null) {
-      throw new NotImplementedException(
+      throw new UnimplementedError(
           "Mirror for type '$typeName' is not implemented");
     }
     return resolved;
@@ -403,7 +403,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   final bool isTopLevel = true;
 
   SourceLocation get location {
-    throw new NotImplementedException(
+    throw new UnimplementedError(
         'ClassMirror.location is not implemented');
   }
 
@@ -485,17 +485,17 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   Map<String, TypeVariableMirror> typeVariables;
 
   Map<String, TypeMirror> get typeArguments {
-    throw new NotImplementedException(
+    throw new UnimplementedError(
         'ClassMirror.typeArguments is not implemented');
   }
 
   bool get isOriginalDeclaration {
-    throw new NotImplementedException(
+    throw new UnimplementedError(
         'ClassMirror.isOriginalDeclaration is not implemented');
   }
 
   ClassMirror get genericDeclaration {
-    throw new NotImplementedException(
+    throw new UnimplementedError(
         'ClassMirror.originalDeclaration is not implemented');
   }
 
@@ -505,7 +505,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
                                      List positionalArguments,
                                      [Map<String,Dynamic> namedArguments]) {
     if (namedArguments != null) {
-      throw new NotImplementedException(
+      throw new UnimplementedError(
           'named argument support is not implemented');
     }
     // Walk the arguments and make sure they are legal.
@@ -610,7 +610,7 @@ class _LocalTypeVariableMirrorImpl extends _LocalMirrorImpl
   final bool isTopLevel = false;
 
   SourceLocation get location {
-    throw new NotImplementedException(
+    throw new UnimplementedError(
         'TypeVariableMirror.location is not implemented');
   }
 
@@ -654,7 +654,7 @@ class _LocalTypedefMirrorImpl extends _LocalMirrorImpl
   final bool isTopLevel = true;
 
   SourceLocation get location {
-    throw new NotImplementedException(
+    throw new UnimplementedError(
         'TypedefMirror.location is not implemented');
   }
 
@@ -702,7 +702,7 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
   final bool isTopLevel = false;
 
   SourceLocation get location {
-    throw new NotImplementedException(
+    throw new UnimplementedError(
         'LibraryMirror.location is not implemented');
   }
 
@@ -799,7 +799,7 @@ class _LocalMethodMirrorImpl extends _LocalMirrorImpl
   bool get isTopLevel =>  owner is LibraryMirror;
 
   SourceLocation get location {
-    throw new NotImplementedException(
+    throw new UnimplementedError(
         'MethodMirror.location is not implemented');
   }
 
@@ -819,7 +819,7 @@ class _LocalMethodMirrorImpl extends _LocalMirrorImpl
   bool get isRegularMethod => !isGetter && !isSetter && !isConstructor;
 
   TypeMirror get isOperator {
-    throw new NotImplementedException(
+    throw new UnimplementedError(
         'MethodMirror.isOperator is not implemented');
   }
 
@@ -891,7 +891,7 @@ class _LocalVariableMirrorImpl extends _LocalMirrorImpl
   }
 
   SourceLocation get location {
-    throw new NotImplementedException(
+    throw new UnimplementedError(
         'VariableMirror.location is not implemented');
   }
 
@@ -917,12 +917,12 @@ class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
   final bool isOptional;
 
   String get defaultValue {
-    throw new NotImplementedException(
+    throw new UnimplementedError(
         'ParameterMirror.defaultValue is not implemented');
   }
 
   bool get hasDefaultValue {
-    throw new NotImplementedException(
+    throw new UnimplementedError(
         'ParameterMirror.hasDefaultValue is not implemented');
   }
 }
@@ -956,7 +956,7 @@ class _Mirrors {
       }
     } else {
       // Make a remote mirror system
-      throw new NotImplementedException(
+      throw new UnimplementedError(
           'Remote mirror support is not implemented');
     }
     return completer.future;

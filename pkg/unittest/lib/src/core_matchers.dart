@@ -490,17 +490,26 @@ class _NoSuchMethodError extends TypeMatcher {
   bool matches(item, MatchState matchState) => item is NoSuchMethodError;
 }
 
+/** A matcher for UnimplementedErrors. */
+const isUnimplementedError = const _UnimplementedError();
+
+/** A matcher for functions that throw Exception. */
+const Matcher throwsUnimplementedError =
+    const Throws(isUnimplementedError);
+
+class _UnimplementedError extends TypeMatcher {
+  const _UnimplementedError() : super("UnimplementedError");
+  bool matches(item, MatchState matchState) => item is UnimplementedError;
+}
+
+// Temporary matcher until NotImplementedException is removed.
 /** A matcher for NotImplementedExceptions. */
-const isNotImplementedException = const _NotImplementedException();
+const isNotImplementedException = isUnimplementedError;
 
 /** A matcher for functions that throw Exception. */
 const Matcher throwsNotImplementedException =
-    const Throws(isNotImplementedException);
+    const Throws(isUnimplementedError);
 
-class _NotImplementedException extends TypeMatcher {
-  const _NotImplementedException() : super("NotImplementedException");
-  bool matches(item, MatchState matchState) => item is NotImplementedException;
-}
 
 /** A matcher for NullPointerExceptions. */
 const isNullPointerException = const _NullPointerException();

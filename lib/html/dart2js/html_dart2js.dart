@@ -10282,7 +10282,7 @@ class _FilteredElementList implements List {
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
-    throw const NotImplementedException();
+    throw new UnimplementedError();
   }
 
   void removeRange(int start, int rangeLength) {
@@ -10290,7 +10290,7 @@ class _FilteredElementList implements List {
   }
 
   void insertRange(int start, int rangeLength, [initialValue = null]) {
-    throw const NotImplementedException();
+    throw new UnimplementedError();
   }
 
   void clear() {
@@ -11467,15 +11467,15 @@ class _ChildrenElementList implements List {
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
-    throw const NotImplementedException();
+    throw new UnimplementedError();
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const NotImplementedException();
+    throw new UnimplementedError();
   }
 
   void insertRange(int start, int rangeLength, [initialValue = null]) {
-    throw const NotImplementedException();
+    throw new UnimplementedError();
   }
 
   List getRange(int start, int rangeLength) =>
@@ -40070,7 +40070,7 @@ _convertNativeToDart_IDBKey(nativeKey) {
     return false;  // number, string.
   }
   if (containsDate(nativeKey)) {
-    throw const NotImplementedException('IDBKey containing Date');
+    throw new UnimplementedError('IDBKey containing Date');
   }
   // TODO: Cache conversion somewhere?
   return nativeKey;
@@ -40151,11 +40151,11 @@ _convertDartToNative_PrepareForStructuredClone(value) {
     if (e is String) return e;
     if (e is Date) {
       // TODO(sra).
-      throw const NotImplementedException('structured clone of Date');
+      throw new UnimplementedError('structured clone of Date');
     }
     if (e is RegExp) {
       // TODO(sra).
-      throw const NotImplementedException('structured clone of RegExp');
+      throw new UnimplementedError('structured clone of RegExp');
     }
 
     // The browser's internal structured cloning algorithm will copy certain
@@ -40167,12 +40167,12 @@ _convertDartToNative_PrepareForStructuredClone(value) {
 
     if (e is _FileImpl) return e;
     if (e is File) {
-      throw const NotImplementedException('structured clone of File');
+      throw new UnimplementedError('structured clone of File');
     }
 
     if (e is _BlobImpl) return e;
     if (e is Blob) {
-      throw const NotImplementedException('structured clone of Blob');
+      throw new UnimplementedError('structured clone of Blob');
     }
 
     if (e is _FileListImpl) return e;
@@ -40180,17 +40180,17 @@ _convertDartToNative_PrepareForStructuredClone(value) {
     // TODO(sra): Firefox: How to convert _TypedImageData on the other end?
     if (e is _ImageDataImpl) return e;
     if (e is ImageData) {
-      throw const NotImplementedException('structured clone of ImageData');
+      throw new UnimplementedError('structured clone of ImageData');
     }
 
     if (e is _ArrayBufferImpl) return e;
     if (e is ArrayBuffer) {
-      throw const NotImplementedException('structured clone of ArrayBuffer');
+      throw new UnimplementedError('structured clone of ArrayBuffer');
     }
 
     if (e is _ArrayBufferViewImpl) return e;
     if (e is ArrayBufferView) {
-      throw const NotImplementedException('structured clone of ArrayBufferView');
+      throw new UnimplementedError('structured clone of ArrayBufferView');
     }
 
     if (e is Map) {
@@ -40262,7 +40262,7 @@ _convertDartToNative_PrepareForStructuredClone(value) {
       return copy;
     }
 
-    throw const NotImplementedException('structured clone of other type');
+    throw new UnimplementedError('structured clone of other type');
   }
 
   var copy = walk(value);
@@ -40315,12 +40315,12 @@ _convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) {
 
     if (_isJavaScriptDate(e)) {
       // TODO(sra).
-      throw const NotImplementedException('structured clone of Date');
+      throw new UnimplementedError('structured clone of Date');
     }
 
     if (_isJavaScriptRegExp(e)) {
       // TODO(sra).
-      throw const NotImplementedException('structured clone of RegExp');
+      throw new UnimplementedError('structured clone of RegExp');
     }
 
     if (_isJavaScriptSimpleObject(e)) {

@@ -144,14 +144,14 @@ void main() {
             "NoSuchMethodError.");
     });
 
-    test('throwsNotImplementedException', () {
-      shouldPass(() { throw new NotImplementedException(''); },
-          throwsNotImplementedException);
+    test('throwsUnimplementedError', () {
+      shouldPass(() { throw new UnimplementedError(''); },
+          throwsUnimplementedError);
       shouldFail(() { throw new Exception(); },
-          throwsNotImplementedException,
-        "Expected: throws an exception which matches NotImplementedException "
+          throwsUnimplementedError,
+        "Expected: throws an exception which matches UnimplementedError "
         "but:  exception <Exception> does not match "
-            "NotImplementedException.");
+            "UnimplementedError.");
     });
 
     test('throwsNullPointerException', () {

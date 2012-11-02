@@ -378,7 +378,7 @@ abstract class _ManagerStub {
 /** A stub for interacting with the main manager. */
 class _MainManagerStub implements _ManagerStub {
   get id => 0;
-  void set id(int i) { throw new NotImplementedException(); }
+  void set id(int i) { throw new UnimplementedError(); }
   void set onmessage(f) {
     throw new Exception("onmessage should not be set on MainManagerStub");
   }

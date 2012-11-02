@@ -11505,7 +11505,7 @@ class _FilteredElementList implements List {
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
-    throw const NotImplementedException();
+    throw new UnimplementedError();
   }
 
   void removeRange(int start, int rangeLength) {
@@ -11513,7 +11513,7 @@ class _FilteredElementList implements List {
   }
 
   void insertRange(int start, int rangeLength, [initialValue = null]) {
-    throw const NotImplementedException();
+    throw new UnimplementedError();
   }
 
   void clear() {
@@ -12721,15 +12721,15 @@ class _ChildrenElementList implements List {
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
-    throw const NotImplementedException();
+    throw new UnimplementedError();
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const NotImplementedException();
+    throw new UnimplementedError();
   }
 
   void insertRange(int start, int rangeLength, [initialValue = null]) {
-    throw const NotImplementedException();
+    throw new UnimplementedError();
   }
 
   List getRange(int start, int rangeLength) =>
@@ -44283,7 +44283,7 @@ class _Utils {
 
   static Map createMap() => {};
 
-  static makeNotImplementedException(String fileName, int lineNo) {
+  static makeUnimplementedError(String fileName, int lineNo) {
     return new UnsupportedError('[info: $fileName:$lineNo]');
   }
 

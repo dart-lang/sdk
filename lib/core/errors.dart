@@ -209,6 +209,35 @@ class UnsupportedError implements Error {
   String toString() => "Unsupported operation: $message";
 }
 
+
+/**
+ * Thrown by operations that have not been implemented yet.
+ *
+ * This [Error] is thrown by unfinished code that hasn't yet implemented
+ * all the features it needs.
+ *
+ * If a class is not intending to implement the feature, it should throw
+ * an [UnsupportedError] instead. This error is only intended for
+ * use during development.
+ *
+ * This class temporarily implements [Exception] for backwards compatibility.
+ * The constructor is temporarily const to support [NotImplementedException].
+ */
+class UnimplementedError implements UnsupportedError, NotImplementedException {
+  final String message;
+  const UnimplementedError([String this.message]);
+  String toString() => (this.message !== null
+                        ? "UnimplementedError: $message"
+                        : "UnimplementedError");
+}
+
+
+/** Temporary class added for backwards compatibility. Will be removed. */
+interface NotImplementedException extends Exception default UnimplementedError {
+  const NotImplementedException([String message]);
+}
+
+
 /**
  * The operation was not allowed by the current state of the object.
  *
