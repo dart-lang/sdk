@@ -234,7 +234,7 @@ static char* ComputeDart2JSPath(const char* arg) {
   char buffer[2048];
   char* dart2js_path = strdup(File::GetCanonicalPath(arg));
   const char* compiler_path =
-      "%s%ssdk%slib%siinternal%scompiler%scompiler.dart";
+      "%s%ssdk%slib%s_internal%scompiler%scompiler.dart";
   const char* path_separator = File::PathSeparator();
   ASSERT(path_separator != NULL && strlen(path_separator) == 1);
   char* ptr = strrchr(dart2js_path, *path_separator);
