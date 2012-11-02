@@ -1235,9 +1235,10 @@ public class Resolver {
           if (!Elements.isStaticContext(element) && !element.getModifiers().isConstant()) {
             if (inInstanceVariableInitializer) {
               onError(x, ResolverErrorCode.CANNOT_USE_INSTANCE_FIELD_IN_INSTANCE_FIELD_INITIALIZER);
-            } else if (ASTNodes.isStaticContext(x)) {
-              onError(x, ResolverErrorCode.ILLEGAL_FIELD_ACCESS_FROM_STATIC, name);
             }
+          }
+          if (ASTNodes.isStaticContext(x) && !Elements.isStaticContext(element)) {
+            onError(x, ResolverErrorCode.ILLEGAL_FIELD_ACCESS_FROM_STATIC, name);
           }
           if (isIllegalPrivateAccess(x, enclosingElement, element, x.getName())) {
             return null;

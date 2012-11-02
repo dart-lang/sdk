@@ -68,12 +68,6 @@ import java.util.Set;
 public class CompileTimeConstantAnalyzer {
 
   private class ExpressionVisitor extends ASTVisitor<Void> {
-    private final boolean shouldBeStatic;
-
-    private ExpressionVisitor(boolean shouldBeStatic) {
-      this.shouldBeStatic = shouldBeStatic;
-    }
-
     private boolean checkBoolean(DartNode x, Type type) {
       // Spec 0.11 allows using "null" literal in place of bool.
       if (x instanceof DartNullLiteral) {
@@ -381,11 +375,6 @@ public class CompileTimeConstantAnalyzer {
         case FIELD:
           FieldElement fieldElement = (FieldElement) element;
 
-          if (shouldBeStatic && !elementIsStatic) {
-            context.onError(new DartCompilationError(x, ResolverErrorCode.NOT_A_STATIC_FIELD,
-                fieldElement.getName()));
-          }
-
           // Check for circular references.
           if (element != null && visitedElements.contains(element)) {
             context.onError(new DartCompilationError(x, ResolverErrorCode.CIRCULAR_REFERENCE));
@@ -638,7 +627,7 @@ public class CompileTimeConstantAnalyzer {
     public Void visitField(DartField node) {
       if (node.getParent() != null) {
         if (node.getModifiers().isConstant()) {
-          Type type = checkConstantExpression(node.getValue(), node.getModifiers().isStatic());
+          Type type = checkConstantExpression(node.getValue());
           if (node.getElement().getType().equals(dynamicType)) {
             node.getElement().setConstantType(type);
           }
@@ -797,12 +786,8 @@ public class CompileTimeConstantAnalyzer {
   }
 
   private Type checkConstantExpression(DartExpression expression) {
-    return checkConstantExpression(expression, false);
-  }
-  
-  private Type checkConstantExpression(DartExpression expression, boolean shouldBeStatic) {
     if (expression != null) {
-      ExpressionVisitor visitor = new ExpressionVisitor(shouldBeStatic);
+      ExpressionVisitor visitor = new ExpressionVisitor();
       expression.accept(visitor);
       return visitor.getMostSpecificType(expression);
     }
