@@ -1286,8 +1286,12 @@ $classesCollector.$mangledName = {'':
       int type = METHOD;
       if (selector.isGetter()) {
         type = GETTER;
+        assert(methodName.startsWith("get:"));
+        methodName = methodName.substring(4);
       } else if (selector.isSetter()) {
         type = SETTER;
+        assert(methodName.startsWith("set:"));
+        methodName = "${methodName.substring(4)}=";
       }
       CodeBuffer args = new CodeBuffer();
       for (int i = 0; i < selector.argumentCount; i++) {
