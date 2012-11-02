@@ -430,7 +430,7 @@ class TypedSelector extends Selector {
       return appliesUntyped(element, compiler);
     }
 
-    if (!self.isInterface() && self.isSubclassOf(other)) {
+    if (!self.isTypedef() && !self.isInterface() && self.isSubclassOf(other)) {
       // Resolve an invocation of [element.name] on [self]. If it
       // is found, this selector is a candidate.
       return hasElementIn(self, element) && appliesUntyped(element, compiler);

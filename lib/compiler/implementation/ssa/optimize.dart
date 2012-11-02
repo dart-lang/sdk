@@ -142,12 +142,15 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         }
         block.rewrite(instruction, replacement);
         block.remove(instruction);
-        // If the replacement instruction does not know its type or
-        // source element yet, use the type and source element of the
+
+        // If we can replace [instruction] with [replacement], then
+        // [replacement]'s type can be narrowed.
+        types[replacement] =
+           types[replacement].intersection(types[instruction], compiler);
+
+        // If the replacement instruction does not know its
+        // source element, use the source element of the
         // instruction.
-        if (!types[replacement].isUseful()) {
-          types[replacement] = types[instruction];
-        }
         if (replacement.sourceElement == null) {
           replacement.sourceElement = instruction.sourceElement;
         }

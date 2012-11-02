@@ -63,7 +63,9 @@ abstract class PartialTypeTree {
   // TODO(kasperl): Move this to the Selector class?
   ClassElement selectorType(Selector selector) {
     DartType type = selector.receiverType;
-    return (type != null) ? type.element : compiler.objectClass;
+    if (type == null) return compiler.objectClass;
+    if (type.element.isTypedef()) return compiler.functionClass;
+    return type.element;
   }
 
   /**
