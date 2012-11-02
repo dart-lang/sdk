@@ -47,9 +47,9 @@ import com.google.dart.compiler.resolver.TypeErrorCode;
 
 import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
 import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+import static com.google.dart.compiler.type.TypeQuality.EXACT;
 import static com.google.dart.compiler.type.TypeQuality.INFERRED;
 import static com.google.dart.compiler.type.TypeQuality.INFERRED_EXACT;
-import static com.google.dart.compiler.type.TypeQuality.EXACT;
 
 import java.net.URI;
 import java.util.List;
@@ -2407,14 +2407,29 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * When single variable has conflicting type constraints, we use union of types.
    */
   public void test_typesPropagation_ifIsType_conflictingTypes() throws Exception {
-    analyzeLibrary(
+    compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
+      @Override
+      public boolean typeChecksForInferredTypes() {
+        return true;
+      }
+    });
+    AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "f(int v) {",
         "  if (v is String) {",
         "    var v1 = v;",
+        "    // should be OK because 'v' is String",
+        "    v.abs; // from num",
+        "    v.length; // from String",
+        "    processInt(v);",
+        "    processString(v);",
         "  }",
         "}",
+        "processInt(int p) {}",
+        "processString(String p) {}",
         "");
+    // should be no errors, we because "v" is String
+    assertErrors(result.getErrors());
     assertInferredElementTypeString(testUnit, "v1", "[int, String]", INFERRED);
   }
 

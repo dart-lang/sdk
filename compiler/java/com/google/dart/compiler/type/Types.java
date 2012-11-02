@@ -185,7 +185,7 @@ public class Types {
    * @return the {@link InterfaceType} which is union of given ones.
    */
   public InterfaceType unionTypes(List<InterfaceType> types) {
-    return new InterfaceTypeUnion(types);
+    return new InterfaceTypeUnionImplementation(types);
   }
 
   /**
@@ -338,8 +338,19 @@ public class Types {
   }
 
   private boolean isSubtypeOfInterface(Type t, InterfaceType s) {
-    final Type sup = asInstanceOf(t, s.getElement());
+    // Special handling for union.
+    if (t instanceof InterfaceTypeUnion) {
+      InterfaceTypeUnion tUnion = (InterfaceTypeUnion) t;
+      for (InterfaceType unionPart : tUnion.getTypes()) {
+        if (isSubtype(unionPart, s)) {
+          return true;
+        }
+      }
+      return false;
+    }
 
+    // Try to cast "t" to "s".
+    final Type sup = asInstanceOf(t, s.getElement());
     if (TypeKind.of(sup).equals(TypeKind.INTERFACE)) {
       InterfaceType ti = (InterfaceType) sup;
       assert ti.getElement().equals(s.getElement());
@@ -354,7 +365,7 @@ public class Types {
 
   /**
    * Implement the Dart function subtype rule. Unlike the classic arrow rule (return type is
-   * covariant, and paramter types are contravariant), in Dart they must just be assignable.
+   * covariant, and parameter types are contravariant), in Dart they must just be assignable.
    */
   private boolean isSubtypeOfFunction(FunctionType t, FunctionType s) {
     if (s.getKind() == TypeKind.DYNAMIC || t.getKind() == TypeKind.DYNAMIC) {

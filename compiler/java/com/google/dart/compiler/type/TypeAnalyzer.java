@@ -1491,7 +1491,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private void setCascadeUnionType(DartCascadeExpression node, Type newType) {
       DartExpression target = node.getTarget();
       Type type = node.getType();
-      if (isExclicitlySpecifiedType(newType) && types.isAssignable(type, newType)) {
+      if (isExplicitlySpecifiedType(newType) && types.isAssignable(type, newType)) {
         Type unionType = getUnionType(type, newType);
         unionType = Types.makeInferred(unionType);
         node.setType(unionType);
@@ -2857,7 +2857,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       // if type is declared and right side is closure, infer its parameter types
       if (value != null) {
         Type varType = node.getElement().getType();
-        if (isExclicitlySpecifiedType(varType)) {
+        if (isExplicitlySpecifiedType(varType)) {
           inferFunctionLiteralParametersTypes(value, varType);
         }
       }
@@ -2964,7 +2964,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         // if type is declared and right side is closure, infer its parameter types
         if (value != null) {
           Type fieldType = node.getElement().getType();
-          if (isExclicitlySpecifiedType(fieldType)) {
+          if (isExplicitlySpecifiedType(fieldType)) {
             inferFunctionLiteralParametersTypes(value, fieldType);
           }
         }
@@ -3557,7 +3557,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
   }
 
-  private static boolean isExclicitlySpecifiedType(Type type) {
+  private static boolean isExplicitlySpecifiedType(Type type) {
     return type != null && TypeKind.of(type) != TypeKind.DYNAMIC
         && !TypeQuality.isInferred(type);
   }
