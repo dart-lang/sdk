@@ -246,7 +246,6 @@ class CallSiteInliner : public ValueObject {
   explicit CallSiteInliner(FlowGraph* flow_graph)
       : caller_graph_(flow_graph),
         next_ssa_temp_index_(flow_graph->max_virtual_register_number()),
-        inlined_(false),
         initial_size_(flow_graph->InstructionCount()),
         inlined_size_(0),
         inlining_depth_(1),
@@ -305,12 +304,7 @@ class CallSiteInliner : public ValueObject {
     inlining_call_sites_ = NULL;
   }
 
-  bool inlined() const { return inlined_; }
-
-  double GrowthFactor() const {
-    return static_cast<double>(inlined_size_) /
-        static_cast<double>(initial_size_);
-  }
+  intptr_t inlined_instructions() const { return inlined_size_; }
 
  private:
   bool TryInlining(const Function& function,
@@ -503,13 +497,6 @@ class CallSiteInliner : public ValueObject {
         caller_graph_->InlineCall(call, callee_graph);
         next_ssa_temp_index_ = caller_graph_->max_virtual_register_number();
 
-        // Remove push arguments of the call.
-        for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-          PushArgumentInstr* push = call->ArgumentAt(i);
-          push->ReplaceUsesWith(push->value()->definition());
-          push->RemoveFromGraph();
-        }
-
         // Replace each stub with the actual argument or the caller's constant.
         // Nulls denote optional parameters for which no actual was given.
         for (intptr_t i = 0; i < arguments->length(); ++i) {
@@ -517,24 +504,10 @@ class CallSiteInliner : public ValueObject {
           Value* actual = (*arguments)[i];
           if (actual != NULL) stub->ReplaceUsesWith(actual->definition());
         }
-
-        // Replace remaining constants with uses by constants in the caller's
-        // initial definitions.
-        GrowableArray<Definition*>* defns =
-            callee_graph->graph_entry()->initial_definitions();
-        for (intptr_t i = 0; i < defns->length(); ++i) {
-          ConstantInstr* constant = (*defns)[i]->AsConstant();
-          if (constant == NULL ||
-              ((constant->input_use_list() == NULL) &&
-               (constant->env_use_list() == NULL))) {
-            continue;
-          }
-          constant->ReplaceUsesWith(
-            caller_graph_->AddConstantToInitialDefinitions(constant->value()));
-        }
       }
 
-      TRACE_INLINING(OS::Print("     Success\n"));
+      TRACE_INLINING(OS::Print(
+          "     Success (inlined %"Pd" instructions)\n", size));
 
       // Add the function to the cache.
       if (!in_cache) function_cache_.Add(parsed_function);
@@ -543,7 +516,6 @@ class CallSiteInliner : public ValueObject {
       DEBUG_ASSERT(!FLAG_verify_compiler || caller_graph_->ValidateUseLists());
 
       // Build succeeded so we restore the bailout jump.
-      inlined_ = true;
       inlined_size_ += size;
       isolate->set_long_jump_base(base);
       isolate->set_deopt_id(prev_deopt_id);
@@ -739,7 +711,6 @@ class CallSiteInliner : public ValueObject {
 
   FlowGraph* caller_graph_;
   intptr_t next_ssa_temp_index_;
-  bool inlined_;
   intptr_t initial_size_;
   intptr_t inlined_size_;
   intptr_t inlining_depth_;
@@ -773,10 +744,10 @@ void FlowGraphInliner::Inline() {
   CallSiteInliner inliner(flow_graph_);
   inliner.InlineCalls();
 
-  if (inliner.inlined()) {
+  if (inliner.inlined_instructions() > 0) {
     flow_graph_->RepairGraphAfterInlining();
     if (FLAG_trace_inlining) {
-      OS::Print("Inlining growth factor: %f\n", inliner.GrowthFactor());
+      OS::Print("Inlined %"Pd" instructions\n", inliner.inlined_instructions());
       if (FLAG_print_flow_graph) {
         OS::Print("After Inlining of %s\n", flow_graph_->
                   parsed_function().function().ToFullyQualifiedCString());
