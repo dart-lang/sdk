@@ -14,7 +14,6 @@ fixnum/test/int_64_vm_test: Skip
 
 # Skip tests that use local file access if we're running in any browser
 [ $runtime == opera || $runtime == ff || $runtime == ie9 || $runtime == dartium || $runtime == chrome || $runtime == safari || $runtime == drt ]
-http/test/http_test: Skip
 intl/test/date_time_format_file_even_test: Skip
 intl/test/date_time_format_file_odd_test: Skip
 intl/test/find_default_locale_standalone_test: Skip
