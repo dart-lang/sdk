@@ -780,28 +780,22 @@ void FlowGraph::ReplacePredecessor(BlockEntryInstr* old_block,
     JoinEntryInstr* join = last->SuccessorAt(sidx)->AsJoinEntry();
     ASSERT(join != NULL);
     // Find the old predecessor index.
-    const intptr_t old_index = join->IndexOfPredecessor(old_block);
-    const intptr_t pred_count = join->PredecessorCount();
+    intptr_t old_index = join->IndexOfPredecessor(old_block);
+    intptr_t pred_count = join->PredecessorCount();
     ASSERT(old_index >= 0);
     ASSERT(old_index < pred_count);
     // Find the new predecessor index while reordering the predecessors.
-    const intptr_t new_id = new_block->block_id();
+    intptr_t new_id = new_block->block_id();
     intptr_t new_index = old_index;
-    // The predecessors are sorted by block id in ascending order.  This is done
-    // in JoinEntryInstr::AddPredecessor and in InlineCall.
     if (old_block->block_id() < new_id) {
       // Search upwards, bubbling down intermediate predecessors.
       for (; new_index < pred_count - 1; ++new_index) {
-        ASSERT(join->predecessors_[new_index]->block_id() <
-                   join->predecessors_[new_index + 1]->block_id());
         if (join->predecessors_[new_index + 1]->block_id() > new_id) break;
         join->predecessors_[new_index] = join->predecessors_[new_index + 1];
       }
     } else {
       // Search downwards, bubbling up intermediate predecessors.
       for (; new_index > 0; --new_index) {
-        ASSERT(join->predecessors_[new_index - 1]->block_id() <
-                   join->predecessors_[new_index]->block_id());
         if (join->predecessors_[new_index - 1]->block_id() < new_id) break;
         join->predecessors_[new_index] = join->predecessors_[new_index - 1];
       }
@@ -991,27 +985,6 @@ void FlowGraph::InlineCall(Definition* call, FlowGraph* callee_graph) {
     // Mark that the dominator tree is invalid.
     // TODO(zerny): Compute the dominator frontier locally.
     invalid_dominator_tree_ = true;
-  }
-
-  // Remove push arguments of the call.
-  for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-    PushArgumentInstr* push = call->ArgumentAt(i);
-    push->ReplaceUsesWith(push->value()->definition());
-    push->RemoveFromGraph();
-  }
-
-  // Replace remaining constants with uses by constants in the caller's
-  // initial definitions.
-  GrowableArray<Definition*>* defns =
-      callee_graph->graph_entry()->initial_definitions();
-  for (intptr_t i = 0; i < defns->length(); ++i) {
-    ConstantInstr* constant = (*defns)[i]->AsConstant();
-    if (constant != NULL &&
-        ((constant->input_use_list() != NULL) ||
-         (constant->env_use_list() != NULL))) {
-      constant->ReplaceUsesWith(
-          AddConstantToInitialDefinitions(constant->value()));
-    }
   }
 }
 
