@@ -334,16 +334,6 @@ method_invocation_test: Fail # Uncaught error: Instance of 'TypeError'
 null_pointer_exception_test: Fail # Uncaught error: Instance of 'TypeError'
 string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
 
-[ $compiler == dart2js && $runtime == ff && $system == windows ]
-prefix_new_test: Fail # TODO(ahe): Enable wrapper-less tests on Firefox/Windows.
-part2_test: Fail # TODO(ahe): Enable wrapper-less tests on Firefox/Windows.
-part_test: Fail # TODO(ahe): Enable wrapper-less tests on Firefox/Windows.
-export_test: Fail # Issue 5785 (root cause: issue 2264)
-export_cyclic_test: Fail # Issue 5785 (root cause: issue 2264)
-first_class_types_libraries_test: Fail
-local_export_test: Fail # TODO(ahe): Enable wrapper-less tests on Firefox/Windows.
-
-
 [ $runtime == opera ]
 call_through_null_getter_test: Fail
 closure3_test: Fail
