@@ -25,9 +25,11 @@ class_test: Fail
 
 [ $jscl ]
 timer_test: Fail, OK # Timer is only supported in browsers.
+mirror_test: Fail, OK # Timer is only supported in browsers.
 
 [ $runtime == none ]
 timer_negative_test: Fail, OK # A negative runtime test.
 
 [ $compiler == none && $runtime == drt ]
 timer_test: Fail # http://dartbug.com/2264
+mirror_test: Fail # http://dartbug.com/2264

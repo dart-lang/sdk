@@ -11,6 +11,7 @@
 #source('native_helper.dart');
 #source('regexp_helper.dart');
 #source('string_helper.dart');
+#source('mirror_opt_in_message.dart');
 
 // Performance critical helper methods.
 add(var a, var b) => (a is num && b is num)
@@ -413,6 +414,8 @@ class JSInvocationMirror implements InvocationMirror {
 class Primitives {
   static int hashCodeSeed = 0;
 
+  static bool mirrorsEnabled = false;
+
   static int objectHashCode(object) {
     int hash = JS('var', r'#.$identityHash', object);
     if (hash == null) {
@@ -429,8 +432,12 @@ class Primitives {
    * by defining a function in JavaScript called "dartPrint".
    */
   static void printString(String string) {
-    // Support overriding print from JavaScript.
-    if (JS('bool', r'typeof dartPrint == "function"')) {
+    if ((MIRROR_OPT_IN_MESSAGE == string)) {
+      // Turn on mirrors. Also, make sure that this message isn't easy
+      // to suppress by not calling dartPrint.
+      mirrorsEnabled = true;
+    } else if (JS('bool', r'typeof dartPrint == "function"')) {
+      // Support overriding print from JavaScript.
       JS('void', r'dartPrint(#)', string);
       return;
     }
@@ -711,6 +718,11 @@ class Primitives {
     // closures: escaped local variables are stored and accessed through
     // [function].
     return JS('var', '#.apply(#, #)', jsFunction, function, arguments);
+  }
+
+  static getConstructor(String className) {
+    // TODO(ahe): How to safely access $?
+    return JS('var', r'$[#]', className);
   }
 }
 

@@ -482,11 +482,13 @@ abstract class Compiler implements DiagnosticListener {
     String libraryName = library.uri.toString();
     if (library.entryCompilationUnit.script.name.contains(
             'dart/tests/compiler/dart2js_native')
+        || libraryName == 'dart:mirrors'
         || libraryName == 'dart:isolate'
         || libraryName == 'dart:math'
         || libraryName == 'dart:html') {
-      if (libraryName == 'dart:html') {
+      if (libraryName == 'dart:html' || libraryName == 'dart:mirrors') {
         // dart:html needs access to convertDartClosureToJS.
+        // dart:mirrors needs access to the Primitives class.
         importHelperLibrary(library);
       }
       library.addToScope(findHelper(const SourceString('JS')), this);
