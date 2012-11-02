@@ -27,11 +27,11 @@ class CastError implements Error {
 /**
  * Error thrown when a function is passed an unacceptable argument.
  */
- class ArgumentError implements Error {
+class ArgumentError implements Error {
   final message;
 
   /** The [message] describes the erroneous argument. */
-  const ArgumentError([this.message = ""]);
+  const ArgumentError([this.message]);
 
   String toString() {
     if (message != null) {
@@ -44,13 +44,17 @@ class CastError implements Error {
 /**
  * Exception thrown because of an index outside of the valid range.
  *
- * Temporarily extends [Exception] for backwards compatiblity.
+ * Temporarily implements [IndexOutOfRangeException] for backwards compatiblity.
  */
-class RangeError extends ArgumentError implements Exception {
+class RangeError extends ArgumentError implements IndexOutOfRangeException {
   // TODO(lrn): This constructor should be called only with string values.
   // It currently isn't in all cases.
-  /** Create a new [RangeError] with the given [message]. */
-  RangeError(var message) : super("$message");
+  /**
+   * Create a new [RangeError] with the given [message].
+   *
+   * Temporarily made const for backwards compatibilty.
+   */
+  const RangeError(var message) : super(message);
 
   /** Create a new [RangeError] with a message for the given [value]. */
   RangeError.value(num value) : super("value $value");
@@ -63,11 +67,10 @@ class RangeError extends ArgumentError implements Exception {
  *
  * This class allows code throwing the old [IndexOutOfRangeException] to
  * work until they change to the new [RangeError] name.
- * Code **catching** IndexOutOfRangeException will fail to catch
- * the [RangeError] objects that are now thrown.
+ * Constructor of [RangeError] is const only to support this interface.
  */
-class IndexOutOfRangeException extends ArgumentError {
-  IndexOutOfRangeException(var message) : super(message);
+interface IndexOutOfRangeException extends Exception default RangeError {
+  const IndexOutOfRangeException(var message);
 }
 
 

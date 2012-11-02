@@ -465,6 +465,19 @@ class _RangeError extends TypeMatcher {
   bool matches(item, MatchState matchState) => item is RangeError;
 }
 
+// Temporary matcher for deprecated IndexOutOfRangeException.
+/** A matcher for IndexOutOfRangeExceptions. */
+const isIndexOutOfRangeException = const _IndexOutOfRangeException();
+
+/** A matcher for functions that throw IndexOutOfRangeException. */
+const Matcher throwsIndexOutOfRangeException =
+    const Throws(isIndexOutOfRangeException);
+
+class _IndexOutOfRangeException extends TypeMatcher {
+  const _IndexOutOfRangeException() : super("IndexOutOfRangeException");
+  bool matches(item, MatchState matchState) => item is IndexOutOfRangeException;
+}
+
 /** A matcher for NoSuchMethodErrors. */
 const isNoSuchMethodError = const _NoSuchMethodError();
 
