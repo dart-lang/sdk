@@ -244,6 +244,8 @@ static char* ComputeDart2JSPath(const char* arg) {
                 dart2js_path,
                 path_separator,
                 path_separator,
+                path_separator,
+                path_separator,
                 path_separator);
     if (File::Exists(buffer)) {
       break;
