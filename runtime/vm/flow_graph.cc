@@ -940,7 +940,9 @@ void FlowGraph::InlineCall(Definition* call, FlowGraph* callee_graph) {
     exits.Sort(LowestBlockIdFirst);
     // Create a join of the returns.
     JoinEntryInstr* join =
-        new JoinEntryInstr(++max_block_id_, CatchClauseNode::kInvalidTryIndex);
+        new JoinEntryInstr(++max_block_id_,
+                           CatchClauseNode::kInvalidTryIndex,
+                           caller_entry->loop_depth());
     for (intptr_t i = 0; i < exits.length(); ++i) {
       ReturnInstr* exit_instr = exits[i]->last_instruction()->AsReturn();
       ASSERT(exit_instr != NULL);

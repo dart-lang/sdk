@@ -148,7 +148,8 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
 
       // Build the flow graph.
       FlowGraphBuilder builder(parsed_function);
-      flow_graph = builder.BuildGraph(FlowGraphBuilder::kNotInlining);
+      flow_graph = builder.BuildGraph(FlowGraphBuilder::kNotInlining,
+                                      0);  // The initial loop depth is zero.
     }
 
     if (optimized) {

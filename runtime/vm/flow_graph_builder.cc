@@ -162,7 +162,9 @@ void EffectGraphVisitor::Join(const TestGraphVisitor& test_fragment,
     temp_index_ = true_fragment.temp_index();
   } else {
     JoinEntryInstr* join =
-        new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+        new JoinEntryInstr(owner()->AllocateBlockId(),
+                           owner()->try_index(),
+                           loop_depth());
     true_exit->Goto(join);
     false_exit->Goto(join);
     exit_ = join;
@@ -191,7 +193,9 @@ void EffectGraphVisitor::TieLoop(const TestGraphVisitor& test_fragment,
     Append(test_fragment);
   } else {
     JoinEntryInstr* join =
-        new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+        new JoinEntryInstr(owner()->AllocateBlockId(),
+                           owner()->try_index(),
+                           loop_depth() + 1);
     join->LinkTo(test_fragment.entry());
     Goto(join);
     body_exit->Goto(join);
@@ -303,7 +307,9 @@ void TestGraphVisitor::ConnectBranchesTo(
   ASSERT(!branches.is_empty());
   for (intptr_t i = 0; i < branches.length(); i++) {
     TargetEntryInstr* target =
-        new TargetEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+        new TargetEntryInstr(owner()->AllocateBlockId(),
+                             owner()->try_index(),
+                             loop_depth());
     *(branches[i]) = target;
     target->Goto(join);
   }
@@ -326,13 +332,17 @@ BlockEntryInstr* TestGraphVisitor::CreateSuccessorFor(
 
   if (branches.length() == 1) {
     TargetEntryInstr* target =
-        new TargetEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+        new TargetEntryInstr(owner()->AllocateBlockId(),
+                             owner()->try_index(),
+                             loop_depth());
     *(branches[0]) = target;
     return target;
   }
 
   JoinEntryInstr* join =
-      new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+      new JoinEntryInstr(owner()->AllocateBlockId(),
+                         owner()->try_index(),
+                         loop_depth());
   ConnectBranchesTo(branches, join);
   return join;
 }
@@ -425,11 +435,13 @@ void TestGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
   if ((node->kind() == Token::kAND) || (node->kind() == Token::kOR)) {
     TestGraphVisitor for_left(owner(),
                               temp_index(),
+                              loop_depth(),
                               node->left()->token_pos());
     node->left()->Visit(&for_left);
 
     TestGraphVisitor for_right(owner(),
                                temp_index(),
+                               loop_depth(),
                                node->right()->token_pos());
     node->right()->Visit(&for_right);
 
@@ -468,13 +480,13 @@ void EffectGraphVisitor::InlineBailout(const char* reason) {
 // <Statement> ::= Return { value:                <Expression>
 //                          inlined_finally_list: <InlinedFinally>* }
 void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
-  ValueGraphVisitor for_value(owner(), temp_index());
+  ValueGraphVisitor for_value(owner(), temp_index(), loop_depth());
   node->value()->Visit(&for_value);
   Append(for_value);
 
   for (intptr_t i = 0; i < node->inlined_finally_list_length(); i++) {
     InlineBailout("EffectGraphVisitor::VisitReturnNode (exception)");
-    EffectGraphVisitor for_effect(owner(), temp_index());
+    EffectGraphVisitor for_effect(owner(), temp_index(), loop_depth());
     node->InlinedFinallyNodeAt(i)->Visit(&for_effect);
     Append(for_effect);
     if (!is_open()) return;
@@ -599,7 +611,7 @@ void EffectGraphVisitor::VisitAssignableNode(AssignableNode* node) {
 
 
 void ValueGraphVisitor::VisitAssignableNode(AssignableNode* node) {
-  ValueGraphVisitor for_value(owner(), temp_index());
+  ValueGraphVisitor for_value(owner(), temp_index(), loop_depth());
   node->expr()->Visit(&for_value);
   Append(for_value);
   ReturnValue(BuildAssignableValue(node->expr()->token_pos(),
@@ -619,11 +631,12 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     // See ValueGraphVisitor::VisitBinaryOpNode.
     TestGraphVisitor for_left(owner(),
                               temp_index(),
+                              loop_depth(),
                               node->left()->token_pos());
     node->left()->Visit(&for_left);
-    EffectGraphVisitor for_right(owner(), temp_index());
+    EffectGraphVisitor for_right(owner(), temp_index(), loop_depth());
     node->right()->Visit(&for_right);
-    EffectGraphVisitor empty(owner(), temp_index());
+    EffectGraphVisitor empty(owner(), temp_index(), loop_depth());
     if (node->kind() == Token::kAND) {
       Join(for_left, for_right, empty);
     } else {
@@ -631,12 +644,12 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     }
     return;
   }
-  ValueGraphVisitor for_left_value(owner(), temp_index());
+  ValueGraphVisitor for_left_value(owner(), temp_index(), loop_depth());
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
   PushArgumentInstr* push_left = PushArgument(for_left_value.value());
 
-  ValueGraphVisitor for_right_value(owner(), temp_index());
+  ValueGraphVisitor for_right_value(owner(), temp_index(), loop_depth());
   node->right()->Visit(&for_right_value);
   Append(for_right_value);
   PushArgumentInstr* push_right = PushArgument(for_right_value.value());
@@ -670,10 +683,11 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
 
     TestGraphVisitor for_test(owner(),
                               temp_index(),
+                              loop_depth(),
                               node->left()->token_pos());
     node->left()->Visit(&for_test);
 
-    ValueGraphVisitor for_right(owner(), temp_index());
+    ValueGraphVisitor for_right(owner(), temp_index(), loop_depth());
     node->right()->Visit(&for_right);
     Value* right_value = for_right.value();
     if (FLAG_enable_type_checks) {
@@ -689,13 +703,13 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     for_right.Do(BuildStoreExprTemp(compare));
 
     if (node->kind() == Token::kAND) {
-      ValueGraphVisitor for_false(owner(), temp_index());
+      ValueGraphVisitor for_false(owner(), temp_index(), loop_depth());
       Value* constant_false = for_false.Bind(new ConstantInstr(bool_false));
       for_false.Do(BuildStoreExprTemp(constant_false));
       Join(for_test, for_right, for_false);
     } else {
       ASSERT(node->kind() == Token::kOR);
-      ValueGraphVisitor for_true(owner(), temp_index());
+      ValueGraphVisitor for_true(owner(), temp_index(), loop_depth());
       Value* constant_true = for_true.Bind(new ConstantInstr(bool_true));
       for_true.Do(BuildStoreExprTemp(constant_true));
       Join(for_test, for_true, for_right);
@@ -780,7 +794,7 @@ Value* EffectGraphVisitor::BuildAssignableValue(intptr_t token_pos,
 
 void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   ASSERT(Token::IsTypeTestOperator(node->kind()));
-  EffectGraphVisitor for_left_value(owner(), temp_index());
+  EffectGraphVisitor for_left_value(owner(), temp_index(), loop_depth());
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
 }
@@ -790,7 +804,7 @@ void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   ASSERT(Token::IsTypeCastOperator(node->kind()));
   const AbstractType& type = node->right()->AsTypeNode()->type();
   ASSERT(type.IsFinalized());  // The type in a type cast may be malformed.
-  ValueGraphVisitor for_value(owner(), temp_index());
+  ValueGraphVisitor for_value(owner(), temp_index(), loop_depth());
   node->left()->Visit(&for_value);
   const String& dst_name = String::ZoneHandle(
       Symbols::New(Exceptions::kCastErrorDstName));
@@ -813,7 +827,7 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   const Type& object_type = Type::Handle(Type::ObjectType());
   if (type.IsInstantiated() && object_type.IsSubtypeOf(type, NULL)) {
     // Must evaluate left side.
-    EffectGraphVisitor for_left_value(owner(), temp_index());
+    EffectGraphVisitor for_left_value(owner(), temp_index(), loop_depth());
     node->left()->Visit(&for_left_value);
     Append(for_left_value);
     ReturnDefinition(new ConstantInstr(negate_result ? bool_false : bool_true));
@@ -844,7 +858,7 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
     return;
   }
 
-  ValueGraphVisitor for_left_value(owner(), temp_index());
+  ValueGraphVisitor for_left_value(owner(), temp_index(), loop_depth());
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
   Value* instantiator = NULL;
@@ -874,7 +888,7 @@ void ValueGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   ASSERT(Token::IsTypeCastOperator(node->kind()));
   const AbstractType& type = node->right()->AsTypeNode()->type();
   ASSERT(type.IsFinalized());  // The type in a type cast may be malformed.
-  ValueGraphVisitor for_value(owner(), temp_index());
+  ValueGraphVisitor for_value(owner(), temp_index(), loop_depth());
   node->left()->Visit(&for_value);
   Append(for_value);
   const String& dst_name = String::ZoneHandle(
@@ -901,10 +915,10 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
   }
   if ((node->kind() == Token::kEQ_STRICT) ||
       (node->kind() == Token::kNE_STRICT)) {
-    ValueGraphVisitor for_left_value(owner(), temp_index());
+    ValueGraphVisitor for_left_value(owner(), temp_index(), loop_depth());
     node->left()->Visit(&for_left_value);
     Append(for_left_value);
-    ValueGraphVisitor for_right_value(owner(), temp_index());
+    ValueGraphVisitor for_right_value(owner(), temp_index(), loop_depth());
     node->right()->Visit(&for_right_value);
     Append(for_right_value);
     StrictCompareInstr* comp = new StrictCompareInstr(
@@ -914,10 +928,10 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
   }
 
   if ((node->kind() == Token::kEQ) || (node->kind() == Token::kNE)) {
-    ValueGraphVisitor for_left_value(owner(), temp_index());
+    ValueGraphVisitor for_left_value(owner(), temp_index(), loop_depth());
     node->left()->Visit(&for_left_value);
     Append(for_left_value);
-    ValueGraphVisitor for_right_value(owner(), temp_index());
+    ValueGraphVisitor for_right_value(owner(), temp_index(), loop_depth());
     node->right()->Visit(&for_right_value);
     Append(for_right_value);
     if (FLAG_enable_type_checks) {
@@ -944,10 +958,10 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
     return;
   }
 
-  ValueGraphVisitor for_left_value(owner(), temp_index());
+  ValueGraphVisitor for_left_value(owner(), temp_index(), loop_depth());
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
-  ValueGraphVisitor for_right_value(owner(), temp_index());
+  ValueGraphVisitor for_right_value(owner(), temp_index(), loop_depth());
   node->right()->Visit(&for_right_value);
   Append(for_right_value);
   RelationalOpInstr* comp = new RelationalOpInstr(node->token_pos(),
@@ -961,7 +975,7 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
 void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
   // "!" cannot be overloaded, therefore do not call operator.
   if (node->kind() == Token::kNOT) {
-    ValueGraphVisitor for_value(owner(), temp_index());
+    ValueGraphVisitor for_value(owner(), temp_index(), loop_depth());
     node->operand()->Visit(&for_value);
     Append(for_value);
     Value* value = for_value.value();
@@ -974,7 +988,7 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
     return;
   }
 
-  ValueGraphVisitor for_value(owner(), temp_index());
+  ValueGraphVisitor for_value(owner(), temp_index(), loop_depth());
   node->operand()->Visit(&for_value);
   Append(for_value);
   PushArgumentInstr* push_value = PushArgument(for_value.value());
@@ -996,13 +1010,14 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
 void EffectGraphVisitor::VisitConditionalExprNode(ConditionalExprNode* node) {
   TestGraphVisitor for_test(owner(),
                             temp_index(),
+                            loop_depth(),
                             node->condition()->token_pos());
   node->condition()->Visit(&for_test);
 
   // Translate the subexpressions for their effects.
-  EffectGraphVisitor for_true(owner(), temp_index());
+  EffectGraphVisitor for_true(owner(), temp_index(), loop_depth());
   node->true_expr()->Visit(&for_true);
-  EffectGraphVisitor for_false(owner(), temp_index());
+  EffectGraphVisitor for_false(owner(), temp_index(), loop_depth());
   node->false_expr()->Visit(&for_false);
 
   Join(for_test, for_true, for_false);
@@ -1012,15 +1027,16 @@ void EffectGraphVisitor::VisitConditionalExprNode(ConditionalExprNode* node) {
 void ValueGraphVisitor::VisitConditionalExprNode(ConditionalExprNode* node) {
   TestGraphVisitor for_test(owner(),
                             temp_index(),
+                            loop_depth(),
                             node->condition()->token_pos());
   node->condition()->Visit(&for_test);
 
-  ValueGraphVisitor for_true(owner(), temp_index());
+  ValueGraphVisitor for_true(owner(), temp_index(), loop_depth());
   node->true_expr()->Visit(&for_true);
   ASSERT(for_true.is_open());
   for_true.Do(BuildStoreExprTemp(for_true.value()));
 
-  ValueGraphVisitor for_false(owner(), temp_index());
+  ValueGraphVisitor for_false(owner(), temp_index(), loop_depth());
   node->false_expr()->Visit(&for_false);
   ASSERT(for_false.is_open());
   for_false.Do(BuildStoreExprTemp(for_false.value()));
@@ -1036,11 +1052,12 @@ void ValueGraphVisitor::VisitConditionalExprNode(ConditionalExprNode* node) {
 void EffectGraphVisitor::VisitIfNode(IfNode* node) {
   TestGraphVisitor for_test(owner(),
                             temp_index(),
+                            loop_depth(),
                             node->condition()->token_pos());
   node->condition()->Visit(&for_test);
 
-  EffectGraphVisitor for_true(owner(), temp_index());
-  EffectGraphVisitor for_false(owner(), temp_index());
+  EffectGraphVisitor for_true(owner(), temp_index(), loop_depth());
+  EffectGraphVisitor for_false(owner(), temp_index(), loop_depth());
 
   node->true_branch()->Visit(&for_true);
   // The for_false graph fragment will be empty (default graph fragment) if
@@ -1051,10 +1068,11 @@ void EffectGraphVisitor::VisitIfNode(IfNode* node) {
 
 
 void EffectGraphVisitor::VisitSwitchNode(SwitchNode* node) {
-  EffectGraphVisitor switch_body(owner(), temp_index());
+  EffectGraphVisitor switch_body(owner(), temp_index(), loop_depth());
   node->body()->Visit(&switch_body);
   Append(switch_body);
   if ((node->label() != NULL) && (node->label()->join_for_break() != NULL)) {
+    node->label()->join_for_break()->set_loop_depth(loop_depth());
     if (is_open()) Goto(node->label()->join_for_break());
     exit_ = node->label()->join_for_break();
   }
@@ -1088,7 +1106,7 @@ void EffectGraphVisitor::VisitSwitchNode(SwitchNode* node) {
 void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
   const intptr_t len = node->case_expressions()->length();
   // Create case statements instructions.
-  EffectGraphVisitor for_case_statements(owner(), temp_index());
+  EffectGraphVisitor for_case_statements(owner(), temp_index(), loop_depth());
   // Compute start of statements fragment.
   JoinEntryInstr* statement_start = NULL;
   if ((node->label() != NULL) && node->label()->is_continue_target()) {
@@ -1096,13 +1114,15 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
     // allocate JoinNode here and use it as statement start.
     statement_start = node->label()->join_for_continue();
     if (statement_start == NULL) {
-      statement_start =
-          new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+      statement_start = new JoinEntryInstr(owner()->AllocateBlockId(),
+                                           owner()->try_index(),
+                                           loop_depth());
       node->label()->set_join_for_continue(statement_start);
     }
   } else {
-    statement_start =
-        new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+    statement_start = new JoinEntryInstr(owner()->AllocateBlockId(),
+                                         owner()->try_index(),
+                                         loop_depth());
   }
   node->statements()->Visit(&for_case_statements);
   Instruction* statement_exit =
@@ -1121,6 +1141,7 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
     AstNode* case_expr = node->case_expressions()->NodeAt(i);
     TestGraphVisitor for_case_expression(owner(),
                                          temp_index(),
+                                         loop_depth(),
                                          case_expr->token_pos());
     case_expr->Visit(&for_case_expression);
     if (i == 0) {
@@ -1149,7 +1170,8 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
     } else {
       if (statement_exit != NULL) {
         JoinEntryInstr* join = new JoinEntryInstr(owner()->AllocateBlockId(),
-                                                  owner()->try_index());
+                                                  owner()->try_index(),
+                                                  loop_depth());
         statement_exit->Goto(join);
         next_target->Goto(join);
         exit_instruction = join;
@@ -1183,11 +1205,12 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
 void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
   TestGraphVisitor for_test(owner(),
                             temp_index(),
+                            loop_depth() + 1,
                             node->condition()->token_pos());
   node->condition()->Visit(&for_test);
   ASSERT(!for_test.is_empty());  // Language spec.
 
-  EffectGraphVisitor for_body(owner(), temp_index());
+  EffectGraphVisitor for_body(owner(), temp_index(), loop_depth() + 1);
   for_body.AddInstruction(
       new CheckStackOverflowInstr(node->token_pos()));
   node->body()->Visit(&for_body);
@@ -1197,12 +1220,14 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
   ASSERT(lbl != NULL);
   JoinEntryInstr* join = lbl->join_for_continue();
   if (join != NULL) {
+    join->set_loop_depth(loop_depth() + 1);
     if (for_body.is_open()) for_body.Goto(join);
     for_body.exit_ = join;
   }
   TieLoop(for_test, for_body);
   join = lbl->join_for_break();
   if (join != NULL) {
+    join->set_loop_depth(loop_depth());
     Goto(join);
     exit_ = join;
   }
@@ -1219,28 +1244,34 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
 // g) break-join
 void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
   // Traverse body first in order to generate continue and break labels.
-  EffectGraphVisitor for_body(owner(), temp_index());
+  EffectGraphVisitor for_body(owner(), temp_index(), loop_depth() + 1);
   for_body.AddInstruction(
       new CheckStackOverflowInstr(node->token_pos()));
   node->body()->Visit(&for_body);
 
   TestGraphVisitor for_test(owner(),
                             temp_index(),
+                            loop_depth() + 1,
                             node->condition()->token_pos());
   node->condition()->Visit(&for_test);
   ASSERT(is_open());
 
   // Tie do-while loop (test is after the body).
   JoinEntryInstr* body_entry_join =
-      new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+      new JoinEntryInstr(owner()->AllocateBlockId(),
+                         owner()->try_index(),
+                         loop_depth() + 1);
   Goto(body_entry_join);
   Instruction* body_exit = AppendFragment(body_entry_join, for_body);
 
   JoinEntryInstr* join = node->label()->join_for_continue();
   if ((body_exit != NULL) || (join != NULL)) {
     if (join == NULL) {
-      join =
-          new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+      join = new JoinEntryInstr(owner()->AllocateBlockId(),
+                                owner()->try_index(),
+                                loop_depth() + 1);
+    } else {
+      join->set_loop_depth(loop_depth() + 1);
     }
     join->LinkTo(for_test.entry());
     if (body_exit != NULL) {
@@ -1248,13 +1279,14 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
     }
   }
 
-
   for_test.IfTrueGoto(body_entry_join);
-  if (node->label()->join_for_break() == NULL) {
+  join = node->label()->join_for_break();
+  if (join == NULL) {
     exit_ = for_test.CreateFalseSuccessor();
   } else {
-    for_test.IfFalseGoto(node->label()->join_for_break());
-    exit_ = node->label()->join_for_break();
+    join->set_loop_depth(loop_depth());
+    for_test.IfFalseGoto(join);
+    exit_ = join;
   }
 }
 
@@ -1272,13 +1304,13 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
 // h) loop-exit-target
 // i) break-join
 void EffectGraphVisitor::VisitForNode(ForNode* node) {
-  EffectGraphVisitor for_initializer(owner(), temp_index());
+  EffectGraphVisitor for_initializer(owner(), temp_index(), loop_depth());
   node->initializer()->Visit(&for_initializer);
   Append(for_initializer);
   ASSERT(is_open());
 
   // Compose body to set any jump labels.
-  EffectGraphVisitor for_body(owner(), temp_index());
+  EffectGraphVisitor for_body(owner(), temp_index(), loop_depth() + 1);
   for_body.AddInstruction(
       new CheckStackOverflowInstr(node->token_pos()));
   node->body()->Visit(&for_body);
@@ -1286,10 +1318,11 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   // Join loop body, increment and compute their end instruction.
   ASSERT(!for_body.is_empty());
   Instruction* loop_increment_end = NULL;
-  EffectGraphVisitor for_increment(owner(), temp_index());
+  EffectGraphVisitor for_increment(owner(), temp_index(), loop_depth() + 1);
   node->increment()->Visit(&for_increment);
   JoinEntryInstr* join = node->label()->join_for_continue();
   if (join != NULL) {
+    join->set_loop_depth(loop_depth() + 1);
     // Insert the join between the body and increment.
     if (for_body.is_open()) for_body.Goto(join);
     loop_increment_end = AppendFragment(join, for_increment);
@@ -1308,7 +1341,9 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   // body is not open, i.e., no backward branch exists.
   if (loop_increment_end != NULL) {
     JoinEntryInstr* loop_start =
-        new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+        new JoinEntryInstr(owner()->AllocateBlockId(),
+                           owner()->try_index(),
+                           loop_depth() + 1);
     Goto(loop_start);
     loop_increment_end->Goto(loop_start);
     exit_ = loop_start;
@@ -1317,16 +1352,20 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   if (node->condition() == NULL) {
     // Endless loop, no test.
     JoinEntryInstr* body_entry =
-        new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+        new JoinEntryInstr(owner()->AllocateBlockId(),
+                           owner()->try_index(),
+                           loop_depth() + 1);
     AppendFragment(body_entry, for_body);
     Goto(body_entry);
     if (node->label()->join_for_break() != NULL) {
+      node->label()->join_for_break()->set_loop_depth(loop_depth());
       // Control flow of ForLoop continues into join_for_break.
       exit_ = node->label()->join_for_break();
     }
   } else {
     TestGraphVisitor for_test(owner(),
                               temp_index(),
+                              loop_depth() + 1,
                               node->condition()->token_pos());
     node->condition()->Visit(&for_test);
     Append(for_test);
@@ -1337,6 +1376,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
     if (node->label()->join_for_break() == NULL) {
       exit_ = for_test.CreateFalseSuccessor();
     } else {
+      node->label()->join_for_break()->set_loop_depth(loop_depth());
       for_test.IfFalseGoto(node->label()->join_for_break());
       exit_ = node->label()->join_for_break();
     }
@@ -1346,7 +1386,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
 
 void EffectGraphVisitor::VisitJumpNode(JumpNode* node) {
   for (intptr_t i = 0; i < node->inlined_finally_list_length(); i++) {
-    EffectGraphVisitor for_effect(owner(), temp_index());
+    EffectGraphVisitor for_effect(owner(), temp_index(), loop_depth());
     node->InlinedFinallyNodeAt(i)->Visit(&for_effect);
     Append(for_effect);
     if (!is_open()) return;
@@ -1384,13 +1424,17 @@ void EffectGraphVisitor::VisitJumpNode(JumpNode* node) {
   if (node->kind() == Token::kBREAK) {
     if (node->label()->join_for_break() == NULL) {
       node->label()->set_join_for_break(
-          new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index()));
+          new JoinEntryInstr(owner()->AllocateBlockId(),
+                             owner()->try_index(),
+                             BlockEntryInstr::kInvalidLoopDepth));
     }
     jump_target = node->label()->join_for_break();
   } else {
     if (node->label()->join_for_continue() == NULL) {
       node->label()->set_join_for_continue(
-          new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index()));
+          new JoinEntryInstr(owner()->AllocateBlockId(),
+                             owner()->try_index(),
+                             BlockEntryInstr::kInvalidLoopDepth));
     }
     jump_target = node->label()->join_for_continue();
   }
@@ -1419,7 +1463,7 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(node->length());
   for (int i = 0; i < node->length(); ++i) {
-    ValueGraphVisitor for_value(owner(), temp_index());
+    ValueGraphVisitor for_value(owner(), temp_index(), loop_depth());
     node->ElementAt(i)->Visit(&for_value);
     Append(for_value);
     arguments->Add(PushArgument(for_value.value()));
@@ -1453,7 +1497,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
     }
     receiver = BuildNullValue();
   } else if (function.IsImplicitInstanceClosureFunction()) {
-    ValueGraphVisitor for_receiver(owner(), temp_index());
+    ValueGraphVisitor for_receiver(owner(), temp_index(), loop_depth());
     node->receiver()->Visit(&for_receiver);
     Append(for_receiver);
     receiver = for_receiver.value();
@@ -1488,7 +1532,7 @@ void EffectGraphVisitor::TranslateArgumentList(
     const ArgumentListNode& node,
     ZoneGrowableArray<Value*>* values) {
   for (intptr_t i = 0; i < node.length(); ++i) {
-    ValueGraphVisitor for_argument(owner(), temp_index());
+    ValueGraphVisitor for_argument(owner(), temp_index(), loop_depth());
     node.NodeAt(i)->Visit(&for_argument);
     Append(for_argument);
     values->Add(for_argument.value());
@@ -1500,7 +1544,7 @@ void EffectGraphVisitor::BuildPushArguments(
     const ArgumentListNode& node,
     ZoneGrowableArray<PushArgumentInstr*>* values) {
   for (intptr_t i = 0; i < node.length(); ++i) {
-    ValueGraphVisitor for_argument(owner(), temp_index());
+    ValueGraphVisitor for_argument(owner(), temp_index(), loop_depth());
     node.NodeAt(i)->Visit(&for_argument);
     Append(for_argument);
     PushArgumentInstr* push_arg = PushArgument(for_argument.value());
@@ -1510,7 +1554,7 @@ void EffectGraphVisitor::BuildPushArguments(
 
 
 void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
-  ValueGraphVisitor for_receiver(owner(), temp_index());
+  ValueGraphVisitor for_receiver(owner(), temp_index(), loop_depth());
   node->receiver()->Visit(&for_receiver);
   Append(for_receiver);
   PushArgumentInstr* push_receiver = PushArgument(for_receiver.value());
@@ -1539,10 +1583,10 @@ void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
       const Library& core_lib = Library::Handle(Library::CoreLibrary());
       if (cls.library() == core_lib.raw()) {
         ASSERT(node->arguments()->length() == 2);
-        ValueGraphVisitor for_left_value(owner(), temp_index());
+        ValueGraphVisitor for_left_value(owner(), temp_index(), loop_depth());
         node->arguments()->NodeAt(0)->Visit(&for_left_value);
         Append(for_left_value);
-        ValueGraphVisitor for_right_value(owner(), temp_index());
+        ValueGraphVisitor for_right_value(owner(), temp_index(), loop_depth());
         node->arguments()->NodeAt(1)->Visit(&for_right_value);
         Append(for_right_value);
         StrictCompareInstr* comp = new StrictCompareInstr(
@@ -1568,7 +1612,7 @@ void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
 
 ClosureCallInstr* EffectGraphVisitor::BuildClosureCall(
     ClosureCallNode* node) {
-  ValueGraphVisitor for_closure(owner(), temp_index());
+  ValueGraphVisitor for_closure(owner(), temp_index(), loop_depth());
   node->closure()->Visit(&for_closure);
   Append(for_closure);
   PushArgumentInstr* push_closure = PushArgument(for_closure.value());
@@ -1771,7 +1815,7 @@ Value* EffectGraphVisitor::BuildInstantiator() {
   }
 
   ASSERT(owner()->parsed_function().instantiator() != NULL);
-  ValueGraphVisitor for_instantiator(owner(), temp_index());
+  ValueGraphVisitor for_instantiator(owner(), temp_index(), loop_depth());
   owner()->parsed_function().instantiator()->Visit(&for_instantiator);
   Append(for_instantiator);
   return for_instantiator.value();
@@ -1806,7 +1850,7 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
     // No instantiator for factories.
     ASSERT(instantiator == NULL);
     ASSERT(owner()->parsed_function().instantiator() != NULL);
-    ValueGraphVisitor for_instantiator(owner(), temp_index());
+    ValueGraphVisitor for_instantiator(owner(), temp_index(), loop_depth());
     owner()->parsed_function().instantiator()->Visit(&for_instantiator);
     Append(for_instantiator);
     return for_instantiator.value();
@@ -1954,7 +1998,7 @@ void ValueGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
 
 
 void EffectGraphVisitor::VisitInstanceGetterNode(InstanceGetterNode* node) {
-  ValueGraphVisitor for_receiver(owner(), temp_index());
+  ValueGraphVisitor for_receiver(owner(), temp_index(), loop_depth());
   node->receiver()->Visit(&for_receiver);
   Append(for_receiver);
   PushArgumentInstr* push_receiver = PushArgument(for_receiver.value());
@@ -1974,12 +2018,12 @@ void EffectGraphVisitor::BuildInstanceSetterArguments(
     InstanceSetterNode* node,
     ZoneGrowableArray<PushArgumentInstr*>* arguments,
     bool result_is_needed) {
-  ValueGraphVisitor for_receiver(owner(), temp_index());
+  ValueGraphVisitor for_receiver(owner(), temp_index(), loop_depth());
   node->receiver()->Visit(&for_receiver);
   Append(for_receiver);
   arguments->Add(PushArgument(for_receiver.value()));
 
-  ValueGraphVisitor for_value(owner(), temp_index());
+  ValueGraphVisitor for_value(owner(), temp_index(), loop_depth());
   node->value()->Visit(&for_value);
   Append(for_value);
 
@@ -2037,7 +2081,7 @@ void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
         Resolver::ResolveDynamicAnyArgs(node->cls(), getter_name);
     ASSERT(!getter_function.IsNull());
     ASSERT(node->receiver() != NULL);
-    ValueGraphVisitor receiver_value(owner(), temp_index());
+    ValueGraphVisitor receiver_value(owner(), temp_index(), loop_depth());
     node->receiver()->Visit(&receiver_value);
     Append(receiver_value);
     arguments->Add(PushArgument(receiver_value.value()));
@@ -2105,12 +2149,12 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
       new ZoneGrowableArray<PushArgumentInstr*>(1);
   if (is_super_setter) {
     // Add receiver of instance getter.
-    ValueGraphVisitor for_receiver(owner(), temp_index());
+    ValueGraphVisitor for_receiver(owner(), temp_index(), loop_depth());
     node->receiver()->Visit(&for_receiver);
     Append(for_receiver);
     arguments->Add(PushArgument(for_receiver.value()));
   }
-  ValueGraphVisitor for_value(owner(), temp_index());
+  ValueGraphVisitor for_value(owner(), temp_index(), loop_depth());
   node->value()->Visit(&for_value);
   Append(for_value);
   Value* value = NULL;
@@ -2160,7 +2204,7 @@ void EffectGraphVisitor::VisitPrimaryNode(PrimaryNode* node) {
 // <Expression> ::= LoadLocal { local: LocalVariable }
 void EffectGraphVisitor::VisitLoadLocalNode(LoadLocalNode* node) {
   if (node->HasPseudo()) {
-    EffectGraphVisitor for_pseudo(owner(), temp_index());
+    EffectGraphVisitor for_pseudo(owner(), temp_index(), loop_depth());
     node->pseudo()->Visit(&for_pseudo);
     Append(for_pseudo);
   }
@@ -2178,7 +2222,7 @@ void ValueGraphVisitor::VisitLoadLocalNode(LoadLocalNode* node) {
 //                               value: <Expression> }
 void EffectGraphVisitor::HandleStoreLocal(StoreLocalNode* node,
                                           bool result_is_needed) {
-  ValueGraphVisitor for_value(owner(), temp_index());
+  ValueGraphVisitor for_value(owner(), temp_index(), loop_depth());
   node->value()->Visit(&for_value);
   Append(for_value);
   Value* store_value = for_value.value();
@@ -2207,7 +2251,7 @@ void ValueGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
 
 void EffectGraphVisitor::VisitLoadInstanceFieldNode(
     LoadInstanceFieldNode* node) {
-  ValueGraphVisitor for_instance(owner(), temp_index());
+  ValueGraphVisitor for_instance(owner(), temp_index(), loop_depth());
   node->instance()->Visit(&for_instance);
   Append(for_instance);
   LoadFieldInstr* load = new LoadFieldInstr(
@@ -2220,10 +2264,10 @@ void EffectGraphVisitor::VisitLoadInstanceFieldNode(
 
 void EffectGraphVisitor::VisitStoreInstanceFieldNode(
     StoreInstanceFieldNode* node) {
-  ValueGraphVisitor for_instance(owner(), temp_index());
+  ValueGraphVisitor for_instance(owner(), temp_index(), loop_depth());
   node->instance()->Visit(&for_instance);
   Append(for_instance);
-  ValueGraphVisitor for_value(owner(), for_instance.temp_index());
+  ValueGraphVisitor for_value(owner(), for_instance.temp_index(), loop_depth());
   node->value()->Visit(&for_value);
   Append(for_value);
   Value* store_value = for_value.value();
@@ -2257,7 +2301,7 @@ void EffectGraphVisitor::VisitLoadStaticFieldNode(LoadStaticFieldNode* node) {
 
 Definition* EffectGraphVisitor::BuildStoreStaticField(
   StoreStaticFieldNode* node, bool result_is_needed) {
-  ValueGraphVisitor for_value(owner(), temp_index());
+  ValueGraphVisitor for_value(owner(), temp_index(), loop_depth());
   node->value()->Visit(&for_value);
   Append(for_value);
   Value* store_value = NULL;
@@ -2321,12 +2365,12 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
   }
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(2);
-  ValueGraphVisitor for_array(owner(), temp_index());
+  ValueGraphVisitor for_array(owner(), temp_index(), loop_depth());
   node->array()->Visit(&for_array);
   Append(for_array);
   arguments->Add(PushArgument(for_array.value()));
 
-  ValueGraphVisitor for_index(owner(), temp_index());
+  ValueGraphVisitor for_index(owner(), temp_index(), loop_depth());
   node->index_expr()->Visit(&for_index);
   Append(for_index);
   arguments->Add(PushArgument(for_index.value()));
@@ -2370,7 +2414,7 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
       if (result_is_needed) {
         // Even though noSuchMethod most likely does not return,
         // we save the stored value if the result is needed.
-        ValueGraphVisitor for_value(owner(), temp_index());
+        ValueGraphVisitor for_value(owner(), temp_index(), loop_depth());
         node->value()->Visit(&for_value);
         Append(for_value);
         Bind(BuildStoreExprTemp(for_value.value()));
@@ -2394,17 +2438,17 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
 
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(3);
-  ValueGraphVisitor for_array(owner(), temp_index());
+  ValueGraphVisitor for_array(owner(), temp_index(), loop_depth());
   node->array()->Visit(&for_array);
   Append(for_array);
   arguments->Add(PushArgument(for_array.value()));
 
-  ValueGraphVisitor for_index(owner(), temp_index());
+  ValueGraphVisitor for_index(owner(), temp_index(), loop_depth());
   node->index_expr()->Visit(&for_index);
   Append(for_index);
   arguments->Add(PushArgument(for_index.value()));
 
-  ValueGraphVisitor for_value(owner(), temp_index());
+  ValueGraphVisitor for_value(owner(), temp_index(), loop_depth());
   node->value()->Visit(&for_value);
   Append(for_value);
   Value* value = NULL;
@@ -2588,7 +2632,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
 
   intptr_t i = 0;
   while (is_open() && (i < node->length())) {
-    EffectGraphVisitor for_effect(owner(), temp_index());
+    EffectGraphVisitor for_effect(owner(), temp_index(), loop_depth());
     node->NodeAt(i++)->Visit(&for_effect);
     Append(for_effect);
     if (!is_open()) {
@@ -2613,6 +2657,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   // taken care of unchaining the context.
   if ((node->label() != NULL) &&
       (node->label()->join_for_break() != NULL)) {
+    node->label()->join_for_break()->set_loop_depth(loop_depth());
     if (is_open()) Goto(node->label()->join_for_break());
     exit_ = node->label()->join_for_break();
   }
@@ -2633,7 +2678,7 @@ void EffectGraphVisitor::VisitCatchClauseNode(CatchClauseNode* node) {
       new CatchEntryInstr(node->exception_var(), node->stacktrace_var()));
   BuildLoadContext(node->context_var());
 
-  EffectGraphVisitor for_catch(owner(), temp_index());
+  EffectGraphVisitor for_catch(owner(), temp_index(), loop_depth());
   node->VisitChildren(&for_catch);
   Append(for_catch);
 }
@@ -2648,18 +2693,20 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
   // Preserve CTX into local variable '%saved_context'.
   BuildStoreContext(node->context_var());
 
-  EffectGraphVisitor for_try_block(owner(), temp_index());
+  EffectGraphVisitor for_try_block(owner(), temp_index(), loop_depth());
   node->try_block()->Visit(&for_try_block);
 
   if (for_try_block.is_open()) {
     JoinEntryInstr* after_try =
-        new JoinEntryInstr(owner()->AllocateBlockId(), old_try_index);
+        new JoinEntryInstr(owner()->AllocateBlockId(),
+                           old_try_index,
+                           loop_depth());
     for_try_block.Goto(after_try);
     for_try_block.exit_ = after_try;
   }
 
   JoinEntryInstr* try_entry =
-      new JoinEntryInstr(owner()->AllocateBlockId(), try_index);
+      new JoinEntryInstr(owner()->AllocateBlockId(), try_index, loop_depth());
 
   Goto(try_entry);
   AppendFragment(try_entry, for_try_block);
@@ -2674,10 +2721,12 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
     // that we can set the appropriate handler pc when we generate
     // code for this catch block.
     catch_block->set_try_index(try_index);
-    EffectGraphVisitor for_catch_block(owner(), temp_index());
+    EffectGraphVisitor for_catch_block(owner(), temp_index(), loop_depth());
     catch_block->Visit(&for_catch_block);
     TargetEntryInstr* catch_entry =
-        new TargetEntryInstr(owner()->AllocateBlockId(), old_try_index);
+        new TargetEntryInstr(owner()->AllocateBlockId(),
+                             old_try_index,
+                             loop_depth());
     catch_entry->set_catch_try_index(try_index);
     owner()->AddCatchEntry(catch_entry);
     ASSERT(!for_catch_block.is_open());
@@ -2685,6 +2734,7 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
     if (node->end_catch_label() != NULL) {
       JoinEntryInstr* join = node->end_catch_label()->join_for_continue();
       if (join != NULL) {
+        join->set_loop_depth(loop_depth());
         if (is_open()) Goto(join);
         exit_ = join;
       }
@@ -2693,7 +2743,7 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
 
   // Generate code for the finally block if one exists.
   if ((node->finally_block() != NULL) && is_open()) {
-    EffectGraphVisitor for_finally_block(owner(), temp_index());
+    EffectGraphVisitor for_finally_block(owner(), temp_index(), loop_depth());
     node->finally_block()->Visit(&for_finally_block);
     Append(for_finally_block);
   }
@@ -2724,7 +2774,7 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
 
   // Evaluate the receiver before the arguments. This will be used
   // as an argument to the noSuchMethod call.
-  ValueGraphVisitor for_receiver(owner(), temp_index());
+  ValueGraphVisitor for_receiver(owner(), temp_index(), loop_depth());
   receiver->Visit(&for_receiver);
   Append(for_receiver);
   PushArgumentInstr* push_receiver = PushArgument(for_receiver.value());
@@ -2773,7 +2823,7 @@ void EffectGraphVisitor::BuildThrowNode(ThrowNode* node) {
   // TODO(kmillikin) non-local control flow is not handled correctly
   // by the inliner.
   InlineBailout("EffectGraphVisitor::BuildThrowNode (exception)");
-  ValueGraphVisitor for_exception(owner(), temp_index());
+  ValueGraphVisitor for_exception(owner(), temp_index(), loop_depth());
   node->exception()->Visit(&for_exception);
   Append(for_exception);
   PushArgument(for_exception.value());
@@ -2781,7 +2831,7 @@ void EffectGraphVisitor::BuildThrowNode(ThrowNode* node) {
   if (node->stacktrace() == NULL) {
     instr = new ThrowInstr(node->token_pos());
   } else {
-    ValueGraphVisitor for_stack_trace(owner(), temp_index());
+    ValueGraphVisitor for_stack_trace(owner(), temp_index(), loop_depth());
     node->stacktrace()->Visit(&for_stack_trace);
     Append(for_stack_trace);
     PushArgument(for_stack_trace.value());
@@ -2818,8 +2868,10 @@ void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
   BuildLoadContext(node->context_var());
 
   JoinEntryInstr* finally_entry =
-      new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
-  EffectGraphVisitor for_finally_block(owner(), temp_index());
+      new JoinEntryInstr(owner()->AllocateBlockId(),
+                         owner()->try_index(),
+                         loop_depth());
+  EffectGraphVisitor for_finally_block(owner(), temp_index(), loop_depth());
   node->finally_block()->Visit(&for_finally_block);
 
   if (try_index >= 0) {
@@ -2828,7 +2880,9 @@ void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
 
   if (for_finally_block.is_open()) {
     JoinEntryInstr* after_finally =
-        new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+        new JoinEntryInstr(owner()->AllocateBlockId(),
+                           owner()->try_index(),
+                           loop_depth());
     for_finally_block.Goto(after_finally);
     for_finally_block.exit_ = after_finally;
   }
@@ -2839,7 +2893,8 @@ void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
 }
 
 
-FlowGraph* FlowGraphBuilder::BuildGraph(InliningContext context) {
+FlowGraph* FlowGraphBuilder::BuildGraph(InliningContext context,
+                                        intptr_t initial_loop_depth) {
   if (FLAG_print_ast) {
     // Print the function ast before IL generation.
     AstPrinter::PrintFunctionNodes(parsed_function());
@@ -2852,9 +2907,10 @@ FlowGraph* FlowGraphBuilder::BuildGraph(InliningContext context) {
   const Function& function = parsed_function().function();
   TargetEntryInstr* normal_entry =
       new TargetEntryInstr(AllocateBlockId(),
-                           CatchClauseNode::kInvalidTryIndex);
+                           CatchClauseNode::kInvalidTryIndex,
+                           initial_loop_depth);
   graph_entry_ = new GraphEntryInstr(normal_entry);
-  EffectGraphVisitor for_effect(this, 0);
+  EffectGraphVisitor for_effect(this, 0, initial_loop_depth);
   if (InInliningContext()) {
     exits_ = new ZoneGrowableArray<ReturnInstr*>();
   }

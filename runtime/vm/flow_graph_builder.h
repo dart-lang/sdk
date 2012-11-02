@@ -28,7 +28,7 @@ class FlowGraphBuilder: public ValueObject {
     kTestContext
   };
 
-  FlowGraph* BuildGraph(InliningContext context);
+  FlowGraph* BuildGraph(InliningContext context, intptr_t initial_loop_depth);
 
   const ParsedFunction& parsed_function() const { return parsed_function_; }
 
@@ -106,11 +106,14 @@ class TestGraphVisitor;
 //   - (i0, i1): an open graph fragment
 class EffectGraphVisitor : public AstNodeVisitor {
  public:
-  EffectGraphVisitor(FlowGraphBuilder* owner, intptr_t temp_index)
+  EffectGraphVisitor(FlowGraphBuilder* owner,
+                     intptr_t temp_index,
+                     intptr_t loop_depth)
       : owner_(owner),
         temp_index_(temp_index),
         entry_(NULL),
-        exit_(NULL) { }
+        exit_(NULL),
+        loop_depth_(loop_depth) { }
 
 #define DEFINE_VISIT(type, name) virtual void Visit##type(type* node);
   NODE_LIST(DEFINE_VISIT)
@@ -118,6 +121,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   FlowGraphBuilder* owner() const { return owner_; }
   intptr_t temp_index() const { return temp_index_; }
+  intptr_t loop_depth() const { return loop_depth_; }
   Instruction* entry() const { return entry_; }
   Instruction* exit() const { return exit_; }
 
@@ -288,6 +292,9 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // Output parameters.
   Instruction* entry_;
   Instruction* exit_;
+
+  // Internal state.
+  const intptr_t loop_depth_;
 };
 
 
@@ -298,8 +305,10 @@ class EffectGraphVisitor : public AstNodeVisitor {
 // language Value.
 class ValueGraphVisitor : public EffectGraphVisitor {
  public:
-  ValueGraphVisitor(FlowGraphBuilder* owner, intptr_t temp_index)
-      : EffectGraphVisitor(owner, temp_index), value_(NULL) { }
+  ValueGraphVisitor(FlowGraphBuilder* owner,
+                    intptr_t temp_index,
+                    intptr_t loop_depth)
+      : EffectGraphVisitor(owner, temp_index, loop_depth), value_(NULL) { }
 
   // Visit functions overridden by this class.
   virtual void VisitLiteralNode(LiteralNode* node);
@@ -360,8 +369,9 @@ class TestGraphVisitor : public ValueGraphVisitor {
  public:
   TestGraphVisitor(FlowGraphBuilder* owner,
                    intptr_t temp_index,
+                   intptr_t loop_depth,
                    intptr_t condition_token_pos)
-      : ValueGraphVisitor(owner, temp_index),
+      : ValueGraphVisitor(owner, temp_index, loop_depth),
         true_successor_addresses_(1),
         false_successor_addresses_(1),
         condition_token_pos_(condition_token_pos) { }
