@@ -370,6 +370,9 @@ class CopyHandler {
 class VariableNames {
   final Map<HInstruction, String> ownName;
   final Map<HBasicBlock, CopyHandler> copyHandlers;
+
+  // Used to control heuristic that determines how local variables are declared.
+  final Set<String> allUsedNames;
   /**
    * Name that is used as a temporary to break cycles in
    * parallel copies. We make sure this name is not being used
@@ -382,11 +385,19 @@ class VariableNames {
    */
   final String stateName;
 
+  String getSwapTemp() {
+    allUsedNames.add(swapTemp);
+    return swapTemp;
+  }
+
   VariableNames(Map<Element, String> parameterNames)
     : ownName = new Map<HInstruction, String>(),
       copyHandlers = new Map<HBasicBlock, CopyHandler>(),
+      allUsedNames = new Set<String>(),
       swapTemp = computeFreshWithPrefix("t", parameterNames),
       stateName = computeFreshWithPrefix("state", parameterNames);
+
+  int get numberOfVariables => allUsedNames.length;
 
   /** Returns a fresh variable with the given prefix. */
   static String computeFreshWithPrefix(String prefix,
@@ -405,6 +416,8 @@ class VariableNames {
   CopyHandler getCopyHandler(HBasicBlock block) {
     return copyHandlers[block];
   }
+
+  void addNameUsed(String name) => allUsedNames.add(name);
 
   bool hasName(HInstruction instruction) => ownName.containsKey(instruction);
 
@@ -446,6 +459,7 @@ class VariableNamer {
       String name = names.getName(instruction);
       if (name != null) {
         usedNames.add(name);
+        names.addNameUsed(name);
       }
     });
   }
@@ -517,6 +531,7 @@ class VariableNamer {
 
   String addAllocatedName(HInstruction instruction, String name) {
     usedNames.add(name);
+    names.addNameUsed(name);
     names.ownName[instruction] = name;
     return name;
   }

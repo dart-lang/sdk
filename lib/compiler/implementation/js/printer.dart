@@ -815,34 +815,48 @@ class Printer implements NodeVisitor {
 }
 
 
+class OrderedSet<T> {
+  final Set<T> set;
+  final List<T> list;
+
+  OrderedSet() : set = new Set<T>(), list = <T>[];
+
+  void add(T x) {
+    if (!set.contains(x)) {
+      set.add(x);
+      list.add(x);
+    }
+  }
+
+  void forEach(void fun(T x)) {
+    list.forEach(fun);
+  }
+}
+
 // Collects all the var declarations in the function.  We need to do this in a
 // separate pass because JS vars are lifted to the top of the function.
 class VarCollector extends BaseVisitor {
   bool nested;
-  final Set<String> vars;
-  final List<String> ordered_vars;
+  final OrderedSet<String> vars;
+  final OrderedSet<String> params;
 
-  VarCollector() : nested = false, vars = new Set<String>(), ordered_vars = [];
+  VarCollector() : nested = false,
+                   vars = new OrderedSet<String>(),
+                   params = new OrderedSet<String>();
 
-  void forEach(void fn(String)) => ordered_vars.forEach(fn);
+  void forEachVar(void fn(String v)) => vars.forEach(fn);
+  void forEachParam(void fn(String p)) => params.forEach(fn);
 
   void collectVarsInFunction(Fun fun) {
     if (!nested) {
       nested = true;
       if (fun.params != null) {
         for (int i = 0; i < fun.params.length; i++) {
-          add(fun.params[i].name);
+          params.add(fun.params[i].name);
         }
       }
       visitBlock(fun.body);
       nested = false;
-    }
-  }
-
-  void add(String name) {
-    if (!vars.contains(name)) {
-      vars.add(name);
-      ordered_vars.add(name);
     }
   }
 
@@ -860,8 +874,10 @@ class VarCollector extends BaseVisitor {
     collectVarsInFunction(fun);
   }
 
+  void visitThis(This node) {}
+
   void visitVariableDeclaration(VariableDeclaration decl) {
-    add(decl.name);
+    vars.add(decl.name);
   }
 }
 
@@ -926,7 +942,8 @@ leg.CodeBuffer prettyPrint(Node node,
 
 abstract class Namer {
   String getName(String oldName);
-  String declareName(String oldName);
+  String declareVariable(String oldName);
+  String declareParameter(String oldName);
   void enterScope(VarCollector vars);
   void leaveScope();
 }
@@ -934,7 +951,8 @@ abstract class Namer {
 
 class IdentityNamer implements Namer {
   String getName(String oldName) => oldName;
-  String declareName(String oldName) => oldName;
+  String declareVariable(String oldName) => oldName;
+  String declareParameter(String oldName) => oldName;
   void enterScope(VarCollector vars) {}
   void leaveScope() {}
 }
@@ -942,23 +960,29 @@ class IdentityNamer implements Namer {
 
 class MinifyRenamer implements Namer {
   final List<Map<String, String>> maps = [];
-  final List<int> nameNumberStack = [];
-  int nameNumber = 0;
+  final List<int> parameterNumberStack = [];
+  final List<int> variableNumberStack = [];
+  int parameterNumber = 0;
+  int variableNumber = 0;
 
   MinifyRenamer();
 
   void enterScope(VarCollector vars) {
     maps.add(new Map<String, String>());
-    nameNumberStack.add(nameNumber);
-    vars.forEach(declareName);
+    variableNumberStack.add(variableNumber);
+    parameterNumberStack.add(parameterNumber);
+    vars.forEachVar(declareVariable);
+    vars.forEachParam(declareParameter);
   }
 
   void leaveScope() {
     maps.removeLast();
-    nameNumber = nameNumberStack.removeLast();
+    variableNumber = variableNumberStack.removeLast();
+    parameterNumber = parameterNumberStack.removeLast();
   }
 
   String getName(String oldName) {
+    // Go from inner scope to outer looking for mapping of name.
     for (int i = maps.length - 1; i >= 0; i--) {
       var map = maps[i];
       var replacement = map[oldName];
@@ -967,17 +991,51 @@ class MinifyRenamer implements Namer {
     return oldName;
   }
 
+  static const LOWER_CASE_LETTERS = 26;
+  static const LETTERS = 52;
+  static const DIGITS = 10;
+
   static int nthLetter(int n) {
-    return (n < 26) ? charCodes.$a + n : charCodes.$A + n - 26;
+    return (n < LOWER_CASE_LETTERS) ?
+           charCodes.$a + n :
+           charCodes.$A + n - LOWER_CASE_LETTERS;
   }
 
-  String declareName(String oldName) {
-    const LETTERS = 52;
-    const DIGITS = 10;
+  // Parameters go from a to z and variables go from z to a.  This makes each
+  // argument list and each top-of-function var declaration look similar and
+  // helps gzip compress the file.  If we have more than 26 arguments and
+  // variables then we meet somewhere in the middle of the alphabet.  After
+  // that we give up trying to be nice to the compression algorithm and just
+  // use the same namespace for arguments and variables, starting with A, and
+  // moving on to a0, a1, etc.
+  String declareVariable(String oldName) {
+    var newName;
+    if (variableNumber + parameterNumber < LOWER_CASE_LETTERS) {
+      // Variables start from z and go backwards, for better gzipability.
+      newName = getNameNumber(oldName, LOWER_CASE_LETTERS - 1 - variableNumber);
+    } else {
+      // After 26 variables and parameters we allocate them in the same order.
+      newName = getNameNumber(oldName, variableNumber + parameterNumber);
+    }
+    variableNumber++;
+    return newName;
+  }
+
+  String declareParameter(String oldName) {
+    var newName;
+    if (variableNumber + parameterNumber < LOWER_CASE_LETTERS) {
+      newName = getNameNumber(oldName, parameterNumber);
+    } else {
+      newName = getNameNumber(oldName, variableNumber + parameterNumber);
+    }
+    parameterNumber++;
+    return newName;
+  }
+
+  String getNameNumber(String oldName, int n) {
     if (maps.isEmpty) return oldName;
 
     String newName;
-    int n = nameNumber;
     if (n < LETTERS) {
       // Start naming variables a, b, c, ..., z, A, B, C, ..., Z.
       newName = new String.fromCharCodes([nthLetter(n)]);
@@ -1006,7 +1064,6 @@ class MinifyRenamer implements Namer {
       newName = new String.fromCharCodes(codes);
     }
     assert(const RegExp(r'[a-zA-Z][a-zA-Z0-9]*').hasMatch(newName));
-    nameNumber++;
     maps.last[oldName] = newName;
     return newName;
   }

@@ -210,6 +210,29 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 }
 
+// Stop-gap until the core classes have such a class.
+class OrderedSet<T> {
+  final LinkedHashMap<T, bool> map = new LinkedHashMap<T, bool>();
+
+  void add(T x) {
+    if (!map.containsKey(x)) {
+      map[x] = true;
+    }
+  }
+
+  bool contains(T x) => map.containsKey(x);
+
+  bool remove(T x) => map.remove(x) != null;
+
+  bool get isEmpty => map.isEmpty;
+
+  void forEach(f) => map.keys.forEach(f);
+
+  T get first => map.keys.iterator().next();
+
+  get length => map.length;
+}
+
 typedef void ElementAction(Element element);
 
 abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
@@ -255,17 +278,20 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    * copies to perform on block transitioning.
    */
   VariableNames variableNames;
+  bool shouldGroupVarDeclarations = false;
 
   /**
    * While generating expressions, we can't insert variable declarations.
-   * Instead we declare them at the end of the function
+   * Instead we declare them at the start of the function.  When minifying
+   * we do this most of the time, because it reduces the size unless there
+   * is only one variable.
    */
-  final Set<String> delayedVariableDeclarations;
+  final OrderedSet<String> collectedVariableDeclarations;
 
   /**
-   * Set of variables that have already been declared.
+   * Set of variables and parameters that have already been declared.
    */
-  final Set<String> declaredVariables;
+  final Set<String> declaredLocals;
 
   Element equalsNullElement;
   Element boolifiedEqualsNullElement;
@@ -286,8 +312,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     : this.work = work,
       this.types =
           (work.compilationContext as JavaScriptItemCompilationContext).types,
-      declaredVariables = new Set<String>(),
-      delayedVariableDeclarations = new Set<String>(),
+      declaredLocals = new Set<String>(),
+      collectedVariableDeclarations = new OrderedSet<String>(),
       currentContainer = new js.Block.empty(),
       expressionStack = <js.Expression>[],
       oldContainerStack = <js.Block>[],
@@ -357,6 +383,10 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       attachLocation(statement, instruction);
     }
     currentContainer.statements.add(statement);
+  }
+
+  void insertStatementAtStart(js.Statement statement) {
+    currentContainer.statements.insertRange(0, 1, statement);
   }
 
   /**
@@ -429,6 +459,48 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         parameterNames);
     allocator.visitGraph(graph);
     variableNames = allocator.names;
+    shouldGroupVarDeclarations = allocator.names.numberOfVariables > 1;
+  }
+
+  void handleDelayedVariableDeclarations() {
+    // If we have only one variable declaration and the first statement is an
+    // assignment to that variable then we can merge the two.  We count the
+    // number of variables in the variable allocator to try to avoid this issue,
+    // but it sometimes happens that the variable allocator introduces a
+    // temporary variable that it later eliminates.
+    if (!collectedVariableDeclarations.isEmpty) {
+      if (collectedVariableDeclarations.length == 1 &&
+          currentContainer.statements.length >= 1 &&
+          currentContainer.statements[0] is js.ExpressionStatement) {
+        String name = collectedVariableDeclarations.first;
+        js.ExpressionStatement statement = currentContainer.statements[0];
+        if (statement.expression is js.Assignment) {
+          js.Assignment assignment = statement.expression;
+          if (!assignment.isCompound &&
+              assignment.leftHandSide is js.VariableReference) {
+            js.VariableReference variableReference = assignment.leftHandSide;
+            if (variableReference.name == name) {
+              js.VariableDeclaration decl = new js.VariableDeclaration(name);
+              js.VariableInitialization initialization =
+                  new js.VariableInitialization(decl, assignment.value);
+              currentContainer.statements[0] = new js.ExpressionStatement(
+                  new js.VariableDeclarationList([initialization]));
+              return;
+            }
+          }
+        }
+      }
+      // If we can't merge the declaration with the first assignment then we
+      // just do it with a new var z,y,x; statement.
+      List<js.VariableInitialization> declarations =
+          <js.VariableInitialization>[];
+      collectedVariableDeclarations.forEach((String name) {
+        declarations.add(new js.VariableInitialization(
+            new js.VariableDeclaration(name), null));
+      });
+      var declarationList = new js.VariableDeclarationList(declarations);
+      insertStatementAtStart(new js.ExpressionStatement(declarationList));
+    }
   }
 
   visitGraph(HGraph graph) {
@@ -438,15 +510,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     subGraph = new SubGraph(graph.entry, graph.exit);
     HBasicBlock start = beginGraph(graph);
     visitBasicBlock(start);
-    if (!delayedVariableDeclarations.isEmpty) {
-      List<js.VariableInitialization> declarations =
-          <js.VariableInitialization>[];
-      delayedVariableDeclarations.forEach((String name) {
-        declarations.add(new js.VariableInitialization(
-            new js.VariableDeclaration(name), null));
-      });
-      pushExpressionAsStatement(new js.VariableDeclarationList(declarations));
-    }
+    handleDelayedVariableDeclarations();
     endGraph(graph);
   }
 
@@ -616,7 +680,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   bool isVariableDeclared(String variableName) {
-    return declaredVariables.contains(variableName);
+    return declaredLocals.contains(variableName) ||
+        collectedVariableDeclarations.contains(variableName);
   }
 
   js.Expression generateExpressionAssignment(String variableName,
@@ -644,16 +709,19 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void assignVariable(String variableName, js.Expression value) {
     if (isGeneratingExpression) {
+      // If we are in an expression then we can't declare the variable here.
+      // We have no choice, but to use it and then declare it separately.
       if (!isVariableDeclared(variableName)) {
-        delayedVariableDeclarations.add(variableName);
-        // We can treat the variable as being declared from this point on.
-        declaredVariables.add(variableName);
+        collectedVariableDeclarations.add(variableName);
       }
       push(generateExpressionAssignment(variableName, value));
-    } else if (!isVariableDeclared(variableName) ||
-               delayedVariableDeclarations.contains(variableName)) {
-      declaredVariables.add(variableName);
-      delayedVariableDeclarations.remove(variableName);
+      // Otherwise if we are trying to declare inline and we are in a statement
+      // then we declare (unless it was already declared).
+    } else if (!shouldGroupVarDeclarations &&
+               !declaredLocals.contains(variableName)) {
+      // It may be necessary to remove it from the ones to be declared later.
+      collectedVariableDeclarations.remove(variableName);
+      declaredLocals.add(variableName);
       js.VariableDeclaration decl = new js.VariableDeclaration(variableName);
       js.VariableInitialization initialization =
           new js.VariableInitialization(decl, value);
@@ -661,6 +729,11 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       pushExpressionAsStatement(new js.VariableDeclarationList(
           <js.VariableInitialization>[initialization]));
     } else {
+      // Otherwise we are just going to use it.  If we have not already declared
+      // it then we make sure we will declare it later.
+      if (!declaredLocals.contains(variableName)) {
+        collectedVariableDeclarations.add(variableName);
+      }
       pushExpressionAsStatement(
           generateExpressionAssignment(variableName, value));
     }
@@ -860,9 +933,10 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           // expression, generate a for-loop.
           js.Expression jsInitialization = null;
           if (initialization != null) {
-            int delayedVariablesCount = delayedVariableDeclarations.length;
+            int delayedVariablesCount = collectedVariableDeclarations.length;
             jsInitialization = generateExpression(initialization);
-            if (delayedVariablesCount < delayedVariableDeclarations.length) {
+            if (!shouldGroupVarDeclarations && 
+                delayedVariablesCount < collectedVariableDeclarations.length) {
               // We just added a new delayed variable-declaration. See if we
               // can put in a 'var' in front of the initialization to make it
               // go away.
@@ -895,7 +969,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                   js.Node declaration = new js.VariableDeclaration(id);
                   inits.add(new js.VariableInitialization(declaration,
                                                           assignment.value));
-                  delayedVariableDeclarations.remove(id);
+                  collectedVariableDeclarations.remove(id);
                 }
                 jsInitialization = new js.VariableDeclarationList(inits);
               }
@@ -1204,7 +1278,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // cycle that we break by using a temporary name.
       if (currentLocation[current] != null
           && current != currentLocation[initialValue[current]]) {
-        String tempName = variableNames.swapTemp;
+        String tempName = variableNames.getSwapTemp();
         emitAssignment(tempName, current);
         currentLocation[current] = tempName;
         // [current] can now be safely updated. Copies of [current]
@@ -1759,7 +1833,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // TODO(floitsch): should we use the ConstantVisitor here?
     if (!constant.isObject()) {
       if (constant.isBool()) {
-        push(newLiteralBool(constant.value));
+        BoolConstant boolConstant = constant;
+        push(newLiteralBool(boolConstant.value));
       } else if (constant.isNum()) {
         // TODO(floitsch): get rid of the code buffer.
         CodeBuffer buffer = new CodeBuffer();
@@ -2529,7 +2604,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     // Declare the parameter names only for the optimized version. The
     // unoptimized version has different parameters.
     parameterNames.forEach((Element element, String name) {
-      declaredVariables.add(name);
+      declaredLocals.add(name);
     });
   }
 
@@ -2563,12 +2638,6 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       assert(guard.inputs.indexOf(target.inputs[i]) >= 0);
       use(target.inputs[i]);
       arguments.add(pop());
-    }
-    // Make sure we call the bailout method with the number of
-    // arguments it expects. This avoids having the underlying
-    // JS engine fill them in for us.
-    for (; i < maxBailoutParameters; i++) {
-      arguments.add(new js.LiteralNumber('0'));
     }
 
     js.Expression bailoutTarget;
@@ -2763,7 +2832,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
       // the right variables in the setup phase.
       for (int i = 0; i < propagator.maxBailoutParameters; i++) {
         String name = 'env$i';
-        declaredVariables.add(name);
+        declaredLocals.add(name);
         newParameters.add(new js.Parameter(name));
       }
 
@@ -2780,7 +2849,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
       for (HInstruction input in propagator.firstBailoutTarget.inputs) {
         input = unwrap(input);
         String name = variableNames.getName(input);
-        declaredVariables.add(name);
+        declaredLocals.add(name);
         newParameters.add(new js.Parameter(name));
       }
 
@@ -2850,8 +2919,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     for (HInstruction input in node.inputs) {
       input = unwrap(input);
       String name = variableNames.getName(input);
-      if (!isVariableDeclared(name)) {
-        declaredVariables.add(name);
+      if (!isVariableDeclared(name) && !shouldGroupVarDeclarations) {
         js.VariableInitialization init =
             new js.VariableInitialization(new js.VariableDeclaration(name),
                                           new js.VariableUse('env$i'));
@@ -2859,11 +2927,13 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
             new js.VariableDeclarationList(<js.VariableInitialization>[init]);
         setupBlock.statements.add(new js.ExpressionStatement(varList));
       } else {
+        collectedVariableDeclarations.add(name);
         js.Expression target = new js.VariableUse(name);
         js.Expression source = new js.VariableUse('env$i');
         js.Expression assignment = new js.Assignment(target, source);
         setupBlock.statements.add(new js.ExpressionStatement(assignment));
       }
+      declaredLocals.add(name);
       i++;
     }
     setupBlock.statements.add(new js.Break(null));
