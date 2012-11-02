@@ -6,7 +6,6 @@ library mirrors_util;
 
 // TODO(rnystrom): Use "package:" URL (#4968).
 import 'mirrors.dart';
-import '../../../lib/compiler/implementation/util/characters.dart';
 
 //------------------------------------------------------------------------------
 // Utility functions for using the Mirror API
@@ -45,32 +44,13 @@ Iterable<ClassMirror> computeSubdeclarations(ClassMirror type) {
 }
 
 LibraryMirror findLibrary(MemberMirror member) {
-  ContainerMirror owner = member.owner;
+  DeclarationMirror owner = member.owner;
   if (owner is LibraryMirror) {
     return owner;
   } else if (owner is TypeMirror) {
     return owner.library;
   }
   throw new Exception('Unexpected owner: ${owner}');
-}
-
-
-/**
- * Returns the column of the start of a location.
- */
-int getLocationColumn(SourceLocation location) {
-  String text = location.source.text;
-  int index = location.start-1;
-  var column = 0;
-  while (0 <= index && index < text.length) {
-    var charCode = text.charCodeAt(index);
-    if (charCode == $CR || charCode == $LF) {
-      break;
-    }
-    index--;
-    column++;
-  }
-  return column;
 }
 
 class HierarchyIterable implements Iterable<ClassMirror> {

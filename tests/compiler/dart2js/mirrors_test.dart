@@ -55,6 +55,14 @@ main() {
   Expect.stringEquals("mirrors_helper", helperLibrary.qualifiedName,
     "Unexpected library qualified name");
 
+  var helperLibraryLocation = helperLibrary.location;
+  Expect.isNotNull(helperLibraryLocation);
+  Expect.equals(271, helperLibraryLocation.offset, "Unexpected offset");
+  Expect.equals(23, helperLibraryLocation.length, "Unexpected length");
+  Expect.equals(9, helperLibraryLocation.line, "Unexpected line");
+  Expect.equals(1, helperLibraryLocation.column, "Unexpected column");
+
+
   var classes = helperLibrary.classes;
   Expect.isNotNull(classes, "No classes map returned");
   Expect.isFalse(classes.isEmpty, "Empty classes map returned");

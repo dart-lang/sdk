@@ -18,7 +18,7 @@ class CommentMap {
    */
   Map<String, Map<int, String>> _comments;
 
-  /** Doc comments before #library() directives. */
+  /** Doc comments before `library` directives. */
   Map<String, String> _libraryComments;
 
   CommentMap()
@@ -33,34 +33,34 @@ class CommentMap {
   String find(SourceLocation span) {
     if (span == null) return null;
 
-    _ensureFileParsed(span.source);
-    String comment = _comments[span.source.uri.toString()][span.start];
+    _ensureFileParsed(span);
+    String comment = _comments[span.sourceUri.toString()][span.offset];
     assert(comment == null || !comment.trim().isEmpty);
     return comment;
   }
 
   /**
-   * Finds the doc comment associated with the `#library` directive for the
+   * Finds the doc comment associated with the `library` directive for the
    * given file.
    *
    * If a comment is returned, it is guaranteed to be non-empty.
    */
-  String findLibrary(Source source) {
+  String findLibrary(SourceLocation source) {
     _ensureFileParsed(source);
-    String comment = _libraryComments[source.uri.toString()];
+    String comment = _libraryComments[source.sourceUri.toString()];
     assert(comment == null || !comment.trim().isEmpty);
     return comment;
   }
 
-  _ensureFileParsed(Source source) {
-    _comments.putIfAbsent(source.uri.toString(), () =>
+  _ensureFileParsed(SourceLocation source) {
+    _comments.putIfAbsent(source.sourceUri.toString(), () =>
         _parseComments(source));
   }
 
-  _parseComments(Source source) {
+  _parseComments(SourceLocation source) {
     final comments = new Map<int, String>();
 
-    final scanner = new dart2js.StringScanner(source.text,
+    final scanner = new dart2js.StringScanner(source.sourceText,
                                               includeComments: true);
     var lastComment = null;
 
@@ -82,10 +82,10 @@ class CommentMap {
           }
         }
       } else if (token.kind == dart2js.HASH_TOKEN) {
-        // Look for #library() to find the library comment.
+        // Look for `library` to find the library comment.
         final next = token.next;
         if ((lastComment != null) && (next.stringValue == 'library')) {
-          _libraryComments[source.uri.toString()] = lastComment;
+          _libraryComments[source.sourceUri.toString()] = lastComment;
           lastComment = null;
         }
       } else if (lastComment != null) {

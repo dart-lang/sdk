@@ -1463,7 +1463,7 @@ class Dartdoc {
   /** Get the doc comment associated with the given library. */
   DocComment getLibraryComment(LibraryMirror library) {
     // Look for a comment for the entire library.
-    final comment = _comments.findLibrary(library.location.source);
+    final comment = _comments.findLibrary(library.location);
     if (comment == null) return null;
     return createDocComment(comment);
   }
@@ -1698,7 +1698,7 @@ class Dartdoc {
    * Remove leading indentation to line up with first line.
    */
   unindentCode(SourceLocation span) {
-    final column = getLocationColumn(span);
+    final column = span.column;
     final lines = span.text.split('\n');
     // TODO(rnystrom): Dirty hack.
     for (var i = 1; i < lines.length; i++) {

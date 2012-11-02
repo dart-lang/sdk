@@ -21,6 +21,7 @@ import '../../../../../lib/compiler/implementation/tree/tree.dart';
 import '../../../../../lib/compiler/implementation/util/util.dart';
 import '../../../../../lib/compiler/implementation/util/uri_extras.dart';
 import '../../../../../lib/compiler/implementation/dart2js.dart';
+import '../../../../../lib/compiler/implementation/util/characters.dart';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
 import '../../mirrors.dart';
@@ -428,7 +429,7 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
 
   String get displayName => simpleName;
 
-  SourceLocation get location => new Dart2JsLocation(
+  SourceLocation get location => new Dart2JsSourceLocation(
       _element.getCompilationUnit().script,
       mirrors.compiler.spanFromElement(_element));
 
@@ -617,35 +618,82 @@ class Dart2JsLibraryMirror extends Dart2JsContainerMirror
 
   SourceLocation get location {
     var script = _library.getCompilationUnit().script;
-    return new Dart2JsLocation(
-        script,
-        new SourceSpan(script.uri, 0, script.text.length));
+    SourceSpan span;
+    if (_library.libraryTag != null) {
+      span = mirrors.compiler.spanFromNode(_library.libraryTag, script.uri);
+    } else {
+      span = new SourceSpan(script.uri, 0, 0);
+    }
+    return new Dart2JsSourceLocation(script, span);
   }
 }
 
-class Dart2JsLocation implements SourceLocation {
-  Script _script;
-  SourceSpan _span;
+class Dart2JsSourceLocation implements SourceLocation {
+  final Script _script;
+  final SourceSpan _span;
+  int _line;
+  int _column;
 
-  Dart2JsLocation(this._script, this._span);
+  Dart2JsSourceLocation(this._script, this._span);
 
-  int get start => _span.begin;
+  int _computeLine() {
+    var sourceFile = _script.file as SourceFile;
+    if (sourceFile != null) {
+      return sourceFile.getLine(offset) + 1;
+    }
+    var index = 0;
+    var lineNumber = 0;
+    while (index <= offset && index < sourceText.length) {
+      index = sourceText.indexOf('\n', index) + 1;
+      if (index <= 0) break;
+      lineNumber++;
+    }
+    return lineNumber;
+  }
 
-  int get end => _span.end;
+  int get line {
+    if (_line == null) {
+      _line = _computeLine();
+    }
+    return _line;
+  }
 
-  Source get source => new Dart2JsSource(_script);
+  int _computeColumn() {
+    if (length == 0) return 0;
 
-  String get text => _script.text.substring(start, end);
-}
+    var sourceFile = _script.file as SourceFile;
+    if (sourceFile != null) {
+      return sourceFile.getColumn(sourceFile.getLine(offset), offset) + 1;
+    }
+    int index = offset - 1;
+    var columnNumber = 0;
+    while (0 <= index && index < sourceText.length) {
+      columnNumber++;
+      var charCode = sourceText.charCodeAt(index);
+      if (charCode == $CR || charCode == $LF) {
+        break;
+      }
+      index--;
+    }
+    return columnNumber;
+  }
 
-class Dart2JsSource implements Source {
-  Script _script;
+  int get column {
+    if (_column == null) {
+      _column = _computeColumn();
+    }
+    return _column;
+  }
 
-  Dart2JsSource(this._script);
+  int get offset => _span.begin;
 
-  Uri get uri => _script.uri;
+  int get length => _span.end - _span.begin;
 
-  String get text => _script.text;
+  String get text => _script.text.substring(_span.begin, _span.end);
+
+  Uri get sourceUri => _script.uri;
+
+  String get sourceText => _script.text;
 }
 
 class Dart2JsParameterMirror extends Dart2JsMemberMirror
@@ -764,7 +812,7 @@ class Dart2JsClassMirror extends Dart2JsContainerMirror
       if (node != null) {
         var script = _class.getCompilationUnit().script;
         var span = mirrors.compiler.spanFromNode(node, script.uri);
-        return new Dart2JsLocation(script, span);
+        return new Dart2JsSourceLocation(script, span);
       }
     }
     return super.location;
@@ -899,7 +947,7 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
     if (node != null) {
       var script = _typedef.element.getCompilationUnit().script;
       var span = mirrors.compiler.spanFromNode(node, script.uri);
-      return new Dart2JsLocation(script, span);
+      return new Dart2JsSourceLocation(script, span);
     }
     return super.location;
   }
@@ -1023,8 +1071,8 @@ abstract class Dart2JsTypeElementMirror extends Dart2JsProxyMirror
 
   SourceLocation get location {
     var script = _type.element.getCompilationUnit().script;
-    return new Dart2JsLocation(script,
-                               mirrors.compiler.spanFromElement(_type.element));
+    return new Dart2JsSourceLocation(script,
+        mirrors.compiler.spanFromElement(_type.element));
   }
 
   DeclarationMirror get owner => library;
@@ -1434,7 +1482,7 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
     if (node != null) {
       var script = _function.getCompilationUnit().script;
       var span = mirrors.compiler.spanFromNode(node, script.uri);
-      return new Dart2JsLocation(script, span);
+      return new Dart2JsSourceLocation(script, span);
     }
     return super.location;
   }
@@ -1475,10 +1523,10 @@ class Dart2JsFieldMirror extends Dart2JsMemberMirror implements VariableMirror {
     var node = _variable.variables.parseNode(_diagnosticListener);
     if (node != null) {
       var span = mirrors.compiler.spanFromNode(node, script.uri);
-      return new Dart2JsLocation(script, span);
+      return new Dart2JsSourceLocation(script, span);
     } else {
       var span = mirrors.compiler.spanFromElement(_variable);
-      return new Dart2JsLocation(script, span);
+      return new Dart2JsSourceLocation(script, span);
     }
   }
 }

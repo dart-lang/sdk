@@ -563,45 +563,51 @@ abstract class ParameterMirror implements VariableMirror {
 
 /**
  * A [SourceLocation] describes the span of an entity in Dart source code.
- * A [SourceLocation] should be the minimum span that encloses the declaration
- * of the mirrored entity.
+ * A [SourceLocation] with a non-zero [length] should be the minimum span that
+ * encloses the declaration of the mirrored entity.
  */
 abstract class SourceLocation {
   /**
-   * The character position where the location begins.
+   * The 1-based line number for this source location.
+   *
+   * A value of 0 means that the line number is unknown.
    */
-  int get start;
+  int get line;
 
   /**
-   * The character position where the location ends.
+   * The 1-based column number for this source location.
+   *
+   * A value of 0 means that the column number is unknown.
    */
-  int get end;
+  int get column;
 
   /**
-   * Returns the [Source] in which this [SourceLocation] indexes.
-   * If [:loc:] is a location, [:loc.source().text()[loc.start]:] is where it
-   * starts, and [:loc.source().text()[loc.end]:] is where it ends.
+   * The 0-based character offset into the [sourceText] where this source
+   * location begins.
+   *
+   * A value of -1 means that the offset is unknown.
    */
-  Source get source;
+  int get offset;
+
+  /**
+   * The number of characters in this source location.
+   *
+   * A value of 0 means that the [offset] is approximate.
+   */
+  int get length;
 
   /**
    * The text of the location span.
    */
   String get text;
-}
 
-/**
- * A [Source] describes the source code of a compilation unit in Dart source
- * code.
- */
-abstract class Source {
   /**
    * Returns the URI where the source originated.
    */
-  Uri get uri;
+  Uri get sourceUri;
 
   /**
    * Returns the text of this source.
    */
-  String get text;
+  String get sourceText;
 }
