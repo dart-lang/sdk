@@ -48,7 +48,7 @@ void testRelativize() {
   c('/c:/BAR', '///c:/foo', '///c:/BAR', true);
   c('/c:/BAR', '///c:/foo/', '///c:/BAR', true);
 
-  c('../lib/_internal/compiler/implementation/dart2js.dart',
+  c('../sdk/lib/_internal/compiler/implementation/dart2js.dart',
     '///C:/Users/person/dart_checkout_for_stuff/dart/ReleaseIA32/dart.exe',
     '///c:/Users/person/dart_checkout_for_stuff/dart/sdk/lib/_internal/compiler/'
     'implementation/dart2js.dart',

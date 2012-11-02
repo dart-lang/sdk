@@ -4,7 +4,7 @@
 
 // Test of "recursive" imports using the dart2js compiler API.
 
-import '../../sdk/lib/compiler/compiler.dart';
+import '../../sdk/lib/_internal/compiler/compiler.dart';
 import 'dart:uri';
 
 const CORE_LIB = """
