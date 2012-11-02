@@ -27,6 +27,9 @@ utf8_test: Fail # TRIAGE
 *_layout_test: Skip
 
 [ $compiler == dartc ]
+# dart2js issue 6323
+dummy_compiler_test: Fail, OK
+recursive_import_test: Fail, OK
 
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
