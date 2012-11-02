@@ -455,7 +455,8 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
   ObjectStore* object_store = Isolate::Current()->object_store();
   Condition cond = TokenKindToSmiCondition(kind);
   Label done;
-  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+  const intptr_t len = ic_data.NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
     // Assert that the Smi is at position 0, if at all.
     ASSERT((ic_data.GetReceiverClassIdAt(i) != kSmiCid) || (i == 0));
     Label next_test;
@@ -538,9 +539,10 @@ static void EmitCheckedStrictEqual(FlowGraphCompiler* compiler,
   __ j(EQUAL, &identity_compare);
 
   __ LoadClassId(temp, left);
-  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+  const intptr_t len = ic_data.NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
     __ cmpl(temp, Immediate(ic_data.GetReceiverClassIdAt(i)));
-    if (i == (ic_data.NumberOfChecks() - 1)) {
+    if (i == (len - 1)) {
       __ j(NOT_EQUAL, deopt);
     } else {
       __ j(EQUAL, &identity_compare);

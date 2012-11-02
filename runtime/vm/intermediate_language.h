@@ -2058,6 +2058,9 @@ class InstanceCallInstr : public TemplateDefinition<0> {
     return (ic_data() != NULL) && !ic_data()->IsNull();
   }
 
+  // ICData can be replaced by optimizer.
+  void set_ic_data(const ICData* value) { ic_data_ = value; }
+
   intptr_t token_pos() const { return token_pos_; }
   const String& function_name() const { return function_name_; }
   Token::Kind token_kind() const { return token_kind_; }

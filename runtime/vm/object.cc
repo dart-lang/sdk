@@ -7392,7 +7392,8 @@ void ICData::WriteSentinel() const {
 #if defined(DEBUG)
 // Used in asserts to verify that a check is not added twice.
 bool ICData::HasCheck(const GrowableArray<intptr_t>& cids) const {
-  for (intptr_t i = 0; i < NumberOfChecks(); i++) {
+  const intptr_t len = NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
     GrowableArray<intptr_t> class_ids;
     Function& target = Function::Handle();
     GetCheckAt(i, &class_ids, &target);
@@ -7522,14 +7523,14 @@ intptr_t ICData::GetReceiverClassIdAt(intptr_t index) const {
 RawFunction* ICData::GetTargetAt(intptr_t index) const {
   const Array& data = Array::Handle(ic_data());
   const intptr_t data_pos = index * TestEntryLength() + num_args_tested();
-  Function& target = Function::Handle();
-  target ^= data.At(data_pos);
-  return target.raw();
+  ASSERT(Object::Handle(data.At(data_pos)).IsFunction());
+  return reinterpret_cast<RawFunction*>(data.At(data_pos));
 }
 
 
 RawFunction* ICData::GetTargetForReceiverClassId(intptr_t class_id) const {
-  for (intptr_t i = 0; i < NumberOfChecks(); i++) {
+  const intptr_t len = NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
     if (GetReceiverClassIdAt(i) == class_id) {
       return GetTargetAt(i);
     }
@@ -7551,10 +7552,12 @@ RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
       String::Handle(target_name()),
       deopt_id(),
       kNumArgsTested));
-  for (intptr_t i = 0; i < NumberOfChecks(); i++) {
+  const intptr_t len = NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
     const intptr_t class_id = GetClassIdAt(i, arg_nr);
     intptr_t duplicate_class_id = -1;
-    for (intptr_t k = 0; k < result.NumberOfChecks(); k++) {
+    const intptr_t result_len = result.NumberOfChecks();
+    for (intptr_t k = 0; k < result_len; k++) {
       if (class_id == result.GetReceiverClassIdAt(k)) {
         duplicate_class_id = k;
         break;
@@ -7577,7 +7580,8 @@ RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
 bool ICData::AllTargetsHaveSameOwner(intptr_t owner_cid) const {
   if (NumberOfChecks() == 0) return false;
   Class& cls = Class::Handle();
-  for (intptr_t i = 0; i < NumberOfChecks(); i++) {
+  const intptr_t len = NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
     cls = Function::Handle(GetTargetAt(i)).Owner();
     if (cls.id() != owner_cid) {
       return false;
@@ -7590,7 +7594,8 @@ bool ICData::AllTargetsHaveSameOwner(intptr_t owner_cid) const {
 bool ICData::AllReceiversAreNumbers() const {
   if (NumberOfChecks() == 0) return false;
   Class& cls = Class::Handle();
-  for (intptr_t i = 0; i < NumberOfChecks(); i++) {
+  const intptr_t len = NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
     cls = Function::Handle(GetTargetAt(i)).Owner();
     const intptr_t cid = cls.id();
     if ((cid != kSmiCid) &&
@@ -7609,10 +7614,9 @@ bool ICData::AllReceiversAreNumbers() const {
 bool ICData::HasOneTarget() const {
   ASSERT(NumberOfChecks() > 0);
   const Function& first_target = Function::Handle(GetTargetAt(0));
-  Function& test_target = Function::Handle();
-  for (intptr_t i = 1; i < NumberOfChecks(); i++) {
-    test_target = GetTargetAt(i);
-    if (first_target.raw() != test_target.raw()) {
+  const intptr_t len = NumberOfChecks();
+  for (intptr_t i = 1; i < len; i++) {
+    if (GetTargetAt(i) != first_target.raw()) {
       return false;
     }
   }

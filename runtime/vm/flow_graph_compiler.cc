@@ -576,8 +576,9 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         LocationSummary* locs) {
   ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
   Label match_found;
-  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    const bool is_last_check = (i == (ic_data.NumberOfChecks() - 1));
+  const intptr_t len = ic_data.NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
+    const bool is_last_check = (i == (len - 1));
     Label next_test;
     assembler()->cmpl(class_id_reg, Immediate(ic_data.GetReceiverClassIdAt(i)));
     if (is_last_check) {
