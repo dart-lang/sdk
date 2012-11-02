@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../../lib/compiler/implementation/util/util.dart';
-import '../../../lib/compiler/implementation/util/util_implementation.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/util/util_implementation.dart';
 
 main() {
   test(const Link<Comparable>().prepend('three').prepend(2).prepend('one'),

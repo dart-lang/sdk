@@ -5,11 +5,11 @@
 import 'dart:uri';
 import 'parser_helper.dart';
 import 'mock_compiler.dart';
-import '../../../lib/compiler/compiler.dart';
-import '../../../lib/compiler/implementation/dart2jslib.dart' as leg;
-import '../../../lib/compiler/implementation/dart_backend/dart_backend.dart';
-import '../../../lib/compiler/implementation/elements/elements.dart';
-import '../../../lib/compiler/implementation/tree/tree.dart';
+import '../../../sdk/lib/_internal/compiler/compiler.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart' as leg;
+import '../../../sdk/lib/_internal/compiler/implementation/dart_backend/dart_backend.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';
 
 const coreLib = r'''
 #library('corelib');

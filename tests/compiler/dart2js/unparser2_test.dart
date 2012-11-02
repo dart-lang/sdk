@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "../../../lib/compiler/implementation/scanner/scannerlib.dart";
-import "../../../lib/compiler/implementation/elements/elements.dart" show CompilationUnitElement, LibraryElement;
-import "../../../lib/compiler/implementation/tree/tree.dart";
-import "../../../lib/compiler/implementation/dart2jslib.dart" show DiagnosticListener, Script;
+import "../../../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart";
+import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart"
+       show CompilationUnitElement, LibraryElement;
+import "../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart";
+import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart"
+       show DiagnosticListener, Script;
 
 main() {
   testClassDef();

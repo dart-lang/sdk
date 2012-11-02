@@ -233,7 +233,8 @@ BENCHMARK(DartStringAccess) {
 static char* ComputeDart2JSPath(const char* arg) {
   char buffer[2048];
   char* dart2js_path = strdup(File::GetCanonicalPath(arg));
-  const char* compiler_path = "%s%slib%scompiler%scompiler.dart";
+  const char* compiler_path =
+      "%s%ssdk%slib%siinternal%scompiler%scompiler.dart";
   const char* path_separator = File::PathSeparator();
   ASSERT(path_separator != NULL && strlen(path_separator) == 1);
   char* ptr = strrchr(dart2js_path, *path_separator);
@@ -271,7 +272,8 @@ BENCHMARK(Dart2JSCompileAll) {
   char* dart_root = ComputeDart2JSPath(Benchmark::Executable());
   char* script = NULL;
   if (dart_root != NULL) {
-    const char* kFormatStr ="#import('%s/lib/compiler/compiler.dart');";
+    const char* kFormatStr =
+        "#import('%s/sdk/lib/_internal/compiler/compiler.dart');";
     intptr_t len = OS::SNPrint(NULL, 0, kFormatStr, dart_root) + 1;
     script = reinterpret_cast<char*>(malloc(len));
     EXPECT(script != NULL);
@@ -282,7 +284,7 @@ BENCHMARK(Dart2JSCompileAll) {
     EXPECT_VALID(lib);
   } else {
     Dart_Handle lib = TestCase::LoadTestScript(
-        "#import('lib/compiler/compiler.dart');",
+        "#import('sdk/lib/_internal/compiler/compiler.dart');",
         reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));
     EXPECT_VALID(lib);
   }

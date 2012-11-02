@@ -84,7 +84,7 @@
         'io.dart',
       ],
       'includes': [
-        '../../lib/io/iolib_sources.gypi',
+        '../../sdk/lib/io/iolib_sources.gypi',
       ],
       'actions': [
         {

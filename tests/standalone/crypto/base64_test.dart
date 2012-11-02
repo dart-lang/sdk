@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#source("../../../lib/io/base64.dart");
+#source("../../../sdk/lib/io/base64.dart");
 
 void main() {
   String line;

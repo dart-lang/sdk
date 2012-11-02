@@ -4,8 +4,8 @@
 
 // Smoke test of the dart2js compiler API.
 
-#import('../../lib/compiler/compiler.dart');
-#import('dart:uri');
+import '../../sdk/lib/_internal/compiler/compiler.dart';
+import 'dart:uri';
 
 Future<String> provider(Uri uri) {
   Completer<String> completer = new Completer<String>();

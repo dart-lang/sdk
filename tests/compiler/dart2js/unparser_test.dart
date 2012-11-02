@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import('dart:uri');
-#import('parser_helper.dart');
-#import('mock_compiler.dart');
-#import("../../../lib/compiler/implementation/tree/tree.dart");
+import 'dart:uri';
+import 'parser_helper.dart';
+import 'mock_compiler.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';
 
 testUnparse(String statement) {
   Node node = parseStatement(statement);

@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("../../../pkg/dartdoc/lib/mirrors.dart");
-#import("../../../pkg/dartdoc/lib/mirrors_util.dart");
+import '../../../sdk/lib/_internal/dartdoc/lib/mirrors.dart';
+import '../../../sdk/lib/_internal/dartdoc/lib/mirrors_util.dart';
 
-#import('dart:io');
+import 'dart:io';
 
 int count(Iterable iterable) {
   var count = 0;
@@ -36,7 +36,7 @@ DeclarationMirror findMirror(List<DeclarationMirror> list, String name) {
 main() {
   var scriptPath = new Path.fromNative(new Options().script);
   var dirPath = scriptPath.directoryPath;
-  var libPath = dirPath.join(new Path.fromNative('../../../'));
+  var libPath = dirPath.join(new Path.fromNative('../../../sdk/lib'));
   var inputPath = dirPath.join(new Path.fromNative('mirrors_helper.dart'));
   var compilation = new Compilation.library([inputPath], libPath);
   Expect.isNotNull(compilation, "No compilation created");

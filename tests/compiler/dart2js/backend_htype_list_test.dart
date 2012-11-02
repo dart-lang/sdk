@@ -4,10 +4,11 @@
 
 import 'dart:uri';
 
-import '../../../lib/compiler/implementation/elements/elements.dart';
-import '../../../lib/compiler/implementation/js_backend/js_backend.dart';
-import '../../../lib/compiler/implementation/ssa/ssa.dart';
-import '../../../lib/compiler/implementation/dart2jslib.dart' show Selector;
+import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/js_backend/js_backend.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/ssa/ssa.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
+       show Selector;
 
 import 'compiler_helper.dart';
 import 'parser_helper.dart';

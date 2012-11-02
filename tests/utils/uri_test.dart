@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('uriTest');
+library uriTest;
 
-#import('../../lib/utf/utf.dart');
-#import('../../lib/uri/uri.dart');
+import 'dart:utf';
+import 'dart:uri';
 
 testUri(String uri, bool isAbsolute) {
   Expect.equals(isAbsolute, new Uri.fromString(uri).isAbsolute());

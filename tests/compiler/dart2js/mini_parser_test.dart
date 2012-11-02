@@ -4,8 +4,8 @@
 
 // Simple test to ensure that mini_parser keeps working.
 
-#import('../../../lib/compiler/implementation/tools/mini_parser.dart',
-        prefix: 'tool');
+import '../../../sdk/lib/_internal/compiler/implementation/tools/mini_parser.dart'
+    as tool;
 
 void main() {
   // Parse this script itself.

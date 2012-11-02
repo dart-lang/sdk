@@ -12,17 +12,16 @@
  *
  *     $ dart apidoc.dart [--out=<output directory>]
  */
+library apidoc;
 
-#library('apidoc');
-
-#import('dart:io');
-#import('dart:json');
-#import('html_diff.dart');
+import 'dart:io';
+import 'dart:json';
+import 'html_diff.dart';
 // TODO(rnystrom): Use "package:" URL (#4968).
-#import('../../pkg/dartdoc/lib/mirrors.dart');
-#import('../../pkg/dartdoc/lib/mirrors_util.dart');
-#import('../../pkg/dartdoc/lib/dartdoc.dart', prefix: 'doc');
-#import('../../lib/_internal/libraries.dart');
+import '../../sdk/lib/_internal/dartdoc/lib/mirrors.dart';
+import '../../sdk/lib/_internal/dartdoc/lib/mirrors_util.dart';
+import '../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart' as doc;
+import '../../sdk/lib/_internal/libraries.dart';
 
 HtmlDiff _diff;
 
@@ -65,14 +64,14 @@ void main() {
     }
   }
 
-  final libPath = doc.scriptDir.append('../../');
+  final libPath = doc.scriptDir.append('../../sdk/lib');
   final pkgPath = doc.scriptDir.append('../../pkg/');
 
   doc.cleanOutputDirectory(outputDir);
 
   // The basic dartdoc-provided static content.
   final copiedStatic = doc.copyDirectory(
-      doc.scriptDir.append('../../pkg/dartdoc/static'),
+      doc.scriptDir.append('../../sdk/lib/_internal/dartdoc/static'),
       outputDir);
 
   // The apidoc-specific static content.
@@ -94,7 +93,7 @@ void main() {
   final htmldoc = new Htmldoc();
   htmldoc.includeApi = true;
   htmldoc.documentLibraries(
-    <Path>[doc.scriptDir.append('../../lib/html/doc/html.dartdoc')],
+    <Path>[doc.scriptDir.append('../../sdk/lib/html/doc/html.dartdoc')],
     libPath, pkgPath);
 
   // Process libraries.
@@ -136,7 +135,8 @@ void main() {
     print('Generating docs...');
     final apidoc = new Apidoc(mdn, htmldoc, outputDir, mode, generateAppCache,
         excludedLibraries);
-    apidoc.dartdocPath = doc.scriptDir.append('../../pkg/dartdoc/');
+    apidoc.dartdocPath =
+        doc.scriptDir.append('../../sdk/lib/_internal/dartdoc/');
     // Select the libraries to include in the produced documentation:
     apidoc.includeApi = true;
     apidoc.includedLibraries = includedLibraries;

@@ -129,7 +129,7 @@
       'type': 'none',
       'includes': [
         # Load the shared core library sources.
-        '../../lib/core/corelib_sources.gypi',
+        '../../sdk/lib/core/corelib_sources.gypi',
       ],
       'sources/': [
         # Exclude all .[cc|h] files.
@@ -205,7 +205,7 @@
       'type': 'none',
       'includes': [
         # Load the shared core library sources.
-        '../../lib/coreimpl/corelib_impl_sources.gypi',
+        '../../sdk/lib/coreimpl/corelib_impl_sources.gypi',
       ],
       'sources/': [
         # Exclude all .[cc|h] files.
@@ -281,7 +281,7 @@
       'type': 'none',
       'includes': [
         # Load the shared collection library sources.
-        '../../lib/collection/collection_sources.gypi',
+        '../../sdk/lib/collection/collection_sources.gypi',
       ],
       'sources/': [
         # Exclude all .[cc|h] files.
@@ -319,7 +319,7 @@
       'type': 'none',
       'includes': [
         # Load the shared math library sources.
-        '../../lib/math/math_sources.gypi',
+        '../../sdk/lib/math/math_sources.gypi',
       ],
       'sources/': [
         # Exclude all .[cc|h] files.
@@ -395,7 +395,7 @@
       'type': 'none',
       'includes': [
         # Load the shared core library sources.
-        '../../lib/mirrors/mirrors_sources.gypi',
+        '../../sdk/lib/mirrors/mirrors_sources.gypi',
       ],
       'sources/': [
         # Exclude all .[cc|h] files.
@@ -471,7 +471,7 @@
       'type': 'none',
       'includes': [
         # Load the runtime implementation sources.
-        '../../lib/isolate/isolate_sources.gypi',
+        '../../sdk/lib/isolate/isolate_sources.gypi',
       ],
       'sources/': [
         # Exclude all .[cc|h] files.
@@ -547,7 +547,7 @@
       'type': 'none',
       'includes': [
         # Load the shared library sources.
-        '../../lib/scalarlist/scalarlist_sources.gypi',
+        '../../sdk/lib/scalarlist/scalarlist_sources.gypi',
       ],
       'sources/': [
         # Exclude all .[cc|h] files.

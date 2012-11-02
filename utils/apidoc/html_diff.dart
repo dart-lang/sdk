@@ -6,15 +6,15 @@
  * A script to assist in documenting the difference between the dart:html API
  * and the old DOM API.
  */
-#library('html_diff');
+library html_diff;
 
-#import('dart:coreimpl');
-#import('dart:io');
+import 'dart:coreimpl';
+import 'dart:io';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-#import('../../pkg/dartdoc/lib/dartdoc.dart');
-#import('../../pkg/dartdoc/lib/mirrors.dart');
-#import('../../pkg/dartdoc/lib/mirrors_util.dart');
+import '../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart';
+import '../../sdk/lib/_internal/dartdoc/lib/mirrors.dart';
+import '../../sdk/lib/_internal/dartdoc/lib/mirrors_util.dart';
 
 // TODO(amouravski): There is currently magic that looks at dart:* libraries
 // rather than the declared library names. This changed due to recent syntax

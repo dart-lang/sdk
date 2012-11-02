@@ -6,7 +6,7 @@
 #
 # TODO(ager): ../lib/utf/utf_vm.dart should be removed when the
 # VM can use the #source directive for libraries.  At that point
-# ../../lib/utf/utf.dart should be the only utf library file.
+# ../../sdk/lib/utf/utf.dart should be the only utf library file.
 {
   'sources': [
     # The utf_vm.dart file needs to be the first source file. It contains
@@ -15,9 +15,9 @@
     # in the order they are listed.
     '../lib/utf/utf_vm.dart',
 
-    '../../lib/utf/utf_core.dart',
-    '../../lib/utf/utf8.dart',
-    '../../lib/utf/utf16.dart',
-    '../../lib/utf/utf32.dart',
+    '../../sdk/lib/utf/utf_core.dart',
+    '../../sdk/lib/utf/utf8.dart',
+    '../../sdk/lib/utf/utf16.dart',
+    '../../sdk/lib/utf/utf32.dart',
   ],
 }

@@ -38,8 +38,6 @@
 # ......scalarlist/
 # ....pkg/
 # ......args/
-# ......compiler/
-# ......dartdoc/
 #.......htmlescape/
 # ......intl/
 # ......logging/
@@ -106,7 +104,7 @@ def CopyShellScript(src_file, dest_dir):
 
 def CopyDart2Js(build_dir, sdk_root, version):
   if version:
-    ReplaceInFiles([os.path.join(sdk_root, 'pkg', 'compiler',
+    ReplaceInFiles([os.path.join(sdk_root, 'lib', '_internal', 'compiler',
                                  'implementation', 'compiler.dart')],
                    [(r"BUILD_ID = 'build number could not be determined'",
                      r"BUILD_ID = '%s'" % version)])
@@ -115,34 +113,18 @@ def CopyDart2Js(build_dir, sdk_root, version):
     Copy(os.path.join(build_dir, 'dart2js.bat'), dart2js)
     dartdoc = os.path.join(sdk_root, 'bin', 'dartdoc.bat')
     Copy(os.path.join(build_dir, 'dartdoc.bat'), dartdoc)
-    # TODO(dgrove) - fix this once issue 4788 is addressed.
-    ReplaceInFiles([dart2js],
-                   [(r'%SCRIPTPATH%\.\.\\\.\.\\lib', r'%SCRIPTPATH%..\\pkg')])
-    ReplaceInFiles([dartdoc],
-                   [(r'%SCRIPTPATH%\.\.\\\.\.\\pkg', r'%SCRIPTPATH%..\\pkg')])
   else:
     dart2js = os.path.join(sdk_root, 'bin', 'dart2js')
     Copy(os.path.join(build_dir, 'dart2js'), dart2js)
     dartdoc = os.path.join(sdk_root, 'bin', 'dartdoc')
     Copy(os.path.join(build_dir, 'dartdoc'), dartdoc)
 
-    # TODO(dgrove) - fix this once issue 4788 is addressed.
-    ReplaceInFiles([dart2js],
-                   [(r'\$BIN_DIR/\.\./\.\./lib', r'$BIN_DIR/../pkg')])
-    ReplaceInFiles([dartdoc],
-                   [(r'\$BIN_DIR/\.\./\.\.', r'$BIN_DIR/..')])
-
     # TODO(ahe): Enable for Windows as well.
     subprocess.call([os.path.join(build_dir, 'gen_snapshot'),
-
-                     # TODO(ahe): Remove option when
-                     # http://dartbug.com/5989 is fixed.
-                     '--optimization_counter_threshold=-1',
-
                      '--script_snapshot=%s' %
-                     os.path.join(sdk_root, 'pkg', 'compiler',
+                     os.path.join(sdk_root, 'lib', '_internal', 'compiler',
                                   'implementation', 'dart2js.dart.snapshot'),
-                     os.path.join(sdk_root, 'pkg', 'compiler',
+                     os.path.join(sdk_root, 'lib', '_internal', 'compiler',
                                   'implementation', 'dart2js.dart')])
 
 
@@ -226,7 +208,7 @@ def Main(argv):
   for library in ['_internal', 'collection', 'core', 'coreimpl', 'crypto', 'io',
                   'isolate', join('html', 'dart2js'), join('html', 'dartium'),
                   'json', 'math', 'mirrors', 'scalarlist', 'uri', 'utf']:
-    copytree(join(HOME, 'lib', library), join(LIB, library),
+    copytree(join(HOME, 'sdk', 'lib', library), join(LIB, library),
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh'))
 
 
@@ -238,33 +220,11 @@ def Main(argv):
   # Create and populate pkg/{args, intl, logging, meta, unittest}
   #
 
-  for library in ['args', 'htmlescape', 'dartdoc', 'intl', 'logging',
+  for library in ['args', 'htmlescape', 'intl', 'logging',
                   'meta', 'unittest']:
     copytree(join(HOME, 'pkg', library), join(PKG, library),
              ignore=ignore_patterns('*.svn', 'doc', 'docs',
                                     '*.py', '*.gypi', '*.sh'))
-
-  # TODO(dgrove): Remove this once issue 4788 is addressed.
-  copytree(join(HOME, 'lib', 'compiler'), join(PKG, 'compiler'),
-             ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh'))
-
-  ReplaceInFiles(
-        [join(LIB, '_internal', 'libraries.dart')],
-        [('"compiler/', '"../pkg/compiler/')])
-
-  # Fixup dartdoc
-  # TODO(dgrove): Remove this once issue 4788 is addressed.
-  ReplaceInFiles([
-      join(PKG, 'dartdoc', 'lib', 'src', 'mirrors', 'dart2js_mirror.dart'),
-      join(PKG, 'dartdoc', 'lib', 'mirrors_util.dart'),
-      join(PKG, 'dartdoc', 'lib', 'classify.dart'),
-      join(PKG, 'dartdoc', 'lib', 'src', 'client', 'client-live-nav.dart'),
-      join(PKG, 'dartdoc', 'lib', 'src', 'client', 'client-static.dart'),
-      join(PKG, 'dartdoc', 'lib', 'dartdoc.dart'),
-    ], [
-      ("../../lib/compiler",
-       "../../pkg/compiler"),
-    ])
 
   # Create and copy tools.
   UTIL = join(SDK_tmp, 'util')
@@ -311,6 +271,25 @@ def Main(argv):
 
   # Copy dart2js.
   CopyDart2Js(build_dir, SDK_tmp, version)
+
+  # TODO(dgrove) remove this once we get sdk/bin created
+  if (utils.GuessOS() == 'win32'):
+    ReplaceInFiles([join(SDK_tmp, 'bin', 'dart2js.bat'),
+                    join(SDK_tmp, 'bin', 'dartdoc.bat'),
+                    join(SDK_tmp, 'bin', 'pub.bat')],
+                   [("..\\..\\sdk\\lib", "..\\lib")])
+  else:
+    ReplaceInFiles([join(SDK_tmp, 'bin', 'dart2js'),
+                    join(SDK_tmp, 'bin', 'dartdoc'),
+                    join(SDK_tmp, 'bin', 'pub')],
+                   [("../../sdk/lib", "../lib")])
+
+  # Fix up dartdoc.
+  # TODO(dgrove): Remove this once sdk and dart-sdk match.
+  ReplaceInFiles([join(SDK_tmp, 'lib', '_internal', 'dartdoc', 
+                       'lib', 'dartdoc.dart')],
+                 [("_internal/dartdoc/lib/src/client/client",
+                   "lib/_internal/dartdoc/lib/src/client/client")])
 
   # Write the 'version' file
   versionFile = open(os.path.join(SDK_tmp, 'version'), 'w')

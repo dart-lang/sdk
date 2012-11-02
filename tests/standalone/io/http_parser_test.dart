@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import('dart:math');
-#import('dart:scalarlist');
+import 'dart:math';
+import 'dart:scalarlist';
 
-#source("../../../lib/io/http_parser.dart");
+part '../../../sdk/lib/io/http_parser.dart';
 
 class HttpParserTest {
   static void runAllTests() {

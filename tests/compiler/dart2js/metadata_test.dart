@@ -7,8 +7,8 @@ import "dart:uri";
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
 
-import '../../../lib/compiler/implementation/elements/elements.dart';
-import '../../../lib/compiler/implementation/dart2jslib.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart';
 
 void checkAnnotation(String name, String declaration,
                      {bool isTopLevelOnly: false}) {

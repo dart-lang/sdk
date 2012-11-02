@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("mock_compiler.dart");
-#import("../../../lib/compiler/implementation/ssa/ssa.dart");
+import "mock_compiler.dart";
+import "../../../sdk/lib/_internal/compiler/implementation/ssa/ssa.dart";
 
 const CONFLICTING = HType.CONFLICTING;
 const UNKNOWN = HType.UNKNOWN;

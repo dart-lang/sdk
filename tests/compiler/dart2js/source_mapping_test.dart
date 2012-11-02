@@ -4,8 +4,8 @@
 
 import 'dart:uri';
 
-import "../../../lib/compiler/implementation/dart2jslib.dart";
-import '../../../lib/compiler/implementation/source_file.dart';
+import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart";
+import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
 import "mock_compiler.dart";
 import 'parser_helper.dart';
 

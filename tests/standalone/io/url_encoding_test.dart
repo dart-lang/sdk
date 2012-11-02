@@ -2,16 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("dart:utf");
-#source("../../../lib/io/input_stream.dart");
-#source("../../../lib/io/output_stream.dart");
-#source("../../../lib/io/chunked_stream.dart");
-#source("../../../lib/io/string_stream.dart");
-#source("../../../lib/io/stream_util.dart");
-#source("../../../lib/io/http.dart");
-#source("../../../lib/io/http_impl.dart");
-#source("../../../lib/io/http_parser.dart");
-#source("../../../lib/io/http_utils.dart");
+import "dart:utf";
+part "../../../sdk/lib/io/input_stream.dart";
+part "../../../sdk/lib/io/output_stream.dart";
+part "../../../sdk/lib/io/chunked_stream.dart";
+part "../../../sdk/lib/io/string_stream.dart";
+part "../../../sdk/lib/io/stream_util.dart";
+part "../../../sdk/lib/io/http.dart";
+part "../../../sdk/lib/io/http_impl.dart";
+part "../../../sdk/lib/io/http_parser.dart";
+part "../../../sdk/lib/io/http_utils.dart";
 
 void testParseEncodedString() {
   String encodedString = 'foo+bar%20foobar%25%26';
