@@ -25,3 +25,12 @@ class_test: Fail
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
+
+[ $jscl ]
+timer_test: Fail, OK # Timer is only supported in browsers.
+
+[ $runtime == none ]
+timer_negative_test: Fail, OK # A negative runtime test.
+
+[ $compiler == none && $runtime == drt ]
+timer_test: Fail # http://dartbug.com/2264
