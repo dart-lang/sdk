@@ -185,7 +185,7 @@ def main(parallel=False):
 
   idl_files = []
 
-  webcore_dir = os.path.join(current_dir, '..', '..', '..', '..',
+  webcore_dir = os.path.join(current_dir, '..', '..', '..',
                              'third_party', 'WebCore')
   if not os.path.exists(webcore_dir):
     raise RuntimeError('directory not found: %s' % webcore_dir)
