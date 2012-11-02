@@ -277,25 +277,25 @@ class Printer implements NodeVisitor {
 
   visitContinue(Continue node) {
     if (node.targetLabel == null) {
-      outIndentLn("continue");
+      outIndent("continue");
     } else {
-      outIndentLn("continue ${node.targetLabel}");
+      outIndent("continue ${node.targetLabel}");
     }
-    pendingSemicolon = true;
+    outSemicolonLn();
   }
 
   visitBreak(Break node) {
     if (node.targetLabel == null) {
-      outIndentLn("break");
+      outIndent("break");
     } else {
-      outIndentLn("break ${node.targetLabel}");
+      outIndent("break ${node.targetLabel}");
     }
-    pendingSemicolon = true;
+    outSemicolonLn();
   }
 
   visitReturn(Return node) {
     if (node.value == null) {
-      outIndentLn("return");
+      outIndent("return");
     } else {
       outIndent("return");
       pendingSpace = true;
