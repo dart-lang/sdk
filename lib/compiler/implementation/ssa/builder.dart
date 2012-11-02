@@ -2573,6 +2573,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     addDynamicSendArgumentsToList(node, inputs);
+
     // The first entry in the inputs list is the receiver.
     pushWithPosition(new HInvokeDynamicMethod(selector, inputs), node);
 
