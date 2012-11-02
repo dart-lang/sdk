@@ -24,6 +24,12 @@ void Scanner::InitKeywordTable() {
     object_store->InitKeywordTable();
     keyword_symbol_table_ = object_store->keyword_symbols();
     ASSERT(!keyword_symbol_table_.IsNull());
+    String& symbol = String::Handle();
+    for (int i = 0; i < Token::numKeywords; i++) {
+      Token::Kind token = static_cast<Token::Kind>(Token::kFirstKeyword + i);
+      symbol = Symbols::New(Token::Str(token));
+      keyword_symbol_table_.SetAt(i, symbol);
+    }
   }
   for (int i = 0; i < Token::numKeywords; i++) {
     Token::Kind token = static_cast<Token::Kind>(Token::kFirstKeyword + i);
@@ -276,10 +282,7 @@ void Scanner::ScanIdentChars(bool allow_dollar) {
         if (keywords_[i].keyword_symbol == NULL) {
           String& symbol = String::ZoneHandle();
           symbol ^= keyword_symbol_table_.At(i);
-          if (symbol.IsNull()) {
-            symbol = Symbols::New(source_, ident_pos, ident_length);
-            keyword_symbol_table_.SetAt(i, symbol);
-          }
+          ASSERT(!symbol.IsNull());
           keywords_[i].keyword_symbol = &symbol;
         }
         current_token_.literal = keywords_[i].keyword_symbol;
