@@ -134,7 +134,8 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
 def GenerateSingleFile(library_path, output_dir):
   library_dir = os.path.dirname(library_path)
   library_filename = os.path.basename(library_path)
-  copy_dart_script = os.path.relpath('../../../tools/copy_dart.py', library_dir)
+  copy_dart_script = os.path.relpath('../../../../tools/copy_dart.py',
+      library_dir)
   output_dir = os.path.relpath(output_dir, library_dir)
   command = ' '.join(['cd', library_dir, ';',
                       copy_dart_script, output_dir, library_filename])
