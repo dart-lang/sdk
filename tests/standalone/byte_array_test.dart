@@ -23,7 +23,7 @@ void testCreateByteArray() {
 
 }
 
-void testUnsignedByteArrayRange() {
+void testUnsignedByteArrayRange(bool check_throws) {
   Uint8List byteArray;
   byteArray = new Uint8List(10);
 
@@ -32,16 +32,18 @@ void testUnsignedByteArrayRange() {
   byteArray[1] = 0;
   Expect.equals(0, byteArray[1]);
 
-  Expect.throws(() {
-    byteArray[1] = 1.2;
-  });
   // These should eventually throw.
   byteArray[1] = 256;
   byteArray[1] = -1;
   byteArray[2] = -129;
+  if (check_throws) {
+    Expect.throws(() {
+      byteArray[1] = 1.2;
+    });
+  }
 }
 
-void testByteArrayRange() {
+void testByteArrayRange(bool check_throws) {
   Int8List byteArray;
   byteArray = new Int8List(10);
   byteArray[1] = 0;
@@ -50,12 +52,14 @@ void testByteArrayRange() {
   Expect.equals(-128, byteArray[2]);
   byteArray[3] = 127;
   Expect.equals(127, byteArray[3]);
-  Expect.throws(() {
-    byteArray[1] = 1.2;
-  });
   // This should eventually throw.
   byteArray[0] = 128;
   byteArray[4] = -129;
+  if (check_throws) {
+    Expect.throws(() {
+      byteArray[1] = 1.2;
+    });
+  }
 }
 
 void testSetRange() {
@@ -158,12 +162,14 @@ void testSubArray() {
 main() {
   for (int i = 0; i < 2000; i++) {
     testCreateByteArray();
-    testByteArrayRange();
-    testUnsignedByteArrayRange();
+    testByteArrayRange(false);
+    testUnsignedByteArrayRange(false);
     testSetRange();
     testIndexOutOfRange();
     testIndexOf();
     testSubArray();
   }
+  testByteArrayRange(true);
+  testUnsignedByteArrayRange(true);
 }
 
