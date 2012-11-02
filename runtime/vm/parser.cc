@@ -4123,11 +4123,11 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
 // TODO(hausner): Remove support for old library definition syntax.
 void Parser::ParseLibraryNameObsoleteSyntax() {
   if ((script_.kind() == RawScript::kLibraryTag) &&
-      (CurrentToken() != Token::kLIBRARY)) {
+      (CurrentToken() != Token::kLEGACY_LIBRARY)) {
     // Handle error case early to get consistent error message.
-    ExpectToken(Token::kLIBRARY);
+    ExpectToken(Token::kLEGACY_LIBRARY);
   }
-  if (CurrentToken() == Token::kLIBRARY) {
+  if (CurrentToken() == Token::kLEGACY_LIBRARY) {
     ConsumeToken();
     ExpectToken(Token::kLPAREN);
     if (CurrentToken() != Token::kSTRING) {
@@ -4164,7 +4164,7 @@ Dart_Handle Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
 
 // TODO(hausner): Remove support for old library definition syntax.
 void Parser::ParseLibraryImportObsoleteSyntax() {
-  while (CurrentToken() == Token::kIMPORT) {
+  while (CurrentToken() == Token::kLEGACY_IMPORT) {
     const intptr_t import_pos = TokenPos();
     ConsumeToken();
     ExpectToken(Token::kLPAREN);
@@ -4231,7 +4231,7 @@ void Parser::ParseLibraryImportObsoleteSyntax() {
 
 // TODO(hausner): Remove support for old library definition syntax.
 void Parser::ParseLibraryIncludeObsoleteSyntax() {
-  while (CurrentToken() == Token::kSOURCE) {
+  while (CurrentToken() == Token::kLEGACY_SOURCE) {
     const intptr_t source_pos = TokenPos();
     ConsumeToken();
     ExpectToken(Token::kLPAREN);
@@ -4252,7 +4252,7 @@ void Parser::ParseLibraryIncludeObsoleteSyntax() {
 
 
 void Parser::ParseLibraryName() {
-  ASSERT(IsLiteral("library"));
+  ASSERT(CurrentToken() == Token::kLIBRARY);
   ConsumeToken();
   // TODO(hausner): Exact syntax of library name still unclear: identifier,
   // qualified identifier or even multiple dots allowed? For now we just
@@ -4276,8 +4276,8 @@ void Parser::ParseIdentList(GrowableObjectArray* names) {
 
 
 void Parser::ParseLibraryImportExport() {
-  bool is_import = IsLiteral("import");
-  bool is_export = IsLiteral("export");
+  bool is_import = (CurrentToken() == Token::kIMPORT);
+  bool is_export = (CurrentToken() == Token::kEXPORT);
   ASSERT(is_import || is_export);
   const intptr_t import_pos = TokenPos();
   ConsumeToken();
@@ -4387,9 +4387,9 @@ void Parser::ParseLibraryDefinition() {
   }
 
   // TODO(hausner): Remove support for old library definition syntax.
-  if ((CurrentToken() == Token::kLIBRARY) ||
-      (CurrentToken() == Token::kIMPORT) ||
-      (CurrentToken() == Token::kSOURCE)) {
+  if ((CurrentToken() == Token::kLEGACY_LIBRARY) ||
+      (CurrentToken() == Token::kLEGACY_IMPORT) ||
+      (CurrentToken() == Token::kLEGACY_SOURCE)) {
     ParseLibraryNameObsoleteSyntax();
     ParseLibraryImportObsoleteSyntax();
     ParseLibraryIncludeObsoleteSyntax();
@@ -4411,14 +4411,15 @@ void Parser::ParseLibraryDefinition() {
   // successfully consumed.
   intptr_t metadata_pos = TokenPos();
   SkipMetadata();
-  if (IsLiteral("library")) {
+  if (CurrentToken() == Token::kLIBRARY) {
     ParseLibraryName();
     metadata_pos = TokenPos();
     SkipMetadata();
   } else if (script_.kind() == RawScript::kLibraryTag) {
     ErrorMsg("library name definition expected");
   }
-  while (IsLiteral("import") || IsLiteral("export")) {
+  while ((CurrentToken() == Token::kIMPORT) ||
+      (CurrentToken() == Token::kEXPORT)) {
     ParseLibraryImportExport();
     metadata_pos = TokenPos();
     SkipMetadata();
@@ -4432,13 +4433,10 @@ void Parser::ParseLibraryDefinition() {
         Namespace::New(core_lib, Array::Handle(), Array::Handle()));
     library_.AddImport(core_ns);
   }
-  while (IsLiteral("part")) {
+  while (CurrentToken() == Token::kPART) {
     ParseLibraryPart();
     metadata_pos = TokenPos();
     SkipMetadata();
-  }
-  if (IsLiteral("library") || IsLiteral("import") || IsLiteral("export")) {
-    ErrorMsg("unexpected token '%s'", CurrentLiteral()->ToCString());
   }
   SetPosition(metadata_pos);
 }
@@ -4450,7 +4448,7 @@ void Parser::ParsePartHeader() {
   // TODO(hausner): Once support for old #source directive is removed
   // from the compiler, add an error message here if we don't find
   // a 'part of' directive.
-  if (IsLiteral("part")) {
+  if (CurrentToken() == Token::kPART) {
     ConsumeToken();
     if (!IsLiteral("of")) {
       ErrorMsg("'part of' expected");
