@@ -11,7 +11,7 @@ import 'dart2jslib.dart' as leg;
 import 'tree/tree.dart' as tree;
 import 'elements/elements.dart' as elements;
 import 'ssa/tracer.dart' as ssa;
-import '../../../lib/_internal/libraries.dart';
+import '../../libraries.dart';
 import 'source_file.dart';
 
 class Compiler extends leg.Compiler {

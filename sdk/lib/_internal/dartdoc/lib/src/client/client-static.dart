@@ -7,7 +7,7 @@ library client_static;
 
 import 'dart:html';
 import 'dart:json';
-import '../../../../../lib/compiler/implementation/source_file.dart';
+import '../../../../compiler/implementation/source_file.dart';
 // TODO(rnystrom): Use "package:" URL (#4968).
 import '../../classify.dart';
 

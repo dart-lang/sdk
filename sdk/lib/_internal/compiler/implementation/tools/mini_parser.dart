@@ -7,7 +7,7 @@
 #import('dart:io');
 #import('dart:scalarlist');
 
-#import('../../../utf/utf.dart');
+#import('dart:utf');
 
 #import('../elements/elements.dart');
 #import('../scanner/scanner_implementation.dart');

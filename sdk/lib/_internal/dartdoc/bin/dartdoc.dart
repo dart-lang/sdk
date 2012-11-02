@@ -20,10 +20,10 @@ import 'dart:io';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
 import '../lib/dartdoc.dart';
-import '../../args/lib/args.dart';
+import '../../../../../pkg/args/lib/args.dart';
 
 /**
- * Run this from the `pkg/dartdoc` directory.
+ * Run this from the `lib/_internal/dartdoc` directory.
  */
 main() {
   // Need this because ArgParser.getUsage doesn't show command invocation.
@@ -35,8 +35,8 @@ main() {
 
   final argParser = new ArgParser();
 
-  final Path libPath = scriptDir.append('../../../');
-  Path pkgPath = scriptDir.append('../../../pkg/');
+  final Path libPath = scriptDir.append('../../../../');
+  Path pkgPath = scriptDir.append('../../../../pkg/');
 
   argParser.addFlag('no-code',
       help: 'Do not include source code in the documentation.',
@@ -166,7 +166,7 @@ main() {
         }
       });
 
-  dartdoc.dartdocPath = libPath.append('pkg/dartdoc');
+  dartdoc.dartdocPath = libPath.append('lib/_internal/dartdoc');
 
   if (args.isEmpty) {
     print('No arguments provided.');

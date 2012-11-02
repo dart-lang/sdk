@@ -14,7 +14,7 @@
 #import('filenames.dart');
 #import('util/uri_extras.dart');
 
-const String LIBRARY_ROOT = '../../../..';
+const String LIBRARY_ROOT = '../../../../..';
 const String OUTPUT_LANGUAGE_DART = 'Dart';
 
 typedef void HandleOption(String option);

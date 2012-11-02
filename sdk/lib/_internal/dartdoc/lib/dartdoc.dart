@@ -27,8 +27,8 @@ import 'mirrors_util.dart';
 import 'src/mirrors/dart2js_mirror.dart' as dart2js;
 import 'classify.dart';
 import 'markdown.dart' as md;
-import '../../../lib/compiler/implementation/scanner/scannerlib.dart' as dart2js;
-import '../../../lib/_internal/libraries.dart';
+import '../../compiler/implementation/scanner/scannerlib.dart' as dart2js;
+import '../../libraries.dart';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
 part 'src/dartdoc/comment_map.dart';
@@ -128,7 +128,7 @@ Future copyDirectory(Path from, Path to) {
 Future<bool> compileScript(int mode, Path outputDir, Path libPath) {
   var clientScript = (mode == MODE_STATIC) ? 'static' : 'live-nav';
   var dartPath = libPath.append(
-      'pkg/dartdoc/lib/src/client/client-$clientScript.dart');
+      '_internal/dartdoc/lib/src/client/client-$clientScript.dart');
   var jsPath = outputDir.append('client-$clientScript.js');
 
   var completer = new Completer<bool>();

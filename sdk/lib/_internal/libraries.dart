@@ -28,12 +28,12 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
 
   "core": const LibraryInfo(
       "core/core.dart",
-      dart2jsPatchPath: "compiler/implementation/lib/core_patch.dart"),
+      dart2jsPatchPath: "_internal/compiler/implementation/lib/core_patch.dart"),
 
   "coreimpl": const LibraryInfo(
       "coreimpl/coreimpl.dart",
       implementation: true,
-      dart2jsPatchPath: "compiler/implementation/lib/coreimpl_patch.dart"),
+      dart2jsPatchPath: "_internal/compiler/implementation/lib/coreimpl_patch.dart"),
 
   "crypto": const LibraryInfo(
       "crypto/crypto.dart"),
@@ -46,22 +46,22 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
   "io": const LibraryInfo(
       "io/io.dart",
       category: "Server",
-      dart2jsPatchPath: "compiler/implementation/lib/io_patch.dart"),
+      dart2jsPatchPath: "_internal/compiler/implementation/lib/io_patch.dart"),
 
   "isolate": const LibraryInfo(
       "isolate/isolate.dart",
-      dart2jsPatchPath: "compiler/implementation/lib/isolate_patch.dart"),
+      dart2jsPatchPath: "_internal/compiler/implementation/lib/isolate_patch.dart"),
 
   "json": const LibraryInfo(
       "json/json.dart"),
 
   "math": const LibraryInfo(
       "math/math.dart",
-      dart2jsPatchPath: "compiler/implementation/lib/math_patch.dart"),
+      dart2jsPatchPath: "_internal/compiler/implementation/lib/math_patch.dart"),
 
   "mirrors": const LibraryInfo(
       "mirrors/mirrors.dart",
-      dart2jsPath: "compiler/implementation/lib/mirrors.dart"),
+      dart2jsPath: "_internal/compiler/implementation/lib/mirrors.dart"),
 
   "nativewrappers": const LibraryInfo(
       "html/dartium/nativewrappers.dart",
@@ -73,7 +73,7 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
   "scalarlist": const LibraryInfo(
       "scalarlist/scalarlist.dart",
       category: "Server",
-      dart2jsPatchPath: "compiler/implementation/lib/scalarlist_patch.dart"),
+      dart2jsPatchPath: "_internal/compiler/implementation/lib/scalarlist_patch.dart"),
 
   "uri": const LibraryInfo(
       "uri/uri.dart"),
@@ -82,13 +82,13 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
       "utf/utf.dart"),
 
   "_js_helper": const LibraryInfo(
-      "compiler/implementation/lib/js_helper.dart",
+      "_internal/compiler/implementation/lib/js_helper.dart",
       category: "Internal",
       documented: false,
       platforms: DART2JS_PLATFORM),
 
   "_interceptors": const LibraryInfo(
-      "compiler/implementation/lib/interceptors.dart",
+      "_internal/compiler/implementation/lib/interceptors.dart",
       category: "Internal",
       documented: false,
       platforms: DART2JS_PLATFORM),
