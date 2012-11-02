@@ -6,8 +6,8 @@ import 'dart:utf';
 import '../../../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/scanner/scanner_implementation.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/util/characters.dart';
-source '../../../sdk/lib/_internal/compiler/implementation/scanner/byte_strings.dart';
-source '../../../sdk/lib/_internal/compiler/implementation/scanner/byte_array_scanner.dart';
+part '../../../sdk/lib/_internal/compiler/implementation/scanner/byte_strings.dart';
+part '../../../sdk/lib/_internal/compiler/implementation/scanner/byte_array_scanner.dart';
 
 Token scan(List<int> bytes) => new ByteArrayScanner(bytes).tokenize();
 
