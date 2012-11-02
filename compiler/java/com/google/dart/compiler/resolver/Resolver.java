@@ -81,7 +81,9 @@ import com.google.dart.compiler.resolver.LabelElement.LabeledStatementType;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.InterfaceType.Member;
 import com.google.dart.compiler.type.Type;
+import com.google.dart.compiler.type.TypeAnalyzer;
 import com.google.dart.compiler.type.TypeKind;
+import com.google.dart.compiler.type.TypeQuality;
 import com.google.dart.compiler.type.TypeVariable;
 import com.google.dart.compiler.type.Types;
 
@@ -726,7 +728,8 @@ public class Resolver {
         Element element = node.getElement();
         Type expressionType = expression.getType();
         if (isFinal && expressionType != null && TypeKind.of(element.getType()) == TypeKind.DYNAMIC) {
-          Type fieldType = Types.makeInferred(expressionType);
+          TypeQuality typeQuality = TypeAnalyzer.getTypeQuality(expression);
+          Type fieldType = Types.makeInferred(expressionType, typeQuality);
           Elements.setType(element, fieldType);
         }
       } else if (isFinal) {

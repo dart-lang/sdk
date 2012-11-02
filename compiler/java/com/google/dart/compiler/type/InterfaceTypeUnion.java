@@ -51,8 +51,8 @@ class InterfaceTypeUnion implements InterfaceType {
   }
 
   @Override
-  public boolean isInferred() {
-    return false;
+  public TypeQuality getQuality() {
+    return TypeQuality.EXACT;
   }
 
   @Override
@@ -93,6 +93,19 @@ class InterfaceTypeUnion implements InterfaceType {
         return member;
       }
     }
+    return null;
+  }
+  
+  @Override
+  public void registerSubClass(ClassElement subClass) {
+  }
+  
+  @Override
+  public void unregisterSubClass(ClassElement subClass) {
+  }
+  
+  @Override
+  public Member lookupSubTypeMember(String name) {
     return null;
   }
 }

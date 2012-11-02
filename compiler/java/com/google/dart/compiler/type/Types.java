@@ -43,7 +43,7 @@ import java.util.Set;
  * Utility class for types.
  */
 public class Types {
-  private static Map<Type, Type> inferredTypes = new MapMaker().weakKeys().weakValues().makeMap();
+  private static Map<Type, Map<TypeQuality, Type>> inferredTypes = new MapMaker().weakKeys().makeMap();
   private final CoreTypeProvider typeProvider;
 
   private Types(CoreTypeProvider typeProvider) { // Prevent subclassing.
@@ -69,6 +69,22 @@ public class Types {
 
   public Type intersection(Type t, Type s) {
     return intersection(ImmutableList.of(t, s));
+  }
+    
+  public static TypeQuality getIntersectionQuality(Type t, Type s) {
+    return getIntersectionQuality(ImmutableList.of(t, s));
+  }
+  
+  public static TypeQuality getIntersectionQuality(List<Type> types) {
+    Type singleType = null;
+    for (Type type : types) {
+      if (singleType == null) {
+        singleType = type;
+      } else if (singleType != type) {
+        return TypeQuality.INFERRED;
+      }
+    }
+    return TypeQuality.INFERRED_EXACT;
   }
     
   public Type intersection(List<Type> types) {
@@ -664,41 +680,59 @@ public class Types {
   }
 
   /**
-   * @return the wrapper of the given {@link Type} which returns <code>true</code> from
-   *         {@link Type#isInferred()}.
+   * @return the wrapper of the given {@link Type} with {@link TypeQuality#INFERRED}.
    */
   public static Type makeInferred(Type type) {
+    return makeInferred(type, TypeQuality.INFERRED);
+  }
+  
+  /**
+   * @return the wrapper of the given {@link Type} with {@link TypeQuality#INFERRED_EXACT}.
+   */
+  public static Type makeInferredExact(Type type) {
+    return makeInferred(type, TypeQuality.INFERRED_EXACT);
+  }
+
+  /**
+   * @return the wrapper of the given {@link Type} with given {@link TypeQuality}.
+   */
+  public static Type makeInferred(Type type, TypeQuality quality) {
     if (type == null) {
       return null;
     }
-    if (type.isInferred()) {
+    if (type.getQuality().ordinal() > quality.ordinal()) {
       return type;
     }
     Set<Class<?>> interfaceSet = getAllImplementedInterfaces(type.getClass());
     if (!interfaceSet.isEmpty()) {
       Class<?>[] interfaces = (Class[]) interfaceSet.toArray(new Class[interfaceSet.size()]);
-      return makeInferred(type, interfaces);
+      return makeInferred(type, interfaces, quality);
     }
     return type;
   }
 
-  private static Type makeInferred(final Type type, Class<?>[] interfaces) {
-    Type inferred = inferredTypes.get(type);
+  private static Type makeInferred(final Type type, Class<?>[] interfaces, final TypeQuality quality) {
+    Map<TypeQuality, Type> inferredMap = inferredTypes.get(type);
+    if (inferredMap == null) {
+      inferredMap = new MapMaker().weakValues().makeMap();
+      inferredTypes.put(type, inferredMap);
+    }
+    Type inferred = inferredMap.get(quality);
     if (inferred == null) {
       inferred = (Type) Proxy.newProxyInstance(type.getClass().getClassLoader(),
           interfaces, new InvocationHandler() {
             @Override
             @SuppressWarnings("unchecked")
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-              if (args == null && method.getName().equals("isInferred")) {
-                return true;
+              if (args == null && method.getName().equals("getQuality")) {
+                return quality;
               }
               if (type instanceof FunctionType) {
                 if (args == null && method.getName().equals("getParameterTypes")) {
                   List<Type> originalTypes = (List<Type>) method.invoke(type, args);
                   return Lists.transform(originalTypes, new Function<Type, Type>() {
                     public Type apply(Type input) {
-                      return makeInferred(input);
+                      return makeInferred(input, quality);
                     }
                   });
                 }
@@ -706,7 +740,7 @@ public class Types {
               return method.invoke(type, args);
             }
           });
-      inferredTypes.put(type, inferred);
+      inferredMap.put(quality, inferred);
     }
     return inferred;
   }

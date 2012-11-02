@@ -23,6 +23,7 @@ import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.common.ErrorExpectation;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
+import com.google.dart.compiler.type.TypeQuality;
 
 import static com.google.dart.compiler.DartCompiler.EXTENSION_DEPS;
 import static com.google.dart.compiler.DartCompiler.EXTENSION_TIMESTAMP;
@@ -1352,19 +1353,19 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     // validate types
     DartUnit unit = units.get(APP);
     assertNotNull(unit);
-    assertInferredElementTypeString(unit, "v1", "AnchorElement");
-    assertInferredElementTypeString(unit, "v2", "AnchorElement");
-    assertInferredElementTypeString(unit, "v3", "BodyElement");
-    assertInferredElementTypeString(unit, "v4", "ButtonElement");
-    assertInferredElementTypeString(unit, "v5", "DivElement");
-    assertInferredElementTypeString(unit, "v6", "InputElement");
-    assertInferredElementTypeString(unit, "v7", "SelectElement");
+    assertInferredElementTypeString(unit, "v1", "AnchorElement", TypeQuality.INFERRED);
+    assertInferredElementTypeString(unit, "v2", "AnchorElement", TypeQuality.INFERRED);
+    assertInferredElementTypeString(unit, "v3", "BodyElement", TypeQuality.INFERRED);
+    assertInferredElementTypeString(unit, "v4", "ButtonElement", TypeQuality.INFERRED);
+    assertInferredElementTypeString(unit, "v5", "DivElement", TypeQuality.INFERRED);
+    assertInferredElementTypeString(unit, "v6", "InputElement", TypeQuality.INFERRED);
+    assertInferredElementTypeString(unit, "v7", "SelectElement", TypeQuality.INFERRED);
     // invocation of method
-    assertInferredElementTypeString(unit, "m1", "DivElement");
+    assertInferredElementTypeString(unit, "m1", "DivElement", TypeQuality.INFERRED);
     // bad cases, or unsupported now
-    assertInferredElementTypeString(unit, "b1", "Element");
-    assertInferredElementTypeString(unit, "b2", "Element");
-    assertInferredElementTypeString(unit, "b3", "Element");
+    assertInferredElementTypeString(unit, "b1", "Element", TypeQuality.INFERRED);
+    assertInferredElementTypeString(unit, "b2", "Element", TypeQuality.INFERRED);
+    assertInferredElementTypeString(unit, "b3", "Element", TypeQuality.INFERRED);
   }
 
   /**
