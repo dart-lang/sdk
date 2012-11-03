@@ -5449,4 +5449,19 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(result.getErrors());
   }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6491
+   */
+  public void test_annotationOnGetter() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "const myAnnotation = 0;",
+        "class A {",
+        "  @myAnnotation bool get isEmpty => true;",
+        "}",
+        "");
+    assertErrors(result.getErrors());
+  }
 }

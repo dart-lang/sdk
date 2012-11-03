@@ -327,11 +327,16 @@ public class Resolver {
       enclosingElement = classElement;
       context = topLevelContext.extend(classElement);
 
+      // members
       this.finalsNeedingInitializing.clear();
-      for (NodeElement member : classElement.getMembers()) {
-        member.getNode().accept(this);
+      for (DartNode member : cls.getMembers()) {
+        if (ElementKind.of(member.getElement()) == ElementKind.CONSTRUCTOR) {
+          continue;
+        }
+        member.accept(this);
       }
 
+      // constructors
       boolean testForAllConstantFields = false;
       for (DartNode member : cls.getMembers()) {
         if (member instanceof DartMethodDefinition) {
