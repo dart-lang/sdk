@@ -37,8 +37,10 @@ class SsaCodeGeneratorTask extends CompilerTask {
     return result;
   }
 
-  CodeBuffer prettyPrint(js.Node node) {
-    return js.prettyPrint(node, compiler);
+  CodeBuffer prettyPrint(js.Node node, {bool allowVariableMinification: true}) {
+    var code = js.prettyPrint(
+        node, compiler, allowVariableMinification: allowVariableMinification);
+    return code;
   }
 
   CodeBuffer generateCode(WorkItem work, HGraph graph) {
@@ -95,6 +97,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       FunctionElement element = work.element;
       js.Block body;
       ClassElement enclosingClass = element.getEnclosingClass();
+      bool allowVariableMinification;
       if (element.isInstanceMember()
           && enclosingClass.isNative()
           && native.isOverriddenMethod(
@@ -109,11 +112,14 @@ class SsaCodeGeneratorTask extends CompilerTask {
             compiler, buffer, element, codeString, parametersString);
         js.Node nativeCode = new js.LiteralStatement(buffer.toString());
         body = new js.Block(<js.Statement>[nativeCode]);
+        allowVariableMinification = false;
       } else {
         body = codegen.body;
+        allowVariableMinification = !codegen.visitedForeignCode;
       }
       js.Fun fun = buildJavaScriptFunction(element, parameters, body);
-      return prettyPrint(fun);
+      return prettyPrint(fun,
+                         allowVariableMinification: allowVariableMinification);
     });
   }
 
@@ -257,6 +263,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    * This includes declarations, which are generated as expressions.
    */
   bool isGeneratingExpression = false;
+
+  bool visitedForeignCode = false;
 
   final JavaScriptBackend backend;
   final WorkItem work;
@@ -1787,6 +1795,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitForeign(HForeign node) {
+    visitedForeignCode = true;
     String code = node.code.slowToString();
     List<HInstruction> inputs = node.inputs;
     if (node.isJsStatement(types)) {
@@ -1806,6 +1815,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitForeignNew(HForeignNew node) {
+    visitedForeignCode = true;
     String jsClassReference = backend.namer.isolateAccess(node.element);
     List<HInstruction> inputs = node.inputs;
     // We can't use 'visitArguments', since our arguments start at input[0].

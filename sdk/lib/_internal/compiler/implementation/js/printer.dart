@@ -16,16 +16,18 @@ class Printer implements NodeVisitor {
   bool pendingSemicolon = false;
   bool pendingSpace = false;
 
-  Printer(leg.Compiler compiler)
+  Printer(leg.Compiler compiler, { allowVariableMinification: true })
       : shouldCompressOutput = compiler.enableMinification,
         this.compiler = compiler,
         outBuffer = new leg.CodeBuffer(),
         danglingElseVisitor = new DanglingElseVisitor(compiler),
-        namer = determineRenamer(compiler.enableMinification);
+        namer = determineRenamer(compiler.enableMinification,
+                                 allowVariableMinification);
 
-  static Namer determineRenamer(bool shouldCompressOutput) {
-    // TODO(erikcorry): Re-enable the MinifyRenamer after M1.
-    return new IdentityNamer();
+  static Namer determineRenamer(bool shouldCompressOutput,
+                                bool allowVariableMinification) {
+    return (shouldCompressOutput && allowVariableMinification)
+        ? new MinifyRenamer() : new IdentityNamer();
   }
 
   void spaceOut() {
@@ -932,9 +934,11 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
 }
 
 
-leg.CodeBuffer prettyPrint(Node node,
-                           leg.Compiler compiler) {
-  Printer printer = new Printer(compiler);
+leg.CodeBuffer prettyPrint(Node node, leg.Compiler compiler,
+                           { allowVariableMinification: true }) {
+  Printer printer =
+      new Printer(compiler,
+                  allowVariableMinification: allowVariableMinification);
   printer.visit(node);
   return printer.outBuffer;
 }
