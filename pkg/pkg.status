@@ -9,6 +9,8 @@
 # arithmetic natively, i.e., the VM.
 fixnum/test/int_64_vm_test: Skip
 
+http/test/http_test: Skip # Issue 6521, test is flaky
+
 [$compiler == dart2dart]
 *: Skip
 
