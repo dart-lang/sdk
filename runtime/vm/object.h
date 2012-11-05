@@ -425,6 +425,10 @@ class Object {
   friend void RawObject::Validate(Isolate* isolate) const;
   friend class Closure;
   friend class SnapshotReader;
+  friend class OneByteString;
+  friend class TwoByteString;
+  friend class ExternalOneByteString;
+  friend class ExternalTwoByteString;
 
   // Disallow allocation.
   void* operator new(size_t size);
