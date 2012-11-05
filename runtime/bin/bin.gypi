@@ -260,6 +260,7 @@
         'generate_json_cc_file',
         'generate_uri_cc_file',
         'generate_utf_cc_file',
+        'nss',
       ],
       'include_dirs': [
         '..',
@@ -300,6 +301,28 @@
             ],
           },
         }],
+      ],
+    },
+    {
+      'target_name': 'nss',
+      'type': 'none',
+      'dependencies': [
+        'bin/net/nss.gyp:nss',
+        'bin/net/nss.gyp:nspr',
+        'bin/net/nss.gyp:nssckbi',
+        'bin/net/nss.gyp:nss_static',
+        'bin/net/ssl.gyp:libssl',
+        'bin/net/zlib.gyp:zlib',
+        'bin/net/sqlite.gyp:sqlite',
+      ],
+      'export_dependent_settings': [
+        'bin/net/nss.gyp:nss',
+        'bin/net/nss.gyp:nspr',
+        'bin/net/nss.gyp:nssckbi',
+        'bin/net/nss.gyp:nss_static',
+        'bin/net/ssl.gyp:libssl',
+        'bin/net/zlib.gyp:zlib',
+        'bin/net/sqlite.gyp:sqlite',
       ],
     },
     {
