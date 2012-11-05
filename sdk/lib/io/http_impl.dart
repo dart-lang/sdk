@@ -1144,12 +1144,13 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
       for (int i = 0; i < cookies.length; i++) {
         if (cookies[i].name.toUpperCase() == _DART_SESSION_ID) {
           cookies[i].value = session.id;
+          cookies[i].httpOnly = true;
           found = true;
           break;
         }
       }
       if (!found) {
-        cookies.add(new Cookie(_DART_SESSION_ID, session.id));
+        cookies.add(new Cookie(_DART_SESSION_ID, session.id)..httpOnly = true);
       }
     }
     // Add all the cookies set to the headers.
