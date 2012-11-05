@@ -92,15 +92,15 @@ abstract class ConcreteType {
 
   factory ConcreteType.unknown() => const UnknownConcreteType();
 
-  abstract ConcreteType union(ConcreteType other);
-  abstract bool isUnkown();
-  abstract Set<BaseType> get baseTypes;
+  ConcreteType union(ConcreteType other);
+  bool isUnkown();
+  Set<BaseType> get baseTypes;
 
   /**
    * Returns the unique element of [: this :] if [: this :] is a singleton,
    * null otherwise.
    */
-  abstract ClassElement getUniqueType();
+  ClassElement getUniqueType();
 }
 
 /**

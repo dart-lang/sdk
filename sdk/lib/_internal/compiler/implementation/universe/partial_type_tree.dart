@@ -26,7 +26,7 @@ abstract class PartialTypeTree {
 
   PartialTypeTree(this.compiler);
 
-  abstract PartialTypeTreeNode newSpecializedNode(ClassElement type);
+  PartialTypeTreeNode newSpecializedNode(ClassElement type);
 
   PartialTypeTreeNode newNode(ClassElement type) {
     PartialTypeTreeNode node = newSpecializedNode(type);

@@ -53,16 +53,16 @@ abstract class ResolvedVisitor<R> extends Visitor<R> {
     }
   }
 
-  abstract R visitSuperSend(Send node);
-  abstract R visitOperatorSend(Send node);
-  abstract R visitGetterSend(Send node);
-  abstract R visitClosureSend(Send node);
-  abstract R visitDynamicSend(Send node);
-  abstract R visitForeignSend(Send node);
-  abstract R visitStaticSend(Send node);
+  R visitSuperSend(Send node);
+  R visitOperatorSend(Send node);
+  R visitGetterSend(Send node);
+  R visitClosureSend(Send node);
+  R visitDynamicSend(Send node);
+  R visitForeignSend(Send node);
+  R visitStaticSend(Send node);
   abstract R visitTypeReferenceSend(Send node);
 
-  abstract void internalError(String reason, {Node node});
+  void internalError(String reason, {Node node});
 
   R visitNode(Node node) {
     internalError("Unhandled node", node: node);

@@ -13,7 +13,7 @@ class ByteString implements SourceString {
 
   ByteString(List<int> this.bytes, int this.offset, int this.length);
 
-  abstract String get charset;
+  String get charset;
 
   String slowToString() => new String.fromCharCodes(
       new Utf8Decoder(bytes, offset, length).decodeRest());

@@ -69,7 +69,7 @@ abstract class BinaryBitOperation implements BinaryOperation {
     return null;
   }
 
-  abstract int foldInts(int left, int right);
+  int foldInts(int left, int right);
 }
 
 class BitOrOperation extends BinaryBitOperation {
@@ -128,7 +128,7 @@ abstract class BinaryBoolOperation implements BinaryOperation {
     return null;
   }
 
-  abstract bool foldBools(bool left, bool right);
+  bool foldBools(bool left, bool right);
 }
 
 class BooleanAndOperation extends BinaryBoolOperation {
@@ -172,7 +172,7 @@ abstract class ArithmeticNumOperation implements BinaryOperation {
 
   bool isDivide() => false;
   num foldInts(int left, int right) => foldNums(left, right);
-  abstract num foldNums(num left, num right);
+  num foldNums(num left, num right);
 }
 
 class SubtractOperation extends ArithmeticNumOperation {
@@ -254,7 +254,7 @@ abstract class RelationalNumOperation implements BinaryOperation {
     }
   }
 
-  abstract bool foldNums(num left, num right);
+  bool foldNums(num left, num right);
 }
 
 class LessOperation extends RelationalNumOperation {

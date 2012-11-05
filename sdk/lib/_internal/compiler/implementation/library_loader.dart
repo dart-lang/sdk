@@ -20,12 +20,12 @@ abstract class LibraryLoader extends CompilerTask {
    *
    * This is the main entry point for [LibraryLoader].
    */
-  abstract LibraryElement loadLibrary(Uri uri, Node node, Uri canonicalUri);
+  LibraryElement loadLibrary(Uri uri, Node node, Uri canonicalUri);
 
   // TODO(johnniwinther): Remove this when patches don't need special parsing.
-  abstract void registerLibraryFromTag(LibraryDependencyHandler handler,
-                                       LibraryElement library,
-                                       LibraryDependency tag);
+  void registerLibraryFromTag(LibraryDependencyHandler handler,
+                              LibraryElement library,
+                              LibraryDependency tag);
 
   /**
    * Adds the elements in the export scope of [importedLibrary] to the import
@@ -33,9 +33,9 @@ abstract class LibraryLoader extends CompilerTask {
    */
   // TODO(johnniwinther): Move handling of 'js_helper' to the library loader
   // to remove this method from the [LibraryLoader] interface.
-  abstract void importLibrary(LibraryElement importingLibrary,
-                              LibraryElement importedLibrary,
-                              Import tag);
+  void importLibrary(LibraryElement importingLibrary,
+                     LibraryElement importedLibrary,
+                     Import tag);
 }
 
 /**

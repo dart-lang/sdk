@@ -398,7 +398,7 @@ class _WorkerStub implements _ManagerStub native "*Worker" {
   void set onmessage(f) { JS("void", "#.onmessage = #", this, f); }
   void postMessage(msg) => JS("Object", "#.postMessage(#)", this, msg);
   // terminate() is implemented by Worker.
-  abstract void terminate();
+  void terminate();
 }
 
 const String _SPAWNED_SIGNAL = "spawned";
@@ -648,9 +648,9 @@ class _BaseSendPort implements SendPort {
     return completer.future;
   }
 
-  abstract void send(var message, [SendPort replyTo]);
-  abstract bool operator ==(var other);
-  abstract int get hashCode;
+  void send(var message, [SendPort replyTo]);
+  bool operator ==(var other);
+  int get hashCode;
 }
 
 /** A send port that delivers messages in-memory via native JavaScript calls. */
@@ -1078,11 +1078,11 @@ class _MessageTraverser {
     return visitObject(x);
   }
 
-  abstract visitPrimitive(x);
-  abstract visitList(List x);
-  abstract visitMap(Map x);
-  abstract visitSendPort(SendPort x);
-  abstract visitSendPortSync(SendPortSync x);
+  visitPrimitive(x);
+  visitList(List x);
+  visitMap(Map x);
+  visitSendPort(SendPort x);
+  visitSendPortSync(SendPortSync x);
 
   visitObject(Object x) {
     // TODO(floitsch): make this a real exception. (which one)?
@@ -1233,7 +1233,7 @@ class _Deserializer {
     return result;
   }
 
-  abstract deserializeSendPort(List x);
+  deserializeSendPort(List x);
 
   deserializeObject(List x) {
     // TODO(floitsch): Use real exception (which one?).

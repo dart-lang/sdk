@@ -1280,7 +1280,7 @@ abstract class TypeDeclarationElement implements Element {
    */
   // TODO(johnniwinther): Find a (better) way to decouple [typeVariables] from
   // [Compiler].
-  abstract Link<DartType> get typeVariables;
+  Link<DartType> get typeVariables;
 
   /**
    * Creates the type variables, their type and corresponding element, for the
@@ -1332,7 +1332,7 @@ abstract class ClassElement extends ScopeContainerElement
       resolutionState = initialState,
       super(name, ElementKind.CLASS, enclosing);
 
-  abstract ClassNode parseNode(Compiler compiler);
+  ClassNode parseNode(Compiler compiler);
 
   InterfaceType computeType(compiler) {
     if (type == null) {
@@ -1948,7 +1948,7 @@ abstract class MetadataAnnotation {
    * The compile-time constant which this annotation resolves to.
    * In the mirror system, this would be an object mirror.
    */
-  abstract Constant get value;
+  Constant get value;
   Element annotatedElement;
   int resolutionState;
 

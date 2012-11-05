@@ -438,19 +438,19 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return jsNode;
   }
 
-  abstract visitTypeGuard(HTypeGuard node);
-  abstract visitBailoutTarget(HBailoutTarget node);
+  visitTypeGuard(HTypeGuard node);
+  visitBailoutTarget(HBailoutTarget node);
 
-  abstract beginGraph(HGraph graph);
-  abstract endGraph(HGraph graph);
+  beginGraph(HGraph graph);
+  endGraph(HGraph graph);
 
-  abstract beginLoop(HBasicBlock block);
-  abstract endLoop(HBasicBlock block);
-  abstract handleLoopCondition(HLoopBranch node);
+  beginLoop(HBasicBlock block);
+  endLoop(HBasicBlock block);
+  handleLoopCondition(HLoopBranch node);
 
-  abstract preLabeledBlock(HLabeledBlockInformation labeledBlockInfo);
-  abstract startLabeledBlock(HLabeledBlockInformation labeledBlockInfo);
-  abstract endLabeledBlock(HLabeledBlockInformation labeledBlockInfo);
+  preLabeledBlock(HLabeledBlockInformation labeledBlockInfo);
+  startLabeledBlock(HLabeledBlockInformation labeledBlockInfo);
+  endLabeledBlock(HLabeledBlockInformation labeledBlockInfo);
 
   void preGenerateMethod(HGraph graph) {
     new SsaInstructionMerger(types, generateAtUseSite).visitGraph(graph);

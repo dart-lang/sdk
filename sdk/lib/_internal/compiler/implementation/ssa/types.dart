@@ -94,7 +94,7 @@ abstract class HType {
   /** Alias for isReadableArray. */
   bool isArray() => isReadableArray();
 
-  abstract DartType computeType(Compiler compiler);
+  DartType computeType(Compiler compiler);
 
   /**
    * The intersection of two types is the intersection of its values. For
@@ -109,7 +109,7 @@ abstract class HType {
    * An intersection with [UNKNOWN] returns the non-UNKNOWN type. An
    * intersection with [CONFLICTING] returns [CONFLICTING].
    */
-  abstract HType intersection(HType other, Compiler compiler);
+  HType intersection(HType other, Compiler compiler);
 
   /**
    * The union of two types is the union of its values. For example:
@@ -123,7 +123,7 @@ abstract class HType {
    * A union with [UNKNOWN] returns [UNKNOWN].
    * A union of [CONFLICTING] with any other types returns the other type.
    */
-  abstract HType union(HType other, Compiler compiler);
+  HType union(HType other, Compiler compiler);
 }
 
 /** Used to represent [HType.UNKNOWN] and [HType.CONFLICTING]. */

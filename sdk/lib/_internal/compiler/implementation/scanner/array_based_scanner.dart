@@ -181,5 +181,5 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
   }
 
   // TODO(ahe): make class abstract instead of adding an abstract method.
-  abstract peek();
+  peek();
 }

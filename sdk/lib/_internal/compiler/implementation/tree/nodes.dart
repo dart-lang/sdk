@@ -7,7 +7,7 @@ part of tree;
 abstract class Visitor<R> {
   const Visitor();
 
-  abstract R visitNode(Node node);
+  R visitNode(Node node);
 
   R visitBlock(Block node) => visitStatement(node);
   R visitBreakStatement(BreakStatement node) => visitGotoStatement(node);
@@ -110,9 +110,9 @@ abstract class Node extends TreeElementMixin implements Spannable {
 
   Node() : hashCode = ++_HASH_COUNTER;
 
-  abstract accept(Visitor visitor);
+  accept(Visitor visitor);
 
-  abstract visitChildren(Visitor visitor);
+  visitChildren(Visitor visitor);
 
   /**
    * Returns this node unparsed to Dart source string.
@@ -128,9 +128,9 @@ abstract class Node extends TreeElementMixin implements Spannable {
 
   String getObjectDescription() => super.toString();
 
-  abstract Token getBeginToken();
+  Token getBeginToken();
 
-  abstract Token getEndToken();
+  Token getEndToken();
 
   Block asBlock() => null;
   BreakStatement asBreakStatement() => null;
@@ -241,7 +241,7 @@ abstract class Expression extends Node {
   Expression asExpression() => this;
 
   // TODO(ahe): make class abstract instead of adding an abstract method.
-  abstract accept(Visitor visitor);
+  accept(Visitor visitor);
 }
 
 abstract class Statement extends Node {
@@ -250,7 +250,7 @@ abstract class Statement extends Node {
   Statement asStatement() => this;
 
   // TODO(ahe): make class abstract instead of adding an abstract method.
-  abstract accept(Visitor visitor);
+  accept(Visitor visitor);
 
   bool isValidBreakTarget() => true;
 }
@@ -665,7 +665,7 @@ abstract class Literal<T> extends Expression {
 
   Literal(Token this.token, DecodeErrorHandler this.handler);
 
-  abstract T get value;
+  T get value;
 
   visitChildren(Visitor visitor) {}
 
@@ -799,8 +799,8 @@ class StringQuoting {
   * Superclass for classes representing string literals.
   */
 abstract class StringNode extends Expression {
-  abstract DartString get dartString;
-  abstract bool get isInterpolation;
+  DartString get dartString;
+  bool get isInterpolation;
 
   StringNode asStringNode() => this;
 }
@@ -1032,7 +1032,7 @@ class VariableDefinitions extends Statement {
 }
 
 abstract class Loop extends Statement {
-  abstract Expression get condition;
+  Expression get condition;
   final Statement body;
 
   Loop(this.body);
@@ -1502,7 +1502,7 @@ abstract class GotoStatement extends Statement {
   Token getEndToken() => semicolonToken;
 
   // TODO(ahe): make class abstract instead of adding an abstract method.
-  abstract accept(Visitor visitor);
+  accept(Visitor visitor);
 }
 
 class BreakStatement extends GotoStatement {

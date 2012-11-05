@@ -95,13 +95,13 @@ abstract class HGraphVisitor {
     visitBasicBlockAndSuccessors(graph.entry);
   }
 
-  abstract visitBasicBlock(HBasicBlock block);
+  visitBasicBlock(HBasicBlock block);
 }
 
 abstract class HInstructionVisitor extends HGraphVisitor {
   HBasicBlock currentBlock;
 
-  abstract visitInstruction(HInstruction node);
+  visitInstruction(HInstruction node);
 
   visitBasicBlock(HBasicBlock node) {
     void visitInstructionList(HInstructionList list) {
@@ -976,7 +976,7 @@ abstract class HInstruction implements Spannable {
   bool typeEquals(HInstruction other) => false;
   bool dataEquals(HInstruction other) => false;
 
-  abstract accept(HVisitor visitor);
+  accept(HVisitor visitor);
 
   void notifyAddedToBlock(HBasicBlock targetBlock) {
     assert(!isInBasicBlock());
@@ -1284,12 +1284,12 @@ abstract class HConditionalBranch extends HControlFlow {
   HInstruction get condition => inputs[0];
   HBasicBlock get trueBranch => block.successors[0];
   HBasicBlock get falseBranch => block.successors[1];
-  abstract toString();
+  toString();
 }
 
 abstract class HControlFlow extends HInstruction {
   HControlFlow(inputs) : super(inputs);
-  abstract toString();
+  toString();
   void prepareGvn(HTypeMap types) {
     // Control flow does not have side-effects.
   }
@@ -1307,7 +1307,7 @@ abstract class HInvoke extends HInstruction {
   static const int ARGUMENTS_OFFSET = 1;
 
   // TODO(floitsch): make class abstract instead of adding an abstract method.
-  abstract accept(HVisitor visitor);
+  accept(HVisitor visitor);
 }
 
 abstract class HInvokeDynamic extends HInvoke {
@@ -1320,7 +1320,7 @@ abstract class HInvokeDynamic extends HInvoke {
   HInstruction get receiver => inputs[0];
 
   // TODO(floitsch): make class abstract instead of adding an abstract method.
-  abstract accept(HVisitor visitor);
+  accept(HVisitor visitor);
 }
 
 class HInvokeClosure extends HInvokeDynamic {
@@ -1345,7 +1345,7 @@ abstract class HInvokeDynamicField extends HInvokeDynamic {
   toString() => 'invoke dynamic field: $selector';
 
   // TODO(floitsch): make class abstract instead of adding an abstract method.
-  abstract accept(HVisitor visitor);
+  accept(HVisitor visitor);
 }
 
 class HInvokeDynamicGetter extends HInvokeDynamicField {
@@ -1624,8 +1624,8 @@ abstract class HInvokeBinary extends HInvokeStatic {
   HInstruction get left => inputs[1];
   HInstruction get right => inputs[2];
 
-  abstract BinaryOperation operation(ConstantSystem constantSystem);
-  abstract isBuiltin(HTypeMap types);
+  BinaryOperation operation(ConstantSystem constantSystem);
+  isBuiltin(HTypeMap types);
 }
 
 abstract class HBinaryArithmetic extends HInvokeBinary {
@@ -1685,7 +1685,7 @@ abstract class HBinaryArithmetic extends HInvokeBinary {
     return HType.UNKNOWN;
   }
 
-  abstract BinaryOperation operation(ConstantSystem constantSystem);
+  BinaryOperation operation(ConstantSystem constantSystem);
 }
 
 class HAdd extends HBinaryArithmetic {
@@ -1829,7 +1829,7 @@ abstract class HBinaryBitOp extends HBinaryArithmetic {
   }
 
   // TODO(floitsch): make class abstract instead of adding an abstract method.
-  abstract accept(HVisitor visitor);
+  accept(HVisitor visitor);
 }
 
 class HShiftLeft extends HBinaryBitOp {
@@ -1945,7 +1945,7 @@ abstract class HInvokeUnary extends HInvokeStatic {
 
   HType computeLikelyType(HTypeMap types, Compiler compiler) => HType.NUMBER;
 
-  abstract UnaryOperation operation(ConstantSystem constantSystem);
+  UnaryOperation operation(ConstantSystem constantSystem);
 }
 
 class HNegate extends HInvokeUnary {
@@ -2290,7 +2290,7 @@ abstract class HRelational extends HInvokeBinary {
   bool isBuiltin(HTypeMap types)
       => left.isNumber(types) && right.isNumber(types);
   // TODO(1603): the class should be marked as abstract.
-  abstract BinaryOperation operation(ConstantSystem constantSystem);
+  BinaryOperation operation(ConstantSystem constantSystem);
 }
 
 class HEquals extends HRelational {

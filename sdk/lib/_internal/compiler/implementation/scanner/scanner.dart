@@ -12,8 +12,8 @@ abstract class Scanner {
  * Common base class for a Dart scanner.
  */
 abstract class AbstractScanner<T extends SourceString> implements Scanner {
-  abstract int advance();
-  abstract int nextByte();
+  int advance();
+  int nextByte();
 
   /**
    * Returns the current character or byte depending on the underlying input
@@ -21,7 +21,7 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
    * characters (Unicode codepoints represented as int) whereas
    * [ByteArrayScanner] operates on byte arrays and thus returns bytes.
    */
-  abstract int peek();
+  int peek();
 
   /**
    * Appends a fixed token based on whether the current char is [choice] or not.
@@ -29,30 +29,30 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
    * is determined by [yes] is appended, otherwise a fixed token whose kind
    * and content is determined by [no] is appended.
    */
-  abstract int select(int choice, PrecedenceInfo yes, PrecedenceInfo no);
+  int select(int choice, PrecedenceInfo yes, PrecedenceInfo no);
 
   /**
    * Appends a fixed token whose kind and content is determined by [info].
    */
-  abstract void appendPrecedenceToken(PrecedenceInfo info);
+  void appendPrecedenceToken(PrecedenceInfo info);
 
   /**
    * Appends a token whose kind is determined by [info] and content is [value].
    */
-  abstract void appendStringToken(PrecedenceInfo info, String value);
+  void appendStringToken(PrecedenceInfo info, String value);
 
   /**
    * Appends a token whose kind is determined by [info] and content is defined
    * by the SourceString [value].
    */
-  abstract void appendByteStringToken(PrecedenceInfo info, T value);
+  void appendByteStringToken(PrecedenceInfo info, T value);
 
   /**
    * Appends a keyword token whose kind is determined by [keyword].
    */
-  abstract void appendKeywordToken(Keyword keyword);
-  abstract void appendWhiteSpace(int next);
-  abstract void appendEofToken();
+  void appendKeywordToken(Keyword keyword);
+  void appendWhiteSpace(int next);
+  void appendEofToken();
 
   /**
    * Creates an ASCII SourceString whose content begins at the source byte
@@ -61,20 +61,20 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
    * [:asciiString(0,-1):] creates an ASCII SourceString whose content is found
    * at the [0,9[ byte interval of the source text.
    */
-  abstract T asciiString(int start, int offset);
-  abstract T utf8String(int start, int offset);
-  abstract Token firstToken();
-  abstract Token previousToken();
-  abstract void beginToken();
-  abstract void addToCharOffset(int offset);
-  abstract int get charOffset;
-  abstract int get byteOffset;
-  abstract void appendBeginGroup(PrecedenceInfo info, String value);
-  abstract int appendEndGroup(PrecedenceInfo info, String value, int openKind);
-  abstract void appendGt(PrecedenceInfo info, String value);
-  abstract void appendGtGt(PrecedenceInfo info, String value);
-  abstract void appendGtGtGt(PrecedenceInfo info, String value);
-  abstract void appendComment();
+  T asciiString(int start, int offset);
+  T utf8String(int start, int offset);
+  Token firstToken();
+  Token previousToken();
+  void beginToken();
+  void addToCharOffset(int offset);
+  int get charOffset;
+  int get byteOffset;
+  void appendBeginGroup(PrecedenceInfo info, String value);
+  int appendEndGroup(PrecedenceInfo info, String value, int openKind);
+  void appendGt(PrecedenceInfo info, String value);
+  void appendGtGt(PrecedenceInfo info, String value);
+  void appendGtGtGt(PrecedenceInfo info, String value);
+  void appendComment();
 
   /**
    * We call this method to discard '<' from the "grouping" stack
@@ -88,7 +88,7 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
    * something which cannot possibly be part of a type
    * parameter/argument list.
    */
-  abstract void discardOpenLt();
+  void discardOpenLt();
 
   // TODO(ahe): Move this class to implementation.
 

@@ -42,11 +42,11 @@ abstract class Constant {
   bool isNaN() => false;
   bool isMinusZero() => false;
 
-  abstract DartType computeType(Compiler compiler);
+  DartType computeType(Compiler compiler);
 
-  abstract List<Constant> getDependencies();
+  List<Constant> getDependencies();
 
-  abstract accept(ConstantVisitor);
+  accept(ConstantVisitor);
 }
 
 class SentinelConstant extends Constant {
@@ -93,7 +93,7 @@ class FunctionConstant extends Constant {
 }
 
 abstract class PrimitiveConstant extends Constant {
-  abstract get value;
+  get value;
   const PrimitiveConstant();
   bool isPrimitive() => true;
 
@@ -107,7 +107,7 @@ abstract class PrimitiveConstant extends Constant {
   String toString() => value.toString();
   // Primitive constants don't have dependencies.
   List<Constant> getDependencies() => const <Constant>[];
-  abstract DartString toDartString();
+  DartString toDartString();
 }
 
 class NullConstant extends PrimitiveConstant {
@@ -135,7 +135,7 @@ class NullConstant extends PrimitiveConstant {
 }
 
 abstract class NumConstant extends PrimitiveConstant {
-  abstract num get value;
+  num get value;
   const NumConstant();
   bool isNum() => true;
 }
@@ -240,7 +240,7 @@ abstract class BoolConstant extends PrimitiveConstant {
     return compiler.boolClass.computeType(compiler);
   }
 
-  abstract BoolConstant negate();
+  BoolConstant negate();
 }
 
 class TrueConstant extends BoolConstant {
@@ -318,7 +318,7 @@ abstract class ObjectConstant extends Constant {
 
   // TODO(1603): The class should be marked as abstract, but the VM doesn't
   // currently allow this.
-  abstract int get hashCode;
+  int get hashCode;
 }
 
 class ListConstant extends ObjectConstant {

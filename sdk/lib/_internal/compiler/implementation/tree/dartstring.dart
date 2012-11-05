@@ -26,10 +26,10 @@ abstract class DartString implements Iterable<int> {
     return new ConsDartString(first, second);
   }
   const DartString();
-  abstract int get length;
+  int get length;
   bool get isEmpty => length == 0;
-  abstract Iterator<int> iterator();
-  abstract String slowToString();
+  Iterator<int> iterator();
+  String slowToString();
 
   bool operator ==(var other) {
     if (other is !DartString) return false;
@@ -43,7 +43,7 @@ abstract class DartString implements Iterable<int> {
     return true;
   }
   String toString() => "DartString#${length}:${slowToString()}";
-  abstract SourceString get source;
+  SourceString get source;
 }
 
 
@@ -67,7 +67,7 @@ abstract class SourceBasedDartString extends DartString {
   final SourceString source;
   final int length;
   SourceBasedDartString(this.source, this.length);
-  abstract Iterator<int> iterator();
+  Iterator<int> iterator();
 }
 
 /**

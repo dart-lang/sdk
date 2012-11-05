@@ -72,12 +72,12 @@ abstract class Backend {
     });
   }
 
-  abstract void enqueueHelpers(Enqueuer world);
-  abstract void codegen(WorkItem work);
-  abstract void processNativeClasses(Enqueuer world,
-                                     Collection<LibraryElement> libraries);
-  abstract void assembleProgram();
-  abstract List<CompilerTask> get tasks;
+  void enqueueHelpers(Enqueuer world);
+  void codegen(WorkItem work);
+  void processNativeClasses(Enqueuer world,
+                            Collection<LibraryElement> libraries);
+  void assembleProgram();
+  List<CompilerTask> get tasks;
 
   // TODO(ahe,karlklose): rename this?
   void dumpInferredTypes() {}
@@ -88,7 +88,7 @@ abstract class Backend {
 
   SourceString getCheckedModeHelper(DartType type) => null;
 
-  abstract Element getInterceptor(Selector selector);
+  Element getInterceptor(Selector selector);
 }
 
 abstract class Compiler implements DiagnosticListener {
@@ -384,7 +384,7 @@ abstract class Compiler implements DiagnosticListener {
     }
   }
 
-  abstract LibraryElement scanBuiltinLibrary(String filename);
+  LibraryElement scanBuiltinLibrary(String filename);
 
   void initializeSpecialClasses() {
     bool coreLibValid = true;
@@ -460,7 +460,7 @@ abstract class Compiler implements DiagnosticListener {
    * Get an [Uri] pointing to a patch for the dart: library with
    * the given path. Returns null if there is no patch.
    */
-  abstract Uri resolvePatchUri(String dartLibraryPath);
+  Uri resolvePatchUri(String dartLibraryPath);
 
   /** Define the JS helper functions in the given library. */
   void addForeignFunctions(LibraryElement library) {
@@ -752,8 +752,7 @@ abstract class Compiler implements DiagnosticListener {
     reportDiagnostic(span, "$message", kind);
   }
 
-  abstract void reportDiagnostic(SourceSpan span, String message,
-                                 api.Diagnostic kind);
+  void reportDiagnostic(SourceSpan span, String message, api.Diagnostic kind);
 
   SourceSpan spanFromTokens(Token begin, Token end, [Uri uri]) {
     if (begin == null || end == null) {

@@ -42,9 +42,9 @@ class TypeKind {
 }
 
 abstract class DartType {
-  abstract SourceString get name;
+  SourceString get name;
 
-  abstract TypeKind get kind;
+  TypeKind get kind;
 
   const DartType();
 
@@ -57,7 +57,7 @@ abstract class DartType {
    *
    * Invariant: [element] must be a declaration element.
    */
-  abstract Element get element;
+  Element get element;
 
   /**
    * Returns the unaliased type of this type.
@@ -69,9 +69,9 @@ abstract class DartType {
    * function type [: (B) -> A :] and the unaliased type of
    * [: Func<int,String> :] is the function type [: (String) -> int :].
    */
-  abstract DartType unalias(Compiler compiler);
+  DartType unalias(Compiler compiler);
 
-  abstract bool operator ==(other);
+  bool operator ==(other);
 
   DartType asRaw() => this;
 }

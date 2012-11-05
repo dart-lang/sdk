@@ -147,8 +147,8 @@ abstract class Node {
   var sourcePosition;
   var endSourcePosition;
 
-  abstract accept(NodeVisitor visitor);
-  abstract void visitChildren(NodeVisitor visitor);
+  accept(NodeVisitor visitor);
+  void visitChildren(NodeVisitor visitor);
 }
 
 class Program extends Node {
@@ -428,7 +428,7 @@ class LiteralStatement extends Statement {
 }
 
 abstract class Expression extends Node {
-  abstract int get precedenceLevel;
+  int get precedenceLevel;
 }
 
 class LiteralExpression extends Expression {
@@ -645,7 +645,7 @@ abstract class VariableReference extends Expression {
   // referenced like other variables.
   VariableReference(this.name);
 
-  abstract accept(NodeVisitor visitor);
+  accept(NodeVisitor visitor);
   int get precedenceLevel => PRIMARY;
   void visitChildren(NodeVisitor visitor) {}
 }

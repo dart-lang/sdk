@@ -9,12 +9,12 @@ abstract class Scope {
    * Adds [element] to this scope. This operation is only allowed on mutable
    * scopes such as [MethodScope] and [BlockScope].
    */
-  abstract Element add(Element element);
+  Element add(Element element);
 
   /**
    * Looks up the [Element] for [name] in this scope.
    */
-  abstract Element lookup(SourceString name);
+  Element lookup(SourceString name);
 
   static Scope buildEnclosingScope(Element element) {
     return element.enclosingElement != null
@@ -33,7 +33,7 @@ abstract class NestedScope extends Scope {
     return parent.lookup(name);
   }
 
-  abstract Element localLookup(SourceString name);
+  Element localLookup(SourceString name);
 
   static Scope buildEnclosingScope(Element element) {
     return element.enclosingElement != null

@@ -125,9 +125,9 @@ class Keyword implements SourceString {
  * Abstract state in a state machine for scanning keywords.
  */
 abstract class KeywordState {
-  abstract bool isLeaf();
-  abstract KeywordState next(int c);
-  abstract Keyword get keyword;
+  bool isLeaf();
+  KeywordState next(int c);
+  Keyword get keyword;
 
   static KeywordState _KEYWORD_STATE;
   static KeywordState get KEYWORD_STATE {

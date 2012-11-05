@@ -24,8 +24,8 @@ abstract class Renamable {
     return typeDiff != 0 ? typeDiff : compareInternals(other);
   }
 
-  abstract int compareInternals(Renamable other);
-  abstract int getTypeId();
+  int compareInternals(Renamable other);
+  int getTypeId();
 
   String rename() => renamer(this);
 }
