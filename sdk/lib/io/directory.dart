@@ -141,6 +141,12 @@ abstract class Directory {
 /**
  * A [DirectoryLister] represents an actively running listing operation.
  *
+ * A [DirectoryLister] is obtained from a [Directory] object by calling
+ * the [:Directory.list:] method.
+ *
+ *     Directory dir = new Directory('path/to/my/dir');
+ *     DirectoryLister lister = dir.list();
+ *
  * For each file and directory, the file or directory handler is
  * called. When all directories have been listed the done handler is
  * called. If the listing operation is recursive, the error handler is
