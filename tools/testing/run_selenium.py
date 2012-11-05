@@ -319,13 +319,13 @@ def run_batch_tests():
     sys.stdin.close()
     print("Closing browser");
 
-    def close_output_streams:
+    def close_output_streams():
       sys.stdout.flush()
       sys.stdout.close()
       sys.stderr.flush()
       sys.stderr.close()
 
-    def close_and_exit:
+    def close_and_exit():
       print("Timed out waiting for browser to close")
       close_output_streams()
       exit(1)
