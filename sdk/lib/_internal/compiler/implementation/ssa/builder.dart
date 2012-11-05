@@ -3118,7 +3118,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
-  HConstant addConstantString(Identifier node, String string) {
+  HConstant addConstantString(Node node, String string) {
     DartString dartString = new DartString.literal(string);
     Constant constant = constantSystem.createString(dartString, node);
     return graph.addConstant(constant);
