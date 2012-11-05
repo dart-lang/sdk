@@ -943,7 +943,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           if (initialization != null) {
             int delayedVariablesCount = collectedVariableDeclarations.length;
             jsInitialization = generateExpression(initialization);
-            if (!shouldGroupVarDeclarations && 
+            if (!shouldGroupVarDeclarations &&
                 delayedVariablesCount < collectedVariableDeclarations.length) {
               // We just added a new delayed variable-declaration. See if we
               // can put in a 'var' in front of the initialization to make it
@@ -1217,7 +1217,9 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    * Sequentialize a list of conceptually parallel copies. Parallel
    * copies may contain cycles, that this method breaks.
    */
-  void sequentializeCopies(List<Copy> copies) {
+  void sequentializeCopies(List<Copy> copies,
+                           String tempName,
+                           void doAssignment(String target, String source)) {
     // Map to keep track of the current location (ie the variable that
     // holds the initial value) of a variable.
     Map<String, String> currentLocation = new Map<String, String>();
@@ -1235,10 +1237,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // Prune [copies] by removing self-copies.
     List<Copy> prunedCopies = <Copy>[];
     for (Copy copy in copies) {
-      String sourceName = variableNames.getName(copy.source);
-      String destinationName = variableNames.getName(copy.destination);
-      if (sourceName != destinationName) {
-        prunedCopies.add(new Copy(sourceName, destinationName));
+      if (copy.source != copy.destination) {
+        prunedCopies.add(copy);
       }
     }
     copies = prunedCopies;
@@ -1268,7 +1268,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // Since [source] might have been updated, use the current
         // location of [source]
         String copy = currentLocation[source];
-        emitAssignment(destination, copy);
+        doAssignment(destination, copy);
         // Now [destination] is the current location of [source].
         currentLocation[source] = destination;
         // If [source] hasn't been updated and needs to have a value,
@@ -1286,8 +1286,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // cycle that we break by using a temporary name.
       if (currentLocation[current] != null
           && current != currentLocation[initialValue[current]]) {
-        String tempName = variableNames.getSwapTemp();
-        emitAssignment(tempName, current);
+        doAssignment(tempName, current);
         currentLocation[current] = tempName;
         // [current] can now be safely updated. Copies of [current]
         // will now use [tempName].
@@ -1300,7 +1299,13 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     CopyHandler handler = variableNames.getCopyHandler(node);
     if (handler == null) return;
 
-    sequentializeCopies(handler.copies);
+    // Map the instructions to strings.
+    List<Copy> copies = handler.copies.map((Copy copy) {
+      return new Copy(variableNames.getName(copy.source),
+                      variableNames.getName(copy.destination));
+    });
+
+    sequentializeCopies(copies, variableNames.getSwapTemp(), emitAssignment);
 
     for (Copy copy in handler.assignments) {
       String name = variableNames.getName(copy.destination);
@@ -2925,27 +2930,33 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     pushExpressionAsStatement(new js.Assignment(generateStateUse(),
                                                 new js.LiteralNumber('0')));
     js.Block setupBlock = new js.Block.empty();
-    int i = 0;
-    for (HInstruction input in node.inputs) {
+    List<Copy> copies = <Copy>[];
+    for (int i = 0; i < node.inputs.length; i++) {
+      HInstruction input = node.inputs[i];
       input = unwrap(input);
       String name = variableNames.getName(input);
-      if (!isVariableDeclared(name) && !shouldGroupVarDeclarations) {
+      String source = "env$i";
+      copies.add(new Copy(source, name));
+    }
+    sequentializeCopies(copies,
+                        variableNames.getSwapTemp(),
+                        (String target, String source) {
+      if (!isVariableDeclared(target) && !shouldGroupVarDeclarations) {
         js.VariableInitialization init =
-            new js.VariableInitialization(new js.VariableDeclaration(name),
-                                          new js.VariableUse('env$i'));
+            new js.VariableInitialization(new js.VariableDeclaration(target),
+                                          new js.VariableUse(source));
         js.Expression varList =
             new js.VariableDeclarationList(<js.VariableInitialization>[init]);
         setupBlock.statements.add(new js.ExpressionStatement(varList));
       } else {
-        collectedVariableDeclarations.add(name);
-        js.Expression target = new js.VariableUse(name);
-        js.Expression source = new js.VariableUse('env$i');
-        js.Expression assignment = new js.Assignment(target, source);
+        collectedVariableDeclarations.add(target);
+        js.Expression jsTarget = new js.VariableUse(target);
+        js.Expression jsSource = new js.VariableUse(source);
+        js.Expression assignment = new js.Assignment(jsTarget, jsSource);
         setupBlock.statements.add(new js.ExpressionStatement(assignment));
       }
-      declaredLocals.add(name);
-      i++;
-    }
+      declaredLocals.add(target);
+    });
     setupBlock.statements.add(new js.Break(null));
     js.Case setupClause =
         new js.Case(new js.LiteralNumber('${node.state}'), setupBlock);

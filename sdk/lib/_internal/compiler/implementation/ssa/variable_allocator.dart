@@ -447,10 +447,14 @@ class VariableNamer {
   VariableNamer(LiveEnvironment environment, this.names, this.parameterNames)
     : usedNames = new Set<String>(),
       freeTemporaryNames = new List<String>() {
-    // [VariableNames.swapTemp] and [VariableNames.stateName] are being used
-    // throughout the function. Therefore we make sure no one uses it at any
-    // time.
+    // [VariableNames.swapTemp] is used when there is a cycle in a copy handler.
+    // Therefore we make sure no one uses it.
     usedNames.add(names.swapTemp);
+    // [VariableNames.stateName] is being used throughout a bailout function.
+    // Whenever a bailout-target is reached we set the state-variable to 0. We
+    // must therefore not have any local variable that could clash with the
+    // state variable.
+    // Therefore we make sure no one uses it at any time.
     usedNames.add(names.stateName);
 
     // All liveIns instructions must have a name at this point, so we
