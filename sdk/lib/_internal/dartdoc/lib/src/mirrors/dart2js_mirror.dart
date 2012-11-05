@@ -339,10 +339,13 @@ class Dart2JsCompilation implements Compilation {
   Dart2JsCompilation(Path script, Path libraryRoot,
                      [Path packageRoot, List<String> opts = const <String>[]])
       : cwd = getCurrentDirectory(), sourceFiles = <String, SourceFile>{} {
-    var libraryUri = cwd.resolve(libraryRoot.toString());
+    // Ensure that the URI ends with a / an thus is interpreted as a directory.
+    var libraryUri = cwd.resolve(
+        libraryRoot.hasTrailingSeparator ? '$libraryRoot' : '$libraryRoot/');
     var packageUri;
     if (packageRoot != null) {
-      packageUri = cwd.resolve(packageRoot.toString());
+      packageUri = cwd.resolve(
+          libraryRoot.hasTrailingSeparator ? '$packageRoot' : '$packageRoot/');
     } else {
       packageUri = libraryUri;
     }
@@ -356,10 +359,13 @@ class Dart2JsCompilation implements Compilation {
   Dart2JsCompilation.library(List<Path> libraries, Path libraryRoot,
                      [Path packageRoot, List<String> opts = const <String>[]])
       : cwd = getCurrentDirectory(), sourceFiles = <String, SourceFile>{} {
-    var libraryUri = cwd.resolve(libraryRoot.toString());
+    // Ensure that the URI ends with a / an thus is interpreted as a directory.
+    var libraryUri = cwd.resolve(
+        libraryRoot.hasTrailingSeparator ? '$libraryRoot' : '$libraryRoot/');
     var packageUri;
     if (packageRoot != null) {
-      packageUri = cwd.resolve(packageRoot.toString());
+      packageUri = cwd.resolve(
+          libraryRoot.hasTrailingSeparator ? '$packageRoot' : '$packageRoot/');
     } else {
       packageUri = libraryUri;
     }

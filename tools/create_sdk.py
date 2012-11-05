@@ -287,10 +287,6 @@ def Main(argv):
   # Fix up dartdoc.
   # TODO(dgrove): Remove this once sdk and dart-sdk match.
   ReplaceInFiles([join(SDK_tmp, 'lib', '_internal', 'dartdoc',
-                       'lib', 'dartdoc.dart')],
-                 [("_internal/dartdoc/lib/src/client/client",
-                   "lib/_internal/dartdoc/lib/src/client/client")])
-  ReplaceInFiles([join(SDK_tmp, 'lib', '_internal', 'dartdoc', 
                        'bin', 'dartdoc.dart')],
                  [("../../../../../pkg/args/lib/args.dart",
                    "../../../../pkg/args/lib/args.dart")])
