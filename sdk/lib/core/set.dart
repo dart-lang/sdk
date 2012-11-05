@@ -209,7 +209,7 @@ class _HashSetIterator<E> implements Iterator<E> {
 
   bool get hasNext {
     if (_nextValidIndex >= _entries.length) return false;
-    if (_entries[_nextValidIndex] == _HashMapImpl._DELETED_KEY) {
+    if (identical(_entries[_nextValidIndex], _HashMapImpl._DELETED_KEY)) {
       // This happens in case the set was modified in the meantime.
       // A modification on the set may make this iterator misbehave,
       // but we should never return the sentinel.
