@@ -44,6 +44,7 @@
             '--out=<(PRODUCT_DIR)/api_docs',
             '--mode=static',
             '--exclude-lib=webdriver',
+            '--exclude-lib=http',
             '--exclude-lib=dartdoc',
           ],
           'message': 'Running apidoc: <(_action)',
