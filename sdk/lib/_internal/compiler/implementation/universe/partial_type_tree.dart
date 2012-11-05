@@ -62,6 +62,7 @@ abstract class PartialTypeTree {
 
   // TODO(kasperl): Move this to the Selector class?
   ClassElement selectorType(Selector selector) {
+    // TODO(ngeoffray): Should the tree be specialized with DartType?
     DartType type = selector.receiverType;
     if (type == null) return compiler.objectClass;
     if (type.element.isTypedef()) return compiler.functionClass;

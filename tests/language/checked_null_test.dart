@@ -11,7 +11,7 @@ class A {
 }
 
 main() { 
-  Expect.throws(bar, (e) => e is NullPointerException);
+  Expect.throws(bar);
 }
 
 bar() {

@@ -422,7 +422,12 @@ class TypedSelector extends Selector {
       return appliesUntyped(element, compiler);
     }
 
-    ClassElement self = receiverType.element;
+    Element self = receiverType.element;
+    if (self.isTypedef()) {
+      // A typedef is a function type that doesn't have any
+      // user-defined members.
+      return false;
+    }
 
     if (other.implementsInterface(self)
         || other.isSubclassOf(self)
@@ -430,7 +435,9 @@ class TypedSelector extends Selector {
       return appliesUntyped(element, compiler);
     }
 
-    if (!self.isTypedef() && !self.isInterface() && self.isSubclassOf(other)) {
+    // If [self] is a subclass of [other], it inherits the
+    // implementation of [element].
+    if (self.isSubclassOf(other)) {
       // Resolve an invocation of [element.name] on [self]. If it
       // is found, this selector is a candidate.
       return hasElementIn(self, element) && appliesUntyped(element, compiler);
