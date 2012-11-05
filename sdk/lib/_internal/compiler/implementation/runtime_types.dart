@@ -11,6 +11,10 @@ import 'universe/universe.dart';
 import 'util/util.dart';
 
 class RuntimeTypeInformation {
+
+  static final SourceString CACHE_HELPER_NAME =
+      const SourceString('getOrCreateCachedRuntimeType');
+
   /**
    * Names used for elements in runtime type information. This map is kept to
    * detect elements with the same name and use a different name instead.
@@ -64,17 +68,17 @@ class RuntimeTypeInformation {
   /**
    * Generate a string representation template for this element, using '#' to
    * denote the place for the type argument input. If there are more type
-   * variables than [numberOfInputs], 'Dynamic' is used as the value for these
+   * variables than [numberOfInputs], 'dynamic' is used as the value for these
    * arguments.
    */
   String generateRuntimeTypeString(ClassElement element, int numberOfInputs) {
     String elementName = getName(element);
-    if (element.typeVariables.isEmpty) return "'$elementName'";
-    String stringify(_, bool hasValue) => hasValue ? "' + # + '" : "Dynamic";
+    if (element.typeVariables.isEmpty) return "$elementName";
+    String stringify(_, bool hasValue) => hasValue ? "' + # + '" : "dynamic";
     String arguments = stringifyTypeVariables(element.typeVariables,
                                               numberOfInputs,
                                               stringify);
-    return "'$elementName<$arguments>'";
+    return "$elementName<$arguments>";
   }
 
   /**

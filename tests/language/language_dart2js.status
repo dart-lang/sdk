@@ -3,6 +3,30 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js || $compiler == dart2dart ]
+class_literal_test/01: Fail # Class literals are expression now; delete this test.
+class_literal_test/02: Fail # Class literals are expression now; delete this test.
+class_literal_test/05: Fail # Class literals are expression now; delete this test.
+class_literal_test/06: Fail # Class literals are expression now; delete this test.
+class_literal_test/07: Fail # Class literals are expression now; delete this test.
+class_literal_test/10: Fail # Class literals are expression now; delete this test.
+class_literal_test/11: Fail # Class literals are expression now; delete this test.
+class_literal_test/12: Fail # Class literals are expression now; delete this test.
+class_literal_test/13: Fail # Class literals are expression now; delete this test.
+class_literal_test/14: Fail # Class literals are expression now; delete this test.
+class_literal_test/17: Fail # Class literals are expression now; delete this test.
+class_literal_test/18: Fail # Class literals are expression now; delete this test.
+class_literal_test/19: Fail # Class literals are expression now; delete this test.
+class_literal_test/20: Fail # Class literals are expression now; delete this test.
+class_literal_test/21: Fail # Class literals are expression now; delete this test.
+class_literal_test/22: Fail # Class literals are expression now; delete this test.
+class_literal_test/23: Fail # Class literals are expression now; delete this test.
+class_literal_test/24: Fail # Class literals are expression now; delete this test.
+class_literal_test/25: Fail # Class literals are expression now; delete this test.
+class_literal_test/26: Fail # Class literals are expression now; delete this test.
+class_literal_test/27: Fail # Class literals are expression now; delete this test.
+class_literal_test/28: Fail # Class literals are expression now; delete this test.
+class_literal_test/29: Fail # Class literals are expression now; delete this test.
+
 # VM specific tests that should not be run by dart2js.
 *vm_test: Skip
 *vm_negative_test: Skip
@@ -76,6 +100,10 @@ getter_no_setter_test/01: Fail # http://dartbug.com/5519
 illegal_invocation_test/03: Fail # http://dartbug.com/5519
 isnot_malformed_type_test/01: Fail # http://dartbug.com/5519
 not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
+
+constructor_negative_test: Pass # Wrong reason: the expression 'C()' is valid with class literals.
+illegal_invocation_test/01: Fail, OK # Typedef literals are expressions now.
+illegal_invocation_test/04: Fail, OK # Class literals are expressions now.
 
 throw_expr_test: Fail
 metadata_test: Fail # Metadata on type parameters not supported.
@@ -218,7 +246,6 @@ const_init4_negative_test: Fail # Negative language test.
 const_init_negative_test: Fail # Negative language test.
 const_syntax_test/04: Fail # Negative language test.
 constructor2_negative_test: Fail # Negative language test.
-constructor_negative_test: Pass # For the wrong reason.
 constructor_return_negative_test: Fail # Negative language test.
 constructor_return_with_arrow_negative_test: Fail # Negative language test.
 constructor_return_with_init_and_arrow_negative_test: Fail # Negative language test.

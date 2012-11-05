@@ -5,9 +5,7 @@
 class C<T> {}
 
 sameType(a, b) {
-  print("a: ${a.runtimeType}");
-  print("b: ${b.runtimeType}");
-  Expect.isTrue(a.runtimeType === b.runtimeType);
+  Expect.identical(a.runtimeType, b.runtimeType);
 }
 
 differentType(a, b) {
@@ -17,6 +15,7 @@ differentType(a, b) {
 }
 
 main() {
+  // Test types obtained by calling runtimeType.
   var v1 = new C<int>();
   var v2 = new C<int>();
   sameType(v1, v2);

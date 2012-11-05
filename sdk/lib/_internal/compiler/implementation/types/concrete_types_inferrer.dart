@@ -261,6 +261,7 @@ class BaseTypes {
   final BaseType listBaseType;
   final BaseType mapBaseType;
   final BaseType objectBaseType;
+  final BaseType typeBaseType;
 
   BaseTypes(Compiler compiler) :
     intBaseType = new ClassBaseType(compiler.intClass),
@@ -270,7 +271,8 @@ class BaseTypes {
     stringBaseType = new ClassBaseType(compiler.stringClass),
     listBaseType = new ClassBaseType(compiler.listClass),
     mapBaseType = new ClassBaseType(compiler.mapClass),
-    objectBaseType = new ClassBaseType(compiler.objectClass);
+    objectBaseType = new ClassBaseType(compiler.objectClass),
+    typeBaseType = new ClassBaseType(compiler.typeClass);
 }
 
 /**
@@ -1389,5 +1391,9 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
 
   void internalError(String reason, {Node node}) {
     inferrer.fail(node, reason);
+  }
+
+  ConcreteType visitTypeReferenceSend(Send) {
+    return new ConcreteType.singleton(inferrer.baseTypes.typeBaseType);
   }
 }

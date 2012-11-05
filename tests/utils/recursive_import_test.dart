@@ -20,6 +20,7 @@ class List {}
 class Map {}
 class Closure {}
 class Dynamic_ {}
+class Type {}
 class Null {}
 getRuntimeTypeInfo(o) {}
 setRuntimeTypeInfo(o, i) {}

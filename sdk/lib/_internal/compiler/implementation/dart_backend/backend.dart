@@ -264,11 +264,12 @@ class DartBackend extends Backend {
      * Tells whether we should output given element. Corelib classes like
      * Object should not be in the resulting code.
      */
-    bool shouldOutput(Element element) =>
-      !identical(element.kind, ElementKind.VOID) &&
-      isUserLibrary(element.getLibrary()) &&
-      element is !SynthesizedConstructorElement &&
-      element is !AbstractFieldElement;
+    bool shouldOutput(Element element) {
+      return !identical(element.kind, ElementKind.VOID)
+          && isUserLibrary(element.getLibrary())
+          && element is !SynthesizedConstructorElement
+          && element is !AbstractFieldElement;
+    }
 
     final elementAsts = new Map<Element, ElementAst>();
 
@@ -315,8 +316,7 @@ class DartBackend extends Backend {
       if (shouldOutput(classElement)) addClass(classElement);
     });
     resolvedElements.forEach((element, treeElements) {
-      if (!shouldOutput(element)) return;
-
+      if (!shouldOutput(element) || treeElements == null) return;
       var elementAst = new ElementAst.rewrite(
           compiler, parse(element), treeElements, stripAsserts);
       if (element.isField()) {

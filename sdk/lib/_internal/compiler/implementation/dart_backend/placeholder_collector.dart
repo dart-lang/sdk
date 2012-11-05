@@ -130,6 +130,10 @@ class SendVisitor extends ResolvedVisitor {
   internalError(String reason, {Node node}) {
     collector.internalError(reason, node: node);
   }
+
+  visitTypeReferenceSend(Send node) {
+    collector.makeElementPlaceholder(node.selector, elements[node]);
+  }
 }
 
 class PlaceholderCollector extends Visitor {

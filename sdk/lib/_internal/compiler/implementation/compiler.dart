@@ -127,6 +127,7 @@ abstract class Compiler implements DiagnosticListener {
   ClassElement functionClass;
   ClassElement nullClass;
   ClassElement listClass;
+  ClassElement typeClass;
   ClassElement mapClass;
   ClassElement jsInvocationMirrorClass;
   Element assertMethod;
@@ -403,6 +404,7 @@ abstract class Compiler implements DiagnosticListener {
     stringClass = lookupSpecialClass(const SourceString('String'));
     functionClass = lookupSpecialClass(const SourceString('Function'));
     listClass = lookupSpecialClass(const SourceString('List'));
+    typeClass = lookupSpecialClass(const SourceString('Type'));
     mapClass = lookupSpecialClass(const SourceString('Map'));
     jsInvocationMirrorClass =
         lookupSpecialClass(const SourceString('JSInvocationMirror'));

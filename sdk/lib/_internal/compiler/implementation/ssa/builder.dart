@@ -2951,7 +2951,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       HInstruction runtimeType = createForeign(runtimeTypeString, rtiInputs);
       add(runtimeType);
       runtimeCodeInputs.add(runtimeType);
-      runtimeCode.add('runtimeType: #');
+      runtimeCode.add("runtimeType: '#'");
     }
     if (needsRti) {
       if (runtimeTypeIsUsed) runtimeCode.add(', ');
@@ -3023,9 +3023,23 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return;
     }
     if (compiler.world.needsRti(constructor.enclosingElement)) {
-      type.arguments.forEach((DartType argument) {
-        inputs.add(analyzeTypeArgument(argument, node));
-      });
+      if (!type.arguments.isEmpty) {
+        type.arguments.forEach((DartType argument) {
+          inputs.add(analyzeTypeArgument(argument, node));
+        });
+      } else if (compiler.enabledRuntimeType) {
+        Link<DartType> variables =
+            constructor.getEnclosingClass().typeVariables;
+        if (!variables.isEmpty) {
+          // If the class has type variables but no type arguments have been
+          // provided, add [:dynamic:] as argument for all type variables.
+          DartString stringDynamic = new DartString.literal('dynamic');
+          HInstruction input = graph.addConstantString(stringDynamic,
+                                                       node,
+                                                       constantSystem);
+          variables.forEach((_) => inputs.add(input));
+        }
+      }
     }
 
     HType elementType = computeType(constructor);
@@ -3097,6 +3111,43 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
+  HConstant addConstantString(Identifier node, String string) {
+    DartString dartString = new DartString.literal(string);
+    Constant constant = constantSystem.createString(dartString, node);
+    return graph.addConstant(constant);
+  }
+
+  visitTypeReferenceSend(Send node) {
+    Element element = elements[node];
+    HInstruction name;
+    Element helper =
+        compiler.findHelper(RuntimeTypeInformation.CACHE_HELPER_NAME);
+    if (element.isClass()) {
+      String string = rti.generateRuntimeTypeString(element, 0);
+      name = addConstantString(node.selector, string);
+    } else if (element.isTypedef()) {
+      // TODO(karlklose): implement support for type variables in typedefs.
+      name = addConstantString(node.selector, rti.getName(element));
+    } else if (element.isTypeVariable()) {
+      // TODO(6248): implement support for type variables.
+      compiler.unimplemented('first class type for type variable', node: node);
+    } else {
+      internalError('unexpected element $element', node: node);
+    }
+    pushInvokeHelper1(helper, name);
+    if (node.isCall) {
+      // This send is of the form 'e(...)', where e is resolved to a type
+      // reference. We create a regular closure call on the result of the type
+      // reference instead of creating a NoSuchMethodError to avoid pulling it
+      // in if it is not used (e.g., in a try/catch).
+      HInstruction target = pop();
+      Selector selector = elements.getSelector(node);
+      List<HInstruction> inputs = <HInstruction>[target];
+      addDynamicSendArgumentsToList(node, inputs);
+      push(new HInvokeClosure(selector, inputs));
+    }
+  }
+
   visitGetterSend(Send node) {
     generateGetter(node, elements[node]);
   }
@@ -3107,10 +3158,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   void generateError(Node node, String message, Element helper) {
-    DartString messageObject = new DartString.literal(message);
-    Constant messageConstant =
-        constantSystem.createString(messageObject, node);
-    HInstruction errorMessage = graph.addConstant(messageConstant);
+    HInstruction errorMessage = addConstantString(node, message);
     pushInvokeHelper1(helper, errorMessage);
   }
 
@@ -3210,9 +3258,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitSendSet(SendSet node) {
+    Element element = elements[node];
+    if (!Elements.isUnresolved(element) && element.impliesType()) {
+      Identifier selector = node.selector;
+      generateThrowNoSuchMethod(node, selector.source.slowToString(),
+                                argumentNodes: node.arguments);
+      return;
+    }
     Operator op = node.assignmentOperator;
     if (node.isSuperCall) {
-      Element element = elements[node];
       if (element == null) return generateSuperNoSuchMethodSend(node);
       HInstruction target = new HStatic(element);
       HInstruction context = localsHandler.readThis();
@@ -3290,6 +3344,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
       // [receiver] is only used if the node is an instance send.
       HInstruction receiver = null;
+      Element selectorElement = elements[node];
       if (Elements.isInstanceSend(node, elements)) {
         receiver = generateInstanceSendReceiver(node);
         generateInstanceGetterWithCompiledReceiver(node, receiver);

@@ -15,7 +15,13 @@ abstract class ResolvedVisitor<R> extends Visitor<R> {
     } else if (node.isOperator) {
       return visitOperatorSend(node);
     } else if (node.isPropertyAccess) {
-      return visitGetterSend(node);
+      Element element = elements[node];
+      if (!Elements.isUnresolved(element) && element.impliesType()) {
+        // A reference to a class literal, typedef or type variable.
+        return visitTypeReferenceSend(node);
+      } else {
+        return visitGetterSend(node);
+      }
     } else if (Elements.isClosureSend(node, elements[node])) {
       return visitClosureSend(node);
     } else {
@@ -28,8 +34,9 @@ abstract class ResolvedVisitor<R> extends Visitor<R> {
         } else {
           return visitStaticSend(node);
         }
-      } else if (element.kind == ElementKind.CLASS) {
-        internalError("Cannot generate code for send", node: node);
+      } else if (element.impliesType()) {
+        // A reference to a class literal, typedef or type variable.
+        return visitTypeReferenceSend(node);
       } else if (element.isInstanceMember()) {
         // Example: f() with 'f' bound to instance method.
         return visitDynamicSend(node);
@@ -53,6 +60,7 @@ abstract class ResolvedVisitor<R> extends Visitor<R> {
   abstract R visitDynamicSend(Send node);
   abstract R visitForeignSend(Send node);
   abstract R visitStaticSend(Send node);
+  abstract R visitTypeReferenceSend(Send node);
 
   abstract void internalError(String reason, {Node node});
 

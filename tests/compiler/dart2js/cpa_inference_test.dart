@@ -135,6 +135,7 @@ const String CORELIB = r'''
   abstract class Map {}
   class Closure {}
   class Null {}
+  class Type {}
   class Dynamic_ {}
   bool identical(Object a, Object b) {}''';
 

@@ -371,8 +371,6 @@ Language/11_Expressions/01_Constants_A17_t02: Fail # http://dartbug.com/5519
 Language/11_Expressions/01_Constants_A17_t03: Crash # inherited from VM
 Language/11_Expressions/01_Constants_A17_t03: Fail # http://dartbug.com/5519
 Language/11_Expressions/01_Constants_A19_t04: Fail # http://dartbug.com/5519
-Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t04: Fail # Inherited from dart2js
-Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t05: Fail # Inherited from dart2js
 Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t06: Fail # Inherited from dart2js
 Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t09: Fail, OK # co19 issue 210
 Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail # inherited from VM
@@ -425,28 +423,15 @@ Language/11_Expressions/17_Getter_Invocation_A02_t01: Fail # inherited from VM
 Language/11_Expressions/18_Assignment_A05_t02: Fail # inherited from VM
 Language/11_Expressions/18_Assignment_A05_t04: Fail # inherited from VM
 Language/11_Expressions/18_Assignment_A05_t05: Fail # inherited from VM
-Language/11_Expressions/19_Conditional_A01_t10: Fail # Inherited from dart2js
-Language/11_Expressions/19_Conditional_A01_t11: Fail # Inherited from dart2js
-Language/11_Expressions/19_Conditional_A01_t12: Fail # Inherited from dart2js
-Language/11_Expressions/19_Conditional_A01_t13: Fail # Inherited from dart2js
 Language/11_Expressions/19_Conditional_A01_t14: Fail # Inherited from dart2js
 Language/11_Expressions/19_Conditional_A01_t15: Fail # Inherited from dart2js
-Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t11: Fail # Inherited from dart2js
-Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t12: Fail # http://dartbug.com/5519
-Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t13: Fail # Inherited from dart2js
 Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t14: Fail # Inherited from dart2js
-Language/11_Expressions/21_Bitwise_Expressions_A01_t13: Fail # Inherited from dart2js
-Language/11_Expressions/21_Bitwise_Expressions_A01_t14: Fail # http://dartbug.com/5519
-Language/11_Expressions/21_Bitwise_Expressions_A01_t15: Fail # Inherited from dart2js
 Language/11_Expressions/21_Bitwise_Expressions_A01_t16: Fail # Inherited from dart2js
 Language/11_Expressions/21_Bitwise_Expressions_A01_t17: Fail # Inherited from dart2js
 Language/11_Expressions/23_Relational_Expressions_A01_t10: Fail # http://dartbug.com/5519
 Language/11_Expressions/23_Relational_Expressions_A01_t11: Fail # http://dartbug.com/5519
 Language/11_Expressions/23_Relational_Expressions_A01_t12: Fail # http://dartbug.com/5519
 Language/11_Expressions/23_Relational_Expressions_A01_t13: Fail # http://dartbug.com/5519
-Language/11_Expressions/23_Relational_Expressions_A01_t19: Fail # Inherited from dart2js
-Language/11_Expressions/23_Relational_Expressions_A01_t20: Fail # http://dartbug.com/5519
-Language/11_Expressions/23_Relational_Expressions_A01_t21: Fail # Inherited from dart2js
 Language/11_Expressions/23_Relational_Expressions_A01_t22: Fail # Inherited from dart2js
 Language/11_Expressions/23_Relational_Expressions_A01_t23: Fail # Inherited from dart2js
 Language/11_Expressions/22_Equality_A01_t01: Fail # inherited from VM
@@ -457,37 +442,23 @@ Language/11_Expressions/22_Equality_A01_t23: Fail # Inherited from dart2js
 Language/11_Expressions/22_Equality_A01_t24: Fail # Inherited from dart2js
 Language/11_Expressions/22_Equality_A02_t03: Fail # inherited from VM
 Language/11_Expressions/22_Equality_A05_t01: Fail # inherited from VM
-Language/11_Expressions/24_Shift_A01_t10: Fail # Inherited from dart2js
-Language/11_Expressions/24_Shift_A01_t11: Fail # http://dartbug.com/5519
-Language/11_Expressions/24_Shift_A01_t12: Fail # Inherited from dart2js
 Language/11_Expressions/24_Shift_A01_t13: Fail # Inherited from dart2js
 Language/11_Expressions/24_Shift_A01_t14: Fail # Inherited from dart2js
-Language/11_Expressions/25_Additive_Expressions_A01_t08: Fail # Inherited from dart2js
-Language/11_Expressions/25_Additive_Expressions_A01_t11: Fail # Inherited from dart2js
-Language/11_Expressions/25_Additive_Expressions_A01_t12: Fail # Inherited from dart2js
 Language/11_Expressions/25_Additive_Expressions_A01_t13: Fail # Inherited from dart2js
 Language/11_Expressions/25_Additive_Expressions_A01_t14: Fail # Inherited from dart2js
-Language/11_Expressions/26_Multiplicative_Expressions_A01_t11: Fail # Inherited from dart2js
-Language/11_Expressions/26_Multiplicative_Expressions_A01_t14: Fail # Inherited from dart2js
-Language/11_Expressions/26_Multiplicative_Expressions_A01_t15: Fail # Inherited from dart2js
 Language/11_Expressions/26_Multiplicative_Expressions_A01_t16: Fail # Inherited from dart2js
 Language/11_Expressions/26_Multiplicative_Expressions_A01_t17: Fail # Inherited from dart2js
 Language/11_Expressions/27_Unary_Expressions_A01_t01: Fail # inherited from VM
 Language/11_Expressions/27_Unary_Expressions_A01_t02: Fail # Inherited from dart2js
 Language/11_Expressions/27_Unary_Expressions_A01_t04: Fail # Inherited from dart2js
 Language/11_Expressions/27_Unary_Expressions_A01_t05: Fail # Inherited from dart2js
-Language/11_Expressions/27_Unary_Expressions_A01_t17: Fail # Inherited from dart2js
-Language/11_Expressions/27_Unary_Expressions_A01_t18: Fail # Inherited from dart2js
-Language/11_Expressions/27_Unary_Expressions_A01_t19: Fail # Inherited from dart2js
 Language/11_Expressions/27_Unary_Expressions_A01_t20: Fail # Inherited from dart2js
 Language/11_Expressions/27_Unary_Expressions_A01_t21: Fail # Inherited from dart2js
 Language/11_Expressions/27_Unary_Expressions_A01_t22: Fail # Inherited from dart2js
 Language/11_Expressions/28_Postfix_Expressions_A01_t02: Fail # Inherited from dart2js
 Language/11_Expressions/28_Postfix_Expressions_A01_t03: Fail # Inherited from dart2js
 Language/11_Expressions/28_Postfix_Expressions_A01_t05: Fail # Inherited from dart2js
-Language/11_Expressions/29_Assignable_Expressions_A01_t06: Fail # Inherited from dart2js
 Language/11_Expressions/29_Assignable_Expressions_A01_t08: Fail # Inherited from dart2js
-Language/11_Expressions/29_Assignable_Expressions_A01_t09: Fail # Inherited from dart2js
 Language/11_Expressions/30_Identifier_Reference_A02_t01: Fail # Pseudo keyword "abstract".
 Language/11_Expressions/30_Identifier_Reference_A07_t01: Fail # http://dartbug.com/5519
 Language/12_Statements/03_Variable_Declaration_A04_t01: Fail # http://dartbug.com/5519
@@ -534,6 +505,10 @@ LibTest/isolate/ReceivePort/receive_A01_t02: Fail # inherited from VM
 Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail
 
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A16_t07: Fail # http://dartbug.com/6242
+
+Language/11_Expressions/11_Instance_Creation/1_New_A01_t04: Fail, OK # co19 issue 241
+Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t15: Fail, OK # co19 issue 241
+Language/11_Expressions/22_Equality_A01_t20: Fail, OK # co19 issue 241
 
 LibTest/core/NoSuchMethodError/NoSuchMethodError_A01_t01: Fail, OK # co19 issue 300
 LibTest/core/NoSuchMethodError/toString_A01_t01: Fail, OK # co19 issue 300

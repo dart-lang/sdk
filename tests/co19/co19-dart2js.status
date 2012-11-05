@@ -50,8 +50,6 @@ Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail # 
 Language/09_Generics/09_Generics_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/01_Constants_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/01_Constants_A13_t06: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t04: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t05: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t06: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/08_Throw_A01_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/08_Throw_A05_t01: Fail # TODO(ahe): Please triage this failure.
@@ -71,73 +69,29 @@ Language/11_Expressions/18_Assignment_A05_t02: Fail # TODO(ahe): Please triage t
 Language/11_Expressions/18_Assignment_A05_t04: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/18_Assignment_A05_t05: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/18_Assignment_A08_t04: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/19_Conditional_A01_t10: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/19_Conditional_A01_t11: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/19_Conditional_A01_t12: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/19_Conditional_A01_t13: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/19_Conditional_A01_t14: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/19_Conditional_A01_t15: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t10: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t11: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t12: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t13: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t14: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/21_Bitwise_Expressions_A01_t12: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/21_Bitwise_Expressions_A01_t13: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/21_Bitwise_Expressions_A01_t14: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/21_Bitwise_Expressions_A01_t15: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/21_Bitwise_Expressions_A01_t16: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/21_Bitwise_Expressions_A01_t17: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/22_Equality_A01_t23: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/22_Equality_A01_t24: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/22_Equality_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/23_Relational_Expressions_A01_t18: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/23_Relational_Expressions_A01_t19: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/23_Relational_Expressions_A01_t20: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/23_Relational_Expressions_A01_t21: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/23_Relational_Expressions_A01_t22: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/23_Relational_Expressions_A01_t23: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/24_Shift_A01_t09: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/24_Shift_A01_t10: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/24_Shift_A01_t11: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/24_Shift_A01_t12: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/24_Shift_A01_t13: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/24_Shift_A01_t14: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/25_Additive_Expressions_A01_t07: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/25_Additive_Expressions_A01_t08: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/25_Additive_Expressions_A01_t11: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/25_Additive_Expressions_A01_t12: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/25_Additive_Expressions_A01_t13: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/25_Additive_Expressions_A01_t14: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/26_Multiplicative_Expressions_A01_t10: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/26_Multiplicative_Expressions_A01_t11: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/26_Multiplicative_Expressions_A01_t14: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/26_Multiplicative_Expressions_A01_t15: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/26_Multiplicative_Expressions_A01_t16: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/26_Multiplicative_Expressions_A01_t17: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/27_Unary_Expressions_A01_t02: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/27_Unary_Expressions_A01_t04: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/27_Unary_Expressions_A01_t05: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/27_Unary_Expressions_A01_t11: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/27_Unary_Expressions_A01_t12: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/27_Unary_Expressions_A01_t13: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/27_Unary_Expressions_A01_t17: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/27_Unary_Expressions_A01_t18: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/27_Unary_Expressions_A01_t19: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/27_Unary_Expressions_A01_t20: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/27_Unary_Expressions_A01_t21: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/27_Unary_Expressions_A01_t22: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/28_Postfix_Expressions_A01_t02: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/28_Postfix_Expressions_A01_t03: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/28_Postfix_Expressions_A01_t05: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/29_Assignable_Expressions_A01_t06: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/29_Assignable_Expressions_A01_t08: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/29_Assignable_Expressions_A01_t09: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/30_Identifier_Reference_A04_t09: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/30_Identifier_Reference_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/30_Identifier_Reference_A05_t04: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/30_Identifier_Reference_A05_t12: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/30_Identifier_Reference_A06_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/30_Identifier_Reference_A06_t02: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/31_Type_Test_A01_t02: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/31_Type_Test_A01_t04: Fail # TODO(ahe): Please triage this failure.
@@ -439,6 +393,11 @@ LibTest/core/Queue/iterator_hasNext_A01_t01: Slow, Pass
 # can understand so he can file a bug later.
 #
 [ $compiler == dart2js ]
+Language/11_Expressions/11_Instance_Creation/1_New_A01_t04: Fail, OK # co19 issue 241
+Language/11_Expressions/22_Equality_A01_t19: Fail, OK # co19 issue 241
+Language/11_Expressions/22_Equality_A01_t20: Fail, OK # co19 issue 241
+Language/11_Expressions/32_Type_Cast_A01_t04: Fail, OK # co19 issue 241
+
 Language/11_Expressions/22_Equality_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
 Language/11_Expressions/28_Postfix_Expressions_A01_t01: Fail, OK # A map literal cannot start an expression statement.
 LibTest/core/String/String_class_A02_t01: Pass, Fail, OK # issue 6418 compiler cancelled: Unhandled non-BMP character: U+10000

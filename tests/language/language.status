@@ -140,6 +140,7 @@ factory5_test/00: Fail # issue 3079
 field_method4_negative_test: Fail  # Runtime only test, rewrite as multitest
 field7_negative_test: Fail, OK # language changed, test issue 5249
 field7a_negative_test: Fail, OK # language changed, test issue 5249
+first_class_types_literals_test: Fail # issue 6283
 getter_no_setter_test/01: Fail # Fails to detect compile-time error.
 getter_no_setter2_test/01: Fail # Fails to detect compile-time error.
 instance_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
@@ -322,6 +323,7 @@ import_combinators_test: Fail
 
 
 [ $runtime == vm || ($runtime == drt && $compiler == none) ]
+first_class_types_literals_test: Fail # issue 6282
 call_test: Fail # Issue 1604
 
 [ $runtime == chrome ]
@@ -349,6 +351,10 @@ overridden_no_such_method_test: Fail, Pass # TRIAGE: fails in minified mode
 # call_constructor_on_unresolvable_class_test/07: Fail
 call_nonexistent_constructor_test: Fail
 
+illegal_invocation_test/01: Fail, OK # Typedef literals are expressions now.
+illegal_invocation_test/04: Fail, OK # Class literals are expressions now.
+illegal_invocation_test/05: Fail, OK # Type variables are expressions now.
+
 # Renaming type from platform library:
 dynamic_test: Fail
 
@@ -375,19 +381,6 @@ non_parameterized_factory_test: Fail
 type_variable_scope_test: Fail
 constructor_redirect2_test/03: Fail
 
-class_literal_test/05: Fail # http://dartbug.com/5519
-class_literal_test/10: Fail # http://dartbug.com/5519
-class_literal_test/11: Fail # http://dartbug.com/5519
-class_literal_test/12: Fail # http://dartbug.com/5519
-class_literal_test/17: Fail # http://dartbug.com/5519
-class_literal_test/18: Fail # http://dartbug.com/5519
-class_literal_test/19: Fail # http://dartbug.com/5519
-class_literal_test/20: Fail # http://dartbug.com/5519
-class_literal_test/22: Fail # http://dartbug.com/5519
-class_literal_test/25: Fail # http://dartbug.com/5519
-class_literal_test/27: Fail # http://dartbug.com/5519
-class_literal_test/28: Fail # http://dartbug.com/5519
-class_literal_test/29: Fail # http://dartbug.com/5519
 compile_time_constant10_test/01: Fail # http://dartbug.com/5519
 compile_time_constant10_test/02: Fail # http://dartbug.com/5519
 compile_time_constant_arguments_test/01: Fail # http://dartbug.com/5519

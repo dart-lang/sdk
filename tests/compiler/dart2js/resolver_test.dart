@@ -730,6 +730,7 @@ testInitializers() {
          class Closure {}
          class Null {}
          class Dynamic_ {}
+         class Type {}
          class Object { Object() : super(); }''';
   resolveConstructor(script, "Object o = new Object();", "Object", "", 1,
                      expectedWarnings: [],

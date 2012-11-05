@@ -15,7 +15,8 @@ Future<String> provider(Uri uri) {
   } else if (uri.scheme == "lib") {
     if (uri.path.endsWith("/core.dart")) {
       source = """#library('core');
-                  class Object{}
+                  class Object {}
+                  class Type {}
                   class bool {}
                   class num {}
                   class int {}

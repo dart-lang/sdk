@@ -1446,7 +1446,6 @@ $classesCollector.$mangledName = {'':
       String invocationName = "${namer.closureInvocationName(selector)}";
       mainEnsureGetter = "$mainAccess.$invocationName = $mainAccess";
     }
-
     // TODO(ngeoffray): These globals are currently required by the isolate
     // library. They should be removed.
     buffer.add("""

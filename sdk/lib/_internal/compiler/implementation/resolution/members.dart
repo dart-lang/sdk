@@ -1176,7 +1176,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   ExpressionStatement currentExpressionStatement;
   bool typeRequired = false;
   StatementScope statementScope;
-  int allowedCategory = ElementCategory.VARIABLE | ElementCategory.FUNCTION;
+  int allowedCategory = ElementCategory.VARIABLE | ElementCategory.FUNCTION
+      | ElementCategory.IMPLIES_TYPE;
 
   ResolverVisitor(Compiler compiler, Element element, this.mapping)
     : this.enclosingElement = element,
@@ -1280,6 +1281,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
           // TODO(ahe): Improve error message. Need UX input.
           error(node, MessageKind.GENERIC, ["is not an expression $element"]);
         }
+      }
+      if (!Elements.isUnresolved(element)
+          && element.kind == ElementKind.CLASS) {
+        ClassElement classElement = element;
+        classElement.ensureResolved(compiler);
       }
       return useElement(node, element);
     }
@@ -1506,12 +1512,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         }
         return compiler.assertMethod;
       }
+
       return node.selector.accept(this);
     }
 
     var oldCategory = allowedCategory;
-    allowedCategory |=
-      ElementCategory.CLASS | ElementCategory.PREFIX | ElementCategory.SUPER;
+    allowedCategory |= ElementCategory.PREFIX | ElementCategory.SUPER;
     Element resolvedReceiver = visit(node.receiver);
     allowedCategory = oldCategory;
 
@@ -1546,6 +1552,15 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     } else if (identical(resolvedReceiver.kind, ElementKind.CLASS)) {
       ClassElement receiverClass = resolvedReceiver;
       receiverClass.ensureResolved(compiler);
+      if (node.isOperator) {
+        // When the resolved receiver is a class, we can have two cases:
+        //  1) a static send: C.foo, or
+        //  2) an operator send, where the receiver is a class literal: 'C + 1'.
+        // The following code that looks up the selector on the resolved
+        // receiver will treat the second as the invocation of a static operator
+        // if the resolved receiver is not null.
+        return null;
+      }
       target = receiverClass.lookupLocalMember(name);
       if (target == null) {
         // TODO(johnniwinther): With the simplified [TreeElements] invariant,
@@ -1564,10 +1579,13 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     } else if (identical(resolvedReceiver.kind, ElementKind.PREFIX)) {
       PrefixElement prefix = resolvedReceiver;
       target = prefix.lookupLocalMember(name);
-      if (target == null) {
+      if (Elements.isUnresolved(target)) {
         return warnAndCreateErroneousElement(
             node, name, MessageKind.NO_SUCH_LIBRARY_MEMBER,
             [prefix.name, name]);
+      } else if (target.kind == ElementKind.CLASS) {
+        ClassElement classElement = target;
+        classElement.ensureResolved(compiler);
       }
     }
     return target;
@@ -1707,6 +1725,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         // with the same arguments.
         Selector call = new Selector.callClosureFrom(selector);
         world.registerDynamicInvocation(call.name, call);
+      } else if (target.impliesType()) {
+        // We call 'call()' on a Type instance returned from the reference to a
+        // class or typedef literal. We do not need to register this call as a
+        // dynamic invocation, because we statically know what the target is.
       } else if (!selector.applies(target, compiler)) {
         warnArgumentMismatch(node, target);
       }
