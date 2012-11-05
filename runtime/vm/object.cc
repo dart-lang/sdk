@@ -406,7 +406,7 @@ void Object::InitOnce() {
   // strings as symbols.
   cls = Class::New<Array>();
   isolate->object_store()->set_array_class(cls);
-  cls = Class::New<OneByteString>();
+  cls = Class::NewStringClass(kOneByteStringCid);
   isolate->object_store()->set_one_byte_string_class(cls);
 
   // Allocate and initialize the empty_array instance.
@@ -545,7 +545,7 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_type_parameter_class(cls);
 
   // Pre-allocate the OneByteString class needed by the symbol table.
-  cls = Class::New<OneByteString>();
+  cls = Class::NewStringClass(kOneByteStringCid);
   object_store->set_one_byte_string_class(cls);
 
   // Setup the symbol table for the symbols created in the isolate.
@@ -606,19 +606,19 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterPrivateClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
-  cls = Class::New<TwoByteString>();
+  cls = Class::NewStringClass(kTwoByteStringCid);
   object_store->set_two_byte_string_class(cls);
   name = Symbols::TwoByteString();
   RegisterPrivateClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
-  cls = Class::New<ExternalOneByteString>();
+  cls = Class::NewStringClass(kExternalOneByteStringCid);
   object_store->set_external_one_byte_string_class(cls);
   name = Symbols::ExternalOneByteString();
   RegisterPrivateClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
-  cls = Class::New<ExternalTwoByteString>();
+  cls = Class::NewStringClass(kExternalTwoByteStringCid);
   object_store->set_external_two_byte_string_class(cls);
   name = Symbols::ExternalTwoByteString();
   RegisterPrivateClass(cls, name, core_lib);
@@ -1085,16 +1085,16 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<Bigint>();
   object_store->set_bigint_class(cls);
 
-  cls = Class::New<OneByteString>();
+  cls = Class::NewStringClass(kOneByteStringCid);
   object_store->set_one_byte_string_class(cls);
 
-  cls = Class::New<TwoByteString>();
+  cls = Class::NewStringClass(kTwoByteStringCid);
   object_store->set_two_byte_string_class(cls);
 
-  cls = Class::New<ExternalOneByteString>();
+  cls = Class::NewStringClass(kExternalOneByteStringCid);
   object_store->set_external_one_byte_string_class(cls);
 
-  cls = Class::New<ExternalTwoByteString>();
+  cls = Class::NewStringClass(kExternalTwoByteStringCid);
   object_store->set_external_two_byte_string_class(cls);
 
   cls = Class::New<Bool>();
@@ -1881,6 +1881,26 @@ RawClass* Class::NewNativeWrapper(const Library& library,
 }
 
 
+RawClass* Class::NewStringClass(intptr_t class_id) {
+  intptr_t instance_size;
+  if (class_id == kOneByteStringCid) {
+    instance_size = OneByteString::InstanceSize();
+  } else if (class_id == kTwoByteStringCid) {
+    instance_size = TwoByteString::InstanceSize();
+  } else if (class_id == kExternalOneByteStringCid) {
+    instance_size = ExternalOneByteString::InstanceSize();
+  } else {
+    ASSERT(class_id == kExternalTwoByteStringCid);
+    instance_size = ExternalTwoByteString::InstanceSize();
+  }
+  Class& result = Class::Handle(New<String>(class_id));
+  result.set_instance_size(instance_size);
+  result.set_next_field_offset(instance_size);
+  result.set_is_prefinalized();
+  return result.raw();
+}
+
+
 void Class::set_name(const String& value) const {
   ASSERT(value.IsSymbol());
   StorePointer(&raw_ptr()->name_, value.raw());
@@ -2194,20 +2214,18 @@ static bool MatchesAccessorName(const String& name,
 RawFunction* Class::LookupFunction(const String& name) const {
   Isolate* isolate = Isolate::Current();
   ASSERT(name.IsOneByteString());
-  const OneByteString& lookup_name = OneByteString::Cast(name);
   Array& funcs = Array::Handle(isolate, functions());
   if (funcs.IsNull()) {
     // This can occur, e.g., for Null classes.
     return Function::null();
   }
   Function& function = Function::Handle(isolate, Function::null());
-  OneByteString& function_name =
-      OneByteString::Handle(isolate, OneByteString::null());
+  String& function_name = String::Handle(isolate, String::null());
   intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
     function_name ^= function.name();
-    if (function_name.EqualsIgnoringPrivateKey(lookup_name)) {
+    if (OneByteString::EqualsIgnoringPrivateKey(function_name, name)) {
       return function.raw();
     }
   }
@@ -2303,16 +2321,14 @@ RawField* Class::LookupStaticField(const String& name) const {
 RawField* Class::LookupField(const String& name) const {
   Isolate* isolate = Isolate::Current();
   ASSERT(name.IsOneByteString());
-  const OneByteString& lookup_name = OneByteString::Cast(name);
   const Array& flds = Array::Handle(isolate, fields());
   Field& field = Field::Handle(isolate, Field::null());
-  OneByteString& field_name =
-      OneByteString::Handle(isolate, OneByteString::null());
+  String& field_name = String::Handle(isolate, String::null());
   intptr_t len = flds.Length();
   for (intptr_t i = 0; i < len; i++) {
     field ^= flds.At(i);
     field_name ^= field.name();
-    if (field_name.EqualsIgnoringPrivateKey(lookup_name)) {
+    if (OneByteString::EqualsIgnoringPrivateKey(field_name, name)) {
       return field.raw();
     }
   }
@@ -9015,10 +9031,9 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
   // We are not supposed to have integers represented as two byte or
   // four byte strings.
   ASSERT(str.IsOneByteString());
-  const OneByteString& onestr = OneByteString::Cast(str);
   int64_t value;
-  if (!OS::StringToInt64(onestr.ToCString(), &value)) {
-    const Bigint& big = Bigint::Handle(Bigint::New(onestr, space));
+  if (!OS::StringToInt64(str.ToCString(), &value)) {
+    const Bigint& big = Bigint::Handle(Bigint::New(str, space));
     ASSERT(!BigintOperations::FitsIntoSmi(big));
     ASSERT(!BigintOperations::FitsIntoMint(big));
     return big.raw();
@@ -9783,16 +9798,41 @@ intptr_t String::Hash(const uint32_t* characters, intptr_t len) {
 
 
 int32_t String::CharAt(intptr_t index) const {
-  // String is an abstract class.
-  UNREACHABLE();
-  return 0;
+  intptr_t class_id = raw()->GetClassId();
+  ASSERT(RawObject::IsStringClassId(class_id));
+  NoGCScope no_gc;
+  if (class_id == kOneByteStringCid) {
+      return *OneByteString::CharAddr(*this, index);
+  }
+  if (class_id == kTwoByteStringCid) {
+      return *TwoByteString::CharAddr(*this, index);
+  }
+  if (class_id == kExternalOneByteStringCid) {
+      return *ExternalOneByteString::CharAddr(*this, index);
+  }
+  ASSERT(class_id == kExternalTwoByteStringCid);
+  return *ExternalTwoByteString::CharAddr(*this, index);
 }
 
 
 intptr_t String::CharSize() const {
-  // String is an abstract class.
-  UNREACHABLE();
-  return 0;
+  intptr_t class_id = raw()->GetClassId();
+  if (class_id == kOneByteStringCid || class_id == kExternalOneByteStringCid) {
+    return kOneByteChar;
+  }
+  ASSERT(class_id == kTwoByteStringCid ||
+         class_id == kExternalTwoByteStringCid);
+  return kTwoByteChar;
+}
+
+
+void* String::GetPeer() const {
+  intptr_t class_id = raw()->GetClassId();
+  if (class_id == kExternalOneByteStringCid) {
+    return ExternalOneByteString::GetPeer(*this);
+  }
+  ASSERT(class_id == kExternalTwoByteStringCid);
+  return ExternalTwoByteString::GetPeer(*this);
 }
 
 
@@ -9938,19 +9978,19 @@ RawString* String::New(const uint8_t* utf8_array,
   Utf8::Type type;
   intptr_t len = Utf8::CodePointCount(utf8_array, array_len, &type);
   if (type == Utf8::kAscii) {
-    const OneByteString& strobj
-        = OneByteString::Handle(OneByteString::New(len, space));
+    const String& strobj = String::Handle(OneByteString::New(len, space));
     if (len > 0) {
       NoGCScope no_gc;
-      Utf8::DecodeToAscii(utf8_array, array_len, strobj.CharAddr(0), len);
+      Utf8::DecodeToAscii(utf8_array, array_len,
+                          OneByteString::CharAddr(strobj, 0), len);
     }
     return strobj.raw();
   }
   ASSERT((type == Utf8::kBMP) || (type == Utf8::kSMP));
-  const TwoByteString& strobj =
-      TwoByteString::Handle(TwoByteString::New(len, space));
+  const String& strobj = String::Handle(TwoByteString::New(len, space));
   NoGCScope no_gc;
-  Utf8::DecodeToUTF16(utf8_array, array_len, strobj.CharAddr(0), len);
+  Utf8::DecodeToUTF16(utf8_array, array_len,
+                      TwoByteString::CharAddr(strobj, 0), len);
   return strobj.raw();
 }
 
@@ -10036,16 +10076,15 @@ void String::Copy(const String& dst, intptr_t dst_offset,
   ASSERT(len >= 0);
   ASSERT(len <= (dst.Length() - dst_offset));
   if (dst.IsOneByteString()) {
-    const OneByteString& onestr = OneByteString::Cast(dst);
     NoGCScope no_gc;
     if (len > 0) {
-      memmove(onestr.CharAddr(dst_offset), characters, len);
+      memmove(OneByteString::CharAddr(dst, dst_offset),
+              characters,
+              len);
     }
   } else if (dst.IsTwoByteString()) {
-    const TwoByteString& twostr = TwoByteString::Cast(dst);
-    NoGCScope no_gc;
     for (intptr_t i = 0; i < len; ++i) {
-      *twostr.CharAddr(i + dst_offset) = characters[i];
+      *TwoByteString::CharAddr(dst, i + dst_offset) = characters[i];
     }
   }
 }
@@ -10058,18 +10097,18 @@ void String::Copy(const String& dst, intptr_t dst_offset,
   ASSERT(array_len >= 0);
   ASSERT(array_len <= (dst.Length() - dst_offset));
   if (dst.IsOneByteString()) {
-    const OneByteString& onestr = OneByteString::Cast(dst);
     NoGCScope no_gc;
     for (intptr_t i = 0; i < array_len; ++i) {
       ASSERT(utf16_array[i] <= 0x7F);
-      *onestr.CharAddr(i + dst_offset) = utf16_array[i];
+      *OneByteString::CharAddr(dst, i + dst_offset) = utf16_array[i];
     }
   } else {
     ASSERT(dst.IsTwoByteString());
-    const TwoByteString& twostr = TwoByteString::Cast(dst);
     NoGCScope no_gc;
     if (array_len > 0) {
-      memmove(twostr.CharAddr(dst_offset), utf16_array, (array_len * 2));
+      memmove(TwoByteString::CharAddr(dst, dst_offset),
+              utf16_array,
+              array_len * 2);
     }
   }
 }
@@ -10087,26 +10126,34 @@ void String::Copy(const String& dst, intptr_t dst_offset,
     intptr_t char_size = src.CharSize();
     if (char_size == kOneByteChar) {
       if (src.IsOneByteString()) {
-        const OneByteString& onestr = OneByteString::Cast(src);
         NoGCScope no_gc;
-        String::Copy(dst, dst_offset, onestr.CharAddr(0) + src_offset, len);
+        String::Copy(dst,
+                     dst_offset,
+                     OneByteString::CharAddr(src, src_offset),
+                     len);
       } else {
         ASSERT(src.IsExternalOneByteString());
-        const ExternalOneByteString& onestr = ExternalOneByteString::Cast(src);
         NoGCScope no_gc;
-        String::Copy(dst, dst_offset, onestr.CharAddr(0) + src_offset, len);
+        String::Copy(dst,
+                     dst_offset,
+                     ExternalOneByteString::CharAddr(src, src_offset),
+                     len);
       }
     } else {
       ASSERT(char_size == kTwoByteChar);
       if (src.IsTwoByteString()) {
-        const TwoByteString& twostr = TwoByteString::Cast(src);
         NoGCScope no_gc;
-        String::Copy(dst, dst_offset, twostr.CharAddr(0) + src_offset, len);
+        String::Copy(dst,
+                     dst_offset,
+                     TwoByteString::CharAddr(src, src_offset),
+                     len);
       } else {
         ASSERT(src.IsExternalTwoByteString());
-        const ExternalTwoByteString& twostr = ExternalTwoByteString::Cast(src);
         NoGCScope no_gc;
-        String::Copy(dst, dst_offset, twostr.CharAddr(0) + src_offset, len);
+        String::Copy(dst,
+                     dst_offset,
+                     ExternalTwoByteString::CharAddr(src, src_offset),
+                     len);
       }
     }
   }
@@ -10115,12 +10162,10 @@ void String::Copy(const String& dst, intptr_t dst_offset,
 
 RawString* String::EscapeSpecialCharacters(const String& str, bool raw_str) {
   if (str.IsOneByteString()) {
-    const OneByteString& onestr = OneByteString::Cast(str);
-    return onestr.EscapeSpecialCharacters(raw_str);
+    return OneByteString::EscapeSpecialCharacters(str, raw_str);
   }
   ASSERT(str.IsTwoByteString());
-  const TwoByteString& twostr = TwoByteString::Cast(str);
-  return twostr.EscapeSpecialCharacters(raw_str);
+  return TwoByteString::EscapeSpecialCharacters(str, raw_str);
 }
 
 
@@ -10237,10 +10282,10 @@ const char* String::ToCString() const {
 
 void String::ToUTF8(uint8_t* utf8_array, intptr_t array_len) const {
   if (CharSize() == kOneByteChar) {
-    const OneByteString& obj = OneByteString::Cast(*this);
+    const String& obj = *this;
     ASSERT(array_len >= obj.Length());
     if (obj.Length() > 0) {
-      memmove(utf8_array, obj.CharAddr(0), obj.Length());
+      memmove(utf8_array, OneByteString::CharAddr(obj, 0), obj.Length());
     }
   } else {
     ASSERT(array_len >= Utf8::Length(*this));
@@ -10288,41 +10333,42 @@ RawString* String::ToLowerCase(const String& str, Heap::Space space) {
 }
 
 
-RawOneByteString* OneByteString::EscapeSpecialCharacters(bool raw_str) const {
-  intptr_t len = Length();
+RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str,
+                                                         bool raw_str) {
+  intptr_t len = str.Length();
   if (len > 0) {
     intptr_t num_escapes = 0;
     intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
-      if (IsSpecialCharacter(*CharAddr(i)) ||
-          (!raw_str && (*CharAddr(i) == '\\'))) {
+      if (IsSpecialCharacter(*CharAddr(str, i)) ||
+          (!raw_str && (*CharAddr(str, i) == '\\'))) {
         num_escapes += 1;
       }
     }
-    const OneByteString& dststr = OneByteString::Handle(
+    const String& dststr = String::Handle(
         OneByteString::New(len + num_escapes, Heap::kNew));
     for (intptr_t i = 0; i < len; i++) {
-      if (IsSpecialCharacter(*CharAddr(i))) {
-        *(dststr.CharAddr(index)) = '\\';
-        *(dststr.CharAddr(index + 1)) = SpecialCharacter(*CharAddr(i));
+      if (IsSpecialCharacter(*CharAddr(str, i))) {
+        *(CharAddr(dststr, index)) = '\\';
+        *(CharAddr(dststr, index + 1)) = SpecialCharacter(*CharAddr(str, i));
         index += 2;
-      } else if (!raw_str && (*CharAddr(i) == '\\')) {
-        *(dststr.CharAddr(index)) = '\\';
-        *(dststr.CharAddr(index + 1)) = '\\';
+      } else if (!raw_str && (*CharAddr(str, i) == '\\')) {
+        *(CharAddr(dststr, index)) = '\\';
+        *(CharAddr(dststr, index + 1)) = '\\';
         index += 2;
       } else {
-        *(dststr.CharAddr(index)) = *CharAddr(i);
+        *(CharAddr(dststr, index)) = *CharAddr(str, i);
         index += 1;
       }
     }
-    return dststr.raw();
+    return OneByteString::raw(dststr);
   }
   return OneByteString::null();
 }
 
 
-// Check to see if 'name' matches 'this' as is or
-// once the private key separator is stripped from name.
+// Check to see if 'str1' matches 'str2' as is or
+// once the private key separator is stripped from str2.
 //
 // Things are made more complicated by the fact that constructors are
 // added *after* the private suffix, so "foo@123.named" should match
@@ -10332,46 +10378,49 @@ RawOneByteString* OneByteString::EscapeSpecialCharacters(bool raw_str) const {
 //
 //    _ReceivePortImpl@6be832b._internal@6be832b
 //
-bool OneByteString::EqualsIgnoringPrivateKey(const OneByteString& name) const {
-  if (raw() == name.raw()) {
+bool OneByteString::EqualsIgnoringPrivateKey(const String& str1,
+                                             const String& str2) {
+  ASSERT(str2.IsOneByteString());
+  if (str1.raw() == str2.raw()) {
     return true;  // Both handles point to the same raw instance.
   }
-  intptr_t len = Length();
-  intptr_t name_len = name.Length();
-  if (len == name_len) {
+  NoGCScope no_gc;
+  intptr_t len = str1.Length();
+  intptr_t str2_len = str2.Length();
+  if (len == str2_len) {
     for (intptr_t i = 0; i < len; i++) {
-      if (*(CharAddr(i)) != *(name.CharAddr(i))) {
+      if (*CharAddr(str1, i) != *CharAddr(str2, i)) {
         return false;
       }
     }
     return true;
   }
-  if (len < name_len) {
+  if (len < str2_len) {
     return false;  // No way they can match.
   }
   intptr_t pos = 0;
-  intptr_t name_pos = 0;
+  intptr_t str2_pos = 0;
   while (pos < len) {
-    int32_t ch = *(CharAddr(pos));
+    int32_t ch = *CharAddr(str1, pos);
     pos++;
 
     if (ch == Scanner::kPrivateKeySeparator) {
       // Consume a private key separator.
-      while (pos < len && *(CharAddr(pos)) != '.') {
+      while ((pos < len) && (*CharAddr(str1, pos) != '.')) {
         pos++;
       }
       // Resume matching characters.
       continue;
     }
-    if (name_pos == name_len || ch != *(name.CharAddr(name_pos))) {
+    if ((str2_pos == str2_len) || (ch != *CharAddr(str2, str2_pos))) {
       return false;
     }
-    name_pos++;
+    str2_pos++;
   }
 
   // We have reached the end of mangled_name string.
   ASSERT(pos == len);
-  return (name_pos == name_len);
+  return (str2_pos == str2_len);
 }
 
 
@@ -10384,7 +10433,7 @@ RawOneByteString* OneByteString::New(intptr_t len,
     // This should be caught before we reach here.
     FATAL1("Fatal error in OneByteString::New: invalid len %"Pd"\n", len);
   }
-  OneByteString& result = OneByteString::Handle();
+  String& result = String::Handle();
   {
     RawObject* raw = Object::Allocate(OneByteString::kClassId,
                                       OneByteString::InstanceSize(len),
@@ -10394,56 +10443,52 @@ RawOneByteString* OneByteString::New(intptr_t len,
     result.SetLength(len);
     result.SetHash(0);
   }
-  return result.raw();
+  return OneByteString::raw(result);
 }
 
 
 RawOneByteString* OneByteString::New(const uint8_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
-  const OneByteString& result =
-      OneByteString::Handle(OneByteString::New(len, space));
+  const String& result = String::Handle(OneByteString::New(len, space));
   if (len > 0) {
     NoGCScope no_gc;
-    memmove(result.CharAddr(0), characters, len);
+    memmove(CharAddr(result, 0), characters, len);
   }
-  return result.raw();
+  return OneByteString::raw(result);
 }
 
 
 RawOneByteString* OneByteString::New(const uint16_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
-  const OneByteString& result =
-      OneByteString::Handle(OneByteString::New(len, space));
+  const String& result =String::Handle(OneByteString::New(len, space));
   for (intptr_t i = 0; i < len; ++i) {
     ASSERT(characters[i] <= 0x7F);
-    *result.CharAddr(i) = characters[i];
+    *CharAddr(result, i) = characters[i];
   }
-  return result.raw();
+  return OneByteString::raw(result);
 }
 
 
 RawOneByteString* OneByteString::New(const uint32_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
-  const OneByteString& result =
-      OneByteString::Handle(OneByteString::New(len, space));
+  const String& result = String::Handle(OneByteString::New(len, space));
   for (intptr_t i = 0; i < len; ++i) {
     ASSERT(characters[i] <= 0x7F);
-    *result.CharAddr(i) = characters[i];
+    *CharAddr(result, i) = characters[i];
   }
-  return result.raw();
+  return OneByteString::raw(result);
 }
 
 
-RawOneByteString* OneByteString::New(const OneByteString& str,
+RawOneByteString* OneByteString::New(const String& str,
                                      Heap::Space space) {
   intptr_t len = str.Length();
-  const OneByteString& result =
-      OneByteString::Handle(OneByteString::New(len, space));
+  const String& result = String::Handle(OneByteString::New(len, space));
   String::Copy(result, 0, str, 0, len);
-  return result.raw();
+  return OneByteString::raw(result);
 }
 
 
@@ -10453,20 +10498,18 @@ RawOneByteString* OneByteString::Concat(const String& str1,
   intptr_t len1 = str1.Length();
   intptr_t len2 = str2.Length();
   intptr_t len = len1 + len2;
-  const OneByteString& result =
-      OneByteString::Handle(OneByteString::New(len, space));
+  const String& result = String::Handle(OneByteString::New(len, space));
   String::Copy(result, 0, str1, 0, len1);
   String::Copy(result, len1, str2, 0, len2);
-  return result.raw();
+  return OneByteString::raw(result);
 }
 
 
 RawOneByteString* OneByteString::ConcatAll(const Array& strings,
                                            intptr_t len,
                                            Heap::Space space) {
-  const OneByteString& result =
-      OneByteString::Handle(OneByteString::New(len, space));
-  OneByteString& str = OneByteString::Handle();
+  const String& result = String::Handle(OneByteString::New(len, space));
+  String& str = String::Handle();
   intptr_t strings_len = strings.Length();
   intptr_t pos = 0;
   for (intptr_t i = 0; i < strings_len; i++) {
@@ -10475,7 +10518,7 @@ RawOneByteString* OneByteString::ConcatAll(const Array& strings,
     String::Copy(result, pos, str, 0, str_len);
     pos += str_len;
   }
-  return result.raw();
+  return OneByteString::raw(result);
 }
 
 
@@ -10484,50 +10527,45 @@ RawOneByteString* OneByteString::Transform(int32_t (*mapping)(int32_t ch),
                                            Heap::Space space) {
   ASSERT(!str.IsNull());
   intptr_t len = str.Length();
-  const OneByteString& result =
-      OneByteString::Handle(OneByteString::New(len, space));
+  const String& result = String::Handle(OneByteString::New(len, space));
   for (intptr_t i = 0; i < len; ++i) {
     int32_t ch = mapping(str.CharAt(i));
     ASSERT(ch >= 0 && ch <= 0x7F);
-    *result.CharAddr(i) = ch;
+    *CharAddr(result, i) = ch;
   }
-  return result.raw();
+  return OneByteString::raw(result);
 }
 
 
-const char* OneByteString::ToCString() const {
-  return String::ToCString();
-}
-
-
-RawTwoByteString* TwoByteString::EscapeSpecialCharacters(bool raw_str) const {
-  intptr_t len = Length();
+RawTwoByteString* TwoByteString::EscapeSpecialCharacters(const String& str,
+                                                         bool raw_str) {
+  intptr_t len = str.Length();
   if (len > 0) {
     intptr_t num_escapes = 0;
     intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
-      if (IsSpecialCharacter(*CharAddr(i)) ||
-          (!raw_str && (*CharAddr(i) == '\\'))) {
+      if (IsSpecialCharacter(*CharAddr(str, i)) ||
+          (!raw_str && (*CharAddr(str, i) == '\\'))) {
         num_escapes += 1;
       }
     }
-    const TwoByteString& dststr = TwoByteString::Handle(
+    const String& dststr = String::Handle(
         TwoByteString::New(len + num_escapes, Heap::kNew));
     for (intptr_t i = 0; i < len; i++) {
-      if (IsSpecialCharacter(*CharAddr(i))) {
-        *(dststr.CharAddr(index)) = '\\';
-        *(dststr.CharAddr(index + 1)) = SpecialCharacter(*CharAddr(i));
+      if (IsSpecialCharacter(*CharAddr(str, i))) {
+        *(CharAddr(dststr, index)) = '\\';
+        *(CharAddr(dststr, index + 1)) = SpecialCharacter(*CharAddr(str, i));
         index += 2;
-      } else if (!raw_str && (*CharAddr(i) == '\\')) {
-        *(dststr.CharAddr(index)) = '\\';
-        *(dststr.CharAddr(index + 1)) = '\\';
+      } else if (!raw_str && (*CharAddr(str, i) == '\\')) {
+        *(CharAddr(dststr, index)) = '\\';
+        *(CharAddr(dststr, index + 1)) = '\\';
         index += 2;
       } else {
-        *(dststr.CharAddr(index)) = *CharAddr(i);
+        *(CharAddr(dststr, index)) = *CharAddr(str, i);
         index += 1;
       }
     }
-    return dststr.raw();
+    return TwoByteString::raw(dststr);
   }
   return TwoByteString::null();
 }
@@ -10540,7 +10578,7 @@ RawTwoByteString* TwoByteString::New(intptr_t len,
     // This should be caught before we reach here.
     FATAL1("Fatal error in TwoByteString::New: invalid len %"Pd"\n", len);
   }
-  TwoByteString& result = TwoByteString::Handle();
+  String& result = String::Handle();
   {
     RawObject* raw = Object::Allocate(TwoByteString::kClassId,
                                       TwoByteString::InstanceSize(len),
@@ -10550,7 +10588,7 @@ RawTwoByteString* TwoByteString::New(intptr_t len,
     result.SetLength(len);
     result.SetHash(0);
   }
-  return result.raw();
+  return TwoByteString::raw(result);
 }
 
 
@@ -10558,13 +10596,12 @@ RawTwoByteString* TwoByteString::New(const uint16_t* utf16_array,
                                      intptr_t array_len,
                                      Heap::Space space) {
   ASSERT(array_len > 0);
-  const TwoByteString& result =
-      TwoByteString::Handle(TwoByteString::New(array_len, space));
+  const String& result = String::Handle(TwoByteString::New(array_len, space));
   {
     NoGCScope no_gc;
-    memmove(result.CharAddr(0), utf16_array, (array_len * 2));
+    memmove(CharAddr(result, 0), utf16_array, (array_len * 2));
   }
-  return result.raw();
+  return TwoByteString::raw(result);
 }
 
 
@@ -10573,34 +10610,32 @@ RawTwoByteString* TwoByteString::New(intptr_t utf16_len,
                                      intptr_t array_len,
                                      Heap::Space space) {
   ASSERT((array_len > 0) && (utf16_len >= array_len));
-  const TwoByteString& result =
-      TwoByteString::Handle(TwoByteString::New(utf16_len, space));
+  const String& result = String::Handle(TwoByteString::New(utf16_len, space));
   {
     NoGCScope no_gc;
     intptr_t j = 0;
     for (intptr_t i = 0; i < array_len; ++i) {
       if (utf32_array[i] > 0xffff) {
         ASSERT(j < (utf16_len - 1));
-        Utf8::ConvertUTF32ToUTF16(utf32_array[i], result.CharAddr(j));
+        Utf8::ConvertUTF32ToUTF16(utf32_array[i], CharAddr(result, j));
         j += 2;
       } else {
         ASSERT(j < utf16_len);
-        *result.CharAddr(j) = utf32_array[i];
+        *CharAddr(result, j) = utf32_array[i];
         j += 1;
       }
     }
   }
-  return result.raw();
+  return TwoByteString::raw(result);
 }
 
 
-RawTwoByteString* TwoByteString::New(const TwoByteString& str,
+RawTwoByteString* TwoByteString::New(const String& str,
                                      Heap::Space space) {
   intptr_t len = str.Length();
-  const TwoByteString& result =
-      TwoByteString::Handle(TwoByteString::New(len, space));
+  const String& result = String::Handle(TwoByteString::New(len, space));
   String::Copy(result, 0, str, 0, len);
-  return result.raw();
+  return TwoByteString::raw(result);
 }
 
 
@@ -10610,19 +10645,17 @@ RawTwoByteString* TwoByteString::Concat(const String& str1,
   intptr_t len1 = str1.Length();
   intptr_t len2 = str2.Length();
   intptr_t len = len1 + len2;
-  const TwoByteString& result =
-      TwoByteString::Handle(TwoByteString::New(len, space));
+  const String& result = String::Handle(TwoByteString::New(len, space));
   String::Copy(result, 0, str1, 0, len1);
   String::Copy(result, len1, str2, 0, len2);
-  return result.raw();
+  return TwoByteString::raw(result);
 }
 
 
 RawTwoByteString* TwoByteString::ConcatAll(const Array& strings,
                                            intptr_t len,
                                            Heap::Space space) {
-  const TwoByteString& result =
-      TwoByteString::Handle(TwoByteString::New(len, space));
+  const String& result = String::Handle(TwoByteString::New(len, space));
   String& str = String::Handle();
   intptr_t strings_len = strings.Length();
   intptr_t pos = 0;
@@ -10632,7 +10665,7 @@ RawTwoByteString* TwoByteString::ConcatAll(const Array& strings,
     String::Copy(result, pos, str, 0, str_len);
     pos += str_len;
   }
-  return result.raw();
+  return TwoByteString::raw(result);
 }
 
 
@@ -10641,19 +10674,13 @@ RawTwoByteString* TwoByteString::Transform(int32_t (*mapping)(int32_t ch),
                                            Heap::Space space) {
   ASSERT(!str.IsNull());
   intptr_t len = str.Length();
-  const TwoByteString& result =
-      TwoByteString::Handle(TwoByteString::New(len, space));
+  const String& result = String::Handle(TwoByteString::New(len, space));
   for (intptr_t i = 0; i < len; ++i) {
     int32_t ch = mapping(str.CharAt(i));
     ASSERT(ch >= 0 && ch <= 0xFFFF);
-    *result.CharAddr(i) = ch;
+    *CharAddr(result, i) = ch;
   }
-  return result.raw();
-}
-
-
-const char* TwoByteString::ToCString() const {
-  return String::ToCString();
+  return TwoByteString::raw(result);
 }
 
 
@@ -10677,14 +10704,14 @@ RawExternalOneByteString* ExternalOneByteString::New(
     void* peer,
     Dart_PeerFinalizer callback,
     Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->external_one_byte_string_class() !=
-         Class::null());
+  ASSERT(Isolate::Current()->object_store()->
+         external_one_byte_string_class() != Class::null());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in ExternalOneByteString::New: invalid len %"Pd"\n",
            len);
   }
-  ExternalOneByteString& result = ExternalOneByteString::Handle();
+  String& result = String::Handle();
   ExternalStringData<uint8_t>* external_data =
       new ExternalStringData<uint8_t>(data, peer, callback);
   {
@@ -10695,10 +10722,10 @@ RawExternalOneByteString* ExternalOneByteString::New(
     result ^= raw;
     result.SetLength(len);
     result.SetHash(0);
-    result.SetExternalData(external_data);
+    SetExternalData(result, external_data);
   }
   AddFinalizer(result, external_data, ExternalOneByteString::Finalize);
-  return result.raw();
+  return ExternalOneByteString::raw(result);
 }
 
 
@@ -10718,11 +10745,6 @@ void ExternalOneByteString::Finalize(Dart_Handle handle, void* peer) {
 }
 
 
-const char* ExternalOneByteString::ToCString() const {
-  return String::ToCString();
-}
-
-
 RawExternalTwoByteString* ExternalTwoByteString::New(
     const uint16_t* data,
     intptr_t len,
@@ -10736,7 +10758,7 @@ RawExternalTwoByteString* ExternalTwoByteString::New(
     FATAL1("Fatal error in ExternalTwoByteString::New: invalid len %"Pd"\n",
            len);
   }
-  ExternalTwoByteString& result = ExternalTwoByteString::Handle();
+  String& result = String::Handle();
   ExternalStringData<uint16_t>* external_data =
       new ExternalStringData<uint16_t>(data, peer, callback);
   {
@@ -10747,21 +10769,16 @@ RawExternalTwoByteString* ExternalTwoByteString::New(
     result ^= raw;
     result.SetLength(len);
     result.SetHash(0);
-    result.SetExternalData(external_data);
+    SetExternalData(result, external_data);
   }
   AddFinalizer(result, external_data, ExternalTwoByteString::Finalize);
-  return result.raw();
+  return ExternalTwoByteString::raw(result);
 }
 
 
 void ExternalTwoByteString::Finalize(Dart_Handle handle, void* peer) {
   delete reinterpret_cast<ExternalStringData<uint16_t>*>(peer);
   DeleteWeakPersistentHandle(handle);
-}
-
-
-const char* ExternalTwoByteString::ToCString() const {
-  return String::ToCString();
 }
 
 

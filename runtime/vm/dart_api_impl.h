@@ -81,7 +81,7 @@ class Api : AllStatic {
 #define DECLARE_UNWRAP(Type)                                                   \
   static const Type& Unwrap##Type##Handle(Isolate* isolate,                    \
                                           Dart_Handle object);
-  CLASS_LIST_NO_OBJECT(DECLARE_UNWRAP)
+  CLASS_LIST_FOR_HANDLES(DECLARE_UNWRAP)
 #undef DECLARE_UNWRAP
 
   // Validates and converts the passed in handle as a local handle.

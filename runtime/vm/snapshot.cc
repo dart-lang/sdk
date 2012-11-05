@@ -30,7 +30,8 @@ static bool IsSingletonClassId(intptr_t class_id) {
 static bool IsObjectStoreClassId(intptr_t class_id) {
   // Check if this is a class which is stored in the object store.
   return (class_id == kObjectCid ||
-          (class_id >= kInstanceCid && class_id <= kWeakPropertyCid));
+          (class_id >= kInstanceCid && class_id <= kWeakPropertyCid) ||
+          RawObject::IsStringClassId(class_id));
 }
 
 
@@ -431,7 +432,8 @@ RawClass* SnapshotReader::NewClass(intptr_t class_id) {
   ASSERT(kind_ == Snapshot::kFull);
   ASSERT(isolate()->no_gc_scope_depth() != 0);
   if (class_id < kNumPredefinedCids) {
-    ASSERT((class_id >= kInstanceCid) && (class_id <= kDartFunctionCid));
+    ASSERT((class_id >= kInstanceCid) &&
+           (class_id <= kExternalTwoByteStringCid));
     return isolate()->class_table()->At(class_id);
   }
   cls_ = Object::class_class();

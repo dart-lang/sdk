@@ -142,7 +142,7 @@ RawObject* Api::UnwrapHandle(Dart_Handle object) {
     }                                                                          \
     return type::Handle(iso);                                                  \
   }
-CLASS_LIST_NO_OBJECT(DEFINE_UNWRAP)
+CLASS_LIST_FOR_HANDLES(DEFINE_UNWRAP)
 #undef DEFINE_UNWRAP
 
 

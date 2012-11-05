@@ -1626,9 +1626,9 @@ void RawString::WriteTo(SnapshotWriter* writer,
 }
 
 
-template<typename HandleType, typename CharacterType>
+template<typename StringType, typename CharacterType>
 void String::ReadFromImpl(SnapshotReader* reader,
-                          HandleType* str_obj,
+                          String* str_obj,
                           intptr_t len,
                           intptr_t tags,
                           Snapshot::Kind kind) {
@@ -1644,11 +1644,11 @@ void String::ReadFromImpl(SnapshotReader* reader,
     *str_obj ^= Symbols::New(ptr, len);
   } else {
     // Set up the string object.
-    *str_obj = HandleType::New(len, HEAP_SPACE(kind));
+    *str_obj = StringType::New(len, HEAP_SPACE(kind));
     str_obj->set_tags(tags);
     str_obj->SetHash(0);  // Will get computed when needed.
     for (intptr_t i = 0; i < len; i++) {
-      *str_obj->CharAddr(i) = reader->Read<CharacterType>();
+      *StringType::CharAddr(*str_obj, i) = reader->Read<CharacterType>();
     }
   }
 }
@@ -1662,8 +1662,7 @@ RawOneByteString* OneByteString::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
   intptr_t len = reader->ReadSmiValue();
   intptr_t hash = reader->ReadSmiValue();
-  OneByteString& str_obj = OneByteString::ZoneHandle(reader->isolate(),
-                                                     OneByteString::null());
+  String& str_obj = String::Handle(reader->isolate(), String::null());
 
   if (kind == Snapshot::kFull) {
     ASSERT(reader->isolate()->no_gc_scope_depth() != 0);
@@ -1672,15 +1671,16 @@ RawOneByteString* OneByteString::ReadFrom(SnapshotReader* reader,
     str_obj.set_tags(tags);
     obj->ptr()->hash_ = Smi::New(hash);
     if (len > 0) {
-      uint8_t* raw_ptr = str_obj.CharAddr(0);
+      uint8_t* raw_ptr = CharAddr(str_obj, 0);
       reader->ReadBytes(raw_ptr, len);
     }
     ASSERT((hash == 0) || (String::Hash(str_obj, 0, str_obj.Length()) == hash));
   } else {
-    ReadFromImpl<OneByteString, uint8_t>(reader, &str_obj, len, tags, kind);
+    String::ReadFromImpl<OneByteString, uint8_t>(
+        reader, &str_obj, len, tags, kind);
   }
   reader->AddBackRef(object_id, &str_obj, kIsDeserialized);
-  return str_obj.raw();
+  return raw(str_obj);
 }
 
 
@@ -1692,26 +1692,26 @@ RawTwoByteString* TwoByteString::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
   intptr_t len = reader->ReadSmiValue();
   intptr_t hash = reader->ReadSmiValue();
-  TwoByteString& str_obj = TwoByteString::ZoneHandle(reader->isolate(),
-                                                     TwoByteString::null());
+  String& str_obj = String::Handle(reader->isolate(), String::null());
 
   if (kind == Snapshot::kFull) {
     RawTwoByteString* obj = reader->NewTwoByteString(len);
     str_obj = obj;
     str_obj.set_tags(tags);
     obj->ptr()->hash_ = Smi::New(hash);
-    uint16_t* raw_ptr = (len > 0)? str_obj.CharAddr(0) : NULL;
+    uint16_t* raw_ptr = (len > 0)? CharAddr(str_obj, 0) : NULL;
     for (intptr_t i = 0; i < len; i++) {
-      ASSERT(str_obj.CharAddr(i) == raw_ptr);  // Will trigger assertions.
+      ASSERT(CharAddr(str_obj, i) == raw_ptr);  // Will trigger assertions.
       *raw_ptr = reader->Read<uint16_t>();
       raw_ptr += 1;
     }
     ASSERT(String::Hash(str_obj, 0, str_obj.Length()) == hash);
   } else {
-    ReadFromImpl<TwoByteString, uint16_t>(reader, &str_obj, len, tags, kind);
+    String::ReadFromImpl<TwoByteString, uint16_t>(
+        reader, &str_obj, len, tags, kind);
   }
   reader->AddBackRef(object_id, &str_obj, kIsDeserialized);
-  return str_obj.raw();
+  return raw(str_obj);
 }
 
 

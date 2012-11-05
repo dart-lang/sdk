@@ -178,7 +178,7 @@ class Object {
   // Class testers.
 #define DEFINE_CLASS_TESTER(clazz)                                             \
   virtual bool Is##clazz() const { return false; }
-CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
+  CLASS_LIST_FOR_HANDLES(DEFINE_CLASS_TESTER);
 #undef DEFINE_CLASS_TESTER
 
   bool IsNull() const { return raw_ == null_; }
@@ -714,6 +714,9 @@ class Class : public Object {
   static RawClass* NewNativeWrapper(const Library& library,
                                     const String& name,
                                     int num_fields);
+
+  // Allocate the raw string classes.
+  static RawClass* NewStringClass(intptr_t class_id);
 
   // Allocate a class representing a function signature described by
   // signature_function, which must be a closure function or a signature
@@ -3659,9 +3662,9 @@ class String : public Instance {
   static intptr_t Hash(const uint16_t* characters, intptr_t len);
   static intptr_t Hash(const uint32_t* characters, intptr_t len);
 
-  virtual int32_t CharAt(intptr_t index) const;
+  int32_t CharAt(intptr_t index) const;
 
-  virtual intptr_t CharSize() const;
+  intptr_t CharSize() const;
 
   inline bool Equals(const String& str) const;
   inline bool Equals(const String& str,
@@ -3682,11 +3685,27 @@ class String : public Instance {
 
   bool IsSymbol() const { return raw()->IsCanonical(); }
 
-  virtual bool IsExternal() const { return false; }
-  virtual void* GetPeer() const {
-    UNREACHABLE();
-    return NULL;
+  bool IsOneByteString() const {
+    return raw()->GetClassId() == kOneByteStringCid;
   }
+
+  bool IsTwoByteString() const {
+    return raw()->GetClassId() == kTwoByteStringCid;
+  }
+
+  bool IsExternalOneByteString() const {
+    return raw()->GetClassId() == kExternalOneByteStringCid;
+  }
+
+  bool IsExternalTwoByteString() const {
+    return raw()->GetClassId() == kExternalTwoByteStringCid;
+  }
+
+  bool IsExternal() const {
+    return RawObject::IsExternalStringClassId(raw()->GetClassId());
+  }
+
+  void* GetPeer() const;
 
   void ToUTF8(uint8_t* utf8_array, intptr_t array_len) const;
 
@@ -3791,30 +3810,33 @@ class String : public Instance {
 
   template<typename HandleType, typename ElementType>
   static void ReadFromImpl(SnapshotReader* reader,
-                           HandleType* str_obj,
+                           String* str_obj,
                            intptr_t len,
                            intptr_t tags,
                            Snapshot::Kind kind);
 
   HEAP_OBJECT_IMPLEMENTATION(String, Instance);
 
+  friend class Class;
   friend class Symbols;
+  friend class OneByteString;
+  friend class TwoByteString;
+  friend class ExternalOneByteString;
+  friend class ExternalTwoByteString;
 };
 
 
-class OneByteString : public String {
+class OneByteString : public AllStatic {
  public:
-  virtual int32_t CharAt(intptr_t index) const {
-    return *CharAddr(index);
+  static int32_t CharAt(const String& str, intptr_t index) {
+    return *CharAddr(str, index);
   }
 
-  virtual intptr_t CharSize() const {
-    return kOneByteChar;
-  }
+  static RawOneByteString* EscapeSpecialCharacters(const String& str,
+                                                   bool raw_str);
 
-  RawOneByteString* EscapeSpecialCharacters(bool raw_str) const;
-
-  bool EqualsIgnoringPrivateKey(const OneByteString& str) const;
+  static bool EqualsIgnoringPrivateKey(const String& str1,
+                                       const String& str2);
 
   // We use the same maximum elements for all strings.
   static const intptr_t kBytesPerElement = 1;
@@ -3828,9 +3850,9 @@ class OneByteString : public String {
   }
 
   static intptr_t InstanceSize(intptr_t len) {
-    ASSERT(sizeof(RawOneByteString) == kSizeofRawString);
+    ASSERT(sizeof(RawOneByteString) == String::kSizeofRawString);
     ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(
+    return String::RoundedAllocationSize(
         sizeof(RawOneByteString) + (len * kBytesPerElement));
   }
 
@@ -3851,7 +3873,7 @@ class OneByteString : public String {
   static RawOneByteString* New(const uint32_t* characters,
                                intptr_t len,
                                Heap::Space space);
-  static RawOneByteString* New(const OneByteString& str,
+  static RawOneByteString* New(const String& str,
                                Heap::Space space);
 
   static RawOneByteString* Concat(const String& str1,
@@ -3865,30 +3887,47 @@ class OneByteString : public String {
                                      const String& str,
                                      Heap::Space space);
 
- private:
-  uint8_t* CharAddr(intptr_t index) const {
-    // TODO(iposva): Determine if we should throw an exception here.
-    ASSERT((index >= 0) && (index < Length()));
-    return &raw_ptr()->data_[index];
+  static const ClassId kClassId = kOneByteStringCid;
+
+  static RawOneByteString* null() {
+    return reinterpret_cast<RawOneByteString*>(Object::null());
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(OneByteString, String);
+ private:
+  static RawOneByteString* raw(const String& str) {
+    return reinterpret_cast<RawOneByteString*>(str.raw());
+  }
+
+  static RawOneByteString* raw_ptr(const String& str) {
+    return reinterpret_cast<RawOneByteString*>(str.raw_ptr());
+  }
+
+  static uint8_t* CharAddr(const String& str, intptr_t index) {
+    ASSERT((index >= 0) && (index < str.Length()));
+    ASSERT(str.IsOneByteString());
+    NoGCScope no_gc;
+    return &raw_ptr(str)->data_[index];
+  }
+
+  static RawOneByteString* ReadFrom(SnapshotReader* reader,
+                                    intptr_t object_id,
+                                    intptr_t tags,
+                                    Snapshot::Kind kind);
+
   friend class Class;
   friend class String;
+  friend class SnapshotReader;
 };
 
 
-class TwoByteString : public String {
+class TwoByteString : public AllStatic {
  public:
-  virtual int32_t CharAt(intptr_t index) const {
-    return *CharAddr(index);
+  static int32_t CharAt(const String& str, intptr_t index) {
+    return *CharAddr(str, index);
   }
 
-  virtual intptr_t CharSize() const {
-    return kTwoByteChar;
-  }
-
-  RawTwoByteString* EscapeSpecialCharacters(bool raw_str) const;
+  static RawTwoByteString* EscapeSpecialCharacters(const String& str,
+                                                   bool raw_str);
 
   // We use the same maximum elements for all strings.
   static const intptr_t kBytesPerElement = 2;
@@ -3902,9 +3941,9 @@ class TwoByteString : public String {
   }
 
   static intptr_t InstanceSize(intptr_t len) {
-    ASSERT(sizeof(RawTwoByteString) == kSizeofRawString);
+    ASSERT(sizeof(RawTwoByteString) == String::kSizeofRawString);
     ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(
+    return String::RoundedAllocationSize(
         sizeof(RawTwoByteString) + (len * kBytesPerElement));
   }
 
@@ -3917,7 +3956,7 @@ class TwoByteString : public String {
                                const uint32_t* characters,
                                intptr_t len,
                                Heap::Space space);
-  static RawTwoByteString* New(const TwoByteString& str,
+  static RawTwoByteString* New(const String& str,
                                Heap::Space space);
 
   static RawTwoByteString* Concat(const String& str1,
@@ -3931,31 +3970,48 @@ class TwoByteString : public String {
                                      const String& str,
                                      Heap::Space space);
 
- private:
-  uint16_t* CharAddr(intptr_t index) const {
-    ASSERT((index >= 0) && (index < Length()));
-    return &raw_ptr()->data_[index];
+  static RawTwoByteString* null() {
+    return reinterpret_cast<RawTwoByteString*>(Object::null());
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(TwoByteString, String);
+
+  static const ClassId kClassId = kTwoByteStringCid;
+
+ private:
+  static RawTwoByteString* raw(const String& str) {
+    return reinterpret_cast<RawTwoByteString*>(str.raw());
+  }
+
+  static RawTwoByteString* raw_ptr(const String& str) {
+    return reinterpret_cast<RawTwoByteString*>(str.raw_ptr());
+  }
+
+  static uint16_t* CharAddr(const String& str, intptr_t index) {
+    ASSERT((index >= 0) && (index < str.Length()));
+    ASSERT(str.IsTwoByteString());
+    NoGCScope no_gc;
+    return &raw_ptr(str)->data_[index];
+  }
+
+  static RawTwoByteString* ReadFrom(SnapshotReader* reader,
+                                    intptr_t object_id,
+                                    intptr_t tags,
+                                    Snapshot::Kind kind);
+
   friend class Class;
   friend class String;
+  friend class SnapshotReader;
 };
 
 
-class ExternalOneByteString : public String {
+class ExternalOneByteString : public AllStatic {
  public:
-  virtual int32_t CharAt(intptr_t index) const {
-    return *CharAddr(index);
+  static int32_t CharAt(const String& str, intptr_t index) {
+    return *CharAddr(str, index);
   }
 
-  virtual intptr_t CharSize() const {
-    return kOneByteChar;
-  }
-
-  virtual bool IsExternal() const { return true; }
-  virtual void* GetPeer() const {
-    return raw_ptr()->external_data_->peer();
+  static void* GetPeer(const String& str) {
+    return raw_ptr(str)->external_data_->peer();
   }
 
   // We use the same maximum elements for all strings.
@@ -3963,7 +4019,7 @@ class ExternalOneByteString : public String {
   static const intptr_t kMaxElements = String::kMaxElements;
 
   static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawExternalOneByteString));
+    return String::RoundedAllocationSize(sizeof(RawExternalOneByteString));
   }
 
   static RawExternalOneByteString* New(const uint8_t* characters,
@@ -3972,38 +4028,56 @@ class ExternalOneByteString : public String {
                                        Dart_PeerFinalizer callback,
                                        Heap::Space space);
 
- private:
-  const uint8_t* CharAddr(intptr_t index) const {
-    // TODO(iposva): Determine if we should throw an exception here.
-    ASSERT((index >= 0) && (index < Length()));
-    return &(raw_ptr()->external_data_->data()[index]);
+  static RawExternalOneByteString* null() {
+    return reinterpret_cast<RawExternalOneByteString*>(Object::null());
   }
 
-  void SetExternalData(ExternalStringData<uint8_t>* data) {
-    raw_ptr()->external_data_ = data;
+  static const ClassId kClassId = kExternalOneByteStringCid;
+
+ private:
+  static RawExternalOneByteString* raw(const String& str) {
+    return reinterpret_cast<RawExternalOneByteString*>(str.raw());
+  }
+
+  static RawExternalOneByteString* raw_ptr(const String& str) {
+    return reinterpret_cast<RawExternalOneByteString*>(str.raw_ptr());
+  }
+
+  static const uint8_t* CharAddr(const String& str, intptr_t index) {
+    ASSERT((index >= 0) && (index < str.Length()));
+    ASSERT(str.IsExternalOneByteString());
+    NoGCScope no_gc;
+    return &(raw_ptr(str)->external_data_->data()[index]);
+  }
+
+  static void SetExternalData(const String& str,
+                              ExternalStringData<uint8_t>* data) {
+    ASSERT(str.IsExternalOneByteString());
+    NoGCScope no_gc;
+    raw_ptr(str)->external_data_ = data;
   }
 
   static void Finalize(Dart_Handle handle, void* peer);
 
-  HEAP_OBJECT_IMPLEMENTATION(ExternalOneByteString, String);
+  static RawExternalOneByteString* ReadFrom(SnapshotReader* reader,
+                                            intptr_t object_id,
+                                            intptr_t tags,
+                                            Snapshot::Kind kind);
+
   friend class Class;
   friend class String;
+  friend class SnapshotReader;
 };
 
 
-class ExternalTwoByteString : public String {
+class ExternalTwoByteString : public AllStatic {
  public:
-  virtual int32_t CharAt(intptr_t index) const {
-    return *CharAddr(index);
+  static int32_t CharAt(const String& str, intptr_t index) {
+    return *CharAddr(str, index);
   }
 
-  virtual intptr_t CharSize() const {
-    return kTwoByteChar;
-  }
-
-  virtual bool IsExternal() const { return true; }
-  virtual void* GetPeer() const {
-    return raw_ptr()->external_data_->peer();
+  static void* GetPeer(const String& str) {
+    return raw_ptr(str)->external_data_->peer();
   }
 
   // We use the same maximum elements for all strings.
@@ -4011,7 +4085,7 @@ class ExternalTwoByteString : public String {
   static const intptr_t kMaxElements = String::kMaxElements;
 
   static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawExternalTwoByteString));
+    return String::RoundedAllocationSize(sizeof(RawExternalTwoByteString));
   }
 
   static RawExternalTwoByteString* New(const uint16_t* characters,
@@ -4020,22 +4094,45 @@ class ExternalTwoByteString : public String {
                                        Dart_PeerFinalizer callback,
                                        Heap::Space space = Heap::kNew);
 
- private:
-  const uint16_t* CharAddr(intptr_t index) const {
-    // TODO(iposva): Determine if we should throw an exception here.
-    ASSERT((index >= 0) && (index < Length()));
-    return &(raw_ptr()->external_data_->data()[index]);
+  static RawExternalTwoByteString* null() {
+    return reinterpret_cast<RawExternalTwoByteString*>(Object::null());
   }
 
-  void SetExternalData(ExternalStringData<uint16_t>* data) {
-    raw_ptr()->external_data_ = data;
+  static const ClassId kClassId = kExternalTwoByteStringCid;
+
+ private:
+  static RawExternalTwoByteString* raw(const String& str) {
+    return reinterpret_cast<RawExternalTwoByteString*>(str.raw());
+  }
+
+  static RawExternalTwoByteString* raw_ptr(const String& str) {
+    return reinterpret_cast<RawExternalTwoByteString*>(str.raw_ptr());
+  }
+
+  static const uint16_t* CharAddr(const String& str, intptr_t index) {
+    ASSERT((index >= 0) && (index < str.Length()));
+    ASSERT(str.IsExternalTwoByteString());
+    NoGCScope no_gc;
+    return &(raw_ptr(str)->external_data_->data()[index]);
+  }
+
+  static void SetExternalData(const String& str,
+                              ExternalStringData<uint16_t>* data) {
+    ASSERT(str.IsExternalTwoByteString());
+    NoGCScope no_gc;
+    raw_ptr(str)->external_data_ = data;
   }
 
   static void Finalize(Dart_Handle handle, void* peer);
 
-  HEAP_OBJECT_IMPLEMENTATION(ExternalTwoByteString, String);
+  static RawExternalTwoByteString* ReadFrom(SnapshotReader* reader,
+                                            intptr_t object_id,
+                                            intptr_t tags,
+                                            Snapshot::Kind kind);
+
   friend class Class;
   friend class String;
+  friend class SnapshotReader;
 };
 
 
