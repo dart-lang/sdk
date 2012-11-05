@@ -64,7 +64,7 @@ void main() {
     }
   }
 
-  final libPath = doc.scriptDir.append('../../sdk/');
+  final libPath = doc.scriptDir.append('../../sdk/lib');
   final pkgPath = doc.scriptDir.append('../../pkg/');
 
   doc.cleanOutputDirectory(outputDir);
@@ -553,7 +553,7 @@ class Apidoc extends doc.Dartdoc {
   String _linkMember(MemberMirror member) {
     final typeName = member.owner.simpleName;
     var memberName = '$typeName.${member.simpleName}';
-    if (member is MethodMirror && member.isConstructor) {
+    if (member is MethodMirror && (member.isConstructor || member.isFactory)) {
       final separator = member.constructorName == '' ? '' : '.';
       memberName = 'new $typeName$separator${member.constructorName}';
     }

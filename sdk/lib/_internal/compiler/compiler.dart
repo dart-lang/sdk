@@ -43,12 +43,6 @@ Future<String> compile(Uri script,
                        ReadStringFromUri provider,
                        DiagnosticHandler handler,
                        [List<String> options = const []]) {
-  if (!libraryRoot.path.endsWith("/")) {
-    throw new ArgumentError("libraryRoot must end with a /");
-  }
-  if (packageRoot != null && !packageRoot.path.endsWith("/")) {
-    throw new ArgumentError("packageRoot must end with a /");
-  }
   // TODO(ahe): Consider completing the future with an exception if
   // code is null.
   Compiler compiler = new Compiler(provider, handler, libraryRoot, packageRoot,

@@ -34,15 +34,7 @@ class Compiler extends leg.Compiler {
             disallowUnsafeEval: hasOption(options, '--disallow-unsafe-eval'),
             strips: getStrips(options),
             enableConcreteTypeInference:
-              hasOption(options, '--enable-concrete-type-inference')) {
-    if (!libraryRoot.path.endsWith("/")) {
-      throw new ArgumentError("libraryRoot must end with a /");
-    }
-    if (packageRoot != null && !packageRoot.path.endsWith("/")) {
-      throw new ArgumentError("packageRoot must end with a /");
-    }
-  }
-
+              hasOption(options, '--enable-concrete-type-inference'));
 
   static List<String> getStrips(List<String> options) {
     for (String option in options) {
