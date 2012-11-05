@@ -3459,9 +3459,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else {
       visit(node.expression);
       value = pop();
-      if (returnType == compiler.types.voidType
-          && value is HForeign) {
-        // TODO(6530): remove this check.
+      if (value is HForeign) {
+        // TODO(6530, 6534): remove this check.
       } else {
         value = potentiallyCheckType(value, returnType);
       }
