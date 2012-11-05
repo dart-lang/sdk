@@ -11,6 +11,7 @@ import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartComment;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartField;
+import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
@@ -41,14 +42,16 @@ public class DartParserCommentsHelper {
     }
 
     @Override
-    protected DartScanner createScanner(String sourceCode, Source source, DartCompilerListener listener) {
+    protected DartScanner createScanner(String sourceCode, Source source,
+        DartCompilerListener listener) {
       commentLocs = Lists.newArrayList();
       return new CommentScanner(sourceCode, 0, source, listener);
     }
 
     private class CommentScanner extends DartScanner {
 
-      CommentScanner(String sourceCode, int start, Source sourceReference, DartCompilerListener listener) {
+      CommentScanner(String sourceCode, int start, Source sourceReference,
+          DartCompilerListener listener) {
         super(sourceCode, start, sourceReference, listener);
       }
 
@@ -147,6 +150,7 @@ public class DartParserCommentsHelper {
         if (decl != null) {
           String commentStr = sourceCode.substring(comment.getSourceInfo().getOffset(),
               comment.getSourceInfo().getEnd());
+          tokenizeComment(comment, commentStr);
           // may be @Metadata
           if (commentStr.contains("@deprecated")) {
             decl.setObsoleteMetadata(decl.getObsoleteMetadata().makeDeprecated());
@@ -158,6 +162,41 @@ public class DartParserCommentsHelper {
           if (comment.isDartDoc()) {
             decl.setDartDoc(comment);
           }
+        }
+      }
+    }
+  }
+
+  private static void tokenizeComment(DartComment comment, String src) {
+    int lastIndex = 0;
+    while (true) {
+      int openIndex = src.indexOf('[', lastIndex);
+      if (openIndex == -1) {
+        break;
+      }
+      int closeIndex = src.indexOf(']', openIndex);
+      if (closeIndex == -1) {
+        break;
+      }
+      lastIndex = closeIndex;
+      openIndex++;
+      String tokenSrc = src.substring(openIndex, closeIndex);
+      if (tokenSrc.startsWith(":") && tokenSrc.endsWith(":")) {
+        // TODO(scheglov) [:code:] and 'code'
+      } else if (tokenSrc.startsWith("new ")) {
+        // TODO(scheglov) may be resolve constructor
+      } else {
+        DartScanner scanner = new DartScanner(tokenSrc);
+        if (scanner.next() == Token.IDENTIFIER) {
+          String name = new String(scanner.getTokenValue());
+          DartIdentifier id = new DartIdentifier(name);
+          {
+            SourceInfo sourceInfo = comment.getSourceInfo();
+            int offset = sourceInfo.getOffset() + openIndex;
+            int length = name.length();
+            id.setSourceInfo(new SourceInfo(sourceInfo.getSource(), offset, length));
+          }
+          comment.addTokenIdentifier(id);
         }
       }
     }

@@ -8,6 +8,7 @@ import com.google.dart.compiler.Source;
 import com.google.dart.compiler.common.SourceInfo;
 
 public class DartComment extends DartNode {
+  private final NodeList<DartIdentifier> identifiers = NodeList.create(this);
 
   @SuppressWarnings("unused")
   private static final long serialVersionUID = 6066713446767517627L;
@@ -49,14 +50,22 @@ public class DartComment extends DartNode {
   public boolean isEndOfLine() {
     return style == Style.END_OF_LINE;
   }
+  
+  /**
+   * Adds <code>[id]</code> reference.
+   */
+  public void addTokenIdentifier(DartIdentifier id) {
+    identifiers.add(id);
+  }
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
+    identifiers.accept(visitor);
   }
 
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
-    return null;
+    return visitor.visitComment(this);
   }
 
 }

@@ -20,6 +20,7 @@ import com.google.dart.compiler.ast.DartBreakStatement;
 import com.google.dart.compiler.ast.DartCase;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartComment;
 import com.google.dart.compiler.ast.DartContinueStatement;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartDoWhileStatement;
@@ -407,6 +408,13 @@ public class Resolver {
           }
         });
       }
+      
+      {
+        DartComment comment = cls.getDartDoc();
+        if (comment != null) {
+          comment.accept(this);
+        }
+      }
 
       context = previousContext;
       currentHolder = previousHolder;
@@ -645,6 +653,13 @@ public class Resolver {
         if (parameter.getQualifier() instanceof DartThisExpression && parameter.getElement() != null
             && !initializedFields.add(parameter.getElement().getParameterInitializerElement())) {
           onError(parameter, ResolverErrorCode.DUPLICATE_INITIALIZATION, parameter.getName());
+        }
+      }
+      
+      {
+        DartComment comment = node.getDartDoc();
+        if (comment != null) {
+          comment.accept(this);
         }
       }
 
@@ -1184,6 +1199,7 @@ public class Resolver {
           onError(x, ResolverErrorCode.CANNOT_BE_RESOLVED, name);
           x.markResolutionAlreadyReportedThatTheMethodCouldNotBeFound();
         }
+      } else if (x.getParent() instanceof DartComment) {
       } else {
         element = checkResolvedIdentifier(x, isQualifier, scope, name, element);
       }
@@ -1207,7 +1223,7 @@ public class Resolver {
         onError(x, ResolverErrorCode.USING_LOCAL_VARIABLE_BEFORE_DECLARATION, x);
       }
 
-      if (!isQualifier) {
+      if (!isQualifier && !(x.getParent() instanceof DartComment)) {
         switch (ElementKind.of(element)) {
           case FUNCTION_TYPE_ALIAS:
             onError(x, ResolverErrorCode.CANNOT_USE_TYPE, name);

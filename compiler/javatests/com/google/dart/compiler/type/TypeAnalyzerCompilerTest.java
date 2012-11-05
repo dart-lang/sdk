@@ -44,6 +44,7 @@ import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
+import com.google.dart.compiler.resolver.VariableElement;
 
 import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
 import static com.google.dart.compiler.common.ErrorExpectation.errEx;
@@ -5463,5 +5464,83 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertErrors(result.getErrors());
+  }
+
+  public void test_resolveIdentifierInComment_ofClass() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "/** This class [A] has method [foo]. */",
+        "class A {",
+        "  foo() {}",
+        "}",
+        "");
+    assertErrors(result.getErrors());
+    // [A]
+    {
+      DartIdentifier identifier = findNode(DartIdentifier.class, "A]");
+      ClassElement element = (ClassElement) identifier.getElement();
+      assertEquals("A", element.getName());
+    }
+    // [foo]
+    {
+      DartIdentifier identifier = findNode(DartIdentifier.class, "foo]");
+      MethodElement element = (MethodElement) identifier.getElement();
+      assertEquals("foo", element.getName());
+    }
+  }
+  
+  public void test_resolveIdentifierInComment_ofFunction() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "/** This function has parameter [aaa] of type [A] ans also [bbb]. */",
+        "foo(A aaa, bbb) {}",
+        "");
+    assertErrors(result.getErrors());
+    // [aaa]
+    {
+      DartIdentifier identifier = findNode(DartIdentifier.class, "aaa]");
+      VariableElement element = (VariableElement) identifier.getElement();
+      assertSame(ElementKind.PARAMETER, ElementKind.of(element));
+      assertEquals("aaa", element.getName());
+    }
+    // [A]
+    {
+      DartIdentifier identifier = findNode(DartIdentifier.class, "A]");
+      ClassElement element = (ClassElement) identifier.getElement();
+      assertEquals("A", element.getName());
+    }
+    // [bbb]
+    {
+      DartIdentifier identifier = findNode(DartIdentifier.class, "bbb]");
+      VariableElement element = (VariableElement) identifier.getElement();
+      assertSame(ElementKind.PARAMETER, ElementKind.of(element));
+      assertEquals("bbb", element.getName());
+    }
+  }
+  
+  public void test_resolveIdentifierInComment_ofMethod() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var fff;",
+        "  /** Initializes [fff] and then calls [bar]. */",
+        "  foo() {}",
+        "  bar() {}",
+        "}",
+        "");
+    assertErrors(result.getErrors());
+    // [fff]
+    {
+      DartIdentifier identifier = findNode(DartIdentifier.class, "fff]");
+      FieldElement element = (FieldElement) identifier.getElement();
+      assertEquals("fff", element.getName());
+    }
+    // [bbb]
+    {
+      DartIdentifier identifier = findNode(DartIdentifier.class, "bar]");
+      MethodElement element = (MethodElement) identifier.getElement();
+      assertEquals("bar", element.getName());
+    }
   }
 }

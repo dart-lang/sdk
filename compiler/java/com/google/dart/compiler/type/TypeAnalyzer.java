@@ -36,6 +36,7 @@ import com.google.dart.compiler.ast.DartCascadeExpression;
 import com.google.dart.compiler.ast.DartCase;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartComment;
 import com.google.dart.compiler.ast.DartConditional;
 import com.google.dart.compiler.ast.DartContinueStatement;
 import com.google.dart.compiler.ast.DartDeclaration;
@@ -1893,6 +1894,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
       if (node.getParent() instanceof DartDeclaration<?>
           && ((DartDeclaration<?>) node.getParent()).getName() == node) {
         return node.getType();
+      }
+      if (node.getParent() instanceof DartComment) {
+        return dynamicType;
       }
       Element element = node.getElement();
       Type type;
