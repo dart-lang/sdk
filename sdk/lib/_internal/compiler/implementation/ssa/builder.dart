@@ -3459,7 +3459,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else {
       visit(node.expression);
       value = pop();
-      value = potentiallyCheckType(value, returnType);
+      if (returnType == compiler.types.voidType
+          && value is HForeign) {
+        // TODO(6530): remove this check.
+      } else {
+        value = potentiallyCheckType(value, returnType);
+      }
     }
     if (!inliningStack.isEmpty) {
       localsHandler.updateLocal(returnElement, value);
