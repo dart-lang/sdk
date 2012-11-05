@@ -711,6 +711,8 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
                             parameterized_class.NumTypeParameters();
     type_parameter.set_index(type_parameter.index() + offset);
     type_parameter.set_is_finalized();
+    // TODO(regis): We are not able to finalize the bound here without getting
+    // into cycles. Revisit.
     // We do not canonicalize type parameters.
     return type_parameter.raw();
   }

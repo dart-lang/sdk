@@ -1559,13 +1559,16 @@ RawTypeParameter* Class::LookupTypeParameter(const String& type_name,
     intptr_t num_type_params = type_params.Length();
     TypeParameter& type_param = TypeParameter::Handle();
     String& type_param_name = String::Handle();
-    AbstractType& bound = AbstractType::Handle();
+    // TODO(regis): We do not copy the bound (= type_param.bound()), since
+    // we are not able to finalize the bounds of type parameter references
+    // without getting into cycles. Revisit.
+    const AbstractType& bound = AbstractType::Handle(
+        Isolate::Current()->object_store()->object_type());
     for (intptr_t i = 0; i < num_type_params; i++) {
       type_param ^= type_params.TypeAt(i);
       type_param_name = type_param.name();
       if (type_param_name.Equals(type_name)) {
         intptr_t index = type_param.index();
-        bound = type_param.bound();
         // Create a non-finalized new TypeParameter with the given token_pos.
         if (type_param.IsFinalized()) {
           // The index was adjusted during finalization. Revert.
