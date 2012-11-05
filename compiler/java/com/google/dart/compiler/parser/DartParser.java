@@ -619,6 +619,7 @@ public class DartParser extends CompletionHooksParserBase {
 
   private DartLibraryDirective parseObsoleteLibraryDirective() {
     expect(Token.LIBRARY);
+    reportDeprecatedError(position(), ParserErrorCode.DEPRECATED_LIBRARY_DIRECTIVE);
     expect(Token.LPAREN);
     beginLiteral();
     expect(Token.STRING);
@@ -715,6 +716,7 @@ public class DartParser extends CompletionHooksParserBase {
 
   protected DartImportDirective parseObsoleteImportDirective() {
     expect(Token.IMPORT);
+    reportDeprecatedError(position(), ParserErrorCode.DEPRECATED_IMPORT_DIRECTIVE);
     expect(Token.LPAREN);
     
     beginLiteral();
@@ -761,6 +763,7 @@ public class DartParser extends CompletionHooksParserBase {
 
   private DartSourceDirective parseSourceDirective() {
     expect(Token.SOURCE);
+    reportDeprecatedError(position(), ParserErrorCode.DEPRECATED_SOURCE_DIRECTIVE);
     expect(Token.LPAREN);
     beginLiteral();
     expect(Token.STRING);
@@ -5389,6 +5392,23 @@ public class DartParser extends CompletionHooksParserBase {
     }
     
     return errorCount < MAX_DEFAULT_ERRORS;
+  }
+  
+  private void reportDeprecatedError(int position, ErrorCode errorCode) {
+    // TODO(scheglov) remove after http://code.google.com/p/dart/issues/detail?id=6508
+    if (!Elements.isCoreLibrarySource(source) &&
+        !Elements.isLibrarySource(source, "/isolate/isolate.dart")
+      &&  !Elements.isLibrarySource(source, "/json/json.dart")
+      &&  !Elements.isLibrarySource(source, "/math/math.dart")
+      &&  !Elements.isLibrarySource(source, "/html/dartium/nativewrappers.dart")
+      &&  !Elements.isLibrarySource(source, "/io/io.dart")
+      &&  !Elements.isLibrarySource(source, "/crypto/crypto.dart")
+      &&  !Elements.isLibrarySource(source, "/uri/uri.dart")
+      &&  !Elements.isLibrarySource(source, "/utf/utf.dart")
+      &&  !Elements.isLibrarySource(source, "/scalarlist/scalarlist.dart")
+        ) {
+      super.reportError(position, errorCode);
+    }
   }
   
   @Override

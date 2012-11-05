@@ -300,6 +300,45 @@ interface_factory1_negative_test: Pass
 type_variable_bounds_test/07: Pass
 
 
+# test issue 6512
+arithmetic_test: Fail, OK
+call_constructor_on_unresolvable_class_test/none: Fail, OK
+call_constructor_on_unresolvable_class_test/01: Fail, OK
+call_constructor_on_unresolvable_class_test/02: Fail, OK
+call_constructor_on_unresolvable_class_test/07: Fail, OK
+call_constructor_on_unresolvable_class_test/03: Fail, OK
+closure_type_test: Fail, OK
+const_var_test: Fail, OK
+ct_const4_test: Fail, OK
+cyclic_import_test: Fail, OK
+function_type_alias3_test: Fail, OK
+getter_setter_in_lib_test: Fail, OK
+import_collection_no_prefix_test: Fail, OK
+import_core_no_prefix_test: Fail, OK
+import_core_prefix_test: Fail, OK
+import_core_test: Fail, OK
+intrinsified_methods_test: Fail, OK
+issue1363_test: Fail, OK
+library5_test: Fail, OK
+library_private_in_constructor_test: Fail, OK
+numbers_test: Fail, OK
+prefix101_test: Fail, OK
+prefix10_negative_test: Pass
+prefix10_test: Fail, OK
+prefix11_test: Fail, OK
+prefix12_test: Fail, OK
+prefix1_negative_test: Pass
+prefix21_test: Fail, OK
+prefix4_negative_test: Pass
+prefix5_negative_test: Pass
+prefix_new_test: Fail, OK
+prefix_test: Fail, OK
+private_member3_negative_test: Pass
+private_member_test: Fail, OK
+top_level_prefixed_declaration_test: Fail, OK
+typed_message_test: Fail, OK
+
+
 
 #
 # Add new dartc annotations above in alphabetical order

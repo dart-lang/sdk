@@ -53,6 +53,12 @@ intl/test/intl_message_basic_example_test: Skip
 unittest/test/mock_regexp_negative_test: Fail
 unittest/test/mock_stepwise_negative_test: Fail
 
+# pkg issue 6508
+logging/test/logging_test: Fail, OK
+args/test/args_test: Fail, OK
+
+
+
 [ $compiler == dart2js || $compiler == dartc ]
 unittest/test/instance_test: Skip
 

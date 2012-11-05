@@ -31,6 +31,11 @@ utf8_test: Fail # TRIAGE
 dummy_compiler_test: Fail, OK
 recursive_import_test: Fail, OK
 
+# test issue 6512
+json_test: Fail, OK
+utf8_test: Fail, OK
+
+
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
 *: Skip

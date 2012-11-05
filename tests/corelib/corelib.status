@@ -72,3 +72,15 @@ unicode_test: Fail # inherited from VM
 # test issue 6324
 list_sort_test: Fail, OK
 sort_test: Fail, OK
+
+# test issue 6512
+big_integer_vm_test: Fail, OK
+collection_to_string_test: Fail, OK
+exception_implementation_test: Fail, OK
+futures_test: Fail, OK
+map_test: Fail, OK
+maps_test: Fail, OK
+queue_test: Fail, OK
+splay_tree_test: Fail, OK
+string_base_vm_test: Fail, OK
+stopwatch_test: Fail, OK
