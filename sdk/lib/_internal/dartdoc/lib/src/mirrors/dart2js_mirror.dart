@@ -404,11 +404,13 @@ abstract class Dart2JsMemberMirror extends Dart2JsElementMirror
 
   bool get isConstructor => false;
 
-  bool get isField => false;
+  bool get isVariable => false;
 
   bool get isMethod => false;
 
   bool get isStatic => false;
+
+  bool get isParameter => false;
 }
 
 abstract class Dart2JsTypeMirror extends Dart2JsDeclarationMirror
@@ -1506,7 +1508,7 @@ class Dart2JsFieldMirror extends Dart2JsMemberMirror implements VariableMirror {
 
   bool get isTopLevel => _objectMirror is LibraryMirror;
 
-  bool get isField => true;
+  bool get isVariable => true;
 
   bool get isStatic => _variable.modifiers.isStatic();
 

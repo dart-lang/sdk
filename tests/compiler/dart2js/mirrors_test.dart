@@ -366,7 +366,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.equals(method1.owner, bazClass);
   Expect.isFalse(method1.isTopLevel);
   Expect.isFalse(method1.isConstructor);
-  Expect.isFalse(method1.isField);
+  Expect.isFalse(method1.isVariable);
   Expect.isTrue(method1.isMethod);
   Expect.isFalse(method1.isPrivate);
   Expect.isTrue(method1.isStatic);
@@ -420,7 +420,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.equals(method2.owner, bazClass);
   Expect.isFalse(method2.isTopLevel);
   Expect.isFalse(method2.isConstructor);
-  Expect.isFalse(method2.isField);
+  Expect.isFalse(method2.isVariable);
   Expect.isTrue(method2.isMethod);
   Expect.isFalse(method2.isPrivate);
   Expect.isFalse(method2.isStatic);
@@ -487,7 +487,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.equals(method3.owner, bazClass);
   Expect.isFalse(method3.isTopLevel);
   Expect.isFalse(method3.isConstructor);
-  Expect.isFalse(method3.isField);
+  Expect.isFalse(method3.isVariable);
   Expect.isTrue(method3.isMethod);
   Expect.isFalse(method3.isPrivate);
   Expect.isFalse(method3.isStatic);
@@ -613,7 +613,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.equals(operator_eq.owner, bazClass);
   Expect.isFalse(operator_eq.isTopLevel);
   Expect.isFalse(operator_eq.isConstructor);
-  Expect.isFalse(operator_eq.isField);
+  Expect.isFalse(operator_eq.isVariable);
   Expect.isTrue(operator_eq.isMethod);
   Expect.isFalse(operator_eq.isPrivate);
   Expect.isFalse(operator_eq.isStatic);
@@ -643,7 +643,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.equals(operator_negate.owner, bazClass);
   Expect.isFalse(operator_negate.isTopLevel);
   Expect.isFalse(operator_negate.isConstructor);
-  Expect.isFalse(operator_negate.isField);
+  Expect.isFalse(operator_negate.isVariable);
   Expect.isTrue(operator_negate.isMethod);
   Expect.isFalse(operator_negate.isPrivate);
   Expect.isFalse(operator_negate.isStatic);

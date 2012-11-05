@@ -401,24 +401,33 @@ abstract class TypedefMirror implements ClassMirror {
  */
 abstract class MemberMirror implements DeclarationMirror {
   /**
-   * Returns true if this member is a constructor.
+   * Is this member a constructor?
    */
   bool get isConstructor;
 
   /**
-   * Returns true if this member is a field.
+   * Is this member a variable?
+   *
+   * This is [:false:] for locals.
    */
-  bool get isField;
+  bool get isVariable;
 
   /**
-   * Returns true if this member is a method.
+   * Is this member a method?.
+   *
+   * This is [:false:] for constructors.
    */
   bool get isMethod;
 
   /**
-   * Returns true if this member is static.
+   * Is this member declared static?
    */
   bool get isStatic;
+
+  /**
+   * Is this member a parameter?
+   */
+  bool get isParameter;
 }
 
 /**

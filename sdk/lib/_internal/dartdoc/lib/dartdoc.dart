@@ -625,7 +625,7 @@ class Dartdoc {
       if (!showPrivate && member.isPrivate) continue;
 
       var memberInfo = {};
-      if (member.isField) {
+      if (member.isVariable) {
         memberInfo[KIND] = FIELD;
       } else {
         MethodMirror method = member;
@@ -1068,7 +1068,7 @@ class Dartdoc {
           }
           if (!inherit) return;
 
-          if (member.isField) {
+          if (member.isVariable) {
             // Fields override both getters and setters.
             memberMap.putIfAbsent(member.simpleName, () => member);
             memberMap.putIfAbsent('${member.simpleName}=', () => member);
