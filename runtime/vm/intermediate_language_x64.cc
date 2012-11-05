@@ -61,16 +61,14 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // Do not optimize if usage count must be reported.
       __ cmpq(FieldAddress(temp, Function::usage_counter_offset()),
           Immediate(FLAG_optimization_counter_threshold));
-      Label not_yet_hot, already_optimized;
+      Label not_yet_hot;
       __ j(LESS, &not_yet_hot, Assembler::kNearJump);
-      __ j(GREATER, &already_optimized, Assembler::kNearJump);
       __ pushq(result);  // Preserve result.
       __ pushq(temp);  // Argument for runtime: function to optimize.
       __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry);
       __ popq(temp);  // Remove argument.
       __ popq(result);  // Restore result.
       __ Bind(&not_yet_hot);
-      __ Bind(&already_optimized);
     }
   }
   if (FLAG_trace_functions) {

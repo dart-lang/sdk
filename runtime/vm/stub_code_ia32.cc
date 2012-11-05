@@ -1554,11 +1554,7 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
     // The usage_counter is always less than FLAG_optimization_counter_threshold
     // except when the function gets optimized.
     __ cmpl(FieldAddress(temp_reg, Function::usage_counter_offset()),
-        Immediate(FLAG_optimization_counter_threshold - 1));
-    // Do not increment to equality with threshold, since a counter greater
-    // than threshold denotes a function that was already optimized.
-    // The equality should be reached only at exit of the method
-    // (return instruction).
+        Immediate(FLAG_optimization_counter_threshold));
     __ j(EQUAL, &is_hot, Assembler::kNearJump);
     // As long as VM has no OSR do not optimize in the middle of the function
     // but only at exit so that we have collected all type feedback before
