@@ -40,6 +40,7 @@ import socket
 import sys
 import time
 import urllib2
+import threading
 
 TIMEOUT_ERROR_MSG = 'FAIL (timeout)'
 
@@ -315,9 +316,27 @@ def run_batch_tests():
         print '>>> TEST FAIL'
       sys.stdout.flush()
   finally:
+    sys.stdin.close()
     print("Closing browser");
-    close_browser(browser)
 
+    def close_output_streams:
+      sys.stdout.flush()
+      sys.stdout.close()
+      sys.stderr.flush()
+      sys.stderr.close()
+
+    def close_and_exit:
+      print("Timed out waiting for browser to close")
+      close_output_streams()
+      exit(1)
+
+    timer = threading.Timer(5.0, close_and_exit)
+    timer.start()
+    try:
+      close_browser(browser)
+      timer.cancel()
+    finally:
+      close_output_streams()
 
 def main(args):
   # Run in batch mode if the --batch flag is passed.
