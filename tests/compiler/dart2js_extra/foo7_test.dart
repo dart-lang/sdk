@@ -6,6 +6,6 @@ void main() {
   print(foo());
 }
 
-void foo() {
+int foo() {
   return 3 + 4;
 }

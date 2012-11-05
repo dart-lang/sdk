@@ -31,7 +31,7 @@ String ifElseBailout(test) {
   }
 }
 
-void forBailout() {
+String forBailout() {
   var n = myString.length;
   var res = '';
   for (int i = 0; i < n; i++) {
@@ -42,7 +42,7 @@ void forBailout() {
   return res;
 }
 
-void forInBailout() {
+String forInBailout() {
   var n = myString.length;
   var res = '';
   for (int i in myString.charCodes) {
@@ -53,7 +53,7 @@ void forInBailout() {
   return res;
 }
 
-void innerForBailout() {
+String innerForBailout() {
   var n = myString.length;
   var res = '';
   for (int i = 0; i < 2; i++) {
@@ -66,7 +66,7 @@ void innerForBailout() {
   return res;
 }
 
-void whileBailout() {
+String whileBailout() {
   var n = myString.length;
   var res = '';
   var i = 0;
@@ -79,7 +79,7 @@ void whileBailout() {
   return res;
 }
 
-void doWhileBailout() {
+String doWhileBailout() {
   var n = myString.length;
   var res = '';
   var i = 0;

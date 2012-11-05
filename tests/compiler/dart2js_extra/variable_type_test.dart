@@ -4,7 +4,7 @@
 
 int foo(int i) {
   i = 'fisk';  /// 01: static type warning
-  return 'kat';  /// 02: static type warning
+  return 'kat';  /// 02: static type warning, dynamic type error
 }
 
 main() {
