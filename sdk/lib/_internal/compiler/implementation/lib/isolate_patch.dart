@@ -18,7 +18,7 @@ void _callInIsolate(_IsolateContext isolate, Function function) {
 /**
  * Called by the compiler to fetch the current isolate context.
  */
-void _currentIsolate() => _globalState.currentContext;
+_IsolateContext _currentIsolate() => _globalState.currentContext;
 
 /********************************************************
   Inserted from lib/isolate/dart2js/compiler_hooks.dart
