@@ -924,7 +924,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   static const MAX_INLINING_DEPTH = 3;
   static const MAX_INLINING_SOURCE_SIZE = 128;
   List<InliningState> inliningStack;
-  Element returnElement = null;
+  Element returnElement;
+  DartType returnType;
 
   void disableMethodInterception() {
     assert(methodInterceptionEnabled);
@@ -959,7 +960,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     assert(!link.isEmpty && link.tail.isEmpty);
     visit(link.head);
     HInstruction value = pop();
-    value = potentiallyCheckType(value, variable);
+    value = potentiallyCheckType(value, variable.computeType(compiler));
     close(new HReturn(value)).addSuccessor(graph.exit);
     return closeFunction();
   }
@@ -1036,7 +1037,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     assert(succeeded);
 
     InliningState state =
-        new InliningState(function, returnElement, elements, stack);
+        new InliningState(function, returnElement, returnType, elements, stack);
     inliningStack.add(state);
     sourceElementStack.add(function);
     stack = <HInstruction>[];
@@ -1048,11 +1049,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     elements = compiler.enqueuer.resolution.getCachedElements(function);
     assert(elements != null);
     FunctionSignature signature = function.computeSignature(compiler);
+    returnType = signature.returnType;
     int index = 0;
     signature.orderedForEachParameter((Element parameter) {
       HInstruction argument = compiledArguments[index++];
       localsHandler.updateLocal(parameter, argument);
-      potentiallyCheckType(argument, parameter);
+      potentiallyCheckType(argument, parameter.computeType(compiler));
     });
     return state;
   }
@@ -1065,6 +1067,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     elements = state.oldElements;
     stack.add(localsHandler.readLocal(returnElement));
     returnElement = state.oldReturnElement;
+    returnType = state.oldReturnType;
     assert(stack.length == 1);
     state.oldStack.add(stack[0]);
     stack = state.oldStack;
@@ -1346,8 +1349,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     List<HInstruction> constructorArguments = <HInstruction>[];
     classElement.forEachInstanceField(
         (ClassElement enclosingClass, Element member) {
-          constructorArguments.add(
-              potentiallyCheckType(fieldValues[member], member));
+          constructorArguments.add(potentiallyCheckType(
+              fieldValues[member], member.computeType(compiler)));
         },
         includeBackendMembers: true,
         includeSuperMembers: true);
@@ -1496,8 +1499,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     if (element is FunctionElement) {
       FunctionElement functionElement = element;
-      FunctionSignature params = functionElement.computeSignature(compiler);
-      params.orderedForEachParameter((Element parameterElement) {
+      FunctionSignature signature = functionElement.computeSignature(compiler);
+      signature.orderedForEachParameter((Element parameterElement) {
         if (elements.isParameterChecked(parameterElement)) {
           addParameterCheckInstruction(parameterElement);
         }
@@ -1507,11 +1510,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // because that is where the type guards will also be inserted.
       // This way we ensure that a type guard will dominate the type
       // check.
-      params.orderedForEachParameter((Element element) {
+      signature.orderedForEachParameter((Element element) {
         HInstruction newParameter = potentiallyCheckType(
-            localsHandler.directLocals[element], element);
+            localsHandler.directLocals[element],
+            element.computeType(compiler));
         localsHandler.directLocals[element] = newParameter;
       });
+
+      returnType = signature.returnType;
     } else {
       // Otherwise it is a lazy initializer which does not have parameters.
       assert(element is VariableElement);
@@ -1530,10 +1536,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   HInstruction potentiallyCheckType(
-      HInstruction original, Element sourceElement,
+      HInstruction original, DartType type,
       { int kind: HTypeConversion.CHECKED_MODE_CHECK }) {
     if (!compiler.enableTypeAssertions) return original;
-    HInstruction other = original.convertType(compiler, sourceElement, kind);
+    HInstruction other = original.convertType(compiler, type, kind);
     if (other != original) add(other);
     return other;
   }
@@ -1615,7 +1621,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (compiler.enableTypeAssertions) {
       return potentiallyCheckType(
           value,
-          compiler.boolClass,
+          compiler.boolClass.computeType(compiler),
           kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
     }
     HInstruction result = new HBoolify(value);
@@ -2298,7 +2304,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         add(target);
         addWithPosition(new HInvokeStatic(<HInstruction>[target, value]), send);
       } else {
-        value = potentiallyCheckType(value, element);
+        value = potentiallyCheckType(value, element.computeType(compiler));
         addWithPosition(new HStaticStore(element, value), send);
       }
       stack.add(value);
@@ -2316,7 +2322,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (value.sourceElement == null) {
         value.sourceElement = element;
       }
-      HInstruction checked = potentiallyCheckType(value, element);
+      HInstruction checked = potentiallyCheckType(
+          value, element.computeType(compiler));
       if (!identical(checked, value)) {
         pop();
         stack.add(checked);
@@ -2434,7 +2441,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       TypeAnnotation typeAnnotation = argument.asTypeAnnotation();
       DartType type = elements.getType(typeAnnotation);
       HInstruction converted = expression.convertType(
-          compiler, type.element, HTypeConversion.CAST_TYPE_CHECK);
+          compiler, type, HTypeConversion.CAST_TYPE_CHECK);
       if (converted != expression) add(converted);
       stack.add(converted);
     } else {
@@ -3452,6 +3459,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else {
       visit(node.expression);
       value = pop();
+      value = potentiallyCheckType(value, returnType);
     }
     if (!inliningStack.isEmpty) {
       localsHandler.updateLocal(returnElement, value);
@@ -4426,11 +4434,13 @@ class InliningState {
    */
   final PartialFunctionElement function;
   final Element oldReturnElement;
+  final DartType oldReturnType;
   final TreeElements oldElements;
   final List<HInstruction> oldStack;
 
   InliningState(this.function,
                 this.oldReturnElement,
+                this.oldReturnType,
                 this.oldElements,
                 this.oldStack) {
     assert(function.isImplementation);

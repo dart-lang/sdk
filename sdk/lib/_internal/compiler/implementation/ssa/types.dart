@@ -216,8 +216,8 @@ class HBooleanOrNullType extends HPrimitiveOrNullType {
   HType intersection(HType other, Compiler compiler) {
     if (other.isConflicting()) return HType.CONFLICTING;
     if (other.isUnknown()) return HType.BOOLEAN_OR_NULL;
-    if (other.isBooleanOrNull()) return HType.BOOLEAN_OR_NULL;
     if (other.isBoolean()) return HType.BOOLEAN;
+    if (other.isBooleanOrNull()) return HType.BOOLEAN_OR_NULL;
     if (other.canBeNull()) return HType.NULL;
     return HType.CONFLICTING;
   }
@@ -226,6 +226,7 @@ class HBooleanOrNullType extends HPrimitiveOrNullType {
 class HBooleanType extends HPrimitiveType {
   const HBooleanType();
   bool isBoolean() => true;
+  bool isBooleanOrNull() => true;
   String toString() => "boolean";
 
   DartType computeType(Compiler compiler) {
@@ -285,6 +286,7 @@ class HNumberOrNullType extends HPrimitiveOrNullType {
 class HNumberType extends HPrimitiveType {
   const HNumberType();
   bool isNumber() => true;
+  bool isNumberOrNull() => true;
   String toString() => "number";
 
   DartType computeType(Compiler compiler) {
@@ -334,8 +336,8 @@ class HIntegerOrNullType extends HNumberOrNullType {
   HType intersection(HType other, Compiler compiler) {
     if (other.isConflicting()) return HType.CONFLICTING;
     if (other.isUnknown()) return HType.INTEGER_OR_NULL;
-    if (other.isIntegerOrNull()) return HType.INTEGER_OR_NULL;
     if (other.isInteger()) return HType.INTEGER;
+    if (other.isIntegerOrNull()) return HType.INTEGER_OR_NULL;
     if (other.isDouble()) return HType.CONFLICTING;
     if (other.isDoubleOrNull()) return HType.NULL;
     if (other.isNumber()) return HType.INTEGER;
@@ -348,6 +350,7 @@ class HIntegerOrNullType extends HNumberOrNullType {
 class HIntegerType extends HNumberType {
   const HIntegerType();
   bool isInteger() => true;
+  bool isIntegerOrNull() => true;
   String toString() => "integer";
 
   DartType computeType(Compiler compiler) {
@@ -401,8 +404,8 @@ class HDoubleOrNullType extends HNumberOrNullType {
   HType intersection(HType other, Compiler compiler) {
     if (other.isConflicting()) return HType.CONFLICTING;
     if (other.isUnknown()) return HType.DOUBLE_OR_NULL;
-    if (other.isIntegerOrNull()) return HType.NULL;
     if (other.isInteger()) return HType.CONFLICTING;
+    if (other.isIntegerOrNull()) return HType.NULL;
     if (other.isDouble()) return HType.DOUBLE;
     if (other.isDoubleOrNull()) return HType.DOUBLE_OR_NULL;
     if (other.isNumber()) return HType.DOUBLE;
@@ -415,6 +418,7 @@ class HDoubleOrNullType extends HNumberOrNullType {
 class HDoubleType extends HNumberType {
   const HDoubleType();
   bool isDouble() => true;
+  bool isDoubleOrNull() => true;
   String toString() => "double";
 
   DartType computeType(Compiler compiler) {
@@ -529,6 +533,7 @@ class HStringOrNullType extends HPrimitiveOrNullType {
 class HStringType extends HIndexablePrimitiveType {
   const HStringType();
   bool isString() => true;
+  bool isStringOrNull() => true;
   String toString() => "String";
 
   DartType computeType(Compiler compiler) {

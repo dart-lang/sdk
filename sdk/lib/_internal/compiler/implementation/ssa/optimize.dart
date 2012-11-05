@@ -146,7 +146,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         // If we can replace [instruction] with [replacement], then
         // [replacement]'s type can be narrowed.
         types[replacement] =
-           types[replacement].intersection(types[instruction], compiler);
+            types[replacement].intersection(types[instruction], compiler);
 
         // If the replacement instruction does not know its
         // source element, use the source element of the
@@ -401,7 +401,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     assert(!leftType.isConflicting() && !rightType.isConflicting());
 
     // We don't optimize on numbers to preserve the runtime semantics.
-    if (!(left.isNumber(types) && right.isNumber(types)) &&
+    if (!(left.isNumberOrNull(types) && right.isNumberOrNull(types)) &&
         leftType.intersection(rightType, compiler).isConflicting()) {
       return graph.addConstantBool(false, constantSystem);
     }
@@ -623,7 +623,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HInstruction value = node.inputs[1];
     if (compiler.enableTypeAssertions) {
       HInstruction other = value.convertType(
-          compiler, field, HTypeConversion.CHECKED_MODE_CHECK);
+          compiler,
+          field.computeType(compiler),
+          HTypeConversion.CHECKED_MODE_CHECK);
       if (other != value) {
         node.block.addBefore(node, other);
         value = other;

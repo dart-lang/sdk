@@ -871,6 +871,7 @@ abstract class HInstruction implements Spannable {
   bool isInteger(HTypeMap types) => types[this].isInteger();
   bool isDouble(HTypeMap types) => types[this].isDouble();
   bool isNumber(HTypeMap types) => types[this].isNumber();
+  bool isNumberOrNull(HTypeMap types) => types[this].isNumberOrNull();
   bool isString(HTypeMap types) => types[this].isString();
   bool isTypeUnknown(HTypeMap types) => types[this].isUnknown();
   bool isIndexablePrimitive(HTypeMap types)
@@ -1128,10 +1129,7 @@ abstract class HInstruction implements Spannable {
   }
 
 
-  HInstruction convertType(Compiler compiler,
-                           Element sourceElement,
-                           int kind) {
-    DartType type = sourceElement.computeType(compiler);
+  HInstruction convertType(Compiler compiler, DartType type, int kind) {
     if (type == null) return this;
     if (identical(type.element, compiler.dynamicClass)) return this;
     if (identical(type.element, compiler.objectClass)) return this;

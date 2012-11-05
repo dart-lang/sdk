@@ -907,7 +907,9 @@ class JavaScriptBackend extends Backend {
     Element element = type.element;
     bool nativeCheck =
           emitter.nativeEmitter.requiresNativeIsCheck(element);
-    if (element == compiler.stringClass) {
+    if (type == compiler.types.voidType) {
+      return const SourceString('voidTypeCheck');
+    } else if (element == compiler.stringClass) {
       return const SourceString('stringTypeCheck');
     } else if (element == compiler.doubleClass) {
       return const SourceString('doubleTypeCheck');

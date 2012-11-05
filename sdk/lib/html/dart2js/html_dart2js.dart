@@ -38250,7 +38250,7 @@ class _FormDataFactoryProvider {
 
 class _HttpRequestFactoryProvider {
   static HttpRequest createHttpRequest() =>
-      JS('HttpRequest', 'new XMLHttpRequest();');
+      JS('HttpRequest', 'new XMLHttpRequest()');
 
   static HttpRequest createHttpRequest_get(String url,
       onSuccess(HttpRequest request)) =>

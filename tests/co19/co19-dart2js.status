@@ -235,7 +235,6 @@ Language/11_Expressions/32_Type_Cast_A05_t05: Fail # TODO(ahe): Please triage th
 Language/12_Statements/05_If_A02_t01: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/06_For/1_For_Loop_A01_t08: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/09_Switch_A05_t01: Fail # TODO(ahe): Please triage this failure.
-Language/12_Statements/11_Return_A04_t01: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/4_Interface_Types_A08_t03: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/8_Parameterized_Types_A02_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/AssertionError/column_A01_t02: Fail # TODO(ahe): Please triage this failure.
@@ -264,6 +263,12 @@ Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t03: Fail # 
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t04: Fail # Checked mode failure for noSuchMethod type.
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A06_t01: Fail # Checked mode failure for noSuchMethod type.
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A06_t02: Fail # Checked mode failure for noSuchMethod type.
+
+# These tests return an object from a void function.
+Language/14_Types/7_Type_Void_A04_t02: Fail, OK
+Language/14_Types/7_Type_Void_A04_t03: Fail, OK
+Language/14_Types/7_Type_Void_A04_t04: Fail, OK
+Language/14_Types/7_Type_Void_A04_t05: Fail, OK
 
 
 [ $compiler == dart2js ]

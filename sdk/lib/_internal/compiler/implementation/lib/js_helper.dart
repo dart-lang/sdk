@@ -1387,6 +1387,11 @@ listSuperNativeTypeCast(value, property) {
   propertyTypeCastError(value, property);
 }
 
+voidTypeCheck(value) {
+  if (value == null) return value;
+  throw new TypeErrorImplementation(value, 'void');
+}
+
 /**
  * Special interface recognized by the compiler and implemented by DOM
  * objects that support integer indexing. This interface is not
