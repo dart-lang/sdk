@@ -23,6 +23,9 @@ abstract class Source {
    */
   abstract String get name;
 
+  /// Whether or not this source is the default source.
+  bool get isDefault => systemCache.sources.defaultSource == this;
+
   /**
    * Whether this source's packages should be cached in Pub's global cache
    * directory.
@@ -189,4 +192,7 @@ abstract class Source {
    * By default, this just returns [id].
    */
   Future<PackageId> resolveId(PackageId id) => new Future.immediate(id);
+
+  /// Returns the source's name.
+  String toString() => name;
 }

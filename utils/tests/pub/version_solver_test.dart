@@ -13,6 +13,7 @@ import '../../pub/pubspec.dart';
 import '../../pub/root_source.dart';
 import '../../pub/source.dart';
 import '../../pub/source_registry.dart';
+import '../../pub/system_cache.dart';
 import '../../pub/utils.dart';
 import '../../pub/version.dart';
 import '../../pub/version_solver.dart';
@@ -353,14 +354,14 @@ testResolve(description, packages, {lockfile, result, error}) {
     var isCouldNotSolveException = predicate((x)=> x is CouldNotSolveException,
             "is a CouldNotSolveException");
 
-    var sources = new SourceRegistry();
+    var cache = new SystemCache('.');
     source1 = new MockSource('mock1');
     source2 = new MockSource('mock2');
     versionlessSource = new MockVersionlessSource();
-    sources.register(source1);
-    sources.register(source2);
-    sources.register(versionlessSource);
-    sources.setDefault(source1.name);
+    cache.register(source1);
+    cache.register(source2);
+    cache.register(versionlessSource);
+    cache.sources.setDefault(source1.name);
 
     // Build the test package graph.
     var root;
@@ -380,7 +381,7 @@ testResolve(description, packages, {lockfile, result, error}) {
         // remote server.
         root = package;
         rootSource = new RootSource(root);
-        sources.register(rootSource);
+        cache.register(rootSource);
       } else {
         source.addPackage(package);
       }
@@ -409,7 +410,7 @@ testResolve(description, packages, {lockfile, result, error}) {
     }
 
     // Resolve the versions.
-    var future = resolveVersions(sources, root, realLockFile);
+    var future = resolveVersions(cache.sources, root, realLockFile);
 
     if (result != null) {
       expect(future, completion(predicate((actualResult) {

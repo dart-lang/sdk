@@ -41,12 +41,7 @@ class HostedSource extends Source {
       var doc = JSON.parse(body);
       return doc['versions'].map((version) => new Version.parse(version));
     }).transformException((ex) {
-      if (ex is PubHttpException && ex.statusCode == 404) {
-        throw 'Could not find package "${parsed.first}" on ${parsed.last}.';
-      }
-
-      // Otherwise re-throw the original exception.
-      throw ex;
+      _throwFriendlyError(ex, parsed.first, parsed.last);
     });
   }
 
@@ -58,8 +53,11 @@ class HostedSource extends Source {
     var parsed = _parseDescription(id.description);
     var fullUrl = "${parsed.last}/packages/${parsed.first}/versions/"
       "${id.version}.yaml";
+
     return httpGetString(fullUrl).transform((yaml) {
       return new Pubspec.parse(yaml, systemCache.sources);
+    }).transformException((ex) {
+      _throwFriendlyError(ex, id, parsed.last);
     });
   }
 
@@ -119,6 +117,27 @@ class HostedSource extends Source {
    */
   void validateDescription(description, {bool fromLockFile: false}) {
     _parseDescription(description);
+  }
+
+  /// When an error occurs trying to read something about [package] from [url],
+  /// this tries to translate into a more user friendly error message. Always
+  /// throws an error, either the original one or a better one.
+  void _throwFriendlyError(ex, package, url) {
+    if (ex is PubHttpException && ex.statusCode == 404) {
+      throw 'Could not find package "$package" at $url.';
+    }
+
+    if (ex is TimeoutException) {
+      throw 'Timed out trying to find package "$package" at $url.';
+    }
+
+    if (ex is io.SocketIOException) {
+      throw 'Got socket error trying to find package "$package" at $url.\n'
+          '${ex.osError}';
+    }
+
+    // Otherwise re-throw the original exception.
+    throw ex;
   }
 
   /**
