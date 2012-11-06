@@ -3749,7 +3749,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     JumpHandler handler = new JumpHandler(this, targetElement);
     // Introduce a new basic block.
     HBasicBlock entryBlock = openNewBlock();
-    hackAroundPossiblyAbortingBody(node, () { visit(body); });
+    visit(body);
     SubGraph bodyGraph = new SubGraph(entryBlock, lastOpenedBlock);
 
     HBasicBlock joinBlock = graph.addNewBlock();
@@ -4385,18 +4385,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (element == builder.compiler.nullClass) return HType.NULL;
     if (element == builder.compiler.stringClass) return HType.STRING;
     return HType.UNKNOWN;
-  }
-
-  /** HACK HACK HACK */
-  void hackAroundPossiblyAbortingBody(Node statement, void body()) {
-    visitCondition() {
-      stack.add(graph.addConstantBool(true, constantSystem));
-    }
-    buildBody() {
-      // TODO(lrn): Make sure to take continue into account.
-      body();
-    }
-    handleIf(statement, visitCondition, buildBody, null);
   }
 }
 
