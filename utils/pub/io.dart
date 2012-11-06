@@ -222,7 +222,7 @@ Future<Directory> createTempDir([dir = '']) {
  */
 Future<Directory> deleteDir(dir) {
   dir = _getDirectory(dir);
-  return dir.deleteRecursively();
+  return dir.delete(recursive: true);
 }
 
 /**

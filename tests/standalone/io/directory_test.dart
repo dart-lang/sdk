@@ -40,7 +40,7 @@ class DirectoryTest {
       Expect.isTrue(completed, "directory listing did not complete");
       Expect.isTrue(listedDir, "directory not found");
       Expect.isTrue(listedFile, "file not found");
-      directory.deleteRecursively().then((ignore) {
+      directory.delete(recursive: true).then((ignore) {
         f.exists().then((exists) => Expect.isFalse(exists));
         directory.exists().then((exists) => Expect.isFalse(exists));
         subDirectory.exists().then((exists) => Expect.isFalse(exists));
@@ -84,7 +84,7 @@ class DirectoryTest {
         lister.onError = (e) {
           Expect.isTrue(e is DirectoryIOException);
           if (++errors == 2) {
-            d.deleteRecursively();
+            d.delete(recursive: true);
           }
         };
         lister.onFile = (file) {
@@ -129,7 +129,7 @@ class DirectoryTest {
     new Directory("").createTemp().then((d) {
       d.delete().then((ignore) {
         setupFutureHandlers(d.delete());
-        setupFutureHandlers(d.deleteRecursively());
+        setupFutureHandlers(d.delete(recursive: true));
       });
     });
   }
@@ -152,12 +152,12 @@ class DirectoryTest {
           onError(e) {
             Expect.isTrue(e is DirectoryIOException);
             if (++errors == 2) {
-              d.deleteRecursively().then((ignore) => port.close());
+              d.delete(recursive: true).then((ignore) => port.close());
             }
             return true;
           }
           long.delete().handleException(onError);
-          long.deleteRecursively().handleException(onError);
+          long.delete(recursive: true).handleException(onError);
         });
     });
   }
@@ -166,7 +166,7 @@ class DirectoryTest {
     Directory d = new Directory("").createTempSync();
     d.deleteSync();
     Expect.throws(d.deleteSync);
-    Expect.throws(() => d.deleteRecursivelySync());
+    Expect.throws(() => d.deleteSync(recursive: true));
   }
 
   static void testDeleteTooLongNameSync() {
@@ -183,8 +183,8 @@ class DirectoryTest {
     }
     var long = new Directory("${buffer.toString()}");
     Expect.throws(long.deleteSync);
-    Expect.throws(() => long.deleteRecursivelySync());
-    d.deleteRecursivelySync();
+    Expect.throws(() => long.deleteSync(recursive: true));
+    d.deleteSync(recursive: true);
   }
 
   static void testDeleteSymlink() {
@@ -216,13 +216,13 @@ class DirectoryTest {
 
     Process.run(cmd, args).then((_) {
       // Delete the directory containing the junction.
-      b.deleteRecursivelySync();
+      b.deleteSync(recursive: true);
 
       // We should not have recursed through a_link into a.
       Expect.isTrue(f.existsSync());
 
       // Clean up after ourselves.
-      d.deleteRecursivelySync();
+      d.deleteSync(recursive: true);
     });
   }
 
@@ -470,7 +470,7 @@ testCreateExistingSync() {
   Expect.isTrue(subDir.existsSync());
   subDir.createSync();
   Expect.isTrue(subDir.existsSync());
-  temp.deleteRecursivelySync();
+  temp.deleteSync(recursive: true);
 }
 
 
@@ -488,7 +488,7 @@ testCreateExisting() {
           subDir.create().then((_) {
             subDir.exists().then((dirExists) {
               Expect.isTrue(dirExists);
-              temp.deleteRecursively().then((_) {
+              temp.delete(recursive: true).then((_) {
                 port.close();
               });
             });
@@ -510,7 +510,7 @@ testCreateDirExistingFileSync() {
   Expect.isTrue(file.existsSync());
   Expect.throws(new Directory(path).createSync,
                 (e) => e is DirectoryIOException);
-  temp.deleteRecursivelySync();
+  temp.deleteSync(recursive: true);
 }
 
 
@@ -527,11 +527,37 @@ testCreateDirExistingFile() {
         ..then((_) { Expect.fail("dir create should fail on existing file"); })
         ..handleException((e) {
             Expect.isTrue(e is DirectoryIOException);
-            temp.deleteRecursively().then((_) {
+            temp.delete(recursive: true).then((_) {
               port.close();
             });
             return true;
           });
+    });
+  });
+}
+
+
+testCreateRecursiveSync() {
+  var temp = new Directory('').createTempSync();
+  var d = new Directory('${temp.path}/a/b/c');
+  d.createSync(recursive: true);
+  Expect.isTrue(new Directory('${temp.path}/a').existsSync());
+  Expect.isTrue(new Directory('${temp.path}/a/b').existsSync());
+  Expect.isTrue(new Directory('${temp.path}/a/b/c').existsSync());
+  temp.deleteSync(recursive: true);
+}
+
+
+testCreateRecursive() {
+  var port = new ReceivePort();
+  new Directory('').createTemp().then((temp) {
+    var d = new Directory('${temp.path}/a/b/c');
+    d.create(recursive: true).then((_) {
+      Expect.isTrue(new Directory('${temp.path}/a').existsSync());
+      Expect.isTrue(new Directory('${temp.path}/a/b').existsSync());
+      Expect.isTrue(new Directory('${temp.path}/a/b/c').existsSync());
+      temp.deleteSync(recursive: true);
+      port.close();
     });
   });
 }
@@ -552,7 +578,7 @@ testRename() {
     Expect.isTrue(temp1.existsSync());
     Expect.isTrue(temp4.existsSync());
     Expect.equals(temp1.path, temp4.path);
-    temp1.deleteRecursivelySync();
+    temp1.deleteSync(recursive: true);
   });
 }
 
@@ -565,5 +591,7 @@ main() {
   testCreateExisting();
   testCreateDirExistingFileSync();
   testCreateDirExistingFile();
+  testCreateRecursive();
+  testCreateRecursiveSync();
   testRename();
 }

@@ -31,7 +31,7 @@ testFileExistsCreate() {
     new File(y).createSync();
     Expect.isTrue(new File(x).existsSync());
     Expect.isTrue(new File(y).existsSync());
-    temp.deleteRecursivelySync();
+    temp.deleteSync(recursive: true);
   });
 }
 
@@ -53,7 +53,7 @@ testFileDelete() {
       new File(y).deleteSync();
       Expect.isTrue(new File(x).existsSync());
       Expect.isFalse(new File(y).existsSync());
-      temp.deleteRecursivelySync();
+      temp.deleteSync(recursive: true);
     });
   });
 }
@@ -74,7 +74,7 @@ testFileWriteRead() {
       Expect.listEquals(data, read);
       var read2 = new File(x).readAsBytesSync();
       Expect.listEquals(data, read2);
-      temp.deleteRecursivelySync();
+      temp.deleteSync(recursive: true);
     };
   });
 }
@@ -88,7 +88,7 @@ testDirectoryExistsCreate() {
     Expect.isFalse(new Directory(x).existsSync());
     Expect.isFalse(new Directory(y).existsSync());
     Expect.throws(new Directory(y).createSync);
-    temp.deleteRecursivelySync();
+    temp.deleteSync(recursive: true);
   });
 }
 
@@ -108,11 +108,11 @@ testDirectoryDelete() {
     Expect.isTrue(temp2.existsSync());
     createLink(temp2.path, y, true, () {
       Expect.isTrue(link.existsSync());
-      temp.deleteRecursivelySync();
+      temp.deleteSync(recursive: true);
       Expect.isFalse(link.existsSync());
       Expect.isTrue(temp2.existsSync());
       Expect.isTrue(new File(x).existsSync());
-      temp2.deleteRecursivelySync();
+      temp2.deleteSync(recursive: true);
     });
   });
 }
@@ -136,8 +136,8 @@ testDirectoryListing() {
       Expect.isTrue(files[0].endsWith(x));
       Expect.equals(1, dirs.length);
       Expect.isTrue(dirs[0].endsWith(y));
-      temp.deleteRecursivelySync();
-      temp2.deleteRecursivelySync();
+      temp.deleteSync(recursive: true);
+      temp2.deleteSync(recursive: true);
     };
   });
 }
@@ -164,7 +164,7 @@ testDirectoryListingBrokenLink() {
       Expect.equals(0, dirs.length);
       Expect.equals(1, errors.length);
       Expect.isTrue(errors[0].toString().contains(link));
-      temp.deleteRecursivelySync();
+      temp.deleteSync(recursive: true);
     };
   });
 }

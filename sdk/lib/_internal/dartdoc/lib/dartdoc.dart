@@ -74,7 +74,7 @@ Path get scriptDir =>
 void cleanOutputDirectory(Path path) {
   final outputDir = new Directory.fromPath(path);
   if (outputDir.existsSync()) {
-    outputDir.deleteRecursivelySync();
+    outputDir.deleteSync(recursive: true);
   }
 
   try {
@@ -563,7 +563,7 @@ class Dartdoc {
   void cleanup() {
     final dir = new Directory.fromPath(tmpPath);
     if (dir.existsSync()) {
-      dir.deleteRecursivelySync();
+      dir.deleteSync(recursive: true);
     }
   }
 

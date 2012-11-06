@@ -189,7 +189,7 @@ class _Path implements Path {
     if (Platform.operatingSystem == 'windows') {
       String nativePath = _path;
       // Drop '/' before a drive letter.
-      if (nativePath.length > 3 &&
+      if (nativePath.length >= 3 &&
           nativePath.startsWith('/') &&
           nativePath[2] == ':') {
         nativePath = nativePath.substring(1);

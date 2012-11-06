@@ -38,20 +38,28 @@ abstract class Directory {
   bool existsSync();
 
   /**
-   * Creates the directory with this name. If the directory already
-   * exists nothing is done. Returns a [:Future<Directory>:] that
-   * completes with this directory once it has been created. If the
-   * directory does not exist and cannot be created the future
-   * completes with an exception.
+   * Creates the directory with this name.
+   *
+   * If [recursive] is false, only the last directory in the path is
+   * created. If [recursive] is true, all non-existing path components
+   * are created. If the directory already exists nothing is done.
+   *
+   * Returns a [:Future<Directory>:] that completes with this
+   * directory once it has been created. If the directory cannot be
+   * created the future completes with an exception.
    */
-  Future<Directory> create();
+  Future<Directory> create({recursive: false});
 
   /**
-   * Synchronously creates the directory with this name. If the
-   * directory already exists nothing is done. If the directory does
-   * not exist and cannot be created an exception is thrown.
+   * Synchronously creates the directory with this name.
+   *
+   * If [recursive] is false, only the last directory in the path is
+   * created. If [recursive] is true, all non-existing path components
+   * are created. If the directory already exists nothing is done.
+   *
+   * If the directory cannot be created an exception is thrown.
    */
-  void createSync();
+  void createSync({recursive: false});
 
   /**
    * Creates a temporary directory with a name based on the current
@@ -75,32 +83,30 @@ abstract class Directory {
   Directory createTempSync();
 
   /**
-   * Deletes the directory with this name. The directory must be
-   * empty. Returns a [:Future<Directory>:] that completes with
-   * this directory when the deletion is done.
+   * Deletes the directory with this name.
+   *
+   * If [recursive] is false, the directory must be empty.
+   *
+   * If [recursive] is true, this directory and all sub-directories
+   * and files in the directories are deleted.
+   *
+   * Returns a [:Future<Directory>:] that completes with this
+   * directory when the deletion is done. If the directory cannot be
+   * deleted, the future completes with an exception.
    */
-  Future<Directory> delete();
+  Future<Directory> delete({recursive: false});
 
   /**
-   * Synchronously deletes the directory with this name. The directory
-   * must be empty. Throws an exception if the directory cannot be
-   * deleted.
+   * Synchronously deletes the directory with this name.
+   *
+   * If [recursive] is false, the directory must be empty.
+   *
+   * If [recursive] is true, this directory and all sub-directories
+   * and files in the directories are deleted.
+   *
+   * Throws an exception if the directory cannot be deleted.
    */
-  void deleteSync();
-
-  /**
-   * Deletes this directory and all sub-directories and files in the
-   * directories. Returns a [:Future<Directory>:] that completes with
-   * this directory when the deletion is done.
-   */
-  Future<Directory> deleteRecursively();
-
-  /**
-   * Synchronously deletes this directory and all sub-directories and
-   * files in the directories. Throws an exception if the directory
-   * cannot be deleted.
-   */
-  void deleteRecursivelySync();
+  void deleteSync({recursive: false});
 
   /**
    * Rename this directory. Returns a [:Future<Directory>:] that completes

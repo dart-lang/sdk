@@ -23,7 +23,7 @@ fuzzSyncMethods() {
       doItSync(() {
         // Let's be a little careful. If the directory exists we don't
         // want to delete it and all its contents.
-        if (!d.existsSync()) d.deleteRecursivelySync();
+        if (!d.existsSync()) d.deleteSync(recursive: true);
       });
       typeMapping.forEach((k2, v2) {
         doItSync(() => d.renameSync(v2));
@@ -48,7 +48,7 @@ fuzzAsyncMethods() {
     }));
     futures.add(doItAsync(() {
       return d.exists().chain((res) {
-        if (!res) return d.deleteRecursively();
+        if (!res) return d.delete(recursive: true);
         return new Future.immediate(true);
       });
     }));

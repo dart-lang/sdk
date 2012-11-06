@@ -51,7 +51,31 @@ class _Directory implements Directory {
     return (result == 1);
   }
 
-  Future<Directory> create() {
+  Future<Directory> createRecursively() {
+    if (_path is !String) {
+      throw new ArgumentError();
+    }
+    var path = new Path.fromNative(_path);
+    var current = new Path(path.isAbsolute ? '/' : '');
+    var future = null;
+    for (var segment in path.segments()) {
+      var next = current.append(segment);
+      if (future == null) {
+        future = new Directory.fromPath(current).create();
+      } else {
+        future = future.chain((_) => new Directory.fromPath(next).create());
+      }
+      current = next;
+    }
+    if (future == null) {
+      return new Future.immediate(this);
+    } else {
+      return future.transform((result) => this);
+    }
+  }
+
+  Future<Directory> create({recursive: false}) {
+    if (recursive) return createRecursively();
     _ensureDirectoryService();
     List request = new List(2);
     request[0] = CREATE_REQUEST;
@@ -64,10 +88,20 @@ class _Directory implements Directory {
     });
   }
 
-  void createSync() {
+  void createRecursivelySync() {
+    var path = new Path.fromNative(_path);
+    var current = new Path(path.isAbsolute ? '/' : '');
+    for (var segment in path.segments()) {
+      current = current.append(segment);
+      new Directory.fromPath(current).createSync();
+    }
+  }
+
+  void createSync({recursive: false}) {
     if (_path is !String) {
       throw new ArgumentError();
     }
+    if (recursive) return createRecursivelySync();
     var result = _create(_path);
     if (result is OSError) {
       throw new DirectoryIOException("Creation failed", _path, result);
@@ -102,6 +136,9 @@ class _Directory implements Directory {
   }
 
   Future<Directory> _deleteHelper(bool recursive, String errorMsg) {
+  }
+
+  Future<Directory> delete({recursive: false}) {
     _ensureDirectoryService();
     List request = new List(3);
     request[0] = DELETE_REQUEST;
@@ -109,35 +146,17 @@ class _Directory implements Directory {
     request[2] = recursive;
     return _directoryService.call(request).transform((response) {
       if (_isErrorResponse(response)) {
-        throw _exceptionOrErrorFromResponse(response, errorMsg);
+        throw _exceptionOrErrorFromResponse(response, "Deletion failed");
       }
       return this;
     });
   }
 
-  Future<Directory> delete() {
-    return _deleteHelper(false, "Deletion failed");
-  }
-
-  void deleteSync() {
+  void deleteSync({recursive: false}) {
     if (_path is !String) {
       throw new ArgumentError();
     }
-    var result = _delete(_path, false);
-    if (result is OSError) {
-      throw new DirectoryIOException("Deletion failed", _path, result);
-    }
-  }
-
-  Future<Directory> deleteRecursively() {
-    return _deleteHelper(true, "Deletion failed");
-  }
-
-  void deleteRecursivelySync() {
-    if (_path is !String) {
-      throw new ArgumentError();
-    }
-    var result = _delete(_path, true);
+    var result = _delete(_path, recursive);
     if (result is OSError) {
       throw new DirectoryIOException("Deletion failed", _path, result);
     }
