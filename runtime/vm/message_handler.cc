@@ -36,7 +36,7 @@ MessageHandler::MessageHandler()
       task_(NULL),
       start_callback_(NULL),
       end_callback_(NULL),
-      callback_data_(NULL) {
+      callback_data_(0) {
   ASSERT(queue_ != NULL);
   ASSERT(oob_queue_ != NULL);
 }
