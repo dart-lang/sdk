@@ -906,7 +906,7 @@ class JumpNode : public AstNode {
     : AstNode(token_pos),
       kind_(kind),
       label_(label),
-      inlined_finally_list_(NULL) {
+      inlined_finally_list_() {
     ASSERT(label_ != NULL);
     ASSERT(kind_ == Token::kBREAK || kind_ == Token::kCONTINUE);
     if (kind_ == Token::kCONTINUE) {
