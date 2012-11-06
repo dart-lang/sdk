@@ -665,6 +665,9 @@ class LocalsHandler {
   }
 
   void endLoop(HBasicBlock loopEntry) {
+    // If the loop has an aborting body, we don't update the loop
+    // phis.
+    if (loopEntry.predecessors.length == 1) return;
     loopEntry.forEachPhi((HPhi phi) {
       Element element = phi.sourceElement;
       HInstruction postLoopDefinition = directLocals[element];
@@ -767,6 +770,7 @@ abstract class JumpHandler {
   void forEachBreak(void action(HBreak instruction, LocalsHandler locals));
   void forEachContinue(void action(HContinue instruction,
                                    LocalsHandler locals));
+  bool hasAnyContinue();
   void close();
   final TargetElement target;
   List<LabelElement> labels();
@@ -791,6 +795,7 @@ class NullJumpHandler implements JumpHandler {
   void forEachBreak(Function ignored) { }
   void forEachContinue(Function ignored) { }
   void close() { }
+  bool hasAnyContinue() => false;
 
   List<LabelElement> labels() => const <LabelElement>[];
   TargetElement get target => null;
@@ -846,6 +851,13 @@ class TargetJumpHandler implements JumpHandler {
     for (JumpHandlerEntry entry in jumps) {
       if (entry.isContinue()) action(entry.jumpInstruction, entry.locals);
     }
+  }
+
+  bool hasAnyContinue() {
+    for (JumpHandlerEntry entry in jumps) {
+      if (entry.isContinue()) return true;
+    }
+    return false;
   }
 
   void close() {
@@ -1794,57 +1806,69 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     open(beginBodyBlock);
 
     localsHandler.enterLoopBody(loop);
-    hackAroundPossiblyAbortingBody(loop, body);
+    body();
 
-    SubGraph bodyGraph = new SubGraph(beginBodyBlock, current);
-    HBasicBlock bodyBlock = close(new HGoto());
+    SubGraph bodyGraph = new SubGraph(beginBodyBlock, lastOpenedBlock);
+    HBasicBlock bodyBlock = current;
+    if (current != null) close(new HGoto());
 
-    // Update.
-    // We create an update block, even when we are in a while loop. There the
-    // update block is the jump-target for continue statements. We could avoid
-    // the creation if there is no continue, but for now we always create it.
-    HBasicBlock updateBlock = addNewBlock();
+    SubExpression updateGraph;
 
-    List<LocalsHandler> continueLocals = <LocalsHandler>[];
-    jumpHandler.forEachContinue((HContinue instruction, LocalsHandler locals) {
-      instruction.block.addSuccessor(updateBlock);
-      continueLocals.add(locals);
-    });
-    bodyBlock.addSuccessor(updateBlock);
-    continueLocals.add(localsHandler);
+    // Check that the loop has at least one back-edge.
+    if (jumpHandler.hasAnyContinue() || bodyBlock != null) {
+      // Update.
+      // We create an update block, even when we are in a while loop. There the
+      // update block is the jump-target for continue statements. We could avoid
+      // the creation if there is no continue, but for now we always create it.
+      HBasicBlock updateBlock = addNewBlock();
 
-    open(updateBlock);
+      List<LocalsHandler> continueLocals = <LocalsHandler>[];
+      jumpHandler.forEachContinue((HContinue instruction,
+                                   LocalsHandler locals) {
+        instruction.block.addSuccessor(updateBlock);
+        continueLocals.add(locals);
+      });
 
-    localsHandler = localsHandler.mergeMultiple(continueLocals, updateBlock);
 
-    HLabeledBlockInformation labelInfo;
-    List<LabelElement> labels = jumpHandler.labels();
-    TargetElement target = elements[loop];
-    if (!labels.isEmpty) {
-      beginBodyBlock.setBlockFlow(
-          new HLabeledBlockInformation(
-              new HSubGraphBlockInformation(bodyGraph),
-              jumpHandler.labels(),
-              isContinue: true),
-          updateBlock);
-    } else if (target != null && target.isContinueTarget) {
-      beginBodyBlock.setBlockFlow(
-          new HLabeledBlockInformation.implicit(
-              new HSubGraphBlockInformation(bodyGraph),
-              target,
-              isContinue: true),
-          updateBlock);
+      if (bodyBlock != null) {
+        continueLocals.add(localsHandler);
+        bodyBlock.addSuccessor(updateBlock);
+      }
+
+      open(updateBlock);
+      localsHandler =
+          continueLocals[0].mergeMultiple(continueLocals, updateBlock);
+
+      HLabeledBlockInformation labelInfo;
+      List<LabelElement> labels = jumpHandler.labels();
+      TargetElement target = elements[loop];
+      if (!labels.isEmpty) {
+        beginBodyBlock.setBlockFlow(
+            new HLabeledBlockInformation(
+                new HSubGraphBlockInformation(bodyGraph),
+                jumpHandler.labels(),
+                isContinue: true),
+            updateBlock);
+      } else if (target != null && target.isContinueTarget) {
+        beginBodyBlock.setBlockFlow(
+            new HLabeledBlockInformation.implicit(
+                new HSubGraphBlockInformation(bodyGraph),
+                target,
+                isContinue: true),
+            updateBlock);
+      }
+
+      localsHandler.enterLoopUpdates(loop);
+
+      update();
+
+      HBasicBlock updateEndBlock = close(new HGoto());
+      // The back-edge completing the cycle.
+      updateEndBlock.addSuccessor(conditionBlock);
+      updateGraph = new SubExpression(updateBlock, updateEndBlock);
     }
 
-    localsHandler.enterLoopUpdates(loop);
-
-    update();
-
-    HBasicBlock updateEndBlock = close(new HGoto());
-    // The back-edge completing the cycle.
-    updateEndBlock.addSuccessor(conditionBlock);
     conditionBlock.postProcessLoopHeader();
-    SubExpression updateGraph = new SubExpression(updateBlock, updateEndBlock);
 
     endLoop(conditionBlock, conditionExitBlock, jumpHandler, savedLocals);
     HLoopBlockInformation info =

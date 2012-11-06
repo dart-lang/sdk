@@ -287,7 +287,9 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
 
     // If the block is a loop header, we can remove the loop marker,
     // because it will just recompute the loop phis.
-    if (block.isLoopHeader()) {
+    // We also check if this loop header has any back edges. If not,
+    // we know there is no loop marker for it.
+    if (block.isLoopHeader() && block.predecessors.length > 1) {
       updateLoopMarker(block);
     }
   }

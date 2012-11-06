@@ -221,7 +221,6 @@ class HGraph {
       HBasicBlock block = blocks[i];
       List<HBasicBlock> predecessors = block.predecessors;
       if (block.isLoopHeader()) {
-        assert(predecessors.length >= 2);
         block.assignCommonDominator(predecessors[0]);
       } else {
         for (int j = predecessors.length - 1; j >= 0; j--) {
