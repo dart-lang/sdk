@@ -36,9 +36,6 @@ call_operator_test: Fail
 
 parameter_initializer6_negative_test: Fail # Issue 3502
 
-bad_override_test/01: Fail # Issue 3859.
-bad_override_test/02: Fail # Issue 3859.
-
 named_parameters_aggregated_test/05: Fail # Compile-time error reported instead of static type warning.
 
 lazy_static3_test: Fail # Issue 3558
