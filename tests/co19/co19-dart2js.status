@@ -612,6 +612,8 @@ Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # Checks that Unicode whites
 # Unexpected compile-time errors.
 #
 [ $compiler == dart2js ]
+Language/11_Expressions/11_Instance_Creation/1_New_A12_t01: Fail # http://dartbug.com/3970
+
 Language/11_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A04_t01: Fail # Checks that it is a compile-time error if there are two named arguments with the same name in a function invocation expression.
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t03: Fail # http://dartbug.com/5027
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t06: Fail # http://dartbug.com/5027

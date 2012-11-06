@@ -392,7 +392,6 @@ Language/11_Expressions/11_Instance_Creation/1_New_A02_t05: Fail # inherited fro
 Language/11_Expressions/11_Instance_Creation/1_New_A02_t06: Fail # inherited from dart2js
 Language/11_Expressions/11_Instance_Creation/1_New_A02_t07: Fail # inherited from dart2js
 Language/11_Expressions/11_Instance_Creation/1_New_A09_t09: Fail # inherited from VM
-Language/11_Expressions/11_Instance_Creation/1_New_A12_t01: Fail # co19 issue 255: unmatched bracket (same behavior in dart2js)
 Language/11_Expressions/11_Instance_Creation/1_New_A12_t02: Fail # Inherited from VM
 Language/11_Expressions/11_Instance_Creation/1_New_A13_t04: Fail # Inherited from VM
 Language/11_Expressions/11_Instance_Creation/1_New_A14_t01: Fail # Inherited from dart2js
@@ -517,3 +516,9 @@ LibTest/core/NoSuchMethodError/toString_A01_t01: Fail, OK # co19 issue 300
 LibTest/core/double/operator_remainder_A01_t04: Fail # Result is NaN
 LibTest/core/double/round_A01_t01: Fail # Result is NaN
 LibTest/core/double/remainder_A01_t04: Fail # Result is NaN
+
+
+[ $compiler == dart2dart && $system == macos ]
+LibTest/math/acos_A01_t01: Fail, OK # co19 issue 44
+LibTest/math/asin_A01_t01: Fail, OK # co19 issue 44
+LibTest/math/atan_A01_t01: Fail, OK # co19 issue 44
