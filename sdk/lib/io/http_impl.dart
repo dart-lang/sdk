@@ -1667,6 +1667,7 @@ class _HttpClientRequest
     _httpConnection._onNoPendingWrites = null;
     // Ensure that any trailing data is written.
     _writeDone();
+    _connection._requestDone();
   }
 
   void _streamSetNoPendingWriteHandler(callback()) {
@@ -1803,7 +1804,7 @@ class _HttpClientResponse
         // TODO(sgjesse): Support digest.
         if (cr.scheme == _AuthenticationScheme.BASIC) {
           inputStream.onData = inputStream.read;
-          inputStream.onClosed = _connection.retry;
+          _connection._retry();
           return;
         }
       }
@@ -1897,7 +1898,7 @@ class _HttpClientResponse
         }
         // Drain body and redirect.
         inputStream.onData = inputStream.read;
-        inputStream.onClosed = _connection.redirect;
+        _connection.redirect();
       } else {
         throw new RedirectLimitExceededException(_connection._redirects);
       }
@@ -1952,6 +1953,11 @@ class _HttpClientResponse
 
 class _HttpClientConnection
     extends _HttpConnectionBase implements HttpClientConnection {
+  static const int NONE = 0;
+  static const int REQUEST_DONE = 1;
+  static const int RESPONSE_DONE = 2;
+  static const int ALL_DONE = REQUEST_DONE | RESPONSE_DONE;
+
   _HttpClientConnection(_HttpClient this._client);
 
   void _connectionEstablished(_SocketConnection socketConn) {
@@ -1971,16 +1977,41 @@ class _HttpClientConnection
     _httpParser.error = (e) => _onError(e);
   }
 
+  bool get _isRequestDone => (_state & REQUEST_DONE) == REQUEST_DONE;
+  bool get _isResponseDone => (_state & RESPONSE_DONE) == RESPONSE_DONE;
+  bool get _isAllDone => (_state & ALL_DONE) == ALL_DONE;
+
+  void _checkSocketDone() {
+    if (_isAllDone) {
+      if (!_closing) {
+        _client._returnSocketConnection(_socketConn);
+      }
+      _socket = null;
+      _socketConn = null;
+      assert(_pendingRedirect == null || _pendingRetry == null);
+      if (_pendingRedirect != null) {
+        _doRedirect(_pendingRedirect);
+        _pendingRedirect = null;
+      } else if (_pendingRetry != null) {
+        _doRetry(_pendingRetry);
+        _pendingRetry = null;
+      }
+    }
+  }
+
+  void _requestDone() {
+    _state |= REQUEST_DONE;
+    _checkSocketDone();
+  }
+
   void _responseDone() {
     if (_closing) {
       if (_socket != null) {
         _socket.close();
       }
-    } else {
-      _client._returnSocketConnection(_socketConn);
     }
-    _socket = null;
-    _socketConn = null;
+    _state |= RESPONSE_DONE;
+    _checkSocketDone();
   }
 
   HttpClientRequest open(String method, Uri uri) {
@@ -2057,31 +2088,57 @@ class _HttpClientConnection
     _onErrorCallback = callback;
   }
 
-  void retry() {
-    if (_socketConn != null) {
-      throw new HttpException("Cannot retry with body data pending");
-    }
+  void _doRetry(_RedirectInfo retry) {
+    assert(_socketConn == null);
+    _request = null;
+    _response = null;
+
     // Retry the URL using the same connection instance.
-    _client._openUrl(_method, _request._uri, this);
+    _state = NONE;
+    _client._openUrl(retry.method, retry.location, this);
+  }
+
+  void _retry() {
+    var retry = new _RedirectInfo(_response.statusCode, _method, _request._uri);
+    // The actual retry is postponed until both response and request
+    // are done.
+    if (_isAllDone) {
+      _doRetry(retry);
+    } else {
+      // Prepare for retry.
+      assert(_pendingRedirect == null);
+      _pendingRetry = retry;
+    }
+  }
+
+  void _doRedirect(_RedirectInfo redirect) {
+    assert(_socketConn == null);
+
+    if (_redirects == null) {
+      _redirects = new List<_RedirectInfo>();
+    }
+    _redirects.add(redirect);
+    _doRetry(redirect);
   }
 
   void redirect([String method, Uri url]) {
-    if (_socketConn != null) {
-      throw new HttpException("Cannot redirect with body data pending");
-    }
     if (method == null) method = _method;
     if (url == null) {
       url = new Uri.fromString(_response.headers.value(HttpHeaders.LOCATION));
     }
-    if (_redirects == null) {
-      _redirects = new List<_RedirectInfo>();
+    var redirect = new _RedirectInfo(_response.statusCode, method, url);
+    // The actual redirect is postponed until both response and
+    // request are done.
+    if (_isAllDone) {
+      _doRedirect(redirect);
+    } else {
+      // Prepare for redirect.
+      assert(_pendingRetry == null);
+      _pendingRedirect = redirect;
     }
-    _redirects.add(new _RedirectInfo(_response.statusCode, method, url));
-    _request = null;
-    _response = null;
-    // Open redirect URL using the same connection instance.
-    _client._openUrl(method, url, this);
   }
+
+  int _state = NONE;
 
   List<RedirectInfo> get redirects => _redirects;
 
@@ -2100,6 +2157,8 @@ class _HttpClientConnection
   bool followRedirects = true;
   int maxRedirects = 5;
   List<_RedirectInfo> _redirects;
+  _RedirectInfo _pendingRedirect;
+  _RedirectInfo _pendingRetry;
 
   // Callbacks.
   var requestReceived;
