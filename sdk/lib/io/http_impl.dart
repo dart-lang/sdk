@@ -1399,7 +1399,7 @@ class _HttpConnection extends _HttpConnectionBase {
     // Don't report errors when HTTP parser is in idle state. Clients
     // can close the connection and cause a connection reset by peer
     // error which is OK.
-    if (e != null && onError != null && !_httpParser.isIdle) {
+    if (e != null && !_httpParser.isIdle) {
       onError(e);
       // Propagate the error to the streams.
       if (_request != null && _request._streamErrorHandler != null) {
@@ -1413,23 +1413,23 @@ class _HttpConnection extends _HttpConnectionBase {
     // If currently not processing any request close the socket when
     // we are done writing the response.
     if (_httpParser.isIdle) {
-      _socket.outputStream.onClosed = () {
-        _destroy();
-        if (onClosed != null && e == null) {
-          // Don't call onClosed if onError has been called.
+      if (e != null) {
+        onError(e);
+      } else {
+        _socket.outputStream.onClosed = () {
+          _destroy();
           onClosed();
-        }
-      };
-      // If the client closes and we are done writing the response
-      // the connection should be closed.
-      if (_response == null) _close();
-      return;
-    }
-
-    // Processing a request.
-    if (e == null) {
-      // Indicate connection close to the HTTP parser.
-      _httpParser.connectionClosed();
+        };
+        // If the client closes and we are done writing the response
+        // the connection should be closed.
+        if (_response == null) _close();
+      }
+    } else {
+      // Processing a request.
+      if (e == null) {
+        // Indicate connection close to the HTTP parser.
+        _httpParser.connectionClosed();
+      }
     }
   }
 
@@ -1473,6 +1473,7 @@ class _HttpConnection extends _HttpConnectionBase {
     if (_closing) {
       _socket.outputStream.onClosed = () {
         _socket.close();
+        onClosed();
       };
     }
     _response = null;
