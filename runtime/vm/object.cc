@@ -7209,6 +7209,26 @@ RawArray* Code::ExtractTypeFeedbackArray() const {
 }
 
 
+void Code::ExtractUncalledStaticCallDeoptIds(
+    GrowableArray<intptr_t>* deopt_ids) const {
+  ASSERT(deopt_ids != NULL);
+  deopt_ids->Clear();
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(this->pc_descriptors());
+  Function& function = Function::Handle();
+  for (intptr_t i = 0; i < descriptors.Length(); i++) {
+    if (descriptors.DescriptorKind(i) == PcDescriptors::kFuncCall) {
+      // Static call.
+      uword target_addr;
+      CodePatcher::GetStaticCallAt(descriptors.PC(i), &function, &target_addr);
+      if (target_addr == StubCode::CallStaticFunctionEntryPoint()) {
+        deopt_ids->Add(descriptors.DeoptId(i));
+      }
+    }
+  }
+}
+
+
 RawStackmap* Code::GetStackmap(uword pc, Array* maps, Stackmap* map) const {
   // This code is used during iterating frames during a GC and hence it
   // should not in turn start a GC.

@@ -2583,6 +2583,11 @@ class Code : public Object {
   // Returns an array indexed by deopt id, containing the extracted ICData.
   RawArray* ExtractTypeFeedbackArray() const;
 
+  // Returns deopt-ids of all static calls that were never resolved, i.e.,
+  // never executed.
+  void ExtractUncalledStaticCallDeoptIds(
+      GrowableArray<intptr_t>* deopt_ids) const;
+
  private:
   // An object finder visitor interface.
   class FindRawCodeVisitor : public FindObjectVisitor {

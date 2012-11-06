@@ -10,17 +10,22 @@
 namespace dart {
 
 class FlowGraph;
+template <typename T> class GrowableArray;
 
 class FlowGraphInliner : ValueObject {
  public:
-  explicit FlowGraphInliner(FlowGraph* flow_graph)
-      : flow_graph_(flow_graph) { }
+  FlowGraphInliner(FlowGraph* flow_graph,
+                   const GrowableArray<intptr_t>& deopt_ids)
+      : flow_graph_(flow_graph),
+        uncalled_static_static_call_deopt_ids_(deopt_ids) {}
 
   // The flow graph is destructively updated upon inlining.
   void Inline();
 
  private:
   FlowGraph* flow_graph_;
+  const GrowableArray<intptr_t>& uncalled_static_static_call_deopt_ids_;
+
   DISALLOW_COPY_AND_ASSIGN(FlowGraphInliner);
 };
 

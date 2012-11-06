@@ -183,7 +183,12 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       if (FLAG_use_inlining) {
         TimerScope timer(FLAG_compiler_stats,
                          &CompilerStats::graphinliner_timer);
-        FlowGraphInliner inliner(flow_graph);
+        const Code& unoptimized_code =
+            Code::Handle(parsed_function.function().unoptimized_code());
+        GrowableArray<intptr_t> uncalled_static_calls_deopt_ids;
+        unoptimized_code.ExtractUncalledStaticCallDeoptIds(
+            &uncalled_static_calls_deopt_ids);
+        FlowGraphInliner inliner(flow_graph, uncalled_static_calls_deopt_ids);
         inliner.Inline();
         // Use lists are maintained and validated by the inliner.
       }
