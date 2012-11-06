@@ -2,17 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('dart2js');
+library dart2js;
 
-#import('dart:io');
-#import('dart:uri');
-#import('dart:utf');
+import 'dart:io';
+import 'dart:uri';
+import 'dart:utf';
 
-#import('../compiler.dart', prefix: 'api');
-#import('colors.dart', prefix: 'colors');
-#import('source_file.dart');
-#import('filenames.dart');
-#import('util/uri_extras.dart');
+import '../compiler.dart' as api;
+import 'colors.dart' as colors;
+import 'source_file.dart';
+import 'filenames.dart';
+import 'util/uri_extras.dart';
 
 const String LIBRARY_ROOT = '../../../../..';
 const String OUTPUT_LANGUAGE_DART = 'Dart';

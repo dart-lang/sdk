@@ -2972,7 +2972,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     }
 
-    buildTypeString(argument, isInQuotes: false);
+    RuntimeTypeInformation rti = compiler.codegenWorld.rti;
+    String temolate = rti.getTypeRepresentation(type, inputs);
     HInstruction result =
         new HForeign(new LiteralDartString("$template"),
             new LiteralDartString('String'),
