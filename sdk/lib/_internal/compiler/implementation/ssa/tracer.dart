@@ -458,6 +458,10 @@ class HInstructionStringifier implements HVisitor<String> {
     return visitInvokeStatic(node);
   }
 
+  String visitExitTry(HExitTry node) {
+    return "Exit try";
+  }
+
   String visitTry(HTry node) {
     List<HBasicBlock> successors = currentBlock.successors;
     String tryBlock = 'B${successors[0].id}';

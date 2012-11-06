@@ -926,6 +926,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   List<InliningState> inliningStack;
   Element returnElement;
   DartType returnType;
+  bool inTryStatement = false;
 
   void disableMethodInterception() {
     assert(methodInterceptionEnabled);
@@ -3444,6 +3445,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     dup();
   }
 
+  void handleInTryStatement() {
+    if (!inTryStatement) return;
+    HBasicBlock block = close(new HExitTry());
+    HBasicBlock newBlock = graph.addNewBlock();
+    block.addSuccessor(newBlock);
+    open(newBlock);
+  }
+
   visitReturn(Return node) {
     if (identical(node.getBeginToken().stringValue, 'native')) {
       native.handleSsaNative(this, node.expression);
@@ -3465,6 +3474,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         value = potentiallyCheckType(value, returnType);
       }
     }
+
+    handleInTryStatement();
+
     if (!inliningStack.isEmpty) {
       localsHandler.updateLocal(returnElement, value);
     } else {
@@ -3555,6 +3567,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   visitBreakStatement(BreakStatement node) {
     assert(!isAborted());
+    handleInTryStatement();
     TargetElement target = elements[node];
     assert(target != null);
     JumpHandler handler = jumpTargets[target];
@@ -3568,6 +3581,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitContinueStatement(ContinueStatement node) {
+    handleInTryStatement();
     TargetElement target = elements[node];
     assert(target != null);
     JumpHandler handler = jumpTargets[target];
@@ -4107,6 +4121,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HBasicBlock enterBlock = openNewBlock();
     HTry tryInstruction = new HTry();
     close(tryInstruction);
+    bool oldInTryStatement = inTryStatement;
+    inTryStatement = true;
 
     HBasicBlock startTryBlock;
     HBasicBlock endTryBlock;
@@ -4221,6 +4237,22 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HBasicBlock exitBlock = graph.addNewBlock();
 
     addOptionalSuccessor(b1, b2) { if (b2 != null) b1.addSuccessor(b2); }
+    addExitTrySuccessor(successor) {
+      if (successor == null) return;
+      // Iterate over all blocks created inside this try/catch, and
+      // attach successor information to blocks that end with
+      // [HExitTry].
+      for (int i = startTryBlock.id; i < successor.id; i++) {
+        HBasicBlock block = graph.blocks[i];
+        var last = block.last;
+        if (last is HExitTry) {
+          block.addSuccessor(successor);
+        } else if (last is HTry) {
+          // Skip all blocks inside this nested try/catch.
+          i = last.joinBlock.id;
+        }
+      }
+    }
 
     // Setup all successors. The entry block that contains the [HTry]
     // has 1) the body, 2) the catch, 3) the finally, and 4) the exit
@@ -4248,6 +4280,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (endFinallyBlock != null) {
       endFinallyBlock.addSuccessor(exitBlock);
     }
+    
+    // If a block inside try/catch aborts (eg with a return statement),
+    // we explicitely mark this block a predecessor of the catch
+    // block and the finally block.
+    addExitTrySuccessor(startCatchBlock);
+    addExitTrySuccessor(startFinallyBlock);
 
     // Use the locals handler not altered by the catch and finally
     // blocks.
@@ -4260,6 +4298,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           wrapStatementGraph(catchGraph),
           wrapStatementGraph(finallyGraph)),
         exitBlock);
+    inTryStatement = oldInTryStatement;
   }
 
   visitScriptTag(ScriptTag node) {

@@ -1500,6 +1500,15 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  visitExitTry(HExitTry node) {
+    // An [HExitTry] is used to represent the control flow graph of a
+    // try/catch block, ie the try body is always a predecessor
+    // of the catch and finally. Here, we continue visiting the try
+    // body by visiting the block that contains the user-level control
+    // flow instruction.
+    visitBasicBlock(node.bodyTrySuccessor);
+  }
+
   visitTry(HTry node) {
     // We should never get here. Try/catch/finally is always handled using block
     // information in [visitTryInfo], or not at all, in the case of the bailout

@@ -19,6 +19,7 @@ abstract class HVisitor<R> {
   R visitDivide(HDivide node);
   R visitEquals(HEquals node);
   R visitExit(HExit node);
+  R visitExitTry(HExitTry node);
   R visitFieldGet(HFieldGet node);
   R visitFieldSet(HFieldSet node);
   R visitForeign(HForeign node);
@@ -279,6 +280,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitDivide(HDivide node) => visitBinaryArithmetic(node);
   visitEquals(HEquals node) => visitRelational(node);
   visitExit(HExit node) => visitControlFlow(node);
+  visitExitTry(HExitTry node) => visitControlFlow(node);
   visitFieldGet(HFieldGet node) => visitFieldAccess(node);
   visitFieldSet(HFieldSet node) => visitFieldAccess(node);
   visitForeign(HForeign node) => visitInstruction(node);
@@ -2031,6 +2033,18 @@ class HTry extends HControlFlow {
   toString() => 'try';
   accept(HVisitor visitor) => visitor.visitTry(this);
   HBasicBlock get joinBlock => this.block.successors.last;
+}
+
+// An [HExitTry] control flow node is used when the body of a try or
+// the body of a catch contains a return, break or continue. To build
+// the control flow graph, we explicitely mark the body that
+// leads to one of this instruction a predecessor of catch and
+// finally.
+class HExitTry extends HControlFlow {
+  HExitTry() : super(const <HInstruction>[]);
+  toString() => 'exit try';
+  accept(HVisitor visitor) => visitor.visitExitTry(this);
+  HBasicBlock get bodyTrySuccessor => block.successors[0];
 }
 
 class HIf extends HConditionalBranch {
