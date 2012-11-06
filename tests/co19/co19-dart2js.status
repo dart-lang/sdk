@@ -59,7 +59,6 @@ Language/11_Expressions/11_Instance_Creation/1_New_A02_t03: Fail # TODO(ahe): Pl
 Language/11_Expressions/11_Instance_Creation/1_New_A02_t05: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/1_New_A02_t06: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/1_New_A02_t07: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/11_Instance_Creation/1_New_A12_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/1_New_A12_t02: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/1_New_A13_t04: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/1_New_A14_t01: Fail # TODO(ahe): Please triage this failure.
@@ -423,7 +422,6 @@ Language/06_Functions/4_External_Functions_A01_t01: Fail, OK # http://dartbug.co
 Language/03_Overview/2_Privacy_A01_t09: Fail, OK # co19 issue 198
 Language/03_Overview/2_Privacy_A01_t10: Fail, OK # co19 issue 198
 
-Language/11_Expressions/11_Instance_Creation/1_New_A12_t01: Fail, OK # co19 issue 273
 LibTest/core/String/hashCode_A01_t01: Fail, OK # co19 issue 273
 LibTest/core/int/hashCode_A01_t01: Fail, OK # co19 issue 273
 

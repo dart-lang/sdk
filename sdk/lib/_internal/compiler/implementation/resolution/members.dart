@@ -1875,9 +1875,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   visitReturn(Return node) {
     if (node.isRedirectingFactoryBody) {
-      unimplemented(node, 'redirecting constructors');
+      useElement(node.expression, resolveRedirectingFactory(node));
+    } else {
+      visit(node.expression);
     }
-    visit(node.expression);
   }
 
   visitThrow(Throw node) {
@@ -1948,6 +1949,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
    * [null], if there is no corresponding constructor, class or library.
    */
   FunctionElement resolveConstructor(NewExpression node) {
+    return node.accept(new ConstructorResolver(compiler, this));
+  }
+
+  FunctionElement resolveRedirectingFactory(Return node) {
     return node.accept(new ConstructorResolver(compiler, this));
   }
 
@@ -2945,13 +2950,27 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     inConstContext = node.isConst();
     Node selector = node.send.selector;
     Element e = visit(selector);
-    if (!Elements.isUnresolved(e) && identical(e.kind, ElementKind.CLASS)) {
+    return finishConstructorReference(e, node.send.selector, node);
+  }
+
+  /// Finishes resolution of a constructor reference and records the
+  /// type of the constructed instance on [expression].
+  FunctionElement finishConstructorReference(Element e,
+                                             Node diagnosticNode,
+                                             Expression expression) {
+    // Find the unnamed constructor if the reference resolved to a
+    // class.
+    if (!Elements.isUnresolved(e) && e.isClass()) {
       ClassElement cls = e;
       cls.ensureResolved(compiler);
       if (cls.isInterface() && (cls.defaultClass == null)) {
-        error(selector, MessageKind.CANNOT_INSTANTIATE_INTERFACE, [cls.name]);
+        // TODO(ahe): Remove this check and error message when we
+        // don't have interfaces anymore.
+        error(diagnosticNode,
+              MessageKind.CANNOT_INSTANTIATE_INTERFACE, [cls.name]);
       }
-      e = lookupConstructor(cls, selector, const SourceString(''));
+      // The unnamed constructor may not exist, so [e] may become unresolved.
+      e = lookupConstructor(cls, diagnosticNode, const SourceString(''));
     }
     if (type == null) {
       if (Elements.isUnresolved(e)) {
@@ -2960,7 +2979,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
         type = e.getEnclosingClass().computeType(compiler).asRaw();
       }
     }
-    resolver.mapping.setType(node, type);
+    resolver.mapping.setType(expression, type);
     return e;
   }
 
@@ -3017,5 +3036,12 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
       error(node, MessageKind.NOT_A_TYPE, [name]);
     }
     return e;
+  }
+
+  /// Assumed to be called by [resolveRedirectingFactory].
+  Element visitReturn(Return node) {
+    Expression expression = node.expression;
+    return finishConstructorReference(visit(expression),
+                                      expression, expression);
   }
 }

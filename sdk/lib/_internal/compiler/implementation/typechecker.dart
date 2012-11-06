@@ -796,7 +796,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     if (node.isRedirectingFactoryBody) {
       // TODO(lrn): Typecheck the body. It must refer to the constructor
       // of a subtype.
-      return elements.getType(node);
+      return StatementType.RETURNING;
     }
 
     final expression = node.expression;
