@@ -6,6 +6,7 @@
 html_interface_renames = {
     'DOMCoreException': 'DOMException',
     'DOMFormData': 'FormData',
+    'DOMURL': 'Url',
     'DOMWindow': 'LocalWindow',
     'History': 'LocalHistory',
     'Location': 'LocalLocation',
@@ -99,6 +100,8 @@ _renamed_html_members = {
     'SVGElement.className': '$dom_svgClassName',
     'SVGAnimatedString.className': '$dom_svgClassName',
     'SVGStylable.className': '$dom_svgClassName',
+    'Url.createObjectURL': 'createObjectUrl',
+    'Url.revokeObjectURL': 'revokeObjectUrl',
 }
 
 # Members and classes from the dom that should be removed completely from

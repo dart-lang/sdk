@@ -9313,30 +9313,6 @@ class _DOMTokenListImpl implements DOMTokenList native "*DOMTokenList" {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName URL
-abstract class DOMURL {
-
-  factory DOMURL() => _DOMURLFactoryProvider.createDOMURL();
-
-  /** @domName URL.createObjectURL */
-  static final createObjectURL = _DOMURLImpl.createObjectURL;
-
-  /** @domName URL.revokeObjectURL */
-  static final revokeObjectURL = _DOMURLImpl.revokeObjectURL;
-}
-
-class _DOMURLImpl implements DOMURL native "*URL" {
-
-  static String createObjectURL(blob_OR_source_OR_stream) native;
-
-  static void revokeObjectURL(String url) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 /// @domName HTMLDataListElement
 abstract class DataListElement implements Element {
 
@@ -17903,16 +17879,6 @@ abstract class LocalWindow implements EventTarget, Window {
    */
   void requestLayoutFrame(TimeoutHandler callback);
 
-  /**
-   * Creates a new object URL for the specified object. The URL will be
-   * available until revokeObjectUrl is called.
-   * [object] can be a Blob, MediaStream or MediaSource.
-   */
-  String createObjectUrl(object);
-
-  /** @domName DOMURL.revokeObjectURL */
-  void revokeObjectUrl(String objectUrl);
-
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -18488,15 +18454,6 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
   registerPort(String name, var port) {
     var serialized = _serialize(port);
     localStorage['dart-port:$name'] = JSON.stringify(serialized);
-  }
-
-  String createObjectUrl(object) =>
-      JS('String',
-         '(window.URL || window.webkitURL).createObjectURL(#)', object);
-
-  void revokeObjectUrl(String objectUrl) {
-    JS('void',
-       '(window.URL || window.webkitURL).revokeObjectURL(#)', objectUrl);
   }
 
 
@@ -35029,6 +34986,37 @@ class _UnknownElementImpl extends _ElementImpl implements UnknownElement native 
 
 // WARNING: Do not edit - generated code.
 
+/// @domName URL
+abstract class Url {
+
+  /** @domName URL.createObjectURL */
+  static final createObjectUrl = _UrlImpl.createObjectUrl;
+
+  /** @domName URL.revokeObjectURL */
+  static final revokeObjectUrl = _UrlImpl.revokeObjectUrl;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _UrlImpl implements Url native "*URL" {
+
+  static String createObjectUrl(blob_OR_source_OR_stream) =>
+      JS('String',
+         '(window.URL || window.webkitURL).createObjectURL(#)',
+         blob_OR_source_OR_stream);
+
+  static void revokeObjectUrl(String objectUrl) =>
+      JS('void',
+         '(window.URL || window.webkitURL).revokeObjectURL(#)', objectUrl);
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName ValidityState
 abstract class ValidityState {
 
@@ -37880,14 +37868,6 @@ class _CSSMatrixFactoryProvider {
 class _DOMParserFactoryProvider {
   static DOMParser createDOMParser() =>
       JS('DOMParser', 'new DOMParser()' );
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-class _DOMURLFactoryProvider {
-  static DOMURL createDOMURL() =>
-      JS('DOMURL', 'new DOMURL()' );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

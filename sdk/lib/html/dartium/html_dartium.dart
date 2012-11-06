@@ -10340,53 +10340,6 @@ class _DOMTokenListImpl extends NativeFieldWrapperClass1 implements DOMTokenList
 
 // WARNING: Do not edit - generated code.
 
-/// @domName URL
-abstract class DOMURL {
-
-  factory DOMURL() => _DOMURLFactoryProvider.createDOMURL();
-
-  /** @domName URL.createObjectURL */
-  static final createObjectURL = _DOMURLImpl.createObjectURL;
-
-  /** @domName URL.revokeObjectURL */
-  static final revokeObjectURL = _DOMURLImpl.revokeObjectURL;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _DOMURLImpl extends NativeFieldWrapperClass1 implements DOMURL {
-
-  static String createObjectURL(blob_OR_source_OR_stream) {
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
-      return _createObjectURL_1(blob_OR_source_OR_stream);
-    }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
-      return _createObjectURL_2(blob_OR_source_OR_stream);
-    }
-    if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
-      return _createObjectURL_3(blob_OR_source_OR_stream);
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-  static String _createObjectURL_1(blob_OR_source_OR_stream) native "DOMURL_createObjectURL_1_Callback";
-
-  static String _createObjectURL_2(blob_OR_source_OR_stream) native "DOMURL_createObjectURL_2_Callback";
-
-  static String _createObjectURL_3(blob_OR_source_OR_stream) native "DOMURL_createObjectURL_3_Callback";
-
-  static void revokeObjectURL(String url) native "DOMURL_revokeObjectURL_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 /// @domName HTMLDataListElement
 abstract class DataListElement implements Element {
 
@@ -19939,16 +19892,6 @@ abstract class LocalWindow implements EventTarget, Window {
    */
   void requestLayoutFrame(TimeoutHandler callback);
 
-  /**
-   * Creates a new object URL for the specified object. The URL will be
-   * available until revokeObjectUrl is called.
-   * [object] can be a Blob, MediaStream or MediaSource.
-   */
-  String createObjectUrl(object);
-
-  /** @domName DOMURL.revokeObjectURL */
-  void revokeObjectUrl(String objectUrl);
-
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -20404,11 +20347,6 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow {
   registerPort(String name, var port) {
     var serialized = _serialize(port);
     localStorage['dart-port:$name'] = JSON.stringify(serialized);
-  }
-
-  String createObjectUrl(object) => DOMURL.createObjectURL(object);
-  void revokeObjectUrl(String url) {
-    DOMURL.revokeObjectURL(url);
   }
 
 
@@ -38952,6 +38890,51 @@ class _UnknownElementImpl extends _ElementImpl_Merged implements UnknownElement 
 
 // WARNING: Do not edit - generated code.
 
+/// @domName URL
+abstract class Url {
+
+  /** @domName URL.createObjectURL */
+  static final createObjectUrl = _UrlImpl.createObjectUrl;
+
+  /** @domName URL.revokeObjectURL */
+  static final revokeObjectUrl = _UrlImpl.revokeObjectUrl;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _UrlImpl extends NativeFieldWrapperClass1 implements Url {
+
+  static String createObjectUrl(blob_OR_source_OR_stream) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+      return _createObjectURL_1(blob_OR_source_OR_stream);
+    }
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+      return _createObjectURL_2(blob_OR_source_OR_stream);
+    }
+    if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
+      return _createObjectURL_3(blob_OR_source_OR_stream);
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  static String _createObjectURL_1(blob_OR_source_OR_stream) native "DOMURL_createObjectURL_1_Callback";
+
+  static String _createObjectURL_2(blob_OR_source_OR_stream) native "DOMURL_createObjectURL_2_Callback";
+
+  static String _createObjectURL_3(blob_OR_source_OR_stream) native "DOMURL_createObjectURL_3_Callback";
+
+  static void revokeObjectUrl(String url) native "DOMURL_revokeObjectURL_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName ValidityState
 abstract class ValidityState {
 
@@ -41984,13 +41967,6 @@ class _CSSMatrixFactoryProvider {
 
 class _DOMParserFactoryProvider {
   static DOMParser createDOMParser() native "DOMParser_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-class _DOMURLFactoryProvider {
-  static DOMURL createDOMURL() native "DOMURL_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

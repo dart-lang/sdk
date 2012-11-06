@@ -19,10 +19,5 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     localStorage['dart-port:$name'] = JSON.stringify(serialized);
   }
 
-  String createObjectUrl(object) => DOMURL.createObjectURL(object);
-  void revokeObjectUrl(String url) {
-    DOMURL.revokeObjectURL(url);
-  }
-
 $!MEMBERS
 }

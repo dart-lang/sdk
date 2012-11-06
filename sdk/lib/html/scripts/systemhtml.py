@@ -35,10 +35,16 @@ _js_custom_members = set([
     'LocalWindow.requestAnimationFrame',
     'LocalWindow.webkitCancelAnimationFrame',
     'LocalWindow.webkitRequestAnimationFrame',
+    'Url.createObjectURL',
+    'Url.revokeObjectURL',
     'WheelEvent.wheelDeltaX',
     'WheelEvent.wheelDeltaY',
     ])
 
+
+# Classes that offer only static methods, and therefore we should suppress
+# constructor creation.
+_static_classes = set(['Url'])
 
 # Types that are accessible cross-frame in a limited fashion.
 # In these cases, the base type (e.g., Window) provides restricted access
@@ -267,7 +273,10 @@ class HtmlDartInterfaceGenerator(object):
       factory_provider = interface_factories[interface_name]
 
     constructors = []
-    constructor_info = AnalyzeConstructor(self._interface)
+    if interface_name in _static_classes:
+      constructor_info = None
+    else:
+      constructor_info = AnalyzeConstructor(self._interface)
     if constructor_info:
       constructors.append(constructor_info)
       factory_provider = '_' + interface_name + 'FactoryProvider'
