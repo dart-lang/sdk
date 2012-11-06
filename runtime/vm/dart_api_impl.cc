@@ -1642,6 +1642,9 @@ DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle object,
                                              const char** cstr) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  if (cstr == NULL) {
+    RETURN_NULL_ERROR(cstr);
+  }
   const String& str_obj = Api::UnwrapStringHandle(isolate, object);
   if (str_obj.IsNull()) {
     RETURN_TYPE_ERROR(isolate, object, String);
@@ -1660,20 +1663,27 @@ DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle object,
 
 
 DART_EXPORT Dart_Handle Dart_StringToUTF8(Dart_Handle str,
-                                          uint8_t* utf8_array,
+                                          uint8_t** utf8_array,
                                           intptr_t* length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  if (utf8_array == NULL) {
+    RETURN_NULL_ERROR(utf8_array);
+  }
+  if (length == NULL) {
+    RETURN_NULL_ERROR(length);
+  }
   const String& str_obj = Api::UnwrapStringHandle(isolate, str);
   if (str_obj.IsNull()) {
     RETURN_TYPE_ERROR(isolate, str, String);
   }
-  intptr_t str_len = str_obj.Length();
-  if (str_len > *length) {
-    return Api::NewError("Input array is not large enough to hold the result");
+  intptr_t str_len = Utf8::Length(str_obj);
+  *utf8_array = Api::TopScope(isolate)->zone()->Alloc<uint8_t>(str_len);
+  if (*utf8_array == NULL) {
+    return Api::NewError("Unable to allocate memory");
   }
-  str_obj.ToUTF8(utf8_array, str_len);
-  *length= str_len;
+  str_obj.ToUTF8(*utf8_array, str_len);
+  *length = str_len;
   return Api::Success(isolate);
 }
 
