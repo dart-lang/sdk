@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../../sdk/lib/_internal/dartdoc/lib/mirrors.dart';
-import '../../../sdk/lib/_internal/dartdoc/lib/mirrors_util.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
 
 import 'dart:io';
 

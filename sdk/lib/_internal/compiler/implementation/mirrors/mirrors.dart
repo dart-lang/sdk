@@ -8,7 +8,7 @@ import 'dart:io';
 import 'dart:uri';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-import 'src/mirrors/dart2js_mirror.dart';
+import 'dart2js_mirror.dart';
 
 /**
  * [Compilation] encapsulates the compilation of a program.

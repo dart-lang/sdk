@@ -13,8 +13,8 @@ import 'dart:io';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
 import '../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart';
-import '../../sdk/lib/_internal/dartdoc/lib/mirrors.dart';
-import '../../sdk/lib/_internal/dartdoc/lib/mirrors_util.dart';
+import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
+import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
 
 // TODO(amouravski): There is currently magic that looks at dart:* libraries
 // rather than the declared library names. This changed due to recent syntax

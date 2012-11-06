@@ -18,8 +18,8 @@ import 'dart:io';
 import 'dart:json';
 import 'html_diff.dart';
 // TODO(rnystrom): Use "package:" URL (#4968).
-import '../../sdk/lib/_internal/dartdoc/lib/mirrors.dart';
-import '../../sdk/lib/_internal/dartdoc/lib/mirrors_util.dart';
+import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
+import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
 import '../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart' as doc;
 import '../../sdk/lib/_internal/libraries.dart';
 

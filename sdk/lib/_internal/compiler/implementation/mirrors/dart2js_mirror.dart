@@ -7,24 +7,22 @@ library mirrors_dart2js;
 import 'dart:io';
 import 'dart:uri';
 
-import '../../../../compiler/compiler.dart' as diagnostics;
-import '../../../../compiler/implementation/elements/elements.dart';
-import '../../../../compiler/implementation/resolution/resolution.dart'
-    show ResolverTask, ResolverVisitor;
-import '../../../../compiler/implementation/apiimpl.dart' as api;
-import '../../../../compiler/implementation/scanner/scannerlib.dart';
-import '../../../../compiler/implementation/ssa/ssa.dart';
-import '../../../../compiler/implementation/dart2jslib.dart';
-import '../../../../compiler/implementation/filenames.dart';
-import '../../../../compiler/implementation/source_file.dart';
-import '../../../../compiler/implementation/tree/tree.dart';
-import '../../../../compiler/implementation/util/util.dart';
-import '../../../../compiler/implementation/util/uri_extras.dart';
-import '../../../../compiler/implementation/dart2js.dart';
-import '../../../../compiler/implementation/util/characters.dart';
+import '../../compiler.dart' as diagnostics;
+import '../elements/elements.dart';
+import '../resolution/resolution.dart' show ResolverTask, ResolverVisitor;
+import '../apiimpl.dart' as api;
+import '../scanner/scannerlib.dart';
+import '../ssa/ssa.dart';
+import '../dart2jslib.dart';
+import '../filenames.dart';
+import '../source_file.dart';
+import '../tree/tree.dart';
+import '../util/util.dart';
+import '../util/uri_extras.dart';
+import '../dart2js.dart';
+import '../util/characters.dart';
 
-// TODO(rnystrom): Use "package:" URL (#4968).
-import '../../mirrors.dart';
+import 'mirrors.dart';
 import 'util.dart';
 
 //------------------------------------------------------------------------------

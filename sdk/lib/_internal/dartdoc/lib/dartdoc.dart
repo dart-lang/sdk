@@ -21,10 +21,9 @@ import 'dart:math';
 import 'dart:uri';
 import 'dart:json';
 
-// TODO(rnystrom): Use "package:" URL (#4968).
-import 'mirrors.dart';
-import 'mirrors_util.dart';
-import 'src/mirrors/dart2js_mirror.dart' as dart2js;
+import '../../compiler/implementation/mirrors/mirrors.dart';
+import '../../compiler/implementation/mirrors/mirrors_util.dart';
+import '../../compiler/implementation/mirrors/dart2js_mirror.dart' as dart2js;
 import 'classify.dart';
 import 'markdown.dart' as md;
 import '../../compiler/implementation/scanner/scannerlib.dart' as dart2js;
