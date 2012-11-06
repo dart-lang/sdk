@@ -1353,80 +1353,90 @@ class Dart2JsDynamicMirror extends Dart2JsTypeElementMirror {
 class Dart2JsMethodMirror extends Dart2JsMemberMirror
     implements MethodMirror {
   final Dart2JsContainerMirror _objectMirror;
-  String _simpleName;
-  String _displayName;
-  String _constructorName;
-  String _operatorName;
-  Dart2JsMethodKind _kind;
+  final String simpleName;
+  final String displayName;
+  final String constructorName;
+  final String operatorName;
+  final Dart2JsMethodKind _kind;
 
-  Dart2JsMethodMirror(Dart2JsContainerMirror objectMirror,
-                      FunctionElement function)
+  Dart2JsMethodMirror._internal(Dart2JsContainerMirror objectMirror,
+      FunctionElement function,
+      String this.simpleName,
+      String this.displayName,
+      String this.constructorName,
+      String this.operatorName,
+      Dart2JsMethodKind this._kind)
       : this._objectMirror = objectMirror,
-        super(objectMirror.mirrors, function) {
-    _simpleName = _element.name.slowToString();
-    if (_function.kind == ElementKind.GETTER) {
-      _kind = Dart2JsMethodKind.GETTER;
-      _displayName = _simpleName;
-    } else if (_function.kind == ElementKind.SETTER) {
-      _kind = Dart2JsMethodKind.SETTER;
-      _displayName = _simpleName;
-      _simpleName = '$_simpleName=';
-    } else if (_function.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
+        super(objectMirror.mirrors, function);
+
+  factory Dart2JsMethodMirror(Dart2JsContainerMirror objectMirror,
+                              FunctionElement function) {
+    String simpleName = function.name.slowToString();
+    String displayName;
+    String constructorName = null;
+    String operatorName = null;
+    Dart2JsMethodKind kind;
+    if (function.kind == ElementKind.GETTER) {
+      kind = Dart2JsMethodKind.GETTER;
+      displayName = simpleName;
+    } else if (function.kind == ElementKind.SETTER) {
+      kind = Dart2JsMethodKind.SETTER;
+      displayName = simpleName;
+      simpleName = '$simpleName=';
+    } else if (function.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
       // TODO(johnniwinther): Support detection of redirecting constructors.
-      _constructorName = '';
-      int dollarPos = _simpleName.indexOf('\$');
+      constructorName = '';
+      int dollarPos = simpleName.indexOf('\$');
       if (dollarPos != -1) {
-        _constructorName = _simpleName.substring(dollarPos + 1);
-        _simpleName = _simpleName.substring(0, dollarPos);
+        constructorName = simpleName.substring(dollarPos + 1);
+        simpleName = simpleName.substring(0, dollarPos);
         // Simple name is TypeName.constructorName.
-        _simpleName = '$_simpleName.$_constructorName';
+        simpleName = '$simpleName.$constructorName';
       } else {
         // Simple name is TypeName.
       }
-      if (_function.modifiers.isConst()) {
-        _kind = Dart2JsMethodKind.CONST;
+      if (function.modifiers.isConst()) {
+        kind = Dart2JsMethodKind.CONST;
       } else {
-        _kind = Dart2JsMethodKind.GENERATIVE;
+        kind = Dart2JsMethodKind.GENERATIVE;
       }
-      _displayName = _simpleName;
-    } else if (_function.modifiers.isFactory()) {
-      _kind = Dart2JsMethodKind.FACTORY;
-      _constructorName = '';
-      int dollarPos = _simpleName.indexOf('\$');
+      displayName = simpleName;
+    } else if (function.modifiers.isFactory()) {
+      kind = Dart2JsMethodKind.FACTORY;
+      constructorName = '';
+      int dollarPos = simpleName.indexOf('\$');
       if (dollarPos != -1) {
-        _constructorName = _simpleName.substring(dollarPos+1);
-        _simpleName = _simpleName.substring(0, dollarPos);
-        _simpleName = '$_simpleName.$_constructorName';
+        constructorName = simpleName.substring(dollarPos+1);
+        simpleName = simpleName.substring(0, dollarPos);
+        simpleName = '$simpleName.$constructorName';
       }
       // Simple name is TypeName.constructorName.
-      _displayName = _simpleName;
-    } else if (_simpleName == 'negate') {
-      _kind = Dart2JsMethodKind.OPERATOR;
-      _operatorName = '-';
+      displayName = simpleName;
+    } else if (simpleName == 'negate') {
+      kind = Dart2JsMethodKind.OPERATOR;
+      operatorName = '-';
       // Simple name is 'unary-'.
-      _simpleName = Mirror.UNARY_MINUS;
+      simpleName = Mirror.UNARY_MINUS;
       // Display name is 'operator operatorName'.
-      _displayName = 'operator -';
-    } else if (_simpleName.startsWith('operator\$')) {
-      String str = _simpleName.substring(9);
-      _simpleName = 'operator';
-      _kind = Dart2JsMethodKind.OPERATOR;
-      _operatorName = _getOperatorFromOperatorName(str);
+      displayName = 'operator -';
+    } else if (simpleName.startsWith('operator\$')) {
+      String str = simpleName.substring(9);
+      simpleName = 'operator';
+      kind = Dart2JsMethodKind.OPERATOR;
+      operatorName = _getOperatorFromOperatorName(str);
       // Simple name is 'operator operatorName'.
-      _simpleName = _operatorName;
+      simpleName = operatorName;
       // Display name is 'operator operatorName'.
-      _displayName = 'operator $_operatorName';
+      displayName = 'operator $operatorName';
     } else {
-      _kind = Dart2JsMethodKind.REGULAR;
-      _displayName = _simpleName;
+      kind = Dart2JsMethodKind.REGULAR;
+      displayName = simpleName;
     }
+    return new Dart2JsMethodMirror._internal(objectMirror, function,
+        simpleName, displayName, constructorName, operatorName, kind);
   }
 
   FunctionElement get _function => _element;
-
-  String get simpleName => _simpleName;
-
-  String get displayName => _displayName;
 
   String get qualifiedName
       => '${owner.qualifiedName}.$simpleName';
@@ -1467,15 +1477,11 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
 
   bool get isFactoryConstructor => _kind == Dart2JsMethodKind.FACTORY;
 
-  String get constructorName => _constructorName;
-
   bool get isGetter => _kind == Dart2JsMethodKind.GETTER;
 
   bool get isSetter => _kind == Dart2JsMethodKind.SETTER;
 
   bool get isOperator => _kind == Dart2JsMethodKind.OPERATOR;
-
-  String get operatorName => _operatorName;
 
   SourceLocation get location {
     var node = _function.parseNode(_diagnosticListener);
