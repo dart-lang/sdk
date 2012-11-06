@@ -584,46 +584,63 @@ class ClassDesc : public ValueObject {
 
   bool FunctionNameExists(const String& name, RawFunction::Kind kind) const {
     // First check if a function or field of same name exists.
-    if (NameExists<Function>(functions_, name) ||
-        NameExists<Field>(fields_, name)) {
+    if (FunctionExists(name)) {
       return true;
     }
-    String& accessor_name = String::Handle();
-    if (kind != RawFunction::kSetterFunction) {
-      // Check if a getter function of same name exists.
-      accessor_name = Field::GetterName(name);
-      if (NameExists<Function>(functions_, accessor_name)) {
+    // Now check whether there is a field and whether its implicit getter
+    // or setter collides with the name.
+    Field* field = LookupField(name);
+    if (field != NULL) {
+      if (kind == RawFunction::kSetterFunction) {
+        // It's ok to have an implicit getter, it does not collide with
+        // this setter function.
+        if (!field->is_final()) {
+          return true;
+        }
+      } else {
+        // The implicit getter of the field collides with the name.
         return true;
       }
     }
-    if (kind != RawFunction::kGetterFunction) {
+
+    String& accessor_name = String::Handle();
+    if (kind == RawFunction::kSetterFunction) {
       // Check if a setter function of same name exists.
       accessor_name = Field::SetterName(name);
-      if (NameExists<Function>(functions_, accessor_name)) {
+      if (FunctionExists(accessor_name)) {
+        return true;
+      }
+    } else {
+      // Check if a getter function of same name exists.
+      accessor_name = Field::GetterName(name);
+      if (FunctionExists(accessor_name)) {
         return true;
       }
     }
     return false;
   }
 
-  bool FieldNameExists(const String& name) const {
+  bool FieldNameExists(const String& name, bool check_setter) const {
     // First check if a function or field of same name exists.
-    if (NameExists<Function>(functions_, name) ||
-        NameExists<Field>(fields_, name)) {
+    if (FunctionExists(name) || FieldExists(name)) {
       return true;
     }
     // Now check if a getter/setter function of same name exists.
     String& getter_name = String::Handle(Field::GetterName(name));
-    String& setter_name = String::Handle(Field::SetterName(name));
-    if (NameExists<Function>(functions_, getter_name) ||
-        NameExists<Function>(functions_, setter_name)) {
+    if (FunctionExists(getter_name)) {
       return true;
+    }
+    if (check_setter) {
+      String& setter_name = String::Handle(Field::SetterName(name));
+      if (FunctionExists(setter_name)) {
+        return true;
+      }
     }
     return false;
   }
 
   void AddFunction(const Function& function) {
-    ASSERT(!NameExists<Function>(functions_, String::Handle(function.name())));
+    ASSERT(!FunctionExists(String::Handle(function.name())));
     functions_.Add(function);
   }
 
@@ -632,7 +649,7 @@ class ClassDesc : public ValueObject {
   }
 
   void AddField(const Field& field) {
-    ASSERT(!NameExists<Field>(fields_, String::Handle(field.name())));
+    ASSERT(!FieldExists(String::Handle(field.name())));
     fields_.Add(field);
   }
 
@@ -685,18 +702,38 @@ class ClassDesc : public ValueObject {
   }
 
  private:
-  template<typename T>
-  bool NameExists(const GrowableObjectArray& list, const String& name) const {
+  Field* LookupField(const String& name) const {
     String& test_name = String::Handle();
-    T& obj = T::Handle();
-    for (int i = 0; i < list.Length(); i++) {
-      obj ^= list.At(i);
-      test_name = obj.name();
+    Field& field = Field::Handle();
+    for (int i = 0; i < fields_.Length(); i++) {
+      field ^= fields_.At(i);
+      test_name = field.name();
       if (name.Equals(test_name)) {
-        return true;
+        return &field;
       }
     }
-    return false;
+    return NULL;
+  }
+
+  bool FieldExists(const String& name) const {
+    return LookupField(name) != NULL;
+  }
+
+  Function* LookupFunction(const String& name) const {
+    String& test_name = String::Handle();
+    Function& func = Function::Handle();
+    for (int i = 0; i < functions_.Length(); i++) {
+      func ^= functions_.At(i);
+      test_name = func.name();
+      if (name.Equals(test_name)) {
+        return &func;
+      }
+    }
+    return NULL;
+  }
+
+  bool FunctionExists(const String& name) const {
+    return LookupFunction(name) != NULL;
   }
 
   const Class& clazz_;
@@ -2738,6 +2775,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
   ASSERT(field->type != NULL);
   ASSERT(field->name_pos > 0);
   ASSERT(current_member_ == field);
+  // All const fields are also final.
   ASSERT(!field->has_const || field->has_final);
 
   if (field->has_abstract) {
@@ -2749,7 +2787,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
   if (field->has_factory) {
     ErrorMsg("keyword 'factory' not allowed in field declaration");
   }
-  if (members->FieldNameExists(*field->name)) {
+  if (members->FieldNameExists(*field->name, !field->has_final)) {
     ErrorMsg(field->name_pos,
              "'%s' field/method already defined\n", field->name->ToCString());
   }
@@ -3866,10 +3904,14 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
       ErrorMsg(name_pos, "getter for '%s' is already defined",
                var_name.ToCString());
     }
-    accessor_name = Field::SetterName(var_name);
-    if (library_.LookupLocalObject(accessor_name) != Object::null()) {
-      ErrorMsg(name_pos, "setter for '%s' is already defined",
-               var_name.ToCString());
+    // A const or final variable does not define an implicit setter,
+    // so we only check setters for non-final variables.
+    if (!is_final) {
+      accessor_name = Field::SetterName(var_name);
+      if (library_.LookupLocalObject(accessor_name) != Object::null()) {
+        ErrorMsg(name_pos, "setter for '%s' is already defined",
+                 var_name.ToCString());
+      }
     }
 
     field = Field::New(var_name, is_static, is_final, is_const,
@@ -3957,11 +3999,8 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level) {
     ErrorMsg(name_pos, "'%s' is already defined as getter",
              func_name.ToCString());
   }
-  accessor_name = Field::SetterName(func_name);
-  if (library_.LookupLocalObject(accessor_name) != Object::null()) {
-    ErrorMsg(name_pos, "'%s' is already defined as setter",
-             func_name.ToCString());
-  }
+  // A setter named x= may co-exist with a function named x, thus we do
+  // not need to check setters.
 
   if (CurrentToken() != Token::kLPAREN) {
     ErrorMsg("'(' expected");
@@ -4071,9 +4110,18 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
              is_getter ? "getter" : "setter");
   }
 
-  if (library_.LookupLocalObject(*field_name) != Object::null()) {
+  if (is_getter && library_.LookupLocalObject(*field_name) != Object::null()) {
     ErrorMsg(name_pos, "'%s' is already defined in this library",
              field_name->ToCString());
+  }
+  if (!is_getter) {
+    // Check whether there is a field with the same name that has an implicit
+    // setter.
+    const Field& field = Field::Handle(library_.LookupLocalField(*field_name));
+    if (!field.IsNull() && !field.is_final()) {
+      ErrorMsg(name_pos, "Variable '%s' is already defined in this library",
+               field_name->ToCString());
+    }
   }
   bool found = library_.LookupLocalObject(accessor_name) != Object::null();
   if (found && !is_patch) {

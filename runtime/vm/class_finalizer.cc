@@ -955,6 +955,8 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
 }
 
 
+// Check if an instance field or method of same name exists
+// in any super class.
 static RawClass* FindSuperOwnerOfInstanceMember(const Class& cls,
                                                 const String& name) {
   Class& super_class = Class::Handle();
@@ -962,7 +964,6 @@ static RawClass* FindSuperOwnerOfInstanceMember(const Class& cls,
   Field& field = Field::Handle();
   super_class = cls.SuperClass();
   while (!super_class.IsNull()) {
-    // Check if an instance member of same name exists in any super class.
     function = super_class.LookupFunction(name);
     if (!function.IsNull() && !function.is_static()) {
       return super_class.raw();
@@ -977,13 +978,13 @@ static RawClass* FindSuperOwnerOfInstanceMember(const Class& cls,
 }
 
 
+// Check if an instance method of same name exists in any super class.
 static RawClass* FindSuperOwnerOfFunction(const Class& cls,
                                           const String& name) {
   Class& super_class = Class::Handle();
   Function& function = Function::Handle();
   super_class = cls.SuperClass();
   while (!super_class.IsNull()) {
-    // Check if a function of same name exists in any super class.
     function = super_class.LookupFunction(name);
     if (!function.IsNull() && !function.is_static()) {
       return super_class.raw();
@@ -1023,8 +1024,6 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   // The only compile errors we report are therefore:
   // - a getter having the same name as a method (but not a getter) in a super
   //   class or in a subclass.
-  // - a setter having the same name as a method (but not a setter) in a super
-  //   class or in a subclass.
   // - a static field, instance field, or static method (but not an instance
   //   method) having the same name as an instance member in a super class.
 
@@ -1042,18 +1041,36 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
     type = FinalizeType(cls, type, kCanonicalize);
     field.set_type(type);
     name = field.name();
-    super_class = FindSuperOwnerOfInstanceMember(cls, name);
-    if (!super_class.IsNull()) {
-      const String& class_name = String::Handle(cls.Name());
-      const String& super_class_name = String::Handle(super_class.Name());
-      const Script& script = Script::Handle(cls.script());
-      ReportError(script, field.token_pos(),
-                  "field '%s' of class '%s' conflicts with instance "
-                  "member '%s' of super class '%s'",
-                  name.ToCString(),
-                  class_name.ToCString(),
-                  name.ToCString(),
-                  super_class_name.ToCString());
+    if (field.is_static()) {
+      super_class = FindSuperOwnerOfInstanceMember(cls, name);
+      if (!super_class.IsNull()) {
+        const String& class_name = String::Handle(cls.Name());
+        const String& super_class_name = String::Handle(super_class.Name());
+        const Script& script = Script::Handle(cls.script());
+        ReportError(script, field.token_pos(),
+                    "static field '%s' of class '%s' conflicts with "
+                    "instance member '%s' of super class '%s'",
+                    name.ToCString(),
+                    class_name.ToCString(),
+                    name.ToCString(),
+                    super_class_name.ToCString());
+      }
+    } else {
+      // Instance field. Check whether the field overrides a method
+      // (but not getter).
+      super_class = FindSuperOwnerOfFunction(cls, name);
+      if (!super_class.IsNull()) {
+        const String& class_name = String::Handle(cls.Name());
+        const String& super_class_name = String::Handle(super_class.Name());
+        const Script& script = Script::Handle(cls.script());
+        ReportError(script, field.token_pos(),
+                    "field '%s' of class '%s' conflicts with method '%s' "
+                    "of super class '%s'",
+                    name.ToCString(),
+                    class_name.ToCString(),
+                    name.ToCString(),
+                    super_class_name.ToCString());
+      }
     }
   }
   // Collect interfaces, super interfaces, and super classes of this class.
@@ -1131,22 +1148,9 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
                     name.ToCString(),
                     super_class_name.ToCString());
       }
-    } else if (function.IsSetterFunction()) {
-      name = Field::NameFromSetter(function_name);
-      super_class = FindSuperOwnerOfFunction(cls, name);
-      if (!super_class.IsNull()) {
-        const String& class_name = String::Handle(cls.Name());
-        const String& super_class_name = String::Handle(super_class.Name());
-        const Script& script = Script::Handle(cls.script());
-        ReportError(script, function.token_pos(),
-                    "setter '%s' of class '%s' conflicts with "
-                    "function '%s' of super class '%s'",
-                    name.ToCString(),
-                    class_name.ToCString(),
-                    name.ToCString(),
-                    super_class_name.ToCString());
-      }
-    } else {
+    } else if (!function.IsSetterFunction()) {
+      // A function cannot conflict with a setter, since they cannot
+      // have the same name. Thus, we do not need to check setters.
       name = Field::GetterName(function_name);
       super_class = FindSuperOwnerOfFunction(cls, name);
       if (!super_class.IsNull()) {
@@ -1156,20 +1160,6 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
         ReportError(script, function.token_pos(),
                     "function '%s' of class '%s' conflicts with "
                     "getter '%s' of super class '%s'",
-                    function_name.ToCString(),
-                    class_name.ToCString(),
-                    function_name.ToCString(),
-                    super_class_name.ToCString());
-      }
-      name = Field::SetterName(function_name);
-      super_class = FindSuperOwnerOfFunction(cls, name);
-      if (!super_class.IsNull()) {
-        const String& class_name = String::Handle(cls.Name());
-        const String& super_class_name = String::Handle(super_class.Name());
-        const Script& script = Script::Handle(cls.script());
-        ReportError(script, function.token_pos(),
-                    "function '%s' of class '%s' conflicts with "
-                    "setter '%s' of super class '%s'",
                     function_name.ToCString(),
                     class_name.ToCString(),
                     function_name.ToCString(),

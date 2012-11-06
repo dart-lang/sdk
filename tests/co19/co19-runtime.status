@@ -35,16 +35,12 @@ Language/05_Variables/05_Variables_A05_t14: Fail # TODO(vm-team): Please triage 
 Language/05_Variables/05_Variables_A05_t15: Fail # TODO(vm-team): Please triage this failure.
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/2_Getters_A01_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/2_Getters_A01_t05: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/3_Setters_A04_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/3_Setters_A04_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/3_Setters_A04_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/3_Setters_A04_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/3_Setters_A04_t05: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/3_Setters_A04_t06: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/3_Setters_A04_t07: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/3_Setters_A04_t08: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/2_Getters_A01_t03: Fail # Expects compile-time error when getter has empty parameter list.
+Language/07_Classes/2_Getters_A01_t05: Fail # Expects compile-time error when getter has empty parameter list.
+Language/07_Classes/3_Setters_A04_t03: Fail, OK # Syntax error, issue 304
+Language/07_Classes/3_Setters_A04_t06: Fail, OK # Syntax error, issue 304
+Language/07_Classes/3_Setters_A04_t07: Fail, OK # test error, issue 305
+Language/07_Classes/3_Setters_A04_t08: Fail, OK # test error, issue 305
 Language/07_Classes/4_Abstract_Instance_Members_A03_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/4_Abstract_Instance_Members_A03_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/4_Abstract_Instance_Members_A03_t04: Fail # TODO(vm-team): Please triage this failure.
