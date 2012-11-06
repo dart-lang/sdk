@@ -771,6 +771,7 @@ abstract class JumpHandler {
   void forEachContinue(void action(HContinue instruction,
                                    LocalsHandler locals));
   bool hasAnyContinue();
+  bool hasAnyBreak();
   void close();
   final TargetElement target;
   List<LabelElement> labels();
@@ -796,6 +797,7 @@ class NullJumpHandler implements JumpHandler {
   void forEachContinue(Function ignored) { }
   void close() { }
   bool hasAnyContinue() => false;
+  bool hasAnyBreak() => false;
 
   List<LabelElement> labels() => const <LabelElement>[];
   TargetElement get target => null;
@@ -856,6 +858,13 @@ class TargetJumpHandler implements JumpHandler {
   bool hasAnyContinue() {
     for (JumpHandlerEntry entry in jumps) {
       if (entry.isContinue()) return true;
+    }
+    return false;
+  }
+
+  bool hasAnyBreak() {
+    for (JumpHandlerEntry entry in jumps) {
+      if (entry.isBreak()) return true;
     }
     return false;
   }
@@ -1728,14 +1737,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                HBasicBlock branchBlock,
                JumpHandler jumpHandler,
                LocalsHandler savedLocals) {
+    if (branchBlock == null && !jumpHandler.hasAnyBreak()) return;
+
     HBasicBlock loopExitBlock = addNewBlock();
-    assert(branchBlock.successors.length == 1);
+    assert(branchBlock == null || branchBlock.successors.length == 1);
     List<LocalsHandler> breakLocals = <LocalsHandler>[];
     jumpHandler.forEachBreak((HBreak breakInstruction, LocalsHandler locals) {
       breakInstruction.block.addSuccessor(loopExitBlock);
       breakLocals.add(locals);
     });
-    branchBlock.addSuccessor(loopExitBlock);
+    if (branchBlock != null) {
+      branchBlock.addSuccessor(loopExitBlock);
+    }
     open(loopExitBlock);
     localsHandler.endLoop(loopEntry);
     if (!breakLocals.isEmpty) {
@@ -1953,51 +1966,71 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       bodyEntryBlock = openNewBlock();
     }
     localsHandler.enterLoopBody(node);
-    hackAroundPossiblyAbortingBody(node, () { visit(node.body); });
+    visit(node.body);
 
     // If there are no continues we could avoid the creation of the condition
     // block. This could also lead to a block having multiple entries and exits.
-    HBasicBlock bodyExitBlock = close(new HGoto());
-    HBasicBlock conditionBlock = addNewBlock();
-
-    List<LocalsHandler> continueLocals = <LocalsHandler>[];
-    jumpHandler.forEachContinue((HContinue instruction, LocalsHandler locals) {
-      instruction.block.addSuccessor(conditionBlock);
-      continueLocals.add(locals);
-    });
-    bodyExitBlock.addSuccessor(conditionBlock);
-    if (!continueLocals.isEmpty) {
-      continueLocals.add(localsHandler);
-      localsHandler = savedLocals.mergeMultiple(continueLocals, conditionBlock);
-      SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
-      List<LabelElement> labels = jumpHandler.labels();
-      HSubGraphBlockInformation bodyInfo =
-          new HSubGraphBlockInformation(bodyGraph);
-      HLabeledBlockInformation info;
-      if (!labels.isEmpty) {
-        info = new HLabeledBlockInformation(bodyInfo, labels, isContinue: true);
-      } else {
-        info = new HLabeledBlockInformation.implicit(bodyInfo, target,
-                                                     isContinue: true);
-      }
-      bodyEntryBlock.setBlockFlow(info, conditionBlock);
+    HBasicBlock bodyExitBlock;
+    bool isAbortingBody = false;
+    if (current != null) {
+      bodyExitBlock = close(new HGoto());
+    } else {
+      isAbortingBody = true;
+      bodyExitBlock = lastOpenedBlock;
     }
-    open(conditionBlock);
 
-    visit(node.condition);
-    assert(!isAborted());
-    HInstruction conditionInstruction = popBoolified();
-    HBasicBlock conditionEndBlock =
-        close(new HLoopBranch(conditionInstruction, HLoopBranch.DO_WHILE_LOOP));
+    SubExpression conditionExpression;
+    HBasicBlock conditionEndBlock;
+    if (!isAbortingBody || hasContinues) {
+      HBasicBlock conditionBlock = addNewBlock();
 
-    conditionEndBlock.addSuccessor(loopEntryBlock);  // The back-edge.
+      List<LocalsHandler> continueLocals = <LocalsHandler>[];
+      jumpHandler.forEachContinue((HContinue instruction,
+                                   LocalsHandler locals) {
+        instruction.block.addSuccessor(conditionBlock);
+        continueLocals.add(locals);
+      });
+
+      if (!isAbortingBody) {
+        bodyExitBlock.addSuccessor(conditionBlock);
+      }
+
+      if (!continueLocals.isEmpty) {
+        if (!isAbortingBody) continueLocals.add(localsHandler);
+        localsHandler =
+            savedLocals.mergeMultiple(continueLocals, conditionBlock);
+        SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
+        List<LabelElement> labels = jumpHandler.labels();
+        HSubGraphBlockInformation bodyInfo =
+            new HSubGraphBlockInformation(bodyGraph);
+        HLabeledBlockInformation info;
+        if (!labels.isEmpty) {
+          info = new HLabeledBlockInformation(bodyInfo, labels,
+                                              isContinue: true);
+        } else {
+          info = new HLabeledBlockInformation.implicit(bodyInfo, target,
+                                                       isContinue: true);
+        }
+        bodyEntryBlock.setBlockFlow(info, conditionBlock);
+      }
+      open(conditionBlock);
+
+      visit(node.condition);
+      assert(!isAborted());
+      HInstruction conditionInstruction = popBoolified();
+      conditionEndBlock = close(
+          new HLoopBranch(conditionInstruction, HLoopBranch.DO_WHILE_LOOP));
+
+      conditionEndBlock.addSuccessor(loopEntryBlock);  // The back-edge.
+      conditionExpression =
+          new SubExpression(conditionBlock, conditionEndBlock);
+    }
+
     loopEntryBlock.postProcessLoopHeader();
 
     endLoop(loopEntryBlock, conditionEndBlock, jumpHandler, localsHandler);
     jumpHandler.close();
 
-    SubExpression conditionExpression =
-        new SubExpression(conditionBlock, conditionEndBlock);
     SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
 
     HLoopBlockInformation loopBlockInfo =
