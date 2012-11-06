@@ -19,6 +19,7 @@ Language/14_Types/4_Interface_Types_A10_t03: Fail
 Language/13_Libraries_and_Scripts/2_Exports_A04_t02: Crash # TODO(dart2dart-team): Please triage this crash.
 Language/13_Libraries_and_Scripts/2_Exports_A04_t03: Crash # TODO(dart2dart-team): Please triage this crash.
 Language/12_Statements/10_Try_A06_t01: Fail, Pass # Fails in minified, TRIAGE
+Language/11_Expressions/11_Instance_Creation/1_New_A12_t01: Fail, Pass # Fails in minified, TRIAGE
 
 Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/05_Variables/05_Variables_A05_t04: Fail # TODO(dart2dart-team): Please triage this failure.
