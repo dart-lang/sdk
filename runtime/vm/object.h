@@ -150,7 +150,9 @@ class Object {
   virtual ~Object() { }
 
   RawObject* raw() const { return raw_; }
-  void operator=(RawObject* value) { SetRaw(value); }
+  void operator=(RawObject* value) {
+    initializeHandle(this, value);
+  }
 
   void set_tags(intptr_t value) const {
     // TODO(asiva): Remove the capability of setting tags in general. The mask
@@ -212,7 +214,7 @@ class Object {
 
   static Object& Handle(Isolate* isolate, RawObject* raw_ptr) {
     Object* obj = reinterpret_cast<Object*>(VMHandles::AllocateHandle(isolate));
-    obj->SetRaw(raw_ptr);
+    initializeHandle(obj, raw_ptr);
     return *obj;
   }
 
@@ -231,7 +233,7 @@ class Object {
   static Object& ZoneHandle(Isolate* isolate, RawObject* raw_ptr) {
     Object* obj = reinterpret_cast<Object*>(
         VMHandles::AllocateZoneHandle(isolate));
-    obj->SetRaw(raw_ptr);
+    initializeHandle(obj, raw_ptr);
     return *obj;
   }
 
@@ -370,6 +372,17 @@ class Object {
   static void RegisterPrivateClass(const Class& cls,
                                    const String& name,
                                    const Library& lib);
+
+  /* Initialize the handle based on the raw_ptr in the presence of null. */
+  static void initializeHandle(Object* obj, RawObject* raw_ptr) {
+    if (raw_ptr != Object::null()) {
+      obj->SetRaw(raw_ptr);
+    } else {
+      obj->raw_ = Object::null();
+      Object fake_object;
+      obj->set_vtable(fake_object.vtable());
+    }
+  }
 
   cpp_vtable* vtable_address() const {
     uword vtable_addr = reinterpret_cast<uword>(this);
@@ -5776,11 +5789,12 @@ void Object::SetRaw(RawObject* value) {
   if ((reinterpret_cast<uword>(raw_) & kSmiTagMask) == kSmiTag) {
     set_vtable(Smi::handle_vtable_);
     return;
-  } else if (raw_ == null_) {
-    set_vtable(handle_vtable_);
-    return;
   }
-
+  intptr_t cid = raw_->GetClassId();
+  if (cid >= kNumPredefinedCids) {
+      cid = kInstanceCid;
+  }
+  set_vtable(builtin_vtables_[cid]);
 #if defined(DEBUG)
   Isolate* isolate = Isolate::Current();
   if (FLAG_verify_handles) {
@@ -5789,17 +5803,9 @@ void Object::SetRaw(RawObject* value) {
     ASSERT(isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())) ||
            vm_isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())));
   }
+  ASSERT(builtin_vtables_[cid] ==
+         isolate->class_table()->At(cid)->ptr()->handle_vtable_);
 #endif
-  intptr_t cid = raw_->GetClassId();
-  if (cid < kNumPredefinedCids) {
-#if defined(DEBUG)
-    ASSERT(builtin_vtables_[cid] ==
-           isolate->class_table()->At(cid)->ptr()->handle_vtable_);
-#endif
-    set_vtable(builtin_vtables_[cid]);
-  } else {
-    set_vtable(builtin_vtables_[kInstanceCid]);
-  }
 }
 
 
