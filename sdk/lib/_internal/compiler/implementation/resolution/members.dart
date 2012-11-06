@@ -2957,7 +2957,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
   /// type of the constructed instance on [expression].
   FunctionElement finishConstructorReference(Element e,
                                              Node diagnosticNode,
-                                             Expression expression) {
+                                             Node expression) {
     // Find the unnamed constructor if the reference resolved to a
     // class.
     if (!Elements.isUnresolved(e) && e.isClass()) {
@@ -3040,7 +3040,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
 
   /// Assumed to be called by [resolveRedirectingFactory].
   Element visitReturn(Return node) {
-    Expression expression = node.expression;
+    Node expression = node.expression;
     return finishConstructorReference(visit(expression),
                                       expression, expression);
   }
