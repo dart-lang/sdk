@@ -407,6 +407,11 @@ class StandardTestSuite implements TestSuite {
     }
 
     Set<String> expectations = testExpectations.expectations(testName);
+    if (info.hasCompileError &&
+        TestUtils.isBrowserRuntime(configuration['runtime'])) {
+      SummaryReport.addCompileErrorSkipTest();
+      return;
+    }
     if (configuration['report']) {
       // Tests with multiple VMOptions are counted more than once.
       for (var dummy in getVmOptions(optionsFromFile)) {
@@ -1446,6 +1451,7 @@ class SummaryReport {
   static int fail = 0;
   static int crash = 0;
   static int timeout = 0;
+  static int compileErrorSkip = 0;
 
   static void add(Set<String> expectations) {
     ++total;
@@ -1474,6 +1480,11 @@ class SummaryReport {
     }
   }
 
+  static void addCompileErrorSkipTest() {
+    total++;
+    compileErrorSkip++;
+  }
+
   static void printReport() {
     if (total == 0) return;
     String report = """Total: $total tests
@@ -1484,6 +1495,7 @@ class SummaryReport {
  * $fail tests are expected to fail that we should fix
  * $crash tests are expected to crash that we should fix
  * $timeout tests are allowed to timeout
+ * $compileErrorSkip tests are skipped on browsers due to compile-time error
 """;
     print(report);
    }
