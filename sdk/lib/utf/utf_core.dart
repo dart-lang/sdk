@@ -2,20 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(jmesserly): would be nice to have this on String (dartbug.com/6501).
 /**
  * Provide a list of Unicode codepoints for a given string.
  */
 List<int> stringToCodepoints(String str) {
-  List<int> codepoints;
-  // TODO _is16BitCodeUnit() is used to work around a bug with dart2js
-  // (http://code.google.com/p/dart/issues/detail?id=1357). Consider
-  // removing after this issue is resolved.
-  if (_is16BitCodeUnit()) {
-    codepoints = _utf16CodeUnitsToCodepoints(str.charCodes);
-  } else {
-    codepoints = str.charCodes;
-  }
-  return codepoints;
+  // Note: str.charCodes gives us 16-bit code units on all Dart implementations.
+  // So we need to convert. The same is not true of "new String.fromCharCodes",
+  // which accepts code points on the VM but not dart2js (dartbug.com/1357).
+  return _utf16CodeUnitsToCodepoints(str.charCodes);
 }
 
 /**
