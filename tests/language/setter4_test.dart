@@ -13,11 +13,5 @@ class A {
   }
 }
 
-class Field7NegativeTest {
-  static testMain() {
-  }
-}
-
 main() {
-  Field7NegativeTest.testMain();
 }

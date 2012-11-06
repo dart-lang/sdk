@@ -132,7 +132,7 @@ constructor_call_wrong_argument_count_negative_test: Fail # Runtime only test, r
 disable_privacy_test: Fail # Issue 1882: Needs --disable_privacy support.
 factory5_test/00: Fail # issue 3079
 field_method4_negative_test: Fail  # Runtime only test, rewrite as multitest
-field7_negative_test: Fail, OK # language changed, test issue 5249
+
 first_class_types_literals_test: Fail # issue 6283
 getter_no_setter_test/01: Fail # Fails to detect compile-time error.
 getter_no_setter2_test/01: Fail # Fails to detect compile-time error.
@@ -467,7 +467,6 @@ map_literal3_test: Fail # Map literals take 2 type arguments.
 class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 field1_negative_test: Fail, OK # Bad test: assumes eager loading.
 field6_negative_test: Fail, OK # Bad test: assumes eager loading.
-field7_negative_test: Fail, OK # Bad test: assumes eager loading.
 interface_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 # Common problems with dart2js.  In illegal family, invalid
 # declarations are simply not parsed.  In pseudo kw dart2js

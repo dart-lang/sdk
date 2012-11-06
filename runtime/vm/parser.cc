@@ -582,9 +582,11 @@ class ClassDesc : public ValueObject {
         fields_(GrowableObjectArray::Handle(GrowableObjectArray::New())) {
   }
 
+  // Parameter 'name' is the unmangled name, i.e. without the setter
+  // name mangling.
   bool FunctionNameExists(const String& name, RawFunction::Kind kind) const {
     // First check if a function or field of same name exists.
-    if (FunctionExists(name)) {
+    if ((kind != RawFunction::kSetterFunction) && FunctionExists(name)) {
       return true;
     }
     // Now check whether there is a field and whether its implicit getter

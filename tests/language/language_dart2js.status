@@ -226,7 +226,6 @@ class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 external_test/16: Fail, OK # Bad test: assumes eager loading.
 field1_negative_test: Fail, OK # Bad test: assumes eager loading.
 field6_negative_test: Fail, OK # Bad test: assumes eager loading.
-field7_negative_test: Fail, OK # Bad test: assumes eager loading.
 interface_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 syntax_test/47: Fail, OK # Bad test: assumes eager loading.
 
