@@ -56,8 +56,8 @@ void handler(Uri uri, int begin, int end, String message, Diagnostic kind) {
 
 main() {
   String code = compile(new Uri.fromComponents(scheme: 'main'),
-                        new Uri.fromComponents(scheme: 'lib'),
-                        new Uri.fromComponents(scheme: 'package'),
+                        new Uri.fromComponents(scheme: 'lib', path: '/'),
+                        new Uri.fromComponents(scheme: 'package', path: '/'),
                         provider, handler).value;
   if (code === null) {
     throw 'Compilation failed';

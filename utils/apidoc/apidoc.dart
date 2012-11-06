@@ -64,7 +64,7 @@ void main() {
     }
   }
 
-  final libPath = doc.scriptDir.append('../../sdk/lib');
+  final libPath = doc.scriptDir.append('../../sdk/');
   final pkgPath = doc.scriptDir.append('../../pkg/');
 
   doc.cleanOutputDirectory(outputDir);

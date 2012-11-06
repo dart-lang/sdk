@@ -104,8 +104,8 @@ testDart2DartWithLibrary(
 
   compile(
       scriptUri,
-      fileUri('libraryRoot'),
-      fileUri('packageRoot'),
+      fileUri('libraryRoot/'),
+      fileUri('packageRoot/'),
       provider,
       handler,
       options).then(continuation);

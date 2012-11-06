@@ -36,7 +36,7 @@ DeclarationMirror findMirror(List<DeclarationMirror> list, String name) {
 main() {
   var scriptPath = new Path.fromNative(new Options().script);
   var dirPath = scriptPath.directoryPath;
-  var libPath = dirPath.join(new Path.fromNative('../../../sdk/lib'));
+  var libPath = dirPath.join(new Path.fromNative('../../../sdk/'));
   var inputPath = dirPath.join(new Path.fromNative('mirrors_helper.dart'));
   var compilation = new Compilation.library([inputPath], libPath);
   Expect.isNotNull(compilation, "No compilation created");

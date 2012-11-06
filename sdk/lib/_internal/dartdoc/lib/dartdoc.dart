@@ -127,7 +127,7 @@ Future copyDirectory(Path from, Path to) {
 Future<bool> compileScript(int mode, Path outputDir, Path libPath) {
   var clientScript = (mode == MODE_STATIC) ? 'static' : 'live-nav';
   var dartPath = libPath.append(
-      '_internal/dartdoc/lib/src/client/client-$clientScript.dart');
+      'lib/_internal/dartdoc/lib/src/client/client-$clientScript.dart');
   var jsPath = outputDir.append('client-$clientScript.js');
 
   var completer = new Completer<bool>();
