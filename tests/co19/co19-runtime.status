@@ -28,6 +28,7 @@ Language/13_Libraries_and_Scripts/1_Imports_A02_t22: Crash # TODO(vm-team): Plea
 
 Language/11_Expressions/30_Identifier_Reference_A05_t04: Fail, OK # co19 issue 302
 
+
 Language/05_Variables/05_Variables_A05_t04: Fail # TODO(vm-team): Please triage this failure.
 Language/05_Variables/05_Variables_A05_t11: Fail # TODO(vm-team): Please triage this failure.
 Language/05_Variables/05_Variables_A05_t13: Fail # TODO(vm-team): Please triage this failure.
@@ -35,6 +36,8 @@ Language/05_Variables/05_Variables_A05_t14: Fail # TODO(vm-team): Please triage 
 Language/05_Variables/05_Variables_A05_t15: Fail # TODO(vm-team): Please triage this failure.
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/07_Classes_A07_t03: Fail, OK # co19 issue 306
+Language/07_Classes/07_Classes_A07_t06: Fail, OK # co19 issue 306
 Language/07_Classes/2_Getters_A01_t03: Fail # Expects compile-time error when getter has empty parameter list.
 Language/07_Classes/2_Getters_A01_t05: Fail # Expects compile-time error when getter has empty parameter list.
 Language/07_Classes/3_Setters_A04_t03: Fail, OK # Syntax error, issue 304
