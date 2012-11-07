@@ -1413,8 +1413,12 @@ class _HttpConnection extends _HttpConnectionBase {
     // If currently not processing any request close the socket when
     // we are done writing the response.
     if (_httpParser.isIdle) {
+      // If the httpParser is idle and we get an error from the
+      // connection we deal with that as a closed connection and not
+      // as an error. When the client disappears we get a connection
+      // reset by peer and that is OK.
       if (e != null) {
-        onError(e);
+        onClosed();
       } else {
         _socket.outputStream.onClosed = () {
           _destroy();
