@@ -4,10 +4,12 @@
 
 library utils;
 
+import 'dart:crypto';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:scalarlist';
 import 'dart:uri';
+import 'dart:utf';
 
 /// Converts a URL query string (or `application/x-www-form-urlencoded` body)
 /// into a [Map] from parameter names to values.
@@ -68,18 +70,19 @@ List<String> split1(String toSplit, String pattern) {
   ];
 }
 
-/// Returns the [Encoding] that corresponds to [charset]. Returns
-/// [Encoding.ISO_8859_1] if [charset] is null or if no [Encoding] was found
-/// that corresponds to [charset].
-Encoding encodingForCharset(String charset) {
-  if (charset == null) return Encoding.ISO_8859_1;
+/// Returns the [Encoding] that corresponds to [charset]. Returns [fallback] if
+/// [charset] is null or if no [Encoding] was found that corresponds to
+/// [charset].
+Encoding encodingForCharset(
+    String charset, [Encoding fallback = Encoding.ISO_8859_1]) {
+  if (charset == null) return fallback;
   var encoding = _encodingForCharset(charset);
-  return encoding == null ? Encoding.ISO_8859_1 : encoding;
+  return encoding == null ? fallback : encoding;
 }
 
-/// Returns the [Encoding] that corresponds to [charset]. Throws a [FormatException]
-/// if no [Encoding] was found that corresponds to [charset]. [charset] may not
-/// be null.
+/// Returns the [Encoding] that corresponds to [charset]. Throws a
+/// [FormatException] if no [Encoding] was found that corresponds to [charset].
+/// [charset] may not be null.
 Encoding requiredEncodingForCharset(String charset) {
   var encoding = _encodingForCharset(charset);
   if (encoding != null) return encoding;
@@ -109,6 +112,14 @@ List<int> encodeString(String string, Encoding encoding) {
   return string.charCodes;
 }
 
+/// A regular expression that matches strings that are composed entirely of
+/// ASCII-compatible characters.
+final RegExp _ASCII_ONLY = const RegExp(r"^[\x00-\x7F]+$");
+
+/// Returns whether [string] is composed entirely of ASCII-compatible
+/// characters.
+bool isPlainAscii(String string) => _ASCII_ONLY.hasMatch(string);
+
 /// Converts [input] into a [Uint8List]. If [input] is a [ByteArray] or
 /// [ByteArrayViewable], this just returns a view on [input].
 Uint8List toUint8List(List<int> input) {
@@ -131,11 +142,22 @@ Future<List<int>> consumeInputStream(InputStream stream) {
   return completer.future;
 }
 
-/// Takes all input from [source] and writes it to [sink].
+/// Takes all input from [source] and writes it to [sink], then closes [sink].
 void pipeInputToInput(InputStream source, ListInputStream sink) {
   source.onClosed = () => sink.markEndOfStream();
   source.onData = () => sink.write(source.read());
   // TODO(nweiz): propagate source errors to the sink. See issue 3657.
+}
+
+/// Takes all input from [source] and writes it to [sink], but does not close
+/// [sink] when [source] is closed. Returns a [Future] that completes when
+/// [source] is closed.
+Future writeInputToInput(InputStream source, ListInputStream sink) {
+  var completer = new Completer();
+  source.onClosed = () => completer.complete(null);
+  source.onData = () => sink.write(source.read());
+  // TODO(nweiz): propagate source errors to the sink. See issue 3657.
+  return completer.future;
 }
 
 /// Returns a [Future] that asynchronously completes to `null`.
@@ -143,4 +165,21 @@ Future get async {
   var completer = new Completer();
   new Timer(0, (_) => completer.complete(null));
   return completer.future;
+}
+
+// TOOD(nweiz): Get rid of this once https://codereview.chromium.org/11293132/
+// is in.
+/// Runs [fn] for each element in [input] in order, moving to the next element
+/// only when the [Future] returned by [fn] completes. Returns a [Future] that
+/// completes when all elements have been processed.
+///
+/// The return values of all [Future]s are discarded. Any errors will cause the
+/// iteration to stop and will be piped through the return value.
+Future forEachFuture(Iterable input, Future fn(element)) {
+  var iterator = input.iterator();
+  Future nextElement(_) {
+    if (!iterator.hasNext) return new Future.immediate(null);
+    return fn(iterator.next()).chain(nextElement);
+  }
+  return nextElement(null);
 }
