@@ -55,7 +55,8 @@ unittest/test/mock_stepwise_negative_test: Fail
 logging/test/logging_test: Fail, OK
 args/test/args_test: Fail, OK
 
-
+[ $system == windows ]
+pkg/http/test/request_test: Pass, Timeout # Issue 6594
 
 [ $compiler == dart2js || $compiler == dartc ]
 unittest/test/instance_test: Skip
