@@ -19,7 +19,7 @@ bool _isGitInstalledCache;
 String _gitCommandCache;
 
 /** Gets the current working directory. */
-String get currentWorkingDir => new File('.').fullPathSync();
+String get workingDir => new File('.').fullPathSync();
 
 const Pattern NEWLINE_PATTERN = const RegExp("\r\n?|\n\r?");
 
