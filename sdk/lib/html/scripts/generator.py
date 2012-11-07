@@ -703,7 +703,7 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
     else:
       implementation_name = self.interface_name()
     if self.merged_into():
-      implementation_name = '%s_Merged' % implementation_name
+      implementation_name = '_%s_Merged' % implementation_name
 
     if not self.has_generated_interface():
       implementation_name = '_%s' % implementation_name

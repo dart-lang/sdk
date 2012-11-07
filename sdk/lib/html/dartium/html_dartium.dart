@@ -160,7 +160,7 @@ class AnalyserNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLAnchorElement
-class AnchorElement extends Element_Merged {
+class AnchorElement extends _Element_Merged {
 
   factory AnchorElement({String href}) {
     if (!?href) {
@@ -428,7 +428,7 @@ class AnimationEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLAppletElement
-class AppletElement extends Element_Merged {
+class AppletElement extends _Element_Merged {
   AppletElement.internal(): super.internal();
 
 
@@ -527,7 +527,7 @@ class AppletElement extends Element_Merged {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLAreaElement
-class AreaElement extends Element_Merged {
+class AreaElement extends _Element_Merged {
 
   factory AreaElement() => _Elements.createAreaElement();
   AreaElement.internal(): super.internal();
@@ -1253,7 +1253,7 @@ class AudioSourceNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLBRElement
-class BRElement extends Element_Merged {
+class BRElement extends _Element_Merged {
 
   factory BRElement() => _Elements.createBRElement();
   BRElement.internal(): super.internal();
@@ -1289,7 +1289,7 @@ class BarInfo extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLBaseElement
-class BaseElement extends Element_Merged {
+class BaseElement extends _Element_Merged {
 
   factory BaseElement() => _Elements.createBaseElement();
   BaseElement.internal(): super.internal();
@@ -1318,7 +1318,7 @@ class BaseElement extends Element_Merged {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLBaseFontElement
-class BaseFontElement extends Element_Merged {
+class BaseFontElement extends _Element_Merged {
   BaseFontElement.internal(): super.internal();
 
 
@@ -1534,7 +1534,7 @@ class Blob extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLBodyElement
-class BodyElement extends Element_Merged {
+class BodyElement extends _Element_Merged {
 
   factory BodyElement() => _Elements.createBodyElement();
   BodyElement.internal(): super.internal();
@@ -1623,7 +1623,7 @@ class BodyElementEvents extends ElementEvents {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLButtonElement
-class ButtonElement extends Element_Merged {
+class ButtonElement extends _Element_Merged {
 
   factory ButtonElement() => _Elements.createButtonElement();
   ButtonElement.internal(): super.internal();
@@ -5320,7 +5320,7 @@ class CSSValue extends NativeFieldWrapperClass1 {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class CanvasElement extends Element_Merged {
+class CanvasElement extends _Element_Merged {
 
   factory CanvasElement({int width, int height}) {
     if (!?width) {
@@ -6399,7 +6399,7 @@ class Console extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLContentElement
-class ContentElement extends Element_Merged {
+class ContentElement extends _Element_Merged {
 
   factory ContentElement() => _Elements.createContentElement();
   ContentElement.internal(): super.internal();
@@ -6557,7 +6557,7 @@ class CustomEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLDListElement
-class DListElement extends Element_Merged {
+class DListElement extends _Element_Merged {
 
   factory DListElement() => _Elements.createDListElement();
   DListElement.internal(): super.internal();
@@ -7298,7 +7298,7 @@ class DOMTokenList extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLDataListElement
-class DataListElement extends Element_Merged {
+class DataListElement extends _Element_Merged {
 
   factory DataListElement() => _Elements.createDataListElement();
   DataListElement.internal(): super.internal();
@@ -7720,7 +7720,7 @@ class DelayNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLDetailsElement
-class DetailsElement extends Element_Merged {
+class DetailsElement extends _Element_Merged {
 
   factory DetailsElement() => _Elements.createDetailsElement();
   DetailsElement.internal(): super.internal();
@@ -7787,7 +7787,7 @@ class DeviceOrientationEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLDirectoryElement
-class DirectoryElement extends Element_Merged {
+class DirectoryElement extends _Element_Merged {
   DirectoryElement.internal(): super.internal();
 
 
@@ -7890,7 +7890,7 @@ class DirectoryReaderSync extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLDivElement
-class DivElement extends Element_Merged {
+class DivElement extends _Element_Merged {
 
   factory DivElement() => _Elements.createDivElement();
   DivElement.internal(): super.internal();
@@ -8699,21 +8699,6 @@ class DocumentType extends Node {
 
   /** @domName DocumentType.remove */
   void remove() native "DocumentType_remove_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-/// @domName HTMLDocument
-class Document_Merged extends Document {
-  Document_Merged.internal(): super.internal();
-
-
-  /** @domName HTMLDocument.activeElement */
-  Element get activeElement native "HTMLDocument_activeElement_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10072,143 +10057,8 @@ class ElementTraversal extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName HTMLElement
-class Element_Merged extends Element {
-  Element_Merged.internal(): super.internal();
-
-
-  /** @domName HTMLElement.children */
-  HTMLCollection get $dom_children native "HTMLElement_children_Getter";
-
-
-  /** @domName HTMLElement.contentEditable */
-  String get contentEditable native "HTMLElement_contentEditable_Getter";
-
-
-  /** @domName HTMLElement.contentEditable */
-  void set contentEditable(String value) native "HTMLElement_contentEditable_Setter";
-
-
-  /** @domName HTMLElement.dir */
-  String get dir native "HTMLElement_dir_Getter";
-
-
-  /** @domName HTMLElement.dir */
-  void set dir(String value) native "HTMLElement_dir_Setter";
-
-
-  /** @domName HTMLElement.draggable */
-  bool get draggable native "HTMLElement_draggable_Getter";
-
-
-  /** @domName HTMLElement.draggable */
-  void set draggable(bool value) native "HTMLElement_draggable_Setter";
-
-
-  /** @domName HTMLElement.hidden */
-  bool get hidden native "HTMLElement_hidden_Getter";
-
-
-  /** @domName HTMLElement.hidden */
-  void set hidden(bool value) native "HTMLElement_hidden_Setter";
-
-
-  /** @domName HTMLElement.id */
-  String get id native "HTMLElement_id_Getter";
-
-
-  /** @domName HTMLElement.id */
-  void set id(String value) native "HTMLElement_id_Setter";
-
-
-  /** @domName HTMLElement.innerHTML */
-  String get innerHTML native "HTMLElement_innerHTML_Getter";
-
-
-  /** @domName HTMLElement.innerHTML */
-  void set innerHTML(String value) native "HTMLElement_innerHTML_Setter";
-
-
-  /** @domName HTMLElement.isContentEditable */
-  bool get isContentEditable native "HTMLElement_isContentEditable_Getter";
-
-
-  /** @domName HTMLElement.lang */
-  String get lang native "HTMLElement_lang_Getter";
-
-
-  /** @domName HTMLElement.lang */
-  void set lang(String value) native "HTMLElement_lang_Setter";
-
-
-  /** @domName HTMLElement.outerHTML */
-  String get outerHTML native "HTMLElement_outerHTML_Getter";
-
-
-  /** @domName HTMLElement.spellcheck */
-  bool get spellcheck native "HTMLElement_spellcheck_Getter";
-
-
-  /** @domName HTMLElement.spellcheck */
-  void set spellcheck(bool value) native "HTMLElement_spellcheck_Setter";
-
-
-  /** @domName HTMLElement.tabIndex */
-  int get tabIndex native "HTMLElement_tabIndex_Getter";
-
-
-  /** @domName HTMLElement.tabIndex */
-  void set tabIndex(int value) native "HTMLElement_tabIndex_Setter";
-
-
-  /** @domName HTMLElement.title */
-  String get title native "HTMLElement_title_Getter";
-
-
-  /** @domName HTMLElement.title */
-  void set title(String value) native "HTMLElement_title_Setter";
-
-
-  /** @domName HTMLElement.translate */
-  bool get translate native "HTMLElement_translate_Getter";
-
-
-  /** @domName HTMLElement.translate */
-  void set translate(bool value) native "HTMLElement_translate_Setter";
-
-
-  /** @domName HTMLElement.webkitdropzone */
-  String get webkitdropzone native "HTMLElement_webkitdropzone_Getter";
-
-
-  /** @domName HTMLElement.webkitdropzone */
-  void set webkitdropzone(String value) native "HTMLElement_webkitdropzone_Setter";
-
-
-  /** @domName HTMLElement.click */
-  void click() native "HTMLElement_click_Callback";
-
-
-  /** @domName HTMLElement.insertAdjacentElement */
-  Element insertAdjacentElement(String where, Element element) native "HTMLElement_insertAdjacentElement_Callback";
-
-
-  /** @domName HTMLElement.insertAdjacentHTML */
-  void insertAdjacentHTML(String where, String html) native "HTMLElement_insertAdjacentHTML_Callback";
-
-
-  /** @domName HTMLElement.insertAdjacentText */
-  void insertAdjacentText(String where, String text) native "HTMLElement_insertAdjacentText_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 /// @domName HTMLEmbedElement
-class EmbedElement extends Element_Merged {
+class EmbedElement extends _Element_Merged {
 
   factory EmbedElement() => _Elements.createEmbedElement();
   EmbedElement.internal(): super.internal();
@@ -10754,7 +10604,7 @@ class EventTarget extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLFieldSetElement
-class FieldSetElement extends Element_Merged {
+class FieldSetElement extends _Element_Merged {
 
   factory FieldSetElement() => _Elements.createFieldSetElement();
   FieldSetElement.internal(): super.internal();
@@ -11501,7 +11351,7 @@ class Float64Array extends ArrayBufferView implements List<num> {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLFontElement
-class FontElement extends Element_Merged {
+class FontElement extends _Element_Merged {
   FontElement.internal(): super.internal();
 
 
@@ -11558,7 +11408,7 @@ class FormData extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLFormElement
-class FormElement extends Element_Merged {
+class FormElement extends _Element_Merged {
 
   factory FormElement() => _Elements.createFormElement();
   FormElement.internal(): super.internal();
@@ -11659,7 +11509,7 @@ class FormElement extends Element_Merged {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLFrameElement
-class FrameElement extends Element_Merged {
+class FrameElement extends _Element_Merged {
   FrameElement.internal(): super.internal();
 
 
@@ -11754,7 +11604,7 @@ class FrameElement extends Element_Merged {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLFrameSetElement
-class FrameSetElement extends Element_Merged {
+class FrameSetElement extends _Element_Merged {
   FrameSetElement.internal(): super.internal();
 
   /**
@@ -11905,7 +11755,7 @@ class Geoposition extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLHRElement
-class HRElement extends Element_Merged {
+class HRElement extends _Element_Merged {
 
   factory HRElement() => _Elements.createHRElement();
   HRElement.internal(): super.internal();
@@ -12224,7 +12074,7 @@ class HashChangeEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLHeadElement
-class HeadElement extends Element_Merged {
+class HeadElement extends _Element_Merged {
 
   factory HeadElement() => _Elements.createHeadElement();
   HeadElement.internal(): super.internal();
@@ -12245,7 +12095,7 @@ class HeadElement extends Element_Merged {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLHeadingElement
-class HeadingElement extends Element_Merged {
+class HeadingElement extends _Element_Merged {
 
   factory HeadingElement.h1() => _Elements.createHeadingElement_h1();
 
@@ -12276,7 +12126,7 @@ class HeadingElement extends Element_Merged {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLHtmlElement
-class HtmlElement extends Element_Merged {
+class HtmlElement extends _Element_Merged {
 
   factory HtmlElement() => _Elements.createHtmlElement();
   HtmlElement.internal(): super.internal();
@@ -13468,7 +13318,7 @@ class IDBVersionChangeRequestEvents extends IDBRequestEvents {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLIFrameElement
-class IFrameElement extends Element_Merged {
+class IFrameElement extends _Element_Merged {
 
   factory IFrameElement() => _Elements.createIFrameElement();
   IFrameElement.internal(): super.internal();
@@ -13633,7 +13483,7 @@ class ImageData extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLImageElement
-class ImageElement extends Element_Merged {
+class ImageElement extends _Element_Merged {
 
   factory ImageElement({String src, int width, int height}) {
     if (!?src) {
@@ -13789,7 +13639,7 @@ class ImageElement extends Element_Merged {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLInputElement
-class InputElement extends Element_Merged {
+class InputElement extends _Element_Merged {
 
   factory InputElement({String type}) {
     if (!?type) {
@@ -14757,7 +14607,7 @@ class KeyboardEvent extends UIEvent {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLKeygenElement
-class KeygenElement extends Element_Merged {
+class KeygenElement extends _Element_Merged {
 
   factory KeygenElement() => _Elements.createKeygenElement();
   KeygenElement.internal(): super.internal();
@@ -14842,7 +14692,7 @@ class KeygenElement extends Element_Merged {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLLIElement
-class LIElement extends Element_Merged {
+class LIElement extends _Element_Merged {
 
   factory LIElement() => _Elements.createLIElement();
   LIElement.internal(): super.internal();
@@ -14871,7 +14721,7 @@ class LIElement extends Element_Merged {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLLabelElement
-class LabelElement extends Element_Merged {
+class LabelElement extends _Element_Merged {
 
   factory LabelElement() => _Elements.createLabelElement();
   LabelElement.internal(): super.internal();
@@ -14900,7 +14750,7 @@ class LabelElement extends Element_Merged {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLLegendElement
-class LegendElement extends Element_Merged {
+class LegendElement extends _Element_Merged {
 
   factory LegendElement() => _Elements.createLegendElement();
   LegendElement.internal(): super.internal();
@@ -14925,7 +14775,7 @@ class LegendElement extends Element_Merged {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLLinkElement
-class LinkElement extends Element_Merged {
+class LinkElement extends _Element_Merged {
 
   factory LinkElement() => _Elements.createLinkElement();
   LinkElement.internal(): super.internal();
@@ -15760,7 +15610,7 @@ class LocalWindowEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLMapElement
-class MapElement extends Element_Merged {
+class MapElement extends _Element_Merged {
 
   factory MapElement() => _Elements.createMapElement();
   MapElement.internal(): super.internal();
@@ -15785,7 +15635,7 @@ class MapElement extends Element_Merged {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLMarqueeElement
-class MarqueeElement extends Element_Merged {
+class MarqueeElement extends _Element_Merged {
   MarqueeElement.internal(): super.internal();
 
 
@@ -15985,7 +15835,7 @@ class MediaController extends EventTarget {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLMediaElement
-class MediaElement extends Element_Merged {
+class MediaElement extends _Element_Merged {
   MediaElement.internal(): super.internal();
 
   /**
@@ -16819,7 +16669,7 @@ class MemoryInfo extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLMenuElement
-class MenuElement extends Element_Merged {
+class MenuElement extends _Element_Merged {
 
   factory MenuElement() => _Elements.createMenuElement();
   MenuElement.internal(): super.internal();
@@ -16947,7 +16797,7 @@ class MessagePortEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLMetaElement
-class MetaElement extends Element_Merged {
+class MetaElement extends _Element_Merged {
   MetaElement.internal(): super.internal();
 
 
@@ -17017,7 +16867,7 @@ typedef void MetadataCallback(Metadata metadata);
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLMeterElement
-class MeterElement extends Element_Merged {
+class MeterElement extends _Element_Merged {
 
   factory MeterElement() => _Elements.createMeterElement();
   MeterElement.internal(): super.internal();
@@ -17082,7 +16932,7 @@ class MeterElement extends Element_Merged {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLModElement
-class ModElement extends Element_Merged {
+class ModElement extends _Element_Merged {
   ModElement.internal(): super.internal();
 
 
@@ -18404,7 +18254,7 @@ class OESVertexArrayObject extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLOListElement
-class OListElement extends Element_Merged {
+class OListElement extends _Element_Merged {
 
   factory OListElement() => _Elements.createOListElement();
   OListElement.internal(): super.internal();
@@ -18449,7 +18299,7 @@ class OListElement extends Element_Merged {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLObjectElement
-class ObjectElement extends Element_Merged {
+class ObjectElement extends _Element_Merged {
 
   factory ObjectElement() => _Elements.createObjectElement();
   ObjectElement.internal(): super.internal();
@@ -18629,7 +18479,7 @@ class OfflineAudioCompletionEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLOptGroupElement
-class OptGroupElement extends Element_Merged {
+class OptGroupElement extends _Element_Merged {
 
   factory OptGroupElement() => _Elements.createOptGroupElement();
   OptGroupElement.internal(): super.internal();
@@ -18658,7 +18508,7 @@ class OptGroupElement extends Element_Merged {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLOptionElement
-class OptionElement extends Element_Merged {
+class OptionElement extends _Element_Merged {
 
   factory OptionElement([String data, String value, bool defaultSelected, bool selected]) {
     if (!?data) {
@@ -18794,7 +18644,7 @@ class OscillatorNode extends AudioSourceNode {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLOutputElement
-class OutputElement extends Element_Merged {
+class OutputElement extends _Element_Merged {
 
   factory OutputElement() => _Elements.createOutputElement();
   OutputElement.internal(): super.internal();
@@ -19041,7 +18891,7 @@ class PannerNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLParagraphElement
-class ParagraphElement extends Element_Merged {
+class ParagraphElement extends _Element_Merged {
 
   factory ParagraphElement() => _Elements.createParagraphElement();
   ParagraphElement.internal(): super.internal();
@@ -19062,7 +18912,7 @@ class ParagraphElement extends Element_Merged {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLParamElement
-class ParamElement extends Element_Merged {
+class ParamElement extends _Element_Merged {
 
   factory ParamElement() => _Elements.createParamElement();
   ParamElement.internal(): super.internal();
@@ -19472,7 +19322,7 @@ typedef void PositionErrorCallback(PositionError error);
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLPreElement
-class PreElement extends Element_Merged {
+class PreElement extends _Element_Merged {
 
   factory PreElement() => _Elements.createPreElement();
   PreElement.internal(): super.internal();
@@ -19528,7 +19378,7 @@ class ProcessingInstruction extends Node {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLProgressElement
-class ProgressElement extends Element_Merged {
+class ProgressElement extends _Element_Merged {
 
   factory ProgressElement() => _Elements.createProgressElement();
   ProgressElement.internal(): super.internal();
@@ -19588,7 +19438,7 @@ class ProgressEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLQuoteElement
-class QuoteElement extends Element_Merged {
+class QuoteElement extends _Element_Merged {
   QuoteElement.internal(): super.internal();
 
 
@@ -28207,7 +28057,7 @@ class Screen extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLScriptElement
-class ScriptElement extends Element_Merged {
+class ScriptElement extends _Element_Merged {
 
   factory ScriptElement() => _Elements.createScriptElement();
   ScriptElement.internal(): super.internal();
@@ -28381,7 +28231,7 @@ class ScriptProfileNode extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLSelectElement
-class SelectElement extends Element_Merged {
+class SelectElement extends _Element_Merged {
 
   factory SelectElement() => _Elements.createSelectElement();
   SelectElement.internal(): super.internal();
@@ -28535,7 +28385,7 @@ class SessionDescription extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLShadowElement
-class ShadowElement extends Element_Merged {
+class ShadowElement extends _Element_Merged {
   ShadowElement.internal(): super.internal();
 
 
@@ -28809,7 +28659,7 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLSourceElement
-class SourceElement extends Element_Merged {
+class SourceElement extends _Element_Merged {
 
   factory SourceElement() => _Elements.createSourceElement();
   SourceElement.internal(): super.internal();
@@ -28846,7 +28696,7 @@ class SourceElement extends Element_Merged {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLSpanElement
-class SpanElement extends Element_Merged {
+class SpanElement extends _Element_Merged {
 
   factory SpanElement() => _Elements.createSpanElement();
   SpanElement.internal(): super.internal();
@@ -29442,7 +29292,7 @@ typedef void StringCallback(String data);
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLStyleElement
-class StyleElement extends Element_Merged {
+class StyleElement extends _Element_Merged {
 
   factory StyleElement() => _Elements.createStyleElement();
   StyleElement.internal(): super.internal();
@@ -29553,7 +29403,7 @@ class StyleSheet extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTableCaptionElement
-class TableCaptionElement extends Element_Merged {
+class TableCaptionElement extends _Element_Merged {
 
   factory TableCaptionElement() => _Elements.createTableCaptionElement();
   TableCaptionElement.internal(): super.internal();
@@ -29574,7 +29424,7 @@ class TableCaptionElement extends Element_Merged {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTableCellElement
-class TableCellElement extends Element_Merged {
+class TableCellElement extends _Element_Merged {
 
   factory TableCellElement() => _Elements.createTableCellElement();
   TableCellElement.internal(): super.internal();
@@ -29703,7 +29553,7 @@ class TableCellElement extends Element_Merged {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTableColElement
-class TableColElement extends Element_Merged {
+class TableColElement extends _Element_Merged {
 
   factory TableColElement() => _Elements.createTableColElement();
   TableColElement.internal(): super.internal();
@@ -29764,7 +29614,7 @@ class TableColElement extends Element_Merged {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTableElement
-class TableElement extends Element_Merged {
+class TableElement extends _Element_Merged {
 
   factory TableElement() => _Elements.createTableElement();
   TableElement.internal(): super.internal();
@@ -29917,7 +29767,7 @@ class TableElement extends Element_Merged {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTableRowElement
-class TableRowElement extends Element_Merged {
+class TableRowElement extends _Element_Merged {
 
   factory TableRowElement() => _Elements.createTableRowElement();
   TableRowElement.internal(): super.internal();
@@ -29990,7 +29840,7 @@ class TableRowElement extends Element_Merged {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTableSectionElement
-class TableSectionElement extends Element_Merged {
+class TableSectionElement extends _Element_Merged {
   TableSectionElement.internal(): super.internal();
 
 
@@ -30068,7 +29918,7 @@ class Text extends CharacterData {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTextAreaElement
-class TextAreaElement extends Element_Merged {
+class TextAreaElement extends _Element_Merged {
 
   factory TextAreaElement() => _Elements.createTextAreaElement();
   TextAreaElement.internal(): super.internal();
@@ -30788,7 +30638,7 @@ typedef void TimeoutHandler();
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTitleElement
-class TitleElement extends Element_Merged {
+class TitleElement extends _Element_Merged {
 
   factory TitleElement() => _Elements.createTitleElement();
   TitleElement.internal(): super.internal();
@@ -31005,7 +30855,7 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLTrackElement
-class TrackElement extends Element_Merged {
+class TrackElement extends _Element_Merged {
 
   factory TrackElement() => _Elements.createTrackElement();
   TrackElement.internal(): super.internal();
@@ -31222,7 +31072,7 @@ class UIEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLUListElement
-class UListElement extends Element_Merged {
+class UListElement extends _Element_Merged {
 
   factory UListElement() => _Elements.createUListElement();
   UListElement.internal(): super.internal();
@@ -31692,7 +31542,7 @@ class Uint8ClampedArray extends Uint8Array {
 // WARNING: Do not edit - generated code.
 
 /// @domName HTMLUnknownElement
-class UnknownElement extends Element_Merged {
+class UnknownElement extends _Element_Merged {
   UnknownElement.internal(): super.internal();
 
 }
@@ -34581,6 +34431,156 @@ class _DOMStringList extends NativeFieldWrapperClass1 implements List<String> {
 
 class _DataViewFactoryProvider {
   static DataView createDataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) native "DataView_constructor_Callback";
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName HTMLDocument
+class _Document_Merged extends Document {
+  _Document_Merged.internal(): super.internal();
+
+
+  /** @domName HTMLDocument.activeElement */
+  Element get activeElement native "HTMLDocument_activeElement_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName HTMLElement
+class _Element_Merged extends Element {
+  _Element_Merged.internal(): super.internal();
+
+
+  /** @domName HTMLElement.children */
+  HTMLCollection get $dom_children native "HTMLElement_children_Getter";
+
+
+  /** @domName HTMLElement.contentEditable */
+  String get contentEditable native "HTMLElement_contentEditable_Getter";
+
+
+  /** @domName HTMLElement.contentEditable */
+  void set contentEditable(String value) native "HTMLElement_contentEditable_Setter";
+
+
+  /** @domName HTMLElement.dir */
+  String get dir native "HTMLElement_dir_Getter";
+
+
+  /** @domName HTMLElement.dir */
+  void set dir(String value) native "HTMLElement_dir_Setter";
+
+
+  /** @domName HTMLElement.draggable */
+  bool get draggable native "HTMLElement_draggable_Getter";
+
+
+  /** @domName HTMLElement.draggable */
+  void set draggable(bool value) native "HTMLElement_draggable_Setter";
+
+
+  /** @domName HTMLElement.hidden */
+  bool get hidden native "HTMLElement_hidden_Getter";
+
+
+  /** @domName HTMLElement.hidden */
+  void set hidden(bool value) native "HTMLElement_hidden_Setter";
+
+
+  /** @domName HTMLElement.id */
+  String get id native "HTMLElement_id_Getter";
+
+
+  /** @domName HTMLElement.id */
+  void set id(String value) native "HTMLElement_id_Setter";
+
+
+  /** @domName HTMLElement.innerHTML */
+  String get innerHTML native "HTMLElement_innerHTML_Getter";
+
+
+  /** @domName HTMLElement.innerHTML */
+  void set innerHTML(String value) native "HTMLElement_innerHTML_Setter";
+
+
+  /** @domName HTMLElement.isContentEditable */
+  bool get isContentEditable native "HTMLElement_isContentEditable_Getter";
+
+
+  /** @domName HTMLElement.lang */
+  String get lang native "HTMLElement_lang_Getter";
+
+
+  /** @domName HTMLElement.lang */
+  void set lang(String value) native "HTMLElement_lang_Setter";
+
+
+  /** @domName HTMLElement.outerHTML */
+  String get outerHTML native "HTMLElement_outerHTML_Getter";
+
+
+  /** @domName HTMLElement.spellcheck */
+  bool get spellcheck native "HTMLElement_spellcheck_Getter";
+
+
+  /** @domName HTMLElement.spellcheck */
+  void set spellcheck(bool value) native "HTMLElement_spellcheck_Setter";
+
+
+  /** @domName HTMLElement.tabIndex */
+  int get tabIndex native "HTMLElement_tabIndex_Getter";
+
+
+  /** @domName HTMLElement.tabIndex */
+  void set tabIndex(int value) native "HTMLElement_tabIndex_Setter";
+
+
+  /** @domName HTMLElement.title */
+  String get title native "HTMLElement_title_Getter";
+
+
+  /** @domName HTMLElement.title */
+  void set title(String value) native "HTMLElement_title_Setter";
+
+
+  /** @domName HTMLElement.translate */
+  bool get translate native "HTMLElement_translate_Getter";
+
+
+  /** @domName HTMLElement.translate */
+  void set translate(bool value) native "HTMLElement_translate_Setter";
+
+
+  /** @domName HTMLElement.webkitdropzone */
+  String get webkitdropzone native "HTMLElement_webkitdropzone_Getter";
+
+
+  /** @domName HTMLElement.webkitdropzone */
+  void set webkitdropzone(String value) native "HTMLElement_webkitdropzone_Setter";
+
+
+  /** @domName HTMLElement.click */
+  void click() native "HTMLElement_click_Callback";
+
+
+  /** @domName HTMLElement.insertAdjacentElement */
+  Element insertAdjacentElement(String where, Element element) native "HTMLElement_insertAdjacentElement_Callback";
+
+
+  /** @domName HTMLElement.insertAdjacentHTML */
+  void insertAdjacentHTML(String where, String html) native "HTMLElement_insertAdjacentHTML_Callback";
+
+
+  /** @domName HTMLElement.insertAdjacentText */
+  void insertAdjacentText(String where, String text) native "HTMLElement_insertAdjacentText_Callback";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
