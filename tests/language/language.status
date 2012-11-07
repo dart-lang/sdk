@@ -383,6 +383,9 @@ overridden_no_such_method_test: Fail, Pass # TRIAGE: fails in minified mode
 # call_constructor_on_unresolvable_class_test/07: Fail
 call_nonexistent_constructor_test: Fail
 
+bad_override_test/01: Fail
+bad_override_test/02: Fail
+
 illegal_invocation_test/01: Fail, OK # Typedef literals are expressions now.
 illegal_invocation_test/04: Fail, OK # Class literals are expressions now.
 illegal_invocation_test/05: Fail, OK # Type variables are expressions now.
