@@ -116,11 +116,12 @@ class _MessageType {
  * object will be [:true:] indicating that from now on the protocol is
  * not HTTP anymore and no more callbacks will happen, that is
  * [:dataReceived:] and [:dataEnd:] are not called in this case as
- * there is no more HTTP data. After the upgrade the call to
- * [:writeList:] causing the upgrade will return with the number of
- * bytes parsed as HTTP. Any unparsed bytes is part of the protocol
- * the connection is upgrading to and should be handled according to
- * that protocol.
+ * there is no more HTTP data. After the upgrade the method
+ * [:readUnparsedData:] can be used to read any remaining bytes in the
+ * HTTP parser which are part of the protocol the connection is
+ * upgrading to. These bytes cannot be processed by the HTTP parser
+ * and should be handled according to whatever protocol is being
+ * upgraded to.
  */
 class _HttpParser {
   _HttpParser() {
@@ -136,9 +137,7 @@ class _HttpParser {
   // Request-Line    = Method SP Request-URI SP HTTP-Version CRLF
   // Status-Line     = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
   // message-header  = field-name ":" [ field-value ]
-  int writeList(List<int> buffer, int offset, int count) {
-    int index = offset;
-    int lastIndex = offset + count;
+  void _parse() {
     try {
       if (_state == _State.CLOSED) {
         throw new HttpParserException("Data on closed connection");
@@ -149,10 +148,11 @@ class _HttpParser {
       if (_state == _State.FAILURE) {
         throw new HttpParserException("Data on failed connection");
       }
-      while ((index < lastIndex) &&
+      while (_buffer != null &&
+             _index < _lastIndex &&
              _state != _State.FAILURE &&
              _state != _State.UPGRADED) {
-        int byte = buffer[index];
+        int byte = _buffer[_index++];
         switch (_state) {
           case _State.START:
             if (byte == _Const.HTTP[0]) {
@@ -325,7 +325,9 @@ class _HttpParser {
                   statusCode <= 199 || statusCode == 204 || statusCode == 304;
             }
             if (responseStart != null) {
-              responseStart(statusCode, _uri_or_reason_phrase.toString(), version);
+              responseStart(statusCode,
+                            _uri_or_reason_phrase.toString(),
+                            version);
             }
             _method_or_status_code.clear();
             _uri_or_reason_phrase.clear();
@@ -438,8 +440,6 @@ class _HttpParser {
             }
             if (_connectionUpgrade) {
               _state = _State.UPGRADED;
-              _unparsedData =
-                  buffer.getRange(index + 1, count - (index + 1 - offset));
               if (headersComplete != null) headersComplete();
             } else {
               if (headersComplete != null) headersComplete();
@@ -513,22 +513,23 @@ class _HttpParser {
 
           case _State.BODY:
             // The body is not handled one byte at a time but in blocks.
-            int dataAvailable = lastIndex - index;
+            _index--;
+            int dataAvailable = _lastIndex - _index;
             List<int> data;
             if (_remainingContent == null ||
                 dataAvailable <= _remainingContent) {
               data = new Uint8List(dataAvailable);
-              data.setRange(0, dataAvailable, buffer, index);
+              data.setRange(0, dataAvailable, _buffer, _index);
             } else {
               data = new Uint8List(_remainingContent);
-              data.setRange(0, _remainingContent, buffer, index);
+              data.setRange(0, _remainingContent, _buffer, _index);
             }
 
             if (dataReceived != null) dataReceived(data);
             if (_remainingContent != null) {
               _remainingContent -= data.length;
             }
-            index += data.length;
+            _index += data.length;
             if (_remainingContent == 0) {
               if (!_chunked) {
                 _bodyEnd();
@@ -537,9 +538,6 @@ class _HttpParser {
                 _state = _State.CHUNK_SIZE_STARTING_CR;
               }
             }
-
-            // Hack - as we always do index++ below.
-            index--;
             break;
 
           case _State.FAILURE:
@@ -552,9 +550,6 @@ class _HttpParser {
             assert(false);
             break;
         }
-
-        // Move to the next byte.
-        index++;
       }
     } catch (e) {
       // Report the error through the error callback if any. Otherwise
@@ -567,8 +562,17 @@ class _HttpParser {
       }
     }
 
-    // Return the number of bytes parsed.
-    return index - offset;
+    // If all data is parsed or not needed due to failure there is no
+    // need to hold on to the buffer.
+    if (_state != _State.UPGRADED) _releaseBuffer();
+  }
+
+  void writeList(List<int> buffer, int offset, int count) {
+    assert(_buffer == null);
+    _buffer = buffer;
+    _index = offset;
+    _lastIndex = offset + count;
+    _parse();
   }
 
   void connectionClosed() {
@@ -623,7 +627,13 @@ class _HttpParser {
 
   bool get isIdle => _state == _State.START;
 
-  List<int> get unparsedData => _unparsedData;
+  List<int> readUnparsedData() {
+    if (_buffer == null) return [];
+    if (_index == _lastIndex) return [];
+    var result = _buffer.getRange(_index, _lastIndex - _index);
+    _releaseBuffer();
+    return result;
+  }
 
   void _bodyEnd() {
     if (dataEnd != null) {
@@ -648,6 +658,12 @@ class _HttpParser {
     _noMessageBody = false;
     _responseToMethod = null;
     _remainingContent = null;
+  }
+
+  _releaseBuffer() {
+    _buffer = null;
+    _index = null;
+    _lastIndex = null;
   }
 
   bool _isTokenChar(int byte) {
@@ -696,6 +712,11 @@ class _HttpParser {
     }
   }
 
+  // The data that is currently being parsed.
+  List<int> _buffer;
+  int _index;
+  int _lastIndex;
+
   int _state;
   int _httpVersionIndex;
   int _messageType;
@@ -714,7 +735,6 @@ class _HttpParser {
   String _responseToMethod;  // Indicates the method used for the request.
   int _remainingContent;
 
-  List<int> _unparsedData;  // Unparsed data after connection upgrade.
   // Callbacks.
   Function requestStart;
   Function responseStart;

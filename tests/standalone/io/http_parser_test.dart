@@ -86,8 +86,8 @@ class HttpParserTest {
         int remaining = requestData.length - pos;
         int writeLength = min(chunkSize, remaining);
         written += writeLength;
-        int parsed = httpParser.writeList(requestData, pos, writeLength);
-        unparsed = writeLength - parsed;
+        httpParser.writeList(requestData, pos, writeLength);
+        unparsed = httpParser.readUnparsedData().length;
         if (httpParser.upgrade) {
           unparsed += requestData.length - written;
           break;
@@ -133,7 +133,9 @@ class HttpParserTest {
     void testWrite(List<int> requestData, [int chunkSize = -1]) {
       if (chunkSize == -1) chunkSize = requestData.length;
       reset();
-      for (int pos = 0; pos < requestData.length; pos += chunkSize) {
+      for (int pos = 0;
+           pos < requestData.length && !errorCalled;
+           pos += chunkSize) {
         int remaining = requestData.length - pos;
         int writeLength = min(chunkSize, remaining);
         httpParser.writeList(requestData, pos, writeLength);
@@ -230,8 +232,8 @@ class HttpParserTest {
         int remaining = requestData.length - pos;
         int writeLength = min(chunkSize, remaining);
         written += writeLength;
-        int parsed = httpParser.writeList(requestData, pos, writeLength);
-        unparsed = writeLength - parsed;
+        httpParser.writeList(requestData, pos, writeLength);
+        unparsed = httpParser.readUnparsedData().length;
         if (httpParser.upgrade) {
           unparsed += requestData.length - written;
           break;
@@ -280,7 +282,9 @@ class HttpParserTest {
     void testWrite(List<int> requestData, [int chunkSize = -1]) {
       if (chunkSize == -1) chunkSize = requestData.length;
       reset();
-      for (int pos = 0; pos < requestData.length; pos += chunkSize) {
+      for (int pos = 0;
+           pos < requestData.length && !errorCalled;
+           pos += chunkSize) {
         int remaining = requestData.length - pos;
         int writeLength = min(chunkSize, remaining);
         httpParser.writeList(requestData, pos, writeLength);

@@ -1307,15 +1307,7 @@ abstract class _HttpConnectionBase {
     List<int> buffer = new Uint8List(available);
     int bytesRead = _socket.readList(buffer, 0, available);
     if (bytesRead > 0) {
-      int parsed = _httpParser.writeList(buffer, 0, bytesRead);
-      if (!_httpParser.upgrade) {
-        if (parsed != bytesRead) {
-          if (_socket != null) {
-            // TODO(sgjesse): Error handling.
-            _destroy();
-          }
-        }
-      }
+      _httpParser.writeList(buffer, 0, bytesRead);
     }
   }
 
@@ -1341,7 +1333,7 @@ abstract class _HttpConnectionBase {
     Socket socket = _socket;
     _socket = null;
     if (onDetach != null) onDetach();
-    return new _DetachedSocket(socket, _httpParser.unparsedData);
+    return new _DetachedSocket(socket, _httpParser.readUnparsedData());
   }
 
   HttpConnectionInfo get connectionInfo {
