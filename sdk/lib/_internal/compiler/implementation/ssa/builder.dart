@@ -2264,7 +2264,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   String getTargetName(ErroneousElement error, [String prefix]) {
-    String result = error.targetName.slowToString();
+    String result = error.name.slowToString();
     if (?prefix) {
       result = '$prefix $result';
     }
@@ -4345,7 +4345,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (endFinallyBlock != null) {
       endFinallyBlock.addSuccessor(exitBlock);
     }
-    
+
     // If a block inside try/catch aborts (eg with a return statement),
     // we explicitely mark this block a predecessor of the catch
     // block and the finally block.

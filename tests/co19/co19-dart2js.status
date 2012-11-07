@@ -6,9 +6,6 @@
 # Crashes first, please. Then untriaged bugs. There is a section below
 # for co19 bugs.
 [ $compiler == dart2js ]
-Language/13_Libraries_and_Scripts/2_Exports_A04_t02: Crash
-Language/13_Libraries_and_Scripts/2_Exports_A04_t03: Crash
-
 Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(ahe): Please triage this failure.
 Language/03_Overview/1_Scoping_A02_t06: Fail # TODO(ahe): Please triage this failure.
 Language/05_Variables/05_Variables_A05_t02: Fail # TODO(ahe): Please triage this failure.
@@ -131,21 +128,14 @@ Language/13_Libraries_and_Scripts/1_Imports_A02_t19: Fail # TODO(ahe): Please tr
 Language/13_Libraries_and_Scripts/1_Imports_A02_t27: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t28: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A03_t09: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A03_t10: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A03_t22: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A03_t29: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A03_t30: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A03_t42: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A03_t49: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A03_t50: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A03_t62: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A03_t69: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A03_t70: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A01_t07: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A01_t15: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A01_t16: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A04_t01: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A04_t02: Fail # Missing check for duplicate exports.
 Language/13_Libraries_and_Scripts/2_Exports_A04_t04: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A04_t05: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A04_t06: Fail # TODO(ahe): Please triage this failure.

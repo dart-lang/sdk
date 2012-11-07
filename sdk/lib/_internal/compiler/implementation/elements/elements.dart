@@ -379,15 +379,13 @@ class Element implements Spannable {
  * to check for unresolvable elements instead of
  *   [: element == null :].
  */
-class ErroneousElement extends Element {
+class ErroneousElement extends Element implements FunctionElement {
   final MessageKind messageKind;
   final List messageArguments;
-  final SourceString targetName;
 
   ErroneousElement(this.messageKind, this.messageArguments,
-                   this.targetName, Element enclosing)
-      : super(const SourceString('erroneous element'),
-              ElementKind.ERROR, enclosing);
+                   SourceString name, Element enclosing)
+      : super(name, ElementKind.ERROR, enclosing);
 
   isErroneous() => true;
 
@@ -395,23 +393,7 @@ class ErroneousElement extends Element {
     throw 'unsupported operation on erroneous element';
   }
 
-  SourceString get name => unsupported();
   Link<MetadataAnnotation> get metadata => unsupported();
-
-  getLibrary() => enclosingElement.getLibrary();
-
-  String toString() {
-    String n = targetName.slowToString();
-    return '<$n: ${messageKind.message(messageArguments)}>';
-  }
-}
-
-class ErroneousFunctionElement extends ErroneousElement
-                               implements FunctionElement {
-  ErroneousFunctionElement(MessageKind messageKind, List messageArguments,
-                           SourceString targetName, Element enclosing)
-      : super(messageKind, messageArguments, targetName, enclosing);
-
   get type => unsupported();
   get cachedNode => unsupported();
   get functionSignature => unsupported();
@@ -427,6 +409,13 @@ class ErroneousFunctionElement extends ErroneousElement
   parameterCount(copmiler) => unsupported();
 
   get redirectionTarget => this;
+
+  getLibrary() => enclosingElement.getLibrary();
+
+  String toString() {
+    String n = name.slowToString();
+    return '<$n: ${messageKind.message(messageArguments)}>';
+  }
 }
 
 /**

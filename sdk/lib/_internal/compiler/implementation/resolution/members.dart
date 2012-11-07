@@ -1199,8 +1199,19 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   Element lookup(Node node, SourceString name) {
     Element result = scope.lookup(name);
-    if (!inInstanceContext && result != null && result.isInstanceMember()) {
-      error(node, MessageKind.NO_INSTANCE_AVAILABLE, [node]);
+    if (!Elements.isUnresolved(result)) {
+      if (!inInstanceContext && result.isInstanceMember()) {
+        error(node, MessageKind.NO_INSTANCE_AVAILABLE, [node]);
+        // TODO(johnniwinther): Create an ErroneousElement.
+      } else if (result.isAmbiguous()) {
+        AmbiguousElement ambiguous = result;
+        compiler.reportMessage(compiler.spanFromNode(node),
+            ambiguous.messageKind.error(ambiguous.messageArguments),
+            Diagnostic.ERROR);
+        return new ErroneousElement(ambiguous.messageKind,
+                                    ambiguous.messageArguments,
+                                    name, enclosingElement);
+      }
     }
     return result;
   }
@@ -1266,11 +1277,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
                                                   MessageKind.CANNOT_RESOLVE,
                                                   [node]);
         }
-      } else if (element.isAmbiguous()) {
-        AmbiguousElement ambiguous = element;
-        element = warnAndCreateErroneousElement(node, node.source,
-                                                ambiguous.messageKind,
-                                                ambiguous.messageArguments);
+      } else if (element.isErroneous()) {
+        // Use the erroneous element.
       } else {
         if ((element.kind.category & allowedCategory) == 0) {
           // TODO(ahe): Improve error message. Need UX input.
@@ -2931,8 +2939,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     } else {
       ResolutionWarning warning  = new ResolutionWarning(kind, arguments);
       compiler.reportWarning(diagnosticNode, warning);
-      return new ErroneousFunctionElement(kind, arguments, targetName,
-                                          enclosing);
+      return new ErroneousElement(kind, arguments, targetName, enclosing);
     }
   }
 
@@ -3050,6 +3057,8 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     if (e == null) {
       return failOrReturnErroneousElement(resolver.enclosingElement, node, name,
                                           MessageKind.CANNOT_RESOLVE, [name]);
+    } else if (e.isErroneous()) {
+      return e;
     } else if (identical(e.kind, ElementKind.TYPEDEF)) {
       error(node, MessageKind.CANNOT_INSTANTIATE_TYPEDEF, [name]);
     } else if (identical(e.kind, ElementKind.TYPE_VARIABLE)) {
