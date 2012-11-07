@@ -7,6 +7,7 @@ class_test: Fail
 statements_test: Fail
 typed_locals_test: Fail
 no_such_method_test: Fail # Wrong InvocationMirror.memberName.
+break_test: Fail # Complex control flow TODO(ngeoffray): investigating
 
 [ $compiler == dart2js && $checked ]
 parameter_bailout_test: Fail, OK
