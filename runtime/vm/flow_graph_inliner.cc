@@ -178,13 +178,12 @@ class GraphInfoCollector : public ValueObject {
 // A collection of call sites to consider for inlining.
 class CallSites : public FlowGraphVisitor {
  public:
-  CallSites(FlowGraph* flow_graph,
-            const GrowableArray<intptr_t>& skip_static_call_deopt_ids)
+  explicit CallSites(FlowGraph* flow_graph)
       : FlowGraphVisitor(flow_graph->postorder()),  // We don't use this order.
         static_calls_(),
         closure_calls_(),
         instance_calls_(),
-        skip_static_call_deopt_ids_(skip_static_call_deopt_ids) { }
+        skip_static_call_deopt_ids_() { }
 
   GrowableArray<StaticCallInstr*>* static_calls() {
     return &static_calls_;
@@ -208,9 +207,16 @@ class CallSites : public FlowGraphVisitor {
     static_calls_.Clear();
     closure_calls_.Clear();
     instance_calls_.Clear();
+    skip_static_call_deopt_ids_.Clear();
   }
 
   void FindCallSites(FlowGraph* graph) {
+    ASSERT(graph != NULL);
+    const Function& function = graph->parsed_function().function();
+    ASSERT(function.HasCode());
+    const Code& code = Code::Handle(function.CurrentCode());
+    skip_static_call_deopt_ids_.Clear();
+    code.ExtractUncalledStaticCallDeoptIds(&skip_static_call_deopt_ids_);
     for (BlockIterator block_it = graph->postorder_iterator();
          !block_it.Done();
          block_it.Advance()) {
@@ -246,7 +252,7 @@ class CallSites : public FlowGraphVisitor {
   GrowableArray<StaticCallInstr*> static_calls_;
   GrowableArray<ClosureCallInstr*> closure_calls_;
   GrowableArray<PolymorphicInstanceCallInstr*> instance_calls_;
-  const GrowableArray<intptr_t>& skip_static_call_deopt_ids_;
+  GrowableArray<intptr_t> skip_static_call_deopt_ids_;
 
   DISALLOW_COPY_AND_ASSIGN(CallSites);
 };
@@ -289,12 +295,12 @@ class CallSiteInliner : public ValueObject {
 
   // TODO(srdjan): Handle large 'skip_static_call_deopt_ids'. Currently
   // max. size observed is 11 (dart2js).
-  void InlineCalls(const GrowableArray<intptr_t>& skip_static_call_deopt_ids) {
+  void InlineCalls() {
     // If inlining depth is less then one abort.
     if (FLAG_inlining_depth_threshold < 1) return;
     // Create two call site collections to swap between.
-    CallSites sites1(caller_graph_, skip_static_call_deopt_ids);
-    CallSites sites2(caller_graph_, skip_static_call_deopt_ids);
+    CallSites sites1(caller_graph_);
+    CallSites sites2(caller_graph_);
     CallSites* call_sites_temp = NULL;
     collected_call_sites_ = &sites1;
     inlining_call_sites_ = &sites2;
@@ -784,7 +790,7 @@ void FlowGraphInliner::Inline() {
   }
 
   CallSiteInliner inliner(flow_graph_);
-  inliner.InlineCalls(uncalled_static_static_call_deopt_ids_);
+  inliner.InlineCalls();
 
   if (inliner.inlined()) {
     flow_graph_->RepairGraphAfterInlining();
