@@ -118,11 +118,8 @@ public class ExternalTypeAnalyzers {
     String name = element.getName();
     List<DartExpression> arguments = invocation.getArguments();
     LibraryElement libraryElement = Elements.getDeclaringLibrary(element);
-    // NodeSelector.query(String)
-    EnclosingElement enclosingElement = element.getEnclosingElement();
-    if ("query".equals(name) && isDeclaredInHtmlLibrary(element)
-        && ElementKind.of(enclosingElement) == ElementKind.CLASS
-        && "NodeSelector".equals(enclosingElement.getName())) {
+    // Document.query(String)
+    if ("query".equals(name) && isDeclaredInHtmlLibrary(element)) {
       return analyzeQuery(arguments, libraryElement, defaultType);
     }
     // no guess
