@@ -7,7 +7,7 @@
  * semantic information about the program being annotated. These annotations are
  * intended to be used by tools to provide a better user experience.
  */
-#library('meta');
+library meta;
 
 /**
  * An annotation used to mark a class, field, getter, setter, method, top-level

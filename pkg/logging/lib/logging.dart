@@ -7,7 +7,7 @@
  * abstractions similar to those used in other languages, such as the Closure JS
  * Logger and java.util.logging.Logger.
  */
-#library('logging');
+library logging;
 
 /**
  * Whether to allow fine-grain logging and configuration of loggers in a

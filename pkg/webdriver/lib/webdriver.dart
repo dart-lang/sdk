@@ -4,10 +4,10 @@
 
 library webdriver;
 
-#import('dart:json');
-#import('dart:uri');
-#import('dart:io');
-#import('dart:math');
+import 'dart:json';
+import 'dart:uri';
+import 'dart:io';
+import 'dart:math';
 
 part 'src/base64decoder.dart';
 
