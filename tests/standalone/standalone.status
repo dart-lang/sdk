@@ -27,7 +27,6 @@ io/test_runner_test: Pass, Fail  # Issue 1947
 # This is expected as MacOS by default runs with a very low number
 # of allowed open files ('ulimit -n' says something like 256).
 io/socket_many_connections_test: Skip
-io/http_proxy_test: Fail, Pass # http://dartbug.com/5717
 
 [ $runtime == vm && $system == windows ]
 io/file_system_links_test: Skip  # No links on Windows.
