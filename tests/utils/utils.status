@@ -8,6 +8,7 @@
 [ $compiler == dart2js ]
 dummy_compiler_test: Slow, Pass
 recursive_import_test: Slow, Pass
+utf8_test: Fail # issue 6418
 
 [ $compiler == none && $runtime == drt ]
 dummy_compiler_test: Fail # http://dartbug.com/2264
@@ -15,9 +16,6 @@ recursive_import_test: Fail # http://dartbug.com/2264
 
 [ $compiler == dart2js && $browser ]
 *: Skip
-
-[ $runtime == dartium || $runtime == drt ]
-utf8_test: Fail # TRIAGE
 
 [ $runtime == vm ]
 *_layout_test: Skip
