@@ -1029,7 +1029,11 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         }
         break;
       case HLoopBlockInformation.DO_WHILE_LOOP:
-        // Generate do-while loop in all cases.
+        // If there are phi copies after the condition, we cannot emit
+        // a pretty do/while loop, se we fallback to the generic
+        // emission of a loop.
+        CopyHandler handler = variableNames.getCopyHandler(info.end);
+        if (handler != null && !handler.isEmpty) return false;
         if (info.initializer != null) {
           generateStatements(info.initializer);
         }
@@ -1326,7 +1330,16 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
       instruction = instruction.next;
     }
-    assignPhisOfSuccessors(node);
+    if (instruction is HLoopBranch) {
+      HLoopBranch branch = instruction;
+      // If the loop is a do/while loop, the phi updates must happen
+      // after the evaluation of the condition.
+      if (!branch.isDoWhile()) {
+        assignPhisOfSuccessors(node);
+      }
+    } else {
+      assignPhisOfSuccessors(node);
+    }
     visit(instruction);
   }
 
@@ -1918,8 +1931,12 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     HBasicBlock branchBlock = currentBlock;
     handleLoopCondition(node);
     List<HBasicBlock> dominated = currentBlock.dominatedBlocks;
-    // For a do while loop, the body has already been visited.
-    if (!node.isDoWhile()) {
+    if (node.isDoWhile()) {
+      // Now that the condition has been evaluated, we can update the
+      // phis of a do/while loop.
+      assignPhisOfSuccessors(node.block);
+    } else {
+      // For a do while loop, the body has already been visited.
       visitBasicBlock(dominated[0]);
     }
     endLoop(node.block);
@@ -2781,7 +2798,8 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     body = unwrapStatement(body);
     js.While loop = new js.While(newLiteralBool(true), body);
 
-    HLoopInformation info = block.loopInformation;
+    HBasicBlock header = block.isLoopHeader() ? block : block.parentLoopHeader;
+    HLoopInformation info = header.loopInformation;
     attachLocationRange(loop,
                         info.loopBlockInformation.sourcePosition,
                         info.loopBlockInformation.endSourcePosition);
@@ -2790,7 +2808,9 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 
   void handleLoopCondition(HLoopBranch node) {
     use(node.inputs[0]);
-    pushStatement(new js.If.noElse(pop(), new js.Break(null)), node);
+    js.Expression test = new js.Prefix('!', pop());
+    js.Statement then = new js.Break(null);
+    pushStatement(new js.If.noElse(test, then), node);
   }
 
 

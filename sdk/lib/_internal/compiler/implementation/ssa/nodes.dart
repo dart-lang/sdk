@@ -2927,7 +2927,7 @@ class HLoopBlockInformation implements HStatementInformation {
 
   HBasicBlock get end {
     if (updates != null) return updates.end;
-    if (kind == DO_WHILE_LOOP) {
+    if (kind == DO_WHILE_LOOP && condition != null) {
       return condition.end;
     }
     return body.end;
