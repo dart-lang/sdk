@@ -332,8 +332,7 @@ class LocalsHandler {
       if (element != null && element.isGenerativeConstructorBody()) {
         // The box is passed as a parameter to a generative
         // constructor body.
-        box = new HParameterValue(scopeData.boxElement);
-        builder.add(box);
+        box = builder.addParameter(scopeData.boxElement);
       } else {
         box = createBox();
       }
@@ -394,8 +393,7 @@ class LocalsHandler {
       FunctionElement functionElement = element;
       FunctionSignature params = functionElement.computeSignature(compiler);
       params.orderedForEachParameter((Element parameterElement) {
-        HInstruction parameter = new HParameterValue(parameterElement);
-        builder.add(parameter);
+        HInstruction parameter = builder.addParameter(parameterElement);
         builder.parameters[parameterElement] = parameter;
         directLocals[parameterElement] = parameter;
         parameter.guaranteedType =
@@ -896,6 +894,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   HInstruction rethrowableException;
   Map<Element, HInstruction> parameters;
   final RuntimeTypeInformation rti;
+  HParameterValue lastAddedParameter;
 
   Map<TargetElement, JumpHandler> jumpTargets;
 
@@ -1037,6 +1036,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     assert(bodyElement.isGenerativeConstructorBody());
     return bodyElement;
+  }
+
+  HParameterValue addParameter(Element element) {
+    HParameterValue result = new HParameterValue(element);
+    if (lastAddedParameter == null) {
+      graph.entry.addBefore(graph.entry.first, result);
+    } else {
+      graph.entry.addAfter(lastAddedParameter, result);
+    }
+    lastAddedParameter = result;
+    return result;
   }
 
   /**
@@ -1457,8 +1467,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (currentElement.isGenerativeConstructorBody()) {
       // A generative constructor body receives extra parameters that
       // indicate if a parameter was passed to the factory.
-      check = new HParameterValue(checkResultElement);
-      add(check);
+      check = addParameter(checkResultElement);
     } else {
       // This is the code we emit for a parameter that is being checked
       // on whether it was given at value at the call site:
@@ -1550,8 +1559,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     var enclosing = element.enclosingElement;
     if (element.isConstructor() && compiler.world.needsRti(enclosing)) {
       enclosing.typeVariables.forEach((TypeVariableType typeVariable) {
-        HParameterValue param = new HParameterValue(typeVariable.element);
-        add(param);
+        HParameterValue param = addParameter(typeVariable.element);
         localsHandler.directLocals[typeVariable.element] = param;
       });
     }

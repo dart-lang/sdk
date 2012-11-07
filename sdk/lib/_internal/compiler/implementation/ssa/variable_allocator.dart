@@ -509,13 +509,6 @@ class VariableNamer {
         name = names.ownName[temp];
       } while (name == null && temp is HCheck);
       if (name != null) return addAllocatedName(instruction, name);
-    } else if (instruction is HParameterValue) {
-      HParameterValue parameter = instruction;
-      name = parameterNames[parameter.sourceElement];
-      if (name == null) {
-        name = allocateWithHint(parameter.sourceElement.name.slowToString());
-      }
-      return addAllocatedName(instruction, name);
     }
 
     if (instruction.sourceElement != null) {
@@ -536,6 +529,9 @@ class VariableNamer {
   }
 
   String addAllocatedName(HInstruction instruction, String name) {
+    if (instruction is HParameterValue) {
+      parameterNames[instruction.sourceElement] = name;
+    }
     usedNames.add(name);
     names.addNameUsed(name);
     names.ownName[instruction] = name;
@@ -613,11 +609,11 @@ class SsaVariableAllocator extends HBaseVisitor {
    * have no users or that are generated at use site does not need a name.
    */
   bool needsName(HInstruction instruction) {
-    if (instruction.usedBy.isEmpty) return false;
     // TODO(ngeoffray): locals/parameters are being generated at use site,
     // but we need a name for them. We should probably not make
     // them generate at use site to make things simpler.
     if (instruction is HLocalValue && instruction is !HThis) return true;
+    if (instruction.usedBy.isEmpty) return false;
     if (generateAtUseSite.contains(instruction)) return false;
     // A [HCheck] instruction that has control flow needs a name only if its
     // checked input needs a name (e.g. a check [HConstant] does not

@@ -54,12 +54,11 @@ class SsaCodeGeneratorTask extends CompilerTask {
   CodeBuffer generateLazyInitializer(work, graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen", graph);
-      List<js.Parameter> parameters = <js.Parameter>[];
-      SsaOptimizedCodeGenerator codegen = new SsaOptimizedCodeGenerator(
-          backend, work, parameters, new Map<Element, String>());
+      SsaOptimizedCodeGenerator codegen =
+          new SsaOptimizedCodeGenerator(backend, work);
       codegen.visitGraph(graph);
       js.Block body = codegen.body;
-      js.Fun fun = new js.Fun(parameters, body);
+      js.Fun fun = new js.Fun(codegen.parameters, body);
       return prettyPrint(fun);
     });
   }
@@ -77,21 +76,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
         }
       });
       compiler.tracer.traceGraph("codegen", graph);
-      Map<Element, String> parameterNames = getParameterNames(work);
-      // Use [work.element] to ensure that the parameter element come from
-      // the declaration.
-      FunctionElement function = work.element;
-      function.computeSignature(compiler).forEachParameter((element) {
-        compiler.enqueuer.codegen.addToWorkList(element, work.resolutionTree);
-      });
-      List<js.Parameter> parameters = <js.Parameter>[];
-      parameterNames.forEach((element, name) {
-        parameters.add(new js.Parameter(name));
-      });
-      addBackendParameters(work.element, parameters, parameterNames);
-      String parametersString = Strings.join(parameterNames.values, ", ");
-      SsaOptimizedCodeGenerator codegen = new SsaOptimizedCodeGenerator(
-          backend, work, parameters, parameterNames);
+      SsaOptimizedCodeGenerator codegen =
+          new SsaOptimizedCodeGenerator(backend, work);
       codegen.visitGraph(graph);
 
       FunctionElement element = work.element;
@@ -108,6 +94,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
         nativeEmitter.overriddenMethods.add(element);
         StringBuffer buffer = new StringBuffer();
         String codeString = prettyPrint(codegen.body).toString();
+        String parametersString =
+            Strings.join(codegen.parameterNames.values, ", ");
         native.generateMethodWithPrototypeCheckForElement(
             compiler, buffer, element, codeString, parametersString);
         js.Node nativeCode = new js.LiteralStatement(buffer.toString());
@@ -117,75 +105,18 @@ class SsaCodeGeneratorTask extends CompilerTask {
         body = codegen.body;
         allowVariableMinification = !codegen.visitedForeignCode;
       }
-      js.Fun fun = buildJavaScriptFunction(element, parameters, body);
+      js.Fun fun = buildJavaScriptFunction(element, codegen.parameters, body);
       return prettyPrint(fun,
                          allowVariableMinification: allowVariableMinification);
     });
-  }
-
-  void addBackendParameter(Element element,
-                           List<js.Parameter> parameters,
-                           Map<Element, String> parameterNames) {
-    String name = element.name.slowToString();
-    String prefix = '';
-    // Avoid collisions with real parameters of the method.
-    do {
-      name = JsNames.getValid('$prefix$name');
-      prefix = '\$$prefix';
-    } while (parameterNames.containsValue(name));
-    parameterNames[element] = name;
-    parameters.add(new js.Parameter(name));
-  }
-
-  void addBackendParameters(Element element,
-                            List<js.Parameter> parameters,
-                            Map<Element, String> parameterNames) {
-    // TODO(ngeoffray): We should infer this information from the
-    // graph, instead of recomputing what the builder did.
-    if (element.isConstructor()) {
-      // Put the type parameters.
-      ClassElement cls = element.enclosingElement;
-      if (!compiler.world.needsRti(cls)) return;
-      cls.typeVariables.forEach((TypeVariableType typeVariable) {
-        addBackendParameter(typeVariable.element, parameters, parameterNames);
-      });
-    } else if (element.isGenerativeConstructorBody()) {
-      // Put the parameter checks parameters.
-      Node node = element.implementation.parseNode(compiler);
-      ClosureClassMap closureData =
-          compiler.closureToClassMapper.getMappingForNestedFunction(node);
-      FunctionElement functionElement = element;
-      FunctionSignature params = functionElement.computeSignature(compiler);
-      TreeElements elements =
-          compiler.enqueuer.resolution.getCachedElements(element);
-      params.orderedForEachParameter((Element element) {
-        if (elements.isParameterChecked(element)) {
-          Element checkResultElement =
-              closureData.parametersWithSentinel[element];
-          addBackendParameter(checkResultElement, parameters, parameterNames);
-        }
-      });
-      // Put the box parameter.
-      ClosureScope scopeData = closureData.capturingScopes[node];
-      if (scopeData != null) {
-        addBackendParameter(scopeData.boxElement, parameters, parameterNames);
-      }
-    }
   }
 
   CodeBuffer generateBailoutMethod(WorkItem work, HGraph graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen-bailout", graph);
 
-      Map<Element, String> parameterNames = getParameterNames(work);
-      List<js.Parameter> parameters = <js.Parameter>[];
-      parameterNames.forEach((element, name) {
-        parameters.add(new js.Parameter(name));
-      });
-      addBackendParameters(work.element, parameters, parameterNames);
-
-      SsaUnoptimizedCodeGenerator codegen = new SsaUnoptimizedCodeGenerator(
-          backend, work, parameters, parameterNames);
+      SsaUnoptimizedCodeGenerator codegen =
+          new SsaUnoptimizedCodeGenerator(backend, work);
       codegen.visitGraph(graph);
 
       js.Block body = new js.Block(<js.Statement>[]);
@@ -195,24 +126,6 @@ class SsaCodeGeneratorTask extends CompilerTask {
           buildJavaScriptFunction(work.element, codegen.newParameters, body);
       return prettyPrint(fun);
     });
-  }
-
-  Map<Element, String> getParameterNames(WorkItem work) {
-    // Make sure the map preserves insertion order, so that fetching
-    // the values will keep the order of parameters.
-    Map<Element, String> parameterNames = new LinkedHashMap<Element, String>();
-    FunctionElement function = work.element.implementation;
-
-    // The dom/html libraries have inline JS code that reference
-    // parameter names directly. Long-term such code will be rejected.
-    // Now, just don't mangle the parameter name.
-    FunctionSignature signature = function.computeSignature(compiler);
-    signature.orderedForEachParameter((Element element) {
-      parameterNames[element] = function.isNative()
-          ? element.name.slowToString()
-          : JsNames.getValid('${element.name.slowToString()}');
-    });
-    return parameterNames;
   }
 }
 
@@ -275,6 +188,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   final Map<Element, ElementAction> breakAction;
   final Map<Element, ElementAction> continueAction;
   final Map<Element, String> parameterNames;
+  final List<js.Parameter> parameters;
 
   js.Block currentContainer;
   js.Block get body => currentContainer;
@@ -314,15 +228,15 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // if branches.
   SubGraph subGraph;
 
-  SsaCodeGenerator(this.backend,
-                   WorkItem work,
-                   this.parameterNames)
+  SsaCodeGenerator(this.backend, WorkItem work)
     : this.work = work,
       this.types =
           (work.compilationContext as JavaScriptItemCompilationContext).types,
+      parameterNames = new LinkedHashMap<Element, String>(),
       declaredLocals = new Set<String>(),
       collectedVariableDeclarations = new OrderedSet<String>(),
       currentContainer = new js.Block.empty(),
+      parameters = <js.Parameter>[],
       expressionStack = <js.Expression>[],
       oldContainerStack = <js.Block>[],
       generateAtUseSite = new Set<HInstruction>(),
@@ -2642,18 +2556,20 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 }
 
 class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
-  SsaOptimizedCodeGenerator(backend, work, parameters, parameterNames)
-    : super(backend, work, parameterNames) {
-    // Declare the parameter names only for the optimized version. The
-    // unoptimized version has different parameters.
-    parameterNames.forEach((Element element, String name) {
-      declaredLocals.add(name);
-    });
-  }
+  SsaOptimizedCodeGenerator(backend, work) : super(backend, work);
 
   int maxBailoutParameters;
 
-  HBasicBlock beginGraph(HGraph graph) => graph.entry;
+  HBasicBlock beginGraph(HGraph graph) {
+    // Declare the parameter names only for the optimized version. The
+    // unoptimized version has different parameters.
+    parameterNames.forEach((Element element, String name) {
+      parameters.add(new js.Parameter(name));
+      declaredLocals.add(name);
+    });
+    return graph.entry;
+  }
+
   void endGraph(HGraph graph) {}
 
   js.Statement bailout(HTypeGuard guard, String reason) {
@@ -2842,8 +2758,8 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   SsaBailoutPropagator propagator;
   HInstruction savedFirstInstruction;
 
-  SsaUnoptimizedCodeGenerator(backend, work, parameters, parameterNames)
-    : super(backend, work, parameterNames),
+  SsaUnoptimizedCodeGenerator(backend, work)
+    : super(backend, work),
       oldBailoutSwitches = <js.Switch>[],
       newParameters = <js.Parameter>[],
       labels = <String>[],

@@ -751,6 +751,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
            && instruction is !HInvokeDynamicGetter
            && instruction is !HCheck
            && instruction is !HTypeGuard
+           && instruction is !HParameterValue
            && !instruction.isControlFlow();
   }
 
