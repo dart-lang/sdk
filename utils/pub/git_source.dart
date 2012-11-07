@@ -153,7 +153,7 @@ class GitSource extends Source {
     return ensureDir(to).chain((_) {
       var args = ["clone", from, to];
       if (mirror) args.insertRange(1, 1, "--mirror");
-      return git.run(args);
+      return git.run(args, workingDir: currentWorkingDir);
     }).transform((result) => null);
   }
 
