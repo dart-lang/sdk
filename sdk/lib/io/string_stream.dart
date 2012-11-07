@@ -85,22 +85,18 @@ abstract class _StringDecoderBase implements _StringDecoder {
 
   int get lineBreaks => _lineBreaks;
 
-  String decoded([int len]) {
+  String decoded([int length]) {
     if (isEmpty) return null;
 
-    String result;
-    if (len !== null && len < available()) {
-      result = new String.fromCharCodes(_result.getRange(_resultOffset, len));
+    List<int> result;
+    if (length != null && length < available()) {
+      result = _result.getRange(_resultOffset, length);
+    } else if (_resultOffset == 0) {
+      result = _result;
     } else {
-      if (_resultOffset == 0) {
-        result = new String.fromCharCodes(_result);
-      } else {
-        result =
-            new String.fromCharCodes(
-                _result.getRange(_resultOffset,
-                                 _result.length - _resultOffset));
-      }
+      result = _result.getRange(_resultOffset, _result.length - _resultOffset);
     }
+
     _resultOffset += result.length;
     while (!_lineBreakEnds.isEmpty &&
            _lineBreakEnds.first < _charOffset + _resultOffset) {
@@ -108,7 +104,7 @@ abstract class _StringDecoderBase implements _StringDecoder {
       _lineBreaks--;
     }
     if (_result.length == _resultOffset) _resetResult();
-    return result;
+    return new String.fromCharCodes(result);
   }
 
   String get decodedLine {
@@ -419,7 +415,7 @@ class _StringInputStream implements StringInputStream {
 
   void set onError(void callback(e)) {
     _input.onError = callback;
-    _decoder.onError = (e) { 
+    _decoder.onError = (e) {
       _clientCloseHandler = null;
       _input.close();
       callback(e);
