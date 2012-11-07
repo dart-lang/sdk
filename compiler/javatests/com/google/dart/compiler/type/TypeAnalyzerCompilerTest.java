@@ -14,6 +14,8 @@ import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartCommentNewName;
+import com.google.dart.compiler.ast.DartCommentRefName;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
@@ -5466,7 +5468,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors());
   }
 
-  public void test_resolveIdentifierInComment_ofClass() throws Exception {
+  public void test_resolveRefInComment_ofClass() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "/** This class [A] has method [foo]. */",
@@ -5477,19 +5479,19 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors());
     // [A]
     {
-      DartIdentifier identifier = findNode(DartIdentifier.class, "A]");
-      ClassElement element = (ClassElement) identifier.getElement();
+      DartCommentRefName node = findNode(DartCommentRefName.class, "A]");
+      ClassElement element = (ClassElement) node.getElement();
       assertEquals("A", element.getName());
     }
     // [foo]
     {
-      DartIdentifier identifier = findNode(DartIdentifier.class, "foo]");
-      MethodElement element = (MethodElement) identifier.getElement();
+      DartCommentRefName node = findNode(DartCommentRefName.class, "foo]");
+      MethodElement element = (MethodElement) node.getElement();
       assertEquals("foo", element.getName());
     }
   }
-  
-  public void test_resolveIdentifierInComment_ofFunction() throws Exception {
+
+  public void test_resolveRefInComment_ofFunction() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {}",
@@ -5499,27 +5501,27 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors());
     // [aaa]
     {
-      DartIdentifier identifier = findNode(DartIdentifier.class, "aaa]");
-      VariableElement element = (VariableElement) identifier.getElement();
+      DartCommentRefName node = findNode(DartCommentRefName.class, "aaa]");
+      VariableElement element = (VariableElement) node.getElement();
       assertSame(ElementKind.PARAMETER, ElementKind.of(element));
       assertEquals("aaa", element.getName());
     }
     // [A]
     {
-      DartIdentifier identifier = findNode(DartIdentifier.class, "A]");
-      ClassElement element = (ClassElement) identifier.getElement();
+      DartCommentRefName node = findNode(DartCommentRefName.class, "A]");
+      ClassElement element = (ClassElement) node.getElement();
       assertEquals("A", element.getName());
     }
     // [bbb]
     {
-      DartIdentifier identifier = findNode(DartIdentifier.class, "bbb]");
-      VariableElement element = (VariableElement) identifier.getElement();
+      DartCommentRefName node = findNode(DartCommentRefName.class, "bbb]");
+      VariableElement element = (VariableElement) node.getElement();
       assertSame(ElementKind.PARAMETER, ElementKind.of(element));
       assertEquals("bbb", element.getName());
     }
   }
   
-  public void test_resolveIdentifierInComment_ofMethod() throws Exception {
+  public void test_resolveRefInComment_ofMethod() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -5532,15 +5534,40 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors());
     // [fff]
     {
-      DartIdentifier identifier = findNode(DartIdentifier.class, "fff]");
-      FieldElement element = (FieldElement) identifier.getElement();
+      DartCommentRefName node = findNode(DartCommentRefName.class, "fff]");
+      FieldElement element = (FieldElement) node.getElement();
       assertEquals("fff", element.getName());
     }
-    // [bbb]
+    // [bar]
     {
-      DartIdentifier identifier = findNode(DartIdentifier.class, "bar]");
-      MethodElement element = (MethodElement) identifier.getElement();
+      DartCommentRefName node = findNode(DartCommentRefName.class, "bar]");
+      MethodElement element = (MethodElement) node.getElement();
       assertEquals("bar", element.getName());
+    }
+  }
+  
+  public void test_resolveNewInComment() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A() {}",
+        "  A.named() {}",
+        "}",
+        "/** Creates [A] using [new A] or [new A.named] constructors. */",
+        "foo() {}",
+        "");
+    assertErrors(result.getErrors());
+    // [new A]
+    {
+      DartCommentNewName node = findNode(DartCommentNewName.class, "new A]");
+      assertEquals("", node.getConstructorElement().getName());
+      assertEquals("A", node.getClassElement().getName());
+    }
+    // [new A.named]
+    {
+      DartCommentNewName node = findNode(DartCommentNewName.class, "new A.named]");
+      assertEquals("named", node.getConstructorElement().getName());
+      assertEquals("A", node.getClassElement().getName());
     }
   }
 }

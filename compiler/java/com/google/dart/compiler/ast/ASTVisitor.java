@@ -84,6 +84,14 @@ public class ASTVisitor<R> {
   public R visitComment(DartComment node) {
     return visitNode(node);
   }
+  
+  public R visitCommentNewName(DartCommentNewName node) {
+    return visitNode(node);
+  }
+  
+  public R visitCommentRefName(DartCommentRefName node) {
+    return visitNode(node);
+  }
 
   public R visitAnnotation(DartAnnotation node) {
     return visitNode(node);

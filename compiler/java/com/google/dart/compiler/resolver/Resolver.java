@@ -21,6 +21,8 @@ import com.google.dart.compiler.ast.DartCase;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartComment;
+import com.google.dart.compiler.ast.DartCommentNewName;
+import com.google.dart.compiler.ast.DartCommentRefName;
 import com.google.dart.compiler.ast.DartContinueStatement;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartDoWhileStatement;
@@ -305,6 +307,32 @@ public class Resolver {
     }
 
     @Override
+    public Element visitCommentRefName(DartCommentRefName node) {
+      Scope scope = getContext().getScope();
+      String name = node.getName();
+      Element element = scope.findElement(scope.getLibrary(), name);
+      return recordElement(node, element);
+    }
+
+    @Override
+    public Element visitCommentNewName(DartCommentNewName node) {
+      String className = node.getClassName();
+      String constructorName = node.getConstructorName();
+      Scope scope = getContext().getScope();
+      Element element = scope.findElement(scope.getLibrary(), className);
+      if (ElementKind.of(element) == ElementKind.CLASS) {
+        ClassElement classElement = (ClassElement) element;
+        for (ConstructorElement constructor : classElement.getConstructors()) {
+          if (constructor.getName().equals(constructorName)) {
+            node.setElements(classElement, constructor);
+            return constructor;
+          }
+        }
+      }
+      return null;
+    }
+
+    @Override
     public Element visitClass(DartClass cls) {
       assert currentMethod == null : "nested class?";
       ClassNodeElement classElement = cls.getElement();
@@ -408,7 +436,7 @@ public class Resolver {
           }
         });
       }
-      
+
       {
         DartComment comment = cls.getDartDoc();
         if (comment != null) {

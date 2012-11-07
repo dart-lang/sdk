@@ -9,14 +9,16 @@ import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartComment;
+import com.google.dart.compiler.ast.DartCommentNewName;
+import com.google.dart.compiler.ast.DartCommentRefName;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartField;
-import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.metrics.CompilerMetrics;
+import com.google.dart.compiler.util.apache.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -179,25 +181,47 @@ public class DartParserCommentsHelper {
         break;
       }
       lastIndex = closeIndex;
-      openIndex++;
-      String tokenSrc = src.substring(openIndex, closeIndex);
+      String tokenSrc = src.substring(openIndex + 1, closeIndex);
       if (tokenSrc.startsWith(":") && tokenSrc.endsWith(":")) {
         // TODO(scheglov) [:code:] and 'code'
       } else if (tokenSrc.startsWith("new ")) {
-        // TODO(scheglov) may be resolve constructor
-      } else {
-        DartScanner scanner = new DartScanner(tokenSrc);
-        if (scanner.next() == Token.IDENTIFIER) {
-          String name = new String(scanner.getTokenValue());
-          DartIdentifier id = new DartIdentifier(name);
-          {
-            SourceInfo sourceInfo = comment.getSourceInfo();
-            int offset = sourceInfo.getOffset() + openIndex;
-            int length = name.length();
-            id.setSourceInfo(new SourceInfo(sourceInfo.getSource(), offset, length));
-          }
-          comment.addTokenIdentifier(id);
+        SourceInfo sourceInfo = comment.getSourceInfo();
+        int offset = sourceInfo.getOffset() + openIndex;
+        int classOffset = offset + "[".length();
+        // remove leading "new "
+        String name = StringUtils.remove(tokenSrc, "new ");
+        classOffset += "new ".length();
+        // remove spaces
+        {
+          String stripName = StringUtils.stripStart(name, null);
+          classOffset += name.length() - stripName.length();
+          name = stripName;
         }
+        name = name.trim();
+        //
+        String className = StringUtils.substringBefore(name, ".");
+        String constructorName = StringUtils.substringAfter(name, ".");
+        int constructorOffset = classOffset + className.length() + ".".length();
+        DartCommentNewName newNode = new DartCommentNewName(className, classOffset,
+            constructorName, constructorOffset);
+        {
+          Source source = sourceInfo.getSource();
+          int length = tokenSrc.length() + "[]".length();
+          newNode.setSourceInfo(new SourceInfo(source, offset, length));
+        }
+        // add node
+        comment.addNewName(newNode);
+      } else {
+        String name = tokenSrc.trim();
+        DartCommentRefName refNode = new DartCommentRefName(name);
+        {
+          SourceInfo sourceInfo = comment.getSourceInfo();
+          Source source = sourceInfo.getSource();
+          int offset = sourceInfo.getOffset() + openIndex;
+          int length = name.length() + "[]".length();
+          refNode.setSourceInfo(new SourceInfo(source, offset, length));
+        }
+        comment.addRefName(refNode);
       }
     }
   }
