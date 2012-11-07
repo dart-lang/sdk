@@ -106,7 +106,7 @@ String _filePathFromUri(String userUri, bool isWindows) {
       throw "Not a known scheme: $uri";
   }
 
-  if (isWindows) {
+  if (isWindows && path.startsWith("/")) {
     // For Windows we need to massage the paths a bit according to
     // http://blogs.msdn.com/b/ie/archive/2006/12/06/file-uris-in-windows.aspx
     //
