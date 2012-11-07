@@ -511,7 +511,13 @@ class VariableNamer {
       if (name != null) return addAllocatedName(instruction, name);
     }
 
-    if (instruction.sourceElement != null) {
+    // The dom/html libraries have inline JS code that reference	
+    // parameter names directly. Long-term such code will be rejected.
+    // Now, just don't mangle the parameter name.
+    if (instruction is HParameterValue
+        && instruction.sourceElement.enclosingElement.isNative()) {
+      name = instruction.sourceElement.name.slowToString();
+    } else if (instruction.sourceElement != null) {
       name = allocateWithHint(instruction.sourceElement.name.slowToString());
     } else {
       // We could not find an element for the instruction. If the
