@@ -116,6 +116,8 @@ class ElementKind {
   static const ElementKind VOID =
     const ElementKind('void', ElementCategory.NONE);
 
+  static const ElementKind AMBIGUOUS =
+      const ElementKind('ambiguous', ElementCategory.NONE);
   static const ElementKind ERROR =
       const ElementKind('error', ElementCategory.NONE);
 
@@ -194,6 +196,9 @@ class Element implements Spannable {
 
   /** See [ErroneousElement] for documentation. */
   bool isErroneous() => false;
+
+  /** See [AmbiguousElement] for documentation. */
+  bool isAmbiguous() => false;
 
   /**
    * Is [:true:] if this element has a corresponding patch.
@@ -420,6 +425,43 @@ class ErroneousFunctionElement extends ErroneousElement
   requiredParameterCount(compiler) => unsupported();
   optionalParameterCount(compiler) => unsupported();
   parameterCount(copmiler) => unsupported();
+}
+
+/**
+ * An ambiguous element represent multiple elements accessible by the same name.
+ *
+ * Ambiguous elements are created during handling of import/export scopes. If an
+ * ambiguous element is encountered during resolution a warning/error should be
+ * reported.
+ */
+class AmbiguousElement extends Element {
+  /**
+   * The message to report on resolving this element.
+   */
+  final MessageKind messageKind;
+
+  /**
+   * The message arguments to report on resolving this element.
+   */
+  final List messageArguments;
+
+  /**
+   * The first element that this ambiguous element might refer to.
+   */
+  final Element existingElement;
+
+  /**
+   * The second element that this ambiguous element might refer to.
+   */
+  final Element newElement;
+
+  AmbiguousElement(this.messageKind, this.messageArguments,
+      Element enclosingElement, Element existingElement, Element newElement)
+      : this.existingElement = existingElement,
+        this.newElement = newElement,
+        super(existingElement.name, ElementKind.AMBIGUOUS, enclosingElement);
+
+  bool isAmbiguous() => true;
 }
 
 class ContainerElement extends Element {
@@ -660,13 +702,11 @@ class LibraryElement extends ScopeContainerElement {
   void addImport(Element element, DiagnosticListener listener) {
     Element existing = importScope[element.name];
     if (existing != null) {
-      if (!existing.isErroneous()) {
-        // TODO(johnniwinther): Provide access to both the new and existing
-        // elements.
-        importScope[element.name] = new ErroneousElement(
-            MessageKind.DUPLICATE_IMPORT,
-            [element.name], element.name, this);
-      }
+      // TODO(johnniwinther): Provide access to the import tags from which
+      // the elements came.
+      importScope[element.name] = new AmbiguousElement(
+          MessageKind.DUPLICATE_IMPORT, [element.name],
+          this, existing, element);
     } else {
       importScope[element.name] = element;
     }

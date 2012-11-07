@@ -1083,9 +1083,9 @@ class TypeResolver {
     DartType type;
     if (element == null) {
       onFailure(node, MessageKind.CANNOT_RESOLVE_TYPE, [node.typeName]);
-    } else if (element.isErroneous()) {
-      ErroneousElement error = element;
-      onFailure(node, error.messageKind, error.messageArguments);
+    } else if (element.isAmbiguous()) {
+      AmbiguousElement ambiguous = element;
+      onFailure(node, ambiguous.messageKind, ambiguous.messageArguments);
     } else if (!element.impliesType()) {
       onFailure(node, MessageKind.NOT_A_TYPE, [node.typeName]);
     } else {
@@ -1241,17 +1241,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
                                                  SourceString name,
                                                  MessageKind kind,
                                                  List<Node> arguments) {
-    return warnOnErroneousElement(node,
-        new ErroneousElement(kind, arguments, name, enclosingElement));
-  }
-
-  ErroneousElement warnOnErroneousElement(Node node,
-                                          ErroneousElement erroneousElement) {
-    ResolutionWarning warning =
-        new ResolutionWarning(erroneousElement.messageKind,
-                              erroneousElement.messageArguments);
+    ResolutionWarning warning = new ResolutionWarning(kind, arguments);
     compiler.reportWarning(node, warning);
-    return erroneousElement;
+    return new ErroneousElement(kind, arguments, name, enclosingElement);
   }
 
   Element visitIdentifier(Identifier node) {
@@ -1274,8 +1266,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
                                                   MessageKind.CANNOT_RESOLVE,
                                                   [node]);
         }
-      } else if (element.isErroneous()) {
-        element = warnOnErroneousElement(node, element);
+      } else if (element.isAmbiguous()) {
+        AmbiguousElement ambiguous = element;
+        element = warnAndCreateErroneousElement(node, node.source,
+                                                ambiguous.messageKind,
+                                                ambiguous.messageArguments);
       } else {
         if ((element.kind.category & allowedCategory) == 0) {
           // TODO(ahe): Improve error message. Need UX input.
