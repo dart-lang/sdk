@@ -3,6 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Fisk {
+  get fisk => null;	
+  static            /// 01: static type warning	
+  set fisk(x) {}
+
+  static            /// 02: static type warning	
+  get hest => null;	
+  set hest(x) {}	
+
   foo() {}
   var field;
   method() {}
