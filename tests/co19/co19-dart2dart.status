@@ -108,8 +108,8 @@ Language/13_Libraries_and_Scripts/1_Imports_A03_t62: Fail # TODO(dart2dart-team)
 Language/13_Libraries_and_Scripts/2_Exports_A01_t07: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A01_t15: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A01_t16: Fail # TODO(dart2dart-team): Please triage this failure.
-#Language/13_Libraries_and_Scripts/2_Exports_A04_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-#Language/13_Libraries_and_Scripts/2_Exports_A04_t02: Fail # Inherited from dart2js
+Language/13_Libraries_and_Scripts/2_Exports_A04_t01: Fail # TODO(dart2dart-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A04_t02: Fail # Inherited from dart2js
 Language/13_Libraries_and_Scripts/2_Exports_A04_t04: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A04_t05: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A04_t06: Fail # TODO(dart2dart-team): Please triage this failure.

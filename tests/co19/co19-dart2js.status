@@ -134,6 +134,8 @@ Language/13_Libraries_and_Scripts/1_Imports_A03_t62: Fail # TODO(ahe): Please tr
 Language/13_Libraries_and_Scripts/2_Exports_A01_t07: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A01_t15: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A01_t16: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A04_t01: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A04_t02: Fail # Missing check for duplicate exports.
 Language/13_Libraries_and_Scripts/2_Exports_A04_t04: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A04_t05: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A04_t06: Fail # TODO(ahe): Please triage this failure.
