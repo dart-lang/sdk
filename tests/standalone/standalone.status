@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+io/http_basic_test: Pass, Timeout  # Issue 6393
+io/http_advanced_test: Pass, Fail  # Issue 6585
+
 out_of_memory_test: Skip # Issue 2345
 
 package/invalid_uri_test: Fail, OK # Fails intentionally
