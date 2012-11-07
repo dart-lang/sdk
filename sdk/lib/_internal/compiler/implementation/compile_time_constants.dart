@@ -301,8 +301,7 @@ class CompileTimeConstantEvaluator extends Visitor {
 
   Constant visitLiteralMap(LiteralMap node) {
     if (!node.isConst()) {
-      signalNotCompileTimeConstant(node);
-      error(node);
+      return signalNotCompileTimeConstant(node);
     }
     List<StringConstant> keys = <StringConstant>[];
     Map<StringConstant, Constant> map = new Map<StringConstant, Constant>();
