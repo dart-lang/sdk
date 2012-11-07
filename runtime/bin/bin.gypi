@@ -322,6 +322,9 @@
         '../vm/debugger_api_impl.cc',
         '<(version_cc_file)',
       ],
+      'defines': [
+        'DART_SHARED_LIB',
+      ],
     },
     {
       # Completely statically linked binary for generating snapshots.
@@ -472,6 +475,13 @@
           'link_settings': {
             'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],
           },
+          # Generate an import library on Windows, by exporting a function.
+          # Extensions use this import library to link to the API in dart.exe.
+          'msvs_settings': {
+            'VCLinkerTool': {
+              'AdditionalOptions': [ '/EXPORT:Dart_True' ],
+            },
+          },
        }]],
     },
     {
@@ -543,6 +553,7 @@
         'test_extension_dllmain_win.cc',
       ],
       'defines': [
+        # The only effect of DART_SHARED_LIB is to export the Dart API entries.
         'DART_SHARED_LIB',
       ],
       'conditions': [
