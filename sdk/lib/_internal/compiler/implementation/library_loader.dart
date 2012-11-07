@@ -173,11 +173,12 @@ class LibraryLoaderTask extends LibraryLoader {
     Uri base = library.entryCompilationUnit.script.uri;
     for (LibraryTag tag in library.tags.reverse()) {
       if (tag.isImport) {
-        tagState = checkTag(TagState.IMPORT_OR_EXPORT, tag);
-        if (tag.uri.dartString.slowToString() == 'dart:core') {
+        Import import = tag;
+        tagState = checkTag(TagState.IMPORT_OR_EXPORT, import);
+        if (import.uri.dartString.slowToString() == 'dart:core') {
           importsDartCore = true;
         }
-        libraryDependencies.addLast(tag);
+        libraryDependencies.addLast(import);
       } else if (tag.isExport) {
         tagState = checkTag(TagState.IMPORT_OR_EXPORT, tag);
         libraryDependencies.addLast(tag);
@@ -190,10 +191,11 @@ class LibraryLoaderTask extends LibraryLoader {
         }
         checkDuplicatedLibraryName(library);
       } else if (tag.isPart) {
-        StringNode uri = tag.uri;
+        Part part = tag;
+        StringNode uri = part.uri;
         Uri resolved = base.resolve(uri.dartString.slowToString());
-        tagState = checkTag(TagState.SOURCE, tag);
-        scanPart(tag, resolved, library);
+        tagState = checkTag(TagState.SOURCE, part);
+        scanPart(part, resolved, library);
       } else {
         compiler.internalError("Unhandled library tag.", node: tag);
       }
@@ -546,8 +548,16 @@ class LibraryDependencyNode {
     SourceString name = element.name;
     Element existingElement = exportScope[name];
     if (existingElement != null) {
-      if (existingElement.getLibrary() != library) {
+      if (existingElement.isErroneous()) {
+        compiler.reportMessage(compiler.spanFromElement(element),
+            MessageKind.DUPLICATE_EXPORT.error([name]), api.Diagnostic.ERROR);
+        element = existingElement;
+      } else if (existingElement.getLibrary() != library) {
         // Declared elements hide exported elements.
+        compiler.reportMessage(compiler.spanFromElement(existingElement),
+            MessageKind.DUPLICATE_EXPORT.error([name]), api.Diagnostic.ERROR);
+        compiler.reportMessage(compiler.spanFromElement(element),
+            MessageKind.DUPLICATE_EXPORT.error([name]), api.Diagnostic.ERROR);
         element = exportScope[name] = new ErroneousElement(
             MessageKind.DUPLICATE_EXPORT, [name], name, library);
       }
