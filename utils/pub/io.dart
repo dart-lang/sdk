@@ -19,7 +19,7 @@ bool _isGitInstalledCache;
 String _gitCommandCache;
 
 /** Gets the current working directory. */
-String get workingDir => new File('.').fullPathSync();
+String get workingDir => getFullPath('.');
 
 const Pattern NEWLINE_PATTERN = const RegExp("\r\n?|\n\r?");
 
@@ -649,7 +649,7 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
   // we can figure out why it fails.
 
   // Find 7zip.
-  var scriptPath = new File(new Options().script).fullPathSync();
+  var scriptPath = getFullPath(new Options().script);
   var scriptDir = new Path.fromNative(scriptPath).directoryPath;
 
   // Note: This line of code gets munged by create_sdk.py to be the correct
