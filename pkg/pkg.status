@@ -37,10 +37,6 @@ intl/test/date_time_format_http_request_test: Skip
 [ $runtime == dartium || $runtime == drt ]
 intl/test/date_time_format_http_request_test: Skip
 
-[ $runtime == drt && $compiler == none ]
-
-intl/test/number_format_test: Fail
-
 # Skip intl_message tests that use mirrors on dart2js until it's been
 # implemented there.
 [ $compiler == dart2js ]
