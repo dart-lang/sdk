@@ -373,18 +373,12 @@ Future<File> createPackageSymlink(String name, from, to,
   });
 }
 
-/// Given [entry] which may be a [String], [File], or [Directory] relative to
-/// the current working directory, returns its full canonicalized path.
-String getFullPath(entry) {
-  var path = new Path(_getPath(entry));
-
-  // Don't do anything if it's already absolute.
-  if (path.isAbsolute) return path.toNativePath();
-
-  // Using Path.join here instead of File().fullPathSync() because the former
-  // does not require an actual file to exist at that path.
-  return new Path.fromNative(workingDir).join(path).toNativePath();
-}
+/**
+ * Given [entry] which may be a [String], [File], or [Directory] relative to
+ * the current working directory, returns its full canonicalized path.
+ */
+// TODO(rnystrom): Should this be async?
+String getFullPath(entry) => new File(_getPath(entry)).fullPathSync();
 
 // TODO(nweiz): make this configurable
 /**
