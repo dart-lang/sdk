@@ -398,7 +398,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HInstruction right = node.right;
     HType leftType = types[left];
     HType rightType = types[right];
-    assert(!leftType.isConflicting() && !rightType.isConflicting());
 
     // We don't optimize on numbers to preserve the runtime semantics.
     if (!(left.isNumberOrNull(types) && right.isNumberOrNull(types)) &&
