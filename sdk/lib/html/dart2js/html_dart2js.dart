@@ -4215,13 +4215,11 @@ class CanvasElement extends Element implements Element native "*HTMLCanvasElemen
   /** @domName HTMLCanvasElement.width */
   int width;
 
-  /** @domName HTMLCanvasElement.getContext */
-  Object getContext(String contextId) native;
-
   /** @domName HTMLCanvasElement.toDataURL */
   String toDataURL(String type, [num quality]) native;
 
 
+  CanvasRenderingContext getContext(String contextId) native;
   CanvasRenderingContext2D get context2d => getContext('2d');
 }
 
@@ -12564,7 +12562,7 @@ class MutationObserver native "*MutationObserver" {
   static _fixupList(list) => list;  // TODO: Ensure is a JavaScript Array.
 
   // Call native function with no conversions.
-  _call(target, options) native 'observe';
+  void _call(target, options) native 'observe';
 }
 
 /// @domName MutationRecord
@@ -14064,7 +14062,8 @@ class Point native "*WebKitPoint" {
 class PopStateEvent extends Event native "*PopStateEvent" {
 
   /** @domName PopStateEvent.state */
-  final Object state;
+  dynamic get state => _convertNativeToDart_SerializedScriptValue(this._state);
+  dynamic get _state => JS("dynamic", "#.state", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

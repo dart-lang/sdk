@@ -518,6 +518,9 @@ dart2js_conversions = {
       Conversion('_convertNativeToDart_SerializedScriptValue',
                  'dynamic', 'dynamic'),
 
+    'DOMObject get PopStateEvent.state':
+      Conversion('_convertNativeToDart_SerializedScriptValue',
+                 'dynamic', 'dynamic'),
 
     # IDBAny is problematic.  Some uses are just a union of other IDB types,
     # which need no conversion..  Others include data values which require

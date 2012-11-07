@@ -17179,7 +17179,7 @@ class MutationObserver extends NativeFieldWrapperClass1 {
   static _add(m, String key, value) { m[key] = value; }
   static _fixupList(list) => list;
 
-  _call(Node target, options) {
+  void _call(Node target, options) {
     _observe(target, options);
   }
 

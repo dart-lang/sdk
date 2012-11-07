@@ -17,6 +17,7 @@ _js_custom_members = set([
     'AudioContext.createGain',
     'AudioContext.createScriptProcessor',
     'CSSStyleDeclaration.setProperty',
+    'CanvasElement.getContext',
     'Element.insertAdjacentElement',
     'Element.insertAdjacentHTML',
     'Element.insertAdjacentText',
