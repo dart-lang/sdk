@@ -3073,7 +3073,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       compiler.internalError("Unresolved element: $constructor", node: node);
     }
     FunctionElement functionElement = constructor;
-    constructor = functionElement.defaultImplementation;
+    constructor = functionElement.redirectionTarget;
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HStatic].
     HInstruction target = new HStatic(constructor.declaration);
@@ -3307,6 +3307,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   visitNewExpression(NewExpression node) {
     Element element = elements[node.send];
+    if (!Elements.isErroneousElement(element)) {
+      element = element.redirectionTarget;
+    }
     if (Elements.isErroneousElement(element)) {
       ErroneousElement error = element;
       if (error.messageKind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
@@ -3523,10 +3526,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       native.handleSsaNative(this, node.expression);
       return;
     }
-    if (node.isRedirectingFactoryBody) {
-      compiler.internalError("Unimplemented: Redirecting factory constructor",
-                             node: node);
-    }
+    assert(invariant(node, !node.isRedirectingFactoryBody));
     HInstruction value;
     if (node.expression == null) {
       value = graph.addConstantNull(constantSystem);

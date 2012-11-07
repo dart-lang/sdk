@@ -32,6 +32,7 @@ class_literal_test/29: Fail # Class literals are expression now; delete this tes
 *vm_negative_test: Skip
 
 [ $compiler == dart2js && $checked ]
+redirecting_factory_infinite_steps_test/01: Fail
 assert_with_type_test_or_cast_test: Fail # Issue 4929
 type_variable_bounds_test/01: Fail
 type_variable_bounds_test/02: Fail
@@ -84,6 +85,12 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dart2js ]
+factory_redirection_test/none: fail
+factory_redirection_test/01: fail
+factory_redirection_test/02: fail
+factory_redirection_test/03: fail
+factory_redirection_test/05: fail
+factory_redirection_test/06: fail
 final_variable_assignment_test/01: Fail
 final_variable_assignment_test/02: Fail
 final_variable_assignment_test/03: Fail
@@ -136,14 +143,6 @@ ct_const_test: Fail # We don't take the generic type into account yet.
 char_escape_test: Fail # Unhandled non-BMP character: U+10000
 default_factory_library_test: Fail # lib is not a type
 dynamic_test: Fail # cannot resolve type F1
-factory_redirection_test/none: Fail # Not implemented.
-factory_redirection_test/01: Fail # Not implemented.
-factory_redirection_test/02: Fail # Not implemented.
-factory_redirection_test/03: Fail # Not implemented.
-factory_redirection_test/04: Pass # For the wrong reason. Not implemented.
-factory_redirection_test/05: Fail # Not implemented.
-factory_redirection_test/06: Fail # Not implemented.
-factory_redirection_test/07: Pass # For the wrong reason. Not implemented.
 constructor_redirect2_test/03: Fail # redirecting ctor with initializing formal
 factory3_test: Fail # internal error: visitIs for type variables not implemented
 function_type_alias2_test: Fail # cannot resolve type f1

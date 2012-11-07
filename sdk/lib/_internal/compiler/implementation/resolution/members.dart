@@ -1870,10 +1870,38 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   visitReturn(Return node) {
     if (node.isRedirectingFactoryBody) {
-      useElement(node.expression, resolveRedirectingFactory(node));
+      handleRedirectingFactoryBody(node);
     } else {
       visit(node.expression);
     }
+  }
+
+  void handleRedirectingFactoryBody(Return node) {
+    Element redirectionTarget = resolveRedirectingFactory(node);
+    var type = mapping.getType(node.expression);
+    if (type is InterfaceType && !type.arguments.isEmpty) {
+      unimplemented(node.expression, 'type arguments on redirecting factory');
+    }
+    useElement(node.expression, redirectionTarget);
+    assert(invariant(node, enclosingElement.isFactoryConstructor()));
+    FunctionElement constructor = enclosingElement;
+    if (constructor.modifiers.isConst() &&
+        !redirectionTarget.modifiers.isConst()) {
+      error(node, MessageKind.CONSTRUCTOR_IS_NOT_CONST);
+    }
+    // TODO(ahe): Check that this doesn't lead to a cycle.  For now,
+    // just make sure that the redirection target isn't itself a
+    // redirecting factory.
+    { // This entire block is temporary code per the above TODO.
+      FunctionElement targetImplementation = redirectionTarget.implementation;
+      FunctionExpression function = targetImplementation.parseNode(compiler);
+      if (function.body != null && function.body.asReturn() != null
+          && function.body.asReturn().isRedirectingFactoryBody) {
+        unimplemented(node.expression, 'redirecing to redirecting factory');
+      }
+    }
+    constructor.defaultImplementation = redirectionTarget;
+    world.registerStaticUse(redirectionTarget);
   }
 
   visitThrow(Throw node) {

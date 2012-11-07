@@ -425,6 +425,8 @@ class ErroneousFunctionElement extends ErroneousElement
   requiredParameterCount(compiler) => unsupported();
   optionalParameterCount(compiler) => unsupported();
   parameterCount(copmiler) => unsupported();
+
+  get redirectionTarget => this;
 }
 
 /**
@@ -1141,10 +1143,14 @@ class FunctionElement extends Element {
   FunctionElement origin = null;
 
   /**
-   * If this is an interface constructor, [defaultImplementation] will
-   * changed by the resolver to point to the default
-   * implementation. Otherwise, [:defaultImplementation === this:].
+   * If this is a redirecting factory, [defaultImplementation] will be
+   * changed by the resolver to point to the redirection target.  If
+   * this is an interface constructor, [defaultImplementation] will be
+   * changed by the resolver to point to the default implementation.
+   * Otherwise, [:defaultImplementation === this:].
    */
+  // TODO(ahe): Rename this field to redirectionTarget and remove
+  // mention of interface constructors above.
   FunctionElement defaultImplementation;
 
   FunctionElement(SourceString name,
@@ -1180,6 +1186,24 @@ class FunctionElement extends Element {
 
   bool get isPatched => patch != null;
   bool get isPatch => origin != null;
+
+  FunctionElement get redirectionTarget {
+    if (this == defaultImplementation) return this;
+    Element target = defaultImplementation;
+    Set<Element> seen = new Set<Element>();
+    seen.add(target);
+    while (!target.isErroneous() && target != target.defaultImplementation) {
+      target = target.defaultImplementation;
+      if (seen.contains(target)) {
+        // TODO(ahe): This is expedient for now, but it should be
+        // checked by the resolver.  Keeping http://dartbug.com/3970
+        // open to track this.
+        throw new SpannableAssertionFailure(
+            target, 'redirecting factory leads to cycle');
+      }
+    }
+    return target;
+  }
 
   /**
    * Applies a patch function to this function. The patch function's body
