@@ -727,7 +727,6 @@ class StandardTestSuite implements TestSuite {
       TestCase multitestParentTest;
       int subtestIndex = 0;
       // Construct the command that executes the browser test
-      constructBrowserTestCommands();
       do {
         List<String> args = <String>[];
         String fullHtmlPath = htmlPath;
@@ -796,10 +795,6 @@ class StandardTestSuite implements TestSuite {
         subtestIndex++;
       } while(subtestIndex < subtestNames.length);
     }
-  }
-
-  void constructBrowserTestCommands() {
-
   }
 
   /** Helper to create a compilation command for a single input file. */
