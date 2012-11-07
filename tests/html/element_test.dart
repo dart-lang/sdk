@@ -4,7 +4,7 @@
 
 library ElementTest;
 import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
 
 expectLargeRect(ClientRect rect) {
@@ -53,7 +53,7 @@ void testConstructorHelper(String tag, String htmlSnippet,
 }
 
 main() {
-  useHtmlConfiguration();
+  useHtmlIndividualConfiguration();
 
   var isHRElement = predicate((x) => x is HRElement, 'is a HRElement');
   var isBRElement = predicate((x) => x is BRElement, 'is a BRElement');
@@ -125,6 +125,52 @@ main() {
     container.remove();
   });
 
+  group('additionalConstructors', () {
+    test('blockquote', () => testConstructorHelper('blockquote',
+        '<blockquote>foo</blockquote>', 'foo',
+        (element) => element is QuoteElement));
+    test('body', () => testConstructorHelper('body',
+        '<body><div>foo</div></body>', 'foo',
+        (element) => element is BodyElement));
+    test('head', () => testConstructorHelper('head',
+        '<head><script>foo;</script></head>', 'foo;',
+        (element) => element is HeadElement));
+    test('optgroup', () => testConstructorHelper('optgroup',
+        '<optgroup>foo</optgroup>', 'foo',
+        (element) => element is OptGroupElement));
+    test('option', () => testConstructorHelper('option',
+        '<option>foo</option>', 'foo',
+        (element) => element is OptionElement));
+    test('output', () => testConstructorHelper('output',
+        '<output>foo</output>', 'foo',
+        (element) => element is OutputElement));
+    test('progress', () => testConstructorHelper('progress',
+        '<progress>foo</progress>', 'foo',
+        (element) => element is ProgressElement));
+    test('caption', () => testConstructorHelper('caption',
+        '<caption>foo</caption>', 'foo',
+        (element) => element is TableCaptionElement));
+    test('td', () => testConstructorHelper('td', '<td>foo</td>', 'foo',
+        (element) => element is TableCellElement));
+    test('colgroup', () => testConstructorHelper('colgroup',
+        '<colgroup></colgroup>', '',
+        (element) => element is TableColElement));
+    test('col', () => testConstructorHelper('col', '<col></col>', '',
+        (element) => element is TableColElement));
+    test('tr', () => testConstructorHelper('tr',
+        '<tr><td>foo</td></tr>', 'foo',
+        (element) => element is TableRowElement));
+    test('tbody', () => testConstructorHelper('tbody',
+        '<tbody><tr><td>foo</td></tr></tbody>', 'foo',
+        (element) => element is TableSectionElement));
+    test('tfoot', () => testConstructorHelper('tfoot',
+        '<tfoot><tr><td>foo</td></tr></tfoot>', 'foo',
+        (element) => element is TableSectionElement));
+    test('thead', () => testConstructorHelper('thead',
+        '<thead><tr><td>foo</td></tr></thead>', 'foo',
+        (element) => element is TableSectionElement));
+  });
+    
   group('constructors', () {
     test('error', () {
       expect(() => new Element.html('<br/><br/>'), throwsArgumentError);
@@ -146,12 +192,6 @@ main() {
         (element) => element is BRElement));
     test('base', () => testConstructorHelper('base', '<base>foo</base>', '',
         (element) => element is BaseElement));
-    test('blockquote', () => testConstructorHelper('blockquote',
-        '<blockquote>foo</blockquote>', 'foo',
-        (element) => element is QuoteElement));
-    test('body', () => testConstructorHelper('body',
-        '<body><div>foo</div></body>', 'foo',
-        (element) => element is BodyElement));
     test('button', () => testConstructorHelper('button',
         '<button>foo</button>', 'foo',
         (element) => element is ButtonElement));
@@ -175,9 +215,6 @@ main() {
         (element) => element is FormElement));
     test('hr', () => testConstructorHelper('hr', '<hr>', '',
         (element) => element is HRElement));
-    test('head', () => testConstructorHelper('head',
-        '<head><script>foo;</script></head>', 'foo;',
-        (element) => element is HeadElement));
     test('h1', () => testConstructorHelper('h1', '<h1>foo</h1>', 'foo',
         (element) => element is HeadingElement));
     test('h2', () => testConstructorHelper('h2', '<h2>foo</h2>', 'foo',
@@ -219,24 +256,12 @@ main() {
         (element) => element is ModElement));
     test('ol', () => testConstructorHelper('ol', '<ol>foo</ol>', 'foo',
         (element) => element is OListElement));
-    test('optgroup', () => testConstructorHelper('optgroup',
-        '<optgroup>foo</optgroup>', 'foo',
-        (element) => element is OptGroupElement));
-    test('option', () => testConstructorHelper('option',
-        '<option>foo</option>', 'foo',
-        (element) => element is OptionElement));
-    test('output', () => testConstructorHelper('output',
-        '<output>foo</output>', 'foo',
-        (element) => element is OutputElement));
     test('p', () => testConstructorHelper('p', '<p>foo</p>', 'foo',
         (element) => element is ParagraphElement));
     test('param', () => testConstructorHelper('param', '<param>', '',
         (element) => element is ParamElement));
     test('pre', () => testConstructorHelper('pre', '<pre>foo</pre>', 'foo',
         (element) => element is PreElement));
-    test('progress', () => testConstructorHelper('progress',
-        '<progress>foo</progress>', 'foo',
-        (element) => element is ProgressElement));
     test('q', () => testConstructorHelper('q', '<q>foo</q>', 'foo',
         (element) => element is QuoteElement));
     test('script', () => testConstructorHelper('script',
@@ -254,31 +279,9 @@ main() {
     test('style', () => testConstructorHelper('style',
         '<style>foo</style>', 'foo',
         (element) => element is StyleElement));
-    test('caption', () => testConstructorHelper('caption',
-        '<caption>foo</caption>', 'foo',
-        (element) => element is TableCaptionElement));
-    test('td', () => testConstructorHelper('td', '<td>foo</td>', 'foo',
-        (element) => element is TableCellElement));
-    test('colgroup', () => testConstructorHelper('colgroup',
-        '<colgroup></colgroup>', '',
-        (element) => element is TableColElement));
-    test('col', () => testConstructorHelper('col', '<col></col>', '',
-        (element) => element is TableColElement));
     test('table', () => testConstructorHelper('table',
         '<table><caption>foo</caption></table>', 'foo',
         (element) => element is TableElement));
-    test('tr', () => testConstructorHelper('tr',
-        '<tr><td>foo</td></tr>', 'foo',
-        (element) => element is TableRowElement));
-    test('tbody', () => testConstructorHelper('tbody',
-        '<tbody><tr><td>foo</td></tr></tbody>', 'foo',
-        (element) => element is TableSectionElement));
-    test('tfoot', () => testConstructorHelper('tfoot',
-        '<tfoot><tr><td>foo</td></tr></tfoot>', 'foo',
-        (element) => element is TableSectionElement));
-    test('thead', () => testConstructorHelper('thead',
-        '<thead><tr><td>foo</td></tr></thead>', 'foo',
-        (element) => element is TableSectionElement));
     test('textarea', () => testConstructorHelper('textarea',
         '<textarea>foo</textarea>', 'foo',
         (element) => element is TextAreaElement));
@@ -301,146 +304,155 @@ main() {
     //     '<someunknown>foo</someunknown>', 'foo',
     //     (element) => element is UnknownElement));
   });
+  
+  group('eventListening', () {
+    test('eventListeners', () {
+      final element = new Element.tag('div');
+      final on = element.on;
 
-  test('eventListeners', () {
-    final element = new Element.tag('div');
-    final on = element.on;
-
-    testEventHelper(on.abort, 'abort',
-        (listener) => Testing.addEventListener(
-            element, 'abort', listener, true));
-    testEventHelper(on.beforeCopy, 'beforecopy',
-        (listener) => Testing.addEventListener(
-            element, 'beforecopy', listener, true));
-    testEventHelper(on.beforeCut, 'beforecut',
-        (listener) => Testing.addEventListener(
-            element, 'beforecut', listener, true));
-    testEventHelper(on.beforePaste, 'beforepaste',
-        (listener) => Testing.addEventListener(
-            element, 'beforepaste', listener, true));
-    testEventHelper(on.blur, 'blur',
-        (listener) => Testing.addEventListener(
-            element, 'blur', listener, true));
-    testEventHelper(on.change, 'change',
-        (listener) => Testing.addEventListener(
-            element, 'change', listener, true));
-    testEventHelper(on.click, 'click',
-        (listener) => Testing.addEventListener(
-            element, 'click', listener, true));
-    testEventHelper(on.contextMenu, 'contextmenu',
-        (listener) => Testing.addEventListener(
-            element, 'contextmenu', listener, true));
-    testEventHelper(on.copy, 'copy',
-        (listener) => Testing.addEventListener(
-            element, 'copy', listener, true));
-    testEventHelper(on.cut, 'cut',
-        (listener) => Testing.addEventListener(
-            element, 'cut', listener, true));
-    testEventHelper(on.doubleClick, 'dblclick',
-        (listener) => Testing.addEventListener(
-            element, 'dblclick', listener, true));
-    testEventHelper(on.drag, 'drag',
-        (listener) => Testing.addEventListener(
-            element, 'drag', listener, true));
-    testEventHelper(on.dragEnd, 'dragend',
-        (listener) => Testing.addEventListener(
-            element, 'dragend', listener, true));
-    testEventHelper(on.dragEnter, 'dragenter',
-        (listener) => Testing.addEventListener(
-            element, 'dragenter', listener, true));
-    testEventHelper(on.dragLeave, 'dragleave',
-        (listener) => Testing.addEventListener(
-            element, 'dragleave', listener, true));
-    testEventHelper(on.dragOver, 'dragover',
-        (listener) => Testing.addEventListener(
-            element, 'dragover', listener, true));
-    testEventHelper(on.dragStart, 'dragstart',
-        (listener) => Testing.addEventListener(
-            element, 'dragstart', listener, true));
-    testEventHelper(on.drop, 'drop',
-        (listener) => Testing.addEventListener(
-            element, 'drop', listener, true));
-    testEventHelper(on.error, 'error',
-        (listener) => Testing.addEventListener(
-            element, 'error', listener, true));
-    testEventHelper(on.focus, 'focus',
-        (listener) => Testing.addEventListener(
-            element, 'focus', listener, true));
-    testEventHelper(on.input, 'input',
-        (listener) => Testing.addEventListener(
-            element, 'input', listener, true));
-    testEventHelper(on.invalid, 'invalid',
-        (listener) => Testing.addEventListener(
-            element, 'invalid', listener, true));
-    testEventHelper(on.keyDown, 'keydown',
-        (listener) => Testing.addEventListener(
-            element, 'keydown', listener, true));
-    testEventHelper(on.keyPress, 'keypress',
-        (listener) => Testing.addEventListener(
-            element, 'keypress', listener, true));
-    testEventHelper(on.keyUp, 'keyup',
-        (listener) => Testing.addEventListener(
-            element, 'keyup', listener, true));
-    testEventHelper(on.load, 'load',
-        (listener) => Testing.addEventListener(
-            element, 'load', listener, true));
-    testEventHelper(on.mouseDown, 'mousedown',
-        (listener) => Testing.addEventListener(
-            element, 'mousedown', listener, true));
-    testEventHelper(on.mouseMove, 'mousemove',
-        (listener) => Testing.addEventListener(
-            element, 'mousemove', listener, true));
-    testEventHelper(on.mouseOut, 'mouseout',
-        (listener) => Testing.addEventListener(
-            element, 'mouseout', listener, true));
-    testEventHelper(on.mouseOver, 'mouseover',
-        (listener) => Testing.addEventListener(
-            element, 'mouseover', listener, true));
-    testEventHelper(on.mouseUp, 'mouseup',
-        (listener) => Testing.addEventListener(
-            element, 'mouseup', listener, true));
-    // Browsers have different events that they use, so fire all variants.
-    testMultipleEventHelper(on.mouseWheel,
-        ['mousewheel', 'wheel', 'DOMMouseScroll'],
-        (listener) => Testing.addEventListener(
-            element, 'mousewheel', listener, true));
-    testEventHelper(on.paste, 'paste',
-        (listener) => Testing.addEventListener(
-            element, 'paste', listener, true));
-    testEventHelper(on.reset, 'reset',
-        (listener) => Testing.addEventListener(
-            element, 'reset', listener, true));
-    testEventHelper(on.scroll, 'scroll',
-        (listener) => Testing.addEventListener(
-            element, 'scroll', listener, true));
-    testEventHelper(on.search, 'search',
-        (listener) => Testing.addEventListener(
-            element, 'search', listener, true));
-    testEventHelper(on.select, 'select',
-        (listener) => Testing.addEventListener(
-            element, 'select', listener, true));
-    testEventHelper(on.selectStart, 'selectstart',
-        (listener) => Testing.addEventListener(
-            element, 'selectstart', listener, true));
-    testEventHelper(on.submit, 'submit',
-        (listener) => Testing.addEventListener(
-            element, 'submit', listener, true));
-    testEventHelper(on.touchCancel, 'touchcancel',
-        (listener) => Testing.addEventListener(
-            element, 'touchcancel', listener, true));
-    testEventHelper(on.touchEnd, 'touchend',
-        (listener) => Testing.addEventListener(
-            element, 'touchend', listener, true));
-    testEventHelper(on.touchLeave, 'touchleave');
-    testEventHelper(on.touchMove, 'touchmove',
-        (listener) => Testing.addEventListener(
-            element, 'touchmove', listener, true));
-    testEventHelper(on.touchStart, 'touchstart',
-        (listener) => Testing.addEventListener(
-            element, 'touchstart', listener, true));
+      testEventHelper(on.abort, 'abort',
+          (listener) => Testing.addEventListener(
+              element, 'abort', listener, true));
+      testEventHelper(on.beforeCopy, 'beforecopy',
+          (listener) => Testing.addEventListener(
+              element, 'beforecopy', listener, true));
+      testEventHelper(on.beforeCut, 'beforecut',
+          (listener) => Testing.addEventListener(
+              element, 'beforecut', listener, true));
+      testEventHelper(on.beforePaste, 'beforepaste',
+          (listener) => Testing.addEventListener(
+              element, 'beforepaste', listener, true));
+      testEventHelper(on.blur, 'blur',
+          (listener) => Testing.addEventListener(
+              element, 'blur', listener, true));
+      testEventHelper(on.change, 'change',
+          (listener) => Testing.addEventListener(
+              element, 'change', listener, true));
+      testEventHelper(on.click, 'click',
+          (listener) => Testing.addEventListener(
+              element, 'click', listener, true));
+      testEventHelper(on.contextMenu, 'contextmenu',
+          (listener) => Testing.addEventListener(
+              element, 'contextmenu', listener, true));
+      testEventHelper(on.copy, 'copy',
+          (listener) => Testing.addEventListener(
+              element, 'copy', listener, true));
+      testEventHelper(on.cut, 'cut',
+          (listener) => Testing.addEventListener(
+              element, 'cut', listener, true));
+      testEventHelper(on.doubleClick, 'dblclick',
+          (listener) => Testing.addEventListener(
+              element, 'dblclick', listener, true));
+      testEventHelper(on.drag, 'drag',
+          (listener) => Testing.addEventListener(
+              element, 'drag', listener, true));
+      testEventHelper(on.dragEnd, 'dragend',
+          (listener) => Testing.addEventListener(
+              element, 'dragend', listener, true));
+      testEventHelper(on.dragEnter, 'dragenter',
+          (listener) => Testing.addEventListener(
+              element, 'dragenter', listener, true));
+      testEventHelper(on.dragLeave, 'dragleave',
+          (listener) => Testing.addEventListener(
+              element, 'dragleave', listener, true));
+      testEventHelper(on.dragOver, 'dragover',
+          (listener) => Testing.addEventListener(
+              element, 'dragover', listener, true));
+      testEventHelper(on.dragStart, 'dragstart',
+          (listener) => Testing.addEventListener(
+              element, 'dragstart', listener, true));
+      testEventHelper(on.drop, 'drop',
+          (listener) => Testing.addEventListener(
+              element, 'drop', listener, true));
+      testEventHelper(on.error, 'error',
+          (listener) => Testing.addEventListener(
+              element, 'error', listener, true));
+      testEventHelper(on.focus, 'focus',
+          (listener) => Testing.addEventListener(
+              element, 'focus', listener, true));
+      testEventHelper(on.input, 'input',
+          (listener) => Testing.addEventListener(
+              element, 'input', listener, true));
+      testEventHelper(on.invalid, 'invalid',
+          (listener) => Testing.addEventListener(
+              element, 'invalid', listener, true));
+      testEventHelper(on.keyDown, 'keydown',
+          (listener) => Testing.addEventListener(
+              element, 'keydown', listener, true));
+      testEventHelper(on.keyPress, 'keypress',
+          (listener) => Testing.addEventListener(
+              element, 'keypress', listener, true));
+      testEventHelper(on.keyUp, 'keyup',
+          (listener) => Testing.addEventListener(
+              element, 'keyup', listener, true));
+      testEventHelper(on.load, 'load',
+          (listener) => Testing.addEventListener(
+              element, 'load', listener, true));
+      testEventHelper(on.mouseDown, 'mousedown',
+          (listener) => Testing.addEventListener(
+              element, 'mousedown', listener, true));
+      testEventHelper(on.mouseMove, 'mousemove',
+          (listener) => Testing.addEventListener(
+              element, 'mousemove', listener, true));
+      testEventHelper(on.mouseOut, 'mouseout',
+          (listener) => Testing.addEventListener(
+              element, 'mouseout', listener, true));
+      testEventHelper(on.mouseOver, 'mouseover',
+          (listener) => Testing.addEventListener(
+              element, 'mouseover', listener, true));
+      testEventHelper(on.mouseUp, 'mouseup',
+          (listener) => Testing.addEventListener(
+              element, 'mouseup', listener, true));
+      // Browsers have different events that they use, so fire all variants.
+      testMultipleEventHelper(on.mouseWheel,
+          ['mousewheel', 'wheel', 'DOMMouseScroll'],
+          (listener) => Testing.addEventListener(
+              element, 'mousewheel', listener, true));
+      testEventHelper(on.paste, 'paste',
+          (listener) => Testing.addEventListener(
+              element, 'paste', listener, true));
+      testEventHelper(on.reset, 'reset',
+          (listener) => Testing.addEventListener(
+              element, 'reset', listener, true));
+      testEventHelper(on.scroll, 'scroll',
+          (listener) => Testing.addEventListener(
+              element, 'scroll', listener, true));
+      testEventHelper(on.search, 'search',
+          (listener) => Testing.addEventListener(
+              element, 'search', listener, true));
+      testEventHelper(on.select, 'select',
+          (listener) => Testing.addEventListener(
+              element, 'select', listener, true));
+      testEventHelper(on.selectStart, 'selectstart',
+          (listener) => Testing.addEventListener(
+              element, 'selectstart', listener, true));
+      testEventHelper(on.submit, 'submit',
+          (listener) => Testing.addEventListener(
+              element, 'submit', listener, true));
+      testEventHelper(on.touchCancel, 'touchcancel',
+          (listener) => Testing.addEventListener(
+              element, 'touchcancel', listener, true));
+      testEventHelper(on.touchEnd, 'touchend',
+          (listener) => Testing.addEventListener(
+              element, 'touchend', listener, true));
+      testEventHelper(on.touchLeave, 'touchleave');
+      testEventHelper(on.touchMove, 'touchmove',
+          (listener) => Testing.addEventListener(
+              element, 'touchmove', listener, true));
+      testEventHelper(on.touchStart, 'touchstart',
+          (listener) => Testing.addEventListener(
+              element, 'touchstart', listener, true));
+    });
   });
 
   group('attributes', () {
+      test('coercion', () {
+        final element = new Element.tag('div');
+        element.attributes['foo'] = 42;
+        element.attributes['bar'] = 3.1;
+        expect(element.attributes['foo'], '42');
+        expect(element.attributes['bar'], '3.1');
+      });
       test('manipulation', () {
         final element = new Element.html(
             '''<div class="foo" style="overflow: hidden" data-foo="bar"
@@ -472,14 +484,6 @@ main() {
         expect(attributes.length, 4);
         attributes['style'] = 'width: 300px;';
         expect(attributes.length, 5);
-      });
-
-      test('coercion', () {
-        final element = new Element.tag('div');
-        element.attributes['foo'] = 42;
-        element.attributes['bar'] = 3.1;
-        expect(element.attributes['foo'], '42');
-        expect(element.attributes['bar'], '3.1');
       });
   });
 

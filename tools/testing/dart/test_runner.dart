@@ -182,11 +182,25 @@ class BrowserTestCase extends TestCase {
    */
   int numRetries;
 
+  /**
+   * True if this test is dependent on another test completing before it can
+   * star (for example, we might need to depend on some other test completing
+   * first).
+   */
+  bool waitingForOtherTest;
+  
+  /**
+   * The set of test cases that wish to be notified when this test has
+   * completed.
+   */
+  List<BrowserTestCase> observers;
+
   BrowserTestCase(displayName, commands, configuration, completedHandler,
-      expectedOutcomes, info, isNegative)
+      expectedOutcomes, info, isNegative, [this.waitingForOtherTest = false])
     : super(displayName, commands, configuration, completedHandler,
         expectedOutcomes, isNegative: isNegative, info: info) {
     numRetries = 2; // Allow two retries to compensate for flaky browser tests.
+    observers = [];
   }
 
   List<String> get _lastArguments => commands.last.arguments;
@@ -195,6 +209,21 @@ class BrowserTestCase extends TestCase {
 
   List<String> get batchTestArguments =>
       _lastArguments.getRange(1, _lastArguments.length - 1);
+
+  /** Add a test case to listen for when this current test has completed. */
+  void addObserver(BrowserTestCase testCase) {
+    observers.add(testCase);
+  }
+
+  /**
+   * Notify all of the test cases that are dependent on this one that they can
+   * proceed.
+   */
+  void notifyObservers() {
+    for (BrowserTestCase testCase in observers) {
+      testCase.waitingForOtherTest = false;
+    }
+  }
 }
 
 
@@ -1076,8 +1105,8 @@ class ProcessQueue {
    * True if we are using a browser + platform combination that needs the
    * Selenium server jar.
    */
-  bool get _needsSelenium => Platform.operatingSystem == 'macos' &&
-      browserUsed == 'safari';
+  bool get _needsSelenium => (Platform.operatingSystem == 'macos' &&
+      browserUsed == 'safari') || browserUsed == 'opera';
 
   /** True if the Selenium Server is ready to be used. */
   bool get _isSeleniumAvailable => _seleniumServer != null ||
@@ -1249,11 +1278,12 @@ class ProcessQueue {
         print(Strings.join(fields, '\t'));
         return;
       }
-      if (test.usesWebDriver && _needsSelenium && !_isSeleniumAvailable) {
-        // The server is not ready to run Selenium tests. Put the test back in
+      if (test.usesWebDriver && _needsSelenium && !_isSeleniumAvailable || (test
+          is BrowserTestCase && test.waitingForOtherTest)) {
+        // The test is not yet ready to run. Put the test back in
         // the queue.  Avoid spin-polling by using a timeout.
         _tests.add(test);
-        new Timer(1000, (timer) {_tryRunTest();});  // Don't lose a process.
+        new Timer(100, (timer) {_tryRunTest();});  // Don't lose a process.
         return;
       }
       if (_verbose) {
@@ -1268,12 +1298,18 @@ class ProcessQueue {
       void wrapper(TestCase test_arg) {
         _numProcesses--;
         _progress.done(test_arg);
+        if (test_arg is BrowserTestCase) test_arg.notifyObservers();
         _tryRunTest();
         oldCallback(test_arg);
       };
       test.completedHandler = wrapper;
-      if (test.configuration['compiler'] == 'dartc' &&
-          test.displayName != 'dartc/junit_tests') {
+
+      if ((test.configuration['compiler'] == 'dartc' &&
+           test.displayName != 'dartc/junit_tests') ||
+          (test.commands.length == 1 && test.usesWebDriver &&
+           !test.configuration['noBatch'])) {
+        // Dartc and browser test cases that do not require a precompilation
+        // step, start with the batch runner right away.
         _getBatchRunner(test).startTest(test);
       } else {
         // Once we've actually failed a test, technically, we wouldn't need to
