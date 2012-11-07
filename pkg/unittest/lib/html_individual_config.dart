@@ -9,11 +9,12 @@
  * the entire test file.
  *
  * To use, import this file, and call [useHtmlIndividualConfiguration] at the
- * start of your set sequence. Your group descriptions MUST NOT contain spaces.
+ * start of your set sequence. Important constraint: your group descriptions
+ * MUST NOT contain spaces.
  */
 #library('unittest');
 
-#import('unittest.dart', prefix: 'unittest_file');
+#import('unittest.dart', prefix: 'unittest');
 #import('html_config.dart', prefix: 'htmlconfig');
 #import('dart:html');
 
@@ -23,15 +24,13 @@ class HtmlIndividualConfiguration extends htmlconfig.HtmlConfiguration {
   HtmlIndividualConfiguration(isLayoutTest): super(isLayoutTest);
 
   void onStart() {
-    var testName = window.location.hash;
-    if (testName != '') {
+    var testGroupName = window.location.hash;
+    if (testGroupName != '') {
       try {
-        testName = testName.substring(1); // cut off the #
-        unittest_file.filterTests('^$testName');
+        testGroupName = testGroupName.substring(1); // cut off the #
+        unittest.filterTests('^$testGroupName');
       } catch (e) {
-        print('tried to match "$testName"');
-        for (TestCase c in unittest_file.testCases)
-          print('test case ${c.description}');
+        print('tried to match "$testGroupName"');
         print('NO_SUCH_TEST');
         exit(1);
       }
@@ -41,5 +40,5 @@ class HtmlIndividualConfiguration extends htmlconfig.HtmlConfiguration {
 }
 
 void useHtmlIndividualConfiguration([bool isLayoutTest = false]) {
-  unittest_file.configure(new HtmlIndividualConfiguration(isLayoutTest));
+  unittest.configure(new HtmlIndividualConfiguration(isLayoutTest));
 }
