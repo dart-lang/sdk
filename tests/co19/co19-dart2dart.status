@@ -242,7 +242,6 @@ Language/06_Functions/4_External_Functions_A01_t01: Fail # inherited from VM
 Language/07_Classes/07_Classes_A02_t02: Fail # http://dartbug.com/5519
 Language/07_Classes/07_Classes_A02_t04: Fail # http://dartbug.com/5519
 Language/07_Classes/07_Classes_A02_t11: Fail # http://dartbug.com/5519
-Language/07_Classes/07_Classes_A03_t01: Fail # inherited from VM
 Language/07_Classes/07_Classes_A03_t02: Fail # http://dartbug.com/5519
 Language/07_Classes/07_Classes_A03_t07: Fail # inherited from dart2js
 Language/07_Classes/07_Classes_A03_t08: Fail # inherited from dart2js
@@ -393,7 +392,6 @@ Language/11_Expressions/11_Instance_Creation/1_New_A02_t05: Fail # inherited fro
 Language/11_Expressions/11_Instance_Creation/1_New_A02_t06: Fail # inherited from dart2js
 Language/11_Expressions/11_Instance_Creation/1_New_A02_t07: Fail # inherited from dart2js
 Language/11_Expressions/11_Instance_Creation/1_New_A09_t09: Fail # inherited from VM
-Language/11_Expressions/11_Instance_Creation/1_New_A12_t02: Fail # Inherited from VM
 Language/11_Expressions/11_Instance_Creation/1_New_A13_t04: Fail # Inherited from VM
 Language/11_Expressions/11_Instance_Creation/1_New_A14_t01: Fail # Inherited from dart2js
 Language/11_Expressions/11_Instance_Creation/2_Const_A01_t02: Fail # http://dartbug.com/5519

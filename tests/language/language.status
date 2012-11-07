@@ -384,7 +384,6 @@ string_escape1_negative_test: Skip
 *: Skip
 
 [ $compiler == dart2dart ]
-redirecting_factory_infinite_steps_test: Fail # Dart2dart cannot handle redirecting constructors.
 many_overridden_no_such_method_test: Fail, Pass # TRIAGE: fails in minified mode
 overridden_no_such_method_test: Fail, Pass # TRIAGE: fails in minified mode
 # Calling unresolved class constructor:

@@ -267,6 +267,8 @@ Language/14_Types/7_Type_Void_A04_t03: Fail, OK
 Language/14_Types/7_Type_Void_A04_t04: Fail, OK
 Language/14_Types/7_Type_Void_A04_t05: Fail, OK
 
+Language/11_Expressions/11_Instance_Creation/1_New_A12_t02: Fail # http://dartbug.com/3970
+
 
 [ $compiler == dart2js ]
 LibTest/core/int/operator_GT_A01_t01: Fail, OK # co19 issue 200
