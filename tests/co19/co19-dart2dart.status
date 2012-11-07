@@ -16,6 +16,8 @@ Language/09_Generics/09_Generics_A02_t01: Fail
 Language/14_Types/4_Interface_Types_A10_t03: Fail
 
 
+Language/07_Classes/07_Classes_A03_t01: Fail, Pass # http://dartbug.com/6603 fails in minified, TRIAGE
+Language/11_Expressions/11_Instance_Creation/1_New_A12_t02: Fail, Pass # http://dartbug.com/6603 fails in minified, TRIAGE
 Language/12_Statements/10_Try_A06_t01: Fail, Pass # Fails in minified, TRIAGE
 Language/11_Expressions/11_Instance_Creation/1_New_A12_t01: Fail, Pass # Fails in minified, TRIAGE
 
