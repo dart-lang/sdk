@@ -56,7 +56,7 @@ logging/test/logging_test: Fail, OK
 args/test/args_test: Fail, OK
 
 [ $system == windows ]
-pkg/http/test/request_test: Pass, Timeout # Issue 6594
+http/test/request_test: Pass, Timeout # Issue 6594
 
 [ $compiler == dart2js || $compiler == dartc ]
 unittest/test/instance_test: Skip
