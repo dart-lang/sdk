@@ -6,10 +6,10 @@
 // functionality.
 class _ChildrenElementList implements List {
   // Raw Element.
-  final _ElementImpl _element;
-  final _HTMLCollectionImpl _childElements;
+  final Element _element;
+  final HTMLCollection _childElements;
 
-  _ChildrenElementList._wrap(_ElementImpl element)
+  _ChildrenElementList._wrap(Element element)
     : _childElements = element.$dom_children,
       _element = element;
 
@@ -24,7 +24,7 @@ class _ChildrenElementList implements List {
   bool contains(Element element) => _childElements.contains(element);
 
   void forEach(void f(Element element)) {
-    for (_ElementImpl element in _childElements) {
+    for (Element element in _childElements) {
       f(element);
     }
   }
@@ -73,11 +73,11 @@ class _ChildrenElementList implements List {
     return _childElements.length;
   }
 
-  _ElementImpl operator [](int index) {
+  Element operator [](int index) {
     return _childElements[index];
   }
 
-  void operator []=(int index, _ElementImpl value) {
+  void operator []=(int index, Element value) {
     _element.$dom_replaceChild(value, _childElements[index]);
   }
 
@@ -86,17 +86,17 @@ class _ChildrenElementList implements List {
      throw new UnsupportedError('');
    }
 
-  Element add(_ElementImpl value) {
+  Element add(Element value) {
     _element.$dom_appendChild(value);
     return value;
   }
 
-  Element addLast(_ElementImpl value) => add(value);
+  Element addLast(Element value) => add(value);
 
   Iterator<Element> iterator() => _toList().iterator();
 
   void addAll(Collection<Element> collection) {
-    for (_ElementImpl element in collection) {
+    for (Element element in collection) {
       _element.$dom_appendChild(element);
     }
   }
@@ -296,9 +296,18 @@ class _FrozenElementListIterator implements Iterator<Element> {
   bool get hasNext => _index < _list.length;
 }
 
-class _ElementAttributeMap implements AttributeMap {
+/**
+ * All your attribute manipulation needs in one place.
+ * Extends the regular Map interface by automatically coercing non-string
+ * values to strings.
+ */
+abstract class AttributeMap implements Map<String, String> {
+  void operator []=(String key, value);
+}
 
-  final _ElementImpl _element;
+class _ElementAttributeMap extends AttributeMap {
+
+  final Element _element;
 
   _ElementAttributeMap(this._element);
 
@@ -391,7 +400,7 @@ class _ElementAttributeMap implements AttributeMap {
  * Provides a Map abstraction on top of data-* attributes, similar to the
  * dataSet in the old DOM.
  */
-class _DataAttributeMap implements AttributeMap {
+class _DataAttributeMap extends AttributeMap {
 
   final Map<String, String> $dom_attributes;
 
@@ -461,9 +470,23 @@ class _DataAttributeMap implements AttributeMap {
   String _strip(String key) => key.substring(5);
 }
 
-class _CssClassSet implements CSSClassSet {
+abstract class CssClassSet implements Set<String> {
+  /**
+   * Adds the class [token] to the element if it is not on it, removes it if it
+   * is.
+   */
+  bool toggle(String token);
 
-  final _ElementImpl _element;
+  /**
+   * Returns [:true:] if classes cannot be added or removed from this
+   * [:CssClassSet:].
+   */
+  bool get frozen;
+}
+
+class _CssClassSet extends CssClassSet {
+
+  final Element _element;
 
   _CssClassSet(this._element);
 
@@ -488,6 +511,10 @@ class _CssClassSet implements CSSClassSet {
 
   bool get isEmpty => _read().isEmpty;
 
+  /**
+   * Returns [:true:] if classes cannot be added or removed from this
+   * [:CssClassSet:].
+   */
   bool get frozen => false;
 
   int get length =>_read().length;
@@ -510,6 +537,10 @@ class _CssClassSet implements CSSClassSet {
     return result;
   }
 
+  /**
+   * Adds the class [token] to the element if it is not on it, removes it if it
+   * is.
+   */
   bool toggle(String value) {
     Set<String> s = _read();
     bool result = false;
@@ -620,20 +651,21 @@ class _SimpleClientRect implements ClientRect {
 // rects as we must perform all measurement queries at a safe point to avoid
 // triggering unneeded layouts.
 /**
- * All your element measurement needs in one place
+ * All your element measurement needs in one place.
  * @domName none
  */
-class _ElementRectImpl implements ElementRect {
+class ElementRect {
+  // Relative to offsetParent.
   final ClientRect client;
   final ClientRect offset;
   final ClientRect scroll;
 
   // TODO(jacobr): should we move these outside of ElementRect to avoid the
   // overhead of computing them every time even though they are rarely used.
-  final _ClientRectImpl _boundingClientRect;
-  final _ClientRectListImpl _clientRects;
+  final ClientRect _boundingClientRect;
+  final _ClientRectList _clientRects;
 
-  _ElementRectImpl(_ElementImpl element) :
+  ElementRect(Element element) :
     client = new _SimpleClientRect(element.clientLeft,
                                   element.clientTop,
                                   element.clientWidth,
@@ -649,9 +681,10 @@ class _ElementRectImpl implements ElementRect {
     _boundingClientRect = element.getBoundingClientRect(),
     _clientRects = element.getClientRects();
 
-  _ClientRectImpl get bounding => _boundingClientRect;
+  // In global coords.
+  ClientRect get bounding => _boundingClientRect;
 
-  // TODO(jacobr): cleanup.
+  // In global coords.
   List<ClientRect> get clientRects {
     final out = new List(_clientRects.length);
     for (num i = 0; i < _clientRects.length; i++) {
@@ -662,6 +695,11 @@ class _ElementRectImpl implements ElementRect {
 }
 
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+
+  factory $CLASSNAME.html(String html) =>
+      _$(CLASSNAME)FactoryProvider.createElement_html(html);
+  factory $CLASSNAME.tag(String tag) =>
+      _$(CLASSNAME)FactoryProvider.createElement_tag(tag);
 
   /**
    * @domName Element.hasAttribute, Element.getAttribute, Element.setAttribute,
@@ -683,17 +721,22 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     elements.addAll(value);
   }
 
+  /**
+   * @domName childElementCount, firstElementChild, lastElementChild,
+   *   children, Node.nodes.add
+   */
   List<Element> get elements => new _ChildrenElementList._wrap(this);
 
-  _ElementImpl query(String selectors) => $dom_querySelector(selectors);
+  Element query(String selectors) => $dom_querySelector(selectors);
 
   List<Element> queryAll(String selectors) =>
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
-  _CssClassSet get classes => new _CssClassSet(this);
+  /** @domName className, classList */
+  CssClassSet get classes => new _CssClassSet(this);
 
   void set classes(Collection<String> value) {
-    _CssClassSet classSet = classes;
+    CssClassSet classSet = classes;
     classSet.clear();
     classSet.addAll(value);
   }
@@ -709,32 +752,56 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     }
   }
 
+  /**
+   * @domName getClientRects, getBoundingClientRect, clientHeight, clientWidth,
+   * clientTop, clientLeft, offsetHeight, offsetWidth, offsetTop, offsetLeft,
+   * scrollHeight, scrollWidth, scrollTop, scrollLeft
+   */
   Future<ElementRect> get rect {
     return _createMeasurementFuture(
-        () => new _ElementRectImpl(this),
+        () => new ElementRect(this),
         new Completer<ElementRect>());
   }
 
+  /** @domName Window.getComputedStyle */
   Future<CSSStyleDeclaration> get computedStyle {
      // TODO(jacobr): last param should be null, see b/5045788
      return getComputedStyle('');
   }
 
+  /** @domName Window.getComputedStyle */
   Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) {
     return _createMeasurementFuture(
-        () => _window.$dom_getComputedStyle(this, pseudoElement),
+        () => window.$dom_getComputedStyle(this, pseudoElement),
         new Completer<CSSStyleDeclaration>());
   }
 
+  /**
+   * Adds the specified text as a text node after the last child of this.
+   */
   void addText(String text) {
     this.insertAdjacentText('beforeend', text);
   }
 
+  /**
+   * Parses the specified text as HTML and adds the resulting node after the
+   * last child of this.
+   */
   void addHTML(String text) {
     this.insertAdjacentHTML('beforeend', text);
   }
 
   // Hooks to support custom WebComponents.
+  /**
+   * Experimental support for [web components][wc]. This field stores a
+   * reference to the component implementation. It was inspired by Mozilla's
+   * [x-tags][] project. Please note: in the future it may be possible to
+   * `extend Element` from your class, in which case this field will be
+   * deprecated and will simply return this [Element] object.
+   *
+   * [wc]: http://dvcs.w3.org/hg/webcomponents/raw-file/tip/explainer/index.html
+   * [x-tags]: http://x-tags.org/
+   */
   var xtag;
 
 $if DARTIUM
@@ -855,7 +922,7 @@ class _ElementFactoryProvider {
         parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
       }
     }
-    final _ElementImpl temp = new Element.tag(parentTag);
+    final Element temp = new Element.tag(parentTag);
     temp.innerHTML = html;
 
     Element element;
@@ -882,6 +949,6 @@ $if DART2JS
       JS('Element', 'document.createElement(#)', tag);
 $else
   static Element createElement_tag(String tag) =>
-      _document.$dom_createElement(tag);
+      document.$dom_createElement(tag);
 $endif
 }

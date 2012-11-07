@@ -13,20 +13,20 @@ class _AudioContextFactoryProvider {
 class _IDBKeyRangeFactoryProvider {
 
   static IDBKeyRange createIDBKeyRange_only(/*IDBKey*/ value) =>
-      _IDBKeyRangeImpl.only_(value);
+      IDBKeyRange.only_(value);
 
   static IDBKeyRange createIDBKeyRange_lowerBound(
       /*IDBKey*/ bound, [bool open = false]) =>
-      _IDBKeyRangeImpl.lowerBound_(bound, open);
+      IDBKeyRange.lowerBound_(bound, open);
 
   static IDBKeyRange createIDBKeyRange_upperBound(
       /*IDBKey*/ bound, [bool open = false]) =>
-      _IDBKeyRangeImpl.upperBound_(bound, open);
+      IDBKeyRange.upperBound_(bound, open);
 
   static IDBKeyRange createIDBKeyRange_bound(
       /*IDBKey*/ lower, /*IDBKey*/ upper,
       [bool lowerOpen = false, bool upperOpen = false]) =>
-      _IDBKeyRangeImpl.bound_(lower, upper, lowerOpen, upperOpen);
+      IDBKeyRange.bound_(lower, upper, lowerOpen, upperOpen);
 }
 
 class _TypedArrayFactoryProvider {
@@ -108,5 +108,5 @@ class _WebSocketFactoryProvider {
 }
 
 class _TextFactoryProvider {
-  static Text createText(String data) => _document.$dom_createTextNode(data);
+  static Text createText(String data) => document.$dom_createTextNode(data);
 }

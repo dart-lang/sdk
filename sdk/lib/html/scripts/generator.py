@@ -445,9 +445,6 @@ def TypeName(type_ids, interface):
   # Dynamically type this field for now.
   return 'dynamic'
 
-def ImplementationClassNameForInterfaceName(interface_name):
-  return '_%sImpl' % interface_name
-
 # ------------------------------------------------------------------------------
 
 class Conversion(object):
@@ -686,14 +683,14 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
     if self.idl_type() == 'NodeList':
       return 'List<Node>'
     if self.list_item_type():
-      return ImplementationClassNameForInterfaceName(self.idl_type())
+      return self.idl_type()
     # TODO(podivilov): only primitive and collection types should override
     # dart_type.
     if self._data.dart_type != None:
       return self.dart_type()
     if IsPureInterface(self.idl_type()):
       return self.idl_type()
-    return ImplementationClassNameForInterfaceName(self.interface_name())
+    return self.interface_name()
 
   def interface_name(self):
     if self.list_item_type() and not self.has_generated_interface():
@@ -702,11 +699,15 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
 
   def implementation_name(self):
     if self.list_item_type():
-      return ImplementationClassNameForInterfaceName(self.idl_type())
-    implementation_name = ImplementationClassNameForInterfaceName(
-        self.interface_name())
+      implementation_name = self.idl_type()
+    else:
+      implementation_name = self.interface_name()
     if self.merged_into():
       implementation_name = '%s_Merged' % implementation_name
+
+    if not self.has_generated_interface():
+      implementation_name = '_%s' % implementation_name
+
     return implementation_name
 
   def has_generated_interface(self):

@@ -82,7 +82,7 @@ class _NodeListWrapper extends _ListWrapper<Node> implements List {
 }
 
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
-  _NodeImpl _parent;
+  Node _parent;
 
   // -- start List<Node> mixins.
   // Node is the element type.
@@ -98,21 +98,21 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   // From Collection<Node>:
 
-  void add(_NodeImpl value) {
+  void add(Node value) {
     _parent.$dom_appendChild(value);
   }
 
-  void addLast(_NodeImpl value) {
+  void addLast(Node value) {
     _parent.$dom_appendChild(value);
   }
 
-  void addAll(Collection<_NodeImpl> collection) {
-    for (_NodeImpl node in collection) {
+  void addAll(Collection<Node> collection) {
+    for (Node node in collection) {
       _parent.$dom_appendChild(node);
     }
   }
 
-  _NodeImpl removeLast() {
+  Node removeLast() {
     final result = this.last;
     if (result != null) {
       _parent.$dom_removeChild(result);
@@ -124,7 +124,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     _parent.text = '';
   }
 
-  void operator []=(int index, _NodeImpl value) {
+  void operator []=(int index, Node value) {
     _parent.$dom_replaceChild(value, this[index]);
   }
 

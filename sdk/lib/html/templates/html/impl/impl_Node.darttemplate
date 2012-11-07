@@ -8,35 +8,35 @@
  * improving performance for the typical cases where it is not required.
  */
 class _ChildNodeListLazy implements List {
-  final _NodeImpl _this;
+  final Node _this;
 
   _ChildNodeListLazy(this._this);
 
 
 $if DART2JS
-  _NodeImpl get first => JS('_NodeImpl', '#.firstChild', _this);
-  _NodeImpl get last => JS('_NodeImpl', '#.lastChild', _this);
+  Node get first => JS('Node', '#.firstChild', _this);
+  Node get last => JS('Node', '#.lastChild', _this);
 $else
-  _NodeImpl get first => _this.$dom_firstChild;
-  _NodeImpl get last => _this.$dom_lastChild;
+  Node get first => _this.$dom_firstChild;
+  Node get last => _this.$dom_lastChild;
 $endif
 
-  void add(_NodeImpl value) {
+  void add(Node value) {
     _this.$dom_appendChild(value);
   }
 
-  void addLast(_NodeImpl value) {
+  void addLast(Node value) {
     _this.$dom_appendChild(value);
   }
 
 
-  void addAll(Collection<_NodeImpl> collection) {
-    for (_NodeImpl node in collection) {
+  void addAll(Collection<Node> collection) {
+    for (Node node in collection) {
       _this.$dom_appendChild(node);
     }
   }
 
-  _NodeImpl removeLast() {
+  Node removeLast() {
     final result = last;
     if (result != null) {
       _this.$dom_removeChild(result);
@@ -48,7 +48,7 @@ $endif
     _this.text = '';
   }
 
-  void operator []=(int index, _NodeImpl value) {
+  void operator []=(int index, Node value) {
     _this.$dom_replaceChild(value, this[index]);
   }
 
@@ -107,7 +107,7 @@ $endif
   // a local copy of $dom_childNodes is more efficient.
   int get length => _this.$dom_childNodes.length;
 
-  _NodeImpl operator[](int index) => _this.$dom_childNodes[index];
+  Node operator[](int index) => _this.$dom_childNodes[index];
 }
 
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
@@ -125,18 +125,26 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     }
   }
 
-  // TODO(jacobr): should we throw an exception if parent is already null?
-  // TODO(vsm): Use the native remove when available.
+  /**
+   * Removes this node from the DOM.
+   * @domName Node.removeChild
+   */
   void remove() {
+    // TODO(jacobr): should we throw an exception if parent is already null?
+    // TODO(vsm): Use the native remove when available.
     if (this.parent != null) {
-      final _NodeImpl parent = this.parent;
+      final Node parent = this.parent;
       parent.$dom_removeChild(this);
     }
   }
 
-  _NodeImpl replaceWith(Node otherNode) {
+  /**
+   * Replaces this node with another node.
+   * @domName Node.replaceChild
+   */
+  Node replaceWith(Node otherNode) {
     try {
-      final _NodeImpl parent = this.parent;
+      final Node parent = this.parent;
       parent.$dom_replaceChild(otherNode, this);
     } catch (e) {
 

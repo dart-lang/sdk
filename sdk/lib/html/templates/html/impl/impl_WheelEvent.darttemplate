@@ -6,6 +6,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS
 
 $if DART2JS
+  /** @domName WheelEvent.deltaY */
   num get deltaY {
     if (JS('bool', '#.deltaY !== undefined', this)) {
       // W3C WheelEvent
@@ -33,6 +34,7 @@ $if DART2JS
         'deltaY is not supported');
   }
 
+  /** @domName WheelEvent.deltaX */
   num get deltaX {
     if (JS('bool', '#.deltaX !== undefined', this)) {
       // W3C WheelEvent
@@ -77,8 +79,11 @@ $if DART2JS
   int get _deltaMode => JS('int', '#.deltaMode', this);
 
 $else
+  /** @domName WheelEvent.deltaX */
   num get deltaX => $dom_wheelDeltaX;
+  /** @domName WheelEvent.deltaY */
   num get deltaY => $dom_wheelDeltaY;
+  /** @domName WheelEvent.deltaMode */
   int get deltaMode => 0;
 
 $endif

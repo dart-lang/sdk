@@ -116,8 +116,8 @@ class EmptyElementRect implements ElementRect {
   const EmptyElementRect();
 }
 
-class _FrozenCSSClassSet extends _CssClassSet {
-  _FrozenCSSClassSet() : super(null);
+class _FrozenCssClassSet extends _CssClassSet {
+  _FrozenCssClassSet() : super(null);
 
   void _write(Set s) {
     throw new UnsupportedError(
@@ -129,6 +129,14 @@ class _FrozenCSSClassSet extends _CssClassSet {
 }
 
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+  factory $CLASSNAME() => _$(CLASSNAME)FactoryProvider.createDocumentFragment();
+
+  factory $CLASSNAME.html(String html) =>
+      _$(CLASSNAME)FactoryProvider.createDocumentFragment_html(html);
+
+  factory $CLASSNAME.svg(String svg) =>
+      new _$(CLASSNAME)FactoryProvider.createDocumentFragment_svg(svg);
+
   List<Element> _elements;
 
   List<Element> get elements {
@@ -147,7 +155,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     elements.addAll(copy);
   }
 
-  _ElementImpl query(String selectors) => $dom_querySelector(selectors);
+  Element query(String selectors) => $dom_querySelector(selectors);
 
   List<Element> queryAll(String selectors) =>
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
@@ -240,7 +248,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   Element get offsetParent => null;
   Element get parent => null;
   Map<String, String> get attributes => const {};
-  CSSClassSet get classes => new _FrozenCSSClassSet();
+  CssClassSet get classes => new _FrozenCssClassSet();
   Map<String, String> get dataAttributes => const {};
   CSSStyleDeclaration get style => new Element.tag('div').style;
   Future<CSSStyleDeclaration> get computedStyle =>

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class $CLASSNAME extends $SUPER implements $INTERFACE {
-  $CLASSNAME(_ptr) : super(_ptr);
+class $CLASSNAME extends $SUPER {
+  $CLASSNAME(EventTarget _ptr) : super(_ptr);
 $!MEMBERS
   EventListenerList get mouseWheel {
     if (JS('bool', '#.onwheel !== undefined', _ptr)) {

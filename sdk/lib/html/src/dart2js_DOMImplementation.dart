@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // TODO(vsm): Unify with Dartium version.
-class _DOMWindowCrossFrameImpl implements Window {
+class _DOMWindowCrossFrame implements Window {
   // Private window.  Note, this is a window in another frame, so it
   // cannot be typed as "Window" as its prototype is not patched
   // properly.  Its fields and methods can only be accessed via JavaScript.
@@ -11,9 +11,9 @@ class _DOMWindowCrossFrameImpl implements Window {
 
   // Fields.
   History get history =>
-    _HistoryCrossFrameImpl._createSafe(JS('History', '#.history', _window));
+    _HistoryCrossFrame._createSafe(JS('History', '#.history', _window));
   Location get location =>
-    _LocationCrossFrameImpl._createSafe(JS('Location', '#.location', _window));
+    _LocationCrossFrame._createSafe(JS('Location', '#.location', _window));
 
   // TODO(vsm): Add frames to navigate subframes.  See 2312.
 
@@ -41,19 +41,19 @@ class _DOMWindowCrossFrameImpl implements Window {
   }
 
   // Implementation support.
-  _DOMWindowCrossFrameImpl(this._window);
+  _DOMWindowCrossFrame(this._window);
 
   static Window _createSafe(w) {
     if (identical(w, window)) {
       return w;
     } else {
       // TODO(vsm): Cache or implement equality.
-      return new _DOMWindowCrossFrameImpl(w);
+      return new _DOMWindowCrossFrame(w);
     }
   }
 }
 
-class _LocationCrossFrameImpl implements Location {
+class _LocationCrossFrame implements Location {
   // Private location.  Note, this is a location object in another frame, so it
   // cannot be typed as "Location" as its prototype is not patched
   // properly.  Its fields and methods can only be accessed via JavaScript.
@@ -65,19 +65,19 @@ class _LocationCrossFrameImpl implements Location {
   }
 
   // Implementation support.
-  _LocationCrossFrameImpl(this._location);
+  _LocationCrossFrame(this._location);
 
   static Location _createSafe(location) {
     if (identical(location, window.location)) {
       return location;
     } else {
       // TODO(vsm): Cache or implement equality.
-      return new _LocationCrossFrameImpl(location);
+      return new _LocationCrossFrame(location);
     }
   }
 }
 
-class _HistoryCrossFrameImpl implements History {
+class _HistoryCrossFrame implements History {
   // Private history.  Note, this is a history object in another frame, so it
   // cannot be typed as "History" as its prototype is not patched
   // properly.  Its fields and methods can only be accessed via JavaScript.
@@ -90,14 +90,14 @@ class _HistoryCrossFrameImpl implements History {
   void go(int distance) => JS('void', '#.go(#)', _history, distance);
 
   // Implementation support.
-  _HistoryCrossFrameImpl(this._history);
+  _HistoryCrossFrame(this._history);
 
   static History _createSafe(h) {
     if (identical(h, window.history)) {
       return h;
     } else {
       // TODO(vsm): Cache or implement equality.
-      return new _HistoryCrossFrameImpl(h);
+      return new _HistoryCrossFrame(h);
     }
   }
 }

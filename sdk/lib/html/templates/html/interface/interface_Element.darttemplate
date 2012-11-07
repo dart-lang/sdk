@@ -49,7 +49,7 @@ abstract class CSSClassSet implements Set<String> {
 }
 
 $!COMMENT
-abstract class Element implements Node, NodeSelector {
+abstract class _IElement implements _INode, NodeSelector {
   factory Element.html(String html) =>
       _$(ID)FactoryProvider.createElement_html(html);
   factory Element.tag(String tag) =>

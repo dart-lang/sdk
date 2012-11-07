@@ -5,11 +5,11 @@
 part of html;
 
 $!COMMENT
-abstract class DocumentFragment extends Element {
+abstract class _IDocumentFragment extends Element {
 
-  factory DocumentFragment() => _$(ID)FactoryProvider.createDocumentFragment();
+  factory _IDocumentFragment() => _$(ID)FactoryProvider.createDocumentFragment();
 
-  factory DocumentFragment.html(String html) =>
+  factory _IDocumentFragment.html(String html) =>
       _$(ID)FactoryProvider.createDocumentFragment_html(html);
 
   // TODO(nweiz): enable this when XML is ported
@@ -17,7 +17,7 @@ abstract class DocumentFragment extends Element {
   // DocumentFragment.xml(String xml);
 
   factory DocumentFragment.svg(String svg) =>
-      new _$(ID)FactoryProvider.DocumentFragment.svg(svg);
+      new _$(ID)FactoryProvider.createDocumentFragment_svg(svg);
 
   DocumentFragment clone(bool deep);
 

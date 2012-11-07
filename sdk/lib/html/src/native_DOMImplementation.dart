@@ -39,14 +39,14 @@ class _Utils {
 }
 
 class _NPObject extends NativeFieldWrapperClass1 {
-  _NPObject();
+  _NPObject.internal();
   static _NPObject retrieve(String key) native "NPObject_retrieve";
   property(String propertyName) native "NPObject_property";
   invoke(String methodName, [List args = null]) native "NPObject_invoke";
 }
 
-class _DOMWindowCrossFrameImpl extends NativeFieldWrapperClass1 implements Window {
-  _DOMWindowCrossFrameImpl();
+class _DOMWindowCrossFrame extends NativeFieldWrapperClass1 implements Window {
+  _DOMWindowCrossFrame.internal();
 
   // Fields.
   History get history() native "DOMWindow_history_cross_frame_Getter";
@@ -67,8 +67,8 @@ class _DOMWindowCrossFrameImpl extends NativeFieldWrapperClass1 implements Windo
   String get typeName => "DOMWindow";
 }
 
-class _HistoryCrossFrameImpl extends NativeFieldWrapperClass1 implements History {
-  _HistoryCrossFrameImpl();
+class _HistoryCrossFrame extends NativeFieldWrapperClass1 implements History {
+  _HistoryCrossFrame.internal();
 
   // Methods.
   void back() native "History_back_Callback";
@@ -79,8 +79,8 @@ class _HistoryCrossFrameImpl extends NativeFieldWrapperClass1 implements History
   String get typeName => "History";
 }
 
-class _LocationCrossFrameImpl extends NativeFieldWrapperClass1 implements Location {
-  _LocationCrossFrameImpl();
+class _LocationCrossFrame extends NativeFieldWrapperClass1 implements Location {
+  _LocationCrossFrame.internal();
 
   // Fields.
   void set href(String) native "Location_href_Setter";
@@ -89,8 +89,8 @@ class _LocationCrossFrameImpl extends NativeFieldWrapperClass1 implements Locati
   String get typeName => "Location";
 }
 
-class _DOMStringMapImpl extends NativeFieldWrapperClass1 implements Map<String, String> {
-  _DOMStringMapImpl();
+class _DOMStringMap extends NativeFieldWrapperClass1 implements Map<String, String> {
+  _DOMStringMap.internal();
 
   bool containsValue(String value) => Maps.containsValue(this, value);
   bool containsKey(String key) native "DOMStringMap_containsKey_Callback";

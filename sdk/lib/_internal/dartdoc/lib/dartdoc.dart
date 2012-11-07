@@ -894,6 +894,9 @@ class Dartdoc {
     listTypes(types, header) {
       if (types == null) return;
 
+      // Filter out injected types. (JavaScriptIndexingBehavior)
+      types = new List.from(types.filter((t) => t.library != null));
+
       var publicTypes;
       if (showPrivate) {
         publicTypes = types;
@@ -1537,7 +1540,9 @@ class Dartdoc {
     if (type is LibraryMirror) {
       return '${sanitize(type.simpleName)}.html';
     }
-    assert (type is TypeMirror);
+    if (type.library == null) {
+      return '';
+    }
     // Always get the generic type to strip off any type parameters or
     // arguments. If the type isn't generic, genericType returns `this`, so it
     // works for non-generic types too.

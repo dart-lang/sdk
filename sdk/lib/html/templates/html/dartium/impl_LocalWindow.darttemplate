@@ -4,16 +4,29 @@
 
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
+  /**
+   * Executes a [callback] after the next batch of browser layout measurements
+   * has completed or would have completed if any browser layout measurements
+   * had been scheduled.
+   */
   void requestLayoutFrame(TimeoutHandler callback) {
     _addMeasurementFrameCallback(callback);
   }
 
-  // TODO(kasperl): Document these.
+  /**
+   * Lookup a port by its [name].  Return null if no port is
+   * registered under [name].
+   */
   lookupPort(String name) {
     var port = JSON.parse(localStorage['dart-port:$name']);
     return _deserialize(port);
   }
 
+  /**
+   * Register a [port] on this window under the given [name].  This
+   * port may be retrieved by any isolate (or JavaScript script)
+   * running in this window.
+   */
   registerPort(String name, var port) {
     var serialized = _serialize(port);
     localStorage['dart-port:$name'] = JSON.stringify(serialized);

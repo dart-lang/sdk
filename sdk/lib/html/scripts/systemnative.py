@@ -10,11 +10,14 @@ import emitter
 import os
 from generator import *
 from systemhtml import SecureOutputType
+from htmldartgenerator import *
 
-class DartiumBackend(object):
+class DartiumBackend(HtmlDartGenerator):
   """Generates Dart implementation for one DOM IDL interface."""
 
   def __init__(self, interface, cpp_library_emitter, options):
+    super(DartiumBackend, self).__init__(interface, options)
+
     self._interface = interface
     self._cpp_library_emitter = cpp_library_emitter
     self._database = options.database
@@ -103,9 +106,6 @@ class DartiumBackend(object):
 
   def RootClassName(self):
     return 'NativeFieldWrapperClass1'
-
-  def AdditionalImplementedInterfaces(self):
-    return []
 
   def NativeSpec(self):
     return ''
@@ -208,6 +208,20 @@ class DartiumBackend(object):
         PARAMETERS=constructor_info.ParametersDeclaration(self._DartType),
         ARGUMENTS=constructor_info.ParametersAsArgumentList(),
         NATIVE_NAME=native_binding)
+
+  def AddConstructors(self, constructors, factory_provider, class_name,
+      base_class):
+    super(DartiumBackend, self).AddConstructors(constructors, factory_provider,
+        class_name, base_class)
+
+    super_constructor = ''
+    if base_class and base_class != 'NativeFieldWrapperClass1':
+      super_constructor = ': super.internal()'
+
+    self._members_emitter.Emit(
+        '  $CLASSNAME.internal()$SUPERCONSTRUCTOR;\n',
+        CLASSNAME=class_name,
+        SUPERCONSTRUCTOR=super_constructor)
 
   def FinishInterface(self):
     self._GenerateCPPHeader()
@@ -461,6 +475,13 @@ class DartiumBackend(object):
         self._GenerateOperationNativeCallback(operation, operation.arguments, cpp_callback_name)
     else:
       self._GenerateDispatcher(info.operations, dart_declaration, [info.name for info in info.param_infos])
+
+  def AddConstant(self, constant):
+    type = TypeOrNothing(self._DartType(constant.type.id), constant.type.id)
+    self._members_emitter.Emit('\n  static const $TYPE$NAME = $VALUE;\n',
+        NAME=constant.id,
+        TYPE=type,
+        VALUE=constant.value)
 
   def _GenerateDispatcher(self, operations, dart_declaration, argument_names):
 
@@ -757,8 +778,12 @@ class DartiumBackend(object):
     native_binding = '%s_%s_%s' % (self._interface.id, idl_name, native_suffix)
     self._members_emitter.Emit(
         '\n'
-        '  $DART_DECLARATION native "$NATIVE_BINDING";\n',
-        DART_DECLARATION=dart_declaration, NATIVE_BINDING=native_binding)
+        '\n  /** @domName $DOMINTERFACE.$DOMNAME */'
+        '\n  $DART_DECLARATION native "$NATIVE_BINDING";\n',
+        DOMINTERFACE=self._interface.id,
+        DOMNAME=idl_name,
+        DART_DECLARATION=dart_declaration,
+        NATIVE_BINDING=native_binding)
 
     cpp_callback_name = '%s%s' % (idl_name, native_suffix)
     self._cpp_resolver_emitter.Emit(

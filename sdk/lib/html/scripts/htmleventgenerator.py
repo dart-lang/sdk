@@ -202,30 +202,24 @@ class HtmlEventGenerator(object):
       return None
 
     self._event_classes.add(interface.id)
-    events_interface = html_interface_name + 'Events'
+    events_class_name = html_interface_name + 'Events'
     parent_events_interface = self._GetParentEventsInterface(interface)
 
     if not events:
       return parent_events_interface
 
-    interface_events_members = events_interface_emitter.Emit(
-        '\nabstract class $INTERFACE implements $PARENT {\n$!MEMBERS}\n',
-        INTERFACE=events_interface,
-        PARENT=parent_events_interface)
-
-    template_file = 'impl_%s.darttemplate' % events_interface
+    template_file = 'impl_%s.darttemplate' % events_class_name
     template = (self._template_loader.TryLoad(template_file) or
         '\n'
-        'class $CLASSNAME extends $SUPER implements $INTERFACE {\n'
-        '  $CLASSNAME(_ptr) : super(_ptr);\n'
+        'class $CLASSNAME extends $SUPER {\n'
+        '  $CLASSNAME(EventTarget _ptr) : super(_ptr);\n'
         '$!MEMBERS}\n')
 
     # TODO(jacobr): specify the type of _ptr as EventTarget
     implementation_events_members = events_implementation_emitter.Emit(
         template,
-        CLASSNAME='_%sImpl' % events_interface,
-        INTERFACE=events_interface,
-        SUPER='_%sImpl' % parent_events_interface)
+        CLASSNAME=events_class_name,
+        SUPER='%s' % parent_events_interface)
 
     dom_event_names = set()
     for event in events:
@@ -240,8 +234,6 @@ class HtmlEventGenerator(object):
         continue
 
       html_name = _html_event_names[dom_name]
-      interface_events_members.Emit('\n  EventListenerList get $NAME;\n',
-          NAME=html_name)
       full_event_name = '%sEvents.%s' % (html_interface_name, html_name)
       if not full_event_name in custom_events:
         implementation_events_members.Emit(
@@ -250,7 +242,7 @@ class HtmlEventGenerator(object):
             NAME=html_name,
             DOM_NAME=dom_name)
 
-    return events_interface
+    return events_class_name
 
   # TODO(jacobr): this isn't quite right....
   def _GetParentEventsInterface(self, interface):

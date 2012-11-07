@@ -5,7 +5,7 @@
 part of html;
 
 $!COMMENT
-abstract class SVGElement implements Element {
+abstract class _ISVGElement implements _IElement {
 
   factory SVGElement.tag(String tag) =>
       _$(ID)FactoryProvider.create$(ID)_tag(tag);

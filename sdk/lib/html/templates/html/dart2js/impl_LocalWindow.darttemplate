@@ -4,7 +4,7 @@
 
 class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
 
-  _DocumentImpl get document => JS('_DocumentImpl', '#.document', this);
+  Document get document => JS('Document', '#.document', this);
 
   Window _open2(url, name) => JS('Window', '#.open(#,#)', this, url, name);
 
@@ -13,28 +13,18 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
 
   Window open(String url, String name, [String options]) {
     if (options == null) {
-      return _DOMWindowCrossFrameImpl._createSafe(_open2(url, name));
+      return _DOMWindowCrossFrame._createSafe(_open2(url, name));
     } else {
-      return _DOMWindowCrossFrameImpl._createSafe(_open3(url, name, options));
+      return _DOMWindowCrossFrame._createSafe(_open3(url, name, options));
     }
   }
 
   // API level getter and setter for Location.
   // TODO: The cross domain safe wrapper can be inserted here or folded into
   // _LocationWrapper.
-  LocalLocation get location => _get_location();
-
-  // TODO: consider forcing users to do: window.location.assign('string').
-  /**
-   * Sets the window's location, which causes the browser to navigate to the new
-   * location. [value] may be a Location object or a string.
-   */
-  void set location(value) => _set_location(value);
-
-  // Firefox work-around for Location.  The Firefox location object cannot be
-  // made to behave like a Dart object so must be wrapped.
-
-  LocalLocation _get_location() {
+  LocalLocation get location() {
+    // Firefox work-around for Location.  The Firefox location object cannot be
+    // made to behave like a Dart object so must be wrapped.
     var result = _location;
     if (_isDartLocation(result)) return result;  // e.g. on Chrome.
     if (null == _location_wrapper) {
@@ -43,7 +33,12 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
     return _location_wrapper;
   }
 
-  void _set_location(value) {
+  // TODO: consider forcing users to do: window.location.assign('string').
+  /**
+   * Sets the window's location, which causes the browser to navigate to the new
+   * location. [value] may be a Location object or a string.
+   */
+  void set location(value) {
     if (value is _LocationWrapper) {
       _location = value._ptr;
     } else {
@@ -72,7 +67,11 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
     }
   }
 
-
+  /**
+   * Executes a [callback] after the next batch of browser layout measurements
+   * has completed or would have completed if any browser layout measurements
+   * had been scheduled.
+   */
   void requestLayoutFrame(TimeoutHandler callback) {
     _addMeasurementFrameCallback(callback);
   }
@@ -120,21 +119,26 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
        this);
   }
 
-
-  _IDBFactoryImpl get indexedDB => _get_indexedDB();
-
-  _IDBFactoryImpl _get_indexedDB() =>
-      JS('_IDBFactoryImpl',
+  IDBFactory get indexedDB() =>
+      JS('IDBFactory',
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
          this, this, this);
 
-  // TODO(kasperl): Document these.
-  lookupPort(String name) {
+  /**
+   * Lookup a port by its [name].  Return null if no port is
+   * registered under [name].
+   */
+  SendPortSync lookupPort(String name) {
     var port = JSON.parse(localStorage['dart-port:$name']);
     return _deserialize(port);
   }
 
-  registerPort(String name, var port) {
+  /**
+   * Register a [port] on this window under the given [name].  This
+   * port may be retrieved by any isolate (or JavaScript script)
+   * running in this window.
+   */
+  void registerPort(String name, var port) {
     var serialized = _serialize(port);
     localStorage['dart-port:$name'] = JSON.stringify(serialized);
   }

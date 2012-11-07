@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
-$!MEMBERS
+// WARNING: Do not edit - generated code.
 
-  CanvasRenderingContext2D get context2d => getContext('2d');
+class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+  factory $CLASSNAME(String type, [bool canBubble = true, bool cancelable = true,
+      Object detail]) => _$(CLASSNAME)FactoryProvider.create$CLASSNAME(
+      type, canBubble, cancelable, detail);
+$!MEMBERS
 }

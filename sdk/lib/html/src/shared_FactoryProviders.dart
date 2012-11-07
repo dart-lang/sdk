@@ -5,7 +5,7 @@
 class _CustomEventFactoryProvider {
   static CustomEvent createCustomEvent(String type, [bool canBubble = true,
       bool cancelable = true, Object detail = null]) {
-    final _CustomEventImpl e = _document.$dom_createEvent("CustomEvent");
+    final CustomEvent e = document.$dom_createEvent("CustomEvent");
     e.$dom_initCustomEvent(type, canBubble, cancelable, detail);
     return e;
   }
@@ -14,7 +14,7 @@ class _CustomEventFactoryProvider {
 class _EventFactoryProvider {
   static Event createEvent(String type, [bool canBubble = true,
       bool cancelable = true]) {
-    final _EventImpl e = _document.$dom_createEvent("Event");
+    final Event e = document.$dom_createEvent("Event");
     e.$dom_initEvent(type, canBubble, cancelable);
     return e;
   }
@@ -26,7 +26,7 @@ class _MouseEventFactoryProvider {
       [bool canBubble = true, bool cancelable = true, bool ctrlKey = false,
       bool altKey = false, bool shiftKey = false, bool metaKey = false,
       EventTarget relatedTarget = null]) {
-    final e = _document.$dom_createEvent("MouseEvent");
+    final e = document.$dom_createEvent("MouseEvent");
     e.$dom_initMouseEvent(type, canBubble, cancelable, view, detail,
         screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey,
         button, relatedTarget);
@@ -84,7 +84,7 @@ class _DocumentFragmentFactoryProvider {
 class _SVGElementFactoryProvider {
   static SVGElement createSVGElement_tag(String tag) {
     final Element temp =
-      _document.$dom_createElementNS("http://www.w3.org/2000/svg", tag);
+      document.$dom_createElementNS("http://www.w3.org/2000/svg", tag);
     return temp;
   }
 

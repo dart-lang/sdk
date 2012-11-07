@@ -5,18 +5,38 @@
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS
 
+  /**
+   * Sets the color used inside shapes.
+   * [r], [g], [b] are 0-255, [a] is 0-1.
+   */
   void setFillColorRgb(int r, int g, int b, [num a = 1]) {
     this.fillStyle = 'rgba($r, $g, $b, $a)';
   }
 
+  /**
+   * Sets the color used inside shapes.
+   * [h] is in degrees, 0-360.
+   * [s], [l] are in percent, 0-100.
+   * [a] is 0-1.
+   */
   void setFillColorHsl(int h, num s, num l, [num a = 1]) {
     this.fillStyle = 'hsla($h, $s%, $l%, $a)';
   }
 
+  /**
+   * Sets the color used for stroking shapes.
+   * [r], [g], [b] are 0-255, [a] is 0-1.
+   */
   void setStrokeColorRgb(int r, int g, int b, [num a = 1]) {
     this.strokeStyle = 'rgba($r, $g, $b, $a)';
   }
 
+  /**
+   * Sets the color used for stroking shapes.
+   * [h] is in degrees, 0-360.
+   * [s], [l] are in percent, 0-100.
+   * [a] is 0-1.
+   */
   void setStrokeColorHsl(int h, num s, num l, [num a = 1]) {
     this.strokeStyle = 'hsla($h, $s%, $l%, $a)';
   }

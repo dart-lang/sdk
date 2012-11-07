@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of html;
-
-$!COMMENT
-abstract class _ISVGSVGElement extends _ISVGElement implements _ISVGTests, _ISVGLangSpace, _ISVGExternalResourcesRequired, _ISVGStylable, _ISVGLocatable, _ISVGFitToViewBox, _ISVGZoomAndPan {
+class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+  factory $CLASSNAME() => _$(CLASSNAME)FactoryProvider.createSVGSVGElement();
 
 $!MEMBERS
 }

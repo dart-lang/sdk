@@ -2,36 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _EventsImpl implements Events {
+class Events {
   /* Raw event target. */
-  // TODO(jacobr): it would be nice if we could specify this as
-  // _EventTargetImpl or EventTarget
-  final _ptr;
+  final EventTarget _ptr;
 
-  _EventsImpl(this._ptr);
+  Events(this._ptr);
 
-  _EventListenerListImpl operator [](String type) {
-    return new _EventListenerListImpl(_ptr, type);
+  EventListenerList operator [](String type) {
+    return new EventListenerList(_ptr, type);
   }
 }
 
-class _EventListenerListImpl implements EventListenerList {
+class EventListenerList {
 
-  // TODO(jacobr): make this _EventTargetImpl
-  final _ptr;
+  final EventTarget _ptr;
   final String _type;
 
-  _EventListenerListImpl(this._ptr, this._type);
+  EventListenerList(this._ptr, this._type);
 
   // TODO(jacobr): implement equals.
 
-  _EventListenerListImpl add(EventListener listener,
+  EventListenerList add(EventListener listener,
       [bool useCapture = false]) {
     _add(listener, useCapture);
     return this;
   }
 
-  _EventListenerListImpl remove(EventListener listener,
+  EventListenerList remove(EventListener listener,
       [bool useCapture = false]) {
     _remove(listener, useCapture);
     return this;
@@ -53,6 +50,7 @@ class _EventListenerListImpl implements EventListenerList {
 
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
-  Events get on => new _EventsImpl(this);
+  /** @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent */
+  Events get on => new Events(this);
 $!MEMBERS
 }

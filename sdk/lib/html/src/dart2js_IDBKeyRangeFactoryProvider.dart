@@ -34,16 +34,16 @@ class _IDBKeyRangeFactoryProvider {
 
   static _translateKey(idbkey) => idbkey;  // TODO: fixme.
 
-  static _IDBKeyRangeImpl _only(cls, value) =>
-       JS('_IDBKeyRangeImpl', '#.only(#)', cls, value);
+  static IDBKeyRange _only(cls, value) =>
+       JS('IDBKeyRange', '#.only(#)', cls, value);
 
-  static _IDBKeyRangeImpl _lowerBound(cls, bound, open) =>
-       JS('_IDBKeyRangeImpl', '#.lowerBound(#, #)', cls, bound, open);
+  static IDBKeyRange _lowerBound(cls, bound, open) =>
+       JS('IDBKeyRange', '#.lowerBound(#, #)', cls, bound, open);
 
-  static _IDBKeyRangeImpl _upperBound(cls, bound, open) =>
-       JS('_IDBKeyRangeImpl', '#.upperBound(#, #)', cls, bound, open);
+  static IDBKeyRange _upperBound(cls, bound, open) =>
+       JS('IDBKeyRange', '#.upperBound(#, #)', cls, bound, open);
 
-  static _IDBKeyRangeImpl _bound(cls, lower, upper, lowerOpen, upperOpen) =>
-       JS('_IDBKeyRangeImpl', '#.bound(#, #, #, #)',
+  static IDBKeyRange _bound(cls, lower, upper, lowerOpen, upperOpen) =>
+       JS('IDBKeyRange', '#.bound(#, #, #, #)',
           cls, lower, upper, lowerOpen, upperOpen);
 }

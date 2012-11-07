@@ -27,7 +27,7 @@
 // window as a parameter.
 
 Window _convertNativeToDart_Window(win) {
-  return _DOMWindowCrossFrameImpl._createSafe(win);
+  return _DOMWindowCrossFrame._createSafe(win);
 }
 
 EventTarget _convertNativeToDart_EventTarget(e) {
@@ -35,13 +35,13 @@ EventTarget _convertNativeToDart_EventTarget(e) {
   // from a different frame - without a patched prototype - so we cannot
   // rely on Dart type checking.
   if (JS('bool', r'"setInterval" in #', e))
-    return _DOMWindowCrossFrameImpl._createSafe(e);
+    return _DOMWindowCrossFrame._createSafe(e);
   else
     return e;
 }
 
 EventTarget _convertDartToNative_EventTarget(e) {
-  if (e is _DOMWindowCrossFrameImpl) {
+  if (e is _DOMWindowCrossFrame) {
     return e._window;
   } else {
     return e;
@@ -75,9 +75,11 @@ ImageData _convertNativeToDart_ImageData(nativeImageData) {
 // We can get rid of this conversion if _TypedImageData implements the fields
 // with native names.
 _convertDartToNative_ImageData(ImageData imageData) {
-  if (imageData is _ImageDataImpl) return imageData;
-  return JS('Object', '{data: #, height: #, width: #}',
-            imageData.data, imageData.height, imageData.width);
+  if (imageData is _TypedImageData) {
+    return JS('Object', '{data: #, height: #, width: #}',
+        imageData.data, imageData.height, imageData.width);
+  }
+  return imageData;
 }
 
 
@@ -231,33 +233,15 @@ _convertDartToNative_PrepareForStructuredClone(value) {
     // TODO(sra): The JavaScript objects suitable for direct cloning by the
     // structured clone algorithm could be tagged with an private interface.
 
-    if (e is _FileImpl) return e;
-    if (e is File) {
-      throw new UnimplementedError('structured clone of File');
-    }
-
-    if (e is _BlobImpl) return e;
-    if (e is Blob) {
-      throw new UnimplementedError('structured clone of Blob');
-    }
-
-    if (e is _FileListImpl) return e;
+    if (e is File) return e;
+    if (e is Blob) return e;
+    if (e is _FileList) return e;
 
     // TODO(sra): Firefox: How to convert _TypedImageData on the other end?
-    if (e is _ImageDataImpl) return e;
-    if (e is ImageData) {
-      throw new UnimplementedError('structured clone of ImageData');
-    }
+    if (e is ImageData) return e;
+    if (e is ArrayBuffer) return e;
 
-    if (e is _ArrayBufferImpl) return e;
-    if (e is ArrayBuffer) {
-      throw new UnimplementedError('structured clone of ArrayBuffer');
-    }
-
-    if (e is _ArrayBufferViewImpl) return e;
-    if (e is ArrayBufferView) {
-      throw new UnimplementedError('structured clone of ArrayBufferView');
-    }
+    if (e is ArrayBufferView) return e;
 
     if (e is Map) {
       var slot = findSlot(e);

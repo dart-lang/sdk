@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class $CLASSNAME extends _NodeImpl implements Document
+class $CLASSNAME extends Node
 $if DART2JS
     native "*HTMLDocument"
 $endif
@@ -11,7 +11,7 @@ $endif
 $!MEMBERS
   // TODO(jacobr): implement all Element methods not on Document.
 
-  _ElementImpl query(String selectors) {
+  Element query(String selectors) {
     // It is fine for our RegExp to detect element id query selectors to have
     // false negatives but not false positives.
     if (const RegExp("^#[_a-zA-Z]\\w*\$").hasMatch(selectors)) {

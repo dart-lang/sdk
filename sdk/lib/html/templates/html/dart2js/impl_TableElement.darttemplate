@@ -5,7 +5,7 @@
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS
 
-  _ElementImpl createTBody() {
+  Element createTBody() {
     if (JS('bool', '!!#.createTBody', this)) {
       return this._createTBody();
     }
@@ -14,5 +14,5 @@ $!MEMBERS
     return tbody;
   }
 
-  _ElementImpl _createTBody() native 'createTBody';
+  Element _createTBody() native 'createTBody';
 }

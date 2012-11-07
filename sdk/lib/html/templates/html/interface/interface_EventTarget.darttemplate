@@ -6,7 +6,7 @@
 
 part of html;
 
-abstract class EventListenerList {
+abstract class _IEventListenerList {
   EventListenerList add(EventListener handler, [bool useCapture]);
 
   EventListenerList remove(EventListener handler, [bool useCapture]);
@@ -14,7 +14,7 @@ abstract class EventListenerList {
   bool dispatch(Event evt);
 }
 
-abstract class Events {
+abstract class _IEvents {
   EventListenerList operator [](String type);
 }
 

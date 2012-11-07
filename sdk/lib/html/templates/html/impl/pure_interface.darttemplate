@@ -1,0 +1,3 @@
+/// @domName $DOMNAME
+abstract class $CLASSNAME$EXTENDS$IMPLEMENTS {
+$!MEMBERS}

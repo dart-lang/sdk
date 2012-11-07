@@ -9,5 +9,5 @@ part of html;
 $!COMMENT
 abstract class $ID$EXTENDS {
 $!MEMBERS
-  static bool get supported => _$(ID)Impl.supported;
+  static bool get supported => $(ID).supported;
 }

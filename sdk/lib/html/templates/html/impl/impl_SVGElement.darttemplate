@@ -13,7 +13,12 @@ class _AttributeClassSet extends _CssClassSet {
 }
 
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
-  CSSClassSet get classes {
+  factory $CLASSNAME.tag(String tag) =>
+      _$(CLASSNAME)FactoryProvider.create$(CLASSNAME)_tag(tag);
+  factory $CLASSNAME.svg(String svg) =>
+      _$(CLASSNAME)FactoryProvider.create$(CLASSNAME)_svg(svg);
+
+  CssClassSet get classes {
     if (_cssClassSet == null) {
       _cssClassSet = new _AttributeClassSet(_ptr);
     }

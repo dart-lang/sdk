@@ -5,7 +5,7 @@
 part of html;
 
 $!COMMENT
-abstract class Document extends HtmlElement {
+abstract class _IDocument extends _IHtmlElement {
 
 $!MEMBERS
 }

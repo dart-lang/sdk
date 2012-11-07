@@ -4,6 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
+/// @domName $DOMNAME
 class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
 }
