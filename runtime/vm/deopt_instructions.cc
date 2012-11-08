@@ -261,7 +261,8 @@ class DeoptRetBeforeAddressInstr : public DeoptInstr {
     *to_addr = continue_at_pc;
 
     uword pc = code.GetPcForDeoptId(deopt_id_, PcDescriptors::kIcCall);
-    const ICData& ic_data = CodePatcher::GetInstanceCallIcData(pc);
+    const ICData& ic_data = ICData::Handle(
+        CodePatcher::GetInstanceCallIcDataAt(pc));
     if (!ic_data.IsNull()) {
       ic_data.set_deopt_reason(deopt_context->deopt_reason());
     }
