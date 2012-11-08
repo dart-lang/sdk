@@ -21,6 +21,11 @@
   V(Crypto_GetRandomBytes, 1)                                                  \
   V(EventHandler_Start, 1)                                                     \
   V(EventHandler_SendData, 4)                                                  \
+  V(Platform_NumberOfProcessors, 0)                                            \
+  V(Platform_OperatingSystem, 0)                                               \
+  V(Platform_PathSeparator, 0)                                                 \
+  V(Platform_LocalHostname, 0)                                                 \
+  V(Platform_Environment, 0)                                                   \
   V(Process_Start, 10)                                                         \
   V(Process_Kill, 3)                                                           \
   V(ServerSocket_CreateBindListen, 4)                                          \

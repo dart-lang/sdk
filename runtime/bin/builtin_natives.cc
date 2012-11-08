@@ -46,13 +46,7 @@
   V(File_OpenStdio, 1)                                                         \
   V(File_GetStdioHandleType, 1)                                                \
   V(File_NewServicePort, 0)                                                    \
-  V(Logger_PrintString, 1)                                                     \
-  V(Platform_NumberOfProcessors, 0)                                            \
-  V(Platform_OperatingSystem, 0)                                               \
-  V(Platform_PathSeparator, 0)                                                 \
-  V(Platform_LocalHostname, 0)                                                 \
-  V(Platform_Environment, 0)
-
+  V(Logger_PrintString, 1)
 
 BUILTIN_NATIVE_LIST(DECLARE_FUNCTION);
 
