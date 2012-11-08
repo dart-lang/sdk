@@ -7,10 +7,10 @@
 //
 // VMOptions=--enable_type_checks
 
-#library('isolate_mirror_local_test');
+library isolate_mirror_local_test;
 
-#import('dart:isolate');
-#import('dart:mirrors');
+import 'dart:isolate';
+import 'dart:mirrors';
 
 ReceivePort exit_port;
 Set expectedTests;

@@ -5,4 +5,4 @@
 // TODO(dgrove) - once the VM has a new way to include whole libraries,
 // remove this file and update runtime/bin/utf_sources.gypi .
 
-#library("utf");
+library utf;

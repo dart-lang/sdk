@@ -5,10 +5,10 @@
 // Dart test program for checking implemention of MirrorSystem when
 // inspecting a remote isolate.
 
-#library('isolate_mirror_local_test');
+library isolate_mirror_local_test;
 
-#import('dart:isolate');
-#import('dart:mirrors');
+import 'dart:isolate';
+import 'dart:mirrors';
 
 void isolateMain() {
   port.receive(

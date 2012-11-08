@@ -5,9 +5,9 @@
 // TODO(ager, iposva): Get rid of this file when the VM snapshot
 // generation can deal with normal library structure.
 
-#library('crypto');
+library crypto;
 
-#import('dart:math');
+import 'dart:math';
 
 /**
  * Interface for cryptographic hash functions.
