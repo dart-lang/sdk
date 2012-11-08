@@ -61,7 +61,9 @@ audiocontext_test: Fail
 canvasrenderingcontext2d_test: Fail, Pass
 contentelement_test: Fail
 css_test: Fail
-element_test: Fail
+element_test/additionalConstructors: Fail
+element_test/attributes: Fail
+element_test/eventListening: Fail
 element_webkit_test: Fail
 exceptions_test: Fail
 fileapi_test: Fail
@@ -78,11 +80,13 @@ localstorage_test: Fail
 measurement_test: Fail, Pass
 messageevent_test: Fail
 mutationobserver_test: Fail
-node_test: Fail
 serialized_script_value_test: Fail
 storage_test: Fail, Pass
+svgelement_test/additionalConstructors: Fail
+svgelement_test/elementset: Fail
+svgelement_test/innerHTML: Fail
+svgelement_test/outerHTML: Fail
 svgelement2_test: Fail
-svgelement_test: Fail
 svg_3_test: Fail
 typed_arrays_1_test: Fail
 typed_arrays_arraybuffer_test: Fail
@@ -106,12 +110,8 @@ typed_arrays_5_test: Skip
 typed_arrays_arraybuffer_test: Skip
 typed_arrays_dataview_test: Skip
 typed_arrays_range_checks_test: Fail
-element_test: Fail  # Bug 5693
 element_webkit_test: Fail
 localstorage_test: Fail
-node_test: Fail
-svgelement_test: Fail
-svgelement2_test: Fail
 websql_test: Fail # IE does not support web SQL
 #
 # Investigate and triage the following into bug reports.
@@ -123,6 +123,9 @@ cache_test: fail              # IE9 does not support ApplicationCache, but IE 10
 css_test: Fail
 datalistelement_test: Fail    # ie9 does not have HTMLDataListElement
 dom_constructors_test: Fail
+element_test/additionalConstructors: Fail
+element_test/attributes: Fail
+element_test/eventListening: Fail
 exceptions_test: Fail
 fileapi_test: Fail          # IE does not support filesystem APIs.
 history_test: Fail
@@ -141,6 +144,12 @@ shadow_dom_layout_test: Fail
 shadow_dom_test: Fail
 storage_test: Fail
 svg_3_test: Fail
+svgelement_test/additionalConstructors: Fail
+svgelement_test/elementset: Fail
+element_test/eventListening: Fail
+svgelement_test/innerHTML: Fail
+svgelement_test/outerHTML: Fail
+svgelement2_test: Fail
 url_test: Fail              # IE9 does not support createObjectURL (it is supported in IE10)
 websocket_test: Fail
 window_open_test: Skip      # BUG(4016)
@@ -171,7 +180,11 @@ canvasrenderingcontext2d_test: Fail
 datalistelement_test: Pass,Fail
 document_test: Fail
 dom_constructors_test: Fail
-element_test: Fail # Bug 5693
+element_test/attributes: Fail, Crash
+element_test/elements: Crash
+element_test/eventListening: Fail
+element_test/_ElementList: Fail, Crash
+element_test/queryAll: Crash
 element_add_test: Fail
 element_constructor_1_test: Fail
 element_webkit_test: Fail
@@ -182,15 +195,21 @@ native_gc_test: Fail
 node_test: Skip # Issue 6457
 serialized_script_value_test: Fail
 svgelement2_test: Fail
-svgelement_test: Fail
+svgelement_test/constructors: Crash
+svgelement_test/additionalConstructors: Fail
+svgelement_test/elementget: Fail
+svgelement_test/elementset: Fail
+svgelement_test/innerHTML: Crash
+svgelement_test/outerHTML: Fail
+svgelement_test/svg: Fail
 url_test: Fail
 
 [ $runtime == opera && $system == windows ]
-element_test: Skip # Browser is already closed by the time we get results?
 htmlelement_test: Fail, Pass
 
 [ $runtime == opera && $system == macos ]
-element_test: Crash
+html/element_test/constructors: Fail
+
 
 [ $runtime == opera ]
 audiobuffersourcenode_test: Fail
@@ -205,6 +224,10 @@ css_test: Fail
 cssstyledeclaration_test: Fail
 element_add_test: Fail
 element_constructor_1_test: Fail
+element_test/constructors: Fail
+element_test/elements: Fail
+element_test/eventListening: Crash
+element_test/queryAll: Fail
 element_webkit_test: Fail
 exceptions_test: Fail
 indexeddb_1_test: Fail
@@ -215,7 +238,7 @@ mutationobserver_test: Fail
 performance_api_test: Fail
 serialized_script_value_test: Fail
 svg_3_test: Fail
-svgelement_test: Fail
+svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
 typed_arrays_1_test: Fail
 typed_arrays_arraybuffer_test: Fail
@@ -246,7 +269,7 @@ indexeddb_4_test: Fail     # FF disables indexedDB from file URLs.
 inner_frame_test: Skip
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
 svg_3_test: Fail
-svgelement_test: Fail
+svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
 transferables_test: Fail   # Issue 3392.
 websql_test: Fail # FF does not support web SQL
