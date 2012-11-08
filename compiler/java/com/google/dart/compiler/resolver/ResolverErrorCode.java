@@ -170,6 +170,7 @@ public enum ResolverErrorCode implements ErrorCode {
   NOT_A_TYPE("type \"%s\" expected, but \"%s\" found"),
   // TODO(zundel): error message needs JUnit test (reachable code?)
   NOT_AN_INSTANCE_FIELD("%s is not an instance field"),
+  NOT_GENERATIVE_SUPER_CONSTRUCTOR("Constructor '%s' in class '%s' is not generative."),
   OPTIONAL_PARAMETERS_CANNOT_START_WITH_UNDER("Optional parameters cannot start with an '_' character"),
   PARAMETER_INIT_OUTSIDE_CONSTRUCTOR("Parameter initializers can only be used in constructors"),
   SUPER_METHOD_INVOCATION_IN_CONSTRUCTOR_INITIALIZER(

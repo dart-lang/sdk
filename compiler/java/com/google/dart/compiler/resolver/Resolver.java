@@ -617,6 +617,10 @@ public class Resolver {
                 ResolverErrorCode.CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR,
                 cls.getSuperclass());
           }
+          if (superCtor != null && superCtor.getModifiers().isFactory()) {
+            onError(cls.getName(), ResolverErrorCode.NOT_GENERATIVE_SUPER_CONSTRUCTOR, "<default>",
+                supertype);
+          }
         }
       }
     }
@@ -715,7 +719,7 @@ public class Resolver {
           && !(body instanceof DartNativeBlock)) {
         resolveInitializers(node, initializedFields);
       }
-
+      
       // resolve redirecting factory constructor
       {
         DartTypeNode rcTypeName = node.getRedirectedTypeName();
@@ -1177,6 +1181,9 @@ public class Resolver {
       } else {
         ClassElement classElement = supertype.getElement();
         element = Elements.lookupConstructor(classElement, name);
+        if (element != null && element.getModifiers().isFactory()) {
+          onError(x, ResolverErrorCode.NOT_GENERATIVE_SUPER_CONSTRUCTOR, name, supertype);
+        }
         if (element == null && "".equals(name) && x.getArguments().isEmpty()
             && Elements.needsImplicitDefaultConstructor(classElement)) {
           element = new SyntheticDefaultConstructorElement(null, classElement, typeProvider);
@@ -2218,10 +2225,12 @@ public class Resolver {
     }
 
     private void resolveInitializers(DartMethodDefinition node, Set<FieldElement> initializedFields) {
-      Iterator<DartInitializer> initializers = node.getInitializers().iterator();
+      ClassElement classElement = (ClassElement) enclosingElement.getEnclosingElement();
+
       ConstructorElement constructorElement = null;
-      while (initializers.hasNext()) {
-        DartInitializer initializer = initializers.next();
+      boolean hasSuperInvocation = false;
+      for (DartInitializer initializer : node.getInitializers()) {
+        hasSuperInvocation |= initializer.getValue() instanceof DartSuperConstructorInvocation;
         Element element = resolve(initializer);
         if ((ElementKind.of(element) == ElementKind.CONSTRUCTOR) && initializer.isInvocation()) {
           constructorElement = (ConstructorElement) element;
@@ -2232,8 +2241,21 @@ public class Resolver {
         }
       }
 
+      // If no explicit super() invocation, then implicit call of default super-type constructor.
+      // Check that it is not factory, i.e. generative.
+      if (!hasSuperInvocation && currentHolder instanceof ClassElement) {
+        InterfaceType superType = classElement.getSupertype();
+        if (superType != null) {
+          ClassElement superElement = superType.getElement();
+          ConstructorElement superConstructor = Elements.lookupConstructor(superElement, "");
+          if (superConstructor != null && superConstructor.getModifiers().isFactory()) {
+            onError(node.getName(), ResolverErrorCode.NOT_GENERATIVE_SUPER_CONSTRUCTOR,
+                "<default>", superType);
+          }
+        }
+      }
+
       // Look for final fields that are not initialized
-      ClassElement classElement = (ClassElement)enclosingElement.getEnclosingElement();
       Element methodElement = node.getElement();
       if (classElement != null && methodElement != null
           && !classElement.isInterface()

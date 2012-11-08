@@ -5570,4 +5570,43 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       assertEquals("A", node.getClassElement().getName());
     }
   }
+
+  public void test_notGenerativeConstructor_default() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  factory A() {",
+        "    return null;",
+        "  }",
+        "}",
+        "class B extends A {",
+        "  B() : super() {}", // explicit call of super constructor
+        "}",
+        "class C extends A {",
+        "  C() {}", // implicit call of super constructor
+        "}",
+        "class D extends A {", // implicit call of super constructor
+        "}",
+        "");
+    assertErrors(result.getErrors(),
+        errEx(ResolverErrorCode.NOT_GENERATIVE_SUPER_CONSTRUCTOR, 8, 9, 7),
+        errEx(ResolverErrorCode.NOT_GENERATIVE_SUPER_CONSTRUCTOR, 11, 3, 1),
+        errEx(ResolverErrorCode.NOT_GENERATIVE_SUPER_CONSTRUCTOR, 13, 7, 1));
+  }
+  
+  public void test_notGenerativeConstructor_explicitNamed() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  factory A.named() {",
+        "    return null;",
+        "  }",
+        "}",
+        "class B extends A {",
+        "  B() : super.named() {}", // explicit call of super constructor
+        "}",
+        "");
+    assertErrors(result.getErrors(),
+        errEx(ResolverErrorCode.NOT_GENERATIVE_SUPER_CONSTRUCTOR, 8, 9, 13));
+  }
 }
