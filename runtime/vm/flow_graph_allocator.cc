@@ -496,6 +496,24 @@ void FlowGraphAllocator::PrintLiveRanges() {
 }
 
 
+// Returns true if all uses of the given range inside the given loop
+// have Any allocation policy.
+static bool HasOnlyUnconstrainedUsesInLoop(LiveRange* range,
+                                           BlockInfo* loop_header) {
+  const intptr_t boundary = loop_header->last_block()->end_pos();
+
+  UsePosition* use = range->first_use();
+  while ((use != NULL) && (use->pos() < boundary)) {
+    if (!use->location_slot()->Equals(Location::Any())) {
+      return false;
+    }
+    use = use->next();
+  }
+
+  return true;
+}
+
+
 void FlowGraphAllocator::BuildLiveRanges() {
   const intptr_t block_count = postorder_.length();
   ASSERT(postorder_.Last()->IsGraphEntry());
@@ -521,6 +539,18 @@ void FlowGraphAllocator::BuildLiveRanges() {
         ProcessOneInstruction(block, current);
       }
       current = current->previous();
+    }
+
+
+    // Check if any values live into the loop can be spilled for free.
+    BlockInfo* block_info = BlockInfoAt(block->start_pos());
+    if (block_info->is_loop_header()) {
+      for (BitVector::Iterator it(live_in_[i]); !it.Done(); it.Advance()) {
+        LiveRange* range = GetLiveRange(it.Current());
+        if (HasOnlyUnconstrainedUsesInLoop(range, block_info)) {
+          range->MarkHasOnlyUnconstrainedUsesInLoop(block_info->loop_id());
+        }
+      }
     }
 
     ConnectIncomingPhiMoves(block);
@@ -708,6 +738,8 @@ void FlowGraphAllocator::ConnectIncomingPhiMoves(BlockEntryInstr* block) {
       //
       LiveRange* range = GetLiveRange(vreg);
       range->DefineAt(pos);  // Shorten live range.
+
+      if (join->loop_info() != NULL) range->mark_loop_phi();
 
       for (intptr_t pred_idx = 0; pred_idx < phi->InputCount(); pred_idx++) {
         BlockEntryInstr* pred = block->PredecessorAt(pred_idx);
@@ -1019,9 +1051,9 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
                                    Location::Any());
 
     // Add uses to the live range of the input.
-    Value* input = current->InputAt(0);
+    Definition* input = current->InputAt(0)->definition();
     LiveRange* input_range =
-        GetLiveRange(input->definition()->ssa_temp_index());
+        GetLiveRange(input->ssa_temp_index());
     input_range->AddUseInterval(block->start_pos(), pos);
     input_range->AddUse(pos, move->src_slot());
 
@@ -1148,6 +1180,8 @@ void FlowGraphAllocator::DiscoverLoops() {
   // both headers of reducible and irreducible loops.
   BlockInfo* current_loop = NULL;
 
+  intptr_t loop_id = 0;  // All loop headers have a unique id.
+
   const intptr_t block_count = postorder_.length();
   for (intptr_t i = 0; i < block_count; i++) {
     BlockEntryInstr* block = postorder_[i];
@@ -1165,6 +1199,8 @@ void FlowGraphAllocator::DiscoverLoops() {
           ASSERT(successor_info != current_loop);
 
           successor_info->mark_loop_header();
+          successor_info->set_loop_id(loop_id++);
+          successor_info->set_last_block(block);
           // For loop header loop information points to the outer loop.
           successor_info->set_loop(current_loop);
           current_loop = successor_info;
@@ -1471,6 +1507,23 @@ void FlowGraphAllocator::SpillBetween(LiveRange* range,
 void FlowGraphAllocator::SpillAfter(LiveRange* range, intptr_t from) {
   TRACE_ALLOC(OS::Print("spill %"Pd" [%"Pd", %"Pd") after %"Pd"\n",
                         range->vreg(), range->Start(), range->End(), from));
+
+  // When spilling the value inside the loop check if this spill can
+  // be moved outside.
+  BlockInfo* block_info = BlockInfoAt(from);
+  if (block_info->is_loop_header() || (block_info->loop() != NULL)) {
+    BlockInfo* loop_header =
+        block_info->is_loop_header() ? block_info : block_info->loop();
+
+    if ((range->Start() <= loop_header->entry()->start_pos()) &&
+        RangeHasOnlyUnconstrainedUsesInLoop(range, loop_header->loop_id())) {
+      ASSERT(loop_header->entry()->start_pos() <= from);
+      from = loop_header->entry()->start_pos();
+      TRACE_ALLOC(OS::Print("  moved spill position to loop header %"Pd"\n",
+                            from));
+    }
+  }
+
   LiveRange* tail = range->SplitAt(from);
   Spill(tail);
 }
@@ -1623,10 +1676,65 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
 }
 
 
+bool FlowGraphAllocator::RangeHasOnlyUnconstrainedUsesInLoop(LiveRange* range,
+                                                             intptr_t loop_id) {
+  if (range->vreg() >= 0) {
+    return GetLiveRange(range->vreg())->HasOnlyUnconstrainedUsesInLoop(loop_id);
+  }
+  return false;
+}
+
+
+bool FlowGraphAllocator::IsCheapToEvictRegisterInLoop(BlockInfo* loop,
+                                                      intptr_t reg) {
+  const intptr_t loop_start = loop->entry()->start_pos();
+  const intptr_t loop_end = loop->last_block()->end_pos();
+
+  for (intptr_t i = 0; i < registers_[reg].length(); i++) {
+    LiveRange* allocated = registers_[reg][i];
+
+    UseInterval* interval = allocated->finger()->first_pending_use_interval();
+    if (interval->Contains(loop_start)) {
+      if (!RangeHasOnlyUnconstrainedUsesInLoop(allocated, loop->loop_id())) {
+        return false;
+      }
+    } else if (interval->start() < loop_end) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+
+bool FlowGraphAllocator::HasCheapEvictionCandidate(LiveRange* phi_range) {
+  ASSERT(phi_range->is_loop_phi());
+
+  BlockInfo* loop_header = BlockInfoAt(phi_range->Start());
+  ASSERT(loop_header->is_loop_header());
+  ASSERT(phi_range->Start() == loop_header->entry()->start_pos());
+
+  for (intptr_t reg = 0; reg < NumberOfRegisters(); ++reg) {
+    if (blocked_registers_[reg]) continue;
+    if (IsCheapToEvictRegisterInLoop(loop_header, reg)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+
 void FlowGraphAllocator::AllocateAnyRegister(LiveRange* unallocated) {
+  // If a loop phi has no register uses we might still want to allocate it
+  // to the register to reduce amount of memory moves on the back edge.
+  // This is possible if there is a register blocked by a range that can be
+  // cheaply evicted i.e. it has no register beneficial uses inside the
+  // loop.
   UsePosition* register_use =
       unallocated->finger()->FirstRegisterUse(unallocated->Start());
-  if (register_use == NULL) {
+  if ((register_use == NULL) &&
+      !(unallocated->is_loop_phi() && HasCheapEvictionCandidate(unallocated))) {
     Spill(unallocated);
     return;
   }
@@ -1642,9 +1750,12 @@ void FlowGraphAllocator::AllocateAnyRegister(LiveRange* unallocated) {
     }
   }
 
-  if (free_until < register_use->pos()) {
+  const intptr_t register_use_pos =
+      (register_use != NULL) ? register_use->pos()
+                             : unallocated->Start();
+  if (free_until < register_use_pos) {
     // Can't acquire free register. Spill until we really need one.
-    ASSERT(unallocated->Start() < ToInstructionStart(register_use->pos()));
+    ASSERT(unallocated->Start() < ToInstructionStart(register_use_pos));
     SpillBetween(unallocated, unallocated->Start(), register_use->pos());
     return;
   }
