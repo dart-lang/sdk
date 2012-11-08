@@ -1299,15 +1299,9 @@ abstract class _HttpConnectionBase {
   }
 
   void _onData() {
-    int available = _socket.available();
-    if (available == 0) {
-      return;
-    }
-
-    List<int> buffer = new Uint8List(available);
-    int bytesRead = _socket.readList(buffer, 0, available);
-    if (bytesRead > 0) {
-      _httpParser.writeList(buffer, 0, bytesRead);
+    List<int> buffer = _socket.read();
+    if (buffer != null) {
+      _httpParser.writeList(buffer, 0, buffer.length);
     }
   }
 

@@ -84,6 +84,18 @@ class SocketMock implements Socket {
     }
   }
 
+  List<int> read([int len]) {
+    var result;
+    if (len == null) {
+      result = _data;
+      _data = [];
+    } else {
+      result = new Uint8List(len);
+      readList(result, 0, len);
+    }
+    return result;
+  }
+
   int readList(List<int> buffer, int offset, int count) {
     int max = min(count, _data.length);
     buffer.setRange(offset, max, _data);
