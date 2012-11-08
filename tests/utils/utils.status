@@ -27,12 +27,6 @@ recursive_import_test: Fail # http://dartbug.com/2264
 # dart2js issue 6323
 dummy_compiler_test: Fail, OK
 recursive_import_test: Fail, OK
-txt_layout_test: Fail, OK
-png_layout_test: Fail, OK
-
-# test issue 6512
-json_test: Fail, OK
-utf8_test: Fail, OK
 
 
 [ $compiler == dart2dart ]

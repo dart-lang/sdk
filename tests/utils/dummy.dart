@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // A dummy library for testing dartdoc name references.
-#library('dummy');
+library dummy;
 
 topLevelMethod() => null;
 

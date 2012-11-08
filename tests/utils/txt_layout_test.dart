@@ -8,9 +8,9 @@
  * test framework that we want to compare the final state of this application
  * against a text file (with a text representation of the DOM tree).
  */
-#library("layouttest");
+library layouttest;
 
-#import('dart:html');
+import 'dart:html';
 
 main() {
   var div1Style = _style('blue', 20, 10, 40, 10);
