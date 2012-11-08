@@ -4930,7 +4930,7 @@ public class DartParser extends CompletionHooksParserBase {
     while (!done) {
       List<DartLabel> labels = new ArrayList<DartLabel>();
       beginSwitchMember(); // switch member
-      while (peek(0) == Token.IDENTIFIER) {
+      while (peek(0) == Token.IDENTIFIER && peek(1) == Token.COLON) {
         beginLabel();
         DartIdentifier identifier = parseIdentifier();
         expect(Token.COLON);
@@ -4950,7 +4950,7 @@ public class DartParser extends CompletionHooksParserBase {
         done = true;
         done(null);
       } else {
-        if (peek(0) != Token.EOS) {
+        if (peek(0) == Token.DEFAULT) {
           members.add(parseDefaultMember(labels));
         }
         expectCloseBrace(foundOpenBrace);
