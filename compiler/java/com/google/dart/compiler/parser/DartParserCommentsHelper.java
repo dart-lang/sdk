@@ -153,13 +153,6 @@ public class DartParserCommentsHelper {
           String commentStr = sourceCode.substring(comment.getSourceInfo().getOffset(),
               comment.getSourceInfo().getEnd());
           tokenizeComment(comment, commentStr);
-          // may be @Metadata
-          if (commentStr.contains("@deprecated")) {
-            decl.setObsoleteMetadata(decl.getObsoleteMetadata().makeDeprecated());
-          }
-          if (commentStr.contains("@override")) {
-            decl.setObsoleteMetadata(decl.getObsoleteMetadata().makeOverride());
-          }
           // DartDoc
           if (comment.isDartDoc()) {
             decl.setDartDoc(comment);

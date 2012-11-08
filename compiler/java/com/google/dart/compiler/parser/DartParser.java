@@ -2036,7 +2036,6 @@ public class DartParser extends CompletionHooksParserBase {
     List<DartAnnotation> metadata = parseMetadata();
     do {
       beginVariableDeclaration();
-      List<DartAnnotation> fieldMetadata = parseMetadata();
       DartIdentifier name = parseIdentifier();
       DartExpression value = null;
       if (optional(Token.ASSIGN)) {
@@ -2049,7 +2048,7 @@ public class DartParser extends CompletionHooksParserBase {
         reportError(name, ParserErrorCode.EXTERNAL_ONLY_METHOD);
       }
       DartField field = done(new DartField(name, modifiers, null, value));
-      setMetadata(field, fieldMetadata);
+      setMetadata(field, metadata);
       fields.add(field);
     } while (optional(Token.COMMA));
     DartFieldDefinition definition = new DartFieldDefinition(type, fields);

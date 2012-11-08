@@ -1635,16 +1635,17 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_metadataCommentOverride_Bad_method() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
+        "const override = 0;",
         "class A {",
         "}",
         "class B extends A {",
-        "  // @override",
+        "  @override",
         "  foo() {}",
         "}",
         "");
     assertErrors(
         result.getErrors(),
-        errEx(ResolverErrorCode.INVALID_OVERRIDE_METADATA, 6, 3, 3));
+        errEx(ResolverErrorCode.INVALID_OVERRIDE_METADATA, 7, 3, 3));
   }
 
   public void testImplementsAndOverrides5() throws Exception {
@@ -3689,14 +3690,14 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_metadataComment_deprecated_1() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "// @deprecated",
+        "const deprecated = 0;",
+        "@deprecated",
         "ttt() {}",
         "class A {",
-        "  // @deprecated",
-        "  var fff;",
-        "  // @deprecated",
+        "  var @deprecated fff;",
+        "  @deprecated",
         "  mmmm() {}",
-        "  // @deprecated",
+        "  @deprecated",
         "  operator + (other) {}",
         "}",
         "method() {",
@@ -3718,10 +3719,11 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_metadataComment_deprecated_2() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "// @deprecated",
+        "const deprecated = 0;",
+        "@deprecated",
         "class A {",
         "  A.named() {}",
-        "  // @deprecated",
+        "  @deprecated",
         "  A.depreca() {}",
         "}",
         "method() {",
@@ -3731,9 +3733,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 9, 7, 1),
         errEx(TypeErrorCode.DEPRECATED_ELEMENT, 10, 7, 1),
-        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 10, 9, 7));
+        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 11, 7, 1),
+        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 11, 9, 7));
   }
   
   public void test_metadata_resolving() throws Exception {

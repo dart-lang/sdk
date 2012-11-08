@@ -1199,34 +1199,6 @@ public class SyntaxTest extends AbstractParserTest {
     }
   }
 
-  public void test_metadata_deprecated_obsolete() {
-    String code = makeCode(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  m0() {}",
-        "  // @deprecated",
-        "  m1() {}",
-        "}",
-        "");
-    DartUnit unit = parseUnit(getName() + ".dart", code);
-    // A
-    {
-      DartClass classA = (DartClass) unit.getTopLevelNodes().get(0);
-      // m0()
-      {
-        DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(0);
-        assertEquals("m0", method.getName().toSource());
-        assertEquals(false, method.getObsoleteMetadata().isDeprecated());
-      }
-      // m1()
-      {
-        DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(1);
-        assertEquals("m1", method.getName().toSource());
-        assertEquals(true, method.getObsoleteMetadata().isDeprecated());
-      }
-    }
-  }
-
   public void test_metadata_override() {
     String code = makeCode(
         "class A {",
@@ -1279,68 +1251,6 @@ public class SyntaxTest extends AbstractParserTest {
           DartComment dartDoc = method.getDartDoc();
           assertNotNull(dartDoc);
           assertEquals("/** Trailing DartDoc comment */", getNodeSource(code, dartDoc));
-        }
-      }
-    }
-  }
-
-  public void test_metadata_override_obsolete() {
-    String code = makeCode(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  m0() {}",
-        "  // @override",
-        "  m1() {}",
-        "  /** Leading DartDoc comment */",
-        "  // @override",
-        "  m2() {}",
-        "  /**",
-        "   * DartDoc comment",
-        "   * @override",
-        "   */",
-        "  m3() {}",
-        "}",
-        "");
-    DartUnit unit = parseUnit(getName() + ".dart", code);
-    // A
-    {
-      DartClass classA = (DartClass) unit.getTopLevelNodes().get(0);
-      // m0()
-      {
-        DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(0);
-        assertEquals("m0", method.getName().toSource());
-        assertEquals(false, method.getObsoleteMetadata().isOverride());
-        assertNull(method.getDartDoc());
-      }
-      // m1()
-      {
-        DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(1);
-        assertEquals("m1", method.getName().toSource());
-        assertEquals(true, method.getObsoleteMetadata().isOverride());
-        assertNull(method.getDartDoc());
-      }
-      // m2()
-      {
-        DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(2);
-        assertEquals("m2", method.getName().toSource());
-        assertEquals(true, method.getObsoleteMetadata().isOverride());
-        {
-          DartComment dartDoc = method.getDartDoc();
-          assertNotNull(dartDoc);
-          assertEquals("/** Leading DartDoc comment */", getNodeSource(code, dartDoc));
-        }
-      }
-      // m3()
-      {
-        DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(3);
-        assertEquals("m3", method.getName().toSource());
-        assertEquals(true, method.getObsoleteMetadata().isOverride());
-        {
-          DartComment dartDoc = method.getDartDoc();
-          assertNotNull(dartDoc);
-          String commentCode = getNodeSource(code, dartDoc);
-          assertTrue(commentCode.contains("DartDoc comment"));
-          assertTrue(commentCode.contains("@override"));
         }
       }
     }
