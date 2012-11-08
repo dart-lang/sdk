@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Child isolate code to be spawned from a URI to this file.
-#library('SpawnUriChildIsolate');
-#import('dart:isolate');
+library SpawnUriChildIsolate;
+import 'dart:isolate';
 
 void main() {
   port.receive((msg, reply) => reply.send('re: $msg'));

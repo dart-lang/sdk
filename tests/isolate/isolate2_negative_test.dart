@@ -5,8 +5,8 @@
 // Dart test program for testing that exceptions in other isolates bring down
 // the program.
 
-#library('Isolate2NegativeTest');
-#import('dart:isolate');
+library isolate2_negative_test;
+import 'dart:isolate';
 
 void entry() {
   throw "foo";

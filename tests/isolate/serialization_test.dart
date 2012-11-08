@@ -8,8 +8,8 @@
 // ---------------------------------------------------------------------------
 // Serialization test.
 // ---------------------------------------------------------------------------
-#library('SerializationTest');
-#import('dart:isolate');
+library SerializationTest;
+import 'dart:isolate';
 
 main() {
   // TODO(sigmund): fix once we can disable privacy for testing (bug #1882)
