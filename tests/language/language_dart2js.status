@@ -31,6 +31,9 @@ class_literal_test/29: Fail # Class literals are expression now; delete this tes
 *vm_test: Skip
 *vm_negative_test: Skip
 
+# BUG(6627): Temporarily skip because -1 << 0 is compiled incorrectly.
+arithmetic_test: Skip
+
 [ $compiler == dart2js && $checked ]
 redirecting_factory_infinite_steps_test/01: Fail
 assert_with_type_test_or_cast_test: Fail # Issue 4929
