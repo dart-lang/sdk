@@ -477,13 +477,13 @@ dart2js_conversions = {
     # as well.  Note, there are no functions that take a non-local Window
     # as a parameter / setter.
     'DOMWindow get':
-      Conversion('_convertNativeToDart_Window', 'Window', 'Window'),
+      Conversion('_convertNativeToDart_Window', 'dynamic', 'Window'),
     'EventTarget get':
-      Conversion('_convertNativeToDart_EventTarget', 'EventTarget',
+      Conversion('_convertNativeToDart_EventTarget', 'dynamic',
                  'EventTarget'),
     'EventTarget set':
       Conversion('_convertDartToNative_EventTarget', 'EventTarget',
-                 'EventTarget'),
+                 'dynamic'),
 
     'IDBKey get':
       Conversion('_convertNativeToDart_IDBKey', 'dynamic', 'dynamic'),

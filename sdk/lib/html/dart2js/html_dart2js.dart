@@ -6102,7 +6102,7 @@ class Document extends Node
 
   /** @domName Document.defaultView */
   Window get window => _convertNativeToDart_Window(this._window);
-  Window get _window => JS("Window", "#.defaultView", this);
+  dynamic get _window => JS("dynamic", "#.defaultView", this);
 
   /** @domName Document.documentElement */
   final Element documentElement;
@@ -6187,10 +6187,10 @@ class Document extends Node
 
   /** @domName Document.createTouch */
   Touch createTouch(LocalWindow window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) {
-    EventTarget target_1 = _convertDartToNative_EventTarget(target);
+    var target_1 = _convertDartToNative_EventTarget(target);
     return _createTouch_1(window, target_1, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
   }
-  Touch _createTouch_1(LocalWindow window, EventTarget target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native "createTouch";
+  Touch _createTouch_1(LocalWindow window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native "createTouch";
 
   /** @domName Document.createTouchList */
   TouchList $dom_createTouchList() native "createTouchList";
@@ -8328,7 +8328,7 @@ class Event native "*Event" {
 
   /** @domName Event.currentTarget */
   EventTarget get currentTarget => _convertNativeToDart_EventTarget(this._currentTarget);
-  EventTarget get _currentTarget => JS("EventTarget", "#.currentTarget", this);
+  dynamic get _currentTarget => JS("dynamic", "#.currentTarget", this);
 
   /** @domName Event.defaultPrevented */
   final bool defaultPrevented;
@@ -8341,11 +8341,11 @@ class Event native "*Event" {
 
   /** @domName Event.srcElement */
   EventTarget get srcElement => _convertNativeToDart_EventTarget(this._srcElement);
-  EventTarget get _srcElement => JS("EventTarget", "#.srcElement", this);
+  dynamic get _srcElement => JS("dynamic", "#.srcElement", this);
 
   /** @domName Event.target */
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
-  EventTarget get _target => JS("EventTarget", "#.target", this);
+  dynamic get _target => JS("dynamic", "#.target", this);
 
   /** @domName Event.timeStamp */
   final int timeStamp;
@@ -9194,7 +9194,7 @@ class FrameElement extends Element implements Element native "*HTMLFrameElement"
 
   /** @domName HTMLFrameElement.contentWindow */
   Window get contentWindow => _convertNativeToDart_Window(this._contentWindow);
-  Window get _contentWindow => JS("Window", "#.contentWindow", this);
+  dynamic get _contentWindow => JS("dynamic", "#.contentWindow", this);
 
   /** @domName HTMLFrameElement.frameBorder */
   String frameBorder;
@@ -10684,7 +10684,7 @@ class IFrameElement extends Element implements Element native "*HTMLIFrameElemen
 
   /** @domName HTMLIFrameElement.contentWindow */
   Window get contentWindow => _convertNativeToDart_Window(this._contentWindow);
-  Window get _contentWindow => JS("Window", "#.contentWindow", this);
+  dynamic get _contentWindow => JS("dynamic", "#.contentWindow", this);
 
   /** @domName HTMLIFrameElement.frameBorder */
   String frameBorder;
@@ -11892,7 +11892,7 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   /** @domName Window.opener */
   Window get opener => _convertNativeToDart_Window(this._opener);
-  Window get _opener => JS("Window", "#.opener", this);
+  dynamic get _opener => JS("dynamic", "#.opener", this);
 
   /** @domName Window.outerHeight */
   final int outerHeight;
@@ -11911,7 +11911,7 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   /** @domName Window.parent */
   Window get parent => _convertNativeToDart_Window(this._parent);
-  Window get _parent => JS("Window", "#.parent", this);
+  dynamic get _parent => JS("dynamic", "#.parent", this);
 
   /** @domName Window.performance */
   final Performance performance;
@@ -11945,7 +11945,7 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   /** @domName Window.self */
   Window get self => _convertNativeToDart_Window(this._self);
-  Window get _self => JS("Window", "#.self", this);
+  dynamic get _self => JS("dynamic", "#.self", this);
 
   /** @domName Window.sessionStorage */
   final Storage sessionStorage;
@@ -11964,7 +11964,7 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   /** @domName Window.top */
   Window get top => _convertNativeToDart_Window(this._top);
-  Window get _top => JS("Window", "#.top", this);
+  dynamic get _top => JS("dynamic", "#.top", this);
 
   /** @domName DOMWindow.webkitIndexedDB */
   final IDBFactory webkitIndexedDB;
@@ -11977,7 +11977,7 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   /** @domName Window.window */
   Window get window => _convertNativeToDart_Window(this._window);
-  Window get _window => JS("Window", "#.window", this);
+  dynamic get _window => JS("dynamic", "#.window", this);
 
   /** @domName Window.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
@@ -13005,7 +13005,7 @@ class MessageEvent extends Event native "*MessageEvent" {
 
   /** @domName MessageEvent.source */
   Window get source => _convertNativeToDart_Window(this._source);
-  Window get _source => JS("Window", "#.source", this);
+  dynamic get _source => JS("dynamic", "#.source", this);
 
   /** @domName MessageEvent.initMessageEvent */
   void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, LocalWindow sourceArg, List messagePorts) native;
@@ -13192,7 +13192,7 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
 
   /** @domName MouseEvent.relatedTarget */
   EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._relatedTarget);
-  EventTarget get _relatedTarget => JS("EventTarget", "#.relatedTarget", this);
+  dynamic get _relatedTarget => JS("dynamic", "#.relatedTarget", this);
 
   /** @domName MouseEvent.screenX */
   final int screenX;
@@ -13220,11 +13220,11 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
 
   /** @domName MouseEvent.initMouseEvent */
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) {
-    EventTarget relatedTarget_1 = _convertDartToNative_EventTarget(relatedTarget);
+    var relatedTarget_1 = _convertDartToNative_EventTarget(relatedTarget);
     _$dom_initMouseEvent_1(type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget_1);
     return;
   }
-  void _$dom_initMouseEvent_1(type, canBubble, cancelable, LocalWindow view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, EventTarget relatedTarget) native "initMouseEvent";
+  void _$dom_initMouseEvent_1(type, canBubble, cancelable, LocalWindow view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget) native "initMouseEvent";
 
 
   int get offsetX {
@@ -23572,7 +23572,7 @@ class Touch native "*Touch" {
 
   /** @domName Touch.target */
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
-  EventTarget get _target => JS("EventTarget", "#.target", this);
+  dynamic get _target => JS("dynamic", "#.target", this);
 
   /** @domName Touch.webkitForce */
   final num webkitForce;
@@ -23859,7 +23859,7 @@ class UIEvent extends Event native "*UIEvent" {
 
   /** @domName UIEvent.view */
   Window get view => _convertNativeToDart_Window(this._view);
-  Window get _view => JS("Window", "#.view", this);
+  dynamic get _view => JS("dynamic", "#.view", this);
 
   /** @domName UIEvent.which */
   final int which;
