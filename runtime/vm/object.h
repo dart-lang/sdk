@@ -2786,6 +2786,12 @@ class ICData : public Object {
     return raw_ptr()->deopt_id_;
   }
 
+  intptr_t deopt_reason() const {
+    return raw_ptr()->deopt_reason_;
+  }
+
+  void set_deopt_reason(intptr_t reason) const;
+
   intptr_t NumberOfChecks() const;
 
   static intptr_t InstanceSize() {
