@@ -722,43 +722,45 @@ void FlowGraphAllocator::ConnectIncomingPhiMoves(BlockEntryInstr* block) {
   const intptr_t pos = join->start_pos();
 
   ZoneGrowableArray<PhiInstr*>* phis = join->phis();
-  if (phis != NULL) {
-    intptr_t move_idx = 0;
-    for (intptr_t phi_idx = 0; phi_idx < phis->length(); phi_idx++) {
-      PhiInstr* phi = (*phis)[phi_idx];
-      if (phi == NULL) continue;
+  if (phis == NULL) return;
 
-      const intptr_t vreg = phi->ssa_temp_index();
-      ASSERT(vreg != -1);
+  const bool is_loop_header = BlockInfoAt(join->start_pos())->is_loop_header();
 
-      // Expected shape of live range:
-      //
-      //                 B
-      //      phi        [--------
-      //
-      LiveRange* range = GetLiveRange(vreg);
-      range->DefineAt(pos);  // Shorten live range.
+  intptr_t move_idx = 0;
+  for (intptr_t phi_idx = 0; phi_idx < phis->length(); phi_idx++) {
+    PhiInstr* phi = (*phis)[phi_idx];
+    if (phi == NULL) continue;
 
-      if (join->loop_info() != NULL) range->mark_loop_phi();
+    const intptr_t vreg = phi->ssa_temp_index();
+    ASSERT(vreg != -1);
 
-      for (intptr_t pred_idx = 0; pred_idx < phi->InputCount(); pred_idx++) {
-        BlockEntryInstr* pred = block->PredecessorAt(pred_idx);
-        GotoInstr* goto_instr = pred->last_instruction()->AsGoto();
-        ASSERT((goto_instr != NULL) && (goto_instr->HasParallelMove()));
-        MoveOperands* move =
-            goto_instr->parallel_move()->MoveOperandsAt(move_idx);
-        move->set_dest(Location::PrefersRegister());
-        range->AddUse(pos, move->dest_slot());
-      }
+    // Expected shape of live range:
+    //
+    //                 B
+    //      phi        [--------
+    //
+    LiveRange* range = GetLiveRange(vreg);
+    range->DefineAt(pos);  // Shorten live range.
 
-      // All phi resolution moves are connected. Phi's live range is
-      // complete.
-      AssignSafepoints(range);
+    if (is_loop_header) range->mark_loop_phi();
 
-      CompleteRange(range, RegisterKindForResult(phi));
-
-      move_idx++;
+    for (intptr_t pred_idx = 0; pred_idx < phi->InputCount(); pred_idx++) {
+      BlockEntryInstr* pred = block->PredecessorAt(pred_idx);
+      GotoInstr* goto_instr = pred->last_instruction()->AsGoto();
+      ASSERT((goto_instr != NULL) && (goto_instr->HasParallelMove()));
+      MoveOperands* move =
+          goto_instr->parallel_move()->MoveOperandsAt(move_idx);
+      move->set_dest(Location::PrefersRegister());
+      range->AddUse(pos, move->dest_slot());
     }
+
+    // All phi resolution moves are connected. Phi's live range is
+    // complete.
+    AssignSafepoints(range);
+
+    CompleteRange(range, RegisterKindForResult(phi));
+
+    move_idx++;
   }
 }
 
