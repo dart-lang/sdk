@@ -2,9 +2,9 @@
 //
 //       top_searches2.tmpl
 
-#import('dart:html');
-#source('complex_datamodel.dart');
-#source('top_searches2.dart');
+import 'dart:html';
+part 'complex_datamodel.dart';
+part 'top_searches2.dart';
 
 void main() {
   List<Person> persons = dataModel;

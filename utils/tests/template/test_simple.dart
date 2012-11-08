@@ -4,8 +4,8 @@
 //       name_entry2.tmpl
 //       name_entry_css.tmpl
 
-#import('dart:html');
-#source('name_entry.dart');
+import 'dart:html';
+part 'name_entry.dart';
 
 void main() {
   // Simple template.

@@ -3,13 +3,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("string_encoding_run_tests");
-#import("dunit.dart");
-#import("unicode_test.dart", prefix: "u");
-#import("unicode_core_test.dart", prefix: "uc");
-#import("utf16_test.dart", prefix: "utf16");
-#import("utf32_test.dart", prefix: "utf32");
-#import("utf8_test.dart", prefix: "utf8");
+library string_encoding_run_tests;
+import 'dunit.dart';
+import 'unicode_test.dart' as u;
+import 'unicode_core_test.dart' as uc;
+import 'utf16_test.dart' as utf16;
+import 'utf32_test.dart' as utf32;
+import 'utf8_test.dart' as utf8;
 
 void main() {
   TestSuite suite = new TestSuite();

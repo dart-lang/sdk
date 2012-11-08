@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /** The request ids for entry-related messages to send to the C extension. */
-#library("entry_request");
+library entry_request;
 
-#import("read_request.dart", prefix: "read");
+import 'read_request.dart' as read;
 
 final int _first = read.LAST;
 

@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("entry");
+library entry;
 
-#import("dart:io");
-#import("archive.dart", prefix: "archive");
-#import("entry_request.dart");
-#import("read_request.dart", prefix: 'read');
-#import("utils.dart");
+import 'dart:io';
+import 'archive.dart' as archive;
+import 'entry_request.dart';
+import 'read_request.dart' as read;
+import 'utils.dart';
 
 /**
  * A single file in an archive.

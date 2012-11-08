@@ -1,7 +1,7 @@
-#library("util");
+library util;
 
-#import("dart:io");
-#import("dart:json");
+import 'dart:io';
+import 'dart:json';
 
 Map<String, Map> _allProps;
 

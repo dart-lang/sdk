@@ -5,7 +5,7 @@
 // TODO(terry): Investigate common library for file I/O shared between frog and tools.
 
 /** Abstraction for file systems and utility functions to manipulate paths. */
-#library('file_system');
+library file_system;
 
 /**
  * Abstraction around file system access to work in a variety of different

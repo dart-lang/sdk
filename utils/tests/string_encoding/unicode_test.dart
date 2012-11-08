@@ -3,9 +3,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("unicode_tests");
-#import("dunit.dart");
-#import("../../../lib/utf/utf.dart");
+library unicode_tests;
+import 'dunit.dart';
+import '../../../lib/utf/utf.dart';
 
 void main() {
   TestSuite suite = new TestSuite();

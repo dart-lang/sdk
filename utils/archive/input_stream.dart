@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("input_stream");
+library input_stream;
 
-#import("archive.dart", prefix: "archive");
-#import("entry.dart");
-#import("read_request.dart");
-#import("utils.dart");
+import 'archive.dart' as archive;
+import 'entry.dart';
+import 'read_request.dart';
+import 'utils.dart';
 
 /**
  * A stream of [ArchiveEntry]s being read from an archive.

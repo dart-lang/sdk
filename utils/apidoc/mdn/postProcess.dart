@@ -4,11 +4,11 @@
  * and obsolete.json (with entries marked obsolete).
  */
 
-#library("postProcess");
+library postProcess;
 
-#import("dart:io");
-#import("dart:json");
-#import("util.dart");
+import 'dart:io';
+import 'dart:json';
+import 'util.dart';
 
 void main() {
   // Database of code documentation.

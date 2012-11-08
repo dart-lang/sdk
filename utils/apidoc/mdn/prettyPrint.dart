@@ -2,11 +2,11 @@
  * Creates database.html, examples.html, and obsolete.html.
  */
 
-#library("prettyPrint");
+library prettyPrint;
 
-#import("dart:io");
-#import("dart:json");
-#import("util.dart");
+import 'dart:io';
+import 'dart:json';
+import 'util.dart';
 
 String orEmpty(String str) {
   return str == null ? "" : str;

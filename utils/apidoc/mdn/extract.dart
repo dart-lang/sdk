@@ -1,5 +1,5 @@
-#import ("dart:html");
-#import ("dart:json");
+import 'dart:html';
+import 'dart:json';
 
 // Workaround for HTML lib missing feature.
 Range newRange() {
