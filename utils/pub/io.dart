@@ -19,7 +19,7 @@ bool _isGitInstalledCache;
 String _gitCommandCache;
 
 /** Gets the current working directory. */
-String get workingDir => new File('.').fullPathSync();
+String get currentWorkingDir => new File('.').fullPathSync();
 
 const Pattern NEWLINE_PATTERN = const RegExp("\r\n?|\n\r?");
 
@@ -373,12 +373,26 @@ Future<File> createPackageSymlink(String name, from, to,
   });
 }
 
-/**
- * Given [entry] which may be a [String], [File], or [Directory] relative to
- * the current working directory, returns its full canonicalized path.
- */
-// TODO(rnystrom): Should this be async?
-String getFullPath(entry) => new File(_getPath(entry)).fullPathSync();
+/// Given [entry] which may be a [String], [File], or [Directory] relative to
+/// the current working directory, returns its full canonicalized path.
+String getFullPath(entry) {
+  var path = _getPath(entry);
+
+  // Don't do anything if it's already absolute.
+  if (Platform.operatingSystem == 'windows') {
+    // An absolute path on Windows is either UNC (two leading backslashes),
+    // or a drive letter followed by a colon and a slash.
+    const ABSOLUTE = const RegExp(r'^(\\\\|[a-zA-Z]:[/\\])');
+    if (ABSOLUTE.hasMatch(path)) return path;
+  } else {
+    if (path.startsWith('/')) return path;
+  }
+
+  // Using Path.join here instead of File().fullPathSync() because the former
+  // does not require an actual file to exist at that path.
+  return new Path.fromNative(currentWorkingDir).join(new Path(path))
+      .toNativePath();
+}
 
 // TODO(nweiz): make this configurable
 /**
