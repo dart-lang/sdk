@@ -3409,11 +3409,16 @@ intptr_t Function::NumImplicitParameters() const {
       return 2;  // Instance, phase.
     }
   }
-  if (!is_static() &&
-      kind() != RawFunction::kClosureFunction &&
-      kind() != RawFunction::kSignatureFunction) {
+  if ((kind() == RawFunction::kClosureFunction) ||
+      (kind() == RawFunction::kSignatureFunction)) {
+    return 1;  // Closure object.
+  }
+  if (!is_static()) {
     // Closure functions defined inside instance (i.e. non-static) functions are
     // marked as non-static, but they do not have a receiver.
+    // Closures are handled above.
+    ASSERT((kind() != RawFunction::kClosureFunction) &&
+           (kind() != RawFunction::kSignatureFunction));
     return 1;  // Receiver.
   }
   return 0;  // No implicit parameters.
@@ -3866,9 +3871,11 @@ RawFunction* Function::ImplicitClosureFunction() const {
   closure_function.set_result_type(AbstractType::Handle(result_type()));
 
   // Set closure function's formal parameters to this formal parameters,
-  // removing the receiver if this is an instance method.
+  // removing the receiver if this is an instance method and adding the closure
+  // object as first parameter.
+  const int kClosure = 1;
   const int has_receiver = is_static() ? 0 : 1;
-  const int num_fixed_params = num_fixed_parameters() - has_receiver;
+  const int num_fixed_params = kClosure - has_receiver + num_fixed_parameters();
   const int num_opt_params = NumOptionalParameters();
   const bool has_opt_pos_params = HasOptionalPositionalParameters();
   const int num_params = num_fixed_params + num_opt_params;
@@ -3880,10 +3887,15 @@ RawFunction* Function::ImplicitClosureFunction() const {
                                                                 Heap::kOld)));
   AbstractType& param_type = AbstractType::Handle();
   String& param_name = String::Handle();
-  for (int i = 0; i < num_params; i++) {
-    param_type = ParameterTypeAt(i + has_receiver);
+  // Add implicit closure object parameter.
+  param_type = Type::DynamicType();
+  closure_function.SetParameterTypeAt(0, param_type);
+  param_name = Symbols::ClosureParameter();
+  closure_function.SetParameterNameAt(0, param_name);
+  for (int i = kClosure; i < num_params; i++) {
+    param_type = ParameterTypeAt(has_receiver - kClosure + i);
     closure_function.SetParameterTypeAt(i, param_type);
-    param_name = ParameterNameAt(i + has_receiver);
+    param_name = ParameterNameAt(has_receiver - kClosure + i);
     closure_function.SetParameterNameAt(i, param_name);
   }
 
@@ -3976,7 +3988,12 @@ RawString* Function::BuildSignature(
   const intptr_t num_opt_params = num_opt_pos_params + num_opt_named_params;
   ASSERT((num_fixed_params + num_opt_params) == num_params);
   pieces.Add(kLParen);
-  for (intptr_t i = 0; i < num_fixed_params; i++) {
+  intptr_t i = 0;
+  if (name_visibility == kUserVisibleName) {
+    // Hide implicit parameters.
+    i = NumImplicitParameters();
+  }
+  while (i < num_fixed_params) {
     param_type = ParameterTypeAt(i);
     ASSERT(!param_type.IsNull());
     if (instantiate && !param_type.IsInstantiated()) {
@@ -3987,6 +4004,7 @@ RawString* Function::BuildSignature(
     if (i != (num_params - 1)) {
       pieces.Add(kCommaSpace);
     }
+    i++;
   }
   if (num_opt_params > 0) {
     if (num_opt_pos_params > 0) {

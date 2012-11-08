@@ -2524,22 +2524,14 @@ class NativeCallInstr : public TemplateDefinition<0> {
 
   intptr_t token_pos() const { return ast_node_.token_pos(); }
 
+  const Function& function() const { return ast_node_.function(); }
+
   const String& native_name() const {
     return ast_node_.native_c_function_name();
   }
 
   NativeFunction native_c_function() const {
     return ast_node_.native_c_function();
-  }
-
-  intptr_t argument_count() const { return ast_node_.argument_count(); }
-
-  bool has_optional_parameters() const {
-    return ast_node_.has_optional_parameters();
-  }
-
-  bool is_native_instance_closure() const {
-    return ast_node_.is_native_instance_closure();
   }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;

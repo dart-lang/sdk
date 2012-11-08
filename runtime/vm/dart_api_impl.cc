@@ -3936,20 +3936,39 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
 DART_EXPORT Dart_Handle Dart_GetNativeArgument(Dart_NativeArguments args,
                                                int index) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  if (index < 0 || index >= arguments->Count()) {
+  const int apparent_count = Dart_GetNativeArgumentCount(args);
+  if ((index < 0) || (index >= apparent_count)) {
     return Api::NewError(
         "%s: argument 'index' out of range. Expected 0..%d but saw %d.",
-        CURRENT_FUNC, arguments->Count() - 1, index);
+        CURRENT_FUNC, apparent_count - 1, index);
   }
+  // Hide closure object if present.
+  index += arguments->Count() - apparent_count;
+
   Isolate* isolate = arguments->isolate();
   CHECK_ISOLATE(isolate);
+  if (index == 0) {
+    if (arguments->ToInstanceFunction() && arguments->ToClosureFunction()) {
+      // Retrieve the receiver from the context.
+      const Context& context = Context::Handle(isolate->top_context());
+      return Api::NewHandle(isolate, context.At(0));
+    }
+  }
   return Api::NewHandle(isolate, arguments->At(index));
 }
 
 
 DART_EXPORT int Dart_GetNativeArgumentCount(Dart_NativeArguments args) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  return arguments->Count();
+  int count = arguments->Count();
+  // In the instance closure function case, the receiver is accessed from
+  // the context and the closure at index 0 is hidden, so the apparent
+  // argument count remains unchanged.
+  if (arguments->ToClosureFunction() && !arguments->ToInstanceFunction()) {
+    // The closure at index 0 is hidden and therefore not counted.
+    count--;
+  }
+  return count;
 }
 
 

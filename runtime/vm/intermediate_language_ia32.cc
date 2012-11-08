@@ -1057,18 +1057,14 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::ZoneHandle());
   // Pass a pointer to the first argument in EAX.
-  intptr_t arg_count = argument_count();
-  if (is_native_instance_closure()) {
-    arg_count += 1;
-  }
-  if (!has_optional_parameters() && !is_native_instance_closure()) {
-    __ leal(EAX, Address(EBP, (1 + arg_count) * kWordSize));
+  if (!function().HasOptionalParameters()) {
+    __ leal(EAX, Address(EBP, (1 + function().NumParameters()) * kWordSize));
   } else {
     __ leal(EAX,
             Address(EBP, ParsedFunction::kFirstLocalSlotIndex * kWordSize));
   }
   __ movl(ECX, Immediate(reinterpret_cast<uword>(native_c_function())));
-  __ movl(EDX, Immediate(arg_count));
+  __ movl(EDX, Immediate(NativeArguments::ComputeArgcTag(function())));
   compiler->GenerateCall(token_pos(),
                          &StubCode::CallNativeCFunctionLabel(),
                          PcDescriptors::kOther,

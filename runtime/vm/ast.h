@@ -1521,44 +1521,33 @@ class ConstructorCallNode : public AstNode {
 class NativeBodyNode : public AstNode {
  public:
   NativeBodyNode(intptr_t token_pos,
+                 const Function& function,
                  const String& native_c_function_name,
-                 NativeFunction native_c_function,
-                 int argument_count,
-                 bool has_optional_parameters,
-                 bool is_native_instance_closure)
+                 NativeFunction native_c_function)
       : AstNode(token_pos),
+        function_(function),
         native_c_function_name_(native_c_function_name),
-        native_c_function_(native_c_function),
-        argument_count_(argument_count),
-        has_optional_parameters_(has_optional_parameters),
-        is_native_instance_closure_(is_native_instance_closure) {
+        native_c_function_(native_c_function) {
+    ASSERT(function_.IsZoneHandle());
     ASSERT(native_c_function_ != NULL);
     ASSERT(native_c_function_name_.IsZoneHandle());
     ASSERT(native_c_function_name_.IsSymbol());
   }
 
+  const Function& function() const { return function_; }
   const String& native_c_function_name() const {
     return native_c_function_name_;
   }
   NativeFunction native_c_function() const { return native_c_function_; }
-  int argument_count() const { return argument_count_; }
-  bool has_optional_parameters() const {
-    return has_optional_parameters_;
-  }
-  bool is_native_instance_closure() const {
-    return is_native_instance_closure_;
-  }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const { }
 
   DECLARE_COMMON_NODE_FUNCTIONS(NativeBodyNode);
 
  private:
+  const Function& function_;  // Native Dart function.
   const String& native_c_function_name_;
   NativeFunction native_c_function_;  // Actual non-Dart implementation.
-  const int argument_count_;  // Native Dart function argument count.
-  const bool has_optional_parameters_;  // Native Dart function kind.
-  const bool is_native_instance_closure_;  // An implicit native closure.
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(NativeBodyNode);
 };

@@ -627,17 +627,15 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
 void FlowGraphCompiler::CopyParameters() {
   __ Comment("Copy parameters");
   const Function& function = parsed_function().function();
-  const bool is_native_instance_closure =
-      function.is_native() && function.IsImplicitInstanceClosureFunction();
   LocalScope* scope = parsed_function().node_sequence()->scope();
   const int num_fixed_params = function.num_fixed_parameters();
   const int num_opt_pos_params = function.NumOptionalPositionalParameters();
-  int num_opt_named_params = function.NumOptionalNamedParameters();
+  const int num_opt_named_params = function.NumOptionalNamedParameters();
   const int num_params =
       num_fixed_params + num_opt_pos_params + num_opt_named_params;
-  int implicit_this_param_pos = is_native_instance_closure ? -1 : 0;
+  ASSERT(function.NumParameters() == num_params);
   ASSERT(parsed_function().first_parameter_index() ==
-         ParsedFunction::kFirstLocalSlotIndex + implicit_this_param_pos);
+         ParsedFunction::kFirstLocalSlotIndex);
 
   // Check that min_num_pos_args <= num_pos_args <= max_num_pos_args,
   // where num_pos_args is the number of positional arguments passed in.
@@ -668,13 +666,7 @@ void FlowGraphCompiler::CopyParameters() {
 
   // Let EDI point to the last copied positional argument, i.e. to
   // fp[ParsedFunction::kFirstLocalSlotIndex - (num_pos_args - 1)].
-  const int index =
-      ParsedFunction::kFirstLocalSlotIndex + 1 + implicit_this_param_pos;
-  // First copy captured receiver if function is an implicit native closure.
-  if (is_native_instance_closure) {
-    __ movl(EAX, FieldAddress(CTX, Context::variable_offset(0)));
-    __ movl(Address(EBP, (index * kWordSize)), EAX);
-  }
+  const int index = ParsedFunction::kFirstLocalSlotIndex + 1;
   __ leal(EDI, Address(EBP, (index * kWordSize)));
   __ subl(EDI, ECX);  // ECX is a Smi, subtract twice for TIMES_4 scaling.
   __ subl(EDI, ECX);
@@ -753,8 +745,8 @@ void FlowGraphCompiler::CopyParameters() {
       // We do not use the final allocation index of the variable here, i.e.
       // scope->VariableAt(i)->index(), because captured variables still need
       // to be copied to the context that is not yet allocated.
-      intptr_t computed_param_pos = (ParsedFunction::kFirstLocalSlotIndex -
-                                     param_pos + implicit_this_param_pos);
+      const intptr_t computed_param_pos =
+          ParsedFunction::kFirstLocalSlotIndex - param_pos;
       const Address param_addr(EBP, (computed_param_pos * kWordSize));
       __ movl(param_addr, EAX);
       __ Bind(&next_parameter);
@@ -764,7 +756,8 @@ void FlowGraphCompiler::CopyParameters() {
     // Check that EDI now points to the null terminator in the array descriptor.
     __ cmpl(Address(EDI, 0), raw_null);
     __ j(EQUAL, &all_arguments_processed, Assembler::kNearJump);
-  } else if (num_opt_pos_params > 0) {
+  } else {
+    ASSERT(num_opt_pos_params > 0);
     // Number of positional args is the second Smi in descriptor array (EDX).
     __ movl(ECX, FieldAddress(EDX, Array::data_offset() + (1 * kWordSize)));
     __ SmiUntag(ECX);
@@ -784,8 +777,8 @@ void FlowGraphCompiler::CopyParameters() {
       // We do not use the final allocation index of the variable here, i.e.
       // scope->VariableAt(i)->index(), because captured variables still need
       // to be copied to the context that is not yet allocated.
-      intptr_t computed_param_pos = (ParsedFunction::kFirstLocalSlotIndex -
-                                     param_pos + implicit_this_param_pos);
+      const intptr_t computed_param_pos =
+          ParsedFunction::kFirstLocalSlotIndex - param_pos;
       const Address param_addr(EBP, (computed_param_pos * kWordSize));
       __ movl(param_addr, EAX);
       __ Bind(&next_parameter);
@@ -796,9 +789,6 @@ void FlowGraphCompiler::CopyParameters() {
     // Check that ECX equals EBX, i.e. no named arguments passed.
     __ cmpl(ECX, EBX);
     __ j(EQUAL, &all_arguments_processed, Assembler::kNearJump);
-  } else {
-    ASSERT(is_native_instance_closure);
-    __ jmp(&all_arguments_processed, Assembler::kNearJump);
   }
 
   __ Bind(&wrong_num_arguments);

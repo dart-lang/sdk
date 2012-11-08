@@ -41,6 +41,7 @@ class RawObject;
 
 void SetReturnValueHelper(Dart_NativeArguments, Dart_Handle);
 
+
 // Class NativeArguments is used to access arguments passed in from
 // generated dart code to a runtime function or a dart library native
 // function. It is also used to set the return value if any at the slot
@@ -49,20 +50,30 @@ void SetReturnValueHelper(Dart_NativeArguments, Dart_Handle);
 // following signature:
 //   void function_name(NativeArguments arguments);
 // Inside the function, arguments are accessed as follows:
-//   const Type& arg1 = Type::CheckedHandle(arguments.GetArgument(0));
-//   const Type& arg2 = Type::CheckedHandle(arguments.GetArgument(1));
+//   const Instance& arg0 = Instance::CheckedHandle(arguments.At(0));
+//   const Smi& arg1 = Smi::CheckedHandle(arguments.At(1));
 // The return value is set as follows:
 //   arguments.SetReturn(result);
-// NOTE: Since we pass this as a pass by value argument in the stubs we don't
+// NOTE: Since we pass 'this' as a pass-by-value argument in the stubs we don't
 // have DISALLOW_COPY_AND_ASSIGN in the class definition and do not make it a
 // subclass of ValueObject.
 class NativeArguments {
  public:
   Isolate* isolate() const { return isolate_; }
-  int Count() const { return argc_; }
+  int Count() const { return ArgcBits::decode(argc_tag_); }
+
+  // Returns true if the arguments are those of an instance function call.
+  bool ToInstanceFunction() const {
+    return InstanceFunctionBit::decode(argc_tag_);
+  }
+
+  // Returns true if the arguments are those of a closure function call.
+  bool ToClosureFunction() const {
+    return ClosureFunctionBit::decode(argc_tag_);
+  }
 
   RawObject* At(int index) const {
-    ASSERT(index >=0 && index < argc_);
+    ASSERT(index >=0 && index < Count());
     return (*argv_)[-index];
   }
 
@@ -71,13 +82,47 @@ class NativeArguments {
   static intptr_t isolate_offset() {
     return OFFSET_OF(NativeArguments, isolate_);
   }
-  static intptr_t argc_offset() { return OFFSET_OF(NativeArguments, argc_); }
+  static intptr_t argc_tag_offset() {
+    return OFFSET_OF(NativeArguments, argc_tag_);
+  }
   static intptr_t argv_offset() { return OFFSET_OF(NativeArguments, argv_); }
   static intptr_t retval_offset() {
     return OFFSET_OF(NativeArguments, retval_);
   }
 
+  static int ParameterCountForResolution(const Function& function) {
+    ASSERT(function.is_native());
+    ASSERT(!function.IsConstructor());  // Not supported.
+    int count = function.NumParameters();
+    if (function.is_static() && function.IsClosureFunction()) {
+      // The closure object is hidden and not accessible from native code.
+      // However, if the function is an instance closure function, the captured
+      // receiver located in the context is made accessible in native code at
+      // index 0, thereby hidding the closure object at index 0.
+      count--;
+    }
+    return count;
+  }
+
+  static int ComputeArgcTag(const Function& function) {
+    ASSERT(function.is_native());
+    ASSERT(!function.IsConstructor());  // Not supported.
+    int tag = ArgcBits::encode(function.NumParameters());
+    tag = InstanceFunctionBit::update(!function.is_static(), tag);
+    tag = ClosureFunctionBit::update(function.IsClosureFunction(), tag);
+    return tag;
+  }
+
  private:
+  enum ArgcTagBits {
+    kArgcBit = 0,
+    kArgcSize = 24,
+    kInstanceFunctionBit = 24,
+    kClosureFunctionBit = 25,
+  };
+  class ArgcBits : public BitField<int, kArgcBit, kArgcSize> {};
+  class InstanceFunctionBit : public BitField<bool, kInstanceFunctionBit, 1> {};
+  class ClosureFunctionBit : public BitField<bool, kClosureFunctionBit, 1> {};
   friend class BootstrapNatives;
   friend void SetReturnValueHelper(Dart_NativeArguments, Dart_Handle);
 
@@ -88,7 +133,7 @@ class NativeArguments {
   void SetReturnUnsafe(RawObject* value) const;
 
   Isolate* isolate_;  // Current isolate pointer.
-  int argc_;  // Number of arguments passed to the runtime call.
+  int argc_tag_;  // Encodes argument count and invoked native call type.
   RawObject*(*argv_)[];  // Pointer to an array of arguments to runtime call.
   RawObject** retval_;  // Pointer to the return value area.
 };

@@ -36,7 +36,7 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 // Must preserve callee saved registers EDI and EBX.
 void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t isolate_offset = NativeArguments::isolate_offset();
-  const intptr_t argc_offset = NativeArguments::argc_offset();
+  const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
 
@@ -63,7 +63,9 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Pass NativeArguments structure by value and call runtime.
   __ movl(Address(ESP, isolate_offset), CTX);  // Set isolate in NativeArgs.
-  __ movl(Address(ESP, argc_offset), EDX);  // Set argc in NativeArguments.
+  // There are no runtime calls to closures, so we do not need to set the tag
+  // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
+  __ movl(Address(ESP, argc_tag_offset), EDX);  // Set argc in NativeArguments.
   __ leal(EAX, Address(EBP, EDX, TIMES_4, 1 * kWordSize));  // Compute argv.
   __ movl(Address(ESP, argv_offset), EAX);  // Set argv in NativeArguments.
   __ addl(EAX, Immediate(1 * kWordSize));  // Retval is next to 1st argument.
@@ -113,16 +115,15 @@ void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
 //   ESP : points to return address.
 //   ESP + 4 : address of return value.
 //   EAX : address of first argument in argument array.
-//   EAX - 4*EDX + 4 : address of last argument in argument array.
 //   ECX : address of the native function to call.
-//   EDX : number of arguments to the call.
+//   EDX : argc_tag including number of arguments and function kind.
 // Uses EDI.
 void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   const intptr_t native_args_struct_offset = kWordSize;
   const intptr_t isolate_offset =
       NativeArguments::isolate_offset() + native_args_struct_offset;
-  const intptr_t argc_offset =
-      NativeArguments::argc_offset() + native_args_struct_offset;
+  const intptr_t argc_tag_offset =
+      NativeArguments::argc_tag_offset() + native_args_struct_offset;
   const intptr_t argv_offset =
       NativeArguments::argv_offset() + native_args_struct_offset;
   const intptr_t retval_offset =
@@ -153,7 +154,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   // Pass NativeArguments structure by value and call native function.
   __ movl(Address(ESP, isolate_offset), CTX);  // Set isolate in NativeArgs.
-  __ movl(Address(ESP, argc_offset), EDX);  // Set argc in NativeArguments.
+  __ movl(Address(ESP, argc_tag_offset), EDX);  // Set argc in NativeArguments.
   __ movl(Address(ESP, argv_offset), EAX);  // Set argv in NativeArguments.
   __ leal(EAX, Address(EBP, 2 * kWordSize));  // Compute return value addr.
   __ movl(Address(ESP, retval_offset), EAX);  // Set retval in NativeArguments.
@@ -734,10 +735,10 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
 // Input parameters:
 //   EDX: Arguments descriptor array (num_args is first Smi element, closure
-//        object is not included in num_args).
-// Note: The closure object is pushed before the first argument to the function
-//       being called, the stub accesses the closure from this location directly
-//       when setting up the context and resolving the entry point.
+//        object is included in num_args and is first argument).
+// Note: The closure object is the first argument to the function being
+//       called, the stub accesses the closure from this location directly
+//       when trying to resolve the call.
 // Uses EDI.
 void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   const Immediate raw_null =
@@ -746,7 +747,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   // Total number of args is the first Smi in args descriptor array (EDX).
   __ movl(EAX, FieldAddress(EDX, Array::data_offset()));  // Load num_args.
   // Load closure object in EDI.
-  __ movl(EDI, Address(ESP, EAX, TIMES_2, kWordSize));  // EAX is a Smi.
+  __ movl(EDI, Address(ESP, EAX, TIMES_2, 0));  // EAX is a Smi.
 
   // Verify that EDI is a closure by checking its class.
   Label not_closure;
@@ -780,7 +781,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   AssemblerMacros::EnterStubFrame(assembler);
 
   __ pushl(EDX);  // Preserve arguments descriptor array.
-  __ pushl(ECX);
+  __ pushl(ECX);  // Preserve read-only function object argument.
   __ CallRuntime(kCompileFunctionRuntimeEntry);
   __ popl(ECX);  // Restore read-only function object argument in ECX.
   __ popl(EDX);  // Restore arguments descriptor array.
@@ -804,7 +805,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   // object, passing the non-closure object and its arguments array.
   // EDI: non-closure object.
   // EDX: arguments descriptor array (num_args is first Smi element, closure
-  //      object is not included in num_args).
+  //      object is included in num_args).
 
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
@@ -815,6 +816,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
     // Total number of args is the first Smi in args descriptor array (EDX).
   __ movl(EDI, FieldAddress(EDX, Array::data_offset()));  // Load num_args.
   __ SmiUntag(EDI);
+  __ subl(EDI, Immediate(1));  // Arguments array length, minus the closure.
   // See stack layout below explaining "wordSize * 5" offset.
   PushArgumentsArray(assembler, (kWordSize * 5));
 

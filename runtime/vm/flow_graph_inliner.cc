@@ -627,8 +627,8 @@ class CallSiteInliner : public ValueObject {
         TRACE_INLINING(OS::Print("     Bailout: non-closure operator\n"));
         continue;
       }
-      GrowableArray<Value*> arguments(call->ArgumentCount() - 1);
-      for (int i = 1; i < call->ArgumentCount(); ++i) {
+      GrowableArray<Value*> arguments(call->ArgumentCount());
+      for (int i = 0; i < call->ArgumentCount(); ++i) {
         arguments.Add(call->ArgumentAt(i)->value());
       }
       TryInlining(closure->function(),

@@ -26,7 +26,6 @@ DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(int, optimization_counter_threshold);
 
-
 // Input parameters:
 //   RSP : points to return address.
 //   RSP + 8 : address of last argument in argument array.
@@ -38,7 +37,7 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   ASSERT((R12 != CTX) && (R13 != CTX));
   const intptr_t isolate_offset = NativeArguments::isolate_offset();
-  const intptr_t argc_offset = NativeArguments::argc_offset();
+  const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
 
@@ -65,7 +64,9 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Pass NativeArguments structure by value and call runtime.
   __ movq(Address(RSP, isolate_offset), CTX);  // Set isolate in NativeArgs.
-  __ movq(Address(RSP, argc_offset), R10);  // Set argc in NativeArguments.
+  // There are no runtime calls to closures, so we do not need to set the tag
+  // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
+  __ movq(Address(RSP, argc_tag_offset), R10);  // Set argc in NativeArguments.
   __ leaq(RAX, Address(RBP, R10, TIMES_8, 1 * kWordSize));  // Compute argv.
   __ movq(Address(RSP, argv_offset), RAX);  // Set argv in NativeArguments.
   __ addq(RAX, Immediate(1 * kWordSize));  // Retval is next to 1st argument.
@@ -115,15 +116,14 @@ void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
 //   RSP : points to return address.
 //   RSP + 8 : address of return value.
 //   RAX : address of first argument in argument array.
-//   RAX - 8*R10 + 8 : address of last argument in argument array.
 //   RBX : address of the native function to call.
-//   R10 : number of arguments to the call.
+//   R10 : argc_tag including number of arguments and function kind.
 void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   const intptr_t native_args_struct_offset = 0;
   const intptr_t isolate_offset =
       NativeArguments::isolate_offset() + native_args_struct_offset;
-  const intptr_t argc_offset =
-      NativeArguments::argc_offset() + native_args_struct_offset;
+  const intptr_t argc_tag_offset =
+      NativeArguments::argc_tag_offset() + native_args_struct_offset;
   const intptr_t argv_offset =
       NativeArguments::argv_offset() + native_args_struct_offset;
   const intptr_t retval_offset =
@@ -154,7 +154,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   // Pass NativeArguments structure by value and call native function.
   __ movq(Address(RSP, isolate_offset), CTX);  // Set isolate in NativeArgs.
-  __ movq(Address(RSP, argc_offset), R10);  // Set argc in NativeArguments.
+  __ movq(Address(RSP, argc_tag_offset), R10);  // Set argc in NativeArguments.
   __ movq(Address(RSP, argv_offset), RAX);  // Set argv in NativeArguments.
   __ leaq(RAX, Address(RBP, 2 * kWordSize));  // Compute return value addr.
   __ movq(Address(RSP, retval_offset), RAX);  // Set retval in NativeArguments.
@@ -718,10 +718,10 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
 // Input parameters:
 //   R10: Arguments descriptor array (num_args is first Smi element, closure
-//        object is not included in num_args).
-// Note: The closure object is pushed before the first argument to the function
-//       being called, the stub accesses the closure from this location directly
-//       when setting up the context and resolving the entry point.
+//        object is included in num_args and is first argument).
+// Note: The closure object is the first argument to the function being
+//       called, the stub accesses the closure from this location directly
+//       when trying to resolve the call.
 void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -729,7 +729,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   // Total number of args is the first Smi in args descriptor array (R10).
   __ movq(RAX, FieldAddress(R10, Array::data_offset()));  // Load num_args.
   // Load closure object in R13.
-  __ movq(R13, Address(RSP, RAX, TIMES_4, kWordSize));  // RAX is a Smi.
+  __ movq(R13, Address(RSP, RAX, TIMES_4, 0));  // RAX is a Smi.
 
   // Verify that R13 is a closure by checking its class.
   Label not_closure;
@@ -787,7 +787,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   // object, passing the non-closure object and its arguments array.
   // R13: non-closure object.
   // R10: arguments descriptor array (num_args is first Smi element, closure
-  //      object is not included in num_args).
+  //      object is included in num_args).
 
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
@@ -798,6 +798,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
     // Total number of args is the first Smi in args descriptor array (R10).
   __ movq(R13, FieldAddress(R10, Array::data_offset()));  // Load num_args.
   __ SmiUntag(R13);
+  __ subq(R13, Immediate(1));  // Arguments array length, minus the closure.
   // See stack layout below explaining "wordSize * 5" offset.
   PushArgumentsArray(assembler, (kWordSize * 5));
 

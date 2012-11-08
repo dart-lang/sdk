@@ -1841,14 +1841,12 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 
 
 void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // The arguments to the stub include the closure.  The arguments
-  // descriptor describes the closure's arguments (and so does not include
-  // the closure).
+  // The arguments to the stub include the closure, as does the arguments
+  // descriptor.
   Register temp_reg = locs()->temp(0).reg();
   int argument_count = ArgumentCount();
   const Array& arguments_descriptor =
-      DartEntry::ArgumentsDescriptor(argument_count - 1,
-                                         argument_names());
+      DartEntry::ArgumentsDescriptor(argument_count, argument_names());
   __ LoadObject(temp_reg, arguments_descriptor);
   compiler->GenerateDartCall(deopt_id(),
                              token_pos(),

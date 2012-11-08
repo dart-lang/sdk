@@ -1257,38 +1257,12 @@ DEFINE_RUNTIME_ENTRY(InvokeImplicitClosureFunction, 3) {
   const Instructions& instrs = Instructions::Handle(code.instructions());
   ASSERT(!instrs.IsNull());
 
-  // Adjust arguments descriptor array to account for removal of the receiver
-  // parameter. Since the arguments descriptor array is canonicalized, create a
-  // new one instead of patching the original one.
-  const intptr_t len = arg_descriptor.Length();
-  const intptr_t num_named_args = (len - 3) / 2;
-  const Array& adjusted_arg_descriptor = Array::Handle(Array::New(len));
-  Smi& smi = Smi::Handle();
-  smi ^= arg_descriptor.At(0);  // Get argument length.
-  smi = Smi::New(smi.Value() - 1);  // Adjust argument length.
-  ASSERT(smi.Value() == func_arguments.Length());
-  adjusted_arg_descriptor.SetAt(0, smi);
-  smi ^= arg_descriptor.At(1);  // Get number of positional parameters.
-  smi = Smi::New(smi.Value() - 1);  // Adjust number of positional params.
-  adjusted_arg_descriptor.SetAt(1, smi);
-  // Adjust name/position pairs for each named argument.
-  String& named_arg_name = String::Handle();
-  Smi& named_arg_pos = Smi::Handle();
-  for (intptr_t i = 0; i < num_named_args; i++) {
-    const int index = 2 + (2 * i);
-    named_arg_name ^= arg_descriptor.At(index);
-    ASSERT(named_arg_name.IsSymbol());
-    adjusted_arg_descriptor.SetAt(index, named_arg_name);
-    named_arg_pos ^= arg_descriptor.At(index + 1);
-    named_arg_pos = Smi::New(named_arg_pos.Value() - 1);
-    adjusted_arg_descriptor.SetAt(index + 1, named_arg_pos);
-  }
-  adjusted_arg_descriptor.SetAt(len - 1, Object::Handle());
-  // It is too late to share the descriptor by canonicalizing it. However, it is
-  // important that the argument names are canonicalized (i.e. are symbols).
-
   // Receiver parameter has already been skipped by caller.
-  GrowableArray<const Object*> invoke_arguments(0);
+  // The closure object is passed as implicit first argument to closure
+  // functions, since it may be needed to throw a NoSuchMethodError, in case
+  // the wrong number of arguments is passed.
+  GrowableArray<const Object*> invoke_arguments(func_arguments.Length() + 1);
+  invoke_arguments.Add(&closure);
   for (intptr_t i = 0; i < func_arguments.Length(); i++) {
     const Object& value = Object::Handle(func_arguments.At(i));
     invoke_arguments.Add(&value);
@@ -1300,7 +1274,7 @@ DEFINE_RUNTIME_ENTRY(InvokeImplicitClosureFunction, 3) {
   ASSERT(context.isolate() == Isolate::Current());
   const Object& result = Object::Handle(
       entrypoint(instrs.EntryPoint(),
-                 adjusted_arg_descriptor,
+                 arg_descriptor,
                  invoke_arguments.data(),
                  context));
   CheckResultError(result);

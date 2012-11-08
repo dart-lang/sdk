@@ -922,18 +922,14 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::ZoneHandle());
   // Pass a pointer to the first argument in RAX.
-  intptr_t arg_count = argument_count();
-  if (is_native_instance_closure()) {
-    arg_count += 1;
-  }
-  if (!has_optional_parameters() && !is_native_instance_closure()) {
-    __ leaq(RAX, Address(RBP, (1 + arg_count) * kWordSize));
+  if (!function().HasOptionalParameters()) {
+    __ leaq(RAX, Address(RBP, (1 + function().NumParameters()) * kWordSize));
   } else {
     __ leaq(RAX,
             Address(RBP, ParsedFunction::kFirstLocalSlotIndex * kWordSize));
   }
   __ movq(RBX, Immediate(reinterpret_cast<uword>(native_c_function())));
-  __ movq(R10, Immediate(arg_count));
+  __ movq(R10, Immediate(NativeArguments::ComputeArgcTag(function())));
   compiler->GenerateCall(token_pos(),
                          &StubCode::CallNativeCFunctionLabel(),
                          PcDescriptors::kOther,

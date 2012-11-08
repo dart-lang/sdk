@@ -32,6 +32,7 @@ class ObjectPointerVisitor;
   V(Value, "value")                                                            \
   V(ExprTemp, ":expr_temp")                                                    \
   V(AnonymousClosure, "<anonymous closure>")                                   \
+  V(ClosureParameter, ":closure")                                              \
   V(PhaseParameter, ":phase")                                                  \
   V(TypeArgumentsParameter, ":type_arguments")                                 \
   V(AssertionError, "AssertionErrorImplementation")                            \

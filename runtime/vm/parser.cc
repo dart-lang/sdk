@@ -154,11 +154,9 @@ void ParsedFunction::AllocateVariables() {
   const intptr_t num_fixed_params = function().num_fixed_parameters();
   const intptr_t num_opt_params = function().NumOptionalParameters();
   intptr_t num_params = num_fixed_params + num_opt_params;
-  const bool is_native_instance_closure =
-      function().is_native() && function().IsImplicitInstanceClosureFunction();
   // Compute start indices to parameters and locals, and the number of
   // parameters to copy.
-  if ((num_opt_params == 0) && !is_native_instance_closure) {
+  if (num_opt_params == 0) {
     // Parameter i will be at fp[1 + num_params - i] and local variable
     // j will be at fp[kFirstLocalSlotIndex - j].
     ASSERT(GetSavedArgumentsDescriptorVar() == NULL);
@@ -177,11 +175,6 @@ void ParsedFunction::AllocateVariables() {
     first_parameter_index_ = kFirstLocalSlotIndex;
     first_stack_local_index_ = first_parameter_index_ - num_params;
     num_copied_params_ = num_params;
-    if (is_native_instance_closure) {
-      num_copied_params_ += 1;
-      first_parameter_index_ -= 1;
-      first_stack_local_index_ -= 1;
-    }
   }
 
   // Allocate parameters and local variables, either in the local frame or
@@ -1169,6 +1162,13 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
 
       // Finish parsing the function type parameter.
       ParamList func_params;
+
+      // Add implicit closure object parameter.
+      func_params.AddFinalParameter(
+          TokenPos(),
+          &String::ZoneHandle(Symbols::ClosureParameter()),
+          &Type::ZoneHandle(Type::DynamicType()));
+
       const bool no_explicit_default_values = false;
       ParseFormalParameterList(no_explicit_default_values, &func_params);
 
@@ -2279,15 +2279,22 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   OpenFunctionBlock(func);  // Build local scope for function.
 
   ParamList params;
-  // Static functions do not have a receiver.
-  // An instance closure may capture and access the receiver, but via the
-  // context and not via the first formal parameter.
-  // The first parameter of a factory is the AbstractTypeArguments vector of
-  // the type of the instance to be allocated.
-  if (!func.is_static() && !func.IsClosureFunction()) {
+  // An instance closure function may capture and access the receiver, but via
+  // the context and not via the first formal parameter.
+  if (func.IsClosureFunction()) {
+    // The first parameter of a closure function is the closure object.
+    ASSERT(!func.is_const());  // Closure functions cannot be const.
+    params.AddFinalParameter(
+        TokenPos(),
+        &String::ZoneHandle(Symbols::ClosureParameter()),
+        &Type::ZoneHandle(Type::DynamicType()));
+  } else if (!func.is_static()) {
+    // Static functions do not have a receiver.
     ASSERT(current_class().raw() == func.Owner());
     params.AddReceiver(ReceiverType(TokenPos()));
   } else if (func.IsFactory()) {
+    // The first parameter of a factory is the AbstractTypeArguments vector of
+    // the type of the instance to be allocated.
     params.AddFinalParameter(
         TokenPos(),
         &String::ZoneHandle(Symbols::TypeArgumentsParameter()),
@@ -3436,6 +3443,13 @@ void Parser::ParseFunctionTypeAlias(
     ErrorMsg("formal parameter list expected");
   }
   ParamList func_params;
+
+  // Add implicit closure object parameter.
+  func_params.AddFinalParameter(
+      TokenPos(),
+      &String::ZoneHandle(Symbols::ClosureParameter()),
+      &Type::ZoneHandle(Type::DynamicType()));
+
   const bool no_explicit_default_values = false;
   ParseFormalParameterList(no_explicit_default_values, &func_params);
   // The field 'is_static' has no meaning for signature functions.
@@ -4726,35 +4740,28 @@ void Parser::ParseNativeFunctionBlock(const ParamList* params,
   func.set_is_native(true);
   TRACE_PARSER("ParseNativeFunctionBlock");
   const Class& cls = Class::Handle(func.Owner());
-  const int num_parameters = params->parameters->length();
-  const bool is_instance_closure = func.IsImplicitInstanceClosureFunction();
-  int num_params_for_resolution = num_parameters;
+  ASSERT(func.NumParameters() == params->parameters->length());
 
   // Parse the function name out.
   const intptr_t native_pos = TokenPos();
   const String& native_name = ParseNativeDeclaration();
 
-  if (is_instance_closure) {
-    num_params_for_resolution += 1;  // account for 'this' when resolving.
-  }
   // Now resolve the native function to the corresponding native entrypoint.
+  const int num_params = NativeArguments::ParameterCountForResolution(func);
   NativeFunction native_function = NativeEntry::ResolveNative(
-      cls, native_name, num_params_for_resolution);
+      cls, native_name, num_params);
   if (native_function == NULL) {
     ErrorMsg(native_pos, "native function '%s' cannot be found",
         native_name.ToCString());
   }
 
-  const bool has_opt_params = (params->num_optional_parameters > 0);
-
   // Now add the NativeBodyNode and return statement.
   current_block_->statements->Add(
-      new ReturnNode(TokenPos(), new NativeBodyNode(TokenPos(),
-                                                    native_name,
-                                                    native_function,
-                                                    num_parameters,
-                                                    has_opt_params,
-                                                    is_instance_closure)));
+      new ReturnNode(TokenPos(),
+                     new NativeBodyNode(TokenPos(),
+                                        Function::ZoneHandle(func.raw()),
+                                        native_name,
+                                        native_function)));
 }
 
 
