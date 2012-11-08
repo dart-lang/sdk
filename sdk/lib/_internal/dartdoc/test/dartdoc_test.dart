@@ -10,7 +10,7 @@ import '../lib/dartdoc.dart' as dd;
 import '../lib/markdown.dart' as md;
 
 // TODO(rnystrom): Better path to unittest.
-import '../../../pkg/unittest/lib/unittest.dart';
+import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
   group('countOccurrences', () {

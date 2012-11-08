@@ -9,7 +9,7 @@ library markdownTests;
 import '../lib/markdown.dart';
 
 // TODO(rnystrom): Better path to unittest.
-import '../../../pkg/unittest/lib/unittest.dart';
+import '../../../../../pkg/unittest/lib/unittest.dart';
 
 /// Most of these tests are based on observing how showdown behaves:
 /// http://softwaremaniacs.org/playground/showdown-highlight/
