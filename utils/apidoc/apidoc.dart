@@ -33,6 +33,8 @@ void main() {
   bool generateAppCache = false;
 
   List<String> excludedLibraries = <String>[];
+  List<String> includedLibraries = <String>[];
+
 
   // Parse the command-line arguments.
   for (int i = 0; i < args.length; i++) {
@@ -54,6 +56,8 @@ void main() {
       default:
         if (arg.startsWith('--exclude-lib=')) {
           excludedLibraries.add(arg.substring('--exclude-lib='.length));
+        } else if (arg.startsWith('--include-lib=')) {
+          includedLibraries.add(arg.substring('--include-lib='.length));
         } else if (arg.startsWith('--out=')) {
           outputDir = new Path.fromNative(arg.substring('--out='.length));
         } else {
@@ -107,8 +111,6 @@ void main() {
       apidocLibraries.add(new Path('dart:$name'));
     }
   });
-
-  final includedLibraries = <String>[];
 
   var lister = new Directory.fromPath(doc.scriptDir.append('../../pkg')).list();
   lister.onDir = (dirPath) {
