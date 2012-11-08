@@ -12,11 +12,11 @@
 #include "platform/assert.h"
 
 
-// List all native functions implemented in standalone dart that is used
-// to inject additional functionality e.g: Logger, file I/O, socket I/O etc.
+// Lists the native functions implementing basic functionality in
+// standalone dart, such as printing, file I/O, and platform information.
+// Advanced I/O classes like sockets and process management are implemented
+// using functions listed in io_natives.cc.
 #define BUILTIN_NATIVE_LIST(V)                                                 \
-  V(Common_IsBuiltinList, 1)                                                   \
-  V(Crypto_GetRandomBytes, 1)                                                  \
   V(Directory_Exists, 1)                                                       \
   V(Directory_Create, 1)                                                       \
   V(Directory_Current, 0)                                                      \
@@ -24,8 +24,6 @@
   V(Directory_Delete, 2)                                                       \
   V(Directory_Rename, 2)                                                       \
   V(Directory_NewServicePort, 0)                                               \
-  V(EventHandler_Start, 1)                                                     \
-  V(EventHandler_SendData, 4)                                                  \
   V(Exit, 1)                                                                   \
   V(File_Open, 2)                                                              \
   V(File_Exists, 1)                                                            \
@@ -53,21 +51,7 @@
   V(Platform_OperatingSystem, 0)                                               \
   V(Platform_PathSeparator, 0)                                                 \
   V(Platform_LocalHostname, 0)                                                 \
-  V(Platform_Environment, 0)                                                   \
-  V(Process_Start, 10)                                                         \
-  V(Process_Kill, 3)                                                           \
-  V(ServerSocket_CreateBindListen, 4)                                          \
-  V(ServerSocket_Accept, 2)                                                    \
-  V(Socket_CreateConnect, 3)                                                   \
-  V(Socket_Available, 1)                                                       \
-  V(Socket_Read, 2)                                                            \
-  V(Socket_ReadList, 4)                                                        \
-  V(Socket_WriteList, 4)                                                       \
-  V(Socket_GetPort, 1)                                                         \
-  V(Socket_GetRemotePeer, 1)                                                   \
-  V(Socket_GetError, 1)                                                        \
-  V(Socket_GetStdioHandle, 2)                                                  \
-  V(Socket_NewServicePort, 0)
+  V(Platform_Environment, 0)
 
 
 BUILTIN_NATIVE_LIST(DECLARE_FUNCTION);
@@ -81,8 +65,8 @@ static struct NativeEntries {
 };
 
 
-Dart_NativeFunction Builtin::NativeLookup(Dart_Handle name,
-                                          int argument_count) {
+Dart_NativeFunction Builtin::BuiltinNativeLookup(Dart_Handle name,
+                                                 int argument_count) {
   const char* function_name = NULL;
   Dart_Handle result = Dart_StringToCString(name, &function_name);
   DART_CHECK_VALID(result);
