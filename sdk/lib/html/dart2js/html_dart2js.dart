@@ -42,6 +42,10 @@ _callPortSync(int id, message) {
 
 // TODO(vsm): Plumb this properly.
 spawnDomFunction(f) => spawnFunction(f);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName AbstractWorker
 class AbstractWorker extends EventTarget native "*AbstractWorker" {
@@ -67,6 +71,10 @@ class AbstractWorkerEvents extends Events {
 
   EventListenerList get error => this['error'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName AnalyserNode
 class AnalyserNode extends AudioNode native "*AnalyserNode" {
@@ -95,6 +103,10 @@ class AnalyserNode extends AudioNode native "*AnalyserNode" {
   /** @domName AnalyserNode.getFloatFrequencyData */
   void getFloatFrequencyData(Float32Array array) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLAnchorElement
 class AnchorElement extends Element implements Element native "*HTMLAnchorElement" {
@@ -169,6 +181,10 @@ class AnchorElement extends Element implements Element native "*HTMLAnchorElemen
   /** @domName HTMLAnchorElement.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebKitAnimation
 class Animation native "*WebKitAnimation" {
@@ -218,6 +234,10 @@ class Animation native "*WebKitAnimation" {
   /** @domName WebKitAnimation.play */
   void play() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebKitAnimationEvent
 class AnimationEvent extends Event native "*WebKitAnimationEvent" {
@@ -228,6 +248,10 @@ class AnimationEvent extends Event native "*WebKitAnimationEvent" {
   /** @domName WebKitAnimationEvent.elapsedTime */
   final num elapsedTime;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLAppletElement
 class AppletElement extends Element implements Element native "*HTMLAppletElement" {
@@ -265,6 +289,10 @@ class AppletElement extends Element implements Element native "*HTMLAppletElemen
   /** @domName HTMLAppletElement.width */
   String width;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLAreaElement
 class AreaElement extends Element implements Element native "*HTMLAreaElement" {
@@ -313,6 +341,10 @@ class AreaElement extends Element implements Element native "*HTMLAreaElement" {
   /** @domName HTMLAreaElement.target */
   String target;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ArrayBuffer
 class ArrayBuffer native "*ArrayBuffer" {
@@ -325,6 +357,10 @@ class ArrayBuffer native "*ArrayBuffer" {
   /** @domName ArrayBuffer.slice */
   ArrayBuffer slice(int begin, [int end]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ArrayBufferView
 class ArrayBufferView native "*ArrayBufferView" {
@@ -338,6 +374,10 @@ class ArrayBufferView native "*ArrayBufferView" {
   /** @domName ArrayBufferView.byteOffset */
   final int byteOffset;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Attr
 class Attr extends Node native "*Attr" {
@@ -357,6 +397,10 @@ class Attr extends Node native "*Attr" {
   /** @domName Attr.value */
   String value;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName AudioBuffer
 class AudioBuffer native "*AudioBuffer" {
@@ -390,6 +434,7 @@ typedef void AudioBufferCallback(AudioBuffer audioBuffer);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNode" {
 
@@ -456,6 +501,7 @@ class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNo
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class AudioContext extends EventTarget native "*AudioContext" {
   factory AudioContext() => _AudioContextFactoryProvider.createAudioContext();
@@ -562,6 +608,10 @@ class AudioContextEvents extends Events {
 
   EventListenerList get complete => this['complete'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName AudioDestinationNode
 class AudioDestinationNode extends AudioNode native "*AudioDestinationNode" {
@@ -569,6 +619,10 @@ class AudioDestinationNode extends AudioNode native "*AudioDestinationNode" {
   /** @domName AudioDestinationNode.numberOfChannels */
   final int numberOfChannels;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLAudioElement
 class AudioElement extends MediaElement native "*HTMLAudioElement" {
@@ -580,10 +634,18 @@ class AudioElement extends MediaElement native "*HTMLAudioElement" {
     return _AudioElementFactoryProvider.createAudioElement(src);
   }
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName AudioGain
 class AudioGain extends AudioParam native "*AudioGain" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName AudioListener
 class AudioListener native "*AudioListener" {
@@ -603,6 +665,10 @@ class AudioListener native "*AudioListener" {
   /** @domName AudioListener.setVelocity */
   void setVelocity(num x, num y, num z) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName AudioNode
 class AudioNode native "*AudioNode" {
@@ -622,6 +688,10 @@ class AudioNode native "*AudioNode" {
   /** @domName AudioNode.disconnect */
   void disconnect(int output) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName AudioParam
 class AudioParam native "*AudioParam" {
@@ -662,6 +732,10 @@ class AudioParam native "*AudioParam" {
   /** @domName AudioParam.setValueCurveAtTime */
   void setValueCurveAtTime(Float32Array values, num time, num duration) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName AudioProcessingEvent
 class AudioProcessingEvent extends Event native "*AudioProcessingEvent" {
@@ -672,10 +746,18 @@ class AudioProcessingEvent extends Event native "*AudioProcessingEvent" {
   /** @domName AudioProcessingEvent.outputBuffer */
   final AudioBuffer outputBuffer;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName AudioSourceNode
 class AudioSourceNode extends AudioNode native "*AudioSourceNode" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLBRElement
 class BRElement extends Element implements Element native "*HTMLBRElement" {
@@ -685,6 +767,10 @@ class BRElement extends Element implements Element native "*HTMLBRElement" {
   /** @domName HTMLBRElement.clear */
   String clear;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName BarInfo
 class BarInfo native "*BarInfo" {
@@ -692,6 +778,10 @@ class BarInfo native "*BarInfo" {
   /** @domName BarInfo.visible */
   final bool visible;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLBaseElement
 class BaseElement extends Element implements Element native "*HTMLBaseElement" {
@@ -704,6 +794,10 @@ class BaseElement extends Element implements Element native "*HTMLBaseElement" {
   /** @domName HTMLBaseElement.target */
   String target;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLBaseFontElement
 class BaseFontElement extends Element implements Element native "*HTMLBaseFontElement" {
@@ -717,6 +811,10 @@ class BaseFontElement extends Element implements Element native "*HTMLBaseFontEl
   /** @domName HTMLBaseFontElement.size */
   int size;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName BatteryManager
 class BatteryManager extends EventTarget native "*BatteryManager" {
@@ -760,6 +858,10 @@ class BatteryManagerEvents extends Events {
 
   EventListenerList get levelChange => this['levelchange'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName BeforeLoadEvent
 class BeforeLoadEvent extends Event native "*BeforeLoadEvent" {
@@ -767,6 +869,10 @@ class BeforeLoadEvent extends Event native "*BeforeLoadEvent" {
   /** @domName BeforeLoadEvent.url */
   final String url;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName BiquadFilterNode
 class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
@@ -802,6 +908,10 @@ class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
   /** @domName BiquadFilterNode.getFrequencyResponse */
   void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Blob
 class Blob native "*Blob" {
@@ -825,6 +935,10 @@ class Blob native "*Blob" {
   /** @domName Blob.slice */
   Blob slice([int start, int end, String contentType]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLBodyElement
 class BodyElement extends Element implements Element native "*HTMLBodyElement" {
@@ -882,6 +996,10 @@ class BodyElementEvents extends ElementEvents {
 
   EventListenerList get unload => this['unload'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLButtonElement
 class ButtonElement extends Element implements Element native "*HTMLButtonElement" {
@@ -939,10 +1057,18 @@ class ButtonElement extends Element implements Element native "*HTMLButtonElemen
   /** @domName HTMLButtonElement.setCustomValidity */
   void setCustomValidity(String error) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CDATASection
 class CDATASection extends Text native "*CDATASection" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSCharsetRule
 class CSSCharsetRule extends CSSRule native "*CSSCharsetRule" {
@@ -950,6 +1076,10 @@ class CSSCharsetRule extends CSSRule native "*CSSCharsetRule" {
   /** @domName CSSCharsetRule.encoding */
   String encoding;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSFontFaceRule
 class CSSFontFaceRule extends CSSRule native "*CSSFontFaceRule" {
@@ -957,6 +1087,10 @@ class CSSFontFaceRule extends CSSRule native "*CSSFontFaceRule" {
   /** @domName CSSFontFaceRule.style */
   final CSSStyleDeclaration style;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSImportRule
 class CSSImportRule extends CSSRule native "*CSSImportRule" {
@@ -970,6 +1104,10 @@ class CSSImportRule extends CSSRule native "*CSSImportRule" {
   /** @domName CSSImportRule.styleSheet */
   final CSSStyleSheet styleSheet;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebKitCSSKeyframeRule
 class CSSKeyframeRule extends CSSRule native "*WebKitCSSKeyframeRule" {
@@ -980,6 +1118,10 @@ class CSSKeyframeRule extends CSSRule native "*WebKitCSSKeyframeRule" {
   /** @domName WebKitCSSKeyframeRule.style */
   final CSSStyleDeclaration style;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebKitCSSKeyframesRule
 class CSSKeyframesRule extends CSSRule native "*WebKitCSSKeyframesRule" {
@@ -999,6 +1141,10 @@ class CSSKeyframesRule extends CSSRule native "*WebKitCSSKeyframesRule" {
   /** @domName WebKitCSSKeyframesRule.insertRule */
   void insertRule(String rule) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebKitCSSMatrix
 class CSSMatrix native "*WebKitCSSMatrix" {
@@ -1106,6 +1252,10 @@ class CSSMatrix native "*WebKitCSSMatrix" {
   /** @domName WebKitCSSMatrix.translate */
   CSSMatrix translate(num x, num y, num z) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSMediaRule
 class CSSMediaRule extends CSSRule native "*CSSMediaRule" {
@@ -1122,6 +1272,10 @@ class CSSMediaRule extends CSSRule native "*CSSMediaRule" {
   /** @domName CSSMediaRule.insertRule */
   int insertRule(String rule, int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSPageRule
 class CSSPageRule extends CSSRule native "*CSSPageRule" {
@@ -1132,6 +1286,10 @@ class CSSPageRule extends CSSRule native "*CSSPageRule" {
   /** @domName CSSPageRule.style */
   final CSSStyleDeclaration style;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSPrimitiveValue
 class CSSPrimitiveValue extends CSSValue native "*CSSPrimitiveValue" {
@@ -1218,6 +1376,10 @@ class CSSPrimitiveValue extends CSSValue native "*CSSPrimitiveValue" {
   /** @domName CSSPrimitiveValue.setStringValue */
   void setStringValue(int stringType, String stringValue) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSRule
 class CSSRule native "*CSSRule" {
@@ -1255,6 +1417,7 @@ class CSSRule native "*CSSRule" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 String _cachedBrowserPrefix;
 
@@ -4087,6 +4250,10 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     setProperty('zoom', value, '');
   }
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSStyleRule
 class CSSStyleRule extends CSSRule native "*CSSStyleRule" {
@@ -4097,6 +4264,10 @@ class CSSStyleRule extends CSSRule native "*CSSStyleRule" {
   /** @domName CSSStyleRule.style */
   final CSSStyleDeclaration style;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSStyleSheet
 class CSSStyleSheet extends StyleSheet native "*CSSStyleSheet" {
@@ -4122,6 +4293,10 @@ class CSSStyleSheet extends StyleSheet native "*CSSStyleSheet" {
   /** @domName CSSStyleSheet.removeRule */
   void removeRule(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebKitCSSTransformValue
 class CSSTransformValue extends _CSSValueList native "*WebKitCSSTransformValue" {
@@ -4171,10 +4346,18 @@ class CSSTransformValue extends _CSSValueList native "*WebKitCSSTransformValue" 
   /** @domName WebKitCSSTransformValue.operationType */
   final int operationType;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSUnknownRule
 class CSSUnknownRule extends CSSRule native "*CSSUnknownRule" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSValue
 class CSSValue native "*CSSValue" {
@@ -4196,6 +4379,7 @@ class CSSValue native "*CSSValue" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class CanvasElement extends Element implements Element native "*HTMLCanvasElement" {
 
@@ -4222,6 +4406,10 @@ class CanvasElement extends Element implements Element native "*HTMLCanvasElemen
   CanvasRenderingContext getContext(String contextId) native;
   CanvasRenderingContext2D get context2d => getContext('2d');
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CanvasGradient
 class CanvasGradient native "*CanvasGradient" {
@@ -4229,10 +4417,18 @@ class CanvasGradient native "*CanvasGradient" {
   /** @domName CanvasGradient.addColorStop */
   void addColorStop(num offset, String color) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CanvasPattern
 class CanvasPattern native "*CanvasPattern" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CanvasRenderingContext
 class CanvasRenderingContext native "*CanvasRenderingContext" {
@@ -4243,6 +4439,7 @@ class CanvasRenderingContext native "*CanvasRenderingContext" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRenderingContext2D" {
 
@@ -4540,14 +4737,26 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
     this.strokeStyle = 'hsla($h, $s%, $l%, $a)';
   }
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ChannelMergerNode
 class ChannelMergerNode extends AudioNode native "*ChannelMergerNode" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ChannelSplitterNode
 class ChannelSplitterNode extends AudioNode native "*ChannelSplitterNode" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CharacterData
 class CharacterData extends Node native "*CharacterData" {
@@ -4576,6 +4785,10 @@ class CharacterData extends Node native "*CharacterData" {
   /** @domName CharacterData.substringData */
   String substringData(int offset, int length) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ClientRect
 class ClientRect native "*ClientRect" {
@@ -4598,6 +4811,10 @@ class ClientRect native "*ClientRect" {
   /** @domName ClientRect.width */
   final num width;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Clipboard
 class Clipboard native "*Clipboard" {
@@ -4629,6 +4846,10 @@ class Clipboard native "*Clipboard" {
   /** @domName Clipboard.setDragImage */
   void setDragImage(ImageElement image, int x, int y) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CloseEvent
 class CloseEvent extends Event native "*CloseEvent" {
@@ -4642,10 +4863,18 @@ class CloseEvent extends Event native "*CloseEvent" {
   /** @domName CloseEvent.wasClean */
   final bool wasClean;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Comment
 class Comment extends CharacterData native "*Comment" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CompositionEvent
 class CompositionEvent extends UIEvent native "*CompositionEvent" {
@@ -4659,6 +4888,7 @@ class CompositionEvent extends UIEvent native "*CompositionEvent" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class Console
     // Console is sometimes a singleton bag-of-properties without a prototype.
@@ -4728,6 +4958,10 @@ class Console
   void warn(Object arg) native;
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLContentElement
 class ContentElement extends Element implements Element native "*HTMLContentElement" {
@@ -4743,6 +4977,10 @@ class ContentElement extends Element implements Element native "*HTMLContentElem
   /** @domName HTMLContentElement.getDistributedNodes */
   List<Node> getDistributedNodes() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ConvolverNode
 class ConvolverNode extends AudioNode native "*ConvolverNode" {
@@ -4753,6 +4991,10 @@ class ConvolverNode extends AudioNode native "*ConvolverNode" {
   /** @domName ConvolverNode.normalize */
   bool normalize;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Coordinates
 class Coordinates native "*Coordinates" {
@@ -4778,6 +5020,10 @@ class Coordinates native "*Coordinates" {
   /** @domName Coordinates.speed */
   final num speed;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Counter
 class Counter native "*Counter" {
@@ -4791,6 +5037,10 @@ class Counter native "*Counter" {
   /** @domName Counter.separator */
   final String separator;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Crypto
 class Crypto native "*Crypto" {
@@ -4804,6 +5054,7 @@ class Crypto native "*Crypto" {
 
 // WARNING: Do not edit - generated code.
 
+
 class CustomEvent extends Event native "*CustomEvent" {
   factory CustomEvent(String type, [bool canBubble = true, bool cancelable = true,
       Object detail]) => _CustomEventFactoryProvider.createCustomEvent(
@@ -4816,6 +5067,10 @@ class CustomEvent extends Event native "*CustomEvent" {
   void $dom_initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native "initCustomEvent";
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLDListElement
 class DListElement extends Element implements Element native "*HTMLDListElement" {
@@ -4825,6 +5080,10 @@ class DListElement extends Element implements Element native "*HTMLDListElement"
   /** @domName HTMLDListElement.compact */
   bool compact;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DOMApplicationCache
 class DOMApplicationCache extends EventTarget native "*DOMApplicationCache" {
@@ -4888,6 +5147,10 @@ class DOMApplicationCacheEvents extends Events {
 
   EventListenerList get updateReady => this['updateready'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DOMError
 class DOMError native "*DOMError" {
@@ -4895,6 +5158,10 @@ class DOMError native "*DOMError" {
   /** @domName DOMError.name */
   final String name;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DOMException
 class DOMException native "*DOMException" {
@@ -4961,6 +5228,10 @@ class DOMException native "*DOMException" {
   /** @domName DOMException.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DOMFileSystem
 class DOMFileSystem native "*DOMFileSystem" {
@@ -4971,6 +5242,10 @@ class DOMFileSystem native "*DOMFileSystem" {
   /** @domName DOMFileSystem.root */
   final DirectoryEntry root;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DOMFileSystemSync
 class DOMFileSystemSync native "*DOMFileSystemSync" {
@@ -4981,6 +5256,10 @@ class DOMFileSystemSync native "*DOMFileSystemSync" {
   /** @domName DOMFileSystemSync.root */
   final DirectoryEntrySync root;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DOMImplementation
 class DOMImplementation native "*DOMImplementation" {
@@ -5000,6 +5279,10 @@ class DOMImplementation native "*DOMImplementation" {
   /** @domName DOMImplementation.hasFeature */
   bool hasFeature(String feature, String version) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MimeType
 class DOMMimeType native "*MimeType" {
@@ -5016,6 +5299,10 @@ class DOMMimeType native "*MimeType" {
   /** @domName MimeType.type */
   final String type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MimeTypeArray
 class DOMMimeTypeArray implements JavaScriptIndexingBehavior, List<DOMMimeType> native "*MimeTypeArray" {
@@ -5112,6 +5399,10 @@ class DOMMimeTypeArray implements JavaScriptIndexingBehavior, List<DOMMimeType> 
   /** @domName MimeTypeArray.namedItem */
   DOMMimeType namedItem(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DOMParser
 class DOMParser native "*DOMParser" {
@@ -5121,6 +5412,10 @@ class DOMParser native "*DOMParser" {
   /** @domName DOMParser.parseFromString */
   Document parseFromString(String str, String contentType) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Plugin
 class DOMPlugin native "*Plugin" {
@@ -5143,6 +5438,10 @@ class DOMPlugin native "*Plugin" {
   /** @domName Plugin.namedItem */
   DOMMimeType namedItem(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName PluginArray
 class DOMPluginArray implements JavaScriptIndexingBehavior, List<DOMPlugin> native "*PluginArray" {
@@ -5242,6 +5541,10 @@ class DOMPluginArray implements JavaScriptIndexingBehavior, List<DOMPlugin> nati
   /** @domName PluginArray.refresh */
   void refresh(bool reload) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Selection
 class DOMSelection native "*Selection" {
@@ -5324,6 +5627,10 @@ class DOMSelection native "*Selection" {
   /** @domName Selection.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DOMSettableTokenList
 class DOMSettableTokenList extends DOMTokenList native "*DOMSettableTokenList" {
@@ -5331,9 +5638,18 @@ class DOMSettableTokenList extends DOMTokenList native "*DOMSettableTokenList" {
   /** @domName DOMSettableTokenList.value */
   String value;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName DOMStringMap
 abstract class DOMStringMap {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DOMTokenList
 class DOMTokenList native "*DOMTokenList" {
@@ -5353,6 +5669,10 @@ class DOMTokenList native "*DOMTokenList" {
   /** @domName DOMTokenList.toggle */
   bool toggle(String token, [bool force]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLDataListElement
 class DataListElement extends Element implements Element native "*HTMLDataListElement" {
@@ -5362,6 +5682,10 @@ class DataListElement extends Element implements Element native "*HTMLDataListEl
   /** @domName HTMLDataListElement.options */
   final HTMLCollection options;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DataTransferItem
 class DataTransferItem native "*DataTransferItem" {
@@ -5381,6 +5705,10 @@ class DataTransferItem native "*DataTransferItem" {
   /** @domName DataTransferItem.webkitGetAsEntry */
   Entry webkitGetAsEntry() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DataTransferItemList
 class DataTransferItemList native "*DataTransferItemList" {
@@ -5397,6 +5725,10 @@ class DataTransferItemList native "*DataTransferItemList" {
   /** @domName DataTransferItemList.item */
   DataTransferItem item(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DataView
 class DataView extends ArrayBufferView native "*DataView" {
@@ -5459,6 +5791,10 @@ class DataView extends ArrayBufferView native "*DataView" {
   /** @domName DataView.setUint8 */
   void setUint8(int byteOffset, int value) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Database
 class Database native "*Database" {
@@ -5483,6 +5819,10 @@ class Database native "*Database" {
 
 
 typedef void DatabaseCallback(database);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DatabaseSync
 class DatabaseSync native "*DatabaseSync" {
@@ -5502,6 +5842,10 @@ class DatabaseSync native "*DatabaseSync" {
   /** @domName DatabaseSync.transaction */
   void transaction(SQLTransactionSyncCallback callback) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DedicatedWorkerContext
 class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerContext" {
@@ -5532,6 +5876,10 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 
   EventListenerList get message => this['message'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DelayNode
 class DelayNode extends AudioNode native "*DelayNode" {
@@ -5539,6 +5887,10 @@ class DelayNode extends AudioNode native "*DelayNode" {
   /** @domName DelayNode.delayTime */
   final AudioParam delayTime;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLDetailsElement
 class DetailsElement extends Element implements Element native "*HTMLDetailsElement" {
@@ -5548,6 +5900,10 @@ class DetailsElement extends Element implements Element native "*HTMLDetailsElem
   /** @domName HTMLDetailsElement.open */
   bool open;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DeviceMotionEvent
 class DeviceMotionEvent extends Event native "*DeviceMotionEvent" {
@@ -5555,6 +5911,10 @@ class DeviceMotionEvent extends Event native "*DeviceMotionEvent" {
   /** @domName DeviceMotionEvent.interval */
   final num interval;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DeviceOrientationEvent
 class DeviceOrientationEvent extends Event native "*DeviceOrientationEvent" {
@@ -5574,6 +5934,10 @@ class DeviceOrientationEvent extends Event native "*DeviceOrientationEvent" {
   /** @domName DeviceOrientationEvent.initDeviceOrientationEvent */
   void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLDirectoryElement
 class DirectoryElement extends Element implements Element native "*HTMLDirectoryElement" {
@@ -5581,6 +5945,10 @@ class DirectoryElement extends Element implements Element native "*HTMLDirectory
   /** @domName HTMLDirectoryElement.compact */
   bool compact;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DirectoryEntry
 class DirectoryEntry extends Entry native "*DirectoryEntry" {
@@ -5641,6 +6009,10 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
   /** @domName DirectoryEntry.removeRecursively */
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DirectoryEntrySync
 class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
@@ -5665,6 +6037,10 @@ class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
   /** @domName DirectoryEntrySync.removeRecursively */
   void removeRecursively() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DirectoryReader
 class DirectoryReader native "*DirectoryReader" {
@@ -5672,6 +6048,10 @@ class DirectoryReader native "*DirectoryReader" {
   /** @domName DirectoryReader.readEntries */
   void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DirectoryReaderSync
 class DirectoryReaderSync native "*DirectoryReaderSync" {
@@ -5679,6 +6059,10 @@ class DirectoryReaderSync native "*DirectoryReaderSync" {
   /** @domName DirectoryReaderSync.readEntries */
   List<EntrySync> readEntries() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLDivElement
 class DivElement extends Element implements Element native "*HTMLDivElement" {
@@ -5691,6 +6075,7 @@ class DivElement extends Element implements Element native "*HTMLDivElement" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class Document extends Node
     native "*HTMLDocument"
@@ -6000,6 +6385,7 @@ class DocumentEvents extends ElementEvents {
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _FilteredElementList implements List {
   final Node _node;
@@ -6378,6 +6764,10 @@ class DocumentFragment extends Node native "*DocumentFragment" {
   List<Node> $dom_querySelectorAll(String selectors) native "querySelectorAll";
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DocumentType
 class DocumentType extends Node native "*DocumentType" {
@@ -6403,6 +6793,10 @@ class DocumentType extends Node native "*DocumentType" {
   /** @domName DocumentType.remove */
   void remove() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DynamicsCompressorNode
 class DynamicsCompressorNode extends AudioNode native "*DynamicsCompressorNode" {
@@ -6425,6 +6819,10 @@ class DynamicsCompressorNode extends AudioNode native "*DynamicsCompressorNode" 
   /** @domName DynamicsCompressorNode.threshold */
   final AudioParam threshold;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName EXTTextureFilterAnisotropic
 class EXTTextureFilterAnisotropic native "*EXTTextureFilterAnisotropic" {
@@ -6436,6 +6834,7 @@ class EXTTextureFilterAnisotropic native "*EXTTextureFilterAnisotropic" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 // TODO(jacobr): use _Lists.dart to remove some of the duplicated
 // functionality.
@@ -7550,6 +7949,7 @@ class _ElementFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class ElementEvents extends Events {
   ElementEvents(EventTarget _ptr) : super(_ptr);
 
@@ -7660,6 +8060,11 @@ class ElementEvents extends Events {
     }
   }
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName ElementTimeControl
 abstract class ElementTimeControl {
 
@@ -7675,6 +8080,11 @@ abstract class ElementTimeControl {
   /** @domName ElementTimeControl.endElementAt */
   void endElementAt(num offset);
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName ElementTraversal
 abstract class ElementTraversal {
 
@@ -7688,6 +8098,10 @@ abstract class ElementTraversal {
 
   Element previousElementSibling;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLEmbedElement
 class EmbedElement extends Element implements Element native "*HTMLEmbedElement" {
@@ -7712,6 +8126,10 @@ class EmbedElement extends Element implements Element native "*HTMLEmbedElement"
   /** @domName HTMLEmbedElement.width */
   String width;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName EntityReference
 class EntityReference extends Node native "*EntityReference" {
@@ -7724,6 +8142,10 @@ class EntityReference extends Node native "*EntityReference" {
 
 
 typedef void EntriesCallback(List<Entry> entries);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Entry
 class Entry native "*Entry" {
@@ -7769,6 +8191,10 @@ class Entry native "*Entry" {
 
 
 typedef void EntryCallback(Entry entry);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName EntrySync
 class EntrySync native "*EntrySync" {
@@ -7814,6 +8240,10 @@ class EntrySync native "*EntrySync" {
 
 
 typedef void ErrorCallback(FileError error);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ErrorEvent
 class ErrorEvent extends Event native "*ErrorEvent" {
@@ -7832,6 +8262,7 @@ class ErrorEvent extends Event native "*ErrorEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 class Event native "*Event" {
   // In JS, canBubble and cancelable are technically required parameters to
@@ -7935,6 +8366,10 @@ class Event native "*Event" {
   void stopPropagation() native;
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName EventException
 class EventException native "*EventException" {
@@ -7955,6 +8390,10 @@ class EventException native "*EventException" {
   /** @domName EventException.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName EventSource
 class EventSource extends EventTarget native "*EventSource" {
@@ -8007,6 +8446,7 @@ class EventSourceEvents extends Events {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class Events {
   /* Raw event target. */
@@ -8069,6 +8509,10 @@ class EventTarget native "*EventTarget" {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLFieldSetElement
 class FieldSetElement extends Element implements Element native "*HTMLFieldSetElement" {
@@ -8105,6 +8549,10 @@ class FieldSetElement extends Element implements Element native "*HTMLFieldSetEl
   /** @domName HTMLFieldSetElement.setCustomValidity */
   void setCustomValidity(String error) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName File
 class File extends Blob native "*File" {
@@ -8126,6 +8574,10 @@ class File extends Blob native "*File" {
 
 
 typedef void FileCallback(File file);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName FileEntry
 class FileEntry extends Entry native "*FileEntry" {
@@ -8136,6 +8588,10 @@ class FileEntry extends Entry native "*FileEntry" {
   /** @domName FileEntry.file */
   void file(FileCallback successCallback, [ErrorCallback errorCallback]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName FileEntrySync
 class FileEntrySync extends EntrySync native "*FileEntrySync" {
@@ -8146,6 +8602,10 @@ class FileEntrySync extends EntrySync native "*FileEntrySync" {
   /** @domName FileEntrySync.file */
   File file() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName FileError
 class FileError native "*FileError" {
@@ -8177,6 +8637,10 @@ class FileError native "*FileError" {
   /** @domName FileError.code */
   final int code;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName FileException
 class FileException native "*FileException" {
@@ -8217,6 +8681,10 @@ class FileException native "*FileException" {
   /** @domName FileException.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName FileReader
 class FileReader extends EventTarget native "*FileReader" {
@@ -8284,6 +8752,10 @@ class FileReaderEvents extends Events {
 
   EventListenerList get progress => this['progress'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName FileReaderSync
 class FileReaderSync native "*FileReaderSync" {
@@ -8310,6 +8782,10 @@ class FileReaderSync native "*FileReaderSync" {
 
 
 typedef void FileSystemCallback(DOMFileSystem fileSystem);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName FileWriter
 class FileWriter extends EventTarget native "*FileWriter" {
@@ -8383,6 +8859,10 @@ class FileWriterEvents extends Events {
 
 
 typedef void FileWriterCallback(FileWriter fileWriter);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName FileWriterSync
 class FileWriterSync native "*FileWriterSync" {
@@ -8402,6 +8882,10 @@ class FileWriterSync native "*FileWriterSync" {
   /** @domName FileWriterSync.write */
   void write(Blob data) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Float32Array
 class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<num> native "*Float32Array" {
@@ -8507,6 +8991,10 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   /** @domName Float32Array.subarray */
   Float32Array subarray(int start, [int end]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Float64Array
 class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<num> native "*Float64Array" {
@@ -8612,6 +9100,10 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   /** @domName Float64Array.subarray */
   Float64Array subarray(int start, [int end]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLFontElement
 class FontElement extends Element implements Element native "*HTMLFontElement" {
@@ -8625,6 +9117,10 @@ class FontElement extends Element implements Element native "*HTMLFontElement" {
   /** @domName HTMLFontElement.size */
   String size;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName FormData
 class FormData native "*FormData" {
@@ -8639,6 +9135,10 @@ class FormData native "*FormData" {
   /** @domName FormData.append */
   void append(String name, String value, String filename) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLFormElement
 class FormElement extends Element implements Element native "*HTMLFormElement" {
@@ -8684,6 +9184,10 @@ class FormElement extends Element implements Element native "*HTMLFormElement" {
   /** @domName HTMLFormElement.submit */
   void submit() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLFrameElement
 class FrameElement extends Element implements Element native "*HTMLFrameElement" {
@@ -8725,6 +9229,10 @@ class FrameElement extends Element implements Element native "*HTMLFrameElement"
   /** @domName HTMLFrameElement.width */
   final int width;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLFrameSetElement
 class FrameSetElement extends Element implements Element native "*HTMLFrameSetElement" {
@@ -8771,6 +9279,10 @@ class FrameSetElementEvents extends ElementEvents {
 
   EventListenerList get unload => this['unload'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName GainNode
 class GainNode extends AudioNode native "*GainNode" {
@@ -8778,6 +9290,10 @@ class GainNode extends AudioNode native "*GainNode" {
   /** @domName GainNode.gain */
   final AudioGain gain;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Gamepad
 class Gamepad native "*Gamepad" {
@@ -8797,6 +9313,10 @@ class Gamepad native "*Gamepad" {
   /** @domName Gamepad.timestamp */
   final int timestamp;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Geolocation
 class Geolocation native "*Geolocation" {
@@ -8810,6 +9330,10 @@ class Geolocation native "*Geolocation" {
   /** @domName Geolocation.watchPosition */
   int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Geoposition
 class Geoposition native "*Geoposition" {
@@ -8820,6 +9344,10 @@ class Geoposition native "*Geoposition" {
   /** @domName Geoposition.timestamp */
   final int timestamp;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLHRElement
 class HRElement extends Element implements Element native "*HTMLHRElement" {
@@ -8838,6 +9366,10 @@ class HRElement extends Element implements Element native "*HTMLHRElement" {
   /** @domName HTMLHRElement.width */
   String width;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLAllCollection
 class HTMLAllCollection implements JavaScriptIndexingBehavior, List<Node> native "*HTMLAllCollection" {
@@ -8937,6 +9469,10 @@ class HTMLAllCollection implements JavaScriptIndexingBehavior, List<Node> native
   /** @domName HTMLAllCollection.tags */
   List<Node> tags(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLCollection
 class HTMLCollection implements JavaScriptIndexingBehavior, List<Node> native "*HTMLCollection" {
@@ -9033,6 +9569,10 @@ class HTMLCollection implements JavaScriptIndexingBehavior, List<Node> native "*
   /** @domName HTMLCollection.namedItem */
   Node namedItem(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLOptionsCollection
 class HTMLOptionsCollection extends HTMLCollection native "*HTMLOptionsCollection" {
@@ -9052,6 +9592,10 @@ class HTMLOptionsCollection extends HTMLCollection native "*HTMLOptionsCollectio
   /** @domName HTMLOptionsCollection.remove */
   void remove(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HashChangeEvent
 class HashChangeEvent extends Event native "*HashChangeEvent" {
@@ -9065,6 +9609,10 @@ class HashChangeEvent extends Event native "*HashChangeEvent" {
   /** @domName HashChangeEvent.initHashChangeEvent */
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLHeadElement
 class HeadElement extends Element implements Element native "*HTMLHeadElement" {
@@ -9074,6 +9622,10 @@ class HeadElement extends Element implements Element native "*HTMLHeadElement" {
   /** @domName HTMLHeadElement.profile */
   String profile;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLHeadingElement
 class HeadingElement extends Element implements Element native "*HTMLHeadingElement" {
@@ -9093,6 +9645,10 @@ class HeadingElement extends Element implements Element native "*HTMLHeadingElem
   /** @domName HTMLHeadingElement.align */
   String align;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLHtmlElement
 class HtmlElement extends Element implements Element native "*HTMLHtmlElement" {
@@ -9102,6 +9658,7 @@ class HtmlElement extends Element implements Element native "*HTMLHtmlElement" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   factory HttpRequest.get(String url, onSuccess(HttpRequest request)) =>
@@ -9205,6 +9762,10 @@ class HttpRequestEvents extends Events {
 
   EventListenerList get readyStateChange => this['readystatechange'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName XMLHttpRequestException
 class HttpRequestException native "*XMLHttpRequestException" {
@@ -9225,6 +9786,10 @@ class HttpRequestException native "*XMLHttpRequestException" {
   /** @domName XMLHttpRequestException.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName XMLHttpRequestProgressEvent
 class HttpRequestProgressEvent extends ProgressEvent native "*XMLHttpRequestProgressEvent" {
@@ -9235,6 +9800,10 @@ class HttpRequestProgressEvent extends ProgressEvent native "*XMLHttpRequestProg
   /** @domName XMLHttpRequestProgressEvent.totalSize */
   final int totalSize;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName XMLHttpRequestUpload
 class HttpRequestUpload extends EventTarget native "*XMLHttpRequestUpload" {
@@ -9270,10 +9839,18 @@ class HttpRequestUploadEvents extends Events {
 
   EventListenerList get progress => this['progress'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBAny
 class IDBAny native "*IDBAny" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBCursor
 class IDBCursor native "*IDBCursor" {
@@ -9324,6 +9901,10 @@ class IDBCursor native "*IDBCursor" {
   }
   IDBRequest _update_1(value) native "update";
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBCursorWithValue
 class IDBCursorWithValue extends IDBCursor native "*IDBCursorWithValue" {
@@ -9334,6 +9915,7 @@ class IDBCursorWithValue extends IDBCursor native "*IDBCursorWithValue" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class IDBDatabase extends EventTarget native "*IDBDatabase" {
 
@@ -9437,6 +10019,10 @@ class IDBDatabaseEvents extends Events {
 
   EventListenerList get versionChange => this['versionchange'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBDatabaseException
 class IDBDatabaseException native "*IDBDatabaseException" {
@@ -9479,6 +10065,10 @@ class IDBDatabaseException native "*IDBDatabaseException" {
   /** @domName IDBDatabaseException.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBFactory
 class IDBFactory native "*IDBFactory" {
@@ -9500,6 +10090,10 @@ class IDBFactory native "*IDBFactory" {
   /** @domName IDBFactory.webkitGetDatabaseNames */
   IDBRequest webkitGetDatabaseNames() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBIndex
 class IDBIndex native "*IDBIndex" {
@@ -9629,6 +10223,10 @@ class IDBIndex native "*IDBIndex" {
   IDBRequest _openKeyCursor_4(key) native "openKeyCursor";
   IDBRequest _openKeyCursor_5(key, String direction) native "openKeyCursor";
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBKey
 class IDBKey native "*IDBKey" {
@@ -9636,6 +10234,7 @@ class IDBKey native "*IDBKey" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class IDBKeyRange native "*IDBKeyRange" {
   /**
@@ -9731,6 +10330,10 @@ class IDBKeyRange native "*IDBKeyRange" {
   IDBKeyRange _upperBound__2(bound) native "upperBound";
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBObjectStore
 class IDBObjectStore native "*IDBObjectStore" {
@@ -9892,6 +10495,10 @@ class IDBObjectStore native "*IDBObjectStore" {
   IDBRequest _put_1(value, key) native "put";
   IDBRequest _put_2(value) native "put";
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBOpenDBRequest
 class IDBOpenDBRequest extends IDBRequest implements EventTarget native "*IDBOpenDBRequest" {
@@ -9910,6 +10517,10 @@ class IDBOpenDBRequestEvents extends IDBRequestEvents {
 
   EventListenerList get upgradeNeeded => this['upgradeneeded'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBRequest
 class IDBRequest extends EventTarget native "*IDBRequest" {
@@ -9959,6 +10570,10 @@ class IDBRequestEvents extends Events {
 
   EventListenerList get success => this['success'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBTransaction
 class IDBTransaction extends EventTarget native "*IDBTransaction" {
@@ -10009,6 +10624,10 @@ class IDBTransactionEvents extends Events {
 
   EventListenerList get error => this['error'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBVersionChangeEvent
 class IDBUpgradeNeededEvent extends Event native "*IDBVersionChangeEvent" {
@@ -10019,6 +10638,10 @@ class IDBUpgradeNeededEvent extends Event native "*IDBVersionChangeEvent" {
   /** @domName IDBVersionChangeEvent.oldVersion */
   final int oldVersion;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBVersionChangeEvent
 class IDBVersionChangeEvent extends Event native "*IDBVersionChangeEvent" {
@@ -10026,6 +10649,10 @@ class IDBVersionChangeEvent extends Event native "*IDBVersionChangeEvent" {
   /** @domName IDBVersionChangeEvent.version */
   final String version;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBVersionChangeRequest
 class IDBVersionChangeRequest extends IDBRequest implements EventTarget native "*IDBVersionChangeRequest" {
@@ -10042,6 +10669,10 @@ class IDBVersionChangeRequestEvents extends IDBRequestEvents {
 
   EventListenerList get blocked => this['blocked'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLIFrameElement
 class IFrameElement extends Element implements Element native "*HTMLIFrameElement" {
@@ -10096,6 +10727,10 @@ class IFrameElement extends Element implements Element native "*HTMLIFrameElemen
 
 
 typedef void IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnection00 source);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IceCandidate
 class IceCandidate native "*IceCandidate" {
@@ -10108,6 +10743,10 @@ class IceCandidate native "*IceCandidate" {
   /** @domName IceCandidate.toSdp */
   String toSdp() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ImageData
 class ImageData native "*ImageData" {
@@ -10121,6 +10760,10 @@ class ImageData native "*ImageData" {
   /** @domName ImageData.width */
   final int width;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLImageElement
 class ImageElement extends Element implements Element native "*HTMLImageElement" {
@@ -10195,6 +10838,10 @@ class ImageElement extends Element implements Element native "*HTMLImageElement"
   /** @domName HTMLImageElement.y */
   final int y;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLInputElement
 class InputElement extends Element implements Element native "*HTMLInputElement" {
@@ -10389,6 +11036,10 @@ class InputElementEvents extends ElementEvents {
 
   EventListenerList get speechChange => this['webkitSpeechChange'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Int16Array
 class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Int16Array" {
@@ -10494,6 +11145,10 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   /** @domName Int16Array.subarray */
   Int16Array subarray(int start, [int end]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Int32Array
 class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Int32Array" {
@@ -10599,6 +11254,10 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   /** @domName Int32Array.subarray */
   Int32Array subarray(int start, [int end]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Int8Array
 class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Int8Array" {
@@ -10704,6 +11363,10 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
   /** @domName Int8Array.subarray */
   Int8Array subarray(int start, [int end]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName JavaScriptCallFrame
 class JavaScriptCallFrame native "*JavaScriptCallFrame" {
@@ -10751,6 +11414,10 @@ class JavaScriptCallFrame native "*JavaScriptCallFrame" {
   /** @domName JavaScriptCallFrame.scopeType */
   int scopeType(int scopeIndex) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName KeyboardEvent
 class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
@@ -10779,6 +11446,10 @@ class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
   /** @domName KeyboardEvent.initKeyboardEvent */
   void initKeyboardEvent(String type, bool canBubble, bool cancelable, LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLKeygenElement
 class KeygenElement extends Element implements Element native "*HTMLKeygenElement" {
@@ -10824,6 +11495,10 @@ class KeygenElement extends Element implements Element native "*HTMLKeygenElemen
   /** @domName HTMLKeygenElement.setCustomValidity */
   void setCustomValidity(String error) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLLIElement
 class LIElement extends Element implements Element native "*HTMLLIElement" {
@@ -10836,6 +11511,10 @@ class LIElement extends Element implements Element native "*HTMLLIElement" {
   /** @domName HTMLLIElement.value */
   int value;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLLabelElement
 class LabelElement extends Element implements Element native "*HTMLLabelElement" {
@@ -10851,6 +11530,10 @@ class LabelElement extends Element implements Element native "*HTMLLabelElement"
   /** @domName HTMLLabelElement.htmlFor */
   String htmlFor;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLLegendElement
 class LegendElement extends Element implements Element native "*HTMLLegendElement" {
@@ -10863,6 +11546,10 @@ class LegendElement extends Element implements Element native "*HTMLLegendElemen
   /** @domName HTMLLegendElement.form */
   final FormElement form;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLLinkElement
 class LinkElement extends Element implements Element native "*HTMLLinkElement" {
@@ -10902,6 +11589,10 @@ class LinkElement extends Element implements Element native "*HTMLLinkElement" {
   /** @domName HTMLLinkElement.type */
   String type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName History
 class LocalHistory implements History native "*History" {
@@ -10927,6 +11618,10 @@ class LocalHistory implements History native "*History" {
   /** @domName History.replaceState */
   void replaceState(Object data, String title, [String url]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Location
 class LocalLocation implements Location native "*Location" {
@@ -10973,6 +11668,10 @@ class LocalLocation implements Location native "*Location" {
   /** @domName Location.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName LocalMediaStream
 class LocalMediaStream extends MediaStream implements EventTarget native "*LocalMediaStream" {
@@ -10983,6 +11682,7 @@ class LocalMediaStream extends MediaStream implements EventTarget native "*Local
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
@@ -11560,6 +12260,10 @@ class LocalWindowEvents extends Events {
 
   EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLMapElement
 class MapElement extends Element implements Element native "*HTMLMapElement" {
@@ -11572,6 +12276,10 @@ class MapElement extends Element implements Element native "*HTMLMapElement" {
   /** @domName HTMLMapElement.name */
   String name;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLMarqueeElement
 class MarqueeElement extends Element implements Element native "*HTMLMarqueeElement" {
@@ -11615,6 +12323,10 @@ class MarqueeElement extends Element implements Element native "*HTMLMarqueeElem
   /** @domName HTMLMarqueeElement.stop */
   void stop() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaController
 class MediaController extends EventTarget native "*MediaController" {
@@ -11666,6 +12378,10 @@ class MediaController extends EventTarget native "*MediaController" {
   /** @domName MediaController.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLMediaElement
 class MediaElement extends Element implements Element native "*HTMLMediaElement" {
@@ -11868,6 +12584,10 @@ class MediaElementEvents extends ElementEvents {
 
   EventListenerList get needKey => this['webkitneedkey'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaElementAudioSourceNode
 class MediaElementAudioSourceNode extends AudioSourceNode native "*MediaElementAudioSourceNode" {
@@ -11875,6 +12595,10 @@ class MediaElementAudioSourceNode extends AudioSourceNode native "*MediaElementA
   /** @domName MediaElementAudioSourceNode.mediaElement */
   final MediaElement mediaElement;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaError
 class MediaError native "*MediaError" {
@@ -11892,6 +12616,10 @@ class MediaError native "*MediaError" {
   /** @domName MediaError.code */
   final int code;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaKeyError
 class MediaKeyError native "*MediaKeyError" {
@@ -11911,6 +12639,10 @@ class MediaKeyError native "*MediaKeyError" {
   /** @domName MediaKeyError.code */
   final int code;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaKeyEvent
 class MediaKeyEvent extends Event native "*MediaKeyEvent" {
@@ -11936,6 +12668,10 @@ class MediaKeyEvent extends Event native "*MediaKeyEvent" {
   /** @domName MediaKeyEvent.systemCode */
   final int systemCode;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaList
 class MediaList native "*MediaList" {
@@ -11955,6 +12691,10 @@ class MediaList native "*MediaList" {
   /** @domName MediaList.item */
   String item(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaQueryList
 class MediaQueryList native "*MediaQueryList" {
@@ -11971,12 +12711,21 @@ class MediaQueryList native "*MediaQueryList" {
   /** @domName MediaQueryList.removeListener */
   void removeListener(MediaQueryListListener listener) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName MediaQueryListListener
 abstract class MediaQueryListListener {
 
   /** @domName MediaQueryListListener.queryChanged */
   void queryChanged(MediaQueryList list);
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaSource
 class MediaSource extends EventTarget native "*MediaSource" {
@@ -12013,6 +12762,10 @@ class MediaSource extends EventTarget native "*MediaSource" {
   /** @domName MediaSource.removeSourceBuffer */
   void removeSourceBuffer(SourceBuffer buffer) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaStream
 class MediaStream extends EventTarget native "*MediaStream" {
@@ -12056,6 +12809,10 @@ class MediaStreamEvents extends Events {
 
   EventListenerList get ended => this['ended'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaStreamAudioSourceNode
 class MediaStreamAudioSourceNode extends AudioSourceNode native "*MediaStreamAudioSourceNode" {
@@ -12063,6 +12820,10 @@ class MediaStreamAudioSourceNode extends AudioSourceNode native "*MediaStreamAud
   /** @domName MediaStreamAudioSourceNode.mediaStream */
   final MediaStream mediaStream;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaStreamEvent
 class MediaStreamEvent extends Event native "*MediaStreamEvent" {
@@ -12070,6 +12831,10 @@ class MediaStreamEvent extends Event native "*MediaStreamEvent" {
   /** @domName MediaStreamEvent.stream */
   final MediaStream stream;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaStreamTrack
 class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
@@ -12117,6 +12882,10 @@ class MediaStreamTrackEvents extends Events {
 
   EventListenerList get unmute => this['unmute'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaStreamTrackEvent
 class MediaStreamTrackEvent extends Event native "*MediaStreamTrackEvent" {
@@ -12124,6 +12893,10 @@ class MediaStreamTrackEvent extends Event native "*MediaStreamTrackEvent" {
   /** @domName MediaStreamTrackEvent.track */
   final MediaStreamTrack track;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaStreamTrackList
 class MediaStreamTrackList extends EventTarget native "*MediaStreamTrackList" {
@@ -12163,6 +12936,10 @@ class MediaStreamTrackListEvents extends Events {
 
   EventListenerList get removeTrack => this['removetrack'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MemoryInfo
 class MemoryInfo native "*MemoryInfo" {
@@ -12176,6 +12953,10 @@ class MemoryInfo native "*MemoryInfo" {
   /** @domName MemoryInfo.usedJSHeapSize */
   final int usedJSHeapSize;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLMenuElement
 class MenuElement extends Element implements Element native "*HTMLMenuElement" {
@@ -12185,6 +12966,10 @@ class MenuElement extends Element implements Element native "*HTMLMenuElement" {
   /** @domName HTMLMenuElement.compact */
   bool compact;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MessageChannel
 class MessageChannel native "*MessageChannel" {
@@ -12197,6 +12982,10 @@ class MessageChannel native "*MessageChannel" {
   /** @domName MessageChannel.port2 */
   final MessagePort port2;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MessageEvent
 class MessageEvent extends Event native "*MessageEvent" {
@@ -12224,6 +13013,10 @@ class MessageEvent extends Event native "*MessageEvent" {
   /** @domName MessageEvent.webkitInitMessageEvent */
   void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, LocalWindow sourceArg, List transferables) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MessagePort
 class MessagePort extends EventTarget native "*MessagePort" {
@@ -12269,6 +13062,10 @@ class MessagePortEvents extends Events {
 
   EventListenerList get message => this['message'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLMetaElement
 class MetaElement extends Element implements Element native "*HTMLMetaElement" {
@@ -12285,6 +13082,10 @@ class MetaElement extends Element implements Element native "*HTMLMetaElement" {
   /** @domName HTMLMetaElement.scheme */
   String scheme;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Metadata
 class Metadata native "*Metadata" {
@@ -12303,6 +13104,10 @@ class Metadata native "*Metadata" {
 
 
 typedef void MetadataCallback(Metadata metadata);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLMeterElement
 class MeterElement extends Element implements Element native "*HTMLMeterElement" {
@@ -12330,6 +13135,10 @@ class MeterElement extends Element implements Element native "*HTMLMeterElement"
   /** @domName HTMLMeterElement.value */
   num value;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLModElement
 class ModElement extends Element implements Element native "*HTMLModElement" {
@@ -12343,6 +13152,7 @@ class ModElement extends Element implements Element native "*HTMLModElement" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class MouseEvent extends UIEvent native "*MouseEvent" {
   factory MouseEvent(String type, Window view, int detail, int screenX,
@@ -12453,6 +13263,10 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
 
 
 typedef void MutationCallback(List<MutationRecord> mutations, MutationObserver observer);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MutationEvent
 class MutationEvent extends Event native "*MutationEvent" {
@@ -12484,6 +13298,7 @@ class MutationEvent extends Event native "*MutationEvent" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class MutationObserver native "*MutationObserver" {
 
@@ -12564,6 +13379,10 @@ class MutationObserver native "*MutationObserver" {
   // Call native function with no conversions.
   void _call(target, options) native 'observe';
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MutationRecord
 class MutationRecord native "*MutationRecord" {
@@ -12595,6 +13414,10 @@ class MutationRecord native "*MutationRecord" {
   /** @domName MutationRecord.type */
   final String type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName NamedNodeMap
 class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*NamedNodeMap" {
@@ -12706,6 +13529,10 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
   /** @domName NamedNodeMap.setNamedItemNS */
   Node setNamedItemNS(Node node) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Navigator
 class Navigator native "*Navigator" {
@@ -12781,6 +13608,10 @@ class Navigator native "*Navigator" {
   void _webkitGetUserMedia_1(options, NavigatorUserMediaSuccessCallback successCallback, NavigatorUserMediaErrorCallback errorCallback) native "webkitGetUserMedia";
   void _webkitGetUserMedia_2(options, NavigatorUserMediaSuccessCallback successCallback) native "webkitGetUserMedia";
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName NavigatorUserMediaError
 class NavigatorUserMediaError native "*NavigatorUserMediaError" {
@@ -12809,6 +13640,7 @@ typedef void NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 /**
  * Lazy implementation of the child nodes of an element that does not request
@@ -13058,6 +13890,10 @@ class Node extends EventTarget native "*Node" {
   Node $dom_replaceChild(Node newChild, Node oldChild) native "replaceChild";
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName NodeFilter
 class NodeFilter native "*NodeFilter" {
@@ -13097,6 +13933,10 @@ class NodeFilter native "*NodeFilter" {
   /** @domName NodeFilter.acceptNode */
   int acceptNode(Node n) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName NodeIterator
 class NodeIterator native "*NodeIterator" {
@@ -13131,6 +13971,7 @@ class NodeIterator native "*NodeIterator" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 // TODO(nweiz): when all implementations we target have the same name for the
 // coreimpl implementation of List<E>, extend that rather than wrapping.
@@ -13313,6 +14154,10 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
   Node _item(int index) native "item";
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Notation
 class Notation extends Node native "*Notation" {
@@ -13323,6 +14168,10 @@ class Notation extends Node native "*Notation" {
   /** @domName Notation.systemId */
   final String systemId;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Notification
 class Notification extends EventTarget native "*Notification" {
@@ -13387,6 +14236,10 @@ class NotificationEvents extends Events {
 
   EventListenerList get show => this['show'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName NotificationCenter
 class NotificationCenter native "*NotificationCenter" {
@@ -13411,20 +14264,36 @@ class NotificationCenter native "*NotificationCenter" {
 
 
 typedef void NotificationPermissionCallback(String permission);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName OESElementIndexUint
 class OESElementIndexUint native "*OESElementIndexUint" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName OESStandardDerivatives
 class OESStandardDerivatives native "*OESStandardDerivatives" {
 
   static const int FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName OESTextureFloat
 class OESTextureFloat native "*OESTextureFloat" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName OESVertexArrayObject
 class OESVertexArrayObject native "*OESVertexArrayObject" {
@@ -13443,6 +14312,10 @@ class OESVertexArrayObject native "*OESVertexArrayObject" {
   /** @domName OESVertexArrayObject.isVertexArrayOES */
   bool isVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLOListElement
 class OListElement extends Element implements Element native "*HTMLOListElement" {
@@ -13461,6 +14334,10 @@ class OListElement extends Element implements Element native "*HTMLOListElement"
   /** @domName HTMLOListElement.type */
   String type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLObjectElement
 class ObjectElement extends Element implements Element native "*HTMLObjectElement" {
@@ -13533,6 +14410,10 @@ class ObjectElement extends Element implements Element native "*HTMLObjectElemen
   /** @domName HTMLObjectElement.setCustomValidity */
   void setCustomValidity(String error) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName OfflineAudioCompletionEvent
 class OfflineAudioCompletionEvent extends Event native "*OfflineAudioCompletionEvent" {
@@ -13540,6 +14421,10 @@ class OfflineAudioCompletionEvent extends Event native "*OfflineAudioCompletionE
   /** @domName OfflineAudioCompletionEvent.renderedBuffer */
   final AudioBuffer renderedBuffer;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLOptGroupElement
 class OptGroupElement extends Element implements Element native "*HTMLOptGroupElement" {
@@ -13552,6 +14437,10 @@ class OptGroupElement extends Element implements Element native "*HTMLOptGroupEl
   /** @domName HTMLOptGroupElement.label */
   String label;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLOptionElement
 class OptionElement extends Element implements Element native "*HTMLOptionElement" {
@@ -13593,6 +14482,10 @@ class OptionElement extends Element implements Element native "*HTMLOptionElemen
   /** @domName HTMLOptionElement.value */
   String value;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName OscillatorNode
 class OscillatorNode extends AudioSourceNode native "*OscillatorNode" {
@@ -13636,6 +14529,10 @@ class OscillatorNode extends AudioSourceNode native "*OscillatorNode" {
   /** @domName OscillatorNode.stop */
   void stop(num when) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLOutputElement
 class OutputElement extends Element implements Element native "*HTMLOutputElement" {
@@ -13678,6 +14575,10 @@ class OutputElement extends Element implements Element native "*HTMLOutputElemen
   /** @domName HTMLOutputElement.setCustomValidity */
   void setCustomValidity(String error) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName OverflowEvent
 class OverflowEvent extends Event native "*OverflowEvent" {
@@ -13697,6 +14598,10 @@ class OverflowEvent extends Event native "*OverflowEvent" {
   /** @domName OverflowEvent.verticalOverflow */
   final bool verticalOverflow;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName PagePopupController
 class PagePopupController native "*PagePopupController" {
@@ -13707,6 +14612,10 @@ class PagePopupController native "*PagePopupController" {
   /** @domName PagePopupController.setValueAndClosePopup */
   void setValueAndClosePopup(int numberValue, String stringValue) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName PageTransitionEvent
 class PageTransitionEvent extends Event native "*PageTransitionEvent" {
@@ -13714,6 +14623,10 @@ class PageTransitionEvent extends Event native "*PageTransitionEvent" {
   /** @domName PageTransitionEvent.persisted */
   final bool persisted;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName PannerNode
 class PannerNode extends AudioNode native "*PannerNode" {
@@ -13769,6 +14682,10 @@ class PannerNode extends AudioNode native "*PannerNode" {
   /** @domName PannerNode.setVelocity */
   void setVelocity(num x, num y, num z) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLParagraphElement
 class ParagraphElement extends Element implements Element native "*HTMLParagraphElement" {
@@ -13778,6 +14695,10 @@ class ParagraphElement extends Element implements Element native "*HTMLParagraph
   /** @domName HTMLParagraphElement.align */
   String align;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLParamElement
 class ParamElement extends Element implements Element native "*HTMLParamElement" {
@@ -13796,6 +14717,10 @@ class ParamElement extends Element implements Element native "*HTMLParamElement"
   /** @domName HTMLParamElement.valueType */
   String valueType;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName PeerConnection00
 class PeerConnection00 extends EventTarget native "*PeerConnection00" {
@@ -13940,6 +14865,10 @@ class PeerConnection00Events extends Events {
 
   EventListenerList get stateChange => this['statechange'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Performance
 class Performance extends EventTarget native "*Performance" {
@@ -13956,6 +14885,10 @@ class Performance extends EventTarget native "*Performance" {
   /** @domName Performance.now */
   num now() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName PerformanceNavigation
 class PerformanceNavigation native "*PerformanceNavigation" {
@@ -13974,6 +14907,10 @@ class PerformanceNavigation native "*PerformanceNavigation" {
   /** @domName PerformanceNavigation.type */
   final int type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName PerformanceTiming
 class PerformanceTiming native "*PerformanceTiming" {
@@ -14047,6 +14984,7 @@ class PerformanceTiming native "*PerformanceTiming" {
 
 // WARNING: Do not edit - generated code.
 
+
 class Point native "*WebKitPoint" {
   factory Point(num x, num y) => _PointFactoryProvider.createPoint(x, y);
 
@@ -14057,6 +14995,10 @@ class Point native "*WebKitPoint" {
   num y;
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName PopStateEvent
 class PopStateEvent extends Event native "*PopStateEvent" {
@@ -14073,6 +15015,10 @@ class PopStateEvent extends Event native "*PopStateEvent" {
 
 
 typedef void PositionCallback(Geoposition position);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName PositionError
 class PositionError native "*PositionError" {
@@ -14097,6 +15043,10 @@ class PositionError native "*PositionError" {
 
 
 typedef void PositionErrorCallback(PositionError error);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLPreElement
 class PreElement extends Element implements Element native "*HTMLPreElement" {
@@ -14109,6 +15059,10 @@ class PreElement extends Element implements Element native "*HTMLPreElement" {
   /** @domName HTMLPreElement.wrap */
   bool wrap;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ProcessingInstruction
 class ProcessingInstruction extends Node native "*ProcessingInstruction" {
@@ -14122,6 +15076,10 @@ class ProcessingInstruction extends Node native "*ProcessingInstruction" {
   /** @domName ProcessingInstruction.target */
   final String target;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLProgressElement
 class ProgressElement extends Element implements Element native "*HTMLProgressElement" {
@@ -14140,6 +15098,10 @@ class ProgressElement extends Element implements Element native "*HTMLProgressEl
   /** @domName HTMLProgressElement.value */
   num value;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ProgressEvent
 class ProgressEvent extends Event native "*ProgressEvent" {
@@ -14153,6 +15115,10 @@ class ProgressEvent extends Event native "*ProgressEvent" {
   /** @domName ProgressEvent.total */
   final int total;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLQuoteElement
 class QuoteElement extends Element implements Element native "*HTMLQuoteElement" {
@@ -14160,6 +15126,10 @@ class QuoteElement extends Element implements Element native "*HTMLQuoteElement"
   /** @domName HTMLQuoteElement.cite */
   String cite;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName RGBColor
 class RGBColor native "*RGBColor" {
@@ -14173,6 +15143,10 @@ class RGBColor native "*RGBColor" {
   /** @domName RGBColor.red */
   final CSSPrimitiveValue red;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName RTCDataChannel
 class RTCDataChannel extends EventTarget native "*RTCDataChannel" {
@@ -14225,6 +15199,10 @@ class RTCDataChannelEvents extends Events {
 
   EventListenerList get open => this['open'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName RTCDataChannelEvent
 class RTCDataChannelEvent extends Event native "*RTCDataChannelEvent" {
@@ -14240,6 +15218,10 @@ class RTCDataChannelEvent extends Event native "*RTCDataChannelEvent" {
 
 
 typedef void RTCErrorCallback(String errorInformation);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName RTCIceCandidate
 class RTCIceCandidate native "*RTCIceCandidate" {
@@ -14255,6 +15237,10 @@ class RTCIceCandidate native "*RTCIceCandidate" {
   /** @domName RTCIceCandidate.sdpMid */
   final String sdpMid;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName RTCIceCandidateEvent
 class RTCIceCandidateEvent extends Event native "*RTCIceCandidateEvent" {
@@ -14262,6 +15248,10 @@ class RTCIceCandidateEvent extends Event native "*RTCIceCandidateEvent" {
   /** @domName RTCIceCandidateEvent.candidate */
   final RTCIceCandidate candidate;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName RTCPeerConnection
 class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
@@ -14412,6 +15402,10 @@ class RTCPeerConnectionEvents extends Events {
 
   EventListenerList get stateChange => this['statechange'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName RTCSessionDescription
 class RTCSessionDescription native "*RTCSessionDescription" {
@@ -14440,6 +15434,10 @@ typedef void RTCSessionDescriptionCallback(RTCSessionDescription sdp);
 
 
 typedef void RTCStatsCallback(RTCStatsResponse response);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName RTCStatsElement
 class RTCStatsElement native "*RTCStatsElement" {
@@ -14450,6 +15448,10 @@ class RTCStatsElement native "*RTCStatsElement" {
   /** @domName RTCStatsElement.stat */
   String stat(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName RTCStatsReport
 class RTCStatsReport native "*RTCStatsReport" {
@@ -14460,6 +15462,10 @@ class RTCStatsReport native "*RTCStatsReport" {
   /** @domName RTCStatsReport.remote */
   final RTCStatsElement remote;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName RTCStatsResponse
 class RTCStatsResponse native "*RTCStatsResponse" {
@@ -14467,6 +15473,10 @@ class RTCStatsResponse native "*RTCStatsResponse" {
   /** @domName RTCStatsResponse.result */
   List<RTCStatsReport> result() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName RadioNodeList
 class RadioNodeList extends NodeList native "*RadioNodeList" {
@@ -14474,6 +15484,10 @@ class RadioNodeList extends NodeList native "*RadioNodeList" {
   /** @domName RadioNodeList.value */
   String value;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Range
 class Range native "*Range" {
@@ -14587,6 +15601,10 @@ class Range native "*Range" {
   /** @domName Range.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName RangeException
 class RangeException native "*RangeException" {
@@ -14607,6 +15625,10 @@ class RangeException native "*RangeException" {
   /** @domName RangeException.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Rect
 class Rect native "*Rect" {
@@ -14631,6 +15653,10 @@ class Rect native "*Rect" {
 
 
 typedef void RequestAnimationFrameCallback(num highResTime);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SQLError
 class SQLError native "*SQLError" {
@@ -14657,6 +15683,10 @@ class SQLError native "*SQLError" {
   /** @domName SQLError.message */
   final String message;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SQLException
 class SQLException native "*SQLException" {
@@ -14683,6 +15713,10 @@ class SQLException native "*SQLException" {
   /** @domName SQLException.message */
   final String message;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SQLResultSet
 class SQLResultSet native "*SQLResultSet" {
@@ -14696,6 +15730,10 @@ class SQLResultSet native "*SQLResultSet" {
   /** @domName SQLResultSet.rowsAffected */
   final int rowsAffected;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SQLResultSetRowList
 class SQLResultSetRowList implements JavaScriptIndexingBehavior, List<Map> native "*SQLResultSetRowList" {
@@ -14808,6 +15846,10 @@ typedef void SQLStatementCallback(SQLTransaction transaction, SQLResultSet resul
 
 
 typedef void SQLStatementErrorCallback(SQLTransaction transaction, SQLError error);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SQLTransaction
 class SQLTransaction native "*SQLTransaction" {
@@ -14831,6 +15873,10 @@ typedef void SQLTransactionCallback(SQLTransaction transaction);
 
 
 typedef void SQLTransactionErrorCallback(SQLError error);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SQLTransactionSync
 class SQLTransactionSync native "*SQLTransactionSync" {
@@ -14846,6 +15892,10 @@ class SQLTransactionSync native "*SQLTransactionSync" {
 
 
 typedef void SQLTransactionSyncCallback(SQLTransactionSync transaction);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGAElement
 class SVGAElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStylable, SVGURIReference, SVGExternalResourcesRequired, SVGTransformable native "*SVGAElement" {
@@ -14921,10 +15971,18 @@ class SVGAElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStyla
   /** @domName SVGURIReference.href */
   final SVGAnimatedString href;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGAltGlyphDefElement
 class SVGAltGlyphDefElement extends SVGElement native "*SVGAltGlyphDefElement" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGAltGlyphElement
 class SVGAltGlyphElement extends SVGTextPositioningElement implements SVGURIReference native "*SVGAltGlyphElement" {
@@ -14940,10 +15998,18 @@ class SVGAltGlyphElement extends SVGTextPositioningElement implements SVGURIRefe
   /** @domName SVGURIReference.href */
   final SVGAnimatedString href;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGAltGlyphItemElement
 class SVGAltGlyphItemElement extends SVGElement native "*SVGAltGlyphItemElement" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGAngle
 class SVGAngle native "*SVGAngle" {
@@ -14976,22 +16042,42 @@ class SVGAngle native "*SVGAngle" {
   /** @domName SVGAngle.newValueSpecifiedUnits */
   void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGAnimateColorElement
 class SVGAnimateColorElement extends SVGAnimationElement native "*SVGAnimateColorElement" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGAnimateElement
 class SVGAnimateElement extends SVGAnimationElement native "*SVGAnimateElement" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGAnimateMotionElement
 class SVGAnimateMotionElement extends SVGAnimationElement native "*SVGAnimateMotionElement" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGAnimateTransformElement
 class SVGAnimateTransformElement extends SVGAnimationElement native "*SVGAnimateTransformElement" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGAnimatedAngle
 class SVGAnimatedAngle native "*SVGAnimatedAngle" {
@@ -15002,6 +16088,10 @@ class SVGAnimatedAngle native "*SVGAnimatedAngle" {
   /** @domName SVGAnimatedAngle.baseVal */
   final SVGAngle baseVal;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGAnimatedBoolean
 class SVGAnimatedBoolean native "*SVGAnimatedBoolean" {
@@ -15012,6 +16102,10 @@ class SVGAnimatedBoolean native "*SVGAnimatedBoolean" {
   /** @domName SVGAnimatedBoolean.baseVal */
   bool baseVal;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGAnimatedEnumeration
 class SVGAnimatedEnumeration native "*SVGAnimatedEnumeration" {
@@ -15022,6 +16116,10 @@ class SVGAnimatedEnumeration native "*SVGAnimatedEnumeration" {
   /** @domName SVGAnimatedEnumeration.baseVal */
   int baseVal;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGAnimatedInteger
 class SVGAnimatedInteger native "*SVGAnimatedInteger" {
@@ -15032,6 +16130,10 @@ class SVGAnimatedInteger native "*SVGAnimatedInteger" {
   /** @domName SVGAnimatedInteger.baseVal */
   int baseVal;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGAnimatedLength
 class SVGAnimatedLength native "*SVGAnimatedLength" {
@@ -15042,6 +16144,10 @@ class SVGAnimatedLength native "*SVGAnimatedLength" {
   /** @domName SVGAnimatedLength.baseVal */
   final SVGLength baseVal;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGAnimatedLengthList
 class SVGAnimatedLengthList implements JavaScriptIndexingBehavior, List<SVGAnimatedLength> native "*SVGAnimatedLengthList" {
@@ -15135,6 +16241,10 @@ class SVGAnimatedLengthList implements JavaScriptIndexingBehavior, List<SVGAnima
 
   // -- end List<SVGAnimatedLength> mixins.
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGAnimatedNumber
 class SVGAnimatedNumber native "*SVGAnimatedNumber" {
@@ -15145,6 +16255,10 @@ class SVGAnimatedNumber native "*SVGAnimatedNumber" {
   /** @domName SVGAnimatedNumber.baseVal */
   num baseVal;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGAnimatedNumberList
 class SVGAnimatedNumberList implements JavaScriptIndexingBehavior, List<SVGAnimatedNumber> native "*SVGAnimatedNumberList" {
@@ -15238,6 +16352,10 @@ class SVGAnimatedNumberList implements JavaScriptIndexingBehavior, List<SVGAnima
 
   // -- end List<SVGAnimatedNumber> mixins.
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGAnimatedPreserveAspectRatio
 class SVGAnimatedPreserveAspectRatio native "*SVGAnimatedPreserveAspectRatio" {
@@ -15248,6 +16366,10 @@ class SVGAnimatedPreserveAspectRatio native "*SVGAnimatedPreserveAspectRatio" {
   /** @domName SVGAnimatedPreserveAspectRatio.baseVal */
   final SVGPreserveAspectRatio baseVal;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGAnimatedRect
 class SVGAnimatedRect native "*SVGAnimatedRect" {
@@ -15258,6 +16380,10 @@ class SVGAnimatedRect native "*SVGAnimatedRect" {
   /** @domName SVGAnimatedRect.baseVal */
   final SVGRect baseVal;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGAnimatedString
 class SVGAnimatedString native "*SVGAnimatedString" {
@@ -15268,6 +16394,10 @@ class SVGAnimatedString native "*SVGAnimatedString" {
   /** @domName SVGAnimatedString.baseVal */
   String baseVal;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGAnimatedTransformList
 class SVGAnimatedTransformList implements JavaScriptIndexingBehavior, List<SVGAnimateTransformElement> native "*SVGAnimatedTransformList" {
@@ -15361,6 +16491,10 @@ class SVGAnimatedTransformList implements JavaScriptIndexingBehavior, List<SVGAn
 
   // -- end List<SVGAnimateTransformElement> mixins.
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGAnimationElement
 class SVGAnimationElement extends SVGElement implements ElementTimeControl, SVGTests, SVGExternalResourcesRequired native "*SVGAnimationElement" {
@@ -15410,6 +16544,10 @@ class SVGAnimationElement extends SVGElement implements ElementTimeControl, SVGT
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGCircleElement
 class SVGCircleElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGCircleElement" {
@@ -15486,6 +16624,10 @@ class SVGCircleElement extends SVGElement implements SVGLangSpace, SVGStylable, 
   /** @domName SVGTransformable.transform */
   final SVGAnimatedTransformList transform;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGClipPathElement
 class SVGClipPathElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGClipPathElement" {
@@ -15556,6 +16698,10 @@ class SVGClipPathElement extends SVGElement implements SVGLangSpace, SVGStylable
   /** @domName SVGTransformable.transform */
   final SVGAnimatedTransformList transform;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGColor
 class SVGColor extends CSSValue native "*SVGColor" {
@@ -15583,6 +16729,10 @@ class SVGColor extends CSSValue native "*SVGColor" {
   /** @domName SVGColor.setRGBColorICCColor */
   void setRGBColorICCColor(String rgbColor, String iccColor) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGComponentTransferFunctionElement
 class SVGComponentTransferFunctionElement extends SVGElement native "*SVGComponentTransferFunctionElement" {
@@ -15620,6 +16770,10 @@ class SVGComponentTransferFunctionElement extends SVGElement native "*SVGCompone
   /** @domName SVGComponentTransferFunctionElement.type */
   final SVGAnimatedEnumeration type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGCursorElement
 class SVGCursorElement extends SVGElement implements SVGURIReference, SVGTests, SVGExternalResourcesRequired native "*SVGCursorElement" {
@@ -15654,6 +16808,10 @@ class SVGCursorElement extends SVGElement implements SVGURIReference, SVGTests, 
   /** @domName SVGURIReference.href */
   final SVGAnimatedString href;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGDefsElement
 class SVGDefsElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGDefsElement" {
@@ -15721,6 +16879,10 @@ class SVGDefsElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
   /** @domName SVGTransformable.transform */
   final SVGAnimatedTransformList transform;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGDescElement
 class SVGDescElement extends SVGElement implements SVGLangSpace, SVGStylable native "*SVGDescElement" {
@@ -15744,6 +16906,10 @@ class SVGDescElement extends SVGElement implements SVGLangSpace, SVGStylable nat
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGDocument
 class SVGDocument extends Document native "*SVGDocument" {
@@ -15757,6 +16923,7 @@ class SVGDocument extends Document native "*SVGDocument" {
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _AttributeClassSet extends _CssClassSet {
   _AttributeClassSet(element) : super(element);
@@ -15831,6 +16998,10 @@ class SVGElement extends Element native "*SVGElement" {
   String xmlbase;
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGElementInstance
 class SVGElementInstance extends EventTarget native "*SVGElementInstance" {
@@ -15949,6 +17120,10 @@ class SVGElementInstanceEvents extends Events {
 
   EventListenerList get unload => this['unload'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGEllipseElement
 class SVGEllipseElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGEllipseElement" {
@@ -16028,6 +17203,10 @@ class SVGEllipseElement extends SVGElement implements SVGLangSpace, SVGStylable,
   /** @domName SVGTransformable.transform */
   final SVGAnimatedTransformList transform;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGException
 class SVGException native "*SVGException" {
@@ -16050,11 +17229,20 @@ class SVGException native "*SVGException" {
   /** @domName SVGException.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName SVGExternalResourcesRequired
 abstract class SVGExternalResourcesRequired {
 
   SVGAnimatedBoolean externalResourcesRequired;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFEBlendElement
 class SVGFEBlendElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEBlendElement" {
@@ -16108,6 +17296,10 @@ class SVGFEBlendElement extends SVGElement implements SVGFilterPrimitiveStandard
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFEColorMatrixElement
 class SVGFEColorMatrixElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEColorMatrixElement" {
@@ -16159,6 +17351,10 @@ class SVGFEColorMatrixElement extends SVGElement implements SVGFilterPrimitiveSt
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFEComponentTransferElement
 class SVGFEComponentTransferElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEComponentTransferElement" {
@@ -16194,6 +17390,10 @@ class SVGFEComponentTransferElement extends SVGElement implements SVGFilterPrimi
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFECompositeElement
 class SVGFECompositeElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFECompositeElement" {
@@ -16261,6 +17461,10 @@ class SVGFECompositeElement extends SVGElement implements SVGFilterPrimitiveStan
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFEConvolveMatrixElement
 class SVGFEConvolveMatrixElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEConvolveMatrixElement" {
@@ -16337,6 +17541,10 @@ class SVGFEConvolveMatrixElement extends SVGElement implements SVGFilterPrimitiv
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFEDiffuseLightingElement
 class SVGFEDiffuseLightingElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEDiffuseLightingElement" {
@@ -16384,6 +17592,10 @@ class SVGFEDiffuseLightingElement extends SVGElement implements SVGFilterPrimiti
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFEDisplacementMapElement
 class SVGFEDisplacementMapElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEDisplacementMapElement" {
@@ -16441,6 +17653,10 @@ class SVGFEDisplacementMapElement extends SVGElement implements SVGFilterPrimiti
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFEDistantLightElement
 class SVGFEDistantLightElement extends SVGElement native "*SVGFEDistantLightElement" {
@@ -16451,6 +17667,10 @@ class SVGFEDistantLightElement extends SVGElement native "*SVGFEDistantLightElem
   /** @domName SVGFEDistantLightElement.elevation */
   final SVGAnimatedNumber elevation;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFEDropShadowElement
 class SVGFEDropShadowElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEDropShadowElement" {
@@ -16501,6 +17721,10 @@ class SVGFEDropShadowElement extends SVGElement implements SVGFilterPrimitiveSta
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFEFloodElement
 class SVGFEFloodElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEFloodElement" {
@@ -16533,22 +17757,42 @@ class SVGFEFloodElement extends SVGElement implements SVGFilterPrimitiveStandard
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFEFuncAElement
 class SVGFEFuncAElement extends SVGComponentTransferFunctionElement native "*SVGFEFuncAElement" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFEFuncBElement
 class SVGFEFuncBElement extends SVGComponentTransferFunctionElement native "*SVGFEFuncBElement" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFEFuncGElement
 class SVGFEFuncGElement extends SVGComponentTransferFunctionElement native "*SVGFEFuncGElement" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFEFuncRElement
 class SVGFEFuncRElement extends SVGComponentTransferFunctionElement native "*SVGFEFuncRElement" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFEGaussianBlurElement
 class SVGFEGaussianBlurElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEGaussianBlurElement" {
@@ -16593,6 +17837,10 @@ class SVGFEGaussianBlurElement extends SVGElement implements SVGFilterPrimitiveS
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFEImageElement
 class SVGFEImageElement extends SVGElement implements SVGURIReference, SVGLangSpace, SVGFilterPrimitiveStandardAttributes, SVGExternalResourcesRequired native "*SVGFEImageElement" {
@@ -16646,6 +17894,10 @@ class SVGFEImageElement extends SVGElement implements SVGURIReference, SVGLangSp
   /** @domName SVGURIReference.href */
   final SVGAnimatedString href;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFEMergeElement
 class SVGFEMergeElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEMergeElement" {
@@ -16678,6 +17930,10 @@ class SVGFEMergeElement extends SVGElement implements SVGFilterPrimitiveStandard
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFEMergeNodeElement
 class SVGFEMergeNodeElement extends SVGElement native "*SVGFEMergeNodeElement" {
@@ -16685,6 +17941,10 @@ class SVGFEMergeNodeElement extends SVGElement native "*SVGFEMergeNodeElement" {
   /** @domName SVGFEMergeNodeElement.in1 */
   final SVGAnimatedString in1;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFEMorphologyElement
 class SVGFEMorphologyElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEMorphologyElement" {
@@ -16738,6 +17998,10 @@ class SVGFEMorphologyElement extends SVGElement implements SVGFilterPrimitiveSta
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFEOffsetElement
 class SVGFEOffsetElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEOffsetElement" {
@@ -16779,6 +18043,10 @@ class SVGFEOffsetElement extends SVGElement implements SVGFilterPrimitiveStandar
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFEPointLightElement
 class SVGFEPointLightElement extends SVGElement native "*SVGFEPointLightElement" {
@@ -16792,6 +18060,10 @@ class SVGFEPointLightElement extends SVGElement native "*SVGFEPointLightElement"
   /** @domName SVGFEPointLightElement.z */
   final SVGAnimatedNumber z;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFESpecularLightingElement
 class SVGFESpecularLightingElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFESpecularLightingElement" {
@@ -16836,6 +18108,10 @@ class SVGFESpecularLightingElement extends SVGElement implements SVGFilterPrimit
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFESpotLightElement
 class SVGFESpotLightElement extends SVGElement native "*SVGFESpotLightElement" {
@@ -16864,6 +18140,10 @@ class SVGFESpotLightElement extends SVGElement native "*SVGFESpotLightElement" {
   /** @domName SVGFESpotLightElement.z */
   final SVGAnimatedNumber z;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFETileElement
 class SVGFETileElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFETileElement" {
@@ -16899,6 +18179,10 @@ class SVGFETileElement extends SVGElement implements SVGFilterPrimitiveStandardA
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFETurbulenceElement
 class SVGFETurbulenceElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFETurbulenceElement" {
@@ -16961,6 +18245,10 @@ class SVGFETurbulenceElement extends SVGElement implements SVGFilterPrimitiveSta
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFilterElement
 class SVGFilterElement extends SVGElement implements SVGURIReference, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable native "*SVGFilterElement" {
@@ -17021,6 +18309,11 @@ class SVGFilterElement extends SVGElement implements SVGURIReference, SVGLangSpa
   /** @domName SVGURIReference.href */
   final SVGAnimatedString href;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName SVGFilterPrimitiveStandardAttributes
 abstract class SVGFilterPrimitiveStandardAttributes implements SVGStylable {
 
@@ -17043,6 +18336,11 @@ abstract class SVGFilterPrimitiveStandardAttributes implements SVGStylable {
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name);
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName SVGFitToViewBox
 abstract class SVGFitToViewBox {
 
@@ -17050,30 +18348,58 @@ abstract class SVGFitToViewBox {
 
   SVGAnimatedRect viewBox;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFontElement
 class SVGFontElement extends SVGElement native "*SVGFontElement" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFontFaceElement
 class SVGFontFaceElement extends SVGElement native "*SVGFontFaceElement" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFontFaceFormatElement
 class SVGFontFaceFormatElement extends SVGElement native "*SVGFontFaceFormatElement" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFontFaceNameElement
 class SVGFontFaceNameElement extends SVGElement native "*SVGFontFaceNameElement" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFontFaceSrcElement
 class SVGFontFaceSrcElement extends SVGElement native "*SVGFontFaceSrcElement" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGFontFaceUriElement
 class SVGFontFaceUriElement extends SVGElement native "*SVGFontFaceUriElement" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGForeignObjectElement
 class SVGForeignObjectElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGForeignObjectElement" {
@@ -17153,6 +18479,10 @@ class SVGForeignObjectElement extends SVGElement implements SVGLangSpace, SVGSty
   /** @domName SVGTransformable.transform */
   final SVGAnimatedTransformList transform;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGGElement
 class SVGGElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGGElement" {
@@ -17220,10 +18550,18 @@ class SVGGElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTe
   /** @domName SVGTransformable.transform */
   final SVGAnimatedTransformList transform;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGGlyphElement
 class SVGGlyphElement extends SVGElement native "*SVGGlyphElement" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGGlyphRefElement
 class SVGGlyphRefElement extends SVGElement implements SVGURIReference, SVGStylable native "*SVGGlyphRefElement" {
@@ -17262,6 +18600,10 @@ class SVGGlyphRefElement extends SVGElement implements SVGURIReference, SVGStyla
   /** @domName SVGURIReference.href */
   final SVGAnimatedString href;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGGradientElement
 class SVGGradientElement extends SVGElement implements SVGURIReference, SVGExternalResourcesRequired, SVGStylable native "*SVGGradientElement" {
@@ -17304,10 +18646,18 @@ class SVGGradientElement extends SVGElement implements SVGURIReference, SVGExter
   /** @domName SVGURIReference.href */
   final SVGAnimatedString href;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGHKernElement
 class SVGHKernElement extends SVGElement native "*SVGHKernElement" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGImageElement
 class SVGImageElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStylable, SVGURIReference, SVGExternalResourcesRequired, SVGTransformable native "*SVGImageElement" {
@@ -17395,6 +18745,11 @@ class SVGImageElement extends SVGElement implements SVGLangSpace, SVGTests, SVGS
   /** @domName SVGURIReference.href */
   final SVGAnimatedString href;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName SVGLangSpace
 abstract class SVGLangSpace {
 
@@ -17402,6 +18757,10 @@ abstract class SVGLangSpace {
 
   String xmlspace;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGLength
 class SVGLength native "*SVGLength" {
@@ -17446,6 +18805,10 @@ class SVGLength native "*SVGLength" {
   /** @domName SVGLength.newValueSpecifiedUnits */
   void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGLengthList
 class SVGLengthList implements JavaScriptIndexingBehavior, List<SVGLength> native "*SVGLengthList" {
@@ -17557,6 +18920,10 @@ class SVGLengthList implements JavaScriptIndexingBehavior, List<SVGLength> nativ
   /** @domName SVGLengthList.replaceItem */
   SVGLength replaceItem(SVGLength item, int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGLineElement
 class SVGLineElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGLineElement" {
@@ -17636,6 +19003,10 @@ class SVGLineElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
   /** @domName SVGTransformable.transform */
   final SVGAnimatedTransformList transform;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGLinearGradientElement
 class SVGLinearGradientElement extends SVGGradientElement native "*SVGLinearGradientElement" {
@@ -17652,6 +19023,11 @@ class SVGLinearGradientElement extends SVGGradientElement native "*SVGLinearGrad
   /** @domName SVGLinearGradientElement.y2 */
   final SVGAnimatedLength y2;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName SVGLocatable
 abstract class SVGLocatable {
 
@@ -17671,6 +19047,10 @@ abstract class SVGLocatable {
   /** @domName SVGLocatable.getTransformToElement */
   SVGMatrix getTransformToElement(SVGElement element);
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGMPathElement
 class SVGMPathElement extends SVGElement implements SVGURIReference, SVGExternalResourcesRequired native "*SVGMPathElement" {
@@ -17685,6 +19065,10 @@ class SVGMPathElement extends SVGElement implements SVGURIReference, SVGExternal
   /** @domName SVGURIReference.href */
   final SVGAnimatedString href;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGMarkerElement
 class SVGMarkerElement extends SVGElement implements SVGLangSpace, SVGFitToViewBox, SVGExternalResourcesRequired, SVGStylable native "*SVGMarkerElement" {
@@ -17760,6 +19144,10 @@ class SVGMarkerElement extends SVGElement implements SVGLangSpace, SVGFitToViewB
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGMaskElement
 class SVGMaskElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGExternalResourcesRequired native "*SVGMaskElement" {
@@ -17820,6 +19208,10 @@ class SVGMaskElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGMatrix
 class SVGMatrix native "*SVGMatrix" {
@@ -17875,14 +19267,26 @@ class SVGMatrix native "*SVGMatrix" {
   /** @domName SVGMatrix.translate */
   SVGMatrix translate(num x, num y) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGMetadataElement
 class SVGMetadataElement extends SVGElement native "*SVGMetadataElement" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGMissingGlyphElement
 class SVGMissingGlyphElement extends SVGElement native "*SVGMissingGlyphElement" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGNumber
 class SVGNumber native "*SVGNumber" {
@@ -17890,6 +19294,10 @@ class SVGNumber native "*SVGNumber" {
   /** @domName SVGNumber.value */
   num value;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGNumberList
 class SVGNumberList implements JavaScriptIndexingBehavior, List<SVGNumber> native "*SVGNumberList" {
@@ -18001,6 +19409,10 @@ class SVGNumberList implements JavaScriptIndexingBehavior, List<SVGNumber> nativ
   /** @domName SVGNumberList.replaceItem */
   SVGNumber replaceItem(SVGNumber item, int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPaint
 class SVGPaint extends SVGColor native "*SVGPaint" {
@@ -18037,6 +19449,10 @@ class SVGPaint extends SVGColor native "*SVGPaint" {
   /** @domName SVGPaint.setUri */
   void setUri(String uri) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPathElement
 class SVGPathElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGPathElement" {
@@ -18185,6 +19601,10 @@ class SVGPathElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
   /** @domName SVGTransformable.transform */
   final SVGAnimatedTransformList transform;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPathSeg
 class SVGPathSeg native "*SVGPathSeg" {
@@ -18235,6 +19655,10 @@ class SVGPathSeg native "*SVGPathSeg" {
   /** @domName SVGPathSeg.pathSegTypeAsLetter */
   final String pathSegTypeAsLetter;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPathSegArcAbs
 class SVGPathSegArcAbs extends SVGPathSeg native "*SVGPathSegArcAbs" {
@@ -18260,6 +19684,10 @@ class SVGPathSegArcAbs extends SVGPathSeg native "*SVGPathSegArcAbs" {
   /** @domName SVGPathSegArcAbs.y */
   num y;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPathSegArcRel
 class SVGPathSegArcRel extends SVGPathSeg native "*SVGPathSegArcRel" {
@@ -18285,10 +19713,18 @@ class SVGPathSegArcRel extends SVGPathSeg native "*SVGPathSegArcRel" {
   /** @domName SVGPathSegArcRel.y */
   num y;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPathSegClosePath
 class SVGPathSegClosePath extends SVGPathSeg native "*SVGPathSegClosePath" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPathSegCurvetoCubicAbs
 class SVGPathSegCurvetoCubicAbs extends SVGPathSeg native "*SVGPathSegCurvetoCubicAbs" {
@@ -18311,6 +19747,10 @@ class SVGPathSegCurvetoCubicAbs extends SVGPathSeg native "*SVGPathSegCurvetoCub
   /** @domName SVGPathSegCurvetoCubicAbs.y2 */
   num y2;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPathSegCurvetoCubicRel
 class SVGPathSegCurvetoCubicRel extends SVGPathSeg native "*SVGPathSegCurvetoCubicRel" {
@@ -18333,6 +19773,10 @@ class SVGPathSegCurvetoCubicRel extends SVGPathSeg native "*SVGPathSegCurvetoCub
   /** @domName SVGPathSegCurvetoCubicRel.y2 */
   num y2;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPathSegCurvetoCubicSmoothAbs
 class SVGPathSegCurvetoCubicSmoothAbs extends SVGPathSeg native "*SVGPathSegCurvetoCubicSmoothAbs" {
@@ -18349,6 +19793,10 @@ class SVGPathSegCurvetoCubicSmoothAbs extends SVGPathSeg native "*SVGPathSegCurv
   /** @domName SVGPathSegCurvetoCubicSmoothAbs.y2 */
   num y2;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPathSegCurvetoCubicSmoothRel
 class SVGPathSegCurvetoCubicSmoothRel extends SVGPathSeg native "*SVGPathSegCurvetoCubicSmoothRel" {
@@ -18365,6 +19813,10 @@ class SVGPathSegCurvetoCubicSmoothRel extends SVGPathSeg native "*SVGPathSegCurv
   /** @domName SVGPathSegCurvetoCubicSmoothRel.y2 */
   num y2;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPathSegCurvetoQuadraticAbs
 class SVGPathSegCurvetoQuadraticAbs extends SVGPathSeg native "*SVGPathSegCurvetoQuadraticAbs" {
@@ -18381,6 +19833,10 @@ class SVGPathSegCurvetoQuadraticAbs extends SVGPathSeg native "*SVGPathSegCurvet
   /** @domName SVGPathSegCurvetoQuadraticAbs.y1 */
   num y1;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPathSegCurvetoQuadraticRel
 class SVGPathSegCurvetoQuadraticRel extends SVGPathSeg native "*SVGPathSegCurvetoQuadraticRel" {
@@ -18397,6 +19853,10 @@ class SVGPathSegCurvetoQuadraticRel extends SVGPathSeg native "*SVGPathSegCurvet
   /** @domName SVGPathSegCurvetoQuadraticRel.y1 */
   num y1;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPathSegCurvetoQuadraticSmoothAbs
 class SVGPathSegCurvetoQuadraticSmoothAbs extends SVGPathSeg native "*SVGPathSegCurvetoQuadraticSmoothAbs" {
@@ -18407,6 +19867,10 @@ class SVGPathSegCurvetoQuadraticSmoothAbs extends SVGPathSeg native "*SVGPathSeg
   /** @domName SVGPathSegCurvetoQuadraticSmoothAbs.y */
   num y;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPathSegCurvetoQuadraticSmoothRel
 class SVGPathSegCurvetoQuadraticSmoothRel extends SVGPathSeg native "*SVGPathSegCurvetoQuadraticSmoothRel" {
@@ -18417,6 +19881,10 @@ class SVGPathSegCurvetoQuadraticSmoothRel extends SVGPathSeg native "*SVGPathSeg
   /** @domName SVGPathSegCurvetoQuadraticSmoothRel.y */
   num y;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPathSegLinetoAbs
 class SVGPathSegLinetoAbs extends SVGPathSeg native "*SVGPathSegLinetoAbs" {
@@ -18427,6 +19895,10 @@ class SVGPathSegLinetoAbs extends SVGPathSeg native "*SVGPathSegLinetoAbs" {
   /** @domName SVGPathSegLinetoAbs.y */
   num y;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPathSegLinetoHorizontalAbs
 class SVGPathSegLinetoHorizontalAbs extends SVGPathSeg native "*SVGPathSegLinetoHorizontalAbs" {
@@ -18434,6 +19906,10 @@ class SVGPathSegLinetoHorizontalAbs extends SVGPathSeg native "*SVGPathSegLineto
   /** @domName SVGPathSegLinetoHorizontalAbs.x */
   num x;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPathSegLinetoHorizontalRel
 class SVGPathSegLinetoHorizontalRel extends SVGPathSeg native "*SVGPathSegLinetoHorizontalRel" {
@@ -18441,6 +19917,10 @@ class SVGPathSegLinetoHorizontalRel extends SVGPathSeg native "*SVGPathSegLineto
   /** @domName SVGPathSegLinetoHorizontalRel.x */
   num x;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPathSegLinetoRel
 class SVGPathSegLinetoRel extends SVGPathSeg native "*SVGPathSegLinetoRel" {
@@ -18451,6 +19931,10 @@ class SVGPathSegLinetoRel extends SVGPathSeg native "*SVGPathSegLinetoRel" {
   /** @domName SVGPathSegLinetoRel.y */
   num y;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPathSegLinetoVerticalAbs
 class SVGPathSegLinetoVerticalAbs extends SVGPathSeg native "*SVGPathSegLinetoVerticalAbs" {
@@ -18458,6 +19942,10 @@ class SVGPathSegLinetoVerticalAbs extends SVGPathSeg native "*SVGPathSegLinetoVe
   /** @domName SVGPathSegLinetoVerticalAbs.y */
   num y;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPathSegLinetoVerticalRel
 class SVGPathSegLinetoVerticalRel extends SVGPathSeg native "*SVGPathSegLinetoVerticalRel" {
@@ -18465,6 +19953,10 @@ class SVGPathSegLinetoVerticalRel extends SVGPathSeg native "*SVGPathSegLinetoVe
   /** @domName SVGPathSegLinetoVerticalRel.y */
   num y;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPathSegList
 class SVGPathSegList implements JavaScriptIndexingBehavior, List<SVGPathSeg> native "*SVGPathSegList" {
@@ -18576,6 +20068,10 @@ class SVGPathSegList implements JavaScriptIndexingBehavior, List<SVGPathSeg> nat
   /** @domName SVGPathSegList.replaceItem */
   SVGPathSeg replaceItem(SVGPathSeg newItem, int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPathSegMovetoAbs
 class SVGPathSegMovetoAbs extends SVGPathSeg native "*SVGPathSegMovetoAbs" {
@@ -18586,6 +20082,10 @@ class SVGPathSegMovetoAbs extends SVGPathSeg native "*SVGPathSegMovetoAbs" {
   /** @domName SVGPathSegMovetoAbs.y */
   num y;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPathSegMovetoRel
 class SVGPathSegMovetoRel extends SVGPathSeg native "*SVGPathSegMovetoRel" {
@@ -18596,6 +20096,10 @@ class SVGPathSegMovetoRel extends SVGPathSeg native "*SVGPathSegMovetoRel" {
   /** @domName SVGPathSegMovetoRel.y */
   num y;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPatternElement
 class SVGPatternElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStylable, SVGURIReference, SVGFitToViewBox, SVGExternalResourcesRequired native "*SVGPatternElement" {
@@ -18672,6 +20176,10 @@ class SVGPatternElement extends SVGElement implements SVGLangSpace, SVGTests, SV
   /** @domName SVGURIReference.href */
   final SVGAnimatedString href;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPoint
 class SVGPoint native "*SVGPoint" {
@@ -18685,6 +20193,10 @@ class SVGPoint native "*SVGPoint" {
   /** @domName SVGPoint.matrixTransform */
   SVGPoint matrixTransform(SVGMatrix matrix) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPointList
 class SVGPointList native "*SVGPointList" {
@@ -18713,6 +20225,10 @@ class SVGPointList native "*SVGPointList" {
   /** @domName SVGPointList.replaceItem */
   SVGPoint replaceItem(SVGPoint item, int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPolygonElement
 class SVGPolygonElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGPolygonElement" {
@@ -18786,6 +20302,10 @@ class SVGPolygonElement extends SVGElement implements SVGLangSpace, SVGStylable,
   /** @domName SVGTransformable.transform */
   final SVGAnimatedTransformList transform;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPolylineElement
 class SVGPolylineElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGPolylineElement" {
@@ -18859,6 +20379,10 @@ class SVGPolylineElement extends SVGElement implements SVGLangSpace, SVGStylable
   /** @domName SVGTransformable.transform */
   final SVGAnimatedTransformList transform;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGPreserveAspectRatio
 class SVGPreserveAspectRatio native "*SVGPreserveAspectRatio" {
@@ -18897,6 +20421,10 @@ class SVGPreserveAspectRatio native "*SVGPreserveAspectRatio" {
   /** @domName SVGPreserveAspectRatio.meetOrSlice */
   int meetOrSlice;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGRadialGradientElement
 class SVGRadialGradientElement extends SVGGradientElement native "*SVGRadialGradientElement" {
@@ -18919,6 +20447,10 @@ class SVGRadialGradientElement extends SVGGradientElement native "*SVGRadialGrad
   /** @domName SVGRadialGradientElement.r */
   final SVGAnimatedLength r;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGRect
 class SVGRect native "*SVGRect" {
@@ -18935,6 +20467,10 @@ class SVGRect native "*SVGRect" {
   /** @domName SVGRect.y */
   num y;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGRectElement
 class SVGRectElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGRectElement" {
@@ -19020,6 +20556,10 @@ class SVGRectElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
   /** @domName SVGTransformable.transform */
   final SVGAnimatedTransformList transform;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGRenderingIntent
 class SVGRenderingIntent native "*SVGRenderingIntent" {
@@ -19039,6 +20579,7 @@ class SVGRenderingIntent native "*SVGRenderingIntent" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class SVGSVGElement extends SVGElement implements SVGZoomAndPan, SVGLocatable, SVGLangSpace, SVGTests, SVGStylable, SVGFitToViewBox, SVGExternalResourcesRequired native "*SVGSVGElement" {
   factory SVGSVGElement() => _SVGSVGElementFactoryProvider.createSVGSVGElement();
@@ -19230,6 +20771,10 @@ class SVGSVGElement extends SVGElement implements SVGZoomAndPan, SVGLocatable, S
   int zoomAndPan;
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGScriptElement
 class SVGScriptElement extends SVGElement implements SVGURIReference, SVGExternalResourcesRequired native "*SVGScriptElement" {
@@ -19247,10 +20792,18 @@ class SVGScriptElement extends SVGElement implements SVGURIReference, SVGExterna
   /** @domName SVGURIReference.href */
   final SVGAnimatedString href;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGSetElement
 class SVGSetElement extends SVGAnimationElement native "*SVGSetElement" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGStopElement
 class SVGStopElement extends SVGElement implements SVGStylable native "*SVGStopElement" {
@@ -19269,6 +20822,10 @@ class SVGStopElement extends SVGElement implements SVGStylable native "*SVGStopE
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGStringList
 class SVGStringList implements JavaScriptIndexingBehavior, List<String> native "*SVGStringList" {
@@ -19380,6 +20937,11 @@ class SVGStringList implements JavaScriptIndexingBehavior, List<String> native "
   /** @domName SVGStringList.replaceItem */
   String replaceItem(String item, int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName SVGStylable
 abstract class SVGStylable {
 
@@ -19390,6 +20952,10 @@ abstract class SVGStylable {
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name);
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGStyleElement
 class SVGStyleElement extends SVGElement implements SVGLangSpace native "*SVGStyleElement" {
@@ -19420,6 +20986,10 @@ class SVGStyleElement extends SVGElement implements SVGLangSpace native "*SVGSty
   /** @domName SVGLangSpace.xmlspace */
   String xmlspace;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGSwitchElement
 class SVGSwitchElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGSwitchElement" {
@@ -19487,6 +21057,10 @@ class SVGSwitchElement extends SVGElement implements SVGLangSpace, SVGStylable, 
   /** @domName SVGTransformable.transform */
   final SVGAnimatedTransformList transform;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGSymbolElement
 class SVGSymbolElement extends SVGElement implements SVGLangSpace, SVGFitToViewBox, SVGExternalResourcesRequired, SVGStylable native "*SVGSymbolElement" {
@@ -19523,6 +21097,10 @@ class SVGSymbolElement extends SVGElement implements SVGLangSpace, SVGFitToViewB
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGTRefElement
 class SVGTRefElement extends SVGTextPositioningElement implements SVGURIReference native "*SVGTRefElement" {
@@ -19532,10 +21110,19 @@ class SVGTRefElement extends SVGTextPositioningElement implements SVGURIReferenc
   /** @domName SVGURIReference.href */
   final SVGAnimatedString href;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGTSpanElement
 class SVGTSpanElement extends SVGTextPositioningElement native "*SVGTSpanElement" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName SVGTests
 abstract class SVGTests {
 
@@ -19548,6 +21135,10 @@ abstract class SVGTests {
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension);
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGTextContentElement
 class SVGTextContentElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGExternalResourcesRequired native "*SVGTextContentElement" {
@@ -19629,6 +21220,10 @@ class SVGTextContentElement extends SVGElement implements SVGLangSpace, SVGStyla
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGTextElement
 class SVGTextElement extends SVGTextPositioningElement implements SVGTransformable native "*SVGTextElement" {
@@ -19658,6 +21253,10 @@ class SVGTextElement extends SVGTextPositioningElement implements SVGTransformab
   /** @domName SVGTransformable.transform */
   final SVGAnimatedTransformList transform;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGTextPathElement
 class SVGTextPathElement extends SVGTextContentElement implements SVGURIReference native "*SVGTextPathElement" {
@@ -19688,6 +21287,10 @@ class SVGTextPathElement extends SVGTextContentElement implements SVGURIReferenc
   /** @domName SVGURIReference.href */
   final SVGAnimatedString href;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGTextPositioningElement
 class SVGTextPositioningElement extends SVGTextContentElement native "*SVGTextPositioningElement" {
@@ -19707,6 +21310,10 @@ class SVGTextPositioningElement extends SVGTextContentElement native "*SVGTextPo
   /** @domName SVGTextPositioningElement.y */
   final SVGAnimatedLengthList y;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGTitleElement
 class SVGTitleElement extends SVGElement implements SVGLangSpace, SVGStylable native "*SVGTitleElement" {
@@ -19730,6 +21337,10 @@ class SVGTitleElement extends SVGElement implements SVGLangSpace, SVGStylable na
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGTransform
 class SVGTransform native "*SVGTransform" {
@@ -19775,6 +21386,10 @@ class SVGTransform native "*SVGTransform" {
   /** @domName SVGTransform.setTranslate */
   void setTranslate(num tx, num ty) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGTransformList
 class SVGTransformList implements JavaScriptIndexingBehavior, List<SVGTransform> native "*SVGTransformList" {
@@ -19892,6 +21507,11 @@ class SVGTransformList implements JavaScriptIndexingBehavior, List<SVGTransform>
   /** @domName SVGTransformList.replaceItem */
   SVGTransform replaceItem(SVGTransform item, int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName SVGTransformable
 abstract class SVGTransformable implements SVGLocatable {
 
@@ -19915,11 +21535,20 @@ abstract class SVGTransformable implements SVGLocatable {
   /** @domName SVGLocatable.getTransformToElement */
   SVGMatrix getTransformToElement(SVGElement element);
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName SVGURIReference
 abstract class SVGURIReference {
 
   SVGAnimatedString href;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGUnitTypes
 class SVGUnitTypes native "*SVGUnitTypes" {
@@ -19930,6 +21559,10 @@ class SVGUnitTypes native "*SVGUnitTypes" {
 
   static const int SVG_UNIT_TYPE_USERSPACEONUSE = 1;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGUseElement
 class SVGUseElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStylable, SVGURIReference, SVGExternalResourcesRequired, SVGTransformable native "*SVGUseElement" {
@@ -20020,10 +21653,18 @@ class SVGUseElement extends SVGElement implements SVGLangSpace, SVGTests, SVGSty
   /** @domName SVGURIReference.href */
   final SVGAnimatedString href;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGVKernElement
 class SVGVKernElement extends SVGElement native "*SVGVKernElement" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGViewElement
 class SVGViewElement extends SVGElement implements SVGFitToViewBox, SVGZoomAndPan, SVGExternalResourcesRequired native "*SVGViewElement" {
@@ -20049,6 +21690,10 @@ class SVGViewElement extends SVGElement implements SVGFitToViewBox, SVGZoomAndPa
   /** @domName SVGZoomAndPan.zoomAndPan */
   int zoomAndPan;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGViewSpec
 class SVGViewSpec native "*SVGViewSpec" {
@@ -20080,6 +21725,11 @@ class SVGViewSpec native "*SVGViewSpec" {
   /** @domName SVGViewSpec.zoomAndPan */
   int zoomAndPan;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName SVGZoomAndPan
 abstract class SVGZoomAndPan {
 
@@ -20091,6 +21741,10 @@ abstract class SVGZoomAndPan {
 
   int zoomAndPan;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGZoomEvent
 class SVGZoomEvent extends UIEvent native "*SVGZoomEvent" {
@@ -20110,6 +21764,10 @@ class SVGZoomEvent extends UIEvent native "*SVGZoomEvent" {
   /** @domName SVGZoomEvent.zoomRectScreen */
   final SVGRect zoomRectScreen;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Screen
 class Screen native "*Screen" {
@@ -20138,6 +21796,10 @@ class Screen native "*Screen" {
   /** @domName Screen.width */
   final int width;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLScriptElement
 class ScriptElement extends Element implements Element native "*HTMLScriptElement" {
@@ -20168,6 +21830,10 @@ class ScriptElement extends Element implements Element native "*HTMLScriptElemen
   /** @domName HTMLScriptElement.type */
   String type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ScriptProcessorNode
 class ScriptProcessorNode extends AudioNode implements EventTarget native "*ScriptProcessorNode" {
@@ -20187,6 +21853,10 @@ class ScriptProcessorNodeEvents extends Events {
 
   EventListenerList get audioProcess => this['audioprocess'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ScriptProfile
 class ScriptProfile native "*ScriptProfile" {
@@ -20200,6 +21870,10 @@ class ScriptProfile native "*ScriptProfile" {
   /** @domName ScriptProfile.uid */
   final int uid;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ScriptProfileNode
 class ScriptProfileNode native "*ScriptProfileNode" {
@@ -20234,6 +21908,7 @@ class ScriptProfileNode native "*ScriptProfileNode" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class SelectElement extends Element implements Element native "*HTMLSelectElement" {
 
@@ -20312,6 +21987,10 @@ class SelectElement extends Element implements Element native "*HTMLSelectElemen
     }
   }
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SessionDescription
 class SessionDescription native "*SessionDescription" {
@@ -20324,6 +22003,10 @@ class SessionDescription native "*SessionDescription" {
   /** @domName SessionDescription.toSdp */
   String toSdp() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLShadowElement
 class ShadowElement extends Element implements Element native "*HTMLShadowElement" {
@@ -20336,6 +22019,7 @@ class ShadowElement extends Element implements Element native "*HTMLShadowElemen
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
 
@@ -20371,6 +22055,10 @@ class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
   static bool get supported =>
       JS('bool', '!!(window.ShadowRoot || window.WebKitShadowRoot)');
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SharedWorker
 class SharedWorker extends AbstractWorker native "*SharedWorker" {
@@ -20385,6 +22073,10 @@ class SharedWorker extends AbstractWorker native "*SharedWorker" {
   /** @domName SharedWorker.port */
   final MessagePort port;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SharedWorkerContext
 class SharedWorkerContext extends WorkerContext native "*SharedWorkerContext" {
@@ -20404,6 +22096,10 @@ class SharedWorkerContextEvents extends WorkerContextEvents {
 
   EventListenerList get connect => this['connect'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SourceBuffer
 class SourceBuffer native "*SourceBuffer" {
@@ -20420,6 +22116,10 @@ class SourceBuffer native "*SourceBuffer" {
   /** @domName SourceBuffer.append */
   void append(Uint8Array data) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SourceBufferList
 class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior, List<SourceBuffer> native "*SourceBufferList" {
@@ -20522,6 +22222,10 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
   /** @domName SourceBufferList.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLSourceElement
 class SourceElement extends Element implements Element native "*HTMLSourceElement" {
@@ -20537,12 +22241,20 @@ class SourceElement extends Element implements Element native "*HTMLSourceElemen
   /** @domName HTMLSourceElement.type */
   String type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLSpanElement
 class SpanElement extends Element implements Element native "*HTMLSpanElement" {
 
   factory SpanElement() => _Elements.createSpanElement();
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SpeechGrammar
 class SpeechGrammar native "*SpeechGrammar" {
@@ -20555,6 +22267,10 @@ class SpeechGrammar native "*SpeechGrammar" {
   /** @domName SpeechGrammar.weight */
   num weight;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SpeechGrammarList
 class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGrammar> native "*SpeechGrammarList" {
@@ -20656,6 +22372,10 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
   /** @domName SpeechGrammarList.item */
   SpeechGrammar item(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SpeechInputEvent
 class SpeechInputEvent extends Event native "*SpeechInputEvent" {
@@ -20663,6 +22383,10 @@ class SpeechInputEvent extends Event native "*SpeechInputEvent" {
   /** @domName SpeechInputEvent.results */
   final List<SpeechInputResult> results;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SpeechInputResult
 class SpeechInputResult native "*SpeechInputResult" {
@@ -20673,6 +22397,10 @@ class SpeechInputResult native "*SpeechInputResult" {
   /** @domName SpeechInputResult.utterance */
   final String utterance;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SpeechRecognition
 class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
@@ -20744,6 +22472,10 @@ class SpeechRecognitionEvents extends Events {
 
   EventListenerList get start => this['start'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SpeechRecognitionAlternative
 class SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
@@ -20754,6 +22486,10 @@ class SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
   /** @domName SpeechRecognitionAlternative.transcript */
   final String transcript;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SpeechRecognitionError
 class SpeechRecognitionError extends Event native "*SpeechRecognitionError" {
@@ -20782,6 +22518,10 @@ class SpeechRecognitionError extends Event native "*SpeechRecognitionError" {
   /** @domName SpeechRecognitionError.message */
   final String message;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SpeechRecognitionEvent
 class SpeechRecognitionEvent extends Event native "*SpeechRecognitionEvent" {
@@ -20795,6 +22535,10 @@ class SpeechRecognitionEvent extends Event native "*SpeechRecognitionEvent" {
   /** @domName SpeechRecognitionEvent.resultIndex */
   final int resultIndex;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SpeechRecognitionResult
 class SpeechRecognitionResult native "*SpeechRecognitionResult" {
@@ -20814,6 +22558,7 @@ class SpeechRecognitionResult native "*SpeechRecognitionResult" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class Storage implements Map<String, String>  native "*Storage" {
 
@@ -20883,6 +22628,10 @@ class Storage implements Map<String, String>  native "*Storage" {
   void $dom_setItem(String key, String data) native "setItem";
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName StorageEvent
 class StorageEvent extends Event native "*StorageEvent" {
@@ -20905,6 +22654,10 @@ class StorageEvent extends Event native "*StorageEvent" {
   /** @domName StorageEvent.initStorageEvent */
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName StorageInfo
 class StorageInfo native "*StorageInfo" {
@@ -20951,6 +22704,10 @@ typedef void StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaI
 
 
 typedef void StringCallback(String data);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLStyleElement
 class StyleElement extends Element implements Element native "*HTMLStyleElement" {
@@ -20972,6 +22729,10 @@ class StyleElement extends Element implements Element native "*HTMLStyleElement"
   /** @domName HTMLStyleElement.type */
   String type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName StyleMedia
 class StyleMedia native "*StyleMedia" {
@@ -20982,6 +22743,10 @@ class StyleMedia native "*StyleMedia" {
   /** @domName StyleMedia.matchMedium */
   bool matchMedium(String mediaquery) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName StyleSheet
 class StyleSheet native "*StyleSheet" {
@@ -21007,6 +22772,10 @@ class StyleSheet native "*StyleSheet" {
   /** @domName StyleSheet.type */
   final String type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLTableCaptionElement
 class TableCaptionElement extends Element implements Element native "*HTMLTableCaptionElement" {
@@ -21016,6 +22785,10 @@ class TableCaptionElement extends Element implements Element native "*HTMLTableC
   /** @domName HTMLTableCaptionElement.align */
   String align;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLTableCellElement
 class TableCellElement extends Element implements Element native "*HTMLTableCellElement" {
@@ -21067,6 +22840,10 @@ class TableCellElement extends Element implements Element native "*HTMLTableCell
   /** @domName HTMLTableCellElement.width */
   String width;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLTableColElement
 class TableColElement extends Element implements Element native "*HTMLTableColElement" {
@@ -21094,6 +22871,7 @@ class TableColElement extends Element implements Element native "*HTMLTableColEl
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class TableElement extends Element implements Element native "*HTMLTableElement" {
 
@@ -21177,6 +22955,10 @@ class TableElement extends Element implements Element native "*HTMLTableElement"
 
   Element _createTBody() native 'createTBody';
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLTableRowElement
 class TableRowElement extends Element implements Element native "*HTMLTableRowElement" {
@@ -21213,6 +22995,10 @@ class TableRowElement extends Element implements Element native "*HTMLTableRowEl
   /** @domName HTMLTableRowElement.insertCell */
   Element insertCell(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLTableSectionElement
 class TableSectionElement extends Element implements Element native "*HTMLTableSectionElement" {
@@ -21244,6 +23030,7 @@ class TableSectionElement extends Element implements Element native "*HTMLTableS
 
 // WARNING: Do not edit - generated code.
 
+
 class Text extends CharacterData native "*Text" {
   factory Text(String data) => _TextFactoryProvider.createText(data);
 
@@ -21257,6 +23044,10 @@ class Text extends CharacterData native "*Text" {
   Text splitText(int offset) native;
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLTextAreaElement
 class TextAreaElement extends Element implements Element native "*HTMLTextAreaElement" {
@@ -21347,6 +23138,10 @@ class TextAreaElement extends Element implements Element native "*HTMLTextAreaEl
   /** @domName HTMLTextAreaElement.setSelectionRange */
   void setSelectionRange(int start, int end, [String direction]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName TextEvent
 class TextEvent extends UIEvent native "*TextEvent" {
@@ -21357,6 +23152,10 @@ class TextEvent extends UIEvent native "*TextEvent" {
   /** @domName TextEvent.initTextEvent */
   void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName TextMetrics
 class TextMetrics native "*TextMetrics" {
@@ -21364,6 +23163,10 @@ class TextMetrics native "*TextMetrics" {
   /** @domName TextMetrics.width */
   final num width;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName TextTrack
 class TextTrack extends EventTarget native "*TextTrack" {
@@ -21413,6 +23216,10 @@ class TextTrackEvents extends Events {
 
   EventListenerList get cueChange => this['cuechange'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName TextTrackCue
 class TextTrackCue extends EventTarget native "*TextTrackCue" {
@@ -21481,6 +23288,10 @@ class TextTrackCueEvents extends Events {
 
   EventListenerList get exit => this['exit'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName TextTrackCueList
 class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior native "*TextTrackCueList" {
@@ -21577,6 +23388,10 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
   /** @domName TextTrackCueList.item */
   TextTrackCue item(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName TextTrackList
 class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, List<TextTrack> native "*TextTrackList" {
@@ -21691,6 +23506,10 @@ class TextTrackListEvents extends Events {
 
   EventListenerList get addTrack => this['addtrack'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName TimeRanges
 class TimeRanges native "*TimeRanges" {
@@ -21712,12 +23531,20 @@ class TimeRanges native "*TimeRanges" {
 
 
 typedef void TimeoutHandler();
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLTitleElement
 class TitleElement extends Element implements Element native "*HTMLTitleElement" {
 
   factory TitleElement() => _Elements.createTitleElement();
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Touch
 class Touch native "*Touch" {
@@ -21759,6 +23586,10 @@ class Touch native "*Touch" {
   /** @domName Touch.webkitRotationAngle */
   final num webkitRotationAngle;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName TouchEvent
 class TouchEvent extends UIEvent native "*TouchEvent" {
@@ -21787,6 +23618,10 @@ class TouchEvent extends UIEvent native "*TouchEvent" {
   /** @domName TouchEvent.initTouchEvent */
   void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, LocalWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName TouchList
 class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*TouchList" {
@@ -21880,6 +23715,10 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
   /** @domName TouchList.item */
   Touch item(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLTrackElement
 class TrackElement extends Element implements Element native "*HTMLTrackElement" {
@@ -21920,6 +23759,10 @@ class TrackElement extends Element implements Element native "*HTMLTrackElement"
   /** @domName HTMLTrackElement.track */
   final TextTrack track;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName TrackEvent
 class TrackEvent extends Event native "*TrackEvent" {
@@ -21927,6 +23770,10 @@ class TrackEvent extends Event native "*TrackEvent" {
   /** @domName TrackEvent.track */
   final Object track;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebKitTransitionEvent
 class TransitionEvent extends Event native "*WebKitTransitionEvent" {
@@ -21937,6 +23784,10 @@ class TransitionEvent extends Event native "*WebKitTransitionEvent" {
   /** @domName WebKitTransitionEvent.propertyName */
   final String propertyName;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName TreeWalker
 class TreeWalker native "*TreeWalker" {
@@ -21977,6 +23828,10 @@ class TreeWalker native "*TreeWalker" {
   /** @domName TreeWalker.previousSibling */
   Node previousSibling() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName UIEvent
 class UIEvent extends Event native "*UIEvent" {
@@ -22012,6 +23867,10 @@ class UIEvent extends Event native "*UIEvent" {
   /** @domName UIEvent.initUIEvent */
   void initUIEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLUListElement
 class UListElement extends Element implements Element native "*HTMLUListElement" {
@@ -22024,6 +23883,10 @@ class UListElement extends Element implements Element native "*HTMLUListElement"
   /** @domName HTMLUListElement.type */
   String type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Uint16Array
 class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Uint16Array" {
@@ -22129,6 +23992,10 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   /** @domName Uint16Array.subarray */
   Uint16Array subarray(int start, [int end]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Uint32Array
 class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Uint32Array" {
@@ -22234,6 +24101,10 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   /** @domName Uint32Array.subarray */
   Uint32Array subarray(int start, [int end]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Uint8Array
 class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Uint8Array" {
@@ -22339,6 +24210,10 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   /** @domName Uint8Array.subarray */
   Uint8Array subarray(int start, [int end]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Uint8ClampedArray
 class Uint8ClampedArray extends Uint8Array native "*Uint8ClampedArray" {
@@ -22361,6 +24236,10 @@ class Uint8ClampedArray extends Uint8Array native "*Uint8ClampedArray" {
   /** @domName Uint8ClampedArray.subarray */
   Uint8ClampedArray subarray(int start, [int end]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLUnknownElement
 class UnknownElement extends Element implements Element native "*HTMLUnknownElement" {
@@ -22368,6 +24247,7 @@ class UnknownElement extends Element implements Element native "*HTMLUnknownElem
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class Url native "*URL" {
 
@@ -22381,6 +24261,10 @@ class Url native "*URL" {
          '(window.URL || window.webkitURL).revokeObjectURL(#)', objectUrl);
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ValidityState
 class ValidityState native "*ValidityState" {
@@ -22412,6 +24296,10 @@ class ValidityState native "*ValidityState" {
   /** @domName ValidityState.valueMissing */
   final bool valueMissing;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLVideoElement
 class VideoElement extends MediaElement native "*HTMLVideoElement" {
@@ -22465,6 +24353,10 @@ class VideoElement extends MediaElement native "*HTMLVideoElement" {
 
 
 typedef void VoidCallback();
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WaveShaperNode
 class WaveShaperNode extends AudioNode native "*WaveShaperNode" {
@@ -22472,10 +24364,18 @@ class WaveShaperNode extends AudioNode native "*WaveShaperNode" {
   /** @domName WaveShaperNode.curve */
   Float32Array curve;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WaveTable
 class WaveTable native "*WaveTable" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLActiveInfo
 class WebGLActiveInfo native "*WebGLActiveInfo" {
@@ -22489,10 +24389,18 @@ class WebGLActiveInfo native "*WebGLActiveInfo" {
   /** @domName WebGLActiveInfo.type */
   final int type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLBuffer
 class WebGLBuffer native "*WebGLBuffer" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLCompressedTextureS3TC
 class WebGLCompressedTextureS3TC native "*WebGLCompressedTextureS3TC" {
@@ -22505,6 +24413,10 @@ class WebGLCompressedTextureS3TC native "*WebGLCompressedTextureS3TC" {
 
   static const int COMPRESSED_RGB_S3TC_DXT1_EXT = 0x83F0;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLContextAttributes
 class WebGLContextAttributes native "*WebGLContextAttributes" {
@@ -22527,6 +24439,10 @@ class WebGLContextAttributes native "*WebGLContextAttributes" {
   /** @domName WebGLContextAttributes.stencil */
   bool stencil;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLContextEvent
 class WebGLContextEvent extends Event native "*WebGLContextEvent" {
@@ -22534,6 +24450,10 @@ class WebGLContextEvent extends Event native "*WebGLContextEvent" {
   /** @domName WebGLContextEvent.statusMessage */
   final String statusMessage;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLDebugRendererInfo
 class WebGLDebugRendererInfo native "*WebGLDebugRendererInfo" {
@@ -22542,6 +24462,10 @@ class WebGLDebugRendererInfo native "*WebGLDebugRendererInfo" {
 
   static const int UNMASKED_VENDOR_WEBGL = 0x9245;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLDebugShaders
 class WebGLDebugShaders native "*WebGLDebugShaders" {
@@ -22549,16 +24473,28 @@ class WebGLDebugShaders native "*WebGLDebugShaders" {
   /** @domName WebGLDebugShaders.getTranslatedShaderSource */
   String getTranslatedShaderSource(WebGLShader shader) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLDepthTexture
 class WebGLDepthTexture native "*WebGLDepthTexture" {
 
   static const int UNSIGNED_INT_24_8_WEBGL = 0x84FA;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLFramebuffer
 class WebGLFramebuffer native "*WebGLFramebuffer" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLLoseContext
 class WebGLLoseContext native "*WebGLLoseContext" {
@@ -22569,14 +24505,26 @@ class WebGLLoseContext native "*WebGLLoseContext" {
   /** @domName WebGLLoseContext.restoreContext */
   void restoreContext() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLProgram
 class WebGLProgram native "*WebGLProgram" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLRenderbuffer
 class WebGLRenderbuffer native "*WebGLRenderbuffer" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLRenderingContext
 class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderingContext" {
@@ -23669,10 +25617,18 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
   /** @domName WebGLRenderingContext.viewport */
   void viewport(int x, int y, int width, int height) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLShader
 class WebGLShader native "*WebGLShader" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLShaderPrecisionFormat
 class WebGLShaderPrecisionFormat native "*WebGLShaderPrecisionFormat" {
@@ -23686,18 +25642,34 @@ class WebGLShaderPrecisionFormat native "*WebGLShaderPrecisionFormat" {
   /** @domName WebGLShaderPrecisionFormat.rangeMin */
   final int rangeMin;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLTexture
 class WebGLTexture native "*WebGLTexture" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLUniformLocation
 class WebGLUniformLocation native "*WebGLUniformLocation" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLVertexArrayObjectOES
 class WebGLVertexArrayObjectOES native "*WebGLVertexArrayObjectOES" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebKitCSSFilterValue
 class WebKitCSSFilterValue extends _CSSValueList native "*WebKitCSSFilterValue" {
@@ -23729,6 +25701,10 @@ class WebKitCSSFilterValue extends _CSSValueList native "*WebKitCSSFilterValue" 
   /** @domName WebKitCSSFilterValue.operationType */
   final int operationType;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebKitNamedFlow
 class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
@@ -23765,6 +25741,7 @@ class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 class WebSocket extends EventTarget native "*WebSocket" {
   factory WebSocket(String url) => _WebSocketFactoryProvider.createWebSocket(url);
@@ -23835,6 +25812,7 @@ class WebSocketEvents extends Events {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class WheelEvent extends MouseEvent native "*WheelEvent" {
 
@@ -23918,6 +25896,10 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
   int get _deltaMode => JS('int', '#.deltaMode', this);
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Worker
 class Worker extends AbstractWorker native "*Worker" {
@@ -23953,6 +25935,10 @@ class WorkerEvents extends AbstractWorkerEvents {
 
   EventListenerList get message => this['message'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WorkerContext
 class WorkerContext extends EventTarget native "*WorkerContext" {
@@ -24036,6 +26022,10 @@ class WorkerContextEvents extends Events {
 
   EventListenerList get error => this['error'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WorkerLocation
 class WorkerLocation native "*WorkerLocation" {
@@ -24067,6 +26057,10 @@ class WorkerLocation native "*WorkerLocation" {
   /** @domName WorkerLocation.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WorkerNavigator
 class WorkerNavigator native "*WorkerNavigator" {
@@ -24086,6 +26080,10 @@ class WorkerNavigator native "*WorkerNavigator" {
   /** @domName WorkerNavigator.userAgent */
   final String userAgent;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName XMLSerializer
 class XMLSerializer native "*XMLSerializer" {
@@ -24095,6 +26093,10 @@ class XMLSerializer native "*XMLSerializer" {
   /** @domName XMLSerializer.serializeToString */
   String serializeToString(Node node) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName XPathEvaluator
 class XPathEvaluator native "*XPathEvaluator" {
@@ -24110,6 +26112,10 @@ class XPathEvaluator native "*XPathEvaluator" {
   /** @domName XPathEvaluator.evaluate */
   XPathResult evaluate(String expression, Node contextNode, XPathNSResolver resolver, int type, XPathResult inResult) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName XPathException
 class XPathException native "*XPathException" {
@@ -24130,6 +26136,10 @@ class XPathException native "*XPathException" {
   /** @domName XPathException.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName XPathExpression
 class XPathExpression native "*XPathExpression" {
@@ -24137,6 +26147,10 @@ class XPathExpression native "*XPathExpression" {
   /** @domName XPathExpression.evaluate */
   XPathResult evaluate(Node contextNode, int type, XPathResult inResult) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName XPathNSResolver
 class XPathNSResolver native "*XPathNSResolver" {
@@ -24144,6 +26158,10 @@ class XPathNSResolver native "*XPathNSResolver" {
   /** @domName XPathNSResolver.lookupNamespaceURI */
   String lookupNamespaceURI(String prefix) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName XPathResult
 class XPathResult native "*XPathResult" {
@@ -24195,6 +26213,10 @@ class XPathResult native "*XPathResult" {
   /** @domName XPathResult.snapshotItem */
   Node snapshotItem(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName XSLTProcessor
 class XSLTProcessor native "*XSLTProcessor" {
@@ -24229,6 +26251,7 @@ class XSLTProcessor native "*XSLTProcessor" {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _ArrayBufferFactoryProvider {
   static ArrayBuffer createArrayBuffer(int length) =>
       JS('ArrayBuffer', 'new ArrayBuffer(#)', length);
@@ -24236,6 +26259,7 @@ class _ArrayBufferFactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _AudioElementFactoryProvider {
   static AudioElement createAudioElement([String src = null]) {
@@ -24246,6 +26270,7 @@ class _AudioElementFactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _BlobFactoryProvider {
   static Blob createBlob([List blobParts = null, String type, String endings]) {
@@ -24271,10 +26296,15 @@ class _BlobFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _CSSMatrixFactoryProvider {
   static CSSMatrix createCSSMatrix([String cssValue = '']) =>
       JS('CSSMatrix', 'new WebKitCSSMatrix(#)', cssValue);
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSRuleList
 class _CSSRuleList implements JavaScriptIndexingBehavior, List<CSSRule> native "*CSSRuleList" {
@@ -24368,6 +26398,10 @@ class _CSSRuleList implements JavaScriptIndexingBehavior, List<CSSRule> native "
   /** @domName CSSRuleList.item */
   CSSRule item(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSValueList
 class _CSSValueList extends CSSValue implements List<CSSValue>, JavaScriptIndexingBehavior native "*CSSValueList" {
@@ -24461,6 +26495,10 @@ class _CSSValueList extends CSSValue implements List<CSSValue>, JavaScriptIndexi
   /** @domName CSSValueList.item */
   CSSValue item(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ClientRectList
 class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> native "*ClientRectList" {
@@ -24558,10 +26596,15 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _DOMParserFactoryProvider {
   static DOMParser createDOMParser() =>
       JS('DOMParser', 'new DOMParser()' );
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DOMStringList
 class _DOMStringList implements JavaScriptIndexingBehavior, List<String> native "*DOMStringList" {
@@ -24661,6 +26704,7 @@ class _DOMStringList implements JavaScriptIndexingBehavior, List<String> native 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _DataViewFactoryProvider {
   static DataView createDataView(
@@ -24979,6 +27023,10 @@ class _Elements {
     return _e;
   }
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName EntryArray
 class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*EntryArray" {
@@ -25072,6 +27120,10 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
   /** @domName EntryArray.item */
   Entry item(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName EntryArraySync
 class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> native "*EntryArraySync" {
@@ -25169,10 +27221,15 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _EventSourceFactoryProvider {
   static EventSource createEventSource(String scriptUrl) =>
       JS('EventSource', 'new EventSource(#)', scriptUrl);
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName FileList
 class _FileList implements JavaScriptIndexingBehavior, List<File> native "*FileList" {
@@ -25270,6 +27327,7 @@ class _FileList implements JavaScriptIndexingBehavior, List<File> native "*FileL
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _FileReaderFactoryProvider {
   static FileReader createFileReader() =>
       JS('FileReader', 'new FileReader()' );
@@ -25277,6 +27335,7 @@ class _FileReaderFactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _FileReaderSyncFactoryProvider {
   static FileReaderSync createFileReaderSync() =>
@@ -25286,12 +27345,17 @@ class _FileReaderSyncFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _FormDataFactoryProvider {
   static FormData createFormData([FormElement form = null]) {
     if (form == null) return JS('FormData', 'new FormData()');
     return JS('FormData', 'new FormData(#)', form);
   }
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName GamepadList
 class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "*GamepadList" {
@@ -25389,6 +27453,7 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _HttpRequestFactoryProvider {
   static HttpRequest createHttpRequest() =>
       JS('HttpRequest', 'new XMLHttpRequest()');
@@ -25405,6 +27470,7 @@ class _HttpRequestFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _IceCandidateFactoryProvider {
   static IceCandidate createIceCandidate(String label, String candidateLine) =>
       JS('IceCandidate', 'new IceCandidate(#,#)', label, candidateLine);
@@ -25412,6 +27478,7 @@ class _IceCandidateFactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _MediaControllerFactoryProvider {
   static MediaController createMediaController() =>
@@ -25421,6 +27488,7 @@ class _MediaControllerFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _MediaSourceFactoryProvider {
   static MediaSource createMediaSource() =>
       JS('MediaSource', 'new MediaSource()' );
@@ -25429,10 +27497,15 @@ class _MediaSourceFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _MediaStreamFactoryProvider {
   static MediaStream createMediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) =>
       JS('MediaStream', 'new MediaStream(#,#)', audioTracks, videoTracks);
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaStreamList
 class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> native "*MediaStreamList" {
@@ -25530,6 +27603,7 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _MessageChannelFactoryProvider {
   static MessageChannel createMessageChannel() =>
       JS('MessageChannel', 'new MessageChannel()' );
@@ -25537,6 +27611,7 @@ class _MessageChannelFactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _MutationObserverFactoryProvider {
   static MutationObserver createMutationObserver(MutationCallback callback) native '''
@@ -25560,6 +27635,7 @@ class _MutationObserverFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _NotificationFactoryProvider {
   static Notification createNotification(String title, [Map options]) =>
       JS('Notification', 'new Notification(#,#)', title, options);
@@ -25567,6 +27643,7 @@ class _NotificationFactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _OptionElementFactoryProvider {
   static OptionElement createOptionElement(
@@ -25592,6 +27669,7 @@ class _OptionElementFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _PeerConnection00FactoryProvider {
   static PeerConnection00 createPeerConnection00(String serverConfiguration, IceCallback iceCallback) =>
       JS('PeerConnection00', 'new PeerConnection00(#,#)', serverConfiguration, iceCallback);
@@ -25599,6 +27677,7 @@ class _PeerConnection00FactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _RTCIceCandidateFactoryProvider {
   static RTCIceCandidate createRTCIceCandidate(Map dictionary) =>
@@ -25608,6 +27687,7 @@ class _RTCIceCandidateFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _RTCPeerConnectionFactoryProvider {
   static RTCPeerConnection createRTCPeerConnection(Map rtcIceServers, [Map mediaConstraints]) =>
       JS('RTCPeerConnection', 'new RTCPeerConnection(#,#)', rtcIceServers, mediaConstraints);
@@ -25616,10 +27696,15 @@ class _RTCPeerConnectionFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _RTCSessionDescriptionFactoryProvider {
   static RTCSessionDescription createRTCSessionDescription(Map dictionary) =>
       JS('RTCSessionDescription', 'new RTCSessionDescription(#)', dictionary);
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGElementInstanceList
 class _SVGElementInstanceList implements JavaScriptIndexingBehavior, List<SVGElementInstance> native "*SVGElementInstanceList" {
@@ -25717,6 +27802,7 @@ class _SVGElementInstanceList implements JavaScriptIndexingBehavior, List<SVGEle
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _SessionDescriptionFactoryProvider {
   static SessionDescription createSessionDescription(String sdp) =>
       JS('SessionDescription', 'new SessionDescription(#)', sdp);
@@ -25724,6 +27810,7 @@ class _SessionDescriptionFactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _ShadowRootFactoryProvider {
   static ShadowRoot createShadowRoot(Element host) =>
@@ -25733,6 +27820,7 @@ class _ShadowRootFactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _SharedWorkerFactoryProvider {
   static SharedWorker createSharedWorker(String scriptURL, [String name]) {
@@ -25744,6 +27832,7 @@ class _SharedWorkerFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _SpeechGrammarFactoryProvider {
   static SpeechGrammar createSpeechGrammar() =>
       JS('SpeechGrammar', 'new SpeechGrammar()' );
@@ -25752,10 +27841,15 @@ class _SpeechGrammarFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _SpeechGrammarListFactoryProvider {
   static SpeechGrammarList createSpeechGrammarList() =>
       JS('SpeechGrammarList', 'new SpeechGrammarList()' );
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SpeechInputResultList
 class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechInputResult> native "*SpeechInputResultList" {
@@ -25853,10 +27947,15 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _SpeechRecognitionFactoryProvider {
   static SpeechRecognition createSpeechRecognition() =>
       JS('SpeechRecognition', 'new SpeechRecognition()' );
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SpeechRecognitionResultList
 class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<SpeechRecognitionResult> native "*SpeechRecognitionResultList" {
@@ -25950,6 +28049,10 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
   /** @domName SpeechRecognitionResultList.item */
   SpeechRecognitionResult item(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName StyleSheetList
 class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> native "*StyleSheetList" {
@@ -26047,6 +28150,7 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _TextTrackCueFactoryProvider {
   static TextTrackCue createTextTrackCue(
       String id, num startTime, num endTime, String text,
@@ -26066,6 +28170,10 @@ class _TextTrackCueFactoryProvider {
                   id, startTime, endTime, text, settings, pauseOnExit);
   }
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebKitAnimationList
 class _WebKitAnimationList implements JavaScriptIndexingBehavior, List<Animation> native "*WebKitAnimationList" {
@@ -26163,6 +28271,7 @@ class _WebKitAnimationList implements JavaScriptIndexingBehavior, List<Animation
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _WorkerFactoryProvider {
   static Worker createWorker(String scriptUrl) =>
       JS('Worker', 'new Worker(#)', scriptUrl);
@@ -26170,6 +28279,7 @@ class _WorkerFactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _XMLSerializerFactoryProvider {
   static XMLSerializer createXMLSerializer() =>
@@ -26179,6 +28289,7 @@ class _XMLSerializerFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _XPathEvaluatorFactoryProvider {
   static XPathEvaluator createXPathEvaluator() =>
       JS('XPathEvaluator', 'new XPathEvaluator()' );
@@ -26187,6 +28298,7 @@ class _XPathEvaluatorFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _XSLTProcessorFactoryProvider {
   static XSLTProcessor createXSLTProcessor() =>
       JS('XSLTProcessor', 'new XSLTProcessor()' );
@@ -26194,6 +28306,7 @@ class _XSLTProcessorFactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 abstract class Window {
   // Fields.
@@ -26225,10 +28338,12 @@ abstract class History {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 typedef void EventListener(Event event);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 /**
  * Defines the keycode values for keys that are returned by 
@@ -26426,6 +28541,7 @@ abstract class KeyCode {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 /**
  * Defines the standard key locations returned by
  * KeyboardEvent.getKeyLocation.
@@ -26470,6 +28586,7 @@ abstract class KeyLocation {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 /**
  * Defines the standard keyboard identifier names for keys that are returned
@@ -26964,6 +29081,7 @@ abstract class KeyName {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 /**
  * Contains the set of standard values returned by HTMLDocument.getReadyState.
  */
@@ -26987,6 +29105,7 @@ abstract class ReadyState {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 // TODO(antonm): support not DOM isolates too.
 class _Timer implements Timer {
@@ -27015,6 +29134,7 @@ get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool 
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 /**
  * The [Collections] class implements static methods useful when
@@ -27075,6 +29195,7 @@ class _Collections {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _HttpRequestUtils {
 
   // Helper for factory HttpRequest.get
@@ -27102,6 +29223,7 @@ class _HttpRequestUtils {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 _serialize(var message) {
   return new _JsSerializer().traverse(message);
@@ -27303,6 +29425,7 @@ String _getPortSyncEventData(CustomEvent event) => event.detail;
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 typedef Object ComputeValue();
 
 class _MeasurementRequest<T> {
@@ -27503,6 +29626,7 @@ void _completeMeasurementFutures() {
 // BSD-style license that can be found in the LICENSE file.
 
 // Patch file for the dart:isolate library.
+
 
 /********************************************************
   Inserted from lib/isolate/serialization.dart
@@ -28660,6 +30784,7 @@ class _TypedArrayFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 // TODO(rnystrom): add a way to supress public classes from DartDoc output.
 // TODO(jacobr): we can remove this class now that we are using the $dom_
 // convention for deprecated methods rather than truly private methods.
@@ -28674,9 +30799,11 @@ class Testing {
     target.$dom_removeEventListener(type, listener, useCapture);
   }
 
-}// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 /**
  * Utils for device detection.
@@ -28713,6 +30840,7 @@ class _Device {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 // Iterator for arrays with fixed size.
 class _FixedSizeListIterator<T> extends _VariableSizeListIterator<T> {
   _FixedSizeListIterator(List<T> array)
@@ -28745,6 +30873,7 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _Lists {
 

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of html;
+
 // TODO(jacobr): use _Lists.dart to remove some of the duplicated
 // functionality.
 class _ChildrenElementList implements List {

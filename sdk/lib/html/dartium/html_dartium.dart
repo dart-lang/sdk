@@ -65,6 +65,7 @@ _callPortSync(num id, var message) {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName AbstractWorker
 class AbstractWorker extends EventTarget {
   AbstractWorker.internal(): super.internal();
@@ -99,6 +100,7 @@ class AbstractWorkerEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName AnalyserNode
 class AnalyserNode extends AudioNode {
@@ -158,6 +160,7 @@ class AnalyserNode extends AudioNode {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLAnchorElement
 class AnchorElement extends _Element_Merged {
@@ -337,6 +340,7 @@ class AnchorElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName WebKitAnimation
 class Animation extends NativeFieldWrapperClass1 {
   Animation.internal();
@@ -408,6 +412,7 @@ class Animation extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName WebKitAnimationEvent
 class AnimationEvent extends Event {
   AnimationEvent.internal(): super.internal();
@@ -426,6 +431,7 @@ class AnimationEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLAppletElement
 class AppletElement extends _Element_Merged {
@@ -526,6 +532,7 @@ class AppletElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLAreaElement
 class AreaElement extends _Element_Merged {
 
@@ -623,6 +630,7 @@ class AreaElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName ArrayBuffer
 class ArrayBuffer extends NativeFieldWrapperClass1 {
 
@@ -655,6 +663,7 @@ class ArrayBuffer extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName ArrayBufferView
 class ArrayBufferView extends NativeFieldWrapperClass1 {
   ArrayBufferView.internal();
@@ -677,6 +686,7 @@ class ArrayBufferView extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Attr
 class Attr extends Node {
@@ -712,6 +722,7 @@ class Attr extends Node {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName AudioBuffer
 class AudioBuffer extends NativeFieldWrapperClass1 {
@@ -759,6 +770,7 @@ typedef void AudioBufferCallback(AudioBuffer audioBuffer);
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName AudioBufferSourceNode
 class AudioBufferSourceNode extends AudioSourceNode {
@@ -844,6 +856,7 @@ class AudioBufferSourceNode extends AudioSourceNode {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class AudioContext extends EventTarget {
   factory AudioContext() => _AudioContextFactoryProvider.createAudioContext();
@@ -1029,6 +1042,7 @@ class AudioContextEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName AudioDestinationNode
 class AudioDestinationNode extends AudioNode {
   AudioDestinationNode.internal(): super.internal();
@@ -1043,6 +1057,7 @@ class AudioDestinationNode extends AudioNode {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLAudioElement
 class AudioElement extends MediaElement {
@@ -1062,6 +1077,7 @@ class AudioElement extends MediaElement {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName AudioGain
 class AudioGain extends AudioParam {
   AudioGain.internal(): super.internal();
@@ -1072,6 +1088,7 @@ class AudioGain extends AudioParam {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName AudioListener
 class AudioListener extends NativeFieldWrapperClass1 {
@@ -1111,6 +1128,7 @@ class AudioListener extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName AudioNode
 class AudioNode extends NativeFieldWrapperClass1 {
@@ -1158,6 +1176,7 @@ class AudioNode extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName AudioParam
 class AudioParam extends NativeFieldWrapperClass1 {
@@ -1222,6 +1241,7 @@ class AudioParam extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName AudioProcessingEvent
 class AudioProcessingEvent extends Event {
   AudioProcessingEvent.internal(): super.internal();
@@ -1241,6 +1261,7 @@ class AudioProcessingEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName AudioSourceNode
 class AudioSourceNode extends AudioNode {
   AudioSourceNode.internal(): super.internal();
@@ -1251,6 +1272,7 @@ class AudioSourceNode extends AudioNode {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLBRElement
 class BRElement extends _Element_Merged {
@@ -1273,6 +1295,7 @@ class BRElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName BarInfo
 class BarInfo extends NativeFieldWrapperClass1 {
   BarInfo.internal();
@@ -1287,6 +1310,7 @@ class BarInfo extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLBaseElement
 class BaseElement extends _Element_Merged {
@@ -1316,6 +1340,7 @@ class BaseElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLBaseFontElement
 class BaseFontElement extends _Element_Merged {
@@ -1351,6 +1376,7 @@ class BaseFontElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName BatteryManager
 class BatteryManager extends EventTarget {
@@ -1409,6 +1435,7 @@ class BatteryManagerEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName BeforeLoadEvent
 class BeforeLoadEvent extends Event {
   BeforeLoadEvent.internal(): super.internal();
@@ -1423,6 +1450,7 @@ class BeforeLoadEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName BiquadFilterNode
 class BiquadFilterNode extends AudioNode {
@@ -1474,6 +1502,7 @@ class BiquadFilterNode extends AudioNode {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Blob
 class Blob extends NativeFieldWrapperClass1 {
@@ -1532,6 +1561,7 @@ class Blob extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLBodyElement
 class BodyElement extends _Element_Merged {
@@ -1621,6 +1651,7 @@ class BodyElementEvents extends ElementEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLButtonElement
 class ButtonElement extends _Element_Merged {
@@ -1743,6 +1774,7 @@ class ButtonElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName CDATASection
 class CDATASection extends Text {
   CDATASection.internal(): super.internal();
@@ -1753,6 +1785,7 @@ class CDATASection extends Text {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName CSSCharsetRule
 class CSSCharsetRule extends CSSRule {
@@ -1773,6 +1806,7 @@ class CSSCharsetRule extends CSSRule {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName CSSFontFaceRule
 class CSSFontFaceRule extends CSSRule {
   CSSFontFaceRule.internal(): super.internal();
@@ -1787,6 +1821,7 @@ class CSSFontFaceRule extends CSSRule {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName CSSImportRule
 class CSSImportRule extends CSSRule {
@@ -1811,6 +1846,7 @@ class CSSImportRule extends CSSRule {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName WebKitCSSKeyframeRule
 class CSSKeyframeRule extends CSSRule {
   CSSKeyframeRule.internal(): super.internal();
@@ -1833,6 +1869,7 @@ class CSSKeyframeRule extends CSSRule {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName WebKitCSSKeyframesRule
 class CSSKeyframesRule extends CSSRule {
@@ -1868,6 +1905,7 @@ class CSSKeyframesRule extends CSSRule {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName WebKitCSSMatrix
 class CSSMatrix extends NativeFieldWrapperClass1 {
@@ -2103,6 +2141,7 @@ class CSSMatrix extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName CSSMediaRule
 class CSSMediaRule extends CSSRule {
   CSSMediaRule.internal(): super.internal();
@@ -2130,6 +2169,7 @@ class CSSMediaRule extends CSSRule {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName CSSPageRule
 class CSSPageRule extends CSSRule {
   CSSPageRule.internal(): super.internal();
@@ -2152,6 +2192,7 @@ class CSSPageRule extends CSSRule {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName CSSPrimitiveValue
 class CSSPrimitiveValue extends CSSValue {
@@ -2254,6 +2295,7 @@ class CSSPrimitiveValue extends CSSValue {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName CSSRule
 class CSSRule extends NativeFieldWrapperClass1 {
   CSSRule.internal();
@@ -2300,6 +2342,7 @@ class CSSRule extends NativeFieldWrapperClass1 {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 String _cachedBrowserPrefix;
 
@@ -5150,6 +5193,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName CSSStyleRule
 class CSSStyleRule extends CSSRule {
   CSSStyleRule.internal(): super.internal();
@@ -5172,6 +5216,7 @@ class CSSStyleRule extends CSSRule {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName CSSStyleSheet
 class CSSStyleSheet extends StyleSheet {
@@ -5222,6 +5267,7 @@ class CSSStyleSheet extends StyleSheet {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName WebKitCSSTransformValue
 class CSSTransformValue extends _CSSValueList {
@@ -5280,6 +5326,7 @@ class CSSTransformValue extends _CSSValueList {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName CSSUnknownRule
 class CSSUnknownRule extends CSSRule {
   CSSUnknownRule.internal(): super.internal();
@@ -5290,6 +5337,7 @@ class CSSUnknownRule extends CSSRule {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName CSSValue
 class CSSValue extends NativeFieldWrapperClass1 {
@@ -5319,6 +5367,7 @@ class CSSValue extends NativeFieldWrapperClass1 {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class CanvasElement extends _Element_Merged {
 
@@ -5366,6 +5415,7 @@ class CanvasElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName CanvasGradient
 class CanvasGradient extends NativeFieldWrapperClass1 {
   CanvasGradient.internal();
@@ -5381,6 +5431,7 @@ class CanvasGradient extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName CanvasPattern
 class CanvasPattern extends NativeFieldWrapperClass1 {
   CanvasPattern.internal();
@@ -5391,6 +5442,7 @@ class CanvasPattern extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName CanvasRenderingContext
 class CanvasRenderingContext extends NativeFieldWrapperClass1 {
@@ -5404,6 +5456,7 @@ class CanvasRenderingContext extends NativeFieldWrapperClass1 {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class CanvasRenderingContext2D extends CanvasRenderingContext {
   CanvasRenderingContext2D.internal(): super.internal();
@@ -6091,6 +6144,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName ChannelMergerNode
 class ChannelMergerNode extends AudioNode {
   ChannelMergerNode.internal(): super.internal();
@@ -6102,6 +6156,7 @@ class ChannelMergerNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName ChannelSplitterNode
 class ChannelSplitterNode extends AudioNode {
   ChannelSplitterNode.internal(): super.internal();
@@ -6112,6 +6167,7 @@ class ChannelSplitterNode extends AudioNode {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName CharacterData
 class CharacterData extends Node {
@@ -6160,6 +6216,7 @@ class CharacterData extends Node {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName ClientRect
 class ClientRect extends NativeFieldWrapperClass1 {
   ClientRect.internal();
@@ -6194,6 +6251,7 @@ class ClientRect extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Clipboard
 class Clipboard extends NativeFieldWrapperClass1 {
@@ -6250,6 +6308,7 @@ class Clipboard extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName CloseEvent
 class CloseEvent extends Event {
   CloseEvent.internal(): super.internal();
@@ -6273,6 +6332,7 @@ class CloseEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName Comment
 class Comment extends CharacterData {
   Comment.internal(): super.internal();
@@ -6283,6 +6343,7 @@ class Comment extends CharacterData {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName CompositionEvent
 class CompositionEvent extends UIEvent {
@@ -6302,6 +6363,7 @@ class CompositionEvent extends UIEvent {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Console
 class Console extends NativeFieldWrapperClass1 {
@@ -6398,6 +6460,7 @@ class Console extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLContentElement
 class ContentElement extends _Element_Merged {
 
@@ -6431,6 +6494,7 @@ class ContentElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName ConvolverNode
 class ConvolverNode extends AudioNode {
   ConvolverNode.internal(): super.internal();
@@ -6457,6 +6521,7 @@ class ConvolverNode extends AudioNode {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Coordinates
 class Coordinates extends NativeFieldWrapperClass1 {
@@ -6497,6 +6562,7 @@ class Coordinates extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName Counter
 class Counter extends NativeFieldWrapperClass1 {
   Counter.internal();
@@ -6520,6 +6586,7 @@ class Counter extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName Crypto
 class Crypto extends NativeFieldWrapperClass1 {
   Crypto.internal();
@@ -6534,6 +6601,7 @@ class Crypto extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 class CustomEvent extends Event {
   factory CustomEvent(String type, [bool canBubble = true, bool cancelable = true,
@@ -6556,6 +6624,7 @@ class CustomEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLDListElement
 class DListElement extends _Element_Merged {
 
@@ -6576,6 +6645,7 @@ class DListElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName DOMApplicationCache
 class DOMApplicationCache extends EventTarget {
@@ -6654,6 +6724,7 @@ class DOMApplicationCacheEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName DOMError
 class DOMError extends NativeFieldWrapperClass1 {
   DOMError.internal();
@@ -6668,6 +6739,7 @@ class DOMError extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName DOMException
 class DOMException extends NativeFieldWrapperClass1 {
@@ -6746,6 +6818,7 @@ class DOMException extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName DOMFileSystem
 class DOMFileSystem extends NativeFieldWrapperClass1 {
   DOMFileSystem.internal();
@@ -6765,6 +6838,7 @@ class DOMFileSystem extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName DOMFileSystemSync
 class DOMFileSystemSync extends NativeFieldWrapperClass1 {
   DOMFileSystemSync.internal();
@@ -6783,6 +6857,7 @@ class DOMFileSystemSync extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName DOMImplementation
 class DOMImplementation extends NativeFieldWrapperClass1 {
@@ -6815,6 +6890,7 @@ class DOMImplementation extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName MimeType
 class DOMMimeType extends NativeFieldWrapperClass1 {
   DOMMimeType.internal();
@@ -6841,6 +6917,7 @@ class DOMMimeType extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName MimeTypeArray
 class DOMMimeTypeArray extends NativeFieldWrapperClass1 implements List<DOMMimeType> {
@@ -6948,6 +7025,7 @@ class DOMMimeTypeArray extends NativeFieldWrapperClass1 implements List<DOMMimeT
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName DOMParser
 class DOMParser extends NativeFieldWrapperClass1 {
 
@@ -6964,6 +7042,7 @@ class DOMParser extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Plugin
 class DOMPlugin extends NativeFieldWrapperClass1 {
@@ -6999,6 +7078,7 @@ class DOMPlugin extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName PluginArray
 class DOMPluginArray extends NativeFieldWrapperClass1 implements List<DOMPlugin> {
@@ -7109,6 +7189,7 @@ class DOMPluginArray extends NativeFieldWrapperClass1 implements List<DOMPlugin>
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Selection
 class DOMSelection extends NativeFieldWrapperClass1 {
@@ -7225,6 +7306,7 @@ class DOMSelection extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName DOMSettableTokenList
 class DOMSettableTokenList extends DOMTokenList {
   DOMSettableTokenList.internal(): super.internal();
@@ -7244,6 +7326,7 @@ class DOMSettableTokenList extends DOMTokenList {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName DOMStringMap
 class DOMStringMap extends NativeFieldWrapperClass1 {
   DOMStringMap.internal();
@@ -7254,6 +7337,7 @@ class DOMStringMap extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName DOMTokenList
 class DOMTokenList extends NativeFieldWrapperClass1 {
@@ -7297,6 +7381,7 @@ class DOMTokenList extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLDataListElement
 class DataListElement extends _Element_Merged {
 
@@ -7313,6 +7398,7 @@ class DataListElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName DataTransferItem
 class DataTransferItem extends NativeFieldWrapperClass1 {
@@ -7344,6 +7430,7 @@ class DataTransferItem extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName DataTransferItemList
 class DataTransferItemList extends NativeFieldWrapperClass1 {
@@ -7387,6 +7474,7 @@ class DataTransferItemList extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName DataView
 class DataView extends ArrayBufferView {
@@ -7611,6 +7699,7 @@ class DataView extends ArrayBufferView {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName Database
 class Database extends NativeFieldWrapperClass1 {
   Database.internal();
@@ -7646,6 +7735,7 @@ typedef void DatabaseCallback(database);
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName DatabaseSync
 class DatabaseSync extends NativeFieldWrapperClass1 {
   DatabaseSync.internal();
@@ -7677,6 +7767,7 @@ class DatabaseSync extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName DedicatedWorkerContext
 class DedicatedWorkerContext extends WorkerContext {
   DedicatedWorkerContext.internal(): super.internal();
@@ -7704,6 +7795,7 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName DelayNode
 class DelayNode extends AudioNode {
   DelayNode.internal(): super.internal();
@@ -7718,6 +7810,7 @@ class DelayNode extends AudioNode {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLDetailsElement
 class DetailsElement extends _Element_Merged {
@@ -7740,6 +7833,7 @@ class DetailsElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName DeviceMotionEvent
 class DeviceMotionEvent extends Event {
   DeviceMotionEvent.internal(): super.internal();
@@ -7754,6 +7848,7 @@ class DeviceMotionEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName DeviceOrientationEvent
 class DeviceOrientationEvent extends Event {
@@ -7786,6 +7881,7 @@ class DeviceOrientationEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLDirectoryElement
 class DirectoryElement extends _Element_Merged {
   DirectoryElement.internal(): super.internal();
@@ -7804,6 +7900,7 @@ class DirectoryElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName DirectoryEntry
 class DirectoryEntry extends Entry {
@@ -7832,6 +7929,7 @@ class DirectoryEntry extends Entry {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName DirectoryEntrySync
 class DirectoryEntrySync extends EntrySync {
   DirectoryEntrySync.internal(): super.internal();
@@ -7859,6 +7957,7 @@ class DirectoryEntrySync extends EntrySync {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName DirectoryReader
 class DirectoryReader extends NativeFieldWrapperClass1 {
   DirectoryReader.internal();
@@ -7874,6 +7973,7 @@ class DirectoryReader extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName DirectoryReaderSync
 class DirectoryReaderSync extends NativeFieldWrapperClass1 {
   DirectoryReaderSync.internal();
@@ -7888,6 +7988,7 @@ class DirectoryReaderSync extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLDivElement
 class DivElement extends _Element_Merged {
@@ -7907,6 +8008,7 @@ class DivElement extends _Element_Merged {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class Document extends Node
 {
@@ -8281,6 +8383,7 @@ class DocumentEvents extends ElementEvents {
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _FilteredElementList implements List {
   final Node _node;
@@ -8668,6 +8771,7 @@ class DocumentFragment extends Node {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName DocumentType
 class DocumentType extends Node {
   DocumentType.internal(): super.internal();
@@ -8707,6 +8811,7 @@ class DocumentType extends Node {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName DynamicsCompressorNode
 class DynamicsCompressorNode extends AudioNode {
   DynamicsCompressorNode.internal(): super.internal();
@@ -8742,6 +8847,7 @@ class DynamicsCompressorNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName EXTTextureFilterAnisotropic
 class EXTTextureFilterAnisotropic extends NativeFieldWrapperClass1 {
   EXTTextureFilterAnisotropic.internal();
@@ -8754,6 +8860,7 @@ class EXTTextureFilterAnisotropic extends NativeFieldWrapperClass1 {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 // TODO(jacobr): use _Lists.dart to remove some of the duplicated
 // functionality.
@@ -9999,6 +10106,7 @@ class ElementEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName ElementTimeControl
 class ElementTimeControl extends NativeFieldWrapperClass1 {
   ElementTimeControl.internal();
@@ -10025,6 +10133,7 @@ class ElementTimeControl extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName ElementTraversal
 class ElementTraversal extends NativeFieldWrapperClass1 {
@@ -10056,6 +10165,7 @@ class ElementTraversal extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLEmbedElement
 class EmbedElement extends _Element_Merged {
@@ -10118,6 +10228,7 @@ class EmbedElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName EntityReference
 class EntityReference extends Node {
   EntityReference.internal(): super.internal();
@@ -10136,6 +10247,7 @@ typedef void EntriesCallback(List<Entry> entries);
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Entry
 class Entry extends NativeFieldWrapperClass1 {
@@ -10224,6 +10336,7 @@ typedef void EntryCallback(Entry entry);
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName EntrySync
 class EntrySync extends NativeFieldWrapperClass1 {
   EntrySync.internal();
@@ -10287,6 +10400,7 @@ typedef void ErrorCallback(FileError error);
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName ErrorEvent
 class ErrorEvent extends Event {
   ErrorEvent.internal(): super.internal();
@@ -10309,6 +10423,7 @@ class ErrorEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 class Event extends NativeFieldWrapperClass1 {
   // In JS, canBubble and cancelable are technically required parameters to
@@ -10440,6 +10555,7 @@ class Event extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName EventException
 class EventException extends NativeFieldWrapperClass1 {
   EventException.internal();
@@ -10470,6 +10586,7 @@ class EventException extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName EventSource
 class EventSource extends EventTarget {
@@ -10531,6 +10648,7 @@ class EventSourceEvents extends Events {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class Events {
   /* Raw event target. */
@@ -10603,6 +10721,7 @@ class EventTarget extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLFieldSetElement
 class FieldSetElement extends _Element_Merged {
 
@@ -10664,6 +10783,7 @@ class FieldSetElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName File
 class File extends Blob {
   File.internal(): super.internal();
@@ -10695,6 +10815,7 @@ typedef void FileCallback(File file);
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName FileEntry
 class FileEntry extends Entry {
   FileEntry.internal(): super.internal();
@@ -10714,6 +10835,7 @@ class FileEntry extends Entry {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName FileEntrySync
 class FileEntrySync extends EntrySync {
   FileEntrySync.internal(): super.internal();
@@ -10732,6 +10854,7 @@ class FileEntrySync extends EntrySync {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName FileError
 class FileError extends NativeFieldWrapperClass1 {
@@ -10771,6 +10894,7 @@ class FileError extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName FileException
 class FileException extends NativeFieldWrapperClass1 {
@@ -10822,6 +10946,7 @@ class FileException extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName FileReader
 class FileReader extends EventTarget {
@@ -10920,6 +11045,7 @@ class FileReaderEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName FileReaderSync
 class FileReaderSync extends NativeFieldWrapperClass1 {
 
@@ -10967,6 +11093,7 @@ typedef void FileSystemCallback(DOMFileSystem fileSystem);
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName FileWriter
 class FileWriter extends EventTarget {
@@ -11059,6 +11186,7 @@ typedef void FileWriterCallback(FileWriter fileWriter);
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName FileWriterSync
 class FileWriterSync extends NativeFieldWrapperClass1 {
   FileWriterSync.internal();
@@ -11089,6 +11217,7 @@ class FileWriterSync extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Float32Array
 class Float32Array extends ArrayBufferView implements List<num> {
@@ -11220,6 +11349,7 @@ class Float32Array extends ArrayBufferView implements List<num> {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName Float64Array
 class Float64Array extends ArrayBufferView implements List<num> {
 
@@ -11350,6 +11480,7 @@ class Float64Array extends ArrayBufferView implements List<num> {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLFontElement
 class FontElement extends _Element_Merged {
   FontElement.internal(): super.internal();
@@ -11385,6 +11516,7 @@ class FontElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName FormData
 class FormData extends NativeFieldWrapperClass1 {
 
@@ -11406,6 +11538,7 @@ class FormData extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLFormElement
 class FormElement extends _Element_Merged {
@@ -11508,6 +11641,7 @@ class FormElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLFrameElement
 class FrameElement extends _Element_Merged {
   FrameElement.internal(): super.internal();
@@ -11603,6 +11737,7 @@ class FrameElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLFrameSetElement
 class FrameSetElement extends _Element_Merged {
   FrameSetElement.internal(): super.internal();
@@ -11666,6 +11801,7 @@ class FrameSetElementEvents extends ElementEvents {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName GainNode
 class GainNode extends AudioNode {
   GainNode.internal(): super.internal();
@@ -11680,6 +11816,7 @@ class GainNode extends AudioNode {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Gamepad
 class Gamepad extends NativeFieldWrapperClass1 {
@@ -11712,6 +11849,7 @@ class Gamepad extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName Geolocation
 class Geolocation extends NativeFieldWrapperClass1 {
   Geolocation.internal();
@@ -11735,6 +11873,7 @@ class Geolocation extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName Geoposition
 class Geoposition extends NativeFieldWrapperClass1 {
   Geoposition.internal();
@@ -11753,6 +11892,7 @@ class Geoposition extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLHRElement
 class HRElement extends _Element_Merged {
@@ -11798,6 +11938,7 @@ class HRElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLAllCollection
 class HTMLAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
@@ -11909,6 +12050,7 @@ class HTMLAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLCollection
 class HTMLCollection extends NativeFieldWrapperClass1 implements List<Node> {
   HTMLCollection.internal();
@@ -12015,6 +12157,7 @@ class HTMLCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLOptionsCollection
 class HTMLOptionsCollection extends HTMLCollection {
   HTMLOptionsCollection.internal(): super.internal();
@@ -12050,6 +12193,7 @@ class HTMLOptionsCollection extends HTMLCollection {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HashChangeEvent
 class HashChangeEvent extends Event {
   HashChangeEvent.internal(): super.internal();
@@ -12073,6 +12217,7 @@ class HashChangeEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLHeadElement
 class HeadElement extends _Element_Merged {
 
@@ -12093,6 +12238,7 @@ class HeadElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLHeadingElement
 class HeadingElement extends _Element_Merged {
@@ -12125,6 +12271,7 @@ class HeadingElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLHtmlElement
 class HtmlElement extends _Element_Merged {
 
@@ -12135,6 +12282,7 @@ class HtmlElement extends _Element_Merged {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class HttpRequest extends EventTarget {
   factory HttpRequest.get(String url, onSuccess(HttpRequest request)) =>
@@ -12272,6 +12420,7 @@ class HttpRequestEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName XMLHttpRequestException
 class HttpRequestException extends NativeFieldWrapperClass1 {
   HttpRequestException.internal();
@@ -12303,6 +12452,7 @@ class HttpRequestException extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName XMLHttpRequestProgressEvent
 class HttpRequestProgressEvent extends ProgressEvent {
   HttpRequestProgressEvent.internal(): super.internal();
@@ -12321,6 +12471,7 @@ class HttpRequestProgressEvent extends ProgressEvent {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName XMLHttpRequestUpload
 class HttpRequestUpload extends EventTarget {
@@ -12367,6 +12518,7 @@ class HttpRequestUploadEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName IDBAny
 class IDBAny extends NativeFieldWrapperClass1 {
   IDBAny.internal();
@@ -12377,6 +12529,7 @@ class IDBAny extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName IDBCursor
 class IDBCursor extends NativeFieldWrapperClass1 {
@@ -12441,6 +12594,7 @@ class IDBCursor extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName IDBCursorWithValue
 class IDBCursorWithValue extends IDBCursor {
   IDBCursorWithValue.internal(): super.internal();
@@ -12455,6 +12609,7 @@ class IDBCursorWithValue extends IDBCursor {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName IDBDatabase
 class IDBDatabase extends EventTarget {
@@ -12548,6 +12703,7 @@ class IDBDatabaseEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName IDBDatabaseException
 class IDBDatabaseException extends NativeFieldWrapperClass1 {
   IDBDatabaseException.internal();
@@ -12601,6 +12757,7 @@ class IDBDatabaseException extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName IDBFactory
 class IDBFactory extends NativeFieldWrapperClass1 {
   IDBFactory.internal();
@@ -12638,6 +12795,7 @@ class IDBFactory extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName IDBIndex
 class IDBIndex extends NativeFieldWrapperClass1 {
@@ -12803,6 +12961,7 @@ class IDBIndex extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName IDBKey
 class IDBKey extends NativeFieldWrapperClass1 {
   IDBKey.internal();
@@ -12811,6 +12970,7 @@ class IDBKey extends NativeFieldWrapperClass1 {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class IDBKeyRange extends NativeFieldWrapperClass1 {
   /**
@@ -12919,6 +13079,7 @@ class IDBKeyRange extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName IDBObjectStore
 class IDBObjectStore extends NativeFieldWrapperClass1 {
@@ -13105,6 +13266,7 @@ class IDBObjectStore extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName IDBOpenDBRequest
 class IDBOpenDBRequest extends IDBRequest implements EventTarget {
   IDBOpenDBRequest.internal(): super.internal();
@@ -13129,6 +13291,7 @@ class IDBOpenDBRequestEvents extends IDBRequestEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName IDBRequest
 class IDBRequest extends EventTarget {
@@ -13195,6 +13358,7 @@ class IDBRequestEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName IDBTransaction
 class IDBTransaction extends EventTarget {
   IDBTransaction.internal(): super.internal();
@@ -13260,6 +13424,7 @@ class IDBTransactionEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName IDBVersionChangeEvent
 class IDBUpgradeNeededEvent extends Event {
   IDBUpgradeNeededEvent.internal(): super.internal();
@@ -13279,6 +13444,7 @@ class IDBUpgradeNeededEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName IDBVersionChangeEvent
 class IDBVersionChangeEvent extends Event {
   IDBVersionChangeEvent.internal(): super.internal();
@@ -13293,6 +13459,7 @@ class IDBVersionChangeEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName IDBVersionChangeRequest
 class IDBVersionChangeRequest extends IDBRequest implements EventTarget {
@@ -13316,6 +13483,7 @@ class IDBVersionChangeRequestEvents extends IDBRequestEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLIFrameElement
 class IFrameElement extends _Element_Merged {
@@ -13438,6 +13606,7 @@ typedef void IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnecti
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName IceCandidate
 class IceCandidate extends NativeFieldWrapperClass1 {
 
@@ -13458,6 +13627,7 @@ class IceCandidate extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName ImageData
 class ImageData extends NativeFieldWrapperClass1 {
@@ -13481,6 +13651,7 @@ class ImageData extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLImageElement
 class ImageElement extends _Element_Merged {
@@ -13637,6 +13808,7 @@ class ImageElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLInputElement
 class InputElement extends _Element_Merged {
@@ -14108,6 +14280,7 @@ class InputElementEvents extends ElementEvents {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName Int16Array
 class Int16Array extends ArrayBufferView implements List<int> {
 
@@ -14237,6 +14410,7 @@ class Int16Array extends ArrayBufferView implements List<int> {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Int32Array
 class Int32Array extends ArrayBufferView implements List<int> {
@@ -14368,6 +14542,7 @@ class Int32Array extends ArrayBufferView implements List<int> {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName Int8Array
 class Int8Array extends ArrayBufferView implements List<int> {
 
@@ -14498,6 +14673,7 @@ class Int8Array extends ArrayBufferView implements List<int> {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName JavaScriptCallFrame
 class JavaScriptCallFrame extends NativeFieldWrapperClass1 {
   JavaScriptCallFrame.internal();
@@ -14563,6 +14739,7 @@ class JavaScriptCallFrame extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName KeyboardEvent
 class KeyboardEvent extends UIEvent {
   KeyboardEvent.internal(): super.internal();
@@ -14605,6 +14782,7 @@ class KeyboardEvent extends UIEvent {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLKeygenElement
 class KeygenElement extends _Element_Merged {
@@ -14691,6 +14869,7 @@ class KeygenElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLLIElement
 class LIElement extends _Element_Merged {
 
@@ -14719,6 +14898,7 @@ class LIElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLLabelElement
 class LabelElement extends _Element_Merged {
@@ -14749,6 +14929,7 @@ class LabelElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLLegendElement
 class LegendElement extends _Element_Merged {
 
@@ -14773,6 +14954,7 @@ class LegendElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLLinkElement
 class LinkElement extends _Element_Merged {
@@ -14871,6 +15053,7 @@ class LinkElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName History
 class LocalHistory extends NativeFieldWrapperClass1 implements History {
   LocalHistory.internal();
@@ -14909,6 +15092,7 @@ class LocalHistory extends NativeFieldWrapperClass1 implements History {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Location
 class LocalLocation extends NativeFieldWrapperClass1 implements Location {
@@ -15009,6 +15193,7 @@ class LocalLocation extends NativeFieldWrapperClass1 implements Location {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName LocalMediaStream
 class LocalMediaStream extends MediaStream implements EventTarget {
   LocalMediaStream.internal(): super.internal();
@@ -15021,6 +15206,7 @@ class LocalMediaStream extends MediaStream implements EventTarget {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class LocalWindow extends EventTarget implements Window {
 
@@ -15609,6 +15795,7 @@ class LocalWindowEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLMapElement
 class MapElement extends _Element_Merged {
 
@@ -15633,6 +15820,7 @@ class MapElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLMarqueeElement
 class MarqueeElement extends _Element_Merged {
@@ -15741,6 +15929,7 @@ class MarqueeElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName MediaController
 class MediaController extends EventTarget {
 
@@ -15833,6 +16022,7 @@ class MediaController extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLMediaElement
 class MediaElement extends _Element_Merged {
@@ -16185,6 +16375,7 @@ class MediaElementEvents extends ElementEvents {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName MediaElementAudioSourceNode
 class MediaElementAudioSourceNode extends AudioSourceNode {
   MediaElementAudioSourceNode.internal(): super.internal();
@@ -16199,6 +16390,7 @@ class MediaElementAudioSourceNode extends AudioSourceNode {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName MediaError
 class MediaError extends NativeFieldWrapperClass1 {
@@ -16224,6 +16416,7 @@ class MediaError extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName MediaKeyError
 class MediaKeyError extends NativeFieldWrapperClass1 {
@@ -16251,6 +16444,7 @@ class MediaKeyError extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName MediaKeyEvent
 class MediaKeyEvent extends Event {
@@ -16291,6 +16485,7 @@ class MediaKeyEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName MediaList
 class MediaList extends NativeFieldWrapperClass1 {
   MediaList.internal();
@@ -16326,6 +16521,7 @@ class MediaList extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName MediaQueryList
 class MediaQueryList extends NativeFieldWrapperClass1 {
   MediaQueryList.internal();
@@ -16353,6 +16549,7 @@ class MediaQueryList extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName MediaQueryListListener
 class MediaQueryListListener extends NativeFieldWrapperClass1 {
   MediaQueryListListener.internal();
@@ -16367,6 +16564,7 @@ class MediaQueryListListener extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName MediaSource
 class MediaSource extends EventTarget {
@@ -16425,6 +16623,7 @@ class MediaSource extends EventTarget {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName MediaStream
 class MediaStream extends EventTarget {
 
@@ -16482,6 +16681,7 @@ class MediaStreamEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName MediaStreamAudioSourceNode
 class MediaStreamAudioSourceNode extends AudioSourceNode {
   MediaStreamAudioSourceNode.internal(): super.internal();
@@ -16497,6 +16697,7 @@ class MediaStreamAudioSourceNode extends AudioSourceNode {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName MediaStreamEvent
 class MediaStreamEvent extends Event {
   MediaStreamEvent.internal(): super.internal();
@@ -16511,6 +16712,7 @@ class MediaStreamEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName MediaStreamTrack
 class MediaStreamTrack extends EventTarget {
@@ -16577,6 +16779,7 @@ class MediaStreamTrackEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName MediaStreamTrackEvent
 class MediaStreamTrackEvent extends Event {
   MediaStreamTrackEvent.internal(): super.internal();
@@ -16591,6 +16794,7 @@ class MediaStreamTrackEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName MediaStreamTrackList
 class MediaStreamTrackList extends EventTarget {
@@ -16645,6 +16849,7 @@ class MediaStreamTrackListEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName MemoryInfo
 class MemoryInfo extends NativeFieldWrapperClass1 {
   MemoryInfo.internal();
@@ -16668,6 +16873,7 @@ class MemoryInfo extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLMenuElement
 class MenuElement extends _Element_Merged {
 
@@ -16689,6 +16895,7 @@ class MenuElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName MessageChannel
 class MessageChannel extends NativeFieldWrapperClass1 {
 
@@ -16709,6 +16916,7 @@ class MessageChannel extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName MessageEvent
 class MessageEvent extends Event {
@@ -16748,6 +16956,7 @@ class MessageEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName MessagePort
 class MessagePort extends EventTarget {
@@ -16796,6 +17005,7 @@ class MessagePortEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLMetaElement
 class MetaElement extends _Element_Merged {
   MetaElement.internal(): super.internal();
@@ -16839,6 +17049,7 @@ class MetaElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName Metadata
 class Metadata extends NativeFieldWrapperClass1 {
   Metadata.internal();
@@ -16865,6 +17076,7 @@ typedef void MetadataCallback(Metadata metadata);
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLMeterElement
 class MeterElement extends _Element_Merged {
@@ -16931,6 +17143,7 @@ class MeterElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLModElement
 class ModElement extends _Element_Merged {
   ModElement.internal(): super.internal();
@@ -16957,6 +17170,7 @@ class ModElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 class MouseEvent extends UIEvent {
   factory MouseEvent(String type, Window view, int detail, int screenX,
@@ -17066,6 +17280,7 @@ typedef void MutationCallback(List<MutationRecord> mutations, MutationObserver o
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName MutationEvent
 class MutationEvent extends Event {
   MutationEvent.internal(): super.internal();
@@ -17104,6 +17319,7 @@ class MutationEvent extends Event {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class MutationObserver extends NativeFieldWrapperClass1 {
 
@@ -17190,6 +17406,7 @@ class MutationObserver extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName MutationRecord
 class MutationRecord extends NativeFieldWrapperClass1 {
   MutationRecord.internal();
@@ -17236,6 +17453,7 @@ class MutationRecord extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName NamedNodeMap
 class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
@@ -17363,6 +17581,7 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName Navigator
 class Navigator extends NativeFieldWrapperClass1 {
   Navigator.internal();
@@ -17454,6 +17673,7 @@ class Navigator extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName NavigatorUserMediaError
 class NavigatorUserMediaError extends NativeFieldWrapperClass1 {
   NavigatorUserMediaError.internal();
@@ -17484,6 +17704,7 @@ typedef void NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 /**
  * Lazy implementation of the child nodes of an element that does not request
@@ -17759,6 +17980,7 @@ class Node extends EventTarget {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName NodeFilter
 class NodeFilter extends NativeFieldWrapperClass1 {
   NodeFilter.internal();
@@ -17806,6 +18028,7 @@ class NodeFilter extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName NodeIterator
 class NodeIterator extends NativeFieldWrapperClass1 {
   NodeIterator.internal();
@@ -17850,6 +18073,7 @@ class NodeIterator extends NativeFieldWrapperClass1 {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 // TODO(nweiz): when all implementations we target have the same name for the
 // coreimpl implementation of List<E>, extend that rather than wrapping.
@@ -18041,6 +18265,7 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName Notation
 class Notation extends Node {
   Notation.internal(): super.internal();
@@ -18059,6 +18284,7 @@ class Notation extends Node {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Notification
 class Notification extends EventTarget {
@@ -18154,6 +18380,7 @@ class NotificationEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName NotificationCenter
 class NotificationCenter extends NativeFieldWrapperClass1 {
   NotificationCenter.internal();
@@ -18189,6 +18416,7 @@ typedef void NotificationPermissionCallback(String permission);
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName OESElementIndexUint
 class OESElementIndexUint extends NativeFieldWrapperClass1 {
   OESElementIndexUint.internal();
@@ -18199,6 +18427,7 @@ class OESElementIndexUint extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName OESStandardDerivatives
 class OESStandardDerivatives extends NativeFieldWrapperClass1 {
@@ -18213,6 +18442,7 @@ class OESStandardDerivatives extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName OESTextureFloat
 class OESTextureFloat extends NativeFieldWrapperClass1 {
   OESTextureFloat.internal();
@@ -18223,6 +18453,7 @@ class OESTextureFloat extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName OESVertexArrayObject
 class OESVertexArrayObject extends NativeFieldWrapperClass1 {
@@ -18252,6 +18483,7 @@ class OESVertexArrayObject extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLOListElement
 class OListElement extends _Element_Merged {
@@ -18297,6 +18529,7 @@ class OListElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLObjectElement
 class ObjectElement extends _Element_Merged {
@@ -18463,6 +18696,7 @@ class ObjectElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName OfflineAudioCompletionEvent
 class OfflineAudioCompletionEvent extends Event {
   OfflineAudioCompletionEvent.internal(): super.internal();
@@ -18477,6 +18711,7 @@ class OfflineAudioCompletionEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLOptGroupElement
 class OptGroupElement extends _Element_Merged {
@@ -18506,6 +18741,7 @@ class OptGroupElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLOptionElement
 class OptionElement extends _Element_Merged {
@@ -18582,6 +18818,7 @@ class OptionElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName OscillatorNode
 class OscillatorNode extends AudioSourceNode {
   OscillatorNode.internal(): super.internal();
@@ -18642,6 +18879,7 @@ class OscillatorNode extends AudioSourceNode {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLOutputElement
 class OutputElement extends _Element_Merged {
@@ -18720,6 +18958,7 @@ class OutputElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName OverflowEvent
 class OverflowEvent extends Event {
   OverflowEvent.internal(): super.internal();
@@ -18749,6 +18988,7 @@ class OverflowEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName PagePopupController
 class PagePopupController extends NativeFieldWrapperClass1 {
   PagePopupController.internal();
@@ -18768,6 +19008,7 @@ class PagePopupController extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName PageTransitionEvent
 class PageTransitionEvent extends Event {
   PageTransitionEvent.internal(): super.internal();
@@ -18782,6 +19023,7 @@ class PageTransitionEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName PannerNode
 class PannerNode extends AudioNode {
@@ -18890,6 +19132,7 @@ class PannerNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLParagraphElement
 class ParagraphElement extends _Element_Merged {
 
@@ -18910,6 +19153,7 @@ class ParagraphElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLParamElement
 class ParamElement extends _Element_Merged {
@@ -18955,6 +19199,7 @@ class ParamElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName PeerConnection00
 class PeerConnection00 extends EventTarget {
@@ -19089,6 +19334,7 @@ class PeerConnection00Events extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName Performance
 class Performance extends EventTarget {
   Performance.internal(): super.internal();
@@ -19116,6 +19362,7 @@ class Performance extends EventTarget {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName PerformanceNavigation
 class PerformanceNavigation extends NativeFieldWrapperClass1 {
   PerformanceNavigation.internal();
@@ -19142,6 +19389,7 @@ class PerformanceNavigation extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName PerformanceTiming
 class PerformanceTiming extends NativeFieldWrapperClass1 {
@@ -19238,6 +19486,7 @@ class PerformanceTiming extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 class Point extends NativeFieldWrapperClass1 {
   factory Point(num x, num y) => _PointFactoryProvider.createPoint(x, y);
   Point.internal();
@@ -19265,6 +19514,7 @@ class Point extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName PopStateEvent
 class PopStateEvent extends Event {
   PopStateEvent.internal(): super.internal();
@@ -19287,6 +19537,7 @@ typedef void PositionCallback(Geoposition position);
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName PositionError
 class PositionError extends NativeFieldWrapperClass1 {
@@ -19321,6 +19572,7 @@ typedef void PositionErrorCallback(PositionError error);
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLPreElement
 class PreElement extends _Element_Merged {
 
@@ -19350,6 +19602,7 @@ class PreElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName ProcessingInstruction
 class ProcessingInstruction extends Node {
   ProcessingInstruction.internal(): super.internal();
@@ -19376,6 +19629,7 @@ class ProcessingInstruction extends Node {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLProgressElement
 class ProgressElement extends _Element_Merged {
@@ -19414,6 +19668,7 @@ class ProgressElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName ProgressEvent
 class ProgressEvent extends Event {
   ProgressEvent.internal(): super.internal();
@@ -19437,6 +19692,7 @@ class ProgressEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLQuoteElement
 class QuoteElement extends _Element_Merged {
   QuoteElement.internal(): super.internal();
@@ -19455,6 +19711,7 @@ class QuoteElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName RGBColor
 class RGBColor extends NativeFieldWrapperClass1 {
@@ -19478,6 +19735,7 @@ class RGBColor extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName RTCDataChannel
 class RTCDataChannel extends EventTarget {
@@ -19584,6 +19842,7 @@ class RTCDataChannelEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName RTCDataChannelEvent
 class RTCDataChannelEvent extends Event {
   RTCDataChannelEvent.internal(): super.internal();
@@ -19606,6 +19865,7 @@ typedef void RTCErrorCallback(String errorInformation);
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName RTCIceCandidate
 class RTCIceCandidate extends NativeFieldWrapperClass1 {
@@ -19632,6 +19892,7 @@ class RTCIceCandidate extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName RTCIceCandidateEvent
 class RTCIceCandidateEvent extends Event {
   RTCIceCandidateEvent.internal(): super.internal();
@@ -19646,6 +19907,7 @@ class RTCIceCandidateEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName RTCPeerConnection
 class RTCPeerConnection extends EventTarget {
@@ -19769,6 +20031,7 @@ class RTCPeerConnectionEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName RTCSessionDescription
 class RTCSessionDescription extends NativeFieldWrapperClass1 {
 
@@ -19814,6 +20077,7 @@ typedef void RTCStatsCallback(RTCStatsResponse response);
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName RTCStatsElement
 class RTCStatsElement extends NativeFieldWrapperClass1 {
   RTCStatsElement.internal();
@@ -19832,6 +20096,7 @@ class RTCStatsElement extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName RTCStatsReport
 class RTCStatsReport extends NativeFieldWrapperClass1 {
@@ -19852,6 +20117,7 @@ class RTCStatsReport extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName RTCStatsResponse
 class RTCStatsResponse extends NativeFieldWrapperClass1 {
   RTCStatsResponse.internal();
@@ -19866,6 +20132,7 @@ class RTCStatsResponse extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName RadioNodeList
 class RadioNodeList extends NodeList {
@@ -19885,6 +20152,7 @@ class RadioNodeList extends NodeList {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Range
 class Range extends NativeFieldWrapperClass1 {
@@ -20037,6 +20305,7 @@ class Range extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName RangeException
 class RangeException extends NativeFieldWrapperClass1 {
   RangeException.internal();
@@ -20067,6 +20336,7 @@ class RangeException extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Rect
 class Rect extends NativeFieldWrapperClass1 {
@@ -20103,6 +20373,7 @@ typedef void RequestAnimationFrameCallback(num highResTime);
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SQLError
 class SQLError extends NativeFieldWrapperClass1 {
   SQLError.internal();
@@ -20137,6 +20408,7 @@ class SQLError extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SQLException
 class SQLException extends NativeFieldWrapperClass1 {
@@ -20173,6 +20445,7 @@ class SQLException extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SQLResultSet
 class SQLResultSet extends NativeFieldWrapperClass1 {
   SQLResultSet.internal();
@@ -20195,6 +20468,7 @@ class SQLResultSet extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SQLResultSetRowList
 class SQLResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> {
@@ -20314,6 +20588,7 @@ typedef void SQLStatementErrorCallback(SQLTransaction transaction, SQLError erro
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SQLTransaction
 class SQLTransaction extends NativeFieldWrapperClass1 {
   SQLTransaction.internal();
@@ -20345,6 +20620,7 @@ typedef void SQLTransactionErrorCallback(SQLError error);
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SQLTransactionSync
 class SQLTransactionSync extends NativeFieldWrapperClass1 {
   SQLTransactionSync.internal();
@@ -20367,6 +20643,7 @@ typedef void SQLTransactionSyncCallback(SQLTransactionSync transaction);
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGAElement
 class SVGAElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStylable, SVGURIReference, SVGExternalResourcesRequired, SVGTransformable {
@@ -20463,6 +20740,7 @@ class SVGAElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStyla
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGAltGlyphDefElement
 class SVGAltGlyphDefElement extends SVGElement {
   SVGAltGlyphDefElement.internal(): super.internal();
@@ -20473,6 +20751,7 @@ class SVGAltGlyphDefElement extends SVGElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGAltGlyphElement
 class SVGAltGlyphElement extends SVGTextPositioningElement implements SVGURIReference {
@@ -20505,6 +20784,7 @@ class SVGAltGlyphElement extends SVGTextPositioningElement implements SVGURIRefe
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGAltGlyphItemElement
 class SVGAltGlyphItemElement extends SVGElement {
   SVGAltGlyphItemElement.internal(): super.internal();
@@ -20515,6 +20795,7 @@ class SVGAltGlyphItemElement extends SVGElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGAngle
 class SVGAngle extends NativeFieldWrapperClass1 {
@@ -20573,6 +20854,7 @@ class SVGAngle extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGAnimateColorElement
 class SVGAnimateColorElement extends SVGAnimationElement {
   SVGAnimateColorElement.internal(): super.internal();
@@ -20583,6 +20865,7 @@ class SVGAnimateColorElement extends SVGAnimationElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGAnimateElement
 class SVGAnimateElement extends SVGAnimationElement {
@@ -20595,6 +20878,7 @@ class SVGAnimateElement extends SVGAnimationElement {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGAnimateMotionElement
 class SVGAnimateMotionElement extends SVGAnimationElement {
   SVGAnimateMotionElement.internal(): super.internal();
@@ -20606,6 +20890,7 @@ class SVGAnimateMotionElement extends SVGAnimationElement {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGAnimateTransformElement
 class SVGAnimateTransformElement extends SVGAnimationElement {
   SVGAnimateTransformElement.internal(): super.internal();
@@ -20616,6 +20901,7 @@ class SVGAnimateTransformElement extends SVGAnimationElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGAnimatedAngle
 class SVGAnimatedAngle extends NativeFieldWrapperClass1 {
@@ -20635,6 +20921,7 @@ class SVGAnimatedAngle extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGAnimatedBoolean
 class SVGAnimatedBoolean extends NativeFieldWrapperClass1 {
@@ -20659,6 +20946,7 @@ class SVGAnimatedBoolean extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGAnimatedEnumeration
 class SVGAnimatedEnumeration extends NativeFieldWrapperClass1 {
   SVGAnimatedEnumeration.internal();
@@ -20681,6 +20969,7 @@ class SVGAnimatedEnumeration extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGAnimatedInteger
 class SVGAnimatedInteger extends NativeFieldWrapperClass1 {
@@ -20705,6 +20994,7 @@ class SVGAnimatedInteger extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGAnimatedLength
 class SVGAnimatedLength extends NativeFieldWrapperClass1 {
   SVGAnimatedLength.internal();
@@ -20723,6 +21013,7 @@ class SVGAnimatedLength extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGAnimatedLengthList
 class SVGAnimatedLengthList extends NativeFieldWrapperClass1 implements List<SVGAnimatedLength> {
@@ -20826,6 +21117,7 @@ class SVGAnimatedLengthList extends NativeFieldWrapperClass1 implements List<SVG
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGAnimatedNumber
 class SVGAnimatedNumber extends NativeFieldWrapperClass1 {
   SVGAnimatedNumber.internal();
@@ -20848,6 +21140,7 @@ class SVGAnimatedNumber extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGAnimatedNumberList
 class SVGAnimatedNumberList extends NativeFieldWrapperClass1 implements List<SVGAnimatedNumber> {
@@ -20951,6 +21244,7 @@ class SVGAnimatedNumberList extends NativeFieldWrapperClass1 implements List<SVG
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGAnimatedPreserveAspectRatio
 class SVGAnimatedPreserveAspectRatio extends NativeFieldWrapperClass1 {
   SVGAnimatedPreserveAspectRatio.internal();
@@ -20970,6 +21264,7 @@ class SVGAnimatedPreserveAspectRatio extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGAnimatedRect
 class SVGAnimatedRect extends NativeFieldWrapperClass1 {
   SVGAnimatedRect.internal();
@@ -20988,6 +21283,7 @@ class SVGAnimatedRect extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGAnimatedString
 class SVGAnimatedString extends NativeFieldWrapperClass1 {
@@ -21011,6 +21307,7 @@ class SVGAnimatedString extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGAnimatedTransformList
 class SVGAnimatedTransformList extends NativeFieldWrapperClass1 implements List<SVGAnimateTransformElement> {
@@ -21114,6 +21411,7 @@ class SVGAnimatedTransformList extends NativeFieldWrapperClass1 implements List<
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGAnimationElement
 class SVGAnimationElement extends SVGElement implements ElementTimeControl, SVGTests, SVGExternalResourcesRequired {
   SVGAnimationElement.internal(): super.internal();
@@ -21176,6 +21474,7 @@ class SVGAnimationElement extends SVGElement implements ElementTimeControl, SVGT
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGCircleElement
 class SVGCircleElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired {
@@ -21276,6 +21575,7 @@ class SVGCircleElement extends SVGElement implements SVGLangSpace, SVGStylable, 
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGClipPathElement
 class SVGClipPathElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired {
   SVGClipPathElement.internal(): super.internal();
@@ -21367,6 +21667,7 @@ class SVGClipPathElement extends SVGElement implements SVGLangSpace, SVGStylable
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGColor
 class SVGColor extends CSSValue {
   SVGColor.internal(): super.internal();
@@ -21405,6 +21706,7 @@ class SVGColor extends CSSValue {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGComponentTransferFunctionElement
 class SVGComponentTransferFunctionElement extends SVGElement {
@@ -21457,6 +21759,7 @@ class SVGComponentTransferFunctionElement extends SVGElement {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGCursorElement
 class SVGCursorElement extends SVGElement implements SVGURIReference, SVGTests, SVGExternalResourcesRequired {
   SVGCursorElement.internal(): super.internal();
@@ -21499,6 +21802,7 @@ class SVGCursorElement extends SVGElement implements SVGURIReference, SVGTests, 
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGDefsElement
 class SVGDefsElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired {
@@ -21587,6 +21891,7 @@ class SVGDefsElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGDescElement
 class SVGDescElement extends SVGElement implements SVGLangSpace, SVGStylable {
   SVGDescElement.internal(): super.internal();
@@ -21626,6 +21931,7 @@ class SVGDescElement extends SVGElement implements SVGLangSpace, SVGStylable {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGDocument
 class SVGDocument extends Document {
   SVGDocument.internal(): super.internal();
@@ -21642,6 +21948,7 @@ class SVGDocument extends Document {
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _AttributeClassSet extends _CssClassSet {
   _AttributeClassSet(element) : super(element);
@@ -21728,6 +22035,7 @@ class SVGElement extends Element {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGElementInstance
 class SVGElementInstance extends EventTarget {
@@ -21862,6 +22170,7 @@ class SVGElementInstanceEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGEllipseElement
 class SVGEllipseElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired {
   SVGEllipseElement.internal(): super.internal();
@@ -21965,6 +22274,7 @@ class SVGEllipseElement extends SVGElement implements SVGLangSpace, SVGStylable,
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGException
 class SVGException extends NativeFieldWrapperClass1 {
   SVGException.internal();
@@ -21998,6 +22308,7 @@ class SVGException extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGExternalResourcesRequired
 class SVGExternalResourcesRequired extends NativeFieldWrapperClass1 {
   SVGExternalResourcesRequired.internal();
@@ -22012,6 +22323,7 @@ class SVGExternalResourcesRequired extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGFEBlendElement
 class SVGFEBlendElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes {
@@ -22080,6 +22392,7 @@ class SVGFEBlendElement extends SVGElement implements SVGFilterPrimitiveStandard
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGFEColorMatrixElement
 class SVGFEColorMatrixElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes {
   SVGFEColorMatrixElement.internal(): super.internal();
@@ -22145,6 +22458,7 @@ class SVGFEColorMatrixElement extends SVGElement implements SVGFilterPrimitiveSt
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGFEComponentTransferElement
 class SVGFEComponentTransferElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes {
   SVGFEComponentTransferElement.internal(): super.internal();
@@ -22191,6 +22505,7 @@ class SVGFEComponentTransferElement extends SVGElement implements SVGFilterPrimi
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGFECompositeElement
 class SVGFECompositeElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes {
@@ -22276,6 +22591,7 @@ class SVGFECompositeElement extends SVGElement implements SVGFilterPrimitiveStan
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGFEConvolveMatrixElement
 class SVGFEConvolveMatrixElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes {
@@ -22376,6 +22692,7 @@ class SVGFEConvolveMatrixElement extends SVGElement implements SVGFilterPrimitiv
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGFEDiffuseLightingElement
 class SVGFEDiffuseLightingElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes {
   SVGFEDiffuseLightingElement.internal(): super.internal();
@@ -22438,6 +22755,7 @@ class SVGFEDiffuseLightingElement extends SVGElement implements SVGFilterPrimiti
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGFEDisplacementMapElement
 class SVGFEDisplacementMapElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes {
@@ -22512,6 +22830,7 @@ class SVGFEDisplacementMapElement extends SVGElement implements SVGFilterPrimiti
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGFEDistantLightElement
 class SVGFEDistantLightElement extends SVGElement {
   SVGFEDistantLightElement.internal(): super.internal();
@@ -22530,6 +22849,7 @@ class SVGFEDistantLightElement extends SVGElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGFEDropShadowElement
 class SVGFEDropShadowElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes {
@@ -22598,6 +22918,7 @@ class SVGFEDropShadowElement extends SVGElement implements SVGFilterPrimitiveSta
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGFEFloodElement
 class SVGFEFloodElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes {
   SVGFEFloodElement.internal(): super.internal();
@@ -22641,6 +22962,7 @@ class SVGFEFloodElement extends SVGElement implements SVGFilterPrimitiveStandard
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGFEFuncAElement
 class SVGFEFuncAElement extends SVGComponentTransferFunctionElement {
   SVGFEFuncAElement.internal(): super.internal();
@@ -22651,6 +22973,7 @@ class SVGFEFuncAElement extends SVGComponentTransferFunctionElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGFEFuncBElement
 class SVGFEFuncBElement extends SVGComponentTransferFunctionElement {
@@ -22663,6 +22986,7 @@ class SVGFEFuncBElement extends SVGComponentTransferFunctionElement {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGFEFuncGElement
 class SVGFEFuncGElement extends SVGComponentTransferFunctionElement {
   SVGFEFuncGElement.internal(): super.internal();
@@ -22674,6 +22998,7 @@ class SVGFEFuncGElement extends SVGComponentTransferFunctionElement {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGFEFuncRElement
 class SVGFEFuncRElement extends SVGComponentTransferFunctionElement {
   SVGFEFuncRElement.internal(): super.internal();
@@ -22684,6 +23009,7 @@ class SVGFEFuncRElement extends SVGComponentTransferFunctionElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGFEGaussianBlurElement
 class SVGFEGaussianBlurElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes {
@@ -22743,6 +23069,7 @@ class SVGFEGaussianBlurElement extends SVGElement implements SVGFilterPrimitiveS
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGFEImageElement
 class SVGFEImageElement extends SVGElement implements SVGURIReference, SVGLangSpace, SVGFilterPrimitiveStandardAttributes, SVGExternalResourcesRequired {
@@ -22815,6 +23142,7 @@ class SVGFEImageElement extends SVGElement implements SVGURIReference, SVGLangSp
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGFEMergeElement
 class SVGFEMergeElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes {
   SVGFEMergeElement.internal(): super.internal();
@@ -22858,6 +23186,7 @@ class SVGFEMergeElement extends SVGElement implements SVGFilterPrimitiveStandard
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGFEMergeNodeElement
 class SVGFEMergeNodeElement extends SVGElement {
   SVGFEMergeNodeElement.internal(): super.internal();
@@ -22872,6 +23201,7 @@ class SVGFEMergeNodeElement extends SVGElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGFEMorphologyElement
 class SVGFEMorphologyElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes {
@@ -22942,6 +23272,7 @@ class SVGFEMorphologyElement extends SVGElement implements SVGFilterPrimitiveSta
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGFEOffsetElement
 class SVGFEOffsetElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes {
   SVGFEOffsetElement.internal(): super.internal();
@@ -22997,6 +23328,7 @@ class SVGFEOffsetElement extends SVGElement implements SVGFilterPrimitiveStandar
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGFEPointLightElement
 class SVGFEPointLightElement extends SVGElement {
   SVGFEPointLightElement.internal(): super.internal();
@@ -23019,6 +23351,7 @@ class SVGFEPointLightElement extends SVGElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGFESpecularLightingElement
 class SVGFESpecularLightingElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes {
@@ -23079,6 +23412,7 @@ class SVGFESpecularLightingElement extends SVGElement implements SVGFilterPrimit
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGFESpotLightElement
 class SVGFESpotLightElement extends SVGElement {
   SVGFESpotLightElement.internal(): super.internal();
@@ -23121,6 +23455,7 @@ class SVGFESpotLightElement extends SVGElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGFETileElement
 class SVGFETileElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes {
@@ -23168,6 +23503,7 @@ class SVGFETileElement extends SVGElement implements SVGFilterPrimitiveStandardA
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGFETurbulenceElement
 class SVGFETurbulenceElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes {
@@ -23247,6 +23583,7 @@ class SVGFETurbulenceElement extends SVGElement implements SVGFilterPrimitiveSta
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGFilterElement
 class SVGFilterElement extends SVGElement implements SVGURIReference, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
@@ -23331,6 +23668,7 @@ class SVGFilterElement extends SVGElement implements SVGURIReference, SVGLangSpa
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGFilterPrimitiveStandardAttributes
 class SVGFilterPrimitiveStandardAttributes extends NativeFieldWrapperClass1 implements SVGStylable {
   SVGFilterPrimitiveStandardAttributes.internal();
@@ -23374,6 +23712,7 @@ class SVGFilterPrimitiveStandardAttributes extends NativeFieldWrapperClass1 impl
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGFitToViewBox
 class SVGFitToViewBox extends NativeFieldWrapperClass1 {
   SVGFitToViewBox.internal();
@@ -23393,6 +23732,7 @@ class SVGFitToViewBox extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGFontElement
 class SVGFontElement extends SVGElement {
   SVGFontElement.internal(): super.internal();
@@ -23403,6 +23743,7 @@ class SVGFontElement extends SVGElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGFontFaceElement
 class SVGFontFaceElement extends SVGElement {
@@ -23415,6 +23756,7 @@ class SVGFontFaceElement extends SVGElement {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGFontFaceFormatElement
 class SVGFontFaceFormatElement extends SVGElement {
   SVGFontFaceFormatElement.internal(): super.internal();
@@ -23425,6 +23767,7 @@ class SVGFontFaceFormatElement extends SVGElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGFontFaceNameElement
 class SVGFontFaceNameElement extends SVGElement {
@@ -23437,6 +23780,7 @@ class SVGFontFaceNameElement extends SVGElement {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGFontFaceSrcElement
 class SVGFontFaceSrcElement extends SVGElement {
   SVGFontFaceSrcElement.internal(): super.internal();
@@ -23448,6 +23792,7 @@ class SVGFontFaceSrcElement extends SVGElement {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGFontFaceUriElement
 class SVGFontFaceUriElement extends SVGElement {
   SVGFontFaceUriElement.internal(): super.internal();
@@ -23458,6 +23803,7 @@ class SVGFontFaceUriElement extends SVGElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGForeignObjectElement
 class SVGForeignObjectElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired {
@@ -23562,6 +23908,7 @@ class SVGForeignObjectElement extends SVGElement implements SVGLangSpace, SVGSty
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGGElement
 class SVGGElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired {
   SVGGElement.internal(): super.internal();
@@ -23649,6 +23996,7 @@ class SVGGElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTe
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGGlyphElement
 class SVGGlyphElement extends SVGElement {
   SVGGlyphElement.internal(): super.internal();
@@ -23659,6 +24007,7 @@ class SVGGlyphElement extends SVGElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGGlyphRefElement
 class SVGGlyphRefElement extends SVGElement implements SVGURIReference, SVGStylable {
@@ -23735,6 +24084,7 @@ class SVGGlyphRefElement extends SVGElement implements SVGURIReference, SVGStyla
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGGradientElement
 class SVGGradientElement extends SVGElement implements SVGURIReference, SVGExternalResourcesRequired, SVGStylable {
   SVGGradientElement.internal(): super.internal();
@@ -23786,6 +24136,7 @@ class SVGGradientElement extends SVGElement implements SVGURIReference, SVGExter
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGHKernElement
 class SVGHKernElement extends SVGElement {
   SVGHKernElement.internal(): super.internal();
@@ -23796,6 +24147,7 @@ class SVGHKernElement extends SVGElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGImageElement
 class SVGImageElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStylable, SVGURIReference, SVGExternalResourcesRequired, SVGTransformable {
@@ -23908,6 +24260,7 @@ class SVGImageElement extends SVGElement implements SVGLangSpace, SVGTests, SVGS
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGLangSpace
 class SVGLangSpace extends NativeFieldWrapperClass1 {
   SVGLangSpace.internal();
@@ -23934,6 +24287,7 @@ class SVGLangSpace extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGLength
 class SVGLength extends NativeFieldWrapperClass1 {
@@ -24003,6 +24357,7 @@ class SVGLength extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGLengthList
 class SVGLengthList extends NativeFieldWrapperClass1 implements List<SVGLength> {
@@ -24130,6 +24485,7 @@ class SVGLengthList extends NativeFieldWrapperClass1 implements List<SVGLength> 
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGLineElement
 class SVGLineElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired {
   SVGLineElement.internal(): super.internal();
@@ -24233,6 +24589,7 @@ class SVGLineElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGLinearGradientElement
 class SVGLinearGradientElement extends SVGGradientElement {
   SVGLinearGradientElement.internal(): super.internal();
@@ -24259,6 +24616,7 @@ class SVGLinearGradientElement extends SVGGradientElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGLocatable
 class SVGLocatable extends NativeFieldWrapperClass1 {
@@ -24295,6 +24653,7 @@ class SVGLocatable extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGMPathElement
 class SVGMPathElement extends SVGElement implements SVGURIReference, SVGExternalResourcesRequired {
   SVGMPathElement.internal(): super.internal();
@@ -24313,6 +24672,7 @@ class SVGMPathElement extends SVGElement implements SVGURIReference, SVGExternal
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGMarkerElement
 class SVGMarkerElement extends SVGElement implements SVGLangSpace, SVGFitToViewBox, SVGExternalResourcesRequired, SVGStylable {
@@ -24413,6 +24773,7 @@ class SVGMarkerElement extends SVGElement implements SVGLangSpace, SVGFitToViewB
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGMaskElement
 class SVGMaskElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGExternalResourcesRequired {
   SVGMaskElement.internal(): super.internal();
@@ -24495,6 +24856,7 @@ class SVGMaskElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGMatrix
 class SVGMatrix extends NativeFieldWrapperClass1 {
@@ -24599,6 +24961,7 @@ class SVGMatrix extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGMetadataElement
 class SVGMetadataElement extends SVGElement {
   SVGMetadataElement.internal(): super.internal();
@@ -24610,6 +24973,7 @@ class SVGMetadataElement extends SVGElement {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGMissingGlyphElement
 class SVGMissingGlyphElement extends SVGElement {
   SVGMissingGlyphElement.internal(): super.internal();
@@ -24620,6 +24984,7 @@ class SVGMissingGlyphElement extends SVGElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGNumber
 class SVGNumber extends NativeFieldWrapperClass1 {
@@ -24639,6 +25004,7 @@ class SVGNumber extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGNumberList
 class SVGNumberList extends NativeFieldWrapperClass1 implements List<SVGNumber> {
@@ -24766,6 +25132,7 @@ class SVGNumberList extends NativeFieldWrapperClass1 implements List<SVGNumber> 
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGPaint
 class SVGPaint extends SVGColor {
   SVGPaint.internal(): super.internal();
@@ -24812,6 +25179,7 @@ class SVGPaint extends SVGColor {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGPathElement
 class SVGPathElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired {
@@ -25008,6 +25376,7 @@ class SVGPathElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGPathSeg
 class SVGPathSeg extends NativeFieldWrapperClass1 {
   SVGPathSeg.internal();
@@ -25066,6 +25435,7 @@ class SVGPathSeg extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGPathSegArcAbs
 class SVGPathSegArcAbs extends SVGPathSeg {
@@ -25134,6 +25504,7 @@ class SVGPathSegArcAbs extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGPathSegArcRel
 class SVGPathSegArcRel extends SVGPathSeg {
   SVGPathSegArcRel.internal(): super.internal();
@@ -25201,6 +25572,7 @@ class SVGPathSegArcRel extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGPathSegClosePath
 class SVGPathSegClosePath extends SVGPathSeg {
   SVGPathSegClosePath.internal(): super.internal();
@@ -25211,6 +25583,7 @@ class SVGPathSegClosePath extends SVGPathSeg {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGPathSegCurvetoCubicAbs
 class SVGPathSegCurvetoCubicAbs extends SVGPathSeg {
@@ -25271,6 +25644,7 @@ class SVGPathSegCurvetoCubicAbs extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGPathSegCurvetoCubicRel
 class SVGPathSegCurvetoCubicRel extends SVGPathSeg {
   SVGPathSegCurvetoCubicRel.internal(): super.internal();
@@ -25330,6 +25704,7 @@ class SVGPathSegCurvetoCubicRel extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGPathSegCurvetoCubicSmoothAbs
 class SVGPathSegCurvetoCubicSmoothAbs extends SVGPathSeg {
   SVGPathSegCurvetoCubicSmoothAbs.internal(): super.internal();
@@ -25372,6 +25747,7 @@ class SVGPathSegCurvetoCubicSmoothAbs extends SVGPathSeg {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGPathSegCurvetoCubicSmoothRel
 class SVGPathSegCurvetoCubicSmoothRel extends SVGPathSeg {
@@ -25416,6 +25792,7 @@ class SVGPathSegCurvetoCubicSmoothRel extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGPathSegCurvetoQuadraticAbs
 class SVGPathSegCurvetoQuadraticAbs extends SVGPathSeg {
   SVGPathSegCurvetoQuadraticAbs.internal(): super.internal();
@@ -25458,6 +25835,7 @@ class SVGPathSegCurvetoQuadraticAbs extends SVGPathSeg {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGPathSegCurvetoQuadraticRel
 class SVGPathSegCurvetoQuadraticRel extends SVGPathSeg {
@@ -25502,6 +25880,7 @@ class SVGPathSegCurvetoQuadraticRel extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGPathSegCurvetoQuadraticSmoothAbs
 class SVGPathSegCurvetoQuadraticSmoothAbs extends SVGPathSeg {
   SVGPathSegCurvetoQuadraticSmoothAbs.internal(): super.internal();
@@ -25528,6 +25907,7 @@ class SVGPathSegCurvetoQuadraticSmoothAbs extends SVGPathSeg {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGPathSegCurvetoQuadraticSmoothRel
 class SVGPathSegCurvetoQuadraticSmoothRel extends SVGPathSeg {
@@ -25556,6 +25936,7 @@ class SVGPathSegCurvetoQuadraticSmoothRel extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGPathSegLinetoAbs
 class SVGPathSegLinetoAbs extends SVGPathSeg {
   SVGPathSegLinetoAbs.internal(): super.internal();
@@ -25583,6 +25964,7 @@ class SVGPathSegLinetoAbs extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGPathSegLinetoHorizontalAbs
 class SVGPathSegLinetoHorizontalAbs extends SVGPathSeg {
   SVGPathSegLinetoHorizontalAbs.internal(): super.internal();
@@ -25602,6 +25984,7 @@ class SVGPathSegLinetoHorizontalAbs extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGPathSegLinetoHorizontalRel
 class SVGPathSegLinetoHorizontalRel extends SVGPathSeg {
   SVGPathSegLinetoHorizontalRel.internal(): super.internal();
@@ -25620,6 +26003,7 @@ class SVGPathSegLinetoHorizontalRel extends SVGPathSeg {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGPathSegLinetoRel
 class SVGPathSegLinetoRel extends SVGPathSeg {
@@ -25648,6 +26032,7 @@ class SVGPathSegLinetoRel extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGPathSegLinetoVerticalAbs
 class SVGPathSegLinetoVerticalAbs extends SVGPathSeg {
   SVGPathSegLinetoVerticalAbs.internal(): super.internal();
@@ -25667,6 +26052,7 @@ class SVGPathSegLinetoVerticalAbs extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGPathSegLinetoVerticalRel
 class SVGPathSegLinetoVerticalRel extends SVGPathSeg {
   SVGPathSegLinetoVerticalRel.internal(): super.internal();
@@ -25685,6 +26071,7 @@ class SVGPathSegLinetoVerticalRel extends SVGPathSeg {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGPathSegList
 class SVGPathSegList extends NativeFieldWrapperClass1 implements List<SVGPathSeg> {
@@ -25812,6 +26199,7 @@ class SVGPathSegList extends NativeFieldWrapperClass1 implements List<SVGPathSeg
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGPathSegMovetoAbs
 class SVGPathSegMovetoAbs extends SVGPathSeg {
   SVGPathSegMovetoAbs.internal(): super.internal();
@@ -25839,6 +26227,7 @@ class SVGPathSegMovetoAbs extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGPathSegMovetoRel
 class SVGPathSegMovetoRel extends SVGPathSeg {
   SVGPathSegMovetoRel.internal(): super.internal();
@@ -25865,6 +26254,7 @@ class SVGPathSegMovetoRel extends SVGPathSeg {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGPatternElement
 class SVGPatternElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStylable, SVGURIReference, SVGFitToViewBox, SVGExternalResourcesRequired {
@@ -25965,6 +26355,7 @@ class SVGPatternElement extends SVGElement implements SVGLangSpace, SVGTests, SV
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGPoint
 class SVGPoint extends NativeFieldWrapperClass1 {
   SVGPoint.internal();
@@ -25995,6 +26386,7 @@ class SVGPoint extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGPointList
 class SVGPointList extends NativeFieldWrapperClass1 {
@@ -26038,6 +26430,7 @@ class SVGPointList extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGPolygonElement
 class SVGPolygonElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired {
@@ -26134,6 +26527,7 @@ class SVGPolygonElement extends SVGElement implements SVGLangSpace, SVGStylable,
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGPolylineElement
 class SVGPolylineElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired {
   SVGPolylineElement.internal(): super.internal();
@@ -26229,6 +26623,7 @@ class SVGPolylineElement extends SVGElement implements SVGLangSpace, SVGStylable
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGPreserveAspectRatio
 class SVGPreserveAspectRatio extends NativeFieldWrapperClass1 {
   SVGPreserveAspectRatio.internal();
@@ -26284,6 +26679,7 @@ class SVGPreserveAspectRatio extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGRadialGradientElement
 class SVGRadialGradientElement extends SVGGradientElement {
   SVGRadialGradientElement.internal(): super.internal();
@@ -26318,6 +26714,7 @@ class SVGRadialGradientElement extends SVGGradientElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGRect
 class SVGRect extends NativeFieldWrapperClass1 {
@@ -26361,6 +26758,7 @@ class SVGRect extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGRectElement
 class SVGRectElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired {
@@ -26473,6 +26871,7 @@ class SVGRectElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGRenderingIntent
 class SVGRenderingIntent extends NativeFieldWrapperClass1 {
   SVGRenderingIntent.internal();
@@ -26493,6 +26892,7 @@ class SVGRenderingIntent extends NativeFieldWrapperClass1 {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class SVGSVGElement extends SVGElement implements SVGZoomAndPan, SVGLocatable, SVGLangSpace, SVGTests, SVGStylable, SVGFitToViewBox, SVGExternalResourcesRequired {
   factory SVGSVGElement() => _SVGSVGElementFactoryProvider.createSVGSVGElement();
@@ -26758,6 +27158,7 @@ class SVGSVGElement extends SVGElement implements SVGZoomAndPan, SVGLocatable, S
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGScriptElement
 class SVGScriptElement extends SVGElement implements SVGURIReference, SVGExternalResourcesRequired {
   SVGScriptElement.internal(): super.internal();
@@ -26785,6 +27186,7 @@ class SVGScriptElement extends SVGElement implements SVGURIReference, SVGExterna
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGSetElement
 class SVGSetElement extends SVGAnimationElement {
   SVGSetElement.internal(): super.internal();
@@ -26795,6 +27197,7 @@ class SVGSetElement extends SVGAnimationElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGStopElement
 class SVGStopElement extends SVGElement implements SVGStylable {
@@ -26822,6 +27225,7 @@ class SVGStopElement extends SVGElement implements SVGStylable {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGStringList
 class SVGStringList extends NativeFieldWrapperClass1 implements List<String> {
@@ -26949,6 +27353,7 @@ class SVGStringList extends NativeFieldWrapperClass1 implements List<String> {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGStylable
 class SVGStylable extends NativeFieldWrapperClass1 {
   SVGStylable.internal();
@@ -26971,6 +27376,7 @@ class SVGStylable extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGStyleElement
 class SVGStyleElement extends SVGElement implements SVGLangSpace {
@@ -27030,6 +27436,7 @@ class SVGStyleElement extends SVGElement implements SVGLangSpace {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGSwitchElement
 class SVGSwitchElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired {
@@ -27118,6 +27525,7 @@ class SVGSwitchElement extends SVGElement implements SVGLangSpace, SVGStylable, 
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGSymbolElement
 class SVGSymbolElement extends SVGElement implements SVGLangSpace, SVGFitToViewBox, SVGExternalResourcesRequired, SVGStylable {
   SVGSymbolElement.internal(): super.internal();
@@ -27169,6 +27577,7 @@ class SVGSymbolElement extends SVGElement implements SVGLangSpace, SVGFitToViewB
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGTRefElement
 class SVGTRefElement extends SVGTextPositioningElement implements SVGURIReference {
   SVGTRefElement.internal(): super.internal();
@@ -27184,6 +27593,7 @@ class SVGTRefElement extends SVGTextPositioningElement implements SVGURIReferenc
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGTSpanElement
 class SVGTSpanElement extends SVGTextPositioningElement {
   SVGTSpanElement.internal(): super.internal();
@@ -27194,6 +27604,7 @@ class SVGTSpanElement extends SVGTextPositioningElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGTests
 class SVGTests extends NativeFieldWrapperClass1 {
@@ -27221,6 +27632,7 @@ class SVGTests extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGTextContentElement
 class SVGTextContentElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGExternalResourcesRequired {
@@ -27331,6 +27743,7 @@ class SVGTextContentElement extends SVGElement implements SVGLangSpace, SVGStyla
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGTextElement
 class SVGTextElement extends SVGTextPositioningElement implements SVGTransformable {
   SVGTextElement.internal(): super.internal();
@@ -27369,6 +27782,7 @@ class SVGTextElement extends SVGTextPositioningElement implements SVGTransformab
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGTextPathElement
 class SVGTextPathElement extends SVGTextContentElement implements SVGURIReference {
@@ -27409,6 +27823,7 @@ class SVGTextPathElement extends SVGTextContentElement implements SVGURIReferenc
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGTextPositioningElement
 class SVGTextPositioningElement extends SVGTextContentElement {
   SVGTextPositioningElement.internal(): super.internal();
@@ -27439,6 +27854,7 @@ class SVGTextPositioningElement extends SVGTextContentElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGTitleElement
 class SVGTitleElement extends SVGElement implements SVGLangSpace, SVGStylable {
@@ -27478,6 +27894,7 @@ class SVGTitleElement extends SVGElement implements SVGLangSpace, SVGStylable {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGTransform
 class SVGTransform extends NativeFieldWrapperClass1 {
@@ -27539,6 +27956,7 @@ class SVGTransform extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGTransformList
 class SVGTransformList extends NativeFieldWrapperClass1 implements List<SVGTransform> {
@@ -27674,6 +28092,7 @@ class SVGTransformList extends NativeFieldWrapperClass1 implements List<SVGTrans
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGTransformable
 class SVGTransformable extends NativeFieldWrapperClass1 implements SVGLocatable {
   SVGTransformable.internal();
@@ -27713,6 +28132,7 @@ class SVGTransformable extends NativeFieldWrapperClass1 implements SVGLocatable 
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGURIReference
 class SVGURIReference extends NativeFieldWrapperClass1 {
   SVGURIReference.internal();
@@ -27727,6 +28147,7 @@ class SVGURIReference extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGUnitTypes
 class SVGUnitTypes extends NativeFieldWrapperClass1 {
@@ -27744,6 +28165,7 @@ class SVGUnitTypes extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGUseElement
 class SVGUseElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStylable, SVGURIReference, SVGExternalResourcesRequired, SVGTransformable {
@@ -27860,6 +28282,7 @@ class SVGUseElement extends SVGElement implements SVGLangSpace, SVGTests, SVGSty
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGVKernElement
 class SVGVKernElement extends SVGElement {
   SVGVKernElement.internal(): super.internal();
@@ -27870,6 +28293,7 @@ class SVGVKernElement extends SVGElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGViewElement
 class SVGViewElement extends SVGElement implements SVGFitToViewBox, SVGZoomAndPan, SVGExternalResourcesRequired {
@@ -27905,6 +28329,7 @@ class SVGViewElement extends SVGElement implements SVGFitToViewBox, SVGZoomAndPa
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGViewSpec
 class SVGViewSpec extends NativeFieldWrapperClass1 {
@@ -27957,6 +28382,7 @@ class SVGViewSpec extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SVGZoomAndPan
 class SVGZoomAndPan extends NativeFieldWrapperClass1 {
   SVGZoomAndPan.internal();
@@ -27981,6 +28407,7 @@ class SVGZoomAndPan extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGZoomEvent
 class SVGZoomEvent extends UIEvent {
@@ -28012,6 +28439,7 @@ class SVGZoomEvent extends UIEvent {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Screen
 class Screen extends NativeFieldWrapperClass1 {
@@ -28055,6 +28483,7 @@ class Screen extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLScriptElement
 class ScriptElement extends _Element_Merged {
@@ -28133,6 +28562,7 @@ class ScriptElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName ScriptProcessorNode
 class ScriptProcessorNode extends AudioNode implements EventTarget {
   ScriptProcessorNode.internal(): super.internal();
@@ -28160,6 +28590,7 @@ class ScriptProcessorNodeEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName ScriptProfile
 class ScriptProfile extends NativeFieldWrapperClass1 {
   ScriptProfile.internal();
@@ -28182,6 +28613,7 @@ class ScriptProfile extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName ScriptProfileNode
 class ScriptProfileNode extends NativeFieldWrapperClass1 {
@@ -28229,6 +28661,7 @@ class ScriptProfileNode extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLSelectElement
 class SelectElement extends _Element_Merged {
@@ -28363,6 +28796,7 @@ class SelectElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SessionDescription
 class SessionDescription extends NativeFieldWrapperClass1 {
 
@@ -28384,6 +28818,7 @@ class SessionDescription extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLShadowElement
 class ShadowElement extends _Element_Merged {
   ShadowElement.internal(): super.internal();
@@ -28402,6 +28837,7 @@ class ShadowElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 class ShadowRoot extends DocumentFragment {
 
@@ -28464,6 +28900,7 @@ class ShadowRoot extends DocumentFragment {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SharedWorker
 class SharedWorker extends AbstractWorker {
 
@@ -28485,6 +28922,7 @@ class SharedWorker extends AbstractWorker {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SharedWorkerContext
 class SharedWorkerContext extends WorkerContext {
@@ -28512,6 +28950,7 @@ class SharedWorkerContextEvents extends WorkerContextEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SourceBuffer
 class SourceBuffer extends NativeFieldWrapperClass1 {
@@ -28543,6 +28982,7 @@ class SourceBuffer extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SourceBufferList
 class SourceBufferList extends EventTarget implements List<SourceBuffer> {
@@ -28658,6 +29098,7 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLSourceElement
 class SourceElement extends _Element_Merged {
 
@@ -28695,6 +29136,7 @@ class SourceElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLSpanElement
 class SpanElement extends _Element_Merged {
 
@@ -28707,6 +29149,7 @@ class SpanElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SpeechGrammar
 class SpeechGrammar extends NativeFieldWrapperClass1 {
@@ -28736,6 +29179,7 @@ class SpeechGrammar extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SpeechGrammarList
 class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechGrammar> {
@@ -28873,6 +29317,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SpeechInputEvent
 class SpeechInputEvent extends Event {
   SpeechInputEvent.internal(): super.internal();
@@ -28887,6 +29332,7 @@ class SpeechInputEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SpeechInputResult
 class SpeechInputResult extends NativeFieldWrapperClass1 {
@@ -28906,6 +29352,7 @@ class SpeechInputResult extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SpeechRecognition
 class SpeechRecognition extends EventTarget {
@@ -29016,6 +29463,7 @@ class SpeechRecognitionEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SpeechRecognitionAlternative
 class SpeechRecognitionAlternative extends NativeFieldWrapperClass1 {
   SpeechRecognitionAlternative.internal();
@@ -29034,6 +29482,7 @@ class SpeechRecognitionAlternative extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SpeechRecognitionError
 class SpeechRecognitionError extends Event {
@@ -29072,6 +29521,7 @@ class SpeechRecognitionError extends Event {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName SpeechRecognitionEvent
 class SpeechRecognitionEvent extends Event {
   SpeechRecognitionEvent.internal(): super.internal();
@@ -29094,6 +29544,7 @@ class SpeechRecognitionEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SpeechRecognitionResult
 class SpeechRecognitionResult extends NativeFieldWrapperClass1 {
@@ -29119,6 +29570,7 @@ class SpeechRecognitionResult extends NativeFieldWrapperClass1 {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class Storage extends NativeFieldWrapperClass1 implements Map<String, String>  {
 
@@ -29201,6 +29653,7 @@ class Storage extends NativeFieldWrapperClass1 implements Map<String, String>  {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName StorageEvent
 class StorageEvent extends Event {
   StorageEvent.internal(): super.internal();
@@ -29235,6 +29688,7 @@ class StorageEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName StorageInfo
 class StorageInfo extends NativeFieldWrapperClass1 {
@@ -29291,6 +29745,7 @@ typedef void StringCallback(String data);
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLStyleElement
 class StyleElement extends _Element_Merged {
 
@@ -29340,6 +29795,7 @@ class StyleElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName StyleMedia
 class StyleMedia extends NativeFieldWrapperClass1 {
   StyleMedia.internal();
@@ -29358,6 +29814,7 @@ class StyleMedia extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName StyleSheet
 class StyleSheet extends NativeFieldWrapperClass1 {
@@ -29402,6 +29859,7 @@ class StyleSheet extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLTableCaptionElement
 class TableCaptionElement extends _Element_Merged {
 
@@ -29422,6 +29880,7 @@ class TableCaptionElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLTableCellElement
 class TableCellElement extends _Element_Merged {
@@ -29552,6 +30011,7 @@ class TableCellElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLTableColElement
 class TableColElement extends _Element_Merged {
 
@@ -29612,6 +30072,7 @@ class TableColElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLTableElement
 class TableElement extends _Element_Merged {
@@ -29766,6 +30227,7 @@ class TableElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLTableRowElement
 class TableRowElement extends _Element_Merged {
 
@@ -29839,6 +30301,7 @@ class TableRowElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLTableSectionElement
 class TableSectionElement extends _Element_Merged {
   TableSectionElement.internal(): super.internal();
@@ -29894,6 +30357,7 @@ class TableSectionElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 class Text extends CharacterData {
   factory Text(String data) => _TextFactoryProvider.createText(data);
   Text.internal(): super.internal();
@@ -29916,6 +30380,7 @@ class Text extends CharacterData {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLTextAreaElement
 class TextAreaElement extends _Element_Merged {
@@ -30134,6 +30599,7 @@ class TextAreaElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName TextEvent
 class TextEvent extends UIEvent {
   TextEvent.internal(): super.internal();
@@ -30153,6 +30619,7 @@ class TextEvent extends UIEvent {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName TextMetrics
 class TextMetrics extends NativeFieldWrapperClass1 {
   TextMetrics.internal();
@@ -30167,6 +30634,7 @@ class TextMetrics extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName TextTrack
 class TextTrack extends EventTarget {
@@ -30238,6 +30706,7 @@ class TextTrackEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName TextTrackCue
 class TextTrackCue extends EventTarget {
@@ -30374,6 +30843,7 @@ class TextTrackCueEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName TextTrackCueList
 class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrackCue> {
   TextTrackCueList.internal();
@@ -30479,6 +30949,7 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName TextTrackList
 class TextTrackList extends EventTarget implements List<TextTrack> {
@@ -30606,6 +31077,7 @@ class TextTrackListEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName TimeRanges
 class TimeRanges extends NativeFieldWrapperClass1 {
   TimeRanges.internal();
@@ -30637,6 +31109,7 @@ typedef void TimeoutHandler();
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLTitleElement
 class TitleElement extends _Element_Merged {
 
@@ -30649,6 +31122,7 @@ class TitleElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Touch
 class Touch extends NativeFieldWrapperClass1 {
@@ -30709,6 +31183,7 @@ class Touch extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName TouchEvent
 class TouchEvent extends UIEvent {
   TouchEvent.internal(): super.internal();
@@ -30751,6 +31226,7 @@ class TouchEvent extends UIEvent {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName TouchList
 class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
@@ -30854,6 +31330,7 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLTrackElement
 class TrackElement extends _Element_Merged {
 
@@ -30923,6 +31400,7 @@ class TrackElement extends _Element_Merged {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName TrackEvent
 class TrackEvent extends Event {
   TrackEvent.internal(): super.internal();
@@ -30937,6 +31415,7 @@ class TrackEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName WebKitTransitionEvent
 class TransitionEvent extends Event {
@@ -30956,6 +31435,7 @@ class TransitionEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName TreeWalker
 class TreeWalker extends NativeFieldWrapperClass1 {
@@ -31020,6 +31500,7 @@ class TreeWalker extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName UIEvent
 class UIEvent extends Event {
   UIEvent.internal(): super.internal();
@@ -31071,6 +31552,7 @@ class UIEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLUListElement
 class UListElement extends _Element_Merged {
 
@@ -31099,6 +31581,7 @@ class UListElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Uint16Array
 class Uint16Array extends ArrayBufferView implements List<int> {
@@ -31230,6 +31713,7 @@ class Uint16Array extends ArrayBufferView implements List<int> {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName Uint32Array
 class Uint32Array extends ArrayBufferView implements List<int> {
 
@@ -31359,6 +31843,7 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Uint8Array
 class Uint8Array extends ArrayBufferView implements List<int> {
@@ -31490,6 +31975,7 @@ class Uint8Array extends ArrayBufferView implements List<int> {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName Uint8ClampedArray
 class Uint8ClampedArray extends Uint8Array {
 
@@ -31541,6 +32027,7 @@ class Uint8ClampedArray extends Uint8Array {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLUnknownElement
 class UnknownElement extends _Element_Merged {
   UnknownElement.internal(): super.internal();
@@ -31551,6 +32038,7 @@ class UnknownElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName URL
 class Url extends NativeFieldWrapperClass1 {
@@ -31591,6 +32079,7 @@ class Url extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName ValidityState
 class ValidityState extends NativeFieldWrapperClass1 {
@@ -31638,6 +32127,7 @@ class ValidityState extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLVideoElement
 class VideoElement extends MediaElement {
@@ -31724,6 +32214,7 @@ typedef void VoidCallback();
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName WaveShaperNode
 class WaveShaperNode extends AudioNode {
   WaveShaperNode.internal(): super.internal();
@@ -31743,6 +32234,7 @@ class WaveShaperNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName WaveTable
 class WaveTable extends NativeFieldWrapperClass1 {
   WaveTable.internal();
@@ -31753,6 +32245,7 @@ class WaveTable extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName WebGLActiveInfo
 class WebGLActiveInfo extends NativeFieldWrapperClass1 {
@@ -31777,6 +32270,7 @@ class WebGLActiveInfo extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName WebGLBuffer
 class WebGLBuffer extends NativeFieldWrapperClass1 {
   WebGLBuffer.internal();
@@ -31787,6 +32281,7 @@ class WebGLBuffer extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName WebGLCompressedTextureS3TC
 class WebGLCompressedTextureS3TC extends NativeFieldWrapperClass1 {
@@ -31806,6 +32301,7 @@ class WebGLCompressedTextureS3TC extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName WebGLContextAttributes
 class WebGLContextAttributes extends NativeFieldWrapperClass1 {
@@ -31866,6 +32362,7 @@ class WebGLContextAttributes extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName WebGLContextEvent
 class WebGLContextEvent extends Event {
   WebGLContextEvent.internal(): super.internal();
@@ -31880,6 +32377,7 @@ class WebGLContextEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName WebGLDebugRendererInfo
 class WebGLDebugRendererInfo extends NativeFieldWrapperClass1 {
@@ -31896,6 +32394,7 @@ class WebGLDebugRendererInfo extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName WebGLDebugShaders
 class WebGLDebugShaders extends NativeFieldWrapperClass1 {
   WebGLDebugShaders.internal();
@@ -31911,6 +32410,7 @@ class WebGLDebugShaders extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName WebGLDepthTexture
 class WebGLDepthTexture extends NativeFieldWrapperClass1 {
   WebGLDepthTexture.internal();
@@ -31924,6 +32424,7 @@ class WebGLDepthTexture extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName WebGLFramebuffer
 class WebGLFramebuffer extends NativeFieldWrapperClass1 {
   WebGLFramebuffer.internal();
@@ -31934,6 +32435,7 @@ class WebGLFramebuffer extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName WebGLLoseContext
 class WebGLLoseContext extends NativeFieldWrapperClass1 {
@@ -31954,6 +32456,7 @@ class WebGLLoseContext extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName WebGLProgram
 class WebGLProgram extends NativeFieldWrapperClass1 {
   WebGLProgram.internal();
@@ -31965,6 +32468,7 @@ class WebGLProgram extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName WebGLRenderbuffer
 class WebGLRenderbuffer extends NativeFieldWrapperClass1 {
   WebGLRenderbuffer.internal();
@@ -31975,6 +32479,7 @@ class WebGLRenderbuffer extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName WebGLRenderingContext
 class WebGLRenderingContext extends CanvasRenderingContext {
@@ -33253,6 +33758,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName WebGLShader
 class WebGLShader extends NativeFieldWrapperClass1 {
   WebGLShader.internal();
@@ -33263,6 +33769,7 @@ class WebGLShader extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName WebGLShaderPrecisionFormat
 class WebGLShaderPrecisionFormat extends NativeFieldWrapperClass1 {
@@ -33287,6 +33794,7 @@ class WebGLShaderPrecisionFormat extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName WebGLTexture
 class WebGLTexture extends NativeFieldWrapperClass1 {
   WebGLTexture.internal();
@@ -33297,6 +33805,7 @@ class WebGLTexture extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName WebGLUniformLocation
 class WebGLUniformLocation extends NativeFieldWrapperClass1 {
@@ -33309,6 +33818,7 @@ class WebGLUniformLocation extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName WebGLVertexArrayObjectOES
 class WebGLVertexArrayObjectOES extends NativeFieldWrapperClass1 {
   WebGLVertexArrayObjectOES.internal();
@@ -33319,6 +33829,7 @@ class WebGLVertexArrayObjectOES extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName WebKitCSSFilterValue
 class WebKitCSSFilterValue extends _CSSValueList {
@@ -33358,6 +33869,7 @@ class WebKitCSSFilterValue extends _CSSValueList {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName WebKitNamedFlow
 class WebKitNamedFlow extends EventTarget {
@@ -33405,6 +33917,7 @@ class WebKitNamedFlow extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 class WebSocket extends EventTarget {
   factory WebSocket(String url) => _WebSocketFactoryProvider.createWebSocket(url);
@@ -33513,6 +34026,7 @@ class WebSocketEvents extends Events {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class WheelEvent extends MouseEvent {
   WheelEvent.internal(): super.internal();
 
@@ -33547,6 +34061,7 @@ class WheelEvent extends MouseEvent {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName Worker
 class Worker extends AbstractWorker {
 
@@ -33579,6 +34094,7 @@ class WorkerEvents extends AbstractWorkerEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName WorkerContext
 class WorkerContext extends EventTarget {
@@ -33691,6 +34207,7 @@ class WorkerContextEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName WorkerLocation
 class WorkerLocation extends NativeFieldWrapperClass1 {
   WorkerLocation.internal();
@@ -33738,6 +34255,7 @@ class WorkerLocation extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName WorkerNavigator
 class WorkerNavigator extends NativeFieldWrapperClass1 {
   WorkerNavigator.internal();
@@ -33769,6 +34287,7 @@ class WorkerNavigator extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName XMLSerializer
 class XMLSerializer extends NativeFieldWrapperClass1 {
 
@@ -33785,6 +34304,7 @@ class XMLSerializer extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName XPathEvaluator
 class XPathEvaluator extends NativeFieldWrapperClass1 {
@@ -33810,6 +34330,7 @@ class XPathEvaluator extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName XPathException
 class XPathException extends NativeFieldWrapperClass1 {
@@ -33842,6 +34363,7 @@ class XPathException extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName XPathExpression
 class XPathExpression extends NativeFieldWrapperClass1 {
   XPathExpression.internal();
@@ -33857,6 +34379,7 @@ class XPathExpression extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName XPathNSResolver
 class XPathNSResolver extends NativeFieldWrapperClass1 {
   XPathNSResolver.internal();
@@ -33871,6 +34394,7 @@ class XPathNSResolver extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName XPathResult
 class XPathResult extends NativeFieldWrapperClass1 {
@@ -33939,6 +34463,7 @@ class XPathResult extends NativeFieldWrapperClass1 {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName XSLTProcessor
 class XSLTProcessor extends NativeFieldWrapperClass1 {
 
@@ -33982,12 +34507,14 @@ class XSLTProcessor extends NativeFieldWrapperClass1 {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _ArrayBufferFactoryProvider {
   static ArrayBuffer createArrayBuffer(int length) native "ArrayBuffer_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _AudioElementFactoryProvider {
   static AudioElement createAudioElement([String src]) native "HTMLAudioElement_constructor_Callback";
@@ -33996,12 +34523,14 @@ class _AudioElementFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _BlobFactoryProvider {
   static Blob createBlob(List blobParts, [String type, String endings]) native "Blob_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _CSSMatrixFactoryProvider {
   static CSSMatrix createCSSMatrix([String cssValue]) native "WebKitCSSMatrix_constructor_Callback";
@@ -34011,6 +34540,7 @@ class _CSSMatrixFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName CSSRuleList
 class _CSSRuleList extends NativeFieldWrapperClass1 implements List<CSSRule> {
@@ -34114,6 +34644,7 @@ class _CSSRuleList extends NativeFieldWrapperClass1 implements List<CSSRule> {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName CSSValueList
 class _CSSValueList extends CSSValue implements List<CSSValue> {
   _CSSValueList.internal(): super.internal();
@@ -34216,6 +34747,7 @@ class _CSSValueList extends CSSValue implements List<CSSValue> {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName ClientRectList
 class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRect> {
   _ClientRectList.internal();
@@ -34316,6 +34848,7 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _DOMParserFactoryProvider {
   static DOMParser createDOMParser() native "DOMParser_constructor_Callback";
 }
@@ -34324,6 +34857,7 @@ class _DOMParserFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName DOMStringList
 class _DOMStringList extends NativeFieldWrapperClass1 implements List<String> {
@@ -34429,6 +34963,7 @@ class _DOMStringList extends NativeFieldWrapperClass1 implements List<String> {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _DataViewFactoryProvider {
   static DataView createDataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) native "DataView_constructor_Callback";
 }
@@ -34437,6 +34972,7 @@ class _DataViewFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLDocument
 class _Document_Merged extends Document {
@@ -34452,6 +34988,7 @@ class _Document_Merged extends Document {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLElement
 class _Element_Merged extends Element {
@@ -34893,6 +35430,7 @@ class _Elements {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName EntryArray
 class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
   _EntryArray.internal();
@@ -34995,6 +35533,7 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName EntryArraySync
 class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync> {
   _EntryArraySync.internal();
@@ -35095,6 +35634,7 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _EventSourceFactoryProvider {
   static EventSource createEventSource(String scriptUrl) native "EventSource_constructor_Callback";
 }
@@ -35103,6 +35643,7 @@ class _EventSourceFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName FileList
 class _FileList extends NativeFieldWrapperClass1 implements List<File> {
@@ -35204,6 +35745,7 @@ class _FileList extends NativeFieldWrapperClass1 implements List<File> {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _FileReaderFactoryProvider {
   static FileReader createFileReader() native "FileReader_constructor_Callback";
 }
@@ -35211,12 +35753,14 @@ class _FileReaderFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _FileReaderSyncFactoryProvider {
   static FileReaderSync createFileReaderSync() native "FileReaderSync_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _FormDataFactoryProvider {
   static FormData createFormData([FormElement form]) native "DOMFormData_constructor_Callback";
@@ -35226,6 +35770,7 @@ class _FormDataFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName GamepadList
 class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
@@ -35327,6 +35872,7 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _HttpRequestFactoryProvider {
   static HttpRequest createHttpRequest() => _createHttpRequest();
   static HttpRequest _createHttpRequest() native "XMLHttpRequest_constructor_Callback";
@@ -35343,12 +35889,14 @@ class _HttpRequestFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _IceCandidateFactoryProvider {
   static IceCandidate createIceCandidate(String label, String candidateLine) native "IceCandidate_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _MediaControllerFactoryProvider {
   static MediaController createMediaController() native "MediaController_constructor_Callback";
@@ -35357,12 +35905,14 @@ class _MediaControllerFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _MediaSourceFactoryProvider {
   static MediaSource createMediaSource() native "MediaSource_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _MediaStreamFactoryProvider {
   static MediaStream createMediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) native "MediaStream_constructor_Callback";
@@ -35372,6 +35922,7 @@ class _MediaStreamFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName MediaStreamList
 class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStream> {
@@ -35473,12 +36024,14 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _MessageChannelFactoryProvider {
   static MessageChannel createMessageChannel() native "MessageChannel_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _MutationObserverFactoryProvider {
   static MutationObserver createMutationObserver(MutationCallback callback) native "MutationObserver_constructor_Callback";
@@ -35487,12 +36040,14 @@ class _MutationObserverFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _NotificationFactoryProvider {
   static Notification createNotification(String title, [Map options]) native "Notification_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _OptionElementFactoryProvider {
   static OptionElement createOptionElement([String data, String value, bool defaultSelected, bool selected]) native "HTMLOptionElement_constructor_Callback";
@@ -35501,12 +36056,14 @@ class _OptionElementFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _PeerConnection00FactoryProvider {
   static PeerConnection00 createPeerConnection00(String serverConfiguration, IceCallback iceCallback) native "PeerConnection00_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _RTCIceCandidateFactoryProvider {
   static RTCIceCandidate createRTCIceCandidate(Map dictionary) native "RTCIceCandidate_constructor_Callback";
@@ -35515,12 +36072,14 @@ class _RTCIceCandidateFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _RTCPeerConnectionFactoryProvider {
   static RTCPeerConnection createRTCPeerConnection(Map rtcIceServers, [Map mediaConstraints]) native "RTCPeerConnection_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _RTCSessionDescriptionFactoryProvider {
   static RTCSessionDescription createRTCSessionDescription(Map dictionary) native "RTCSessionDescription_constructor_Callback";
@@ -35530,6 +36089,7 @@ class _RTCSessionDescriptionFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SVGElementInstanceList
 class _SVGElementInstanceList extends NativeFieldWrapperClass1 implements List<SVGElementInstance> {
@@ -35631,12 +36191,14 @@ class _SVGElementInstanceList extends NativeFieldWrapperClass1 implements List<S
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _SessionDescriptionFactoryProvider {
   static SessionDescription createSessionDescription(String sdp) native "SessionDescription_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _ShadowRootFactoryProvider {
   static ShadowRoot createShadowRoot(Element host) native "ShadowRoot_constructor_Callback";
@@ -35645,6 +36207,7 @@ class _ShadowRootFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _SharedWorkerFactoryProvider {
   static SharedWorker createSharedWorker(String scriptURL, [String name]) native "SharedWorker_constructor_Callback";
 }
@@ -35652,12 +36215,14 @@ class _SharedWorkerFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _SpeechGrammarFactoryProvider {
   static SpeechGrammar createSpeechGrammar() native "SpeechGrammar_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _SpeechGrammarListFactoryProvider {
   static SpeechGrammarList createSpeechGrammarList() native "SpeechGrammarList_constructor_Callback";
@@ -35667,6 +36232,7 @@ class _SpeechGrammarListFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SpeechInputResultList
 class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<SpeechInputResult> {
@@ -35768,6 +36334,7 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _SpeechRecognitionFactoryProvider {
   static SpeechRecognition createSpeechRecognition() native "SpeechRecognition_constructor_Callback";
 }
@@ -35776,6 +36343,7 @@ class _SpeechRecognitionFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName SpeechRecognitionResultList
 class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements List<SpeechRecognitionResult> {
@@ -35879,6 +36447,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName StyleSheetList
 class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleSheet> {
   _StyleSheetList.internal();
@@ -35979,6 +36548,7 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _TextTrackCueFactoryProvider {
   static TextTrackCue createTextTrackCue(num startTime, num endTime, String text) native "TextTrackCue_constructor_Callback";
 }
@@ -35987,6 +36557,7 @@ class _TextTrackCueFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName WebKitAnimationList
 class _WebKitAnimationList extends NativeFieldWrapperClass1 implements List<Animation> {
@@ -36088,12 +36659,14 @@ class _WebKitAnimationList extends NativeFieldWrapperClass1 implements List<Anim
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _WorkerFactoryProvider {
   static Worker createWorker(String scriptUrl) native "Worker_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _XMLSerializerFactoryProvider {
   static XMLSerializer createXMLSerializer() native "XMLSerializer_constructor_Callback";
@@ -36102,6 +36675,7 @@ class _XMLSerializerFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _XPathEvaluatorFactoryProvider {
   static XPathEvaluator createXPathEvaluator() native "XPathEvaluator_constructor_Callback";
 }
@@ -36109,12 +36683,14 @@ class _XPathEvaluatorFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _XSLTProcessorFactoryProvider {
   static XSLTProcessor createXSLTProcessor() native "XSLTProcessor_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 abstract class Window {
   // Fields.
@@ -36146,10 +36722,12 @@ abstract class History {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 typedef void EventListener(Event event);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 /**
  * Defines the keycode values for keys that are returned by 
@@ -36347,6 +36925,7 @@ abstract class KeyCode {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 /**
  * Defines the standard key locations returned by
  * KeyboardEvent.getKeyLocation.
@@ -36391,6 +36970,7 @@ abstract class KeyLocation {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 /**
  * Defines the standard keyboard identifier names for keys that are returned
@@ -36885,6 +37465,7 @@ abstract class KeyName {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 /**
  * Contains the set of standard values returned by HTMLDocument.getReadyState.
  */
@@ -36908,6 +37489,7 @@ abstract class ReadyState {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 // TODO(antonm): support not DOM isolates too.
 class _Timer implements Timer {
@@ -36936,6 +37518,7 @@ get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool 
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 /**
  * The [Collections] class implements static methods useful when
@@ -36995,6 +37578,7 @@ class _Collections {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _HttpRequestUtils {
 
@@ -37252,6 +37836,7 @@ class _TextFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 /**
  * Utils for device detection.
  */
@@ -37286,6 +37871,7 @@ class _Device {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 _serialize(var message) {
   return new _JsSerializer().traverse(message);
@@ -37487,6 +38073,7 @@ String _getPortSyncEventData(CustomEvent event) => event.detail;
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 typedef Object ComputeValue();
 
 class _MeasurementRequest<T> {
@@ -37687,6 +38274,7 @@ void _completeMeasurementFutures() {
 // BSD-style license that can be found in the LICENSE file.
 
 // Patch file for the dart:isolate library.
+
 
 /********************************************************
   Inserted from lib/isolate/serialization.dart
@@ -37910,6 +38498,7 @@ bool _isMutationObserverSupported() {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 // TODO(rnystrom): add a way to supress public classes from DartDoc output.
 // TODO(jacobr): we can remove this class now that we are using the $dom_
 // convention for deprecated methods rather than truly private methods.
@@ -37924,9 +38513,11 @@ class Testing {
     target.$dom_removeEventListener(type, listener, useCapture);
   }
 
-}// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 // Iterator for arrays with fixed size.
 class _FixedSizeListIterator<T> extends _VariableSizeListIterator<T> {
@@ -37960,6 +38551,7 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _Lists {
 

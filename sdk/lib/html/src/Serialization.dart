@@ -4,6 +4,8 @@
 
 // Patch file for the dart:isolate library.
 
+part of html;
+
 /********************************************************
   Inserted from lib/isolate/serialization.dart
  ********************************************************/
