@@ -8021,6 +8021,9 @@ class Document extends Node
   DocumentEvents get on =>
     new DocumentEvents(this);
 
+  /** @domName HTMLDocument.activeElement */
+  Element get activeElement;
+
 
   /** @domName Document.body */
   Element get body native "Document_body_Getter";
@@ -8240,9 +8243,6 @@ class Document extends Node
 
   /** @domName Document.webkitExitPointerLock */
   void webkitExitPointerLock() native "Document_webkitExitPointerLock_Callback";
-
-  /** @domName HTMLDocument.activeElement */
-  Element get activeElement;
 
   // TODO(jacobr): implement all Element methods not on Document.
 
@@ -9688,6 +9688,63 @@ class Element extends Node implements ElementTraversal {
   ElementEvents get on =>
     new ElementEvents(this);
 
+  /** @domName HTMLElement.children */
+  HTMLCollection get $dom_children;
+
+  /** @domName HTMLElement.contentEditable */
+  String contentEditable;
+
+  /** @domName HTMLElement.dir */
+  String dir;
+
+  /** @domName HTMLElement.draggable */
+  bool draggable;
+
+  /** @domName HTMLElement.hidden */
+  bool hidden;
+
+  /** @domName HTMLElement.id */
+  String id;
+
+  /** @domName HTMLElement.innerHTML */
+  String innerHTML;
+
+  /** @domName HTMLElement.isContentEditable */
+  bool get isContentEditable;
+
+  /** @domName HTMLElement.lang */
+  String lang;
+
+  /** @domName HTMLElement.outerHTML */
+  String get outerHTML;
+
+  /** @domName HTMLElement.spellcheck */
+  bool spellcheck;
+
+  /** @domName HTMLElement.tabIndex */
+  int tabIndex;
+
+  /** @domName HTMLElement.title */
+  String title;
+
+  /** @domName HTMLElement.translate */
+  bool translate;
+
+  /** @domName HTMLElement.webkitdropzone */
+  String webkitdropzone;
+
+  /** @domName HTMLElement.click */
+  void click();
+
+  /** @domName HTMLElement.insertAdjacentElement */
+  Element insertAdjacentElement(String where, Element element);
+
+  /** @domName HTMLElement.insertAdjacentHTML */
+  void insertAdjacentHTML(String where, String html);
+
+  /** @domName HTMLElement.insertAdjacentText */
+  void insertAdjacentText(String where, String text);
+
   static const int ALLOW_KEYBOARD_INPUT = 1;
 
 
@@ -9881,63 +9938,6 @@ class Element extends Node implements ElementTraversal {
 
   /** @domName Element.webkitRequestPointerLock */
   void webkitRequestPointerLock() native "Element_webkitRequestPointerLock_Callback";
-
-  /** @domName HTMLElement.children */
-  HTMLCollection get $dom_children;
-
-  /** @domName HTMLElement.contentEditable */
-  String contentEditable;
-
-  /** @domName HTMLElement.dir */
-  String dir;
-
-  /** @domName HTMLElement.draggable */
-  bool draggable;
-
-  /** @domName HTMLElement.hidden */
-  bool hidden;
-
-  /** @domName HTMLElement.id */
-  String id;
-
-  /** @domName HTMLElement.innerHTML */
-  String innerHTML;
-
-  /** @domName HTMLElement.isContentEditable */
-  bool get isContentEditable;
-
-  /** @domName HTMLElement.lang */
-  String lang;
-
-  /** @domName HTMLElement.outerHTML */
-  String get outerHTML;
-
-  /** @domName HTMLElement.spellcheck */
-  bool spellcheck;
-
-  /** @domName HTMLElement.tabIndex */
-  int tabIndex;
-
-  /** @domName HTMLElement.title */
-  String title;
-
-  /** @domName HTMLElement.translate */
-  bool translate;
-
-  /** @domName HTMLElement.webkitdropzone */
-  String webkitdropzone;
-
-  /** @domName HTMLElement.click */
-  void click();
-
-  /** @domName HTMLElement.insertAdjacentElement */
-  Element insertAdjacentElement(String where, Element element);
-
-  /** @domName HTMLElement.insertAdjacentHTML */
-  void insertAdjacentHTML(String where, String html);
-
-  /** @domName HTMLElement.insertAdjacentText */
-  void insertAdjacentText(String where, String text);
 
 }
 

@@ -9,7 +9,6 @@ native binding from the IDL database."""
 import emitter
 import os
 from generator import *
-from systemhtml import SecureOutputType
 from htmldartgenerator import *
 
 class DartiumBackend(HtmlDartGenerator):
@@ -287,14 +286,15 @@ class DartiumBackend(HtmlDartGenerator):
         TO_NATIVE=to_native_emitter.Fragments(),
         TO_DART=to_dart_emitter.Fragments())
 
-  def AddAttribute(self, attribute, html_name, read_only):
+  def EmitAttribute(self, attribute, html_name, read_only):
     self._AddGetter(attribute, html_name)
     if not read_only:
       self._AddSetter(attribute, html_name)
 
   def _AddGetter(self, attr, html_name):
     type_info = self._TypeInfo(attr.type.id)
-    dart_declaration = '%s get %s' % (SecureOutputType(self, attr.type.id), html_name)
+    dart_declaration = '%s get %s' % (
+        self.SecureOutputType(attr.type.id), html_name)
     is_custom = 'Custom' in attr.ext_attrs or 'CustomGetter' in attr.ext_attrs
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 1,
         dart_declaration, 'Getter', is_custom)
@@ -385,7 +385,8 @@ class DartiumBackend(HtmlDartGenerator):
       self._members_emitter.Emit(
           '\n'
           '  $TYPE operator[](int index) native "$(INTERFACE)_item_Callback";\n',
-          TYPE=SecureOutputType(self, element_type), INTERFACE=self._interface.id)
+          TYPE=self.SecureOutputType(element_type), 
+          INTERFACE=self._interface.id)
 
     if self._HasNativeIndexSetter():
       self._EmitNativeIndexSetter(dart_element_type)
@@ -435,7 +436,8 @@ class DartiumBackend(HtmlDartGenerator):
         'NumericIndexedGetter' in ext_attrs)
 
   def _EmitNativeIndexGetter(self, element_type):
-    dart_declaration = '%s operator[](int index)' % SecureOutputType(self, element_type, True)
+    dart_declaration = '%s operator[](int index)' % \
+        self.SecureOutputType(element_type, True)
     self._GenerateNativeBinding('numericIndexGetter', 2, dart_declaration,
         'Callback', True)
 
@@ -447,7 +449,7 @@ class DartiumBackend(HtmlDartGenerator):
     self._GenerateNativeBinding('numericIndexSetter', 3, dart_declaration,
         'Callback', True)
 
-  def AddOperation(self, info, html_name):
+  def EmitOperation(self, info, html_name):
     """
     Arguments:
       info: An OperationInfo object.
@@ -461,7 +463,7 @@ class DartiumBackend(HtmlDartGenerator):
 
     dart_declaration = '%s%s %s(%s)' % (
         'static ' if info.IsStatic() else '',
-        SecureOutputType(self, info.type_name),
+        self.SecureOutputType(info.type_name),
         html_name,
         info.ParametersDeclaration(
             (lambda x: 'dynamic') if needs_dispatcher else self._DartType))
@@ -513,7 +515,8 @@ class DartiumBackend(HtmlDartGenerator):
 
       dart_declaration = '%s%s _%s(%s)' % (
           'static ' if operation.is_static else '',
-          SecureOutputType(self, operation.type.id), overload_name, argument_list)
+          self.SecureOutputType(operation.type.id), 
+          overload_name, argument_list)
       cpp_callback_name = self._GenerateNativeBinding(
           overload_name, (0 if operation.is_static else 1) + argument_count,
           dart_declaration, 'Callback', False)
