@@ -32,6 +32,8 @@ DEFINE_FLAG(bool, array_bounds_check_elimination, true,
     "Eliminate redundant bounds checks.");
 DEFINE_FLAG(int, max_polymorphic_checks, 4,
     "Maximum number of polymorphic check, otherwise it is megamorphic.");
+DEFINE_FLAG(bool, remove_redundant_phis, false,
+    "Remove redundant phis (disabled as causes incorrect code).");
 
 
 void FlowGraphOptimizer::ApplyICData() {
@@ -3701,10 +3703,12 @@ void ConstantPropagator::Transform() {
   graph_->ComputeDominators(&dominance_frontier);
   graph_->ComputeUseLists();
 
-  for (intptr_t i = 0; i < redundant_phis.length(); i++) {
-    PhiInstr* phi = redundant_phis[i];
-    phi->ReplaceUsesWith(phi->InputAt(0)->definition());
-    phi->mark_dead();
+  if (FLAG_remove_redundant_phis) {
+    for (intptr_t i = 0; i < redundant_phis.length(); i++) {
+      PhiInstr* phi = redundant_phis[i];
+      phi->ReplaceUsesWith(phi->InputAt(0)->definition());
+      phi->mark_dead();
+    }
   }
 
   if (FLAG_trace_constant_propagation) {
