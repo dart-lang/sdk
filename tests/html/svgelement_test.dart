@@ -4,11 +4,11 @@
 
 library SVGElementTest;
 import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_individual_config.dart';
+import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
 
 main() {
-  useHtmlIndividualConfiguration();
+  useHtmlConfiguration();
 
   var isSVGSVGElement =
       predicate((x) => x is SVGSVGElement, 'is a SVGSVGElement');
@@ -33,7 +33,8 @@ main() {
           new SVGElement.svg('<$tagName></$tagName>')), isTrue);
     });
   }
-  group('additionalConstructors', () {
+
+  group('constructors', () {
     group('svg', () {
       test('valid', () {
         final svg = """
@@ -60,6 +61,8 @@ main() {
             throwsArgumentError);
       });
     });
+
+    testConstructor('a', (e) => e is SVGAElement);
     testConstructor('altGlyphDef', (e) => e is SVGAltGlyphDefElement);
     testConstructor('altGlyph', (e) => e is SVGAltGlyphElement);
     testConstructor('animateColor', (e) => e is SVGAnimateColorElement);
@@ -67,7 +70,12 @@ main() {
     // WebKit doesn't recognize animateMotion
     // testConstructor('animateMotion', (e) => e is SVGAnimateMotionElement);
     testConstructor('animateTransform', (e) => e is SVGAnimateTransformElement);
+    testConstructor('circle', (e) => e is SVGCircleElement);
+    testConstructor('clipPath', (e) => e is SVGClipPathElement);
     testConstructor('cursor', (e) => e is SVGCursorElement);
+    testConstructor('defs', (e) => e is SVGDefsElement);
+    testConstructor('desc', (e) => e is SVGDescElement);
+    testConstructor('ellipse', (e) => e is SVGEllipseElement);
     testConstructor('feBlend', (e) => e is SVGFEBlendElement);
     testConstructor('feColorMatrix', (e) => e is SVGFEColorMatrixElement);
     testConstructor('feComponentTransfer',
@@ -103,23 +111,9 @@ main() {
     testConstructor('font-face-src', (e) => e is SVGFontFaceSrcElement);
     testConstructor('font-face-uri', (e) => e is SVGFontFaceUriElement);
     testConstructor('foreignObject', (e) => e is SVGForeignObjectElement);
+    testConstructor('g', (e) => e is SVGGElement);
     testConstructor('glyph', (e) => e is SVGGlyphElement);
     testConstructor('glyphRef', (e) => e is SVGGlyphRefElement);
-    testConstructor('metadata', (e) => e is SVGMetadataElement);
-    testConstructor('missing-glyph', (e) => e is SVGMissingGlyphElement);
-    testConstructor('set', (e) => e is SVGSetElement);
-    testConstructor('tref', (e) => e is SVGTRefElement);
-    testConstructor('vkern', (e) => e is SVGVKernElement);
-  });
-
-  group('constructors', () {
-    testConstructor('a', (e) => e is SVGAElement);
-    testConstructor('circle', (e) => e is SVGCircleElement);
-    testConstructor('clipPath', (e) => e is SVGClipPathElement);
-    testConstructor('defs', (e) => e is SVGDefsElement);
-    testConstructor('desc', (e) => e is SVGDescElement);
-    testConstructor('ellipse', (e) => e is SVGEllipseElement);
-    testConstructor('g', (e) => e is SVGGElement);
     // WebKit doesn't recognize hkern
     // testConstructor('hkern', (e) => e is SVGHKernElement);
     testConstructor('image', (e) => e is SVGImageElement);
@@ -129,6 +123,8 @@ main() {
     // testConstructor('mpath', (e) => e is SVGMPathElement);
     testConstructor('marker', (e) => e is SVGMarkerElement);
     testConstructor('mask', (e) => e is SVGMaskElement);
+    testConstructor('metadata', (e) => e is SVGMetadataElement);
+    testConstructor('missing-glyph', (e) => e is SVGMissingGlyphElement);
     testConstructor('path', (e) => e is SVGPathElement);
     testConstructor('pattern', (e) => e is SVGPatternElement);
     testConstructor('polygon', (e) => e is SVGPolygonElement);
@@ -136,26 +132,27 @@ main() {
     testConstructor('radialGradient', (e) => e is SVGRadialGradientElement);
     testConstructor('rect', (e) => e is SVGRectElement);
     testConstructor('script', (e) => e is SVGScriptElement);
+    testConstructor('set', (e) => e is SVGSetElement);
     testConstructor('stop', (e) => e is SVGStopElement);
     testConstructor('style', (e) => e is SVGStyleElement);
     testConstructor('switch', (e) => e is SVGSwitchElement);
     testConstructor('symbol', (e) => e is SVGSymbolElement);
+    testConstructor('tref', (e) => e is SVGTRefElement);
     testConstructor('tspan', (e) => e is SVGTSpanElement);
     testConstructor('text', (e) => e is SVGTextElement);
     testConstructor('textPath', (e) => e is SVGTextPathElement);
     testConstructor('title', (e) => e is SVGTitleElement);
     testConstructor('use', (e) => e is SVGUseElement);
+    testConstructor('vkern', (e) => e is SVGVKernElement);
     testConstructor('view', (e) => e is SVGViewElement);
   });
 
-  group('outerHTML', () {
-    test('outerHTML', () {
-      final el = new SVGSVGElement();
-      el.elements.add(new SVGElement.tag("circle"));
-      el.elements.add(new SVGElement.tag("path"));
-      expect(el.outerHTML,
-          '<svg version="1.1"><circle></circle><path></path></svg>');
-    });
+  test('outerHTML', () {
+    final el = new SVGSVGElement();
+    el.elements.add(new SVGElement.tag("circle"));
+    el.elements.add(new SVGElement.tag("path"));
+    expect(el.outerHTML,
+        '<svg version="1.1"><circle></circle><path></path></svg>');
   });
 
   group('innerHTML', () {
@@ -175,7 +172,7 @@ main() {
     });
   });
 
-  group('elementget', () {
+  group('elements', () {
     test('get', () {
       final el = new SVGElement.svg("""
 <svg version="1.1">
@@ -185,9 +182,7 @@ main() {
 </svg>""");
       expect(_nodeStrings(el.elements), ["circle", "path"]);
     });
-  });
 
-  group('elementset', () {
     test('set', () {
       final el = new SVGSVGElement();
       el.elements = [new SVGElement.tag("circle"), new SVGElement.tag("path")];

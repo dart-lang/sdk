@@ -427,21 +427,7 @@ class StandardTestSuite implements TestSuite {
       enqueueStandardTest(info, testName, expectations);
     } else if (TestUtils.isBrowserRuntime(configuration['runtime'])) {
       bool isWrappingRequired = configuration['compiler'] != 'dart2js';
-      if (info.optionsFromFile['isMultiHtmlTest']) {
-        // A browser multi-test has multiple expectations for one test file.
-        // Find all the different sub-test expecations for one entire test file.
-        List<String> subtestNames = info.optionsFromFile['subtestNames'];
-        Map<String, Set<String>> multiHtmlTestExpectations = {};
-        for (String name in subtestNames) {
-          String fullTestName = '$testName/$name';
-          multiHtmlTestExpectations[fullTestName] =
-              testExpectations.expectations(fullTestName);
-        }
-        enqueueBrowserTest(info, testName, multiHtmlTestExpectations,
-            isWrappingRequired);
-      } else {
-        enqueueBrowserTest(info, testName, expectations, isWrappingRequired);
-      }
+      enqueueBrowserTest(info, testName, expectations, isWrappingRequired);
     } else {
       enqueueStandardTest(info, testName, expectations);
     }
@@ -593,15 +579,13 @@ class StandardTestSuite implements TestSuite {
    * JavaScript version of the test, and copies the appropriate framework
    * files to that directory.  It creates a [BrowserTestCase], which has
    * two sequential steps to be run by the [ProcessQueue] when the test is
-   * executed: a compilation step and an execution step, both with the 
-   * appropriate executable and arguments. The [expectations] object can be
-   * either a Set<String> if the test is a regular test, or a Map<String
-   * subTestName, Set<String>> if we are running a browser multi-test (one
-   * compilation and many browser runs).
+   * executed: a compilation
+   * step and an execution step, both with the appropriate executable and
+   * arguments.
    */
   void enqueueBrowserTest(TestInformation info,
                           String testName,
-                          Object expectations,
+                          Set<String> expectations,
                           bool isWrappingRequired) {
     Map optionsFromFile = info.optionsFromFile;
     Path filePath = info.filePath;
@@ -722,78 +706,44 @@ class StandardTestSuite implements TestSuite {
         }
       }
 
-      // Variables for browser multi-tests.
-      List<String> subtestNames = info.optionsFromFile['subtestNames'];
-      TestCase multitestParentTest;
-      int subtestIndex = 0;
       // Construct the command that executes the browser test
-      do {
-        List<String> args = <String>[];
-        String fullHtmlPath = htmlPath;
-        if (info.optionsFromFile['isMultiHtmlTest']
-            && subtestNames.length > 0) {
-          fullHtmlPath = '${htmlPath}#${subtestNames[subtestIndex]}';
+      List<String> args;
+      if (TestUtils.usesWebDriver(runtime)) {
+        args = [dartDir.append('tools/testing/run_selenium.py').toNativePath(),
+            '--browser=$runtime',
+            '--timeout=${configuration["timeout"] - 2}',
+            '--out=$htmlPath'];
+        if (runtime == 'dartium') {
+          args.add('--executable=$dartiumFilename');
         }
-        if (TestUtils.usesWebDriver(runtime)) {
-          args = [
-              dartDir.append('tools/testing/run_selenium.py').toNativePath(),
-              '--browser=$runtime',
-              '--timeout=${configuration["timeout"] - 2}',
-              '--out="$fullHtmlPath"'];
-          if (runtime == 'dartium') {
-            args.add('--executable=$dartiumFilename');
+      } else {
+        args = [
+            dartDir.append('tools/testing/drt-trampoline.py').toNativePath(),
+            dumpRenderTreeFilename,
+            '--no-timeout'
+        ];
+        if (runtime == 'drt' &&
+            (compiler == 'none' || compiler == 'dart2dart')) {
+          var dartFlags = ['--ignore-unrecognized-flags'];
+          if (configuration["checked"]) {
+            dartFlags.add('--enable_asserts');
+            dartFlags.add("--enable_type_checks");
           }
-        } else {
-          args = [
-              dartDir.append('tools/testing/drt-trampoline.py').toNativePath(),
-              dumpRenderTreeFilename,
-              '--no-timeout'
-          ];
-          if (runtime == 'drt' &&
-              (compiler == 'none' || compiler == 'dart2dart')) {
-            var dartFlags = ['--ignore-unrecognized-flags'];
-            if (configuration["checked"]) {
-              dartFlags.add('--enable_asserts');
-              dartFlags.add("--enable_type_checks");
-            }
-            dartFlags.addAll(vmOptions);
-            args.add('--dart-flags=${Strings.join(dartFlags, " ")}');
-          }
-          args.add(fullHtmlPath);
-          if (expectedOutput != null) {
-            args.add('--out-expectation=${expectedOutput.toNativePath()}');
-          }
+          dartFlags.addAll(vmOptions);
+          args.add('--dart-flags=${Strings.join(dartFlags, " ")}');
         }
-        List<String> commandSet = new List<String>.from(commands);
-        if (subtestIndex != 0) {
-         commandSet = [];
-         args.add('--force-refresh');
+        args.add(htmlPath);
+        if (expectedOutput != null) {
+          args.add('--out-expectation=${expectedOutput.toNativePath()}');
         }
-        commandSet.add(new Command('python', args));
+      }
+      commands.add(new Command('python', args));
 
-        // Create BrowserTestCase and queue it.
-        String testDisplayName = '$suiteName/$testName';
-        var testCase;
-        if (info.optionsFromFile['isMultiHtmlTest']) {
-          testDisplayName = '$testDisplayName/${subtestNames[subtestIndex]}';
-          testCase = new BrowserTestCase(testDisplayName,
-              commandSet, configuration, completeHandler,
-              expectations['$testName/${subtestNames[subtestIndex]}'],
-              info, info.hasCompileError || info.hasRuntimeError,
-              subtestIndex != 0);
-        } else {
-          testCase = new BrowserTestCase(testDisplayName,
-              commandSet, configuration, completeHandler, expectations,
-              info, info.hasCompileError || info.hasRuntimeError, false);
-        }
-        if (subtestIndex == 0) {
-          multitestParentTest = testCase;
-        } else {
-          multitestParentTest.addObserver(testCase);
-        }
-        doTest(testCase);
-        subtestIndex++;
-      } while(subtestIndex < subtestNames.length);
+      // Create BrowserTestCase and queue it.
+      var testCase = new BrowserTestCase('$suiteName/$testName',
+          commands, configuration, completeHandler, expectations,
+          info, info.hasCompileError || info.hasRuntimeError);
+      doTest(testCase);
     }
   }
 
@@ -1019,8 +969,6 @@ class StandardTestSuite implements TestSuite {
     RegExp dartOptionsRegExp = const RegExp(r"// DartOptions=(.*)");
     RegExp otherScriptsRegExp = const RegExp(r"// OtherScripts=(.*)");
     RegExp multiTestRegExp = const RegExp(r"/// [0-9][0-9]:(.*)");
-    RegExp multiHtmlTestRegExp =
-        const RegExp(r"useHtmlIndividualConfiguration()");
     RegExp staticTypeRegExp =
         const RegExp(r"/// ([0-9][0-9]:){0,1}\s*static type warning");
     RegExp compileTimeRegExp =
@@ -1087,7 +1035,6 @@ class StandardTestSuite implements TestSuite {
     }
 
     bool isMultitest = multiTestRegExp.hasMatch(contents);
-    bool isMultiHtmlTest = multiHtmlTestRegExp.hasMatch(contents);
     bool containsLeadingHash = leadingHashRegExp.hasMatch(contents);
     Match isolateMatch = isolateStubsRegExp.firstMatch(contents);
     String isolateStubs = isolateMatch != null ? isolateMatch[1] : '';
@@ -1103,20 +1050,6 @@ class StandardTestSuite implements TestSuite {
       numCompileTimeAnnotations++;
     }
 
-    // Note: This is brittle. It's the age-old problem of having a context free
-    // language but the means to easily identify the construct is a regular
-    // expression, aka impossible. Therefore we just make an approximation of
-    // the number of top-level "group(...)" occurrences. This assumes you import
-    // unittest with no prefix and always directly call "group(". It only uses
-    // top-level "groups" so tests running nested groups will be no-ops.
-    RegExp numTests = new RegExp(r"\s*[^/]\s*group\('[^,']*");
-    List<String> subtestNames = [];
-    Iterator matchesIter = numTests.allMatches(contents).iterator();
-    while(matchesIter.hasNext && isMultiHtmlTest) {
-      String fullMatch = matchesIter.next().group(0);
-      subtestNames.add(fullMatch.substring(fullMatch.indexOf("'") + 1));
-    }
-
     return { "vmOptions": result,
              "dartOptions": dartOptions,
              "hasCompileError": hasCompileError,
@@ -1124,8 +1057,6 @@ class StandardTestSuite implements TestSuite {
              "isStaticClean" : isStaticClean,
              "otherScripts": otherScripts,
              "isMultitest": isMultitest,
-             "isMultiHtmlTest": isMultiHtmlTest,
-             "subtestNames": subtestNames,
              "containsLeadingHash": containsLeadingHash,
              "isolateStubs": isolateStubs,
              "containsDomImport": containsDomImport,

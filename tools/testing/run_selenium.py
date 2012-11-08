@@ -71,18 +71,15 @@ CONFIGURATIONS = {
     'dromaeo': dromaeo_test_done
 }
 
-def run_test_in_browser(browser, html_out, timeout, mode, refresh):
+def run_test_in_browser(browser, html_out, timeout, mode):
   """Run the desired test in the browser using Selenium 2.0 WebDriver syntax,
   and wait for the test to complete. This is the newer syntax, that currently
   supports Firefox, Chrome, IE, Opera (and some mobile browsers)."""
 
   if isinstance(browser, selenium.selenium):
-    return run_test_in_browser_selenium_rc(browser, html_out, timeout, mode,
-        refresh)
+    return run_test_in_browser_selenium_rc(browser, html_out, timeout, mode)
 
   browser.get("file://" + html_out)
-  if refresh:
-    browser.refresh()
   try:
     test_done = CONFIGURATIONS[mode]
     element = WebDriverWait(browser, float(timeout)).until(
@@ -91,13 +88,11 @@ def run_test_in_browser(browser, html_out, timeout, mode, refresh):
   except selenium.common.exceptions.TimeoutException:
     return TIMEOUT_ERROR_MSG
 
-def run_test_in_browser_selenium_rc(sel, html_out, timeout, mode, refresh):
+def run_test_in_browser_selenium_rc(sel, html_out, timeout, mode):
   """ Run the desired test in the browser using Selenium 1.0 syntax, and wait
   for the test to complete. This is used for Safari, since it is not currently
   supported on Selenium 2.0."""
   sel.open('file://' + html_out)
-  if refresh:
-    sel.refresh()
   source = sel.get_html_source()
   end_condition = CONFIGURATIONS[mode]
 
@@ -129,16 +124,12 @@ def parse_args(args=None):
   parser.add_option('--mode', dest = 'mode',
       help = 'The type of test we are running',
       action = 'store', default='correctness')
-  parser.add_option('--force-refresh', dest='refresh',
-      help='Force the browser to refresh before getting results from this test '
-      '(used for browser multitests).', action='store_true', default=False)
   args, _ = parser.parse_args(args=args)
   args.out = args.out.strip('"')
   if args.executable and args.browser != 'dartium':
     print 'Executable path only supported when browser=dartium.'
     sys.exit(1)
-  return (args.out, args.browser, args.executable, args.timeout, args.mode,
-      args.refresh)
+  return args.out, args.browser, args.executable, args.timeout, args.mode
 
 def print_server_error():
   """Provide the user an informative error message if we attempt to connect to
@@ -292,7 +283,7 @@ def run_batch_tests():
         break
 
       (html_out, browser_name, executable_path,
-       timeout, mode, refresh) = parse_args(line.split())
+       timeout, mode) = parse_args(line.split())
 
       # Sanity checks that test.dart is passing flags we can handle.
       if mode != 'correctness':
@@ -308,7 +299,7 @@ def run_batch_tests():
         current_browser_name = browser_name
         browser = start_browser(browser_name, executable_path, html_out)
 
-      source = run_test_in_browser(browser, html_out, timeout, mode, refresh)
+      source = run_test_in_browser(browser, html_out, timeout, mode)
 
       # Test is done. Write end token to stderr and flush.
       sys.stderr.write('>>> EOF STDERR\n')
@@ -354,11 +345,11 @@ def main(args):
     return run_batch_tests()
 
   # Run a single test
-  html_out, browser_name, executable_path, timeout, mode, refresh = parse_args()
+  html_out, browser_name, executable_path, timeout, mode = parse_args()
   browser = start_browser(browser_name, executable_path, html_out)
 
   try:
-    output = run_test_in_browser(browser, html_out, timeout, mode, refresh)
+    output = run_test_in_browser(browser, html_out, timeout, mode)
     return report_results(mode, output, browser)
   finally:
     close_browser(browser)
