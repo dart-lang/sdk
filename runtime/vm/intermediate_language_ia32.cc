@@ -1732,13 +1732,15 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
     summary->set_out(Location::SameAsFirstInput());
     return summary;
   } else if (op_kind() == Token::kSHL) {
-    const intptr_t kNumTemps = 1;
+    // Two Smi operands can easily overflow into Mint.
+    const intptr_t kNumTemps = 2;
     LocationSummary* summary =
-        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    summary->set_in(0, Location::RequiresRegister());
-    summary->set_in(1, Location::FixedRegisterOrConstant(right(), ECX));
-    summary->set_temp(0, Location::RequiresRegister());
-    summary->set_out(Location::SameAsFirstInput());
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+    summary->set_in(0, Location::RegisterLocation(EAX));
+    summary->set_in(1, Location::RegisterLocation(EDX));
+    summary->set_temp(0, Location::RegisterLocation(EBX));
+    summary->set_temp(1, Location::RegisterLocation(ECX));
+    summary->set_out(Location::RegisterLocation(EAX));
     return summary;
   } else {
     const intptr_t kNumTemps = 0;
@@ -1818,27 +1820,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
         __ sarl(left, Immediate(value));
         __ SmiTag(left);
-        break;
-      }
-      case Token::kSHL: {
-        // shll operation masks the count to 5 bits.
-        const intptr_t kCountLimit = 0x1F;
-        intptr_t value = Smi::Cast(constant).Value();
-        if (value == 0) break;
-        if ((value < 0) || (value >= kCountLimit)) {
-          // This condition may not be known earlier in some cases because
-          // of constant propagation, inlining, etc.
-          __ jmp(deopt);
-          break;
-        }
-        Register temp = locs()->temp(0).reg();
-        __ movl(temp, left);
-        __ shll(left, Immediate(value));
-        __ sarl(left, Immediate(value));
-        __ cmpl(left, temp);
-        __ j(NOT_EQUAL, deopt);  // Overflow.
-        // Shift for result now we know there is no overflow.
-        __ shll(left, Immediate(value));
         break;
       }
 
@@ -1925,6 +1906,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     case Token::kSHL: {
       Register temp = locs()->temp(0).reg();
+      Label call_method, done;
       // Check if count too large for handling it inlined.
       __ movl(temp, left);
       Range* right_range = this->right()->definition()->range();
@@ -1933,17 +1915,38 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       if (right_needs_check) {
         __ cmpl(right,
           Immediate(reinterpret_cast<int32_t>(Smi::New(Smi::kBits))));
-        __ j(ABOVE_EQUAL, deopt);
+        __ j(ABOVE_EQUAL, &call_method, Assembler::kNearJump);
       }
-      ASSERT(right == ECX);  // Count must be in ECX
-      __ SmiUntag(right);
+      Register right_temp = locs()->temp(1).reg();
+      ASSERT(right_temp == ECX);  // Count must be in ECX
+      __ movl(right_temp, right);
+      __ SmiUntag(right_temp);
       // Overflow test (preserve temp and right);
-      __ shll(left, right);
-      __ sarl(left, right);
+      __ shll(left, right_temp);
+      __ sarl(left, right_temp);
       __ cmpl(left, temp);
-      __ j(NOT_EQUAL, deopt);  // Overflow.
+      __ j(NOT_EQUAL, &call_method, Assembler::kNearJump);  // Overflow.
       // Shift for result now we know there is no overflow.
-      __ shll(left, right);
+      __ shll(left, right_temp);
+      __ jmp(&done);
+      {
+        __ Bind(&call_method);
+        Function& target = Function::ZoneHandle(
+            ic_data()->GetTargetForReceiverClassId(kSmiCid));
+        ASSERT(!target.IsNull());
+        const intptr_t kArgumentCount = 2;
+        __ pushl(temp);
+        __ pushl(right);
+        compiler->GenerateStaticCall(
+            deopt_id(),
+            instance_call()->token_pos(),
+            target,
+            kArgumentCount,
+            Array::Handle(),  // No argument names.
+            locs());
+        ASSERT(result == EAX);
+      }
+      __ Bind(&done);
       break;
     }
     case Token::kDIV: {

@@ -681,16 +681,9 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     case Token::kADD:
     case Token::kSUB:
       if (HasOnlyTwoSmis(ic_data)) {
-        // Don't generate smi code if the IC data is marked because
-        // of an overflow.
-        operands_type = (ic_data.deopt_reason() == kDeoptBinarySmiOp)
-            ? kMintCid
-            : kSmiCid;
+        operands_type = kSmiCid;
       } else if (HasTwoMintOrSmi(ic_data) &&
                  FlowGraphCompiler::SupportsUnboxedMints()) {
-        // Don't generate mint code if the IC data is marked because of an
-        // overflow.
-        if (ic_data.deopt_reason() == kDeoptBinaryMintOp) return false;
         operands_type = kMintCid;
       } else if (ShouldSpecializeForDouble(ic_data)) {
         operands_type = kDoubleCid;
@@ -700,10 +693,6 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       break;
     case Token::kMUL:
       if (HasOnlyTwoSmis(ic_data)) {
-        // Don't generate smi code if the IC data is marked because of an
-        // overflow.
-        // TODO(fschneider): Add unboxed mint multiplication.
-        if (ic_data.deopt_reason() == kDeoptBinarySmiOp) return false;
         operands_type = kSmiCid;
       } else if (ShouldSpecializeForDouble(ic_data)) {
         operands_type = kDoubleCid;
@@ -730,7 +719,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     case Token::kBIT_XOR:
       if (HasOnlyTwoSmis(ic_data)) {
         operands_type = kSmiCid;
-      } else if (HasTwoMintOrSmi(ic_data)) {
+      } else if (HasTwoMintOrSmi(ic_data) &&
+                 FlowGraphCompiler::SupportsUnboxedMints()) {
         operands_type = kMintCid;
       } else {
         return false;
@@ -739,19 +729,11 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     case Token::kSHR:
     case Token::kSHL:
       if (HasOnlyTwoSmis(ic_data)) {
-        // Left shift may overflow from smi into mint or big ints.
-        // Don't generate smi code if the IC data is marked because
-        // of an overflow.
-        if (ic_data.deopt_reason() == kDeoptShiftMintOp) return false;
-        operands_type = (ic_data.deopt_reason() == kDeoptBinarySmiOp)
-            ? kMintCid
-            : kSmiCid;
-      } else if (HasTwoMintOrSmi(ic_data) &&
+        operands_type = kSmiCid;
+      } else if (FlowGraphCompiler::SupportsUnboxedMints() &&
+                 HasTwoMintOrSmi(ic_data) &&
                  HasOnlyOneSmi(ICData::Handle(
                      ic_data.AsUnaryClassChecksForArgNr(1)))) {
-        // Don't generate mint code if the IC data is marked because of an
-        // overflow.
-        if (ic_data.deopt_reason() == kDeoptShiftMintOp) return false;
         // Check for smi/mint << smi or smi/mint >> smi.
         operands_type = kMintCid;
       } else {
@@ -760,7 +742,6 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       break;
     case Token::kTRUNCDIV:
       if (HasOnlyTwoSmis(ic_data)) {
-        if (ic_data.deopt_reason() == kDeoptBinarySmiOp) return false;
         operands_type = kSmiCid;
       } else {
         return false;
@@ -789,7 +770,6 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     call->ReplaceWith(double_bin_op, current_iterator());
     RemovePushArguments(call);
   } else if (operands_type == kMintCid) {
-    if (!FlowGraphCompiler::SupportsUnboxedMints()) return false;
     Value* left = call->ArgumentAt(0)->value();
     Value* right = call->ArgumentAt(1)->value();
     if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {

@@ -2570,8 +2570,6 @@ class Code : public Object {
   uword GetDeoptBeforePcAtDeoptId(intptr_t deopt_id) const;
   uword GetDeoptAfterPcAtDeoptId(intptr_t deopt_id) const;
 
-  uword GetPcForDeoptId(intptr_t deopt_id, PcDescriptors::Kind kind) const;
-
   // Returns true if there is an object in the code between 'start_offset'
   // (inclusive) and 'end_offset' (exclusive).
   bool ObjectExistsInArea(intptr_t start_offest, intptr_t end_offset) const;
@@ -2628,6 +2626,7 @@ class Code : public Object {
     *PointerOffsetAddrAt(index) = offset_in_instructions;
   }
 
+  uword GetPcForDeoptId(intptr_t deopt_id, PcDescriptors::Kind kind) const;
 
   // New is a private method as RawInstruction and RawCode objects should
   // only be created using the Code::FinalizeCode method. This method creates
@@ -2786,12 +2785,6 @@ class ICData : public Object {
   intptr_t deopt_id() const {
     return raw_ptr()->deopt_id_;
   }
-
-  intptr_t deopt_reason() const {
-    return raw_ptr()->deopt_reason_;
-  }
-
-  void set_deopt_reason(intptr_t reason) const;
 
   intptr_t NumberOfChecks() const;
 

@@ -49,7 +49,15 @@ DECLARE_RUNTIME_ENTRY(UpdateICDataTwoArgs);
 
 #define DEOPT_REASONS(V)                                                       \
   V(Unknown)                                                                   \
+  V(IncrLocal)                                                                 \
+  V(IncrInstance)                                                              \
+  V(IncrInstanceOneClass)                                                      \
+  V(InstanceGetterSameTarget)                                                  \
   V(InstanceGetter)                                                            \
+  V(StoreIndexed)                                                              \
+  V(StoreIndexedPolymorphic)                                                   \
+  V(PolymorphicInstanceCallSmiOnly)                                            \
+  V(PolymorphicInstanceCallSmiFail)                                            \
   V(PolymorphicInstanceCallTestFail)                                           \
   V(InstanceCallNoICData)                                                      \
   V(IntegerToDouble)                                                           \
@@ -57,10 +65,20 @@ DECLARE_RUNTIME_ENTRY(UpdateICDataTwoArgs);
   V(BinaryMintOp)                                                              \
   V(ShiftMintOp)                                                               \
   V(BinaryDoubleOp)                                                            \
+  V(InstanceSetterSameTarget)                                                  \
   V(InstanceSetter)                                                            \
+  V(SmiEquality)                                                               \
   V(Equality)                                                                  \
   V(RelationalOp)                                                              \
+  V(SmiCompareSmi)                                                             \
+  V(SmiCompareAny)                                                             \
+  V(DoubleCompareDouble)                                                       \
+  V(EqualityNoFeedback)                                                        \
   V(EqualityClassCheck)                                                        \
+  V(DoubleComparison)                                                          \
+  V(LoadIndexedFixedArray)                                                     \
+  V(LoadIndexedGrowableArray)                                                  \
+  V(LoadIndexedPolymorphic)                                                    \
   V(NoTypeFeedback)                                                            \
   V(UnaryOp)                                                                   \
   V(UnboxInteger)                                                              \

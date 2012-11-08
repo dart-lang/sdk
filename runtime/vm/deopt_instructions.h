@@ -7,7 +7,6 @@
 
 #include "vm/allocation.h"
 #include "vm/assembler.h"
-#include "vm/code_generator.h"
 #include "vm/growable_array.h"
 #include "vm/object.h"
 
@@ -25,8 +24,7 @@ class DeoptimizationContext : public ValueObject {
   DeoptimizationContext(intptr_t* to_frame_start,
                         intptr_t to_frame_size,
                         const Array& object_table,
-                        intptr_t num_args,
-                        DeoptReasonId deopt_reason);
+                        intptr_t num_args);
 
   intptr_t* GetFromFrameAddressAt(intptr_t index) const {
     ASSERT((0 <= index) && (index < from_frame_size_));
@@ -64,8 +62,6 @@ class DeoptimizationContext : public ValueObject {
 
   intptr_t from_frame_size() const { return from_frame_size_; }
 
-  DeoptReasonId deopt_reason() const { return deopt_reason_; }
-
  private:
   const Array& object_table_;
   intptr_t* to_frame_;
@@ -75,7 +71,6 @@ class DeoptimizationContext : public ValueObject {
   intptr_t* registers_copy_;
   double* xmm_registers_copy_;
   const intptr_t num_args_;
-  const DeoptReasonId deopt_reason_;
   intptr_t caller_fp_;
   Isolate* isolate_;
 
