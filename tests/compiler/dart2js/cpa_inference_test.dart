@@ -354,34 +354,40 @@ testGetters() {
         var x;
         A(this.x);
         get y => x;
+        get z => y;
       }
       main() {
         var a = new A(42);
         var foo = a.x;
         var bar = a.y;
-        foo; bar;
+        var baz = a.z;
+        foo; bar; baz;
       }
       """;
   AnalysisResult result = analyze(source);
   result.checkNodeHasType('foo', [result.int]);
   result.checkNodeHasType('bar', [result.int]);
+  result.checkNodeHasType('baz', [result.int]);
 }
 
 testSetters() {
   final String source = r"""
       class A {
         var x;
-        A(this.x);
-        set y(a) { x = a; }
+        var w;
+        A(this.x, this.w);
+        set y(a) { x = a; z = a; }
+        set z(a) { w = a; }
       }
       main() {
-        var a = new A(42);
+        var a = new A(42, 42);
         a.x = 'abc';
         a.y = true;
       }
       """;
   AnalysisResult result = analyze(source);
   result.checkFieldHasType('A', 'x', [result.int, result.string, result.bool]);
+  result.checkFieldHasType('A', 'w', [result.int, result.bool]);
 }
 
 testNamedParameters() {
@@ -521,6 +527,67 @@ testOperators() {
   result.checkNodeHasType('y', [result.string]);
 }
 
+testCompoundOperators1() {
+  final String source = r"""
+      class A {
+        operator +(x) => "foo";
+      }
+      main() {
+        var x1 = 1; x1++;
+        var x2 = 1; ++x2;
+        var x3 = new A(); x3++;
+        var x4 = new A(); ++x4;
+
+        x1; x2; x3; x4;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('x1', [result.int]);
+  result.checkNodeHasType('x2', [result.int]);
+  result.checkNodeHasType('x3', [result.string]);
+  result.checkNodeHasType('x4', [result.string]);
+}
+
+
+testCompoundOperators2() {
+  final String source = r"""
+    class A {
+      var xx;
+      var witness1;
+      var witness2;
+
+      A(this.xx);
+      get x { witness1 = "foo"; return xx; }
+      set x(y) { witness2 = "foo"; xx = y; }
+    }
+    main () {
+      var a = new A(1);
+      a.x++;
+    }
+    """;
+  AnalysisResult result = analyze(source);
+  result.checkFieldHasType('A', 'xx', [result.int]);
+  // TODO(polux): the two following results should be {null, string}, see
+  // fieldInitialization().
+  result.checkFieldHasType('A', 'witness1', [result.string]);
+  result.checkFieldHasType('A', 'witness2', [result.string]);
+}
+
+testFieldInitialization() {
+  final String source = r"""
+    class A {
+      var x;
+      var y = 1;
+    }
+    main () {
+      new A();
+    }
+    """;
+  AnalysisResult result = analyze(source);
+  result.checkFieldHasType('A', 'x', [result.nullType]);
+  result.checkFieldHasType('A', 'y', [result.int]);
+}
+
 void main() {
   testLiterals();
   testRedefinition();
@@ -544,4 +611,7 @@ void main() {
   // testNoReturn(); // right now we infer the empty type instead of null
   testArithmeticOperators();
   testOperators();
+  testCompoundOperators1();
+  testCompoundOperators2();
+  // testFieldInitialization(); // TODO(polux)
 }

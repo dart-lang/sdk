@@ -484,7 +484,7 @@ class ConcreteTypesInferrer {
   List<FunctionElement> getMembersByName(SourceString methodName) {
     // TODO(polux): make this faster!
     var result = new List<FunctionElement>();
-    for (final cls in compiler.enqueuer.resolution.seenClasses) {
+    for (ClassElement cls in compiler.enqueuer.resolution.seenClasses) {
       Element elem = cls.lookupLocalMember(methodName);
       if (elem != null) {
         result.add(elem);
@@ -992,55 +992,93 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     inferrer.fail(node, 'not yet implemented');
   }
 
+  ConcreteType analyzeSetElement(Element receiver, ConcreteType argumentType) {
+    environment = environment.put(receiver, argumentType);
+    if (receiver.isField()) {
+      inferrer.augmentFieldType(receiver, argumentType);
+    } else if (receiver.isSetter()){
+      FunctionElement setter = receiver;
+      // TODO(polux): A setter always returns void so there's no need to
+      // invalidate its callers even if it is called with new arguments.
+      // However, if we start to record more than returned types, like
+      // exceptions for instance, we need to do it by uncommenting the following
+      // line.
+      // inferrer.addCaller(setter, currentMethod);
+      BaseType baseReceiverType = new ClassBaseType(receiver.enclosingElement);
+      inferrer.getSendReturnType(setter, baseReceiverType,
+          new ArgumentsTypes([argumentType], new Map()));
+    }
+    return argumentType;
+  }
+
+  ConcreteType analyzeSetNode(Node receiver, ConcreteType argumentType,
+                              SourceString source) {
+    ConcreteType receiverType = analyze(receiver);
+
+    void augmentField(BaseType baseReceiverType, Element fieldOrSetter) {
+      if (fieldOrSetter.isField()) {
+        inferrer.augmentFieldType(fieldOrSetter, argumentType);
+      } else {
+        AbstractFieldElement abstractField = fieldOrSetter;
+        FunctionElement setter = abstractField.setter;
+        // TODO(polux): A setter always returns void so there's no need to
+        // invalidate its callers even if it is called with new arguments.
+        // However, if we start to record more than returned types, like
+        // exceptions for instance, we need to do it by uncommenting the
+        // following line.
+        // inferrer.addCaller(setter, currentMethod);
+        inferrer.getSendReturnType(setter, baseReceiverType,
+            new ArgumentsTypes([argumentType], new Map()));
+      }
+    }
+
+    if (receiverType.isUnkown()) {
+      for (FunctionElement member in inferrer.getMembersByName(source)) {
+        Element classElem = member.getEnclosingClass();
+        BaseType baseReceiverType = new ClassBaseType(classElem);
+        augmentField(baseReceiverType, member);
+      }
+    } else {
+      for (ClassBaseType baseReceiverType in receiverType.baseTypes) {
+        Element member = baseReceiverType.element.lookupMember(source);
+        if (member != null) {
+          augmentField(baseReceiverType, member);
+        }
+      }
+    }
+    return argumentType;
+  }
+
+  SourceString canonicalizeCompoundOperator(String op) {
+    if (op == '++') return const SourceString(r'operator$add');
+    else return const SourceString(r'operator$sub');
+  }
+
   // TODO(polux): handle sendset as expression
   ConcreteType visitSendSet(SendSet node) {
     Identifier selector = node.selector;
     final name = node.assignmentOperator.source.stringValue;
-    if (identical(name, '++') || identical(name, '--')) {
-      inferrer.fail(node, 'not yet implemented');
+    ConcreteType argumentType;
+    if (name == '++' || name == '--') {
+      ConcreteType receiverType = visitGetterSend(node);
+      SourceString canonicalizedMethodName = canonicalizeCompoundOperator(name);
+      List<ConcreteType> positionalArguments = <ConcreteType>[
+          new ConcreteType.singleton(inferrer.baseTypes.intBaseType)];
+      ArgumentsTypes argumentsTypes =
+          new ArgumentsTypes(positionalArguments, new Map());
+      argumentType = analyzeDynamicSend(receiverType, canonicalizedMethodName,
+                                        argumentsTypes);
     } else {
-      Element element = elements[node];
-      if (element != null) {
-        ConcreteType type = analyze(node.argumentsNode);
-        environment = environment.put(elements[node], type);
-        if (element.isField()) {
-          inferrer.augmentFieldType(element, type);
-        }
-      } else {
-        ConcreteType receiverType = analyze(node.receiver);
-        ConcreteType type = analyze(node.argumentsNode);
-        SourceString source = node.selector.asIdentifier().source;
-
-        void augmentField(BaseType baseReceiverType, Element fieldOrSetter) {
-          if (fieldOrSetter.isField()) {
-            inferrer.augmentFieldType(fieldOrSetter, type);
-          } else {
-            FunctionElement setter =
-                (fieldOrSetter as AbstractFieldElement).setter;
-            // TODO: uncomment if we add an effect system
-            //inferrer.addCaller(setter, currentMethod);
-            inferrer.getSendReturnType(setter, baseReceiverType,
-                new ArgumentsTypes([type], new Map()));
-          }
-        }
-
-        if (receiverType.isUnkown()) {
-          for (final member in inferrer.getMembersByName(source)) {
-              Element classElem = member.enclosingElement;
-              BaseType baseReceiverType = new ClassBaseType(classElem);
-              augmentField(baseReceiverType, member);
-            }
-        } else {
-          for (ClassBaseType baseReceiverType in receiverType.baseTypes) {
-            Element member = baseReceiverType.element.lookupMember(source);
-            if (member != null) {
-              augmentField(baseReceiverType, member);
-            }
-          }
-        }
-      }
+      argumentType = analyze(node.argumentsNode);
     }
-    return new ConcreteType.empty();
+
+    Element element = elements[node];
+    if (element != null) {
+      return analyzeSetElement(element, argumentType);
+    } else {
+      return analyzeSetNode(node.receiver, argumentType,
+                            node.selector.asIdentifier().source);
+    }
   }
 
   ConcreteType visitLiteralInt(LiteralInt node) {
@@ -1237,6 +1275,19 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     return visitDynamicSend(node);
   }
 
+  ConcreteType analyzeFieldRead(Element field) {
+    inferrer.addReader(field, currentMethod);
+    return inferrer.getFieldType(field);
+  }
+
+  ConcreteType analyzeGetterSend(BaseType baseReceiverType,
+                                 FunctionElement getter) {
+      inferrer.addCaller(getter, currentMethod);
+      return inferrer.getSendReturnType(getter,
+                                        baseReceiverType,
+                                        new ArgumentsTypes([], new Map()));
+  }
+
   ConcreteType visitGetterSend(Send node) {
     Element element = elements[node];
     if (element != null) {
@@ -1246,9 +1297,15 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         // node is a local variable
         return result;
       } else {
-        // node is a field of this
-        inferrer.addReader(element, currentMethod);
-        return inferrer.getFieldType(element);
+        // node is a field or a getter of this
+        if (element.isField()) {
+          return analyzeFieldRead(element);
+        } else {
+          assert(element.isGetter());
+          ClassBaseType baseReceiverType =
+              new ClassBaseType(element.enclosingElement);
+          return analyzeGetterSend(baseReceiverType, element);
+        }
       }
     } else {
       // node is a field of not(this)
@@ -1257,18 +1314,12 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       ConcreteType result = new ConcreteType.empty();
       void augmentResult(BaseType baseReceiverType, Element getterOrField) {
         if (getterOrField.isField()) {
-          inferrer.addReader(getterOrField, currentMethod);
-          result = result.union(inferrer.getFieldType(getterOrField));
+          result = result.union(analyzeFieldRead(getterOrField));
         } else {
           // call to a getter
-          FunctionElement getter =
-              (getterOrField as AbstractFieldElement).getter;
-          inferrer.addCaller(getter, currentMethod);
-          ConcreteType returnType =
-              inferrer.getSendReturnType(getter,
-                                         baseReceiverType,
-                                         new ArgumentsTypes([], new Map()));
-          result = result.union(returnType);
+          AbstractFieldElement abstractField = getterOrField;
+          result = result.union(analyzeGetterSend(baseReceiverType,
+                                                  abstractField.getter));
         }
       }
 
@@ -1277,7 +1328,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         List<Element> members =
             inferrer.getMembersByName(node.selector.asIdentifier().source);
         for (final member in members) {
-          Element classElement = member.enclosingElement;
+          Element classElement = member.getEnclosingClass();
           ClassBaseType baseReceiverType = new ClassBaseType(classElement);
           augmentResult(baseReceiverType, member);
         }
@@ -1342,18 +1393,15 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         : s;
   }
 
-  ConcreteType visitDynamicSend(Send node) {
-    ConcreteType receiverType = (node.receiver != null)
-        ? analyze(node.receiver)
-        : new ConcreteType.singleton(
-            new ClassBaseType(currentMethod.getEnclosingClass()));
+  ConcreteType analyzeDynamicSend(ConcreteType receiverType,
+                                  SourceString canonicalizedMethodName,
+                                  ArgumentsTypes argumentsTypes) {
     ConcreteType result = new ConcreteType.empty();
-    final argumentsTypes = analyzeArguments(node.arguments);
 
     if (receiverType.isUnkown()) {
-      List<FunctionElement> methods = inferrer.getMembersByName(
-          canonicalizeMethodName(node.selector.asIdentifier().source));
-      for (final method in methods) {
+      List<FunctionElement> methods =
+          inferrer.getMembersByName(canonicalizedMethodName);
+      for (FunctionElement method in methods) {
         inferrer.addCaller(method, currentMethod);
         Element classElem = method.enclosingElement;
         ClassBaseType baseReceiverType = new ClassBaseType(classElem);
@@ -1365,8 +1413,8 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       for (BaseType baseReceiverType in receiverType.baseTypes) {
         if (!baseReceiverType.isNull()) {
           ClassBaseType classBaseReceiverType = baseReceiverType;
-          FunctionElement method = classBaseReceiverType.element
-              .lookupMember(canonicalizeMethodName(node.selector.asIdentifier().source));
+          FunctionElement method = classBaseReceiverType.element.lookupMember(
+              canonicalizedMethodName);
           if (method != null) {
             inferrer.addCaller(method, currentMethod);
             result = result.union(inferrer.getSendReturnType(method,
@@ -1376,6 +1424,17 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       }
     }
     return result;
+  }
+
+  ConcreteType visitDynamicSend(Send node) {
+    ConcreteType receiverType = (node.receiver != null)
+        ? analyze(node.receiver)
+        : new ConcreteType.singleton(
+            new ClassBaseType(currentMethod.getEnclosingClass()));
+    SourceString name =
+        canonicalizeMethodName(node.selector.asIdentifier().source);
+    ArgumentsTypes argumentsTypes = analyzeArguments(node.arguments);
+    return analyzeDynamicSend(receiverType, name, argumentsTypes);
   }
 
   ConcreteType visitForeignSend(Send node) {
