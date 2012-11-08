@@ -855,7 +855,6 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
   InputStream get inputStream {
     if (_inputStream == null) {
       _inputStream = new _HttpInputStream(this);
-      _inputStream._streamMarkedClosed = _dataEndCalled;
     }
     return _inputStream;
   }
@@ -913,8 +912,11 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
   }
 
   void _onDataEnd() {
-    if (_inputStream != null) _inputStream._closeReceived();
-    _dataEndCalled = true;
+    if (_inputStream != null) {
+      _inputStream._closeReceived();
+    } else {
+      inputStream._streamMarkedClosed = true;
+    }
   }
 
   // Escaped characters in uri are expected to have been parsed.
@@ -957,7 +959,6 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
   Map<String, String> _queryParameters;
   _HttpInputStream _inputStream;
   _BufferList _buffer;
-  bool _dataEndCalled = false;
   Function _streamErrorHandler;
   _HttpSession _session;
 }
@@ -1769,7 +1770,6 @@ class _HttpClientResponse
   InputStream get inputStream {
     if (_inputStream == null) {
       _inputStream = new _HttpInputStream(this);
-      _inputStream._streamMarkedClosed = _dataEndCalled;
     }
     return _inputStream;
   }
@@ -1907,8 +1907,11 @@ class _HttpClientResponse
 
   void _onDataEnd() {
     _connection._responseDone();
-    if (_inputStream != null) _inputStream._closeReceived();
-    _dataEndCalled = true;
+    if (_inputStream != null) {
+      _inputStream._closeReceived();
+    } else {
+      inputStream._streamMarkedClosed = true;
+    }
   }
 
   // Delegate functions for the HttpInputStream implementation.
@@ -1936,7 +1939,6 @@ class _HttpClientResponse
   _HttpClientConnection _connection;
   _HttpInputStream _inputStream;
   _BufferList _buffer;
-  bool _dataEndCalled = false;
 
   Function _streamErrorHandler;
 }
