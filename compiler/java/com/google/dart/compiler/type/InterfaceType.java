@@ -32,6 +32,10 @@ public interface InterfaceType extends Type {
   InterfaceType asRawType();
 
   Member lookupMember(String name);
+  
+  void registerSubClass(ClassElement subClass);
+  void unregisterSubClass(ClassElement subClass);
+  Member lookupSubTypeMember(String name);
 
   interface Member {
     InterfaceType getHolder();

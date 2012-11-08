@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 constant_folding_string_test: Fail
-redundant_phi_eliminator_test: Fail # Fails because of hack to allow aborting loops.
 pretty_parameter_test: Fail # TODO(floitsch): investigate.
 tree_shaking_test: Fail # Issue 4811
 

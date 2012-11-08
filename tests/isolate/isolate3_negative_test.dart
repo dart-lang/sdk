@@ -5,9 +5,9 @@
 // Dart test program for testing that errors thrown from isolates are
 // processed correctly and don't result in crashes.
 
-#library('Isolate3NegativeTest');
-#import('dart:isolate');
-#import('../../pkg/unittest/unittest.dart');
+library Isolate3NegativeTest;
+import 'dart:isolate';
+import '../../pkg/unittest/lib/unittest.dart';
 
 class TestClass {
   TestClass.named(num this.fld1) : fld2=fld1 {

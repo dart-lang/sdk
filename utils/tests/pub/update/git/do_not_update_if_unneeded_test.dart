@@ -7,7 +7,7 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/unittest.dart';
+import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
   test("doesn't update one locked Git package's dependencies if it's not "

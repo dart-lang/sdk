@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler.type;
 
+import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.DynamicElement;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.Elements;
@@ -131,6 +132,19 @@ class DynamicTypeImplementation extends AbstractType implements DynamicType {
 
   @Override
   public Map<String, Type> getNamedParameterTypes() {
+    return null;
+  }
+  
+  @Override
+  public void registerSubClass(ClassElement subClass) {
+  }
+  
+  @Override
+  public void unregisterSubClass(ClassElement subClass) {
+  }
+
+  @Override
+  public Member lookupSubTypeMember(String name) {
     return null;
   }
 }

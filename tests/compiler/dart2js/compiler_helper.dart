@@ -7,12 +7,15 @@ library compiler_helper;
 
 import "dart:uri";
 
-import "../../../lib/compiler/implementation/elements/elements.dart" as lego;
-import "../../../lib/compiler/implementation/js_backend/js_backend.dart" as js;
-import "../../../lib/compiler/implementation/dart2jslib.dart" as leg;
-import "../../../lib/compiler/implementation/ssa/ssa.dart" as ssa;
-import "../../../lib/compiler/implementation/util/util.dart";
-import '../../../lib/compiler/implementation/source_file.dart';
+import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart"
+       as lego;
+import "../../../sdk/lib/_internal/compiler/implementation/js_backend/js_backend.dart"
+       as js;
+import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart"
+       as leg;
+import "../../../sdk/lib/_internal/compiler/implementation/ssa/ssa.dart" as ssa;
+import "../../../sdk/lib/_internal/compiler/implementation/util/util.dart";
+import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
 
 import "mock_compiler.dart";
 import "parser_helper.dart";

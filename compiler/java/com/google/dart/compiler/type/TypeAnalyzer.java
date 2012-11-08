@@ -36,6 +36,7 @@ import com.google.dart.compiler.ast.DartCascadeExpression;
 import com.google.dart.compiler.ast.DartCase;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartComment;
 import com.google.dart.compiler.ast.DartConditional;
 import com.google.dart.compiler.ast.DartContinueStatement;
 import com.google.dart.compiler.ast.DartDeclaration;
@@ -218,7 +219,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           return true;
         }
         // was assignment, inferred
-        if (type != null && type.isInferred()) {
+        if (type != null && TypeQuality.isInferred(type)) {
           return true;
         }
         // was declared with type, keep it
@@ -442,7 +443,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
             }
           }
           // may be replace type of variable
-          setVariableElementType(lhsNode.getElement(), rhs);
+          setVariableElementType(lhsNode.getElement(), rhs, getTypeQuality(rhsNode));
           checkAssignableElement(lhsNode);
           // if cascade, then use type of "lhs" qualifier
           if (lhsNode instanceof DartPropertyAccess) {
@@ -653,10 +654,17 @@ public class TypeAnalyzer implements DartCompilationPhase {
       if (member == null) {
         member = itype.lookupMember("setter " + methodName);
       }
+      // is "receiver" is inferred, attempt to find member in one of the subtypes
+      if (member == null) {
+        if (TypeQuality.of(receiver) == TypeQuality.INFERRED && receiver instanceof InterfaceType) {
+          member = ((InterfaceType) receiver).lookupSubTypeMember(methodName);
+        }
+      }
+      // report problem
       if (member == null && problemTarget != null) {
         if (reportNoMemberWhenHasInterceptor || !Elements.handlesNoSuchMethod(itype)) {
-          if (typeChecksForInferredTypes || !receiver.isInferred()) {
-            ErrorCode code = receiver.isInferred()
+          if (typeChecksForInferredTypes || !TypeQuality.isInferred(receiver)) {
+            ErrorCode code = TypeQuality.isInferred(receiver)
                 ? TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED_INFERRED
                 : TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED;
             typeError(problemTarget, code, receiver, methodName);
@@ -671,10 +679,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
      * If left-hand-side is {@link VariableElement} with propagated type, then remember type before
      * current "basic block" and set new type.
      */
-    private void setVariableElementType(Element element, Type rhs) {
+    private void setVariableElementType(Element element, Type type, TypeQuality quality) {
       if (ElementKind.of(element) == ElementKind.VARIABLE) {
         VariableElement variableElement = (VariableElement) element;
-        Type newType = Types.makeInferred(rhs);
+        Type newType = Types.makeInferred(type, quality);
         blockOldTypes.getFirst().setType(variableElement, newType);
       }
     }
@@ -690,7 +698,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
      * @return <code>true</code> if given {@link Element} is has inferred {@link Type}.
      */
     private static boolean hasInferredType(Element element) {
-      return element != null && element.getType() != null && element.getType().isInferred();
+      return element != null && element.getType() != null
+          && element.getType().getQuality() != TypeQuality.EXACT;
     }
 
     /**
@@ -771,7 +780,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
         // apply inferred type
         if (inferredType != null) {
-          if (TypeKind.of(currentType) == TypeKind.DYNAMIC && currentType.isInferred()) {
+          if (TypeKind.of(currentType) == TypeKind.DYNAMIC && TypeQuality.isInferred(currentType)) {
             // if we fell back to Dynamic, keep it
           } else {
             Type unionType = getUnionType(currentType, inferredType);
@@ -784,36 +793,36 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
       }
 
-      /**
-       * @return the {@link Type} which is both "a" and "b" types. May be "dynamic" if "a" and "b"
-       *         don't form hierarchy.
-       */
-      Type getUnionType(Type curType, Type newType) {
-        if (TypeKind.of(curType) == TypeKind.DYNAMIC) {
-          return newType;
-        }
-        if (TypeKind.of(newType) == TypeKind.DYNAMIC) {
-          return curType;
-        }
-        if (types.isSubtype(curType, newType)) {
-          return curType;
-        }
-        if (types.isSubtype(newType, curType)) {
-          return newType;
-        }
-        // if InterfaceType, use union
-        if (curType instanceof InterfaceType && newType instanceof InterfaceType) {
-          return types.unionTypes(ImmutableList.of((InterfaceType) curType, (InterfaceType) newType));
-        }
-        // keep type as is
-        return curType;
-      }
-
       void restore() {
         for (Entry<VariableElement, Type> entry : typesMap.entrySet()) {
           Elements.setType(entry.getKey(), entry.getValue());
         }
       }
+    }
+
+    /**
+     * @return the {@link Type} which is both "a" and "b" types. May be "dynamic" if "a" and "b"
+     *         don't form hierarchy.
+     */
+    private Type getUnionType(Type curType, Type newType) {
+      if (TypeKind.of(curType) == TypeKind.DYNAMIC) {
+        return newType;
+      }
+      if (TypeKind.of(newType) == TypeKind.DYNAMIC) {
+        return curType;
+      }
+      if (types.isSubtype(curType, newType)) {
+        return curType;
+      }
+      if (types.isSubtype(newType, curType)) {
+        return newType;
+      }
+      // if InterfaceType, use union
+      if (curType instanceof InterfaceType && newType instanceof InterfaceType) {
+        return types.unionTypes(ImmutableList.of((InterfaceType) curType, (InterfaceType) newType));
+      }
+      // keep type as is
+      return curType;
     }
 
     /**
@@ -938,11 +947,22 @@ public class TypeAnalyzer implements DartCompilationPhase {
      * If type of variable-like {@link DartDeclaration} (i.e. variables, parameter, field) is not
      * specified and we know somehow this type, then use it.
      */
-    private static void inferVariableDeclarationType(DartDeclaration<?> node, Type type) {
+    private static void inferVariableDeclarationType(DartDeclaration<?> node, DartExpression value) {
+      Type type = value.getType();
+      TypeQuality quality = getTypeQuality(value);
+      inferVariableDeclarationType(node, type, quality);
+    }
+
+    /**
+     * If type of variable-like {@link DartDeclaration} (i.e. variables, parameter, field) is not
+     * specified and we know somehow this type, then use it.
+     */
+    private static void inferVariableDeclarationType(DartDeclaration<?> node, Type type,
+        TypeQuality typeQuality) {
       if (type != null && TypeKind.of(type) != TypeKind.DYNAMIC) {
         Element element = node.getElement();
         if (element != null && TypeKind.of(element.getType()) == TypeKind.DYNAMIC) {
-          Type inferredType = Types.makeInferred(type);
+          Type inferredType = Types.makeInferred(type, typeQuality);
           Elements.setType(element, inferredType);
           node.getName().setType(inferredType);
         }
@@ -976,7 +996,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
           for (int i = 0; i < n; i++) {
             Type requiredNormalParameterType = requiredNormalParameterTypes.get(i);
             DartParameter parameterNode = parameterNodes.get(i);
-            inferVariableDeclarationType(parameterNode, requiredNormalParameterType);
+            inferVariableDeclarationType(parameterNode, requiredNormalParameterType,
+                TypeQuality.INFERRED);
           }
         }
       }
@@ -990,7 +1011,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
         Type newType = blockTypeContext.newTypes.get(variable);
         Type oldType = blockTypeContext.oldTypes.get(variable);
         Type mergedType = types.intersection(newType, oldType);
-        setVariableElementType(variable, mergedType);
+        TypeQuality mergedTypeQuality = Types.getIntersectionQuality(newType, oldType);
+        setVariableElementType(variable, mergedType, mergedTypeQuality);
       }
     }
 
@@ -999,13 +1021,13 @@ public class TypeAnalyzer implements DartCompilationPhase {
       s.getClass(); // Null check.
       // ignore inferred types, treat them as Dynamic
       if (!typeChecksForInferredTypes) {
-        if (t.isInferred() || s.isInferred()) {
+        if (TypeQuality.isInferred(t) || TypeQuality.isInferred(s)) {
           return true;
         }
       }
       // do check and report error
       if (!types.isAssignable(t, s)) {
-        TypeErrorCode errorCode = t.isInferred() || s.isInferred()
+        TypeErrorCode errorCode = TypeQuality.isInferred(t) || TypeQuality.isInferred(s)
             ? TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE_INFERRED
             : TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE;
         typeError(node, errorCode, s, t);
@@ -1034,7 +1056,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private FunctionType getMethodType(Type receiver, Member member, String name,
                                          DartNode diagnosticNode) {
       FunctionType functionType = getMethodType0(receiver, member, name, diagnosticNode);
-      if (receiver.isInferred()) {
+      if (TypeQuality.isInferred(receiver)) {
         functionType = (FunctionType) Types.makeInferred(functionType);
       }
       return functionType;
@@ -1078,8 +1100,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
         }
         default:
-          if (typeChecksForInferredTypes || !receiver.isInferred()) {
-            TypeErrorCode errorCode = receiver.isInferred()
+          if (typeChecksForInferredTypes || !TypeQuality.isInferred(receiver)) {
+            TypeErrorCode errorCode = TypeQuality.isInferred(receiver)
                 ? TypeErrorCode.NOT_A_METHOD_IN_INFERRED : TypeErrorCode.NOT_A_METHOD_IN;
             typeError(diagnosticNode, errorCode, name, receiver);
           }
@@ -1174,33 +1196,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       {
         Set<String> usedNamedParametersPositional = Sets.newHashSet();
         Set<String> usedNamedParametersNamed = Sets.newHashSet();
-        // Prepare named parameters.
         Map<String, Type> namedParameterTypes = ftype.getNamedParameterTypes();
-        Iterator<Entry<String, Type>> namedParameterTypesIterator =
-            namedParameterTypes.entrySet().iterator();
-//        // Check positional arguments for named parameters.
-//        while (namedParameterTypesIterator.hasNext()
-//            && argumentTypes.hasNext()
-//            && !(argumentNodes.get(argumentIndex) instanceof DartNamedExpression)) {
-//          Entry<String, Type> namedEntry = namedParameterTypesIterator.next();
-//          String parameterName = namedEntry.getKey();
-//          usedNamedParametersPositional.add(parameterName);
-//          Type namedType = namedEntry.getValue();
-//          namedType.getClass(); // quick null check
-//          Type argumentType = argumentTypes.next();
-//          argumentType.getClass(); // quick null check
-//          DartExpression argumentNode = argumentNodes.get(argumentIndex);
-//          if (parameters != null) {
-//            argumentNode.setInvocationParameterId(parameters.get(argumentIndex));
-//          } else {
-//            argumentNode.setInvocationParameterId(argumentIndex);
-//          }
-//          if (checkAssignable(argumentNode, namedType, argumentType)) {
-//            inferFunctionLiteralParametersTypes(argumentNode, namedType);
-//          }
-//          argumentIndex++;
-//        }
-        // Check named arguments for named parameters.
         while (argumentTypes.hasNext()
             && argumentNodes.get(argumentIndex) instanceof DartNamedExpression) {
           DartNamedExpression namedExpression =
@@ -1348,11 +1344,18 @@ public class TypeAnalyzer implements DartCompilationPhase {
       if (node == null) {
         return dynamicType;
       }
+      // prepare new type
       Type result = node.accept(this);
       if (result == null) {
          return dynamicType;
       }
-      node.setType(result);
+      // set new type, or keep existing
+      if (node.getType() == null) {
+        node.setType(result);
+      } else {
+        result = node.getType();
+      }
+      // done
       return result;
     }
 
@@ -1446,8 +1449,55 @@ public class TypeAnalyzer implements DartCompilationPhase {
     public Type visitCascadeExpression(DartCascadeExpression node) {
       DartExpression target = node.getTarget();
       Type type = nonVoidTypeOf(target);
+      node.setType(type);
+      inferCascadeType(node);
       node.visitChildren(this);
       return type;
+    }
+
+    /**
+     * Infers {@link Type} of {@link DartCascadeExpression} from context.
+     */
+    private void inferCascadeType(DartCascadeExpression node) {
+      // field declaration
+      if (node.getParent() instanceof DartField) {
+        DartField field = (DartField) node.getParent();
+        Type varType = field.getElement().getType();
+        setCascadeUnionType(node, varType);
+      }
+      // variable declaration
+      if (node.getParent() instanceof DartVariable) {
+        DartVariable var = (DartVariable) node.getParent();
+        Type varType = var.getElement().getType();
+        setCascadeUnionType(node, varType);
+      }
+      // assignment
+      if (node.getParent() instanceof DartBinaryExpression) {
+        DartBinaryExpression binary = (DartBinaryExpression) node.getParent();
+        if (binary.getOperator() == Token.ASSIGN && binary.getArg2() == node
+            && binary.getArg1() != null) {
+          Element leftElement = binary.getArg1().getElement();
+          if (leftElement != null) {
+            Type varType = leftElement.getType();
+            setCascadeUnionType(node, varType);
+          }
+        }
+      }
+    }
+
+    /**
+     * Sets for given {@link DartCascadeExpression} and its target {@link Type} which is union of
+     * existing type and "newType".
+     */
+    private void setCascadeUnionType(DartCascadeExpression node, Type newType) {
+      DartExpression target = node.getTarget();
+      Type type = node.getType();
+      if (isExplicitlySpecifiedType(newType) && types.isAssignable(type, newType)) {
+        Type unionType = getUnionType(type, newType);
+        unionType = Types.makeInferred(unionType);
+        node.setType(unionType);
+        target.setType(unionType);
+      }
     }
 
     @Override
@@ -1845,6 +1895,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
           && ((DartDeclaration<?>) node.getParent()).getName() == node) {
         return node.getType();
       }
+      if (node.getParent() instanceof DartComment) {
+        return dynamicType;
+      }
       Element element = node.getElement();
       Type type;
       switch (ElementKind.of(element)) {
@@ -1966,7 +2019,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
           // do merge
           Type mergedType = types.intersection(possibleTypes);
-          setVariableElementType(variable, mergedType);
+          TypeQuality mergedTypeQuality = Types.getIntersectionQuality(possibleTypes);
+          setVariableElementType(variable, mergedType, mergedTypeQuality);
         }
       }
       // done
@@ -2309,16 +2363,24 @@ public class TypeAnalyzer implements DartCompilationPhase {
           member = member2;
         }
       }
+      // is "receiver" is inferred, attempt to find member in one of the subtypes
+      if (member == null) {
+        if (TypeQuality.of(receiver) == TypeQuality.INFERRED && receiver instanceof InterfaceType) {
+          member = ((InterfaceType) receiver).lookupSubTypeMember(name);
+        }
+      }
+      // report "not a member"
       if (member == null) {
         if (reportNoMemberWhenHasInterceptor || !Elements.handlesNoSuchMethod(cls)) {
-          if (typeChecksForInferredTypes || !receiver.isInferred()) {
-            TypeErrorCode errorCode = receiver.isInferred()
+          if (typeChecksForInferredTypes || !TypeQuality.isInferred(receiver)) {
+            TypeErrorCode errorCode = TypeQuality.isInferred(receiver)
                 ? TypeErrorCode.NOT_A_MEMBER_OF_INFERRED : TypeErrorCode.NOT_A_MEMBER_OF;
             typeError(node.getName(), errorCode, name, cls);
           }
         }
         return dynamicType;
       }
+      // set resolved element
       element = member.getElement();
       node.setElement(element);
       Modifiers modifiers = element.getModifiers();
@@ -2799,7 +2861,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       // if type is declared and right side is closure, infer its parameter types
       if (value != null) {
         Type varType = node.getElement().getType();
-        if (isExclicitlySpecifiedType(varType)) {
+        if (isExplicitlySpecifiedType(varType)) {
           inferFunctionLiteralParametersTypes(value, varType);
         }
       }
@@ -2807,8 +2869,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       Type result = checkInitializedDeclaration(node, value);
       // if no type declared for variables, try to use type of value
       if (value != null) {
-        Type valueType = value.getType();
-        inferVariableDeclarationType(node, valueType);
+        inferVariableDeclarationType(node, value);
       }
       // done
       return result;
@@ -2907,7 +2968,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         // if type is declared and right side is closure, infer its parameter types
         if (value != null) {
           Type fieldType = node.getElement().getType();
-          if (isExclicitlySpecifiedType(fieldType)) {
+          if (isExplicitlySpecifiedType(fieldType)) {
             inferFunctionLiteralParametersTypes(value, fieldType);
           }
         }
@@ -2917,8 +2978,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         // only final fields, because only in this case we can be sure that field is not assigned
         // somewhere, may be even not in this unit
         if (node.getModifiers().isFinal() && value != null) {
-          Type valueType = value.getType();
-          inferVariableDeclarationType(node, valueType);
+          inferVariableDeclarationType(node, value);
         }
         // done
         return result;
@@ -3488,7 +3548,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
         return namedParameters;
       }
-      
+
       private Map<String, DartExpression> getParametersDefaultsNamed(List<VariableElement> parameters) {
         Map<String, DartExpression> defaults = Maps.newHashMap();
         for (VariableElement parameter : parameters) {
@@ -3498,31 +3558,54 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
         return defaults;
       }
-
-      private int getNumRequiredParameters(List<VariableElement> parameters) {
-        int numRequired = 0;
-        for (VariableElement parameter : parameters) {
-          if (!parameter.isNamed()) {
-            numRequired++;
-          }
-        }
-        return numRequired;
-      }
-
-      private List<VariableElement> getNamedParameters(List<VariableElement> parameters) {
-        List<VariableElement> named = Lists.newArrayList();
-        for (VariableElement v : parameters) {
-          if (v.isNamed()) {
-            named.add(v);
-          }
-        }
-        return named;
-      }
     }
   }
 
-  private static boolean isExclicitlySpecifiedType(Type fieldType) {
-    return fieldType != null && TypeKind.of(fieldType) != TypeKind.DYNAMIC
-        && !fieldType.isInferred();
+  private static boolean isExplicitlySpecifiedType(Type type) {
+    return type != null && TypeKind.of(type) != TypeKind.DYNAMIC
+        && !TypeQuality.isInferred(type);
+  }
+  
+  /**
+   * @return the {@link TypeQuality} of given {@link DartExpression}.
+   */
+  public static TypeQuality getTypeQuality(DartExpression expr) {
+    if (expr != null) {
+      if (expr instanceof DartMethodInvocation) {
+        return TypeQuality.INFERRED;
+      }
+      if (expr instanceof DartUnqualifiedInvocation) {
+        return TypeQuality.INFERRED;
+      }
+      if (expr instanceof DartUnaryExpression) {
+        DartUnaryExpression unary = (DartUnaryExpression) expr;
+        if (hasTypeBoolIntDouble(unary.getArg())) {
+          return TypeQuality.INFERRED_EXACT;
+        }
+        return TypeQuality.INFERRED;
+      }
+      if (expr instanceof DartBinaryExpression) {
+        DartBinaryExpression binary = (DartBinaryExpression) expr;
+        if (hasTypeBoolIntDouble(binary.getArg1()) && hasTypeBoolIntDouble(binary.getArg2())) {
+          return TypeQuality.INFERRED_EXACT;
+        }
+        return TypeQuality.INFERRED;
+      }
+      if (expr instanceof DartNewExpression) {
+        return TypeQuality.INFERRED;
+      }
+    }
+    return TypeQuality.INFERRED_EXACT;
+  }
+
+  private static boolean hasTypeBoolIntDouble(DartExpression expr) {
+    Type type = expr.getType();
+    return isCoreType(type, "bool") || isCoreType(type, "int") || isCoreType(type, "double");
+  }
+  
+  private static boolean isCoreType(Type type, String name) {
+    return type != null
+        && Elements.isCoreLibrarySource(type.getElement().getSourceInfo().getSource())
+        && type.getElement().getName().equals(name);
   }
 }

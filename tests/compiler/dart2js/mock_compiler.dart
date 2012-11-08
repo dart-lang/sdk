@@ -6,13 +6,14 @@ library mock_compiler;
 
 import 'dart:uri';
 
-import '../../../lib/compiler/compiler.dart' as api;
-import '../../../lib/compiler/implementation/dart2jslib.dart' hide TreeElementMapping;
-import '../../../lib/compiler/implementation/elements/elements.dart';
-import '../../../lib/compiler/implementation/resolution/resolution.dart';
-import '../../../lib/compiler/implementation/source_file.dart';
-import '../../../lib/compiler/implementation/tree/tree.dart';
-import '../../../lib/compiler/implementation/util/util.dart';
+import '../../../sdk/lib/_internal/compiler/compiler.dart' as api;
+import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
+       hide TreeElementMapping;
+import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/resolution/resolution.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';
 import 'parser_helper.dart';
 
 class WarningMessage {
@@ -63,6 +64,7 @@ const String DEFAULT_CORELIB = r'''
   class bool {}
   class String {}
   class Object {}
+  class Type {}
   class Function {}
   interface List default ListImplementation { List([length]);}
   class ListImplementation { factory List([length]) => null; }

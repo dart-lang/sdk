@@ -9,7 +9,7 @@ package com.google.dart.compiler.type;
  */
 abstract class AbstractType implements Type {
   @Override
-  public boolean isInferred() {
-    return false;
+  public TypeQuality getQuality() {
+    return TypeQuality.EXACT;
   }
 }

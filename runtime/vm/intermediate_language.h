@@ -37,6 +37,7 @@ class Range;
   V(_GrowableObjectArray, get:capacity, GrowableArrayCapacity)                 \
   V(_StringBase, get:length, StringBaseLength)                                 \
   V(_StringBase, get:isEmpty, StringBaseIsEmpty)                               \
+  V(_StringBase, charCodeAt, StringBaseCharCodeAt)                             \
   V(_IntegerImplementation, toDouble, IntegerToDouble)                         \
   V(_Double, toInt, DoubleToInteger)                                           \
   V(::, sqrt, MathSqrt)                                                        \
@@ -263,6 +264,7 @@ class EmbeddedArray<T, 0> {
   M(UnaryMintOp)                                                               \
   M(CheckArrayBound)                                                           \
   M(Constraint)                                                                \
+  M(StringCharCodeAt)
 
 
 #define FORWARD_DECLARATION(type) class type##Instr;
@@ -525,6 +527,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class CheckSmiInstr;
   friend class CheckArrayBoundInstr;
   friend class CheckEitherNonSmiInstr;
+  friend class StringCharCodeAtInstr;
   friend class LICM;
 
   intptr_t deopt_id_;
@@ -664,6 +667,8 @@ class ParallelMoveInstr : public TemplateInstruction<0> {
 // branches.
 class BlockEntryInstr : public Instruction {
  public:
+  static const intptr_t kInvalidLoopDepth = -1;
+
   virtual BlockEntryInstr* AsBlockEntry() { return this; }
 
   virtual intptr_t PredecessorCount() const = 0;
@@ -744,12 +749,19 @@ class BlockEntryInstr : public Instruction {
     loop_info_ = loop_info;
   }
 
+  intptr_t loop_depth() const { return loop_depth_; }
+  void set_loop_depth(intptr_t loop_depth) {
+    ASSERT(loop_depth_ == kInvalidLoopDepth);
+    ASSERT(loop_depth != kInvalidLoopDepth);
+    loop_depth_ = loop_depth;
+  }
+
   virtual BlockEntryInstr* GetBlock() const {
     return const_cast<BlockEntryInstr*>(this);
   }
 
  protected:
-  BlockEntryInstr(intptr_t block_id, intptr_t try_index)
+  BlockEntryInstr(intptr_t block_id, intptr_t try_index, intptr_t loop_depth)
       : block_id_(block_id),
         try_index_(try_index),
         preorder_number_(-1),
@@ -758,7 +770,8 @@ class BlockEntryInstr : public Instruction {
         dominated_blocks_(1),
         last_instruction_(NULL),
         parallel_move_(NULL),
-        loop_info_(NULL) { }
+        loop_info_(NULL),
+        loop_depth_(loop_depth) { }
 
  private:
   virtual void ClearPredecessors() = 0;
@@ -784,6 +797,9 @@ class BlockEntryInstr : public Instruction {
   // Bit vector containg loop blocks for a loop header indexed by block
   // preorder number.
   BitVector* loop_info_;
+
+  // Syntactic loop depth of the block.
+  intptr_t loop_depth_;
 
   DISALLOW_COPY_AND_ASSIGN(BlockEntryInstr);
 };
@@ -898,8 +914,8 @@ class GraphEntryInstr : public BlockEntryInstr {
 
 class JoinEntryInstr : public BlockEntryInstr {
  public:
-  JoinEntryInstr(intptr_t block_id, intptr_t try_index)
-      : BlockEntryInstr(block_id, try_index),
+  JoinEntryInstr(intptr_t block_id, intptr_t try_index, intptr_t loop_depth)
+      : BlockEntryInstr(block_id, try_index, loop_depth),
         predecessors_(2),  // Two is the assumed to be the common case.
         phis_(NULL),
         phi_count_(0) { }
@@ -968,8 +984,8 @@ class PhiIterator : public ValueObject {
 
 class TargetEntryInstr : public BlockEntryInstr {
  public:
-  TargetEntryInstr(intptr_t block_id, intptr_t try_index)
-      : BlockEntryInstr(block_id, try_index),
+  TargetEntryInstr(intptr_t block_id, intptr_t try_index, intptr_t loop_depth)
+      : BlockEntryInstr(block_id, try_index, loop_depth),
         predecessor_(NULL),
         catch_try_index_(CatchClauseNode::kInvalidTryIndex) { }
 
@@ -2042,6 +2058,9 @@ class InstanceCallInstr : public TemplateDefinition<0> {
     return (ic_data() != NULL) && !ic_data()->IsNull();
   }
 
+  // ICData can be replaced by optimizer.
+  void set_ic_data(const ICData* value) { ic_data_ = value; }
+
   intptr_t token_pos() const { return token_pos_; }
   const String& function_name() const { return function_name_; }
   Token::Kind token_kind() const { return token_kind_; }
@@ -2632,6 +2651,42 @@ class StoreStaticFieldInstr : public TemplateDefinition<1> {
   const Field& field_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreStaticFieldInstr);
+};
+
+
+class StringCharCodeAtInstr : public TemplateDefinition<2> {
+ public:
+  StringCharCodeAtInstr(Value* receiver,
+                        Value* index,
+                        intptr_t class_id)
+      : class_id_(class_id) {
+    ASSERT(receiver != NULL);
+    ASSERT(index != NULL);
+    inputs_[0] = receiver;
+    inputs_[1] = index;
+  }
+
+  DECLARE_INSTRUCTION(StringCharCodeAt)
+  virtual RawAbstractType* CompileType() const;
+
+  Value* receiver() const { return inputs_[0]; }
+  Value* index() const { return inputs_[1]; }
+  intptr_t class_id() const { return class_id_; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const;
+
+  virtual bool AttributesEqual(Instruction* other) const;
+
+  virtual bool AffectedBySideEffect() const { return true; }
+
+ private:
+  const intptr_t class_id_;
+
+  DISALLOW_COPY_AND_ASSIGN(StringCharCodeAtInstr);
 };
 
 
@@ -3979,6 +4034,9 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
 
  private:
   intptr_t array_type_;
+
+  // Returns the length offset for array and string types.
+  static intptr_t LengthOffsetFor(intptr_t class_id);
 
   DISALLOW_COPY_AND_ASSIGN(CheckArrayBoundInstr);
 };

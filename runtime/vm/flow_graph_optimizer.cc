@@ -273,7 +273,8 @@ void FlowGraphOptimizer::SelectRepresentations() {
 
 static bool ICDataHasReceiverClassId(const ICData& ic_data, intptr_t class_id) {
   ASSERT(ic_data.num_args_tested() > 0);
-  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+  const intptr_t len = ic_data.NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
     const intptr_t test_class_id = ic_data.GetReceiverClassIdAt(i);
     if (test_class_id == class_id) {
       return true;
@@ -291,7 +292,8 @@ static bool ICDataHasReceiverArgumentClassIds(const ICData& ic_data,
   if (ic_data.num_args_tested() != 2) return false;
 
   Function& target = Function::Handle();
-  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+  const intptr_t len = ic_data.NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
     GrowableArray<intptr_t> class_ids;
     ic_data.GetCheckAt(i, &class_ids, &target);
     ASSERT(class_ids.length() == 2);
@@ -323,7 +325,8 @@ static bool ICDataHasOnlyReceiverArgumentClassIds(
     const GrowableArray<intptr_t>& argument_class_ids) {
   if (ic_data.num_args_tested() != 2) return false;
   Function& target = Function::Handle();
-  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+  const intptr_t len = ic_data.NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
     GrowableArray<intptr_t> class_ids;
     ic_data.GetCheckAt(i, &class_ids, &target);
     ASSERT(class_ids.length() == 2);
@@ -447,7 +450,8 @@ static bool ArgIsAlwaysSmi(const ICData& ic_data, intptr_t arg_n) {
   if (ic_data.NumberOfChecks() == 0) return false;
   GrowableArray<intptr_t> class_ids;
   Function& target = Function::Handle();
-  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+  const intptr_t len = ic_data.NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
     ic_data.GetCheckAt(i, &class_ids, &target);
     if (class_ids[arg_n] != kSmiCid) return false;
   }
@@ -470,10 +474,20 @@ intptr_t FlowGraphOptimizer::PrepareIndexedOp(InstanceCallInstr* call,
                new CheckSmiInstr((*index)->Copy(), call->deopt_id()),
                call->env(),
                Definition::kEffect);
-  // If both index and array are constants, then the bound check always
-  // succeeded.
-  // TODO(srdjan): Remove once constant propagation lands.
-  if (!((*array)->BindsToConstant() && (*index)->BindsToConstant())) {
+  // If both index and array are constants, then do a compile-time check.
+  // TODO(srdjan): Remove once constant propagation handles bounds checks.
+  bool skip_check = false;
+  if ((*array)->BindsToConstant() && (*index)->BindsToConstant()) {
+    ConstantInstr* array_def = (*array)->definition()->AsConstant();
+    const ImmutableArray& constant_array =
+        ImmutableArray::Cast(array_def->value());
+    ConstantInstr* index_def = (*index)->definition()->AsConstant();
+    if (index_def->value().IsSmi()) {
+      intptr_t constant_index = Smi::Cast(index_def->value()).Value();
+      skip_check = (constant_index < constant_array.Length());
+    }
+  }
+  if (!skip_check) {
     // Insert array bounds check.
     InsertBefore(call,
                  new CheckArrayBoundInstr((*array)->Copy(),
@@ -876,19 +890,8 @@ bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
   if (function.IsDynamicFunction() &&
       callee_receiver->IsParameter() &&
       (callee_receiver->AsParameter()->index() == 0)) {
-    const intptr_t static_receiver_cid = Class::Handle(function.Owner()).id();
-    ZoneGrowableArray<intptr_t>* subclass_cids =
-        CHA::GetSubclassIdsOf(static_receiver_cid);
-    if (subclass_cids->is_empty()) {
-      // No subclasses, no check needed.
-      return false;
-    }
-    ZoneGrowableArray<Function*>* overriding_functions =
-        CHA::GetNamedInstanceFunctionsOf(*subclass_cids, call->function_name());
-    if (overriding_functions->is_empty()) {
-      // No overriding functions.
-      return false;
-    }
+    return CHA::HasOverride(Class::Handle(function.Owner()),
+                            call->function_name());
   }
   return true;
 }
@@ -1096,6 +1099,46 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   ic_data.GetCheckAt(0, &class_ids, &target);
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(target);
+  if ((recognized_kind == MethodRecognizer::kStringBaseCharCodeAt) &&
+      (ic_data.NumberOfChecks() == 1) &&
+      ((class_ids[0] == kOneByteStringCid) ||
+       (class_ids[0] == kTwoByteStringCid))) {
+    Value* str= call->ArgumentAt(0)->value();
+    Value* index = call->ArgumentAt(1)->value();
+    AddCheckClass(call, str->Copy());
+    InsertBefore(call,
+                 new CheckSmiInstr(index->Copy(), call->deopt_id()),
+                 call->env(),
+                 Definition::kEffect);
+    // If both index and string are constants, then do a compile-time check.
+    // TODO(srdjan): Remove once constant propagation handles bounds checks.
+    bool skip_check = false;
+    if (str->BindsToConstant() && index->BindsToConstant()) {
+      ConstantInstr* string_def = str->definition()->AsConstant();
+      const String& constant_string =
+          String::Cast(string_def->value());
+      ConstantInstr* index_def = index->definition()->AsConstant();
+      if (index_def->value().IsSmi()) {
+        intptr_t constant_index = Smi::Cast(index_def->value()).Value();
+        skip_check = (constant_index < constant_string.Length());
+      }
+    }
+    if (!skip_check) {
+      // Insert bounds check.
+      InsertBefore(call,
+                   new CheckArrayBoundInstr(str->Copy(),
+                                            index->Copy(),
+                                            class_ids[0],
+                                            call),
+                   call->env(),
+                   Definition::kEffect);
+    }
+    StringCharCodeAtInstr* instr =
+        new StringCharCodeAtInstr(str, index, class_ids[0]);
+    call->ReplaceWith(instr, current_iterator());
+    RemovePushArguments(call);
+    return true;
+  }
 
   if ((recognized_kind == MethodRecognizer::kIntegerToDouble) &&
       (class_ids[0] == kSmiCid)) {
@@ -1132,7 +1175,8 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
       ICData::ZoneHandle(instr->ic_data()->AsUnaryClassChecks());
   if ((unary_checks.NumberOfChecks() > FLAG_max_polymorphic_checks) &&
       InstanceCallNeedsClassCheck(instr)) {
-    // Too many checks, leave it megamorphic.
+    // Too many checks, it will be megamorphic which needs unary checks.
+    instr->set_ic_data(&unary_checks);
     return;
   }
 
@@ -1155,7 +1199,8 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   if ((op_kind == Token::kGET) && TryInlineInstanceGetter(instr)) {
     return;
   }
-  if ((op_kind == Token::kSET) && TryInlineInstanceSetter(instr)) {
+  if ((op_kind == Token::kSET) &&
+      TryInlineInstanceSetter(instr, unary_checks)) {
     return;
   }
   if (TryInlineInstanceMethod(instr)) {
@@ -1198,15 +1243,16 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
 }
 
 
-bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
+bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
+                                                 const ICData& unary_ic_data) {
+  ASSERT((unary_ic_data.NumberOfChecks() > 0) &&
+      (unary_ic_data.num_args_tested() == 1));
   if (FLAG_enable_type_checks) {
     // TODO(srdjan): Add assignable check node if --enable_type_checks.
     return false;
   }
 
   ASSERT(instr->HasICData());
-  const ICData& unary_ic_data =
-      ICData::Handle(instr->ic_data()->AsUnaryClassChecks());
   if (unary_ic_data.NumberOfChecks() == 0) {
     // No type feedback collected.
     return false;
@@ -3230,6 +3276,11 @@ void ConstantPropagator::VisitNativeCall(NativeCallInstr* instr) {
 }
 
 
+void ConstantPropagator::VisitStringCharCodeAt(StringCharCodeAtInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
 void ConstantPropagator::VisitLoadIndexed(LoadIndexedInstr* instr) {
   SetValue(instr, non_constant_);
 }
@@ -3615,14 +3666,17 @@ void ConstantPropagator::Transform() {
         ASSERT(branch->comparison()->IsStrictCompare());
         ASSERT(if_false->parallel_move() == NULL);
         ASSERT(if_false->loop_info() == NULL);
-        join =
-            new JoinEntryInstr(if_false->block_id(), if_false->try_index());
+        join = new JoinEntryInstr(if_false->block_id(),
+                                  if_false->try_index(),
+                                  if_false->loop_depth());
         next = if_false->next();
       } else if (!reachable_->Contains(if_false->preorder_number())) {
         ASSERT(branch->comparison()->IsStrictCompare());
         ASSERT(if_true->parallel_move() == NULL);
         ASSERT(if_true->loop_info() == NULL);
-        join = new JoinEntryInstr(if_true->block_id(), if_true->try_index());
+        join = new JoinEntryInstr(if_true->block_id(),
+                                  if_true->try_index(),
+                                  if_true->loop_depth());
         next = if_true->next();
       }
 

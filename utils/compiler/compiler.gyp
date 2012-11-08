@@ -49,8 +49,8 @@
           'inputs': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)gen_snapshot<(EXECUTABLE_SUFFIX)',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
-            '../../lib/_internal/libraries.dart',
-            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../lib/compiler", "../../runtime/lib"])',
+            '../../sdk/lib/_internal/libraries.dart',
+            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../sdk/lib/_internal/compiler", "../../runtime/lib"])',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/dart2js.snapshot',
@@ -67,7 +67,7 @@
             # for dart2js compiler engineers.  However, we install the
             # snapshot in the proper location when building the SDK.
             '--script_snapshot=<(PRODUCT_DIR)/dart2js.snapshot',
-            '../../lib/compiler/implementation/dart2js.dart',
+            '../../sdk/lib/_internal/compiler/implementation/dart2js.dart',
           ],
         },
       ],

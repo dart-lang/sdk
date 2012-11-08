@@ -5,13 +5,12 @@
 // Test that spawn works even when there are many script files in the page.
 // This requires computing correctly the URL to the orignal script, so we can
 // pass it to the web worker APIs.
-#library('compute_this_script');
+library compute_this_script;
 
-#import('dart:html');
-#import('dart:isolate');
-
-#import('../../pkg/unittest/unittest.dart');
-#import('../../pkg/unittest/html_config.dart');
+import 'dart:html';
+import 'dart:isolate';
+import '../../pkg/unittest/lib/unittest.dart';
+import '../../pkg/unittest/lib/html_config.dart';
 
 child() {
   port.receive((msg, reply) {

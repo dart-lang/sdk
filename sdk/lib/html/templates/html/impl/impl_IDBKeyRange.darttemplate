@@ -1,0 +1,33 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+  /**
+   * @domName IDBKeyRange.only
+   */
+  factory IDBKeyRange.only(/*IDBKey*/ value) =>
+      _IDBKeyRangeFactoryProvider.create$(CLASSNAME)_only(value);
+
+  /**
+   * @domName IDBKeyRange.lowerBound
+   */
+  factory IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open = false]) =>
+      _IDBKeyRangeFactoryProvider.create$(CLASSNAME)_lowerBound(bound, open);
+
+  /**
+   * @domName IDBKeyRange.upperBound
+   */
+  factory IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open = false]) =>
+      _IDBKeyRangeFactoryProvider.create$(CLASSNAME)_upperBound(bound, open);
+
+  /**
+   * @domName IDBKeyRange.bound
+   */
+  factory IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
+                            [bool lowerOpen = false, bool upperOpen = false]) =>
+      _IDBKeyRangeFactoryProvider.create$(CLASSNAME)_bound(
+          lower, upper, lowerOpen, upperOpen);
+
+$!MEMBERS
+}

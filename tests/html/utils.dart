@@ -1,5 +1,5 @@
-#library('TestUtils');
-#import('../../pkg/unittest/unittest.dart');
+library TestUtils;
+import '../../pkg/unittest/lib/unittest.dart';
 
 /**
  * Verifies that [actual] has the same graph structure as [expected].

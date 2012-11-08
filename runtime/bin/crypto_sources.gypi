@@ -6,15 +6,15 @@
 #
 # TODO(ager): ../lib/crypto/crypto_vm.dart should be removed when the
 # VM can use the #source directive for libraries.  At that point
-# ../../lib/crypto/crypto.dart should be the only crypto library file.
+# ../../sdk/lib/crypto/crypto.dart should be the only crypto library file.
 {
   'sources': [
     '../lib/crypto/crypto_vm.dart',
-    '../../lib/crypto/crypto_utils.dart',
-    '../../lib/crypto/hash_utils.dart',
-    '../../lib/crypto/hmac.dart',
-    '../../lib/crypto/md5.dart',
-    '../../lib/crypto/sha1.dart',
-    '../../lib/crypto/sha256.dart',
+    '../../sdk/lib/crypto/crypto_utils.dart',
+    '../../sdk/lib/crypto/hash_utils.dart',
+    '../../sdk/lib/crypto/hmac.dart',
+    '../../sdk/lib/crypto/md5.dart',
+    '../../sdk/lib/crypto/sha1.dart',
+    '../../sdk/lib/crypto/sha256.dart',
   ],
 }

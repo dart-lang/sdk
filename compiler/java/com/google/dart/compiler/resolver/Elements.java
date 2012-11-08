@@ -717,13 +717,17 @@ static FieldElementImplementation fieldFromNode(DartField node,
    * @return <code>true</code> if given {@link Source} represents library with given name.
    */
   public static boolean isLibrarySource(Source source, String name) {
+    LibrarySource library = null;
+    if (source instanceof LibrarySource) {
+      library = (LibrarySource) source;
+    }
     if (source instanceof DartSource) {
       DartSource dartSource = (DartSource) source;
-      LibrarySource library = dartSource.getLibrary();
-      if (library != null) {
-        String libraryName = library.getName();
-        return libraryName.endsWith(name);
-      }
+      library = dartSource.getLibrary();
+    }
+    if (library != null) {
+      String libraryName = library.getName();
+      return libraryName.endsWith(name);
     }
     return false;
   }
@@ -748,13 +752,18 @@ static FieldElementImplementation fieldFromNode(DartField node,
    *         implementation.
    */
   public static boolean isCoreLibrarySource(Source source) {
+    if (source != null && source.getUri() != null
+        && source.getUri().toString().equals("libraries.dart")) {
+      return true;
+    }
     // TODO (danrubel) remove these when dartc libraries are removed
     // Old core library file names
     return Elements.isLibrarySource(source, "/core/corelib.dart")
         || Elements.isLibrarySource(source, "/core/corelib_impl.dart")
         // New core library file names
         || Elements.isLibrarySource(source, "/core/core.dart")
-        || Elements.isLibrarySource(source, "/core/coreimpl.dart");
+        || Elements.isLibrarySource(source, "/core/coreimpl.dart")
+        || Elements.isLibrarySource(source, "/coreimpl/coreimpl.dart");
   }
   
   public static boolean isHtmlLibrarySource(Source source) {

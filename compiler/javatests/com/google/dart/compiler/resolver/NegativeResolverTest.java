@@ -1147,4 +1147,38 @@ public class NegativeResolverTest extends CompilerTestCase {
             errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 7, 7, 1),
             errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 8, 7, 1));
   }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5987
+   */
+  public void test_accessConstInstanceField_fromConstStaticField() throws Exception {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  const x = 499;",
+            "  static const bar = x;",
+            "}",
+            ""),
+        errEx(ResolverErrorCode.ILLEGAL_FIELD_ACCESS_FROM_STATIC, 4, 22, 1));
+  }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6489
+   */
+  public void test_accessConstInstanceField_fromConstStaticMethod() throws Exception {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  const CONST = 26;",
+            "  static int foo() {",
+            "    return CONST;",
+            "  }",
+            "}",
+            ""),
+        errEx(ResolverErrorCode.ILLEGAL_FIELD_ACCESS_FROM_STATIC, 5, 12, 5));
+  }
 }

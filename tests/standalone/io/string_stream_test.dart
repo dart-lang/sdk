@@ -11,20 +11,26 @@ void testUtf8() {
                     0xc2, 0x80,
                     0xdf, 0xbf,
                     0xe0, 0xa0, 0x80,
-                    0xef, 0xbf, 0xbf];
+                    0xef, 0xbf, 0xbf,
+                    0xf0, 0x9d, 0x84, 0x9e];
   ListInputStream s = new ListInputStream();
   s.write(data);
   s.markEndOfStream();
   StringInputStream stream = new StringInputStream(s);
   void stringData() {
     String s = stream.read();
-    Expect.equals(6, s.length);
+    Expect.equals(8, s.length);
     Expect.equals(new String.fromCharCodes([0x01]), s[0]);
     Expect.equals(new String.fromCharCodes([0x7f]), s[1]);
     Expect.equals(new String.fromCharCodes([0x80]), s[2]);
     Expect.equals(new String.fromCharCodes([0x7ff]), s[3]);
     Expect.equals(new String.fromCharCodes([0x800]), s[4]);
     Expect.equals(new String.fromCharCodes([0xffff]), s[5]);
+    Expect.equals(new String.fromCharCodes([0xffff]), s[5]);
+
+    // Surrogate pair for U+1D11E.
+    Expect.equals(new String.fromCharCodes([0xd834]), s[6]);
+    Expect.equals(new String.fromCharCodes([0xdd1e]), s[7]);
   }
   stream.onData = stringData;
 }
@@ -300,7 +306,7 @@ testErrorHandler() {
 }
 
 testEncodingErrorWithHandler() {
-  var port = new ReceivePort();    
+  var port = new ReceivePort();
   var errors = 0;
   var expected = [206, 187, 120, 46, 32, 120, 10];
   ListInputStream input = new ListInputStream();

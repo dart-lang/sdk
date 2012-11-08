@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler.type;
 
+import com.google.common.collect.MapMaker;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
@@ -15,6 +16,7 @@ import com.google.dart.compiler.util.apache.StringUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * An interface type.
@@ -22,6 +24,7 @@ import java.util.List;
 class InterfaceTypeImplementation extends AbstractType implements InterfaceType {
   private final ClassElement element;
   private final List<Type> arguments;
+  private final Map<ClassElement, Object> subClasses = new MapMaker().weakKeys().makeMap();
 
   InterfaceTypeImplementation(ClassElement element, List<Type> arguments) {
     this.element = element;
@@ -216,5 +219,35 @@ class InterfaceTypeImplementation extends AbstractType implements InterfaceType 
       List<Type> typeParameters = getHolder().getElement().getTypeParameters();
       return getterType.subst(typeArguments, typeParameters);
     }
+  }
+  
+  @Override
+  public void registerSubClass(ClassElement subClass) {
+    subClasses.put(subClass, this);
+  }
+  
+  @Override
+  public void unregisterSubClass(ClassElement subClass) {
+    subClasses.remove(subClass);
+  }
+  
+  @Override
+  public Member lookupSubTypeMember(String name) {
+    for (ClassElement subClass : subClasses.keySet()) {
+      {
+        Element element = subClass.lookupLocalElement(name);
+        if (element != null) {
+          return new MemberImplementation(this, element);
+        }
+      }
+      InterfaceType type = subClass.getType();
+      if (type != null) {
+        Member member = type.lookupSubTypeMember(name);
+        if (member != null) {
+          return member;
+        }
+      }
+    }
+    return null;
   }
 }

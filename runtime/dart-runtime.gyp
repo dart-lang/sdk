@@ -67,6 +67,7 @@
         '<(version_cc_file)',
       ],
       'defines': [
+        # The only effect of DART_SHARED_LIB is to export the Dart API entries.
         'DART_SHARED_LIB',
       ],
       'direct_dependent_settings': {

@@ -1,9 +1,9 @@
-#library('IsolatesTest');
-#import('../../pkg/unittest/unittest.dart');
-#import('../../pkg/unittest/html_config.dart');
-#import('dart:html');
-#import('dart:json');
-#import('dart:isolate', prefix:'isolate');
+library IsolatesTest;
+import '../../pkg/unittest/lib/unittest.dart';
+import '../../pkg/unittest/lib/html_config.dart';
+import 'dart:html';
+import 'dart:json';
+import 'dart:isolate' as isolate;
 
 String responseFor(message) => 'response for $message';
 

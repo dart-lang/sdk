@@ -24,6 +24,12 @@ void Scanner::InitKeywordTable() {
     object_store->InitKeywordTable();
     keyword_symbol_table_ = object_store->keyword_symbols();
     ASSERT(!keyword_symbol_table_.IsNull());
+    String& symbol = String::Handle();
+    for (int i = 0; i < Token::numKeywords; i++) {
+      Token::Kind token = static_cast<Token::Kind>(Token::kFirstKeyword + i);
+      symbol = Symbols::New(Token::Str(token));
+      keyword_symbol_table_.SetAt(i, symbol);
+    }
   }
   for (int i = 0; i < Token::numKeywords; i++) {
     Token::Kind token = static_cast<Token::Kind>(Token::kFirstKeyword + i);
@@ -276,10 +282,7 @@ void Scanner::ScanIdentChars(bool allow_dollar) {
         if (keywords_[i].keyword_symbol == NULL) {
           String& symbol = String::ZoneHandle();
           symbol ^= keyword_symbol_table_.At(i);
-          if (symbol.IsNull()) {
-            symbol = Symbols::New(source_, ident_pos, ident_length);
-            keyword_symbol_table_.SetAt(i, symbol);
-          }
+          ASSERT(!symbol.IsNull());
           keywords_[i].keyword_symbol = &symbol;
         }
         current_token_.literal = keywords_[i].keyword_symbol;
@@ -397,15 +400,15 @@ void Scanner::ScanLibraryTag() {
   const String& kSource = String::Handle(Symbols::Source());
   const String& ident = String::Handle(ConsumeIdentChars(false));
   if (ident.Equals(kLibrary)) {
-    current_token_.kind = Token::kLIBRARY;
+    current_token_.kind = Token::kLEGACY_LIBRARY;
     return;
   }
   if (ident.Equals(kImport)) {
-    current_token_.kind = Token::kIMPORT;
+    current_token_.kind = Token::kLEGACY_IMPORT;
     return;
   }
   if (ident.Equals(kSource)) {
-    current_token_.kind = Token::kSOURCE;
+    current_token_.kind = Token::kLEGACY_SOURCE;
     return;
   }
   ErrorMsg("Unrecognized library token");

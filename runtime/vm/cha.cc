@@ -70,6 +70,27 @@ ZoneGrowableArray<intptr_t>* CHA::GetSubclassIdsOf(intptr_t cid) {
 }
 
 
+bool CHA::HasOverride(const Class& cls, const String& function_name) {
+  const GrowableObjectArray& cls_direct_subclasses =
+      GrowableObjectArray::Handle(cls.direct_subclasses());
+  if (cls_direct_subclasses.IsNull()) {
+    return false;
+  }
+  Class& direct_subclass = Class::Handle();
+  for (intptr_t i = 0; i < cls_direct_subclasses.Length(); i++) {
+    direct_subclass ^= cls_direct_subclasses.At(i);
+    if (direct_subclass.LookupDynamicFunction(function_name) !=
+        Function::null()) {
+      return true;
+    }
+    if (HasOverride(direct_subclass, function_name)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 ZoneGrowableArray<Function*>* CHA::GetNamedInstanceFunctionsOf(
     const ZoneGrowableArray<intptr_t>& cids,
     const String& function_name) {

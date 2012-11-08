@@ -25,8 +25,7 @@ public interface Type {
   TypeKind getKind();
   
   /**
-   * @return <code>true</code> if this {@link Type} was not declared in {@link Element}, but
-   * instead was inferred from context.
+   * @return the {@link TypeQuality}, not <code>null</code>.
    */
-  boolean isInferred();
+  TypeQuality getQuality();
 }

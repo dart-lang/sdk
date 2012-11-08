@@ -255,7 +255,8 @@ class TestServer {
   bool _chunkedEncoding = false;
 }
 
-void testHost() {
+Future testHost() {
+  Completer completer = new Completer();
   TestServerMain testServerMain = new TestServerMain();
   testServerMain.setServerStartedHandler((int port) {
     HttpClient httpClient = new HttpClient();
@@ -288,12 +289,15 @@ void testHost() {
       Expect.equals(HttpStatus.OK, response.statusCode);
       httpClient.shutdown();
       testServerMain.shutdown();
+      completer.complete(true);
     };
   });
   testServerMain.start();
+  return completer.future;
 }
 
-void testExpires() {
+Future testExpires() {
+  Completer completer = new Completer();
   TestServerMain testServerMain = new TestServerMain();
   testServerMain.setServerStartedHandler((int port) {
     int responses = 0;
@@ -309,6 +313,7 @@ void testExpires() {
       if (responses == 2) {
         httpClient.shutdown();
         testServerMain.shutdown();
+        completer.complete(true);
       }
     }
 
@@ -322,9 +327,11 @@ void testExpires() {
     };
   });
   testServerMain.start();
+  return completer.future;
 }
 
-void testContentType() {
+Future testContentType() {
+  Completer completer = new Completer();
   TestServerMain testServerMain = new TestServerMain();
   testServerMain.setServerStartedHandler((int port) {
     int responses = 0;
@@ -343,6 +350,7 @@ void testContentType() {
       if (responses == 2) {
         httpClient.shutdown();
         testServerMain.shutdown();
+        completer.complete(true);
       }
     }
 
@@ -370,9 +378,11 @@ void testContentType() {
     };
   });
   testServerMain.start();
+  return completer.future;
 }
 
-void testCookies() {
+Future testCookies() {
+  Completer completer = new Completer();
   TestServerMain testServerMain = new TestServerMain();
   testServerMain.setServerStartedHandler((int port) {
     int responses = 0;
@@ -408,13 +418,16 @@ void testCookies() {
       conn2.onResponse = (HttpClientResponse ignored) {
         httpClient.shutdown();
         testServerMain.shutdown();
+        completer.complete(true);
       };
     };
   });
   testServerMain.start();
+  return completer.future;
 }
 
-void testFlush() {
+Future testFlush() {
+  Completer completer = new Completer();
   TestServerMain testServerMain = new TestServerMain();
   testServerMain.setServerStartedHandler((int port) {
     HttpClient httpClient = new HttpClient();
@@ -428,15 +441,28 @@ void testFlush() {
       Expect.equals(HttpStatus.OK, response.statusCode);
       httpClient.shutdown();
       testServerMain.shutdown();
+      completer.complete(true);
     };
   });
   testServerMain.start();
+  return completer.future;
 }
 
 void main() {
-  testHost();
-  testExpires();
-  testContentType();
-  testCookies();
-  testFlush();
+  print('testHost()');
+  testHost().chain((_) {
+  print('testExpires()');
+    return testExpires().chain((_) {
+      print('testContentType()');
+      return testContentType().chain((_) {
+        print('testCookies()');
+        return testCookies().chain((_) {
+          print('testFlush()');
+          return testFlush();
+        });
+      });
+    });
+  }).then((_) {
+    print('done');
+  });
 }

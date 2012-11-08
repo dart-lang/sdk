@@ -6,7 +6,7 @@
 
 library number_format_test;
 
-import '../../../pkg/unittest/unittest.dart';
+import '../../../pkg/unittest/lib/unittest.dart';
 import '../lib/number_format.dart';
 import '../lib/intl.dart';
 

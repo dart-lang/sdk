@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import('dart:io');
-#import('dart:uri');
+import 'dart:io';
+import 'dart:uri';
 
-#import('../../lib/compiler/implementation/util/uri_extras.dart');
-#import('../../lib/compiler/implementation/filenames.dart');
+import '../../sdk/lib/_internal/compiler/implementation/util/uri_extras.dart';
+import '../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 
 main() {
   List<String> arguments = new Options().arguments;
@@ -29,19 +29,20 @@ main() {
   List<String> productionScript = buildScript(
       'dart2js-production',
       dartUri, dartVmUri,
-      'lib/compiler/implementation/dart2js.dart', '');
+      'sdk/lib/_internal/compiler/implementation/dart2js.dart', '');
   writeScript(productionUri, productionScript);
 
   List<String> developerScript = buildScript(
       'dart2js-developer',
       dartUri, dartVmUri,
-      'lib/compiler/implementation/dart2js.dart', ' --enable_checked_mode');
+      'sdk/lib/_internal/compiler/implementation/dart2js.dart',
+      ' --enable_checked_mode');
   writeScript(developerUri, developerScript);
 
   List<String> dartdocScript = buildScript(
       'dartdoc',
       dartUri, dartVmUri,
-      'pkg/dartdoc/bin/dartdoc.dart', '');
+      'sdk/lib/_internal/dartdoc/bin/dartdoc.dart', '');
   writeScript(dartdocUri, dartdocScript);
 }
 

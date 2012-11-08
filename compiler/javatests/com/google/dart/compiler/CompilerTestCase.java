@@ -4,8 +4,6 @@
 
 package com.google.dart.compiler;
 
-import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -24,7 +22,9 @@ import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.parser.DartParserRunner;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.type.Type;
-import com.google.dart.compiler.type.TypeKind;
+import com.google.dart.compiler.type.TypeQuality;
+
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
 
 import junit.framework.TestCase;
 
@@ -456,23 +456,19 @@ public abstract class CompilerTestCase extends TestCase {
     assertEquals(nodeSource, actualSource);
   }
 
-
   /**
    * Asserts that {@link Element} with given name has expected type.
    */
-  protected static void assertInferredElementTypeString(
-      DartUnit unit,
-      String variableName,
-      String expectedType) {
+  protected static void assertInferredElementTypeString(DartUnit unit, String variableName,
+      String expectedType, TypeQuality exact) {
     // find element
     Element element = getNamedElement(unit, variableName);
     assertNotNull(element);
     // check type
     Type actualType = element.getType();
     assertEquals(element.getName(), expectedType, getTypeSource(actualType));
-    // should be inferred
-    if (TypeKind.of(actualType) != TypeKind.DYNAMIC) {
-      assertTrue("Should be marked as inferred", actualType.isInferred());
+    if (exact != null) {
+      assertSame(exact, actualType.getQuality());
     }
   }
 

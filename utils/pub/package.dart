@@ -137,7 +137,10 @@ class PackageId implements Comparable {
            other.version == version;
   }
 
-  String toString() => "$name $version from ${source.name}";
+  String toString() {
+    if (source.isDefault) return "$name $version";
+    return "$name $version from $source";
+  }
 
   int compareTo(Comparable other) {
     if (other is! PackageId) throw new ArgumentError(other);

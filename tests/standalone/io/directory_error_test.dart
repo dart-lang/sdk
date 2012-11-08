@@ -137,10 +137,10 @@ bool checkDeleteRecursivelyNonExistentFileException(e) {
 
 void testDeleteRecursivelyNonExistent(Directory temp, Function done) {
   Directory nonExistent = new Directory("${temp.path}/nonExistent");
-  Expect.throws(() => nonExistent.deleteRecursivelySync(),
+  Expect.throws(() => nonExistent.deleteSync(recursive: true),
                 (e) => checkDeleteRecursivelyNonExistentFileException(e));
 
-  nonExistent.deleteRecursively().handleException((e) {
+  nonExistent.delete(recursive: true).handleException((e) {
     checkDeleteRecursivelyNonExistentFileException(e);
     done();
     return true;
@@ -222,7 +222,7 @@ testRenameOverwriteFile(Directory temp, Function done) {
   renameDone.then((ignore) => Expect.fail('rename dir overwrite file'));
   renameDone.handleException((e) {
     Expect.isTrue(e is DirectoryIOException);
-    temp1.deleteRecursivelySync();
+    temp1.deleteSync(recursive: true);
     done();
     return true;
   });
@@ -237,7 +237,7 @@ void runTest(Function test) {
   ReceivePort p = new ReceivePort();
   p.receive((x,y) {
     p.close();
-    temp.deleteRecursivelySync();
+    temp.deleteSync(recursive: true);
   });
 
   // Run the test.

@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('DocumentFragmentTest');
-#import('../../pkg/unittest/unittest.dart');
-#import('../../pkg/unittest/html_config.dart');
-#import('dart:html');
-#source('util.dart');
+library DocumentFragmentTest;
+import '../../pkg/unittest/lib/unittest.dart';
+import '../../pkg/unittest/lib/html_config.dart';
+import 'dart:html';
+part 'util.dart';
 
 main() {
   useHtmlConfiguration();
@@ -43,7 +43,7 @@ main() {
     expect(style.getPropertyPriority('color'), equals(''));
     expect(style.item(0), equals(''));
     expect(style.length, isZero);
-    // TODO(jacobr): these checks throw NotImplementedExceptions in dartium.
+    // TODO(jacobr): these checks throw UnimplementedErrors in dartium.
     // expect(style.parentRule, isNull);
     // expect(style.getPropertyCSSValue('color'), isNull);
     // expect(style.getPropertyShorthand('color'), isNull);

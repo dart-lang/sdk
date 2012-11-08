@@ -378,15 +378,15 @@ class _DateFormatPatternField extends _DateFormatField {
 
   String formatTimeZoneId(Date date) {
     // TODO(alanknight): implement time zone support
-    throw new NotImplementedException();
+    throw new UnimplementedError();
   }
 
   String formatTimeZone(Date date) {
-    throw new NotImplementedException();
+    throw new UnimplementedError();
   }
 
   String formatTimeZoneRFC(Date date) {
-    throw new NotImplementedException();
+    throw new UnimplementedError();
   }
 
  /**

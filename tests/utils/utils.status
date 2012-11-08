@@ -17,9 +17,6 @@ recursive_import_test: Fail # http://dartbug.com/2264
 [ $compiler == dart2js && $browser ]
 *: Skip
 
-[ $runtime == dartium || $runtime == drt ]
-utf8_test: Fail # TRIAGE
-
 [ $runtime == vm ]
 *_layout_test: Skip
 
@@ -27,6 +24,16 @@ utf8_test: Fail # TRIAGE
 *_layout_test: Skip
 
 [ $compiler == dartc ]
+# dart2js issue 6323
+dummy_compiler_test: Fail, OK
+recursive_import_test: Fail, OK
+txt_layout_test: Fail, OK
+png_layout_test: Fail, OK
+
+# test issue 6512
+json_test: Fail, OK
+utf8_test: Fail, OK
+
 
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.

@@ -5,9 +5,9 @@
 // Dart test program for testing isolate communication with
 // complex messages.
 
-#library('IsolateComplexMessagesTest');
-#import('dart:isolate');
-#import('../../pkg/unittest/unittest.dart');
+library IsolateComplexMessagesTest;
+import 'dart:isolate';
+import '../../pkg/unittest/lib/unittest.dart';
 
 main() {
   test("complex messages are serialized correctly", () {
@@ -20,7 +20,7 @@ main() {
     remote.send(const ["Hello", "World", 0xffffffffff], null);
     // Shutdown the LogRunner.
     remote.call(-1).then(expectAsync1((int message) {
-      Expect.equals(6, message);
+      expect(message, 6);
     }));
   });
 }
@@ -36,35 +36,35 @@ void logMessages() {
     } else {
       switch (count) {
         case 0:
-          Expect.equals(1, message);
+          expect(message, 1);
           break;
         case 1:
-          Expect.equals("Hello", message);
+          expect(message, "Hello");
           break;
         case 2:
-          Expect.equals("World", message);
+          expect(message, "World");
           break;
         case 3:
-          Expect.equals(5, message.length);
-          Expect.equals(null, message[0]);
-          Expect.equals(1, message[1]);
-          Expect.equals(2, message[2]);
-          Expect.equals(3, message[3]);
-          Expect.equals(4, message[4]);
+          expect(message.length, 5);
+          expect(message[0], null);
+          expect(message[1], 1);
+          expect(message[2], 2);
+          expect(message[3], 3);
+          expect(message[4], 4);
           break;
         case 4:
-          Expect.equals(5, message.length);
-          Expect.equals(1, message[0]);
-          Expect.equals(2.0, message[1]);
-          Expect.equals(true, message[2]);
-          Expect.equals(false, message[3]);
-          Expect.equals(0xffffffffff, message[4]);
+          expect(message.length, 5);
+          expect(message[0], 1);
+          expect(message[1], 2.0);
+          expect(message[2], true);
+          expect(message[3], false);
+          expect(message[4], 0xffffffffff);
           break;
         case 5:
-          Expect.equals(3, message.length);
-          Expect.equals("Hello", message[0]);
-          Expect.equals("World", message[1]);
-          Expect.equals(0xffffffffff, message[2]);
+          expect(message.length, 3);
+          expect(message[0], "Hello");
+          expect(message[1], "World");
+          expect(message[2], 0xffffffffff);
           break;
       }
       count++;

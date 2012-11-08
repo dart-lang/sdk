@@ -12,8 +12,13 @@ fixnum/test/int_64_vm_test: Skip
 [$compiler == dart2dart]
 *: Skip
 
+# Don't compiile tests that use dart:io to JS
+[ $compiler == dart2js || $compiler == dart2dart || $compiler == dartc ]
+http/test/*: Skip
+
 # Skip tests that use local file access if we're running in any browser
 [ $runtime == opera || $runtime == ff || $runtime == ie9 || $runtime == dartium || $runtime == chrome || $runtime == safari || $runtime == drt ]
+http/test/*: Skip
 intl/test/date_time_format_file_even_test: Skip
 intl/test/date_time_format_file_odd_test: Skip
 intl/test/find_default_locale_standalone_test: Skip
@@ -26,23 +31,11 @@ intl/test/date_time_format_http_request_test: Skip # Timeout.
 [ $runtime == vm ]
 intl/test/find_default_locale_browser_test: Skip
 intl/test/date_time_format_http_request_test: Skip
-unittest/test/mock_test: Fail  # noSuchMethod InvocationMirror not correct yet.
 
 # Skip http request tests on Dartium while resolving an odd
 # error there that causes the tests to timeout.
 [ $runtime == dartium || $runtime == drt ]
 intl/test/date_time_format_http_request_test: Skip
-
-[ $runtime == drt && $compiler == none ]
-intl/test/bidi_format_test: Fail # New import syntax is not supported by test frameowrk
-intl/test/bidi_utils_test: Fail # New import syntax is not supported by test frameowrk
-intl/test/date_time_format_local_even_test: Fail # New import syntax is not supported by test frameowrk
-intl/test/date_time_format_local_odd_test: Fail # New import syntax is not supported by test frameowrk
-intl/test/find_default_locale_browser_test: Fail # New import syntax is not supported by test frameowrk
-intl/test/intl_message_basic_example_test: Fail # New import syntax is not supported by test frameowrk
-intl/test/intl_message_test: Fail # New import syntax is not supported by test frameowrk
-intl/test/intl_test: Fail # New import syntax is not supported by test frameowrk
-intl/test/number_format_test: Fail # New import syntax is not supported by test frameowrk
 
 # Skip intl_message tests that use mirrors on dart2js until it's been
 # implemented there.
@@ -54,11 +47,8 @@ intl/test/intl_message_basic_example_test: Skip
 unittest/test/mock_regexp_negative_test: Fail
 unittest/test/mock_stepwise_negative_test: Fail
 
-# pkg issue 6340
-fixnum/test/int_32_test: Fail, OK
-fixnum/test/int_64_test: Fail, OK
-unittest/test/matchers_test: Fail, OK
-
+[ $system == windows ]
+http/test/request_test: Pass, Timeout # Issue 6594
 
 [ $compiler == dart2js || $compiler == dartc ]
 unittest/test/instance_test: Skip
@@ -66,5 +56,3 @@ unittest/test/instance_test: Skip
 [ $compiler == none && $runtime == drt ]
 dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
 
-[ $compiler == none && ($runtime == dartium || $runtime == drt) ]
-unittest/test/mock_test: Fail

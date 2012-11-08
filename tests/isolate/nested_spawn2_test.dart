@@ -6,13 +6,13 @@
 // that the nested isolates can communicate with the main once the spawner has
 // disappeared.
 
-#library('NestedSpawn2Test');
-#import("dart:isolate");
-#import('../../pkg/unittest/unittest.dart');
+library NestedSpawn2Test;
+import 'dart:isolate';
+import '../../pkg/unittest/lib/unittest.dart';
 
 void isolateA() {
   port.receive((msg, replyTo) {
-    Expect.equals("launch nested!", msg);
+    expect(msg, "launch nested!");
     SendPort p = spawnFunction(isolateB);
     p.send(replyTo, null);
     port.close();
@@ -42,11 +42,11 @@ void isolateB() {
     // Do a little ping-pong dance to give the intermediate isolate
     // time to die.
     _call(mainPort, msg0, ((msg, replyTo) {
-      Expect.equals("1", msg[0]);
+      expect(msg[0], "1");
       _call(replyTo, msg2, ((msg, replyTo) {
-        Expect.equals("3", msg[0]);
+        expect(msg[0], "3");
         _call(replyTo, msg4, ((msg, replyTo) {
-          Expect.equals("5", msg[0]);
+          expect(msg[0], "5");
           replyTo.send(msg6, null);
         }));
       }));
@@ -58,13 +58,13 @@ main() {
   test("spawned isolate can spawn other isolates", () {
     SendPort port = spawnFunction(isolateA);
     _call(port, "launch nested!", expectAsync2((msg, replyTo) {
-      Expect.equals("0", msg[0]);
+      expect(msg[0], "0");
       _call(replyTo, msg1, expectAsync2((msg, replyTo) {
-        Expect.equals("2", msg[0]);
+        expect(msg[0], "2");
         _call(replyTo, msg3, expectAsync2((msg, replyTo) {
-          Expect.equals("4", msg[0]);
+          expect(msg[0], "4");
           _call(replyTo, msg5, expectAsync2((msg, replyTo) {
-            Expect.equals("6", msg[0]);
+            expect(msg[0], "6");
           }));
         }));
       }));

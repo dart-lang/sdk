@@ -1140,6 +1140,67 @@ UNIT_TEST_CASE(ScriptSnapshot) {
 }
 
 
+UNIT_TEST_CASE(ScriptSnapshot1) {
+  const char* kScriptChars =
+    "class _SimpleNumEnumerable<T extends num> {"
+      "final Iterable<T> _source;"
+      "const _SimpleNumEnumerable(this._source) : super();"
+    "}";
+
+  Dart_Handle result;
+  uint8_t* buffer;
+  intptr_t size;
+  uint8_t* full_snapshot = NULL;
+  uint8_t* script_snapshot = NULL;
+
+  {
+    // Start an Isolate, and create a full snapshot of it.
+    TestIsolateScope __test_isolate__;
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Write out the script snapshot.
+    result = Dart_CreateSnapshot(&buffer, &size);
+    EXPECT_VALID(result);
+    full_snapshot = reinterpret_cast<uint8_t*>(malloc(size));
+    memmove(full_snapshot, buffer, size);
+    Dart_ExitScope();
+  }
+
+  {
+    // Create an Isolate using the full snapshot, load a script and create
+    // a script snapshot of the script.
+    TestCase::CreateTestIsolateFromSnapshot(full_snapshot);
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Create a test library and Load up a test script in it.
+    TestCase::LoadTestScript(kScriptChars, NULL);
+
+    // Write out the script snapshot.
+    result = Dart_CreateScriptSnapshot(&buffer, &size);
+    EXPECT_VALID(result);
+    script_snapshot = reinterpret_cast<uint8_t*>(malloc(size));
+    memmove(script_snapshot, buffer, size);
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+  }
+
+  {
+    // Now Create an Isolate using the full snapshot and load the
+    // script snapshot created above and execute it.
+    TestCase::CreateTestIsolateFromSnapshot(full_snapshot);
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Load the test library from the snapshot.
+    EXPECT(script_snapshot != NULL);
+    result = Dart_LoadScriptFromSnapshot(script_snapshot);
+    EXPECT_VALID(result);
+  }
+  Dart_ShutdownIsolate();
+  free(full_snapshot);
+  free(script_snapshot);
+}
+
+
 TEST_CASE(IntArrayMessage) {
   StackZone zone(Isolate::Current());
   uint8_t* buffer = NULL;

@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('matcherTest');
-#import('../../../pkg/unittest/unittest.dart');
-#source('test_utils.dart');
+library unittestTests;
+import '../../../pkg/unittest/lib/unittest.dart';
+part 'test_utils.dart';
 
 doesNotThrow() {}
 doesThrow() { throw 'X'; }
@@ -126,17 +126,16 @@ void main() {
     });
 
     test('throwsRangeError', () {
-      shouldPass(() { throw new RangeError.value(0); },
+      shouldPass(() { throw new RangeError(0); },
           throwsRangeError);
       shouldFail(() { throw new Exception(); },
           throwsRangeError,
         "Expected: throws an exception which matches RangeError "
-        "but:  exception <Exception> does not match "
-            "RangeError.");
+        "but:  exception <Exception> does not match RangeError.");
     });
 
     test('throwsNoSuchMethodError', () {
-      shouldPass(() { throw new NoSuchMethodError(null, '', null); },
+      shouldPass(() { throw new NoSuchMethodError(null, '', null, null); },
           throwsNoSuchMethodError);
       shouldFail(() { throw new Exception(); },
           throwsNoSuchMethodError,
@@ -145,14 +144,14 @@ void main() {
             "NoSuchMethodError.");
     });
 
-    test('throwsNotImplementedException', () {
-      shouldPass(() { throw new NotImplementedException(''); },
-          throwsNotImplementedException);
+    test('throwsUnimplementedError', () {
+      shouldPass(() { throw new UnimplementedError(''); },
+          throwsUnimplementedError);
       shouldFail(() { throw new Exception(); },
-          throwsNotImplementedException,
-        "Expected: throws an exception which matches NotImplementedException "
+          throwsUnimplementedError,
+        "Expected: throws an exception which matches UnimplementedError "
         "but:  exception <Exception> does not match "
-            "NotImplementedException.");
+            "UnimplementedError.");
     });
 
     test('throwsNullPointerException', () {

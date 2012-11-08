@@ -4,8 +4,8 @@
 
 import 'dart:uri';
 
-import '../../../lib/compiler/implementation/js_backend/js_backend.dart';
-import '../../../lib/compiler/implementation/ssa/ssa.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/js_backend/js_backend.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/ssa/ssa.dart';
 
 import 'compiler_helper.dart';
 import 'parser_helper.dart';

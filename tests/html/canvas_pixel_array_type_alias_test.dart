@@ -1,7 +1,7 @@
-#library('CanvasTest');
-#import('../../pkg/unittest/unittest.dart');
-#import('../../pkg/unittest/html_config.dart');
-#import('dart:html');
+library CanvasTest;
+import '../../pkg/unittest/lib/unittest.dart';
+import '../../pkg/unittest/lib/html_config.dart';
+import 'dart:html';
 
 // We have aliased the legacy type CanvasPixelArray with the new type
 // Uint8ClampedArray by mapping the CanvasPixelArray type tag to

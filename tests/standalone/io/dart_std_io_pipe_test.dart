@@ -65,14 +65,14 @@ void test(String shellScript, String dartScript, String type) {
       }
 
       // Cleanup test directory.
-      dir.deleteRecursivelySync();
+      dir.deleteSync(recursive: true);
     };
     // Drain out and err streams so they close.
     process.stdout.onData = process.stdout.read;
     process.stderr.onData = process.stderr.read;
   });
   future.handleException((ProcessException error) {
-    dir.deleteRecursivelySync();
+    dir.deleteSync(recursive: true);
     Expect.fail(error.toString());
   });
 }

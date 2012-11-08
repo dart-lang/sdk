@@ -1455,15 +1455,16 @@ DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle str,
  * Gets a UTF-8 encoded representation of a String.
  *
  * \param str A string.
- * \param utf8_array An array allocated by the caller, used to return
- *   the array of UTF-8 encoded characters.
- * \param length Used to pass in the length of the provided array.
- *   Used to return the length of the array which was actually used.
+ * \param utf8_array Returns the String represented as UTF-8 code
+ *   units.  This UTF-8 array is scope allocated and is only valid
+ *   until the next call to Dart_ExitScope.
+ * \param length Used to return the length of the array which was
+ *   actually used.
  *
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT Dart_Handle Dart_StringToUTF8(Dart_Handle str,
-                                          uint8_t* utf8_array,
+                                          uint8_t** utf8_array,
                                           intptr_t* length);
 
 /**

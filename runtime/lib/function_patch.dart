@@ -6,6 +6,6 @@ patch class Function {
   /* patch */ static apply(Function function,
                            List positionalArguments,
                            [Map<String,Dynamic> namedArguments]) {
-    throw new NotImplementedException('Function.apply not implemented');
+    throw new UnimplementedError('Function.apply not implemented');
   }
 }

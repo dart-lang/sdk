@@ -4,7 +4,7 @@
 
 // TODO(rnystrom): This file was copied from pub.
 /** Generic utility functions. Stuff that should possibly be in core. */
-#library('args_utils');
+library args_utils;
 
 /** Pads [source] to [length] by adding spaces at the end. */
 String padRight(String source, int length) {

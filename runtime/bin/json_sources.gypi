@@ -5,6 +5,6 @@
 # This file contains all sources for the dart:io library.
 {
   'sources': [
-    '../../lib/json/json.dart',
+    '../../sdk/lib/json/json.dart',
   ],
 }

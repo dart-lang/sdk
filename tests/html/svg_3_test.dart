@@ -1,7 +1,7 @@
-#library('SVG3Test');
-#import('../../pkg/unittest/unittest.dart');
-#import('../../pkg/unittest/html_config.dart');
-#import('dart:html');
+library SVG3Test;
+import '../../pkg/unittest/lib/unittest.dart';
+import '../../pkg/unittest/lib/html_config.dart';
+import 'dart:html';
 
 // Test that SVG elements have the operations advertised through all the IDL
 // interfaces.  This is a 'duck typing' test, and does not explicitly use 'is'

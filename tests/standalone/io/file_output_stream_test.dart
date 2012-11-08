@@ -38,7 +38,7 @@ void testOutputStreamNoPendingWrite() {
   // Create a port for waiting on the final result of this test.
   ReceivePort done = new ReceivePort();
   done.receive((message, replyTo) {
-    tempDirectory.deleteRecursively().then((ignore) => done.close());
+    tempDirectory.delete(recursive: true).then((ignore) => done.close());
   });
 
   new Directory('').createTemp().then((temp) {

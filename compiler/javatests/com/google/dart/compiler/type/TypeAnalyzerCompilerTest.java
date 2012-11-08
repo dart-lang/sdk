@@ -4,7 +4,6 @@
 package com.google.dart.compiler.type;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerTestCase;
@@ -15,6 +14,8 @@ import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartCommentNewName;
+import com.google.dart.compiler.ast.DartCommentRefName;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
@@ -45,9 +46,13 @@ import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
+import com.google.dart.compiler.resolver.VariableElement;
 
 import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
 import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+import static com.google.dart.compiler.type.TypeQuality.EXACT;
+import static com.google.dart.compiler.type.TypeQuality.INFERRED;
+import static com.google.dart.compiler.type.TypeQuality.INFERRED_EXACT;
 
 import java.net.URI;
 import java.util.List;
@@ -1937,23 +1942,23 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * http://code.google.com/p/dart/issues/detail?id=4460
    */
   public void test_inferredTypes_noMemberWarnings_forInLoop() throws Exception {
-      compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
-        @Override
-        public boolean typeChecksForInferredTypes() {
-          return false;
-        }
-      });
-      AnalyzeLibraryResult result = analyzeLibrary(
-          "// filler filler filler filler filler filler filler filler filler filler",
-          "class A {}",
-          "foo() {",
-          "  List<A> values;",
-          "  for (var v in values) {",
-          "    v.bar();",
-          "  }",
-          "}",
-          "");
-      assertErrors(result.getErrors());
+    compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
+      @Override
+      public boolean typeChecksForInferredTypes() {
+        return false;
+      }
+    });
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "foo() {",
+        "  List<A> values;",
+        "  for (var v in values) {",
+        "    v.bar();",
+        "  }",
+        "}",
+        "");
+    assertErrors(result.getErrors());
   }
 
   public void test_inferredTypes_whenInvocationArgument_checkAssignable() throws Exception {
@@ -2029,21 +2034,14 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v7 = new Map().length;",
         "}",
         "");
-    // prepare expected results
-    List<String> expectedList = Lists.newArrayList();
-    expectedList.add("bool");
-    expectedList.add("bool");
-    expectedList.add("int");
-    expectedList.add("int");
-    expectedList.add("double");
-    expectedList.add("double");
-    expectedList.add("Map<String, int>");
-    expectedList.add("int");
-    // check each "v" type
-    for (int i = 0; i < expectedList.size(); i++) {
-      String expectedTypeString = expectedList.get(i);
-      assertInferredElementTypeString(testUnit, "v" + i, expectedTypeString);
-    }
+    assertInferredElementTypeString(testUnit, "v0", "bool", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v1", "bool", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v2", "int", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v3", "int", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v4", "double", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v5", "double", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v6", "Map<String, int>", INFERRED);
+    assertInferredElementTypeString(testUnit, "v7", "int", INFERRED_EXACT);
   }
 
   /**
@@ -2062,8 +2060,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertErrors(libraryResult.getErrors());
-    assertInferredElementTypeString(testUnit, "v1", "B");
-    assertInferredElementTypeString(testUnit, "v2", "B");
+    assertInferredElementTypeString(testUnit, "v1", "B", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v2", "B", INFERRED_EXACT);
   }
 
   public void test_typesPropagation_multiAssign() throws Exception {
@@ -2076,8 +2074,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v2 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "bool");
-    assertInferredElementTypeString(testUnit, "v2", "int");
+    assertInferredElementTypeString(testUnit, "v1", "bool", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v2", "int", INFERRED_EXACT);
   }
 
   public void test_typesPropagation_multiAssign_noInitialValue() throws Exception {
@@ -2089,7 +2087,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v1 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "int");
+    assertInferredElementTypeString(testUnit, "v1", "int", INFERRED_EXACT);
   }
 
   public void test_typesPropagation_multiAssign_IfThen() throws Exception {
@@ -2105,9 +2103,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v3 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "bool");
-    assertInferredElementTypeString(testUnit, "v2", "int");
-    assertInferredElementTypeString(testUnit, "v3", "Object");
+    assertInferredElementTypeString(testUnit, "v1", "bool", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v2", "int", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v3", "Object", INFERRED);
   }
 
   public void test_typesPropagation_multiAssign_IfThenElse() throws Exception {
@@ -2131,10 +2129,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var d1 = d;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "a1", "int");
-    assertInferredElementTypeString(testUnit, "b1", "Object");
-    assertInferredElementTypeString(testUnit, "c1", "Object");
-    assertInferredElementTypeString(testUnit, "d1", "bool");
+    assertInferredElementTypeString(testUnit, "a1", "int", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "b1", "Object", INFERRED);
+    assertInferredElementTypeString(testUnit, "c1", "Object", INFERRED);
+    assertInferredElementTypeString(testUnit, "d1", "bool", INFERRED_EXACT);
   }
 
   public void test_typesPropagation_multiAssign_IfThenElse_whenAsTypeCondition() throws Exception {
@@ -2150,9 +2148,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v3 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "String");
-    assertInferredElementTypeString(testUnit, "v2", "dynamic");
-    assertInferredElementTypeString(testUnit, "v3", "dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "String", INFERRED);
+    assertInferredElementTypeString(testUnit, "v2", "dynamic", EXACT);
+    assertInferredElementTypeString(testUnit, "v3", "dynamic", EXACT);
   }
 
   public void test_typesPropagation_multiAssign_While() throws Exception {
@@ -2169,10 +2167,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v4 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "bool");
-    assertInferredElementTypeString(testUnit, "v2", "bool");
-    assertInferredElementTypeString(testUnit, "v3", "int");
-    assertInferredElementTypeString(testUnit, "v4", "Object");
+    assertInferredElementTypeString(testUnit, "v1", "bool", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v2", "bool", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v3", "int", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v4", "Object", INFERRED);
   }
   
   public void test_typesPropagation_multiAssign_DoWhile() throws Exception {
@@ -2189,10 +2187,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v4 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "bool");
-    assertInferredElementTypeString(testUnit, "v2", "bool");
-    assertInferredElementTypeString(testUnit, "v3", "int");
-    assertInferredElementTypeString(testUnit, "v4", "int");
+    assertInferredElementTypeString(testUnit, "v1", "bool", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v2", "bool", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v3", "int", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v4", "int", INFERRED_EXACT);
   }
 
   public void test_typesPropagation_multiAssign_For() throws Exception {
@@ -2209,10 +2207,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v4 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "bool");
-    assertInferredElementTypeString(testUnit, "v2", "bool");
-    assertInferredElementTypeString(testUnit, "v3", "int");
-    assertInferredElementTypeString(testUnit, "v4", "Object");
+    assertInferredElementTypeString(testUnit, "v1", "bool", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v2", "bool", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v3", "int", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v4", "Object", INFERRED);
   }
 
   public void test_typesPropagation_multiAssign_ForIn() throws Exception {
@@ -2230,10 +2228,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v4 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "bool");
-    assertInferredElementTypeString(testUnit, "v2", "bool");
-    assertInferredElementTypeString(testUnit, "v3", "int");
-    assertInferredElementTypeString(testUnit, "v4", "Object");
+    assertInferredElementTypeString(testUnit, "v1", "bool", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v2", "bool", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v3", "int", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v4", "Object", INFERRED);
   }
 
   /**
@@ -2255,8 +2253,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var b1 = b;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "a1", "List<Object>");
-    assertInferredElementTypeString(testUnit, "b1", "List<Object>");
+    assertInferredElementTypeString(testUnit, "a1", "List<Object>", INFERRED);
+    assertInferredElementTypeString(testUnit, "b1", "List<Object>", INFERRED);
   }
   
   /**
@@ -2278,8 +2276,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var b1 = b;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "a1", "List<String>");
-    assertInferredElementTypeString(testUnit, "b1", "List<String>");
+    assertInferredElementTypeString(testUnit, "a1", "List<String>", INFERRED);
+    assertInferredElementTypeString(testUnit, "b1", "List<String>", INFERRED);
   }
   
   /**
@@ -2299,9 +2297,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v3 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "dynamic");
-    assertInferredElementTypeString(testUnit, "v2", "String");
-    assertInferredElementTypeString(testUnit, "v3", "String");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic", EXACT);
+    assertInferredElementTypeString(testUnit, "v2", "String", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v3", "String", INFERRED);
   }
 
   /**
@@ -2331,8 +2329,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v2 = new Unknown.name();",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "dynamic");
-    assertInferredElementTypeString(testUnit, "v2", "dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic", EXACT);
+    assertInferredElementTypeString(testUnit, "v2", "dynamic", EXACT);
   }
 
   public void test_typesPropagation_ifAsType() throws Exception {
@@ -2345,8 +2343,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v2 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "String");
-    assertInferredElementTypeString(testUnit, "v2", "dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "String", INFERRED);
+    assertInferredElementTypeString(testUnit, "v2", "dynamic", EXACT);
   }
 
   /**
@@ -2363,8 +2361,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v2 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "String");
-    assertInferredElementTypeString(testUnit, "v2", "dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "String", INFERRED);
+    assertInferredElementTypeString(testUnit, "v2", "dynamic", EXACT);
   }
 
   public void test_typesPropagation_ifIsType() throws Exception {
@@ -2379,9 +2377,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v3 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "List<String>");
-    assertInferredElementTypeString(testUnit, "v2", "Map<int, String>");
-    assertInferredElementTypeString(testUnit, "v3", "dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "List<String>", INFERRED);
+    assertInferredElementTypeString(testUnit, "v2", "Map<int, String>", INFERRED);
+    assertInferredElementTypeString(testUnit, "v3", "dynamic", EXACT);
   }
 
   /**
@@ -2403,24 +2401,39 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  }",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "a1", "int");
-    assertInferredElementTypeString(testUnit, "a2", "int");
-    assertInferredElementTypeString(testUnit, "b1", "int");
+    assertInferredElementTypeString(testUnit, "a1", "int", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "a2", "int", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "b1", "int", INFERRED);
   }
 
   /**
    * When single variable has conflicting type constraints, we use union of types.
    */
   public void test_typesPropagation_ifIsType_conflictingTypes() throws Exception {
-    analyzeLibrary(
+    compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
+      @Override
+      public boolean typeChecksForInferredTypes() {
+        return true;
+      }
+    });
+    AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "f(int v) {",
         "  if (v is String) {",
         "    var v1 = v;",
+        "    // should be OK because 'v' is String",
+        "    v.abs; // from num",
+        "    v.length; // from String",
+        "    processInt(v);",
+        "    processString(v);",
         "  }",
         "}",
+        "processInt(int p) {}",
+        "processString(String p) {}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "[int, String]");
+    // should be no errors, we because "v" is String
+    assertErrors(result.getErrors());
+    assertInferredElementTypeString(testUnit, "v1", "[int, String]", INFERRED);
   }
 
   public void test_typesPropagation_ifIsType_negation() throws Exception {
@@ -2437,9 +2450,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  }",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "dynamic");
-    assertInferredElementTypeString(testUnit, "v2", "dynamic");
-    assertInferredElementTypeString(testUnit, "v3", "String");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic", EXACT);
+    assertInferredElementTypeString(testUnit, "v2", "dynamic", EXACT);
+    assertInferredElementTypeString(testUnit, "v3", "String", INFERRED);
   }
 
   public void test_typesPropagation_ifIsType_and() throws Exception {
@@ -2452,8 +2465,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  }",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "a1", "String");
-    assertInferredElementTypeString(testUnit, "b1", "List<String>");
+    assertInferredElementTypeString(testUnit, "a1", "String", INFERRED);
+    assertInferredElementTypeString(testUnit, "b1", "List<String>", INFERRED);
   }
 
   public void test_typesPropagation_ifIsType_or() throws Exception {
@@ -2468,8 +2481,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  }",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "dynamic");
-    assertInferredElementTypeString(testUnit, "v2", "dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic", EXACT);
+    assertInferredElementTypeString(testUnit, "v2", "dynamic", EXACT);
   }
 
   public void test_typesPropagation_whileIsType() throws Exception {
@@ -2483,8 +2496,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v2 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "String");
-    assertInferredElementTypeString(testUnit, "v2", "dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "String", INFERRED);
+    assertInferredElementTypeString(testUnit, "v2", "dynamic", EXACT);
   }
 
   public void test_typesPropagation_forIsType() throws Exception {
@@ -2498,9 +2511,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v3 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "String");
-    assertInferredElementTypeString(testUnit, "v2", "String");
-    assertInferredElementTypeString(testUnit, "v3", "dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "String", INFERRED);
+    assertInferredElementTypeString(testUnit, "v2", "String", INFERRED);
+    assertInferredElementTypeString(testUnit, "v3", "dynamic", EXACT);
   }
 
   public void test_typesPropagation_forEach() throws Exception {
@@ -2513,7 +2526,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  }",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "String");
+    assertInferredElementTypeString(testUnit, "v1", "String", INFERRED);
   }
 
   public void test_typesPropagation_ifIsNotType_withElse() throws Exception {
@@ -2529,11 +2542,11 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     // we don't know type, but not String
-    assertInferredElementTypeString(testUnit, "v1", "dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic", EXACT);
     // we know that String
-    assertInferredElementTypeString(testUnit, "v2", "String");
+    assertInferredElementTypeString(testUnit, "v2", "String", INFERRED);
     // again, we don't know after "if"
-    assertInferredElementTypeString(testUnit, "v3", "dynamic");
+    assertInferredElementTypeString(testUnit, "v3", "dynamic", EXACT);
   }
 
   public void test_typesPropagation_ifIsNotType_hasThenReturn() throws Exception {
@@ -2547,8 +2560,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v2 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "dynamic");
-    assertInferredElementTypeString(testUnit, "v2", "String");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic", EXACT);
+    assertInferredElementTypeString(testUnit, "v2", "String", INFERRED);
   }
 
   public void test_typesPropagation_ifIsNotType_hasThenThrow() throws Exception {
@@ -2561,7 +2574,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v1 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "String");
+    assertInferredElementTypeString(testUnit, "v1", "String", INFERRED);
   }
 
   public void test_typesPropagation_ifIsNotType_emptyThen() throws Exception {
@@ -2573,7 +2586,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v1 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic", EXACT);
   }
 
   public void test_typesPropagation_ifIsNotType_otherThen() throws Exception {
@@ -2586,7 +2599,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v1 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic", EXACT);
   }
 
   public void test_typesPropagation_ifIsNotType_hasThenThrow_withCatch() throws Exception {
@@ -2602,7 +2615,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v1 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic", EXACT);
   }
 
   public void test_typesPropagation_ifIsNotType_hasThenContinue() throws Exception {
@@ -2619,8 +2632,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertErrors(libraryResult.getErrors());
-    assertInferredElementTypeString(testUnit, "v1", "Object");
-    assertInferredElementTypeString(testUnit, "v2", "String");
+    assertInferredElementTypeString(testUnit, "v1", "Object", INFERRED);
+    assertInferredElementTypeString(testUnit, "v2", "String", INFERRED);
   }
 
   public void test_typesPropagation_ifIsNotType_hasThenBreak() throws Exception {
@@ -2637,8 +2650,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertErrors(libraryResult.getErrors());
-    assertInferredElementTypeString(testUnit, "v1", "Object");
-    assertInferredElementTypeString(testUnit, "v2", "String");
+    assertInferredElementTypeString(testUnit, "v1", "Object", INFERRED);
+    assertInferredElementTypeString(testUnit, "v2", "String", INFERRED);
   }
 
   public void test_typesPropagation_ifIsNotType_or() throws Exception {
@@ -2652,8 +2665,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v2 = p2;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "int");
-    assertInferredElementTypeString(testUnit, "v2", "String");
+    assertInferredElementTypeString(testUnit, "v1", "int", INFERRED);
+    assertInferredElementTypeString(testUnit, "v2", "String", INFERRED);
   }
 
   public void test_typesPropagation_ifIsNotType_and() throws Exception {
@@ -2666,7 +2679,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v1 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic", EXACT);
   }
 
   public void test_typesPropagation_ifIsNotType_not() throws Exception {
@@ -2679,7 +2692,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v1 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic", EXACT);
   }
 
   public void test_typesPropagation_ifIsNotType_not2() throws Exception {
@@ -2692,7 +2705,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v1 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "String");
+    assertInferredElementTypeString(testUnit, "v1", "String", INFERRED);
   }
 
   public void test_typesPropagation_ifNotIsType() throws Exception {
@@ -2705,7 +2718,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v1 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "String");
+    assertInferredElementTypeString(testUnit, "v1", "String", INFERRED);
   }
 
   /**
@@ -2728,14 +2741,14 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     // we don't know type initially
-    assertInferredElementTypeString(testUnit, "v1", "dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic", EXACT);
     // after "assert" all next statements know type
-    assertInferredElementTypeString(testUnit, "v2", "String");
-    assertInferredElementTypeString(testUnit, "v3", "String");
+    assertInferredElementTypeString(testUnit, "v2", "String", INFERRED);
+    assertInferredElementTypeString(testUnit, "v3", "String", INFERRED);
     // type is set to unknown only when we exit control Block, not just any Block
-    assertInferredElementTypeString(testUnit, "v4", "String");
+    assertInferredElementTypeString(testUnit, "v4", "String", INFERRED);
     // we exited "if" Block, so "assert" may be was not executed, so we don't know type
-    assertInferredElementTypeString(testUnit, "v5", "dynamic");
+    assertInferredElementTypeString(testUnit, "v5", "dynamic", EXACT);
   }
   
   /**
@@ -2758,14 +2771,14 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     // we don't know type initially
-    assertInferredElementTypeString(testUnit, "a1", "dynamic");
-    assertInferredElementTypeString(testUnit, "b1", "dynamic");
+    assertInferredElementTypeString(testUnit, "a1", "dynamic", EXACT);
+    assertInferredElementTypeString(testUnit, "b1", "dynamic", EXACT);
     // after "assert" all next statements know type
-    assertInferredElementTypeString(testUnit, "a2", "String");
-    assertInferredElementTypeString(testUnit, "b2", "String");
+    assertInferredElementTypeString(testUnit, "a2", "String", INFERRED);
+    assertInferredElementTypeString(testUnit, "b2", "String", INFERRED);
     // we exited "if" Block, so "assert" may be was not executed, so we don't know type
-    assertInferredElementTypeString(testUnit, "a3", "dynamic");
-    assertInferredElementTypeString(testUnit, "b3", "dynamic");
+    assertInferredElementTypeString(testUnit, "a3", "dynamic", EXACT);
+    assertInferredElementTypeString(testUnit, "b3", "dynamic", EXACT);
   }
 
   /**
@@ -2794,10 +2807,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  }",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "B");
-    assertInferredElementTypeString(testUnit, "v2", "B");
-    assertInferredElementTypeString(testUnit, "v3", "C");
-    assertInferredElementTypeString(testUnit, "v4", "[B, String]");
+    assertInferredElementTypeString(testUnit, "v1", "B", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v2", "B", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v3", "C", INFERRED);
+    assertInferredElementTypeString(testUnit, "v4", "[B, String]", INFERRED);
   }
 
   public void test_typesPropagation_field_inClass_final() throws Exception {
@@ -2808,8 +2821,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  final v2 = 1 + 2.0;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "int");
-    assertInferredElementTypeString(testUnit, "v2", "double");
+    assertInferredElementTypeString(testUnit, "v1", "int", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v2", "double", INFERRED_EXACT);
   }
 
   public void test_typesPropagation_field_inClass_const() throws Exception {
@@ -2820,8 +2833,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  final v2 = 1 + 2.0;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "int");
-    assertInferredElementTypeString(testUnit, "v2", "double");
+    assertInferredElementTypeString(testUnit, "v1", "int", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v2", "double", INFERRED_EXACT);
   }
   
   /**
@@ -2835,7 +2848,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v1 = 123;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic", EXACT);
   }
 
   public void test_typesPropagation_field_topLevel_final() throws Exception {
@@ -2844,8 +2857,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "final v1 = 123;",
         "final v2 = 1 + 2.0;",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "int");
-    assertInferredElementTypeString(testUnit, "v2", "double");
+    assertInferredElementTypeString(testUnit, "v1", "int", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v2", "double", INFERRED_EXACT);
   }
 
   public void test_typesPropagation_field_topLevel_const() throws Exception {
@@ -2854,8 +2867,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "const v1 = 123;",
         "const v2 = 1 + 2.0;",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "int");
-    assertInferredElementTypeString(testUnit, "v2", "double");
+    assertInferredElementTypeString(testUnit, "v1", "int", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v2", "double", INFERRED_EXACT);
   }
   
   /**
@@ -2867,7 +2880,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "// filler filler filler filler filler filler filler filler filler filler",
         "var v1 = 123;",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic", EXACT);
   }
 
   public void test_typesPropagation_FunctionAliasType() throws Exception {
@@ -2880,7 +2893,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "",
         "");
-    assertInferredElementTypeString(testUnit, "v", "F");
+    assertInferredElementTypeString(testUnit, "v", "F", INFERRED_EXACT);
   }
 
   /**
@@ -2904,7 +2917,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  });",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v", "Event");
+    assertInferredElementTypeString(testUnit, "v", "Event", INFERRED);
   }
 
   /**
@@ -2924,7 +2937,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  });",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v", "Event");
+    assertInferredElementTypeString(testUnit, "v", "Event", INFERRED);
   }
 
   /**
@@ -2944,7 +2957,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  });",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v", "Event");
+    assertInferredElementTypeString(testUnit, "v", "Event", INFERRED);
   }
 
   /**
@@ -2966,7 +2979,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  });",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v", "Event");
+    assertInferredElementTypeString(testUnit, "v", "Event", INFERRED);
   }
 
   /**
@@ -2988,7 +3001,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  });",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v", "Event");
+    assertInferredElementTypeString(testUnit, "v", "Event", INFERRED);
   }
 
   public void test_typesPropagation_parameterOfClosure_assignVariable() throws Exception {
@@ -3012,8 +3025,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  }",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "Event");
-    assertInferredElementTypeString(testUnit, "v2", "Event");
+    assertInferredElementTypeString(testUnit, "v1", "Event", INFERRED);
+    assertInferredElementTypeString(testUnit, "v2", "Event", INFERRED);
   }
 
   public void test_typesPropagation_parameterOfClosure_assignField() throws Exception {
@@ -3044,9 +3057,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v3 = e;",
         "};",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "Event");
-    assertInferredElementTypeString(testUnit, "v2", "Event");
-    assertInferredElementTypeString(testUnit, "v3", "Event");
+    assertInferredElementTypeString(testUnit, "v1", "Event", INFERRED);
+    assertInferredElementTypeString(testUnit, "v2", "Event", INFERRED);
+    assertInferredElementTypeString(testUnit, "v3", "Event", INFERRED);
   }
 
   /**
@@ -3114,23 +3127,23 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v17 = arg as int",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "int");
-    assertInferredElementTypeString(testUnit, "v2", "int");
-    assertInferredElementTypeString(testUnit, "v3", "int");
-    assertInferredElementTypeString(testUnit, "v4", "int");
-    assertInferredElementTypeString(testUnit, "v5", "int");
-    assertInferredElementTypeString(testUnit, "v6", "double");
-    assertInferredElementTypeString(testUnit, "v7", "double");
-    assertInferredElementTypeString(testUnit, "v8", "double");
-    assertInferredElementTypeString(testUnit, "v9", "double");
-    assertInferredElementTypeString(testUnit, "v10", "double");
-    assertInferredElementTypeString(testUnit, "v11", "double");
-    assertInferredElementTypeString(testUnit, "v12", "double");
-    assertInferredElementTypeString(testUnit, "v13", "double");
-    assertInferredElementTypeString(testUnit, "v14", "double");
-    assertInferredElementTypeString(testUnit, "v15", "double");
-    assertInferredElementTypeString(testUnit, "v16", "double");
-    assertInferredElementTypeString(testUnit, "v17", "int");
+    assertInferredElementTypeString(testUnit, "v1", "int", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v2", "int", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v3", "int", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v4", "int", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v5", "int", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v6", "double", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v7", "double", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v8", "double", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v9", "double", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v10", "double", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v11", "double", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v12", "double", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v13", "double", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v14", "double", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v15", "double", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v16", "double", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v17", "int", INFERRED);
   }
 
   /**
@@ -3187,8 +3200,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertErrors(libraryResult.getErrors());
-    assertInferredElementTypeString(testUnit, "v1", "int");
-    assertInferredElementTypeString(testUnit, "v2", "bool");
+    assertInferredElementTypeString(testUnit, "v1", "int", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v2", "bool", INFERRED_EXACT);
   }
 
   public void test_getType_getterInNegation_generic() throws Exception {
@@ -3212,8 +3225,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertErrors(libraryResult.getErrors());
-    assertInferredElementTypeString(testUnit, "v1", "bool");
-    assertInferredElementTypeString(testUnit, "v2", "bool");
+    assertInferredElementTypeString(testUnit, "v1", "bool", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v2", "bool", INFERRED_EXACT);
   }
 
   public void test_getType_getterInSwitch_default() throws Exception {
@@ -4336,7 +4349,94 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v = s..length;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v", "String");
+    assertInferredElementTypeString(testUnit, "v", "String", INFERRED_EXACT);
+  }
+
+  /**
+   * There should be no problem reported, because assignment of "a" cascade to "b" with type "B"
+   * implicitly set type of "a" to "B".
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6107
+   */
+  public void test_cascade_inferType_varDeclaration() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "class B extends A {",
+        "  bMethod() {}",
+        "}",
+        "main() {",
+        "  A a = new B();",
+        "  B b = a..bMethod();",
+        "}",
+        "");
+    assertErrors(result.getErrors());
+  }
+  
+  /**
+   * There should be no problem reported, because assignment of "a" cascade to "b" with type "B"
+   * implicitly set type of "a" to "B".
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6107
+   */
+  public void test_cascade_inferType_varAssignment() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "class B extends A {",
+        "  bMethod() {}",
+        "}",
+        "main() {",
+        "  A a = new B();",
+        "  B b = null;",
+        "  b = a..bMethod();",
+        "}",
+        "");
+    assertErrors(result.getErrors());
+  }
+
+  /**
+   * We assign "a" to field "Holder.b" of type "B", so implicitly set type of "a" to "B".
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6107
+   */
+  public void test_cascade_inferType_fieldDeclaration() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Holder {",
+        "  B b = getA()..bMethod();",
+        "}",
+        "class A {}",
+        "class B extends A {",
+        "  bMethod() {}",
+        "}",
+        "A getA() => new B();",
+        "");
+    assertErrors(result.getErrors());
+  }
+  
+  /**
+   * We assign "a" to field "Holder.b" of type "B", so implicitly set type of "a" to "B".
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6107
+   */
+  public void test_cascade_inferType_fieldAssignment() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Holder {",
+        "  B b;",
+        "}",
+        "class A {}",
+        "class B extends A {",
+        "  bMethod() {}",
+        "}",
+        "main() {",
+        "  A a = new B();",
+        "  Holder holder = new Holder();",
+        "  holder.b = a..bMethod();",
+        "}",
+        "");
+    assertErrors(result.getErrors());
   }
 
   /**
@@ -5318,5 +5418,156 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertErrors(result.getErrors());
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5157
+   */
+  public void test_trySubTypeMember_forInferredType() throws Exception {
+    compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
+      @Override
+      public boolean typeChecksForInferredTypes() {
+        return true;
+      }
+    });
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Event {}",
+        "class MouseEvent extends Event {",
+        "  int clientX;",
+        "  void stop() {}",
+        "}",
+        "typedef Listener(Event event);",
+        "class Button {",
+        "  addListener(Listener listener) {}",
+        "}",
+        "main() {",
+        "  Button button = new Button();",
+        "  button.addListener((event) {",
+        "    event.clientX;",
+        "    event.stop();",
+        "  });",
+        "}",
+        "");
+    assertErrors(result.getErrors());
+  }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6491
+   */
+  public void test_annotationOnGetter() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "const myAnnotation = 0;",
+        "class A {",
+        "  @myAnnotation bool get isEmpty => true;",
+        "}",
+        "");
+    assertErrors(result.getErrors());
+  }
+
+  public void test_resolveRefInComment_ofClass() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "/** This class [A] has method [foo]. */",
+        "class A {",
+        "  foo() {}",
+        "}",
+        "");
+    assertErrors(result.getErrors());
+    // [A]
+    {
+      DartCommentRefName node = findNode(DartCommentRefName.class, "A]");
+      ClassElement element = (ClassElement) node.getElement();
+      assertEquals("A", element.getName());
+    }
+    // [foo]
+    {
+      DartCommentRefName node = findNode(DartCommentRefName.class, "foo]");
+      MethodElement element = (MethodElement) node.getElement();
+      assertEquals("foo", element.getName());
+    }
+  }
+
+  public void test_resolveRefInComment_ofFunction() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "/** This function has parameter [aaa] of type [A] ans also [bbb]. */",
+        "foo(A aaa, bbb) {}",
+        "");
+    assertErrors(result.getErrors());
+    // [aaa]
+    {
+      DartCommentRefName node = findNode(DartCommentRefName.class, "aaa]");
+      VariableElement element = (VariableElement) node.getElement();
+      assertSame(ElementKind.PARAMETER, ElementKind.of(element));
+      assertEquals("aaa", element.getName());
+    }
+    // [A]
+    {
+      DartCommentRefName node = findNode(DartCommentRefName.class, "A]");
+      ClassElement element = (ClassElement) node.getElement();
+      assertEquals("A", element.getName());
+    }
+    // [bbb]
+    {
+      DartCommentRefName node = findNode(DartCommentRefName.class, "bbb]");
+      VariableElement element = (VariableElement) node.getElement();
+      assertSame(ElementKind.PARAMETER, ElementKind.of(element));
+      assertEquals("bbb", element.getName());
+    }
+  }
+  
+  public void test_resolveRefInComment_ofMethod() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var fff;",
+        "  /** Initializes [fff] and then calls [bar]. */",
+        "  foo() {}",
+        "  bar() {}",
+        "}",
+        "");
+    assertErrors(result.getErrors());
+    // [fff]
+    {
+      DartCommentRefName node = findNode(DartCommentRefName.class, "fff]");
+      FieldElement element = (FieldElement) node.getElement();
+      assertEquals("fff", element.getName());
+    }
+    // [bar]
+    {
+      DartCommentRefName node = findNode(DartCommentRefName.class, "bar]");
+      MethodElement element = (MethodElement) node.getElement();
+      assertEquals("bar", element.getName());
+    }
+  }
+  
+  public void test_resolveNewInComment() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A() {}",
+        "  A.named() {}",
+        "}",
+        "/** Creates [A] using [new A] or [new A.named] constructors. */",
+        "foo() {}",
+        "");
+    assertErrors(result.getErrors());
+    // [new A]
+    {
+      DartCommentNewName node = findNode(DartCommentNewName.class, "new A]");
+      assertEquals("", node.getConstructorElement().getName());
+      assertEquals("A", node.getClassElement().getName());
+    }
+    // [new A.named]
+    {
+      DartCommentNewName node = findNode(DartCommentNewName.class, "new A.named]");
+      assertEquals("named", node.getConstructorElement().getName());
+      assertEquals("A", node.getClassElement().getName());
+    }
   }
 }

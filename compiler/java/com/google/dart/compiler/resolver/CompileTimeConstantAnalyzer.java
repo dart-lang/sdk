@@ -68,9 +68,6 @@ import java.util.Set;
 public class CompileTimeConstantAnalyzer {
 
   private class ExpressionVisitor extends ASTVisitor<Void> {
-    private ExpressionVisitor() {
-    }
-
     private boolean checkBoolean(DartNode x, Type type) {
       // Spec 0.11 allows using "null" literal in place of bool.
       if (x instanceof DartNullLiteral) {
@@ -367,6 +364,8 @@ public class CompileTimeConstantAnalyzer {
       }
 
       Element element = x.getElement();
+      boolean elementIsStatic = element != null
+          && (element.getModifiers().isStatic() || Elements.isTopLevel(element));
       switch (ElementKind.of(element)) {
         case CLASS:
         case PARAMETER:
@@ -417,7 +416,7 @@ public class CompileTimeConstantAnalyzer {
           return null;
 
         case METHOD:
-          if (!element.getModifiers().isStatic() && !Elements.isTopLevel(element)) {
+          if (!elementIsStatic) {
             expectedConstant(x);
           }
           return null;

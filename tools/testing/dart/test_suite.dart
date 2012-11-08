@@ -407,6 +407,11 @@ class StandardTestSuite implements TestSuite {
     }
 
     Set<String> expectations = testExpectations.expectations(testName);
+    if (info.hasCompileError &&
+        TestUtils.isBrowserRuntime(configuration['runtime'])) {
+      SummaryReport.addCompileErrorSkipTest();
+      return;
+    }
     if (configuration['report']) {
       // Tests with multiple VMOptions are counted more than once.
       for (var dummy in getVmOptions(optionsFromFile)) {
@@ -422,11 +427,6 @@ class StandardTestSuite implements TestSuite {
       enqueueStandardTest(info, testName, expectations);
     } else if (TestUtils.isBrowserRuntime(configuration['runtime'])) {
       bool isWrappingRequired = configuration['compiler'] != 'dart2js';
-      if (configuration['runtime'] == 'ff' &&
-          Platform.operatingSystem == 'windows') {
-        // TODO(ahe): Investigate why this doesn't work on Windows.
-        isWrappingRequired = true;
-      }
       enqueueBrowserTest(info, testName, expectations, isWrappingRequired);
     } else {
       enqueueStandardTest(info, testName, expectations);
@@ -976,13 +976,13 @@ class StandardTestSuite implements TestSuite {
     RegExp staticCleanRegExp = const RegExp(r"// @static-clean");
     RegExp leadingHashRegExp = const RegExp(r"^#", multiLine: true);
     RegExp isolateStubsRegExp = const RegExp(r"// IsolateStubs=(.*)");
+    // TODO(gram) Clean these up once the old directives are not supported.
     RegExp domImportRegExp =
-        const RegExp(r"^#import.*(dart:(dom|html)|html\.dart).*\)",
-                     multiLine: true);
+        const RegExp(r"^[#]?import.*dart:html", multiLine: true);
     RegExp libraryDefinitionRegExp =
-        const RegExp(r"^#library\(", multiLine: true);
+        const RegExp(r"^[#]?library[\( ]", multiLine: true);
     RegExp sourceOrImportRegExp =
-        const RegExp(r"^#(source|import|resource)\(", multiLine: true);
+        const RegExp("^(#source|#import|part)[ \t]+[\('\"]", multiLine: true);
 
     // Read the entire file into a byte buffer and transform it to a
     // String. This will treat the file as ascii but the only parts
@@ -1451,6 +1451,7 @@ class SummaryReport {
   static int fail = 0;
   static int crash = 0;
   static int timeout = 0;
+  static int compileErrorSkip = 0;
 
   static void add(Set<String> expectations) {
     ++total;
@@ -1479,6 +1480,11 @@ class SummaryReport {
     }
   }
 
+  static void addCompileErrorSkipTest() {
+    total++;
+    compileErrorSkip++;
+  }
+
   static void printReport() {
     if (total == 0) return;
     String report = """Total: $total tests
@@ -1489,6 +1495,7 @@ class SummaryReport {
  * $fail tests are expected to fail that we should fix
  * $crash tests are expected to crash that we should fix
  * $timeout tests are allowed to timeout
+ * $compileErrorSkip tests are skipped on browsers due to compile-time error
 """;
     print(report);
    }

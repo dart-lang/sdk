@@ -10,7 +10,7 @@
 
 library date_time_format_tests;
 
-import '../../../pkg/unittest/unittest.dart';
+import '../../../pkg/unittest/lib/unittest.dart';
 import 'date_time_format_test_data.dart';
 import '../lib/intl.dart';
 import '../lib/src/date_format_internal.dart';

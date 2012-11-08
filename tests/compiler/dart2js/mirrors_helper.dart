@@ -6,7 +6,7 @@
  * This file is read by 'mirrors_test.dart'.
  */
 
-#library('mirrors_helper');
+library mirrors_helper;
 
 typedef E Func<E,F extends Foo>(F f);
 

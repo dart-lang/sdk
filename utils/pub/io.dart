@@ -222,7 +222,7 @@ Future<Directory> createTempDir([dir = '']) {
  */
 Future<Directory> deleteDir(dir) {
   dir = _getDirectory(dir);
-  return dir.deleteRecursively();
+  return dir.delete(recursive: true);
 }
 
 /**
@@ -712,6 +712,8 @@ class PubHttpException implements Exception {
   final String reason;
 
   const PubHttpException(this.statusCode, this.reason);
+
+  String toString() => 'HTTP error $statusCode: $reason';
 }
 
 /**
@@ -721,6 +723,8 @@ class TimeoutException implements Exception {
   final String message;
 
   const TimeoutException(this.message);
+
+  String toString() => message;
 }
 
 /**

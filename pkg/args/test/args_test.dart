@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('args_test');
+library args_test;
 
-#import('../../unittest/unittest.dart');
+import '../../../pkg/unittest/lib/unittest.dart';
 
 // TODO(rnystrom): Use "package:" URL here when test.dart can handle pub.
-#import('../lib/args.dart');
+import '../lib/args.dart';
 
 main() {
   group('ArgParser.addFlag()', () {

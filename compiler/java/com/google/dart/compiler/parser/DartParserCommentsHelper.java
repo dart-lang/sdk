@@ -9,6 +9,8 @@ import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartComment;
+import com.google.dart.compiler.ast.DartCommentNewName;
+import com.google.dart.compiler.ast.DartCommentRefName;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartMethodDefinition;
@@ -16,6 +18,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.metrics.CompilerMetrics;
+import com.google.dart.compiler.util.apache.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,14 +44,16 @@ public class DartParserCommentsHelper {
     }
 
     @Override
-    protected DartScanner createScanner(String sourceCode, Source source, DartCompilerListener listener) {
+    protected DartScanner createScanner(String sourceCode, Source source,
+        DartCompilerListener listener) {
       commentLocs = Lists.newArrayList();
       return new CommentScanner(sourceCode, 0, source, listener);
     }
 
     private class CommentScanner extends DartScanner {
 
-      CommentScanner(String sourceCode, int start, Source sourceReference, DartCompilerListener listener) {
+      CommentScanner(String sourceCode, int start, Source sourceReference,
+          DartCompilerListener listener) {
         super(sourceCode, start, sourceReference, listener);
       }
 
@@ -147,6 +152,7 @@ public class DartParserCommentsHelper {
         if (decl != null) {
           String commentStr = sourceCode.substring(comment.getSourceInfo().getOffset(),
               comment.getSourceInfo().getEnd());
+          tokenizeComment(comment, commentStr);
           // may be @Metadata
           if (commentStr.contains("@deprecated")) {
             decl.setObsoleteMetadata(decl.getObsoleteMetadata().makeDeprecated());
@@ -159,6 +165,63 @@ public class DartParserCommentsHelper {
             decl.setDartDoc(comment);
           }
         }
+      }
+    }
+  }
+
+  private static void tokenizeComment(DartComment comment, String src) {
+    int lastIndex = 0;
+    while (true) {
+      int openIndex = src.indexOf('[', lastIndex);
+      if (openIndex == -1) {
+        break;
+      }
+      int closeIndex = src.indexOf(']', openIndex);
+      if (closeIndex == -1) {
+        break;
+      }
+      lastIndex = closeIndex;
+      String tokenSrc = src.substring(openIndex + 1, closeIndex);
+      if (tokenSrc.startsWith(":") && tokenSrc.endsWith(":")) {
+        // TODO(scheglov) [:code:] and 'code'
+      } else if (tokenSrc.startsWith("new ")) {
+        SourceInfo sourceInfo = comment.getSourceInfo();
+        int offset = sourceInfo.getOffset() + openIndex;
+        int classOffset = offset + "[".length();
+        // remove leading "new "
+        String name = StringUtils.remove(tokenSrc, "new ");
+        classOffset += "new ".length();
+        // remove spaces
+        {
+          String stripName = StringUtils.stripStart(name, null);
+          classOffset += name.length() - stripName.length();
+          name = stripName;
+        }
+        name = name.trim();
+        //
+        String className = StringUtils.substringBefore(name, ".");
+        String constructorName = StringUtils.substringAfter(name, ".");
+        int constructorOffset = classOffset + className.length() + ".".length();
+        DartCommentNewName newNode = new DartCommentNewName(className, classOffset,
+            constructorName, constructorOffset);
+        {
+          Source source = sourceInfo.getSource();
+          int length = tokenSrc.length() + "[]".length();
+          newNode.setSourceInfo(new SourceInfo(source, offset, length));
+        }
+        // add node
+        comment.addNewName(newNode);
+      } else {
+        String name = tokenSrc.trim();
+        DartCommentRefName refNode = new DartCommentRefName(name);
+        {
+          SourceInfo sourceInfo = comment.getSourceInfo();
+          Source source = sourceInfo.getSource();
+          int offset = sourceInfo.getOffset() + openIndex;
+          int length = name.length() + "[]".length();
+          refNode.setSourceInfo(new SourceInfo(source, offset, length));
+        }
+        comment.addRefName(refNode);
       }
     }
   }

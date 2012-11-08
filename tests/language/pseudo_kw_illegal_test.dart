@@ -7,6 +7,7 @@
 class abstract { }    /// 01: compile-time error
 class assert { }      /// 02: compile-time error
 class dynamic { }     /// 04: compile-time error
+class export { }      /// 17: compile-time error
 class factory { }     /// 05: compile-time error
 class get { }         /// 06: compile-time error
 class implements { }  /// 07: compile-time error
@@ -14,6 +15,7 @@ class import { }      /// 08: compile-time error
 class interface { }   /// 09: compile-time error
 class library { }     /// 10: compile-time error
 class operator { }    /// 12: compile-time error
+class part { }        /// 18: compile-time error
 class set { }         /// 13: compile-time error
 class source { }      /// 14: compile-time error
 class static { }      /// 15: compile-time error

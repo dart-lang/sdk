@@ -1,0 +1,45 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+  factory $CLASSNAME(String type, Window view, int detail, int screenX,
+      int screenY, int clientX, int clientY, int button, [bool canBubble = true,
+      bool cancelable = true, bool ctrlKey = false, bool altKey = false,
+      bool shiftKey = false, bool metaKey = false,
+      EventTarget relatedTarget = null]) =>
+      _$(CLASSNAME)FactoryProvider.create$CLASSNAME(
+          type, view, detail, screenX, screenY,
+          clientX, clientY, button, canBubble, cancelable,
+          ctrlKey, altKey, shiftKey, metaKey,
+          relatedTarget);
+$!MEMBERS
+
+  int get offsetX {
+  if (JS('bool', '!!#.offsetX', this)) {
+      return JS('int', '#.offsetX', this);
+    } else {
+      // Firefox does not support offsetX.
+      var target = this.target;
+      if (!(target is Element)) {
+        throw new UnsupportedError(
+            'offsetX is only supported on elements');
+      }
+      return this.clientX - this.target.getBoundingClientRect().left;
+    }
+  }
+
+  int get offsetY {
+    if (JS('bool', '!!#.offsetY', this)) {
+      return JS('int', '#.offsetY', this);
+    } else {
+      // Firefox does not support offsetY.
+      var target = this.target;
+      if (!(target is Element)) {
+        throw new UnsupportedError(
+            'offsetY is only supported on elements');
+      }
+      return this.clientY - this.target.getBoundingClientRect().top;
+    }
+  }
+}

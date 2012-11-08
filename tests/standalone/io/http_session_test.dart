@@ -10,6 +10,7 @@ String getSessionId(List<Cookie> cookies) {
   var id = cookies.reduce(null, (last, cookie) {
     if (last != null) return last;
     if (cookie.name.toUpperCase() == SESSION_ID) {
+      Expect.isTrue(cookie.httpOnly);
       return cookie.value;
     }
     return null;

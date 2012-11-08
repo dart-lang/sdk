@@ -36,7 +36,7 @@ class FileTest {
   }
 
   static void deleteTempDirectory() {
-    tempDirectory.deleteRecursivelySync();
+    tempDirectory.deleteSync(recursive: true);
   }
 
   // Test for file read functionality.

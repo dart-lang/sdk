@@ -53,7 +53,6 @@ unknownelement_test: Fail # Issue 4189
 
 [ $runtime == dartium || $runtime == chrome || $runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == opera ]
 history_test: Fail
-audiocontext_test: Fail # After WebKit roll due to renamed method?
 
 [$runtime == ie10 ]
 # TODO(efortuna, blois): Triage.
@@ -274,7 +273,6 @@ xhr_test: Fail
 
 [ $compiler == dart2js && $runtime == drt ]
 # Unknown error - should investigate.
-audiocontext_test: Fail
 htmloptionscollection_test: Fail # Issue 3813.
 unknownelement_test: Fail # Issue 4189
 

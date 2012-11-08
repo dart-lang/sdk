@@ -335,7 +335,7 @@ static bool CreateIsolate(SpawnState* state, char** error) {
 static bool RunIsolate(uword parameter) {
   Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
   SpawnState* state = reinterpret_cast<SpawnState*>(isolate->spawn_data());
-  isolate->set_spawn_data(NULL);
+  isolate->set_spawn_data(0);
   {
     StartIsolateScope start_scope(isolate);
     StackZone zone(isolate);

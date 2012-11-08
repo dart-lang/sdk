@@ -2488,102 +2488,102 @@ bool EqualsIgnoringPrivate(const String& name, const String& private_name);
 
 
 TEST_CASE(EqualsIgnoringPrivate) {
-  OneByteString& mangled_name = OneByteString::Handle();
-  OneByteString& bare_name = OneByteString::Handle();
+  String& mangled_name = String::Handle();
+  String& bare_name = String::Handle();
 
   // Simple matches.
   mangled_name = OneByteString::New("foo");
   bare_name = OneByteString::New("foo");
-  EXPECT(mangled_name.EqualsIgnoringPrivateKey(bare_name));
+  EXPECT(OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   mangled_name = OneByteString::New("foo.");
   bare_name = OneByteString::New("foo.");
-  EXPECT(mangled_name.EqualsIgnoringPrivateKey(bare_name));
+  EXPECT(OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   mangled_name = OneByteString::New("foo.named");
   bare_name = OneByteString::New("foo.named");
-  EXPECT(mangled_name.EqualsIgnoringPrivateKey(bare_name));
+  EXPECT(OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Simple mismatches.
   mangled_name = OneByteString::New("bar");
   bare_name = OneByteString::New("foo");
-  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
+  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   mangled_name = OneByteString::New("foo.");
   bare_name = OneByteString::New("foo");
-  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
+  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   mangled_name = OneByteString::New("foo");
   bare_name = OneByteString::New("foo.");
-  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
+  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   mangled_name = OneByteString::New("foo.name");
   bare_name = OneByteString::New("foo.named");
-  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
+  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   mangled_name = OneByteString::New("foo.named");
   bare_name = OneByteString::New("foo.name");
-  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
+  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Private match.
   mangled_name = OneByteString::New("foo@12345");
   bare_name = OneByteString::New("foo");
-  EXPECT(mangled_name.EqualsIgnoringPrivateKey(bare_name));
+  EXPECT(OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Private mismatch.
   mangled_name = OneByteString::New("food@12345");
   bare_name = OneByteString::New("foo");
-  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
+  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Private mismatch 2.
   mangled_name = OneByteString::New("foo@12345");
   bare_name = OneByteString::New("food");
-  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
+  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Private constructor match.
   mangled_name = OneByteString::New("foo@12345.");
   bare_name = OneByteString::New("foo.");
-  EXPECT(mangled_name.EqualsIgnoringPrivateKey(bare_name));
+  EXPECT(OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Private constructor mismatch.
   mangled_name = OneByteString::New("foo@12345.");
   bare_name = OneByteString::New("foo");
-  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
+  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Private constructor mismatch 2.
   mangled_name = OneByteString::New("foo@12345");
   bare_name = OneByteString::New("foo.");
-  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
+  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Named private constructor match.
   mangled_name = OneByteString::New("foo@12345.named");
   bare_name = OneByteString::New("foo.named");
-  EXPECT(mangled_name.EqualsIgnoringPrivateKey(bare_name));
+  EXPECT(OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Named private constructor mismatch.
   mangled_name = OneByteString::New("foo@12345.name");
   bare_name = OneByteString::New("foo.named");
-  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
+  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Named private constructor mismatch 2.
   mangled_name = OneByteString::New("foo@12345.named");
   bare_name = OneByteString::New("foo.name");
-  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
+  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Named double-private constructor match.  Yes, this happens.
   mangled_name = OneByteString::New("foo@12345.named@12345");
   bare_name = OneByteString::New("foo.named");
-  EXPECT(mangled_name.EqualsIgnoringPrivateKey(bare_name));
+  EXPECT(OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Named double-private constructor mismatch.
   mangled_name = OneByteString::New("foo@12345.name@12345");
   bare_name = OneByteString::New("foo.named");
-  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
+  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Named double-private constructor mismatch.
   mangled_name = OneByteString::New("foo@12345.named@12345");
   bare_name = OneByteString::New("foo.name");
-  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
+  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 }
 
 
@@ -2659,9 +2659,9 @@ TEST_CASE(WeakProperty_PreserveCrossGen) {
   {
     // Weak property and value in new. Key in old.
     HANDLESCOPE(isolate);
-    OneByteString& key = OneByteString::Handle();
+    String& key = String::Handle();
     key ^= OneByteString::New("key", Heap::kOld);
-    OneByteString& value = OneByteString::Handle();
+    String& value = String::Handle();
     value ^= OneByteString::New("value", Heap::kNew);
     weak ^= WeakProperty::New(Heap::kNew);
     weak.set_key(key);
@@ -2677,9 +2677,9 @@ TEST_CASE(WeakProperty_PreserveCrossGen) {
   {
     // Weak property and value in old. Key in new.
     HANDLESCOPE(isolate);
-    OneByteString& key = OneByteString::Handle();
+    String& key = String::Handle();
     key ^= OneByteString::New("key", Heap::kNew);
-    OneByteString& value = OneByteString::Handle();
+    String& value = String::Handle();
     value ^= OneByteString::New("value", Heap::kOld);
     weak ^= WeakProperty::New(Heap::kOld);
     weak.set_key(key);
@@ -2697,7 +2697,7 @@ TEST_CASE(WeakProperty_PreserveCrossGen) {
     HANDLESCOPE(isolate);
     Integer& key = Integer::Handle();
     key ^= Integer::New(31);
-    OneByteString& value = OneByteString::Handle();
+    String& value = String::Handle();
     value ^= OneByteString::New("value", Heap::kNew);
     weak ^= WeakProperty::New(Heap::kNew);
     weak.set_key(key);
@@ -2715,7 +2715,7 @@ TEST_CASE(WeakProperty_PreserveCrossGen) {
     HANDLESCOPE(isolate);
     Integer& key = Integer::Handle();
     key ^= Integer::New(32);
-    OneByteString& value = OneByteString::Handle();
+    String& value = String::Handle();
     value ^= OneByteString::New("value", Heap::kOld);
     weak ^= WeakProperty::New(Heap::kOld);
     weak.set_key(key);
@@ -2731,9 +2731,9 @@ TEST_CASE(WeakProperty_PreserveCrossGen) {
   {
     // Weak property and value in new. Key in VM isolate.
     HANDLESCOPE(isolate);
-    OneByteString& key = OneByteString::Handle();
+    String& key = String::Handle();
     key ^= Symbols::Dot();
-    OneByteString& value = OneByteString::Handle();
+    String& value = String::Handle();
     value ^= OneByteString::New("value", Heap::kNew);
     weak ^= WeakProperty::New(Heap::kNew);
     weak.set_key(key);
@@ -2749,9 +2749,9 @@ TEST_CASE(WeakProperty_PreserveCrossGen) {
   {
     // Weak property and value in old. Key in VM isolate.
     HANDLESCOPE(isolate);
-    OneByteString& key = OneByteString::Handle();
+    String& key = String::Handle();
     key ^= Symbols::Dot();
-    OneByteString& value = OneByteString::Handle();
+    String& value = String::Handle();
     value ^= OneByteString::New("value", Heap::kOld);
     weak ^= WeakProperty::New(Heap::kOld);
     weak.set_key(key);
@@ -2775,10 +2775,10 @@ TEST_CASE(WeakProperty_PreserveRecurse) {
   Array& arr = Array::Handle(Array::New(1));
   {
     HANDLESCOPE(isolate);
-    OneByteString& key = OneByteString::Handle();
+    String& key = String::Handle();
     key ^= OneByteString::New("key");
     arr.SetAt(0, key);
-    OneByteString& value = OneByteString::Handle();
+    String& value = String::Handle();
     value ^= OneByteString::New("value");
     weak ^= WeakProperty::New();
     weak.set_key(key);
@@ -2793,11 +2793,11 @@ TEST_CASE(WeakProperty_PreserveRecurse) {
 TEST_CASE(WeakProperty_PreserveOne_NewSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
-  OneByteString& key = OneByteString::Handle();
+  String& key = String::Handle();
   key ^= OneByteString::New("key");
   {
     HANDLESCOPE(isolate);
-    OneByteString& value = OneByteString::Handle();
+    String& value = String::Handle();
     value ^= OneByteString::New("value");
     weak ^= WeakProperty::New();
     weak.set_key(key);
@@ -2812,19 +2812,19 @@ TEST_CASE(WeakProperty_PreserveOne_NewSpace) {
 TEST_CASE(WeakProperty_PreserveTwo_NewSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
-  OneByteString& key1 = OneByteString::Handle();
+  String& key1 = String::Handle();
   key1 ^= OneByteString::New("key1");
   WeakProperty& weak2 = WeakProperty::Handle();
-  OneByteString& key2 = OneByteString::Handle();
+  String& key2 = String::Handle();
   key2 ^= OneByteString::New("key2");
   {
     HANDLESCOPE(isolate);
-    OneByteString& value1 = OneByteString::Handle();
+    String& value1 = String::Handle();
     value1 ^= OneByteString::New("value1");
     weak1 ^= WeakProperty::New();
     weak1.set_key(key1);
     weak1.set_value(value1);
-    OneByteString& value2 = OneByteString::Handle();
+    String& value2 = String::Handle();
     value2 ^= OneByteString::New("value2");
     weak2 ^= WeakProperty::New();
     weak2.set_key(key2);
@@ -2842,16 +2842,16 @@ TEST_CASE(WeakProperty_PreserveTwoShared_NewSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   WeakProperty& weak2 = WeakProperty::Handle();
-  OneByteString& key = OneByteString::Handle();
+  String& key = String::Handle();
   key ^= OneByteString::New("key");
   {
     HANDLESCOPE(isolate);
-    OneByteString& value1 = OneByteString::Handle();
+    String& value1 = String::Handle();
     value1 ^= OneByteString::New("value1");
     weak1 ^= WeakProperty::New();
     weak1.set_key(key);
     weak1.set_value(value1);
-    OneByteString& value2 = OneByteString::Handle();
+    String& value2 = String::Handle();
     value2 ^= OneByteString::New("value2");
     weak2 ^= WeakProperty::New();
     weak2.set_key(key);
@@ -2868,11 +2868,11 @@ TEST_CASE(WeakProperty_PreserveTwoShared_NewSpace) {
 TEST_CASE(WeakProperty_PreserveOne_OldSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
-  OneByteString& key = OneByteString::Handle();
+  String& key = String::Handle();
   key ^= OneByteString::New("key", Heap::kOld);
   {
     HANDLESCOPE(isolate);
-    OneByteString& value = OneByteString::Handle();
+    String& value = String::Handle();
     value ^= OneByteString::New("value", Heap::kOld);
     weak ^= WeakProperty::New(Heap::kOld);
     weak.set_key(key);
@@ -2887,19 +2887,19 @@ TEST_CASE(WeakProperty_PreserveOne_OldSpace) {
 TEST_CASE(WeakProperty_PreserveTwo_OldSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
-  OneByteString& key1 = OneByteString::Handle();
+  String& key1 = String::Handle();
   key1 ^= OneByteString::New("key1", Heap::kOld);
   WeakProperty& weak2 = WeakProperty::Handle();
-  OneByteString& key2 = OneByteString::Handle();
+  String& key2 = String::Handle();
   key2 ^= OneByteString::New("key2", Heap::kOld);
   {
     HANDLESCOPE(isolate);
-    OneByteString& value1 = OneByteString::Handle();
+    String& value1 = String::Handle();
     value1 ^= OneByteString::New("value1", Heap::kOld);
     weak1 ^= WeakProperty::New(Heap::kOld);
     weak1.set_key(key1);
     weak1.set_value(value1);
-    OneByteString& value2 = OneByteString::Handle();
+    String& value2 = String::Handle();
     value2 ^= OneByteString::New("value2", Heap::kOld);
     weak2 ^= WeakProperty::New(Heap::kOld);
     weak2.set_key(key2);
@@ -2917,16 +2917,16 @@ TEST_CASE(WeakProperty_PreserveTwoShared_OldSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   WeakProperty& weak2 = WeakProperty::Handle();
-  OneByteString& key = OneByteString::Handle();
+  String& key = String::Handle();
   key ^= OneByteString::New("key", Heap::kOld);
   {
     HANDLESCOPE(isolate);
-    OneByteString& value1 = OneByteString::Handle();
+    String& value1 = String::Handle();
     value1 ^= OneByteString::New("value1", Heap::kOld);
     weak1 ^= WeakProperty::New(Heap::kOld);
     weak1.set_key(key);
     weak1.set_value(value1);
-    OneByteString& value2 = OneByteString::Handle();
+    String& value2 = String::Handle();
     value2 ^= OneByteString::New("value2", Heap::kOld);
     weak2 ^= WeakProperty::New(Heap::kOld);
     weak2.set_key(key);
@@ -2945,9 +2945,9 @@ TEST_CASE(WeakProperty_ClearOne_NewSpace) {
   WeakProperty& weak = WeakProperty::Handle();
   {
     HANDLESCOPE(isolate);
-    OneByteString& key = OneByteString::Handle();
+    String& key = String::Handle();
     key ^= OneByteString::New("key");
-    OneByteString& value = OneByteString::Handle();
+    String& value = String::Handle();
     value ^= OneByteString::New("value");
     weak ^= WeakProperty::New();
     weak.set_key(key);
@@ -2967,14 +2967,14 @@ TEST_CASE(WeakProperty_ClearTwoShared_NewSpace) {
   WeakProperty& weak2 = WeakProperty::Handle();
   {
     HANDLESCOPE(isolate);
-    OneByteString& key = OneByteString::Handle();
+    String& key = String::Handle();
     key ^= OneByteString::New("key");
-    OneByteString& value1 = OneByteString::Handle();
+    String& value1 = String::Handle();
     value1 ^= OneByteString::New("value1");
     weak1 ^= WeakProperty::New();
     weak1.set_key(key);
     weak1.set_value(value1);
-    OneByteString& value2 = OneByteString::Handle();
+    String& value2 = String::Handle();
     value2 ^= OneByteString::New("value2");
     weak2 ^= WeakProperty::New();
     weak2.set_key(key);
@@ -2993,9 +2993,9 @@ TEST_CASE(WeakProperty_ClearOne_OldSpace) {
   WeakProperty& weak = WeakProperty::Handle();
   {
     HANDLESCOPE(isolate);
-    OneByteString& key = OneByteString::Handle();
+    String& key = String::Handle();
     key ^= OneByteString::New("key", Heap::kOld);
-    OneByteString& value = OneByteString::Handle();
+    String& value = String::Handle();
     value ^= OneByteString::New("value", Heap::kOld);
     weak ^= WeakProperty::New(Heap::kOld);
     weak.set_key(key);
@@ -3015,14 +3015,14 @@ TEST_CASE(WeakProperty_ClearTwoShared_OldSpace) {
   WeakProperty& weak2 = WeakProperty::Handle();
   {
     HANDLESCOPE(isolate);
-    OneByteString& key = OneByteString::Handle();
+    String& key = String::Handle();
     key ^= OneByteString::New("key", Heap::kOld);
-    OneByteString& value1 = OneByteString::Handle();
+    String& value1 = String::Handle();
     value1 ^= OneByteString::New("value1");
     weak1 ^= WeakProperty::New(Heap::kOld);
     weak1.set_key(key);
     weak1.set_value(value1);
-    OneByteString& value2 = OneByteString::Handle();
+    String& value2 = String::Handle();
     value2 ^= OneByteString::New("value2", Heap::kOld);
     weak2 ^= WeakProperty::New(Heap::kOld);
     weak2.set_key(key);

@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('CSSStyleDeclarationTest');
-#import('../../pkg/unittest/unittest.dart');
-#import('../../pkg/unittest/html_config.dart');
-#import('dart:html');
+library CSSStyleDeclarationTest;
+import '../../pkg/unittest/lib/unittest.dart';
+import '../../pkg/unittest/lib/html_config.dart';
+import 'dart:html';
 
 main() {
   useHtmlConfiguration();
@@ -23,7 +23,7 @@ main() {
     expect(style.getPropertyPriority('color'), isEmpty);
     expect(style.item(0), isEmpty);
     expect(style, hasLength(0));
-    // These assertions throw a NotImplementedException in dartium:
+    // These assertions throw a UnimplementedError in dartium:
     // expect(style.parentRule, isNull);
     // expect(style.getPropertyCSSValue('color'), isNull);
     // expect(style.getPropertyShorthand('color'), isNull);

@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('reader_test');
+library reader_test;
 
-#import('dart:io');
-#import('../../../pkg/unittest/unittest.dart');
-#import('../../archive/archive.dart');
+import 'dart:io';
+import '../../../pkg/unittest/lib/unittest.dart'
+import '../../archive/archive.dart';
 
 final String dataPath = "utils/tests/archive/data";
 

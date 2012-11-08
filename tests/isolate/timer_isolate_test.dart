@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('multiple_timer_test');
+library multiple_timer_test;
 
-#import("dart:isolate");
-#import('../../pkg/unittest/unittest.dart');
+import 'dart:isolate';
+import '../../pkg/unittest/lib/unittest.dart';
 
 const int TIMEOUT = 100;
 

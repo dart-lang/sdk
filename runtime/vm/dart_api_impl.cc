@@ -33,7 +33,6 @@
 namespace dart {
 
 DECLARE_FLAG(bool, print_class_table);
-DECLARE_FLAG(bool, use_cha);
 
 ThreadLocalKey Api::api_native_key_ = Thread::kUnsetThreadLocalKey;
 
@@ -143,7 +142,7 @@ RawObject* Api::UnwrapHandle(Dart_Handle object) {
     }                                                                          \
     return type::Handle(iso);                                                  \
   }
-CLASS_LIST_NO_OBJECT(DEFINE_UNWRAP)
+CLASS_LIST_FOR_HANDLES(DEFINE_UNWRAP)
 #undef DEFINE_UNWRAP
 
 
@@ -1643,6 +1642,9 @@ DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle object,
                                              const char** cstr) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  if (cstr == NULL) {
+    RETURN_NULL_ERROR(cstr);
+  }
   const String& str_obj = Api::UnwrapStringHandle(isolate, object);
   if (str_obj.IsNull()) {
     RETURN_TYPE_ERROR(isolate, object, String);
@@ -1661,20 +1663,27 @@ DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle object,
 
 
 DART_EXPORT Dart_Handle Dart_StringToUTF8(Dart_Handle str,
-                                          uint8_t* utf8_array,
+                                          uint8_t** utf8_array,
                                           intptr_t* length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  if (utf8_array == NULL) {
+    RETURN_NULL_ERROR(utf8_array);
+  }
+  if (length == NULL) {
+    RETURN_NULL_ERROR(length);
+  }
   const String& str_obj = Api::UnwrapStringHandle(isolate, str);
   if (str_obj.IsNull()) {
     RETURN_TYPE_ERROR(isolate, str, String);
   }
-  intptr_t str_len = str_obj.Length();
-  if (str_len > *length) {
-    return Api::NewError("Input array is not large enough to hold the result");
+  intptr_t str_len = Utf8::Length(str_obj);
+  *utf8_array = Api::TopScope(isolate)->zone()->Alloc<uint8_t>(str_len);
+  if (*utf8_array == NULL) {
+    return Api::NewError("Unable to allocate memory");
   }
-  str_obj.ToUTF8(utf8_array, str_len);
-  *length= str_len;
+  str_obj.ToUTF8(*utf8_array, str_len);
+  *length = str_len;
   return Api::Success(isolate);
 }
 
@@ -4002,45 +4011,11 @@ static void CompileSource(Isolate* isolate,
 }
 
 
-// Removes optimized code once we load more classes, since --use_cha based
-// optimizations may have become invalid.
-// TODO(srdjan): Note which functions use which CHA decision and deoptimize
-// only the necessary ones.
-static void RemoveOptimizedCode() {
-  ASSERT(FLAG_use_cha);
-  // Deoptimize all live frames.
-  DeoptimizeAll();
-  // Switch all functions' code to unoptimized.
-  const ClassTable& class_table = *Isolate::Current()->class_table();
-  Class& cls = Class::Handle();
-  Array& array = Array::Handle();
-  Function& function = Function::Handle();
-  const intptr_t num_cids = class_table.NumCids();
-  for (intptr_t i = kInstanceCid; i < num_cids; i++) {
-    if (!class_table.HasValidClassAt(i)) continue;
-    cls = class_table.At(i);
-    ASSERT(!cls.IsNull());
-    array = cls.functions();
-    intptr_t num_functions = array.IsNull() ? 0 : array.Length();
-    for (intptr_t f = 0; f < num_functions; f++) {
-      function ^= array.At(f);
-      ASSERT(!function.IsNull());
-      if (function.HasOptimizedCode()) {
-        function.SwitchToUnoptimizedCode();
-      }
-    }
-  }
-}
-
-
 DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                                         Dart_Handle source) {
   TIMERSCOPE(time_script_loading);
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  if (FLAG_use_cha) {
-    RemoveOptimizedCode();
-  }
   const String& url_str = Api::UnwrapStringHandle(isolate, url);
   if (url_str.IsNull()) {
     RETURN_TYPE_ERROR(isolate, url, String);
@@ -4077,9 +4052,6 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer) {
   TIMERSCOPE(time_script_loading);
   if (buffer == NULL) {
     RETURN_NULL_ERROR(buffer);
-  }
-  if (FLAG_use_cha) {
-    RemoveOptimizedCode();
   }
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
   if (!snapshot->IsScriptSnapshot()) {
@@ -4252,9 +4224,6 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
   TIMERSCOPE(time_script_loading);
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  if (FLAG_use_cha) {
-    RemoveOptimizedCode();
-  }
   const String& url_str = Api::UnwrapStringHandle(isolate, url);
   if (url_str.IsNull()) {
     RETURN_TYPE_ERROR(isolate, url, String);
@@ -4344,9 +4313,6 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
   TIMERSCOPE(time_script_loading);
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  if (FLAG_use_cha) {
-    RemoveOptimizedCode();
-  }
   const Library& lib = Api::UnwrapLibraryHandle(isolate, library);
   if (lib.IsNull()) {
     RETURN_TYPE_ERROR(isolate, library, Library);
@@ -4372,9 +4338,6 @@ DART_EXPORT Dart_Handle Dart_LoadPatch(Dart_Handle library,
   TIMERSCOPE(time_script_loading);
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  if (FLAG_use_cha) {
-    RemoveOptimizedCode();
-  }
   const Library& lib = Api::UnwrapLibraryHandle(isolate, library);
   if (lib.IsNull()) {
     RETURN_TYPE_ERROR(isolate, library, Library);

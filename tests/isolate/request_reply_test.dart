@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("RequestReplyTest");
+library RequestReplyTest;
 
-#import("dart:isolate");
-#import('../../pkg/unittest/unittest.dart');
+import 'dart:isolate';
+import '../../pkg/unittest/lib/unittest.dart';
 
 void entry() {
   port.receive((message, SendPort replyTo) {
@@ -18,7 +18,7 @@ void main() {
   test("call", () {
     SendPort port = spawnFunction(entry);
     port.call(42).then(expectAsync1((message) {
-      Expect.equals(42 + 87, message);
+      expect(message, 42 + 87);
     }));
   });
 
@@ -27,7 +27,7 @@ void main() {
     ReceivePort reply = new ReceivePort();
     port.send(99, reply.toSendPort());
     reply.receive(expectAsync2((message, replyTo) {
-      Expect.equals(99 + 87, message);
+      expect(message, 99 + 87);
       reply.close();
     }));
   });

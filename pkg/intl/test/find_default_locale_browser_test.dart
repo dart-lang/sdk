@@ -6,7 +6,7 @@ library find_default_locale_browser_test;
 
 import '../lib/intl.dart';
 import '../lib/intl_browser.dart';
-import '../../unittest/unittest.dart';
+import '../../../pkg/unittest/lib/unittest.dart';
 
 main() {
   test("Find system locale in browser", () {

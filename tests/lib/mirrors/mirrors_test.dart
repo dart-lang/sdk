@@ -5,9 +5,9 @@
 // TODO(rmacnak): Move the existing mirror tests here (a place for 
 // cross-implementation tests).
 
-#library("MirrorsTest.dart");
-#import("dart:mirrors");
-#import("../../../pkg/unittest/unittest.dart");
+library MirrorsTest;
+import "dart:mirrors";
+import "../../../pkg/unittest/lib/unittest.dart";
 
 var topLevelField;
 
@@ -21,7 +21,7 @@ class Class {
 testFieldAccess(mirrors) {
   var instance = new Class();
 
-  var libMirror = mirrors.libraries["MirrorsTest.dart"];
+  var libMirror = mirrors.libraries["MirrorsTest"];
   var classMirror = libMirror.classes["Class"];
   var instMirror = reflect(instance);
 
@@ -64,7 +64,7 @@ testClosureMirrors(mirrors) {
 }
 
 testInvokeConstructor(mirrors) {
-  var libMirror = mirrors.libraries["MirrorsTest.dart"];
+  var libMirror = mirrors.libraries["MirrorsTest"];
   var classMirror = libMirror.classes["Class"];
   
   var future = classMirror.newInstance('', []);

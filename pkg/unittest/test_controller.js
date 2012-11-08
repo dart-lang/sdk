@@ -14,7 +14,12 @@ if (typeof console == "object" && typeof console.clear == "function") {
 // Set window onerror to make sure that we catch test harness errors across all
 // browsers.
 window.onerror = function (message, url, lineNumber) {
-  showErrorAndExit("\n\n" + url + ":" + lineNumber + ":\n" + message + "\n\n");
+  if (url) {
+    showErrorAndExit(
+        "\n\n" + url + ":" + lineNumber + ":\n" + message + "\n\n");
+  } else {
+    showErrorAndExit(message);
+  }
   window.postMessage('unittest-suite-external-error', '*');
 };
 

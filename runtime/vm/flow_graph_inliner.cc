@@ -20,11 +20,23 @@ namespace dart {
 
 DEFINE_FLAG(bool, trace_inlining, false, "Trace inlining");
 DEFINE_FLAG(charp, inlining_filter, NULL, "Inline only in named function");
-DEFINE_FLAG(int, inlining_size_threshold, 50,
-    "Inline only functions with up to threshold instructions (default 50)");
-// TODO(srdjan): set to 3 once crash in apidoc.dart is resolved.
+
+// Flags for inlining heuristics.
 DEFINE_FLAG(int, inlining_depth_threshold, 3,
-    "Inline recursively up to threshold depth (default 3)");
+    "Inline function calls up to threshold nesting depth");
+DEFINE_FLAG(int, inlining_size_threshold, 20,
+    "Always inline functions that have threshold or fewer instructions");
+DEFINE_FLAG(int, inlining_in_loop_size_threshold, 80,
+    "Inline functions in loops that have threshold or fewer instructions");
+DEFINE_FLAG(int, inlining_callee_call_sites_threshold, 1,
+    "Always inline functions containing threshold or fewer calls.");
+DEFINE_FLAG(int, inlining_constant_arguments_count, 1,
+    "Inline function calls with sufficient constant arguments "
+    "and up to the increased threshold on instructions");
+DEFINE_FLAG(int, inlining_constant_arguments_size_threshold, 60,
+    "Inline function calls with sufficient constant arguments "
+    "and up to the increased threshold on instructions");
+
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(int, deoptimization_counter_threshold);
 DECLARE_FLAG(bool, verify_compiler);
@@ -127,6 +139,42 @@ struct NamedArgument : ValueObject {
 };
 
 
+// Helper to collect information about a callee graph when considering it for
+// inlining.
+class GraphInfoCollector : public ValueObject {
+ public:
+  GraphInfoCollector()
+      : call_site_count_(0),
+        instruction_count_(0) { }
+
+  void Collect(const FlowGraph& graph) {
+    call_site_count_ = 0;
+    instruction_count_ = 0;
+    for (BlockIterator block_it = graph.postorder_iterator();
+         !block_it.Done();
+         block_it.Advance()) {
+      for (ForwardInstructionIterator it(block_it.Current());
+           !it.Done();
+           it.Advance()) {
+        ++instruction_count_;
+        if (it.Current()->IsStaticCall() ||
+            it.Current()->IsClosureCall() ||
+            it.Current()->IsPolymorphicInstanceCall()) {
+          ++call_site_count_;
+        }
+      }
+    }
+  }
+
+  intptr_t call_site_count() const { return call_site_count_; }
+  intptr_t instruction_count() const { return instruction_count_; }
+
+ private:
+  intptr_t call_site_count_;
+  intptr_t instruction_count_;
+};
+
+
 // A collection of call sites to consider for inlining.
 class CallSites : public FlowGraphVisitor {
  public:
@@ -134,7 +182,8 @@ class CallSites : public FlowGraphVisitor {
       : FlowGraphVisitor(flow_graph->postorder()),  // We don't use this order.
         static_calls_(),
         closure_calls_(),
-        instance_calls_() { }
+        instance_calls_(),
+        skip_static_call_deopt_ids_() { }
 
   GrowableArray<StaticCallInstr*>* static_calls() {
     return &static_calls_;
@@ -158,9 +207,16 @@ class CallSites : public FlowGraphVisitor {
     static_calls_.Clear();
     closure_calls_.Clear();
     instance_calls_.Clear();
+    skip_static_call_deopt_ids_.Clear();
   }
 
   void FindCallSites(FlowGraph* graph) {
+    ASSERT(graph != NULL);
+    const Function& function = graph->parsed_function().function();
+    ASSERT(function.HasCode());
+    const Code& code = Code::Handle(function.CurrentCode());
+    skip_static_call_deopt_ids_.Clear();
+    code.ExtractUncalledStaticCallDeoptIds(&skip_static_call_deopt_ids_);
     for (BlockIterator block_it = graph->postorder_iterator();
          !block_it.Done();
          block_it.Advance()) {
@@ -181,13 +237,22 @@ class CallSites : public FlowGraphVisitor {
   }
 
   void VisitStaticCall(StaticCallInstr* call) {
-    if (call->function().IsInlineable()) static_calls_.Add(call);
+    if (!call->function().IsInlineable()) return;
+    const intptr_t call_deopt_id = call->deopt_id();
+    for (intptr_t i = 0; i < skip_static_call_deopt_ids_.length(); i++) {
+      if (call_deopt_id == skip_static_call_deopt_ids_[i]) {
+        // Do not inline this call.
+        return;
+      }
+    }
+    static_calls_.Add(call);
   }
 
  private:
   GrowableArray<StaticCallInstr*> static_calls_;
   GrowableArray<ClosureCallInstr*> closure_calls_;
   GrowableArray<PolymorphicInstanceCallInstr*> instance_calls_;
+  GrowableArray<intptr_t> skip_static_call_deopt_ids_;
 
   DISALLOW_COPY_AND_ASSIGN(CallSites);
 };
@@ -206,6 +271,30 @@ class CallSiteInliner : public ValueObject {
         inlining_call_sites_(NULL),
         function_cache_() { }
 
+  // Inlining heuristics based on Cooper et al. 2008.
+  bool ShouldWeInline(intptr_t loop_depth,
+                      intptr_t instr_count,
+                      intptr_t call_site_count,
+                      intptr_t const_arg_count) {
+    if (instr_count <= FLAG_inlining_size_threshold) {
+      return true;
+    }
+    if (call_site_count <= FLAG_inlining_callee_call_sites_threshold) {
+      return true;
+    }
+    if ((loop_depth > 0) &&
+        (instr_count <= FLAG_inlining_in_loop_size_threshold)) {
+      return true;
+    }
+    if ((const_arg_count >= FLAG_inlining_constant_arguments_count) &&
+        (instr_count <= FLAG_inlining_constant_arguments_size_threshold)) {
+      return true;
+    }
+    return false;
+  }
+
+  // TODO(srdjan): Handle large 'skip_static_call_deopt_ids'. Currently
+  // max. size observed is 11 (dart2js).
   void InlineCalls() {
     // If inlining depth is less then one abort.
     if (FLAG_inlining_depth_threshold < 1) return;
@@ -309,6 +398,7 @@ class CallSiteInliner : public ValueObject {
       }
 
       // Build the callee graph.
+      const intptr_t loop_depth = call->GetBlock()->loop_depth();
       FlowGraphBuilder builder(*parsed_function);
       builder.SetInitialBlockId(caller_graph_->max_block_id());
       FlowGraph* callee_graph;
@@ -316,7 +406,8 @@ class CallSiteInliner : public ValueObject {
         TimerScope timer(FLAG_compiler_stats,
                          &CompilerStats::graphinliner_build_timer,
                          isolate);
-        callee_graph = builder.BuildGraph(FlowGraphBuilder::kValueContext);
+        callee_graph =
+            builder.BuildGraph(FlowGraphBuilder::kValueContext, loop_depth);
       }
 
       // The parameter stubs are a copy of the actual arguments providing
@@ -381,15 +472,39 @@ class CallSiteInliner : public ValueObject {
         printer.PrintBlocks();
       }
 
-      // If result is more than size threshold then abort.
+      // Collect information about the call site and caller graph.
       // TODO(zerny): Do this after CP and dead code elimination.
-      intptr_t size = callee_graph->InstructionCount();
-      if (size > FLAG_inlining_size_threshold) {
-        function.set_is_inlinable(false);
+      intptr_t constants_count = 0;
+      for (intptr_t i = 0; i < param_stubs.length(); ++i) {
+        if (param_stubs[i]->IsConstant()) ++constants_count;
+      }
+      GraphInfoCollector info;
+      info.Collect(*callee_graph);
+      const intptr_t size = info.instruction_count();
+      // Use heuristics do decide if this call should be inlined.
+      if (!ShouldWeInline(loop_depth,
+                          size,
+                          info.call_site_count(),
+                          constants_count)) {
+        // If size is larger than all thresholds, don't consider it again.
+        if ((size > FLAG_inlining_size_threshold) &&
+            (size > FLAG_inlining_in_loop_size_threshold) &&
+            (size > FLAG_inlining_callee_call_sites_threshold) &&
+            (size > FLAG_inlining_constant_arguments_size_threshold)) {
+          function.set_is_inlinable(false);
+        }
         isolate->set_long_jump_base(base);
         isolate->set_deopt_id(prev_deopt_id);
         isolate->set_ic_data_array(prev_ic_data.raw());
-        TRACE_INLINING(OS::Print("     Bailout: graph size %"Pd"\n", size));
+        TRACE_INLINING(OS::Print("     Bailout: heuristics with "
+                                 "loop depth: %"Pd", "
+                                 "code size:  %"Pd", "
+                                 "call sites: %"Pd", "
+                                 "const args: %"Pd"\n",
+                                 loop_depth,
+                                 size,
+                                 info.call_site_count(),
+                                 constants_count));
         return false;
       }
 

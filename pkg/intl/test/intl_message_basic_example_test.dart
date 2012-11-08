@@ -11,7 +11,7 @@ import '../lib/date_symbol_data_local.dart';
 import '../lib/intl.dart';
 import '../lib/message_lookup_local.dart';
 import '../example/basic/basic_example.dart';
-import '../../unittest/unittest.dart';
+import '../../../pkg/unittest/lib/unittest.dart';
 
 List list;
 

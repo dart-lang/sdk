@@ -52,7 +52,7 @@ void testOpenNonExistent() {
   ReceivePort p = new ReceivePort();
   p.receive((x, y) {
     p.close();
-    temp.deleteRecursivelySync();
+    temp.deleteSync(recursive: true);
   });
   var file = new File("${temp.path}/nonExistentFile");
 
@@ -75,7 +75,7 @@ void testDeleteNonExistent() {
   ReceivePort p = new ReceivePort();
   p.receive((x, y) {
     p.close();
-    temp.deleteRecursivelySync();
+    temp.deleteSync(recursive: true);
   });
   var file = new File("${temp.path}/nonExistentFile");
 
@@ -98,7 +98,7 @@ void testLengthNonExistent() {
   ReceivePort p = new ReceivePort();
   p.receive((x, y) {
     p.close();
-    temp.deleteRecursivelySync();
+    temp.deleteSync(recursive: true);
   });
   var file = new File("${temp.path}/nonExistentFile");
 
@@ -141,7 +141,7 @@ void testCreateInNonExistentDirectory() {
   ReceivePort p = new ReceivePort();
   p.receive((x, y) {
     p.close();
-    temp.deleteRecursivelySync();
+    temp.deleteSync(recursive: true);
   });
   var file = new File("${temp.path}/nonExistentDirectory/newFile");
 
@@ -182,7 +182,7 @@ void testFullPathOnNonExistentDirectory() {
   ReceivePort p = new ReceivePort();
   p.receive((x, y) {
     p.close();
-    temp.deleteRecursivelySync();
+    temp.deleteSync(recursive: true);
   });
   var file = new File("${temp.path}/nonExistentDirectory");
 
@@ -224,7 +224,7 @@ void testDirectoryInNonExistentDirectory() {
   ReceivePort p = new ReceivePort();
   p.receive((x, y) {
     p.close();
-    temp.deleteRecursivelySync();
+    temp.deleteSync(recursive: true);
   });
   var file = new File("${temp.path}/nonExistentDirectory/newFile");
 
@@ -246,7 +246,7 @@ void testReadAsBytesNonExistent() {
   ReceivePort p = new ReceivePort();
   p.receive((x, y) {
     p.close();
-    temp.deleteRecursivelySync();
+    temp.deleteSync(recursive: true);
   });
   var file = new File("${temp.path}/nonExistentFile3");
 
@@ -268,7 +268,7 @@ void testReadAsTextNonExistent() {
   ReceivePort p = new ReceivePort();
   p.receive((x, y) {
     p.close();
-    temp.deleteRecursivelySync();
+    temp.deleteSync(recursive: true);
   });
   var file = new File("${temp.path}/nonExistentFile4");
 
@@ -290,7 +290,7 @@ testReadAsLinesNonExistent() {
   ReceivePort p = new ReceivePort();
   p.receive((x, y) {
     p.close();
-    temp.deleteRecursivelySync();
+    temp.deleteSync(recursive: true);
   });
   var file = new File("${temp.path}/nonExistentFile5");
 
@@ -323,7 +323,7 @@ createTestFile(callback) {
   ReceivePort p = new ReceivePort();
   p.receive((x, y) {
     p.close();
-    temp.deleteRecursivelySync();
+    temp.deleteSync(recursive: true);
   });
 
   var file = new File("${temp.path}/test_file");

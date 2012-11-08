@@ -20,6 +20,9 @@ import com.google.dart.compiler.ast.DartBreakStatement;
 import com.google.dart.compiler.ast.DartCase;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartComment;
+import com.google.dart.compiler.ast.DartCommentNewName;
+import com.google.dart.compiler.ast.DartCommentRefName;
 import com.google.dart.compiler.ast.DartContinueStatement;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartDoWhileStatement;
@@ -81,7 +84,9 @@ import com.google.dart.compiler.resolver.LabelElement.LabeledStatementType;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.InterfaceType.Member;
 import com.google.dart.compiler.type.Type;
+import com.google.dart.compiler.type.TypeAnalyzer;
 import com.google.dart.compiler.type.TypeKind;
+import com.google.dart.compiler.type.TypeQuality;
 import com.google.dart.compiler.type.TypeVariable;
 import com.google.dart.compiler.type.Types;
 
@@ -302,6 +307,32 @@ public class Resolver {
     }
 
     @Override
+    public Element visitCommentRefName(DartCommentRefName node) {
+      Scope scope = getContext().getScope();
+      String name = node.getName();
+      Element element = scope.findElement(scope.getLibrary(), name);
+      return recordElement(node, element);
+    }
+
+    @Override
+    public Element visitCommentNewName(DartCommentNewName node) {
+      String className = node.getClassName();
+      String constructorName = node.getConstructorName();
+      Scope scope = getContext().getScope();
+      Element element = scope.findElement(scope.getLibrary(), className);
+      if (ElementKind.of(element) == ElementKind.CLASS) {
+        ClassElement classElement = (ClassElement) element;
+        for (ConstructorElement constructor : classElement.getConstructors()) {
+          if (constructor.getName().equals(constructorName)) {
+            node.setElements(classElement, constructor);
+            return constructor;
+          }
+        }
+      }
+      return null;
+    }
+
+    @Override
     public Element visitClass(DartClass cls) {
       assert currentMethod == null : "nested class?";
       ClassNodeElement classElement = cls.getElement();
@@ -325,11 +356,16 @@ public class Resolver {
       enclosingElement = classElement;
       context = topLevelContext.extend(classElement);
 
+      // members
       this.finalsNeedingInitializing.clear();
-      for (NodeElement member : classElement.getMembers()) {
-        member.getNode().accept(this);
+      for (DartNode member : cls.getMembers()) {
+        if (ElementKind.of(member.getElement()) == ElementKind.CONSTRUCTOR) {
+          continue;
+        }
+        member.accept(this);
       }
 
+      // constructors
       boolean testForAllConstantFields = false;
       for (DartNode member : cls.getMembers()) {
         if (member instanceof DartMethodDefinition) {
@@ -399,6 +435,13 @@ public class Resolver {
             return null;
           }
         });
+      }
+
+      {
+        DartComment comment = cls.getDartDoc();
+        if (comment != null) {
+          comment.accept(this);
+        }
       }
 
       context = previousContext;
@@ -640,6 +683,13 @@ public class Resolver {
           onError(parameter, ResolverErrorCode.DUPLICATE_INITIALIZATION, parameter.getName());
         }
       }
+      
+      {
+        DartComment comment = node.getDartDoc();
+        if (comment != null) {
+          comment.accept(this);
+        }
+      }
 
       DartBlock body = functionNode.getBody();
       boolean isInterface = false;
@@ -726,7 +776,8 @@ public class Resolver {
         Element element = node.getElement();
         Type expressionType = expression.getType();
         if (isFinal && expressionType != null && TypeKind.of(element.getType()) == TypeKind.DYNAMIC) {
-          Type fieldType = Types.makeInferred(expressionType);
+          TypeQuality typeQuality = TypeAnalyzer.getTypeQuality(expression);
+          Type fieldType = Types.makeInferred(expressionType, typeQuality);
           Elements.setType(element, fieldType);
         }
       } else if (isFinal) {
@@ -1176,6 +1227,7 @@ public class Resolver {
           onError(x, ResolverErrorCode.CANNOT_BE_RESOLVED, name);
           x.markResolutionAlreadyReportedThatTheMethodCouldNotBeFound();
         }
+      } else if (x.getParent() instanceof DartComment) {
       } else {
         element = checkResolvedIdentifier(x, isQualifier, scope, name, element);
       }
@@ -1199,7 +1251,7 @@ public class Resolver {
         onError(x, ResolverErrorCode.USING_LOCAL_VARIABLE_BEFORE_DECLARATION, x);
       }
 
-      if (!isQualifier) {
+      if (!isQualifier && !(x.getParent() instanceof DartComment)) {
         switch (ElementKind.of(element)) {
           case FUNCTION_TYPE_ALIAS:
             onError(x, ResolverErrorCode.CANNOT_USE_TYPE, name);
@@ -1232,9 +1284,10 @@ public class Resolver {
           if (!Elements.isStaticContext(element) && !element.getModifiers().isConstant()) {
             if (inInstanceVariableInitializer) {
               onError(x, ResolverErrorCode.CANNOT_USE_INSTANCE_FIELD_IN_INSTANCE_FIELD_INITIALIZER);
-            } else if (ASTNodes.isStaticContext(x)) {
-              onError(x, ResolverErrorCode.ILLEGAL_FIELD_ACCESS_FROM_STATIC, name);
             }
+          }
+          if (ASTNodes.isStaticContext(x) && !Elements.isStaticContext(element)) {
+            onError(x, ResolverErrorCode.ILLEGAL_FIELD_ACCESS_FROM_STATIC, name);
           }
           if (isIllegalPrivateAccess(x, enclosingElement, element, x.getName())) {
             return null;

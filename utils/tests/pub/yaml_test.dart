@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('yaml_test');
+library yaml_test;
 
-#import('dart:math');
+import 'dart:math';
 
-#import('../../../pkg/unittest/unittest.dart');
-#import('../../pub/yaml/yaml.dart');
-#import('../../pub/yaml/deep_equals.dart');
-#import('../../../tests/utils/test_utils.dart');
+import '../../../pkg/unittest/lib/unittest.dart';
+import '../../pub/yaml/yaml.dart';
+import '../../pub/yaml/deep_equals.dart';
+import '../../../tests/utils/test_utils.dart';
 
 /** Constructs a new yaml.YamlMap, optionally from a normal Map. */
 Map yamlMap([Map from]) =>
@@ -44,8 +44,8 @@ main() {
       _expectKeyWorks(keyFn()) {
         var map = yamlMap();
         map[keyFn()] = 5;
-        Expect.isTrue(map.containsKey(keyFn()));
-        Expect.equals(5, map[keyFn()]);
+        expect(map.containsKey(keyFn()), isTrue);
+        expect(map[keyFn()], 5);
       }
 
       test('null', () => _expectKeyWorks(() => null));
@@ -59,14 +59,14 @@ main() {
     test('works as a hash key', () {
       var normalMap = new Map();
       normalMap[yamlMap({'foo': 'bar'})] = 'baz';
-      Expect.isTrue(normalMap.containsKey(yamlMap({'foo': 'bar'})));
-      Expect.equals('baz', normalMap[yamlMap({'foo': 'bar'})]);
+      expect(normalMap.containsKey(yamlMap({'foo': 'bar'})), isTrue);
+      expect(normalMap[yamlMap({'foo': 'bar'})], 'baz');
     });
 
     test('treats YamlMap keys the same as normal maps', () {
       var map = yamlMap();
       map[{'a': 'b'}] = 5;
-      Expect.equals(5, map[yamlMap({'a': 'b'})]);
+      expect(map[yamlMap({'a': 'b'})], 5);
     });
   });
 

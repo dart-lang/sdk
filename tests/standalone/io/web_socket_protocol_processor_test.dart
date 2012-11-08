@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("dart:math");
+import "dart:math";
 
-#source("../../../lib/io/websocket.dart");
-#source("../../../lib/io/websocket_impl.dart");
+part "../../../sdk/lib/io/websocket.dart";
+part "../../../sdk/lib/io/websocket_impl.dart";
 
 class WebSocketFrame {
   WebSocketFrame(int opcode, List<int> data);

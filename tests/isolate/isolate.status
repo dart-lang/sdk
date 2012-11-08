@@ -30,8 +30,9 @@ spawn_uri_negative_test: Fail, OK # Fails at runtime.
 spawn_uri_vm_negative_test: Fail, OK # Fails at runtime.
 unresolved_ports_negative_test: Fail, OK # Fails at runtime.
 
-# packages issue 6340
-compute_this_script_browser_test: Fail, OK
+# test issue 6512
+isolate2_negative_test: Pass
+compute_this_script_browser_test: Pass
 
 
 [ $compiler == dart2js ]

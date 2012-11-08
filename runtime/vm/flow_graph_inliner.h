@@ -10,11 +10,12 @@
 namespace dart {
 
 class FlowGraph;
+template <typename T> class GrowableArray;
 
 class FlowGraphInliner : ValueObject {
  public:
   explicit FlowGraphInliner(FlowGraph* flow_graph)
-      : flow_graph_(flow_graph) { }
+      : flow_graph_(flow_graph) {}
 
   // The flow graph is destructively updated upon inlining.
   void Inline();

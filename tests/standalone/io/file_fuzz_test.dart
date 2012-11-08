@@ -84,7 +84,7 @@ fuzzSyncRandomAccessMethods() {
     }
     opened.closeSync();
   }
-  temp.deleteRecursivelySync();
+  temp.deleteSync(recursive: true);
 }
 
 fuzzAsyncRandomAccessMethods() {
@@ -115,7 +115,7 @@ fuzzAsyncRandomAccessMethods() {
     for (var opened in openedFiles) {
       opened.closeSync();
     }
-    temp.deleteRecursivelySync();
+    temp.deleteSync(recursive: true);
   });
 }
 

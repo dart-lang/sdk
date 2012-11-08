@@ -37,10 +37,10 @@ import java.util.List;
 public class ASTNodes {
 
   /**
-   * @return <code>true</code> if given {@link DartNode} is part of static method or top-level
-   *         function.
+   * @return <code>true</code> if given {@link DartNode} is part of static method, static field or
+   *         top-level function.
    */
-  public static boolean isStaticContext(DartNode node ) {
+  public static boolean isStaticContext(DartNode node) {
     while (node != null) {
       DartNode parent = node.getParent();
       if (node instanceof DartMethodDefinition) {
@@ -52,7 +52,7 @@ public class ASTNodes {
       }
       if (node instanceof DartField) {
         DartField field = (DartField) node;
-        if (field.getModifiers().isStatic() || field.getModifiers().isConstant()) {
+        if (field.getModifiers().isStatic()) {
           return true;
         }
         return parent != null && parent.getParent() instanceof DartUnit;

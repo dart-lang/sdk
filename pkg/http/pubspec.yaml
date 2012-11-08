@@ -1,0 +1,5 @@
+name: http
+description: A composable, Future-based API for making HTTP requests.
+dependencies:
+  unittest:
+    sdk: unittest

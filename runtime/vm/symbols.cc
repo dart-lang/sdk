@@ -47,7 +47,7 @@ void Symbols::InitOnce(Isolate* isolate) {
   ASSERT((sizeof(names) / sizeof(const char*)) == Symbols::kMaxId);
   const Array& symbol_table =
       Array::Handle(isolate->object_store()->symbol_table());
-  dart::OneByteString& str = OneByteString::Handle();
+  dart::String& str = String::Handle();
 
   for (intptr_t i = 1; i < Symbols::kMaxId; i++) {
     str = OneByteString::New(names[i], Heap::kOld);

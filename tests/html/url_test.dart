@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('url_test');
-#import('../../pkg/unittest/unittest.dart');
-#import('../../pkg/unittest/html_config.dart');
-#import('dart:html');
+library url_test;
+import '../../pkg/unittest/lib/unittest.dart';
+import '../../pkg/unittest/lib/html_config.dart';
+import 'dart:html';
 
 main() {
   useHtmlConfiguration();
@@ -36,7 +36,7 @@ main() {
   group('blob', () {
     test('createObjectUrl', () {
       var blob = createImageBlob();
-      var url = window.createObjectUrl(blob);
+      var url = Url.createObjectUrl(blob);
       expect(url.length, greaterThan(0));
       expect(url, startsWith('blob:'));
 
@@ -54,9 +54,9 @@ main() {
 
     test('revokeObjectUrl', () {
       var blob = createImageBlob();
-      var url = window.createObjectUrl(blob);
+      var url = Url.createObjectUrl(blob);
       expect(url, startsWith('blob:'));
-      window.revokeObjectUrl(url);
+      Url.revokeObjectUrl(url);
 
       var img = new ImageElement();
       // Image should fail to load since the URL was revoked.

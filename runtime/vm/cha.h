@@ -9,6 +9,7 @@
 
 namespace dart {
 
+class Class;
 class Function;
 template <typename T> class ZoneGrowableArray;
 class String;
@@ -33,6 +34,9 @@ class CHA : public AllStatic {
   // Returns an array of functions overriding the given function.
   // Must not be called for a function of class Object.
   static ZoneGrowableArray<Function*>* GetOverridesOf(const Function& function);
+
+  // Returns true if any subclass of 'cls' contains the function.
+  static bool HasOverride(const Class& cls, const String& function_name);
 };
 
 }  // namespace dart

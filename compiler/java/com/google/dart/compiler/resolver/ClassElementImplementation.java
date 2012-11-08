@@ -119,7 +119,13 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
 
   @Override
   public void setSupertype(InterfaceType supertype) {
+    if (this.supertype != null) {
+      this.supertype.unregisterSubClass(this);
+    }
     this.supertype = supertype;
+    if (this.supertype != null) {
+      this.supertype.registerSubClass(this);
+    }
   }
 
   void setDefaultClass(InterfaceType element) {
@@ -210,6 +216,7 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
 
   void addInterface(InterfaceType type) {
     interfaces.add(type);
+    type.registerSubClass(this);
   }
 
   Element findElement(String name) {

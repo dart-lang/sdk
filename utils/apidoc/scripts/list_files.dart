@@ -19,7 +19,7 @@ void main() {
   final scriptDir = new File(new Options().script).directorySync().path;
   final dartDir = '$scriptDir/../../../';
   listFiles('$dartDir/utils/apidoc');
-  listFiles('$dartDir/pkg/dartdoc');
+  listFiles('$dartDir/sdk/lib/_internal/dartdoc');
 }
 
 void listFiles(String dirPath) {

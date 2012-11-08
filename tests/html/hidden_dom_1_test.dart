@@ -1,7 +1,7 @@
-#library('HiddenDom1Test');
-#import('../../pkg/unittest/unittest.dart');
-#import('../../pkg/unittest/html_config.dart');
-#import('dart:html');
+library HiddenDom1Test;
+import '../../pkg/unittest/lib/unittest.dart';
+import '../../pkg/unittest/lib/html_config.dart';
+import 'dart:html';
 
 // Test that the dart:html API does not leak native jsdom methods:
 //   onfocus setter.

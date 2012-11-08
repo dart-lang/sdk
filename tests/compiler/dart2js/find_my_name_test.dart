@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("../../../lib/compiler/implementation/elements/elements.dart");
-#import("mock_compiler.dart");
-#import("parser_helper.dart");
+import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart";
+import "mock_compiler.dart";
+import "parser_helper.dart";
 
 main() {
   MockCompiler compiler = new MockCompiler();

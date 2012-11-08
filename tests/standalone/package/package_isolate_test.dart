@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library package_isolate_test;
-
 import 'package:shared.dart' as shared;
 import 'dart:isolate';
-import '../../../pkg/unittest/unittest.dart';
+import '../../../pkg/unittest/lib/unittest.dart';
 
 expectResponse() {
   port.receive(expectAsync2((msg, r) {

@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler;
 
+import com.google.common.base.Objects;
 import com.google.dart.compiler.CompilerConfiguration.ErrorFormat;
 
 import java.io.PrintStream;
@@ -42,7 +43,7 @@ public class DefaultErrorFormatter implements ErrorFormatter {
     String includeFrom = "";
     if (sourceFile instanceof DartSource) {
       LibrarySource lib = ((DartSource) sourceFile).getLibrary();
-      if (!sourceFile.getUri().equals(lib.getUri())) {
+      if (lib != null && !Objects.equal(sourceFile.getUri(), lib.getUri())) {
         includeFrom = " (sourced from " + lib.getUri() + ")";
       }
     }

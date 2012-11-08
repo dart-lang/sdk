@@ -13,7 +13,7 @@
 namespace dart {
 
 // Macrobatics to define the Object hierarchy of VM implementation classes.
-#define CLASS_LIST_NO_OBJECT(V)                                                \
+#define CLASS_LIST_NO_OBJECT_OR_STRING(V)                                      \
   V(Class)                                                                     \
   V(UnresolvedClass)                                                           \
   V(AbstractTypeArguments)                                                     \
@@ -56,11 +56,6 @@ namespace dart {
         V(Mint)                                                                \
         V(Bigint)                                                              \
       V(Double)                                                                \
-    V(String)                                                                  \
-      V(OneByteString)                                                         \
-      V(TwoByteString)                                                         \
-      V(ExternalOneByteString)                                                 \
-      V(ExternalTwoByteString)                                                 \
     V(Bool)                                                                    \
     V(Array)                                                                   \
       V(ImmutableArray)                                                        \
@@ -90,6 +85,21 @@ namespace dart {
     V(JSRegExp)                                                                \
     V(WeakProperty)                                                            \
     V(DartFunction)                                                            \
+
+#define CLASS_LIST_STRINGS(V)                                                  \
+  V(String)                                                                    \
+    V(OneByteString)                                                           \
+    V(TwoByteString)                                                           \
+    V(ExternalOneByteString)                                                   \
+    V(ExternalTwoByteString)
+
+#define CLASS_LIST_FOR_HANDLES(V)                                              \
+  CLASS_LIST_NO_OBJECT_OR_STRING(V)                                            \
+  V(String)
+
+#define CLASS_LIST_NO_OBJECT(V)                                                \
+  CLASS_LIST_NO_OBJECT_OR_STRING(V)                                            \
+  CLASS_LIST_STRINGS(V)
 
 #define CLASS_LIST(V)                                                          \
   V(Object)                                                                    \
@@ -385,6 +395,7 @@ class RawObject {
   friend class Scavenger;
   friend class SnapshotReader;
   friend class SnapshotWriter;
+  friend class String;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);
@@ -1493,9 +1504,8 @@ inline bool RawObject::IsNumberClassId(intptr_t index) {
          kSmiCid == kNumberCid + 2 &&
          kMintCid == kNumberCid + 3 &&
          kBigintCid == kNumberCid + 4 &&
-         kDoubleCid == kNumberCid + 5 &&
-         kStringCid == kNumberCid + 6);
-  return (index >= kNumberCid && index < kStringCid);
+         kDoubleCid == kNumberCid + 5);
+  return (index >= kNumberCid && index < kBoolCid);
 }
 
 
@@ -1514,9 +1524,8 @@ inline bool RawObject::IsStringClassId(intptr_t index) {
   ASSERT(kOneByteStringCid == kStringCid + 1 &&
          kTwoByteStringCid == kStringCid + 2 &&
          kExternalOneByteStringCid == kStringCid + 3 &&
-         kExternalTwoByteStringCid == kStringCid + 4 &&
-         kBoolCid == kStringCid + 5);
-  return (index >= kStringCid && index < kBoolCid);
+         kExternalTwoByteStringCid == kStringCid + 4);
+  return (index >= kStringCid && index <= kExternalTwoByteStringCid);
 }
 
 
@@ -1525,8 +1534,7 @@ inline bool RawObject::IsOneByteStringClassId(intptr_t index) {
   ASSERT(kOneByteStringCid == kStringCid + 1 &&
          kTwoByteStringCid == kStringCid + 2 &&
          kExternalOneByteStringCid == kStringCid + 3 &&
-         kExternalTwoByteStringCid == kStringCid + 4 &&
-         kBoolCid == kStringCid + 5);
+         kExternalTwoByteStringCid == kStringCid + 4);
   return (index == kOneByteStringCid || index == kExternalOneByteStringCid);
 }
 
@@ -1536,8 +1544,7 @@ inline bool RawObject::IsTwoByteStringClassId(intptr_t index) {
   ASSERT(kOneByteStringCid == kStringCid + 1 &&
          kTwoByteStringCid == kStringCid + 2 &&
          kExternalOneByteStringCid == kStringCid + 3 &&
-         kExternalTwoByteStringCid == kStringCid + 4 &&
-         kBoolCid == kStringCid + 5);
+         kExternalTwoByteStringCid == kStringCid + 4);
   return (index == kOneByteStringCid ||
           index == kTwoByteStringCid ||
           index == kExternalOneByteStringCid ||
@@ -1550,8 +1557,7 @@ inline bool RawObject::IsExternalStringClassId(intptr_t index) {
   ASSERT(kOneByteStringCid == kStringCid + 1 &&
          kTwoByteStringCid == kStringCid + 2 &&
          kExternalOneByteStringCid == kStringCid + 3 &&
-         kExternalTwoByteStringCid == kStringCid + 4 &&
-         kBoolCid == kStringCid + 5);
+         kExternalTwoByteStringCid == kStringCid + 4);
   return (index == kExternalOneByteStringCid ||
           index == kExternalTwoByteStringCid);
 }

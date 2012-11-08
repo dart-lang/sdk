@@ -7,9 +7,7 @@ class_test: Fail
 statements_test: Fail
 typed_locals_test: Fail
 no_such_method_test: Fail # Wrong InvocationMirror.memberName.
-
-[ $compiler == dart2js && $runtime == ff && $system == windows ]
-regress/4740_test: Fail
+break_test: Fail # Complex control flow TODO(ngeoffray): investigating
 
 [ $compiler == dart2js && $checked ]
 parameter_bailout_test: Fail, OK
@@ -25,3 +23,14 @@ class_test: Fail
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
+
+[ $jscl ]
+timer_test: Fail, OK # Timer is only supported in browsers.
+mirror_test: Fail, OK # Timer is only supported in browsers.
+
+[ $runtime == none ]
+timer_negative_test: Fail, OK # A negative runtime test.
+
+[ $compiler == none && $runtime == drt ]
+timer_test: Fail # http://dartbug.com/2264
+mirror_test: Fail # http://dartbug.com/2264

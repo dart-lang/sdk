@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("../../../pkg/dartdoc/lib/mirrors.dart");
-#import("../../../pkg/dartdoc/lib/mirrors_util.dart");
+import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
 
-#import('dart:io');
+import 'dart:io';
 
 int count(Iterable iterable) {
   var count = 0;
@@ -36,7 +36,7 @@ DeclarationMirror findMirror(List<DeclarationMirror> list, String name) {
 main() {
   var scriptPath = new Path.fromNative(new Options().script);
   var dirPath = scriptPath.directoryPath;
-  var libPath = dirPath.join(new Path.fromNative('../../../'));
+  var libPath = dirPath.join(new Path.fromNative('../../../sdk/'));
   var inputPath = dirPath.join(new Path.fromNative('mirrors_helper.dart'));
   var compilation = new Compilation.library([inputPath], libPath);
   Expect.isNotNull(compilation, "No compilation created");
@@ -54,6 +54,14 @@ main() {
     "Unexpected library simple name");
   Expect.stringEquals("mirrors_helper", helperLibrary.qualifiedName,
     "Unexpected library qualified name");
+
+  var helperLibraryLocation = helperLibrary.location;
+  Expect.isNotNull(helperLibraryLocation);
+  Expect.equals(271, helperLibraryLocation.offset, "Unexpected offset");
+  Expect.equals(23, helperLibraryLocation.length, "Unexpected length");
+  Expect.equals(9, helperLibraryLocation.line, "Unexpected line");
+  Expect.equals(1, helperLibraryLocation.column, "Unexpected column");
+
 
   var classes = helperLibrary.classes;
   Expect.isNotNull(classes, "No classes map returned");
@@ -358,7 +366,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.equals(method1.owner, bazClass);
   Expect.isFalse(method1.isTopLevel);
   Expect.isFalse(method1.isConstructor);
-  Expect.isFalse(method1.isField);
+  Expect.isFalse(method1.isVariable);
   Expect.isTrue(method1.isMethod);
   Expect.isFalse(method1.isPrivate);
   Expect.isTrue(method1.isStatic);
@@ -412,7 +420,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.equals(method2.owner, bazClass);
   Expect.isFalse(method2.isTopLevel);
   Expect.isFalse(method2.isConstructor);
-  Expect.isFalse(method2.isField);
+  Expect.isFalse(method2.isVariable);
   Expect.isTrue(method2.isMethod);
   Expect.isFalse(method2.isPrivate);
   Expect.isFalse(method2.isStatic);
@@ -479,7 +487,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.equals(method3.owner, bazClass);
   Expect.isFalse(method3.isTopLevel);
   Expect.isFalse(method3.isConstructor);
-  Expect.isFalse(method3.isField);
+  Expect.isFalse(method3.isVariable);
   Expect.isTrue(method3.isMethod);
   Expect.isFalse(method3.isPrivate);
   Expect.isFalse(method3.isStatic);
@@ -605,7 +613,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.equals(operator_eq.owner, bazClass);
   Expect.isFalse(operator_eq.isTopLevel);
   Expect.isFalse(operator_eq.isConstructor);
-  Expect.isFalse(operator_eq.isField);
+  Expect.isFalse(operator_eq.isVariable);
   Expect.isTrue(operator_eq.isMethod);
   Expect.isFalse(operator_eq.isPrivate);
   Expect.isFalse(operator_eq.isStatic);
@@ -635,7 +643,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.equals(operator_negate.owner, bazClass);
   Expect.isFalse(operator_negate.isTopLevel);
   Expect.isFalse(operator_negate.isConstructor);
-  Expect.isFalse(operator_negate.isField);
+  Expect.isFalse(operator_negate.isVariable);
   Expect.isTrue(operator_negate.isMethod);
   Expect.isFalse(operator_negate.isPrivate);
   Expect.isFalse(operator_negate.isStatic);

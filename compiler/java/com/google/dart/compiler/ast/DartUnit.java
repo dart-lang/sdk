@@ -56,7 +56,6 @@ public class DartUnit extends DartNode {
   public void visitChildren(ASTVisitor<?> visitor) {
     directives.accept(visitor);
     topLevelNodes.accept(visitor);
-    comments.accept(visitor);
   }
 
   @Override

@@ -4,8 +4,8 @@
 
 // Test of "recursive" imports using the dart2js compiler API.
 
-#import('../../lib/compiler/compiler.dart');
-#import('dart:uri');
+import '../../sdk/lib/_internal/compiler/compiler.dart';
+import 'dart:uri';
 
 const CORE_LIB = """
 library core;
@@ -20,6 +20,7 @@ class List {}
 class Map {}
 class Closure {}
 class Dynamic_ {}
+class Type {}
 class Null {}
 getRuntimeTypeInfo(o) {}
 setRuntimeTypeInfo(o, i) {}
@@ -78,8 +79,8 @@ main() {
   }
 
   String code = compile(new Uri.fromComponents(scheme: 'main'),
-                        new Uri.fromComponents(scheme: 'lib'),
-                        new Uri.fromComponents(scheme: 'package'),
+                        new Uri.fromComponents(scheme: 'lib', path: '/'),
+                        new Uri.fromComponents(scheme: 'package', path: '/'),
                         provider, handler).value;
   Expect.isNull(code);
   Expect.isTrue(10 < count);

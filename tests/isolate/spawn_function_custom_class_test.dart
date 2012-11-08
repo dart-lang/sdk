@@ -7,9 +7,9 @@
 // Regression test for vm bug 2235: We were forgetting to finalize
 // classes in new isolates started using the v2 api.
 
-#library('spawn_tests');
-#import('dart:isolate');
-#import('../../pkg/unittest/unittest.dart');
+library spawn_tests;
+import 'dart:isolate';
+import '../../pkg/unittest/lib/unittest.dart';
 
 class MyClass {
   var myVar = 'there';

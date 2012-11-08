@@ -55,6 +55,7 @@ class RawCode;
   V(OneArgCheckInlineCache)                                                    \
   V(TwoArgsCheckInlineCache)                                                   \
   V(ThreeArgsCheckInlineCache)                                                 \
+  V(MegamorphicCall)                                                           \
   V(BreakpointDynamic)                                                         \
   V(EqualityWithNullArg)                                                       \
 
@@ -183,6 +184,9 @@ class StubCode {
                                                const Function& func);
   static void GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
                                                 intptr_t num_args);
+  static void GenerateUsageCounterIncrement(Assembler* assembler,
+                                            Register ic_reg,
+                                            Register temp_reg);
 };
 
 }  // namespace dart

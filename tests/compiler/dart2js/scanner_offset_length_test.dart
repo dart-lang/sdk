@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import('../../../lib/compiler/implementation/scanner/scannerlib.dart');
-#import('../../../lib/compiler/implementation/scanner/scanner_implementation.dart');
+import '../../../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/scanner/scanner_implementation.dart';
 
 Token scan(String text) =>
     new StringScanner(text, includeComments: true).tokenize();

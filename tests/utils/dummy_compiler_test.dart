@@ -4,8 +4,8 @@
 
 // Smoke test of the dart2js compiler API.
 
-#import('../../lib/compiler/compiler.dart');
-#import('dart:uri');
+import '../../sdk/lib/_internal/compiler/compiler.dart';
+import 'dart:uri';
 
 Future<String> provider(Uri uri) {
   Completer<String> completer = new Completer<String>();
@@ -15,7 +15,8 @@ Future<String> provider(Uri uri) {
   } else if (uri.scheme == "lib") {
     if (uri.path.endsWith("/core.dart")) {
       source = """#library('core');
-                  class Object{}
+                  class Object {}
+                  class Type {}
                   class bool {}
                   class num {}
                   class int {}
@@ -55,8 +56,8 @@ void handler(Uri uri, int begin, int end, String message, Diagnostic kind) {
 
 main() {
   String code = compile(new Uri.fromComponents(scheme: 'main'),
-                        new Uri.fromComponents(scheme: 'lib'),
-                        new Uri.fromComponents(scheme: 'package'),
+                        new Uri.fromComponents(scheme: 'lib', path: '/'),
+                        new Uri.fromComponents(scheme: 'package', path: '/'),
                         provider, handler).value;
   if (code === null) {
     throw 'Compilation failed';

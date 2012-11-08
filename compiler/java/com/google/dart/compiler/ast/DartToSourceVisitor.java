@@ -28,6 +28,11 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
   }
 
   @Override
+  public Void visitComment(DartComment node) {
+    return null;
+  }
+
+  @Override
   public Void visitNativeBlock(DartNativeBlock x) {
     p("native;");
     return null;
