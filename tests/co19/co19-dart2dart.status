@@ -3,6 +3,11 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2dart ]
+# Factory redirection:
+Language/07_Classes/07_Classes_A03_t01: Fail, Pass # http://dartbug.com/6634 Passes in conservative renaming mode.
+Language/11_Expressions/11_Instance_Creation/1_New_A12_t02: Fail, Pass # http://dartbug.com/6634 Passes in conservative renaming mode.
+Language/11_Expressions/11_Instance_Creation/1_New_A12_t01: Fail, Pass # http://dartbug.com/6634 Passes in conservative renaming mode.
+
 # Calling unresolved class constructor:
 Language/03_Overview/2_Privacy_A01_t19: Fail
 Language/03_Overview/2_Privacy_A01_t20: Fail
@@ -12,177 +17,13 @@ Language/11_Expressions/11_Instance_Creation/1_New_A06_t05: Fail
 Language/11_Expressions/11_Instance_Creation/1_New_A06_t06: Fail
 
 # Renaming type from platform library:
-Language/09_Generics/09_Generics_A02_t01: Fail
-Language/14_Types/4_Interface_Types_A10_t03: Fail
-
-
-Language/07_Classes/07_Classes_A03_t01: Fail, Pass # http://dartbug.com/6603 fails in minified, TRIAGE
-Language/11_Expressions/11_Instance_Creation/1_New_A12_t02: Fail, Pass # http://dartbug.com/6603 fails in minified, TRIAGE
-Language/12_Statements/10_Try_A06_t01: Fail, Pass # Fails in minified, TRIAGE
-Language/11_Expressions/11_Instance_Creation/1_New_A12_t01: Fail, Pass # Fails in minified, TRIAGE
-
-Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A05_t04: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A05_t05: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A05_t06: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A05_t07: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A05_t08: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A05_t09: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A05_t10: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A05_t11: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A05_t12: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A05_t13: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A05_t14: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A05_t15: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A07_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A07_t02: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A07_t03: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A07_t04: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A07_t05: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A07_t06: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A07_t07: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A07_t08: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A07_t10: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A08_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A08_t02: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/07_Classes/1_Instance_Methods_A06_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A05_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A05_t02: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A05_t03: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A05_t04: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/11_Expressions/01_Constants_A03_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/11_Expressions/01_Constants_A20_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/11_Expressions/01_Constants_A20_t02: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/11_Expressions/30_Identifier_Reference_A04_t09: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/11_Expressions/30_Identifier_Reference_A05_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/11_Expressions/30_Identifier_Reference_A05_t04: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/11_Expressions/30_Identifier_Reference_A05_t12: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/11_Expressions/30_Identifier_Reference_A06_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/11_Expressions/30_Identifier_Reference_A06_t02: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/11_Expressions/30_Identifier_Reference_A08_t02: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/11_Expressions/31_Type_Test_A01_t02: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/11_Expressions/31_Type_Test_A01_t04: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/11_Expressions/31_Type_Test_A04_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/11_Expressions/32_Type_Cast_A01_t04: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/11_Expressions/32_Type_Cast_A03_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/11_Expressions/32_Type_Cast_A03_t02: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/11_Expressions/32_Type_Cast_A05_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/11_Expressions/32_Type_Cast_A05_t02: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/11_Expressions/32_Type_Cast_A05_t04: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/03_Variable_Declaration_A04_t02: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/03_Variable_Declaration_A04_t03: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/03_Variable_Declaration_A04_t04: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/03_Variable_Declaration_A04_t05: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/03_Variable_Declaration_A04_t06: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/04_Local_Function_Declaration_A01_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/04_Local_Function_Declaration_A02_t02: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/06_For_A01_t11: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/06_For_A01_t12: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/09_Switch_A01_t02: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/09_Switch_A02_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/09_Switch_A02_t02: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/09_Switch_A02_t03: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/09_Switch_A03_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/09_Switch_A03_t02: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/09_Switch_A06_t02: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/10_Try_A07_t03: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/10_Try_A11_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/11_Return_A05_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/11_Return_A05_t02: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/11_Return_A05_t03: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/12_Labels_A01_t03: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/12_Labels_A03_t04: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/14_Continue_A02_t12: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/12_Statements/14_Continue_A02_t13: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t02: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t16: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t17: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t18: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t19: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t28: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A03_t02: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A03_t22: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A03_t42: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A03_t62: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A01_t07: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A01_t15: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A01_t16: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A04_t04: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A04_t05: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A04_t06: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/3_Parts_A03_t02: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # TODO(dart2dart-team): Please triage this failure.
-LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-LibTest/core/Queue/Queue.from_A01_t02: Fail # TODO(dart2dart-team): Please triage this failure.
-LibTest/core/Set/Set.from_A01_t02: Fail # TODO(dart2dart-team): Please triage this failure.
-LibTest/math/Random/nextDouble_A01_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-LibTest/math/exp_A01_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-LibTest/math/parseDouble_A02_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-LibTest/math/pow_A01_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-LibTest/math/pow_A11_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-LibTest/math/pow_A13_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-LibTest/math/sin_A01_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-LibTest/math/tan_A01_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-
-LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
-
-LibTest/core/String/String_class_A02_t01: Fail, OK # co19 issue 284
-LibTest/core/String/charCodeAt_A01_t01: Fail, OK # co19 issue 284
-LibTest/core/String/charCodes_A01_t01: Fail, OK # co19 issue 284
-
-LibTest/isolate/SendPort/send_A02_t02: Fail, OK # co19 issue 293
-LibTest/isolate/SendPort/send_A02_t03: Fail, OK # co19 issue 293
-LibTest/isolate/SendPort/send_A02_t04: Fail, OK # co19 issue 293
-LibTest/core/LinkedHashMap/LinkedHashMap_class_A01_t01: Fail, OK # co19 issue 293
-LibTest/core/Map/getKeys_A01_t01: Fail, OK # co19 issue 293
-LibTest/core/Map/getKeys_A01_t02: Fail, OK # co19 issue 293
-LibTest/core/Map/getValues_A01_t02: Fail, OK # co19 issue 293
-LibTest/core/Map/getValues_A01_t01: Fail, OK # co19 issue 293
-
-LibTest/core/Stopwatch/Stopwatch_A01_t01: Fail, OK # co19 issue 297
-LibTest/core/Stopwatch/elapsed_A01_t03: Fail, OK # co19 issue 297
-LibTest/core/Stopwatch/elapsed_A01_t01: Fail, OK # co19 issue 297
-LibTest/core/Stopwatch/elapsed_A01_t02: Fail, OK # co19 issue 297
-LibTest/core/Stopwatch/elapsedInUs_A01_t01: Fail, OK # co19 issue 297
-LibTest/core/Stopwatch/elapsedInMs_A01_t01: Fail, OK # co19 issue 297
-LibTest/core/Stopwatch/start_A01_t01: Fail, OK # co19 issue 297
-LibTest/core/Stopwatch/start_A01_t02: Fail, OK # co19 issue 297
-LibTest/core/Stopwatch/start_A01_t03: Fail, OK # co19 issue 297
-LibTest/core/Stopwatch/stop_A01_t01: Fail, OK # co19 issue 297
-LibTest/core/Stopwatch/frequency_A01_t01: Fail, OK # co19 issue 297
-
-
-LibTest/core/Match/operator_subscript_A01_t01: Fail, OK # co19 issue 294
-LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # co19 issue 294
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail, OK # co19 issue 294
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail, OK # co19 issue 294
-
-LibTest/core/Map/getValues_A01_t02: Fail, OK # co19 issue 287
-
-LibTest/core/Queue/first_A02_t01: Fail, OK # co19 issue 291
-LibTest/core/Queue/last_A02_t01: Fail, OK # co19 issue 291
-
-LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
-
-LibTest/isolate/ReceivePort/receive_A01_t02: Fail, OK # co19 issue 276
-
-LibTest/core/List/iterator_next_A02_t01: Fail, OK # co19 issue 288
-LibTest/core/Queue/iterator_next_A02_t01: Fail, OK # co19 issue 288
-LibTest/core/Queue/first_A02_t01: Fail, OK # co19 issue 288
-LibTest/core/Queue/removeLast_A02_t01: Fail, OK # co19 issue 288
-LibTest/core/Queue/last_A02_t01: Fail, OK # co19 issue 288
-LibTest/core/Queue/removeFirst_A02_t01: Fail, OK # co19 issue 288
-LibTest/core/NoMoreElementsException/NoMoreElementsException_A01_t01: Fail, OK # co19 issue 288
-LibTest/core/NoMoreElementsException/toString_A01_t01: Fail, OK # co19 issue 288
-LibTest/core/EmptyQueueException/EmptyQueueException_A01_t01: Fail, OK # co19 issue 288
-LibTest/core/EmptyQueueException/toString_A01_t01: Fail, OK # co19 issue 288
+Language/09_Generics/09_Generics_A02_t01: Fail # http://dartbug.com/6633
+Language/14_Types/4_Interface_Types_A10_t03: Fail # http://dartbug.com/6633
 
 Language/03_Overview/1_Scoping_A01_t39: Fail # http://dartbug.com/5519
 Language/03_Overview/1_Scoping_A01_t40: Fail # http://dartbug.com/5519
 Language/03_Overview/1_Scoping_A01_t41: Fail # http://dartbug.com/5519
+Language/03_Overview/1_Scoping_A02_t05: Fail # Inherited from dart2js
 Language/03_Overview/1_Scoping_A02_t06: Fail # inherited from dart2js
 Language/03_Overview/1_Scoping_A02_t07: Fail # inherited from dart2js
 Language/03_Overview/1_Scoping_A02_t12: Fail # inherited from dart2js
@@ -198,6 +39,31 @@ Language/05_Variables/05_Variables_A01_t15: Fail # http://dartbug.com/5519
 Language/05_Variables/05_Variables_A04_t01: Fail # http://dartbug.com/5519
 Language/05_Variables/05_Variables_A05_t01: Fail # http://dartbug.com/5519
 Language/05_Variables/05_Variables_A05_t02: Fail # http://dartbug.com/5519
+Language/05_Variables/05_Variables_A05_t04: Fail # Inherited from dart2js
+Language/05_Variables/05_Variables_A05_t05: Fail # Inherited from dart2js
+Language/05_Variables/05_Variables_A05_t06: Fail # Inherited from dart2js
+Language/05_Variables/05_Variables_A05_t07: Fail # Inherited from dart2js
+Language/05_Variables/05_Variables_A05_t08: Fail # Inherited from dart2js
+Language/05_Variables/05_Variables_A05_t09: Fail # Inherited from dart2js
+Language/05_Variables/05_Variables_A05_t10: Fail # Inherited from dart2js
+Language/05_Variables/05_Variables_A05_t11: Fail # Inherited from VM (assignment to final variable does not throw NSME).
+Language/05_Variables/05_Variables_A05_t12: Fail # Inherited from dart2js
+Language/05_Variables/05_Variables_A05_t13: Fail # Inherited from VM (assignment to final variable does not throw NSME).
+Language/05_Variables/05_Variables_A05_t14: Fail # Inherited from VM (assignment to final variable does not throw NSME).
+Language/05_Variables/05_Variables_A05_t15: Fail # Inherited from VM (assignment to final variable does not throw NSME).
+Language/05_Variables/05_Variables_A07_t01: Fail # Inherited from dart2js
+Language/05_Variables/05_Variables_A07_t02: Fail # Inherited from dart2js
+Language/05_Variables/05_Variables_A07_t03: Fail # Inherited from dart2js
+Language/05_Variables/05_Variables_A07_t04: Fail # Inherited from dart2js
+Language/05_Variables/05_Variables_A07_t05: Fail # Inherited from dart2js
+Language/05_Variables/05_Variables_A07_t06: Fail # Inherited from dart2js
+Language/05_Variables/05_Variables_A07_t07: Fail # Inherited from dart2js
+Language/05_Variables/05_Variables_A07_t08: Fail # Inherited from dart2js
+Language/05_Variables/05_Variables_A07_t10: Fail # Inherited from dart2js
+Language/05_Variables/05_Variables_A08_t01: Fail # Inherited from dart2js
+Language/05_Variables/05_Variables_A08_t02: Fail # Inherited from dart2js
+Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # Inherited from VM (circular initialization?).
+Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # Inherited from dart2js
 Language/06_Functions/06_Functions_A01_t22: Fail # inherited from VM
 Language/06_Functions/06_Functions_A01_t31: Fail # http://dartbug.com/5519
 Language/06_Functions/1_Function_Declaration_A01_t01: Fail # http://dartbug.com/5519
@@ -230,6 +96,7 @@ Language/06_Functions/2_Formal_Parameters_A03_t04: Fail # http://dartbug.com/551
 Language/06_Functions/2_Formal_Parameters_A03_t05: Fail # http://dartbug.com/5519
 Language/06_Functions/2_Formal_Parameters_A03_t06: Fail # http://dartbug.com/5519
 Language/06_Functions/4_External_Functions_A01_t01: Fail # inherited from VM
+Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail # Inherited from dartjs
 Language/07_Classes/07_Classes_A02_t02: Fail # http://dartbug.com/5519
 Language/07_Classes/07_Classes_A02_t04: Fail # http://dartbug.com/5519
 Language/07_Classes/07_Classes_A02_t11: Fail # http://dartbug.com/5519
@@ -272,6 +139,7 @@ Language/07_Classes/1_Instance_Methods/2_Operators_A07_t04: Fail # http://dartbu
 Language/07_Classes/1_Instance_Methods_A02_t01: Fail # http://dartbug.com/5519
 Language/07_Classes/1_Instance_Methods_A02_t02: Fail # http://dartbug.com/5519
 Language/07_Classes/1_Instance_Methods_A02_t05: Fail # http://dartbug.com/5519
+Language/07_Classes/1_Instance_Methods_A06_t01: Fail # Inherited from dart2js
 Language/07_Classes/2_Getters_A01_t03: Fail # inherited from VM
 Language/07_Classes/2_Getters_A01_t04: Fail # http://dartbug.com/5519
 Language/07_Classes/2_Getters_A01_t05: Fail # inherited from VM
@@ -299,7 +167,12 @@ Language/07_Classes/4_Abstract_Instance_Members_A04_t06: Fail # inherited from V
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A03_t05: Fail # http://dartbug.com/5519
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Fail # http://dartbug.com/5519
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: Fail # inherited from VM
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A16_t07: Fail # http://dartbug.com/6242
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A21_t01: Fail # http://dartbug.com/5519
+Language/07_Classes/6_Constructors/2_Factories_A05_t01: Fail # Inherited from dart2js
+Language/07_Classes/6_Constructors/2_Factories_A05_t02: Fail # Inherited from dart2js
+Language/07_Classes/6_Constructors/2_Factories_A05_t03: Fail # Inherited from dart2js
+Language/07_Classes/6_Constructors/2_Factories_A05_t04: Fail # Inherited from dart2js
 Language/07_Classes/6_Constructors/2_Factories_A07_t01: Fail # inherited from VM
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A02_t01: Fail # http://dartbug.com/5519
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A02_t03: Fail # http://dartbug.com/5519
@@ -313,6 +186,7 @@ Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: Fail # inher
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: Fail # inherited from VM
 Language/07_Classes/6_Constructors_A01_t01: Fail # inherited from VM
 Language/07_Classes/6_Constructors_A02_t01: Fail # http://dartbug.com/5519
+Language/11_Expressions/01_Constants_A03_t01: Fail # Inherited from dart2js
 Language/11_Expressions/01_Constants_A03_t02: Fail # http://dartbug.com/5519
 Language/11_Expressions/01_Constants_A03_t03: Fail # http://dartbug.com/5519
 Language/11_Expressions/01_Constants_A03_t04: Fail # http://dartbug.com/5519
@@ -335,8 +209,8 @@ Language/11_Expressions/01_Constants_A13_t02: Fail # http://dartbug.com/5519
 Language/11_Expressions/01_Constants_A13_t03: Fail # http://dartbug.com/5519
 Language/11_Expressions/01_Constants_A13_t04: Fail # http://dartbug.com/5519
 Language/11_Expressions/01_Constants_A13_t05: Fail # http://dartbug.com/5519
-Language/11_Expressions/01_Constants_A14_t01: Fail # inherited from dart2js
 Language/11_Expressions/01_Constants_A14_t01: Fail # inherited from VM
+Language/11_Expressions/01_Constants_A14_t01: Fail # inherited from dart2js
 Language/11_Expressions/01_Constants_A15_t06: Fail # http://dartbug.com/5519
 Language/11_Expressions/01_Constants_A15_t07: Fail # http://dartbug.com/5519
 Language/11_Expressions/01_Constants_A15_t08: Fail # http://dartbug.com/5519
@@ -362,6 +236,8 @@ Language/11_Expressions/01_Constants_A17_t02: Fail # http://dartbug.com/5519
 Language/11_Expressions/01_Constants_A17_t03: Crash # inherited from VM
 Language/11_Expressions/01_Constants_A17_t03: Fail # http://dartbug.com/5519
 Language/11_Expressions/01_Constants_A19_t04: Fail # http://dartbug.com/5519
+Language/11_Expressions/01_Constants_A20_t01: Fail # http://dartbug.com/5810
+Language/11_Expressions/01_Constants_A20_t02: Fail # http://dartbug.com/5810
 Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t06: Fail # Inherited from dart2js
 Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t09: Fail, OK # co19 issue 210
 Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail # inherited from VM
@@ -378,6 +254,7 @@ Language/11_Expressions/07_Maps_A02_t01: Fail # http://dartbug.com/5519
 Language/11_Expressions/07_Maps_A02_t02: Fail # http://dartbug.com/5519
 Language/11_Expressions/08_Throw_A01_t01: Fail # inherited from dart2js
 Language/11_Expressions/08_Throw_A05_t01: Fail # inherited from dart2js
+Language/11_Expressions/11_Instance_Creation/1_New_A01_t04: Fail, OK # co19 issue 241
 Language/11_Expressions/11_Instance_Creation/1_New_A02_t03: Fail # inherited from dart2js
 Language/11_Expressions/11_Instance_Creation/1_New_A02_t05: Fail # inherited from dart2js
 Language/11_Expressions/11_Instance_Creation/1_New_A02_t06: Fail # inherited from dart2js
@@ -415,22 +292,24 @@ Language/11_Expressions/18_Assignment_A05_t05: Fail # inherited from VM
 Language/11_Expressions/19_Conditional_A01_t14: Fail # Inherited from dart2js
 Language/11_Expressions/19_Conditional_A01_t15: Fail # Inherited from dart2js
 Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t14: Fail # Inherited from dart2js
+Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t15: Fail, OK # co19 issue 241
 Language/11_Expressions/21_Bitwise_Expressions_A01_t16: Fail # Inherited from dart2js
 Language/11_Expressions/21_Bitwise_Expressions_A01_t17: Fail # Inherited from dart2js
+Language/11_Expressions/22_Equality_A01_t01: Fail # inherited from VM
+Language/11_Expressions/22_Equality_A01_t15: Fail # http://dartbug.com/5519
+Language/11_Expressions/22_Equality_A01_t16: Fail # http://dartbug.com/5519
+Language/11_Expressions/22_Equality_A01_t19: Fail # http://dartbug.com/5519
+Language/11_Expressions/22_Equality_A01_t20: Fail, OK # co19 issue 241
+Language/11_Expressions/22_Equality_A01_t23: Fail # Inherited from dart2js
+Language/11_Expressions/22_Equality_A01_t24: Fail # Inherited from dart2js
+Language/11_Expressions/22_Equality_A02_t03: Fail # inherited from VM
+Language/11_Expressions/22_Equality_A05_t01: Fail # inherited from VM
 Language/11_Expressions/23_Relational_Expressions_A01_t10: Fail # http://dartbug.com/5519
 Language/11_Expressions/23_Relational_Expressions_A01_t11: Fail # http://dartbug.com/5519
 Language/11_Expressions/23_Relational_Expressions_A01_t12: Fail # http://dartbug.com/5519
 Language/11_Expressions/23_Relational_Expressions_A01_t13: Fail # http://dartbug.com/5519
 Language/11_Expressions/23_Relational_Expressions_A01_t22: Fail # Inherited from dart2js
 Language/11_Expressions/23_Relational_Expressions_A01_t23: Fail # Inherited from dart2js
-Language/11_Expressions/22_Equality_A01_t01: Fail # inherited from VM
-Language/11_Expressions/22_Equality_A01_t15: Fail # http://dartbug.com/5519
-Language/11_Expressions/22_Equality_A01_t16: Fail # http://dartbug.com/5519
-Language/11_Expressions/22_Equality_A01_t19: Fail # http://dartbug.com/5519
-Language/11_Expressions/22_Equality_A01_t23: Fail # Inherited from dart2js
-Language/11_Expressions/22_Equality_A01_t24: Fail # Inherited from dart2js
-Language/11_Expressions/22_Equality_A02_t03: Fail # inherited from VM
-Language/11_Expressions/22_Equality_A05_t01: Fail # inherited from VM
 Language/11_Expressions/24_Shift_A01_t13: Fail # Inherited from dart2js
 Language/11_Expressions/24_Shift_A01_t14: Fail # Inherited from dart2js
 Language/11_Expressions/25_Additive_Expressions_A01_t13: Fail # Inherited from dart2js
@@ -449,8 +328,69 @@ Language/11_Expressions/28_Postfix_Expressions_A01_t03: Fail # Inherited from da
 Language/11_Expressions/28_Postfix_Expressions_A01_t05: Fail # Inherited from dart2js
 Language/11_Expressions/29_Assignable_Expressions_A01_t08: Fail # Inherited from dart2js
 Language/11_Expressions/30_Identifier_Reference_A02_t01: Fail # Pseudo keyword "abstract".
+Language/11_Expressions/30_Identifier_Reference_A04_t09: Fail # Inherited from dart2js
+Language/11_Expressions/30_Identifier_Reference_A05_t01: Fail # Inherited from dart2js
+Language/11_Expressions/30_Identifier_Reference_A05_t04: Fail # Inherited from dart2js
+Language/11_Expressions/30_Identifier_Reference_A05_t12: Fail # Inherited from dart2js
+Language/11_Expressions/30_Identifier_Reference_A06_t01: Fail # Inherited from VM (error returning class name).
+Language/11_Expressions/30_Identifier_Reference_A06_t02: Fail # Inherited from VM (error returning typedef).
 Language/11_Expressions/30_Identifier_Reference_A07_t01: Fail # http://dartbug.com/5519
+Language/11_Expressions/30_Identifier_Reference_A08_t02: Fail # Inhertited from VM.
+Language/11_Expressions/31_Type_Test_A01_t02: Fail # Inherited from dart2js
+Language/11_Expressions/31_Type_Test_A01_t04: Fail # Inherited from dart2js
+Language/11_Expressions/31_Type_Test_A04_t01: Fail # Inherited from dart2js
+Language/11_Expressions/32_Type_Cast_A01_t04: Fail # Inherited from dart2js
+Language/11_Expressions/32_Type_Cast_A03_t01: Fail # Inherited from dart2js
+Language/11_Expressions/32_Type_Cast_A03_t02: Fail # Inherited from dart2js
+Language/11_Expressions/32_Type_Cast_A05_t01: Fail # Inherited from dart2js
+Language/11_Expressions/32_Type_Cast_A05_t02: Fail # Inherited from dart2js
+Language/11_Expressions/32_Type_Cast_A05_t04: Fail # Inherited from dart2js
 Language/12_Statements/03_Variable_Declaration_A04_t01: Fail # http://dartbug.com/5519
+Language/12_Statements/03_Variable_Declaration_A04_t02: Fail # Inherited from dart2js
+Language/12_Statements/03_Variable_Declaration_A04_t03: Fail # Inherited from dart2js
+Language/12_Statements/03_Variable_Declaration_A04_t04: Fail # Inherited from dart2js
+Language/12_Statements/03_Variable_Declaration_A04_t05: Fail # Inherited from dart2js
+Language/12_Statements/03_Variable_Declaration_A04_t06: Fail # Inherited from dart2js
+Language/12_Statements/04_Local_Function_Declaration_A01_t01: Fail # Inherited from dart2js
+Language/12_Statements/04_Local_Function_Declaration_A02_t02: Fail # Inherited from dart2js
+Language/12_Statements/06_For_A01_t11: Fail # Inherited from dart2js
+Language/12_Statements/06_For_A01_t12: Fail # Inherited from dart2js
+Language/12_Statements/09_Switch_A01_t02: Fail # Inherited from VM (switch case with several labels).
+Language/12_Statements/09_Switch_A02_t01: Fail # Inherited from dart2js
+Language/12_Statements/09_Switch_A02_t02: Fail # Inherited from dart2js
+Language/12_Statements/09_Switch_A02_t03: Fail # Inherited from dart2js
+Language/12_Statements/09_Switch_A03_t01: Fail # Inherited from dart2js
+Language/12_Statements/09_Switch_A03_t02: Fail # Inherited from dart2js
+Language/12_Statements/09_Switch_A06_t02: Fail # Inherited from VM (does not throw NSME).
+Language/12_Statements/10_Try_A06_t01: Fail, Pass # Passes in conservative renaming mode. Test depends on function names.
+Language/12_Statements/10_Try_A07_t03: Fail # Test depends on out file name.
+Language/12_Statements/10_Try_A11_t01: Fail # Inherited from VM.
+Language/12_Statements/11_Return_A05_t01: Fail # Inherited from dart2js
+Language/12_Statements/11_Return_A05_t02: Fail # Inherited from dart2js
+Language/12_Statements/11_Return_A05_t03: Fail # Inherited from dart2js
+Language/12_Statements/12_Labels_A01_t03: Fail # Inherited from VM (Multiple labels fail).
+Language/12_Statements/12_Labels_A03_t04: Fail # Inherited from dart2js
+Language/12_Statements/14_Continue_A02_t12: Fail # Inherited from dart2js
+Language/12_Statements/14_Continue_A02_t13: Fail # Inherited from dart2js
+Language/13_Libraries_and_Scripts/1_Imports_A02_t01: Fail # Inherited from dart2js
+Language/13_Libraries_and_Scripts/1_Imports_A02_t02: Fail # Inherited from dart2js
+Language/13_Libraries_and_Scripts/1_Imports_A02_t16: Fail # Inherited from dart2js
+Language/13_Libraries_and_Scripts/1_Imports_A02_t17: Fail # Inherited from dart2js
+Language/13_Libraries_and_Scripts/1_Imports_A02_t18: Fail # Inherited from dart2js
+Language/13_Libraries_and_Scripts/1_Imports_A02_t19: Fail # Inherited from VM (does not throw NSME).
+Language/13_Libraries_and_Scripts/1_Imports_A02_t28: Fail # Inherited from dart2js
+Language/13_Libraries_and_Scripts/1_Imports_A03_t02: Fail # Inherited from dart2js
+Language/13_Libraries_and_Scripts/1_Imports_A03_t22: Fail # Inherited from dart2js
+Language/13_Libraries_and_Scripts/1_Imports_A03_t42: Fail # Inherited from dart2js
+Language/13_Libraries_and_Scripts/1_Imports_A03_t62: Fail # Inherited from dart2js
+Language/13_Libraries_and_Scripts/2_Exports_A01_t07: Fail # Inherited from dart2js
+Language/13_Libraries_and_Scripts/2_Exports_A01_t15: Fail # Inherited from dart2js
+Language/13_Libraries_and_Scripts/2_Exports_A01_t16: Fail # Inherited from dart2js
+Language/13_Libraries_and_Scripts/2_Exports_A04_t04: Fail # Inherited from dart2js
+Language/13_Libraries_and_Scripts/2_Exports_A04_t05: Fail # Inherited from dart2js
+Language/13_Libraries_and_Scripts/2_Exports_A04_t06: Fail # Inherited from dart2js
+Language/13_Libraries_and_Scripts/3_Parts_A03_t02: Fail # Inherited from dart2js
+Language/13_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # Inherited from dart2js
 Language/13_Libraries_and_Scripts/4_Scripts_A03_t01: Fail # http://dartbug.com/5519
 Language/13_Libraries_and_Scripts/4_Scripts_A03_t03: Fail # http://dartbug.com/5519
 Language/14_Types/2_Dynamic_Type_System_A02_t01: Fail # inherited from VM
@@ -465,15 +405,35 @@ Language/14_Types/5_Function_Types_A01_t05: Fail # inherited from dart2js
 Language/14_Types/5_Function_Types_A02_t01: Fail # inherited from VM
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: Fail # inherited from dart2js
 Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # inherited from dart2js
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # Inherited from dart2js
 LibTest/core/Date/Date.fromString_A03_t01: Fail, OK # Issue co19 - 121
 LibTest/core/Date/toString_A02_t01: Fail, OK # inherited from VM
 LibTest/core/Date/year_A01_t01: Fail, OK # inherited from VM
-LibTest/core/double/toRadixString_A01_t01: Fail # inherited from VM
-LibTest/core/int/operator_left_shift_A01_t02: Fail, OK # co19 issue 129
-LibTest/core/int/toRadixString_A01_t01: Fail # inherited from VM
+LibTest/core/EmptyQueueException/EmptyQueueException_A01_t01: Fail, OK # co19 issue 288
+LibTest/core/EmptyQueueException/toString_A01_t01: Fail, OK # co19 issue 288
+LibTest/core/LinkedHashMap/LinkedHashMap_class_A01_t01: Fail, OK # co19 issue 293
+LibTest/core/List/iterator_next_A02_t01: Fail, OK # co19 issue 288
+LibTest/core/Map/getKeys_A01_t01: Fail, OK # co19 issue 293
+LibTest/core/Map/getKeys_A01_t02: Fail, OK # co19 issue 293
+LibTest/core/Map/getValues_A01_t01: Fail, OK # co19 issue 293
+LibTest/core/Map/getValues_A01_t02: Fail, OK # co19 issue 287
+LibTest/core/Map/getValues_A01_t02: Fail, OK # co19 issue 293
 LibTest/core/Match/operator_subscript_A01_t01: Fail # inherited from VM
-LibTest/core/RegExp/firstMatch_A01_t01: Fail # inherited from VM
+LibTest/core/Match/operator_subscript_A01_t01: Fail, OK # co19 issue 294
+LibTest/core/NoMoreElementsException/NoMoreElementsException_A01_t01: Fail, OK # co19 issue 288
+LibTest/core/NoMoreElementsException/toString_A01_t01: Fail, OK # co19 issue 288
+LibTest/core/NoSuchMethodError/NoSuchMethodError_A01_t01: Fail, OK # co19 issue 300
+LibTest/core/NoSuchMethodError/toString_A01_t01: Fail, OK # co19 issue 300
+LibTest/core/Queue/Queue.from_A01_t02: Fail # Inherited from dart2js
+LibTest/core/Queue/first_A02_t01: Fail, OK # co19 issue 288
+LibTest/core/Queue/first_A02_t01: Fail, OK # co19 issue 291
+LibTest/core/Queue/iterator_next_A02_t01: Fail, OK # co19 issue 288
+LibTest/core/Queue/last_A02_t01: Fail, OK # co19 issue 288
+LibTest/core/Queue/last_A02_t01: Fail, OK # co19 issue 291
+LibTest/core/Queue/removeFirst_A02_t01: Fail, OK # co19 issue 288
+LibTest/core/Queue/removeLast_A02_t01: Fail, OK # co19 issue 288
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail # inherited from VM
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail, OK # co19 issue 294
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # inherited from VM
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # inherited from VM
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail
@@ -482,25 +442,48 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fa
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail # inherited from VM
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/firstMatch_A01_t01: Fail # inherited from VM
+LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # co19 issue 294
+LibTest/core/Set/Set.from_A01_t02: Fail # Inherited from dart2js
+LibTest/core/Stopwatch/Stopwatch_A01_t01: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/elapsedInMs_A01_t01: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/elapsedInUs_A01_t01: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/elapsed_A01_t01: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/elapsed_A01_t02: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/elapsed_A01_t03: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/frequency_A01_t01: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/start_A01_t01: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/start_A01_t02: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/start_A01_t03: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/stop_A01_t01: Fail, OK # co19 issue 297
+LibTest/core/String/String_class_A02_t01: Fail, OK # co19 issue 284
+LibTest/core/String/charCodeAt_A01_t01: Fail, OK # co19 issue 284
+LibTest/core/String/charCodes_A01_t01: Fail, OK # co19 issue 284
 LibTest/core/String/contains_A01_t02: Fail # inherited from VM
+LibTest/core/double/toRadixString_A01_t01: Fail # inherited from VM
+LibTest/core/int/operator_left_shift_A01_t02: Fail, OK # co19 issue 129
+LibTest/core/int/toRadixString_A01_t01: Fail # inherited from VM
+LibTest/isolate/ReceivePort/receive_A01_t02: Fail # inherited from VM
+LibTest/isolate/ReceivePort/receive_A01_t02: Fail, OK # co19 issue 276
+LibTest/isolate/SendPort/send_A02_t02: Fail, OK # co19 issue 293
+LibTest/isolate/SendPort/send_A02_t03: Fail, OK # co19 issue 293
+LibTest/isolate/SendPort/send_A02_t04: Fail, OK # co19 issue 293
+LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
+LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
 LibTest/isolate/isolate_api/spawnUri_A01_t01: Fail, OK # Problems with the test: encoded file name
 LibTest/isolate/isolate_api/spawnUri_A01_t02: Fail, OK # Problems with the test: encoded file name
 LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail, OK # Problems with the test: encoded file name
 LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail, OK # Problems with the test: encoded file name
 LibTest/isolate/isolate_api/spawnUri_A01_t05: Fail, OK # Problems with the test: encoded file name
-LibTest/isolate/ReceivePort/receive_A01_t02: Fail # inherited from VM
-
-# Partially implemented redirecting constructors makes this fail.
-Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail
-
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A16_t07: Fail # http://dartbug.com/6242
-
-Language/11_Expressions/11_Instance_Creation/1_New_A01_t04: Fail, OK # co19 issue 241
-Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t15: Fail, OK # co19 issue 241
-Language/11_Expressions/22_Equality_A01_t20: Fail, OK # co19 issue 241
-
-LibTest/core/NoSuchMethodError/NoSuchMethodError_A01_t01: Fail, OK # co19 issue 300
-LibTest/core/NoSuchMethodError/toString_A01_t01: Fail, OK # co19 issue 300
+LibTest/math/Random/nextDouble_A01_t01: Fail # Inherited from VM.
+LibTest/math/exp_A01_t01: Fail # Issue co19 - 44
+LibTest/math/parseDouble_A02_t01: Fail # Inherited from VM.
+LibTest/math/pow_A01_t01: Fail # Inherited from VM.
+LibTest/math/pow_A11_t01: Fail # Inherited from VM.
+LibTest/math/pow_A13_t01: Fail # Inherited from VM.
+LibTest/math/sin_A01_t01: Fail # Inherited from VM.
+LibTest/math/tan_A01_t01: Fail # Issue co19 - 44
 
 [ $compiler == dart2dart && $system == windows ]
 LibTest/core/double/operator_remainder_A01_t04: Fail # Result is NaN
