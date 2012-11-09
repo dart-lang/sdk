@@ -2329,7 +2329,8 @@ class _HttpClient implements HttpClient {
     void _establishConnection(String host,
                               int port,
                               _ProxyConfiguration proxyConfiguration,
-                              int proxyIndex) {
+                              int proxyIndex,
+                              bool reusedConnection) {
 
       void _connectionOpened(_SocketConnection socketConn,
                              _HttpClientConnection connection,
@@ -2353,7 +2354,9 @@ class _HttpClient implements HttpClient {
             cr.authorize(request);
           }
         }
-        if (connection._onRequest != null) {
+        // A reused connection is indicating either redirect or retry
+        // where the onRequest callback should not be issued again.
+        if (connection._onRequest != null && !reusedConnection) {
           connection._onRequest(request);
         } else {
           request.outputStream.close();
@@ -2387,7 +2390,8 @@ class _HttpClient implements HttpClient {
           proxyIndex++;
           if (proxyIndex < proxyConfiguration.proxies.length) {
             // Try the next proxy in the list.
-            _establishConnection(host, port, proxyConfiguration, proxyIndex);
+            _establishConnection(
+                host, port, proxyConfiguration, proxyIndex, false);
           } else {
             // Report the error through the HttpClientConnection object to
             // the client.
@@ -2422,8 +2426,11 @@ class _HttpClient implements HttpClient {
     int port = url.port == 0 ? HttpClient.DEFAULT_HTTP_PORT : url.port;
 
     // Create a new connection object if we are not re-using an existing one.
+    var reusedConnection = false;
     if (connection == null) {
       connection = new _HttpClientConnection(this);
+    } else {
+      reusedConnection = true;
     }
     connection.onDetach = () => _activeSockets.remove(connection._socketConn);
 
@@ -2436,7 +2443,7 @@ class _HttpClient implements HttpClient {
     }
 
     // Establish the connection starting with the first proxy configured.
-    _establishConnection(host, port, proxyConfiguration, 0);
+    _establishConnection(host, port, proxyConfiguration, 0, reusedConnection);
 
     return connection;
   }
