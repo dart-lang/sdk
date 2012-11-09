@@ -31,9 +31,6 @@ class_literal_test/29: Fail # Class literals are expression now; delete this tes
 *vm_test: Skip
 *vm_negative_test: Skip
 
-# BUG(6627): Temporarily skip because -1 << 0 is compiled incorrectly.
-arithmetic_test: Fail
-
 [ $compiler == dart2js && $checked ]
 redirecting_factory_infinite_steps_test/01: Fail
 assert_with_type_test_or_cast_test: Fail # Issue 4929
@@ -88,6 +85,7 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dart2js ]
+arithmetic_test: Fail # http://dartbug.com/6627
 factory_redirection_test/none: fail
 factory_redirection_test/01: fail
 factory_redirection_test/02: fail
