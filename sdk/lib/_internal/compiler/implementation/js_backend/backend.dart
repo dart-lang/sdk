@@ -699,7 +699,7 @@ class JavaScriptBackend extends Backend {
   }
 
   Element getInterceptor(Selector selector) {
-    return interceptors.getStaticInterceptorBySelector(selector);
+    return interceptors.getStaticInterceptor(selector);
   }
 
   void enqueueHelpers(Enqueuer world) {

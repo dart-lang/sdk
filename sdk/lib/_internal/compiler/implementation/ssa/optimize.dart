@@ -654,12 +654,16 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   final String name = "SsaCheckInserter";
   HGraph graph;
   Element lengthInterceptor;
+  Selector lengthSelector;
 
   SsaCheckInserter(JavaScriptBackend backend, this.types, this.boundsChecked)
       : constantSystem = backend.constantSystem {
     SourceString lengthString = const SourceString('length');
+    lengthSelector = new Selector.getter(
+        lengthString,
+        backend.compiler.currentElement.getLibrary());
     lengthInterceptor =
-        backend.builder.interceptors.getStaticGetInterceptor(lengthString);
+        backend.builder.interceptors.getStaticInterceptor(lengthSelector);
   }
 
   void visitGraph(HGraph graph) {
@@ -681,11 +685,8 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
                                  HInstruction index) {
     HStatic interceptor = new HStatic(lengthInterceptor);
     node.block.addBefore(node, interceptor);
-    Selector selector = new Selector.getter(
-        const SourceString('length'),
-        lengthInterceptor.getLibrary());  // TODO(kasperl): Wrong.
     HInvokeInterceptor length = new HInvokeInterceptor(
-        selector, <HInstruction>[interceptor, receiver], true);
+        lengthSelector, <HInstruction>[interceptor, receiver], true);
     types[length] = HType.INTEGER;
     node.block.addBefore(node, length);
 

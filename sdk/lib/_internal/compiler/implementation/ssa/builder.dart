@@ -45,42 +45,30 @@ class Interceptors {
     compiler.unimplemented('Unknown operator', node: op);
   }
 
-  // TODO(karlklose,kasperl): change uses of getStatic[Get|Set]Interceptor to
-  // use this function.
-  Element getStaticInterceptorBySelector(Selector selector) {
+  Element getStaticInterceptor(Selector selector) {
+    String name = selector.name.slowToString();
     if (selector.isGetter()) {
       // TODO(lrn): If there is no get-interceptor, but there is a
       // method-interceptor, we should generate a get-interceptor automatically.
-      return getStaticGetInterceptor(selector.name);
+      String mangledName = "get\$$name";
+      return compiler.findInterceptor(new SourceString(mangledName));
     } else if (selector.isSetter()) {
-      return getStaticSetInterceptor(selector.name);
+      String mangledName = "set\$$name";
+      return compiler.findInterceptor(new SourceString(mangledName));
     } else {
-      return getStaticInterceptor(selector.name, selector.argumentCount);
+      Element element = compiler.findInterceptor(new SourceString(name));
+      if (element != null && element.isFunction()) {
+        // Only pick the function element with the short name if the
+        // number of parameters it expects matches the number we're
+        // passing modulo the receiver.
+        FunctionElement function = element;
+        if (function.parameterCount(compiler) == selector.argumentCount + 1) {
+          return element;
+        }
+      }
+      String longMangledName = "$name\$${selector.argumentCount}";
+      return compiler.findInterceptor(new SourceString(longMangledName));
     }
-  }
-
-  Element getStaticInterceptor(SourceString name, int parameters) {
-    String mangledName = name.slowToString();
-    Element element = compiler.findInterceptor(new SourceString(mangledName));
-    if (element != null && element.isFunction()) {
-      // Only pick the function element with the short name if the
-      // number of parameters it expects matches the number we're
-      // passing modulo the receiver.
-      FunctionElement function = element;
-      if (function.parameterCount(compiler) == parameters + 1) return element;
-    }
-    String longMangledName = "$mangledName\$$parameters";
-    return compiler.findInterceptor(new SourceString(longMangledName));
-  }
-
-  Element getStaticGetInterceptor(SourceString name) {
-    String mangledName = "get\$${name.slowToString()}";
-    return compiler.findInterceptor(new SourceString(mangledName));
-  }
-
-  Element getStaticSetInterceptor(SourceString name) {
-    String mangledName = "set\$${name.slowToString()}";
-    return compiler.findInterceptor(new SourceString(mangledName));
   }
 
   Element getOperatorInterceptor(Operator op) {
@@ -2284,7 +2272,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     SourceString getterName = selector.name;
     Element staticInterceptor = null;
     if (elements[send] == null && methodInterceptionEnabled) {
-      staticInterceptor = interceptors.getStaticGetInterceptor(getterName);
+      staticInterceptor = interceptors.getStaticInterceptor(selector);
     }
     bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
     if (staticInterceptor != null) {
@@ -2347,7 +2335,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     SourceString setterName = selector.name;
     Element staticInterceptor = null;
     if (elements[send] == null && methodInterceptionEnabled) {
-      staticInterceptor = interceptors.getStaticSetInterceptor(setterName);
+      staticInterceptor = interceptors.getStaticInterceptor(selector);
     }
     bool hasSetter = compiler.world.hasAnyUserDefinedSetter(selector);
     if (staticInterceptor != null) {
@@ -2617,8 +2605,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     Element interceptor = null;
     if (methodInterceptionEnabled && elements[node] == null) {
-      interceptor = interceptors.getStaticInterceptor(dartMethodName,
-                                                      node.argumentCount());
+      interceptor = interceptors.getStaticInterceptor(selector);
     }
     if (interceptor != null) {
       HStatic target = new HStatic(interceptor);
@@ -3686,7 +3673,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction iterator;
     void buildInitializer() {
       SourceString iteratorName = const SourceString("iterator");
-      Element interceptor = interceptors.getStaticInterceptor(iteratorName, 0);
+      Selector selector =
+          new Selector.call(iteratorName, work.element.getLibrary(), 0);
+      Element interceptor = interceptors.getStaticInterceptor(selector);
       assert(interceptor != null);
       visit(node.expression);
       pushInvokeHelper1(interceptor, pop());
@@ -3695,7 +3684,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction buildCondition() {
       SourceString name = const SourceString('hasNext');
       Selector selector = new Selector.getter(name, work.element.getLibrary());
-      if (interceptors.getStaticGetInterceptor(name) != null) {
+      if (interceptors.getStaticInterceptor(selector) != null) {
         compiler.internalError("hasNext getter must not be intercepted",
                                node: node);
       }
