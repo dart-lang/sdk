@@ -1,0 +1,26 @@
+#!/bin/bash
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Setting BIN_DIR this way is ugly, but is needed to handle the case where
+# dart-sdk/bin has been symlinked to. On MacOS, readlink doesn't work
+# with this case.
+BIN_DIR="$(cd "${0%/*}" ; pwd -P)"
+
+unset COLORS
+if test -t 1; then
+  # Stdout is a terminal.
+  if test 8 -le `tput colors`; then
+    # Stdout has at least 8 colors, so enable colors.
+    COLORS="--enable-diagnostic-colors"
+  fi
+fi
+
+unset SNAPSHOT
+if test -f "$BIN_DIR/../lib/_internal/compiler/implementation/dart2js.dart.snapshot"; then
+  # TODO(ahe): Remove the following line when we are relatively sure it works.
+  echo Using snapshot "$BIN_DIR/../lib/_internal/compiler/implementation/dart2js.dart.snapshot" 1>&2
+  SNAPSHOT="--use_script_snapshot=$BIN_DIR/../lib/_internal/compiler/implementation/dart2js.dart.snapshot"
+fi
+exec "$BIN_DIR"/dart --no_use_inlining --heap_growth_rate=32 $SNAPSHOT "$BIN_DIR/../lib/_internal/compiler/implementation/dart2js.dart" $COLORS "$@"
