@@ -2283,7 +2283,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     assert(selector.isGetter());
     SourceString getterName = selector.name;
     Element staticInterceptor = null;
-    if (methodInterceptionEnabled) {
+    if (elements[send] == null && methodInterceptionEnabled) {
       staticInterceptor = interceptors.getStaticGetInterceptor(getterName);
     }
     bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
@@ -2346,7 +2346,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     assert(selector.isSetter());
     SourceString setterName = selector.name;
     Element staticInterceptor = null;
-    if (methodInterceptionEnabled) {
+    if (elements[send] == null && methodInterceptionEnabled) {
       staticInterceptor = interceptors.getStaticSetInterceptor(setterName);
     }
     bool hasSetter = compiler.world.hasAnyUserDefinedSetter(selector);
@@ -2616,7 +2616,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     Element interceptor = null;
-    if (methodInterceptionEnabled && node.receiver != null) {
+    if (methodInterceptionEnabled && elements[node] == null) {
       interceptor = interceptors.getStaticInterceptor(dartMethodName,
                                                       node.argumentCount());
     }
