@@ -167,6 +167,17 @@ class TestCase {
   bool get usesWebDriver => TestUtils.usesWebDriver(configuration['runtime']);
 
   void completed() { completedHandler(this); }
+
+  bool get isFlaky {
+      if (expectedOutcomes.contains(SKIP)) {
+        return false;
+      }
+
+      var flags = new Set.from(expectedOutcomes);
+      flags..remove(TIMEOUT)
+           ..remove(SLOW);
+      return flags.contains(PASS) && flags.length > 1;
+  }
 }
 
 

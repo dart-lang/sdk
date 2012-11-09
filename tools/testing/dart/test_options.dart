@@ -268,7 +268,15 @@ Note: currently only implemented for dart2js.''',
               ['-n', '--nobatch'],
               [],
               false,
-              'bool')];
+              'bool'),
+          new _TestOptionSpecification(
+              'append_flaky_log',
+              'Do not delete the old flaky log but rather append to it.',
+              ['--append_flaky_log'],
+              [],
+              false,
+              'bool'
+              ),];
   }
 
 

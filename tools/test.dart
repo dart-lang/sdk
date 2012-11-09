@@ -81,6 +81,13 @@ main() {
   var verbose = firstConf['verbose'];
   var printTiming = firstConf['time'];
   var listTests = firstConf['list'];
+  
+  if (!firstConf['append_flaky_log'])  {
+    var file = new File(TestUtils.flakyFileName());
+    if (file.existsSync()) {
+      file.deleteSync();
+    }
+  }
 
   // Print the configurations being run by this execution of
   // test.dart. However, don't do it if the silent progress indicator

@@ -1421,6 +1421,14 @@ class TestUtils {
     return vm;
   }
 
+  static String flakyFileName() {
+    // If a flaky test did fail, infos about it (i.e. test name, stdin, stdout)
+    // will be written to this file. This is useful for the debugging of
+    // flaky tests.
+    // When running on a built bot, the file can be made visible in the waterfall UI.
+    return ".flaky.log";
+  }
+
   static void ensureExists(String filename, Map configuration) {
     if (!configuration['list'] && !(new File(filename).existsSync())) {
       throw "Executable '$filename' does not exist";

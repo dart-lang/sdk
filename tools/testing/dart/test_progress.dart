@@ -7,6 +7,7 @@
 #import("dart:io");
 #import("test_runner.dart");
 #import("test_suite.dart");
+#import("status_file_parser.dart");
 
 class ProgressIndicator {
   ProgressIndicator(this._startTime, this._printTiming)
@@ -45,6 +46,14 @@ class ProgressIndicator {
   }
 
   void done(TestCase test) {
+    if (test.isFlaky && test.output.result != PASS) {
+      var buf = new StringBuffer();
+      for (var l in _buildFailureOutput(test)) {
+        buf.add("$l\n");
+      }
+      _appendToFlakyFile(buf.toString());
+    }
+
     if (test.output.unexpectedOutput) {
       _failedTests++;
       _printFailureOutput(test);
@@ -120,6 +129,14 @@ class ProgressIndicator {
   String _header(String header) => header;
 
   void _printFailureOutput(TestCase test) {
+    var failureOutput = _buildFailureOutput(test);
+    for (var line in failureOutput) {
+      print(line);
+    }
+    _failureSummary.addAll(failureOutput);
+  }
+  
+  List<String> _buildFailureOutput(TestCase test) {
     List<String> output = new List<String>();
     output.add('');
     output.add(_header('FAILED: ${test.configurationString}'
@@ -170,10 +187,7 @@ class ProgressIndicator {
           ? "Command line" : "Compilation command");
       output.add('$message: ${c.commandLine}');
     }
-    for (String line in output) {
-      print(line);
-    }
-    _failureSummary.addAll(output);
+    return output;
   }
 
   void _printFailureSummary() {
@@ -194,6 +208,13 @@ class ProgressIndicator {
       print('=== ${_failedTests} test$pluralSuffix failed');
       print('===\n');
     }
+  }
+
+  void _appendToFlakyFile(String msg) {
+    var file = new File(TestUtils.flakyFileName());
+    var fd = file.openSync(FileMode.APPEND);
+    fd.writeStringSync(msg);
+    fd.closeSync();
   }
 
   int get numFailedTests => _failedTests;
