@@ -189,7 +189,7 @@ class int64 implements intx {
   }
 
   factory int64.fromBytes(List<int> bytes) {
-    int top = bytes[7] & 0xff; 
+    int top = bytes[7] & 0xff;
     top <<= 8;
     top |= bytes[6] & 0xff;
     top <<= 8;
@@ -197,7 +197,7 @@ class int64 implements intx {
     top <<= 8;
     top |= bytes[4] & 0xff;
 
-    int bottom = bytes[3] & 0xff; 
+    int bottom = bytes[3] & 0xff;
     bottom <<= 8;
     bottom |= bytes[2] & 0xff;
     bottom <<= 8;
@@ -209,7 +209,7 @@ class int64 implements intx {
   }
 
   factory int64.fromBytesBigEndian(List<int> bytes) {
-    int top = bytes[0] & 0xff; 
+    int top = bytes[0] & 0xff;
     top <<= 8;
     top |= bytes[1] & 0xff;
     top <<= 8;
@@ -217,7 +217,7 @@ class int64 implements intx {
     top <<= 8;
     top |= bytes[3] & 0xff;
 
-    int bottom = bytes[4] & 0xff; 
+    int bottom = bytes[4] & 0xff;
     bottom <<= 8;
     bottom |= bytes[5] & 0xff;
     bottom <<= 8;
@@ -458,7 +458,7 @@ class int64 implements intx {
     if (negative) {
       a2 += 0x3 << _BITS2; // add extra one bits on the left
     }
-    
+
     if (n < _BITS) {
       res2 = _shiftRight(a2, n);
       if (negative) {
