@@ -9,11 +9,27 @@
 class Object {
 }
 
+class Map {
+  Map(this._lat, this._long);
+
+  get isPrimeMeridian => _long == 0;
+
+  var _lat;
+  var _long;
+}
+
+
 void main() {
   var test = new mycore.Map<mycore.int,mycore.String>();
   mycore.bool boolval = false;
   mycore.int variable = 10;
   mycore.num value = 10;
   mycore.dynamic d = null;
+  mycore.print(new mycore.Object());
   mycore.print(new Object());
+
+  var greenwich = new Map(51, 0);
+  var kpao = new Map(37, -122);
+  mycore.Expect.isTrue(greenwich.isPrimeMeridian);
+  mycore.Expect.isFalse(kpao.isPrimeMeridian);
 }
