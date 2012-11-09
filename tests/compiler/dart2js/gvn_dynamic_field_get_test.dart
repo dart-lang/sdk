@@ -4,9 +4,9 @@
 // Test that dart2js gvns dynamic getters that don't have side
 // effects.
 
-#import('compiler_helper.dart');
-#import('parser_helper.dart');
-#import('dart:uri');
+import 'compiler_helper.dart';
+import 'parser_helper.dart';
+import 'dart:uri';
 
 const String TEST = r"""
 class A {

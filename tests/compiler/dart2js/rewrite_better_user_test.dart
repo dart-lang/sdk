@@ -4,7 +4,7 @@
 // Test that we get rid of duplicate type guards on a field when that
 // field is being gvn'ed.
 
-#import("compiler_helper.dart");
+import 'compiler_helper.dart';
 
 const String TEST = r"""
 class A {

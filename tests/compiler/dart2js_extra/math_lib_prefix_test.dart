@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("math_lib_prefix_test");
-#import("dart:math", prefix: "foo");
+library math_lib_prefix_test;
+import 'dart:math' as foo;
 
 main() {
   Expect.equals(2.0, foo.sqrt(4));

@@ -6,7 +6,7 @@
 
 // VMOptions=--enable_asserts
 
-#import("compiler_helper.dart");
+import 'compiler_helper.dart';
 
 const String SOURCE = r"""
 bool baz(int a, int b) {

@@ -4,9 +4,9 @@
 
 // 'I' is the name of an interface and the name of the native class.
 
-#library('native_library_same_name_used_lib1.dart');
+library native_library_same_name_used_lib1;
 
-#import('native_library_same_name_used_lib2.dart');
+import 'native_library_same_name_used_lib2.dart';
 
 interface I {
   I read();

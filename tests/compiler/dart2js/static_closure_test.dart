@@ -4,7 +4,7 @@
 
 // Test that static functions are closurized as expected.
 
-#import("compiler_helper.dart");
+import 'compiler_helper.dart';
 
 main() {
   String code = compileAll(r'''main() { print(main); }''');

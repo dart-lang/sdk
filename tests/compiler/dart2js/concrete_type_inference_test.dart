@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("dart:uri");
+import 'dart:uri';
 
-#import('compiler_helper.dart');
-#import('parser_helper.dart');
+import 'compiler_helper.dart';
+import 'parser_helper.dart';
 
 void compileAndFind(String code, String name,
                     check(compiler, element)) {

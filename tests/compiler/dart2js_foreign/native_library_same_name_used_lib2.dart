@@ -4,8 +4,8 @@
 
 // Native implementation.
 
-#library('lib2');
-#import('native_library_same_name_used_lib1.dart');  // To get interface I.
+library lib2;
+import 'native_library_same_name_used_lib1.dart';  // To get interface I.
 
 // Native impl has same name as interface.
 @native("*I")

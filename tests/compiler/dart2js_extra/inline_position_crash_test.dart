@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#source('inline_position_crash_source.dart');
+part 'inline_position_crash_source.dart';
 
 class Sub extends Super {
   Sub() : super();

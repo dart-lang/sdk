@@ -12,7 +12,7 @@ import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dar
 import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';
 
 const coreLib = r'''
-#library('corelib');
+library corelib;
 class Object {}
 interface bool {}
 interface num {}
@@ -34,14 +34,14 @@ print(x) {}
 ''';
 
 const ioLib = r'''
-#library('io');
+library io;
 class Platform {
   static int operatingSystem;
 }
 ''';
 
 const htmlLib = r'''
-#library('html');
+library html;
 Window __window;
 Window get window => __window;
 abstract class Window {
@@ -53,7 +53,7 @@ abstract class Navigator {
 ''';
 
 const helperLib = r'''
-#library('js_helper');
+library js_helper;
 class JSInvocationMirror {}
 ''';
 
@@ -183,7 +183,7 @@ testConflictSendsRename() {
   // everything is renamed correctly in conflicting class names and global
   // functions.
   var librarySrc = '''
-#library("mylib.dart");
+library mylib;
 
 globalfoo() {}
 var globalVar;
@@ -198,7 +198,7 @@ class A {
 }
 ''';
   var mainSrc = '''
-#import("mylib.dart", prefix: "mylib");
+import 'mylib.dart' as mylib;
 
 globalfoo() {}
 var globalVar;
@@ -258,7 +258,7 @@ testNoConflictSendsRename() {
   // Various Send-s to current library and external library. Nothing should be
   // renamed here, only library prefixes must be cut.
   var librarySrc = '''
-#library("mylib.dart");
+library mylib;
 
 globalfoo() {}
 
@@ -271,7 +271,7 @@ class A {
 }
 ''';
   var mainSrc = '''
-#import("mylib.dart", prefix: "mylib");
+import 'mylib.dart' as mylib;
 
 myglobalfoo() {}
 
@@ -315,7 +315,7 @@ main() {
 
 testConflictLibraryClassRename() {
   var librarySrc = '''
-#library('mylib');
+library mylib;
 
 topfoo() {}
 
@@ -324,7 +324,7 @@ class A {
 }
 ''';
   var mainSrc = '''
-#import('mylib.dart', prefix: 'mylib');
+import 'mylib.dart' as mylib;
 
 
 topfoo() {var x = 5;}
@@ -380,13 +380,13 @@ testStaticInvocation() {
 
 testLibraryGetSet() {
   var librarySrc = '''
-#library('mylib');
+library mylib;
 
 get topgetset => 5;
 set topgetset(arg) {}
 ''';
   var mainSrc = '''
-#import('mylib.dart', prefix: 'mylib');
+import 'mylib.dart' as mylib;
 
 get topgetset => 6;
 set topgetset(arg) {}
@@ -478,14 +478,14 @@ testTypeVariablesAreRenamed() {
   // if we have a class and type variable with the same name, they
   // both should be renamed.
   var librarySrc = '''
-#library('mylib');
+library mylib;
 typedef void MyFunction<T extends num>(T arg);
 class T {}
 class B<T> {}
 class A<T> extends B<T> { T f; }
 ''';
   var mainSrc = '''
-#import('mylib.dart', prefix: 'mylib');
+import 'mylib.dart' as mylib;
 typedef void MyFunction<T extends num>(T arg);
 class T {}
 class B<T> {}
@@ -518,14 +518,14 @@ main() {
 
 testClassTypeArgumentBound() {
   var librarySrc = '''
-#library('mylib');
+library mylib;
 
 interface I {}
 class A<T extends I> {}
 
 ''';
   var mainSrc = '''
-#import('mylib.dart', prefix: 'mylib');
+import 'mylib.dart' as mylib;
 
 interface I {}
 class A<T extends I> {}
@@ -547,11 +547,11 @@ main() {
 
 testDoubleMains() {
   var librarySrc = '''
-#library('mylib');
+library mylib;
 main() {}
 ''';
   var mainSrc = '''
-#import('mylib.dart', prefix: 'mylib');
+import 'mylib.dart' as mylib;
 main() {
   mylib.main();
 }
@@ -565,7 +565,7 @@ main() {
 
 testStaticAccessIoLib() {
   var src = '''
-#import('dart:io');
+import 'dart:io';
 
 main() {
   Platform.operatingSystem;
@@ -658,7 +658,7 @@ main() {
 
 testPlatformLibraryMemberNamesAreFixed() {
   var src = '''
-#import('dart:html');
+import 'dart:html';
 
 class A {
   static String get userAgent => window.navigator.userAgent;
