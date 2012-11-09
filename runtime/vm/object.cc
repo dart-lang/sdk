@@ -7154,7 +7154,7 @@ uword Code::GetDeoptAfterPcAtDeoptId(intptr_t deopt_id) const {
 
 
 const char* Code::ToCString() const {
-  const char* kFormat = "Code entry:0x%d";
+  const char* kFormat = "Code entry:%p";
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, EntryPoint()) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, EntryPoint());
