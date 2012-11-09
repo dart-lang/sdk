@@ -424,7 +424,7 @@ class _ExternalOneByteString extends _StringBase implements String {
 
 
 class _ExternalTwoByteString extends _StringBase implements String {
-  factory ExternalTwoByteString._uninstantiable() {
+  factory _ExternalTwoByteString._uninstantiable() {
     throw new UnsupportedError(
         "_ExternalTwoByteString can only be allocated by the VM");
   }

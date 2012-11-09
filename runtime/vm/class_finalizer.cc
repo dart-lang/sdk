@@ -929,8 +929,35 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
                                                  const Function& function) {
   // Resolve result type.
   AbstractType& type = AbstractType::Handle(function.result_type());
+  // TODO(regis): Remove this code once the parser checks the factory name and
+  // once the core library is fixed. See issue 6641.
   // In case of a factory, the parser sets the factory result type to a type
-  // with an unresolved class whose name matches the factory name.
+  // with an unresolved class whose name matches the factory name and no type
+  // arguments. We resolve the class and specify type arguments in case the
+  // class is generic.
+  if (function.IsFactory()) {
+    Type& factory_result_type = Type::Handle();
+    factory_result_type ^= type.raw();
+    ASSERT(factory_result_type.arguments() == TypeArguments::null());
+    const UnresolvedClass& unresolved_factory_class =
+        UnresolvedClass::Handle(factory_result_type.unresolved_class());
+    const Class& factory_class =
+        Class::Handle(ResolveClass(cls, unresolved_factory_class));
+    if (factory_class.IsNull()) {
+      type = NewFinalizedMalformedType(
+          Error::Handle(),  // No previous error.
+          cls,
+          unresolved_factory_class.token_pos(),
+          kTryResolve,  // No compile-time error.
+          "cannot resolve factory class name '%s' from '%s'",
+          String::Handle(unresolved_factory_class.Name()).ToCString(),
+          String::Handle(cls.Name()).ToCString());
+    } else {
+      type = Type::New(factory_class,
+                       TypeArguments::Handle(factory_class.type_parameters()),
+                       unresolved_factory_class.token_pos());
+    }
+  }
   // It is not a compile time error if this name does not resolve to a class or
   // interface.
   ResolveType(cls, type, kCanonicalize);

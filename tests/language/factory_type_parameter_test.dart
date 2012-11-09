@@ -4,7 +4,7 @@
 
 class A<T> {
   factory A.factory() {
-    return new B<Set>();
+    return new B<T>();
   }
 
   A();
@@ -24,18 +24,18 @@ class B<T> extends A<T> {
 
 main() {
   Expect.isTrue(new A<List>() is A<List>);
-  Expect.isTrue(new A<List>.factory() is B<Set>);
+  Expect.isTrue(new A<List>.factory() is B<List>);
 
   // Check that we don't always return true for is checks with
   // generics.
   Expect.isFalse(new A<List>() is A<Set>);
-  Expect.isFalse(new A<List>.factory() is B<List>);
+  Expect.isFalse(new A<List>.factory() is B<Set>);
 
   Expect.isTrue(new A<List>().build() is A<List>);
   Expect.isFalse(new A<List>().build() is A<Set>);
 
-  Expect.isTrue(new A<List>.factory().build() is B<Set>);
-  Expect.isFalse(new A<List>.factory().build() is B<List>);
+  Expect.isTrue(new A<List>.factory().build() is B<List>);
+  Expect.isFalse(new A<List>.factory().build() is B<Set>);
 
   Expect.isTrue(new B<List>().build() is B<List>);
   Expect.isFalse(new B<List>().build() is B<Set>);

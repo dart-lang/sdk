@@ -62,7 +62,7 @@ main() {
   new C.test07<int, int>(0);  /// 07: continued
   Expect.isTrue(new A<List>() is A<List>);
   Expect.isTrue(new A<bool>.constant(true).x);
-  Expect.isTrue(new A<List>.factory() is B<Set>);
+  Expect.isTrue(new A<Set>.factory() is B<Set>);
   Expect.isTrue(new B<List>.A() is A<List>);
   Expect.isTrue(new B<bool>.A_constant(true).x);
   Expect.isTrue(new B<List>.A_factory() is B<Set>);

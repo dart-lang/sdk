@@ -3017,6 +3017,11 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
   if (IsIdentifier() &&
       (CurrentLiteral()->Equals(members->class_name()) || member.has_factory)) {
     if (member.has_factory) {
+      // TODO(regis): Simplify this code once the core library is fixed.
+      // See issue 6641.
+      // Per specification, the name of the factory must be the name of the
+      // immediately enclosing class.
+
       // The factory name may be qualified.
       QualIdent factory_name;
       ParseQualIdent(&factory_name);
