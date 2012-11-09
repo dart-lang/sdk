@@ -84,6 +84,8 @@
       }],
     ],
   },
+  # Added by Dart.  We do not indent, so diffs with the original are clearer.
+  'conditions': [[ 'in_dartium==0', {
   'targets': [
     {
       'target_name': 'nspr_dart',
@@ -1270,4 +1272,5 @@
       ],
     },
   ],
+  }]],
 }

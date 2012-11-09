@@ -307,7 +307,7 @@
       'target_name': 'libdart_io',
       'type': 'static_library',
       'dependencies': [
-        'nss_runtime_target',
+        'nss_runtime',
       ],
       'include_dirs': [
         '..',
@@ -337,26 +337,28 @@
       ],
     },
     {
-      'target_name': 'nss_runtime_target',
+      'target_name': 'nss_runtime',
       'type': 'none',
-      'dependencies': [
-        'bin/net/nss.gyp:nss_dart',
-        'bin/net/nss.gyp:nspr_dart',
-        'bin/net/nss.gyp:nssckbi_dart',
-        'bin/net/nss.gyp:nss_static_dart',
-        'bin/net/ssl.gyp:libssl_dart',
-        'bin/net/zlib.gyp:zlib_dart',
-        'bin/net/sqlite.gyp:sqlite_dart',
-      ],
-      'export_dependent_settings': [
-        'bin/net/nss.gyp:nss_dart',
-        'bin/net/nss.gyp:nspr_dart',
-        'bin/net/nss.gyp:nssckbi_dart',
-        'bin/net/nss.gyp:nss_static_dart',
-        'bin/net/ssl.gyp:libssl_dart',
-        'bin/net/zlib.gyp:zlib_dart',
-        'bin/net/sqlite.gyp:sqlite_dart',
-      ],
+      'conditions': [[ 'in_dartium==0', {
+        'dependencies': [
+          'bin/net/nss.gyp:nss_dart',
+          'bin/net/nss.gyp:nspr_dart',
+          'bin/net/nss.gyp:nssckbi_dart',
+          'bin/net/nss.gyp:nss_static_dart',
+          'bin/net/ssl.gyp:libssl_dart',
+          'bin/net/zlib.gyp:zlib_dart',
+          'bin/net/sqlite.gyp:sqlite_dart',
+        ],
+        'export_dependent_settings': [
+          'bin/net/nss.gyp:nss_dart',
+          'bin/net/nss.gyp:nspr_dart',
+          'bin/net/nss.gyp:nssckbi_dart',
+          'bin/net/nss.gyp:nss_static_dart',
+          'bin/net/ssl.gyp:libssl_dart',
+          'bin/net/zlib.gyp:zlib_dart',
+          'bin/net/sqlite.gyp:sqlite_dart',
+        ],
+      }]],
     },
     {
       'target_name': 'libdart_withcore',

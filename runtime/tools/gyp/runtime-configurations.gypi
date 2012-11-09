@@ -5,6 +5,9 @@
 {
   'variables': {
     'dart_debug_optimization_level%': '2',
+    # If we have not set in_dartium to 0 in Dart's all.gypi or common.gypi,
+    # then we must be in Dartium, using its global files instead.
+    'in_dartium%': 1,
   },
 
   'target_defaults': {

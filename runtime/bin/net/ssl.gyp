@@ -26,6 +26,8 @@
     'ssl_directory': '../../../third_party/net_nss',
     'os_posix': 0,
   },
+  # Added by Dart.  We do not indent, so diffs with the original are clearer.
+  'conditions': [[ 'in_dartium==0', {
   'targets': [
     {
       'target_name': 'libssl_dart',
@@ -162,4 +164,5 @@
       },
     },
   ],
+  }]],
 }

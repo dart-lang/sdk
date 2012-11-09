@@ -14,6 +14,8 @@
     'component': 'static_library',
     'target_arch': 'ia32',
     'v8_location': '<(DEPTH)/../third_party/v8',
+    # Variable that tells us if we are part of a dartium build.
+    'in_dartium': 0,
   },
   'conditions': [
     [ 'OS=="linux"', {
