@@ -6491,16 +6491,6 @@ Future<CSSStyleDeclaration> _emptyStyleFuture() {
                                   new Completer<CSSStyleDeclaration>());
 }
 
-class EmptyElementRect implements ElementRect {
-  final ClientRect client = const _SimpleClientRect(0, 0, 0, 0);
-  final ClientRect offset = const _SimpleClientRect(0, 0, 0, 0);
-  final ClientRect scroll = const _SimpleClientRect(0, 0, 0, 0);
-  final ClientRect bounding = const _SimpleClientRect(0, 0, 0, 0);
-  final List<ClientRect> clientRects = const <ClientRect>[];
-
-  const EmptyElementRect();
-}
-
 class _FrozenCssClassSet extends _CssClassSet {
   _FrozenCssClassSet() : super(null);
 
@@ -6599,11 +6589,6 @@ class DocumentFragment extends Node native "*DocumentFragment" {
 
   void addHTML(String text) {
     this.insertAdjacentHTML('beforeend', text);
-  }
-
-  Future<ElementRect> get rect {
-    return _createMeasurementFuture(() => const EmptyElementRect(),
-                                    new Completer<ElementRect>());
   }
 
   // If we can come up with a semi-reasonable default value for an Element
@@ -7481,53 +7466,6 @@ class _SimpleClientRect implements ClientRect {
   String toString() => "($left, $top, $width, $height)";
 }
 
-// TODO(jacobr): we cannot currently be lazy about calculating the client
-// rects as we must perform all measurement queries at a safe point to avoid
-// triggering unneeded layouts.
-/**
- * All your element measurement needs in one place.
- * @domName none
- */
-class ElementRect {
-  // Relative to offsetParent.
-  final ClientRect client;
-  final ClientRect offset;
-  final ClientRect scroll;
-
-  // TODO(jacobr): should we move these outside of ElementRect to avoid the
-  // overhead of computing them every time even though they are rarely used.
-  final ClientRect _boundingClientRect;
-  final _ClientRectList _clientRects;
-
-  ElementRect(Element element) :
-    client = new _SimpleClientRect(element.clientLeft,
-                                  element.clientTop,
-                                  element.clientWidth,
-                                  element.clientHeight),
-    offset = new _SimpleClientRect(element.offsetLeft,
-                                  element.offsetTop,
-                                  element.offsetWidth,
-                                  element.offsetHeight),
-    scroll = new _SimpleClientRect(element.scrollLeft,
-                                  element.scrollTop,
-                                  element.scrollWidth,
-                                  element.scrollHeight),
-    _boundingClientRect = element.getBoundingClientRect(),
-    _clientRects = element.getClientRects();
-
-  // In global coords.
-  ClientRect get bounding => _boundingClientRect;
-
-  // In global coords.
-  List<ClientRect> get clientRects {
-    final out = new List(_clientRects.length);
-    for (num i = 0; i < _clientRects.length; i++) {
-      out[i] = _clientRects.item(i);
-    }
-    return out;
-  }
-}
-
 class Element extends Node implements ElementTraversal native "*Element" {
 
   factory Element.html(String html) =>
@@ -7584,17 +7522,6 @@ class Element extends Node implements ElementTraversal native "*Element" {
     for (String key in value.keys) {
       dataAttributes[key] = value[key];
     }
-  }
-
-  /**
-   * @domName getClientRects, getBoundingClientRect, clientHeight, clientWidth,
-   * clientTop, clientLeft, offsetHeight, offsetWidth, offsetTop, offsetLeft,
-   * scrollHeight, scrollWidth, scrollTop, scrollLeft
-   */
-  Future<ElementRect> get rect {
-    return _createMeasurementFuture(
-        () => new ElementRect(this),
-        new Completer<ElementRect>());
   }
 
   /** @domName Window.getComputedStyle */

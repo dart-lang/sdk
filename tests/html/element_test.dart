@@ -81,28 +81,6 @@ main() {
     }));
   });
 
-  test('rect', () {
-    final container = new Element.tag("div");
-    container.style.position = 'absolute';
-    container.style.top = '8px';
-    container.style.left = '8px';
-    final element = new Element.tag("div");
-    element.style.width = '200px';
-    element.style.height = '200px';
-    container.elements.add(element);
-    document.body.elements.add(container);
-
-    element.rect.then(expectAsync1((rect) {
-      expectLargeRect(rect.client);
-      expectLargeRect(rect.offset);
-      expectLargeRect(rect.scroll);
-      expect(rect.bounding.left, 8);
-      expect(rect.bounding.top, 8);
-      expect(rect.clientRects.length, greaterThan(0));
-      container.remove();
-    }));
-  });
-
   test('client position synchronous', () {
     final container = new Element.tag("div");
     container.style.position = 'absolute';

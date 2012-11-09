@@ -299,13 +299,6 @@ main() {
 
   test('default values', () {
     var fragment = new DocumentFragment();
-    fragment.rect.then(expectAsync1((ElementRect rect) {
-       expectEmptyRect(rect.client);
-       expectEmptyRect(rect.offset);
-       expectEmptyRect(rect.scroll);
-       expectEmptyRect(rect.bounding);
-       expect(rect.clientRects.isEmpty, isTrue);
-    }));
     expect(fragment.contentEditable, "false");
     expect(fragment.tabIndex, -1);
     expect(fragment.id, "");

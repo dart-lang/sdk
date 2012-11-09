@@ -108,16 +108,6 @@ Future<CSSStyleDeclaration> _emptyStyleFuture() {
                                   new Completer<CSSStyleDeclaration>());
 }
 
-class EmptyElementRect implements ElementRect {
-  final ClientRect client = const _SimpleClientRect(0, 0, 0, 0);
-  final ClientRect offset = const _SimpleClientRect(0, 0, 0, 0);
-  final ClientRect scroll = const _SimpleClientRect(0, 0, 0, 0);
-  final ClientRect bounding = const _SimpleClientRect(0, 0, 0, 0);
-  final List<ClientRect> clientRects = const <ClientRect>[];
-
-  const EmptyElementRect();
-}
-
 class _FrozenCssClassSet extends _CssClassSet {
   _FrozenCssClassSet() : super(null);
 
@@ -216,11 +206,6 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   void addHTML(String text) {
     this.insertAdjacentHTML('beforeend', text);
-  }
-
-  Future<ElementRect> get rect {
-    return _createMeasurementFuture(() => const EmptyElementRect(),
-                                    new Completer<ElementRect>());
   }
 
   // If we can come up with a semi-reasonable default value for an Element
