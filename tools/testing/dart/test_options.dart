@@ -424,7 +424,7 @@ Note: currently only implemented for dart2js.''',
         validRuntimes = const ['vm', 'drt', 'dartium'];
         break;
     }
-    if (!Contains(config['runtime'], validRuntimes)) {
+    if (!validRuntimes.contains(config['runtime'])) {
       isValid = false;
       print("Warning: combination of ${config['compiler']} and "
           "${config['runtime']} is invalid. Skipping this combination.");
@@ -441,7 +441,7 @@ Note: currently only implemented for dart2js.''',
             "${config['shards']} shards");
     }
     if (config['runtime'] == 'dartium' &&
-        Contains(config['compiler'], const ['none', 'dart2dart']) &&
+        const ['none', 'dart2dart'].contains(config['compiler']) &&
         config['checked']) {
       // TODO(vsm): Set the DART_FLAGS environment appropriately when
       // invoking Selenium to support checked mode.  It's not clear
@@ -577,9 +577,12 @@ Note: currently only implemented for dart2js.''',
           if (configuration['checked']) {
             timeout *= 2;
           }
-          if (Contains(configuration['runtime'],
-                       const ['ie9', 'ie10', 'ff', 'chrome', 'safari',
-                              'opera'])) {
+
+          const BROWSERS = const [
+            'ie9', 'ie10', 'ff', 'chrome', 'safari', 'opera'
+          ];
+
+          if (BROWSERS.contains(configuration['runtime'])) {
             timeout *= 8; // Allow additional time for browser testing to run.
           }
           break;
@@ -587,7 +590,7 @@ Note: currently only implemented for dart2js.''',
           if (configuration['mode'] == 'debug') {
             timeout *= 2;
           }
-          if (Contains(configuration['runtime'], const ['drt', 'dartium'])) {
+          if (const ['drt', 'dartium'].contains(configuration['runtime'])) {
             timeout *= 4; // Allow additional time for browser testing to run.
           }
           break;

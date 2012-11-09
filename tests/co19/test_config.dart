@@ -20,5 +20,5 @@ class Co19TestSuite extends StandardTestSuite {
                "tests/co19/co19-dart2js.status"]);
 
   bool isTestFile(String filename) => _testRegExp.hasMatch(filename);
-  bool listRecursively() => true;
+  bool get listRecursively => true;
 }

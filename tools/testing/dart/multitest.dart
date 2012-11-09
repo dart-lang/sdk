@@ -188,11 +188,8 @@ Set<Path> _findAllRelativeImports(Path topLibrary) {
   return foundImports;
 }
 
-void DoMultitest(Path filePath,
-                 String outputDir,
-                 Path suiteDir,
-                 CreateTest doTest,
-                 VoidFunction multitestDone) {
+Future doMultitest(Path filePath, String outputDir, Path suiteDir,
+                   CreateTest doTest) {
   // Each new test is a single String value in the Map tests.
   Map<String, String> tests = new Map<String, String>();
   Map<String, Set<String>> outcomes = new Map<String, Set<String>>();
@@ -217,7 +214,7 @@ void DoMultitest(Path filePath,
   }
 
   // Wait until all imports are copied before scheduling test cases.
-  Futures.wait(futureCopies).then((ignored) {
+  return Futures.wait(futureCopies).transform((_) {
     String baseFilename = filePath.filenameWithoutExtension;
     for (String key in tests.keys) {
       final Path multitestFilename =
@@ -241,7 +238,8 @@ void DoMultitest(Path filePath,
              hasFatalTypeErrors: enableFatalTypeErrors,
              multitestOutcome: outcome);
     }
-    multitestDone();
+
+    return null;
   });
 }
 
