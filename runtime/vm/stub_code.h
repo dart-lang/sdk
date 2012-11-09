@@ -56,6 +56,7 @@ class RawCode;
   V(TwoArgsCheckInlineCache)                                                   \
   V(ThreeArgsCheckInlineCache)                                                 \
   V(MegamorphicCall)                                                           \
+  V(OptimizeFunction)                                                          \
   V(BreakpointDynamic)                                                         \
   V(EqualityWithNullArg)                                                       \
 

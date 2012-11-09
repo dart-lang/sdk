@@ -214,7 +214,7 @@ class CallSites : public FlowGraphVisitor {
     ASSERT(graph != NULL);
     const Function& function = graph->parsed_function().function();
     ASSERT(function.HasCode());
-    const Code& code = Code::Handle(function.CurrentCode());
+    const Code& code = Code::Handle(function.unoptimized_code());
     skip_static_call_deopt_ids_.Clear();
     code.ExtractUncalledStaticCallDeoptIds(&skip_static_call_deopt_ids_);
     for (BlockIterator block_it = graph->postorder_iterator();

@@ -2070,6 +2070,20 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
 }
 
 
+// Calls to runtime to ooptimized give function
+// EDX: function to be reoptimized.
+// EAX: result of function being optimized (preserved).
+void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
+  AssemblerMacros::EnterStubFrame(assembler);
+  __ pushl(EAX);
+  __ pushl(EDX);
+  __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry);
+  __ popl(EDX);
+  __ popl(EAX);
+  __ LeaveFrame();
+  __ ret();
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_IA32

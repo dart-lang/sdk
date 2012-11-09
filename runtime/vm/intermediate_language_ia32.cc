@@ -20,7 +20,6 @@
 namespace dart {
 
 DECLARE_FLAG(int, optimization_counter_threshold);
-DECLARE_FLAG(bool, trace_functions);
 DECLARE_FLAG(bool, propagate_ic_data);
 
 // Generic summary for call instructions that have all arguments pushed
@@ -36,16 +35,16 @@ LocationSummary* ReturnInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 1;
   LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
   locs->set_in(0, Location::RegisterLocation(EAX));
-  locs->set_temp(0, Location::RequiresRegister());
+  locs->set_temp(0, Location::RegisterLocation(EDX));
   return locs;
 }
 
 
 void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->in(0).reg();
-  Register temp = locs()->temp(0).reg();
+  Register func_reg = locs()->temp(0).reg();
   ASSERT(result == EAX);
   if (!compiler->is_optimizing()) {
     // Count only in unoptimized code.
@@ -53,34 +52,24 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // collection and counting stub.
     const Function& function =
           Function::ZoneHandle(compiler->parsed_function().function().raw());
-    __ LoadObject(temp, function);
-    __ incl(FieldAddress(temp, Function::usage_counter_offset()));
+    __ LoadObject(func_reg, function);
+    __ incl(FieldAddress(func_reg, Function::usage_counter_offset()));
     if (FlowGraphCompiler::CanOptimize() &&
         compiler->parsed_function().function().is_optimizable()) {
       // Do not optimize if usage count must be reported.
-      __ cmpl(FieldAddress(temp, Function::usage_counter_offset()),
+      __ cmpl(FieldAddress(func_reg, Function::usage_counter_offset()),
           Immediate(FLAG_optimization_counter_threshold));
       Label not_yet_hot;
       __ j(LESS, &not_yet_hot, Assembler::kNearJump);
-      __ pushl(result);  // Preserve result.
-      __ pushl(temp);  // Argument for runtime: function to optimize.
-      __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry);
-      __ popl(temp);  // Remove argument.
-      __ popl(result);  // Restore result.
+      // Equal (or greater), optimize.
+      // The stub call preserves result register (EAX).
+      ASSERT(func_reg == EDX);
+      compiler->GenerateCall(0,  // no token position.
+                             &StubCode::OptimizeFunctionLabel(),
+                             PcDescriptors::kOther,
+                             locs());
       __ Bind(&not_yet_hot);
     }
-  }
-  if (FLAG_trace_functions) {
-    const Function& function =
-        Function::ZoneHandle(compiler->parsed_function().function().raw());
-    __ LoadObject(temp, function);
-    __ pushl(result);  // Preserve result.
-    __ pushl(temp);
-    compiler->GenerateCallRuntime(0,
-                                  kTraceFunctionExitRuntimeEntry,
-                                  locs());
-    __ popl(temp);  // Remove argument.
-    __ popl(result);  // Restore result.
   }
 #if defined(DEBUG)
   // TODO(srdjan): Fix for functions with finally clause.

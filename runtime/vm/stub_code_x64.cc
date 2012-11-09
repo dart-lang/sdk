@@ -2030,6 +2030,20 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
   __ jmp(&compute_result, Assembler::kNearJump);
 }
 
+// Calls to runtime to ooptimized give function
+// RDX: function to be reoptimized.
+// RAX: result of function being optimized (preserved).
+void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
+  AssemblerMacros::EnterStubFrame(assembler);
+  __ pushq(RAX);
+  __ pushq(RDX);
+  __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry);
+  __ popq(RDX);
+  __ popq(RAX);
+  __ LeaveFrame();
+  __ ret();
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_X64

@@ -20,7 +20,6 @@ namespace dart {
 
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
-DECLARE_FLAG(bool, trace_functions);
 DECLARE_FLAG(bool, use_sse41);
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 
@@ -835,23 +834,6 @@ void FlowGraphCompiler::CopyParameters() {
                                       0);  // No registers.
   }
 
-  if (FLAG_trace_functions) {
-    __ pushq(RAX);  // Preserve result.
-    __ PushObject(Function::ZoneHandle(function.raw()));
-    // We do not use GenerateCallRuntime because of the non-standard (empty)
-    // stackmap used here.
-    __ CallRuntime(kTraceFunctionExitRuntimeEntry);
-    AddCurrentDescriptor(PcDescriptors::kOther,
-                         Isolate::kNoDeoptId,
-                         0);  // No token position.
-    if (is_optimizing()) {
-      stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
-                                        empty_stack_bitmap,
-                                        0);  // No registers.
-    }
-    __ popq(RAX);  // Remove argument.
-    __ popq(RAX);  // Restore result.
-  }
   __ LeaveFrame();
   __ ret();
 

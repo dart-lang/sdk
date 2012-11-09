@@ -7229,6 +7229,7 @@ RawArray* Code::ExtractTypeFeedbackArray() const {
 
 void Code::ExtractUncalledStaticCallDeoptIds(
     GrowableArray<intptr_t>* deopt_ids) const {
+  ASSERT(!IsNull() && !is_optimized());
   ASSERT(deopt_ids != NULL);
   deopt_ids->Clear();
   const PcDescriptors& descriptors =
@@ -7416,11 +7417,12 @@ const char* ContextScope::ToCString() const {
 
 
 const char* ICData::ToCString() const {
-  const char* kFormat = "ICData target:%s";
+  const char* kFormat = "ICData target:'%s' num-checks: %"Pd"";
   const String& name = String::Handle(target_name());
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, name.ToCString()) + 1;
+  const intptr_t num = NumberOfChecks();
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, name.ToCString(), num) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, name.ToCString());
+  OS::SNPrint(chars, len, kFormat, name.ToCString(), num);
   return chars;
 }
 

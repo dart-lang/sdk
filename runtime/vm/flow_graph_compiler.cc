@@ -22,13 +22,11 @@
 namespace dart {
 
 DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
-DEFINE_FLAG(bool, trace_functions, false, "Trace entry of each function.");
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(bool, report_usage_count);
-DECLARE_FLAG(bool, trace_functions);
 DECLARE_FLAG(int, optimization_counter_threshold);
 
 void CompilerDeoptInfo::BuildReturnAddress(DeoptInfoBuilder* builder,
@@ -433,7 +431,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
   if (!CanOptimize()) return false;
   // Intrinsification skips arguments checks, therefore disable if in checked
   // mode.
-  if (FLAG_intrinsify && !FLAG_trace_functions && !FLAG_enable_type_checks) {
+  if (FLAG_intrinsify && !FLAG_enable_type_checks) {
     if ((parsed_function().function().kind() == RawFunction::kImplicitGetter)) {
       // An implicit getter must have a specific AST structure.
       const SequenceNode& sequence_node = *parsed_function().node_sequence();
@@ -461,10 +459,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
   }
   // Even if an intrinsified version of the function was successfully
   // generated, it may fall through to the non-intrinsified method body.
-  if (!FLAG_trace_functions) {
-    return Intrinsifier::Intrinsify(parsed_function().function(), assembler());
-  }
-  return false;
+  return Intrinsifier::Intrinsify(parsed_function().function(), assembler());
 }
 
 
