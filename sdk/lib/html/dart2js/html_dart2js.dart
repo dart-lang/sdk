@@ -11655,7 +11655,7 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
     }
   }
 
-  var _location_wrapper;  // Cached wrapped Location object.
+  _LocationWrapper _location_wrapper;  // Cached wrapped Location object.
 
   // Native getter and setter to access raw Location object.
   Location get _location => JS('Location', '#.location', this);
@@ -27541,7 +27541,20 @@ class _MessageChannelFactoryProvider {
 
 
 class _MutationObserverFactoryProvider {
-  static MutationObserver createMutationObserver(MutationCallback callback) native '''
+  static MutationObserver createMutationObserver(MutationCallback callback) {
+
+    // This is a hack to cause MutationRecord to appear to be instantiated.
+    //
+    // MutationCallback has a parameter type List<MutationRecord>.  From this we
+    // infer a list is created in the browser, but not the element type, because
+    // other native fields and methods return plain List which is too general
+    // and would imply creating anything.  This statement is a work-around.
+    JS('MutationRecord','0');
+
+    return _createMutationObserver(callback);
+  }
+
+  static MutationObserver _createMutationObserver(MutationCallback callback) native '''
     var constructor =
         window.MutationObserver || window.WebKitMutationObserver ||
         window.MozMutationObserver;
@@ -29941,6 +29954,15 @@ class _TypedImageData implements ImageData {
 }
 
 ImageData _convertNativeToDart_ImageData(nativeImageData) {
+
+  // None of the native getters that return ImageData have the type ImageData
+  // since that is incorrect for FireFox (which returns a plain Object).  So we
+  // need something that tells the compiler that the ImageData class has been
+  // instantiated.
+  // TODO(sra): Remove this when all the ImageData returning APIs have been
+  // annotated as returning the union ImageData + Object.
+  JS('ImageData', '0');
+
   if (nativeImageData is ImageData) return nativeImageData;
 
   // On Firefox the above test fails because imagedata is a plain object.
@@ -29956,7 +29978,7 @@ ImageData _convertNativeToDart_ImageData(nativeImageData) {
 // with native names.
 _convertDartToNative_ImageData(ImageData imageData) {
   if (imageData is _TypedImageData) {
-    return JS('Object', '{data: #, height: #, width: #}',
+    return JS('', '{data: #, height: #, width: #}',
         imageData.data, imageData.height, imageData.width);
   }
   return imageData;

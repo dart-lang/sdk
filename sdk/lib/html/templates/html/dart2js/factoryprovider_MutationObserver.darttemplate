@@ -5,7 +5,20 @@
 part of html;
 
 class $FACTORYPROVIDER {
-  static $CONSTRUCTOR create$(CONSTRUCTOR)(MutationCallback callback) native '''
+  static $CONSTRUCTOR create$(CONSTRUCTOR)(MutationCallback callback) {
+
+    // This is a hack to cause MutationRecord to appear to be instantiated.
+    //
+    // MutationCallback has a parameter type List<MutationRecord>.  From this we
+    // infer a list is created in the browser, but not the element type, because
+    // other native fields and methods return plain List which is too general
+    // and would imply creating anything.  This statement is a work-around.
+    JS('MutationRecord','0');
+
+    return _create$(CONSTRUCTOR)(callback);
+  }
+
+  static $CONSTRUCTOR _create$(CONSTRUCTOR)(MutationCallback callback) native '''
     var constructor =
         window.MutationObserver || window.WebKitMutationObserver ||
         window.MozMutationObserver;

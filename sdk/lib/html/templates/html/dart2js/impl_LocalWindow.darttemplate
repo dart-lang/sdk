@@ -48,7 +48,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
     }
   }
 
-  var _location_wrapper;  // Cached wrapped Location object.
+  _LocationWrapper _location_wrapper;  // Cached wrapped Location object.
 
   // Native getter and setter to access raw Location object.
   Location get _location => JS('Location', '#.location', this);

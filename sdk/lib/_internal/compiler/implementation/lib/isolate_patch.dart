@@ -85,7 +85,7 @@ void startRootIsolate(entry) {
 // TODO(eub, sigmund): move the "manager" to be entirely in JS.
 // Running any Dart code outside the context of an isolate gives it
 // the change to break the isolate abstraction.
-_Manager get _globalState => JS("Object", r"$globalState");
+_Manager get _globalState => JS("_Manager", r"$globalState");
 set _globalState(_Manager val) {
   JS("void", r"$globalState = #", val);
 }
@@ -1015,7 +1015,7 @@ class _JsVisitedMap implements _MessageTraverserVisitedMap {
   }
 
   _getAttachedInfo(var o) {
-    return JS("Object", "#['__MessageTraverser__attached_info__']", o);
+    return JS("", "#['__MessageTraverser__attached_info__']", o);
   }
 }
 
