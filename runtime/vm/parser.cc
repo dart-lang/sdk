@@ -772,7 +772,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   const Script& script = Script::Handle(isolate, func.script());
   Parser parser(script, func, func.token_pos());
   SequenceNode* node_sequence = NULL;
-  Array& default_parameter_values = Array::Handle(isolate, Array::null());
+  Array& default_parameter_values = Array::ZoneHandle(isolate, Array::null());
   switch (func.kind()) {
     case RawFunction::kRegularFunction:
     case RawFunction::kClosureFunction:

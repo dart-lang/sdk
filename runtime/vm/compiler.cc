@@ -435,7 +435,8 @@ static RawError* CompileFunctionHelper(const Function& function,
     TIMERSCOPE(time_compilation);
     Timer per_compile_timer(FLAG_trace_compiler, "Compilation time");
     per_compile_timer.Start();
-    ParsedFunction* parsed_function = new ParsedFunction(function);
+    ParsedFunction* parsed_function = new ParsedFunction(
+        Function::ZoneHandle(function.raw()));
     if (FLAG_trace_compiler) {
       OS::Print("Compiling %sfunction: '%s' @ token %"Pd"\n",
                 (optimized ? "optimized " : ""),
@@ -561,7 +562,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     // The function needs to be associated with a named Class: the interface
     // Function fits the bill.
     const char* kEvalConst = "eval_const";
-    const Function& func = Function::Handle(Function::New(
+    const Function& func = Function::ZoneHandle(Function::New(
         String::Handle(Symbols::New(kEvalConst)),
         RawFunction::kConstImplicitGetter,
         true,  // static function.
@@ -582,7 +583,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     // here.
     ParsedFunction* parsed_function = new ParsedFunction(func);
     parsed_function->SetNodeSequence(fragment);
-    parsed_function->set_default_parameter_values(Array::Handle());
+    parsed_function->set_default_parameter_values(Array::ZoneHandle());
     parsed_function->set_expression_temp_var(
         ParsedFunction::CreateExpressionTempVar(0));
     fragment->scope()->AddVariable(parsed_function->expression_temp_var());
