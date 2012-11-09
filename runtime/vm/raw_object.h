@@ -929,6 +929,7 @@ class RawICData : public RawObject {
   }
   intptr_t deopt_id_;         // Deoptimization id corresponding to this IC.
   intptr_t num_args_tested_;  // Number of arguments tested in IC.
+  uint8_t deopt_reason_;      // Last deoptimization reason.
 };
 
 
@@ -936,7 +937,6 @@ class RawSubtypeTestCache : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(SubtypeTestCache);
   RawArray* cache_;
 };
-
 
 
 class RawError : public RawObject {

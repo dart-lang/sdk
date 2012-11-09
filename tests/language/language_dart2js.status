@@ -32,7 +32,7 @@ class_literal_test/29: Fail # Class literals are expression now; delete this tes
 *vm_negative_test: Skip
 
 # BUG(6627): Temporarily skip because -1 << 0 is compiled incorrectly.
-arithmetic_test: Skip
+arithmetic_test: Fail
 
 [ $compiler == dart2js && $checked ]
 redirecting_factory_infinite_steps_test/01: Fail

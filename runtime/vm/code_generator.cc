@@ -1753,7 +1753,8 @@ END_LEAF_RUNTIME_ENTRY
 
 static intptr_t DeoptimizeWithDeoptInfo(const Code& code,
                                         const DeoptInfo& deopt_info,
-                                        const StackFrame& caller_frame) {
+                                        const StackFrame& caller_frame,
+                                        DeoptReasonId deopt_reason) {
   const intptr_t len = deopt_info.TranslationLength();
   GrowableArray<DeoptInstr*> deopt_instructions(len);
   const Array& deopt_table = Array::Handle(code.deopt_info_array());
@@ -1772,7 +1773,8 @@ static intptr_t DeoptimizeWithDeoptInfo(const Code& code,
   DeoptimizationContext deopt_context(start,
                                       to_frame_size,
                                       Array::Handle(code.object_table()),
-                                      num_args);
+                                      num_args,
+                                      deopt_reason);
   for (intptr_t to_index = len - 1; to_index >= 0; to_index--) {
     deopt_instructions[to_index]->Execute(&deopt_context, to_index);
   }
@@ -1817,7 +1819,8 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeFillFrame, uword last_fp) {
   ASSERT(!deopt_info.IsNull());
 
   const intptr_t caller_fp =
-      DeoptimizeWithDeoptInfo(optimized_code, deopt_info, *caller_frame);
+      DeoptimizeWithDeoptInfo(optimized_code, deopt_info, *caller_frame,
+                              deopt_reason);
 
   isolate->SetDeoptFrameCopy(NULL, 0);
   isolate->set_deopt_cpu_registers_copy(NULL);
