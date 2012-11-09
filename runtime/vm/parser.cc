@@ -4851,6 +4851,10 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
     ConsumeToken();
     AstNode* expr = ParseExpr(is_const, kConsumeCascades);
     initialization = new StoreLocalNode(assign_pos, variable, expr);
+    if (is_const) {
+      ASSERT(expr->IsLiteralNode());
+      variable->SetConstValue(expr->AsLiteralNode()->literal());
+    }
   } else if (is_final || is_const) {
     ErrorMsg(ident_pos,
     "missing initialization of 'final' or 'const' variable");
@@ -8142,7 +8146,11 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
   LocalVariable* local = LookupLocalScope(ident);
   if (local != NULL) {
     if (node != NULL) {
-      *node = new LoadLocalNode(ident_pos, local);
+      if (local->IsConst()) {
+        *node = new LiteralNode(ident_pos, *local->ConstValue());
+      } else {
+        *node = new LoadLocalNode(ident_pos, local);
+      }
     }
     return true;
   }
@@ -9658,6 +9666,9 @@ AstNode* Parser::ParsePrimary() {
 const Instance& Parser::EvaluateConstExpr(AstNode* expr) {
   if (expr->IsLiteralNode()) {
     return expr->AsLiteralNode()->literal();
+  } else if (expr->IsLoadLocalNode() &&
+      expr->AsLoadLocalNode()->local().IsConst()) {
+    return *expr->AsLoadLocalNode()->local().ConstValue();
   } else {
     ASSERT(expr->EvalConstExpr() != NULL);
     ReturnNode* ret = new ReturnNode(expr->token_pos(), expr);

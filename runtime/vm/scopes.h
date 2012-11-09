@@ -28,6 +28,7 @@ class LocalVariable : public ZoneAllocated {
       name_(name),
       owner_(NULL),
       type_(type),
+      const_value_(NULL),
       is_final_(false),
       is_captured_(false),
       is_invisible_(false),
@@ -71,6 +72,20 @@ class LocalVariable : public ZoneAllocated {
     is_invisible_ = value;
   }
 
+  bool IsConst() const {
+    return const_value_ != NULL;
+  }
+
+  void SetConstValue(const Instance& value) {
+    ASSERT(value.IsZoneHandle());
+    const_value_ = &value;
+  }
+
+  const Instance* ConstValue() const {
+    ASSERT(IsConst());
+    return const_value_;
+  }
+
   bool Equals(const LocalVariable& other) const;
 
   // Map the frame index to a bit-vector index.  Assumes the variable is
@@ -87,6 +102,8 @@ class LocalVariable : public ZoneAllocated {
   LocalScope* owner_;  // Local scope declaring this variable.
 
   const AbstractType& type_;  // Declaration type of local variable.
+
+  const Instance* const_value_;   // NULL or compile-time const value.
 
   bool is_final_;  // If true, this variable is readonly.
   bool is_captured_;  // If true, this variable lives in the context, otherwise

@@ -2720,10 +2720,16 @@ class ContextScope : public Object {
   void SetNameAt(intptr_t scope_index, const String& name) const;
 
   bool IsFinalAt(intptr_t scope_index) const;
-  void SetIsFinalAt(intptr_t scope_index, bool is_const) const;
+  void SetIsFinalAt(intptr_t scope_index, bool is_final) const;
+
+  bool IsConstAt(intptr_t scope_index) const;
+  void SetIsConstAt(intptr_t scope_index, bool is_const) const;
 
   RawAbstractType* TypeAt(intptr_t scope_index) const;
   void SetTypeAt(intptr_t scope_index, const AbstractType& type) const;
+
+  RawInstance* ConstValueAt(intptr_t scope_index) const;
+  void SetConstValueAt(intptr_t scope_index, const Instance& value) const;
 
   intptr_t ContextIndexAt(intptr_t scope_index) const;
   void SetContextIndexAt(intptr_t scope_index, intptr_t context_index) const;

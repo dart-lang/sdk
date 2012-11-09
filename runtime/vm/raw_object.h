@@ -894,7 +894,11 @@ class RawContextScope : public RawObject {
     RawSmi* token_pos;
     RawString* name;
     RawBool* is_final;
-    RawAbstractType* type;
+    RawBool* is_const;
+    union {
+      RawAbstractType* type;
+      RawInstance* value;  // iff is_const is true
+    };
     RawSmi* context_index;
     RawSmi* context_level;
   };

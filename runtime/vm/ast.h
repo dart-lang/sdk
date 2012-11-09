@@ -964,6 +964,7 @@ class LoadLocalNode : public AstNode {
     }
   }
 
+  virtual const Instance* EvalConstExpr() const;
   virtual AstNode* MakeAssignmentNode(AstNode* rhs);
 
   DECLARE_COMMON_NODE_FUNCTIONS(LoadLocalNode);

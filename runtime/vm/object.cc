@@ -7353,7 +7353,18 @@ void ContextScope::SetIsFinalAt(intptr_t scope_index, bool is_final) const {
 }
 
 
+bool ContextScope::IsConstAt(intptr_t scope_index) const {
+  return Bool::Handle(VariableDescAddr(scope_index)->is_const).value();
+}
+
+
+void ContextScope::SetIsConstAt(intptr_t scope_index, bool is_const) const {
+  VariableDescAddr(scope_index)->is_const = Bool::Get(is_const);
+}
+
+
 RawAbstractType* ContextScope::TypeAt(intptr_t scope_index) const {
+  ASSERT(!IsConstAt(scope_index));
   return VariableDescAddr(scope_index)->type;
 }
 
@@ -7361,6 +7372,19 @@ RawAbstractType* ContextScope::TypeAt(intptr_t scope_index) const {
 void ContextScope::SetTypeAt(
     intptr_t scope_index, const AbstractType& type) const {
   StorePointer(&(VariableDescAddr(scope_index)->type), type.raw());
+}
+
+
+RawInstance* ContextScope::ConstValueAt(intptr_t scope_index) const {
+  ASSERT(IsConstAt(scope_index));
+  return VariableDescAddr(scope_index)->value;
+}
+
+
+void ContextScope::SetConstValueAt(
+    intptr_t scope_index, const Instance& value) const {
+  ASSERT(IsConstAt(scope_index));
+  StorePointer(&(VariableDescAddr(scope_index)->value), value.raw());
 }
 
 

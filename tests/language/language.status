@@ -92,6 +92,8 @@ implicit_this_test/none: Fail # should not warn about allocating SubAbstract2
 metadata_test: Fail
 bad_override_test/01: Fail
 bad_override_test/02: Fail
+const_locals_test: Fail
+const_nested_test: Fail
 get_set_syntax_test/none: Fail # does not accept getter/setter with no method body
 application_negative_test: Fail # Runtime only test, rewrite as multitest
 assign_instance_method_negative_test: Fail # Runtime only test, rewrite as multitest
@@ -393,7 +395,6 @@ call_nonexistent_constructor_test: Fail
 
 bad_override_test/01: Fail
 bad_override_test/02: Fail
-
 illegal_invocation_test/01: Fail, OK # Typedef literals are expressions now.
 illegal_invocation_test/04: Fail, OK # Class literals are expressions now.
 illegal_invocation_test/05: Fail, OK # Type variables are expressions now.
