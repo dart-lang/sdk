@@ -6,10 +6,14 @@
 #library("ImportCorePrefixTest.dart");
 #import("dart:core", prefix:"mycore");
 
+class Object {
+}
+
 void main() {
   var test = new mycore.Map<mycore.int,mycore.String>();
   mycore.bool boolval = false;
   mycore.int variable = 10;
   mycore.num value = 10;
   mycore.dynamic d = null;
+  mycore.print(new Object());
 }
