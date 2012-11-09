@@ -28,7 +28,7 @@
   },
   'targets': [
     {
-      'target_name': 'libssl',
+      'target_name': 'libssl_dart',
       'type': 'static_library',
       # Changed by Dart: '<(ssl_directory)/' added to all paths.
       'sources': [
@@ -90,14 +90,14 @@
         'NO_NSPR_10_SUPPORT',
       ],
       'dependencies': [
-        'zlib.gyp:zlib',
+        'zlib.gyp:zlib_dart',
         # Dart: Start of copy of code from 'bodge' conditions section below.
-        'nss.gyp:nspr',
-        'nss.gyp:nss',
+        'nss.gyp:nspr_dart',
+        'nss.gyp:nss_dart',
       ],
       'export_dependent_settings': [
-        'nss.gyp:nspr',
-        'nss.gyp:nss',
+        'nss.gyp:nspr_dart',
+        'nss.gyp:nss_dart',
       ],
       'direct_dependent_settings': {
         'include_dirs': [

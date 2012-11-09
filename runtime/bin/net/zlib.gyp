@@ -31,7 +31,7 @@
   },
   'targets': [
     {
-      'target_name': 'zlib',
+      'target_name': 'zlib_dart',
       'type': 'static_library',
       'conditions': [
         ['use_system_zlib==0', {
@@ -94,7 +94,7 @@
       ],
     },
     {
-      'target_name': 'minizip',
+      'target_name': 'minizip_dart',
       'type': 'static_library',
       'conditions': [
         ['use_system_minizip==0', {

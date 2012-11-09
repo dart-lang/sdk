@@ -86,7 +86,7 @@
   },
   'targets': [
     {
-      'target_name': 'nspr',
+      'target_name': 'nspr_dart',
       'product_name': 'crnspr',
       'type': '<(component)',
       # Changed by Dart: '<(nss_directory)/' added to all paths.
@@ -453,14 +453,14 @@
       ],
     },
     {
-      'target_name': 'nss',
+      'target_name': 'nss_dart',
       'product_name': 'crnss',
       'type': '<(component)',
       'dependencies': [
-        'nss_static',
+        'nss_static_dart',
       ],
       'export_dependent_settings': [
-        'nss_static',
+        'nss_static_dart',
       ],
       'sources': [
         # Ensure at least one object file is produced, so that MSVC does not
@@ -471,10 +471,10 @@
       'conditions': [
         ['exclude_nss_root_certs==0', {
           'dependencies': [
-            'nssckbi',
+            'nssckbi_dart',
           ],
           'export_dependent_settings': [
-            'nssckbi',
+            'nssckbi_dart',
           ],
         }],
         ['OS == "mac" and component == "shared_library"', {
@@ -504,7 +504,7 @@
       #
       # TODO(rsleevi): http://crbug.com/128134 - Break the circular dependency
       # without requiring nssckbi to be built as a shared library.
-      'target_name': 'nssckbi',
+      'target_name': 'nssckbi_dart',
       'product_name': 'crnssckbi',
       'type': 'static_library',
       # This target is an implementation detail - the public dependencies
@@ -552,10 +552,10 @@
         '<(nss_directory)/mozilla/security/nss/lib/ckfw/wrap.c',
       ],
       'dependencies': [
-        'nss_static',
+        'nss_static_dart',
       ],
       'export_dependent_settings': [
-        'nss_static',
+        'nss_static_dart',
       ],
       'include_dirs': [
         '<(nss_directory)/mozilla/security/nss/lib/ckfw',
@@ -567,7 +567,7 @@
       },
     },
     {
-      'target_name': 'nss_static',
+      'target_name': 'nss_static_dart',
       'type': 'static_library',
       # This target is an implementation detail - the public dependencies
       # should be on 'nss'.
@@ -1057,11 +1057,11 @@
         '<(nss_directory)/mozilla/security/nss/lib/pk11wrap/debug_module.c',
       ],
       'dependencies': [
-        'nspr',
-        'sqlite.gyp:sqlite',
+        'nspr_dart',
+        'sqlite.gyp:sqlite_dart',
       ],
       'export_dependent_settings': [
-        'nspr',
+        'nspr_dart',
       ],
       'defines': [
         'MP_API_COMPATIBLE',

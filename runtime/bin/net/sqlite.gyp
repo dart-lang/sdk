@@ -36,7 +36,7 @@
   },
   'targets': [
     {
-      'target_name': 'sqlite',
+      'target_name': 'sqlite_dart',
       'conditions': [
         [ 'chromeos==1' , {
             'defines': [
@@ -187,7 +187,7 @@
           'dependencies': [
             # Disabled by Dart.
             # '../icu/icu.gyp:icuuc',
-            'sqlite',
+            'sqlite_dart',
           ],
           'sources': [
             '<(sqlite_directory)/src/src/shell.c',
