@@ -56,6 +56,8 @@ default_factory2_test/01: Fail # Type bounds for type variable not checked.
 closure_type_test: Fail # does not detect type error in checked mode.
 function_type_test: Fail # does not detect type error in checked mode.
 function_malformed_result_type_test: Fail # does not detect type error in checked mode.
+factory1_test/00: Fail
+factory1_test/01: Fail
 
 type_parameter_test/01: Fail # Issue 4932
 type_parameter_test/02: Fail # Issue 4932
