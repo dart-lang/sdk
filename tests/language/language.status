@@ -91,8 +91,8 @@ compile_time_constant_checked3_test/06: Fail, OK
 redirecting_factory_infinite_steps_test/01: Fail # http://dartbug.com/6560
 implicit_this_test/none: Fail # should not warn about allocating SubAbstract2
 metadata_test: Fail
-bad_override_test/01: Fail
-bad_override_test/02: Fail
+bad_override_test/01: Fail, OK # issue 6578, warning expected on "static" modifier
+bad_override_test/02: Fail, OK # issue 6578, warning expected on "static" modifier
 const_locals_test: Fail
 const_nested_test: Fail
 get_set_syntax_test/none: Fail # does not accept getter/setter with no method body
