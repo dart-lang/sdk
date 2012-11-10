@@ -1,6 +1,6 @@
 # These ignores are auto-generated from the canonical svn ignore metadata
 # using:
-# 
+#
 #  $ git svn create-ignore
 #
 # Whenever possible, prefer creating ignores in svn and then generating them
@@ -69,3 +69,6 @@ third_party/gsutil/*/gsutilc
 
 # From the Mac OS X Finder
 .DS_Store
+
+# Pub generated "packages" directories
+packages
