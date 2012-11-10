@@ -41,6 +41,14 @@ dependencies:
         expect(foo.constraint.allows(new Version(3, 4, 5)), isFalse);
       });
 
+      test("allows an empty dependencies map", () {
+        var pubspec = new Pubspec.parse('''
+dependencies:
+''', sources);
+
+        expect(pubspec.dependencies, isEmpty);
+      });
+
       test("throws if the description isn't valid", () {
         expect(() {
           new Pubspec.parse('''
