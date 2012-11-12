@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 #
@@ -28,7 +28,7 @@ def BuildOptions():
   result.add_option("-v", "--verbose",
       help='Verbose output.',
       default=False, action="store_true")
-  result.add_option("--arch",
+  result.add_option("-a", "--arch",
       help='Target architectures (comma-separated).',
       metavar='[all,ia32,x64,simarm,arm]',
       default=utils.GuessArchitecture())
