@@ -410,8 +410,7 @@ Language/06_Functions/4_External_Functions_A01_t01: Fail, OK # http://dartbug.co
 Language/03_Overview/2_Privacy_A01_t09: Fail, OK # co19 issue 198
 Language/03_Overview/2_Privacy_A01_t10: Fail, OK # co19 issue 198
 
-LibTest/core/String/hashCode_A01_t01: Fail, OK # co19 issue 273
-LibTest/core/int/hashCode_A01_t01: Fail, OK # co19 issue 273
+LibTest/core/int/hashCode_A01_t01: Fail, OK # co19 issue 308
 
 LibTest/core/NoSuchMethodError/NoSuchMethodError_A01_t01: Fail, OK # co19 issue 300
 LibTest/core/NoSuchMethodError/toString_A01_t01: Fail, OK # co19 issue 300
