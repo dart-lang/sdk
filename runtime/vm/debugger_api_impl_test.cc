@@ -630,7 +630,7 @@ TEST_CASE(Debug_ClosureBreakpoint) {
 static void ExprClosureBreakpointHandler(Dart_IsolateId isolate_id,
                                          Dart_Breakpoint bpt,
                                          Dart_StackTrace trace) {
-  static const char* expected_trace[] = {"add", "main"};
+  static const char* expected_trace[] = {"<anonymous closure>", "main"};
   Dart_Handle add_locals = Dart_NewList(4);
   Dart_ListSetAt(add_locals, 0, NewString("a"));
   Dart_ListSetAt(add_locals, 1, Dart_NewInteger(10));
