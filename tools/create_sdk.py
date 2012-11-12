@@ -102,23 +102,18 @@ def CopyShellScript(src_file, dest_dir):
   Copy(src, dest)
 
 
-def CopyDart2Js(build_dir, sdk_root, version):
+def CopyDartScripts(home, build_dir, sdk_root, version):
   if version:
     ReplaceInFiles([os.path.join(sdk_root, 'lib', '_internal', 'compiler',
                                  'implementation', 'compiler.dart')],
                    [(r"BUILD_ID = 'build number could not be determined'",
                      r"BUILD_ID = '%s'" % version)])
-  if utils.GuessOS() == 'win32':
-    dart2js = os.path.join(sdk_root, 'bin', 'dart2js.bat')
-    Copy(os.path.join(build_dir, 'dart2js.bat'), dart2js)
-    dartdoc = os.path.join(sdk_root, 'bin', 'dartdoc.bat')
-    Copy(os.path.join(build_dir, 'dartdoc.bat'), dartdoc)
-  else:
-    dart2js = os.path.join(sdk_root, 'bin', 'dart2js')
-    Copy(os.path.join(build_dir, 'dart2js'), dart2js)
-    dartdoc = os.path.join(sdk_root, 'bin', 'dartdoc')
-    Copy(os.path.join(build_dir, 'dartdoc'), dartdoc)
+  # TODO(dgrove) - add pub once issue 6619 is fixed
+  for executable in ['dart2js', 'dartdoc']:
+    CopyShellScript(os.path.join(home, 'sdk', 'bin', executable),
+                    os.path.join(sdk_root, 'bin'))
 
+  if utils.GuessOS() != 'win32':
     # TODO(ahe): Enable for Windows as well.
     subprocess.call([os.path.join(build_dir, 'gen_snapshot'),
                      '--script_snapshot=%s' %
@@ -180,6 +175,7 @@ def Main(argv):
     copymode(dart_analyzer_src_binary, dart_analyzer_dest_binary)
 
   # Create pub shell script.
+  # TODO(dgrove) - delete this once issue 6619 is fixed
   pub_src_script = join(HOME, 'utils', 'pub', 'sdk', 'pub')
   CopyShellScript(pub_src_script, BIN)
 
@@ -269,23 +265,11 @@ def Main(argv):
 
   version = utils.GetVersion()
 
-  # Copy dart2js.
-  CopyDart2Js(build_dir, SDK_tmp, version)
-
-  # TODO(dgrove) remove this once we get sdk/bin created
-  if (utils.GuessOS() == 'win32'):
-    ReplaceInFiles([join(SDK_tmp, 'bin', 'dart2js.bat'),
-                    join(SDK_tmp, 'bin', 'dartdoc.bat'),
-                    join(SDK_tmp, 'bin', 'pub.bat')],
-                   [(r'..\\..\\sdk\\lib', r'..\lib')])
-  else:
-    ReplaceInFiles([join(SDK_tmp, 'bin', 'dart2js'),
-                    join(SDK_tmp, 'bin', 'dartdoc'),
-                    join(SDK_tmp, 'bin', 'pub')],
-                   [('../../sdk/lib', '../lib')])
+  # Copy dart2js/dartdoc/pub.
+  CopyDartScripts(HOME, build_dir, SDK_tmp, version)
 
   # Fix up dartdoc.
-  # TODO(dgrove): Remove this once sdk and dart-sdk match.
+  # TODO(dgrove): Remove this once issue 6619 is fixed.
   ReplaceInFiles([join(SDK_tmp, 'lib', '_internal', 'dartdoc',
                        'bin', 'dartdoc.dart')],
                  [("../../../../../pkg/args/lib/args.dart",
