@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Dart test for sort routines.
-#library("SortTest.dart");
-#import("dart:coreimpl");
-#source("sort_helper.dart");
+library sort_test;
+import 'dart:coreimpl';
+import 'sort_helper.dart';
 
 main() {
   var compare = (a, b) => a.compareTo(b);

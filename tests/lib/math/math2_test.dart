@@ -5,8 +5,8 @@
 // We temporarily test both the new math library and the old Math
 // class. This can easily be simplified once we get rid of the Math
 // class entirely.
-#library('math_test');
-#import('dart:math', prefix: 'math');
+library math_test;
+import 'dart:math' as math;
 
 class MathLibraryTest {
   static void testConstants() {

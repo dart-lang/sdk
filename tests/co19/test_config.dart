@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("co19_test_config");
+library co19_test_config;
 
-#import("dart:io");
-#import("../../tools/testing/dart/test_suite.dart");
+import 'dart:io';
+import '../../tools/testing/dart/test_suite.dart';
 
 class Co19TestSuite extends StandardTestSuite {
   RegExp _testRegExp = const RegExp(r"t[0-9]{2}.dart$");

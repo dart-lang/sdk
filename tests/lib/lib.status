@@ -18,9 +18,4 @@ crypto/sha1_test: Slow, Pass
 # lib issue 6322
 crypto/hmac_sha1_test: Fail, OK
 crypto/hmac_sha256_test: Fail, OK
-crypto/sha1_test: Fail, OK
-crypto/sha256_test: Fail, OK
 
-# test issue 6512
-crypto/base64_test: Fail, OK
-crypto/hmac_md5_test: Fail, OK

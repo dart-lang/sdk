@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Dart test for Splaytrees.
-#library("SplayTreeTest.dart");
-#import("dart:collection");
+library splay_tree_test;
+import 'dart:collection';
 
 
 class SplayTreeMapTest {

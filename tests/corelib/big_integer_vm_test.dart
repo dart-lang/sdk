@@ -4,7 +4,7 @@
 // Testing Bigints.
 // TODO(srdjan): Make sure the numbers are Bigint and not Mint or Smi.
 
-#library("BigIntegerTest.dart");
+library big_integer_test;
 
 class BigIntegerTest {
 

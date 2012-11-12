@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Library tag to allow dartium to run the test.
-#library('sha1_test');
+library sha1_test;
 
-#import("dart:crypto");
+import 'dart:crypto';
 
-#source('sha1_long_test_vectors.dart');
-#source('sha1_short_test_vectors.dart');
+part 'sha1_long_test_vectors.dart';
+part 'sha1_short_test_vectors.dart';
 
 List<int> createTestArr(int len) {
   var arr = new List<int>(len);

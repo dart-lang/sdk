@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of benchmark_lib;
+
 /** Accessors for our Singleton variables. */
 BenchmarkSuite get BENCHMARK_SUITE {
   if (BenchmarkSuite._ONLY == null) {

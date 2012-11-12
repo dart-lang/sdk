@@ -6,9 +6,9 @@
 // simulation.
 
 // Library tag to allow Dartium to run the test.
-#library("pi_test.dart");
+library pi_test;
 
-#import("dart:math");
+import 'dart:math';
 
 void main() {
   var seed = new Random().nextInt((1<<32) - 1);

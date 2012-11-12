@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("ListSortTest.dart");
-#source("sort_helper.dart");
+library list_sort_test;
+part 'sort_helper.dart';
 
 class ListSortTest {
   static void testMain() {

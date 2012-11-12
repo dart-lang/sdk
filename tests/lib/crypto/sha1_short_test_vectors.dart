@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of sha1_test;
+
 // Standard test vectors from:
 //   http://csrc.nist.gov/groups/STM/cavp/documents/shs/shabytetestvectors.zip
 

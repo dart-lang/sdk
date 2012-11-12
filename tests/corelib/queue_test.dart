@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("QueueTest.dart");
-#import("dart:coreimpl");
+library queue_test;
+import 'dart:coreimpl';
 
 class QueueTest {
 
