@@ -4,9 +4,8 @@
 
 library source_map_builder;
 
-import 'dart:json';
-
-import 'scanner/scannerlib.dart';
+import 'util/util.dart';
+import 'scanner/scannerlib.dart' show Token;
 import 'source_file.dart';
 
 class SourceMapBuilder {
@@ -53,6 +52,19 @@ class SourceMapBuilder {
     entries.add(new SourceMapEntry(sourceLocation, targetOffset));
   }
 
+  void printStringListOn(List<String> strings, StringBuffer buffer) {
+    bool first = true;
+    buffer.add('[');
+    for (String string in strings) {
+      if (!first) buffer.add(',');
+      buffer.add("'");
+      writeJsonEscapedCharsOn(string.charCodes.iterator(), buffer, null);
+      buffer.add("'");
+      first = false;
+    }
+    buffer.add(']');
+  }
+
   String build(SourceFile targetFile) {
     StringBuffer buffer = new StringBuffer();
     buffer.add('{\n');
@@ -61,10 +73,10 @@ class SourceMapBuilder {
     entries.forEach((SourceMapEntry entry) => writeEntry(entry, targetFile, buffer));
     buffer.add('",\n');
     buffer.add('  "sources": ');
-    JSON.printOn(sourceUrlList, buffer);
+    printStringListOn(sourceUrlList, buffer);
     buffer.add(',\n');
     buffer.add('  "names": ');
-    JSON.printOn(sourceNameList, buffer);
+    printStringListOn(sourceNameList, buffer);
     buffer.add('\n}\n');
     return buffer.toString();
   }

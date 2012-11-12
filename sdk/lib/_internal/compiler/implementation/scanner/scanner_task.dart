@@ -10,7 +10,13 @@ class ScannerTask extends CompilerTask {
 
   void scanLibrary(LibraryElement library) {
     var compilationUnit = library.entryCompilationUnit;
-    compiler.log("scanning library ${compilationUnit.script.name}");
+    var canonicalUri = library.uri.toString();
+    var resolvedUri = compilationUnit.script.uri.toString();
+    if (canonicalUri == resolvedUri) {
+      compiler.log("scanning library $canonicalUri");
+    } else {
+      compiler.log("scanning library $canonicalUri ($resolvedUri)");
+    }
     scan(compilationUnit);
   }
 
