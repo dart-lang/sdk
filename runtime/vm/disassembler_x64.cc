@@ -609,7 +609,7 @@ int DisassemblerX64::PrintImmediateOp(uint8_t* data) {
   }
   AppendToBuffer("%s%c ", mnem, operand_size_code());
   int count = PrintRightOperand(data + 1);
-  AppendToBuffer(",0x");
+  AppendToBuffer(",");
   OperandSize immediate_size = byte_size_immediate ? BYTE_SIZE : operand_size();
   count += PrintImmediate(data + 1 + count, immediate_size);
   return 1 + count;

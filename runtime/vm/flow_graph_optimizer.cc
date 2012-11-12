@@ -32,8 +32,7 @@ DEFINE_FLAG(bool, array_bounds_check_elimination, true,
     "Eliminate redundant bounds checks.");
 DEFINE_FLAG(int, max_polymorphic_checks, 4,
     "Maximum number of polymorphic check, otherwise it is megamorphic.");
-DEFINE_FLAG(bool, remove_redundant_phis, false,
-    "Remove redundant phis (disabled as causes incorrect code).");
+DEFINE_FLAG(bool, remove_redundant_phis, true, "Remove redundant phis.");
 
 
 void FlowGraphOptimizer::ApplyICData() {

@@ -282,7 +282,11 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     locs->set_in(0, Location::RegisterOrConstant(left()));
-    locs->set_in(1, Location::RegisterOrConstant(right()));
+    // Only one input can be a constant operand. The case of two constant
+    // operands should be handled by constant propagation.
+    locs->set_in(1, locs->in(0).IsConstant()
+                        ? Location::RequiresRegister()
+                        : Location::RegisterOrConstant(right()));
     locs->set_out(Location::RequiresRegister());
     return locs;
   }
@@ -607,35 +611,9 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                 BranchInstr* branch) {
   Location left = locs.in(0);
   Location right = locs.in(1);
+  ASSERT(!left.IsConstant() || !right.IsConstant());
 
   Condition true_condition = TokenKindToSmiCondition(kind);
-
-  if (left.IsConstant() && right.IsConstant()) {
-    bool result = false;
-    // One of them could be NULL (for equality only).
-    if (left.constant().IsNull() || right.constant().IsNull()) {
-      ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
-      result = left.constant().IsNull() && right.constant().IsNull();
-      if (kind == Token::kNE) {
-        result = !result;
-      }
-    } else {
-      // TODO(vegorov): should be eliminated earlier by constant propagation.
-      result = FlowGraphCompiler::EvaluateCondition(
-          true_condition,
-          Smi::Cast(left.constant()).Value(),
-          Smi::Cast(right.constant()).Value());
-    }
-
-    if (branch != NULL) {
-      branch->EmitBranchOnValue(compiler, result);
-    } else {
-      __ LoadObject(locs.out().reg(), result ? compiler->bool_true()
-                                             : compiler->bool_false());
-    }
-
-    return;
-  }
 
   if (left.IsConstant()) {
     __ CompareObject(right.reg(), left.constant());
@@ -791,7 +769,11 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary() const {
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RegisterOrConstant(left()));
-    summary->set_in(1, Location::RegisterOrConstant(right()));
+    // Only one input can be a constant operand. The case of two constant
+    // operands should be handled by constant propagation.
+    summary->set_in(1, summary->in(0).IsConstant()
+                           ? Location::RequiresRegister()
+                           : Location::RegisterOrConstant(right()));
     summary->set_out(Location::RequiresRegister());
     return summary;
   }
@@ -1597,7 +1579,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
-    summary->set_in(1, Location::RegisterLocation(RCX));
+    summary->set_in(1, Location::FixedRegisterOrSmiConstant(right(), RCX));
     summary->set_out(Location::SameAsFirstInput());
     return summary;
   } else if (op_kind() == Token::kSHL) {
@@ -1605,7 +1587,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
-    summary->set_in(1, Location::FixedRegisterOrConstant(right(), RCX));
+    summary->set_in(1, Location::FixedRegisterOrSmiConstant(right(), RCX));
     summary->set_temp(0, Location::RequiresRegister());
     summary->set_out(Location::SameAsFirstInput());
     return summary;
@@ -1614,7 +1596,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
-    summary->set_in(1, Location::RequiresRegister());
+    summary->set_in(1, Location::RegisterOrSmiConstant(right()));
     summary->set_out(Location::SameAsFirstInput());
     return summary;
   }
@@ -1644,6 +1626,13 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       case Token::kSUB: {
         __ subq(left, Immediate(imm));
+        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        break;
+      }
+      case Token::kMUL: {
+        // Keep left value tagged and untag right value.
+        const intptr_t value = Smi::Cast(constant).Value();
+        __ imulq(left, Immediate(value));
         if (deopt != NULL) __ j(OVERFLOW, deopt);
         break;
       }
@@ -2247,8 +2236,8 @@ LocationSummary* CheckArrayBoundInstr::MakeLocationSummary() const {
   const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_in(1, Location::RegisterOrConstant(index()));
+  locs->set_in(0, Location::RegisterOrSmiConstant(array()));
+  locs->set_in(1, Location::RegisterOrSmiConstant(index()));
   return locs;
 }
 

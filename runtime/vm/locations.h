@@ -264,7 +264,9 @@ class Location : public ValueObject {
 
   // Constants.
   static Location RegisterOrConstant(Value* value);
+  static Location RegisterOrSmiConstant(Value* value);
   static Location FixedRegisterOrConstant(Value* value, Register reg);
+  static Location FixedRegisterOrSmiConstant(Value* value, Register reg);
 
   const char* Name() const;
   void PrintTo(BufferFormatter* f) const;
