@@ -630,20 +630,20 @@ get$hashCode(receiver) {
   // TODO(ahe): This method shouldn't have to use JS. Update when our
   // optimizations are smarter.
   if (receiver == null) return 0;
-  if (receiver is num) return JS('int', r'# & 0x1FFFFFFF', receiver);
+  if (receiver is num) return receiver & 0x1FFFFFFF;
   if (receiver is bool) return receiver ? 0x40377024 : 0xc18c0076;
   if (isJsArray(receiver)) return Primitives.objectHashCode(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.hashCode);
   int hash = 0;
-  int length = JS('int', r'#.length', receiver);
+  int length = receiver.length;
   for (int i = 0; i < length; i++) {
     hash = 0x1fffffff & (hash + JS('int', r'#.charCodeAt(#)', receiver, i));
-    hash = 0x1fffffff & (hash + JS('int', r'# << #', 0x0007ffff & hash, 10));
-    hash ^= hash >> 6;
+    hash = 0x1fffffff & (hash + (0x0007ffff & hash) << 10);
+    hash = JS('int', '# ^ (# >> 6)', hash, hash);
   }
-  hash = 0x1fffffff & (hash + JS('int', r'# << #', 0x03ffffff & hash, 3));
-  hash ^= hash >> 11;
-  return 0x1fffffff & (hash + JS('int', r'# << #', 0x00003fff & hash, 15));
+  hash = 0x1fffffff & (hash + (0x03ffffff & hash) <<  3);
+  hash = JS('int', '# ^ (# >> 11)', hash, hash);
+  return 0x1fffffff & (hash + (0x00003fff & hash) << 15);
 }
 
 get$charCodes(receiver) {
