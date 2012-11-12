@@ -1239,9 +1239,9 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // EAX: new object start.
     // EBX: next object start.
     // EDX: class of the object to be allocated.
+    // EDI: new object type arguments (if is_cls_parameterized).
     // First try inlining the initialization without a loop.
-    if (instance_size < (kInlineInstanceSize * kWordSize) &&
-        cls.num_native_fields() == 0) {
+    if (instance_size < (kInlineInstanceSize * kWordSize)) {
       // Check if the object contains any non-header fields.
       // Small objects are initialized using a consecutive set of writes.
       for (intptr_t current_offset = sizeof(RawObject);
@@ -1252,31 +1252,11 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     } else {
       __ leal(ECX, Address(EAX, sizeof(RawObject)));
       // Loop until the whole object is initialized.
-      Label init_loop;
-      if (cls.num_native_fields() > 0) {
-        // Initialize native fields.
-        // EAX: new object.
-        // EBX: next object start.
-        // EDX: class of the object to be allocated.
-        // ECX: next word to be initialized.
-        intptr_t offset = Class::num_native_fields_offset() - kHeapObjectTag;
-        __ movl(EDX, Address(EDX, offset));
-        __ leal(EDX, Address(EAX, EDX, TIMES_4, sizeof(RawObject)));
-
-        // EDX: start of dart fields.
-        // ECX: next word to be initialized.
-        Label init_native_loop;
-        __ Bind(&init_native_loop);
-        __ cmpl(ECX, EDX);
-        __ j(ABOVE_EQUAL, &init_loop, Assembler::kNearJump);
-        __ movl(Address(ECX, 0), Immediate(0));
-        __ addl(ECX, Immediate(kWordSize));
-        __ jmp(&init_native_loop, Assembler::kNearJump);
-      }
-      // Now initialize the dart fields.
       // EAX: new object.
       // EBX: next object start.
       // ECX: next word to be initialized.
+      // EDI: new object type arguments (if is_cls_parameterized).
+      Label init_loop;
       Label done;
       __ Bind(&init_loop);
       __ cmpl(ECX, EBX);

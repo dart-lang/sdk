@@ -1238,6 +1238,18 @@ class RawGrowableObjectArray : public RawInstance {
 };
 
 
+// Define an aliases for intptr_t.
+#if defined(ARCH_IS_32_BIT)
+#define RawIntPtrArray RawInt32Array
+#define IntPtrArray Int32Array
+#elif defined(ARCH_IS_64_BIT)
+#define RawIntPtrArray RawInt64Array
+#define IntPtrArray Int64Array
+#else
+#error Architecture is not 32-bit or 64-bit.
+#endif  // ARCH_IS_32_BIT
+
+
 class RawByteArray : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ByteArray);
 
@@ -1285,6 +1297,8 @@ class RawInt32Array : public RawByteArray {
 
   // Variable length data follows here.
   int32_t data_[0];
+
+  friend class Instance;
 };
 
 

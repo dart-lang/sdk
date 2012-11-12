@@ -1219,9 +1219,9 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // RAX: new object start.
     // RBX: next object start.
     // RDX: class of the object to be allocated.
+    // RDI: new object type arguments (if is_cls_parameterized).
     // First try inlining the initialization without a loop.
-    if (instance_size < (kInlineInstanceSize * kWordSize) &&
-        cls.num_native_fields() == 0) {
+    if (instance_size < (kInlineInstanceSize * kWordSize)) {
       // Check if the object contains any non-header fields.
       // Small objects are initialized using a consecutive set of writes.
       for (intptr_t current_offset = sizeof(RawObject);
@@ -1232,31 +1232,11 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     } else {
       __ leaq(RCX, Address(RAX, sizeof(RawObject)));
       // Loop until the whole object is initialized.
-      Label init_loop;
-      if (cls.num_native_fields() > 0) {
-        // Initialize native fields.
-        // RAX: new object.
-        // RBX: next object start.
-        // RDX: class of the object to be allocated.
-        // RCX: next word to be initialized.
-        intptr_t offset = Class::num_native_fields_offset() - kHeapObjectTag;
-        __ movq(RDX, Address(RDX, offset));
-        __ leaq(RDX, Address(RAX, RDX, TIMES_8, sizeof(RawObject)));
-
-        // RDX: start of dart fields.
-        // RCX: next word to be initialized.
-        Label init_native_loop;
-        __ Bind(&init_native_loop);
-        __ cmpq(RCX, RDX);
-        __ j(ABOVE_EQUAL, &init_loop, Assembler::kNearJump);
-        __ movq(Address(RCX, 0), Immediate(0));
-        __ addq(RCX, Immediate(kWordSize));
-        __ jmp(&init_native_loop, Assembler::kNearJump);
-      }
-      // Now initialize the dart fields.
       // RAX: new object.
       // RBX: next object start.
       // RCX: next word to be initialized.
+      // RDI: new object type arguments (if is_cls_parameterized).
+      Label init_loop;
       Label done;
       __ Bind(&init_loop);
       __ cmpq(RCX, RBX);

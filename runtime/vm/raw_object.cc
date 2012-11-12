@@ -593,13 +593,17 @@ intptr_t RawInstance::VisitInstancePointers(RawInstance* raw_obj,
                                             ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
   ASSERT(raw_obj->IsHeapObject());
-  RawClass* cls = visitor->isolate()->class_table()->At(raw_obj->GetClassId());
-  intptr_t instance_size = cls->ptr()->instance_size_;
-  intptr_t num_native_fields = cls->ptr()->num_native_fields_;
+  uword tags = raw_obj->ptr()->tags_;
+  intptr_t instance_size = SizeTag::decode(tags);
+  if (instance_size == 0) {
+    RawClass* cls =
+        visitor->isolate()->class_table()->At(raw_obj->GetClassId());
+    instance_size = cls->ptr()->instance_size_;
+  }
 
   // Calculate the first and last raw object pointer fields.
   uword obj_addr = RawObject::ToAddr(raw_obj);
-  uword from = obj_addr + sizeof(RawObject) + num_native_fields * kWordSize;
+  uword from = obj_addr + sizeof(RawObject);
   uword to = obj_addr + instance_size - kWordSize;
   visitor->VisitPointers(reinterpret_cast<RawObject**>(from),
                          reinterpret_cast<RawObject**>(to));

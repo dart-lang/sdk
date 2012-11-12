@@ -3832,7 +3832,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeInstanceField(Dart_Handle obj,
         "%s: invalid index %d passed in to access native instance field",
         CURRENT_FUNC, index);
   }
-  *value = instance.GetNativeField(index);
+  *value = instance.GetNativeField(isolate, index);
   return Api::Success(isolate);
 }
 

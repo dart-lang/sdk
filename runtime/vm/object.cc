@@ -1869,8 +1869,9 @@ RawClass* Class::NewNativeWrapper(const Library& library,
     cls.SetFunctions(empty_array);
     // Set super class to Object.
     cls.set_super_type(Type::Handle(Type::ObjectType()));
-    // Compute instance size.
-    intptr_t instance_size = (field_count * kWordSize) + sizeof(RawObject);
+    // Compute instance size. First word contains a pointer to a properly
+    // sized typed array once the first native field has been set.
+    intptr_t instance_size = sizeof(RawObject) + kWordSize;
     cls.set_instance_size(RoundedAllocationSize(instance_size));
     cls.set_next_field_offset(instance_size);
     cls.set_num_native_fields(field_count);
@@ -8224,6 +8225,20 @@ bool Instance::IsInstanceOf(const AbstractType& other,
 }
 
 
+void Instance::SetNativeField(int index, intptr_t value) const {
+  ASSERT(IsValidNativeIndex(index));
+  Object& native_fields = Object::Handle(*NativeFieldsAddr());
+  if (native_fields.IsNull()) {
+    // Allocate backing storage for the native fields.
+    const Class& cls = Class::Handle(clazz());
+    int num_native_fields = cls.num_native_fields();
+    native_fields = IntPtrArray::New(num_native_fields);
+    StorePointer(NativeFieldsAddr(), native_fields.raw());
+  }
+  IntPtrArray::Cast(native_fields).SetAt(index, value);
+}
+
+
 bool Instance::IsClosure() const {
   const Class& cls = Class::Handle(clazz());
   return cls.IsSignatureClass();
@@ -8238,14 +8253,6 @@ RawInstance* Instance::New(const Class& cls, Heap::Space space) {
     RawObject* raw = Object::Allocate(cls.id(), instance_size, space);
     NoGCScope no_gc;
     result ^= raw;
-    uword addr = reinterpret_cast<uword>(result.raw_ptr());
-    // Initialize fields.
-    intptr_t offset = sizeof(RawObject);
-    // Initialize all native fields to NULL.
-    for (intptr_t i = 0; i < cls.num_native_fields(); i++) {
-      *reinterpret_cast<uword*>(addr + offset) = 0;
-      offset += kWordSize;
-    }
   }
   return result.raw();
 }

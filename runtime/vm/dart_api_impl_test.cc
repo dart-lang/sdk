@@ -2909,15 +2909,16 @@ TEST_CASE(InjectNativeFields1) {
   obj ^= Api::UnwrapHandle(result);
   const Class& cls = Class::Handle(obj.clazz());
   // We expect the newly created "NativeFields" object to have
-  // 2 dart instance fields (fld1, fld2) and kNumNativeFields native fields.
+  // 2 dart instance fields (fld1, fld2) and a reference to the native fields.
   // Hence the size of an instance of "NativeFields" should be
-  // (kNumNativeFields + 2) * kWordSize + size of object header.
+  // (1 + 2) * kWordSize + size of object header.
   // We check to make sure the instance size computed by the VM matches
   // our expectations.
   intptr_t header_size = sizeof(RawObject);
-  EXPECT_EQ(Utils::RoundUp(((kNumNativeFields + 2) * kWordSize) + header_size,
+  EXPECT_EQ(Utils::RoundUp(((1 + 2) * kWordSize) + header_size,
                            kObjectAlignment),
             cls.instance_size());
+  EXPECT_EQ(kNumNativeFields, cls.num_native_fields());
 }
 
 
@@ -2977,15 +2978,16 @@ TEST_CASE(InjectNativeFields3) {
   obj ^= Api::UnwrapHandle(result);
   const Class& cls = Class::Handle(obj.clazz());
   // We expect the newly created "NativeFields" object to have
-  // 2 dart instance fields (fld1, fld2) and kNumNativeFields native fields.
+  // 2 dart instance fields (fld1, fld2) and a reference to the native fields.
   // Hence the size of an instance of "NativeFields" should be
-  // (kNumNativeFields + 2) * kWordSize + size of object header.
+  // (1 + 2) * kWordSize + size of object header.
   // We check to make sure the instance size computed by the VM matches
   // our expectations.
   intptr_t header_size = sizeof(RawObject);
-  EXPECT_EQ(Utils::RoundUp(((kNumNativeFields + 2) * kWordSize) + header_size,
+  EXPECT_EQ(Utils::RoundUp(((1 + 2) * kWordSize) + header_size,
                            kObjectAlignment),
             cls.instance_size());
+  EXPECT_EQ(kNumNativeFields, cls.num_native_fields());
 }
 
 

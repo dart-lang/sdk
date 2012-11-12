@@ -3082,13 +3082,8 @@ class Instance : public Object {
     return ((index >= 0) && (index < clazz()->ptr()->num_native_fields_));
   }
 
-  intptr_t GetNativeField(int index) const {
-    return *NativeFieldAddr(index);
-  }
-
-  void SetNativeField(int index, intptr_t value) const {
-    *NativeFieldAddr(index) = value;
-  }
+  inline intptr_t GetNativeField(Isolate* isolate, int index) const;
+  void SetNativeField(int index, intptr_t value) const;
 
   // Returns true if the instance is a closure object.
   bool IsClosure() const;
@@ -3107,11 +3102,8 @@ class Instance : public Object {
   RawObject** FieldAddr(const Field& field) const {
     return FieldAddrAtOffset(field.Offset());
   }
-  intptr_t* NativeFieldAddr(int index) const {
-    ASSERT(IsValidNativeIndex(index));
-    return reinterpret_cast<intptr_t*>((raw_value() - kHeapObjectTag)
-                                       + (index * kWordSize)
-                                       + sizeof(RawObject));
+  RawObject** NativeFieldsAddr() const {
+    return FieldAddrAtOffset(sizeof(RawObject));
   }
   void SetFieldAtOffset(intptr_t offset, const Object& value) const {
     StorePointer(FieldAddrAtOffset(offset), value.raw());
@@ -5854,6 +5846,18 @@ void Field::SetOffset(intptr_t value) const {
 
 void Context::SetAt(intptr_t index, const Instance& value) const {
   StorePointer(InstanceAddr(index), value.raw());
+}
+
+
+intptr_t Instance::GetNativeField(Isolate* isolate, int index) const {
+  ASSERT(IsValidNativeIndex(index));
+  NoGCScope no_gc;
+  RawIntPtrArray* native_fields =
+      reinterpret_cast<RawIntPtrArray*>(*NativeFieldsAddr());
+  if (native_fields == IntPtrArray::null()) {
+    return 0;
+  }
+  return native_fields->ptr()->data_[index];
 }
 
 
