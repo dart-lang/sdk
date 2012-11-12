@@ -50,7 +50,7 @@ class Param2Test {
 
     v = [4, 5, 7];
     Expect.equals(true, exists(v, (e) => e % 2 == 1));
-    Expect.equals(false, exists(v, f(e) => e == 6));
+    Expect.equals(false, exists(v, (e) => e == 6));
 
     var isZero = (e) => e == 0;
     Expect.equals(false, exists(v, isZero));

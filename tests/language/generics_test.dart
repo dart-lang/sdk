@@ -20,36 +20,10 @@ class GenericsTest<T,V> implements Map<int, int> {
     Map<int, int> e;
     GenericsTest<int, GenericsTest<int, int>> f;
 
-    takesVoidMethod(void _(int a) {
-      Expect.equals(2, a);
-    });
-
-    takesGenericMapMethod(Map<int, int> _(int a) {
-      Expect.equals(2, a);
-      return null;
-    });
-
-    takesIntMethod(int _(int a) {
-      Expect.equals(2, a);
-      return 98;
-    });
-
     e = new Map();
     takesMapMethod(e);
     Expect.equals(2, e[0]);
     Map h = new Map<int, int>();
-  }
-
-  static void takesVoidMethod(void f(int a)) {
-    f(2);
-  }
-
-  static void takesIntMethod(int f(int a)) {
-    Expect.equals(98, f(2));
-  }
-
-  static void takesGenericMapMethod(Map<int, int> f(int a)) {
-    f(2);
   }
 
   static void takesMapMethod(Map<int, int> m) {

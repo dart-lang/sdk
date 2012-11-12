@@ -362,7 +362,7 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
   Collection<K> get keys {
     List<K> list = new List<K>(length);
     int i = 0;
-    forEach(void _(K key, V value) {
+    forEach((K key, V value) {
       list[i++] = key;
     });
     return list;
@@ -371,7 +371,7 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
   Collection<V> get values {
     List<V> list = new List<V>(length);
     int i = 0;
-    forEach(void _(K key, V value) {
+    forEach((K key, V value) {
       list[i++] = value;
     });
     return list;
@@ -474,7 +474,7 @@ class _LinkedHashMapImpl<K, V> implements LinkedHashMap<K, V> {
   Collection<K> get keys {
     List<K> list = new List<K>(length);
     int index = 0;
-    _list.forEach(void _(_KeyValuePair<K, V> entry) {
+    _list.forEach((_KeyValuePair<K, V> entry) {
       list[index++] = entry.key;
     });
     assert(index == length);
@@ -485,7 +485,7 @@ class _LinkedHashMapImpl<K, V> implements LinkedHashMap<K, V> {
   Collection<V> get values {
     List<V> list = new List<V>(length);
     int index = 0;
-    _list.forEach(void _(_KeyValuePair<K, V> entry) {
+    _list.forEach((_KeyValuePair<K, V> entry) {
       list[index++] = entry.value;
     });
     assert(index == length);
@@ -493,7 +493,7 @@ class _LinkedHashMapImpl<K, V> implements LinkedHashMap<K, V> {
   }
 
   void forEach(void f(K key, V value)) {
-    _list.forEach(void _(_KeyValuePair<K, V> entry) {
+    _list.forEach((_KeyValuePair<K, V> entry) {
       f(entry.key, entry.value);
     });
   }
@@ -503,7 +503,7 @@ class _LinkedHashMapImpl<K, V> implements LinkedHashMap<K, V> {
   }
 
   bool containsValue(V value) {
-    return _list.some(bool _(_KeyValuePair<K, V> entry) {
+    return _list.some((_KeyValuePair<K, V> entry) {
       return (entry.value == value);
     });
   }

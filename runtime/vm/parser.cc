@@ -33,6 +33,8 @@ DEFINE_FLAG(bool, warn_legacy_dynamic, false,
             "Warning on legacy type Dynamic)");
 DEFINE_FLAG(bool, warn_legacy_getters, false,
             "Warning on legacy getter syntax");
+DEFINE_FLAG(bool, strict_function_literals, false,
+            "enforce new function literal rules");
 DECLARE_FLAG(bool, use_cha);
 
 static void CheckedModeHandler(bool value) {
@@ -4960,25 +4962,46 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   const String* function_name = NULL;
 
   result_type = Type::DynamicType();
-  if (CurrentToken() == Token::kVOID) {
-    ConsumeToken();
-    result_type = Type::VoidType();
-  } else if ((CurrentToken() == Token::kIDENT) &&
-             (LookaheadToken(1) != Token::kLPAREN)) {
-    result_type = ParseType(ClassFinalizer::kCanonicalize);
-  }
-  const intptr_t ident_pos = TokenPos();
-  if (IsIdentifier()) {
-    variable_name = CurrentLiteral();
-    function_name = variable_name;
-    ConsumeToken();
-  } else {
-    if (!is_literal) {
-      ErrorMsg("function name expected");
+
+  intptr_t ident_pos = TokenPos();
+  if (FLAG_strict_function_literals) {
+    if (is_literal) {
+      ASSERT(CurrentToken() == Token::kLPAREN);
+      function_name = &String::ZoneHandle(Symbols::AnonymousClosure());
+    } else {
+      if (CurrentToken() == Token::kVOID) {
+        ConsumeToken();
+        result_type = Type::VoidType();
+      } else if ((CurrentToken() == Token::kIDENT) &&
+                 (LookaheadToken(1) != Token::kLPAREN)) {
+        result_type = ParseType(ClassFinalizer::kCanonicalize);
+      }
+      ident_pos = TokenPos();
+      variable_name = ExpectIdentifier("function name expected");
+      function_name = variable_name;
     }
-    function_name = &String::ZoneHandle(Symbols::AnonymousClosure());
+  } else {
+    // TODO(hausner) remove this block once support for old-style function
+    // literals is gone.
+    if (CurrentToken() == Token::kVOID) {
+      ConsumeToken();
+      result_type = Type::VoidType();
+    } else if ((CurrentToken() == Token::kIDENT) &&
+               (LookaheadToken(1) != Token::kLPAREN)) {
+      result_type = ParseType(ClassFinalizer::kCanonicalize);
+    }
+    ident_pos = TokenPos();
+    if (IsIdentifier()) {
+      variable_name = CurrentLiteral();
+      function_name = variable_name;
+      ConsumeToken();
+    } else {
+      if (!is_literal) {
+        ErrorMsg("function name expected");
+      }
+      function_name = &String::ZoneHandle(Symbols::AnonymousClosure());
+    }
   }
-  ASSERT(ident_pos >= 0);
 
   if (CurrentToken() != Token::kLPAREN) {
     ErrorMsg("'(' expected");
@@ -5380,29 +5403,46 @@ bool Parser::IsTopLevelAccessor() {
 
 
 bool Parser::IsFunctionLiteral() {
-  if (!allow_function_literals_) {
-    return false;
-  }
-  const intptr_t saved_pos = TokenPos();
-  bool is_function_literal = false;
-  if (IsIdentifier() && (LookaheadToken(1) == Token::kLPAREN)) {
-    ConsumeToken();  // Consume function identifier.
-  } else if (TryParseReturnType()) {
-    if (!IsIdentifier()) {
-      SetPosition(saved_pos);
+  // TODO(hausner): Remove code block that supports old-style function
+  // literals.
+  if (FLAG_strict_function_literals) {
+    if (CurrentToken() != Token::kLPAREN || !allow_function_literals_) {
       return false;
     }
-    ConsumeToken();  // Comsume function identifier.
-  }
-  if (CurrentToken() == Token::kLPAREN) {
+    const intptr_t saved_pos = TokenPos();
+    bool is_function_literal = false;
     SkipToMatchingParenthesis();
     if ((CurrentToken() == Token::kLBRACE) ||
         (CurrentToken() == Token::kARROW)) {
       is_function_literal = true;
     }
+    SetPosition(saved_pos);
+    return is_function_literal;
+  } else {
+    if (!allow_function_literals_) {
+      return false;
+    }
+    const intptr_t saved_pos = TokenPos();
+    bool is_function_literal = false;
+    if (IsIdentifier() && (LookaheadToken(1) == Token::kLPAREN)) {
+      ConsumeToken();  // Consume function identifier.
+    } else if (TryParseReturnType()) {
+      if (!IsIdentifier()) {
+        SetPosition(saved_pos);
+        return false;
+      }
+      ConsumeToken();  // Comsume function identifier.
+    }
+    if (CurrentToken() == Token::kLPAREN) {
+      SkipToMatchingParenthesis();
+      if ((CurrentToken() == Token::kLBRACE) ||
+          (CurrentToken() == Token::kARROW)) {
+        is_function_literal = true;
+      }
+    }
+    SetPosition(saved_pos);
+    return is_function_literal;
   }
-  SetPosition(saved_pos);
-  return is_function_literal;
 }
 
 

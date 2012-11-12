@@ -229,7 +229,7 @@ class DoubleLinkedQueue<E> implements Queue<E> {
 
   int get length {
     int counter = 0;
-    forEach(void _(E element) { counter++; });
+    forEach((E element) { counter++; });
     return counter;
   }
 

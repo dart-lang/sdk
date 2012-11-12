@@ -11,7 +11,7 @@ set topLevel(var value) { }
 
 initialize() {
   print("initializing");
-  topLevelClosure = tlc(x) => x * 2;
+  topLevelClosure = (x) => x * 2;
 }
 
 main() {

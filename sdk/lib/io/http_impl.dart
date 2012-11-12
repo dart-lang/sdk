@@ -2473,7 +2473,7 @@ class _HttpClient implements HttpClient {
         Date now = new Date.now();
         List<String> emptyKeys = new List<String>();
         _openSockets.forEach(
-            void _(String key, Queue<_SocketConnection> connections) {
+            (String key, Queue<_SocketConnection> connections) {
               // As returned connections are added at the head of the
               // list remove from the tail.
               while (!connections.isEmpty) {

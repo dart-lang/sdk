@@ -10,9 +10,6 @@ class FunctionArgumentTest {
 
   static void testMain() {
     Expect.equals(42, testMe(() { return 42; }));
-    Expect.equals(314, testMe(f() { return 314; }));
-    // Test another unnamed function.
-    Expect.equals(99, testMe(() { return 99; }));
   }
 }
 

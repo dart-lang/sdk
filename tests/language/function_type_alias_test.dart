@@ -77,7 +77,7 @@ class FunctionTypeAliasTest {
     Expect.isTrue(compareObj is !CompareString);
     Expect.equals(-1, test(compareObj, "abcdef", "xyz"));
 
-    CompareInt minus = int _(int a, int b) { return a - b; };
+    CompareInt minus = (int a, int b) { return a - b; };
     Expect.isTrue(minus is Fun);
     Expect.isTrue(compareStrLen is IntFun);
     Expect.isTrue(compareStrLen is !BoolFun);
@@ -96,8 +96,8 @@ class FunctionTypeAliasTest {
 
     Expect.equals(0, bar());
 
-    Function boundsTrue = void _(int arg) { };
-    Function boundsFalse = void _(String arg) { };
+    Function boundsTrue = (int arg) { };
+    Function boundsFalse = (String arg) { };
     Expect.isTrue(boundsTrue is BoundsCheck<num>);
     Expect.isFalse(boundsFalse is BoundsCheck<num>);
   }
