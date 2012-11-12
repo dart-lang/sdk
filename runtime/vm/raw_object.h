@@ -1315,6 +1315,8 @@ class RawInt64Array : public RawByteArray {
 
   // Variable length data follows here.
   int64_t data_[0];
+
+  friend class Instance;
 };
 
 
