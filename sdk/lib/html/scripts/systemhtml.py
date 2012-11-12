@@ -309,7 +309,7 @@ class HtmlDartInterfaceGenerator(object):
 
     merged_interface = self._interface_type_info.merged_interface()
     if merged_interface:
-      self._backend.AddMembers(self._database.GetInterface(merged_interface), 
+      self._backend.AddMembers(self._database.GetInterface(merged_interface),
         not self._backend.ImplementsMergedMembers())
 
     self._backend.AddMembers(self._interface)
@@ -637,7 +637,6 @@ class Dart2JSBackend(HtmlDartGenerator):
   def _AddOperationWithConversions(self, info, html_name):
     # Assert all operations have same return type.
     assert len(set([op.type.id for op in info.operations])) == 1
-    info = info.CopyAndWidenDefaultParameters()
     output_conversion = self._OutputConversion(info.type_name,
                                                info.declared_name)
     if output_conversion:
@@ -705,14 +704,15 @@ class Dart2JSBackend(HtmlDartGenerator):
           arguments.append(parameter_names[position])
           param_type = self._NarrowInputType(arg.type.id)
           # Verified by argument checking on entry to the dispatcher.
-          verified_type = InputType(info.param_infos[position].type_id)
 
-        # The native method does not need an argument type if we know the type.
-        # But we do need the native methods to have correct function types, so
-        # be conservative.
-        if param_type == verified_type:
-          if param_type in ['String', 'num', 'int', 'double', 'bool', 'Object']:
-            param_type = 'dynamic'
+          verified_type = InputType(info.param_infos[position].type_id)
+          # The native method does not need an argument type if we know the type.
+          # But we do need the native methods to have correct function types, so
+          # be conservative.
+          if param_type == verified_type:
+            if param_type in ['String', 'num', 'int', 'double', 'bool', 'Object']:
+              param_type = 'dynamic'
+
         target_parameters.append(
             '%s%s' % (TypeOrNothing(param_type), param_name))
 
@@ -746,8 +746,9 @@ class Dart2JSBackend(HtmlDartGenerator):
         if test_type in ['dynamic', 'Object']:
           checks.append('?%s' % parameter_name)
         elif test_type != parameter_types[i]:
-          checks.append('(%s is %s || %s == null)' % (
-              parameter_name, test_type, parameter_name))
+          checks.append('(?%s && (%s is %s || %s == null))' % (
+              parameter_name, parameter_name, test_type, parameter_name))
+
       checks.extend(['!?%s' % name for name in parameter_names[argument_count:]])
       # There can be multiple presence checks.  We need them all since a later
       # optional argument could have been passed by name, leaving 'holes'.

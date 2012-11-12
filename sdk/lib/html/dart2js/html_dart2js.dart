@@ -4528,20 +4528,19 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   void closePath() native;
 
   /** @domName CanvasRenderingContext2D.createImageData */
-  ImageData createImageData(imagedata_OR_sw, [sh]) {
-    if ((imagedata_OR_sw is ImageData || imagedata_OR_sw == null) &&
+  ImageData createImageData(imagedata_OR_sw, [num sh]) {
+    if ((?imagedata_OR_sw && (imagedata_OR_sw is ImageData || imagedata_OR_sw == null)) &&
         !?sh) {
       var imagedata_1 = _convertDartToNative_ImageData(imagedata_OR_sw);
       return _convertNativeToDart_ImageData(_createImageData_1(imagedata_1));
     }
-    if ((imagedata_OR_sw is num || imagedata_OR_sw == null) &&
-        (sh is num || sh == null)) {
+    if ((?imagedata_OR_sw && (imagedata_OR_sw is num || imagedata_OR_sw == null))) {
       return _convertNativeToDart_ImageData(_createImageData_2(imagedata_OR_sw, sh));
     }
     throw const Exception("Incorrect number or type of arguments");
   }
   _createImageData_1(imagedata) native "createImageData";
-  _createImageData_2(num sw, num sh) native "createImageData";
+  _createImageData_2(num sw, sh) native "createImageData";
 
   /** @domName CanvasRenderingContext2D.createLinearGradient */
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
@@ -4589,7 +4588,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   void moveTo(num x, num y) native;
 
   /** @domName CanvasRenderingContext2D.putImageData */
-  void putImageData(ImageData imagedata, num dx, num dy, [dirtyX, dirtyY, dirtyWidth, dirtyHeight]) {
+  void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if (!?dirtyX &&
         !?dirtyY &&
         !?dirtyWidth &&
@@ -4598,18 +4597,13 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
       _putImageData_1(imagedata_1, dx, dy);
       return;
     }
-    if ((dirtyX is num || dirtyX == null) &&
-        (dirtyY is num || dirtyY == null) &&
-        (dirtyWidth is num || dirtyWidth == null) &&
-        (dirtyHeight is num || dirtyHeight == null)) {
-      var imagedata_2 = _convertDartToNative_ImageData(imagedata);
-      _putImageData_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
-      return;
-    }
+    var imagedata_2 = _convertDartToNative_ImageData(imagedata);
+    _putImageData_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+    return;
     throw const Exception("Incorrect number or type of arguments");
   }
   void _putImageData_1(imagedata, dx, dy) native "putImageData";
-  void _putImageData_2(imagedata, dx, dy, num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight) native "putImageData";
+  void _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "putImageData";
 
   /** @domName CanvasRenderingContext2D.quadraticCurveTo */
   void quadraticCurveTo(num cpx, num cpy, num x, num y) native;
@@ -4678,7 +4672,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   _webkitGetImageDataHD_1(sx, sy, sw, sh) native "webkitGetImageDataHD";
 
   /** @domName CanvasRenderingContext2D.webkitPutImageDataHD */
-  void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [dirtyX, dirtyY, dirtyWidth, dirtyHeight]) {
+  void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if (!?dirtyX &&
         !?dirtyY &&
         !?dirtyWidth &&
@@ -4687,18 +4681,13 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
       _webkitPutImageDataHD_1(imagedata_1, dx, dy);
       return;
     }
-    if ((dirtyX is num || dirtyX == null) &&
-        (dirtyY is num || dirtyY == null) &&
-        (dirtyWidth is num || dirtyWidth == null) &&
-        (dirtyHeight is num || dirtyHeight == null)) {
-      var imagedata_2 = _convertDartToNative_ImageData(imagedata);
-      _webkitPutImageDataHD_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
-      return;
-    }
+    var imagedata_2 = _convertDartToNative_ImageData(imagedata);
+    _webkitPutImageDataHD_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+    return;
     throw const Exception("Incorrect number or type of arguments");
   }
   void _webkitPutImageDataHD_1(imagedata, dx, dy) native "webkitPutImageDataHD";
-  void _webkitPutImageDataHD_2(imagedata, dx, dy, num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight) native "webkitPutImageDataHD";
+  void _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "webkitPutImageDataHD";
 
 
   /**
@@ -5857,7 +5846,7 @@ class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerConte
     new DedicatedWorkerContextEvents(this);
 
   /** @domName DedicatedWorkerContext.postMessage */
-  void postMessage(/*any*/ message, [messagePorts]) {
+  void postMessage(/*any*/ message, [List messagePorts]) {
     if (?messagePorts) {
       var message_1 = _convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, messagePorts);
@@ -5957,7 +5946,7 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
   DirectoryReader createReader() native;
 
   /** @domName DirectoryEntry.getDirectory */
-  void getDirectory(String path, {options, successCallback, errorCallback}) {
+  void getDirectory(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) {
     if (?errorCallback) {
       var options_1 = _convertDartToNative_Dictionary(options);
       _getDirectory_1(path, options_1, successCallback, errorCallback);
@@ -5982,7 +5971,7 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
   void _getDirectory_4(path) native "getDirectory";
 
   /** @domName DirectoryEntry.getFile */
-  void getFile(String path, {options, successCallback, errorCallback}) {
+  void getFile(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) {
     if (?errorCallback) {
       var options_1 = _convertDartToNative_Dictionary(options);
       _getFile_1(path, options_1, successCallback, errorCallback);
@@ -9806,7 +9795,7 @@ class IDBCursor native "*IDBCursor" {
   void advance(int count) native;
 
   /** @domName IDBCursor.continueFunction */
-  void continueFunction([key]) {
+  void continueFunction([/*IDBKey*/ key]) {
     if (?key) {
       var key_1 = _convertDartToNative_IDBKey(key);
       _continueFunction_1(key_1);
@@ -9910,7 +9899,7 @@ class IDBDatabase extends EventTarget native "*IDBDatabase" {
   void close() native;
 
   /** @domName IDBDatabase.createObjectStore */
-  IDBObjectStore createObjectStore(String name, [options]) {
+  IDBObjectStore createObjectStore(String name, [Map options]) {
     if (?options) {
       var options_1 = _convertDartToNative_Dictionary(options);
       return _createObjectStore_1(name, options_1);
@@ -10045,7 +10034,7 @@ class IDBIndex native "*IDBIndex" {
     if (!?key_OR_range) {
       return _count_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range == null)) {
+    if ((?key_OR_range && (key_OR_range is IDBKeyRange || key_OR_range == null))) {
       return _count_2(key_OR_range);
     }
     if (?key_OR_range) {
@@ -10060,7 +10049,7 @@ class IDBIndex native "*IDBIndex" {
 
   /** @domName IDBIndex.get */
   IDBRequest get(key) {
-    if ((key is IDBKeyRange || key == null)) {
+    if ((?key && (key is IDBKeyRange || key == null))) {
       return _get_1(key);
     }
     if (?key) {
@@ -10074,7 +10063,7 @@ class IDBIndex native "*IDBIndex" {
 
   /** @domName IDBIndex.getKey */
   IDBRequest getKey(key) {
-    if ((key is IDBKeyRange || key == null)) {
+    if ((?key && (key is IDBKeyRange || key == null))) {
       return _getKey_1(key);
     }
     if (?key) {
@@ -10087,17 +10076,16 @@ class IDBIndex native "*IDBIndex" {
   IDBRequest _getKey_2(key) native "getKey";
 
   /** @domName IDBIndex.openCursor */
-  IDBRequest openCursor([key_OR_range, direction]) {
+  IDBRequest openCursor([key_OR_range, String direction]) {
     if (!?key_OR_range &&
         !?direction) {
       return _openCursor_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
+    if ((?key_OR_range && (key_OR_range is IDBKeyRange || key_OR_range == null)) &&
         !?direction) {
       return _openCursor_2(key_OR_range);
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
-        (direction is String || direction == null)) {
+    if ((?key_OR_range && (key_OR_range is IDBKeyRange || key_OR_range == null))) {
       return _openCursor_3(key_OR_range, direction);
     }
     if (?key_OR_range &&
@@ -10105,8 +10093,7 @@ class IDBIndex native "*IDBIndex" {
       var key_1 = _convertDartToNative_IDBKey(key_OR_range);
       return _openCursor_4(key_1);
     }
-    if (?key_OR_range &&
-        (direction is String || direction == null)) {
+    if (?key_OR_range) {
       var key_2 = _convertDartToNative_IDBKey(key_OR_range);
       return _openCursor_5(key_2, direction);
     }
@@ -10114,22 +10101,21 @@ class IDBIndex native "*IDBIndex" {
   }
   IDBRequest _openCursor_1() native "openCursor";
   IDBRequest _openCursor_2(IDBKeyRange range) native "openCursor";
-  IDBRequest _openCursor_3(IDBKeyRange range, String direction) native "openCursor";
+  IDBRequest _openCursor_3(IDBKeyRange range, direction) native "openCursor";
   IDBRequest _openCursor_4(key) native "openCursor";
-  IDBRequest _openCursor_5(key, String direction) native "openCursor";
+  IDBRequest _openCursor_5(key, direction) native "openCursor";
 
   /** @domName IDBIndex.openKeyCursor */
-  IDBRequest openKeyCursor([key_OR_range, direction]) {
+  IDBRequest openKeyCursor([key_OR_range, String direction]) {
     if (!?key_OR_range &&
         !?direction) {
       return _openKeyCursor_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
+    if ((?key_OR_range && (key_OR_range is IDBKeyRange || key_OR_range == null)) &&
         !?direction) {
       return _openKeyCursor_2(key_OR_range);
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
-        (direction is String || direction == null)) {
+    if ((?key_OR_range && (key_OR_range is IDBKeyRange || key_OR_range == null))) {
       return _openKeyCursor_3(key_OR_range, direction);
     }
     if (?key_OR_range &&
@@ -10137,8 +10123,7 @@ class IDBIndex native "*IDBIndex" {
       var key_1 = _convertDartToNative_IDBKey(key_OR_range);
       return _openKeyCursor_4(key_1);
     }
-    if (?key_OR_range &&
-        (direction is String || direction == null)) {
+    if (?key_OR_range) {
       var key_2 = _convertDartToNative_IDBKey(key_OR_range);
       return _openKeyCursor_5(key_2, direction);
     }
@@ -10146,9 +10131,9 @@ class IDBIndex native "*IDBIndex" {
   }
   IDBRequest _openKeyCursor_1() native "openKeyCursor";
   IDBRequest _openKeyCursor_2(IDBKeyRange range) native "openKeyCursor";
-  IDBRequest _openKeyCursor_3(IDBKeyRange range, String direction) native "openKeyCursor";
+  IDBRequest _openKeyCursor_3(IDBKeyRange range, direction) native "openKeyCursor";
   IDBRequest _openKeyCursor_4(key) native "openKeyCursor";
-  IDBRequest _openKeyCursor_5(key, String direction) native "openKeyCursor";
+  IDBRequest _openKeyCursor_5(key, direction) native "openKeyCursor";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10206,7 +10191,7 @@ class IDBKeyRange native "*IDBKeyRange" {
   final bool upperOpen;
 
   /** @domName IDBKeyRange.bound_ */
-  static IDBKeyRange bound_(/*IDBKey*/ lower, /*IDBKey*/ upper, [lowerOpen, upperOpen]) {
+  static IDBKeyRange bound_(/*IDBKey*/ lower, /*IDBKey*/ upper, [bool lowerOpen, bool upperOpen]) {
     if (?upperOpen) {
       var lower_1 = _convertDartToNative_IDBKey(lower);
       var upper_2 = _convertDartToNative_IDBKey(upper);
@@ -10221,12 +10206,12 @@ class IDBKeyRange native "*IDBKeyRange" {
     var upper_6 = _convertDartToNative_IDBKey(upper);
     return _bound__3(lower_5, upper_6);
   }
-  IDBKeyRange _bound__1(lower, upper, bool lowerOpen, bool upperOpen) native "bound";
-  IDBKeyRange _bound__2(lower, upper, bool lowerOpen) native "bound";
+  IDBKeyRange _bound__1(lower, upper, lowerOpen, upperOpen) native "bound";
+  IDBKeyRange _bound__2(lower, upper, lowerOpen) native "bound";
   IDBKeyRange _bound__3(lower, upper) native "bound";
 
   /** @domName IDBKeyRange.lowerBound_ */
-  static IDBKeyRange lowerBound_(/*IDBKey*/ bound, [open]) {
+  static IDBKeyRange lowerBound_(/*IDBKey*/ bound, [bool open]) {
     if (?open) {
       var bound_1 = _convertDartToNative_IDBKey(bound);
       return _lowerBound__1(bound_1, open);
@@ -10234,7 +10219,7 @@ class IDBKeyRange native "*IDBKeyRange" {
     var bound_2 = _convertDartToNative_IDBKey(bound);
     return _lowerBound__2(bound_2);
   }
-  IDBKeyRange _lowerBound__1(bound, bool open) native "lowerBound";
+  IDBKeyRange _lowerBound__1(bound, open) native "lowerBound";
   IDBKeyRange _lowerBound__2(bound) native "lowerBound";
 
   /** @domName IDBKeyRange.only_ */
@@ -10245,7 +10230,7 @@ class IDBKeyRange native "*IDBKeyRange" {
   IDBKeyRange _only__1(value) native "only";
 
   /** @domName IDBKeyRange.upperBound_ */
-  static IDBKeyRange upperBound_(/*IDBKey*/ bound, [open]) {
+  static IDBKeyRange upperBound_(/*IDBKey*/ bound, [bool open]) {
     if (?open) {
       var bound_1 = _convertDartToNative_IDBKey(bound);
       return _upperBound__1(bound_1, open);
@@ -10253,7 +10238,7 @@ class IDBKeyRange native "*IDBKeyRange" {
     var bound_2 = _convertDartToNative_IDBKey(bound);
     return _upperBound__2(bound_2);
   }
-  IDBKeyRange _upperBound__1(bound, bool open) native "upperBound";
+  IDBKeyRange _upperBound__1(bound, open) native "upperBound";
   IDBKeyRange _upperBound__2(bound) native "upperBound";
 
 }
@@ -10281,7 +10266,7 @@ class IDBObjectStore native "*IDBObjectStore" {
   final IDBTransaction transaction;
 
   /** @domName IDBObjectStore.add */
-  IDBRequest add(/*any*/ value, [key]) {
+  IDBRequest add(/*any*/ value, [/*IDBKey*/ key]) {
     if (?key) {
       var value_1 = _convertDartToNative_SerializedScriptValue(value);
       var key_2 = _convertDartToNative_IDBKey(key);
@@ -10301,7 +10286,7 @@ class IDBObjectStore native "*IDBObjectStore" {
     if (!?key_OR_range) {
       return _count_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range == null)) {
+    if ((?key_OR_range && (key_OR_range is IDBKeyRange || key_OR_range == null))) {
       return _count_2(key_OR_range);
     }
     if (?key_OR_range) {
@@ -10315,24 +10300,22 @@ class IDBObjectStore native "*IDBObjectStore" {
   IDBRequest _count_3(key) native "count";
 
   /** @domName IDBObjectStore.createIndex */
-  IDBIndex createIndex(String name, keyPath, [options]) {
-    if ((keyPath is List<String> || keyPath == null) &&
+  IDBIndex createIndex(String name, keyPath, [Map options]) {
+    if ((?keyPath && (keyPath is List<String> || keyPath == null)) &&
         !?options) {
       List keyPath_1 = _convertDartToNative_StringArray(keyPath);
       return _createIndex_1(name, keyPath_1);
     }
-    if ((keyPath is List<String> || keyPath == null) &&
-        (options is Map || options == null)) {
+    if ((?keyPath && (keyPath is List<String> || keyPath == null))) {
       List keyPath_2 = _convertDartToNative_StringArray(keyPath);
       var options_3 = _convertDartToNative_Dictionary(options);
       return _createIndex_2(name, keyPath_2, options_3);
     }
-    if ((keyPath is String || keyPath == null) &&
+    if ((?keyPath && (keyPath is String || keyPath == null)) &&
         !?options) {
       return _createIndex_3(name, keyPath);
     }
-    if ((keyPath is String || keyPath == null) &&
-        (options is Map || options == null)) {
+    if ((?keyPath && (keyPath is String || keyPath == null))) {
       var options_4 = _convertDartToNative_Dictionary(options);
       return _createIndex_4(name, keyPath, options_4);
     }
@@ -10345,7 +10328,7 @@ class IDBObjectStore native "*IDBObjectStore" {
 
   /** @domName IDBObjectStore.delete */
   IDBRequest delete(key_OR_keyRange) {
-    if ((key_OR_keyRange is IDBKeyRange || key_OR_keyRange == null)) {
+    if ((?key_OR_keyRange && (key_OR_keyRange is IDBKeyRange || key_OR_keyRange == null))) {
       return _delete_1(key_OR_keyRange);
     }
     if (?key_OR_keyRange) {
@@ -10362,7 +10345,7 @@ class IDBObjectStore native "*IDBObjectStore" {
 
   /** @domName IDBObjectStore.getObject */
   IDBRequest getObject(key) {
-    if ((key is IDBKeyRange || key == null)) {
+    if ((?key && (key is IDBKeyRange || key == null))) {
       return _getObject_1(key);
     }
     if (?key) {
@@ -10378,17 +10361,16 @@ class IDBObjectStore native "*IDBObjectStore" {
   IDBIndex index(String name) native;
 
   /** @domName IDBObjectStore.openCursor */
-  IDBRequest openCursor([key_OR_range, direction]) {
+  IDBRequest openCursor([key_OR_range, String direction]) {
     if (!?key_OR_range &&
         !?direction) {
       return _openCursor_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
+    if ((?key_OR_range && (key_OR_range is IDBKeyRange || key_OR_range == null)) &&
         !?direction) {
       return _openCursor_2(key_OR_range);
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
-        (direction is String || direction == null)) {
+    if ((?key_OR_range && (key_OR_range is IDBKeyRange || key_OR_range == null))) {
       return _openCursor_3(key_OR_range, direction);
     }
     if (?key_OR_range &&
@@ -10396,8 +10378,7 @@ class IDBObjectStore native "*IDBObjectStore" {
       var key_1 = _convertDartToNative_IDBKey(key_OR_range);
       return _openCursor_4(key_1);
     }
-    if (?key_OR_range &&
-        (direction is String || direction == null)) {
+    if (?key_OR_range) {
       var key_2 = _convertDartToNative_IDBKey(key_OR_range);
       return _openCursor_5(key_2, direction);
     }
@@ -10405,12 +10386,12 @@ class IDBObjectStore native "*IDBObjectStore" {
   }
   IDBRequest _openCursor_1() native "openCursor";
   IDBRequest _openCursor_2(IDBKeyRange range) native "openCursor";
-  IDBRequest _openCursor_3(IDBKeyRange range, String direction) native "openCursor";
+  IDBRequest _openCursor_3(IDBKeyRange range, direction) native "openCursor";
   IDBRequest _openCursor_4(key) native "openCursor";
-  IDBRequest _openCursor_5(key, String direction) native "openCursor";
+  IDBRequest _openCursor_5(key, direction) native "openCursor";
 
   /** @domName IDBObjectStore.put */
-  IDBRequest put(/*any*/ value, [key]) {
+  IDBRequest put(/*any*/ value, [/*IDBKey*/ key]) {
     if (?key) {
       var value_1 = _convertDartToNative_SerializedScriptValue(value);
       var key_2 = _convertDartToNative_IDBKey(key);
@@ -11967,15 +11948,14 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
   /** @domName Window.postMessage */
-  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [messagePorts]) {
+  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) {
     if (?message &&
         !?messagePorts) {
       var message_1 = _convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, targetOrigin);
       return;
     }
-    if (?message &&
-        (messagePorts is List || messagePorts == null)) {
+    if (?message) {
       var message_2 = _convertDartToNative_SerializedScriptValue(message);
       _postMessage_2(message_2, targetOrigin, messagePorts);
       return;
@@ -12964,7 +12944,7 @@ class MessagePort extends EventTarget native "*MessagePort" {
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
   /** @domName MessagePort.postMessage */
-  void postMessage(/*any*/ message, [messagePorts]) {
+  void postMessage(/*any*/ message, [List messagePorts]) {
     if (?messagePorts) {
       var message_1 = _convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, messagePorts);
@@ -13522,7 +13502,7 @@ class Navigator native "*Navigator" {
   List<Gamepad> webkitGetGamepads() native;
 
   /** @domName Navigator.webkitGetUserMedia */
-  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [errorCallback]) {
+  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]) {
     if (?errorCallback) {
       var options_1 = _convertDartToNative_Dictionary(options);
       _webkitGetUserMedia_1(options_1, successCallback, errorCallback);
@@ -14710,7 +14690,7 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   /** @domName PeerConnection00.addStream */
-  void addStream(MediaStream stream, [mediaStreamHints]) {
+  void addStream(MediaStream stream, [Map mediaStreamHints]) {
     if (?mediaStreamHints) {
       var mediaStreamHints_1 = _convertDartToNative_Dictionary(mediaStreamHints);
       _addStream_1(stream, mediaStreamHints_1);
@@ -14726,7 +14706,7 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   void close() native;
 
   /** @domName PeerConnection00.createAnswer */
-  SessionDescription createAnswer(String offer, [mediaHints]) {
+  SessionDescription createAnswer(String offer, [Map mediaHints]) {
     if (?mediaHints) {
       var mediaHints_1 = _convertDartToNative_Dictionary(mediaHints);
       return _createAnswer_1(offer, mediaHints_1);
@@ -14737,7 +14717,7 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   SessionDescription _createAnswer_2(offer) native "createAnswer";
 
   /** @domName PeerConnection00.createOffer */
-  SessionDescription createOffer([mediaHints]) {
+  SessionDescription createOffer([Map mediaHints]) {
     if (?mediaHints) {
       var mediaHints_1 = _convertDartToNative_Dictionary(mediaHints);
       return _createOffer_1(mediaHints_1);
@@ -14766,7 +14746,7 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   void setRemoteDescription(int action, SessionDescription desc) native;
 
   /** @domName PeerConnection00.startIce */
-  void startIce([iceOptions]) {
+  void startIce([Map iceOptions]) {
     if (?iceOptions) {
       var iceOptions_1 = _convertDartToNative_Dictionary(iceOptions);
       _startIce_1(iceOptions_1);
@@ -15221,7 +15201,7 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   void addIceCandidate(RTCIceCandidate candidate) native;
 
   /** @domName RTCPeerConnection.addStream */
-  void addStream(MediaStream stream, [mediaConstraints]) {
+  void addStream(MediaStream stream, [Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
       _addStream_1(stream, mediaConstraints_1);
@@ -15237,7 +15217,7 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   void close() native;
 
   /** @domName RTCPeerConnection.createAnswer */
-  void createAnswer(RTCSessionDescriptionCallback successCallback, [failureCallback, mediaConstraints]) {
+  void createAnswer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
       _createAnswer_1(successCallback, failureCallback, mediaConstraints_1);
@@ -15250,7 +15230,7 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   void _createAnswer_2(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback) native "createAnswer";
 
   /** @domName RTCPeerConnection.createDataChannel */
-  RTCDataChannel createDataChannel(String label, [options]) {
+  RTCDataChannel createDataChannel(String label, [Map options]) {
     if (?options) {
       var options_1 = _convertDartToNative_Dictionary(options);
       return _createDataChannel_1(label, options_1);
@@ -15261,7 +15241,7 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   RTCDataChannel _createDataChannel_2(label) native "createDataChannel";
 
   /** @domName RTCPeerConnection.createOffer */
-  void createOffer(RTCSessionDescriptionCallback successCallback, [failureCallback, mediaConstraints]) {
+  void createOffer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
       _createOffer_1(successCallback, failureCallback, mediaConstraints_1);
@@ -15292,7 +15272,7 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   void setRemoteDescription(RTCSessionDescription description, [VoidCallback successCallback, RTCErrorCallback failureCallback]) native;
 
   /** @domName RTCPeerConnection.updateIce */
-  void updateIce([configuration, mediaConstraints]) {
+  void updateIce([Map configuration, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var configuration_1 = _convertDartToNative_Dictionary(configuration);
       var mediaConstraints_2 = _convertDartToNative_Dictionary(mediaConstraints);
@@ -25359,15 +25339,12 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
   /** @domName WebGLRenderingContext.texImage2D */
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [format, type, pixels]) {
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
-        (format is int || format == null) &&
-        (type is int || type == null) &&
-        (pixels is ArrayBufferView || pixels == null)) {
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, ArrayBufferView pixels]) {
+    if ((?border_OR_canvas_OR_image_OR_pixels_OR_video && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null))) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
+    if ((?border_OR_canvas_OR_image_OR_pixels_OR_video && (border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video == null)) &&
         !?format &&
         !?type &&
         !?pixels) {
@@ -25375,21 +25352,21 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
       _texImage2D_2(target, level, internalformat, format_OR_width, height_OR_type, pixels_1);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
+    if ((?border_OR_canvas_OR_image_OR_pixels_OR_video && (border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null)) &&
         !?format &&
         !?type &&
         !?pixels) {
       _texImage2D_3(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
+    if ((?border_OR_canvas_OR_image_OR_pixels_OR_video && (border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null)) &&
         !?format &&
         !?type &&
         !?pixels) {
       _texImage2D_4(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
+    if ((?border_OR_canvas_OR_image_OR_pixels_OR_video && (border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null)) &&
         !?format &&
         !?type &&
         !?pixels) {
@@ -25398,7 +25375,7 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
     }
     throw const Exception("Incorrect number or type of arguments");
   }
-  void _texImage2D_1(target, level, internalformat, width, height, int border, int format, int type, ArrayBufferView pixels) native "texImage2D";
+  void _texImage2D_1(target, level, internalformat, width, height, int border, format, type, ArrayBufferView pixels) native "texImage2D";
   void _texImage2D_2(target, level, internalformat, format, type, pixels) native "texImage2D";
   void _texImage2D_3(target, level, internalformat, format, type, ImageElement image) native "texImage2D";
   void _texImage2D_4(target, level, internalformat, format, type, CanvasElement canvas) native "texImage2D";
@@ -25411,33 +25388,31 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
   void texParameteri(int target, int pname, int param) native;
 
   /** @domName WebGLRenderingContext.texSubImage2D */
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [type, pixels]) {
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
-        (type is int || type == null) &&
-        (pixels is ArrayBufferView || pixels == null)) {
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, ArrayBufferView pixels]) {
+    if ((?canvas_OR_format_OR_image_OR_pixels_OR_video && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null))) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
+    if ((?canvas_OR_format_OR_image_OR_pixels_OR_video && (canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video == null)) &&
         !?type &&
         !?pixels) {
       var pixels_1 = _convertDartToNative_ImageData(canvas_OR_format_OR_image_OR_pixels_OR_video);
       _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width, height_OR_type, pixels_1);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
+    if ((?canvas_OR_format_OR_image_OR_pixels_OR_video && (canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null)) &&
         !?type &&
         !?pixels) {
       _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
+    if ((?canvas_OR_format_OR_image_OR_pixels_OR_video && (canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null)) &&
         !?type &&
         !?pixels) {
       _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
+    if ((?canvas_OR_format_OR_image_OR_pixels_OR_video && (canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null)) &&
         !?type &&
         !?pixels) {
       _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
@@ -25445,7 +25420,7 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
     }
     throw const Exception("Incorrect number or type of arguments");
   }
-  void _texSubImage2D_1(target, level, xoffset, yoffset, width, height, int format, int type, ArrayBufferView pixels) native "texSubImage2D";
+  void _texSubImage2D_1(target, level, xoffset, yoffset, width, height, int format, type, ArrayBufferView pixels) native "texSubImage2D";
   void _texSubImage2D_2(target, level, xoffset, yoffset, format, type, pixels) native "texSubImage2D";
   void _texSubImage2D_3(target, level, xoffset, yoffset, format, type, ImageElement image) native "texSubImage2D";
   void _texSubImage2D_4(target, level, xoffset, yoffset, format, type, CanvasElement canvas) native "texSubImage2D";
@@ -25840,7 +25815,7 @@ class Worker extends AbstractWorker native "*Worker" {
     new WorkerEvents(this);
 
   /** @domName Worker.postMessage */
-  void postMessage(/*SerializedScriptValue*/ message, [messagePorts]) {
+  void postMessage(/*SerializedScriptValue*/ message, [List messagePorts]) {
     if (?messagePorts) {
       var message_1 = _convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, messagePorts);

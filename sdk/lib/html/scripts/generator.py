@@ -401,17 +401,6 @@ class OperationInfo(object):
       if param_info.is_optional:
         EmitOptionalParameterInvocation(index)
 
-
-  def CopyAndWidenDefaultParameters(self):
-    """Returns equivalent OperationInfo, but default parameters are dynamic."""
-    info = copy.copy(self)
-    info.param_infos = [param.Copy() for param in self.param_infos]
-    for param in info.param_infos:
-      if param.is_optional:
-        param.type_id = None
-    return info
-
-
 def ConstantOutputOrder(a, b):
   """Canonical output ordering for constants."""
   if a.id < b.id: return -1
