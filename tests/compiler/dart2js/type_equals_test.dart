@@ -18,8 +18,8 @@ bool test(compiler, String name1, String name2, {bool expect}) {
   var element2 = clazz.buildScope().lookup(buildSourceString(name2));
   Expect.isNotNull(element1);
   Expect.isNotNull(element2);
-  Expect.isTrue(element1.kind === ElementKind.FUNCTION);
-  Expect.isTrue(element2.kind === ElementKind.FUNCTION);
+  Expect.equals(element1.kind, ElementKind.FUNCTION);
+  Expect.equals(element2.kind, ElementKind.FUNCTION);
   FunctionSignature signature1 = element1.computeSignature(compiler);
   FunctionSignature signature2 = element2.computeSignature(compiler);
 

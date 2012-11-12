@@ -5,7 +5,7 @@
 List regExpExec(JSSyntaxRegExp regExp, String str) {
   var nativeRegExp = regExpGetNative(regExp);
   var result = JS('List', r'#.exec(#)', nativeRegExp, str);
-  if (JS('bool', r'# === null', result)) return null;
+  if (JS('bool', r'# == null', result)) return null;
   return result;
 }
 

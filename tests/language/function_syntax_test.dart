@@ -442,8 +442,8 @@ class FunctionSyntaxTest {
     // Equality.
     expectEvaluatesTo(true, ()=> 1 == 1);
     expectEvaluatesTo(false, ()=> 1 != 1);
-    expectEvaluatesTo(true, ()=> 1 === 1);
-    expectEvaluatesTo(false, ()=> 1 !== 1);
+    expectEvaluatesTo(true, ()=> identical(1, 1));
+    expectEvaluatesTo(false, ()=> !identical(1, 1));
 
     // Relational.
     expectEvaluatesTo(true, ()=> 1 <= 1);

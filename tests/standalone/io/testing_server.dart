@@ -17,7 +17,7 @@ class TestingServer {
   void dispatch(message, SendPort replyTo) {
     if (message == INIT) {
       _server = new ServerSocket(HOST, 0, 10);
-      Expect.equals(true, _server !== null);
+      Expect.equals(true, _server != null);
       _server.onConnection = onConnection;
       _server.onError = errorHandlerServer;
       replyTo.send(_server.port, null);

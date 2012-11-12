@@ -1136,7 +1136,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
 
   ConcreteType visitReturn(Return node) {
     final expression = node.expression;
-    return (expression === null)
+    return (expression == null)
         ? new ConcreteType.singleton(const NullBaseType())
         : analyze(expression);
   }

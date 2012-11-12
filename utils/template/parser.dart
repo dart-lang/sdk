@@ -152,7 +152,7 @@ class Parser {
   }
 
   void _error(String message, [SourceSpan location=null]) {
-    if (location === null) {
+    if (location == null) {
       location = _peekToken.span;
     }
 
@@ -166,7 +166,7 @@ class Parser {
   }
 
   void _warning(String message, [SourceSpan location=null]) {
-    if (location === null) {
+    if (location == null) {
       location = _peekToken.span;
     }
 

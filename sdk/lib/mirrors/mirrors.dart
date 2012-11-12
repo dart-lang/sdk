@@ -154,7 +154,7 @@ abstract class DeclarationMirror implements Mirror {
    * Is this declaration top-level?
    *
    * This is defined to be equivalent to:
-   *    [:mirror.owner !== null && mirror.owner is LibraryMirror:]
+   *    [:mirror.owner != null && mirror.owner is LibraryMirror:]
    */
   bool get isTopLevel;
 

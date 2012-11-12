@@ -68,7 +68,7 @@ class FunctionTypeAliasTest {
     Expect.isTrue(compareStrLenReverse is !CompareInt);
     Expect.isTrue(compareStrLenReverse is CompareString);
 
-    int compareObj(Object a, Object b) { return a === b ? 0 : -1; }
+    int compareObj(Object a, Object b) { return identical(a, b) ? 0 : -1; }
     Expect.isTrue(compareObj is Fun);
     Expect.isTrue(compareObj is IntFun);
     Expect.isTrue(compareObj is !BoolFun);

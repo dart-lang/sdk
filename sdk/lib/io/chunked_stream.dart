@@ -51,7 +51,7 @@ class _ChunkedInputStream implements ChunkedInputStream {
 
   void _onData() {
     _readData();
-    if (_bufferList.length >= _chunkSize && _clientDataHandler !== null) {
+    if (_bufferList.length >= _chunkSize && _clientDataHandler != null) {
       _clientDataHandler();
     }
     _checkScheduleCallback();
@@ -60,14 +60,14 @@ class _ChunkedInputStream implements ChunkedInputStream {
 
   void _readData() {
     List<int> data = _input.read();
-    if (data !== null) {
+    if (data != null) {
       _bufferList.add(data);
     }
   }
 
   void _onClosed() {
     _inputClosed = true;
-    if (_bufferList.length == 0 && _clientCloseHandler !== null) {
+    if (_bufferList.length == 0 && _clientCloseHandler != null) {
       _clientCloseHandler();
       _closed = true;
     } else {
@@ -76,7 +76,7 @@ class _ChunkedInputStream implements ChunkedInputStream {
   }
 
   void _checkInstallDataHandler() {
-    if (_clientDataHandler === null) {
+    if (_clientDataHandler == null) {
       _input.onData = null;
     } else {
       if (_bufferList.length < _chunkSize && !_inputClosed) {
@@ -92,7 +92,7 @@ class _ChunkedInputStream implements ChunkedInputStream {
     // the event loop.
     void issueDataCallback(Timer timer) {
       _scheduledDataCallback = null;
-      if (_clientDataHandler !== null) {
+      if (_clientDataHandler != null) {
         _clientDataHandler();
         _checkScheduleCallback();
       }
@@ -101,7 +101,7 @@ class _ChunkedInputStream implements ChunkedInputStream {
     void issueCloseCallback(Timer timer) {
       _scheduledCloseCallback = null;
       if (!_closed) {
-        if (_clientCloseHandler !== null) _clientCloseHandler();
+        if (_clientCloseHandler != null) _clientCloseHandler();
         _closed = true;
       }
     }
@@ -109,7 +109,7 @@ class _ChunkedInputStream implements ChunkedInputStream {
     // Schedule data callback if enough data in buffer.
     if ((_bufferList.length >= _chunkSize ||
          (_bufferList.length > 0 && _inputClosed)) &&
-        _clientDataHandler !== null &&
+        _clientDataHandler != null &&
         _scheduledDataCallback == null) {
       _scheduledDataCallback = new Timer(0, issueDataCallback);
     }

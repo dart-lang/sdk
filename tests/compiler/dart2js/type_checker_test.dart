@@ -416,7 +416,7 @@ DartType analyzeType(String text) {
 }
 
 analyzeTopLevel(String text, [expectedWarnings]) {
-  if (expectedWarnings === null) expectedWarnings = [];
+  if (expectedWarnings == null) expectedWarnings = [];
   if (expectedWarnings is !List) expectedWarnings = [expectedWarnings];
 
   LibraryElement library = mockLibrary(compiler, text);
@@ -437,7 +437,7 @@ analyzeTopLevel(String text, [expectedWarnings]) {
 }
 
 analyze(String text, [expectedWarnings]) {
-  if (expectedWarnings === null) expectedWarnings = [];
+  if (expectedWarnings == null) expectedWarnings = [];
   if (expectedWarnings is !List) expectedWarnings = [expectedWarnings];
 
   Token tokens = scan(text);
@@ -456,7 +456,7 @@ analyze(String text, [expectedWarnings]) {
 }
 
 analyzeIn(ClassElement classElement, String text, [expectedWarnings]) {
-  if (expectedWarnings === null) expectedWarnings = [];
+  if (expectedWarnings == null) expectedWarnings = [];
   if (expectedWarnings is !List) expectedWarnings = [expectedWarnings];
 
   Token tokens = scan(text);

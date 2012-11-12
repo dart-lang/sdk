@@ -1472,7 +1472,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         enclosingElement);
     Scope oldScope = scope; // The scope is modified by [setupFunction].
     setupFunction(node, function);
-    defineElement(node, function, doAddToScope: node.name !== null);
+    defineElement(node, function, doAddToScope: node.name != null);
 
     Element previousEnclosingElement = enclosingElement;
     enclosingElement = function;

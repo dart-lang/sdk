@@ -137,7 +137,7 @@ class SetIteratorTest {
       bool foundIt = false;
       for (var x in set) {
         foundIt = true;
-        Expect.equals(true, x === element);
+        Expect.equals(true, identical(x, element));
       }
       Expect.equals(true, foundIt);
     }

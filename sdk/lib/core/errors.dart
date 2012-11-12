@@ -154,7 +154,7 @@ class NoSuchMethodError implements Error {
         i++;
       });
     }
-    if (_existingArgumentNames === null) {
+    if (_existingArgumentNames == null) {
       return "NoSuchMethodError : method not found: '$_memberName'\n"
           "Receiver: ${safeToString(_receiver)}\n"
           "Arguments: [$sb]";
@@ -226,7 +226,7 @@ class UnsupportedError implements Error {
 class UnimplementedError implements UnsupportedError, NotImplementedException {
   final String message;
   const UnimplementedError([String this.message]);
-  String toString() => (this.message !== null
+  String toString() => (this.message != null
                         ? "UnimplementedError: $message"
                         : "UnimplementedError");
 }

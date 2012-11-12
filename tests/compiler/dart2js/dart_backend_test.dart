@@ -60,7 +60,7 @@ class JSInvocationMirror {}
 testDart2Dart(String src, {void continuation(String s), bool minify: false,
     bool stripTypes: false}) {
   // If continuation is not provided, check that source string remains the same.
-  if (continuation === null) {
+  if (continuation == null) {
     continuation = (s) { Expect.equals(src, s); };
   }
   testDart2DartWithLibrary(src, '', continuation: continuation, minify: minify,
@@ -93,7 +93,7 @@ testDart2DartWithLibrary(
   }
 
   handler(uri, begin, end, message, kind) {
-    if (kind === Diagnostic.ERROR || kind === Diagnostic.CRASH) {
+    if (identical(kind, Diagnostic.ERROR) || identical(kind, Diagnostic.CRASH)) {
       Expect.fail('$uri: $begin-$end: $message [$kind]');
     }
   }

@@ -4,7 +4,7 @@
 
 patch class _EventHandler {
   /* patch */ static void _start() {
-    if (_eventHandler === null) {
+    if (_eventHandler == null) {
       _eventHandler = new _EventHandlerImpl();
       _eventHandler._start();
     }
@@ -13,7 +13,7 @@ patch class _EventHandler {
   /* patch */ static _sendData(Object sender,
                                ReceivePort receivePort,
                                int data) {
-    if (_eventHandler !== null) {
+    if (_eventHandler != null) {
       _eventHandler._sendData(sender, receivePort, data);
     }
   }

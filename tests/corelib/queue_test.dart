@@ -174,7 +174,7 @@ class QueueTest {
     DoubleLinkedQueueEntry<int> entry1 = queue1.firstEntry();
     DoubleLinkedQueueEntry<int> entry2 = queue2.firstEntry();
     while (entry1 != null) {
-      Expect.equals(true, entry1 !== entry2);
+      Expect.equals(true, !identical(entry1, entry2));
       entry1 = entry1.nextEntry();
       entry2 = entry2.nextEntry();
     }

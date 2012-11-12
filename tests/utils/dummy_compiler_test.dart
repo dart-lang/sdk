@@ -47,7 +47,7 @@ Future<String> provider(Uri uri) {
 }
 
 void handler(Uri uri, int begin, int end, String message, Diagnostic kind) {
-  if (uri === null) {
+  if (uri == null) {
     print('$kind: $message');
   } else {
     print('$uri:$begin:$end: $kind: $message');
@@ -59,7 +59,7 @@ main() {
                         new Uri.fromComponents(scheme: 'lib', path: '/'),
                         new Uri.fromComponents(scheme: 'package', path: '/'),
                         provider, handler).value;
-  if (code === null) {
+  if (code == null) {
     throw 'Compilation failed';
   }
 }

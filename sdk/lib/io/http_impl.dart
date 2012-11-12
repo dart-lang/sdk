@@ -1547,7 +1547,7 @@ class _HttpServer implements HttpServer {
   }
 
   int get port {
-    if (_server === null) {
+    if (_server == null) {
       throw new HttpException("The HttpServer is not listening on a port.");
     }
     return _server.port;

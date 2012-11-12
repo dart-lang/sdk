@@ -781,7 +781,7 @@ class _MemoRule extends _Rule {
   _match(state, pos) {
     // See if we are still parsing the same input.  Relies on the fact that the
     // input is a string and strings are immutable.
-    if (parseInstance !== state._text) {
+    if (!identical(parseInstance, state._text)) {
       map = new Map<int,Object>();
       parseInstance = state._text;
     }

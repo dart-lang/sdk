@@ -147,7 +147,7 @@ String _filePathFromPackageUri(Uri uri) {
   }
 
   var path;
-  if (_packageRoot !== null) {
+  if (_packageRoot != null) {
     path = "${_packageRoot}${uri.path}";
   } else {
     path = _entrypoint.resolve('packages/${uri.path}').path;

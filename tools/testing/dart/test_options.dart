@@ -552,7 +552,7 @@ Note: currently only implemented for dart2js.''',
     } else {
       // All runtimes eventually go through this path, after expansion.
       var updater = runtimeUpdater(configuration);
-      if (updater !== null) {
+      if (updater != null) {
         updater.update();
       }
     }

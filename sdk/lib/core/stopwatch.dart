@@ -75,11 +75,11 @@ class _StopwatchImpl implements Stopwatch {
   _StopwatchImpl() : _start = null, _stop = null {}
 
   void start() {
-    if (_start === null) {
+    if (_start == null) {
       // This stopwatch has never been started.
       _start = _now();
     } else {
-      if (_stop === null) {
+      if (_stop == null) {
         return;
       }
       // Restarting this stopwatch. Prepend the elapsed time to the current
@@ -90,18 +90,18 @@ class _StopwatchImpl implements Stopwatch {
   }
 
   void stop() {
-    if (_start === null || _stop !== null) {
+    if (_start == null || _stop != null) {
       return;
     }
     _stop = _now();
   }
 
   void reset() {
-    if (_start === null) return;
+    if (_start == null) return;
     // If [_start] is not null, then the stopwatch had already been started. It
     // may running right now.
     _start = _now();
-    if (_stop !== null) {
+    if (_stop != null) {
       // The watch is not running. So simply set the [_stop] to [_start] thus
       // having an elapsed time of 0.
       _stop = _start;
@@ -109,10 +109,10 @@ class _StopwatchImpl implements Stopwatch {
   }
 
   int get elapsedTicks {
-    if (_start === null) {
+    if (_start == null) {
       return 0;
     }
-    return (_stop === null) ? (_now() - _start) : (_stop - _start);
+    return (_stop == null) ? (_now() - _start) : (_stop - _start);
   }
 
   int get elapsedMicroseconds {

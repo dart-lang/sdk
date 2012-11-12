@@ -80,7 +80,7 @@ class HValidator extends HInstructionVisitor {
         markInvalid("dominated block not pointing back");
       }
       if (dominated.id == null || dominated.id <= lastId) {
-        markInvalid("dominated.id === null or dominated has <= id");
+        markInvalid("dominated.id == null or dominated has <= id");
       }
       lastId = dominated.id;
     }

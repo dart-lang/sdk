@@ -115,7 +115,7 @@ class Towers {
 
   void push(int pile, TowersDisk disk) {
     TowersDisk top = piles[pile];
-    if ((top !== null) && (disk.size >= top.size))
+    if ((top != null) && (disk.size >= top.size))
       Error.error("Cannot put a big disk on a smaller disk.");
     disk.next = top;
     piles[pile] = disk;
@@ -123,7 +123,7 @@ class Towers {
 
   TowersDisk pop(int pile) {
     var top = piles[pile];
-    if (top === null)
+    if (top == null)
       Error.error("Attempting to remove a disk from an empty pile.");
     piles[pile] = top.next;
     top.next = null;
@@ -526,10 +526,10 @@ class TreeNodePress {
 
   void insert(int n) {
     if (n < value) {
-      if (left === null) left = new TreeNodePress(n);
+      if (left == null) left = new TreeNodePress(n);
       else left.insert(n);
     } else {
-      if (right === null) right = new TreeNodePress(n);
+      if (right == null) right = new TreeNodePress(n);
       else right.insert(n);
     }
   }
@@ -539,8 +539,8 @@ class TreeNodePress {
     TreeNodePress right = this.right;
     int value = this.value;
 
-    return ((left === null) || ((left.value < value) && left.check())) &&
-           ((right === null) || ((right.value >= value) && right.check()));
+    return ((left == null) || ((left.value < value) && left.check())) &&
+           ((right == null) || ((right.value >= value) && right.check()));
   }
 }
 
@@ -610,8 +610,8 @@ class ListElement {
   static bool isShorter(ListElement x, ListElement y) {
     ListElement xTail = x;
     ListElement yTail = y;
-    while (yTail !== null) {
-      if (xTail === null) return true;
+    while (yTail != null) {
+      if (xTail == null) return true;
       xTail = xTail.next;
       yTail = yTail.next;
     }
@@ -1327,12 +1327,12 @@ message_test_main() {
       Expect.equals(true, sendObject is List);
       Expect.equals(true, replyObject is List);
       Expect.equals(sendObject.length, replyObject.length);
-      Expect.equals(true, replyObject[1] === replyObject);
-      Expect.equals(true, replyObject[3] === replyObject);
-      Expect.equals(true, replyObject[0] === replyObject[2][1]);
-      Expect.equals(true, replyObject[0] === replyObject[2][2]);
-      Expect.equals(true, replyObject[2] === replyObject[4][0]);
-      Expect.equals(true, replyObject[0][0] === replyObject[0][2]);
+      Expect.equals(true, identical(replyObject[1], replyObject));
+      Expect.equals(true, identical(replyObject[3], replyObject));
+      Expect.equals(true, identical(replyObject[0], replyObject[2][1]));
+      Expect.equals(true, identical(replyObject[0], replyObject[2][2]));
+      Expect.equals(true, identical(replyObject[2], replyObject[4][0]));
+      Expect.equals(true, identical(replyObject[0][0], replyObject[0][2]));
       // Bigint literals are not canonicalized so do a == check.
       Expect.equals(true, replyObject[0][3] == replyObject[4][4]);
     });
@@ -1454,7 +1454,7 @@ class MandelbrotState {
   }
 
   void notifyProcessedLine(LineProcessorClient client, int y, List<int> line) {
-    assert(_result[y] === null);
+    assert(_result[y] == null);
     _result[y] = line;
     _lineProcessedBy[y] = client;
 

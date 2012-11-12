@@ -1301,7 +1301,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           Node node = member.parseNode(compiler);
           SendSet assignment = node.asSendSet();
           HInstruction value;
-          if (assignment === null) {
+          if (assignment == null) {
             value = graph.addConstantNull(constantSystem);
           } else {
             Node right = assignment.arguments.head;
@@ -1460,12 +1460,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // This is the code we emit for a parameter that is being checked
       // on whether it was given at value at the call site:
       //
-      // foo([a = 42) {
+      // foo([a = 42]) {
       //   if (?a) print('parameter passed $a');
       // }
       //
       // foo([a = 42]) {
-      //   var t1 = a === sentinel;
+      //   var t1 = identical(a, sentinel);
       //   if (t1) a = 42;
       //   if (!t1) print('parameter passed ' + a);
       // }

@@ -234,7 +234,7 @@ class _HashSetIterator<E> implements Iterator<E> {
     do {
       if (++_nextValidIndex >= length) break;
       entry = _entries[_nextValidIndex];
-    } while ((entry === null) || (entry === deletedKey));
+    } while ((entry == null) || identical(entry, deletedKey));
   }
 
   // The entries in the set. May contain null or the sentinel value.

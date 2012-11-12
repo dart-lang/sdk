@@ -25,7 +25,7 @@ main() {
     expect(level2 > level1, isTrue);
 
     var level3 = const Level('NOT_REAL3', 253);
-    expect(level1 !== level3, isTrue); // different instances
+    expect(!identical(level1, level3), isTrue); // different instances
     expect(level1 == level3, isTrue); // same value.
   });
 
@@ -102,10 +102,10 @@ main() {
     Logger a2 = new Logger('a');
     Logger b = new Logger('a.b');
     Logger root = Logger.root;
-    expect(a1 === a2, isTrue);
-    expect(a1 === b.parent, isTrue);
-    expect(root === a1.parent, isTrue);
-    expect(root === new Logger(''), isTrue);
+    expect(identical(a1, a2), isTrue);
+    expect(identical(a1, b.parent), isTrue);
+    expect(identical(root, a1.parent), isTrue);
+    expect(identical(root, new Logger('')), isTrue);
   });
 
   group('mutating levels', () {

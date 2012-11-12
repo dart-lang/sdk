@@ -116,7 +116,7 @@ class _ListOutputStream extends _BaseOutputStream implements ListOutputStream {
 
     void issueCloseCallback(Timer timer) {
       _scheduledCloseCallback = null;
-      if (_clientCloseHandler !== null) _clientCloseHandler();
+      if (_clientCloseHandler != null) _clientCloseHandler();
     }
 
     // Schedule no pending callback if there is a callback set as this

@@ -89,7 +89,7 @@ class _ObjectArray<E> implements List<E> {
   }
 
   bool get isEmpty {
-    return this.length === 0;
+    return this.length == 0;
   }
 
   void sort([Comparator<E> compare = Comparable.compare]) {
@@ -101,7 +101,7 @@ class _ObjectArray<E> implements List<E> {
   }
 
   int lastIndexOf(E element, [int start = null]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return Arrays.lastIndexOf(this, element, start);
   }
 
@@ -231,7 +231,7 @@ class _ImmutableArray<E> implements List<E> {
   }
 
   bool get isEmpty {
-    return this.length === 0;
+    return this.length == 0;
   }
 
   void sort([Comparator<E> compare]) {
@@ -248,7 +248,7 @@ class _ImmutableArray<E> implements List<E> {
   }
 
   int lastIndexOf(E element, [int start = null]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return Arrays.lastIndexOf(this, element, start);
   }
 

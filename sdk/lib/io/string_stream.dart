@@ -424,10 +424,10 @@ class _StringInputStream implements StringInputStream {
 
   void _onData() {
     _readData();
-    if (!_decoder.isEmpty && _clientDataHandler !== null) {
+    if (!_decoder.isEmpty && _clientDataHandler != null) {
       _clientDataHandler();
     }
-    if (_decoder.lineBreaks > 0 && _clientLineHandler !== null) {
+    if (_decoder.lineBreaks > 0 && _clientLineHandler != null) {
       _clientLineHandler();
     }
     _checkScheduleCallback();
@@ -445,23 +445,23 @@ class _StringInputStream implements StringInputStream {
 
   void _readData() {
     List<int> data = _input.read();
-    if (data !== null) {
+    if (data != null) {
       _decoder.write(data);
     }
   }
 
   void _checkInstallDataHandler() {
     if (_inputClosed ||
-        (_clientDataHandler === null && _clientLineHandler === null)) {
+        (_clientDataHandler == null && _clientLineHandler == null)) {
       _input.onData = null;
-    } else if (_clientDataHandler !== null) {
+    } else if (_clientDataHandler != null) {
       if (_decoder.isEmpty) {
         _input.onData = _onData;
       } else {
         _input.onData = null;
       }
     } else {
-      assert(_clientLineHandler !== null);
+      assert(_clientLineHandler != null);
       if (_decoder.lineBreaks == 0) {
         _input.onData = _onData;
       } else {
@@ -475,7 +475,7 @@ class _StringInputStream implements StringInputStream {
   void _checkScheduleCallback() {
     void issueDataCallback(Timer timer) {
       _scheduledDataCallback = null;
-      if (_clientDataHandler !== null) {
+      if (_clientDataHandler != null) {
         _clientDataHandler();
         _checkScheduleCallback();
       }
@@ -483,7 +483,7 @@ class _StringInputStream implements StringInputStream {
 
     void issueLineCallback(Timer timer) {
       _scheduledLineCallback = null;
-      if (_clientLineHandler !== null) {
+      if (_clientLineHandler != null) {
         _clientLineHandler();
         _checkScheduleCallback();
       }
@@ -492,7 +492,7 @@ class _StringInputStream implements StringInputStream {
     void issueCloseCallback(Timer timer) {
       _scheduledCloseCallback = null;
       if (!_closed) {
-        if (_clientCloseHandler !== null) _clientCloseHandler();
+        if (_clientCloseHandler != null) _clientCloseHandler();
         _closed = true;
       }
     }

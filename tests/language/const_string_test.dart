@@ -6,30 +6,30 @@
 
 main() {
   // Constant comparisons are independent of the quotes used.
-  Expect.isTrue("abcd" === 'abcd');
-  Expect.isTrue('abcd' === "abcd");
-  Expect.isTrue("ab\"cd" === 'ab"cd');
-  Expect.isTrue('ab\'cd' === "ab'cd");
+  Expect.isTrue(identical("abcd", 'abcd'));
+  Expect.isTrue(identical('abcd', "abcd"));
+  Expect.isTrue(identical("ab\"cd", 'ab"cd'));
+  Expect.isTrue(identical('ab\'cd', "ab'cd"));
 
   // String concatenation works even when quotes are different.
-  Expect.isTrue("abcd" === "ab" "cd");
-  Expect.isTrue("abcd" === "ab" 'cd');
-  Expect.isTrue("abcd" === 'ab' 'cd');
-  Expect.isTrue("abcd" === 'ab' "cd");
+  Expect.isTrue(identical("abcd", "ab" "cd"));
+  Expect.isTrue(identical("abcd", "ab" 'cd'));
+  Expect.isTrue(identical("abcd", 'ab' 'cd'));
+  Expect.isTrue(identical("abcd", 'ab' "cd"));
 
   // Or when there are more than 2 contatenations.
-  Expect.isTrue("abcd" === "a" "b" "cd");
-  Expect.isTrue("abcd" === "a" "b" "c" "d");
-  Expect.isTrue('abcd' === 'a' 'b' 'c' 'd');
-  Expect.isTrue("abcd" === "a" "b" 'c' "d");
-  Expect.isTrue("abcd" === 'a' 'b' 'c' 'd');
-  Expect.isTrue("abcd" === 'a' "b" 'c' "d");
+  Expect.isTrue(identical("abcd", "a" "b" "cd"));
+  Expect.isTrue(identical("abcd", "a" "b" "c" "d"));
+  Expect.isTrue(identical('abcd', 'a' 'b' 'c' 'd'));
+  Expect.isTrue(identical("abcd", "a" "b" 'c' "d"));
+  Expect.isTrue(identical("abcd", 'a' 'b' 'c' 'd'));
+  Expect.isTrue(identical("abcd", 'a' "b" 'c' "d"));
 
-  Expect.isTrue("a'b'cd" === "a" "'b'" 'c' "d");
-  Expect.isTrue("a\"b\"cd" === "a" '"b"' 'c' "d");
-  Expect.isTrue("a\"b\"cd" === "a" '"b"' 'c' "d");
-  Expect.isTrue("a'b'cd" === 'a' "'b'" 'c' "d");
-  Expect.isTrue('a\'b\'cd' === "a" "'b'" 'c' "d");
-  Expect.isTrue('a"b"cd' === 'a' '"b"' 'c' "d");
-  Expect.isTrue("a\"b\"cd" === 'a' '"b"' 'c' "d");
+  Expect.isTrue(identical("a'b'cd", "a" "'b'" 'c' "d"));
+  Expect.isTrue(identical("a\"b\"cd", "a" '"b"' 'c' "d"));
+  Expect.isTrue(identical("a\"b\"cd", "a" '"b"' 'c' "d"));
+  Expect.isTrue(identical("a'b'cd", 'a' "'b'" 'c' "d"));
+  Expect.isTrue(identical('a\'b\'cd', "a" "'b'" 'c' "d"));
+  Expect.isTrue(identical('a"b"cd', 'a' '"b"' 'c' "d"));
+  Expect.isTrue(identical("a\"b\"cd", 'a' '"b"' 'c' "d"));
 }

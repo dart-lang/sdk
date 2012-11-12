@@ -24,11 +24,11 @@ test(double n) {
   Expect.isTrue(n != 0);
   Expect.isTrue(!(n == 0));
 
-  Expect.isFalse(n === 0);
-  Expect.isFalse(!(n !== 0));
+  Expect.isFalse(identical(n, 0));
+  Expect.isFalse(!(!identical(n, 0)));
 
-  Expect.isTrue(n !== 0);
-  Expect.isTrue(!(n === 0));
+  Expect.isTrue(!identical(n, 0));
+  Expect.isTrue(!(identical(n, 0)));
 
   Expect.isFalse(0 >= n);
   Expect.isTrue(!(0 < n));
@@ -48,11 +48,11 @@ test(double n) {
   Expect.isTrue(0 != n);
   Expect.isTrue(!(0 == n));
 
-  Expect.isFalse(0 === n);
-  Expect.isFalse(!(0 !== n));
+  Expect.isFalse(identical(0, n));
+  Expect.isFalse(!(!identical(0, n)));
 
-  Expect.isTrue(0 !== n);
-  Expect.isTrue(!(0 === n));
+  Expect.isTrue(!identical(0, n));
+  Expect.isTrue(!(identical(0, n)));
 }
 
 testConstant() {
@@ -74,11 +74,11 @@ testConstant() {
   Expect.isTrue(double.NAN != 0);
   Expect.isTrue(!(double.NAN == 0));
 
-  Expect.isFalse(double.NAN === 0);
-  Expect.isFalse(!(double.NAN !== 0));
+  Expect.isFalse(identical(double.NAN, 0));
+  Expect.isFalse(!(!identical(double.NAN, 0)));
 
-  Expect.isTrue(double.NAN !== 0);
-  Expect.isTrue(!(double.NAN === 0));
+  Expect.isTrue(!identical(double.NAN, 0));
+  Expect.isTrue(!(identical(double.NAN, 0)));
 
   Expect.isFalse(0 >= double.NAN);
   Expect.isTrue(!(0 < double.NAN));
@@ -98,11 +98,11 @@ testConstant() {
   Expect.isTrue(0 != double.NAN);
   Expect.isTrue(!(0 == double.NAN));
 
-  Expect.isFalse(0 === double.NAN);
-  Expect.isFalse(!(0 !== double.NAN));
+  Expect.isFalse(identical(0, double.NAN));
+  Expect.isFalse(!(!identical(0, double.NAN)));
 
-  Expect.isTrue(0 !== double.NAN);
-  Expect.isTrue(!(0 === double.NAN));
+  Expect.isTrue(!identical(0, double.NAN));
+  Expect.isTrue(!(identical(0, double.NAN)));
 }
 
 main() {

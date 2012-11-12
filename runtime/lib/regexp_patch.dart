@@ -61,7 +61,7 @@ patch class JSSyntaxRegExp {
 
   /* patch */ Match firstMatch(String str) {
     List match = _ExecuteMatch(str, 0);
-    if (match === null) {
+    if (match == null) {
       return null;
     }
     return new _JSRegExpMatch(this, str, match);
@@ -91,12 +91,12 @@ patch class JSSyntaxRegExp {
 
   /* patch */ bool hasMatch(String str) {
     List match = _ExecuteMatch(str, 0);
-    return (match === null) ? false : true;
+    return (match == null) ? false : true;
   }
 
   /* patch */ String stringMatch(String str) {
     List match = _ExecuteMatch(str, 0);
-    if (match === null) {
+    if (match == null) {
       return null;
     }
     // TODO(ajohnsen): Use _substringUnchecked when regexp is in core.

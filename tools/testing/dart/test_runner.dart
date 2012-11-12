@@ -789,7 +789,7 @@ class BatchRunnerProcess {
   void startTest(TestCase testCase) {
     Expect.isNull(_currentTest);
     _currentTest = testCase;
-    if (_process === null) {
+    if (_process == null) {
       // Start process if not yet started.
       _executable = testCase.commands.last.executable;
       _startProcess(() {

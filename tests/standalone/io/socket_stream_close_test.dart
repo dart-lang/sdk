@@ -142,7 +142,7 @@ class SocketClose {
     }
 
     _socket = new Socket(SocketCloseServer.HOST, _port);
-    Expect.equals(true, _socket !== null);
+    Expect.equals(true, _socket != null);
     _socket.onConnect = connectHandler;
   }
 
@@ -369,7 +369,7 @@ class SocketCloseServer {
       _iterations = 0;
       _mode = message;
       _server = new ServerSocket(HOST, 0, 10);
-      Expect.equals(true, _server !== null);
+      Expect.equals(true, _server != null);
       _server.onConnection = (connection) {
         var data = new ConnectionData(connection);
         connectionHandler(data);

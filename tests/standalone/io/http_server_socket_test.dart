@@ -26,7 +26,7 @@ class ExpectedDataOutputStream implements OutputStream {
   }
 
   bool writeFrom(List data, [int offset = 0, int len]) {
-    if (len === null) len = data.length - offset;
+    if (len == null) len = data.length - offset;
     _onData(data.getRange(offset, len));
     return true;
   }

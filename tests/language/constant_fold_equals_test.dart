@@ -6,9 +6,9 @@ main() {
   var a = 'foo';
   for (int i = 0; i < 10; i++) {
     if (i == 0) {
-      Expect.isTrue(a === 'foo');
+      Expect.isTrue(identical(a, 'foo'));
     } else {
-      Expect.isTrue(a === 2);
+      Expect.isTrue(a == 2);
     }
     a = 2;
   }

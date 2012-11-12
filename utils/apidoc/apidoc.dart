@@ -413,13 +413,13 @@ class Apidoc extends doc.Dartdoc {
                             doc.DocComment fileComment,
                             doc.DocComment handWrittenComment) {
     // Prefer the hand-written comment first.
-    if (handWrittenComment !== null) return handWrittenComment;
+    if (handWrittenComment != null) return handWrittenComment;
 
     // Otherwise, prefer comment from the (possibly generated) Dart file.
-    if (fileComment !== null) return fileComment;
+    if (fileComment != null) return fileComment;
 
     // Finally, fallback on MDN if available.
-    if (mdnComment !== null) {
+    if (mdnComment != null) {
       mdnUrl = mdnComment.mdnUrl;
       return mdnComment;
     }

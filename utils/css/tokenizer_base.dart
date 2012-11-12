@@ -180,7 +180,7 @@ class CSSTokenizerBase implements TokenSource {
 
   int readHex([int hexLength]) {
     int maxIndex;
-    if (hexLength === null) {
+    if (hexLength == null) {
       maxIndex = _text.length - 1;
     } else {
       // TODO(jimhug): What if this is too long?
@@ -191,7 +191,7 @@ class CSSTokenizerBase implements TokenSource {
     while (_index < maxIndex) {
       final digit = _hexDigit(_text.charCodeAt(_index));
       if (digit == -1) {
-        if (hexLength === null) {
+        if (hexLength == null) {
           return result;
         } else {
           return -1;

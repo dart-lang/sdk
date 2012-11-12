@@ -38,7 +38,7 @@ void test(Future<Process> future, int expectedExitCode) {
       received = buffer.length;
       if (received >= dataSize) {
         // We expect an extra character on windows due to carriage return.
-        if (13 === buffer[dataSize - 1] && dataSize + 1 === received) {
+        if (13 == buffer[dataSize - 1] && dataSize + 1 == received) {
           Expect.equals(13, buffer[dataSize - 1]);
           Expect.equals(10, buffer[dataSize]);
           buffer.removeLast();

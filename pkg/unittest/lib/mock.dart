@@ -198,25 +198,25 @@ class CallMatcher {
       nameFilter = wrapMatcher(name);
     }
     argMatchers = new List<Matcher>();
-    if (arg0 === _noArg) return;
+    if (identical(arg0, _noArg)) return;
     argMatchers.add(wrapMatcher(arg0));
-    if (arg1 === _noArg) return;
+    if (identical(arg1, _noArg)) return;
     argMatchers.add(wrapMatcher(arg1));
-    if (arg2 === _noArg) return;
+    if (identical(arg2, _noArg)) return;
     argMatchers.add(wrapMatcher(arg2));
-    if (arg3 === _noArg) return;
+    if (identical(arg3, _noArg)) return;
     argMatchers.add(wrapMatcher(arg3));
-    if (arg4 === _noArg) return;
+    if (identical(arg4, _noArg)) return;
     argMatchers.add(wrapMatcher(arg4));
-    if (arg5 === _noArg) return;
+    if (identical(arg5, _noArg)) return;
     argMatchers.add(wrapMatcher(arg5));
-    if (arg6 === _noArg) return;
+    if (identical(arg6, _noArg)) return;
     argMatchers.add(wrapMatcher(arg6));
-    if (arg7 === _noArg) return;
+    if (identical(arg7, _noArg)) return;
     argMatchers.add(wrapMatcher(arg7));
-    if (arg8 === _noArg) return;
+    if (identical(arg8, _noArg)) return;
     argMatchers.add(wrapMatcher(arg8));
-    if (arg9 === _noArg) return;
+    if (identical(arg9, _noArg)) return;
     argMatchers.add(wrapMatcher(arg9));
   }
 
@@ -417,7 +417,7 @@ class LogEntry {
 
 /** Utility function for optionally qualified method names */
 String _qualifiedName(owner, String method) {
-  if (owner == null || owner === anything) {
+  if (owner == null || identical(owner, anything)) {
     return method;
   } else if (owner is Matcher) {
     Description d = new StringDescription();

@@ -805,7 +805,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
     classElement.implementation.forEachInstanceField(
         (ClassElement enclosing, Element field) {
           Constant fieldValue = fieldValues[field];
-          if (fieldValue === null) {
+          if (fieldValue == null) {
             // Use the default value.
             fieldValue = compiler.compileConstant(field);
           }

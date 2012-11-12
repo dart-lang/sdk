@@ -16,7 +16,7 @@ void testInWhileLoop() {
   while (index++ != 2) {
     var e = getNonInt();
     Expect.equals(42, e + 2);
-    if (e !== null) continue;
+    if (e != null) continue;
     while (true) use(e);
   }
   // 'c' must have been saved in the environment.
@@ -30,7 +30,7 @@ void testInNestedWhileLoop() {
     while (index++ != 2) {
       var e = getNonInt();
       Expect.equals(42, e + 2);
-      if (e !== null) continue;
+      if (e != null) continue;
     }
     // 'c' must have been saved in the environment.
     Expect.equals(c, 42);
@@ -45,7 +45,7 @@ void testInNestedWhileLoop2() {
     while (true) {
       var e = getNonInt();
       Expect.equals(42, e + 2);
-      if (e !== null) continue L0;
+      if (e != null) continue L0;
       while (true) use(e);
     }
   }
@@ -60,10 +60,10 @@ void testInNestedWhileLoop3() {
     while (index < 2) {
       var e = getNonInt();
       Expect.equals(42, e + 2);
-      if (e !== null && index++ == 0) continue;
+      if (e != null && index++ == 0) continue;
       // 'c' must have been saved in the environment.
       Expect.equals(c, 42);
-      while (e === null) use(e);
+      while (e == null) use(e);
     }
   }
 }
@@ -74,7 +74,7 @@ void testInDoWhileLoop() {
   do {
     var e = getNonInt();
     Expect.equals(42, e + 2);
-    if (e !== null) continue;
+    if (e != null) continue;
     while (true) use(e);
   } while (index++ != 2);
   // 'c' must have been saved in the environment.
@@ -86,7 +86,7 @@ void testInForLoop() {
   for (int i = 0; i < 10; i++) {
     var e = getNonInt();
     Expect.equals(42, e + 2);
-    if (e !== null) continue;
+    if (e != null) continue;
     while (true) use(e);
   }
   // 'c' must have been saved in the environment.

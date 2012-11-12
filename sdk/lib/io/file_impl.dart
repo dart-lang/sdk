@@ -249,10 +249,10 @@ class _FileOutputStream extends _BaseOutputStream implements OutputStream {
   void _processPendingOperations() {
     _pendingOperations.forEach((buffer) {
       if (buffer is _PendingOperation) {
-        if (buffer === _PendingOperation.CLOSE) {
+        if (identical(buffer, _PendingOperation.CLOSE)) {
           close();
         } else {
-          assert(buffer === _PendingOperation.FLUSH);
+          assert(identical(buffer, _PendingOperation.FLUSH));
           flush();
         }
       } else {

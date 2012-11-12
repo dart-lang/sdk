@@ -15,13 +15,13 @@ patch class Expando<T> {
         result = _data[i].value;
         break;
       }
-      if (key === null) {
+      if (key == null) {
         doCompact = true;
         _data[i] = null;
       }
     }
     if (doCompact) {
-      _data = _data.filter((e) => (e !== null));
+      _data = _data.filter((e) => (e != null));
     }
     return result;
   }
@@ -35,12 +35,12 @@ patch class Expando<T> {
       if (key === object) {
         break;
       }
-      if (key === null) {
+      if (key == null) {
         doCompact = true;
         _data[i] = null;
       }
     }
-    if (i !== _data.length && value === null) {
+    if (i !== _data.length && value == null) {
       doCompact = true;
       _data[i] = null;
     } else if (i !== _data.length) {
@@ -49,12 +49,12 @@ patch class Expando<T> {
       _data.add(new _WeakProperty(object, value));
     }
     if (doCompact) {
-      _data = _data.filter((e) => (e !== null));
+      _data = _data.filter((e) => (e != null));
     }
   }
 
   static _checkType(object) {
-    if (object === null) {
+    if (object == null) {
       throw new NullPointerException();
     }
     if (object is bool || object is num || object is String) {

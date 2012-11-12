@@ -73,7 +73,7 @@ Matcher same(expected) => new _IsSameAs(expected);
 class _IsSameAs extends BaseMatcher {
   final _expected;
   const _IsSameAs(this._expected);
-  bool matches(item, MatchState matchState) => item === _expected;
+  bool matches(item, MatchState matchState) => identical(item, _expected);
   // If all types were hashable we could show a hash here.
   Description describe(Description description) =>
       description.add('same instance as ').addDescriptionOf(_expected);

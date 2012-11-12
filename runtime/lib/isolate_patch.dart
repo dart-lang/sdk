@@ -27,16 +27,16 @@ class _ReceivePortImpl implements ReceivePort {
   /**** Internal implementation details ****/
   // Called from the VM to create a new ReceivePort instance.
   static _ReceivePortImpl _get_or_create(int id) {
-    if (_portMap !== null) {
+    if (_portMap != null) {
       _ReceivePortImpl port = _portMap[id];
-      if (port !== null) {
+      if (port != null) {
         return port;
       }
     }
     return new _ReceivePortImpl._internal(id);
   }
   _ReceivePortImpl._internal(int id) : _id = id {
-    if (_portMap === null) {
+    if (_portMap == null) {
       _portMap = new Map();
     }
     _portMap[id] = this;
@@ -44,7 +44,7 @@ class _ReceivePortImpl implements ReceivePort {
 
   // Called from the VM to dispatch to the handler.
   static void _handleMessage(int id, int replyId, var message) {
-    assert(_portMap !== null);
+    assert(_portMap != null);
     ReceivePort port = _portMap[id];
     SendPort replyTo = (replyId == 0) ? null : new _SendPortImpl(replyId);
     (port._onMessage)(message, replyTo);
@@ -68,7 +68,7 @@ class _SendPortImpl implements SendPort {
   }
 
   void _sendNow(var message, SendPort replyTo) {
-    int replyId = (replyTo === null) ? 0 : replyTo._id;
+    int replyId = (replyTo == null) ? 0 : replyTo._id;
     _sendInternal(_id, replyId, message);
   }
 
@@ -117,7 +117,7 @@ _getPortInternal() native "isolate_getPortInternal";
 ReceivePort _portInternal;
 
 patch ReceivePort get port {
-  if (_portInternal === null) {
+  if (_portInternal == null) {
     _portInternal = _getPortInternal();
   }
   return _portInternal;

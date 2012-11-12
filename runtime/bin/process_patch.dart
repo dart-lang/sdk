@@ -52,7 +52,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
       }
     }
 
-    if (options !== null && options.workingDirectory !== null) {
+    if (options != null && options.workingDirectory != null) {
       _workingDirectory = options.workingDirectory;
       if (_workingDirectory is !String) {
         throw new ArgumentError(
@@ -60,7 +60,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
       }
     }
 
-    if (options !== null && options.environment !== null) {
+    if (options != null && options.environment != null) {
       var env = options.environment;
       if (env is !Map) {
         throw new ArgumentError("Environment is not a map: $env");
@@ -190,7 +190,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
 
         void handleExit() {
           _ended = true;
-          if (_onExit !== null) {
+          if (_onExit != null) {
             _onExit(exitCode(exitDataBuffer));
           }
           _out.close();
@@ -277,15 +277,15 @@ class _NonInteractiveProcess {
     // Extract output encoding options and verify arguments.
     var stdoutEncoding = Encoding.UTF_8;
     var stderrEncoding = Encoding.UTF_8;
-    if (options !== null) {
-      if (options.stdoutEncoding !== null) {
+    if (options != null) {
+      if (options.stdoutEncoding != null) {
         stdoutEncoding = options.stdoutEncoding;
         if (stdoutEncoding is !Encoding) {
           throw new ArgumentError(
               'stdoutEncoding option is not an encoding: $stdoutEncoding');
         }
       }
-      if (options.stderrEncoding !== null) {
+      if (options.stderrEncoding != null) {
         stderrEncoding = options.stderrEncoding;
         if (stderrEncoding is !Encoding) {
           throw new ArgumentError(

@@ -157,7 +157,7 @@ testSuperCalls() {
 
   Send superCall = node.body.asReturn().expression;
   FunctionElement called = mapping[superCall];
-  Expect.isTrue(called !== null);
+  Expect.isNotNull(called);
   Expect.equals(fooA, called);
 }
 
@@ -521,8 +521,8 @@ testNewExpression() {
   compiler.parseScript("class A {} foo() { print(new A()); }");
   ClassElement aElement = compiler.mainApp.find(buildSourceString('A'));
   FunctionElement fooElement = compiler.mainApp.find(buildSourceString('foo'));
-  Expect.isTrue(aElement !== null);
-  Expect.isTrue(fooElement !== null);
+  Expect.isNotNull(aElement);
+  Expect.isNotNull(fooElement);
 
   fooElement.parseNode(compiler);
   compiler.resolver.resolve(fooElement);
@@ -569,7 +569,7 @@ resolveConstructor(String script, String statement, String className,
   ClassElement classElement =
       compiler.mainApp.find(buildSourceString(className));
   Element element;
-  if (constructor !== '') {
+  if (constructor != '') {
     element = classElement.lookupConstructor(
         new Selector.callConstructor(buildSourceString(constructor),
                                      classElement.getLibrary()));

@@ -838,7 +838,7 @@ _completeTests() {
 }
 
 String _fullSpec(String spec) {
-  if (spec === null) return '$_currentGroup';
+  if (spec == null) return '$_currentGroup';
   return _currentGroup != '' ? '$_currentGroup$groupSep$spec' : spec;
 }
 

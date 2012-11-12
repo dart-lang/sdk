@@ -36,12 +36,12 @@ class StaticFinalFieldTest {
     Expect.equals(15, A.c);
     Expect.equals(8, A.b);
     Expect.equals(5, A.a.n);
-    Expect.equals(true,  8 === A.b);
-    Expect.equals(true,  A.a === A.d);
-    Expect.equals(true,  A.s1 === A.s2);
-    Expect.equals(false, A.s1 === A.s3);
-    Expect.equals(false, A.s1 === A.b);
-    Expect.equals(true,  A.d1 === A.d2);
+    Expect.equals(true, identical(8, A.b));
+    Expect.equals(true, identical(A.a, A.d));
+    Expect.equals(true, identical(A.s1, A.s2));
+    Expect.equals(false, identical(A.s1, A.s3));
+    Expect.equals(false, identical(A.s1, A.b));
+    Expect.equals(true, identical(A.d1, A.d2));
     Expect.equals(true, Spain.SD == "Salvador Dali");
     Expect.equals(true, A.artist2 == "Alberto Giacometti");
     Expect.equals(true, A.architect1 == "Antoni Gaudi");

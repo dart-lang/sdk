@@ -11,7 +11,7 @@ class A {
 
   foo() {
     bool executedFinally = false;
-    if (i === 42) {
+    if (i == 42) {
       try {
         i = 12;
       } finally {

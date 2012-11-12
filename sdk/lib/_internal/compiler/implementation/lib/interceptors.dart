@@ -66,7 +66,7 @@ set$length(receiver, newLength) {
 }
 
 toString(var value) {
-  if (JS('bool', r'typeof # == "object" && # !== null', value, value)) {
+  if (JS('bool', r'typeof # == "object" && # != null', value, value)) {
     if (isJsArray(value)) {
       return Collections.collectionToString(value);
     } else {

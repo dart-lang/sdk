@@ -43,7 +43,7 @@ class _StringBase {
   int get length native "String_getLength";
 
   bool get isEmpty {
-    return this.length === 0;
+    return this.length == 0;
   }
 
   String concat(String other) native "String_concat";
@@ -61,7 +61,7 @@ class _StringBase {
       // TODO(5413632): Compare hash codes when both are present.
       return false;
     }
-    return this.compareTo(other) === 0;
+    return this.compareTo(other) == 0;
   }
 
   int compareTo(String other) {
@@ -141,7 +141,7 @@ class _StringBase {
   }
 
   String substring(int startIndex, [int endIndex]) {
-    if (endIndex === null) endIndex = this.length;
+    if (endIndex == null) endIndex = this.length;
 
     if ((startIndex < 0) || (startIndex > this.length)) {
       throw new RangeError.value(startIndex);
@@ -318,7 +318,7 @@ class _StringBase {
   // Implementations of Strings methods follow below.
   static String join(List<String> strings, String separator) {
     final int length = strings.length;
-    if (length === 0) {
+    if (length == 0) {
       return "";
     }
 
@@ -365,7 +365,7 @@ class _OneByteString extends _StringBase implements String {
   // whitespaces for one byte strings.
   bool _isWhitespace(int codePoint) {
     return
-      (codePoint === 32) || // Space.
+      (codePoint == 32) || // Space.
       ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
   }
 
@@ -383,7 +383,7 @@ class _TwoByteString extends _StringBase implements String {
   // whitespaces. Add checking for multi-byte whitespace codepoints.
   bool _isWhitespace(int codePoint) {
     return
-      (codePoint === 32) || // Space.
+      (codePoint == 32) || // Space.
       ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
   }
 }
@@ -400,7 +400,7 @@ class _FourByteString extends _StringBase implements String {
   // whitespaces. Add checking for multi-byte whitespace codepoints.
   bool _isWhitespace(int codePoint) {
     return
-      (codePoint === 32) || // Space.
+      (codePoint == 32) || // Space.
       ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
   }
 }
@@ -417,7 +417,7 @@ class _ExternalOneByteString extends _StringBase implements String {
   // whitespaces for one byte strings.
   bool _isWhitespace(int codePoint) {
     return
-      (codePoint === 32) || // Space.
+      (codePoint == 32) || // Space.
       ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
   }
 }
@@ -434,7 +434,7 @@ class _ExternalTwoByteString extends _StringBase implements String {
   // whitespaces. Add checking for multi-byte whitespace codepoints.
   bool _isWhitespace(int codePoint) {
     return
-      (codePoint === 32) || // Space.
+      (codePoint == 32) || // Space.
       ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
   }
 }
@@ -451,7 +451,7 @@ class _ExternalFourByteString extends _StringBase implements String {
   // whitespaces. Add checking for multi-byte whitespace codepoints.
   bool _isWhitespace(int codePoint) {
     return
-      (codePoint === 32) || // Space.
+      (codePoint == 32) || // Space.
       ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
   }
 }

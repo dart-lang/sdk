@@ -2,6 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+identity_test: Fail # Issue 6638
 constant_folding_string_test: Fail
 pretty_parameter_test: Fail # TODO(floitsch): investigate.
 tree_shaking_test: Fail # Issue 4811

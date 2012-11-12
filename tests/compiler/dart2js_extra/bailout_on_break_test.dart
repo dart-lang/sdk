@@ -15,7 +15,7 @@ void testInWhileLoop() {
   while (true) {
     var e = getNonInt();
     Expect.equals(42, e + 2);
-    if (e !== null) break;
+    if (e != null) break;
     while (true) use(e);
   }
   // This is what matters: 'c' must have been saved in the
@@ -29,7 +29,7 @@ void testInNestedWhileLoop() {
     while (true) {
       var e = getNonInt();
       Expect.equals(42, e + 2);
-      if (e !== null) break;
+      if (e != null) break;
     }
     // This is what matters: 'c' must have been saved in the
     // environment.
@@ -44,7 +44,7 @@ void testInNestedWhileLoop2() {
     while (true) {
       var e = getNonInt();
       Expect.equals(42, e + 2);
-      if (e !== null) break L0;
+      if (e != null) break L0;
       while (true) use(e);
     }
   }
@@ -60,11 +60,11 @@ void testInNestedWhileLoop3() {
     while (index < 2) {
       var e = getNonInt();
       Expect.equals(42, e + 2);
-      if (e !== null && index++ == 0) break;
+      if (e != null && index++ == 0) break;
       // This is what matters: 'c' must have been saved in the
       // environment.
       Expect.equals(c, 42);
-      while (e === null) use(e);
+      while (e == null) use(e);
     }
   }
 }
@@ -74,7 +74,7 @@ void testInDoWhileLoop() {
   do {
     var e = getNonInt();
     Expect.equals(42, e + 2);
-    if (e !== null) break;
+    if (e != null) break;
     while (true) use(e);
   } while (true);
   // This is what matters: 'c' must have been saved in the
@@ -87,7 +87,7 @@ void testInForLoop() {
   for (int i = 0; i < 10; i++) {
     var e = getNonInt();
     Expect.equals(42, e + 2);
-    if (e !== null) break;
+    if (e != null) break;
     while (true) use(e);
   }
   // This is what matters: 'c' must have been saved in the
@@ -100,11 +100,11 @@ void testLabeledIf() {
   L1: if (c == 42) {
     var e = getNonInt();
     Expect.equals(42, e + 2);
-    if (e === null) break L1;
+    if (e == null) break L1;
     // This is what matters: 'c' must have been saved in the
     // environment.
     Expect.equals(c, 42);
-    while (e === null) use(e);
+    while (e == null) use(e);
   }
   Expect.equals(c, 42);
 }
@@ -114,9 +114,9 @@ void testLabeledIf2() {
   L1: if (c == 42) {
     var e = getNonInt();
     Expect.equals(42, e + 2);
-    if (e === null) break L1;
+    if (e == null) break L1;
     Expect.equals(42, e + 1);
-    while (e === null) use(e);
+    while (e == null) use(e);
   }
   Expect.equals(42, c);
 }

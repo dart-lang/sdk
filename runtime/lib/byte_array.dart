@@ -154,7 +154,7 @@ abstract class _ByteArrayBase {
   }
 
   bool get isEmpty {
-    return this.length === 0;
+    return this.length == 0;
   }
 
   int get length {
@@ -192,7 +192,7 @@ abstract class _ByteArrayBase {
   }
 
   int lastIndexOf(element, [int start = null]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return Arrays.lastIndexOf(this, element, start);
   }
 
@@ -221,7 +221,7 @@ abstract class _ByteArrayBase {
   }
 
   ByteArray asByteArray([int start = 0, int length]) {
-    if (length === null) {
+    if (length == null) {
       length = this.length;
     }
     _rangeCheck(this.length, start, length);
@@ -331,7 +331,7 @@ int _requireIntegerOrNull(object, value) {
   if (object is int) {
     return object;
   }
-  if (object === null) {
+  if (object == null) {
     return _requireInteger(value);
   }
   throw new ArgumentError("$object is not an integer or null");
@@ -344,7 +344,7 @@ class _Int8Array extends _ByteArrayBase implements Int8List {
   }
 
   factory _Int8Array.view(ByteArray array, [int start = 0, int length]) {
-    if (length === null) {
+    if (length == null) {
       length = array.lengthInBytes();
     }
     return new _Int8ArrayView(array, start, length);
@@ -407,7 +407,7 @@ class _Uint8Array extends _ByteArrayBase implements Uint8List {
   }
 
   factory _Uint8Array.view(ByteArray array, [int start = 0, int length]) {
-    if (length === null) {
+    if (length == null) {
       length = array.lengthInBytes();
     }
     return new _Uint8ArrayView(array, start, length);
@@ -470,7 +470,7 @@ class _Int16Array extends _ByteArrayBase implements Int16List {
   }
 
   factory _Int16Array.view(ByteArray array, [int start = 0, int length]) {
-    if (length === null) {
+    if (length == null) {
       length = (array.lengthInBytes() - start) ~/ _BYTES_PER_ELEMENT;
     }
     return new _Int16ArrayView(array, start, length);
@@ -533,7 +533,7 @@ class _Uint16Array extends _ByteArrayBase implements Uint16List {
   }
 
   factory _Uint16Array.view(ByteArray array, [int start = 0, int length]) {
-    if (length === null) {
+    if (length == null) {
       length = (array.lengthInBytes() - start) ~/ _BYTES_PER_ELEMENT;
     }
     return new _Uint16ArrayView(array, start, length);
@@ -596,7 +596,7 @@ class _Int32Array extends _ByteArrayBase implements Int32List {
   }
 
   factory _Int32Array.view(ByteArray array, [int start = 0, int length]) {
-    if (length === null) {
+    if (length == null) {
       length = (array.lengthInBytes() - start) ~/ _BYTES_PER_ELEMENT;
     }
     return new _Int32ArrayView(array, start, length);
@@ -659,7 +659,7 @@ class _Uint32Array extends _ByteArrayBase implements Uint32List {
   }
 
   factory _Uint32Array.view(ByteArray array, [int start = 0, int length]) {
-    if (length === null) {
+    if (length == null) {
       length = (array.lengthInBytes() - start) ~/ _BYTES_PER_ELEMENT;
     }
     return new _Uint32ArrayView(array, start, length);
@@ -722,7 +722,7 @@ class _Int64Array extends _ByteArrayBase implements Int64List {
   }
 
   factory _Int64Array.view(ByteArray array, [int start = 0, int length]) {
-    if (length === null) {
+    if (length == null) {
       length = (array.lengthInBytes() - start) ~/ _BYTES_PER_ELEMENT;
     }
     return new _Int64ArrayView(array, start, length);
@@ -785,7 +785,7 @@ class _Uint64Array extends _ByteArrayBase implements Uint64List {
   }
 
   factory _Uint64Array.view(ByteArray array, [int start = 0, int length]) {
-    if (length === null) {
+    if (length == null) {
       length = (array.lengthInBytes() - start) ~/ _BYTES_PER_ELEMENT;
     }
     return new _Uint64ArrayView(array, start, length);
@@ -848,7 +848,7 @@ class _Float32Array extends _ByteArrayBase implements Float32List {
   }
 
   factory _Float32Array.view(ByteArray array, [int start = 0, int length]) {
-    if (length === null) {
+    if (length == null) {
       length = (array.lengthInBytes() - start) ~/ _BYTES_PER_ELEMENT;
     }
     return new _Float32ArrayView(array, start, length);
@@ -911,7 +911,7 @@ class _Float64Array extends _ByteArrayBase implements Float64List {
   }
 
   factory _Float64Array.view(ByteArray array, [int start = 0, int length]) {
-    if (length === null) {
+    if (length == null) {
       length = (array.lengthInBytes() - start) ~/ _BYTES_PER_ELEMENT;
     }
     return new _Float64ArrayView(array, start, length);
@@ -1516,7 +1516,7 @@ class _ByteArrayView implements ByteArray {
 
   ByteArray subByteArray([int start = 0, int length]) {
     if (start is! int) throw new ArgumentError("start is not an int");
-    if (length === null) {
+    if (length == null) {
       length = this.lengthInBytes() - start;
     } else if (length is! int) {
       throw new ArgumentError("length is not an int");
@@ -1634,7 +1634,7 @@ class _ByteArrayViewBase {
   }
 
   bool get isEmpty {
-    return this.length === 0;
+    return this.length == 0;
   }
 
   abstract int get length;
@@ -1670,7 +1670,7 @@ class _ByteArrayViewBase {
   }
 
   int lastIndexOf(element, [int start = null]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return Arrays.lastIndexOf(this, element, start);
   }
 

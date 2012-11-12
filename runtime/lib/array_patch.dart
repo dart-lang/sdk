@@ -7,7 +7,7 @@
 // fixed size array.
 patch class _ListImpl<E> {
   /* patch */ factory List([int length = null]) {
-    if (length === null) {
+    if (length == null) {
       return new _GrowableObjectArray<E>();
     } else {
       return new _ObjectArray<E>(length);

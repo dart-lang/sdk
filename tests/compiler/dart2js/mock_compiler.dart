@@ -135,7 +135,7 @@ class MockCompiler extends Compiler {
 
   void reportMessage(SourceSpan span, var message, api.Diagnostic kind) {
     var diagnostic = new WarningMessage(null, message.message);
-    if (kind === api.Diagnostic.ERROR) {
+    if (kind == api.Diagnostic.ERROR) {
       errors.add(diagnostic);
     } else {
       warnings.add(diagnostic);
@@ -183,7 +183,7 @@ class MockCompiler extends Compiler {
   }
 
   parseScript(String text, [LibraryElement library]) {
-    if (library === null) library = mainApp;
+    if (library == null) library = mainApp;
     parseUnit(text, this, library);
   }
 
@@ -204,7 +204,7 @@ class MockCompiler extends Compiler {
 
   Script readScript(Uri uri, [ScriptTag node]) {
     SourceFile sourceFile = sourceFiles[uri.toString()];
-    if (sourceFile === null) throw new ArgumentError(uri);
+    if (sourceFile == null) throw new ArgumentError(uri);
     return new Script(uri, sourceFile);
   }
 }

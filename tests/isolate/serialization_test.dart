@@ -44,10 +44,10 @@ void testAllTypes(Function f) {
   var c = [ a, b, a, b, a ];
   var copied = f(c);
   verify(c, copied);
-  Expect.isFalse(c === copied);
-  Expect.isTrue(copied[0] === copied[2]);
-  Expect.isTrue(copied[0] === copied[4]);
-  Expect.isTrue(copied[1] === copied[3]);
+  Expect.isFalse(identical(c, copied));
+  Expect.identical(copied[0], copied[2]);
+  Expect.identical(copied[0], copied[4]);
+  Expect.identical(copied[1], copied[3]);
 }
 
 void copyAndVerify(o, Function f) {

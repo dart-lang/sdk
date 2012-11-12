@@ -317,7 +317,7 @@ void testLibrariesMap(Map libraries) {
   Expect.equals('dart:core.OutOfMemoryError', oom_cls.qualifiedName);
   Expect.isFalse(oom_cls.isPrivate);
   Expect.equals('Object', oom_cls.superclass.simpleName);
-  Expect.isTrue(oom_cls.defaultFactory === null);
+  Expect.isTrue(oom_cls.defaultFactory == null);
   Expect.equals('dart:core', oom_cls.owner.simpleName);
   Expect.isTrue(oom_cls.isClass);
   Expect.equals('Error', oom_cls.superinterfaces[0].simpleName);
@@ -423,7 +423,7 @@ void testCustomInstanceMirror(InstanceMirror mirror) {
   Expect.isTrue(cls is ClassMirror);
   Expect.equals('MyClass', cls.simpleName);
   Expect.equals('MySuperClass', cls.superclass.simpleName);
-  Expect.isTrue(cls.defaultFactory === null);
+  Expect.isTrue(cls.defaultFactory == null);
   Expect.equals('isolate_mirror_local_test', cls.owner.simpleName);
   Expect.isTrue(cls.isClass);
   Expect.equals('MyInterface', cls.superinterfaces[0].simpleName);

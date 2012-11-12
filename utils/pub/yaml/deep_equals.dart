@@ -9,7 +9,7 @@ library deep_equals;
  * values to be equivalent. It also handles self-referential structures.
  */
 bool deepEquals(obj1, obj2, [List parents1, List parents2]) {
-  if (obj1 === obj2) return true;
+  if (identical(obj1, obj2)) return true;
   if (parents1 == null) {
     parents1 = [];
     parents2 = [];
@@ -17,8 +17,8 @@ bool deepEquals(obj1, obj2, [List parents1, List parents2]) {
 
   // parents1 and parents2 are guaranteed to be the same size.
   for (var i = 0; i < parents1.length; i++) {
-    var loop1 = obj1 === parents1[i];
-    var loop2 = obj2 === parents2[i];
+    var loop1 = identical(obj1, parents1[i]);
+    var loop2 = identical(obj2, parents2[i]);
     // If both structures loop in the same place, they're equal at that point in
     // the structure. If one loops and the other doesn't, they're not equal.
     if (loop1 && loop2) return true;

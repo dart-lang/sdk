@@ -154,7 +154,7 @@ class _GrowableObjectArray<T> implements List<T> {
   }
 
   int lastIndexOf(T element, [int start = null]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return Arrays.lastIndexOf(this, element, start);
   }
 
@@ -200,7 +200,7 @@ class _GrowableObjectArray<T> implements List<T> {
   }
 
   bool get isEmpty {
-    return this.length === 0;
+    return this.length == 0;
   }
 
   void clear() {

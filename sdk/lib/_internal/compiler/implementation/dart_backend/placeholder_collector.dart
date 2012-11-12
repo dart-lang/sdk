@@ -75,7 +75,7 @@ class SendVisitor extends ResolvedVisitor {
 
   visitGetterSend(Send node) {
     final element = elements[node];
-    // element === null means dynamic property access.
+    // element == null means dynamic property access.
     if (element == null) {
       collector.tryMakeMemberPlaceholder(node.selector);
     } else if (element.isErroneous()) {
@@ -211,7 +211,7 @@ class PlaceholderCollector extends Visitor {
       VariableDefinitions definitions = elementNode;
       for (Node definition in definitions.definitions) {
         final definitionElement = treeElements[definition];
-        // definitionElement === null if variable is actually unused.
+        // definitionElement == null if variable is actually unused.
         if (definitionElement == null) continue;
         collectFieldDeclarationPlaceholders(definitionElement, definition);
       }

@@ -9,7 +9,7 @@ class A {}
 bool foo(bar) {
   var x = new A();
   var y = new A();
-  return x === y;
+  return identical(x, y);
 }
 """;
 

@@ -12,16 +12,10 @@ sameType(a, b) {
   Expect.identical(a.runtimeType, b.runtimeType);
 }
 
-differentType(a, b) {
-  print("a: ${a.runtimeType}");
-  print("b: ${b.runtimeType}");
-  Expect.isFalse(a.runtimeType === b.runtimeType);
-}
-
 main() {
   // Test type literals.
   Expect.identical(int, int);
-  Expect.isFalse(int === num);
+  Expect.isFalse(identical(int, num));
   Expect.identical(Foo, Foo);
 
   // Test that class literals return instances of Type.

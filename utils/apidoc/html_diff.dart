@@ -97,7 +97,7 @@ class HtmlDiff {
    */
   void run() {
     LibraryMirror htmlLib = _mirrors.libraries[HTML_DECLARED_NAME];
-    if (htmlLib === null) {
+    if (htmlLib == null) {
       warn('Could not find $HTML_LIBRARY_NAME');
       return;
     }

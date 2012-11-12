@@ -20,10 +20,10 @@ void testRequestResponseClientCloses(
     var count = 0;
     conn.onMessage = (Object message) => conn.send(message);
     conn.onClosed = (status, reason) {
-      Expect.equals(closeStatus === null
+      Expect.equals(closeStatus == null
                     ? WebSocketStatus.NO_STATUS_RECEIVED
                     : closeStatus, status);
-      Expect.equals(closeReason === null ? "" : closeReason, reason);
+      Expect.equals(closeReason == null ? "" : closeReason, reason);
     };
   };
   server.defaultRequestHandler = wsHandler.onRequest;
@@ -45,7 +45,7 @@ void testRequestResponseClientCloses(
       }
     };
     wsconn.onClosed = (status, reason) {
-      Expect.equals(closeStatus === null
+      Expect.equals(closeStatus == null
                     ? WebSocketStatus.NO_STATUS_RECEIVED
                     : closeStatus, status);
       Expect.equals("", reason);
@@ -83,7 +83,7 @@ void testRequestResponseServerCloses(
       }
     };
     conn.onClosed = (status, reason) {
-      Expect.equals(closeStatus === null
+      Expect.equals(closeStatus == null
                     ? WebSocketStatus.NO_STATUS_RECEIVED
                     : closeStatus, status);
       Expect.equals("", reason);
@@ -102,10 +102,10 @@ void testRequestResponseServerCloses(
     WebSocketClientConnection wsconn = new WebSocketClientConnection(conn);
     wsconn.onMessage = (message) => wsconn.send(message);
     wsconn.onClosed = (status, reason) {
-      Expect.equals(closeStatus === null
+      Expect.equals(closeStatus == null
                     ? WebSocketStatus.NO_STATUS_RECEIVED
                     : closeStatus, status);
-      Expect.equals(closeReason === null ? "" : closeReason, reason);
+      Expect.equals(closeReason == null ? "" : closeReason, reason);
     };
   }
 }

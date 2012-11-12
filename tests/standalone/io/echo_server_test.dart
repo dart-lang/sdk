@@ -100,7 +100,7 @@ class EchoServerGame {
     }
 
     _socket = new Socket(TestingServer.HOST, _port);
-    if (_socket !== null) {
+    if (_socket != null) {
       _socket.onConnect = connectHandler;
     } else {
       Expect.fail("Socket creation failed");

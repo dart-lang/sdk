@@ -14,7 +14,7 @@ class _SocketInputStream implements InputStream {
 
   int readInto(List<int> buffer, [int offset = 0, int len]) {
     if (_closed) return null;
-    if (len === null) len = buffer.length;
+    if (len == null) len = buffer.length;
     if (offset < 0) throw new StreamException("Illegal offset $offset");
     if (len < 0) throw new StreamException("Illegal length $len");
     return _socket.readList(buffer, offset, len);
@@ -49,7 +49,7 @@ class _SocketInputStream implements InputStream {
 
   void _onClosed() {
     _closed = true;
-    if (_clientCloseHandler !== null) {
+    if (_clientCloseHandler != null) {
       _clientCloseHandler();
     }
   }
