@@ -1306,7 +1306,12 @@ class StandardTestSuite extends TestSuite {
     var needsVmOptions = COMPILERS.contains(configuration['compiler']) &&
                          RUNTIMES.contains(configuration['runtime']);
     if (!needsVmOptions) return [[]];
-    return optionsFromFile['vmOptions'];
+    final vmOptions = optionsFromFile['vmOptions'];
+    if (configuration['compiler'] != 'dart2dart') return vmOptions;
+    // Temporary workaround for race in test suite: tests with different
+    // vm options are still compiled into the same output file which
+    // may lead to reads from empty files.
+    return [vmOptions[0]];
   }
 }
 
