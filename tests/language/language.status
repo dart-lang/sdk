@@ -18,7 +18,7 @@
 [ $compiler == none ]
 part_test: Fail
 part2_test: Fail
-gc_test: Fail # Issue 1487
+gc_test: Pass, Fail # Issue 1487
 pseudo_kw_illegal_test/14: Fail  # Issue 356
 
 # These bugs refer currently ongoing language discussions.
