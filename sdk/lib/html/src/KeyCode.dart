@@ -16,183 +16,183 @@ abstract class KeyCode {
   // These constant names were borrowed from Closure's Keycode enumeration
   // class.
   // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keycodes.js.source.html  
-  static final int WIN_KEY_FF_LINUX = 0;
-  static final int MAC_ENTER = 3;
-  static final int BACKSPACE = 8;
-  static final int TAB = 9;
+  static const int WIN_KEY_FF_LINUX = 0;
+  static const int MAC_ENTER = 3;
+  static const int BACKSPACE = 8;
+  static const int TAB = 9;
   /** NUM_CENTER is also NUMLOCK for FF and Safari on Mac. */
-  static final int NUM_CENTER = 12;
-  static final int ENTER = 13;
-  static final int SHIFT = 16;
-  static final int CTRL = 17;
-  static final int ALT = 18;
-  static final int PAUSE = 19;
-  static final int CAPS_LOCK = 20;
-  static final int ESC = 27;
-  static final int SPACE = 32;
-  static final int PAGE_UP = 33;
-  static final int PAGE_DOWN = 34;
-  static final int END = 35;
-  static final int HOME = 36;
-  static final int LEFT = 37;
-  static final int UP = 38;
-  static final int RIGHT = 39;
-  static final int DOWN = 40;
-  static final int NUM_NORTH_EAST = 33;
-  static final int NUM_SOUTH_EAST = 34;
-  static final int NUM_SOUTH_WEST = 35;
-  static final int NUM_NORTH_WEST = 36;
-  static final int NUM_WEST = 37;
-  static final int NUM_NORTH = 38;
-  static final int NUM_EAST = 39;
-  static final int NUM_SOUTH = 40;
-  static final int PRINT_SCREEN = 44;
-  static final int INSERT = 45;
-  static final int NUM_INSERT = 45;
-  static final int DELETE = 46;
-  static final int NUM_DELETE = 46;
-  static final int ZERO = 48;
-  static final int ONE = 49;
-  static final int TWO = 50;
-  static final int THREE = 51;
-  static final int FOUR = 52;
-  static final int FIVE = 53;
-  static final int SIX = 54;
-  static final int SEVEN = 55;
-  static final int EIGHT = 56;
-  static final int NINE = 57;
-  static final int FF_SEMICOLON = 59;
-  static final int FF_EQUALS = 61;
+  static const int NUM_CENTER = 12;
+  static const int ENTER = 13;
+  static const int SHIFT = 16;
+  static const int CTRL = 17;
+  static const int ALT = 18;
+  static const int PAUSE = 19;
+  static const int CAPS_LOCK = 20;
+  static const int ESC = 27;
+  static const int SPACE = 32;
+  static const int PAGE_UP = 33;
+  static const int PAGE_DOWN = 34;
+  static const int END = 35;
+  static const int HOME = 36;
+  static const int LEFT = 37;
+  static const int UP = 38;
+  static const int RIGHT = 39;
+  static const int DOWN = 40;
+  static const int NUM_NORTH_EAST = 33;
+  static const int NUM_SOUTH_EAST = 34;
+  static const int NUM_SOUTH_WEST = 35;
+  static const int NUM_NORTH_WEST = 36;
+  static const int NUM_WEST = 37;
+  static const int NUM_NORTH = 38;
+  static const int NUM_EAST = 39;
+  static const int NUM_SOUTH = 40;
+  static const int PRINT_SCREEN = 44;
+  static const int INSERT = 45;
+  static const int NUM_INSERT = 45;
+  static const int DELETE = 46;
+  static const int NUM_DELETE = 46;
+  static const int ZERO = 48;
+  static const int ONE = 49;
+  static const int TWO = 50;
+  static const int THREE = 51;
+  static const int FOUR = 52;
+  static const int FIVE = 53;
+  static const int SIX = 54;
+  static const int SEVEN = 55;
+  static const int EIGHT = 56;
+  static const int NINE = 57;
+  static const int FF_SEMICOLON = 59;
+  static const int FF_EQUALS = 61;
   /**
    * CAUTION: The question mark is for US-keyboard layouts. It varies
    * for other locales and keyboard layouts.
    */
-  static final int QUESTION_MARK = 63;
-  static final int A = 65;
-  static final int B = 66;
-  static final int C = 67;
-  static final int D = 68;
-  static final int E = 69;
-  static final int F = 70;
-  static final int G = 71;
-  static final int H = 72;
-  static final int I = 73;
-  static final int J = 74;
-  static final int K = 75;
-  static final int L = 76;
-  static final int M = 77;
-  static final int N = 78;
-  static final int O = 79;
-  static final int P = 80;
-  static final int Q = 81;
-  static final int R = 82;
-  static final int S = 83;
-  static final int T = 84;
-  static final int U = 85;
-  static final int V = 86;
-  static final int W = 87;
-  static final int X = 88;
-  static final int Y = 89;
-  static final int Z = 90;
-  static final int META = 91;
-  static final int WIN_KEY_LEFT = 91;
-  static final int WIN_KEY_RIGHT = 92;
-  static final int CONTEXT_MENU = 93;
-  static final int NUM_ZERO = 96;
-  static final int NUM_ONE = 97;
-  static final int NUM_TWO = 98;
-  static final int NUM_THREE = 99;
-  static final int NUM_FOUR = 100;
-  static final int NUM_FIVE = 101;
-  static final int NUM_SIX = 102;
-  static final int NUM_SEVEN = 103;
-  static final int NUM_EIGHT = 104;
-  static final int NUM_NINE = 105;
-  static final int NUM_MULTIPLY = 106;
-  static final int NUM_PLUS = 107;
-  static final int NUM_MINUS = 109;
-  static final int NUM_PERIOD = 110;
-  static final int NUM_DIVISION = 111;
-  static final int F1 = 112;
-  static final int F2 = 113;
-  static final int F3 = 114;
-  static final int F4 = 115;
-  static final int F5 = 116;
-  static final int F6 = 117;
-  static final int F7 = 118;
-  static final int F8 = 119;
-  static final int F9 = 120;
-  static final int F10 = 121;
-  static final int F11 = 122;
-  static final int F12 = 123;
-  static final int NUMLOCK = 144;
-  static final int SCROLL_LOCK = 145;
+  static const int QUESTION_MARK = 63;
+  static const int A = 65;
+  static const int B = 66;
+  static const int C = 67;
+  static const int D = 68;
+  static const int E = 69;
+  static const int F = 70;
+  static const int G = 71;
+  static const int H = 72;
+  static const int I = 73;
+  static const int J = 74;
+  static const int K = 75;
+  static const int L = 76;
+  static const int M = 77;
+  static const int N = 78;
+  static const int O = 79;
+  static const int P = 80;
+  static const int Q = 81;
+  static const int R = 82;
+  static const int S = 83;
+  static const int T = 84;
+  static const int U = 85;
+  static const int V = 86;
+  static const int W = 87;
+  static const int X = 88;
+  static const int Y = 89;
+  static const int Z = 90;
+  static const int META = 91;
+  static const int WIN_KEY_LEFT = 91;
+  static const int WIN_KEY_RIGHT = 92;
+  static const int CONTEXT_MENU = 93;
+  static const int NUM_ZERO = 96;
+  static const int NUM_ONE = 97;
+  static const int NUM_TWO = 98;
+  static const int NUM_THREE = 99;
+  static const int NUM_FOUR = 100;
+  static const int NUM_FIVE = 101;
+  static const int NUM_SIX = 102;
+  static const int NUM_SEVEN = 103;
+  static const int NUM_EIGHT = 104;
+  static const int NUM_NINE = 105;
+  static const int NUM_MULTIPLY = 106;
+  static const int NUM_PLUS = 107;
+  static const int NUM_MINUS = 109;
+  static const int NUM_PERIOD = 110;
+  static const int NUM_DIVISION = 111;
+  static const int F1 = 112;
+  static const int F2 = 113;
+  static const int F3 = 114;
+  static const int F4 = 115;
+  static const int F5 = 116;
+  static const int F6 = 117;
+  static const int F7 = 118;
+  static const int F8 = 119;
+  static const int F9 = 120;
+  static const int F10 = 121;
+  static const int F11 = 122;
+  static const int F12 = 123;
+  static const int NUMLOCK = 144;
+  static const int SCROLL_LOCK = 145;
 
   // OS-specific media keys like volume controls and browser controls.
-  static final int FIRST_MEDIA_KEY = 166;
-  static final int LAST_MEDIA_KEY = 183;
+  static const int FIRST_MEDIA_KEY = 166;
+  static const int LAST_MEDIA_KEY = 183;
 
   /**
    * CAUTION: This constant requires localization for other locales and keyboard
    * layouts.
    */
-  static final int SEMICOLON = 186;
+  static const int SEMICOLON = 186;
   /**
    * CAUTION: This constant requires localization for other locales and keyboard
    * layouts.
    */
-  static final int DASH = 189;
+  static const int DASH = 189;
   /**
    * CAUTION: This constant requires localization for other locales and keyboard
    * layouts.
    */
-  static final int EQUALS = 187;
+  static const int EQUALS = 187;
   /**
    * CAUTION: This constant requires localization for other locales and keyboard
    * layouts.
    */
-  static final int COMMA = 188;
+  static const int COMMA = 188;
   /**
    * CAUTION: This constant requires localization for other locales and keyboard
    * layouts.
    */
-  static final int PERIOD = 190;
+  static const int PERIOD = 190;
   /**
    * CAUTION: This constant requires localization for other locales and keyboard
    * layouts.
    */
-  static final int SLASH = 191;
+  static const int SLASH = 191;
   /**
    * CAUTION: This constant requires localization for other locales and keyboard
    * layouts.
    */
-  static final int APOSTROPHE = 192;
+  static const int APOSTROPHE = 192;
   /**
    * CAUTION: This constant requires localization for other locales and keyboard
    * layouts.
    */
-  static final int TILDE = 192;
+  static const int TILDE = 192;
   /**
    * CAUTION: This constant requires localization for other locales and keyboard
    * layouts.
    */
-  static final int SINGLE_QUOTE = 222;
+  static const int SINGLE_QUOTE = 222;
   /**
    * CAUTION: This constant requires localization for other locales and keyboard
    * layouts.
    */
-  static final int OPEN_SQUARE_BRACKET = 219;
+  static const int OPEN_SQUARE_BRACKET = 219;
   /**
    * CAUTION: This constant requires localization for other locales and keyboard
    * layouts.
    */
-  static final int BACKSLASH = 220;
+  static const int BACKSLASH = 220;
   /**
    * CAUTION: This constant requires localization for other locales and keyboard
    * layouts.
    */
-  static final int CLOSE_SQUARE_BRACKET = 221;
-  static final int WIN_KEY = 224;
-  static final int MAC_FF_META = 224;
-  static final int WIN_IME = 229;
+  static const int CLOSE_SQUARE_BRACKET = 221;
+  static const int WIN_KEY = 224;
+  static const int MAC_FF_META = 224;
+  static const int WIN_IME = 229;
 }
