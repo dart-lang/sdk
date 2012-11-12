@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library list_sort_test;
-part 'sort_helper.dart';
+import 'sort_helper.dart';
 
 class ListSortTest {
   static void testMain() {
