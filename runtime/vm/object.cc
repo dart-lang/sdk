@@ -3066,6 +3066,27 @@ void Function::set_context_scope(const ContextScope& value) const {
 }
 
 
+RawInstance* Function::implicit_static_closure() const {
+  if (IsImplicitStaticClosureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(!obj.IsNull());
+    return ClosureData::Cast(obj).implicit_static_closure();
+  }
+  return Instance::null();
+}
+
+
+void Function::set_implicit_static_closure(const Instance& closure) const {
+  if (IsImplicitStaticClosureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(!obj.IsNull());
+    ClosureData::Cast(obj).set_implicit_static_closure(closure);
+    return;
+  }
+  UNREACHABLE();
+}
+
+
 RawCode* Function::closure_allocation_stub() const {
   if (IsClosureFunction()) {
     const Object& obj = Object::Handle(raw_ptr()->data_);
@@ -4167,6 +4188,13 @@ const char* Function::ToCString() const {
 
 void ClosureData::set_context_scope(const ContextScope& value) const {
   StorePointer(&raw_ptr()->context_scope_, value.raw());
+}
+
+
+void ClosureData::set_implicit_static_closure(const Instance& closure) const {
+  ASSERT(!closure.IsNull());
+  ASSERT(raw_ptr()->closure_ == Instance::null());
+  StorePointer(&raw_ptr()->closure_, closure.raw());
 }
 
 

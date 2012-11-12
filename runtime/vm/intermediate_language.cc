@@ -2020,6 +2020,7 @@ LocationSummary* CreateClosureInstr::MakeLocationSummary() const {
 
 void CreateClosureInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Function& closure_function = function();
+  ASSERT(!closure_function.IsImplicitStaticClosureFunction());
   const Code& stub = Code::Handle(
       StubCode::GetAllocationStubForClosure(closure_function));
   const ExternalLabel label(closure_function.ToCString(), stub.EntryPoint());

@@ -572,7 +572,10 @@ class RawClosureData : public RawObject {
   RawContextScope* context_scope_;
   RawFunction* parent_function_;  // Enclosing function of this local function.
   RawClass* signature_class_;
-  RawCode* closure_allocation_stub_;  // Stub code for allocation of closures.
+  union {
+    RawInstance* closure_;  // Closure object for static implicit closures.
+    RawCode* closure_allocation_stub_;  // Stub code for allocation of closures.
+  };
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->closure_allocation_stub_);
   }

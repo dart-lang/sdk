@@ -1483,6 +1483,18 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
 void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   const Function& function = node->function();
 
+  if (function.IsImplicitStaticClosureFunction()) {
+    Instance& closure = Instance::ZoneHandle();
+    closure ^= function.implicit_static_closure();
+    if (closure.IsNull()) {
+      ObjectStore* object_store = Isolate::Current()->object_store();
+      const Context& context = Context::Handle(object_store->empty_context());
+      closure ^= Closure::New(function, context, Heap::kOld);
+      function.set_implicit_static_closure(closure);
+    }
+    ReturnDefinition(new ConstantInstr(closure));
+    return;
+  }
   Value* receiver = NULL;
   if (function.IsNonImplicitClosureFunction()) {
     // The context scope may have already been set by the non-optimizing
@@ -1496,13 +1508,12 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
       function.set_context_scope(context_scope);
     }
     receiver = BuildNullValue();
-  } else if (function.IsImplicitInstanceClosureFunction()) {
+  } else {
+    ASSERT(function.IsImplicitInstanceClosureFunction());
     ValueGraphVisitor for_receiver(owner(), temp_index(), loop_depth());
     node->receiver()->Visit(&for_receiver);
     Append(for_receiver);
     receiver = for_receiver.value();
-  } else {
-    receiver = BuildNullValue();
   }
   PushArgumentInstr* push_receiver = PushArgument(receiver);
   ZoneGrowableArray<PushArgumentInstr*>* arguments =

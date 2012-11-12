@@ -1147,6 +1147,9 @@ class Function : public Object {
   RawClass* signature_class() const;
   void set_signature_class(const Class& value) const;
 
+  RawInstance* implicit_static_closure() const;
+  void set_implicit_static_closure(const Instance& closure) const;
+
   RawCode* closure_allocation_stub() const;
   void set_closure_allocation_stub(const Code& value) const;
 
@@ -1519,6 +1522,11 @@ class ClosureData: public Object {
   // Signature class of this closure function or signature function.
   RawClass* signature_class() const { return raw_ptr()->signature_class_; }
   void set_signature_class(const Class& value) const;
+
+  RawInstance* implicit_static_closure() const {
+    return raw_ptr()->closure_;
+  }
+  void set_implicit_static_closure(const Instance& closure) const;
 
   RawCode* closure_allocation_stub() const {
     return raw_ptr()->closure_allocation_stub_;
