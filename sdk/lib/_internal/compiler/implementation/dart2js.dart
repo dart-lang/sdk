@@ -109,6 +109,12 @@ void compile(List<String> argv) {
     passThrough(argument);
   }
 
+  String getDepsOutput(Map<String, SourceFile> sourceFiles) {
+    var filenames = new List.from(sourceFiles.keys);
+    filenames.sort();
+    return Strings.join(filenames, "\n");
+  }
+
   setStrip(String argument) {
     stripArgumentSet = true;
     passThrough(argument);
@@ -283,6 +289,7 @@ void compile(List<String> argv) {
       sourceMapOut.path.substring(sourceMapOut.path.lastIndexOf('/') + 1);
   code = '$code\n//@ sourceMappingURL=${sourceMapFileName}';
   writeString(out, code);
+  writeString(new Uri.fromString('$out.deps'), getDepsOutput(sourceFiles));
   int bytesWritten = code.length;
   info('compiled $dartBytesRead bytes Dart -> $bytesWritten bytes '
        '$outputLanguage in ${relativize(cwd, out, isWindows)}');
