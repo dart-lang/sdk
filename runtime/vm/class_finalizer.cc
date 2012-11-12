@@ -295,14 +295,17 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
       case kWeakPropertyCid:
         is_error = true;
         break;
-      default:
+      default: {
         // Special case: classes for which we don't have a known class id.
         // TODO(regis): Why isn't comparing to kIntegerCid enough?
         if (Type::Handle(Type::Double()).type_class() == super_class.raw() ||
-            Type::Handle(Type::IntType()).type_class() == super_class.raw()) {
+            Type::Handle(Type::IntType()).type_class() == super_class.raw() ||
+            Type::Handle(
+                Type::StringType()).type_class() == super_class.raw()) {
           is_error = true;
         }
         break;
+      }
     }
     if (is_error) {
       const Script& script = Script::Handle(cls.script());
@@ -1419,7 +1422,7 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
           interface.IsNumberType() ||
           interface.IsIntType() ||
           interface.IsDoubleType() ||
-          interface.IsStringInterface() ||
+          interface.IsStringType() ||
           (interface.IsFunctionType() && !cls.IsSignatureClass()) ||
           interface.IsDynamicType()) {
         const Script& script = Script::Handle(cls.script());

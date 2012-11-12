@@ -102,9 +102,9 @@ class ObjectStore {
   RawClass* bigint_class() const { return bigint_class_; }
   void set_bigint_class(const Class& value) { bigint_class_ = value.raw(); }
 
-  RawType* string_interface() const { return string_interface_; }
-  void set_string_interface(const Type& value) {
-    string_interface_ = value.raw();
+  RawType* string_type() const { return string_type_; }
+  void set_string_type(const Type& value) {
+    string_type_ = value.raw();
   }
 
   RawClass* one_byte_string_class() const { return one_byte_string_class_; }
@@ -479,7 +479,7 @@ class ObjectStore {
   RawClass* bigint_class_;
   RawClass* double_class_;
   RawType* double_type_;
-  RawType* string_interface_;
+  RawType* string_type_;
   RawClass* one_byte_string_class_;
   RawClass* two_byte_string_class_;
   RawClass* external_one_byte_string_class_;

@@ -3192,8 +3192,8 @@ class AbstractType : public Instance {
   // Check if this type represents the 'num' type.
   bool IsNumberType() const;
 
-  // Check if this type represents the 'String' interface.
-  bool IsStringInterface() const;
+  // Check if this type represents the 'String' type.
+  bool IsStringType() const;
 
   // Check if this type represents the 'Function' type.
   bool IsFunctionType() const;
@@ -3316,8 +3316,8 @@ class Type : public AbstractType {
   // The 'num' interface type.
   static RawType* Number();
 
-  // The 'String' interface type.
-  static RawType* StringInterface();
+  // The 'String' type.
+  static RawType* StringType();
 
   // The 'Function' interface type.
   static RawType* Function();

@@ -410,7 +410,7 @@ Dart_CObject* ApiMessageReader::ReadIndexedObject(intptr_t object_id) {
       object_id == kDoubleType ||
       object_id == kIntType ||
       object_id == kBoolType ||
-      object_id == kStringInterface) {
+      object_id == kStringType) {
     // Always return dynamic type (this is only a marker).
     return &dynamic_type_marker;
   }

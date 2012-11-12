@@ -443,7 +443,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fa
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail # inherited from VM
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail, OK # co19 issue 294
-LibTest/core/RegExp/firstMatch_A01_t01: Fail # inherited from VM
 LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # co19 issue 294
 LibTest/core/Set/Set.from_A01_t02: Fail # Inherited from dart2js
 LibTest/core/Stopwatch/Stopwatch_A01_t01: Fail, OK # co19 issue 297
@@ -464,13 +463,12 @@ LibTest/core/String/contains_A01_t02: Fail # inherited from VM
 LibTest/core/double/toRadixString_A01_t01: Fail # inherited from VM
 LibTest/core/int/operator_left_shift_A01_t02: Fail, OK # co19 issue 129
 LibTest/core/int/toRadixString_A01_t01: Fail # inherited from VM
-LibTest/isolate/ReceivePort/receive_A01_t02: Fail # inherited from VM
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail, OK # co19 issue 276
 LibTest/isolate/SendPort/send_A02_t02: Fail, OK # co19 issue 293
 LibTest/isolate/SendPort/send_A02_t03: Fail, OK # co19 issue 293
 LibTest/isolate/SendPort/send_A02_t04: Fail, OK # co19 issue 293
 LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
-LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
+
 LibTest/isolate/isolate_api/spawnUri_A01_t01: Fail, OK # Problems with the test: encoded file name
 LibTest/isolate/isolate_api/spawnUri_A01_t02: Fail, OK # Problems with the test: encoded file name
 LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail, OK # Problems with the test: encoded file name

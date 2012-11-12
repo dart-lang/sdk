@@ -27,7 +27,7 @@ ObjectStore::ObjectStore()
     mint_class_(Class::null()),
     bigint_class_(Class::null()),
     double_class_(Class::null()),
-    string_interface_(Type::null()),
+    string_type_(Type::null()),
     one_byte_string_class_(Class::null()),
     two_byte_string_class_(Class::null()),
     external_one_byte_string_class_(Class::null()),

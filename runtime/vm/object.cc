@@ -835,10 +835,12 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_double_type(type);
 
-  cls = CreateAndRegisterInterface("String", script, core_lib);
+  name = Symbols::New("String");
+  cls = Class::New<Instance>(name, script, Scanner::kDummyTokenIndex);
+  RegisterClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
-  object_store->set_string_interface(type);
+  object_store->set_string_type(type);
 
   cls = CreateAndRegisterInterface("List", script, core_lib);
   pending_classes.Add(cls, Heap::kOld);
@@ -8482,9 +8484,9 @@ bool AbstractType::IsNumberType() const {
 }
 
 
-bool AbstractType::IsStringInterface() const {
+bool AbstractType::IsStringType() const {
   return HasResolvedTypeClass() &&
-      (type_class() == Type::Handle(Type::StringInterface()).type_class());
+      (type_class() == Type::Handle(Type::StringType()).type_class());
 }
 
 
@@ -8621,8 +8623,8 @@ RawType* Type::Number() {
 }
 
 
-RawType* Type::StringInterface() {
-  return Isolate::Current()->object_store()->string_interface();
+RawType* Type::StringType() {
+  return Isolate::Current()->object_store()->string_type();
 }
 
 

@@ -36,6 +36,7 @@
     'string_base.dart',
     'string_patch.dart',
     'type_patch.dart',
+    'string_patch.dart',
     'weak_property.dart',
     'weak_property.cc',
   ],

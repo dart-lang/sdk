@@ -267,7 +267,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
         kClassIdReg, type, is_instance_lbl, is_not_instance_lbl);
     return false;
   }
-  if (type.IsStringInterface()) {
+  if (type.IsStringType()) {
     GenerateStringTypeCheck(kClassIdReg, is_instance_lbl, is_not_instance_lbl);
     return false;
   }

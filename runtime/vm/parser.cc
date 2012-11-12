@@ -5194,7 +5194,7 @@ bool Parser::IsSimpleLiteral(const AbstractType& type, Instance* value) {
     *value = CurrentDoubleLiteral();
     return true;
   } else if ((CurrentToken() == Token::kSTRING) &&
-      (no_check || type.IsStringInterface())) {
+      (no_check || type.IsStringType())) {
     *value = CurrentLiteral()->raw();
     return true;
   } else if ((CurrentToken() == Token::kTRUE) &&
@@ -8866,7 +8866,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                 "the key type and the value type");
       }
       TypeArguments& type_array = TypeArguments::Handle(TypeArguments::New(2));
-      type_array.SetTypeAt(0, Type::Handle(Type::StringInterface()));
+      type_array.SetTypeAt(0, Type::Handle(Type::StringType()));
       type_array.SetTypeAt(1, value_type);
       map_type_arguments = type_array.raw();
     } else if (map_type_arguments.Length() > 2) {
@@ -8877,7 +8877,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       const AbstractType& key_type =
           AbstractType::Handle(map_type_arguments.TypeAt(0));
       value_type = map_type_arguments.TypeAt(1);
-      if (!key_type.IsStringInterface()) {
+      if (!key_type.IsStringType()) {
         ErrorMsg(type_pos, "the key type of a map literal must be 'String'");
       }
     }

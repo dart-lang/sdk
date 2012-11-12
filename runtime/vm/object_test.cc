@@ -117,7 +117,7 @@ TEST_CASE(Class) {
 
 TEST_CASE(TypeArguments) {
   const Type& type1 = Type::Handle(Type::Double());
-  const Type& type2 = Type::Handle(Type::StringInterface());
+  const Type& type2 = Type::Handle(Type::StringType());
   const TypeArguments& type_arguments1 = TypeArguments::Handle(
     TypeArguments::New(2));
   type_arguments1.SetTypeAt(0, type1);

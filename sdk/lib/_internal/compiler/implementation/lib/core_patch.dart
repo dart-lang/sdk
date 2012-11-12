@@ -167,8 +167,7 @@ patch class _ListImpl<E> {
 }
 
 
-// Patch for String implementation.
-patch class _StringImpl {
+patch class String {
   patch factory String.fromCharCodes(List<int> charCodes) {
     checkNull(charCodes);
     if (!isJsArray(charCodes)) {
@@ -177,7 +176,10 @@ patch class _StringImpl {
     }
     return Primitives.stringFromCharCodes(charCodes);
   }
+}
 
+// Patch for String implementation.
+patch class Strings {
   patch static String join(List<String> strings, String separator) {
     checkNull(strings);
     checkNull(separator);
