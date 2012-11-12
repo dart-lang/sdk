@@ -48,6 +48,7 @@ void main() {
 
     test('isFalse', () {
       shouldPass(false, isFalse);
+      shouldFail(10, isFalse, "Expected: false but: was <10>.");
       shouldFail(true, isFalse, "Expected: false but: was <true>.");
     });
 

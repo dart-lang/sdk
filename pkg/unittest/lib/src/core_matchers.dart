@@ -59,7 +59,7 @@ class _IsTrue extends BaseMatcher {
 
 class _IsFalse extends BaseMatcher {
   const _IsFalse();
-  bool matches(item, MatchState matchState) => item != true;
+  bool matches(item, MatchState matchState) => item == false;
   Description describe(Description description) =>
       description.add('false');
 }
