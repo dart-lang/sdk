@@ -3223,7 +3223,7 @@ TEST_CASE(NegativeNativeFieldAccess) {
       "  return obj;\n"
       "}\n"
       "Function testMain2() {\n"
-      "  return function() {};\n"
+      "  return () {};\n"
       "}\n";
   Dart_Handle result;
   DARTSCOPE_NOCHECKS(Isolate::Current());

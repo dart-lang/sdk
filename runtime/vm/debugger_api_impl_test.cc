@@ -648,7 +648,7 @@ TEST_CASE(Debug_ExprClosureBreakpoint) {
       "var c;                 \n"
       "                       \n"
       "main() {               \n"
-      "  c = add(a, b) {      \n"
+      "  c = (a, b) {         \n"
       "    return a + b;      \n"
       "  };                   \n"
       "  return c(10, 20);    \n"

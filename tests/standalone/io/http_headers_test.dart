@@ -172,7 +172,7 @@ void testEnumeration() {
   bool myHeader1 = false;
   bool myHeader2 = false;
   int totalValues = 0;
-  headers.forEach(f(String name, List<String> values) {
+  headers.forEach((String name, List<String> values) {
     totalValues += values.length;
     if (name == "my-header-1") {
       myHeader1 = true;

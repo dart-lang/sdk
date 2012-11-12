@@ -24,8 +24,8 @@ class CollectionFromTest {
     int initialSum = 0;
     int otherSum = 0;
 
-    initial.forEach(void f(e) { initialSum += e; });
-    other.forEach(void f(e) { otherSum += e; });
+    initial.forEach((e) { initialSum += e; });
+    other.forEach((e) { otherSum += e; });
     Expect.equals(4 + 2 + 1, otherSum);
     Expect.equals(otherSum, initialSum);
   }
