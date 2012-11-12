@@ -2,14 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of html;
+part of svg;
 
-class _AttributeClassSet extends _CssClassSet {
-  _AttributeClassSet(element) : super(element);
+class _AttributeClassSet extends CssClassSet {
+  final Element _element;
 
-  String $dom_className() => _element.attributes['class'];
+  _AttributeClassSet(this._element);
 
-  void _write(Set s) {
+  Set<String> readClasses() {
+    var classname = _element.attributes['class'];
+
+    Set<String> s = new Set<String>();
+    for (String name in classname.split(' ')) {
+      String trimmed = name.trim();
+      if (!trimmed.isEmpty) {
+        s.add(trimmed);
+      }
+    }
+    return s;
+  }
+
+  void writeClasses(Set s) {
     _element.attributes['class'] = _formatSet(s);
   }
 }
@@ -27,7 +40,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     return _cssClassSet;
   }
 
-  List<Element> get elements => new _FilteredElementList(this);
+  List<Element> get elements => new FilteredElementList(this);
 
   void set elements(Collection<Element> value) {
     final elements = this.elements;

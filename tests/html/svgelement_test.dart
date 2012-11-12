@@ -6,6 +6,7 @@ library SVGElementTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
+import 'dart:svg';
 
 main() {
   useHtmlIndividualConfiguration();

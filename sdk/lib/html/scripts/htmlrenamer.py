@@ -309,3 +309,8 @@ class HtmlRenamer(object):
       member_name = html_interface_name + '.' + member_prefix + member
       if member_name in candidates:
         return member_name
+
+  def GetLibraryName(self, interface):
+    if interface.id.startswith('SVG'):
+      return 'svg'
+    return 'html'

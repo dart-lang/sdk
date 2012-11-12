@@ -231,7 +231,8 @@ class DartiumBackend(HtmlDartGenerator):
         INCLUDES=self._GenerateCPPIncludes(self._cpp_impl_includes),
         CALLBACKS=self._cpp_definitions_emitter.Fragments(),
         RESOLVER=self._cpp_resolver_emitter.Fragments(),
-        DART_IMPLEMENTATION_CLASS=self._interface_type_info.implementation_name())
+        DART_IMPLEMENTATION_CLASS=self._interface_type_info.implementation_name(),
+        DART_IMPLEMENTATION_LIBRARY='dart:%s' % self._renamer.GetLibraryName(self._interface))
 
   def _GenerateCPPHeader(self):
     to_native_emitter = emitter.Emitter()
@@ -385,7 +386,7 @@ class DartiumBackend(HtmlDartGenerator):
       self._members_emitter.Emit(
           '\n'
           '  $TYPE operator[](int index) native "$(INTERFACE)_item_Callback";\n',
-          TYPE=self.SecureOutputType(element_type), 
+          TYPE=self.SecureOutputType(element_type),
           INTERFACE=self._interface.id)
 
     if self._HasNativeIndexSetter():
@@ -515,7 +516,7 @@ class DartiumBackend(HtmlDartGenerator):
 
       dart_declaration = '%s%s _%s(%s)' % (
           'static ' if operation.is_static else '',
-          self.SecureOutputType(operation.type.id), 
+          self.SecureOutputType(operation.type.id),
           overload_name, argument_list)
       cpp_callback_name = self._GenerateNativeBinding(
           overload_name, (0 if operation.is_static else 1) + argument_count,

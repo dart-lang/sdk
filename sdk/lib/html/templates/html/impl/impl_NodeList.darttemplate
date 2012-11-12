@@ -95,7 +95,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<Node>(this);
+    return new FixedSizeListIterator<Node>(this);
   }
 
   // From Collection<Node>:

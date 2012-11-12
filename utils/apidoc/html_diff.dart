@@ -19,8 +19,8 @@ import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dar
 // TODO(amouravski): There is currently magic that looks at dart:* libraries
 // rather than the declared library names. This changed due to recent syntax
 // changes. We should only need to look at the library 'html'.
-const HTML_LIBRARY_NAME = 'dart:html';
-const HTML_DECLARED_NAME = 'html';
+const List<String> HTML_LIBRARY_NAMES = const ['dart:html', 'dart:svg'];
+const List<String> HTML_DECLARED_NAMES = const ['html', 'svg'];
 
 /**
  * A class for computing a many-to-many mapping between the types and
@@ -72,8 +72,11 @@ class HtmlDiff {
    * calling [HtmlDiff.run].
    */
   static void initialize(Path libDir) {
-    _compilation = new Compilation.library(<Path>[new Path(HTML_LIBRARY_NAME)],
-                                           libDir);
+    var paths = <Path>[];
+    for (var libraryName in HTML_LIBRARY_NAMES) {
+      paths.add(new Path(libraryName));
+    }
+    _compilation = new Compilation.library(paths, libDir);
     _mirrors = _compilation.mirrors;
   }
 
@@ -96,20 +99,22 @@ class HtmlDiff {
    * [HtmlDiff.initialize] should be called.
    */
   void run() {
-    LibraryMirror htmlLib = _mirrors.libraries[HTML_DECLARED_NAME];
-    if (htmlLib == null) {
-      warn('Could not find $HTML_LIBRARY_NAME');
-      return;
-    }
-    for (ClassMirror htmlType in htmlLib.classes.values) {
-      final domTypes = htmlToDomTypes(htmlType);
-      if (domTypes.isEmpty) continue;
+    for (var libraryName in HTML_DECLARED_NAMES) {
+      var library = _mirrors.libraries[libraryName];
+      if (library == null) {
+        warn('Could not find $libraryName');
+        return;
+      }
+      for (ClassMirror type in library.classes.values) {
+        final domTypes = htmlToDomTypes(type);
+        if (domTypes.isEmpty) continue;
 
-      htmlTypesToDom.putIfAbsent(htmlType.qualifiedName,
-          () => new Set()).addAll(domTypes);
+        htmlTypesToDom.putIfAbsent(type.qualifiedName,
+            () => new Set()).addAll(domTypes);
 
-      htmlType.members.forEach(
-          (_, m) => _addMemberDiff(m, domTypes));
+        type.members.forEach(
+            (_, m) => _addMemberDiff(m, domTypes, library.simpleName));
+      }
     }
   }
 
@@ -119,13 +124,14 @@ class HtmlDiff {
    * `@domName` type values that correspond to [htmlMember]'s
    * defining type.
    */
-  void _addMemberDiff(MemberMirror htmlMember, List<String> domTypes) {
+  void _addMemberDiff(MemberMirror htmlMember, List<String> domTypes,
+      String libraryName) {
     var domMembers = htmlToDomMembers(htmlMember, domTypes);
     if (htmlMember == null && !domMembers.isEmpty) {
-      warn('$HTML_LIBRARY_NAME member '
+      warn('$libraryName member '
            '${htmlMember.owner.simpleName}.'
            '${htmlMember.simpleName} has no corresponding '
-           '$HTML_LIBRARY_NAME member.');
+           '$libraryName member.');
     }
 
     if (htmlMember == null) return;

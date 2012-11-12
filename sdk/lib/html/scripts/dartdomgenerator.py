@@ -19,7 +19,7 @@ from generator import TypeRegistry
 from htmleventgenerator import HtmlEventGenerator
 from htmlrenamer import HtmlRenamer
 from systemhtml import DartLibraryEmitter, Dart2JSBackend,\
-                       HtmlDartInterfaceGenerator
+                       HtmlDartInterfaceGenerator, DartLibrary, DartLibraries
 from systemnative import CPPLibraryEmitter, DartiumBackend
 from templateloader import TemplateLoader
 
@@ -70,12 +70,12 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
   renamer = HtmlRenamer(webkit_database)
   type_registry = TypeRegistry(webkit_database, renamer)
 
-  def RunGenerator(dart_library_template, dart_output_dir, dart_library_path,
+  def RunGenerator(dart_libraries, dart_output_dir,
                    template_loader, backend_factory):
     options = GeneratorOptions(
         template_loader, webkit_database, type_registry, renamer)
     dart_library_emitter = DartLibraryEmitter(
-        emitters, dart_library_template, dart_output_dir)
+        emitters, dart_output_dir, dart_libraries)
     event_generator = HtmlEventGenerator(webkit_database, template_loader)
 
     def generate_interface(interface):
@@ -85,7 +85,7 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
       interface_generator.Generate()
 
     generator.Generate(webkit_database, common_database, generate_interface)
-    dart_library_emitter.EmitLibrary(dart_library_path, auxiliary_dir)
+    dart_library_emitter.EmitLibraries(auxiliary_dir)
 
   if dart2js_output_dir:
     template_paths = ['html/dart2js', 'html/impl', 'html/interface', '']
@@ -97,12 +97,12 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
     backend_factory = lambda interface:\
         Dart2JSBackend(interface, backend_options)
 
-    dart_library_template = template_loader.Load('html_dart2js.darttemplate')
     dart_output_dir = os.path.join(dart2js_output_dir, 'dart')
-    dart_library_path = os.path.join(dart2js_output_dir, 'html_dart2js.dart')
+    dart_libraries = DartLibraries(
+        template_loader, 'dart2js', dart2js_output_dir)
 
-    RunGenerator(dart_library_template, dart_output_dir, dart_library_path,
-                 template_loader, backend_factory)
+    RunGenerator(dart_libraries, dart_output_dir,
+        template_loader, backend_factory)
 
   if dartium_output_dir:
     template_paths = ['html/dartium', 'html/impl', 'html/interface', '']
@@ -116,11 +116,11 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
     backend_factory = lambda interface:\
         DartiumBackend(interface, cpp_library_emitter, backend_options)
 
-    dart_library_template = template_loader.Load('html_dartium.darttemplate')
     dart_output_dir = os.path.join(dartium_output_dir, 'dart')
-    dart_library_path = os.path.join(dartium_output_dir, 'html_dartium.dart')
+    dart_libraries = DartLibraries(
+        template_loader, 'dartium', dartium_output_dir)
 
-    RunGenerator(dart_library_template, dart_output_dir, dart_library_path,
+    RunGenerator(dart_libraries, dart_output_dir,
                  template_loader, backend_factory)
     cpp_library_emitter.EmitDerivedSources(
         template_loader.Load('cpp_derived_sources.template'),
@@ -186,13 +186,17 @@ def main():
   GenerateFromDatabase(database, dart2js_output_dir, dartium_output_dir)
 
   if 'htmldart2js' in systems:
-    _logger.info('Copy html_dart2js to dart2js/')
+    _logger.info('Generating dart2js single files.')
     GenerateSingleFile(os.path.join(dart2js_output_dir, 'html_dart2js.dart'),
                        '../dart2js')
+    GenerateSingleFile(os.path.join(dart2js_output_dir, 'svg_dart2js.dart'),
+        '../../svg/dart2js')
   if 'htmldartium' in systems:
-    _logger.info('Copy html_dartium to dartium/')
+    _logger.info('Generating dartium single files.')
     GenerateSingleFile(os.path.join(dartium_output_dir, 'html_dartium.dart'),
                        '../dartium')
+    GenerateSingleFile(os.path.join(dartium_output_dir, 'svg_dartium.dart'),
+        '../../svg/dartium')
 
 if __name__ == '__main__':
   sys.exit(main())

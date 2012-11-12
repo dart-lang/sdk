@@ -1,0 +1,11 @@
+// DO NOT EDIT
+// Auto-generated dart:svg library.
+
+library svg;
+
+import 'dart:html';
+import 'dart:nativewrappers';
+
+part '$AUXILIARY_DIR/shared_SVGFactoryProviders.dart';
+
+$!GENERATED_DART_FILES

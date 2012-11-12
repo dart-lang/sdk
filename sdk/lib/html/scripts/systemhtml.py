@@ -199,6 +199,7 @@ class HtmlDartInterfaceGenerator(object):
     self._interface = interface
     self._backend = backend
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
+    self._library_name = self._renamer.GetLibraryName(self._interface)
 
   def Generate(self):
     if 'Callback' in self._interface.ext_attrs:
@@ -211,7 +212,8 @@ class HtmlDartInterfaceGenerator(object):
     handlers = [operation for operation in self._interface.operations
                 if operation.id == 'handleEvent']
     info = AnalyzeOperation(self._interface, handlers)
-    code = self._library_emitter.FileEmitter(self._interface.id)
+    code = self._library_emitter.FileEmitter(self._interface.id,
+        self._library_name)
     code.Emit(self._template_loader.Load('callback.darttemplate'))
     code.Emit('typedef void $NAME($PARAMS);\n',
               NAME=self._interface.id,
@@ -234,7 +236,7 @@ class HtmlDartInterfaceGenerator(object):
       constructors.append(constructor_info)
       factory_provider = '_' + interface_name + 'FactoryProvider'
       factory_provider_emitter = self._library_emitter.FileEmitter(
-          '_%sFactoryProvider' % interface_name)
+          '_%sFactoryProvider' % interface_name, self._library_name)
       self._backend.EmitFactoryProvider(
           constructor_info, factory_provider, factory_provider_emitter)
 
@@ -243,7 +245,8 @@ class HtmlDartInterfaceGenerator(object):
       template = self._template_loader.Load(
           'factoryprovider_Elements.darttemplate')
       EmitHtmlElementFactoryConstructors(
-          self._library_emitter.FileEmitter('_Elements', template),
+          self._library_emitter.FileEmitter('_Elements', self._library_name,
+              template),
           infos,
           self._interface.id,
           self._interface_type_info.implementation_name(),
@@ -289,6 +292,7 @@ class HtmlDartInterfaceGenerator(object):
 
     self._implementation_members_emitter = implementation_emitter.Emit(
         self._backend.ImplementationTemplate(),
+        LIBRARYNAME=self._library_name,
         CLASSNAME=self._interface_type_info.implementation_name(),
         EXTENDS=' extends %s' % base_class if base_class else '',
         IMPLEMENTS=implements_str,
@@ -322,7 +326,7 @@ class HtmlDartInterfaceGenerator(object):
         self._backend.ImplementsMergedMembers()):
       # Merged members are implemented in target interface implementation.
       return emitter.Emitter()
-    return self._library_emitter.FileEmitter(basename)
+    return self._library_emitter.FileEmitter(basename, self._library_name)
 
   def _DartType(self, type_name):
     return self._type_registry.DartType(type_name)
@@ -866,32 +870,66 @@ class Dart2JSBackend(HtmlDartGenerator):
 # ------------------------------------------------------------------------------
 
 class DartLibraryEmitter():
-  def __init__(self, multiemitter, template, dart_sources_dir):
+  def __init__(self, multiemitter, dart_sources_dir, dart_libraries):
     self._multiemitter = multiemitter
-    self._template = template
     self._dart_sources_dir = dart_sources_dir
     self._path_to_emitter = {}
+    self._dart_libraries = dart_libraries
 
-  def FileEmitter(self, basename, template=None):
+  def FileEmitter(self, basename, library_name, template=None):
     path = os.path.join(self._dart_sources_dir, '%s.dart' % basename)
     if not path in self._path_to_emitter:
       emitter = self._multiemitter.FileEmitter(path)
       if not template is None:
         emitter = emitter.Emit(template)
       self._path_to_emitter[path] = emitter
+
+      self._dart_libraries.AddFile(basename, library_name, path)
     return self._path_to_emitter[path]
 
-  def EmitLibrary(self, library_file_path, auxiliary_dir):
+  def EmitLibraries(self, auxiliary_dir):
+    self._dart_libraries.Emit(self._multiemitter, auxiliary_dir)
+
+# ------------------------------------------------------------------------------
+class DartLibrary():
+  def __init__(self, name, template_loader, library_type, output_dir):
+    self._template = template_loader.Load(
+        '%s_%s.darttemplate' % (name, library_type))
+    self._dart_path = os.path.join(
+        output_dir, '%s_%s.dart' % (name, library_type))
+    self._paths = []
+
+  def AddFile(self, path):
+    self._paths.append(path)
+
+  def Emit(self, emitter, auxiliary_dir):
     def massage_path(path):
       # The most robust way to emit path separators is to use / always.
       return path.replace('\\', '/')
 
-    library_emitter = self._multiemitter.FileEmitter(library_file_path)
-    library_file_dir = os.path.dirname(library_file_path)
+    library_emitter = emitter.FileEmitter(self._dart_path)
+    library_file_dir = os.path.dirname(self._dart_path)
     auxiliary_dir = os.path.relpath(auxiliary_dir, library_file_dir)
     imports_emitter = library_emitter.Emit(
         self._template, AUXILIARY_DIR=massage_path(auxiliary_dir))
-    for path in sorted(self._path_to_emitter.keys()):
+
+    for path in sorted(self._paths):
       relpath = os.path.relpath(path, library_file_dir)
       imports_emitter.Emit(
           "part '$PATH';\n", PATH=massage_path(relpath))
+
+# ------------------------------------------------------------------------------
+
+class DartLibraries():
+  def __init__(self, template_loader, library_type, output_dir):
+    self._libraries = {
+      'svg': DartLibrary('svg', template_loader, library_type, output_dir),
+      'html': DartLibrary('html', template_loader, library_type, output_dir),
+    }
+
+  def AddFile(self, basename, library_name, path):
+    self._libraries[library_name].AddFile(path)
+
+  def Emit(self, emitter, auxiliary_dir):
+    for lib in self._libraries.values():
+      lib.Emit(emitter, auxiliary_dir)

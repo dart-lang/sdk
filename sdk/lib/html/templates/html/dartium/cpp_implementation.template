@@ -23,5 +23,6 @@ $RESOLVER
 }
 
 const char* const Dart$(INTERFACE)::dartImplementationClassName = "$DART_IMPLEMENTATION_CLASS";
+const char* const Dart$(INTERFACE)::dartImplementationLibraryName = "$DART_IMPLEMENTATION_LIBRARY";
 
 }

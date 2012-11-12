@@ -6,6 +6,7 @@ library NodeTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
+import 'dart:svg';
 
 Node makeNode() => new Element.tag('div');
 Node makeNodeWithChildren() =>

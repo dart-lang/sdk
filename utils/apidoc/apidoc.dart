@@ -186,7 +186,7 @@ class Htmldoc extends doc.Dartdoc {
   }
 
   doc.DocComment getRecordedLibraryComment(LibraryMirror library) {
-    if (doc.displayName(library) == HTML_LIBRARY_NAME) {
+    if (HTML_LIBRARY_NAMES.contains(doc.displayName(library))) {
       return libraryComment;
     }
     return null;
@@ -391,7 +391,7 @@ class Apidoc extends doc.Dartdoc {
   }
 
   doc.DocComment getLibraryComment(LibraryMirror library) {
-    if (doc.displayName(library) == HTML_LIBRARY_NAME) {
+    if (HTML_LIBRARY_NAMES.contains(doc.displayName(library))) {
       return htmldoc.libraryComment;
     }
     return super.getLibraryComment(library);
@@ -471,7 +471,7 @@ class Apidoc extends doc.Dartdoc {
     }
 
     var typeString = '';
-    if (doc.displayName(type.library) == HTML_LIBRARY_NAME) {
+    if (HTML_LIBRARY_NAMES.contains(doc.displayName(type.library))) {
       // If it's an HTML type, try to map it to a base DOM type so we can find
       // the MDN docs.
       final domTypes = _diff.htmlTypesToDom[type.qualifiedName];
@@ -505,7 +505,7 @@ class Apidoc extends doc.Dartdoc {
   MdnComment includeMdnMemberComment(MemberMirror member) {
     var library = findLibrary(member);
     var memberString = '';
-    if (doc.displayName(library) == HTML_LIBRARY_NAME) {
+    if (HTML_LIBRARY_NAMES.contains(doc.displayName(library))) {
       // If it's an HTML type, try to map it to a DOM type name so we can find
       // the MDN docs.
       final domMembers = _diff.htmlToDom[member.qualifiedName];

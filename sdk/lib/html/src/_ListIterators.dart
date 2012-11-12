@@ -5,8 +5,8 @@
 part of html;
 
 // Iterator for arrays with fixed size.
-class _FixedSizeListIterator<T> extends _VariableSizeListIterator<T> {
-  _FixedSizeListIterator(List<T> array)
+class FixedSizeListIterator<T> extends _VariableSizeListIterator<T> {
+  FixedSizeListIterator(List<T> array)
       : super(array),
         _length = array.length;
 

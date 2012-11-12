@@ -9,11 +9,15 @@ library html;
 
 import 'dart:isolate';
 import 'dart:json';
+import 'dart:svg' as svg;
 
 $!GENERATED_DART_FILES
 
 part '$AUXILIARY_DIR/CrossFrameTypes.dart';
+part '$AUXILIARY_DIR/CssClassSet.dart';
+part '$AUXILIARY_DIR/Device.dart';
 part '$AUXILIARY_DIR/EventListener.dart';
+part '$AUXILIARY_DIR/FilteredElementList.dart';
 part '$AUXILIARY_DIR/KeyCode.dart';
 part '$AUXILIARY_DIR/KeyLocation.dart';
 part '$AUXILIARY_DIR/KeyName.dart';
@@ -33,7 +37,6 @@ part '$AUXILIARY_DIR/dart2js_LocationWrapper.dart';
 part '$AUXILIARY_DIR/dart2js_MutationObserverSupported.dart';
 part '$AUXILIARY_DIR/dart2js_TypedArrayFactoryProvider.dart';
 part '$AUXILIARY_DIR/_Testing.dart';
-part '$AUXILIARY_DIR/Device.dart';
 part '$AUXILIARY_DIR/_ListIterators.dart';
 part '$AUXILIARY_DIR/_Lists.dart';
 

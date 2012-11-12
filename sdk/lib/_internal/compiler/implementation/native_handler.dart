@@ -82,7 +82,8 @@ void maybeEnableNative(Compiler compiler,
   if (library.entryCompilationUnit.script.name.contains(
           'dart/tests/compiler/dart2js_native')
       || libraryName == 'dart:isolate'
-      || libraryName == 'dart:html') {
+      || libraryName == 'dart:html'
+      || libraryName == 'dart:svg') {
     library.canUseNative = true;
   }
 }
