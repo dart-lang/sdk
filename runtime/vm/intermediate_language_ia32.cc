@@ -1909,16 +1909,22 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kSHR: {
-      // sarl operation masks the count to 5 bits.
-      const Immediate kCountLimit = Immediate(0x1F);
-      __ cmpl(right, Immediate(0));
-      __ j(LESS, deopt);
+      if (CanDeoptimize()) {
+        __ cmpl(right, Immediate(0));
+        __ j(LESS, deopt);
+      }
       __ SmiUntag(right);
-      __ cmpl(right, kCountLimit);
-      Label count_ok;
-      __ j(LESS, &count_ok, Assembler::kNearJump);
-      __ movl(right, kCountLimit);
-      __ Bind(&count_ok);
+      // sarl operation masks the count to 5 bits.
+      const intptr_t kCountLimit = 0x1F;
+      Range* right_range = this->right()->definition()->range();
+      if ((right_range == NULL) ||
+          !right_range->IsWithin(RangeBoundary::kMinusInfinity, kCountLimit)) {
+       __ cmpl(right, Immediate(kCountLimit));
+        Label count_ok;
+        __ j(LESS, &count_ok, Assembler::kNearJump);
+        __ movl(right, Immediate(kCountLimit));
+        __ Bind(&count_ok);
+      }
       ASSERT(right == ECX);  // Count must be in ECX
       __ SmiUntag(left);
       __ sarl(left, right);

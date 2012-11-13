@@ -1794,16 +1794,22 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kSHR: {
-      // sarq operation masks the count to 6 bits.
-      const Immediate kCountLimit = Immediate(0x3F);
-      __ cmpq(right, Immediate(0));
-      __ j(LESS, deopt);
+      if (CanDeoptimize()) {
+        __ cmpq(right, Immediate(0));
+        __ j(LESS, deopt);
+      }
       __ SmiUntag(right);
-      __ cmpq(right, kCountLimit);
-      Label count_ok;
-      __ j(LESS, &count_ok, Assembler::kNearJump);
-      __ movq(right, kCountLimit);
-      __ Bind(&count_ok);
+      // sarq operation masks the count to 6 bits.
+      const intptr_t kCountLimit = 0x3F;
+      Range* right_range = this->right()->definition()->range();
+      if ((right_range == NULL) ||
+          !right_range->IsWithin(RangeBoundary::kMinusInfinity, kCountLimit)) {
+        __ cmpq(right, Immediate(kCountLimit));
+        Label count_ok;
+        __ j(LESS, &count_ok, Assembler::kNearJump);
+        __ movq(right, Immediate(kCountLimit));
+        __ Bind(&count_ok);
+      }
       ASSERT(right == RCX);  // Count must be in RCX
       __ SmiUntag(left);
       __ sarq(left, right);

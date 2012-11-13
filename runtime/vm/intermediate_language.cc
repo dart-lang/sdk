@@ -1327,6 +1327,12 @@ bool BinarySmiOpInstr::CanDeoptimize() const {
     case Token::kBIT_OR:
     case Token::kBIT_XOR:
       return false;
+    case Token::kSHR: {
+      // Can't deopt if shift-count is known positive.
+      Range* right_range = this->right()->definition()->range();
+      return (right_range == NULL)
+          || !right_range->IsWithin(0, RangeBoundary::kPlusInfinity);
+    }
     default:
       return overflow_;
   }
@@ -2509,8 +2515,6 @@ void BinarySmiOpInstr::InferRange() {
     return;
   }
 
-
-  // If left is a l
   RangeBoundary left_min =
     IsArrayLength(left_defn) ?
         RangeBoundary::FromDefinition(left_defn) : left_range->min();
