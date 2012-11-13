@@ -59,6 +59,10 @@ invocation_mirror_indirect_test: Fail # Issue 3326
 
 interceptor_test: Fail, Crash # Issue 6696
 
+# Issue 6697 - redirecting factory constructor and --compile_all flag.
+# See also  ct_const2_test  where compile_all is disabled in the file.
+hello_dart_test: Fail
+
 [ $compiler == none && ($system == macos || $system == linux) && $arch == ia32 && $checked ]
 gc_test: Skip  # Issue 1487, flaky.
 

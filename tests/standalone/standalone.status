@@ -5,6 +5,8 @@
 out_of_memory_test: Skip # Issue 2345
 
 package/invalid_uri_test: Fail, OK # Fails intentionally
+[ $runtime == vm ]
+io/compile_all_test: Fail # Issue 6697
 
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.

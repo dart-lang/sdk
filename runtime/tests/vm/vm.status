@@ -11,6 +11,11 @@ cc/AllocGeneric_Overflow: Crash
 
 cc/SNPrint_BadArgs: Skip
 
+cc/CorelibCompileAll: Fail # Issue 6697
+cc/CustomIsolates: Fail # Issue 6697
+cc/Dart2JSCompileAll: Fail # Issue 6697
+cc/ParsePatchLibrary: Fail # Issue 6697
+
 [ $arch == x64 ]
 cc/IsolateInterrupt: Skip
 
