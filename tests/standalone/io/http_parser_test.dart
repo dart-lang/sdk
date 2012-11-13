@@ -37,7 +37,7 @@ class HttpParserTest {
     int bytesReceived;
 
     void reset() {
-      httpParser = new _HttpParser();
+      httpParser = new _HttpParser.requestParser();
       httpParser.requestStart = (m, u, v) { method = m; uri = u; version = v; };
       httpParser.responseStart = (s, r, v) { Expect.fail("Expected request"); };
       httpParser.headerReceived = (f, v) {
@@ -68,6 +68,7 @@ class HttpParserTest {
         Expect.isFalse(close);
         dataEndCalled = true;
       };
+      httpParser.closed = () { };
 
       headersCompleteCalled = false;
       dataEndCalled = false;
@@ -86,7 +87,7 @@ class HttpParserTest {
         int remaining = requestData.length - pos;
         int writeLength = min(chunkSize, remaining);
         written += writeLength;
-        httpParser.writeList(requestData, pos, writeLength);
+        httpParser.streamData(requestData.getRange(pos, writeLength));
         unparsed = httpParser.readUnparsedData().length;
         if (httpParser.upgrade) {
           unparsed += requestData.length - written;
@@ -121,11 +122,12 @@ class HttpParserTest {
     bool errorCalled;
 
     void reset() {
-      httpParser = new _HttpParser();
+      httpParser = new _HttpParser.requestParser();
       httpParser.responseStart = (s, r) { Expect.fail("Expected request"); };
       httpParser.error = (e) {
         errorCalled = true;
       };
+      httpParser.closed = () { };
 
       errorCalled = false;
     }
@@ -138,7 +140,7 @@ class HttpParserTest {
            pos += chunkSize) {
         int remaining = requestData.length - pos;
         int writeLength = min(chunkSize, remaining);
-        httpParser.writeList(requestData, pos, writeLength);
+        httpParser.streamData(requestData.getRange(pos, writeLength));
       }
       Expect.isTrue(errorCalled);
     }
@@ -176,7 +178,7 @@ class HttpParserTest {
     int bytesReceived;
 
     void reset() {
-      httpParser = new _HttpParser();
+      httpParser = new _HttpParser.responseParser();
       if (responseToMethod != null) {
         httpParser.responseToMethod = responseToMethod;
       }
@@ -213,6 +215,7 @@ class HttpParserTest {
         dataEndCalled = true;
         dataEndClose = close;
       };
+      httpParser.closed = () { };
 
       headersCompleteCalled = false;
       dataEndCalled = false;
@@ -232,7 +235,7 @@ class HttpParserTest {
         int remaining = requestData.length - pos;
         int writeLength = min(chunkSize, remaining);
         written += writeLength;
-        httpParser.writeList(requestData, pos, writeLength);
+        httpParser.streamData(requestData.getRange(pos, writeLength));
         unparsed = httpParser.readUnparsedData().length;
         if (httpParser.upgrade) {
           unparsed += requestData.length - written;
@@ -241,7 +244,7 @@ class HttpParserTest {
           Expect.equals(0, unparsed);
         }
       }
-      if (close) httpParser.connectionClosed();
+      if (close) httpParser.streamDone();
       Expect.equals(expectedVersion, version);
       Expect.equals(expectedStatusCode, statusCode);
       Expect.equals(expectedReasonPhrase, reasonPhrase);
@@ -272,9 +275,10 @@ class HttpParserTest {
     bool errorCalled;
 
     void reset() {
-      httpParser = new _HttpParser();
+      httpParser = new _HttpParser.responseParser();
       httpParser.requestStart = (m, u) => Expect.fail("Expected response");
       httpParser.error = (e) => errorCalled = true;
+      httpParser.closed = () { };
 
       errorCalled = false;
     }
@@ -287,9 +291,9 @@ class HttpParserTest {
            pos += chunkSize) {
         int remaining = requestData.length - pos;
         int writeLength = min(chunkSize, remaining);
-        httpParser.writeList(requestData, pos, writeLength);
+        httpParser.streamData(requestData.getRange(pos, writeLength));
       }
-      if (close) httpParser.connectionClosed();
+      if (close) httpParser.streamDone();
       Expect.isTrue(errorCalled);
     }
 
