@@ -27,11 +27,12 @@ class Platform {
   // Extracts the local hostname.
   static bool LocalHostname(char* buffer, intptr_t buffer_length);
 
-  // Extracts the environment variables for the current process.
-  // The array of strings returned must be deallocated using
-  // delete[]. The number of elements in the array is returned
+  // Extracts the environment variables for the current process.  The
+  // array of strings returned must be deallocated using
+  // FreeEnvironment. The number of elements in the array is returned
   // in the count argument.
   static char** Environment(intptr_t* count);
+  static void FreeEnvironment(char** env, intptr_t count);
 
  private:
   DISALLOW_ALLOCATION();

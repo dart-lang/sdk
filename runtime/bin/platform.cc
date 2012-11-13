@@ -16,15 +16,14 @@ void FUNCTION_NAME(Platform_NumberOfProcessors)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Platform_OperatingSystem)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  Dart_SetReturnValue(args,
-                      Dart_NewStringFromCString(Platform::OperatingSystem()));
+  Dart_SetReturnValue(args, DartUtils::NewString(Platform::OperatingSystem()));
   Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(Platform_PathSeparator)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  Dart_SetReturnValue(args, Dart_NewStringFromCString(File::PathSeparator()));
+  Dart_SetReturnValue(args, DartUtils::NewString(File::PathSeparator()));
   Dart_ExitScope();
 }
 
@@ -34,7 +33,7 @@ void FUNCTION_NAME(Platform_LocalHostname)(Dart_NativeArguments args) {
   const intptr_t HOSTNAME_LENGTH = 256;
   char hostname[HOSTNAME_LENGTH];
   if (Platform::LocalHostname(hostname, HOSTNAME_LENGTH)) {
-    Dart_SetReturnValue(args, Dart_NewStringFromCString(hostname));
+    Dart_SetReturnValue(args, DartUtils::NewString(hostname));
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
@@ -54,19 +53,22 @@ void FUNCTION_NAME(Platform_Environment)(Dart_NativeArguments args) {
   } else {
     Dart_Handle result = Dart_NewList(count);
     if (Dart_IsError(result)) {
+      Platform::FreeEnvironment(env, count);
       Dart_PropagateError(result);
     }
     for (intptr_t i = 0; i < count; i++) {
-      Dart_Handle str = Dart_NewStringFromCString(env[i]);
+      Dart_Handle str = DartUtils::NewString(env[i]);
       if (Dart_IsError(str)) {
+        Platform::FreeEnvironment(env, count);
         Dart_PropagateError(str);
       }
       Dart_Handle error = Dart_ListSetAt(result, i, str);
       if (Dart_IsError(error)) {
+        Platform::FreeEnvironment(env, count);
         Dart_PropagateError(error);
       }
     }
-    delete[] env;
+    Platform::FreeEnvironment(env, count);
     Dart_SetReturnValue(args, result);
   }
   Dart_ExitScope();

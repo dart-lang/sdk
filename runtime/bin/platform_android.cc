@@ -62,6 +62,11 @@ char** Platform::Environment(intptr_t* count) {
 }
 
 
+void Platform::FreeEnvironment(char** env, intptr_t count) {
+  delete[] env;
+}
+
+
 char* Platform::StrError(int error_code) {
   static const int kBufferSize = 1024;
   char* error = static_cast<char*>(malloc(kBufferSize));

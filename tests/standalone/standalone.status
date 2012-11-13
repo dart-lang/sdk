@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+io/file_non_ascii_test: Fail  # Posting non-ascii strings through ports.
+io/directory_non_ascii_test: Fail  # Posting non-ascii strings through ports.
+
 out_of_memory_test: Skip # Issue 2345
 
 package/invalid_uri_test: Fail, OK # Fails intentionally
