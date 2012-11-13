@@ -31,6 +31,7 @@ io/socket_many_connections_test: Skip
 
 io/file_non_ascii_sync_test: Fail  # issue 6702
 io/directory_non_ascii_sync_test: Fail  # issue 6702
+io/process_non_ascii_test: Fail  # issue 6702
 
 [ $runtime == vm && $system == windows ]
 io/file_system_links_test: Skip  # No links on Windows.
