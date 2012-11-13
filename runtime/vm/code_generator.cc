@@ -47,6 +47,8 @@ DECLARE_FLAG(int, deoptimization_counter_threshold);
 DEFINE_FLAG(charp, optimization_filter, NULL, "Optimize only named function");
 DEFINE_FLAG(bool, trace_failed_optimization_attempts, false,
     "Traces all failed optimization attempts");
+DEFINE_FLAG(int, max_subtype_cache_entries, 100,
+    "Maximum number of subtype cache entries (number of checks cached).");
 
 
 DEFINE_RUNTIME_ENTRY(TraceFunctionEntry, 1) {
@@ -495,7 +497,10 @@ static void UpdateTypeTestCache(
   AbstractTypeArguments& last_instantiator_type_arguments =
       AbstractTypeArguments::Handle();
   Bool& last_result = Bool::Handle();
-  intptr_t len = new_cache.NumberOfChecks();
+  const intptr_t len = new_cache.NumberOfChecks();
+  if (len >= FLAG_max_subtype_cache_entries) {
+    return;
+  }
   for (intptr_t i = 0; i < len; ++i) {
     new_cache.GetCheck(
         i,
@@ -523,25 +528,34 @@ static void UpdateTypeTestCache(
       return;
     }
   }
-  new_cache.AddCheck(instance_class.id(),
-                     instance_type_arguments,
-                     instantiator_type_arguments,
-                     result);
+  if (!instantiator_type_arguments.IsInstantiatedTypeArguments()) {
+    new_cache.AddCheck(instance_class.id(),
+                       instance_type_arguments,
+                       instantiator_type_arguments,
+                       result);
+  }
   if (FLAG_trace_type_checks) {
     AbstractType& test_type = AbstractType::Handle(type.raw());
     if (!test_type.IsInstantiated()) {
       test_type = type.InstantiateFrom(instantiator_type_arguments);
     }
-    OS::Print("  Updated test cache %p ix:%"Pd":\n"
+    OS::Print("  Updated test cache %p ix: %"Pd" with (%"Pd", %p, %p, %s)\n"
         "    [%p %s %"Pd", %p %s]\n"
         "    [%p %s %"Pd", %p %s] %s\n",
         new_cache.raw(),
         len,
+        instance_class.id(),
+
+        instance_type_arguments.raw(),
+        instantiator_type_arguments.raw(),
+        result.ToCString(),
+
         instance_class.raw(),
         instance_class.ToCString(),
         instance_class.id(),
         instance_type_arguments.raw(),
         instance_type_arguments.ToCString(),
+
         test_type.type_class(),
         Class::Handle(test_type.type_class()).ToCString(),
         Class::Handle(test_type.type_class()).id(),
