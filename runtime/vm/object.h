@@ -2863,6 +2863,8 @@ class ICData : public Object {
   RawFunction* GetTargetAt(intptr_t index) const;
   RawFunction* GetTargetForReceiverClassId(intptr_t class_id) const;
 
+  intptr_t GetCountAt(intptr_t index) const;
+
   // Returns this->raw() if num_args_tested == 1 and arg_nr == 1, otherwise
   // returns a new ICData object containing only unique arg_nr checks.
   RawICData* AsUnaryClassChecksForArgNr(intptr_t arg_nr) const;
@@ -2878,6 +2880,16 @@ class ICData : public Object {
                         const String& target_name,
                         intptr_t deopt_id,
                         intptr_t num_args_tested);
+
+  static intptr_t TestEntryLengthFor(intptr_t num_args);
+
+  static intptr_t TargetIndexFor(intptr_t num_args) {
+    return num_args;
+  }
+
+  static intptr_t CountIndexFor(intptr_t num_args) {
+    return (num_args + 1);
+  }
 
  private:
   RawArray* ic_data() const {

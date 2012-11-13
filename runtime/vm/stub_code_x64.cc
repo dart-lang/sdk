@@ -1631,8 +1631,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ movq(RAX, Address(RSP, RAX, TIMES_4, 0));
     __ call(&get_class_id_as_smi);
   }
-  // Each test entry has (1 + num_args) array elements.
-  const intptr_t entry_size = (num_args + 1) * kWordSize;
+
+  const intptr_t entry_size = ICData::TestEntryLengthFor(num_args) * kWordSize;
   __ addq(R12, Immediate(entry_size));  // Next entry.
   __ movq(R13, Address(R12, 0));  // Next class ID.
 
@@ -1683,8 +1683,14 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ jmp(&StubCode::InstanceFunctionLookupLabel());
 
   __ Bind(&found);
-  // R12: Pointer to an IC data check group (classes + target)
-  __ movq(RAX, Address(R12, kWordSize * num_args));  // Target function.
+  // R12: Pointer to an IC data check group.
+  const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
+  const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
+  __ movq(RAX, Address(R12, target_offset));
+  __ addq(Address(R12, count_offset), Immediate(Smi::RawValue(1)));
+  __ j(NO_OVERFLOW, &call_target_function);
+  __ movq(Address(R12, count_offset),
+          Immediate(Smi::RawValue(Smi::kMaxValue)));
 
   __ Bind(&call_target_function);
   // RAX: Target function.
@@ -2009,10 +2015,11 @@ void StubCode::GenerateJumpToErrorHandlerStub(Assembler* assembler) {
 // RAX: result.
 // TODO(srdjan): Move to VM stubs once Boolean objects become VM objects.
 void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
+  static const intptr_t kNumArgsTested = 2;
 #if defined(DEBUG)
   { Label ok;
     __ movq(RCX, FieldAddress(RBX, ICData::num_args_tested_offset()));
-    __ cmpq(RCX, Immediate(2));
+    __ cmpq(RCX, Immediate(kNumArgsTested));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Incorrect ICData for equality");
     __ Bind(&ok);
@@ -2025,7 +2032,7 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
   __ leaq(R12, FieldAddress(R12, Array::data_offset()));
   // R12: points directly to the first ic data array element.
 
-  Label get_class_id_as_smi, no_match, loop, compute_result;
+  Label get_class_id_as_smi, no_match, loop, compute_result, found;
   __ Bind(&loop);
   // Check left.
   __ movq(RAX, Address(RSP, 2 * kWordSize));
@@ -2038,14 +2045,23 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
   __ call(&get_class_id_as_smi);
   __ movq(R13, Address(R12, 1 * kWordSize));
   __ cmpq(RAX, R13);  // Class id match?
-  __ j(EQUAL, &compute_result, Assembler::kNearJump);
+  __ j(EQUAL, &found, Assembler::kNearJump);
   __ Bind(&no_match);
-  // Each test entry has (1 + 2) array elements (2 arguments, 1 target).
-  __ addq(R12, Immediate(kWordSize * (1 + 2)));  // Next element.
+  // Next check group.
+  __ addq(R12, Immediate(
+      kWordSize * ICData::TestEntryLengthFor(kNumArgsTested)));
   __ cmpq(R13, Immediate(Smi::RawValue(kIllegalCid)));  // Done?
   __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
   Label update_ic_data;
   __ jmp(&update_ic_data);
+
+  __ Bind(&found);
+  const intptr_t count_offset =
+      ICData::CountIndexFor(kNumArgsTested) * kWordSize;
+  __ addq(Address(R12, count_offset), Immediate(Smi::RawValue(1)));
+  __ j(NO_OVERFLOW, &compute_result);
+  __ movq(Address(R12, count_offset),
+          Immediate(Smi::RawValue(Smi::kMaxValue)));
 
   __ Bind(&compute_result);
   Label true_label;
@@ -2089,7 +2105,7 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
   __ jmp(&compute_result, Assembler::kNearJump);
 }
 
-// Calls to runtime to ooptimized give function
+// Calls to the runtime to optimize the given function.
 // RDX: function to be reoptimized.
 // RAX: result of function being optimized (preserved).
 void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {

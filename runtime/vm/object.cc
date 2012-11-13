@@ -7455,8 +7455,13 @@ void ICData::set_is_closure_call(bool value) const {
 }
 
 
+intptr_t ICData::TestEntryLengthFor(intptr_t num_args) {
+  return num_args + 1 /* target function*/ + 1 /* frequency */;
+}
+
+
 intptr_t ICData::TestEntryLength() const {
-  return num_args_tested() + 1 /* target function*/;
+  return TestEntryLengthFor(num_args_tested());
 }
 
 
@@ -7517,7 +7522,8 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
     data.SetAt(data_pos++, Smi::Handle(Smi::New(class_ids[i])));
   }
   ASSERT(!target.IsNull());
-  data.SetAt(data_pos, target);
+  data.SetAt(data_pos++, target);
+  data.SetAt(data_pos, Smi::Handle(Smi::New(1)));
 }
 
 
@@ -7540,18 +7546,17 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
   WriteSentinel();
   intptr_t data_pos = old_num * TestEntryLength();
   if ((receiver_class_id == kSmiCid) && (data_pos > 0)) {
-    // Instert kSmiCid in position 0.
-    const intptr_t zero_class_id = GetReceiverClassIdAt(0);
-    ASSERT(zero_class_id != kSmiCid);  // Simple duplicate entry check.
-    const Function& zero_target = Function::Handle(GetTargetAt(0));
-    data.SetAt(0, Smi::Handle(Smi::New(receiver_class_id)));
-    data.SetAt(1, target);
-    data.SetAt(data_pos, Smi::Handle(Smi::New(zero_class_id)));
-    data.SetAt(data_pos + 1, zero_target);
-  } else {
-    data.SetAt(data_pos, Smi::Handle(Smi::New(receiver_class_id)));
-    data.SetAt(data_pos + 1, target);
+    ASSERT(GetReceiverClassIdAt(0) != kSmiCid);
+    // Move class occupying position 0 to the data_pos.
+    for (intptr_t i = 0; i < TestEntryLength(); i++) {
+      data.SetAt(data_pos + i, Object::Handle(data.At(i)));
+    }
+    // Insert kSmiCid in position 0.
+    data_pos = 0;
   }
+  data.SetAt(data_pos, Smi::Handle(Smi::New(receiver_class_id)));
+  data.SetAt(data_pos + 1, target);
+  data.SetAt(data_pos + 2, Smi::Handle(Smi::New(1)));
 }
 
 
@@ -7569,7 +7574,7 @@ void ICData::GetCheckAt(intptr_t index,
     smi ^= data.At(data_pos++);
     class_ids->Add(smi.Value());
   }
-  (*target) ^= data.At(data_pos);
+  (*target) ^= data.At(data_pos++);
 }
 
 
@@ -7611,6 +7616,16 @@ RawFunction* ICData::GetTargetAt(intptr_t index) const {
   const intptr_t data_pos = index * TestEntryLength() + num_args_tested();
   ASSERT(Object::Handle(data.At(data_pos)).IsFunction());
   return reinterpret_cast<RawFunction*>(data.At(data_pos));
+}
+
+
+intptr_t ICData::GetCountAt(intptr_t index) const {
+  const Array& data = Array::Handle(ic_data());
+  const intptr_t data_pos = index * TestEntryLength() +
+      CountIndexFor(num_args_tested());
+  Smi& smi = Smi::Handle();
+  smi ^= data.At(data_pos);
+  return smi.Value();
 }
 
 
@@ -7731,7 +7746,7 @@ RawICData* ICData::New(const Function& function,
   result.set_num_args_tested(num_args_tested);
   result.set_deopt_reason(kDeoptUnknown);
   result.set_is_closure_call(false);
-  // Number of array elements in one test entry (num_args_tested + 1)
+  // Number of array elements in one test entry.
   intptr_t len = result.TestEntryLength();
   // IC data array must be null terminated (sentinel entry).
   const Array& ic_data = Array::Handle(Array::New(len, Heap::kOld));

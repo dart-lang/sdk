@@ -1654,8 +1654,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));
     __ call(&get_class_id_as_smi);
   }
-  // Each test entry has (1 + num_args) array elements.
-  const intptr_t entry_size = (num_args + 1) * kWordSize;
+
+  const intptr_t entry_size = ICData::TestEntryLengthFor(num_args) * kWordSize;
   __ addl(EBX, Immediate(entry_size));  // Next entry.
   __ movl(EDI, Address(EBX, 0));  // Next class ID.
 
@@ -1708,8 +1708,14 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ jmp(&StubCode::InstanceFunctionLookupLabel());
 
   __ Bind(&found);
-  // EBX: Pointer to an IC data check group (classes + target)
-  __ movl(EAX, Address(EBX, kWordSize * num_args));  // Target function.
+  // EBX: Pointer to an IC data check group.
+  const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
+  const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
+  __ movl(EAX, Address(EBX, target_offset));
+  __ addl(Address(EBX, count_offset), Immediate(Smi::RawValue(1)));
+  __ j(NO_OVERFLOW, &call_target_function);
+  __ movl(Address(EBX, count_offset),
+          Immediate(Smi::RawValue(Smi::kMaxValue)));
 
   __ Bind(&call_target_function);
   // EAX: Target function.
@@ -2050,10 +2056,11 @@ void StubCode::GenerateJumpToErrorHandlerStub(Assembler* assembler) {
 // EAX: result.
 // TODO(srdjan): Move to VM stubs once Boolean objects become VM objects.
 void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
+  static const intptr_t kNumArgsTested = 2;
 #if defined(DEBUG)
   { Label ok;
     __ movl(EAX, FieldAddress(ECX, ICData::num_args_tested_offset()));
-    __ cmpl(EAX, Immediate(2));
+    __ cmpl(EAX, Immediate(kNumArgsTested));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Incorrect ICData for equality");
     __ Bind(&ok);
@@ -2066,7 +2073,7 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
   __ leal(EBX, FieldAddress(EBX, Array::data_offset()));
   // EBX: points directly to the first ic data array element.
 
-  Label get_class_id_as_smi, no_match, loop, compute_result;
+  Label get_class_id_as_smi, no_match, loop, compute_result, found;
   __ Bind(&loop);
   // Check left.
   __ movl(EAX, Address(ESP, 2 * kWordSize));
@@ -2079,14 +2086,23 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
   __ call(&get_class_id_as_smi);
   __ movl(EDI, Address(EBX, 1 * kWordSize));
   __ cmpl(EAX, EDI);  // Class id match?
-  __ j(EQUAL, &compute_result, Assembler::kNearJump);
+  __ j(EQUAL, &found, Assembler::kNearJump);
   __ Bind(&no_match);
-  // Each test entry has (1 + 2) array elements (2 arguments, 1 target).
-  __ addl(EBX, Immediate(kWordSize * (1 + 2)));  // Next element.
+  // Next check group.
+  __ addl(EBX, Immediate(
+      kWordSize * ICData::TestEntryLengthFor(kNumArgsTested)));
   __ cmpl(EDI, Immediate(Smi::RawValue(kIllegalCid)));  // Done?
   __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
   Label update_ic_data;
   __ jmp(&update_ic_data);
+
+  __ Bind(&found);
+  const intptr_t count_offset =
+      ICData::CountIndexFor(kNumArgsTested) * kWordSize;
+  __ addl(Address(EBX, count_offset), Immediate(Smi::RawValue(1)));
+  __ j(NO_OVERFLOW, &compute_result);
+  __ movl(Address(EBX, count_offset),
+          Immediate(Smi::RawValue(Smi::kMaxValue)));
 
   __ Bind(&compute_result);
   Label true_label;
