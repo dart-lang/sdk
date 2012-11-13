@@ -15,7 +15,6 @@ class Printer implements NodeVisitor {
   final Namer namer;
   bool pendingSemicolon = false;
   bool pendingSpace = false;
-  static final identifierRegexp = new RegExp(r'^[a-zA-Z_0-9$]');
 
   Printer(leg.Compiler compiler, { allowVariableMinification: true })
       : shouldCompressOutput = compiler.enableMinification,
@@ -47,6 +46,7 @@ class Printer implements NodeVisitor {
 
   void out(String str) {
     if (str != "") {
+      const identifierRegexp = const RegExp(r'^[a-zA-Z_0-9$]');
       if (pendingSemicolon && (!shouldCompressOutput || str != "}")) {
         outBuffer.add(";");
       }
@@ -1067,7 +1067,7 @@ class MinifyRenamer implements Namer {
       codes.add(charCodes.$0 + digit);
       newName = new String.fromCharCodes(codes);
     }
-    assert(new RegExp(r'[a-zA-Z][a-zA-Z0-9]*').hasMatch(newName));
+    assert(const RegExp(r'[a-zA-Z][a-zA-Z0-9]*').hasMatch(newName));
     maps.last[oldName] = newName;
     return newName;
   }

@@ -15,7 +15,7 @@ void foo(bar) {
 
 main() {
   String generated = compile(TEST_ONE, entry: 'foo');
-  RegExp regexp = new RegExp(r"1 \+ [a-z]+");
+  RegExp regexp = const RegExp(r"1 \+ [a-z]+");
   Iterator matches = regexp.allMatches(generated).iterator();
   Expect.isTrue(matches.hasNext);
   matches.next();

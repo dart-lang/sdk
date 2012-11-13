@@ -73,14 +73,14 @@ main() {
   RegExp regexp = new RegExp(getNumberTypeCheck('a'));
   Expect.isTrue(!regexp.hasMatch(generated));
 
-  regexp = new RegExp('-a');
+  regexp = const RegExp('-a');
   Expect.isTrue(!regexp.hasMatch(generated));
 
   generated = compile(TEST_TWO_WITH_BAILOUT, entry: 'foo');
   regexp = new RegExp(getNumberTypeCheck('a'));
   Expect.isTrue(regexp.hasMatch(generated));
 
-  regexp = new RegExp('-a');
+  regexp = const RegExp('-a');
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_THREE, entry: 'foo');
@@ -92,19 +92,19 @@ main() {
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_FIVE, entry: 'foo');
-  regexp = new RegExp('a.constructor !== Array');
+  regexp = const RegExp('a.constructor !== Array');
   Expect.isTrue(!regexp.hasMatch(generated));
   Expect.isTrue(generated.contains('index'));
   Expect.isTrue(generated.contains('indexSet'));
 
   generated = compile(TEST_FIVE_WITH_BAILOUT, entry: 'foo');
-  regexp = new RegExp('a.constructor !== Array');
+  regexp = const RegExp('a.constructor !== Array');
   Expect.isTrue(regexp.hasMatch(generated));
   Expect.isTrue(!generated.contains('index'));
   Expect.isTrue(!generated.contains('indexSet'));
 
   generated = compile(TEST_SIX, entry: 'foo');
-  regexp = new RegExp('a.constructor !== Array');
+  regexp = const RegExp('a.constructor !== Array');
   Expect.isTrue(regexp.hasMatch(generated));
   Expect.isTrue(!generated.contains('index'));
   Expect.isTrue(!generated.contains('indexSet'));

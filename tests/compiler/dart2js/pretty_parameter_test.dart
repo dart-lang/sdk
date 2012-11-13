@@ -70,41 +70,41 @@ int foo(var start, bool test) {
 main() {
   String generated = compile(FOO, entry: 'foo');
   // TODO(ngeoffray): Use 'contains' when frog supports it.
-  RegExp regexp = new RegExp(r"function\(a, b\) {");
+  RegExp regexp = const RegExp(r"function\(a, b\) {");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(BAR, entry: 'bar');
-  regexp = new RegExp(r"function\(eval\$, \$\$eval\) {");
+  regexp = const RegExp(r"function\(eval\$, \$\$eval\) {");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(PARAMETER_AND_TEMP, entry: 'bar');
-  regexp = new RegExp(r"print\(t0\)");
+  regexp = const RegExp(r"print\(t0\)");
   Expect.isTrue(regexp.hasMatch(generated));
   // Check that the second 't0' got another name.
-  regexp = new RegExp(r"print\(t0_0\)");
+  regexp = const RegExp(r"print\(t0_0\)");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(NO_LOCAL, entry: 'foo');
-  regexp = new RegExp("return baz");
+  regexp = const RegExp("return baz");
   Expect.isTrue(regexp.hasMatch(generated));
-  regexp = new RegExp(r"baz = 2");
+  regexp = const RegExp(r"baz = 2");
   Expect.isTrue(regexp.hasMatch(generated));
-  regexp = new RegExp(r"baz = 3");
+  regexp = const RegExp(r"baz = 3");
   Expect.isTrue(regexp.hasMatch(generated));
-  regexp = new RegExp("bar === true");
+  regexp = const RegExp("bar === true");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(MULTIPLE_PHIS_ONE_LOCAL, entry: 'foo');
-  regexp = new RegExp(r"var a = 2;");
+  regexp = const RegExp(r"var a = 2;");
   Expect.isTrue(regexp.hasMatch(generated));
 
-  regexp = new RegExp(r"a = 2;");
+  regexp = const RegExp(r"a = 2;");
   Iterator matches = regexp.allMatches(generated).iterator();
   Expect.isTrue(matches.hasNext);
   matches.next();
   Expect.isFalse(matches.hasNext);
 
   generated = compile(PARAMETER_INIT, entry: 'foo');
-  regexp = new RegExp("var result = start;");
+  regexp = const RegExp("var result = start;");
   Expect.isTrue(regexp.hasMatch(generated));
 }

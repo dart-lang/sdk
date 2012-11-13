@@ -26,7 +26,7 @@ main() {
     ]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        error: new RegExp('Could not resolve URL "http://pub.invalid".'),
+        error: const RegExp('Could not resolve URL "http://pub.invalid".'),
         exitCode: 1);
 
     run();

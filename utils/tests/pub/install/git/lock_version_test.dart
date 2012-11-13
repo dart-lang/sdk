@@ -22,7 +22,7 @@ main() {
 
     // This install should lock the foo.git dependency to the current revision.
     schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     dir(packagesPath, [
       dir('foo', [
@@ -40,7 +40,7 @@ main() {
 
     // This install shouldn't update the foo.git dependency due to the lockfile.
     schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     dir(packagesPath, [
       dir('foo', [

@@ -17,7 +17,7 @@ main() {
     appDir([dependency("foo")]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     packagesDir({"foo": "1.0.0"}).scheduleValidate();
 
@@ -26,7 +26,7 @@ main() {
     appDir([dependency("foo", ">=1.0.0")]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     packagesDir({"foo": "1.0.0"}).scheduleValidate();
 

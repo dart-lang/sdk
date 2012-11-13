@@ -23,9 +23,9 @@ const OK = "ok";
  */
 const SLOW = "slow";
 
-final RegExp StripComment = new RegExp("^[^#]*");
-final RegExp HeaderPattern = new RegExp(r"^\[([^\]]+)\]");
-final RegExp RulePattern = new RegExp(r"\s*([^: ]*)\s*:(.*)");
+const RegExp StripComment = const RegExp("^[^#]*");
+const RegExp HeaderPattern = const RegExp(r"^\[([^\]]+)\]");
+const RegExp RulePattern = const RegExp(r"\s*([^: ]*)\s*:(.*)");
 
 // TODO(whesse): Implement configuration_info library that contains data
 // structures for test configuration, including Section.

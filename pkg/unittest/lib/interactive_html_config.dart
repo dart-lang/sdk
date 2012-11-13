@@ -258,7 +258,7 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
     window.on.message.add(_messageHandler);
   }
 
-  static final _notAlphaNumeric = new RegExp('[^a-z0-9A-Z]');
+  static const _notAlphaNumeric = const RegExp('[^a-z0-9A-Z]');
 
   String _stringToDomId(String s) {
     if (s.length == 0) {

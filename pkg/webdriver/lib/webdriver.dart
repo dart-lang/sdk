@@ -201,7 +201,7 @@ class WebDriverBase {
    */
   WebDriverBase.fromUrl([this._url = 'http://localhost:4444/wd/hub']) {
     // Break out the URL components.
-    var re = new RegExp('[^:/]+://([^/]+)(/.*)');
+    var re = const RegExp('[^:/]+://([^/]+)(/.*)');
     var matches = re.firstMatch(_url);
     _host = matches[1];
     _path = matches[2];

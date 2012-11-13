@@ -164,7 +164,7 @@ runTextLayoutTest(testNum) {
           var expectedFileName =
               '$sourceDir${Platform.pathSeparator}'
               '${label.replaceAll("###", "_")
-                      .replaceAll(new RegExp("[^A-Za-z0-9]"),"_")}.txt';
+                      .replaceAll(const RegExp("[^A-Za-z0-9]"),"_")}.txt';
           var expected = new File(expectedFileName);
           if (regenerate) {
             var ostream = expected.openOutputStream(FileMode.WRITE);
@@ -260,7 +260,7 @@ runPixelLayoutTest(int testNum) {
           var expectedFileName =
               '$sourceDir${Platform.pathSeparator}'
               '${label.replaceAll("###","_").
-                       replaceAll(new RegExp("[^A-Za-z0-9]"),"_")}.png';
+                       replaceAll(const RegExp("[^A-Za-z0-9]"),"_")}.png';
           var expected = new File(expectedFileName);
           if (regenerate) {
             var ostream = expected.openOutputStream(FileMode.WRITE);

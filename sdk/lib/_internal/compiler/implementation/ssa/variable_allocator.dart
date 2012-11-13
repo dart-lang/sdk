@@ -445,7 +445,6 @@ class VariableNamer {
   final Map<Element, String> parameterNames;
   final List<String> freeTemporaryNames;
   int temporaryIndex = 0;
-  static final RegExp regexp = new RegExp('t[0-9]+');
 
   VariableNamer(LiveEnvironment environment, this.names, this.parameterNames)
     : usedNames = new Set<String>(),
@@ -551,6 +550,7 @@ class VariableNamer {
   void freeName(HInstruction instruction) {
     String ownName = names.ownName[instruction];
     if (ownName != null) {
+      RegExp regexp = const RegExp('t[0-9]+');
       // We check if we have already looked for temporary names
       // because if we haven't, chances are the temporary we allocate
       // in this block can match a phi with the same name in the

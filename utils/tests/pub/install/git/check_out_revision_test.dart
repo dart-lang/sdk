@@ -28,7 +28,7 @@ main() {
     appDir([{"git": {"url": "../foo.git", "ref": commit}}]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     dir(packagesPath, [
       dir('foo', [

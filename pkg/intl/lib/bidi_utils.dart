@@ -100,7 +100,7 @@ class Bidi {
     // The regular expression is simplified for an HTML tag (opening or
     // closing) or an HTML escape. We might want to skip over such expressions
     // when estimating the text directionality.
-    return text.replaceAll(new RegExp(r'<[^>]*>|&[^;]+;'), ' ');
+    return text.replaceAll(const RegExp(r'<[^>]*>|&[^;]+;'), ' ');
   }
 
   /**
@@ -108,7 +108,7 @@ class Bidi {
    * LTR. If [isHtml] is true, the text is HTML or HTML-escaped.
    */
   static bool startsWithLtr(String text, [isHtml=false]) {
-    return new RegExp('^[^$_RTL_CHARS]*[$_LTR_CHARS]').hasMatch(
+    return const RegExp('^[^$_RTL_CHARS]*[$_LTR_CHARS]').hasMatch(
         isHtml? stripHtmlIfNeeded(text) : text);
   }
 
@@ -117,7 +117,7 @@ class Bidi {
    * RTL. If [isHtml] is true, the text is HTML or HTML-escaped.
    */
   static bool startsWithRtl(String text, [isHtml=false]) {
-    return new RegExp('^[^$_LTR_CHARS]*[$_RTL_CHARS]').hasMatch(
+    return const RegExp('^[^$_LTR_CHARS]*[$_RTL_CHARS]').hasMatch(
         isHtml? stripHtmlIfNeeded(text) : text);
   }
 
@@ -127,7 +127,7 @@ class Bidi {
    * HTML-escaped.
    */
   static bool endsWithLtr(String text, [isHtml=false]) {
-    return new RegExp('[$_LTR_CHARS][^$_RTL_CHARS]*\$').hasMatch(
+    return const RegExp('[$_LTR_CHARS][^$_RTL_CHARS]*\$').hasMatch(
         isHtml? stripHtmlIfNeeded(text) : text);
   }
 
@@ -137,7 +137,7 @@ class Bidi {
    * HTML-escaped.
    */
   static bool endsWithRtl(String text, [isHtml=false]) {
-    return new RegExp('[$_RTL_CHARS][^$_LTR_CHARS]*\$').hasMatch(
+    return const RegExp('[$_RTL_CHARS][^$_LTR_CHARS]*\$').hasMatch(
         isHtml? stripHtmlIfNeeded(text) : text);
   }
 
@@ -146,7 +146,7 @@ class Bidi {
    * If [isHtml] is true, the text is HTML or HTML-escaped.
    */
   static bool hasAnyLtr(String text, [isHtml=false]) {
-    return new RegExp(r'[' '$_LTR_CHARS' r']').hasMatch(
+    return const RegExp(r'[' '$_LTR_CHARS' r']').hasMatch(
         isHtml? stripHtmlIfNeeded(text) : text);
   }
 
@@ -155,7 +155,7 @@ class Bidi {
    * If [isHtml] is true, the text is HTML or HTML-escaped.
    */
   static bool hasAnyRtl(String text, [isHtml=false]) {
-    return new RegExp(r'[' '$_RTL_CHARS' r']').hasMatch(
+    return const RegExp(r'[' '$_RTL_CHARS' r']').hasMatch(
         isHtml? stripHtmlIfNeeded(text) : text);
   }
 
@@ -184,7 +184,7 @@ class Bidi {
    * (Egypt), is ignored.
    */
   static bool isRtlLanguage(String languageString) {
-    return new RegExp(r'^(ar|dv|he|iw|fa|nqo|ps|sd|ug|ur|yi|.*[-_]'
+    return const RegExp(r'^(ar|dv|he|iw|fa|nqo|ps|sd|ug|ur|yi|.*[-_]'
         r'(Arab|Hebr|Thaa|Nkoo|Tfng))(?!.*[-_](Latn|Cyrl)($|-|_))'
         r'($|-|_)', ignoreCase : true).hasMatch(languageString);
   }
@@ -242,7 +242,7 @@ class Bidi {
     if (html.startsWith('<')) {
       StringBuffer buffer = new StringBuffer();
       var startIndex = 0;
-      Match match = new RegExp('<\\w+').firstMatch(html);
+      Match match = const RegExp('<\\w+').firstMatch(html);
       if (match != null) {
         buffer.add(html.substring(
             startIndex, match.end)).add(' dir=$direction');
@@ -263,7 +263,7 @@ class Bidi {
   static String guardBracketInHtml(String str, [bool isRtlContext]) {
     var useRtl = isRtlContext == null ? hasAnyRtl(str) : isRtlContext;
     RegExp matchingBrackets =
-        new RegExp(r'(\(.*?\)+)|(\[.*?\]+)|(\{.*?\}+)|(&lt;.*?(&gt;)+)');
+        const RegExp(r'(\(.*?\)+)|(\[.*?\]+)|(\{.*?\}+)|(&lt;.*?(&gt;)+)');
     return _guardBracketHelper(str, matchingBrackets,
         '<span dir=${useRtl? "rtl" : "ltr"}>', '</span>');
   }
@@ -280,14 +280,14 @@ class Bidi {
     var useRtl = isRtlContext == null ? hasAnyRtl(str) : isRtlContext;
     var mark = useRtl ? RLM : LRM;
     return _guardBracketHelper(str,
-        new RegExp(r'(\(.*?\)+)|(\[.*?\]+)|(\{.*?\}+)|(<.*?>+)'), mark, mark);
+        const RegExp(r'(\(.*?\)+)|(\[.*?\]+)|(\{.*?\}+)|(<.*?>+)'), mark, mark);
   }
 
   /**
    * (Mostly) reimplements the $& functionality of "replace" in JavaScript.
    * Given a [str] and the [regexp] to match with, optionally supply a string to
    * be inserted [before] the match and/or [after]. For example,
-   * `_guardBracketHelper('firetruck', new RegExp('truck'), 'hydrant', '!')`
+   * `_guardBracketHelper('firetruck', const RegExp('truck'), 'hydrant', '!')`
    * would return 'firehydrant!'.
    */
   // TODO(efortuna): Get rid of this once this is implemented in Dart.
@@ -325,17 +325,17 @@ class Bidi {
     var hasWeaklyLtr = false;
     // Split a string into 'words' for directionality estimation based on
     // relative word counts.
-    for (String token in text.split(new RegExp(r'\s+'))) {
+    for (String token in text.split(const RegExp(r'\s+'))) {
       if (startsWithRtl(token)) {
         rtlCount++;
         total++;
-      } else if (new RegExp(r'^http://').hasMatch(token)) {
+      } else if (const RegExp(r'^http://').hasMatch(token)) {
         // Checked if token looks like something that must always be LTR even in
         // RTL text, such as a URL.
         hasWeaklyLtr = true;
       } else if (hasAnyLtr(token)) {
         total++;
-      } else if (new RegExp(r'\d').hasMatch(token)) {
+      } else if (const RegExp(r'\d').hasMatch(token)) {
         // Checked if token contains any numerals.
         hasWeaklyLtr = true;
       }
@@ -379,10 +379,10 @@ class Bidi {
     // [\u0591-\u05f2]'.
     for (int i = 1; i < str.length; i++) {
       if (str.substring(i, i+1) == '"'
-          && new RegExp('[\u0591-\u05f2]').hasMatch(str.substring(i-1, i))) {
+          && const RegExp('[\u0591-\u05f2]').hasMatch(str.substring(i-1, i))) {
         buf.add('\u05f4');
       } else if (str.substring(i, i+1) == "'"
-          && new RegExp('[\u0591-\u05f2]').hasMatch(str.substring(i-1, i))) {
+          && const RegExp('[\u0591-\u05f2]').hasMatch(str.substring(i-1, i))) {
         buf.add('\u05f3');
       } else {
         buf.add(str.substring(i, i+1));

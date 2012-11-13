@@ -47,7 +47,7 @@ main() {
   Expect.isTrue(generated.contains(r'return a === true ? $.foo(2) : b;'));
 
   generated = compile(TEST_TWO, entry: 'foo');
-  regexp = new RegExp("foo\\(1\\)");
+  regexp = const RegExp("foo\\(1\\)");
   matches = regexp.allMatches(generated).iterator();
   checkNumberOfMatches(matches, 1);
 

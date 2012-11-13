@@ -56,7 +56,7 @@ class Uri {
   }
 
   // NOTE: This code was ported from: closure-library/closure/goog/uri/utils.js
-  static final RegExp _splitRe = new RegExp(
+  static const RegExp _splitRe = const RegExp(
       '^'
       '(?:'
         '([^:/?#.]+)'                   // scheme - ignore special characters

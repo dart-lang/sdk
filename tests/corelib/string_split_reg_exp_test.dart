@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  var list = "a b c".split(new RegExp(" "));
+  var list = "a b c".split(const RegExp(" "));
   Expect.equals(3, list.length);
   Expect.equals("a", list[0]);
   Expect.equals("b", list[1]);
   Expect.equals("c", list[2]);
 
-  list = "adbdc".split(new RegExp("[dz]"));
+  list = "adbdc".split(const RegExp("[dz]"));
   Expect.equals(3, list.length);
   Expect.equals("a", list[0]);
   Expect.equals("b", list[1]);
@@ -38,7 +38,7 @@ main() {
   Expect.equals("", list[2]);
   Expect.equals("", list[3]);
 
-  list = "aaa".split(new RegExp(r"a$"));
+  list = "aaa".split(const RegExp(r"a$"));
   Expect.equals(2, list.length);
   Expect.equals("aa", list[0]);
   Expect.equals("", list[1]);

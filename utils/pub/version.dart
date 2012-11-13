@@ -18,7 +18,7 @@ class Version implements Comparable, VersionConstraint {
   /** No released version: i.e. "0.0.0". */
   static Version get none => new Version(0, 0, 0);
 
-  static final _PARSE_REGEX = new RegExp(
+  static const _PARSE_REGEX = const RegExp(
       r'^'                                       // Start at beginning.
       r'(\d+).(\d+).(\d+)'                       // Version number.
       r'(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?'   // Pre-release.
@@ -411,7 +411,7 @@ class _VersionConstraintFactory {
     // unfortunately meaningful in YAML, requiring it to be quoted in a
     // pubspec.
     // See if it's a comparison operator followed by a version, like ">1.2.3".
-    var match = new RegExp(r"^([<>]=?)?(.*)$").firstMatch(text);
+    var match = const RegExp(r"^([<>]=?)?(.*)$").firstMatch(text);
     if (match != null) {
       var comparison = match[1];
       var version = new Version.parse(match[2]);

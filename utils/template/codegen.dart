@@ -501,7 +501,7 @@ class Codegen {
 
 class ElemCG {
   // List of identifiers and quoted strings (single and double quoted).
-  var identRe = new RegExp(
+  var identRe = const RegExp(
     "\s*('\"\\'\\\"[^'\"\\'\\\"]+'\"\\'\\\"|[_A-Za-z][_A-Za-z0-9]*)");
 
   List<CGBlock> _cgBlocks;

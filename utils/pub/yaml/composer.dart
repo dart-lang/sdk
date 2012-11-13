@@ -106,13 +106,13 @@ class _Composer extends _Visitor {
 
   /** Parses a null scalar. */
   _ScalarNode parseNull(String content) {
-    if (!new RegExp("^(null|Null|NULL|~|)\$").hasMatch(content)) return null;
+    if (!const RegExp("^(null|Null|NULL|~|)\$").hasMatch(content)) return null;
     return new _ScalarNode(_Tag.yaml("null"), value: null);
   }
 
   /** Parses a boolean scalar. */
   _ScalarNode parseBool(String content) {
-    var match = new RegExp("^(?:(true|True|TRUE)|(false|False|FALSE))\$").
+    var match = const RegExp("^(?:(true|True|TRUE)|(false|False|FALSE))\$").
       firstMatch(content);
     if (match == null) return null;
     return new _ScalarNode(_Tag.yaml("bool"), value: match.group(1) != null);
@@ -120,13 +120,13 @@ class _Composer extends _Visitor {
 
   /** Parses an integer scalar. */
   _ScalarNode parseInt(String content) {
-    var match = new RegExp("^[-+]?[0-9]+\$").firstMatch(content);
+    var match = const RegExp("^[-+]?[0-9]+\$").firstMatch(content);
     if (match != null) {
       return new _ScalarNode(_Tag.yaml("int"),
           value: Math.parseInt(match.group(0)));
     }
 
-    match = new RegExp("^0o([0-7]+)\$").firstMatch(content);
+    match = const RegExp("^0o([0-7]+)\$").firstMatch(content);
     if (match != null) {
       // TODO(nweiz): clean this up when Dart can parse an octal string
       var n = 0;
@@ -137,7 +137,7 @@ class _Composer extends _Visitor {
       return new _ScalarNode(_Tag.yaml("int"), value: n);
     }
 
-    match = new RegExp("^0x[0-9a-fA-F]+\$").firstMatch(content);
+    match = const RegExp("^0x[0-9a-fA-F]+\$").firstMatch(content);
     if (match != null) {
       return new _ScalarNode(_Tag.yaml("int"),
           value: Math.parseInt(match.group(0)));
@@ -148,7 +148,7 @@ class _Composer extends _Visitor {
 
   /** Parses a floating-point scalar. */
   _ScalarNode parseFloat(String content) {
-    var match = new RegExp(
+    var match = const RegExp(
         "^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?\$").
       firstMatch(content);
     if (match != null) {
@@ -159,14 +159,14 @@ class _Composer extends _Visitor {
           value: Math.parseDouble(matchStr));
     }
 
-    match = new RegExp("^([+-]?)\.(inf|Inf|INF)\$").firstMatch(content);
+    match = const RegExp("^([+-]?)\.(inf|Inf|INF)\$").firstMatch(content);
     if (match != null) {
       var infinityStr = match.group(1) == "-" ? "-Infinity" : "Infinity";
       return new _ScalarNode(_Tag.yaml("float"),
           value: Math.parseDouble(infinityStr));
     }
 
-    match = new RegExp("^\.(nan|NaN|NAN)\$").firstMatch(content);
+    match = const RegExp("^\.(nan|NaN|NAN)\$").firstMatch(content);
     if (match != null) {
       return new _ScalarNode(_Tag.yaml("float"),
           value: Math.parseDouble("NaN"));

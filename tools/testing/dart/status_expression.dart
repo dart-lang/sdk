@@ -50,9 +50,9 @@ class Tokenizer {
     : tokens = new List<String>();
 
   //  Tokens are : "(", ")", "$", ",", "&&", "||", "==", and (maximal) \w+.
-  static final testRegexp =
-      new RegExp(r"^([()$\w\s,]|(\&\&)|(\|\|)|(\=\=))+$");
-  static final regexp = new RegExp(r"[()$,]|(\&\&)|(\|\|)|(\=\=)|\w+");
+  static const testRegexp =
+      const RegExp(r"^([()$\w\s,]|(\&\&)|(\|\|)|(\=\=))+$");
+  static const regexp = const RegExp(r"[()$,]|(\&\&)|(\|\|)|(\=\=)|\w+");
 
   List<String> tokenize() {
     if (!testRegexp.hasMatch(expression)) {
@@ -234,7 +234,7 @@ class ExpressionParser {
       scanner.advance();
       return value;
     }
-    Expect.isTrue(new RegExp(r"^\w+$").hasMatch(scanner.current),
+    Expect.isTrue(const RegExp(r"^\w+$").hasMatch(scanner.current),
                   "Expected identifier in expression, got ${scanner.current}");
     SetExpression value = new SetConstant(scanner.current);
     scanner.advance();
@@ -278,13 +278,13 @@ class ExpressionParser {
     Expect.equals(scanner.current, Token.DOLLAR_SYMBOL,
         "Expected \$ in expression, got ${scanner.current}");
     scanner.advance();
-    Expect.isTrue(new RegExp(r"^\w+$").hasMatch(scanner.current),
+    Expect.isTrue(const RegExp(r"^\w+$").hasMatch(scanner.current),
         "Expected identifier in expression, got ${scanner.current}");
     TermVariable left = new TermVariable(scanner.current);
     scanner.advance();
     if (scanner.current == Token.EQUALS) {
       scanner.advance();
-      Expect.isTrue(new RegExp(r"^\w+$").hasMatch(scanner.current),
+      Expect.isTrue(const RegExp(r"^\w+$").hasMatch(scanner.current),
           "Expected identifier in expression, got ${scanner.current}");
       TermConstant right = new TermConstant(scanner.current);
       scanner.advance();

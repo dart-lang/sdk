@@ -146,7 +146,7 @@ class _ScalarNode extends _Node {
       // 20 is the maximum value for this argument, which we use since YAML
       // doesn't specify a maximum.
       return value.toStringAsExponential(20).
-        replaceFirst(new RegExp("0+e"), "e");
+        replaceFirst(const RegExp("0+e"), "e");
     }
 
     if (value is String) {

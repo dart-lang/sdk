@@ -152,7 +152,7 @@ class GitSource extends Source {
     // have the right working directory when pub spawns git, so the relative
     // path fails. To work around it, if [from] looks like a relative path then
     // manually make it absolute here. Should figure out what's really going on.
-    var URL_LIKE = new RegExp(r'^[a-z]+\:');
+    const URL_LIKE = const RegExp(r'^[a-z]+\:');
     if (!URL_LIKE.hasMatch(from)) {
       from = getFullPath(from);
     }

@@ -8,7 +8,7 @@
 #import('../../tools/testing/dart/test_suite.dart');
 
 class Co19TestSuite extends StandardTestSuite {
-  RegExp _testRegExp = new RegExp(r"t[0-9]{2}.dart$");
+  RegExp _testRegExp = const RegExp(r"t[0-9]{2}.dart$");
 
   Co19TestSuite(Map configuration)
       : super(configuration,

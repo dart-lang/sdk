@@ -445,19 +445,19 @@ class DateFormat {
    * A series of regular expressions used to parse a format string into its
    * component fields.
    */
-  static List<Pattern> _matchers = [
+  static var _matchers = const [
       // Quoted String - anything between single quotes, with escaping
       //   of single quotes by doubling them.
       // e.g. in the pattern "hh 'o''clock'" will match 'o''clock'
-      new RegExp("^\'(?:[^\']|\'\')*\'"),
+      const RegExp("^\'(?:[^\']|\'\')*\'"),
       // Fields - any sequence of 1 or more of the same field characters.
       // e.g. in "hh:mm:ss" will match hh, mm, and ss. But in "hms" would
       // match each letter individually.
-      new RegExp(
+      const RegExp(
         "^(?:G+|y+|M+|k+|S+|E+|a+|h+|K+|H+|c+|L+|Q+|d+|m+|s+|v+|z+|Z+)"),
       // Everything else - A sequence that is not quotes or field characters.
       // e.g. in "hh:mm:ss" will match the colons.
-      new RegExp("^[^\'GyMkSEahKHcLQdmsvzZ]+")
+      const RegExp("^[^\'GyMkSEahKHcLQdmsvzZ]+")
   ];
 
   /**

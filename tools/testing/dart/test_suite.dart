@@ -1180,26 +1180,26 @@ class StandardTestSuite extends TestSuite {
    * configurations, so it may not use [configuration].
    */
   static Map readOptionsFromFile(Path filePath) {
-    RegExp testOptionsRegExp = new RegExp(r"// VMOptions=(.*)");
-    RegExp dartOptionsRegExp = new RegExp(r"// DartOptions=(.*)");
-    RegExp otherScriptsRegExp = new RegExp(r"// OtherScripts=(.*)");
-    RegExp multiTestRegExp = new RegExp(r"/// [0-9][0-9]:(.*)");
+    RegExp testOptionsRegExp = const RegExp(r"// VMOptions=(.*)");
+    RegExp dartOptionsRegExp = const RegExp(r"// DartOptions=(.*)");
+    RegExp otherScriptsRegExp = const RegExp(r"// OtherScripts=(.*)");
+    RegExp multiTestRegExp = const RegExp(r"/// [0-9][0-9]:(.*)");
     RegExp multiHtmlTestRegExp =
-        new RegExp(r"useHtmlIndividualConfiguration()");
+        const RegExp(r"useHtmlIndividualConfiguration()");
     RegExp staticTypeRegExp =
-        new RegExp(r"/// ([0-9][0-9]:){0,1}\s*static type warning");
+        const RegExp(r"/// ([0-9][0-9]:){0,1}\s*static type warning");
     RegExp compileTimeRegExp =
-        new RegExp(r"/// ([0-9][0-9]:){0,1}\s*compile-time error");
-    RegExp staticCleanRegExp = new RegExp(r"// @static-clean");
-    RegExp leadingHashRegExp = new RegExp(r"^#", multiLine: true);
-    RegExp isolateStubsRegExp = new RegExp(r"// IsolateStubs=(.*)");
+        const RegExp(r"/// ([0-9][0-9]:){0,1}\s*compile-time error");
+    RegExp staticCleanRegExp = const RegExp(r"// @static-clean");
+    RegExp leadingHashRegExp = const RegExp(r"^#", multiLine: true);
+    RegExp isolateStubsRegExp = const RegExp(r"// IsolateStubs=(.*)");
     // TODO(gram) Clean these up once the old directives are not supported.
     RegExp domImportRegExp =
-        new RegExp(r"^[#]?import.*dart:html", multiLine: true);
+        const RegExp(r"^[#]?import.*dart:html", multiLine: true);
     RegExp libraryDefinitionRegExp =
-        new RegExp(r"^[#]?library[\( ]", multiLine: true);
+        const RegExp(r"^[#]?library[\( ]", multiLine: true);
     RegExp sourceOrImportRegExp =
-        new RegExp("^(#source|#import|part)[ \t]+[\('\"]", multiLine: true);
+        const RegExp("^(#source|#import|part)[ \t]+[\('\"]", multiLine: true);
 
     // Read the entire file into a byte buffer and transform it to a
     // String. This will treat the file as ascii but the only parts

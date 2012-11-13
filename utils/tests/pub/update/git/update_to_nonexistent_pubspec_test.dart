@@ -22,7 +22,7 @@ main() {
     appDir([{"git": "../foo.git"}]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     dir(packagesPath, [
       dir('foo', [
@@ -34,7 +34,7 @@ main() {
     repo.scheduleGit(['commit', '-m', 'delete']);
 
     schedulePub(args: ['update'],
-        error: new RegExp(r'Package "foo" doesn' "'" r't have a '
+        error: const RegExp(r'Package "foo" doesn' "'" r't have a '
             r'pubspec.yaml file.'),
         exitCode: 1);
 

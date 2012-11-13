@@ -21,7 +21,7 @@ main() {
     appDir([{"git": "../foo.git"}]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     dir(packagesPath, [
       dir('foo', [
@@ -35,7 +35,7 @@ main() {
     ]).scheduleCommit();
 
     schedulePub(args: ['update'],
-        error: new RegExp(r'The name you specified for your dependency, '
+        error: const RegExp(r'The name you specified for your dependency, '
             r'"foo", doesn' "'" r't match the name "zoo" in its pubspec.'),
         exitCode: 1);
 

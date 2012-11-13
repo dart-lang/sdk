@@ -85,7 +85,7 @@ main() {
 main() {
   // At some point Dart2js generated bad object literals with dangling commas:
   // { a: true, }. Make sure this doesn't happen again.
-  RegExp danglingComma = new RegExp(r',[ \n]*}');
+  RegExp danglingComma = const RegExp(r',[ \n]*}');
   String generated = compileAll(TEST_ONE);
   Expect.isFalse(danglingComma.hasMatch(generated));
 

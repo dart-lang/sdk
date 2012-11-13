@@ -384,7 +384,7 @@ class Apidoc extends doc.Dartdoc {
   doc.DocComment createDocComment(String text,
                                   [ClassMirror inheritedFrom]) {
     String strippedText =
-        text.replaceAll(new RegExp("@([a-zA-Z]+) ([^;]+)(?:;|\$)"),
+        text.replaceAll(const RegExp("@([a-zA-Z]+) ([^;]+)(?:;|\$)"),
                         '').trim();
     if (strippedText.isEmpty) return null;
     return super.createDocComment(strippedText, inheritedFrom);

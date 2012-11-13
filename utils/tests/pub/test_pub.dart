@@ -409,7 +409,7 @@ String _packageName(String sourceName, description) {
   switch (sourceName) {
   case "git":
     var url = description is String ? description : description['url'];
-    return basename(url.replaceFirst(new RegExp(r"(\.git)?/?$"), ""));
+    return basename(url.replaceFirst(const RegExp(r"(\.git)?/?$"), ""));
   case "hosted":
     if (description is String) return description;
     return description['name'];

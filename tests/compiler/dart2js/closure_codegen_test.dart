@@ -52,7 +52,7 @@ closureInvocation() {
 // the closure.
 closureBailout() {
   String generated = compileAll(TEST_BAILOUT);
-  RegExp regexp = new RegExp(r'call\$0: function');
+  RegExp regexp = const RegExp(r'call\$0: function');
   Iterator<Match> matches = regexp.allMatches(generated).iterator();
   checkNumberOfMatches(matches, 1);
 }

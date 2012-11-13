@@ -19,7 +19,7 @@ foo(int a, int b, bool param2) {
 
 main() {
   String generated = compile(TEST_ONE, entry: 'foo');
-  RegExp regexp = new RegExp('a \\+ b');
+  RegExp regexp = const RegExp('a \\+ b');
   Iterator matches = regexp.allMatches(generated).iterator();
   Expect.isTrue(matches.hasNext);
   matches.next();
