@@ -606,7 +606,22 @@ bool EffectGraphVisitor::CanSkipTypeCheck(intptr_t token_pos,
 //                              type:     AbstractType
 //                              dst_name: String }
 void EffectGraphVisitor::VisitAssignableNode(AssignableNode* node) {
-  UNREACHABLE();
+  ValueGraphVisitor for_value(owner(), temp_index(), loop_depth());
+  node->expr()->Visit(&for_value);
+  Append(for_value);
+  Definition* checked_value;
+  if (CanSkipTypeCheck(node->expr()->token_pos(),
+                       for_value.value(),
+                       node->type(),
+                       node->dst_name())) {
+    checked_value = for_value.value()->definition();  // No check needed.
+  } else {
+    checked_value = BuildAssertAssignable(node->expr()->token_pos(),
+                                          for_value.value(),
+                                          node->type(),
+                                          node->dst_name());
+  }
+  ReturnDefinition(checked_value);
 }
 
 

@@ -64,9 +64,10 @@ main() {
   Expect.isTrue(new A<bool>.constant(true).x);
   Expect.isTrue(new A<Set>.factory() is B<Set>);
   Expect.isTrue(new B<List>.A() is A<List>);
+  Expect.isFalse(new B<List>.A() is A<Set>);
   Expect.isTrue(new B<bool>.A_constant(true).x);
-  Expect.isTrue(new B<List>.A_factory() is B<Set>);
+  Expect.isTrue(new B<List>.A_factory() is B<Set>);  /// 08: dynamic type error
   Expect.isTrue(new C<String, num>.A() is A<num>);
-  Expect.isTrue(new C<String, num>.A_factory() is B<Set>);
+  Expect.isTrue(new C<String, num>.A_factory() is B<Set>);  /// 09: dynamic type error
   Expect.isTrue(new C<String, bool>.B_constant(true).x);
 }

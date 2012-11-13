@@ -9118,7 +9118,7 @@ AstNode* Parser::ParseNewOperator() {
     ErrorMsg("type name expected");
   }
   intptr_t type_pos = TokenPos();
-  AbstractType& type = AbstractType::Handle(
+  AbstractType& type = AbstractType::ZoneHandle(
       ParseType(ClassFinalizer::kCanonicalizeForCreation));
   // In case the type is malformed, throw a dynamic type error after finishing
   // parsing the instance creation expression.
@@ -9250,6 +9250,10 @@ AstNode* Parser::ParseNewOperator() {
     ASSERT(!constructor_class.is_interface());
   }
 
+  // An additional type check of the result of a redirecting factory may be
+  // required.
+  bool check_result_type = false;
+
   // Make sure that an appropriate constructor exists.
   const String& constructor_name =
       BuildConstructorName(constructor_class_name, named_constructor);
@@ -9276,18 +9280,26 @@ AstNode* Parser::ParseNewOperator() {
       }
       return ThrowNoSuchMethodError(call_pos, external_constructor_name);
     } else if (constructor.IsRedirectingFactory()) {
-      type = constructor.RedirectionType();
-      if (type.IsMalformed()) {
+      Type& redirect_type = Type::Handle(constructor.RedirectionType());
+      if (!redirect_type.IsMalformed() && !redirect_type.IsInstantiated()) {
+        // The type arguments of the redirection type are instantiated from the
+        // type arguments of the parsed type of the 'new' or 'const' expression.
+        redirect_type ^= redirect_type.InstantiateFrom(type_arguments);
+      }
+      if (redirect_type.IsMalformed()) {
         if (is_const) {
-          const Error& error = Error::Handle(type.malformed_error());
+          const Error& error = Error::Handle(redirect_type.malformed_error());
           ErrorMsg(error);
         }
-        return ThrowTypeError(type.token_pos(), type);
+        return ThrowTypeError(redirect_type.token_pos(), redirect_type);
       }
-      constructor = constructor.RedirectionTarget();
-      ASSERT(!constructor.IsNull());
+      check_result_type =
+          FLAG_enable_type_checks && !redirect_type.IsSubtypeOf(type, NULL);
+      type = redirect_type.raw();
       type_class = type.type_class();
       type_arguments = type.arguments();
+      constructor = constructor.RedirectionTarget();
+      ASSERT(!constructor.IsNull());
       constructor_class = constructor.Owner();
       ASSERT(type_class.raw() == constructor_class.raw());
     }
@@ -9300,8 +9312,7 @@ AstNode* Parser::ParseNewOperator() {
   // It is ok to call a factory method of an abstract class, but it is
   // a dynamic error to instantiate an abstract class.
   ASSERT(!constructor.IsNull());
-  if (constructor_class.is_abstract() &&
-      !constructor.IsFactory()) {
+  if (constructor_class.is_abstract() && !constructor.IsFactory()) {
     ArgumentListNode* arguments = new ArgumentListNode(type_pos);
     arguments->Add(new LiteralNode(
         TokenPos(), Integer::ZoneHandle(Integer::New(type_pos))));
@@ -9399,6 +9410,23 @@ AstNode* Parser::ParseNewOperator() {
       const Instance& const_instance = Instance::Cast(constructor_result);
       new_object = new LiteralNode(new_pos,
                                    Instance::ZoneHandle(const_instance.raw()));
+      if (check_result_type) {
+        ASSERT(!type.IsMalformed());
+        Error& malformed_error = Error::Handle();
+        if (!const_instance.IsInstanceOf(type,
+                                         TypeArguments::Handle(),
+                                         &malformed_error)) {
+          type = ClassFinalizer::NewFinalizedMalformedType(
+              malformed_error,
+              current_class(),
+              new_pos,
+              ClassFinalizer::kTryResolve,  // No compile-time error.
+              "const factory result is not an instance of '%s'",
+              String::Handle(type.UserVisibleName()).ToCString());
+          new_object = ThrowTypeError(new_pos, type);
+        }
+        check_result_type = false;
+      }
     }
   } else {
     CheckFunctionIsCallable(new_pos, constructor);
@@ -9413,6 +9441,10 @@ AstNode* Parser::ParseNewOperator() {
     // mode at runtime that it is within its declared bounds.
     new_object = CreateConstructorCallNode(
         new_pos, type_arguments, constructor, arguments);
+  }
+  if (check_result_type) {
+    const String& dst_name = String::ZoneHandle(Symbols::New("factory result"));
+    new_object = new AssignableNode(new_pos, new_object, type, dst_name);
   }
   return new_object;
 }
