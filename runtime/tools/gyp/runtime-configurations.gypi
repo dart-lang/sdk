@@ -5,9 +5,9 @@
 {
   'variables': {
     'dart_debug_optimization_level%': '2',
-    # If we have not set in_dartium to 0 in Dart's all.gypi or common.gypi,
-    # then we must be in Dartium, using its global files instead.
-    'in_dartium%': 1,
+    # If we have not set dart_io_support to 1 in Dart's all.gypi or common.gypi,
+    # then do not build the native libraries supporting  dart:io.
+    'dart_io_support%': 0,
   },
 
   'target_defaults': {

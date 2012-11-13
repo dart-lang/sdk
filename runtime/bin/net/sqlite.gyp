@@ -35,7 +35,7 @@
     ],
   },
   # Added by Dart.  We do not indent, so diffs with the original are clearer.
-  'conditions': [[ 'in_dartium==0', {
+  'conditions': [[ 'dart_io_support==1', {
   'targets': [
     {
       'target_name': 'sqlite_dart',
