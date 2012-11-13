@@ -75,6 +75,8 @@ class ObjectPointerVisitor;
   V(InstantiatedTypeArguments, "InstantiatedTypeArguments")                    \
   V(PatchClass, "PatchClass")                                                  \
   V(Function, "Function")                                                      \
+  V(FunctionResult, "function result")                                         \
+  V(FactoryResult, "factory result")                                           \
   V(ClosureData, "ClosureData")                                                \
   V(RedirectionData, "RedirectionData")                                        \
   V(Field, "Field")                                                            \

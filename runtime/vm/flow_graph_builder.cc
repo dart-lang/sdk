@@ -508,8 +508,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
       const AbstractType& dst_type =
           AbstractType::ZoneHandle(
               owner()->parsed_function().function().result_type());
-      const String& dst_name =
-          String::ZoneHandle(Symbols::New("function result"));
+      const String& dst_name = String::ZoneHandle(Symbols::FunctionResult());
       return_value = BuildAssignableValue(node->value()->token_pos(),
                                           return_value,
                                           dst_type,

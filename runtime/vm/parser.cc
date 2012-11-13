@@ -9443,7 +9443,7 @@ AstNode* Parser::ParseNewOperator() {
         new_pos, type_arguments, constructor, arguments);
   }
   if (check_result_type) {
-    const String& dst_name = String::ZoneHandle(Symbols::New("factory result"));
+    const String& dst_name = String::ZoneHandle(Symbols::FactoryResult());
     new_object = new AssignableNode(new_pos, new_object, type, dst_name);
   }
   return new_object;
