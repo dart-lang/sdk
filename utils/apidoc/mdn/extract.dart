@@ -1121,10 +1121,10 @@ void run() {
   }
 
   // Fix up links.
-  const SHORT_LINK = new RegExp(r'^[\w/]+$');
-  const INNER_LINK = new RegExp(r'[Ee]n/(?:[\w/]+/|)([\w#.]+)(?:\(\))?$');
-  const MEMBER_LINK = new RegExp(r'(\w+)[.#](\w+)');
-  const RELATIVE_LINK = new RegExp(r'^(?:../)*/?[Ee][Nn]/(.+)');
+  final SHORT_LINK = new RegExp(r'^[\w/]+$');
+  final INNER_LINK = new RegExp(r'[Ee]n/(?:[\w/]+/|)([\w#.]+)(?:\(\))?$');
+  final MEMBER_LINK = new RegExp(r'(\w+)[.#](\w+)');
+  final RELATIVE_LINK = new RegExp(r'^(?:../)*/?[Ee][Nn]/(.+)');
 
   // - Make relative links absolute.
   // - If we can, take links that point to other MDN pages and retarget them
