@@ -8,8 +8,10 @@
  * Interface implemented by all core library exceptions.
  * Defaults to an implementation that only carries a simple message.
  */
-abstract class Exception {
-  const factory Exception([var message]) = _ExceptionImplementation;
+interface Exception default _ExceptionImplementation {
+  // TODO(lrn): This should be an abstract class, but we don't yet support
+  // redirecting factory constructors.
+  const Exception([var message]);
 }
 
 

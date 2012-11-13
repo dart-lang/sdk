@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=
-// The --compile_all flag is disabled due to Issue 6697.
-// VMOptions=--compile_all--NOT
+// VMOptions=--compile_all
 
 // Exercises language constructs that require compile time constants
 
