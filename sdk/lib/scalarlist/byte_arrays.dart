@@ -15,9 +15,9 @@
  * For example this code fragment determine what 64-bit signed integer
  * is represented by the bytes of a 64-bit floating point number:
  *
- *    var ba = new ByteArray(8);
- *    ba.setFloat64(0, 3.14159265358979323846);
- *    int huh = ba.getInt64(0);
+ *     var ba = new Uint8List(8).asByteArray();
+ *     ba.setFloat64(0, 3.14159265358979323846);
+ *     int huh = ba.getInt64(0);
  */
 abstract class ByteArray {
   /**
