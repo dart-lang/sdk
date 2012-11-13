@@ -83,7 +83,7 @@ abstract class HMAC {
   /**
    * Create an [HMAC] object from a [Hash] and a key.
    */
-  factory HMAC(Hash hash, List<int> key) => new _HMAC();
+  factory HMAC(Hash hash, List<int> key) => new _HMAC(hash, key);
 
   /**
    * Add a list of bytes to the message.
