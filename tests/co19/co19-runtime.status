@@ -307,8 +307,6 @@ LibTest/core/List/setRange_A03_t02: Fail, OK # co19 issue 290
 LibTest/core/Match/group_A02_t01: Fail, OK # co19 issue 290
 LibTest/core/Match/groups_A02_t01: Fail, OK # co19 issue 290
 LibTest/core/Match/operator_subscript_A02_t01: Fail, OK # co19 issue 290
-LibTest/core/NotImplementedException/NotImplementedException_A01_t01: Fail, OK # co19 issue 290
-LibTest/core/NotImplementedException/toString_A01_t01: Fail, OK # co19 issue 290
 LibTest/core/String/charCodeAt_A02_t01: Fail, OK # co19 issue 290
 LibTest/core/String/operator_subscript_A02_t01: Fail, OK # co19 issue 290
 LibTest/core/String/substring_A02_t01: Fail, OK # co19 issue 290
