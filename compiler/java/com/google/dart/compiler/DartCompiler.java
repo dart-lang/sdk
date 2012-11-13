@@ -1008,7 +1008,7 @@ public class DartCompiler {
         if (topArgs.length > 1) {
           System.err.println("(Extra arguments specified with -batch ignored.)");
         }
-        UnitTestBatchRunner.runAsBatch(topArgs, new Invocation() {
+        result = UnitTestBatchRunner.runAsBatch(topArgs, new Invocation() {
           @Override
           public boolean invoke(String[] lineArgs) throws Throwable {
             List<String> allArgs = new ArrayList<String>();
