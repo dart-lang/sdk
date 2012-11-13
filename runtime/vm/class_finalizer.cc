@@ -252,8 +252,7 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
   }
   // If cls belongs to core lib or to core lib's implementation, restrictions
   // about allowed interfaces are lifted.
-  if ((cls.library() != Library::CoreLibrary()) &&
-      (cls.library() != Library::CoreImplLibrary())) {
+  if (cls.library() != Library::CoreLibrary()) {
     // Prevent extending core implementation classes.
     bool is_error = false;
     switch (super_class.id()) {
@@ -1389,9 +1388,7 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
 
   // If cls belongs to core lib or to core lib's implementation, restrictions
   // about allowed interfaces are lifted.
-  const bool cls_belongs_to_core_lib =
-      (cls.library() == Library::CoreLibrary()) ||
-      (cls.library() == Library::CoreImplLibrary());
+  const bool cls_belongs_to_core_lib = cls.library() == Library::CoreLibrary();
 
   // Resolve and check the interfaces of cls.
   visited->Add(cls_index);

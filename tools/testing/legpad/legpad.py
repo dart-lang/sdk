@@ -124,7 +124,6 @@ MAIN_ID = "main_id"
 # TODO(mattsh): read this from some config file once ahe/zundel create it
 DART_LIBRARIES = {
     "core": "lib/compiler/implementation/lib/core.dart",
-    "coreimpl": "lib/compiler/implementation/lib/coreimpl.dart",
     "_js_helper": "lib/compiler/implementation/lib/js_helper.dart",
     "_interceptors": "lib/compiler/implementation/lib/interceptors.dart",
     "dom": "lib/dom/frog/dom_frog.dart",

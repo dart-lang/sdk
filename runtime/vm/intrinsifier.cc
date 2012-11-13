@@ -17,21 +17,15 @@ static bool CompareNames(const char* test_name, const char* name) {
     return true;
   }
   if ((name[0] == '_') && (test_name[0] == '_')) {
-    // Check if the private class is member of core, coreimpl or
-    // scalarlist and matches the test_class_name.
+    // Check if the private class is member of core or scalarlist and matches
+    // the test_class_name.
     const Library& core_lib = Library::Handle(Library::CoreLibrary());
-    const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
     const Library& scalarlist_lib =
         Library::Handle(Library::ScalarlistLibrary());
     String& test_str = String::Handle(String::New(test_name));
     String& test_str_with_key = String::Handle();
     test_str_with_key =
         String::Concat(test_str, String::Handle(core_lib.private_key()));
-    if (strcmp(test_str_with_key.ToCString(), name) == 0) {
-      return true;
-    }
-    test_str_with_key =
-        String::Concat(test_str, String::Handle(core_impl_lib.private_key()));
     if (strcmp(test_str_with_key.ToCString(), name) == 0) {
       return true;
     }
@@ -78,7 +72,6 @@ bool Intrinsifier::CanIntrinsify(const Function& function) {
   const Class& function_class = Class::Handle(function.Owner());
   // Only core, math and scalarlist library methods can be intrinsified.
   if ((function_class.library() != Library::CoreLibrary()) &&
-      (function_class.library() != Library::CoreImplLibrary()) &&
       (function_class.library() != Library::MathLibrary()) &&
       (function_class.library() != Library::ScalarlistLibrary())) {
     return false;

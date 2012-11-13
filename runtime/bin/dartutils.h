@@ -126,7 +126,6 @@ class DartUtils {
   static const char* kDartExtensionScheme;
   static const char* kBuiltinLibURL;
   static const char* kCoreLibURL;
-  static const char* kCoreImplLibURL;
   static const char* kCryptoLibURL;
   static const char* kIOLibURL;
   static const char* kIOLibPatchURL;

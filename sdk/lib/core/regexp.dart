@@ -88,13 +88,13 @@ abstract class Match {
  *     String str = "Parse my string";
  *     Iterable<Match> matches = exp.allMatches(str);
  */
-interface RegExp extends Pattern default JSSyntaxRegExp {
+abstract class RegExp implements Pattern {
   /**
    * Constructs a regular expression. The default implementation of a
    * [RegExp] sets [multiLine] and [ignoreCase] to false.
    */
-  RegExp(String pattern, {bool multiLine: false,
-                          bool ignoreCase: false});
+  external factory RegExp(String pattern, {bool multiLine: false,
+                                           bool ignoreCase: false});
 
   /**
    * Searches for the first match of the regular expression

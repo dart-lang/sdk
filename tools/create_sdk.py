@@ -25,7 +25,6 @@
 # ......_internal/
 # ......collection/
 # ......core/
-# ......coreimpl/
 # ......crypto/
 # ......html/
 # ......io/
@@ -201,10 +200,10 @@ def Main(argv):
   #
 
   os.makedirs(join(LIB, 'html'))
-  for library in ['_internal', 'collection', 'core', 'coreimpl', 'crypto', 'io',
-                  'isolate', join('html', 'dart2js'), join('html', 'dartium'),
-                  'json', 'math', 'mirrors', 'scalarlist',
-                  join('svg', 'dart2js'), join('svg', 'dartium'), 'uri', 'utf']:
+  for library in ['_internal', 'collection', 'core', 'crypto', 'io', 'isolate',
+                  join('html', 'dart2js'), join('html', 'dartium'), 'json',
+                  'math', 'mirrors', 'scalarlist', join('svg', 'dart2js'),
+                  join('svg', 'dartium'), 'uri', 'utf']:
     copytree(join(HOME, 'sdk', 'lib', library), join(LIB, library),
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh'))
 

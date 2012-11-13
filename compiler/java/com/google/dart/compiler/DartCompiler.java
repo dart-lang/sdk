@@ -1180,15 +1180,6 @@ public class DartCompiler {
                                   DartCompilerListener listener) throws IOException {
     DartCompilerMainContext context = new DartCompilerMainContext(lib, provider, listener,
                                                                   config);
-    if (config.getCompilerOptions().shouldExposeCoreImpl()) {
-      if (embeddedLibraries == null) {
-        embeddedLibraries = Lists.newArrayList();
-      }
-      // use a place-holder LibrarySource instance, to be replaced when embedded
-      // in the compiler, where the dart uri can be resolved.
-      embeddedLibraries.add(new NamedPlaceHolderLibrarySource("dart:core"));
-    }
-
     new Compiler(lib, embeddedLibraries, config, context).compile();
     int errorCount = context.getErrorCount();
     if (config.typeErrorsAreFatal()) {

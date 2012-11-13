@@ -8,7 +8,6 @@
  */
 library html_diff;
 
-import 'dart:coreimpl';
 import 'dart:io';
 
 // TODO(rnystrom): Use "package:" URL (#4968).

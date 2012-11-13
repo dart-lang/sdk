@@ -4,7 +4,6 @@
 
 // Dart test for sort routines.
 library sort_test;
-import 'dart:coreimpl';
 import 'sort_helper.dart';
 
 main() {

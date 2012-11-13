@@ -21,12 +21,6 @@ RawScript* Bootstrap::LoadCoreScript(bool is_patch) {
 }
 
 
-RawScript* Bootstrap::LoadCoreImplScript(bool is_patch) {
-  UNREACHABLE();
-  return Script::null();
-}
-
-
 RawScript* Bootstrap::LoadCollectionScript(bool is_patch) {
   UNREACHABLE();
   return Script::null();

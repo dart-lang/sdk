@@ -16,7 +16,6 @@ const char* DartUtils::kDartScheme = "dart:";
 const char* DartUtils::kDartExtensionScheme = "dart-ext:";
 const char* DartUtils::kBuiltinLibURL = "dart:builtin";
 const char* DartUtils::kCoreLibURL = "dart:core";
-const char* DartUtils::kCoreImplLibURL = "dart:coreimpl";
 const char* DartUtils::kCryptoLibURL = "dart:crypto";
 const char* DartUtils::kIOLibURL = "dart:io";
 const char* DartUtils::kIOLibPatchURL = "dart:io-patch";

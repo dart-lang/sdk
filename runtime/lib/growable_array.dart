@@ -208,7 +208,7 @@ class _GrowableObjectArray<T> implements List<T> {
   }
 
   void sort([Comparator<T> compare = Comparable.compare]) {
-    coreSort(this, compare);
+    _Sort.sort(this, compare);
   }
 
   String toString() {

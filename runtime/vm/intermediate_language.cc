@@ -231,11 +231,9 @@ MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
     const Function& function) {
   // Only core and math library methods can be recognized.
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
   const Library& math_lib = Library::Handle(Library::MathLibrary());
   const Class& function_class = Class::Handle(function.Owner());
   if ((function_class.library() != core_lib.raw()) &&
-      (function_class.library() != core_impl_lib.raw()) &&
       (function_class.library() != math_lib.raw())) {
     return kUnknown;
   }

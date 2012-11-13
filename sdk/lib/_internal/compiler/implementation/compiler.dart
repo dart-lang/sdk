@@ -110,7 +110,6 @@ abstract class Compiler implements DiagnosticListener {
   CompilerTask measuredTask;
   Element _currentElement;
   LibraryElement coreLibrary;
-  LibraryElement coreImplLibrary;
   LibraryElement isolateLibrary;
   LibraryElement jsHelperLibrary;
   LibraryElement interceptorsLibrary;
@@ -376,8 +375,8 @@ abstract class Compiler implements DiagnosticListener {
   void onLibraryScanned(LibraryElement library, Uri uri) {
     if (dynamicClass != null) {
       // When loading the built-in libraries, dynamicClass is null. We
-      // take advantage of this as core and coreimpl import js_helper
-      // and see Dynamic this way.
+      // take advantage of this as core imports js_helper and sees [dynamic]
+      // this way.
       withCurrentElement(dynamicClass, () {
         library.addToScope(dynamicClass, this);
       });
@@ -418,15 +417,13 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void scanBuiltinLibraries() {
-    loadCoreImplLibrary();
     jsHelperLibrary = scanBuiltinLibrary('_js_helper');
     interceptorsLibrary = scanBuiltinLibrary('_interceptors');
 
-    // The core and coreimpl libraries were loaded and patched before
-    // jsHelperLibrary was initialized, so it wasn't imported into those
-    // two libraries during patching.
+    // The core library was loaded and patched before jsHelperLibrary was
+    // initialized, so it wasn't imported into those two libraries during
+    // patching.
     importHelperLibrary(coreLibrary);
-    importHelperLibrary(coreImplLibrary);
     importHelperLibrary(interceptorsLibrary);
 
     addForeignFunctions(jsHelperLibrary);
@@ -443,11 +440,6 @@ abstract class Compiler implements DiagnosticListener {
     jsInvocationMirrorClass.ensureResolved(this);
     invokeOnMethod = jsInvocationMirrorClass.lookupLocalMember(
         const SourceString('invokeOn'));
-  }
-
-  void loadCoreImplLibrary() {
-    Uri coreImplUri = new Uri.fromComponents(scheme: 'dart', path: 'coreimpl');
-    coreImplLibrary = libraryLoader.loadLibrary(coreImplUri, null, coreImplUri);
   }
 
   void importHelperLibrary(LibraryElement library) {

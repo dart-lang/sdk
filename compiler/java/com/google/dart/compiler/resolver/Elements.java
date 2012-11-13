@@ -761,9 +761,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
     return Elements.isLibrarySource(source, "/core/corelib.dart")
         || Elements.isLibrarySource(source, "/core/corelib_impl.dart")
         // New core library file names
-        || Elements.isLibrarySource(source, "/core/core.dart")
-        || Elements.isLibrarySource(source, "/core/coreimpl.dart")
-        || Elements.isLibrarySource(source, "/coreimpl/coreimpl.dart");
+        || Elements.isLibrarySource(source, "/core/core.dart");
   }
   
   public static boolean isHtmlLibrarySource(Source source) {

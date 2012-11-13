@@ -7,7 +7,6 @@
 // file which is in lib/io/io.dart.
 
 #library("dart:io");
-#import("dart:coreimpl");
 #import("dart:crypto");
 #import("dart:isolate");
 #import("dart:math");

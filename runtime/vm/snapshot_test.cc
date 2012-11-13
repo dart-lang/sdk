@@ -867,11 +867,6 @@ TEST_CASE(GenerateSource) {
   EXPECT(!lib.IsNull());
   IterateScripts(lib);
 
-  // Check core impl lib.
-  lib = Library::CoreImplLibrary();
-  EXPECT(!lib.IsNull());
-  IterateScripts(lib);
-
   // Check isolate lib.
   lib = Library::IsolateLibrary();
   EXPECT(!lib.IsNull());

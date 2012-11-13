@@ -17769,7 +17769,7 @@ class NodeIterator extends NativeFieldWrapperClass1 {
 
 
 // TODO(nweiz): when all implementations we target have the same name for the
-// coreimpl implementation of List<E>, extend that rather than wrapping.
+// implementation of List<E>, extend that rather than wrapping.
 class _ListWrapper<E> implements List<E> {
   List _list;
 

@@ -560,8 +560,6 @@ RawError* Object::Init(Isolate* isolate) {
   Library::InitCoreLibrary(isolate);
   Library& core_lib = Library::Handle(Library::CoreLibrary());
   ASSERT(!core_lib.IsNull());
-  Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
-  ASSERT(!core_impl_lib.IsNull());
 
   const GrowableObjectArray& pending_classes =
       GrowableObjectArray::Handle(GrowableObjectArray::New(Heap::kOld));
@@ -573,9 +571,6 @@ RawError* Object::Init(Isolate* isolate) {
   // Now that the symbol table is initialized and that the core dictionary as
   // well as the core implementation dictionary have been setup, preallocate
   // remaining classes and register them by name in the dictionaries.
-  const Script& impl_script = Script::Handle(
-      Bootstrap::LoadCoreImplScript(false));
-
   String& name = String::Handle();
   cls = Class::New<Bool>();
   object_store->set_bool_class(cls);
@@ -627,14 +622,14 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<Stacktrace>();
   object_store->set_stacktrace_class(cls);
   name = Symbols::Stacktrace();
-  RegisterClass(cls, name, core_impl_lib);
+  RegisterClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
   // Super type set below, after Object is allocated.
 
   cls = Class::New<JSRegExp>();
   object_store->set_jsregexp_class(cls);
   name = Symbols::JSSyntaxRegExp();
-  RegisterClass(cls, name, core_impl_lib);
+  RegisterPrivateClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   // Initialize the base interfaces used by the core VM classes.
@@ -900,15 +895,6 @@ RawError* Object::Init(Isolate* isolate) {
   }
   Script& patch_script = Script::Handle(Bootstrap::LoadCoreScript(true));
   error = core_lib.Patch(patch_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  error = Bootstrap::Compile(core_impl_lib, impl_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  patch_script = Bootstrap::LoadCoreImplScript(true);
-  error = core_impl_lib.Patch(patch_script);
   if (!error.IsNull()) {
     return error.raw();
   }
@@ -5884,19 +5870,7 @@ void Library::InitCoreLibrary(Isolate* isolate) {
   const Library& core_lib =
       Library::Handle(Library::NewLibraryHelper(core_lib_url, false));
   core_lib.Register();
-  const Namespace& core_ns = Namespace::Handle(
-      Namespace::New(core_lib, Array::Handle(), Array::Handle()));
   isolate->object_store()->set_core_library(core_lib);
-  const String& core_impl_lib_url =
-      String::Handle(Symbols::New("dart:coreimpl"));
-  const Library& core_impl_lib =
-      Library::Handle(Library::NewLibraryHelper(core_impl_lib_url, false));
-  isolate->object_store()->set_core_impl_library(core_impl_lib);
-  core_impl_lib.Register();
-  const Namespace& impl_ns = Namespace::Handle(
-      Namespace::New(core_impl_lib, Array::Handle(), Array::Handle()));
-  core_lib.AddImport(impl_ns);
-  core_impl_lib.AddImport(core_ns);
   Library::InitMathLibrary(isolate);
   const Library& math_lib = Library::Handle(Library::MathLibrary());
   const Namespace& math_ns = Namespace::Handle(
@@ -5907,9 +5881,7 @@ void Library::InitCoreLibrary(Isolate* isolate) {
   const Namespace& collection_ns = Namespace::Handle(
       Namespace::New(collection_lib, Array::Handle(), Array::Handle()));
   core_lib.AddImport(math_ns);
-  core_impl_lib.AddImport(math_ns);
   core_lib.AddImport(collection_ns);
-  core_impl_lib.AddImport(collection_ns);
   isolate->object_store()->set_root_library(Library::Handle());
 
   // Hook up predefined classes without setting their library pointers. These
@@ -5936,10 +5908,6 @@ void Library::InitMathLibrary(Isolate* isolate) {
   const String& url = String::Handle(Symbols::New("dart:math"));
   const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
   lib.Register();
-  const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
-  const Namespace& impl_ns = Namespace::Handle(
-      Namespace::New(core_impl_lib, Array::Handle(), Array::Handle()));
-  lib.AddImport(impl_ns);
   isolate->object_store()->set_math_library(lib);
 }
 
@@ -6087,11 +6055,6 @@ void Library::Register() const {
 
 RawLibrary* Library::CoreLibrary() {
   return Isolate::Current()->object_store()->core_library();
-}
-
-
-RawLibrary* Library::CoreImplLibrary() {
-  return Isolate::Current()->object_store()->core_impl_library();
 }
 
 

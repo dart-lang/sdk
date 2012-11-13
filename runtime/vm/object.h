@@ -1963,7 +1963,6 @@ class Library : public Object {
   static void InitNativeWrappersLibrary(Isolate* isolate);
 
   static RawLibrary* CoreLibrary();
-  static RawLibrary* CoreImplLibrary();
   static RawLibrary* CollectionLibrary();
   static RawLibrary* MathLibrary();
   static RawLibrary* IsolateLibrary();

@@ -214,3 +214,12 @@ patch class Strings {
     return array;
   }
 }
+
+patch class RegExp {
+  patch factory RegExp(String pattern,
+                       {bool multiLine: false,
+                        bool ignoreCase: false})
+    => new JSSyntaxRegExp(pattern,
+                          multiLine: multiLine,
+                          ignoreCase: ignoreCase);
+}

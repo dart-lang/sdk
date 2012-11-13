@@ -4,7 +4,6 @@
 
 library benchmark_lib;
 
-import 'dart:coreimpl';
 import 'dart:json';
 import 'dart:html';
 import 'dart:math' as Math;

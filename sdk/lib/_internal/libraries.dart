@@ -30,11 +30,6 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
       "core/core.dart",
       dart2jsPatchPath: "_internal/compiler/implementation/lib/core_patch.dart"),
 
-  "coreimpl": const LibraryInfo(
-      "coreimpl/coreimpl.dart",
-      implementation: true,
-      dart2jsPatchPath: "_internal/compiler/implementation/lib/coreimpl_patch.dart"),
-
   "crypto": const LibraryInfo(
       "crypto/crypto.dart"),
 
@@ -145,7 +140,7 @@ class LibraryInfo {
    * The implication is that these libraries are less commonly used
    * and that tools like Dart Editor should not show these libraries
    * in a list of all libraries unless the user specifically asks the tool to
-   * do so. (E.g. "coreimpl" contains implementation for the "core" library).
+   * do so.
    */
   final bool implementation;
 

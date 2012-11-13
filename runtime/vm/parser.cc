@@ -1367,14 +1367,6 @@ RawFunction* Parser::GetSuperFunction(intptr_t token_pos,
 }
 
 
-// Lookup class in the corelib implementation which contains various VM
-// helper methods and classes.
-static RawClass* LookupImplClass(const String& class_name) {
-  Library& coreimpl = Library::Handle(Library::CoreImplLibrary());
-  return coreimpl.LookupClassAllowPrivate(class_name);
-}
-
-
 // Lookup class in the core lib which also contains various VM
 // helper methods and classes. Allow look up of private classes.
 static RawClass* LookupCoreClass(const String& class_name) {
@@ -9021,7 +9013,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     const String& immutable_map_class_name =
         String::Handle(Symbols::ImmutableMap());
     const Class& immutable_map_class =
-        Class::Handle(LookupImplClass(immutable_map_class_name));
+        Class::Handle(LookupCoreClass(immutable_map_class_name));
     ASSERT(!immutable_map_class.IsNull());
     ArgumentListNode* constr_args = new ArgumentListNode(TokenPos());
     constr_args->Add(new LiteralNode(literal_pos, key_value_array));

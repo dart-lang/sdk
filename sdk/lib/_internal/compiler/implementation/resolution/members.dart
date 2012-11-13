@@ -2608,7 +2608,6 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     LibraryElement lib = element.getLibrary();
     return
       !identical(lib, compiler.coreLibrary) &&
-      !identical(lib, compiler.coreImplLibrary) &&
       !identical(lib, compiler.jsHelperLibrary) &&
       (identical(type.element, compiler.dynamicClass) ||
        identical(type.element, compiler.boolClass) ||

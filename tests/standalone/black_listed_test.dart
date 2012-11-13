@@ -7,7 +7,6 @@
 // implemented or extended (VM corelib only).
 
 #library("BlackListedTest.dart");
-#import("dart:coreimpl");
 
 class MyBool extends Bool {}  /// 01: compile-time error
 

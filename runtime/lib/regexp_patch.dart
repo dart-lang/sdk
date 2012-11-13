@@ -2,6 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+patch class RegExp {
+  /* patch */ factory RegExp(String pattern,
+                             {bool multiLine: false,
+                              bool ignoreCase: false}) {
+    return new _JSSyntaxRegExp(pattern,
+                               multiLine: multiLine,
+                               ignoreCase: ignoreCase);
+  }
+}
+
 class _JSRegExpMatch implements Match {
   _JSRegExpMatch(this.regexp, this.str, this._match);
 
@@ -26,8 +36,7 @@ class _JSRegExpMatch implements Match {
       assert(endIndex == -1);
       return null;
     }
-    // TODO(ajohnsen): Use _substringUnchecked when regexp is in core.
-    return str.substring(startIndex, endIndex);
+    return str._substringUnchecked(startIndex, endIndex);
   }
 
   String operator [](int groupIdx) {
@@ -53,13 +62,13 @@ class _JSRegExpMatch implements Match {
 }
 
 
-patch class JSSyntaxRegExp {
-  /* patch */ factory JSSyntaxRegExp(
+class _JSSyntaxRegExp implements RegExp {
+  factory _JSSyntaxRegExp(
       String pattern,
       {bool multiLine: false,
        bool ignoreCase: false}) native "JSSyntaxRegExp_factory";
 
-  /* patch */ Match firstMatch(String str) {
+  Match firstMatch(String str) {
     List match = _ExecuteMatch(str, 0);
     if (match == null) {
       return null;
@@ -67,7 +76,7 @@ patch class JSSyntaxRegExp {
     return new _JSRegExpMatch(this, str, match);
   }
 
-  /* patch */ Iterable<Match> allMatches(String str) {
+  Iterable<Match> allMatches(String str) {
     List<Match> result = new List<Match>();
     int length = str.length;
     int startIndex = 0;
@@ -89,25 +98,24 @@ patch class JSSyntaxRegExp {
     return result;
   }
 
-  /* patch */ bool hasMatch(String str) {
+  bool hasMatch(String str) {
     List match = _ExecuteMatch(str, 0);
     return (match == null) ? false : true;
   }
 
-  /* patch */ String stringMatch(String str) {
+  String stringMatch(String str) {
     List match = _ExecuteMatch(str, 0);
     if (match == null) {
       return null;
     }
-    // TODO(ajohnsen): Use _substringUnchecked when regexp is in core.
-    return str.substring(match[0], match[1]);
+    return str._substringUnchecked(match[0], match[1]);
   }
 
-  /* patch */ String get pattern native "JSSyntaxRegExp_getPattern";
+  String get pattern native "JSSyntaxRegExp_getPattern";
 
-  /* patch */ bool get multiLine native "JSSyntaxRegExp_multiLine";
+  bool get multiLine native "JSSyntaxRegExp_multiLine";
 
-  /* patch */ bool get ignoreCase native "JSSyntaxRegExp_ignoreCase";
+  bool get ignoreCase native "JSSyntaxRegExp_ignoreCase";
 
   int get _groupCount native "JSSyntaxRegExp_getGroupCount";
 
