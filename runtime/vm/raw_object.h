@@ -933,6 +933,7 @@ class RawICData : public RawObject {
   intptr_t deopt_id_;         // Deoptimization id corresponding to this IC.
   intptr_t num_args_tested_;  // Number of arguments tested in IC.
   uint8_t deopt_reason_;      // Last deoptimization reason.
+  uint8_t is_closure_call_;   // 0 or 1.
 };
 
 

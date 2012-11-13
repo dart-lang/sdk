@@ -125,6 +125,14 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitComment(Instruction* instr);
 
+  void EmitOptimizedInstanceCall(ExternalLabel* target_label,
+                                 const ICData& ic_data,
+                                 const Array& arguments_descriptor,
+                                 intptr_t argument_count,
+                                 intptr_t deopt_id,
+                                 intptr_t token_pos,
+                                 LocationSummary* locs);
+
   void EmitInstanceCall(ExternalLabel* target_label,
                         const ICData& ic_data,
                         const Array& arguments_descriptor,
@@ -203,6 +211,8 @@ class FlowGraphCompiler : public ValueObject {
     }
     return current_block_->try_index();
   }
+
+  bool may_reoptimize() const { return may_reoptimize_; }
 
   static Condition FlipCondition(Condition condition);
 
@@ -311,6 +321,8 @@ class FlowGraphCompiler : public ValueObject {
   GrowableArray<CompilerDeoptInfo*> deopt_infos_;
   GrowableArray<SlowPathCode*> slow_path_code_;
   const bool is_optimizing_;
+  // Set to true if optimized code has IC calls.
+  bool may_reoptimize_;
 
   const Bool& bool_true_;
   const Bool& bool_false_;

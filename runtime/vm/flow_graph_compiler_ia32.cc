@@ -1042,6 +1042,32 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t token_pos,
 }
 
 
+void FlowGraphCompiler::EmitOptimizedInstanceCall(
+    ExternalLabel* target_label,
+    const ICData& ic_data,
+    const Array& arguments_descriptor,
+    intptr_t argument_count,
+    intptr_t deopt_id,
+    intptr_t token_pos,
+    LocationSummary* locs) {
+  // Each ICData propagated from unoptimized to optimized code contains the
+  // function that corresponds to the Dart function of that IC call. Due
+  // to inlining in optimized code, that function may not correspond to the
+  // top-level function (parsed_function().function()) which could be
+  // reoptimized and which counter needs to be incremented.
+  // Pass the function explicitly.
+  __ LoadObject(EDI, parsed_function().function());
+  __ LoadObject(ECX, ic_data);
+  __ LoadObject(EDX, arguments_descriptor);
+  GenerateDartCall(deopt_id,
+                   token_pos,
+                   target_label,
+                   PcDescriptors::kIcCall,
+                   locs);
+  __ Drop(argument_count);
+}
+
+
 void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                                          const ICData& ic_data,
                                          const Array& arguments_descriptor,

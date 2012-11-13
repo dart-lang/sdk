@@ -25,6 +25,7 @@ DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(int, optimization_counter_threshold);
+DECLARE_FLAG(bool, trace_optimized_ic_calls);
 
 // Input parameters:
 //   ESP : points to return address.
@@ -1525,24 +1526,61 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 }
 
 
-// Loads function into 'temp_reg', preserves 'ic_reg'.
+void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
+  Register argdesc_reg = EDX;
+  Register ic_reg = ECX;
+  Register func_reg = EDI;
+  if (FLAG_trace_optimized_ic_calls) {
+    AssemblerMacros::EnterStubFrame(assembler);
+    __ pushl(func_reg);     // Preserve
+    __ pushl(argdesc_reg);  // Preserve.
+    __ pushl(ic_reg);       // Preserve.
+    __ pushl(ic_reg);       // Argument.
+    __ pushl(func_reg);     // Argument.
+    __ CallRuntime(kTraceICCallRuntimeEntry);
+    __ popl(EAX);          // Discard argument;
+    __ popl(EAX);          // Discard argument;
+    __ popl(ic_reg);       // Restore.
+    __ popl(argdesc_reg);  // Restore.
+    __ popl(func_reg);     // Restore.
+    __ LeaveFrame();
+  }
+  Label is_hot;
+  if (FlowGraphCompiler::CanOptimize()) {
+    ASSERT(FLAG_optimization_counter_threshold > 1);
+    __ cmpl(FieldAddress(func_reg, Function::usage_counter_offset()),
+        Immediate(FLAG_optimization_counter_threshold));
+    __ j(GREATER_EQUAL, &is_hot, Assembler::kNearJump);
+    // As long as VM has no OSR do not optimize in the middle of the function
+    // but only at exit so that we have collected all type feedback before
+    // optimizing.
+  }
+  __ incl(FieldAddress(func_reg, Function::usage_counter_offset()));
+  __ Bind(&is_hot);
+}
+
+
+
+// Loads function into 'temp_reg'.
 void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
-                                             Register ic_reg,
                                              Register temp_reg) {
-  __ movl(temp_reg, FieldAddress(ic_reg, ICData::function_offset()));
+  Register ic_reg = ECX;
+  Register func_reg = temp_reg;
+  ASSERT(ic_reg != func_reg);
+  __ movl(func_reg, FieldAddress(ic_reg, ICData::function_offset()));
   Label is_hot;
   if (FlowGraphCompiler::CanOptimize()) {
     ASSERT(FLAG_optimization_counter_threshold > 1);
     // The usage_counter is always less than FLAG_optimization_counter_threshold
     // except when the function gets optimized.
-    __ cmpl(FieldAddress(temp_reg, Function::usage_counter_offset()),
+    __ cmpl(FieldAddress(func_reg, Function::usage_counter_offset()),
         Immediate(FLAG_optimization_counter_threshold));
     __ j(EQUAL, &is_hot, Assembler::kNearJump);
     // As long as VM has no OSR do not optimize in the middle of the function
     // but only at exit so that we have collected all type feedback before
     // optimizing.
   }
-  __ incl(FieldAddress(temp_reg, Function::usage_counter_offset()));
+  __ incl(FieldAddress(func_reg, Function::usage_counter_offset()));
   __ Bind(&is_hot);
 }
 
@@ -1664,6 +1702,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ cmpl(EAX, raw_null);
   __ j(NOT_EQUAL, &call_target_function, Assembler::kNearJump);
   // NoSuchMethod or closure.
+  // Mark IC call that it may be a closure call that does not collect
+  // type feedback.
+  __ movb(FieldAddress(ECX, ICData::is_closure_call_offset()), Immediate(1));
   __ jmp(&StubCode::InstanceFunctionLookupLabel());
 
   __ Bind(&found);
@@ -1705,27 +1746,67 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
 //   - N classes.
 //   - 1 target function.
 void StubCode::GenerateOneArgCheckInlineCacheStub(Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, ECX, EBX);
-  return GenerateNArgsCheckInlineCacheStub(assembler, 1);
+  GenerateUsageCounterIncrement(assembler, EBX);
+  GenerateNArgsCheckInlineCacheStub(assembler, 1);
 }
 
 
 void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, ECX, EBX);
-  return GenerateNArgsCheckInlineCacheStub(assembler, 2);
+  GenerateUsageCounterIncrement(assembler, EBX);
+  GenerateNArgsCheckInlineCacheStub(assembler, 2);
 }
 
 
 void StubCode::GenerateThreeArgsCheckInlineCacheStub(Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, ECX, EBX);
-  return GenerateNArgsCheckInlineCacheStub(assembler, 3);
+  GenerateUsageCounterIncrement(assembler, EBX);
+  GenerateNArgsCheckInlineCacheStub(assembler, 3);
+}
+
+
+
+// Use inline cache data array to invoke the target or continue in inline
+// cache miss handler. Stub for 1-argument check (receiver class).
+//  EDI: function which counter needs to be incremented.
+//  ECX: Inline cache data object.
+//  EDX: Arguments array.
+//  TOS(0): Return address.
+// Inline cache data object structure:
+// 0: function-name
+// 1: N, number of arguments checked.
+// 2 .. (length - 1): group of checks, each check containing:
+//   - N classes.
+//   - 1 target function.
+void StubCode::GenerateOneArgOptimizedCheckInlineCacheStub(
+    Assembler* assembler) {
+  GenerateOptimizedUsageCounterIncrement(assembler);
+  GenerateNArgsCheckInlineCacheStub(assembler, 1);
+}
+
+
+void StubCode::GenerateTwoArgsOptimizedCheckInlineCacheStub(
+    Assembler* assembler) {
+  GenerateOptimizedUsageCounterIncrement(assembler);
+  GenerateNArgsCheckInlineCacheStub(assembler, 2);
+}
+
+
+void StubCode::GenerateThreeArgsOptimizedCheckInlineCacheStub(
+    Assembler* assembler) {
+  GenerateOptimizedUsageCounterIncrement(assembler);
+  GenerateNArgsCheckInlineCacheStub(assembler, 3);
+}
+
+
+// Do not count as no type feedback is collected.
+void StubCode::GenerateClosureCallInlineCacheStub(Assembler* assembler) {
+  GenerateNArgsCheckInlineCacheStub(assembler, 1);
 }
 
 
 // Megamorphic call is currently implemented as IC call but through a stub
 // that does not check/count function invocations.
 void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
-  return GenerateNArgsCheckInlineCacheStub(assembler, 1);
+  GenerateNArgsCheckInlineCacheStub(assembler, 1);
 }
 
 

@@ -2806,6 +2806,12 @@ class ICData : public Object {
 
   void set_deopt_reason(intptr_t reason) const;
 
+  bool is_closure_call() const {
+    return raw_ptr()->is_closure_call_ == 1;
+  }
+
+  void set_is_closure_call(bool value) const;
+
   intptr_t NumberOfChecks() const;
 
   static intptr_t InstanceSize() {
@@ -2826,6 +2832,10 @@ class ICData : public Object {
 
   static intptr_t function_offset() {
     return OFFSET_OF(RawICData, function_);
+  }
+
+  static intptr_t is_closure_call_offset() {
+    return OFFSET_OF(RawICData, is_closure_call_);
   }
 
   // Adding checks.

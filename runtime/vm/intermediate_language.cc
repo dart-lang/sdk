@@ -1869,7 +1869,8 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                checked_argument_count());
   }
   if (compiler->is_optimizing()) {
-    if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
+    ASSERT(HasICData());
+    if (ic_data()->NumberOfChecks() > 0) {
       const ICData& unary_ic_data =
           ICData::ZoneHandle(ic_data()->AsUnaryClassChecks());
       compiler->GenerateInstanceCall(deopt_id(),
@@ -1879,11 +1880,16 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                      locs(),
                                      unary_ic_data);
     } else {
-      Label* deopt =
-          compiler->AddDeoptStub(deopt_id(), kDeoptInstanceCallNoICData);
-      __ jmp(deopt);
+      // Call was not visited yet, use original ICData in order to populate it.
+      compiler->GenerateInstanceCall(deopt_id(),
+                                     token_pos(),
+                                     ArgumentCount(),
+                                     argument_names(),
+                                     locs(),
+                                     call_ic_data);
     }
   } else {
+    // Unoptimized code.
     ASSERT(!HasICData());
     compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
                                    deopt_id(),

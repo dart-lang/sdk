@@ -145,6 +145,7 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
       block_info_(block_order_.length()),
       deopt_infos_(),
       is_optimizing_(is_optimizing),
+      may_reoptimize_(false),
       bool_true_(Bool::ZoneHandle(Bool::True())),
       bool_false_(Bool::ZoneHandle(Bool::False())),
       double_class_(Class::ZoneHandle(
@@ -475,6 +476,39 @@ void FlowGraphCompiler::GenerateInstanceCall(
   const Array& arguments_descriptor =
       DartEntry::ArgumentsDescriptor(argument_count, argument_names);
   uword label_address = 0;
+  if (is_optimizing() && (ic_data.NumberOfChecks() == 0)) {
+    if (ic_data.is_closure_call()) {
+      // This IC call may be closure call only.
+      label_address = StubCode::ClosureCallInlineCacheEntryPoint();
+      ExternalLabel target_label("InlineCache", label_address);
+      EmitInstanceCall(&target_label,
+                       ICData::ZoneHandle(ic_data.AsUnaryClassChecks()),
+                       arguments_descriptor, argument_count,
+                       deopt_id, token_pos, locs);
+      return;
+    }
+    // Emit IC call that will count and thus may need reoptimization at
+    // return instruction.
+    may_reoptimize_ = true;
+    switch (ic_data.num_args_tested()) {
+      case 1:
+        label_address = StubCode::OneArgOptimizedCheckInlineCacheEntryPoint();
+        break;
+      case 2:
+        label_address = StubCode::TwoArgsOptimizedCheckInlineCacheEntryPoint();
+        break;
+      case 3:
+        label_address =
+            StubCode::ThreeArgsOptimizedCheckInlineCacheEntryPoint();
+        break;
+      default:
+        UNIMPLEMENTED();
+    }
+    ExternalLabel target_label("InlineCache", label_address);
+    EmitOptimizedInstanceCall(&target_label, ic_data, arguments_descriptor,
+                              argument_count, deopt_id, token_pos, locs);
+    return;
+  }
   if (is_optimizing()) {
     // Megamorphic call requires one argument ICData.
     ASSERT(ic_data.num_args_tested() == 1);
@@ -495,7 +529,6 @@ void FlowGraphCompiler::GenerateInstanceCall(
     }
   }
   ExternalLabel target_label("InlineCache", label_address);
-
   EmitInstanceCall(&target_label, ic_data, arguments_descriptor, argument_count,
                    deopt_id, token_pos, locs);
 }

@@ -34,6 +34,7 @@ DECLARE_RUNTIME_ENTRY(InstantiateTypeArguments);
 DECLARE_RUNTIME_ENTRY(InvokeImplicitClosureFunction);
 DECLARE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction);
 DECLARE_RUNTIME_ENTRY(OptimizeInvokedFunction);
+DECLARE_RUNTIME_ENTRY(TraceICCall);
 DECLARE_RUNTIME_ENTRY(PatchStaticCall);
 DECLARE_RUNTIME_ENTRY(ReportObjectNotClosure);
 DECLARE_RUNTIME_ENTRY(ResolveCompileInstanceFunction);

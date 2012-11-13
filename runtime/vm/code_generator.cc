@@ -47,6 +47,10 @@ DECLARE_FLAG(int, deoptimization_counter_threshold);
 DEFINE_FLAG(charp, optimization_filter, NULL, "Optimize only named function");
 DEFINE_FLAG(bool, trace_failed_optimization_attempts, false,
     "Traces all failed optimization attempts");
+DEFINE_FLAG(bool, trace_optimized_ic_calls, false,
+    "Trace IC calls in optimized code.");
+DEFINE_FLAG(int, reoptimization_counter_threshold, 2000,
+    "Counter threshold before a function gets reoptimized.");
 DEFINE_FLAG(int, max_subtype_cache_entries, 100,
     "Maximum number of subtype cache entries (number of checks cached).");
 
@@ -1489,14 +1493,30 @@ static void PrintCaller(const char* msg) {
 }
 
 
+DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
+  ASSERT(arguments.Count() ==
+         kTraceICCallRuntimeEntry.argument_count());
+  const ICData& ic_data = ICData::CheckedHandle(arguments.At(0));
+  const Function& function = Function::CheckedHandle(arguments.At(1));
+  DartFrameIterator iterator;
+  StackFrame* frame = iterator.NextFrame();
+  ASSERT(frame != NULL);
+  OS::Print("IC call @%#"Px": ICData: %p cnt:%"Pd" nchecks: %"Pd" %s %s\n",
+      frame->pc(),
+      ic_data.raw(),
+      function.usage_counter(),
+      ic_data.NumberOfChecks(),
+      ic_data.is_closure_call() ? "closure" : "",
+      function.ToFullyQualifiedCString());
+}
 
-// Only unoptimized code has invocation counter threshold checking.
-// Once the invocation counter threshold is reached any entry into the
-// unoptimized code is redirected to this function.
+
+// This is called from function that needs to be optimized.
+// The requesting function can be already optimized (reoptimization).
 DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
-  const intptr_t kLowInvocationCount = -100000000;
   ASSERT(arguments.Count() ==
          kOptimizeInvokedFunctionRuntimeEntry.argument_count());
+  const intptr_t kLowInvocationCount = -100000000;
   const Function& function = Function::CheckedHandle(arguments.At(0));
   if (isolate->debugger()->IsActive()) {
     // We cannot set breakpoints in optimized code, so do not optimize
@@ -1513,18 +1533,6 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     function.set_usage_counter(kLowInvocationCount);
     return;
   }
-  if (function.HasOptimizedCode()) {
-    // The caller has been already optimized, the caller is probably in
-    // a loop or in a recursive call chain.
-    // Leave the usage_counter at the limit so that the count test knows that
-    // method is optimized.
-    if (FLAG_trace_failed_optimization_attempts) {
-      PrintCaller("Has Optimized Code");
-    }
-    // TODO(srdjan): Enable reoptimizing optimized code, but most recognize
-    // that reoptimization was not already applied.
-    return;
-  }
   if ((FLAG_optimization_filter != NULL) &&
       (strstr(function.ToFullyQualifiedCString(),
               FLAG_optimization_filter) == NULL)) {
@@ -1532,8 +1540,6 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     return;
   }
   if (function.is_optimizable()) {
-    // Compilation patches the entry of unoptimized code.
-    ASSERT(!function.HasOptimizedCode());
     const Error& error =
         Error::Handle(Compiler::CompileOptimizedFunction(function));
     if (!error.IsNull()) {
@@ -1541,7 +1547,9 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     }
     const Code& optimized_code = Code::Handle(function.CurrentCode());
     ASSERT(!optimized_code.IsNull());
-    function.set_usage_counter(0);
+    // Set usage counter for reoptimization.
+    function.set_usage_counter(
+        function.usage_counter() - FLAG_reoptimization_counter_threshold);
   } else {
     if (FLAG_trace_failed_optimization_attempts) {
       PrintCaller("Not Optimizable");

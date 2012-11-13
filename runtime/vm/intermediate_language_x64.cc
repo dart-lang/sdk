@@ -42,17 +42,39 @@ LocationSummary* ReturnInstr::MakeLocationSummary() const {
 }
 
 
+// Attempt optimized compilation at return instruction instead of at the entry.
+// The entry needs to be patchable, no inlined objects are allowed in the area
+// that will be overwritten by the patch instruction: a jump).
 void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Function& function =
+      Function::ZoneHandle(compiler->parsed_function().function().raw());
   Register result = locs()->in(0).reg();
   Register func_reg = locs()->temp(0).reg();
   ASSERT(result == RAX);
-  if (!compiler->is_optimizing()) {
+  if (compiler->is_optimizing()) {
+    if (compiler->may_reoptimize()) {
+      // Increment of counter occurs only in optimized IC calls, as they
+      // can cause reoptimization.
+      Label done;
+      __ LoadObject(func_reg, function);
+      __ cmpq(FieldAddress(func_reg, Function::usage_counter_offset()),
+          Immediate(FLAG_optimization_counter_threshold));
+      __ j(LESS, &done, Assembler::kNearJump);
+      // Equal (or greater), optimize. Note that counter can reach equality
+      // only at return instruction.
+      // The stub call preserves result register (EAX).
+      ASSERT(func_reg == RDX);
+      compiler->GenerateCall(0,  // no token position.
+                             &StubCode::OptimizeFunctionLabel(),
+                             PcDescriptors::kOther,
+                             locs());
+      __ Bind(&done);
+    }
+  } else {
     __ Comment("Check function counter");
     // Count only in unoptimized code.
     // TODO(srdjan): Replace the counting code with a type feedback
     // collection and counting stub.
-    const Function& function =
-          Function::ZoneHandle(compiler->parsed_function().function().raw());
     __ LoadObject(func_reg, function);
     __ incq(FieldAddress(func_reg, Function::usage_counter_offset()));
     if (FlowGraphCompiler::CanOptimize() &&
@@ -348,7 +370,13 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   ICData& equality_ic_data = ICData::ZoneHandle(original_ic_data.raw());
   if (compiler->is_optimizing() && FLAG_propagate_ic_data) {
     ASSERT(!original_ic_data.IsNull());
-    equality_ic_data = original_ic_data.AsUnaryClassChecks();
+    if (original_ic_data.NumberOfChecks() == 0) {
+      // IC call for reoptimization populates original ICData.
+      equality_ic_data = original_ic_data.raw();
+    } else {
+      // Megamorphic call.
+      equality_ic_data = original_ic_data.AsUnaryClassChecks();
+    }
   } else {
     equality_ic_data = ICData::New(compiler->parsed_function().function(),
                                    operator_name,
@@ -839,7 +867,13 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ICData& relational_ic_data = ICData::ZoneHandle(ic_data()->raw());
   if (compiler->is_optimizing() && FLAG_propagate_ic_data) {
     ASSERT(!ic_data()->IsNull());
-    relational_ic_data = ic_data()->AsUnaryClassChecks();
+    if (ic_data()->NumberOfChecks() == 0) {
+      // IC call for reoptimization populates original ICData.
+      relational_ic_data = ic_data()->raw();
+    } else {
+      // Megamorphic call.
+      relational_ic_data = ic_data()->AsUnaryClassChecks();
+    }
   } else {
     relational_ic_data = ICData::New(compiler->parsed_function().function(),
                                      function_name,

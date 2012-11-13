@@ -7450,6 +7450,10 @@ void ICData::set_deopt_reason(intptr_t deopt_reason) const {
   raw_ptr()->deopt_reason_ = deopt_reason;
 }
 
+void ICData::set_is_closure_call(bool value) const {
+  raw_ptr()->is_closure_call_ = value ? 1 : 0;
+}
+
 
 intptr_t ICData::TestEntryLength() const {
   return num_args_tested() + 1 /* target function*/;
@@ -7726,6 +7730,7 @@ RawICData* ICData::New(const Function& function,
   result.set_deopt_id(deopt_id);
   result.set_num_args_tested(num_args_tested);
   result.set_deopt_reason(kDeoptUnknown);
+  result.set_is_closure_call(false);
   // Number of array elements in one test entry (num_args_tested + 1)
   intptr_t len = result.TestEntryLength();
   // IC data array must be null terminated (sentinel entry).
