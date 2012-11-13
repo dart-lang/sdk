@@ -22,7 +22,7 @@ import 'dart:math';
  * If multiple instances of a given Hash is needed the [newInstance]
  * method can provide a new instance.
  */
-interface Hash {
+abstract class Hash {
   /**
    * Add a list of bytes to the hash computation.
    */
@@ -48,15 +48,15 @@ interface Hash {
 /**
  * SHA1 hash function implementation.
  */
-interface SHA1 extends Hash default _SHA1 {
-  SHA1();
+abstract class SHA1 implements Hash {
+  factory SHA1() => new _SHA1();
 }
 
 /**
  * SHA256 hash function implementation.
  */
-interface SHA256 extends Hash default _SHA256 {
-  SHA256();
+abstract class SHA256 implements Hash {
+  factory SHA256() => new _SHA256();
 }
 
 /**
@@ -65,8 +65,8 @@ interface SHA256 extends Hash default _SHA256 {
  * WARNING: MD5 has known collisions and should only be used when
  * required for backwards compatibility.
  */
-interface MD5 extends Hash default _MD5 {
-  MD5();
+abstract class MD5 implements Hash {
+  factory MD5() => new _MD5();
 }
 
 /**
@@ -75,11 +75,11 @@ interface MD5 extends Hash default _MD5 {
  * The [update] method is used to add data to the message. The [digest] method
  * is used to extract the message authentication code.
  */
-interface HMAC default _HMAC {
+abstract class HMAC {
   /**
    * Create an [HMAC] object from a [Hash] and a key.
    */
-  HMAC(Hash hash, List<int> key);
+  factory HMAC(Hash hash, List<int> key) => new _HMAC(hash, key);
 
   /**
    * Add a list of bytes to the message.
@@ -96,7 +96,7 @@ interface HMAC default _HMAC {
 /**
  * Utility methods for working with message digests.
  */
-class CryptoUtils {
+abstract class CryptoUtils {
   /**
    * Convert a list of bytes (for example a message digest) into a hex
    * string.
