@@ -35,7 +35,6 @@ DEFINE_FLAG(bool, warn_legacy_getters, false,
             "Warning on legacy getter syntax");
 DEFINE_FLAG(bool, strict_function_literals, false,
             "enforce new function literal rules");
-DECLARE_FLAG(bool, use_cha);
 
 static void CheckedModeHandler(bool value) {
   FLAG_enable_asserts = value;
@@ -338,42 +337,8 @@ void Parser::SetPosition(intptr_t position) {
 }
 
 
-// Removes optimized code once we load more classes, since --use_cha based
-// optimizations may have become invalid.
-// TODO(srdjan): Note which functions use which CHA decision and deoptimize
-// only the necessary ones.
-static void RemoveOptimizedCode() {
-  ASSERT(FLAG_use_cha);
-  // Deoptimize all live frames.
-  DeoptimizeAll();
-  // Switch all functions' code to unoptimized.
-  const ClassTable& class_table = *Isolate::Current()->class_table();
-  Class& cls = Class::Handle();
-  Array& array = Array::Handle();
-  Function& function = Function::Handle();
-  const intptr_t num_cids = class_table.NumCids();
-  for (intptr_t i = kInstanceCid; i < num_cids; i++) {
-    if (!class_table.HasValidClassAt(i)) continue;
-    cls = class_table.At(i);
-    ASSERT(!cls.IsNull());
-    array = cls.functions();
-    intptr_t num_functions = array.IsNull() ? 0 : array.Length();
-    for (intptr_t f = 0; f < num_functions; f++) {
-      function ^= array.At(f);
-      ASSERT(!function.IsNull());
-      if (function.HasOptimizedCode()) {
-        function.SwitchToUnoptimizedCode();
-      }
-    }
-  }
-}
-
-
 void Parser::ParseCompilationUnit(const Library& library,
                                   const Script& script) {
-  if (FLAG_use_cha) {
-    RemoveOptimizedCode();
-  }
   ASSERT(Isolate::Current()->long_jump_base()->IsSafeToJump());
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
   Parser parser(script, library);

@@ -20,13 +20,44 @@ DEFINE_FLAG(bool, print_classes, false, "Prints details about loaded classes.");
 DEFINE_FLAG(bool, trace_class_finalization, false, "Trace class finalization.");
 DEFINE_FLAG(bool, trace_type_finalization, false, "Trace type finalization.");
 DECLARE_FLAG(bool, enable_type_checks);
-
+DECLARE_FLAG(bool, use_cha);
 
 bool ClassFinalizer::AllClassesFinalized() {
   ObjectStore* object_store = Isolate::Current()->object_store();
   const GrowableObjectArray& classes =
       GrowableObjectArray::Handle(object_store->pending_classes());
   return classes.Length() == 0;
+}
+
+
+// Removes optimized code once we load more classes, since --use_cha based
+// optimizations may have become invalid.
+// TODO(srdjan): Note which functions use which CHA decision and deoptimize
+// only the necessary ones.
+static void RemoveOptimizedCode() {
+  ASSERT(FLAG_use_cha);
+  // Deoptimize all live frames.
+  DeoptimizeAll();
+  // Switch all functions' code to unoptimized.
+  const ClassTable& class_table = *Isolate::Current()->class_table();
+  Class& cls = Class::Handle();
+  Array& array = Array::Handle();
+  Function& function = Function::Handle();
+  const intptr_t num_cids = class_table.NumCids();
+  for (intptr_t i = kInstanceCid; i < num_cids; i++) {
+    if (!class_table.HasValidClassAt(i)) continue;
+    cls = class_table.At(i);
+    ASSERT(!cls.IsNull());
+    array = cls.functions();
+    intptr_t num_functions = array.IsNull() ? 0 : array.Length();
+    for (intptr_t f = 0; f < num_functions; f++) {
+      function ^= array.At(f);
+      ASSERT(!function.IsNull());
+      if (function.HasOptimizedCode()) {
+        function.SwitchToUnoptimizedCode();
+      }
+    }
+  }
 }
 
 
@@ -84,6 +115,9 @@ bool ClassFinalizer::FinalizePendingClasses() {
     retval = false;
   }
   isolate->set_long_jump_base(base);
+  if (FLAG_use_cha) {
+    RemoveOptimizedCode();
+  }
   return retval;
 }
 
