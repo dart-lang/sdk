@@ -1398,7 +1398,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
       }
       // print( t[k] )
-      return analyzeBinaryOperator(node, target, Token.INDEX, node, argKey);
+      Type result = analyzeBinaryOperator(node, target, Token.INDEX, node, argKey);
+      return Types.makeInferred(result, target.getQuality());
     }
     
     /**
@@ -3571,11 +3572,18 @@ public class TypeAnalyzer implements DartCompilationPhase {
    */
   public static TypeQuality getTypeQuality(DartExpression expr) {
     if (expr != null) {
-      if (expr instanceof DartMethodInvocation) {
-        return TypeQuality.INFERRED;
+      if (expr instanceof DartIdentifier) {
+        Type varType = expr.getType();
+        if (varType != null) {
+          TypeQuality varTypeQuality = varType.getQuality();
+          if (varTypeQuality == TypeQuality.EXACT) {
+            varTypeQuality = TypeQuality.INFERRED_EXACT;
+          }
+          return varTypeQuality;
+        }
       }
-      if (expr instanceof DartUnqualifiedInvocation) {
-        return TypeQuality.INFERRED;
+      if (expr instanceof DartLiteral) {
+        return TypeQuality.INFERRED_EXACT;
       }
       if (expr instanceof DartUnaryExpression) {
         DartUnaryExpression unary = (DartUnaryExpression) expr;
@@ -3592,10 +3600,15 @@ public class TypeAnalyzer implements DartCompilationPhase {
         return TypeQuality.INFERRED;
       }
       if (expr instanceof DartNewExpression) {
+        DartNewExpression newExpression = (DartNewExpression) expr;
+        ConstructorElement constructorElement = newExpression.getElement();
+        if (constructorElement != null && !constructorElement.getModifiers().isFactory()) {
+          return TypeQuality.INFERRED_EXACT;
+        }
         return TypeQuality.INFERRED;
       }
     }
-    return TypeQuality.INFERRED_EXACT;
+    return TypeQuality.INFERRED;
   }
 
   private static boolean hasTypeBoolIntDouble(DartExpression expr) {

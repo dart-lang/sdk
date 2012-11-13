@@ -1889,17 +1889,13 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "");
     assertErrors(result.getErrors());
   }
-
+  
   public void test_inferredTypes_noMemberWarnings() throws Exception {
     // disabled by default
     {
       AnalyzeLibraryResult result = analyzeLibrary(
           "// filler filler filler filler filler filler filler filler filler filler",
           "class A {}",
-          "class B extends A {",
-          "  var f;",
-          "  m() {}",
-          "}",
           "foo(A a) {",
           "  var v = a;",
           "  v.f = 0;",
@@ -1919,10 +1915,6 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       AnalyzeLibraryResult result = analyzeLibrary(
           "// filler filler filler filler filler filler filler filler filler filler",
           "class A {}",
-          "class B extends A {",
-          "  var f;",
-          "  m() {}",
-          "}",
           "foo(A a) {",
           "  var v = a;",
           "  v.f = 0;",
@@ -1931,8 +1923,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
           "");
       assertErrors(
           result.getErrors(),
-          errEx(TypeErrorCode.NOT_A_MEMBER_OF_INFERRED, 9, 5, 1),
-          errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED_INFERRED, 10, 5, 1));
+          errEx(TypeErrorCode.NOT_A_MEMBER_OF_INFERRED, 5, 5, 1),
+          errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED_INFERRED, 6, 5, 1));
     }
   }
 
@@ -2042,7 +2034,29 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(testUnit, "v4", "double", INFERRED_EXACT);
     assertInferredElementTypeString(testUnit, "v5", "double", INFERRED_EXACT);
     assertInferredElementTypeString(testUnit, "v6", "Map<String, int>", INFERRED);
-    assertInferredElementTypeString(testUnit, "v7", "int", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v7", "int", INFERRED);
+  }
+  
+  public void test_typesPropagation_arrayAccess() throws Exception {
+    analyzeLibrary(
+        "class A {}",
+        "class B extends A {}",
+        "List<A> list() => [new B()];",
+        "main() {",
+        "  var v0 = list();",
+        "  var v1 = list();",
+        "  var v2 = v1[0];",
+        "}",
+        "");
+    {
+      DartExpression expr = findNode(DartUnqualifiedInvocation.class, "list();");
+      assertInferredElementTypeString(expr.getType(), "v0", "List<A>", EXACT);
+    }
+    assertInferredElementTypeString(testUnit, "v1", "List<A>", INFERRED);
+    {
+      DartExpression expr = findNode(DartArrayAccess.class, "v1[0]");
+      assertInferredElementTypeString(expr.getType(), "v2", "A", INFERRED);
+    }
   }
 
   /**
@@ -3201,8 +3215,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertErrors(libraryResult.getErrors());
-    assertInferredElementTypeString(testUnit, "v1", "int", INFERRED_EXACT);
-    assertInferredElementTypeString(testUnit, "v2", "bool", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v1", "int", INFERRED);
+    assertInferredElementTypeString(testUnit, "v2", "bool", INFERRED);
   }
 
   public void test_getType_getterInNegation_generic() throws Exception {
@@ -3226,8 +3240,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertErrors(libraryResult.getErrors());
-    assertInferredElementTypeString(testUnit, "v1", "bool", INFERRED_EXACT);
-    assertInferredElementTypeString(testUnit, "v2", "bool", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v1", "bool", INFERRED);
+    assertInferredElementTypeString(testUnit, "v2", "bool", INFERRED);
   }
 
   public void test_getType_getterInSwitch_default() throws Exception {
@@ -4351,7 +4365,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v = s..length;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v", "String", INFERRED_EXACT);
+    assertInferredElementTypeString(testUnit, "v", "String", INFERRED);
   }
 
   /**

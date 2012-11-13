@@ -459,16 +459,27 @@ public abstract class CompilerTestCase extends TestCase {
   /**
    * Asserts that {@link Element} with given name has expected type.
    */
-  protected static void assertInferredElementTypeString(DartUnit unit, String variableName,
-      String expectedType, TypeQuality exact) {
+  protected static void assertInferredElementTypeString(
+      DartUnit unit,
+      String variableName,
+      String expectedType,
+      TypeQuality quality) {
     // find element
     Element element = getNamedElement(unit, variableName);
     assertNotNull(element);
     // check type
     Type actualType = element.getType();
-    assertEquals(element.getName(), expectedType, getTypeSource(actualType));
-    if (exact != null) {
-      assertSame(exact, actualType.getQuality());
+    assertInferredElementTypeString(actualType, element.getName(), expectedType, quality);
+  }
+
+  protected static void assertInferredElementTypeString(
+      Type actualType,
+      String testName,
+      String expectedType,
+      TypeQuality quality) {
+    assertEquals(testName, expectedType, getTypeSource(actualType));
+    if (quality != null) {
+      assertSame(quality, actualType.getQuality());
     }
   }
 
