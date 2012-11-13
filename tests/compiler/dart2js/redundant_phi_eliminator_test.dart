@@ -28,12 +28,12 @@ void foo() {
 
 main() {
   String generated = compile(TEST_ONE, entry: 'foo');
-  RegExp regexp = const RegExp("toBeRemoved");
+  RegExp regexp = new RegExp("toBeRemoved");
   Expect.isTrue(!regexp.hasMatch(generated));
 
   generated = compile(TEST_TWO, entry: 'foo');
-  regexp = const RegExp("toBeRemoved");
+  regexp = new RegExp("toBeRemoved");
   Expect.isTrue(!regexp.hasMatch(generated));
-  regexp = const RegExp("temp");
+  regexp = new RegExp("temp");
   Expect.isTrue(!regexp.hasMatch(generated));
 }

@@ -22,7 +22,7 @@ main() {
     // TODO(nweiz): clean up this RegExp when either issue 4706 or 4707 is
     // fixed.
     schedulePub(args: ['install'],
-        error: const RegExp('^Package "foo" doesn\'t have a '
+        error: new RegExp('^Package "foo" doesn\'t have a '
             'pubspec.yaml file.'),
         exitCode: 1);
 

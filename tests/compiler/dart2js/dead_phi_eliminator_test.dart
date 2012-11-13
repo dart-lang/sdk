@@ -17,6 +17,6 @@ void foo(bar) {
 
 main() {
   String generated = compile(TEST_ONE, entry: 'foo');
-  RegExp regexp = const RegExp("toBeRemoved");
+  RegExp regexp = new RegExp("toBeRemoved");
   Expect.isTrue(!regexp.hasMatch(generated));
 }

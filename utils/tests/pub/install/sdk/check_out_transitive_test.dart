@@ -30,7 +30,7 @@ main() {
     ]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: const RegExp(r"Dependencies installed!$"));
+        output: new RegExp(r"Dependencies installed!$"));
 
     packagesDir({
       'foo': '0.0.1234',

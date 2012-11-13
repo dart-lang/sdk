@@ -221,13 +221,13 @@ expect(String code, int kind) {
       break;
 
     case ONE_CHECK:
-      RegExp regexp = const RegExp('ioore');
+      RegExp regexp = new RegExp('ioore');
       Iterator matches = regexp.allMatches(generated).iterator();
       checkNumberOfMatches(matches, 1);
       break;
 
     case ONE_ZERO_CHECK:
-      RegExp regexp = const RegExp('< 0');
+      RegExp regexp = new RegExp('< 0');
       Iterator matches = regexp.allMatches(generated).iterator();
       checkNumberOfMatches(matches, 1);
       break;

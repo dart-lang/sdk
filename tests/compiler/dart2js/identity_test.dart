@@ -17,11 +17,11 @@ main() {
   String generated = compile(TEST_ONE, entry: 'foo');
 
   // Check that no boolify code is generated.
-  RegExp regexp = const RegExp("=== true");
+  RegExp regexp = new RegExp("=== true");
   Iterator matches = regexp.allMatches(generated).iterator();
   Expect.isFalse(matches.hasNext);
 
-  regexp = const RegExp("===");
+  regexp = new RegExp("===");
   matches = regexp.allMatches(generated).iterator();
   Expect.isTrue(matches.hasNext);
   matches.next();

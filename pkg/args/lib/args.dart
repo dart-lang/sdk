@@ -200,9 +200,9 @@ import 'src/utils.dart';
  * options and flags from them.
  */
 class ArgParser {
-  static const _SOLO_OPT = const RegExp(r'^-([a-zA-Z0-9])$');
-  static const _ABBR_OPT = const RegExp(r'^-([a-zA-Z0-9]+)(.*)$');
-  static const _LONG_OPT = const RegExp(r'^--([a-zA-Z\-_0-9]+)(=(.*))?$');
+  static final _SOLO_OPT = new RegExp(r'^-([a-zA-Z0-9])$');
+  static final _ABBR_OPT = new RegExp(r'^-([a-zA-Z0-9]+)(.*)$');
+  static final _LONG_OPT = new RegExp(r'^--([a-zA-Z\-_0-9]+)(=(.*))?$');
 
   final Map<String, _Option> _options;
 

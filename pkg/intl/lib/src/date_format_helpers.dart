@@ -133,7 +133,7 @@ class _Stream {
    * Assuming that the contents are characters, read as many digits as we
    * can see and then return the corresponding integer. Advance the stream.
    */
-  var digitMatcher = const RegExp(r'\d+');
+  var digitMatcher = new RegExp(r'\d+');
   int nextInteger() {
     var string = digitMatcher.stringMatch(rest());
     if (string == null || string.isEmpty) return null;

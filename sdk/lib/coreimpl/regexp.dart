@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class JSSyntaxRegExp implements RegExp {
-  external const JSSyntaxRegExp(String pattern,
-                                {bool multiLine: false,
-                                 bool ignoreCase: false});
+  external JSSyntaxRegExp(String pattern,
+                          {bool multiLine: false,
+                           bool ignoreCase: false});
   external Match firstMatch(String str);
   external Iterable<Match> allMatches(String str);
   external bool hasMatch(String str);

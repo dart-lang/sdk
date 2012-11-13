@@ -176,6 +176,8 @@ bool isOverriddenMethod(FunctionElement element,
   return false;
 }
 
+final RegExp nativeRedirectionRegExp = new RegExp(r'^[a-zA-Z][a-zA-Z_$0-9]*$');
+
 void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   Compiler compiler = builder.compiler;
   FunctionElement element = builder.work.element;
@@ -212,7 +214,6 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   // 1) foo() native; hasBody = false, isRedirecting = false
   // 2) foo() native "bar"; hasBody = false, isRedirecting = true
   // 3) foo() native "return 42"; hasBody = true, isRedirecting = false
-  RegExp nativeRedirectionRegExp = const RegExp(r'^[a-zA-Z][a-zA-Z_$0-9]*$');
   bool hasBody = false;
   bool isRedirecting = false;
   String nativeMethodName = element.name.slowToString();

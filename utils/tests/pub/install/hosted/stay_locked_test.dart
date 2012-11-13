@@ -17,7 +17,7 @@ main() {
 
     // This install should lock the foo dependency to version 1.0.0.
     schedulePub(args: ['install'],
-        output: const RegExp(r"Dependencies installed!$"));
+        output: new RegExp(r"Dependencies installed!$"));
 
     packagesDir({"foo": "1.0.0"}).scheduleValidate();
 
@@ -29,7 +29,7 @@ main() {
 
     // This install shouldn't update the foo dependency due to the lockfile.
     schedulePub(args: ['install'],
-        output: const RegExp(r"Dependencies installed!$"));
+        output: new RegExp(r"Dependencies installed!$"));
 
     packagesDir({"foo": "1.0.0"}).scheduleValidate();
 

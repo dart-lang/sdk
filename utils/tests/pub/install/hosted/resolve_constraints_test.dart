@@ -22,7 +22,7 @@ main() {
     appDir([dependency("foo"), dependency("bar")]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: const RegExp("Dependencies installed!\$"));
+        output: new RegExp("Dependencies installed!\$"));
 
     cacheDir({
       "foo": "1.2.3",

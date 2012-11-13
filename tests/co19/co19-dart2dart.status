@@ -483,6 +483,10 @@ LibTest/math/pow_A13_t01: Fail # Inherited from VM.
 LibTest/math/sin_A01_t01: Fail # Inherited from VM.
 LibTest/math/tan_A01_t01: Fail # Issue co19 - 44
 
+LibTest/core/RegExp/RegExp_A01_t04: Fail, OK # co19 issue 314
+LibTest/core/String/contains_A01_t01: Fail, OK # co19 issue 314
+LibTest/core/String/contains_A01_t03: Fail, OK # co19 issue 314
+
 [ $compiler == dart2dart && $system == windows ]
 LibTest/core/double/operator_remainder_A01_t04: Fail # Result is NaN
 LibTest/core/double/round_A01_t01: Fail # Result is NaN

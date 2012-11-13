@@ -363,9 +363,11 @@ LibTest/core/TypeError/srcType_A01_t01: Fail, OK
 LibTest/core/TypeError/toString_A01_t01: Fail, OK		
 LibTest/core/TypeError/url_A01_t01: Fail, OK
 
-# co19 issue 307
-Language/07_Classes/6_Constructors/2_Factories_A03_t01: Fail, OK
+Language/07_Classes/6_Constructors/2_Factories_A03_t01: Fail, OK # co19 issue 307
 
+LibTest/core/RegExp/RegExp_A01_t04: Fail, OK # co19 issue 314
+LibTest/core/String/contains_A01_t01: Fail, OK # co19 issue 314
+LibTest/core/String/contains_A01_t03: Fail, OK # co19 issue 314
 
 Language/10_Expressions/30_Type_Cast_A01_t04: Fail, OK # the expected error is not specified
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail, OK # contains syntax error

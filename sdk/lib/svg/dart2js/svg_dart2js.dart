@@ -13,7 +13,7 @@ import 'dart:html';
 // BSD-style license that can be found in the LICENSE file.
 
 
-final _START_TAG_REGEXP = const RegExp('<(\\w+)');
+final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 
 class _SVGElementFactoryProvider {
   static SVGElement createSVGElement_tag(String tag) {

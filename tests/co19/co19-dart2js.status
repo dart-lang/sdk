@@ -415,6 +415,9 @@ LibTest/core/int/hashCode_A01_t01: Fail, OK # co19 issue 308
 LibTest/core/NoSuchMethodError/NoSuchMethodError_A01_t01: Fail, OK # co19 issue 300
 LibTest/core/NoSuchMethodError/toString_A01_t01: Fail, OK # co19 issue 300
 
+LibTest/core/String/contains_A01_t01: Fail, OK # co19 issue 314
+LibTest/core/String/contains_A01_t03: Fail, OK # co19 issue 314
+
 [ $compiler == dart2js && $jscl ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail, Pass # issue 3333
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail, Pass # issue 3333

@@ -691,7 +691,7 @@ bool isObsolete(Element e) {
 }
 
 bool isFirstCharLowerCase(String str) {
-  return const RegExp("^[a-z]").hasMatch(str);
+  return new RegExp("^[a-z]").hasMatch(str);
 }
 
 /**
@@ -943,8 +943,8 @@ String trimHtml(String html) {
 }
 
 bool maybeName(String name) {
-  return const RegExp("^[a-z][a-z0-9A-Z]+\$").hasMatch(name) ||
-      const RegExp("^[A-Z][A-Z_]*\$").hasMatch(name);
+  return new RegExp("^[a-z][a-z0-9A-Z]+\$").hasMatch(name) ||
+      new RegExp("^[A-Z][A-Z_]*\$").hasMatch(name);
 }
 
 // TODO(jacobr): this element is ugly at the moment but will become easier to
@@ -967,7 +967,7 @@ String JSONFIXUPHACK(String value) {
 }
 
 String mozToWebkit(String name) {
-  return name.replaceFirst(const RegExp("^moz"), "webkit");
+  return name.replaceFirst(new RegExp("^moz"), "webkit");
 }
 
 String stripWebkit(String name) {
@@ -1121,10 +1121,10 @@ void run() {
   }
 
   // Fix up links.
-  const SHORT_LINK = const RegExp(r'^[\w/]+$');
-  const INNER_LINK = const RegExp(r'[Ee]n/(?:[\w/]+/|)([\w#.]+)(?:\(\))?$');
-  const MEMBER_LINK = const RegExp(r'(\w+)[.#](\w+)');
-  const RELATIVE_LINK = const RegExp(r'^(?:../)*/?[Ee][Nn]/(.+)');
+  final SHORT_LINK = new RegExp(r'^[\w/]+$');
+  final INNER_LINK = new RegExp(r'[Ee]n/(?:[\w/]+/|)([\w#.]+)(?:\(\))?$');
+  final MEMBER_LINK = new RegExp(r'(\w+)[.#](\w+)');
+  final RELATIVE_LINK = new RegExp(r'^(?:../)*/?[Ee][Nn]/(.+)');
 
   // - Make relative links absolute.
   // - If we can, take links that point to other MDN pages and retarget them

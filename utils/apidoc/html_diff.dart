@@ -234,7 +234,7 @@ class HtmlDiff {
    */
   Map<String, String> _getTags(String comment) {
     if (comment == null) return const <String, String>{};
-    final re = const RegExp("@([a-zA-Z]+) ([^;]+)(?:;|\$)");
+    final re = new RegExp("@([a-zA-Z]+) ([^;]+)(?:;|\$)");
     final tags = <String, String>{};
     for (var m in re.allMatches(comment.trim())) {
       tags[m[1]] = m[2];

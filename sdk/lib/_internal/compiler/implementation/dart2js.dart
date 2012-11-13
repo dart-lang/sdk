@@ -35,7 +35,7 @@ class OptionHandler {
 String extractParameter(String argument) {
   // m[0] is the entire match (which will be equal to argument). m[1]
   // is something like "-o" or "--out=", and m[2] is the parameter.
-  Match m = const RegExp('^(-[a-z]|--.+=)(.*)').firstMatch(argument);
+  Match m = new RegExp('^(-[a-z]|--.+=)(.*)').firstMatch(argument);
   if (m == null) helpAndFail('Error: Unknown option "$argument".');
   return m[2];
 }

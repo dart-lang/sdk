@@ -21,7 +21,7 @@ String _gitCommandCache;
 /** Gets the current working directory. */
 String get currentWorkingDir => new File('.').fullPathSync();
 
-const Pattern NEWLINE_PATTERN = const RegExp("\r\n?|\n\r?");
+final NEWLINE_PATTERN = new RegExp("\r\n?|\n\r?");
 
 /**
  * Prints the given string to `stderr` on its own line.
@@ -382,7 +382,7 @@ String getFullPath(entry) {
   if (Platform.operatingSystem == 'windows') {
     // An absolute path on Windows is either UNC (two leading backslashes),
     // or a drive letter followed by a colon and a slash.
-    const ABSOLUTE = const RegExp(r'^(\\\\|[a-zA-Z]:[/\\])');
+    var ABSOLUTE = new RegExp(r'^(\\\\|[a-zA-Z]:[/\\])');
     if (ABSOLUTE.hasMatch(path)) return path;
   } else {
     if (path.startsWith('/')) return path;

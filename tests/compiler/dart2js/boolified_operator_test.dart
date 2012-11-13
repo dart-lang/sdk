@@ -47,7 +47,7 @@ foo(param0, param1) {
 """;
 
 main() {
-  RegExp regexp = const RegExp('=== true');
+  RegExp regexp = new RegExp('=== true');
 
   String generated = compile(TEST_EQUAL, entry: 'foo');
   Expect.isFalse(generated.contains('=== true'));
