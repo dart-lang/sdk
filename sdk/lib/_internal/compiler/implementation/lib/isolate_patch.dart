@@ -791,7 +791,7 @@ class _BufferingSendPort extends _BaseSendPort implements SendPort {
 }
 
 /** Default factory for receive ports. */
-patch class _ReceivePortFactory {
+patch class ReceivePort {
   patch factory ReceivePort() {
     return new _ReceivePortImpl();
   }

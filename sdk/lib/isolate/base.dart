@@ -105,13 +105,13 @@ abstract class SendPort {
  *
  * A [ReceivePort] may have many [SendPort]s.
  */
-interface ReceivePort default _ReceivePortFactory {
+abstract class ReceivePort {
 
   /**
    * Opens a long-lived port for receiving messages. The returned port
    * must be explicitly closed through [ReceivePort.close].
    */
-  ReceivePort();
+  external factory ReceivePort();
 
   /**
    * Sets up a callback function for receiving pending or future
@@ -141,8 +141,4 @@ abstract class SendPortSync {
 
   callSync(var message);
 
-}
-
-class _ReceivePortFactory {
-  external factory ReceivePort();
 }
