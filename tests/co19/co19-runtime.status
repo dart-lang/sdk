@@ -165,23 +165,16 @@ Language/12_Statements/10_Try_A11_t01: Fail # TODO(vm-team): Please triage this 
 Language/12_Statements/12_Labels_A01_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A03_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A01_t53: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A01_t54: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A02_t01: Fail, OK # co 19 issue 313
+Language/13_Libraries_and_Scripts/1_Imports_A02_t02: Fail, OK # co 19 issue 313
 Language/13_Libraries_and_Scripts/1_Imports_A02_t16: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t17: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t18: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t19: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A01_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A01_t05: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A01_t07: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A01_t15: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A01_t16: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A04_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A01_t15: Fail, OK # co19 issue 311.
+Language/13_Libraries_and_Scripts/2_Exports_A01_t16: Fail, OK # co19 issue 312.
 Language/13_Libraries_and_Scripts/2_Exports_A04_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A04_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A04_t04: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A04_t05: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A04_t06: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # TODO(vm-team): Please triage this failure.

@@ -4335,6 +4335,9 @@ void Parser::ParseLibraryName() {
 
 
 void Parser::ParseIdentList(GrowableObjectArray* names) {
+  if (!IsIdentifier()) {
+    ErrorMsg("identifier expected");
+  }
   while (IsIdentifier()) {
     names->Add(*CurrentLiteral());
     ConsumeToken();  // Identifier.
@@ -4476,6 +4479,10 @@ void Parser::ParseLibraryDefinition() {
     return;
   }
 
+  const bool is_script = (script_.kind() == RawScript::kScriptTag);
+  const bool is_library = (script_.kind() == RawScript::kLibraryTag);
+  ASSERT(script_.kind() != RawScript::kSourceTag);
+
   // We may read metadata tokens that are part of the toplevel
   // declaration that follows the library definitions. Therefore, we
   // need to remember the position of the last token that was
@@ -4486,11 +4493,14 @@ void Parser::ParseLibraryDefinition() {
     ParseLibraryName();
     metadata_pos = TokenPos();
     SkipMetadata();
-  } else if (script_.kind() == RawScript::kLibraryTag) {
+  } else if (is_library) {
     ErrorMsg("library name definition expected");
   }
   while ((CurrentToken() == Token::kIMPORT) ||
       (CurrentToken() == Token::kEXPORT)) {
+    if (is_script && (CurrentToken() == Token::kEXPORT)) {
+      ErrorMsg("export not allowed in scripts");
+    }
     ParseLibraryImportExport();
     metadata_pos = TokenPos();
     SkipMetadata();
