@@ -465,19 +465,6 @@ class _RangeError extends TypeMatcher {
   bool matches(item, MatchState matchState) => item is RangeError;
 }
 
-// Temporary matcher for deprecated IndexOutOfRangeException.
-/** A matcher for IndexOutOfRangeExceptions. */
-const isIndexOutOfRangeException = const _IndexOutOfRangeException();
-
-/** A matcher for functions that throw IndexOutOfRangeException. */
-const Matcher throwsIndexOutOfRangeException =
-    const Throws(isIndexOutOfRangeException);
-
-class _IndexOutOfRangeException extends TypeMatcher {
-  const _IndexOutOfRangeException() : super("IndexOutOfRangeException");
-  bool matches(item, MatchState matchState) => item is IndexOutOfRangeException;
-}
-
 /** A matcher for NoSuchMethodErrors. */
 const isNoSuchMethodError = const _NoSuchMethodError();
 
@@ -501,15 +488,6 @@ class _UnimplementedError extends TypeMatcher {
   const _UnimplementedError() : super("UnimplementedError");
   bool matches(item, MatchState matchState) => item is UnimplementedError;
 }
-
-// Temporary matcher until NotImplementedException is removed.
-/** A matcher for NotImplementedExceptions. */
-const isNotImplementedException = isUnimplementedError;
-
-/** A matcher for functions that throw Exception. */
-const Matcher throwsNotImplementedException =
-    const Throws(isUnimplementedError);
-
 
 /** A matcher for NullPointerExceptions. */
 const isNullPointerException = const _NullPointerException();

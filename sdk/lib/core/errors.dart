@@ -44,9 +44,8 @@ class ArgumentError implements Error {
 /**
  * Exception thrown because of an index outside of the valid range.
  *
- * Temporarily implements [IndexOutOfRangeException] for backwards compatiblity.
  */
-class RangeError extends ArgumentError implements IndexOutOfRangeException {
+class RangeError extends ArgumentError {
   // TODO(lrn): This constructor should be called only with string values.
   // It currently isn't in all cases.
   /**
@@ -54,7 +53,7 @@ class RangeError extends ArgumentError implements IndexOutOfRangeException {
    *
    * Temporarily made const for backwards compatibilty.
    */
-  const RangeError(var message) : super(message);
+  RangeError(var message) : super(message);
 
   /** Create a new [RangeError] with a message for the given [value]. */
   RangeError.value(num value) : super("value $value");
@@ -62,26 +61,6 @@ class RangeError extends ArgumentError implements IndexOutOfRangeException {
   String toString() => "RangeError: $message";
 }
 
-/**
- * Temporary backwards compatibilty class.
- *
- * This class allows code throwing the old [IndexOutOfRangeException] to
- * work until they change to the new [RangeError] name.
- * Constructor of [RangeError] is const only to support this interface.
- */
-interface IndexOutOfRangeException extends Exception default RangeError {
-  const IndexOutOfRangeException(var message);
-}
-
-
-/**
- * Temporary backwards compatibility class.
- *
- * Removed when users have had time to change to using [ArgumentError].
- */
-class IllegalArgumentException extends ArgumentError {
-  const IllegalArgumentException([argument = ""]) : super(argument);
-}
 
 /**
  * Error thrown when control reaches the end of a switch case.
@@ -94,6 +73,7 @@ class IllegalArgumentException extends ArgumentError {
 class FallThroughError implements Error {
   const FallThroughError();
 }
+
 
 class AbstractClassInstantiationError implements Error {
   final String _className;
@@ -219,22 +199,13 @@ class UnsupportedError implements Error {
  * If a class is not intending to implement the feature, it should throw
  * an [UnsupportedError] instead. This error is only intended for
  * use during development.
- *
- * This class temporarily implements [Exception] for backwards compatibility.
- * The constructor is temporarily const to support [NotImplementedException].
  */
-class UnimplementedError implements UnsupportedError, NotImplementedException {
+class UnimplementedError implements UnsupportedError {
   final String message;
-  const UnimplementedError([String this.message]);
+  UnimplementedError([String this.message]);
   String toString() => (this.message != null
                         ? "UnimplementedError: $message"
                         : "UnimplementedError");
-}
-
-
-/** Temporary class added for backwards compatibility. Will be removed. */
-interface NotImplementedException extends Exception default UnimplementedError {
-  const NotImplementedException([String message]);
 }
 
 
