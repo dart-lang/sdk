@@ -1520,6 +1520,16 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                        arguments);
   }
 
+  // TODO(ngeoffray): Once we remove the old interceptors, we can
+  // start using HInvokeInterceptor to represent interceptor calls on
+  // an Interceptor class. Currently we recognize if a call is a call
+  // on an interceptor by checking if the arguments in the inputs list
+  // is one more than the arguments in the selector. The extra
+  // argument in an interceptor call is the actual receiver.
+  bool isInterceptorCall(HInvokeDynamicMethod node) {
+    return node.inputs.length - 1 != node.selector.argumentCount;
+  }
+
   visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
     use(node.receiver);
     js.Expression object = pop();
@@ -1541,7 +1551,14 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
       // Register this invocation to collect the types used at all call sites.
       Selector selector = getOptimizedSelectorFor(node, node.selector);
-      backend.registerDynamicInvocation(node, selector, types);
+      // TODO(ngeoffray): Remove the following restriction. Because
+      // the second input of this interceptor call is the actual
+      // receiver (the first is the interceptor), the backend gets
+      // confused. We should pass a list of types instead of a node to
+      // [registerDynamicInvocation].
+      if (!isInterceptorCall(node)) {
+        backend.registerDynamicInvocation(node, selector, types);
+      }
 
       // If we don't know what we're calling or if we are calling a getter,
       // we need to register that fact that we may be calling a closure
@@ -1966,7 +1983,11 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitThis(HThis node) {
-    push(new js.This());
+    if (backend.isInterceptorClass(work.element.getEnclosingClass())){
+      push(new js.VariableUse(variableNames.getName(node)), node);
+    } else {
+      push(new js.This());
+    }
   }
 
   visitThrow(HThrow node) {

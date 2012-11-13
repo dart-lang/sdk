@@ -517,7 +517,6 @@ class HBasicBlock extends HInstructionList {
   }
 
   void addAtEntry(HInstruction instruction) {
-    assert(isClosed());
     assert(instruction is !HPhi);
     super.addBefore(first, instruction);
     instruction.notifyAddedToBlock(this);
@@ -2159,7 +2158,7 @@ class HParameterValue extends HLocalValue {
 }
 
 class HThis extends HParameterValue {
-  HThis([HType type = HType.UNKNOWN]) : super(null) {
+  HThis(Element element, [HType type = HType.UNKNOWN]) : super(element) {
     guaranteedType = type;
   }
   toString() => 'this';

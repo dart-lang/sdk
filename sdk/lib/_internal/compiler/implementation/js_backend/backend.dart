@@ -646,6 +646,10 @@ class JavaScriptBackend extends Backend {
   SsaCodeGeneratorTask generator;
   CodeEmitterTask emitter;
 
+  ClassElement jsStringClass;
+  ClassElement objectInterceptorClass;
+  Element getInterceptorMethod;
+
   final Namer namer;
 
   /**
@@ -668,6 +672,20 @@ class JavaScriptBackend extends Backend {
 
   final Interceptors interceptors;
 
+  /**
+   * A collection of selectors of intercepted method calls. The
+   * emitter uses this set to generate the [:ObjectInterceptor:] class
+   * whose members just forward the call to the intercepted receiver.
+   */
+  final Set<Selector> usedInterceptors;
+
+  /**
+   * The members of instantiated interceptor classes: maps a member
+   * name to the list of members that have that name. This map is used
+   * by the codegen to know whether a send must be intercepted or not.
+   */
+  final Map<SourceString, List<Element>> interceptedElements;  
+
   List<CompilerTask> get tasks {
     return <CompilerTask>[builder, optimizer, generator, emitter];
   }
@@ -679,6 +697,8 @@ class JavaScriptBackend extends Backend {
         returnInfo = new Map<Element, ReturnInfo>(),
         invalidateAfterCodegen = new List<Element>(),
         interceptors = new Interceptors(compiler),
+        usedInterceptors = new Set<Selector>(),
+        interceptedElements = new Map<SourceString, List<Element>>(),
         super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM) {
     emitter = disableEval
         ? new CodeEmitterNoEvalTask(compiler, namer, generateSourceMap)
@@ -688,6 +708,49 @@ class JavaScriptBackend extends Backend {
     generator = new SsaCodeGeneratorTask(this);
     argumentTypes = new ArgumentTypesRegistry(this);
     fieldTypes = new FieldTypesRegistry(this);
+  }
+
+  bool isInterceptorClass(Element element) {
+    return element == jsStringClass;
+  }
+
+  void addInterceptedSelector(Selector selector) {
+    usedInterceptors.add(selector);
+  }
+
+  bool shouldInterceptSelector(Selector selector) {
+    List<Element> intercepted = interceptedElements[selector.name];
+    if (intercepted == null) return false;
+    for (Element element in intercepted) {
+      if (selector.applies(element, compiler)) return true;
+    }
+    return false;
+  }
+
+
+  void registerInstantiatedClass(ClassElement cls, Enqueuer enqueuer) {
+    ClassElement result = null;
+    if (cls == compiler.stringClass) {
+      if (jsStringClass == null) {
+        jsStringClass =
+            compiler.findInterceptor(const SourceString('JSString'));
+        objectInterceptorClass =
+            compiler.findInterceptor(const SourceString('ObjectInterceptor'));
+        getInterceptorMethod =
+            compiler.findInterceptor(const SourceString('getInterceptor'));
+      }
+      result = jsStringClass;
+    }
+
+    if (result == null) return;
+
+    result.forEachMember((_, Element member) {
+      List<Element> list = interceptedElements.putIfAbsent(
+          member.name, () => new List<Element>());
+      list.add(member);
+    });
+
+    enqueuer.registerInstantiatedClass(result);
   }
 
   Element get cyclicThrowHelper {

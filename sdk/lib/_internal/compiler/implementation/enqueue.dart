@@ -139,6 +139,7 @@ class Enqueuer {
     }
     universe.instantiatedClasses.add(cls);
     onRegisterInstantiatedClass(cls);
+    compiler.backend.registerInstantiatedClass(cls, this);
   }
 
   bool checkNoEnqueuedInvokedInstanceMethods() {

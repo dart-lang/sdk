@@ -57,6 +57,8 @@ export_cyclic_test: Fail, Crash # issue 6060
 duplicate_export_negative_test: Fail # issue 6134
 invocation_mirror_indirect_test: Fail # Issue 3326
 
+interceptor_test: Crash # Issue 6696
+
 [ $compiler == none && ($system == macos || $system == linux) && $arch == ia32 && $checked ]
 gc_test: Skip  # Issue 1487, flaky.
 

@@ -1857,12 +1857,14 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLiteralString(LiteralString node) {
+    world.registerInstantiatedClass(compiler.stringClass);
   }
 
   visitLiteralNull(LiteralNull node) {
   }
 
   visitStringJuxtaposition(StringJuxtaposition node) {
+    world.registerInstantiatedClass(compiler.stringClass);
     node.visitChildren(this);
   }
 
@@ -2074,6 +2076,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitStringInterpolation(StringInterpolation node) {
+    world.registerInstantiatedClass(compiler.stringClass);
     node.visitChildren(this);
   }
 
@@ -2609,6 +2612,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     return
       !identical(lib, compiler.coreLibrary) &&
       !identical(lib, compiler.jsHelperLibrary) &&
+      !identical(lib, compiler.interceptorsLibrary) &&
       (identical(type.element, compiler.dynamicClass) ||
        identical(type.element, compiler.boolClass) ||
        identical(type.element, compiler.numClass) ||

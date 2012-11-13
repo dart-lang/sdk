@@ -6,6 +6,41 @@
 
 #import('dart:collection');
 
+/**
+ * The interceptor class for [String]. The compiler recognizes this
+ * class as an interceptor, and changes references to [:this:] to
+ * actually use the receiver of the method, which is generated as an extra
+ * argument added to each member.
+ */
+class JSString implements String {
+  const JSString();
+
+  int charCodeAt(index) {
+    if (index is !num) throw new ArgumentError(index);
+    if (index < 0) throw new RangeError.value(index);
+    if (index >= length) throw new RangeError.value(index);
+    return JS('int', r'#.charCodeAt(#)', this, index);
+  }
+}
+
+/**
+ * The interceptor class for all non-primitive objects. All its
+ * members are synthethized by the compiler's emitter.
+ */
+class ObjectInterceptor {
+  const ObjectInterceptor();
+}
+
+/**
+ * Get the interceptor for [object]. Called by the compiler when it needs
+ * to emit a call to an intercepted method, that is a method that is
+ * defined in an interceptor class.
+ */
+getInterceptor(object) {
+  if (object is String) return const JSString();
+  return const ObjectInterceptor();
+}
+
 add$1(var receiver, var value) {
   if (isJsArray(receiver)) {
     checkGrowable(receiver, 'add');
@@ -88,17 +123,6 @@ iterator(receiver) {
     return new ListIterator(receiver);
   }
   return UNINTERCEPTED(receiver.iterator());
-}
-
-charCodeAt(var receiver, int index) {
-  if (receiver is String) {
-    if (index is !num) throw new ArgumentError(index);
-    if (index < 0) throw new RangeError.value(index);
-    if (index >= receiver.length) throw new RangeError.value(index);
-    return JS('int', r'#.charCodeAt(#)', receiver, index);
-  } else {
-    return UNINTERCEPTED(receiver.charCodeAt(index));
-  }
 }
 
 get$isEmpty(receiver) {

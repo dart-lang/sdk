@@ -44,7 +44,20 @@ class CodeEmitterTask extends CompilerTask {
       well as in the generated code. */
   String isolateProperties;
   String classesCollector;
+
+  /**
+   * A cache of closures that are used to closurize instance methods.
+   * A closure is dynamically bound to the instance used when
+   * closurized.
+   */
   final Map<int, String> boundClosureCache;
+
+  /**
+   * A cache of closures that are used to closurize instance methods
+   * of interceptors. These closures are dynamically bound to the
+   * interceptor instance, and the actual receiver of the method.
+   */
+  final Map<int, String> interceptorClosureCache;
   Set<ClassElement> checkedClasses;
 
   final bool generateSourceMap;
@@ -54,6 +67,7 @@ class CodeEmitterTask extends CompilerTask {
         mainBuffer = new CodeBuffer(),
         this.namer = namer,
         boundClosureCache = new Map<int, String>(),
+        interceptorClosureCache = new Map<int, String>(),
         constantEmitter = new ConstantEmitter(compiler, namer),
         super(compiler) {
     nativeEmitter = new NativeEmitter(this);
@@ -617,12 +631,19 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
                            bool needsLeadingComma) {
     assert(invariant(classElement, classElement.isDeclaration));
     bool needsComma = needsLeadingComma;
-    void defineInstanceMember(String name, CodeBuffer memberBuffer) {
+    void defineInstanceMember(String name, StringBuffer memberBuffer) {
       if (needsComma) buffer.add(',');
       needsComma = true;
       buffer.add('\n');
       buffer.add(' $name: ');
       buffer.add(memberBuffer);
+    }
+
+    JavaScriptBackend backend = compiler.backend;
+    if (classElement == backend.objectInterceptorClass) {
+      emitInterceptorMethods(defineInstanceMember);
+      // The ObjectInterceptor does not have any instance methods.
+      return;
     }
 
     classElement.implementation.forEachMember(
@@ -855,6 +876,39 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     buffer.add('\n};\n\n');
   }
 
+  void emitInterceptorMethods(
+      void defineInstanceMember(String name, StringBuffer memberBuffer)) {
+    JavaScriptBackend backend = compiler.backend;
+    // Emit forwarders for the ObjectInterceptor class. We need to
+    // emit all possible sends on intercepted methods.
+    for (Selector selector in backend.usedInterceptors) {
+      String name;
+      String comma = '';
+      String parameters = '';
+      if (selector.isGetter()) {
+        name = backend.namer.getterName(selector.library, selector.name);
+      } else if (selector.isSetter()) {
+        name = backend.namer.setterName(selector.library, selector.name);
+      } else {
+        assert(selector.isCall());
+        name = backend.namer.instanceMethodInvocationName(
+            selector.library, selector.name, selector);
+        if (selector.argumentCount > 0) {
+          comma = ', ';
+          int i = 0;
+          for (; i < selector.argumentCount - 1; i++) {
+            parameters = '${parameters}a$i, ';
+          }
+          parameters = '${parameters}a$i';
+        }
+      }
+      StringBuffer body = new StringBuffer(
+          "function(receiver$comma$parameters) {"
+              " return receiver.$name($parameters); }");
+      defineInstanceMember(name, body);
+    }
+  }
+
   /**
    * Generate "is tests" for [cls]: itself, and the "is tests" for the
    * classes it implements. We don't need to add the "is tests" of the
@@ -1016,11 +1070,13 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
   }
 
   void emitBoundClosureClassHeader(String mangledName,
-                             String superName,
-                             CodeBuffer buffer) {
+                                   String superName,
+                                   String extraArgument,
+                                   CodeBuffer buffer) {
+    extraArgument = extraArgument.isEmpty ? '' : ", '$extraArgument'";
     buffer.add("""
 $classesCollector.$mangledName = {'':
-['self', 'target'],
+['self'$extraArgument, 'target'],
 'super': '$superName',
 """);
   }
@@ -1057,8 +1113,27 @@ $classesCollector.$mangledName = {'':
     bool hasOptionalParameters = member.optionalParameterCount(compiler) != 0;
     int parameterCount = member.parameterCount(compiler);
 
+    Map<int, String> cache;
+    String extraArg;
+    String extraArgWithThis;
+    String extraArgWithoutComma;
+    // Methods on foreign classes take an extra parameter, which is
+    // the actual receiver of the call.
+    JavaScriptBackend backend = compiler.backend;
+    if (backend.isInterceptorClass(member.getEnclosingClass())) {
+      cache = interceptorClosureCache;
+      extraArg = 'receiver, ';
+      extraArgWithThis = 'this.receiver, ';
+      extraArgWithoutComma = 'receiver';
+    } else {
+      cache = boundClosureCache;
+      extraArg = '';
+      extraArgWithoutComma = '';
+      extraArgWithThis = '';
+    }
+
     String closureClass =
-        hasOptionalParameters ? null : boundClosureCache[parameterCount];
+        hasOptionalParameters ? null : cache[parameterCount];
     if (closureClass == null) {
       // Either the class was not cached yet, or there are optional parameters.
       // Create a new closure class.
@@ -1071,14 +1146,15 @@ $classesCollector.$mangledName = {'':
 
       // Define the constructor with a name so that Object.toString can
       // find the class name of the closure class.
-      emitBoundClosureClassHeader(mangledName, superName, boundClosureBuffer);
+      emitBoundClosureClassHeader(
+          mangledName, superName, extraArgWithoutComma, boundClosureBuffer);
       // Now add the methods on the closure class. The instance method does not
       // have the correct name. Since [addParameterStubs] use the name to create
       // its stubs we simply create a fake element with the correct name.
       // Note: the callElement will not have any enclosingElement.
       FunctionElement callElement =
           new ClosureInvocationElement(Namer.CLOSURE_INVOCATION_NAME, member);
-
+      
       String invocationName = namer.instanceMethodName(callElement);
       List<String> arguments = new List<String>(parameterCount);
       for (int i = 0; i < parameterCount; i++) {
@@ -1087,7 +1163,8 @@ $classesCollector.$mangledName = {'':
       String joinedArgs = Strings.join(arguments, ", ");
       boundClosureBuffer.add(
           "$invocationName: function($joinedArgs) {");
-      boundClosureBuffer.add(" return this.self[this.target]($joinedArgs);");
+      boundClosureBuffer.add(
+          " return this.self[this.target]($extraArgWithThis$joinedArgs);");
       boundClosureBuffer.add(" }");
       addParameterStubs(callElement, (String stubName, CodeBuffer memberValue) {
         boundClosureBuffer.add(',\n $stubName: $memberValue');
@@ -1098,7 +1175,7 @@ $classesCollector.$mangledName = {'':
 
       // Cache it.
       if (!hasOptionalParameters) {
-        boundClosureCache[parameterCount] = closureClass;
+        cache[parameterCount] = closureClass;
       }
     }
 
@@ -1106,8 +1183,8 @@ $classesCollector.$mangledName = {'':
     String getterName = namer.getterName(member.getLibrary(), member.name);
     String targetName = namer.instanceMethodName(member);
     CodeBuffer getterBuffer = new CodeBuffer();
-    getterBuffer.add(
-        "function() { return new $closureClass(this, '$targetName'); }");
+    getterBuffer.add("function($extraArgWithoutComma) "
+        "{ return new $closureClass(this, $extraArg'$targetName'); }");
     defineInstanceMember(getterName, getterBuffer);
   }
 

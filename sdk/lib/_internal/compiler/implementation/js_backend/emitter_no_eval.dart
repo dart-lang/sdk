@@ -61,14 +61,27 @@ function(oldIsolate) {
 
   void emitBoundClosureClassHeader(String mangledName,
                                    String superName,
+                                   String extraArgument,
                                    CodeBuffer buffer) {
-    buffer.add("""
+    if (!extraArgument.isEmpty) {
+      buffer.add("""
+$classesCollector.$mangledName = {'': function $mangledName(
+    self, $extraArgument, target) {
+  this.self = self;
+  this.$extraArgument = $extraArgument,
+  this.target = target;
+ },
+ 'super': '$superName',
+""");
+    } else {
+      buffer.add("""
 $classesCollector.$mangledName = {'': function $mangledName(self, target) {
   this.self = self;
   this.target = target;
  },
  'super': '$superName',
 """);
+    }
   }
 
   void emitClassConstructor(ClassElement classElement, CodeBuffer buffer) {

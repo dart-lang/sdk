@@ -339,7 +339,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     classElement.ensureResolved(compiler);
     // TODO(floitsch): copy over the generic type.
     DartType type = new InterfaceType(classElement);
-    compiler.enqueuer.codegen.registerInstantiatedClass(classElement);
+    registerInstantiatedClass(classElement);
     Constant constant = new MapConstant(type, keysList, values, protoValue);
     compiler.constantHandler.registerCompileTimeConstant(constant);
     return constant;
@@ -349,7 +349,16 @@ class CompileTimeConstantEvaluator extends Visitor {
     return constantSystem.createNull();
   }
 
+  void registerInstantiatedClass(ClassElement element) {
+    compiler.enqueuer.codegen.registerInstantiatedClass(element);
+  }
+
+  void registerStringInstance() {
+    registerInstantiatedClass(compiler.stringClass);
+  }
+
   Constant visitLiteralString(LiteralString node) {
+    registerStringInstance();
     return constantSystem.createString(node.dartString, node);
   }
 
@@ -357,6 +366,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     StringConstant left = evaluate(node.first);
     StringConstant right = evaluate(node.second);
     if (left == null || right == null) return null;
+    registerStringInstance();
     return constantSystem.createString(
         new DartString.concat(left.value, right.value), node);
   }
@@ -384,6 +394,7 @@ class CompileTimeConstantEvaluator extends Visitor {
       if (partString == null) return null;
       accumulator = new DartString.concat(accumulator, partString.value);
     };
+    registerStringInstance();
     return constantSystem.createString(accumulator, node);
   }
 

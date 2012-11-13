@@ -18,7 +18,7 @@ interface bool {}
 interface num {}
 interface int extends num {}
 interface double extends num {}
-interface String {}
+abstract class String {}
 interface Function {}
 interface List {}
 interface Map {}
