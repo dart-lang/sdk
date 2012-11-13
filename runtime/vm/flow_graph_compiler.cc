@@ -433,7 +433,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
   // Intrinsification skips arguments checks, therefore disable if in checked
   // mode.
   if (FLAG_intrinsify && !FLAG_enable_type_checks) {
-    if ((parsed_function().function().kind() == RawFunction::kImplicitGetter)) {
+    if (parsed_function().function().kind() == RawFunction::kImplicitGetter) {
       // An implicit getter must have a specific AST structure.
       const SequenceNode& sequence_node = *parsed_function().node_sequence();
       ASSERT(sequence_node.length() == 1);
@@ -445,7 +445,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
       GenerateInlinedGetter(load_node.field().Offset());
       return true;
     }
-    if ((parsed_function().function().kind() == RawFunction::kImplicitSetter)) {
+    if (parsed_function().function().kind() == RawFunction::kImplicitSetter) {
       // An implicit setter must have a specific AST structure.
       // Sequence node has one store node and one return NULL node.
       const SequenceNode& sequence_node = *parsed_function().node_sequence();

@@ -885,8 +885,6 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
                             &instantiator,
                             &instantiator_type_arguments);
   }
-  // TODO(zerny): Remove this when issues 5216 and 5217 are fixed.
-  InlineBailout("instance of");
   InstanceOfInstr* instance_of =
       new InstanceOfInstr(node->token_pos(),
                           for_left_value.value(),
