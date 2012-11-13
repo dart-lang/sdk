@@ -17,24 +17,24 @@ main() {
   }
   buffer.add("2000; return i; }");
   var generated = compile(buffer.toString(), 'foo', minify: true);
-  RegExp re = const RegExp(r"\(a,b,c");
+  RegExp re = new RegExp(r"\(a,b,c");
   Expect.isTrue(re.hasMatch(generated));
 
-  re = const RegExp(r"x,y,z,A,B,C");
+  re = new RegExp(r"x,y,z,A,B,C");
   Expect.isTrue(re.hasMatch(generated));
   
-  re = const RegExp(r"Y,Z,a0,a1,a2,a3,a4,a5,a6");
+  re = new RegExp(r"Y,Z,a0,a1,a2,a3,a4,a5,a6");
   Expect.isTrue(re.hasMatch(generated));
 
-  re = const RegExp(r"g8,g9,h0,h1");
+  re = new RegExp(r"g8,g9,h0,h1");
   Expect.isTrue(re.hasMatch(generated));
 
-  re = const RegExp(r"Z8,Z9,aa0,aa1,aa2");
+  re = new RegExp(r"Z8,Z9,aa0,aa1,aa2");
   Expect.isTrue(re.hasMatch(generated));
 
-  re = const RegExp(r"aa9,ab0,ab1");
+  re = new RegExp(r"aa9,ab0,ab1");
   Expect.isTrue(re.hasMatch(generated));
 
-  re = const RegExp(r"aZ9,ba0,ba1");
+  re = new RegExp(r"aZ9,ba0,ba1");
   Expect.isTrue(re.hasMatch(generated));
 }

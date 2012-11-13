@@ -159,7 +159,7 @@ Set<Path> _findAllRelativeImports(Path topLibrary) {
   Path libraryDir = topLibrary.directoryPath;
   // Matches #import( or #source( followed by " or ' followed by anything
   // except dart:, dart-ext: or /, at the beginning of a line.
-  RegExp relativeImportRegExp = const RegExp(
+  RegExp relativeImportRegExp = new RegExp(
       '^#(import|source)[(]["\'](?!(dart:|dart-ext:|/))([^"\']*)["\']');
   while (!toSearch.isEmpty) {
     var thisPass = toSearch;

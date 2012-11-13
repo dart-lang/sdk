@@ -114,7 +114,7 @@ List<int> encodeString(String string, Encoding encoding) {
 
 /// A regular expression that matches strings that are composed entirely of
 /// ASCII-compatible characters.
-final RegExp _ASCII_ONLY = const RegExp(r"^[\x00-\x7F]+$");
+final RegExp _ASCII_ONLY = new RegExp(r"^[\x00-\x7F]+$");
 
 /// Returns whether [string] is composed entirely of ASCII-compatible
 /// characters.

@@ -1527,7 +1527,7 @@ class Dartdoc {
     // TODO(rnystrom): Why don't we have a nice type in the platform for this?
     // TODO(rnystrom): This is a bit hackish. We consider any URL that lacks
     // a scheme to be relative.
-    return const RegExp(r'^\w+:').hasMatch(url);
+    return new RegExp(r'^\w+:').hasMatch(url);
   }
 
   /** Gets the URL to the documentation for [library]. */

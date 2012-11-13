@@ -26,7 +26,7 @@ main() {
 
 main() {
   String generated = compileAll(TEST);
-  RegExp regexp = const RegExp('foo\\\$0\\\$bailout');
+  RegExp regexp = new RegExp('foo\\\$0\\\$bailout');
   Iterator matches = regexp.allMatches(generated).iterator();
 
   // We check that there is only one call to the bailout method.

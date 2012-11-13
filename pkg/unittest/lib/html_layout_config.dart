@@ -40,7 +40,7 @@ class _Message {
   _Message.fromString(String msg) {
     // The format of a message is '<type> <elapsedTime> <body>'.
     // If we don't get a type we default to a 'log' type.
-    var messageParser = const RegExp('\([a-z]*\) \([0-9]*\) \(.*\)');
+    var messageParser = new RegExp('\([a-z]*\) \([0-9]*\) \(.*\)');
     Match match = messageParser.firstMatch(msg);
     if (match == null) {
       messageType = 'log';

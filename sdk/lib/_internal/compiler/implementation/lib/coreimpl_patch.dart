@@ -12,9 +12,9 @@ patch class JSSyntaxRegExp {
   final bool _multiLine;
   final bool _ignoreCase;
 
-  patch const JSSyntaxRegExp(String pattern,
-                             {bool multiLine: false,
-                              bool ignoreCase: false})
+  patch JSSyntaxRegExp(String pattern,
+                       {bool multiLine: false,
+                        bool ignoreCase: false})
       : _pattern = pattern,
         _multiLine = multiLine,
         _ignoreCase = ignoreCase;

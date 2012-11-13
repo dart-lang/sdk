@@ -8250,14 +8250,14 @@ class Document extends Node
   Element query(String selectors) {
     // It is fine for our RegExp to detect element id query selectors to have
     // false negatives but not false positives.
-    if (const RegExp("^#[_a-zA-Z]\\w*\$").hasMatch(selectors)) {
+    if (new RegExp("^#[_a-zA-Z]\\w*\$").hasMatch(selectors)) {
       return $dom_getElementById(selectors.substring(1));
     }
     return $dom_querySelector(selectors);
   }
 
   List<Element> queryAll(String selectors) {
-    if (const RegExp("""^\\[name=["'][^'"]+['"]\\]\$""").hasMatch(selectors)) {
+    if (new RegExp("""^\\[name=["'][^'"]+['"]\\]\$""").hasMatch(selectors)) {
       final mutableMatches = $dom_getElementsByName(
           selectors.substring(7,selectors.length - 2));
       int len = mutableMatches.length;
@@ -8266,7 +8266,7 @@ class Document extends Node
         copyOfMatches[i] = mutableMatches[i];
       }
       return new _FrozenElementList._wrap(copyOfMatches);
-    } else if (const RegExp("^[*a-zA-Z0-9]+\$").hasMatch(selectors)) {
+    } else if (new RegExp("^[*a-zA-Z0-9]+\$").hasMatch(selectors)) {
       final mutableMatches = $dom_getElementsByTagName(selectors);
       int len = mutableMatches.length;
       final copyOfMatches = new List<Element>(len);
@@ -9637,7 +9637,7 @@ class Element extends Node implements ElementTraversal {
 // Temporary dispatch hook to support WebComponents.
 Function dynamicUnknownElementDispatcher;
 
-final _START_TAG_REGEXP = const RegExp('<(\\w+)');
+final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 class _ElementFactoryProvider {
   static final _CUSTOM_PARENT_TAG_MAP = const {
     'body' : 'html',

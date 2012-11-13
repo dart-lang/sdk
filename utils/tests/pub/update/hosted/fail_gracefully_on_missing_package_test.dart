@@ -16,7 +16,7 @@ main() {
     appDir([dependency("foo", "1.2.3")]).scheduleCreate();
 
     schedulePub(args: ['update'],
-        error: const RegExp('Could not find package "foo" at '
+        error: new RegExp('Could not find package "foo" at '
                             'http://localhost:'),
         exitCode: 1);
 

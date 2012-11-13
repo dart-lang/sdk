@@ -1153,7 +1153,7 @@ class ProcessQueue {
         stdoutStringStream.onLine = () {
           var line = stdoutStringStream.readLine();
           while (null != line) {
-            var regexp = const RegExp(r".*selenium-server-standalone.*");
+            var regexp = new RegExp(r".*selenium-server-standalone.*");
             if (regexp.hasMatch(line)) {
               _seleniumAlreadyRunning = true;
               resumeTesting();
@@ -1196,8 +1196,8 @@ class ProcessQueue {
       if (source.closed) return;  // TODO(whesse): Remove when bug is fixed.
       var line = source.readLine();
       while (null != line) {
-        if (const RegExp(r".*Started.*Server.*").hasMatch(line) ||
-            const RegExp(r"Exception.*Selenium is already running.*").hasMatch(
+        if (new RegExp(r".*Started.*Server.*").hasMatch(line) ||
+            new RegExp(r"Exception.*Selenium is already running.*").hasMatch(
             line)) {
           resumeTesting();
         }
@@ -1219,7 +1219,7 @@ class ProcessQueue {
     filePath = '${filePath.substring(0, index)}${pathSep}testing${pathSep}';
     var lister = new Directory(filePath).list();
     lister.onFile = (String file) {
-      if (const RegExp(r"selenium-server-standalone-.*\.jar").hasMatch(file)
+      if (new RegExp(r"selenium-server-standalone-.*\.jar").hasMatch(file)
           && _seleniumServer == null) {
         Future processFuture = Process.start('java', ['-jar', file]);
         processFuture.then((Process server) {

@@ -10,7 +10,7 @@
  * The following example finds all matches of a [RegExp] in a [String]
  * and iterates through the returned iterable of [Match] objects.
  *
- *     RegExp exp = const RegExp(r"(\w+)");
+ *     RegExp exp = new RegExp(r"(\w+)");
  *     String str = "Parse my string";
  *     Iterable<Match> matches = exp.allMatches(str);
  *     for (Match m in matches) {
@@ -84,7 +84,7 @@ abstract class Match {
  * The following example finds all matches of a regular expression in
  * a string.
  *
- *     RegExp exp = const RegExp(r"(\w+)");
+ *     RegExp exp = new RegExp(r"(\w+)");
  *     String str = "Parse my string";
  *     Iterable<Match> matches = exp.allMatches(str);
  */
@@ -93,8 +93,8 @@ interface RegExp extends Pattern default JSSyntaxRegExp {
    * Constructs a regular expression. The default implementation of a
    * [RegExp] sets [multiLine] and [ignoreCase] to false.
    */
-  const RegExp(String pattern, {bool multiLine: false,
-                                bool ignoreCase: false});
+  RegExp(String pattern, {bool multiLine: false,
+                          bool ignoreCase: false});
 
   /**
    * Searches for the first match of the regular expression
