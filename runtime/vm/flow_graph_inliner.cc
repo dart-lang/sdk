@@ -262,7 +262,6 @@ class CallSiteInliner : public ValueObject {
  public:
   explicit CallSiteInliner(FlowGraph* flow_graph)
       : caller_graph_(flow_graph),
-        next_ssa_temp_index_(flow_graph->max_virtual_register_number()),
         inlined_(false),
         initial_size_(flow_graph->InstructionCount()),
         inlined_size_(0),
@@ -451,7 +450,8 @@ class CallSiteInliner : public ValueObject {
                          &CompilerStats::graphinliner_ssa_timer,
                          isolate);
         // Compute SSA on the callee graph, catching bailouts.
-        callee_graph->ComputeSSA(next_ssa_temp_index_, &param_stubs);
+        callee_graph->ComputeSSA(caller_graph_->max_virtual_register_number(),
+                                 &param_stubs);
         callee_graph->ComputeUseLists();
       }
 
@@ -520,7 +520,6 @@ class CallSiteInliner : public ValueObject {
 
         // Plug result in the caller graph.
         caller_graph_->InlineCall(call, callee_graph);
-        next_ssa_temp_index_ = caller_graph_->max_virtual_register_number();
 
         // Remove push arguments of the call.
         for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
@@ -757,7 +756,6 @@ class CallSiteInliner : public ValueObject {
 
 
   FlowGraph* caller_graph_;
-  intptr_t next_ssa_temp_index_;
   bool inlined_;
   intptr_t initial_size_;
   intptr_t inlined_size_;
