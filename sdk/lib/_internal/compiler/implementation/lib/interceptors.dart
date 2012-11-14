@@ -124,7 +124,7 @@ add$1(var receiver, var value) {
   return UNINTERCEPTED(receiver.add(value));
 }
 
-removeAt$1(var receiver, var index) {
+removeAt$1(var receiver, int index) {
   if (isJsArray(receiver)) {
     if (index is !int) throw new ArgumentError(index);
     if (index < 0 || index >= receiver.length) {

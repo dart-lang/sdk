@@ -941,6 +941,12 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
       emitIsTest(cls);
     }
     Set<Element> generated = new Set<Element>();
+    // A class that defines a [:call:] method implicitly implements
+    // [Function].
+    if (checkedClasses.contains(compiler.functionClass)
+        && cls.lookupLocalMember(Compiler.CALL_OPERATOR_NAME) != null) {
+      generateInterfacesIsTests(compiler.functionClass, emitIsTest, generated);
+    }
     for (DartType interfaceType in cls.interfaces) {
       generateInterfacesIsTests(interfaceType.element, emitIsTest, generated);
     }

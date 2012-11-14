@@ -38,6 +38,9 @@ compute_this_script_browser_test: Pass
 [ $compiler == dart2js ]
 serialization_test: Fail # Tries to access class TestingOnly declared in isolate_patch.dart
 
+[ $compiler == dart2js && $checked ]
+port_test: Fail # Issue 6608
+
 [ $runtime == safari ]
 cross_isolate_message_test: Skip      # Depends on 32/64 bit Safari. See Issue 1120
 mixed_test: Pass,Fail               # Depends on 32/64 bit Safari. See Issue 1120

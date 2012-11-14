@@ -31,9 +31,6 @@ unicode_test: Fail
 [ $arch == arm ]
 *: Skip
 
-[ $compiler == dart2js && $checked ]
-*: Skip
-
 [ $compiler == dart2js ]
 math_parse_double_test: Fail # Expect.equals(expected: <78187493520>, actual: <0>)
 math_test: Fail # issue 3333
