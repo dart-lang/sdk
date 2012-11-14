@@ -15252,10 +15252,6 @@ class LocalWindow extends EventTarget implements Window {
   void print() native "DOMWindow_print_Callback";
 
 
-  /** @domName DOMWindow.prompt */
-  String prompt(String message, String defaultValue) native "DOMWindow_prompt_Callback";
-
-
   /** @domName DOMWindow.releaseEvents */
   void releaseEvents() native "DOMWindow_releaseEvents_Callback";
 

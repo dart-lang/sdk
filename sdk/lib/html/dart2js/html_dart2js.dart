@@ -11730,9 +11730,6 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   /** @domName Window.print */
   void print() native;
 
-  /** @domName Window.prompt */
-  String prompt(String message, String defaultValue) native;
-
   /** @domName Window.releaseEvents */
   void releaseEvents() native;
 

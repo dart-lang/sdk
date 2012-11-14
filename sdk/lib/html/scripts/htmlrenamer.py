@@ -263,6 +263,7 @@ _removed_html_members = set([
     'ShadowRoot.getElementsByTagNameNS',
     "LocalWindow.get:frames",
     "LocalWindow.get:length",
+    "LocalWindow.prompt",
     "LocalWindow.webkitCancelRequestAnimationFrame",
     "WheelEvent.wheelDelta",
     ])
