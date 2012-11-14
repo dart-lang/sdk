@@ -167,6 +167,18 @@ patch class Socket {
   patch factory Socket(String host, int port) => new _Socket(host, port);
 }
 
+patch class TlsSocket {
+  patch static void setCertificateDatabase(String pkcertDirectory) {
+    throw new UnsupportedError("TlsSocket.setCertificateDatabase");
+  }
+}
+
+patch class _TlsFilter {
+  patch factory _TlsFilter() {
+    throw new UnsupportedError("_TlsFilter._TlsFilter");
+  }
+}
+
 patch class _StdIOUtils {
   patch static _getStdioHandle(Socket socket, int num) {
     throw new UnsupportedError("StdIOUtils._getStdioHandle");

@@ -10,6 +10,19 @@
 #include "include/dart_api.h"
 #include "platform/globals.h"
 
+/* Handles error handles returned from Dart API functions.  If a value
+ * is an error, uses Dart_PropagateError to throw it to the enclosing
+ * Dart activation.  Otherwise, returns the original handle.
+ *
+ * This function can be used to wrap most API functions, but API
+ * functions can also be nested without this error check, since all
+ * API functions return any error handles passed in as arguments, unchanged.
+ */
+static inline Dart_Handle ThrowIfError(Dart_Handle handle) {
+  if (Dart_IsError(handle)) Dart_PropagateError(handle);
+  return handle;
+}
+
 class CommandLineOptions {
  public:
   explicit CommandLineOptions(int max_count)
@@ -105,14 +118,22 @@ class DartUtils {
   static bool PostNull(Dart_Port port_id);
   static bool PostInt32(Dart_Port port_id, int32_t value);
 
+  static Dart_Handle GetDartClass(const char* library_url,
+                                  const char* class_name);
   // Create a new Dart OSError object with the current OS error.
   static Dart_Handle NewDartOSError();
   // Create a new Dart OSError object with the provided OS error.
   static Dart_Handle NewDartOSError(OSError* os_error);
+  static Dart_Handle NewDartSocketIOException(const char* message,
+                                              Dart_Handle os_error);
+  static Dart_Handle NewDartExceptionWithMessage(const char* library_url,
+                                                 const char* exception_name,
+                                                 const char* message);
+  static Dart_Handle NewDartArgumentError(const char* message);
 
   // Create a new Dart String object from a C String.
   static Dart_Handle NewString(const char* str) {
-    ASSERT((str != NULL) && (strlen(str) != 0));
+    ASSERT(str != NULL);
     return Dart_NewStringFromUTF8(reinterpret_cast<const uint8_t*>(str),
                                   strlen(str));
   }

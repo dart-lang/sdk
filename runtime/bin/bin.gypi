@@ -472,7 +472,7 @@
       'conditions': [
         ['OS=="win"', {
           'link_settings': {
-            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],
+            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib', '-lwinmm.lib' ],
           },
           # Generate an import library on Windows, by exporting a function.
           # Extensions use this import library to link to the API in dart.exe.
@@ -512,7 +512,7 @@
       'conditions': [
         ['OS=="win"', {
           'link_settings': {
-            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],
+            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib', '-lwinmm.lib' ],
           },
           # Generate an import library on Windows, by exporting a function.
           # Extensions use this import library to link to the API in dart.exe.
@@ -574,7 +574,7 @@
       'conditions': [
         ['OS=="win"', {
           'link_settings': {
-            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],
+            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib', '-lwinmm.lib' ],
           },
         }],
       ],

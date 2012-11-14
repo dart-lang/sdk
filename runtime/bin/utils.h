@@ -16,6 +16,7 @@ class OSError {
   enum SubSystem {
     kSystem,
     kGetAddressInfo,
+    kNSS,
     kUnknown = -1
   };
 

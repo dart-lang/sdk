@@ -21,6 +21,8 @@
     'eventhandler_macos.h',
     'eventhandler_win.cc',
     'eventhandler_win.h',
+    'net/nss_memio.cc',
+    'net/nss_memio.h',
     'platform.cc',
     'platform.h',
     'platform_android.cc',
@@ -39,5 +41,7 @@
     'socket_linux.cc',
     'socket_macos.cc',
     'socket_win.cc',
+    'tls_socket.cc',
+    'tls_socket.h',
   ],
 }
