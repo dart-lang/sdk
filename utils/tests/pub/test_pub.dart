@@ -1159,7 +1159,7 @@ class TarFileDescriptor extends Descriptor {
       var sourceStream = tar.openInputStream();
       pipeInputToInput(sourceStream,
                        sinkStream,
-                       () => tempDir.deleteRecursively());
+                       () => tempDir.delete(recursive: true));
     });
     return sinkStream;
   }
