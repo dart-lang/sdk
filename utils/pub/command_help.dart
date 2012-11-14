@@ -4,6 +4,9 @@
 
 library command_help;
 
+import 'dart:io' as io;
+import 'exit_codes.dart' as exit_codes;
+import 'io.dart';
 import 'pub.dart';
 
 /** Handles the `help` pub command. */
@@ -16,7 +19,15 @@ class HelpCommand extends PubCommand {
     if (commandOptions.rest.isEmpty) {
       printUsage();
     } else {
-      pubCommands[commandOptions.rest[0]].printUsage();
+      var name = commandOptions.rest[0];
+      var command = pubCommands[name];
+      if (command == null) {
+        printError('Could not find a command named "$name".');
+        printError('Run "pub help" to see available commands.');
+        io.exit(exit_codes.USAGE);
+      }
+
+      command.printUsage();
     }
   }
 }

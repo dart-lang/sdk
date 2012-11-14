@@ -59,8 +59,9 @@ main() {
   try {
     globalOptions = pubArgParser.parse(new Options().arguments);
   } on FormatException catch (e) {
-    printUsage(description: e.message);
-    return;
+    printError(e.message);
+    printError('Run "pub help" to see available options.');
+    exit(exit_codes.USAGE);
   }
 
   if (globalOptions['version']) {
@@ -95,7 +96,7 @@ main() {
   // Select the command.
   var command = pubCommands[globalOptions.rest[0]];
   if (command == null) {
-    printError('Unknown command "${globalOptions.rest[0]}".');
+    printError('Could not find a command named "${globalOptions.rest[0]}".');
     printError('Run "pub help" to see available commands.');
     exit(exit_codes.USAGE);
     return;
@@ -115,9 +116,10 @@ void printUsage([String description = 'Pub is a package manager for Dart.']) {
   print('Global options:');
   print(pubArgParser.getUsage());
   print('');
-  print('The commands are:');
 
   // Show the commands sorted.
+  print('Available commands:');
+
   // TODO(rnystrom): A sorted map would be nice.
   int length = 0;
   var names = <String>[];
@@ -150,12 +152,12 @@ abstract class PubCommand {
   /**
    * A one-line description of this command.
    */
-  abstract String get description;
+  String get description;
 
   /**
    * How to invoke this command (e.g. `"pub install [package]"`).
    */
-  abstract String get usage;
+  String get usage;
 
   /// Whether or not this command requires [entrypoint] to be defined. If false,
   /// Pub won't look for a pubspec and [entrypoint] will be null when the
@@ -176,7 +178,8 @@ abstract class PubCommand {
     try {
      commandOptions = commandParser.parse(commandArgs);
     } on FormatException catch (e) {
-      this.printUsage(description: e.message);
+      printError(e.message);
+      printError('Use "pub help" for more information.');
       exit(exit_codes.USAGE);
     }
 
@@ -245,7 +248,7 @@ abstract class PubCommand {
    * completes when the command is done or fails if the command fails. If the
    * command is synchronous, it may return `null`.
    */
-  abstract Future onRun();
+  Future onRun();
 
   /** Displays usage information for this command. */
   void printUsage([String description]) {

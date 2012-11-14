@@ -330,9 +330,9 @@ class ChangeVersion implements WorkItem {
  * responsibility of subclasses.
  */
 abstract class ChangeConstraint implements WorkItem {
-  abstract Future process(VersionSolver solver);
+  Future process(VersionSolver solver);
 
-  abstract void undo(VersionSolver solver);
+  void undo(VersionSolver solver);
 
   Future _processChange(VersionSolver solver, Dependency oldDependency,
       Dependency newDependency) {

@@ -19,7 +19,7 @@ final USAGE_STRING = """
         --version       Prints the version of Pub
         --[no-]trace    Prints a stack trace when an error occurs
 
-    The commands are:
+    Available commands:
       help      display help information for Pub
       install   install the current package's dependencies
       update    update the current package's dependencies to the latest versions
@@ -45,15 +45,42 @@ main() {
   test('running pub with just --version displays version', () =>
       runPub(args: ['--version'], output: VERSION_STRING));
 
-  group('an unknown command', () {
-    test('displays an error message', () {
-      runPub(args: ['quylthulg'],
-          error: '''
-          Unknown command "quylthulg".
-          Run "pub help" to see available commands.
-          ''',
-          exitCode: 64);
-    });
+  test('an unknown command displays an error message', () {
+    runPub(args: ['quylthulg'],
+        error: '''
+        Could not find a command named "quylthulg".
+        Run "pub help" to see available commands.
+        ''',
+        exitCode: 64);
+  });
+
+  test('an unknown option displays an error message', () {
+    runPub(args: ['--blorf'],
+        error: '''
+        Could not find an option named "blorf".
+        Run "pub help" to see available options.
+        ''',
+        exitCode: 64);
+  });
+
+  test('an unknown command option displays an error message', () {
+    // TODO(rnystrom): When pub has command-specific options, a more precise
+    // error message would be good here.
+    runPub(args: ['version', '--blorf'],
+        error: '''
+        Could not find an option named "blorf".
+        Use "pub help" for more information.
+        ''',
+        exitCode: 64);
+  });
+
+  test('an unknown help command displays an error message', () {
+    runPub(args: ['help', 'quylthulg'],
+        error: '''
+        Could not find a command named "quylthulg".
+        Run "pub help" to see available commands.
+        ''',
+        exitCode: 64);
   });
 
   test('displays the current version', () =>

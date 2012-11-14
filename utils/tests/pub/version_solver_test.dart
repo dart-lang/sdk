@@ -25,8 +25,8 @@ final sourceMismatch = 'source mismatch';
 final descriptionMismatch = 'description mismatch';
 final couldNotSolve = 'unsolved';
 
-Source source1;
-Source source2;
+MockSource source1;
+MockSource source2;
 Source versionlessSource;
 Source rootSource;
 
