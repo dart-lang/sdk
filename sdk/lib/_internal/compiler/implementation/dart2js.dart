@@ -375,6 +375,12 @@ Supported options:
   -p<path>, --package-root=<path>
     Where to find packages, that is, "package:..." imports.
 
+  --analyze-all
+    Analyze all code.  Without this option, the compiler only analyzes
+    code that is reachable from [main].  This option is useful for
+    finding errors in libraries, but using it can result in bigger and
+    slower output.
+
   --minify
     Generate minified output.
 
