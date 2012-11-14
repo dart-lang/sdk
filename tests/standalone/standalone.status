@@ -26,6 +26,17 @@ io/test_runner_test: Pass, Fail  # Issue 1947
 # of allowed open files ('ulimit -n' says something like 256).
 io/socket_many_connections_test: Skip
 
+# These tests pass on MacOS 10.8.2 but fails on the buildbot machines
+# that are running an earlier version of MacOS. The issue is that the
+# old version of MacOS does not expand the precomposed utf-8 it gets
+# from the VM before comparing it to the decomposed utf-8 used for the
+# file system.
+io/file_non_ascii_sync_test: Pass, Fail
+io/file_non_ascii_test: Pass, Fail
+io/directory_non_ascii_sync_test: Pass, Fail
+io/directory_non_ascii_test: Pass, Fail
+io/process_non_ascii_test: Pass, Fail
+
 [ $runtime == vm && $system == windows ]
 io/file_system_links_test: Skip  # No links on Windows.
 
