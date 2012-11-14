@@ -394,19 +394,40 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     CodeBuffer buffer = new CodeBuffer();
     buffer.add('function(');
 
+    JavaScriptBackend backend = compiler.backend;
+    bool isInterceptorClass =
+        backend.isInterceptorClass(member.getEnclosingClass());
+
+    // If the method is in an interceptor class, we need to also pass
+    // the actual receiver.
+    int extraArgumentCount = isInterceptorClass ? 1 : 0;
+    // Use '$' to avoid clashes with other parameter names. Using '$'
+    // works because [JsNames.getValid] used for getting parameter
+    // names never returns '$'.
+    String extraArgumentName = r'$';
+
     // The parameters that this stub takes.
-    List<String> parametersBuffer = new List<String>(selector.argumentCount);
+    List<String> parametersBuffer =
+        new List<String>(selector.argumentCount + extraArgumentCount);
     // The arguments that will be passed to the real method.
-    List<String> argumentsBuffer = new List<String>(parameters.parameterCount);
+    List<String> argumentsBuffer =
+        new List<String>(parameters.parameterCount + extraArgumentCount);
 
     int count = 0;
+    if (isInterceptorClass) {
+      count++;
+      parametersBuffer[0] = extraArgumentName;
+      argumentsBuffer[0] = extraArgumentName;
+    }
+
     int indexOfLastOptionalArgumentInParameters = positionalArgumentCount - 1;
     TreeElements elements =
         compiler.enqueuer.resolution.getCachedElements(member);
 
     parameters.orderedForEachParameter((Element element) {
       String jsName = JsNames.getValid(element.name.slowToString());
-      if (count < positionalArgumentCount) {
+      assert(jsName != extraArgumentName);
+      if (count < positionalArgumentCount + extraArgumentCount) {
         parametersBuffer[count] = jsName;
         argumentsBuffer[count] = jsName;
       } else {

@@ -22,6 +22,72 @@ class JSString implements String {
     return JS('int', r'#.charCodeAt(#)', this, index);
   }
 
+  Iterable<Match> allMatches(String str) {
+    checkString(str);
+    return allMatchesInStringUnchecked(this, str);
+  }
+
+  String concat(String other) {
+    if (other is !String) throw new ArgumentError(other);
+    return JS('String', r'# + #', this, other);
+  }
+
+  bool endsWith(String other) {
+    checkString(other);
+    int otherLength = other.length;
+    if (otherLength > length) return false;
+    return other == substring(length - otherLength);
+  }
+
+  String replaceAll(Pattern from, String to) {
+    checkString(to);
+    return stringReplaceAllUnchecked(this, from, to);
+  }
+
+  String replaceFirst(Pattern from, String to) {
+    checkString(to);
+    return stringReplaceFirstUnchecked(this, from, to);
+  }
+
+  List<String> split(Pattern pattern) {
+    checkNull(pattern);
+    return stringSplitUnchecked(this, pattern);
+  }
+
+  List<String> splitChars() {
+    return JS('List', r'#.split("")', this);
+  }
+
+  bool startsWith(String other) {
+    checkString(other);
+    int otherLength = other.length;
+    if (otherLength > length) return false;
+    return JS('bool', r'# == #', other,
+              JS('String', r'#.substring(0, #)', this, otherLength));
+  }
+
+  String substring(int startIndex, [int endIndex]) {
+    checkNum(startIndex);
+    if (endIndex == null) endIndex = length;
+    checkNum(endIndex);
+    if (startIndex < 0 ) throw new RangeError.value(startIndex);
+    if (startIndex > endIndex) throw new RangeError.value(startIndex);
+    if (endIndex > length) throw new RangeError.value(endIndex);
+    return JS('String', r'#.substring(#, #)', this, startIndex, endIndex);
+  }
+
+  String toLowerCase() {
+    return JS('String', r'#.toLowerCase()', this);
+  }
+
+  String toUpperCase() {
+    return JS('String', r'#.toUpperCase()', this);
+  }
+
+  String trim() {
+    return JS('String', r'#.trim()', this);
+  }
+
   List<int> get charCodes  {
     List<int> result = new List<int>(length);
     for (int i = 0; i < length; i++) {
@@ -534,19 +600,6 @@ toRadixString(receiver, radix) {
   return JS('String', r'#.toString(#)', receiver, radix);
 }
 
-allMatches(receiver, str) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.allMatches(str));
-  checkString(str);
-  return allMatchesInStringUnchecked(receiver, str);
-}
-
-concat(receiver, other) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.concat(other));
-
-  if (other is !String) throw new ArgumentError(other);
-  return JS('String', r'# + #', receiver, other);
-}
-
 contains$1(receiver, other) {
   if (receiver is String) {
     return contains$2(receiver, other, 0);
@@ -565,91 +618,6 @@ contains$2(receiver, other, startIndex) {
   }
   checkNull(other);
   return stringContainsUnchecked(receiver, other, startIndex);
-}
-
-endsWith(receiver, other) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.endsWith(other));
-
-  checkString(other);
-  int receiverLength = receiver.length;
-  int otherLength = other.length;
-  if (otherLength > receiverLength) return false;
-  return other == receiver.substring(receiverLength - otherLength);
-}
-
-replaceAll(receiver, from, to) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.replaceAll(from, to));
-
-  checkString(to);
-  return stringReplaceAllUnchecked(receiver, from, to);
-}
-
-replaceFirst(receiver, from, to) {
-  if (receiver is !String) {
-    return UNINTERCEPTED(receiver.replaceFirst(from, to));
-  }
-  checkString(to);
-  return stringReplaceFirstUnchecked(receiver, from, to);
-}
-
-split(receiver, pattern) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.split(pattern));
-  checkNull(pattern);
-  return stringSplitUnchecked(receiver, pattern);
-}
-
-splitChars(receiver) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.splitChars());
-
-  return JS('List', r'#.split("")', receiver);
-}
-
-startsWith(receiver, other) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.startsWith(other));
-  checkString(other);
-
-  int length = other.length;
-  if (length > receiver.length) return false;
-  return JS('bool', r'# == #', other,
-            JS('String', r'#.substring(0, #)', receiver, length));
-}
-
-substring$1(receiver, startIndex) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.substring(startIndex));
-
-  return substring$2(receiver, startIndex, null);
-}
-
-substring$2(receiver, startIndex, endIndex) {
-  if (receiver is !String) {
-    return UNINTERCEPTED(receiver.substring(startIndex, endIndex));
-  }
-  checkNum(startIndex);
-  var length = receiver.length;
-  if (endIndex == null) endIndex = length;
-  checkNum(endIndex);
-  if (startIndex < 0 ) throw new RangeError.value(startIndex);
-  if (startIndex > endIndex) throw new RangeError.value(startIndex);
-  if (endIndex > length) throw new RangeError.value(endIndex);
-  return substringUnchecked(receiver, startIndex, endIndex);
-}
-
-toLowerCase(receiver) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.toLowerCase());
-
-  return JS('String', r'#.toLowerCase()', receiver);
-}
-
-toUpperCase(receiver) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.toUpperCase());
-
-  return JS('String', r'#.toUpperCase()', receiver);
-}
-
-trim(receiver) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.trim());
-
-  return JS('String', r'#.trim()', receiver);
 }
 
 /**

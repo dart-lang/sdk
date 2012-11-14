@@ -812,9 +812,6 @@ checkString(value) {
   return value;
 }
 
-substringUnchecked(receiver, startIndex, endIndex)
-  => JS('String', r'#.substring(#, #)', receiver, startIndex, endIndex);
-
 class MathNatives {
   static int parseInt(str) {
     checkString(str);
