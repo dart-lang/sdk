@@ -1737,7 +1737,8 @@ class NodeListener extends ElementListener {
       Node receiver = popNode();
       if (typeArguments != null) {
         receiver = new TypeAnnotation(receiver, typeArguments);
-        recoverableError('typeArguments not allowed here', node: typeArguments);
+        recoverableError('Error: type arguments are not allowed here',
+                         node: typeArguments);
       } else {
         Identifier identifier = receiver.asIdentifier();
         Send send = receiver.asSend();
