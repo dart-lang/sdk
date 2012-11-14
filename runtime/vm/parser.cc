@@ -9079,7 +9079,7 @@ AstNode* Parser::ParseNewOperator() {
     ErrorMsg("type name expected");
   }
   intptr_t type_pos = TokenPos();
-  AbstractType& type = AbstractType::ZoneHandle(
+  AbstractType& type = AbstractType::Handle(
       ParseType(ClassFinalizer::kCanonicalizeForCreation));
   // In case the type is malformed, throw a dynamic type error after finishing
   // parsing the instance creation expression.
@@ -9213,7 +9213,7 @@ AstNode* Parser::ParseNewOperator() {
 
   // An additional type check of the result of a redirecting factory may be
   // required.
-  bool check_result_type = false;
+  AbstractType& type_bound = AbstractType::ZoneHandle();
 
   // Make sure that an appropriate constructor exists.
   const String& constructor_name =
@@ -9254,8 +9254,10 @@ AstNode* Parser::ParseNewOperator() {
         }
         return ThrowTypeError(redirect_type.token_pos(), redirect_type);
       }
-      check_result_type =
-          FLAG_enable_type_checks && !redirect_type.IsSubtypeOf(type, NULL);
+      if (FLAG_enable_type_checks && !redirect_type.IsSubtypeOf(type, NULL)) {
+        // Additional type checking of the result is necessary.
+        type_bound = type.raw();
+      }
       type = redirect_type.raw();
       type_class = type.type_class();
       type_arguments = type.arguments();
@@ -9371,22 +9373,22 @@ AstNode* Parser::ParseNewOperator() {
       const Instance& const_instance = Instance::Cast(constructor_result);
       new_object = new LiteralNode(new_pos,
                                    Instance::ZoneHandle(const_instance.raw()));
-      if (check_result_type) {
-        ASSERT(!type.IsMalformed());
+      if (!type_bound.IsNull()) {
+        ASSERT(!type_bound.IsMalformed());
         Error& malformed_error = Error::Handle();
-        if (!const_instance.IsInstanceOf(type,
+        if (!const_instance.IsInstanceOf(type_bound,
                                          TypeArguments::Handle(),
                                          &malformed_error)) {
-          type = ClassFinalizer::NewFinalizedMalformedType(
+          type_bound = ClassFinalizer::NewFinalizedMalformedType(
               malformed_error,
               current_class(),
               new_pos,
               ClassFinalizer::kTryResolve,  // No compile-time error.
               "const factory result is not an instance of '%s'",
-              String::Handle(type.UserVisibleName()).ToCString());
-          new_object = ThrowTypeError(new_pos, type);
+              String::Handle(type_bound.UserVisibleName()).ToCString());
+          new_object = ThrowTypeError(new_pos, type_bound);
         }
-        check_result_type = false;
+        type_bound = AbstractType::null();
       }
     }
   } else {
@@ -9403,9 +9405,9 @@ AstNode* Parser::ParseNewOperator() {
     new_object = CreateConstructorCallNode(
         new_pos, type_arguments, constructor, arguments);
   }
-  if (check_result_type) {
+  if (!type_bound.IsNull()) {
     const String& dst_name = String::ZoneHandle(Symbols::FactoryResult());
-    new_object = new AssignableNode(new_pos, new_object, type, dst_name);
+    new_object = new AssignableNode(new_pos, new_object, type_bound, dst_name);
   }
   return new_object;
 }

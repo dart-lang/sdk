@@ -71,6 +71,11 @@ assertion_test: Fail
 new_expression_type_args_test/02: Fail # Test does not conform with spec.
 factory_redirection_test/08: Fail
 factory_redirection_test/09: Fail
+factory_redirection_test/10: Fail
+factory_redirection_test/11: Fail
+factory_redirection_test/12: Fail
+factory_redirection_test/13: Fail
+factory_redirection_test/14: Fail
 
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.
@@ -90,12 +95,11 @@ compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dart2js ]
 arithmetic_test: Fail # http://dartbug.com/6627
-factory_redirection_test/none: Fail
 factory_redirection_test/01: Fail
-factory_redirection_test/02: Fail
-factory_redirection_test/03: Fail
+factory_redirection_test/02: Crash
+factory_redirection_test/03: Crash
 factory_redirection_test/05: Fail
-factory_redirection_test/06: Fail
+factory_redirection_test/07: Fail
 final_variable_assignment_test/01: Fail
 final_variable_assignment_test/02: Fail
 final_variable_assignment_test/03: Fail

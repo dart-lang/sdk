@@ -65,13 +65,7 @@ gc_test: Skip  # Issue 1487, flaky.
 [ $compiler == none && $mode == debug ]
 gc_test: Skip  # Takes too long.
 
-
-[ $compiler == none && $checked ]
-redirecting_factory_infinite_steps_test/01: Fail # http://dartbug.com/6596
-
-
 [ $compiler == none && $unchecked ]
-
 
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.
@@ -533,8 +527,8 @@ number_identifier_negative_test: Fail
 # Bug in dart2js frontent: does not support this feature.
 switch_label_test: Fail
 # Common with language_dart2js.
-factory_redirection_test/none: Fail # Not implemented.
 factory_redirection_test/0*: Skip # Flaky negative tests, crash, fail, or pass. Not implemented.
+factory_redirection_test/1*: Skip # Flaky negative tests, crash, fail, or pass. Not implemented.
 function_type_alias5_test/00: Fail
 function_type_alias5_test/01: Fail
 function_type_alias5_test/02: Fail
