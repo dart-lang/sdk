@@ -9,6 +9,7 @@
 #include "vm/bootstrap.h"
 #include "vm/exceptions.h"
 #include "vm/heap.h"
+#include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/snapshot_ids.h"
@@ -740,6 +741,21 @@ void SnapshotReader::ArrayReadFrom(const Array& result,
 }
 
 
+SnapshotWriter::SnapshotWriter(Snapshot::Kind kind,
+               uint8_t** buffer,
+               ReAlloc alloc,
+               intptr_t increment_size)
+    : BaseWriter(buffer, alloc, increment_size),
+      kind_(kind),
+      object_store_(Isolate::Current()->object_store()),
+      class_table_(Isolate::Current()->class_table()),
+      forward_list_(),
+      exception_type_(Exceptions::kNone),
+      exception_msg_(NULL),
+      error_(LanguageError::Handle()) {
+}
+
+
 void SnapshotWriter::WriteObject(RawObject* rawobj) {
   WriteObjectImpl(rawobj);
   WriteForwardedObjects();
@@ -800,7 +816,14 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
   intptr_t class_id = cls->ptr()->id_;
   ASSERT(class_id == raw->GetClassId());
   if (class_id >= kNumPredefinedCids) {
-    ASSERT(!Class::IsSignatureClass(cls));
+    if (Class::IsSignatureClass(cls)) {
+      // We do not allow closure objects in an isolate message.
+      set_exception_type(Exceptions::kArgumentError);
+      // TODO(6726): Allocate these constant strings once in the VM isolate.
+      set_exception_msg("Illegal argument in isolate message"
+                        " : (object is a closure)");
+      Isolate::Current()->long_jump_base()->Jump(1, *ErrorHandle());
+    }
     // Object is being referenced, add it to the forward ref list and mark
     // it so that future references to this object in the snapshot will use
     // this object id. Mark it as not having been serialized yet so that we
@@ -885,19 +908,36 @@ void FullSnapshotWriter::WriteFullSnapshot() {
   ObjectStore* object_store = isolate->object_store();
   ASSERT(object_store != NULL);
 
-  // Reserve space in the output buffer for a snapshot header.
-  ReserveHeader();
+  // Setup for long jump in case there is an exception while writing
+  // the snapshot.
+  LongJump* base = isolate->long_jump_base();
+  LongJump jump;
+  isolate->set_long_jump_base(&jump);
+  // TODO(6726): Allocate these constant strings once in the VM isolate.
+  *ErrorHandle() = LanguageError::New(
+      String::Handle(String::New("Error while writing full snapshot")));
+  if (setjmp(*jump.Set()) == 0) {
+    NoGCScope no_gc;
 
-  // Write out all the objects in the object store of the isolate which
-  // is the root set for all dart allocated objects at this point.
-  SnapshotWriterVisitor visitor(this, false);
-  object_store->VisitObjectPointers(&visitor);
+    // Reserve space in the output buffer for a snapshot header.
+    ReserveHeader();
 
-  // Write out all forwarded objects.
-  WriteForwardedObjects();
+    // Write out all the objects in the object store of the isolate which
+    // is the root set for all dart allocated objects at this point.
+    SnapshotWriterVisitor visitor(this, false);
+    object_store->VisitObjectPointers(&visitor);
 
-  FillHeader(kind());
-  UnmarkAll();
+    // Write out all forwarded objects.
+    WriteForwardedObjects();
+
+    FillHeader(kind());
+    UnmarkAll();
+
+    isolate->set_long_jump_base(base);
+  } else {
+    isolate->set_long_jump_base(base);
+    ThrowException(exception_type(), exception_msg());
+  }
 }
 
 
@@ -1031,11 +1071,24 @@ void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
   intptr_t class_id = cls->ptr()->id_;
 
   if (class_id >= kNumPredefinedCids) {
-    ASSERT(!Class::IsSignatureClass(cls));
+    if (Class::IsSignatureClass(cls)) {
+      // We do not allow closure objects in an isolate message.
+      set_exception_type(Exceptions::kArgumentError);
+      // TODO(6726): Allocate these constant strings once in the VM isolate.
+      set_exception_msg("Illegal argument in isolate message"
+                        " : (object is a closure)");
+      Isolate::Current()->long_jump_base()->Jump(1, *ErrorHandle());
+    }
+    if (cls->ptr()->num_native_fields_ != 0) {
+      // We do not allow objects with native fields in an isolate message.
+      set_exception_type(Exceptions::kArgumentError);
+      // TODO(6726): Allocate these constant strings once in the VM isolate.
+      set_exception_msg("Illegal argument in isolate message"
+                        " : (object extends NativeWrapper)");
+
+      Isolate::Current()->long_jump_base()->Jump(1, *ErrorHandle());
+    }
     // Object is regular dart instance.
-    // TODO(5411462): figure out what we need to do if an object with native
-    // fields is serialized (throw exception or serialize a null object).
-    ASSERT(cls->ptr()->num_native_fields_ == 0);
     intptr_t instance_size = cls->ptr()->instance_size_;
     ASSERT(instance_size != 0);
 
@@ -1148,14 +1201,42 @@ void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
 }
 
 
+void SnapshotWriter::ThrowException(Exceptions::ExceptionType type,
+                                    const char* msg) {
+  Isolate::Current()->object_store()->clear_sticky_error();
+  UnmarkAll();
+  const String& msg_obj = String::Handle(String::New(msg));
+  GrowableArray<const Object*> args(1);
+  args.Add(&msg_obj);
+  Exceptions::ThrowByType(type, args);
+  UNREACHABLE();
+}
+
+
 void ScriptSnapshotWriter::WriteScriptSnapshot(const Library& lib) {
   ASSERT(kind() == Snapshot::kScript);
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
 
-  // Write out the library object.
-  ReserveHeader();
-  WriteObject(lib.raw());
-  FillHeader(kind());
-  UnmarkAll();
+  // Setup for long jump in case there is an exception while writing
+  // the snapshot.
+  LongJump* base = isolate->long_jump_base();
+  LongJump jump;
+  isolate->set_long_jump_base(&jump);
+  *ErrorHandle() = LanguageError::New(
+      String::Handle(String::New("Error while writing script snapshot")));
+  if (setjmp(*jump.Set()) == 0) {
+    // Write out the library object.
+    NoGCScope no_gc;
+    ReserveHeader();
+    WriteObject(lib.raw());
+    FillHeader(kind());
+    UnmarkAll();
+    isolate->set_long_jump_base(base);
+  } else {
+    isolate->set_long_jump_base(base);
+    ThrowException(exception_type(), exception_msg());
+  }
 }
 
 
@@ -1173,8 +1254,25 @@ void SnapshotWriterVisitor::VisitPointers(RawObject** first, RawObject** last) {
 
 void MessageWriter::WriteMessage(const Object& obj) {
   ASSERT(kind() == Snapshot::kMessage);
-  WriteObject(obj.raw());
-  UnmarkAll();
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+
+  // Setup for long jump in case there is an exception while writing
+  // the message.
+  LongJump* base = isolate->long_jump_base();
+  LongJump jump;
+  isolate->set_long_jump_base(&jump);
+  *ErrorHandle() = LanguageError::New(
+      String::Handle(String::New("Error while writing message")));
+  if (setjmp(*jump.Set()) == 0) {
+    NoGCScope no_gc;
+    WriteObject(obj.raw());
+    UnmarkAll();
+    isolate->set_long_jump_base(base);
+  } else {
+    isolate->set_long_jump_base(base);
+    ThrowException(exception_type(), exception_msg());
+  }
 }
 
 

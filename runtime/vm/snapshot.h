@@ -9,6 +9,7 @@
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
 #include "vm/datastream.h"
+#include "vm/exceptions.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/isolate.h"
@@ -25,6 +26,7 @@ class ClassTable;
 class ExternalUint8Array;
 class GrowableObjectArray;
 class Heap;
+class LanguageError;
 class Library;
 class Object;
 class ObjectStore;
@@ -426,13 +428,7 @@ class SnapshotWriter : public BaseWriter {
   SnapshotWriter(Snapshot::Kind kind,
                  uint8_t** buffer,
                  ReAlloc alloc,
-                 intptr_t increment_size)
-      : BaseWriter(buffer, alloc, increment_size),
-        kind_(kind),
-        object_store_(Isolate::Current()->object_store()),
-        class_table_(Isolate::Current()->class_table()),
-        forward_list_() {
-  }
+                 intptr_t increment_size);
 
  public:
   // Snapshot kind.
@@ -442,6 +438,19 @@ class SnapshotWriter : public BaseWriter {
   void WriteObject(RawObject* raw);
 
   uword GetObjectTags(RawObject* raw);
+
+  Exceptions::ExceptionType exception_type() const {
+    return exception_type_;
+  }
+  void set_exception_type(Exceptions::ExceptionType type) {
+    exception_type_ = type;
+  }
+  const char* exception_msg() const { return exception_msg_; }
+  void set_exception_msg(const char* msg) {
+    exception_msg_ = msg;
+  }
+  LanguageError* ErrorHandle() { return &error_; }
+  void ThrowException(Exceptions::ExceptionType type, const char* msg);
 
  protected:
   class ForwardObjectNode : public ZoneAllocated {
@@ -486,6 +495,9 @@ class SnapshotWriter : public BaseWriter {
   ObjectStore* object_store_;  // Object store for common classes.
   ClassTable* class_table_;  // Class table for the class index to class lookup.
   GrowableArray<ForwardObjectNode*> forward_list_;
+  Exceptions::ExceptionType exception_type_;  // Exception type.
+  const char* exception_msg_;  // Message associated with exception.
+  LanguageError& error_;  // Error handle.
 
   friend class RawArray;
   friend class RawClass;

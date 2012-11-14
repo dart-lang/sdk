@@ -396,6 +396,9 @@ RawObject* Exceptions::Create(
   Library& library = Library::Handle();
   String& class_name = String::Handle();
   switch (type) {
+    case kNone:
+      UNREACHABLE();
+      break;
     case kRange:
       library = Library::CoreLibrary();
       class_name = Symbols::New("RangeError");
@@ -431,6 +434,10 @@ RawObject* Exceptions::Create(
     case kIllegalJSRegExp:
       library = Library::CoreLibrary();
       class_name = Symbols::New("IllegalJSRegExpException");
+      break;
+    case kArgumentError:
+      library = Library::CoreLibrary();
+      class_name = Symbols::New("ArgumentError");
       break;
     case kIsolateSpawn:
       library = Library::IsolateLibrary();
