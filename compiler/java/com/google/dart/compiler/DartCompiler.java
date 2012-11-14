@@ -5,7 +5,6 @@
 package com.google.dart.compiler;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Sets.SetView;
@@ -81,54 +80,6 @@ public class DartCompiler {
 
   public static final String CORELIB_URL_SPEC = "dart:core";
   public static final String MAIN_ENTRY_POINT_NAME = "main";
-
-  private static class NamedPlaceHolderLibrarySource implements LibrarySource {
-    private final String name;
-
-    public NamedPlaceHolderLibrarySource(String name) {
-      this.name = name;
-    }
-
-    @Override
-    public boolean exists() {
-      throw new AssertionError();
-    }
-
-    @Override
-    public long getLastModified() {
-      throw new AssertionError();
-    }
-
-    @Override
-    public String getName() {
-      return name;
-    }
-    
-    @Override
-    public Reader getSourceReader() {
-      throw new AssertionError();
-    }
-
-    @Override
-    public String getUniqueIdentifier() {
-      throw new AssertionError();
-    }
-
-    @Override
-    public URI getUri() {
-      throw new AssertionError();
-    }
-
-    @Override
-    public LibrarySource getImportFor(String relPath) {
-      return null;
-    }
-
-    @Override
-    public DartSource getSourceFor(String relPath) {
-      return null;
-    }
-  }
 
   private static class Compiler {
     private final LibrarySource app;
