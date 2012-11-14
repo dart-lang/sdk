@@ -12,6 +12,9 @@ xmlelement_test: Skip  # XML in dart:html is incomplete
 [ $runtime == chrome ]
 contentelement_test: Fail   # Issue 5445: not currently supported on chrome stable.
 
+[ $runtime == chrome || $runtime == drt]
+audiobuffersourcenode_test: Pass, Fail  # AudiobufferSourceNode is flaky on Chrome and Dartium.
+
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
 
