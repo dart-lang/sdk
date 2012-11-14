@@ -711,6 +711,7 @@ class JavaScriptBackend extends Backend {
   }
 
   bool isInterceptorClass(Element element) {
+    if (element == null) return false;
     return element == jsStringClass;
   }
 
@@ -727,6 +728,13 @@ class JavaScriptBackend extends Backend {
     return false;
   }
 
+  void initializeInterceptorElements() {
+    objectInterceptorClass =
+        compiler.findInterceptor(const SourceString('ObjectInterceptor'));
+    getInterceptorMethod =
+        compiler.findInterceptor(const SourceString('getInterceptor'));
+  }
+
 
   void registerInstantiatedClass(ClassElement cls, Enqueuer enqueuer) {
     ClassElement result = null;
@@ -734,10 +742,7 @@ class JavaScriptBackend extends Backend {
       if (jsStringClass == null) {
         jsStringClass =
             compiler.findInterceptor(const SourceString('JSString'));
-        objectInterceptorClass =
-            compiler.findInterceptor(const SourceString('ObjectInterceptor'));
-        getInterceptorMethod =
-            compiler.findInterceptor(const SourceString('getInterceptor'));
+        initializeInterceptorElements();
       }
       result = jsStringClass;
     }

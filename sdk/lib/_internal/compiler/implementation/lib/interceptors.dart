@@ -21,6 +21,14 @@ class JSString implements String {
     if (index >= length) throw new RangeError.value(index);
     return JS('int', r'#.charCodeAt(#)', this, index);
   }
+
+  List<int> get charCodes  {
+    List<int> result = new List<int>(length);
+    for (int i = 0; i < length; i++) {
+      result[i] = charCodeAt(i);
+    }
+    return result;
+  }
 }
 
 /**
@@ -668,16 +676,6 @@ get$hashCode(receiver) {
   hash = 0x1fffffff & (hash + (0x03ffffff & hash) <<  3);
   hash = JS('int', '# ^ (# >> 11)', hash, hash);
   return 0x1fffffff & (hash + (0x00003fff & hash) << 15);
-}
-
-get$charCodes(receiver) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.charCodes);
-  int len = receiver.length;
-  List<int> result = new List<int>(len);
-  for (int i = 0; i < len; i++) {
-    result[i] = receiver.charCodeAt(i);
-  }
-  return result;
 }
 
 get$isEven(receiver) {

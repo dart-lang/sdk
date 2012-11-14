@@ -1526,7 +1526,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // on an interceptor by checking if the arguments in the inputs list
   // is one more than the arguments in the selector. The extra
   // argument in an interceptor call is the actual receiver.
-  bool isInterceptorCall(HInvokeDynamicMethod node) {
+  bool isInterceptorCall(HInvokeDynamic node) {
     return node.inputs.length - 1 != node.selector.argumentCount;
   }
 
@@ -1558,6 +1558,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // [registerDynamicInvocation].
       if (!isInterceptorCall(node)) {
         backend.registerDynamicInvocation(node, selector, types);
+      } else {
+        backend.addInterceptedSelector(selector);
       }
 
       // If we don't know what we're calling or if we are calling a getter,
@@ -1588,6 +1590,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                                    Selector defaultSelector) {
     // TODO(4434): For private members we need to use the untyped selector.
     if (defaultSelector.name.isPrivate()) return defaultSelector;
+    // TODO(ngeoffray): Type intercepted calls.
+    if (isInterceptorCall(node)) return defaultSelector;
     // If [JSInvocationMirror.invokeOn] has been called, we must not create a
     // typed selector based on the receiver type.
     if (node.element == null && // Invocation is not exact.
@@ -1620,6 +1624,9 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(jsPropertyCall(pop(), name, visitArguments(node.inputs)), node);
     world.registerDynamicGetter(
         getter.name, getOptimizedSelectorFor(node, getter));
+    if (isInterceptorCall(node)) {
+      backend.addInterceptedSelector(getter);
+    }
   }
 
   visitInvokeClosure(HInvokeClosure node) {
@@ -1983,11 +1990,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitThis(HThis node) {
-    if (backend.isInterceptorClass(work.element.getEnclosingClass())){
-      push(new js.VariableUse(variableNames.getName(node)), node);
-    } else {
-      push(new js.This());
-    }
+    push(new js.This());
   }
 
   visitThrow(HThrow node) {
