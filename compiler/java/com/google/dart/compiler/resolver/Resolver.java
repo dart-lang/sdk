@@ -1507,13 +1507,9 @@ public class Resolver {
         if (element == null) {
           element = getContext().getScope().findElement(null, name);
         }
-        if (element != null) {
-          Element enclosingLibrary = Elements.getLibraryElement(enclosingElement);
-          Element identifierEnclosingLibrary = Elements.getLibraryElement(element);
-          if (!enclosingLibrary.equals(identifierEnclosingLibrary)) {
-            onError(diagnosticNode, ResolverErrorCode.ILLEGAL_ACCESS_TO_PRIVATE, name);
-            return true;
-          }
+        if (!Elements.areSameLibrary(enclosingElement, element)) {
+          onError(diagnosticNode, ResolverErrorCode.ILLEGAL_ACCESS_TO_PRIVATE, name);
+          return true;
         }
       }
       return false;
@@ -1681,10 +1677,8 @@ public class Resolver {
         break;
         case CONSTRUCTOR:
           if (enclosingElement != null) {
-            Element enclosingLibrary = Elements.getLibraryElement(enclosingElement);
-            Element constructorEnclosingLibrary = Elements.getLibraryElement(element);
             if (element != null && DartIdentifier.isPrivateName(element.getName())
-                && !enclosingLibrary.equals(constructorEnclosingLibrary)) {
+                && !Elements.areSameLibrary(enclosingElement, element)) {
               onError(x.getConstructor(), ResolverErrorCode.ILLEGAL_ACCESS_TO_PRIVATE,
                   element.getName());
               return null;

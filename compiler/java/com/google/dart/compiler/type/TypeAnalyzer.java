@@ -1569,12 +1569,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     private void checkIllegalPrivateAccess(DartNode diagnosticNode, Element element, String name) {
       if (DartIdentifier.isPrivateName(name)) {
-        if (element != null) {
-          Element enclosingLibrary = Elements.getLibraryElement(currentMethod);
-          Element identifierEnclosingLibrary = Elements.getLibraryElement(element);
-          if (!enclosingLibrary.equals(identifierEnclosingLibrary)) {
-            onError(diagnosticNode, TypeErrorCode.ILLEGAL_ACCESS_TO_PRIVATE, name);
-          }
+        if (!Elements.areSameLibrary(currentMethod, element)) {
+          onError(diagnosticNode, TypeErrorCode.ILLEGAL_ACCESS_TO_PRIVATE, name);
         }
       }
     }
