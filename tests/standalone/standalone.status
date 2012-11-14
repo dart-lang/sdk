@@ -6,8 +6,6 @@ out_of_memory_test: Skip # Issue 2345
 
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
-[ $system == macos ]
-
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
 io/process_invalid_arguments_test: Fail, OK
@@ -27,12 +25,6 @@ io/test_runner_test: Pass, Fail  # Issue 1947
 # This is expected as MacOS by default runs with a very low number
 # of allowed open files ('ulimit -n' says something like 256).
 io/socket_many_connections_test: Skip
-
-io/file_non_ascii_sync_test: Fail  # issue 6702
-io/directory_non_ascii_sync_test: Fail  # issue 6702
-io/process_non_ascii_test: Fail  # issue 6702
-io/directory_non_ascii_test: Fail  # issue 6702
-io/file_non_ascii_test: Fail  # issue 6702
 
 [ $runtime == vm && $system == windows ]
 io/file_system_links_test: Skip  # No links on Windows.
