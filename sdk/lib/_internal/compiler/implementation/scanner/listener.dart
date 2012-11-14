@@ -254,7 +254,7 @@ class Listener {
   void beginMetadata(Token token) {
   }
 
-  void endMetadata(Token beginToken, Token endToken) {
+  void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
   }
 
   void beginOptionalFormalParameters(Token token) {
@@ -735,7 +735,10 @@ class ElementListener extends Listener {
     }
   }
 
-  void endMetadata(Token beginToken, Token endToken) {
+  void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
+    if (periodBeforeName != null) {
+      popNode(); // Discard name.
+    }
     popNode(); // Discard node (Send or Identifier).
     pushMetadata(new PartialMetadataAnnotation(beginToken));
   }
@@ -1722,6 +1725,42 @@ class NodeListener extends ElementListener {
                                 beginToken, inKeyword));
   }
 
+  void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
+    NodeList arguments = popNode();
+    if (arguments == null) {
+      // This is a constant expression.
+      Identifier name;
+      if (periodBeforeName != null) {
+        name = popNode();
+      }
+      NodeList typeArguments = popNode();
+      Node receiver = popNode();
+      if (typeArguments != null) {
+        receiver = new TypeAnnotation(receiver, typeArguments);
+        recoverableError('typeArguments not allowed here', node: typeArguments);
+      } else {
+        Identifier identifier = receiver.asIdentifier();
+        Send send = receiver.asSend();
+        if (identifier != null) {
+          receiver = new Send(null, identifier);
+        } else if (send == null) {
+          internalError(node: receiver);
+        }
+      }
+      Send send = receiver;
+      if (name != null) {
+        send = new Send(receiver, name);
+      }
+      pushNode(send);
+    } else {
+      // This is a const constructor call.
+      endConstructorReference(beginToken, periodBeforeName, endToken);
+      Node constructor = popNode();
+      pushNode(new NewExpression(beginToken,
+                                 new Send(null, constructor, arguments)));
+    }
+  }
+
   void handleAssertStatement(Token assertKeyword, Token semicolonToken) {
     NodeList arguments = popNode();
     Node selector = new Identifier(assertKeyword);
@@ -1892,7 +1931,7 @@ class PartialMetadataAnnotation extends MetadataAnnotation {
     if (cachedNode != null) return cachedNode;
     cachedNode = parse(listener,
                        annotatedElement.getCompilationUnit(),
-                       (p) => p.parseSend(beginToken.next));
+                       (p) => p.parseMetadata(beginToken));
     return cachedNode;
   }
 }

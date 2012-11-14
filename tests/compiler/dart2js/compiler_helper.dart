@@ -22,7 +22,8 @@ import "parser_helper.dart";
 
 String compile(String code, {String entry: 'main',
                              bool enableTypeAssertions: false,
-                             bool minify: false}) {
+                             bool minify: false,
+                             bool analyzeAll: false}) {
   MockCompiler compiler =
       new MockCompiler(enableTypeAssertions: enableTypeAssertions,
                        enableMinification: minify);
@@ -37,8 +38,8 @@ String compile(String code, {String entry: 'main',
   return compiler.enqueuer.codegen.lookupCode(element);
 }
 
-MockCompiler compilerFor(String code, Uri uri) {
-  MockCompiler compiler = new MockCompiler();
+MockCompiler compilerFor(String code, Uri uri, {bool analyzeAll: false}) {
+  MockCompiler compiler = new MockCompiler(analyzeAll: analyzeAll);
   compiler.sourceFiles[uri.toString()] = new SourceFile(uri.toString(), code);
   return compiler;
 }

@@ -400,7 +400,10 @@ class NewExpression extends Expression {
     if (send != null) send.accept(visitor);
   }
 
-  bool isConst() => identical(newToken.stringValue, 'const');
+  bool isConst() {
+    return identical(newToken.stringValue, 'const')
+        || identical(newToken.stringValue, '@');
+  }
 
   Token getBeginToken() => newToken;
 

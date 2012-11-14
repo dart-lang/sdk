@@ -32,6 +32,7 @@ class Compiler extends leg.Compiler {
             enableMinification: hasOption(options, '--minify'),
             emitJavaScript: !hasOption(options, '--output-type=dart'),
             disallowUnsafeEval: hasOption(options, '--disallow-unsafe-eval'),
+            analyzeAll: hasOption(options, '--analyze-all'),
             strips: getStrips(options),
             enableConcreteTypeInference:
               hasOption(options, '--enable-concrete-type-inference')) {

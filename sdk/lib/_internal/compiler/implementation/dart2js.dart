@@ -163,6 +163,7 @@ void compile(List<String> argv) {
     new OptionHandler(r'--help|/\?|/h', (_) => wantHelp = true),
     new OptionHandler('--package-root=.+|-p.+', setPackageRoot),
     new OptionHandler('--disallow-unsafe-eval', passThrough),
+    new OptionHandler('--analyze-all', passThrough),
     // The following two options must come last.
     new OptionHandler('-.*', (String argument) {
       helpAndFail('Error: Unknown option "$argument".');

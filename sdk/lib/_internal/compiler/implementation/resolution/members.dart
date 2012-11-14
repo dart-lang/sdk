@@ -76,6 +76,12 @@ class ResolverTask extends CompilerTask {
 
   TreeElements resolve(Element element) {
     return measure(() {
+      if (Elements.isErroneousElement(element)) return null;
+
+      for (MetadataAnnotation metadata in element.metadata) {
+        metadata.ensureResolved(compiler);
+      }
+
       ElementKind kind = element.kind;
       if (identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR) ||
           identical(kind, ElementKind.FUNCTION) ||
@@ -89,6 +95,14 @@ class ResolverTask extends CompilerTask {
       if (identical(kind, ElementKind.PARAMETER) ||
           identical(kind, ElementKind.FIELD_PARAMETER)) {
         return resolveParameter(element);
+      }
+      if (element.isClass()) {
+        ClassElement cls = element;
+        cls.ensureResolved(compiler);
+        return null;
+      } else if (element.isTypedef() || element.isTypeVariable()) {
+        element.computeType(compiler);
+        return null;
       }
 
       compiler.unimplemented("resolve($element)",
@@ -445,6 +459,9 @@ class ResolverTask extends CompilerTask {
       // TODO(johnniwinther): Check matching type variables and
       // empty extends/implements clauses.
     }
+    for (MetadataAnnotation metadata in element.metadata) {
+      metadata.ensureResolved(compiler);
+    }
   }
 
   void checkMembers(ClassElement cls) {
@@ -628,7 +645,7 @@ class ResolverTask extends CompilerTask {
           visitorFor(annotation.annotatedElement.enclosingElement);
       node.accept(visitor);
       annotation.value = compiler.constantHandler.compileNodeWithDefinitions(
-          node, visitor.mapping);
+          node, visitor.mapping, isConst: true);
 
       annotation.resolutionState = STATE_DONE;
     }));
@@ -1201,8 +1218,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     Element result = scope.lookup(name);
     if (!Elements.isUnresolved(result)) {
       if (!inInstanceContext && result.isInstanceMember()) {
-        error(node, MessageKind.NO_INSTANCE_AVAILABLE, [node]);
-        // TODO(johnniwinther): Create an ErroneousElement.
+        compiler.reportMessage(compiler.spanFromNode(node),
+            MessageKind.NO_INSTANCE_AVAILABLE.error([name]),
+            Diagnostic.ERROR);
+        return new ErroneousElement(MessageKind.NO_INSTANCE_AVAILABLE,
+                                    [name],
+                                    name, enclosingElement);
       } else if (result.isAmbiguous()) {
         AmbiguousElement ambiguous = result;
         compiler.reportMessage(compiler.spanFromNode(node),

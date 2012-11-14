@@ -103,6 +103,7 @@ abstract class Compiler implements DiagnosticListener {
   final bool enableTypeAssertions;
   final bool enableUserAssertions;
   final bool enableConcreteTypeInference;
+  final bool analyzeAll;
 
   bool disableInlining = false;
 
@@ -213,6 +214,7 @@ abstract class Compiler implements DiagnosticListener {
             bool emitJavaScript: true,
             bool generateSourceMap: true,
             bool disallowUnsafeEval: false,
+            this.analyzeAll: false,
             List<String> strips: const []})
       : libraries = new Map<String, LibraryElement>(),
         progress = new Stopwatch() {
@@ -517,6 +519,7 @@ abstract class Compiler implements DiagnosticListener {
 
     log('Resolving...');
     phase = PHASE_RESOLVING;
+    if (analyzeAll) libraries.forEach((_, lib) => fullyEnqueueLibrary(lib));
     backend.enqueueHelpers(enqueuer.resolution);
     processQueue(enqueuer.resolution, main);
     log('Resolved ${enqueuer.resolution.resolvedElements.length} elements.');
@@ -540,6 +543,22 @@ abstract class Compiler implements DiagnosticListener {
     backend.assembleProgram();
 
     checkQueues();
+  }
+
+  void fullyEnqueueLibrary(LibraryElement library) {
+    library.forEachLocalMember(fullyEnqueueTopLevelElement);
+  }
+
+  void fullyEnqueueTopLevelElement(Element element) {
+    if (element.isClass()) {
+      ClassElement cls = element;
+      cls.ensureResolved(this);
+      for (Element member in cls.localMembers) {
+        enqueuer.resolution.addToWorkList(member);
+      }
+    } else {
+      enqueuer.resolution.addToWorkList(element);
+    }
   }
 
   void processQueue(Enqueuer world, Element main) {
@@ -609,14 +628,6 @@ abstract class Compiler implements DiagnosticListener {
     assert(invariant(element, element.isDeclaration));
     TreeElements elements = enqueuer.resolution.getCachedElements(element);
     if (elements != null) return elements;
-    final int allowed = ElementCategory.VARIABLE | ElementCategory.FUNCTION
-                        | ElementCategory.FACTORY;
-    ElementKind kind = element.kind;
-    if (!element.isAccessor() &&
-        ((identical(kind, ElementKind.ABSTRACT_FIELD)) ||
-         (kind.category & allowed) == 0)) {
-      return null;
-    }
     assert(parser != null);
     Node tree = parser.parse(element);
     validator.validate(tree);

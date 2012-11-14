@@ -483,6 +483,10 @@ LibTest/math/pow_A13_t01: Fail # Inherited from VM.
 LibTest/math/sin_A01_t01: Fail # Inherited from VM.
 LibTest/math/tan_A01_t01: Fail # Issue co19 - 44
 
+Language/07_Classes/07_Classes_A01_t20: Fail # http://dartbug.com/6687
+Language/07_Classes/07_Classes_A02_t34: Fail # http://dartbug.com/6687
+Language/07_Classes/07_Classes_A03_t10: Fail # http://dartbug.com/6687
+
 LibTest/core/RegExp/RegExp_A01_t04: Fail, OK # co19 issue 314
 LibTest/core/String/contains_A01_t01: Fail, OK # co19 issue 314
 LibTest/core/String/contains_A01_t03: Fail, OK # co19 issue 314

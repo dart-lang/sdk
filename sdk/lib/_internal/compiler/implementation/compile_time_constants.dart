@@ -158,7 +158,7 @@ class ConstantHandler extends CompilerTask {
 
   Constant compileNodeWithDefinitions(Node node,
                                       TreeElements definitions,
-                                      {bool isConst}) {
+                                      {bool isConst: false}) {
     return measure(() {
       assert(node != null);
       CompileTimeConstantEvaluator evaluator = new CompileTimeConstantEvaluator(
@@ -250,7 +250,7 @@ class CompileTimeConstantEvaluator extends Visitor {
   CompileTimeConstantEvaluator(this.constantSystem,
                                this.elements,
                                this.compiler,
-                               {bool isConst})
+                               {bool isConst: false})
       : this.isEvaluatingConstant = isConst;
 
   Constant evaluate(Node node) {

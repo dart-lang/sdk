@@ -85,17 +85,21 @@ class MockCompiler extends Compiler {
                 String interceptorsSource: DEFAULT_INTERCEPTORSLIB,
                 bool enableTypeAssertions: false,
                 bool enableMinification: false,
-                bool enableConcreteTypeInference: false})
+                bool enableConcreteTypeInference: false,
+                bool analyzeAll: false})
       : warnings = [], errors = [],
         sourceFiles = new Map<String, SourceFile>(),
         super(enableTypeAssertions: enableTypeAssertions,
               enableMinification: enableMinification,
-              enableConcreteTypeInference: enableConcreteTypeInference) {
+              enableConcreteTypeInference: enableConcreteTypeInference,
+              analyzeAll: analyzeAll) {
     coreLibrary = createLibrary("core", coreSource);
     // We need to set the assert method to avoid calls with a 'null'
     // target being interpreted as a call to assert.
     jsHelperLibrary = createLibrary("helper", helperSource);
     importHelperLibrary(coreLibrary);
+    libraryLoader.importLibrary(jsHelperLibrary, coreLibrary, null);
+
     assertMethod = jsHelperLibrary.find(buildSourceString('assert'));
     interceptorsLibrary = createLibrary("interceptors", interceptorsSource);
 
