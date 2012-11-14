@@ -18,15 +18,15 @@ main() {
   void expectNoSuchMethod(void fn()) =>
     expect(fn, throwsNoSuchMethodError);
 
-  group('addHTML', () {
+  group('addHtml', () {
     test('htmlelement', () {
       var el = new DivElement();
-      el.addHTML('<span></span>');
+      el.addHtml('<span></span>');
       expect(el.elements.length, equals(1));
       var span = el.elements[0];
       expect(span, isSpanElement);
 
-      el.addHTML('<div></div>');
+      el.addHtml('<div></div>');
       expect(el.elements.length, equals(2));
       // Validate that the first item is still first.
       expect(el.elements[0], equals(span));
@@ -35,7 +35,7 @@ main() {
 
     test('documentFragment', () {
       var fragment = new DocumentFragment();
-      fragment.addHTML('<span>something</span>');
+      fragment.addHtml('<span>something</span>');
       expect(fragment.elements.length, equals(1));
       expect(fragment.elements[0], isSpanElement);
     });

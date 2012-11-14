@@ -6476,7 +6476,7 @@ class DocumentFragment extends Node native "*DocumentFragment" {
     this.insertAdjacentText('beforeend', text);
   }
 
-  void addHTML(String text) {
+  void addHtml(String text) {
     this.insertAdjacentHTML('beforeend', text);
   }
 
@@ -7303,7 +7303,7 @@ class Element extends Node implements ElementTraversal native "*Element" {
    * Parses the specified text as HTML and adds the resulting node after the
    * last child of this.
    */
-  void addHTML(String text) {
+  void addHtml(String text) {
     this.insertAdjacentHTML('beforeend', text);
   }
 

@@ -103,7 +103,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     this.insertAdjacentText('beforeend', text);
   }
 
-  void addHTML(String text) {
+  void addHtml(String text) {
     this.insertAdjacentHTML('beforeend', text);
   }
 
