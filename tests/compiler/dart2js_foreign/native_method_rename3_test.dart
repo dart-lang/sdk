@@ -5,15 +5,17 @@
 // Test the feature where the native string declares the native method's name.
 // #3. The name does not get
 
-@native("*A")
+import 'native_metadata.dart';
+
+@Native("*A")
 class A {
-  @native('fooA')
+  @Native('fooA')
   int foo();
 }
 
-@native("*B")
+@Native("*B")
 class B extends A  {
-  @native('fooB')
+  @Native('fooB')
   int foo();
   int fooA() => 333;
 }
@@ -27,7 +29,7 @@ class Decoy {
 @native makeB();
 
 
-@native("""
+@Native("""
 // This code is all inside 'setup' and so not accesible from the global scope.
 function inherits(child, parent) {
   if (child.prototype.__proto__) {

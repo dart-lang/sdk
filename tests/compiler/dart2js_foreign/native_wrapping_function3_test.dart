@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'native_metadata.dart';
+
 typedef void Callback0();
 typedef void Callback1(arg1);
 typedef void Callback2(arg1, arg2);
 
-@native("*A")
+@Native("*A")
 class A {
   @native foo1(Callback1 closure, [arg1 = 0]);
   @native foo2(Callback2 closure, [arg1 = 0, arg2 = 1]);
@@ -14,7 +16,7 @@ class A {
 
 @native makeA();
 
-@native("""
+@Native("""
 function A() {}
 A.prototype.foo1 = function(closure, arg1) { return closure(arg1); };
 A.prototype.foo2 = function(closure, arg1, arg2) {

@@ -4,26 +4,27 @@
 
 // Hidden native class wwith named constructors and static methods.
 
+import 'native_metadata.dart';
 
-@native("*A")
+@Native("*A")
 class A {
 
   factory A(int len) => _construct(len);
 
   factory A.fromString(String s)  => _construct(s.length);
 
-  @native(r'return makeA(a+b);')
+  @Native(r'return makeA(a+b);')
   factory A.nativeConstructor(int a, int b);
 
   static A _construct(v) { return makeA(v); }
 
-  @native('return this._x;')
+  @Native('return this._x;')
   foo();
 }
 
 @native makeA(v);
 
-@native("""
+@Native("""
 // This code is all inside 'setup' and so not accesible from the global scope.
 function A(arg) { this._x = arg; }
 makeA = function(arg) { return new A(arg); }

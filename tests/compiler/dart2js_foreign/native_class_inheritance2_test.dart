@@ -7,21 +7,23 @@
 // superclass caches the method in the prototype, so shadowing the dispatcher
 // stored on Object.prototype.
 
-@native("*A")
+import 'native_metadata.dart';
+
+@Native("*A")
 class A {
   @native foo([a=100]);
 }
 
-@native("*B")
+@Native("*B")
 class B extends A  {
 }
 
-@native("*C")
+@Native("*C")
 class C extends B  {
   @native foo([z=300]);
 }
 
-@native("*D")
+@Native("*D")
 class D extends C  {
 }
 
@@ -30,7 +32,7 @@ class D extends C  {
 @native makeC();
 @native makeD();
 
-@native("""
+@Native("""
 // This code is all inside 'setup' and so not accesible from the global scope.
 function inherits(child, parent) {
   if (child.prototype.__proto__) {

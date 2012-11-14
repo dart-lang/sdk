@@ -4,14 +4,16 @@
 
 // Properties on hidden native classes.
 
-@native("*A")
+import 'native_metadata.dart';
+
+@Native("*A")
 class A {
 
   // Setters and getters should be similar to these methods:
-  @native('return this._x;')
+  @Native('return this._x;')
   int getX();
 
-  @native('this._x = value;')
+  @Native('this._x = value;')
   void setX(int value);
 
   @native
@@ -26,17 +28,17 @@ class A {
   @native
   set Y(int value);
 
-  @native('return this._z;')
+  @Native('return this._z;')
   int get Z;
 
-  @native('this._z = value;')
+  @Native('this._z = value;')
   set Z(int value);
 }
 
 @native
 A makeA() { return new A(); }
 
-@native("""
+@Native("""
 function A() {}
 
 Object.defineProperty(A.prototype, "X", {

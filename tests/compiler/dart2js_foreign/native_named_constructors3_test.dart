@@ -5,8 +5,9 @@
 // Hidden native class with factory constructors and NO static methods.
 // Regression test.
 
+import 'native_metadata.dart';
 
-@native("*A")
+@Native("*A")
 class A {
 
   // No static methods in this class.
@@ -15,16 +16,16 @@ class A {
 
   factory A.fromString(String s)  => makeA(s.length);
 
-  @native(r'return makeA(a+b);')
+  @Native(r'return makeA(a+b);')
   factory A.nativeConstructor(int a, int b);
 
-  @native('return this._x;')
+  @Native('return this._x;')
   foo();
 }
 
 @native makeA(v);
 
-@native("""
+@Native("""
 // This code is all inside 'setup' and so not accesible from the global scope.
 function A(arg) { this._x = arg; }
 makeA = function(arg) { return new A(arg); }
