@@ -536,7 +536,9 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
   for (int i = 0; i < functions.Length(); i++) {
     func ^= functions.At(i);
     ASSERT(!func.IsNull());
-    if (!func.HasCode() && !func.is_abstract()) {
+    if (!func.HasCode() &&
+        !func.is_abstract() &&
+        !func.IsRedirectingFactory()) {
       error = CompileFunction(func);
       if (!error.IsNull()) {
         return error.raw();
