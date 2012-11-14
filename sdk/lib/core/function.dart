@@ -29,5 +29,5 @@ abstract class Function {
    */
   external static apply(Function function,
                         List positionalArguments,
-                        [Map<String,Dynamic> namedArguments]);
+                        [Map<String,dynamic> namedArguments]);
 }

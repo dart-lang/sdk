@@ -17,7 +17,7 @@ abstract class InvocationMirror {
   List get positionalArguments;
 
   /** An unmodifiable view of the named arguments of the call. */
-  Map<String, Dynamic> get namedArguments;
+  Map<String, dynamic> get namedArguments;
 
   /** Whether the invocation was a method call. */
   bool get isMethod;

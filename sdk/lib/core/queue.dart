@@ -291,8 +291,8 @@ class DoubleLinkedQueue<E> implements Queue<E> {
     return other;
   }
 
-  Dynamic reduce(Dynamic initialValue,
-                 Dynamic combine(Dynamic previousValue, E element)) {
+  dynamic reduce(dynamic initialValue,
+                 dynamic combine(dynamic previousValue, E element)) {
     return Collections.reduce(this, initialValue, combine);
   }
 

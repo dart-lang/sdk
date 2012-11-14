@@ -12,7 +12,7 @@ class _Constructor extends _Visitor {
   _Node root;
 
   /** Map from anchor names to the most recent Dart node with that anchor. */
-  Map<String, Dynamic> anchors;
+  Map<String, dynamic> anchors;
 
   _Constructor(this.root) : this.anchors = {};
 

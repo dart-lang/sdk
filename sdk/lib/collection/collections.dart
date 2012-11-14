@@ -42,9 +42,9 @@ class Collections {
     return destination;
   }
 
-  static Dynamic reduce(Iterable iterable,
-                        Dynamic initialValue,
-                        Dynamic combine(Dynamic previousValue, element)) {
+  static dynamic reduce(Iterable iterable,
+                        dynamic initialValue,
+                        dynamic combine(dynamic previousValue, element)) {
     for (final element in iterable) {
       initialValue = combine(initialValue, element);
     }

@@ -136,8 +136,8 @@ abstract class _ByteArrayBase {
     return Collections.map(this, new List(), f);
   }
 
-  Dynamic reduce(Dynamic initialValue,
-                 Dynamic combine(Dynamic initialValue, element)) {
+  dynamic reduce(dynamic initialValue,
+                 dynamic combine(dynamic initialValue, element)) {
     return Collections.reduce(this, initialValue, combine);
   }
 
@@ -1616,8 +1616,8 @@ class _ByteArrayViewBase {
     return Collections.map(this, new List(), f);
   }
 
-  Dynamic reduce(Dynamic initialValue,
-                 Dynamic combine(Dynamic initialValue, element)) {
+  dynamic reduce(dynamic initialValue,
+                 dynamic combine(dynamic initialValue, element)) {
     return Collections.reduce(this, initialValue, combine);
   }
 

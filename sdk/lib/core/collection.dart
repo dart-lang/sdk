@@ -63,8 +63,8 @@ abstract class Collection<E> extends Iterable<E> {
    *
    *   collection.reduce(0, (prev, element) => prev + element);
    */
-  Dynamic reduce(var initialValue,
-                 Dynamic combine(var previousValue, E element)) {
+  dynamic reduce(var initialValue,
+                 dynamic combine(var previousValue, E element)) {
     var value = initialValue;
     for (E element in this) value = combine(value, element);
     return value;

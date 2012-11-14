@@ -88,7 +88,7 @@ class NoSuchMethodError implements Error {
   final Object _receiver;
   final String _memberName;
   final List _arguments;
-  final Map<String,Dynamic> _namedArguments;
+  final Map<String,dynamic> _namedArguments;
   final List _existingArgumentNames;
 
   /**
@@ -108,7 +108,7 @@ class NoSuchMethodError implements Error {
   const NoSuchMethodError(Object this._receiver,
                           String this._memberName,
                           List this._arguments,
-                          Map<String,Dynamic> this._namedArguments,
+                          Map<String,dynamic> this._namedArguments,
                           [List existingArgumentNames = null])
       : this._existingArgumentNames = existingArgumentNames;
 

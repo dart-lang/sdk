@@ -238,7 +238,7 @@ class _IsolateContext {
    * Run [code] in the context of the isolate represented by [this]. Note this
    * is called from JavaScript (see $wrap_call in corejs.dart).
    */
-  Dynamic eval(Function code) {
+  dynamic eval(Function code) {
     var old = _globalState.currentContext;
     _globalState.currentContext = this;
     this._setGlobals();
@@ -488,7 +488,7 @@ class _IsolateNatives {
    * Extract the constructor of runnable, so it can be allocated in another
    * isolate.
    */
-  static Dynamic _getJSConstructor(Isolate runnable) {
+  static dynamic _getJSConstructor(Isolate runnable) {
     return JS("Object", "#.constructor", runnable);
   }
 
@@ -496,16 +496,16 @@ class _IsolateNatives {
   // TODO(sigmund): find a browser-generic way to support this.
   // TODO(floitsch): is this function still used? If yes, should we use
   // Primitives.objectTypeName instead?
-  static Dynamic _getJSConstructorName(Isolate runnable) {
+  static dynamic _getJSConstructorName(Isolate runnable) {
     return JS("Object", "#.constructor.name", runnable);
   }
 
   /** Find a constructor given its name. */
-  static Dynamic _getJSConstructorFromName(String factoryName) {
+  static dynamic _getJSConstructorFromName(String factoryName) {
     return JS("Object", r"$globalThis[#]", factoryName);
   }
 
-  static Dynamic _getJSFunctionFromName(String functionName) {
+  static dynamic _getJSFunctionFromName(String functionName) {
     return JS("Object", r"$globalThis[#]", functionName);
   }
 
@@ -519,7 +519,7 @@ class _IsolateNatives {
   }
 
   /** Create a new JavaScript object instance given its constructor. */
-  static Dynamic _allocate(var ctor) {
+  static dynamic _allocate(var ctor) {
     return JS("Object", "new #()", ctor);
   }
 
@@ -1171,7 +1171,7 @@ class _Serializer extends _MessageTraverser {
 
 /** Deserializes arrays created with [_Serializer]. */
 class _Deserializer {
-  Map<int, Dynamic> _deserialized;
+  Map<int, dynamic> _deserialized;
 
   _Deserializer();
 

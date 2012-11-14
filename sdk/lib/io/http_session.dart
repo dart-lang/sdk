@@ -23,7 +23,7 @@ class _HttpSession implements HttpSession {
     _sessionManager._bumpToEnd(this);
   }
 
-  Dynamic data;
+  dynamic data;
 
   Date get lastSeen => _lastSeen;
 
