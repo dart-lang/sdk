@@ -195,4 +195,16 @@ main() {
       expect(el.innerHTML, '<circle></circle><path></path>');
     });
   });
+
+  group('css', () {
+    test('classes', () {
+      var el = new SVGElement.tag("circle");
+      var classes = el.classes;
+      expect(el.classes.length, 0);
+      classes.toggle('foo');
+      expect(el.classes.length, 1);
+      classes.toggle('foo');
+      expect(el.classes.length, 0);
+    });
+  });
 }

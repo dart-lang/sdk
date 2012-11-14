@@ -1370,6 +1370,9 @@ class _AttributeClassSet extends CssClassSet {
     var classname = _element.attributes['class'];
 
     Set<String> s = new Set<String>();
+    if (classname == null) {
+      return s;
+    }
     for (String name in classname.split(' ')) {
       String trimmed = name.trim();
       if (!trimmed.isEmpty) {
@@ -1380,7 +1383,8 @@ class _AttributeClassSet extends CssClassSet {
   }
 
   void writeClasses(Set s) {
-    _element.attributes['class'] = _formatSet(s);
+    List list = new List.from(s);
+    _element.attributes['class'] = Strings.join(list, ' ');
   }
 }
 
@@ -1390,9 +1394,10 @@ class SVGElement extends Element {
   factory SVGElement.svg(String svg) =>
       _SVGElementFactoryProvider.createSVGElement_svg(svg);
 
+  _AttributeClassSet _cssClassSet;
   CssClassSet get classes {
     if (_cssClassSet == null) {
-      _cssClassSet = new _AttributeClassSet(_ptr);
+      _cssClassSet = new _AttributeClassSet(this);
     }
     return _cssClassSet;
   }
