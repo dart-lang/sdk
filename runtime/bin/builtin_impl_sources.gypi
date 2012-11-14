@@ -47,8 +47,6 @@
     'fdutils_macos.cc',
     'hashmap_test.cc',
     'isolate_data.h',
-    'set.h',
-    'set_test.cc',
     'thread.h',
     'utils.h',
     'utils_android.cc',
