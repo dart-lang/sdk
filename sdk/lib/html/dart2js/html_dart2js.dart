@@ -23638,11 +23638,11 @@ class _MessageTraverser {
     return visitObject(x);
   }
 
-  abstract visitPrimitive(x);
-  abstract visitList(List x);
-  abstract visitMap(Map x);
-  abstract visitSendPort(SendPort x);
-  abstract visitSendPortSync(SendPortSync x);
+  visitPrimitive(x);
+  visitList(List x);
+  visitMap(Map x);
+  visitSendPort(SendPort x);
+  visitSendPortSync(SendPortSync x);
 
   visitObject(Object x) {
     // TODO(floitsch): make this a real exception. (which one)?
@@ -23793,7 +23793,7 @@ class _Deserializer {
     return result;
   }
 
-  abstract deserializeSendPort(List x);
+  deserializeSendPort(List x);
 
   deserializeObject(List x) {
     // TODO(floitsch): Use real exception (which one?).
