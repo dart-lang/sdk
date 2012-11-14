@@ -1019,10 +1019,13 @@ DART_EXPORT bool Dart_PostIntArray(Dart_Port port_id,
 }
 
 
-DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message) {
+DART_EXPORT bool Dart_PostCObject(Dart_Port port_id,
+                                  Dart_CObject* message) {
   uint8_t* buffer = NULL;
   ApiMessageWriter writer(&buffer, allocator);
-  writer.WriteCMessage(message);
+  bool success = writer.WriteCMessage(message);
+
+  if (!success) return success;
 
   // Post the message at the given port.
   return PortMap::PostMessage(new Message(

@@ -6,6 +6,7 @@
 #include "vm/object.h"
 #include "vm/snapshot_ids.h"
 #include "vm/symbols.h"
+#include "vm/unicode.h"
 
 namespace dart {
 
@@ -355,9 +356,30 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       p[len] = '\0';
       return object;
     }
-    case kTwoByteStringCid:
-      // Two byte strings not supported.
-      return AllocateDartCObjectUnsupported();
+    case kTwoByteStringCid: {
+      intptr_t len = ReadSmiValue();
+      intptr_t hash = ReadSmiValue();
+      USE(hash);
+      uint16_t *utf16 =
+          reinterpret_cast<uint16_t*>(::malloc(len * sizeof(uint16_t)));
+      intptr_t utf8_len = 0;
+      for (intptr_t i = 0; i < len; i++) {
+        utf16[i] = Read<uint16_t>();
+        // TODO(sgjesse): Check for surrogate pairs.
+        utf8_len += Utf8::Length(utf16[i]);
+      }
+      Dart_CObject* object = AllocateDartCObjectString(utf8_len);
+      AddBackRef(object_id, object, kIsDeserialized);
+      char* p = object->value.as_string;
+      for (intptr_t i = 0; i < len; i++) {
+        // TODO(sgjesse): Check for surrogate pairs.
+        p += Utf8::Encode(utf16[i], p);
+      }
+      *p = '\0';
+      ASSERT(p == object->value.as_string + utf8_len);
+      ::free(utf16);
+      return object;
+    }
     case kUint8ArrayCid: {
       intptr_t len = ReadSmiValue();
       Dart_CObject* object = AllocateDartCObjectUint8Array(len);
@@ -616,11 +638,11 @@ void ApiMessageWriter::WriteInlinedHeader(Dart_CObject* object) {
 }
 
 
-void ApiMessageWriter::WriteCObject(Dart_CObject* object) {
+bool ApiMessageWriter::WriteCObject(Dart_CObject* object) {
   if (IsCObjectMarked(object)) {
     intptr_t object_id = GetMarkedCObjectMark(object);
     WriteIndexedObject(kMaxPredefinedObjectIds + object_id);
-    return;
+    return true;
   }
 
   Dart_CObject::Type type = object->type;
@@ -636,19 +658,20 @@ void ApiMessageWriter::WriteCObject(Dart_CObject* object) {
     WriteNullObject();
     // Write out array elements.
     for (int i = 0; i < object->value.as_array.length; i++) {
-      WriteCObjectRef(object->value.as_array.values[i]);
+      bool success = WriteCObjectRef(object->value.as_array.values[i]);
+      if (!success) return false;
     }
-    return;
+    return true;
   }
-  WriteCObjectInlined(object, type);
+  return WriteCObjectInlined(object, type);
 }
 
 
-void ApiMessageWriter::WriteCObjectRef(Dart_CObject* object) {
+bool ApiMessageWriter::WriteCObjectRef(Dart_CObject* object) {
   if (IsCObjectMarked(object)) {
     intptr_t object_id = GetMarkedCObjectMark(object);
     WriteIndexedObject(kMaxPredefinedObjectIds + object_id);
-    return;
+    return true;
   }
 
   Dart_CObject::Type type = object->type;
@@ -661,13 +684,13 @@ void ApiMessageWriter::WriteCObjectRef(Dart_CObject* object) {
     WriteSmi(object->value.as_array.length);
     // Add object to forward list so that this object is serialized later.
     AddToForwardList(object);
-    return;
+    return true;
   }
-  WriteCObjectInlined(object, type);
+  return WriteCObjectInlined(object, type);
 }
 
 
-void ApiMessageWriter::WriteForwardedCObject(Dart_CObject* object) {
+bool ApiMessageWriter::WriteForwardedCObject(Dart_CObject* object) {
   ASSERT(IsCObjectMarked(object));
   Dart_CObject::Type type =
       static_cast<Dart_CObject::Type>(object->type & kDartCObjectTypeMask);
@@ -685,12 +708,14 @@ void ApiMessageWriter::WriteForwardedCObject(Dart_CObject* object) {
   WriteNullObject();
   // Write out array elements.
   for (int i = 0; i < object->value.as_array.length; i++) {
-    WriteCObjectRef(object->value.as_array.values[i]);
+    bool success = WriteCObjectRef(object->value.as_array.values[i]);
+    if (!success) return false;
   }
+  return true;
 }
 
 
-void ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
+bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
                                            Dart_CObject::Type type) {
   switch (type) {
     case Dart_CObject::kNull:
@@ -734,18 +759,38 @@ void ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       Write<double>(object->value.as_double);
       break;
     case Dart_CObject::kString: {
+      const uint8_t* utf8_str =
+          reinterpret_cast<const uint8_t*>(object->value.as_string);
+      intptr_t utf8_len = strlen(object->value.as_string);
+      if (!Utf8::IsValid(utf8_str, utf8_len)) {
+        return false;
+      }
+
+      Utf8::Type type;
+      intptr_t len = Utf8::CodePointCount(utf8_str, utf8_len, &type);
+
       // Write out the serialization header value for this object.
       WriteInlinedHeader(object);
       // Write out the class and tags information.
-      WriteIndexedObject(kOneByteStringCid);
+      WriteIndexedObject(type == Utf8::kAscii ? kOneByteStringCid
+                                              : kTwoByteStringCid);
       WriteIntptrValue(0);
       // Write string length, hash and content
-      char* str = object->value.as_string;
-      intptr_t len = strlen(str);
       WriteSmi(len);
       WriteSmi(0);  // TODO(sgjesse): Hash - not written.
-      for (intptr_t i = 0; i < len; i++) {
-        Write<uint8_t>(str[i]);
+      if (type == Utf8::kAscii) {
+        for (intptr_t i = 0; i < len; i++) {
+          Write<uint8_t>(utf8_str[i]);
+        }
+      } else {
+        // TODO(sgjesse): Make sure surrogate pairs are handled.
+        uint16_t* utf16_str =
+            reinterpret_cast<uint16_t*>(::malloc(len * sizeof(uint16_t)));
+        Utf8::DecodeToUTF16(utf8_str, utf8_len, utf16_str, len);
+        for (intptr_t i = 0; i < len; i++) {
+          Write<uint16_t>(utf16_str[i]);
+        }
+        ::free(utf16_str);
       }
       break;
     }
@@ -788,18 +833,29 @@ void ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
     default:
       UNREACHABLE();
   }
+
+  return true;
 }
 
 
-void ApiMessageWriter::WriteCMessage(Dart_CObject* object) {
-  WriteCObject(object);
+bool ApiMessageWriter::WriteCMessage(Dart_CObject* object) {
+  bool success = WriteCObject(object);
+  if (!success) {
+    UnmarkAllCObjects(object);
+    return false;
+  }
   // Write out all objects that were added to the forward list and have
   // not been serialized yet. These would typically be fields of arrays.
   // NOTE: The forward list might grow as we process the list.
   for (intptr_t i = 0; i < forward_id_; i++) {
-    WriteForwardedCObject(forward_list_[i]);
+    success = WriteForwardedCObject(forward_list_[i]);
+    if (!success) {
+      UnmarkAllCObjects(object);
+      return false;
+    }
   }
   UnmarkAllCObjects(object);
+  return true;
 }
 
 }  // namespace dart

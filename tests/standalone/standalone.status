@@ -6,9 +6,7 @@ out_of_memory_test: Skip # Issue 2345
 
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
-[ $runtime == vm ]
-io/directory_non_ascii_test: Fail  # Posting non-ascii strings through ports.
-io/file_non_ascii_test: Fail  # Posting non-ascii strings through ports.
+[ $system == macos ]
 
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
@@ -33,6 +31,8 @@ io/socket_many_connections_test: Skip
 io/file_non_ascii_sync_test: Fail  # issue 6702
 io/directory_non_ascii_sync_test: Fail  # issue 6702
 io/process_non_ascii_test: Fail  # issue 6702
+io/directory_non_ascii_test: Fail  # issue 6702
+io/file_non_ascii_test: Fail  # issue 6702
 
 [ $runtime == vm && $system == windows ]
 io/file_system_links_test: Skip  # No links on Windows.

@@ -11,6 +11,7 @@
 #include "vm/dart_api_state.h"
 #include "vm/snapshot.h"
 #include "vm/symbols.h"
+#include "vm/unicode.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -497,13 +498,12 @@ TEST_CASE(SerializeSingletons) {
 }
 
 
-TEST_CASE(SerializeString) {
+static void TestString(const char* cstr) {
   StackZone zone(Isolate::Current());
-
+  EXPECT(Utf8::IsValid(reinterpret_cast<const uint8_t*>(cstr), strlen(cstr)));
   // Write snapshot with object content.
   uint8_t* buffer;
   MessageWriter writer(&buffer, &zone_allocator);
-  static const char* cstr = "This string shall be serialized";
   String& str = String::Handle(String::New(cstr));
   writer.WriteMessage(str);
   intptr_t buffer_len = writer.BytesWritten();
@@ -522,6 +522,21 @@ TEST_CASE(SerializeString) {
   EXPECT_EQ(Dart_CObject::kString, root->type);
   EXPECT_STREQ(cstr, root->value.as_string);
   CheckEncodeDecodeMessage(root);
+}
+
+
+TEST_CASE(SerializeString) {
+  TestString("This string shall be serialized");
+  TestString("æøå");  // This file is UTF-8 encoded.
+  char data[] = {0x01,
+                 0x7f,
+                 0xc2, 0x80,         // 0x80
+                 0xdf, 0xbf,         // 0x7ff
+                 0xe0, 0xa0, 0x80,   // 0x800
+                 0xef, 0xbf, 0xbf,   // 0xffff
+                 0x00};              // String termination.
+  TestString(data);
+  // TODO(sgjesse): Add tests with non-BMP characters.
 }
 
 
@@ -1250,8 +1265,11 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
       "getBigint() {\n"
       "  return -0x424242424242424242424242424242424242;\n"
       "}\n"
-      "getString() {\n"
+      "getAsciiString() {\n"
       "  return \"Hello, world!\";\n"
+      "}\n"
+      "getNonAsciiString() {\n"
+      "  return \"Blåbærgrød\";\n"
       "}\n"
       "getList() {\n"
       "  return new List(kArrayLength);\n"
@@ -1271,10 +1289,15 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
   Dart_Handle bigint_result;
   bigint_result = Dart_Invoke(lib, NewString("getBigint"), 0, NULL);
   EXPECT_VALID(bigint_result);
-  Dart_Handle string_result;
-  string_result = Dart_Invoke(lib, NewString("getString"), 0, NULL);
-  EXPECT_VALID(string_result);
-  EXPECT(Dart_IsString(string_result));
+  Dart_Handle ascii_string_result;
+  ascii_string_result = Dart_Invoke(lib, NewString("getAsciiString"), 0, NULL);
+  EXPECT_VALID(ascii_string_result);
+  EXPECT(Dart_IsString(ascii_string_result));
+  Dart_Handle non_ascii_string_result;
+  non_ascii_string_result =
+      Dart_Invoke(lib, NewString("getNonAsciiString"), 0, NULL);
+  EXPECT_VALID(non_ascii_string_result);
+  EXPECT(Dart_IsString(non_ascii_string_result));
 
   {
     DARTSCOPE_NOCHECKS(isolate);
@@ -1321,7 +1344,7 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
       uint8_t* buffer;
       MessageWriter writer(&buffer, &zone_allocator);
       String& str = String::Handle();
-      str ^= Api::UnwrapHandle(string_result);
+      str ^= Api::UnwrapHandle(ascii_string_result);
       writer.WriteMessage(str);
       intptr_t buffer_len = writer.BytesWritten();
 
@@ -1332,6 +1355,24 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject::kString, root->type);
       EXPECT_STREQ("Hello, world!", root->value.as_string);
+      CheckEncodeDecodeMessage(root);
+    }
+    {
+      StackZone zone(Isolate::Current());
+      uint8_t* buffer;
+      MessageWriter writer(&buffer, &zone_allocator);
+      String& str = String::Handle();
+      str ^= Api::UnwrapHandle(non_ascii_string_result);
+      writer.WriteMessage(str);
+      intptr_t buffer_len = writer.BytesWritten();
+
+      // Read object back from the snapshot into a C structure.
+      ApiNativeScope scope;
+      ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
+      Dart_CObject* root = api_reader.ReadMessage();
+      EXPECT_NOTNULL(root);
+      EXPECT_EQ(Dart_CObject::kString, root->type);
+      EXPECT_STREQ("Blåbærgrød", root->value.as_string);
       CheckEncodeDecodeMessage(root);
     }
   }
@@ -2013,7 +2054,7 @@ UNIT_TEST_CASE(PostCObject) {
       "  var exception = '';\n"
       "  var port = new ReceivePort();\n"
       "  port.receive((message, replyTo) {\n"
-      "    if (messageCount < 7) {\n"
+      "    if (messageCount < 8) {\n"
       "      exception = '$exception${message}';\n"
       "    } else {\n"
       "      exception = '$exception${message.length}';\n"
@@ -2022,7 +2063,7 @@ UNIT_TEST_CASE(PostCObject) {
       "      }\n"
       "    }\n"
       "    messageCount++;\n"
-      "    if (messageCount == 8) throw new Exception(exception);\n"
+      "    if (messageCount == 9) throw new Exception(exception);\n"
       "  });\n"
       "  return port.toSendPort();\n"
       "}\n";
@@ -2061,6 +2102,16 @@ UNIT_TEST_CASE(PostCObject) {
   object.value.as_string = const_cast<char*>("456");
   EXPECT(Dart_PostCObject(send_port_id, &object));
 
+  object.type = Dart_CObject::kString;
+  object.value.as_string = const_cast<char*>("æøå");
+  EXPECT(Dart_PostCObject(send_port_id, &object));
+
+  // Try to post an invalid UTF-8 sequence (lead surrogate).
+  char data[] = {0xed, 0xa0, 0x80, 0};  // 0xd800
+  object.type = Dart_CObject::kString;
+  object.value.as_string = const_cast<char*>(data);
+  EXPECT(!Dart_PostCObject(send_port_id, &object));
+
   object.type = Dart_CObject::kDouble;
   object.value.as_double = 3.14;
   EXPECT(Dart_PostCObject(send_port_id, &object));
@@ -2091,7 +2142,7 @@ UNIT_TEST_CASE(PostCObject) {
   result = Dart_RunLoop();
   EXPECT(Dart_IsError(result));
   EXPECT(Dart_ErrorHasException(result));
-  EXPECT_SUBSTRING("Exception: nulltruefalse1234563.14[]100123456789\n",
+  EXPECT_SUBSTRING("Exception: nulltruefalse123456æøå3.14[]100123456789\n",
                    Dart_GetError(result));
 
   Dart_ExitScope();

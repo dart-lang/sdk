@@ -913,6 +913,8 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle object);
  * data outside the Dart heap. These objects are totally detached from
  * the Dart heap. Only a subset of the Dart objects have a
  * representation as a Dart_CObject.
+ *
+ * The string encoding in the 'value.as_string' is UTF-8.
  */
 typedef struct _Dart_CObject {
   enum Type {
