@@ -13506,7 +13506,7 @@ class Node extends EventTarget native "*Node" {
   Node get nextNode => JS("Node", "#.nextSibling", this);
 
   /** @domName Node.nodeType */
-  int get $dom_nodeType => JS("int", "#.nodeType", this);
+  final int nodeType;
 
   /** @domName Node.ownerDocument */
   Document get document => JS("Document", "#.ownerDocument", this);

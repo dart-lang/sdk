@@ -17596,7 +17596,7 @@ class Node extends EventTarget {
 
 
   /** @domName Node.nodeType */
-  int get $dom_nodeType native "Node_nodeType_Getter";
+  int get nodeType native "Node_nodeType_Getter";
 
 
   /** @domName Node.ownerDocument */

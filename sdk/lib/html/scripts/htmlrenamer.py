@@ -69,7 +69,6 @@ _private_html_members = set([
   'Node.childNodes',
   'Node.firstChild',
   'Node.lastChild',
-  "Node.nodeType",
   'Node.removeChild',
   'Node.replaceChild',
   'ShadowRoot.getElementById',
