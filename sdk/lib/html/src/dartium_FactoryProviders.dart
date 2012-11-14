@@ -87,9 +87,9 @@ class _TypedArrayFactoryProvider {
   static _U32(arg0, [arg1, arg2]) native "Uint32Array_constructor_Callback";
 
   static Uint8ClampedArray createUint8ClampedArray(int length) => _U8C(length);
-  static Uint8ClampedArray createUint8ClampedArrayUint8ClampedArray_fromList(
+  static Uint8ClampedArray createUint8ClampedArray_fromList(
       List<num> list) => _U8C(ensureNative(list));
-  static Uint8ClampedArray createUint8ClampedArrayUint8ClampedArray_fromBuffer(
+  static Uint8ClampedArray createUint8ClampedArray_fromBuffer(
       ArrayBuffer buffer, [int byteOffset = 0, int length]) =>
       _U8C(buffer, byteOffset, length);
   static _U8C(arg0, [arg1, arg2]) native "Uint8ClampedArray_constructor_Callback";
