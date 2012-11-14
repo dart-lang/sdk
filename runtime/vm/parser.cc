@@ -8776,15 +8776,13 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     return new LiteralNode(literal_pos, const_list);
   } else {
     // Factory call at runtime.
-    String& list_literal_factory_class_name = String::Handle(
-        Symbols::ListLiteralFactoryClass());
-    const Class& list_literal_factory_class =
-        Class::Handle(LookupCoreClass(list_literal_factory_class_name));
-    ASSERT(!list_literal_factory_class.IsNull());
+    String& list_class_name = String::Handle(Symbols::ListImplementation());
+    const Class& list_class = Class::Handle(LookupCoreClass(list_class_name));
+    ASSERT(!list_class.IsNull());
     const String& list_literal_factory_name =
         String::Handle(Symbols::ListLiteralFactory());
     const Function& list_literal_factory = Function::ZoneHandle(
-        list_literal_factory_class.LookupFactory(list_literal_factory_name));
+        list_class.LookupFactory(list_literal_factory_name));
     ASSERT(!list_literal_factory.IsNull());
     if (!type_arguments.IsNull() &&
         !type_arguments.IsInstantiated() &&
@@ -9001,15 +8999,13 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     }
   } else {
     // Factory call at runtime.
-    String& map_literal_factory_class_name = String::Handle(
-        Symbols::MapLiteralFactoryClass());
-    const Class& map_literal_factory_class =
-        Class::Handle(LookupCoreClass(map_literal_factory_class_name));
-    ASSERT(!map_literal_factory_class.IsNull());
+    String& map_class_name = String::Handle(Symbols::MapImplementation());
+    const Class& map_class = Class::Handle(LookupCoreClass(map_class_name));
+    ASSERT(!map_class.IsNull());
     const String& map_literal_factory_name =
         String::Handle(Symbols::MapLiteralFactory());
     const Function& map_literal_factory = Function::ZoneHandle(
-        map_literal_factory_class.LookupFactory(map_literal_factory_name));
+        map_class.LookupFactory(map_literal_factory_name));
     ASSERT(!map_literal_factory.IsNull());
     if (!map_type_arguments.IsNull() &&
         !map_type_arguments.IsInstantiated() &&

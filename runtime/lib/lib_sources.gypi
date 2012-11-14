@@ -27,7 +27,7 @@
     'integers.dart',
     'integers_patch.dart',
     'invocation_mirror_patch.dart',
-    'literal_factory.dart',
+    'map_patch.dart',
     'math.dart',
     'math.cc',
     'object.cc',

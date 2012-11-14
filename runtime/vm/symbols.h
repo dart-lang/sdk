@@ -42,12 +42,11 @@ class ObjectPointerVisitor;
     "AbstractClassInstantiationErrorImplementation")                           \
   V(NoSuchMethodError, "NoSuchMethodErrorImplementation")                      \
   V(ThrowNew, "_throwNew")                                                     \
-  V(ListLiteralFactoryClass, "_ListLiteralFactory")                            \
-  V(ListLiteralFactory, "List.fromLiteral")                                    \
+  V(ListLiteralFactory, "List._fromLiteral")                                   \
   V(ListImplementation, "_ListImpl")                                           \
   V(ListFactory, "List.")                                                      \
-  V(MapLiteralFactoryClass, "_MapLiteralFactory")                              \
-  V(MapLiteralFactory, "Map.fromLiteral")                                      \
+  V(MapImplementation, "_HashMapImpl")                                         \
+  V(MapLiteralFactory, "Map._fromLiteral")                                     \
   V(ImmutableMap, "ImmutableMap")                                              \
   V(ImmutableMapConstructor, "ImmutableMap._create")                           \
   V(StringBase, "_StringBase")                                                 \

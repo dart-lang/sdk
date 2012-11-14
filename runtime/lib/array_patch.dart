@@ -21,4 +21,15 @@ patch class _ListImpl<E> {
     }
     return list;
   }
+
+  // Factory constructing a mutable List from a parser generated List literal.
+  // [elements] contains elements that are already type checked.
+  factory List._fromLiteral(List elements) {
+    var list = new List<E>();
+    if (elements.length > 0) {
+      list._setData(elements);
+      list.length = elements.length;
+    }
+    return list;
+  }
 }
