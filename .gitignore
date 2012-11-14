@@ -12,9 +12,11 @@
 /dart.Makefile
 /dart.xcodeproj
 /dart2js.target.mk
+/dart2js_bot.target.mk
 /Makefile
 /out
 /runtime.target.mk
+/samples.target.mk
 /upload_sdk.target.mk
 /xcodebuild
 /upload_sdk.vcxproj
