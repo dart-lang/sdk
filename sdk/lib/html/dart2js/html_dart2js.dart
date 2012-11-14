@@ -8021,10 +8021,6 @@ class Event native "*Event" {
   /** @domName Event.returnValue */
   bool returnValue;
 
-  /** @domName Event.srcElement */
-  EventTarget get srcElement => _convertNativeToDart_EventTarget(this._srcElement);
-  dynamic get _srcElement => JS("dynamic", "#.srcElement", this);
-
   /** @domName Event.target */
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
   dynamic get _target => JS("dynamic", "#.target", this);

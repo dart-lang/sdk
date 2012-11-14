@@ -171,6 +171,7 @@ _removed_html_members = set([
     "Element.setAttributeNodeNS",
     "Element.getAttributeNodeNS",
     "Element.setAttributeNS",
+    "Event.srcElement",
     "BodyElement.text",
     "AnchorElement.text",
     "OptionElement.text",

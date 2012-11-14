@@ -10210,10 +10210,6 @@ class Event extends NativeFieldWrapperClass1 {
   void set returnValue(bool value) native "Event_returnValue_Setter";
 
 
-  /** @domName Event.srcElement */
-  EventTarget get srcElement native "Event_srcElement_Getter";
-
-
   /** @domName Event.target */
   EventTarget get target native "Event_target_Getter";
 
