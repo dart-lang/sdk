@@ -10,6 +10,22 @@
 #include "bin/fdutils.h"
 
 
+bool FDUtils::SetCloseOnExec(intptr_t fd) {
+  intptr_t status;
+  status = TEMP_FAILURE_RETRY(fcntl(fd, F_GETFD));
+  if (status < 0) {
+    perror("fcntl F_GETFD failed");
+    return false;
+  }
+  status |= FD_CLOEXEC;
+  if (TEMP_FAILURE_RETRY(fcntl(fd, F_SETFD, status)) < 0) {
+    perror("fcntl F_SETFD failed");
+    return false;
+  }
+  return true;
+}
+
+
 static bool SetBlockingHelper(intptr_t fd, bool blocking) {
   intptr_t status;
   status = TEMP_FAILURE_RETRY(fcntl(fd, F_GETFL));
