@@ -1162,6 +1162,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return true;
   }
 
+  inlinedFrom(Element element, f()) {
+    return compiler.withCurrentElement(element, () {
+      sourceElementStack.add(element);
+      var result = f();
+      sourceElementStack.removeLast();
+      return result;
+    });
+  }
+
   /**
    * Documentation wanted -- johnniwinther
    *
@@ -1172,16 +1181,19 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                              Selector selector,
                              Link<Node> arguments,
                              List<FunctionElement> constructors,
-                             Map<Element, HInstruction> fieldValues) {
+                             Map<Element, HInstruction> fieldValues,
+                             FunctionElement inlinedFromElement) {
     compiler.withCurrentElement(constructor, () {
       assert(invariant(constructor, constructor.isImplementation));
       constructors.addLast(constructor);
 
       List<HInstruction> compiledArguments = new List<HInstruction>();
-      bool succeeded = addStaticSendArgumentsToList(selector,
-                                                    arguments,
-                                                    constructor,
-                                                    compiledArguments);
+      bool succeeded =
+          inlinedFrom(inlinedFromElement,
+                       () => addStaticSendArgumentsToList(selector,
+                                                          arguments,
+                                                          constructor,
+                                                          compiledArguments));
       if (!succeeded) {
         // Non-matching super and redirects are compile-time errors and thus
         // checked by the resolver.
@@ -1266,7 +1278,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           Selector selector = elements.getSelector(call);
           Link<Node> arguments = call.arguments;
           inlineSuperOrRedirect(target, selector, arguments, constructors,
-                                fieldValues);
+                                fieldValues, constructor);
           foundSuperOrRedirect = true;
         } else {
           // A field initializer.
@@ -1300,7 +1312,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                               selector,
                               const Link<Node>(),
                               constructors,
-                              fieldValues);
+                              fieldValues,
+                              constructor);
       }
     }
   }
