@@ -133,6 +133,8 @@ Uint8List toUint8List(List<int> input) {
 
 /// Buffers all input from an InputStream and returns it as a future.
 Future<List<int>> consumeInputStream(InputStream stream) {
+  if (stream.closed) return new Future<List<int>>.immediate(<int>[]);
+
   var completer = new Completer<List<int>>();
   /// TODO(nweiz): use BufferList when issue 6409 is fixed
   var buffer = <int>[];

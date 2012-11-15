@@ -54,4 +54,13 @@ void main() {
         .transform((response) => response.body);
     expect(future, completion(equals('Request body was "hello, world"')));
   });
+
+  test('handles a request with no body', () {
+    var client = new MockClient((request) {
+      return new Future.immediate(new http.Response('you did it', 200));
+    });
+
+    expect(client.read("http://example.com/foo"),
+        completion(equals('you did it')));
+  });
 }
