@@ -16,8 +16,6 @@ namespace dart {
 
 RawString* Symbols::predefined_[Symbols::kMaxId];
 
-// Turn off population of symbols in the VM symbol table, so that we
-// don't find these symbols while doing a Symbols::New(...).
 static const char* names[] = {
   NULL,
 
@@ -41,15 +39,16 @@ void Symbols::InitOnce(Isolate* isolate) {
   // Create and setup a symbol table in the vm isolate.
   SetupSymbolTable(isolate);
 
-  // Turn off population of symbols in the VM symbol table, so that we
-  // don't find these symbols while doing a Symbols::New(...).
   // Create all predefined symbols.
   ASSERT((sizeof(names) / sizeof(const char*)) == Symbols::kMaxId);
-  const Array& symbol_table =
-      Array::Handle(isolate->object_store()->symbol_table());
+  ObjectStore* object_store = isolate->object_store();
+  Array& symbol_table = Array::Handle();
   dart::String& str = String::Handle();
 
   for (intptr_t i = 1; i < Symbols::kMaxId; i++) {
+    // The symbol_table needs to be reloaded as it might have grown in the
+    // previous iteration.
+    symbol_table = object_store->symbol_table();
     str = OneByteString::New(names[i], Heap::kOld);
     Add(symbol_table, str);
     predefined_[i] = str.raw();
