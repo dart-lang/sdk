@@ -153,8 +153,9 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   void _add(String name, Object value) {
+    var lowerCaseName = name.toLowerCase();
     // TODO(sgjesse): Add immutable state throw HttpException is immutable.
-    if (name.toLowerCase() == "date") {
+    if (lowerCaseName == "date") {
       if (value is Date) {
         date = value;
       } else if (value is String) {
@@ -162,7 +163,7 @@ class _HttpHeaders implements HttpHeaders {
       } else {
         throw new HttpException("Unexpected type for header named $name");
       }
-    } else if (name.toLowerCase() == "expires") {
+    } else if (lowerCaseName == "expires") {
       if (value is Date) {
         expires = value;
       } else if (value is String) {
@@ -170,7 +171,7 @@ class _HttpHeaders implements HttpHeaders {
       } else {
         throw new HttpException("Unexpected type for header named $name");
       }
-    } else if (name.toLowerCase() == "if-modified-since") {
+    } else if (lowerCaseName == "if-modified-since") {
       if (value is Date) {
         ifModifiedSince = value;
       } else if (value is String) {
@@ -178,7 +179,7 @@ class _HttpHeaders implements HttpHeaders {
       } else {
         throw new HttpException("Unexpected type for header named $name");
       }
-    } else if (name.toLowerCase() == "host") {
+    } else if (lowerCaseName == "host") {
       int pos = value.indexOf(":");
       if (pos == -1) {
         _host = value;
@@ -200,10 +201,10 @@ class _HttpHeaders implements HttpHeaders {
         }
         _set("host", value);
       }
-    } else if (name.toLowerCase() == "content-type") {
+    } else if (lowerCaseName == "content-type") {
       _set("content-type", value);
     } else {
-      name = name.toLowerCase();
+      name = lowerCaseName;
       List<String> values = _headers[name];
       if (values == null) {
         values = new List<String>();
