@@ -249,29 +249,51 @@ class _HttpHeaders implements HttpHeaders {
     final COMMASP = const [_CharCode.COMMA, _CharCode.SP];
     final CRLF = const [_CharCode.CR, _CharCode.LF];
 
+    var bufferSize = 16 * 1024;
+    var buffer = new Uint8List(bufferSize);
+    var bufferPos = 0;
+
+    void writeBuffer() {
+      connection._writeFrom(buffer, 0, bufferPos);
+      bufferPos = 0;
+    }
+
     // Format headers.
     _headers.forEach((String name, List<String> values) {
       bool fold = _foldHeader(name);
-      List<int> data;
-      data = name.charCodes;
-      connection._write(data);
-      connection._write(COLONSP);
+      List<int> nameData;
+      nameData = name.charCodes;
+      int nameDataLen = nameData.length;
+      if (nameDataLen + 2 > bufferSize - bufferPos) writeBuffer();
+      buffer.setRange(bufferPos, nameDataLen, nameData);
+      bufferPos += nameDataLen;
+      buffer[bufferPos++] = _CharCode.COLON;
+      buffer[bufferPos++] = _CharCode.SP;
       for (int i = 0; i < values.length; i++) {
+        List<int> data = values[i].charCodes;
+        int dataLen = data.length;
+        // Worst case here is writing the name, value and 6 additional bytes.
+        if (nameDataLen + dataLen + 6 > bufferSize - bufferPos) writeBuffer();
         if (i > 0) {
           if (fold) {
-            connection._write(COMMASP);
+            buffer[bufferPos++] = _CharCode.COMMA;
+            buffer[bufferPos++] = _CharCode.SP;
           } else {
-            connection._write(CRLF);
-            data = name.charCodes;
-            connection._write(data);
-            connection._write(COLONSP);
+            buffer[bufferPos++] = _CharCode.CR;
+            buffer[bufferPos++] = _CharCode.LF;
+            buffer.setRange(bufferPos, nameDataLen, nameData);
+            bufferPos += nameDataLen;
+            buffer[bufferPos++] = _CharCode.COLON;
+            buffer[bufferPos++] = _CharCode.SP;
           }
         }
-        data = values[i].charCodes;
-        connection._write(data);
+        buffer.setRange(bufferPos, dataLen, data);
+        bufferPos += dataLen;
       }
-      connection._write(CRLF);
+      buffer[bufferPos++] = _CharCode.CR;
+      buffer[bufferPos++] = _CharCode.LF;
     });
+    writeBuffer();
   }
 
   String toString() {
