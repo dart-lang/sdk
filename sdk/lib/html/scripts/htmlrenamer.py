@@ -260,6 +260,7 @@ _removed_html_members = set([
     "Node.lookupPrefix",
     "Node.get:PROCESSING_INSTRUCTION_NODE",
     'ShadowRoot.getElementsByTagNameNS',
+    "LocalWindow.clientInformation",
     "LocalWindow.get:frames",
     "LocalWindow.get:length",
     "LocalWindow.prompt",

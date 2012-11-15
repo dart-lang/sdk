@@ -11509,9 +11509,6 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   /** @domName Window.applicationCache */
   final DOMApplicationCache applicationCache;
 
-  /** @domName Window.clientInformation */
-  final Navigator clientInformation;
-
   /** @domName Window.closed */
   final bool closed;
 
