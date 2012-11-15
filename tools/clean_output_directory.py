@@ -67,14 +67,8 @@ def Main():
     parser.print_help()
     return 1
 
-  # Delete the output for the targets for each requested configuration.
-  for mode in options.mode:
-    for arch in options.arch:
-      for target_os in options.os:
-        build_root = utils.GetBuildRoot(
-            HOST_OS, mode=mode, arch=arch, target_os=target_os)
-        print "Deleting %s" % (build_root)
-        shutil.rmtree(build_root, ignore_errors=True)
+  build_root = utils.GetBuildDir(HOST_OS, None)
+  shutil.rmtree(build_root, ignore_errors=True)
   return 0
 
 if __name__ == '__main__':
