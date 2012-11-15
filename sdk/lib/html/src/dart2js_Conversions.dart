@@ -26,6 +26,8 @@
 // We omit an unwrapper for Window as no methods take a non-local
 // window as a parameter.
 
+part of html;
+
 Window _convertNativeToDart_Window(win) {
   return _DOMWindowCrossFrame._createSafe(win);
 }

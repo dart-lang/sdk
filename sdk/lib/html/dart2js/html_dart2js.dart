@@ -22040,6 +22040,7 @@ abstract class History {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 abstract class CssClassSet implements Set<String> {
 
   String toString() {
@@ -22204,6 +22205,7 @@ typedef void EventListener(Event event);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class FilteredElementList implements List {
   final Node _node;
@@ -23909,6 +23911,7 @@ class _DocumentFragmentFactoryProvider {
 // We omit an unwrapper for Window as no methods take a non-local
 // window as a parameter.
 
+
 Window _convertNativeToDart_Window(win) {
   return _DOMWindowCrossFrame._createSafe(win);
 }
@@ -24318,6 +24321,7 @@ bool _isImmutableJavaScriptArray(value) =>
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 // TODO(vsm): Unify with Dartium version.
 class _DOMWindowCrossFrame implements Window {
   // Private window.  Note, this is a window in another frame, so it
@@ -24421,6 +24425,7 @@ class _HistoryCrossFrame implements History {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _AudioContextFactoryProvider {
 
   static AudioContext createAudioContext() {
@@ -24446,6 +24451,7 @@ class _TextFactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _IDBKeyRangeFactoryProvider {
 
@@ -24579,6 +24585,7 @@ class _LocationWrapper implements LocalLocation {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 /**
  * Checks to see if the mutation observer API is supported on the current
  * platform.
@@ -24588,6 +24595,7 @@ bool _isMutationObserverSupported() =>
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _TypedArrayFactoryProvider {
 
