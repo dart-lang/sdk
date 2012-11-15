@@ -76,12 +76,28 @@ class Pubspec {
     // Even though the pub app itself doesn't use these fields, we validate
     // them here so that users find errors early before they try to upload to
     // the server:
+    // TODO(rnystrom): We should split this validation into separate layers:
+    // 1. Stuff that is required in any pubspec to perform any command. Things
+    //    like "must have a name". That should go here.
+    // 2. Stuff that is required to upload a package. Things like "homepage
+    //    must use a valid scheme". That should go elsewhere. pub upload should
+    //    call it, and we should provide a separate command to show the user,
+    //    and also expose it to the editor in some way.
 
-    if (parsedPubspec.containsKey('homepage') &&
-        parsedPubspec['homepage'] is! String) {
-      throw new FormatException(
-          'The "homepage" field should be a string, but was '
-          '${parsedPubspec["homepage"]}.');
+    if (parsedPubspec.containsKey('homepage')) {
+      var homepage = parsedPubspec['homepage'];
+
+      if (homepage is! String) {
+        throw new FormatException(
+            'The "homepage" field should be a string, but was "$homepage".');
+      }
+
+      var goodScheme = new RegExp(r'^https?:');
+      if (!goodScheme.hasMatch(homepage)) {
+        throw new FormatException(
+            'The "homepage" field should be an "http:" or "https:" URL, but '
+            'was "$homepage".');
+      }
     }
 
     if (parsedPubspec.containsKey('author') &&

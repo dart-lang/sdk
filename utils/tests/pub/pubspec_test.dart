@@ -26,6 +26,11 @@ main() {
       var sources = new SourceRegistry();
       sources.register(new MockSource());
 
+      expectFormatError(String pubspec) {
+        expect(() => new Pubspec.parse(pubspec, sources),
+            throwsFormatException);
+      }
+
       test("allows a version constraint for dependencies", () {
         var pubspec = new Pubspec.parse('''
 dependencies:
@@ -50,55 +55,51 @@ dependencies:
       });
 
       test("throws if the description isn't valid", () {
-        expect(() {
-          new Pubspec.parse('''
+        expectFormatError('''
 dependencies:
   foo:
     mock: bad
-''', sources);
-        }, throwsFormatException);
+''');
       });
 
       test("throws if 'name' is not a string", () {
-        expect(() => new Pubspec.parse('name: [not, a, string]', sources),
-            throwsFormatException);
+        expectFormatError('name: [not, a, string]');
       });
 
       test("throws if 'homepage' is not a string", () {
-        expect(() => new Pubspec.parse('homepage: [not, a, string]', sources),
-            throwsFormatException);
+        expectFormatError('homepage:');
+        expectFormatError('homepage: [not, a, string]');
+      });
+
+      test("throws if 'homepage' doesn't have an HTTP scheme", () {
+        new Pubspec.parse('homepage: http://ok.com', sources);
+        new Pubspec.parse('homepage: https://also-ok.com', sources);
+
+        expectFormatError('ftp://badscheme.com');
+        expectFormatError('javascript:alert("!!!")');
+        expectFormatError('data:image/png;base64,somedata');
+        expectFormatError('homepage: no-scheme.com');
       });
 
       test("throws if 'authors' is not a string or a list of strings", () {
         new Pubspec.parse('authors: ok fine', sources);
         new Pubspec.parse('authors: [also, ok, fine]', sources);
 
-        expect(() => new Pubspec.parse('authors: 123', sources),
-            throwsFormatException);
-
-        expect(() => new Pubspec.parse('authors: {not: {a: string}}', sources),
-            throwsFormatException);
-
-        expect(() => new Pubspec.parse('authors: [ok, {not: ok}]', sources),
-            throwsFormatException);
+        expectFormatError('authors: 123');
+        expectFormatError('authors: {not: {a: string}}');
+        expectFormatError('authors: [ok, {not: ok}]');
       });
 
       test("throws if 'author' is not a string", () {
         new Pubspec.parse('author: ok fine', sources);
 
-        expect(() => new Pubspec.parse('author: 123', sources),
-            throwsFormatException);
-
-        expect(() => new Pubspec.parse('author: {not: {a: string}}', sources),
-            throwsFormatException);
-
-        expect(() => new Pubspec.parse('author: [not, ok]', sources),
-            throwsFormatException);
+        expectFormatError('author: 123');
+        expectFormatError('author: {not: {a: string}}');
+        expectFormatError('author: [not, ok]');
       });
 
       test("throws if both 'author' and 'authors' are present", () {
-        expect(() => new Pubspec.parse('{author: abe, authors: ted}', sources),
-            throwsFormatException);
+        expectFormatError('{author: abe, authors: ted}');
       });
 
       test("allows comment-only files", () {
