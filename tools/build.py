@@ -256,7 +256,6 @@ def Main():
                   project_file,
                   '-target',
                   target,
-                  '-parallelizeTargets',
                   '-configuration',
                   build_config,
                   'SYMROOT=%s' % os.path.abspath('xcodebuild')
