@@ -73,15 +73,22 @@ class Heap {
     return 0;
   }
 
-  uword TryAllocate(intptr_t size, Space space) {
+  uword TryAllocate(
+      intptr_t size,
+      Space space,
+      PageSpace::GrowthPolicy growth_policy = PageSpace::kControlGrowth) {
     ASSERT(!read_only_);
     switch (space) {
       case kNew:
         return new_space_->TryAllocate(size);
       case kOld:
-        return old_space_->TryAllocate(size, HeapPage::kData);
+        return old_space_->TryAllocate(size,
+                                       HeapPage::kData,
+                                       growth_policy);
       case kCode:
-        return old_space_->TryAllocate(size, HeapPage::kExecutable);
+        return old_space_->TryAllocate(size,
+                                       HeapPage::kExecutable,
+                                       growth_policy);
       default:
         UNREACHABLE();
     }
