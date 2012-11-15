@@ -265,7 +265,7 @@ class LibraryCompiler extends api.Compiler {
   }
 
   void processQueueList(Enqueuer world, List<LibraryElement> elements) {
-    backend.processNativeClasses(world, libraries.values);
+    world.nativeEnqueuer.processNativeClasses(libraries.values);
     for (var library in elements) {
       library.forEachLocalMember((element) {
         world.addToWorkList(element);
@@ -1552,4 +1552,3 @@ class Dart2JsFieldMirror extends Dart2JsMemberMirror implements VariableMirror {
     }
   }
 }
-

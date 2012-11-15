@@ -816,9 +816,13 @@ class JavaScriptBackend extends Backend {
     invalidateAfterCodegen.clear();
   }
 
-  void processNativeClasses(Enqueuer world,
-                            Collection<LibraryElement> libraries) {
-    native.processNativeClasses(world, emitter, libraries);
+
+  native.NativeEnqueuer nativeResolutionEnqueuer(Enqueuer world) {
+    return new native.NativeResolutionEnqueuer(world, compiler);
+  }
+
+  native.NativeEnqueuer nativeCodegenEnqueuer(Enqueuer world) {
+    return new native.NativeCodegenEnqueuer(world, compiler, emitter);
   }
 
   void assembleProgram() {

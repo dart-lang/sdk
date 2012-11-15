@@ -164,6 +164,7 @@ void compile(List<String> argv) {
     new OptionHandler('--package-root=.+|-p.+', setPackageRoot),
     new OptionHandler('--disallow-unsafe-eval', passThrough),
     new OptionHandler('--analyze-all', passThrough),
+    new OptionHandler('--enable-native-live-type-analysis', passThrough),
     // The following two options must come last.
     new OptionHandler('-.*', (String argument) {
       helpAndFail('Error: Unknown option "$argument".');
@@ -408,6 +409,10 @@ be removed in a future version:
 
   --enable-concrete-type-inference
     Enable experimental concrete type inference.
+
+  --enable-native-live-type-analysis
+    Remove unused native types from dart:html and related libraries. This is
+    expected to become the default behavior.
 
   --disallow-unsafe-eval
     Disables dynamic generation of code in the generated output. This is

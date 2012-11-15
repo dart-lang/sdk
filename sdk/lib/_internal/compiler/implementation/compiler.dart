@@ -74,8 +74,16 @@ abstract class Backend {
 
   void enqueueHelpers(Enqueuer world);
   void codegen(WorkItem work);
-  void processNativeClasses(Enqueuer world,
-                            Collection<LibraryElement> libraries);
+
+  // The backend determines the native resolution enqueuer, with a no-op
+  // default, so tools like dart2dart can ignore the native classes.
+  native.NativeEnqueuer nativeResolutionEnqueuer(world) {
+    return new native.NativeEnqueuer();
+  }
+  native.NativeEnqueuer nativeCodegenEnqueuer(world) {
+    return new native.NativeEnqueuer();
+  }
+
   void assembleProgram();
   List<CompilerTask> get tasks;
 
@@ -104,6 +112,7 @@ abstract class Compiler implements DiagnosticListener {
   final bool enableUserAssertions;
   final bool enableConcreteTypeInference;
   final bool analyzeAll;
+  final bool enableNativeLiveTypeAnalysis;
 
   bool disableInlining = false;
 
@@ -211,6 +220,7 @@ abstract class Compiler implements DiagnosticListener {
             this.enableUserAssertions: false,
             this.enableConcreteTypeInference: false,
             this.enableMinification: false,
+            this.enableNativeLiveTypeAnalysis: false,
             bool emitJavaScript: true,
             bool generateSourceMap: true,
             bool disallowUnsafeEval: false,
@@ -522,7 +532,7 @@ abstract class Compiler implements DiagnosticListener {
     if (analyzeAll) libraries.forEach((_, lib) => fullyEnqueueLibrary(lib));
     backend.enqueueHelpers(enqueuer.resolution);
     processQueue(enqueuer.resolution, main);
-    log('Resolved ${enqueuer.resolution.resolvedElements.length} elements.');
+    enqueuer.resolution.logSummary(log);
 
     if (compilationFailed) return;
 
@@ -536,7 +546,7 @@ abstract class Compiler implements DiagnosticListener {
     log('Compiling...');
     phase = PHASE_COMPILING;
     processQueue(enqueuer.codegen, main);
-    log('Compiled ${codegenWorld.generatedCode.length} methods.');
+    enqueuer.codegen.logSummary(log);
 
     if (compilationFailed) return;
 
@@ -562,7 +572,7 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void processQueue(Enqueuer world, Element main) {
-    backend.processNativeClasses(world, libraries.values);
+    world.nativeEnqueuer.processNativeClasses(libraries.values);
     world.addToWorkList(main);
     progress.reset();
     world.forEach((WorkItem work) {

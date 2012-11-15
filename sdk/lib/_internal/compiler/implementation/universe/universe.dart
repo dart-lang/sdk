@@ -231,6 +231,7 @@ class Selector {
     if (element.isGetter()) return isGetter() || isCall();
     if (element.isField()) return isGetter() || isSetter() || isCall();
     if (isGetter()) return true;
+    if (isSetter()) return false;
 
     FunctionElement function = element;
     FunctionSignature parameters = function.computeSignature(compiler);

@@ -29,7 +29,7 @@ getInterceptor(object) {
 add$1(var receiver, var value) {
   if (isJsArray(receiver)) {
     checkGrowable(receiver, 'add');
-    JS('Object', r'#.push(#)', receiver, value);
+    JS('void', r'#.push(#)', receiver, value);
     return;
   }
   return UNINTERCEPTED(receiver.add(value));
@@ -42,7 +42,7 @@ removeAt$1(var receiver, int index) {
       throw new RangeError.value(index);
     }
     checkGrowable(receiver, 'removeAt');
-    return JS("Object", r'#.splice(#, 1)[0]', receiver, index);
+    return JS('var', r'#.splice(#, 1)[0]', receiver, index);
   }
   return UNINTERCEPTED(receiver.removeAt(index));
 }
@@ -51,7 +51,7 @@ removeLast(var receiver) {
   if (isJsArray(receiver)) {
     checkGrowable(receiver, 'removeLast');
     if (receiver.length == 0) throw new RangeError.value(-1);
-    return JS('Object', r'#.pop()', receiver);
+    return JS('var', r'#.pop()', receiver);
   }
   return UNINTERCEPTED(receiver.removeLast());
 }
@@ -66,7 +66,7 @@ filter(var receiver, var predicate) {
 
 get$length(var receiver) {
   if (receiver is String || isJsArray(receiver)) {
-    return JS('num', r'#.length', receiver);
+    return JS('num', r'#.length', receiver);  // TODO(sra): Use 'int'?
   } else {
     return UNINTERCEPTED(receiver.length);
   }
@@ -100,7 +100,7 @@ toString(var value) {
   if (JS('bool', r'typeof # == "function"', value)) {
     return 'Closure';
   }
-  return JS('string', r'String(#)', value);
+  return JS('String', r'String(#)', value);
 }
 
 iterator(receiver) {
@@ -163,7 +163,7 @@ addLast(receiver, value) {
   if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.addLast(value));
 
   checkGrowable(receiver, 'addLast');
-  JS('Object', r'#.push(#)', receiver, value);
+  JS('void', r'#.push(#)', receiver, value);
 }
 
 clear(receiver) {
@@ -211,7 +211,8 @@ getRange(receiver, start, length) {
     throw new RangeError.value(length);
   }
   if (length < 0) throw new ArgumentError(length);
-  return JS('Object', r'#.slice(#, #)', receiver, start, end);
+  // TODO(sra): We need a type that is exactly the JavaScript Array type.
+  return JS('=List', r'#.slice(#, #)', receiver, start, end);
 }
 
 indexOf$1(receiver, element) {

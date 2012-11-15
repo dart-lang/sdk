@@ -1761,6 +1761,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       } else if (!selector.applies(target, compiler)) {
         warnArgumentMismatch(node, target);
       }
+
+      if (target != null &&
+          target.kind == ElementKind.FOREIGN &&
+          selector.name == const SourceString('JS')) {
+        world.nativeEnqueuer.registerJsCall(node, this);
+      }
     }
 
     // TODO(ngeoffray): Warn if target is null and the send is
@@ -1775,6 +1781,15 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     // mismatch.
     warning(node.argumentsNode, MessageKind.INVALID_ARGUMENTS,
             [target.name]);
+  }
+
+  /// Callback for native enqueuer to parse a type.  Returns [:null:] on error.
+  DartType resolveTypeFromString(String typeName) {
+    Element element = scope.lookup(new SourceString(typeName));
+    if (element == null) return null;
+    if (element is! ClassElement) return null;
+    element.ensureResolved(compiler);
+    return element.computeType(compiler);
   }
 
   visitSendSet(SendSet node) {

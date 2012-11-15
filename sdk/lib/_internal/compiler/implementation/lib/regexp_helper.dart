@@ -4,7 +4,7 @@
 
 List regExpExec(JSSyntaxRegExp regExp, String str) {
   var nativeRegExp = regExpGetNative(regExp);
-  var result = JS('List', r'#.exec(#)', nativeRegExp, str);
+  var result = JS('=List', r'#.exec(#)', nativeRegExp, str);
   if (JS('bool', r'# == null', result)) return null;
   return result;
 }
@@ -23,7 +23,7 @@ regExpGetNative(JSSyntaxRegExp regExp) {
 }
 
 regExpAttachGlobalNative(JSSyntaxRegExp regExp) {
-  JS('var', r'#._re = #', regExp, regExpMakeNative(regExp, global: true));
+  JS('void', r'#._re = #', regExp, regExpMakeNative(regExp, global: true));
 }
 
 regExpMakeNative(JSSyntaxRegExp regExp, {bool global: false}) {
@@ -36,7 +36,7 @@ regExpMakeNative(JSSyntaxRegExp regExp, {bool global: false}) {
   if (ignoreCase) sb.add('i');
   if (global) sb.add('g');
   try {
-    return JS('Object', r'new RegExp(#, #)', pattern, sb.toString());
+    return JS('var', r'new RegExp(#, #)', pattern, sb.toString());
   } catch (e) {
     throw new IllegalJSRegExpException(pattern,
                                        JS('String', r'String(#)', e));

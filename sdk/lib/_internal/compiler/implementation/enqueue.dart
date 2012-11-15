@@ -18,6 +18,10 @@ class EnqueueTask extends CompilerTask {
       super(compiler) {
     codegen.task = this;
     resolution.task = this;
+
+    codegen.nativeEnqueuer = compiler.backend.nativeCodegenEnqueuer(codegen);
+    resolution.nativeEnqueuer =
+        compiler.backend.nativeResolutionEnqueuer(resolution);
   }
 }
 
@@ -40,6 +44,7 @@ class Enqueuer {
 
   bool queueIsClosed = false;
   EnqueueTask task;
+  native.NativeEnqueuer nativeEnqueuer;  // Set by EnqueueTask
 
   Enqueuer(this.name, this.compiler,
            ItemCompilationContext itemCompilationContextCreator())
@@ -116,6 +121,8 @@ class Enqueuer {
         && library.uri.toString() == 'dart:isolate') {
       compiler.enableIsolateSupport(library);
     }
+
+    nativeEnqueuer.registerElement(element);
   }
 
   /**
@@ -168,7 +175,11 @@ class Enqueuer {
     if (universe.generatedCode.containsKey(member)) return;
     if (resolvedElements[member] != null) return;
     if (!member.isInstanceMember()) return;
-    if (member.isField()) return;
+    if (member.isField()) {
+      // Native fields need to go into instanceMembersByName as they are virtual
+      // instantiation points and escape points.
+      if (!member.enclosingElement.isNative()) return;
+    }
 
     String memberName = member.name.slowToString();
     Link<Element> members = instanceMembersByName.putIfAbsent(
@@ -200,9 +211,18 @@ class Enqueuer {
       if (universe.hasInvocation(member, compiler)) {
         return addToWorkList(member);
       }
-    } else if (identical(member.kind, ElementKind.SETTER)) {
+    } else if (member.kind == ElementKind.SETTER) {
       if (universe.hasInvokedSetter(member, compiler)) {
         return addToWorkList(member);
+      }
+    } else if (member.kind == ElementKind.FIELD &&
+               member.enclosingElement.isNative()) {
+      if (universe.hasInvokedGetter(member, compiler) ||
+          universe.hasInvocation(member, compiler)) {
+        nativeEnqueuer.registerFieldLoad(member);
+      }
+      if (universe.hasInvokedSetter(member, compiler)) {
+        nativeEnqueuer.registerFieldStore(member);
       }
     }
   }
@@ -293,7 +313,25 @@ class Enqueuer {
   void handleUnseenSelector(SourceString methodName, Selector selector) {
     processInstanceMembers(methodName, (Element member) {
       if (selector.applies(member, compiler)) {
-        addToWorkList(member);
+        if (member.isField() && member.enclosingElement.isNative()) {
+          if (selector.isGetter() || selector.isCall()) {
+            nativeEnqueuer.registerFieldLoad(member);
+            // We have to also handle storing to the field because we only get
+            // one look at each member and there might be a store we have not
+            // seen yet.
+            // TODO(sra): Process fields for storing separately.
+            nativeEnqueuer.registerFieldStore(member);
+          } else {
+            nativeEnqueuer.registerFieldStore(member);
+            // We have to also handle loading from the field because we only get
+            // one look at each member and there might be a load we have not
+            // seen yet.
+            // TODO(sra): Process fields for storing separately.
+            nativeEnqueuer.registerFieldLoad(member);
+          }
+        } else {
+          addToWorkList(member);
+        }
         return true;
       }
       return false;
@@ -366,6 +404,13 @@ class Enqueuer {
   }
 
   String toString() => 'Enqueuer($name)';
+
+  void logSummary(log(message)) {
+    log(isResolutionQueue
+        ? 'Resolved ${resolvedElements.length} elements.'
+        : 'Compiled ${universe.generatedCode.length} methods.');
+    nativeEnqueuer.logSummary(log);
+  }
 
   registerUsedSelector(Selector selector) {
     Element interceptor = compiler.backend.getInterceptor(selector);

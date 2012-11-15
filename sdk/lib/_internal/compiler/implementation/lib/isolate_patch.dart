@@ -393,10 +393,10 @@ class _MainManagerStub implements _ManagerStub {
  * are actually available.
  */
 class _WorkerStub implements _ManagerStub native "*Worker" {
-  get id => JS("Object", "#.id", this);
+  get id => JS("var", "#.id", this);
   void set id(i) { JS("void", "#.id = #", this, i); }
   void set onmessage(f) { JS("void", "#.onmessage = #", this, f); }
-  void postMessage(msg) => JS("Object", "#.postMessage(#)", this, msg);
+  void postMessage(msg) => JS("void", "#.postMessage(#)", this, msg);
   // terminate() is implemented by Worker.
   void terminate();
 }
@@ -412,14 +412,15 @@ class _IsolateNatives {
   static String get _thisScript => JS("String", r"$thisScriptUrl");
 
   /** Starts a new worker with the given URL. */
-  static _WorkerStub _newWorker(url) => JS("Object", r"new Worker(#)", url);
+  static _WorkerStub _newWorker(url) => JS("_WorkerStub", r"new Worker(#)", url);
 
   /**
    * Assume that [e] is a browser message event and extract its message data.
    * We don't import the dom explicitly so, when workers are disabled, this
    * library can also run on top of nodejs.
    */
-  static _getEventData(e) => JS("Object", "#.data", e);
+  //static _getEventData(e) => JS("Object", "#.data", e);
+  static _getEventData(e) => JS("", "#.data", e);
 
   /**
    * Process messages on a worker, either to control the worker instance or to

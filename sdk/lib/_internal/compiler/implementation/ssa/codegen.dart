@@ -1779,6 +1779,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
       push(new js.LiteralExpression.withData(code, data), node);
     }
+    // TODO(sra): Tell world.nativeEnqueuer about the types created here.
   }
 
   visitForeignNew(HForeignNew node) {

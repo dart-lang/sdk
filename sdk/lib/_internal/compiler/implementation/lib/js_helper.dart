@@ -302,7 +302,7 @@ index$slow(var a, var index) {
     if (index < 0 || index >= a.length) {
       throw new RangeError.value(index);
     }
-    return JS('Object', r'#[#]', a, index);
+    return JS('', r'#[#]', a, index);
   }
   return UNINTERCEPTED(a[index]);
 }
@@ -316,7 +316,7 @@ void indexSet$slow(var a, var index, var value) {
       throw new RangeError.value(index);
     }
     checkMutable(a, 'indexed set');
-    JS('Object', r'#[#] = #', a, index, value);
+    JS('void', r'#[#] = #', a, index, value);
     return;
   }
   UNINTERCEPTED(a[index] = value);
@@ -347,7 +347,7 @@ class ListIterator<T> implements Iterator<T> {
   bool get hasNext => i < JS('int', r'#.length', list);
   T next() {
     if (!hasNext) throw new StateError("No more elements");
-    var value = JS('Object', r'#[#]', list, i);
+    var value = JS('', r'#[#]', list, i);
     i += 1;
     return value;
   }
@@ -464,7 +464,7 @@ class Primitives {
 
   static int parseInt(String string) {
     checkString(string);
-    var match = JS('List',
+    var match = JS('=List',
                    r'/^\s*[+-]?(?:0(x)[a-f0-9]+|\d+)\s*$/i.exec(#)',
                    string);
     if (match == null) {
@@ -522,11 +522,14 @@ class Primitives {
   }
 
   static List newList(length) {
-    if (length == null) return JS('Object', r'new Array()');
+    // TODO(sra): For good concrete type analysis we need the JS-type to
+    // specifically name the JavaScript Array implementation.  'List' matches
+    // all the dart:html types that implement List<T>.
+    if (length == null) return JS('=List', r'new Array()');
     if ((length is !int) || (length < 0)) {
       throw new ArgumentError(length);
     }
-    var result = JS('Object', r'new Array(#)', length);
+    var result = JS('=List', r'new Array(#)', length);
     JS('void', r'#.fixed$length = #', result, true);
     return result;
   }
@@ -583,7 +586,7 @@ class Primitives {
   }
 
   static patchUpY2K(value, years, isUtc) {
-    var date = JS('Object', r'new Date(#)', value);
+    var date = JS('', r'new Date(#)', value);
     if (isUtc) {
       JS('num', r'#.setUTCFullYear(#)', date, years);
     } else {
@@ -892,7 +895,7 @@ class MathNatives {
  */
 $throw(ex) {
   if (ex == null) ex = const NullPointerException();
-  var jsError = JS('Object', r'new Error()');
+  var jsError = JS('var', r'new Error()');
   JS('void', r'#.name = #', jsError, ex);
   JS('void', r'#.description = #', jsError, ex);
   JS('void', r'#.dartException = #', jsError, ex);
@@ -907,7 +910,7 @@ $throw(ex) {
  * JavaScript Error to which we have added a property 'dartException'
  * which holds a Dart object.
  */
-toStringWrapper() => JS('Object', r'this.dartException').toString();
+toStringWrapper() => JS('', r'this.dartException').toString();
 
 makeLiteralListConst(list) {
   JS('bool', r'#.immutable$list = #', list, true);
@@ -935,7 +938,7 @@ unwrapException(ex) {
   // Note that we are checking if the object has the property. If it
   // has, it could be set to null if the thrown value is null.
   if (JS('bool', r'"dartException" in #', ex)) {
-    return JS('Object', r'#.dartException', ex);
+    return JS('', r'#.dartException', ex);
   }
 
   // Grab hold of the exception message. This field is available on
@@ -1104,6 +1107,23 @@ getFallThroughError() => const FallThroughErrorImplementation();
  * Represents the type Dynamic. The compiler treats this specially.
  */
 abstract class Dynamic_ {
+}
+
+/**
+ * A metadata annotation describing the types instantiated by a native element.
+ */
+class Creates {
+  final String types;
+  const Creates(this.types);
+}
+
+/**
+ * A metadata annotation describing the types returned or yielded by a native
+ * element.
+ */
+class Returns {
+  final String types;
+  const Returns(this.types);
 }
 
 /**
@@ -1477,6 +1497,6 @@ Type getOrCreateCachedRuntimeType(String key) {
 }
 
 String getRuntimeTypeString(var object) {
-  var typeInfo = JS('Object', r'#.builtin$typeInfo', object);
+  var typeInfo = JS('var', r'#.builtin$typeInfo', object);
   return JS('String', r'#.runtimeType', typeInfo);
 }

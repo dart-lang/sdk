@@ -124,10 +124,10 @@ stringReplaceFirstUnchecked(receiver, from, to) {
 
 stringSplitUnchecked(receiver, pattern) {
   if (pattern is String) {
-    return JS('List', r'#.split(#)', receiver, pattern);
+    return JS('=List', r'#.split(#)', receiver, pattern);
   } else if (pattern is JSSyntaxRegExp) {
     var re = regExpGetNative(pattern);
-    return JS('List', r'#.split(#)', receiver, re);
+    return JS('=List', r'#.split(#)', receiver, re);
   } else {
     throw "String.split(Pattern) UNIMPLEMENTED";
   }
