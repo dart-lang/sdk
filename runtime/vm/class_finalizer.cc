@@ -33,13 +33,13 @@ bool ClassFinalizer::AllClassesFinalized() {
 // Removes optimized code once we load more classes, since --use_cha based
 // optimizations may have become invalid.
 // Only methods which owner classes where subclasses can be invalid.
-// TODO(srdjan): Be even more precise by recording the exact CHA optimziation.
+// TODO(srdjan): Be even more precise by recording the exact CHA optimization.
 static void RemoveOptimizedCode(
     const GrowableArray<intptr_t>& added_subclasses_to_cids) {
   ASSERT(FLAG_use_cha);
   if (added_subclasses_to_cids.is_empty()) return;
   // Deoptimize all live frames.
-  DeoptimizeAll();
+  DeoptimizeIfOwner(added_subclasses_to_cids);
   // Switch all functions' code to unoptimized.
   const ClassTable& class_table = *Isolate::Current()->class_table();
   Class& cls = Class::Handle();

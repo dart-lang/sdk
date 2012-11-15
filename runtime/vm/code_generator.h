@@ -85,6 +85,7 @@ RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,
                                           const Instance& receiver);
 
 void DeoptimizeAll();
+void DeoptimizeIfOwner(const GrowableArray<intptr_t>& classes);
 
 }  // namespace dart
 
