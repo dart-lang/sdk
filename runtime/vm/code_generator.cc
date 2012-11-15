@@ -1637,37 +1637,69 @@ static void GetDeoptInfoAtPc(const Code& code,
 }
 
 
+static void DeoptimizeAt(const Code& optimized_code, uword pc) {
+  DeoptInfo& deopt_info = DeoptInfo::Handle();
+  DeoptReasonId deopt_reason = kDeoptUnknown;
+  GetDeoptInfoAtPc(optimized_code, pc, &deopt_info, &deopt_reason);
+  ASSERT(!deopt_info.IsNull());
+  const Function& function = Function::Handle(optimized_code.function());
+  const Code& unoptimized_code = Code::Handle(function.unoptimized_code());
+  ASSERT(!unoptimized_code.IsNull());
+  // The switch to unoptimized code may have already occured.
+  if (function.HasOptimizedCode()) {
+    function.SwitchToUnoptimizedCode();
+  }
+  // Patch call site (lazy deoptimization is quite rare, patching it twice
+  // is not a performance issue).
+  uword lazy_deopt_jump = optimized_code.GetLazyDeoptPc();
+  ASSERT(lazy_deopt_jump != 0);
+  CodePatcher::InsertCallAt(pc, lazy_deopt_jump);
+  // Mark code as dead (do not GC its embedded objects).
+  optimized_code.set_is_alive(false);
+}
+
+
 // Currently checks only that all optimized frames have kDeoptIndex
 // and unoptimized code has the kDeoptAfter.
 void DeoptimizeAll() {
   DartFrameIterator iterator;
   StackFrame* frame = iterator.NextFrame();
   Code& optimized_code = Code::Handle();
-  Function& function = Function::Handle();
-  Code& unoptimized_code = Code::Handle();
   while (frame != NULL) {
     optimized_code = frame->LookupDartCode();
     if (optimized_code.is_optimized()) {
-      DeoptInfo& deopt_info = DeoptInfo::Handle();
-      DeoptReasonId deopt_reason = kDeoptUnknown;
-      GetDeoptInfoAtPc(optimized_code, frame->pc(), &deopt_info, &deopt_reason);
-      ASSERT(!deopt_info.IsNull());
-      function = optimized_code.function();
-      unoptimized_code = function.unoptimized_code();
-      ASSERT(!unoptimized_code.IsNull());
-      // The switch to unoptimized code may have already occured.
-      if (function.HasOptimizedCode()) {
-        function.SwitchToUnoptimizedCode();
-      }
-      // Patch call site (lazy deoptimization is quite rare, patching it twice
-      // is not a performance issue).
-      uword lazy_deopt_jump = optimized_code.GetLazyDeoptPc();
-      ASSERT(lazy_deopt_jump != 0);
-      CodePatcher::InsertCallAt(frame->pc(), lazy_deopt_jump);
-      // Mark code as dead (do not GC its embedded objects).
-      optimized_code.set_is_alive(false);
+      DeoptimizeAt(optimized_code, frame->pc());
     }
     frame = iterator.NextFrame();
+  }
+}
+
+
+// Returns true if the given array of cids contains the given cid.
+static bool ContainsCid(const GrowableArray<intptr_t>& cids, intptr_t cid) {
+  for (intptr_t i = 0; i < cids.length(); i++) {
+    if (cids[i] == cid) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
+// Deoptimize optimized code on stack if its class is in the 'classes' array.
+void DeoptimizeIfOwner(const GrowableArray<intptr_t>& classes) {
+  DartFrameIterator iterator;
+  StackFrame* frame = iterator.NextFrame();
+  Code& optimized_code = Code::Handle();
+  while (frame != NULL) {
+    optimized_code = frame->LookupDartCode();
+    if (optimized_code.is_optimized()) {
+      const intptr_t owner_cid = Class::Handle(Function::Handle(
+          optimized_code.function()).Owner()).id();
+      if (ContainsCid(classes, owner_cid)) {
+        DeoptimizeAt(optimized_code, frame->pc());
+      }
+    }
   }
 }
 

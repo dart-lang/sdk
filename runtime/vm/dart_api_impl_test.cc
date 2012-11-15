@@ -7199,6 +7199,45 @@ TEST_CASE(CollectTwoOldSpacePeers) {
   EXPECT_EQ(0, isolate->heap()->PeerCount());
 }
 
+
+TEST_CASE(LazyLoadDeoptimizes) {
+  const char* kLoadFirst =
+      "start(a) {\n"
+      "  var obj = (a == 1) ? createB() : new A();\n"
+      "  for (int i = 0; i < 4000; i++) {\n"
+      "    var res = obj.foo();\n"
+      "    if (a == 1) { if (res != 1) throw 'Error'; }\n"
+      "    else if (res != 2) throw 'Error'; \n"
+      "  }\n"
+      "}\n"
+      "\n"
+      "createB() => new B();"
+      "\n"
+      "class A {\n"
+      "  foo() => goo();\n"
+      "  goo() => 2;\n"
+      "}\n";
+  const char* kLoadSecond =
+      "class B extends A {\n"
+      "  goo() => 1;\n"
+      "}\n";
+  Dart_Handle result;
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib1 = TestCase::LoadTestScript(kLoadFirst, NULL);
+  Dart_Handle dart_args[1];
+  dart_args[0] = Dart_NewInteger(0);
+  result = Dart_Invoke(lib1, NewString("start"), 1, dart_args);
+  EXPECT_VALID(result);
+
+  Dart_Handle source = NewString(kLoadSecond);
+  Dart_Handle url = NewString(TestCase::url());
+  Dart_LoadSource(TestCase::lib(), url, source);
+
+  dart_args[0] = Dart_NewInteger(1);
+  result = Dart_Invoke(lib1, NewString("start"), 1, dart_args);
+  EXPECT_VALID(result);
+}
+
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 
 }  // namespace dart

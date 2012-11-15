@@ -32,10 +32,12 @@ bool ClassFinalizer::AllClassesFinalized() {
 
 // Removes optimized code once we load more classes, since --use_cha based
 // optimizations may have become invalid.
-// TODO(srdjan): Note which functions use which CHA decision and deoptimize
-// only the necessary ones.
-static void RemoveOptimizedCode() {
+// Only methods which owner classes where subclasses can be invalid.
+// TODO(srdjan): Be even more precise by recording the exact CHA optimziation.
+static void RemoveOptimizedCode(
+    const GrowableArray<intptr_t>& added_subclasses_to_cids) {
   ASSERT(FLAG_use_cha);
+  if (added_subclasses_to_cids.is_empty()) return;
   // Deoptimize all live frames.
   DeoptimizeAll();
   // Switch all functions' code to unoptimized.
@@ -43,10 +45,9 @@ static void RemoveOptimizedCode() {
   Class& cls = Class::Handle();
   Array& array = Array::Handle();
   Function& function = Function::Handle();
-  const intptr_t num_cids = class_table.NumCids();
-  for (intptr_t i = kInstanceCid; i < num_cids; i++) {
-    if (!class_table.HasValidClassAt(i)) continue;
-    cls = class_table.At(i);
+  for (intptr_t i = 0; i < added_subclasses_to_cids.length(); i++) {
+    intptr_t cid = added_subclasses_to_cids[i];
+    cls = class_table.At(cid);
     ASSERT(!cls.IsNull());
     array = cls.functions();
     intptr_t num_functions = array.IsNull() ? 0 : array.Length();
@@ -55,6 +56,48 @@ static void RemoveOptimizedCode() {
       ASSERT(!function.IsNull());
       if (function.HasOptimizedCode()) {
         function.SwitchToUnoptimizedCode();
+      }
+    }
+  }
+}
+
+
+void AddSuperType(const Type& type,
+                  GrowableArray<intptr_t>* finalized_super_classes) {
+  ASSERT(type.HasResolvedTypeClass());
+  if (type.IsObjectType()) {
+    return;
+  }
+  const Class& cls = Class::Handle(type.type_class());
+  ASSERT(cls.is_finalized());
+  const intptr_t cid = cls.id();
+  for (intptr_t i = 0; i < finalized_super_classes->length(); i++) {
+    if ((*finalized_super_classes)[i] == cid) {
+      // Already added.
+      return;
+    }
+  }
+  finalized_super_classes->Add(cid);
+  const Type& super_type = Type::Handle(cls.super_type());
+  AddSuperType(super_type, finalized_super_classes);
+}
+
+
+// Use array instead of set since we expect very few subclassed classes
+// to occur.
+static void CollectFinalizedSuperClasses(
+    const GrowableObjectArray& pending_classes,
+    GrowableArray<intptr_t>* finalized_super_classes) {
+  Class& cls = Class::Handle();
+  Type& super_type = Type::Handle();
+  for (intptr_t i = 0; i < pending_classes.Length(); i++) {
+    cls ^= pending_classes.At(i);
+    ASSERT(!cls.is_finalized());
+    super_type ^= cls.super_type();
+    if (!super_type.IsNull()) {
+      if (super_type.HasResolvedTypeClass() &&
+          Class::Handle(super_type.type_class()).is_finalized()) {
+        AddSuperType(super_type, finalized_super_classes);
       }
     }
   }
@@ -76,6 +119,8 @@ bool ClassFinalizer::FinalizePendingClasses() {
   if (AllClassesFinalized()) {
     return true;
   }
+
+  GrowableArray<intptr_t> added_subclasses_to_cids;
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
@@ -83,6 +128,9 @@ bool ClassFinalizer::FinalizePendingClasses() {
     GrowableObjectArray& class_array = GrowableObjectArray::Handle();
     class_array = object_store->pending_classes();
     ASSERT(!class_array.IsNull());
+    // Collect superclasses that were already finalized before this run of
+    // finalization.
+    CollectFinalizedSuperClasses(class_array, &added_subclasses_to_cids);
     Class& cls = Class::Handle();
     // First resolve all superclasses.
     for (intptr_t i = 0; i < class_array.Length(); i++) {
@@ -116,7 +164,7 @@ bool ClassFinalizer::FinalizePendingClasses() {
   }
   isolate->set_long_jump_base(base);
   if (FLAG_use_cha) {
-    RemoveOptimizedCode();
+    RemoveOptimizedCode(added_subclasses_to_cids);
   }
   return retval;
 }
