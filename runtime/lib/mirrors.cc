@@ -20,7 +20,7 @@ inline Dart_Handle NewString(const char* str) {
 
 
 DEFINE_NATIVE_ENTRY(Mirrors_isLocalPort, 1) {
-  GET_NATIVE_ARGUMENT(Instance, port, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Instance, port, arguments->NativeArgAt(0));
 
   // Get the port id from the SendPort instance.
   const Object& id_obj = Object::Handle(DartLibraryCalls::PortGetId(port));

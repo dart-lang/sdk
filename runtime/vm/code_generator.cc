@@ -56,8 +56,9 @@ DEFINE_FLAG(int, max_subtype_cache_entries, 100,
 
 
 DEFINE_RUNTIME_ENTRY(TraceFunctionEntry, 1) {
-  ASSERT(arguments.Count() == kTraceFunctionEntryRuntimeEntry.argument_count());
-  const Function& function = Function::CheckedHandle(arguments.At(0));
+  ASSERT(arguments.ArgCount() ==
+      kTraceFunctionEntryRuntimeEntry.argument_count());
+  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   const String& function_name = String::Handle(function.name());
   const String& class_name =
       String::Handle(Class::Handle(function.Owner()).Name());
@@ -67,8 +68,9 @@ DEFINE_RUNTIME_ENTRY(TraceFunctionEntry, 1) {
 
 
 DEFINE_RUNTIME_ENTRY(TraceFunctionExit, 1) {
-  ASSERT(arguments.Count() == kTraceFunctionExitRuntimeEntry.argument_count());
-  const Function& function = Function::CheckedHandle(arguments.At(0));
+  ASSERT(arguments.ArgCount() ==
+      kTraceFunctionExitRuntimeEntry.argument_count());
+  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   const String& function_name = String::Handle(function.name());
   const String& class_name =
       String::Handle(Class::Handle(function.Owner()).Name());
@@ -84,12 +86,12 @@ DEFINE_RUNTIME_ENTRY(TraceFunctionExit, 1) {
 // Arg1: array element type.
 // Return value: newly allocated array of length arg0.
 DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
-  ASSERT(arguments.Count() == kAllocateArrayRuntimeEntry.argument_count());
-  const Smi& length = Smi::CheckedHandle(arguments.At(0));
+  ASSERT(arguments.ArgCount() == kAllocateArrayRuntimeEntry.argument_count());
+  const Smi& length = Smi::CheckedHandle(arguments.ArgAt(0));
   const Array& array = Array::Handle(Array::New(length.Value()));
   arguments.SetReturn(array);
   AbstractTypeArguments& element_type =
-      AbstractTypeArguments::CheckedHandle(arguments.At(1));
+      AbstractTypeArguments::CheckedHandle(arguments.ArgAt(1));
   // An Array is raw or takes only one type argument.
   ASSERT(element_type.IsNull() ||
          ((element_type.Length() == 1) && element_type.IsInstantiated()));
@@ -103,29 +105,29 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
 // Arg2: type arguments of the instantiator or kNoInstantiator.
 // Return value: newly allocated object.
 DEFINE_RUNTIME_ENTRY(AllocateObject, 3) {
-  ASSERT(arguments.Count() == kAllocateObjectRuntimeEntry.argument_count());
-  const Class& cls = Class::CheckedHandle(arguments.At(0));
+  ASSERT(arguments.ArgCount() == kAllocateObjectRuntimeEntry.argument_count());
+  const Class& cls = Class::CheckedHandle(arguments.ArgAt(0));
   const Instance& instance = Instance::Handle(Instance::New(cls));
   arguments.SetReturn(instance);
   if (!cls.HasTypeArguments()) {
     // No type arguments required for a non-parameterized type.
-    ASSERT(Instance::CheckedHandle(arguments.At(1)).IsNull());
+    ASSERT(Instance::CheckedHandle(arguments.ArgAt(1)).IsNull());
     return;
   }
   AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::CheckedHandle(arguments.At(1));
+      AbstractTypeArguments::CheckedHandle(arguments.ArgAt(1));
   ASSERT(type_arguments.IsNull() ||
          (type_arguments.Length() == cls.NumTypeArguments()));
   // If no instantiator is provided, set the type arguments and return.
-  if (Object::Handle(arguments.At(2)).IsSmi()) {
-    ASSERT(Smi::CheckedHandle(arguments.At(2)).Value() ==
+  if (Object::Handle(arguments.ArgAt(2)).IsSmi()) {
+    ASSERT(Smi::CheckedHandle(arguments.ArgAt(2)).Value() ==
            StubCode::kNoInstantiator);
     instance.SetTypeArguments(type_arguments);  // May be null.
     return;
   }
   ASSERT(!type_arguments.IsInstantiated());
   const AbstractTypeArguments& instantiator =
-      AbstractTypeArguments::CheckedHandle(arguments.At(2));
+      AbstractTypeArguments::CheckedHandle(arguments.ArgAt(2));
   ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
   if (instantiator.IsNull()) {
     type_arguments =
@@ -178,24 +180,24 @@ static intptr_t GetCallerLocation() {
 // Return value: newly allocated object.
 DEFINE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck, 3) {
   ASSERT(FLAG_enable_type_checks);
-  ASSERT(arguments.Count() ==
+  ASSERT(arguments.ArgCount() ==
          kAllocateObjectWithBoundsCheckRuntimeEntry.argument_count());
-  const Class& cls = Class::CheckedHandle(arguments.At(0));
+  const Class& cls = Class::CheckedHandle(arguments.ArgAt(0));
   const Instance& instance = Instance::Handle(Instance::New(cls));
   arguments.SetReturn(instance);
   ASSERT(cls.HasTypeArguments());
   AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::CheckedHandle(arguments.At(1));
+      AbstractTypeArguments::CheckedHandle(arguments.ArgAt(1));
   ASSERT(type_arguments.IsNull() ||
          (type_arguments.Length() == cls.NumTypeArguments()));
   AbstractTypeArguments& bounds_instantiator = AbstractTypeArguments::Handle();
-  if (Object::Handle(arguments.At(2)).IsSmi()) {
-    ASSERT(Smi::CheckedHandle(arguments.At(2)).Value() ==
+  if (Object::Handle(arguments.ArgAt(2)).IsSmi()) {
+    ASSERT(Smi::CheckedHandle(arguments.ArgAt(2)).Value() ==
            StubCode::kNoInstantiator);
   } else {
     ASSERT(!type_arguments.IsInstantiated());
     const AbstractTypeArguments& instantiator =
-        AbstractTypeArguments::CheckedHandle(arguments.At(2));
+        AbstractTypeArguments::CheckedHandle(arguments.ArgAt(2));
     ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
     if (instantiator.IsNull()) {
       type_arguments =
@@ -246,12 +248,12 @@ DEFINE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck, 3) {
 // Arg1: instantiator type arguments.
 // Return value: instantiated type arguments.
 DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 2) {
-  ASSERT(arguments.Count() ==
+  ASSERT(arguments.ArgCount() ==
          kInstantiateTypeArgumentsRuntimeEntry.argument_count());
   AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::CheckedHandle(arguments.At(0));
+      AbstractTypeArguments::CheckedHandle(arguments.ArgAt(0));
   const AbstractTypeArguments& instantiator =
-      AbstractTypeArguments::CheckedHandle(arguments.At(1));
+      AbstractTypeArguments::CheckedHandle(arguments.ArgAt(1));
   ASSERT(!type_arguments.IsNull() && !type_arguments.IsInstantiated());
   ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
   // Code inlined in the caller should have optimized the case where the
@@ -275,11 +277,11 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 2) {
 // Arg1: type arguments of the closure (i.e. instantiator).
 // Return value: newly allocated closure.
 DEFINE_RUNTIME_ENTRY(AllocateClosure, 2) {
-  ASSERT(arguments.Count() == kAllocateClosureRuntimeEntry.argument_count());
-  const Function& function = Function::CheckedHandle(arguments.At(0));
+  ASSERT(arguments.ArgCount() == kAllocateClosureRuntimeEntry.argument_count());
+  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   ASSERT(function.IsClosureFunction() && !function.IsImplicitClosureFunction());
   const AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::CheckedHandle(arguments.At(1));
+      AbstractTypeArguments::CheckedHandle(arguments.ArgAt(1));
   ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
   // The current context was saved in the Isolate structure when entering the
   // runtime.
@@ -295,11 +297,11 @@ DEFINE_RUNTIME_ENTRY(AllocateClosure, 2) {
 // Arg0: local function.
 // Return value: newly allocated closure.
 DEFINE_RUNTIME_ENTRY(AllocateImplicitStaticClosure, 1) {
-  ASSERT(arguments.Count() ==
+  ASSERT(arguments.ArgCount() ==
          kAllocateImplicitStaticClosureRuntimeEntry.argument_count());
   ObjectStore* object_store = isolate->object_store();
   ASSERT(object_store != NULL);
-  const Function& function = Function::CheckedHandle(arguments.At(0));
+  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   ASSERT(!function.IsNull());
   ASSERT(function.IsImplicitStaticClosureFunction());
   const Context& context = Context::Handle(object_store->empty_context());
@@ -313,13 +315,13 @@ DEFINE_RUNTIME_ENTRY(AllocateImplicitStaticClosure, 1) {
 // Arg2: type arguments of the closure.
 // Return value: newly allocated closure.
 DEFINE_RUNTIME_ENTRY(AllocateImplicitInstanceClosure, 3) {
-  ASSERT(arguments.Count() ==
+  ASSERT(arguments.ArgCount() ==
          kAllocateImplicitInstanceClosureRuntimeEntry.argument_count());
-  const Function& function = Function::CheckedHandle(arguments.At(0));
+  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   ASSERT(function.IsImplicitInstanceClosureFunction());
-  const Instance& receiver = Instance::CheckedHandle(arguments.At(1));
+  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(1));
   const AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::CheckedHandle(arguments.At(2));
+      AbstractTypeArguments::CheckedHandle(arguments.ArgAt(2));
   ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
   Context& context = Context::Handle();
   context = Context::New(1);
@@ -334,8 +336,8 @@ DEFINE_RUNTIME_ENTRY(AllocateImplicitInstanceClosure, 3) {
 // Arg0: number of variables.
 // Return value: newly allocated context.
 DEFINE_RUNTIME_ENTRY(AllocateContext, 1) {
-  ASSERT(arguments.Count() == kAllocateContextRuntimeEntry.argument_count());
-  const Smi& num_variables = Smi::CheckedHandle(arguments.At(0));
+  ASSERT(arguments.ArgCount() == kAllocateContextRuntimeEntry.argument_count());
+  const Smi& num_variables = Smi::CheckedHandle(arguments.ArgAt(0));
   arguments.SetReturn(Context::Handle(Context::New(num_variables.Value())));
 }
 
@@ -345,8 +347,8 @@ DEFINE_RUNTIME_ENTRY(AllocateContext, 1) {
 // Arg0: the context to be cloned.
 // Return value: newly allocated context.
 DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
-  ASSERT(arguments.Count() == kCloneContextRuntimeEntry.argument_count());
-  const Context& ctx = Context::CheckedHandle(arguments.At(0));
+  ASSERT(arguments.ArgCount() == kCloneContextRuntimeEntry.argument_count());
+  const Context& ctx = Context::CheckedHandle(arguments.ArgAt(0));
   Context& cloned_ctx = Context::Handle(Context::New(ctx.num_variables()));
   cloned_ctx.set_parent(Context::Handle(ctx.parent()));
   for (int i = 0; i < ctx.num_variables(); i++) {
@@ -579,14 +581,14 @@ static void UpdateTypeTestCache(
 // Arg4: SubtypeTestCache.
 // Return value: true or false, or may throw a type error in checked mode.
 DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
-  ASSERT(arguments.Count() == kInstanceofRuntimeEntry.argument_count());
-  const Instance& instance = Instance::CheckedHandle(arguments.At(0));
-  const AbstractType& type = AbstractType::CheckedHandle(arguments.At(1));
-  const Instance& instantiator = Instance::CheckedHandle(arguments.At(2));
+  ASSERT(arguments.ArgCount() == kInstanceofRuntimeEntry.argument_count());
+  const Instance& instance = Instance::CheckedHandle(arguments.ArgAt(0));
+  const AbstractType& type = AbstractType::CheckedHandle(arguments.ArgAt(1));
+  const Instance& instantiator = Instance::CheckedHandle(arguments.ArgAt(2));
   const AbstractTypeArguments& instantiator_type_arguments =
-      AbstractTypeArguments::CheckedHandle(arguments.At(3));
+      AbstractTypeArguments::CheckedHandle(arguments.ArgAt(3));
   const SubtypeTestCache& cache =
-      SubtypeTestCache::CheckedHandle(arguments.At(4));
+      SubtypeTestCache::CheckedHandle(arguments.ArgAt(4));
   ASSERT(type.IsFinalized());
   Error& malformed_error = Error::Handle();
   const Bool& result = Bool::Handle(
@@ -624,15 +626,17 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
 // Arg5: SubtypeTestCache.
 // Return value: instance if a subtype, otherwise throw a TypeError.
 DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
-  ASSERT(arguments.Count() == kTypeCheckRuntimeEntry.argument_count());
-  const Instance& src_instance = Instance::CheckedHandle(arguments.At(0));
-  const AbstractType& dst_type = AbstractType::CheckedHandle(arguments.At(1));
-  const Instance& dst_instantiator = Instance::CheckedHandle(arguments.At(2));
+  ASSERT(arguments.ArgCount() == kTypeCheckRuntimeEntry.argument_count());
+  const Instance& src_instance = Instance::CheckedHandle(arguments.ArgAt(0));
+  const AbstractType& dst_type =
+      AbstractType::CheckedHandle(arguments.ArgAt(1));
+  const Instance& dst_instantiator =
+      Instance::CheckedHandle(arguments.ArgAt(2));
   const AbstractTypeArguments& instantiator_type_arguments =
-      AbstractTypeArguments::CheckedHandle(arguments.At(3));
-  const String& dst_name = String::CheckedHandle(arguments.At(4));
+      AbstractTypeArguments::CheckedHandle(arguments.ArgAt(3));
+  const String& dst_name = String::CheckedHandle(arguments.ArgAt(4));
   const SubtypeTestCache& cache =
-      SubtypeTestCache::CheckedHandle(arguments.At(5));
+      SubtypeTestCache::CheckedHandle(arguments.ArgAt(5));
   ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
   ASSERT(!dst_type.IsMalformed());  // Already checked in code generator.
   ASSERT(!src_instance.IsNull());  // Already checked in inlined code.
@@ -682,12 +686,12 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
 // Arg2: arguments descriptor array.
 // Return value: true or false.
 DEFINE_RUNTIME_ENTRY(ArgumentDefinitionTest, 3) {
-  ASSERT(arguments.Count() ==
+  ASSERT(arguments.ArgCount() ==
          kArgumentDefinitionTestRuntimeEntry.argument_count());
-  const Smi& param_index = Smi::CheckedHandle(arguments.At(0));
-  const String& param_name = String::CheckedHandle(arguments.At(1));
+  const Smi& param_index = Smi::CheckedHandle(arguments.ArgAt(0));
+  const String& param_name = String::CheckedHandle(arguments.ArgAt(1));
   ASSERT(param_name.IsSymbol());
-  const Array& arg_desc = Array::CheckedHandle(arguments.At(2));
+  const Array& arg_desc = Array::CheckedHandle(arguments.ArgAt(2));
   const intptr_t num_pos_args = Smi::CheckedHandle(arg_desc.At(1)).Value();
   // Check if the formal parameter is defined by a positional argument.
   bool is_defined = num_pos_args > param_index.Value();
@@ -712,10 +716,10 @@ DEFINE_RUNTIME_ENTRY(ArgumentDefinitionTest, 3) {
 // Arg0: bad object.
 // Return value: none, throws a TypeError.
 DEFINE_RUNTIME_ENTRY(ConditionTypeError, 1) {
-  ASSERT(arguments.Count() ==
+  ASSERT(arguments.ArgCount() ==
       kConditionTypeErrorRuntimeEntry.argument_count());
   const intptr_t location = GetCallerLocation();
-  const Instance& src_instance = Instance::CheckedHandle(arguments.At(0));
+  const Instance& src_instance = Instance::CheckedHandle(arguments.ArgAt(0));
   ASSERT(src_instance.IsNull() || !src_instance.IsBool());
   const Type& bool_interface = Type::Handle(Type::BoolType());
   const AbstractType& src_type = AbstractType::Handle(src_instance.GetType());
@@ -736,12 +740,12 @@ DEFINE_RUNTIME_ENTRY(ConditionTypeError, 1) {
 // Arg2: malformed type error message.
 // Return value: none, throws an exception.
 DEFINE_RUNTIME_ENTRY(MalformedTypeError, 3) {
-  ASSERT(arguments.Count() ==
+  ASSERT(arguments.ArgCount() ==
       kMalformedTypeErrorRuntimeEntry.argument_count());
   const intptr_t location = GetCallerLocation();
-  const Instance& src_value = Instance::CheckedHandle(arguments.At(0));
-  const String& dst_name = String::CheckedHandle(arguments.At(1));
-  const String& malformed_error = String::CheckedHandle(arguments.At(2));
+  const Instance& src_value = Instance::CheckedHandle(arguments.ArgAt(0));
+  const String& dst_name = String::CheckedHandle(arguments.ArgAt(1));
+  const String& malformed_error = String::CheckedHandle(arguments.ArgAt(2));
   const String& dst_type_name = String::Handle(Symbols::New("malformed"));
   const AbstractType& src_type = AbstractType::Handle(src_value.GetType());
   const String& src_type_name = String::Handle(src_type.UserVisibleName());
@@ -752,16 +756,16 @@ DEFINE_RUNTIME_ENTRY(MalformedTypeError, 3) {
 
 
 DEFINE_RUNTIME_ENTRY(Throw, 1) {
-  ASSERT(arguments.Count() == kThrowRuntimeEntry.argument_count());
-  const Instance& exception = Instance::CheckedHandle(arguments.At(0));
+  ASSERT(arguments.ArgCount() == kThrowRuntimeEntry.argument_count());
+  const Instance& exception = Instance::CheckedHandle(arguments.ArgAt(0));
   Exceptions::Throw(exception);
 }
 
 
 DEFINE_RUNTIME_ENTRY(ReThrow, 2) {
-  ASSERT(arguments.Count() == kReThrowRuntimeEntry.argument_count());
-  const Instance& exception = Instance::CheckedHandle(arguments.At(0));
-  const Instance& stacktrace = Instance::CheckedHandle(arguments.At(1));
+  ASSERT(arguments.ArgCount() == kReThrowRuntimeEntry.argument_count());
+  const Instance& exception = Instance::CheckedHandle(arguments.ArgAt(0));
+  const Instance& stacktrace = Instance::CheckedHandle(arguments.ArgAt(1));
   Exceptions::ReThrow(exception, stacktrace);
 }
 
@@ -809,7 +813,7 @@ static bool UpdateResolvedStaticCall(const Code& code,
 DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   // This function is called after successful resolving and compilation of
   // the target method.
-  ASSERT(arguments.Count() == kPatchStaticCallRuntimeEntry.argument_count());
+  ASSERT(arguments.ArgCount() == kPatchStaticCallRuntimeEntry.argument_count());
   DartFrameIterator iterator;
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
@@ -890,9 +894,9 @@ static void CheckResultError(const Object& result) {
 // patched.
 // Used by megamorphic lookup/no-such-method-handling.
 DEFINE_RUNTIME_ENTRY(ResolveCompileInstanceFunction, 1) {
-  ASSERT(arguments.Count() ==
+  ASSERT(arguments.ArgCount() ==
          kResolveCompileInstanceFunctionRuntimeEntry.argument_count());
-  const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
+  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
   const Code& code = Code::Handle(
       ResolveCompileInstanceCallTarget(isolate, receiver));
   arguments.SetReturn(code);
@@ -902,14 +906,14 @@ DEFINE_RUNTIME_ENTRY(ResolveCompileInstanceFunction, 1) {
 // Gets called from debug stub when code reaches a breakpoint.
 //   Arg0: function object of the static function that was about to be called.
 DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 1) {
-  ASSERT(arguments.Count() ==
+  ASSERT(arguments.ArgCount() ==
       kBreakpointStaticHandlerRuntimeEntry.argument_count());
   ASSERT(isolate->debugger() != NULL);
   isolate->debugger()->SignalBpReached();
   // Make sure the static function that is about to be called is
   // compiled. The stub will jump to the entry point without any
   // further tests.
-  const Function& function = Function::CheckedHandle(arguments.At(0));
+  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   if (!function.HasCode()) {
     const Error& error = Error::Handle(Compiler::CompileFunction(function));
     if (!error.IsNull()) {
@@ -922,7 +926,7 @@ DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 1) {
 // Gets called from debug stub when code reaches a breakpoint at a return
 // in Dart code.
 DEFINE_RUNTIME_ENTRY(BreakpointReturnHandler, 0) {
-  ASSERT(arguments.Count() ==
+  ASSERT(arguments.ArgCount() ==
          kBreakpointReturnHandlerRuntimeEntry.argument_count());
   ASSERT(isolate->debugger() != NULL);
   isolate->debugger()->SignalBpReached();
@@ -931,7 +935,7 @@ DEFINE_RUNTIME_ENTRY(BreakpointReturnHandler, 0) {
 
 // Gets called from debug stub when code reaches a breakpoint.
 DEFINE_RUNTIME_ENTRY(BreakpointDynamicHandler, 0) {
-  ASSERT(arguments.Count() ==
+  ASSERT(arguments.ArgCount() ==
      kBreakpointDynamicHandlerRuntimeEntry.argument_count());
   ASSERT(isolate->debugger() != NULL);
   isolate->debugger()->SignalBpReached();
@@ -998,9 +1002,9 @@ static RawFunction* InlineCacheMissHandler(
 //   Returns: target function with compiled code or null.
 // Modifies the instance call to hold the updated IC data array.
 DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 1) {
-  ASSERT(arguments.Count() ==
+  ASSERT(arguments.ArgCount() ==
       kInlineCacheMissHandlerOneArgRuntimeEntry.argument_count());
-  const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
+  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
   GrowableArray<const Instance*> args(1);
   args.Add(&receiver);
   const Function& result =
@@ -1016,10 +1020,10 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 1) {
 //   Returns: target function with compiled code or null.
 // Modifies the instance call to hold the updated IC data array.
 DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs, 2) {
-  ASSERT(arguments.Count() ==
+  ASSERT(arguments.ArgCount() ==
       kInlineCacheMissHandlerTwoArgsRuntimeEntry.argument_count());
-  const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
-  const Instance& other = Instance::CheckedHandle(arguments.At(1));
+  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
+  const Instance& other = Instance::CheckedHandle(arguments.ArgAt(1));
   GrowableArray<const Instance*> args(2);
   args.Add(&receiver);
   args.Add(&other);
@@ -1037,11 +1041,11 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs, 2) {
 //   Returns: target function with compiled code or null.
 // Modifies the instance call to hold the updated IC data array.
 DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerThreeArgs, 3) {
-  ASSERT(arguments.Count() ==
+  ASSERT(arguments.ArgCount() ==
       kInlineCacheMissHandlerThreeArgsRuntimeEntry.argument_count());
-  const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
-  const Instance& arg1 = Instance::CheckedHandle(arguments.At(1));
-  const Instance& arg2 = Instance::CheckedHandle(arguments.At(2));
+  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
+  const Instance& arg1 = Instance::CheckedHandle(arguments.ArgAt(1));
+  const Instance& arg2 = Instance::CheckedHandle(arguments.ArgAt(2));
   GrowableArray<const Instance*> args(3);
   args.Add(&receiver);
   args.Add(&arg1);
@@ -1059,12 +1063,12 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerThreeArgs, 3) {
 //   Arg2: Target's name.
 //   Arg3: ICData.
 DEFINE_RUNTIME_ENTRY(UpdateICDataTwoArgs, 4) {
-  ASSERT(arguments.Count() ==
+  ASSERT(arguments.ArgCount() ==
       kUpdateICDataTwoArgsRuntimeEntry.argument_count());
-  const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
-  const Instance& arg1 = Instance::CheckedHandle(arguments.At(1));
-  const String& target_name = String::CheckedHandle(arguments.At(2));
-  const ICData& ic_data = ICData::CheckedHandle(arguments.At(3));
+  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
+  const Instance& arg1 = Instance::CheckedHandle(arguments.ArgAt(1));
+  const String& target_name = String::CheckedHandle(arguments.ArgAt(2));
+  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(3));
   GrowableArray<const Instance*> args(2);
   args.Add(&receiver);
   args.Add(&arg1);
@@ -1116,10 +1120,10 @@ static RawFunction* LookupDynamicFunction(Isolate* isolate,
 // This is called by the megamorphic stub when it is unable to resolve an
 // instance method. This is done just before the call to noSuchMethod.
 DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureFunction, 2) {
-  ASSERT(arguments.Count() ==
+  ASSERT(arguments.ArgCount() ==
          kResolveImplicitClosureFunctionRuntimeEntry.argument_count());
-  const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
-  const ICData& ic_data = ICData::CheckedHandle(arguments.At(1));
+  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
+  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
   const String& original_function_name = String::Handle(ic_data.target_name());
   Instance& closure = Instance::Handle();
   if (!Field::IsGetterName(original_function_name)) {
@@ -1164,10 +1168,10 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureFunction, 2) {
 // This is called by the megamorphic stub when it is unable to resolve an
 // instance method. This is done just before the call to noSuchMethod.
 DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureThroughGetter, 2) {
-  ASSERT(arguments.Count() ==
+  ASSERT(arguments.ArgCount() ==
          kResolveImplicitClosureThroughGetterRuntimeEntry.argument_count());
-  const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
-  const ICData& ic_data = ICData::CheckedHandle(arguments.At(1));
+  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
+  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
   const String& original_function_name = String::Handle(ic_data.target_name());
   const int kNumArguments = 1;
   const int kNumNamedArguments = 0;
@@ -1256,11 +1260,11 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureThroughGetter, 2) {
 // Arg1: arguments descriptor (originally passed as dart instance invocation).
 // Arg2: arguments array (originally passed to dart instance invocation).
 DEFINE_RUNTIME_ENTRY(InvokeImplicitClosureFunction, 3) {
-  ASSERT(arguments.Count() ==
+  ASSERT(arguments.ArgCount() ==
          kInvokeImplicitClosureFunctionRuntimeEntry.argument_count());
-  const Instance& closure = Instance::CheckedHandle(arguments.At(0));
-  const Array& arg_descriptor = Array::CheckedHandle(arguments.At(1));
-  const Array& func_arguments = Array::CheckedHandle(arguments.At(2));
+  const Instance& closure = Instance::CheckedHandle(arguments.ArgAt(0));
+  const Array& arg_descriptor = Array::CheckedHandle(arguments.ArgAt(1));
+  const Array& func_arguments = Array::CheckedHandle(arguments.ArgAt(2));
   const Function& function = Function::Handle(Closure::function(closure));
   ASSERT(!function.IsNull());
   if (!function.HasCode()) {
@@ -1306,13 +1310,13 @@ DEFINE_RUNTIME_ENTRY(InvokeImplicitClosureFunction, 3) {
 // Arg2: original arguments descriptor array.
 // Arg3: original arguments array.
 DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
-  ASSERT(arguments.Count() ==
+  ASSERT(arguments.ArgCount() ==
          kInvokeNoSuchMethodFunctionRuntimeEntry.argument_count());
-  const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
-  const ICData& ic_data = ICData::CheckedHandle(arguments.At(1));
+  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
+  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
   const String& original_function_name = String::Handle(ic_data.target_name());
-  ASSERT(!Array::CheckedHandle(arguments.At(2)).IsNull());
-  const Array& orig_arguments = Array::CheckedHandle(arguments.At(3));
+  ASSERT(!Array::CheckedHandle(arguments.ArgAt(2)).IsNull());
+  const Array& orig_arguments = Array::CheckedHandle(arguments.ArgAt(3));
   // Allocate an InvocationMirror object.
   // TODO(regis): Fill in the InvocationMirror object correctly at
   // this point we do not deal with named arguments and treat them
@@ -1366,10 +1370,10 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
 // Arg1: arguments array.
 // TODO(regis): Rename this entry?
 DEFINE_RUNTIME_ENTRY(ReportObjectNotClosure, 2) {
-  ASSERT(arguments.Count() ==
+  ASSERT(arguments.ArgCount() ==
          kReportObjectNotClosureRuntimeEntry.argument_count());
-  const Instance& instance = Instance::CheckedHandle(arguments.At(0));
-  const Array& function_args = Array::CheckedHandle(arguments.At(1));
+  const Instance& instance = Instance::CheckedHandle(arguments.ArgAt(0));
+  const Array& function_args = Array::CheckedHandle(arguments.ArgAt(1));
   const String& function_name = String::Handle(Symbols::Call());
   GrowableArray<const Object*> dart_arguments(5);
   if (instance.IsNull()) {
@@ -1413,7 +1417,7 @@ DEFINE_RUNTIME_ENTRY(ReportObjectNotClosure, 2) {
 // A closure object was invoked with incompatible arguments.
 // TODO(regis): Deprecated. This case should be handled by a noSuchMethod call.
 DEFINE_RUNTIME_ENTRY(ClosureArgumentMismatch, 0) {
-  ASSERT(arguments.Count() ==
+  ASSERT(arguments.ArgCount() ==
          kClosureArgumentMismatchRuntimeEntry.argument_count());
   const Instance& instance = Instance::Handle();  // Incorrect. OK for now.
   const Array& function_args = Array::Handle();  // Incorrect. OK for now.
@@ -1431,7 +1435,7 @@ DEFINE_RUNTIME_ENTRY(ClosureArgumentMismatch, 0) {
 
 
 DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
-  ASSERT(arguments.Count() ==
+  ASSERT(arguments.ArgCount() ==
          kStackOverflowRuntimeEntry.argument_count());
   uword stack_pos = reinterpret_cast<uword>(&arguments);
 
@@ -1494,10 +1498,10 @@ static void PrintCaller(const char* msg) {
 
 
 DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
-  ASSERT(arguments.Count() ==
+  ASSERT(arguments.ArgCount() ==
          kTraceICCallRuntimeEntry.argument_count());
-  const ICData& ic_data = ICData::CheckedHandle(arguments.At(0));
-  const Function& function = Function::CheckedHandle(arguments.At(1));
+  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(0));
+  const Function& function = Function::CheckedHandle(arguments.ArgAt(1));
   DartFrameIterator iterator;
   StackFrame* frame = iterator.NextFrame();
   ASSERT(frame != NULL);
@@ -1514,10 +1518,10 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
 // This is called from function that needs to be optimized.
 // The requesting function can be already optimized (reoptimization).
 DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
-  ASSERT(arguments.Count() ==
+  ASSERT(arguments.ArgCount() ==
          kOptimizeInvokedFunctionRuntimeEntry.argument_count());
   const intptr_t kLowInvocationCount = -100000000;
-  const Function& function = Function::CheckedHandle(arguments.At(0));
+  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   if (isolate->debugger()->IsActive()) {
     // We cannot set breakpoints in optimized code, so do not optimize
     // the function.
@@ -1563,8 +1567,9 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 // The caller must be a static call in a Dart frame, or an entry frame.
 // Patch static call to point to 'new_entry_point'.
 DEFINE_RUNTIME_ENTRY(FixCallersTarget, 1) {
-  ASSERT(arguments.Count() == kFixCallersTargetRuntimeEntry.argument_count());
-  const Function& function = Function::CheckedHandle(arguments.At(0));
+  ASSERT(arguments.ArgCount() ==
+      kFixCallersTargetRuntimeEntry.argument_count());
+  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   ASSERT(!function.IsNull());
   ASSERT(function.HasCode());
 

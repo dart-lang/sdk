@@ -17,53 +17,53 @@
 namespace dart {
 
 DEFINE_NATIVE_ENTRY(MathNatives_sqrt, 1) {
-  GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
   return Double::New(sqrt(operand.value()));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_sin, 1) {
-  GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
   return Double::New(sin(operand.value()));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_cos, 1) {
-  GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
   return Double::New(cos(operand.value()));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_tan, 1) {
-  GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
   return Double::New(tan(operand.value()));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_asin, 1) {
-  GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
   return Double::New(asin(operand.value()));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_acos, 1) {
-  GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
   return Double::New(acos(operand.value()));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_atan, 1) {
-  GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
   return Double::New(atan(operand.value()));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_atan2, 2) {
-  GET_NATIVE_ARGUMENT(Double, operand1, arguments->At(0));
-  GET_NATIVE_ARGUMENT(Double, operand2, arguments->At(1));
+  GET_NATIVE_ARGUMENT(Double, operand1, arguments->NativeArgAt(0));
+  GET_NATIVE_ARGUMENT(Double, operand2, arguments->NativeArgAt(1));
   return Double::New(atan2(operand1.value(), operand2.value()));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_exp, 1) {
-  GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
   return Double::New(exp(operand.value()));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_log, 1) {
-  GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
   return Double::New(log(operand.value()));
 }
 
@@ -103,7 +103,7 @@ static bool IsValidLiteral(const Scanner::GrowableTokenStream& tokens,
 
 
 DEFINE_NATIVE_ENTRY(MathNatives_parseInt, 1) {
-  GET_NATIVE_ARGUMENT(String, value, arguments->At(0));
+  GET_NATIVE_ARGUMENT(String, value, arguments->NativeArgAt(0));
   const String& dummy_key = String::Handle(Symbols::Empty());
   Scanner scanner(value, dummy_key);
   const Scanner::GrowableTokenStream& tokens = scanner.GetStream();
@@ -128,7 +128,7 @@ DEFINE_NATIVE_ENTRY(MathNatives_parseInt, 1) {
 
 
 DEFINE_NATIVE_ENTRY(MathNatives_parseDouble, 1) {
-  GET_NATIVE_ARGUMENT(String, value, arguments->At(0));
+  GET_NATIVE_ARGUMENT(String, value, arguments->NativeArgAt(0));
   const String& dummy_key = String::Handle(Symbols::Empty());
   Scanner scanner(value, dummy_key);
   const Scanner::GrowableTokenStream& tokens = scanner.GetStream();

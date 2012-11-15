@@ -11,16 +11,17 @@
 namespace dart {
 
 DEFINE_NATIVE_ENTRY(Object_toString, 1) {
-  const Instance& instance = Instance::CheckedHandle(arguments->At(0));
+  const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
   const char* c_str = instance.ToCString();
   return String::New(c_str);
 }
 
 
 DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 3) {
-  const Instance& instance = Instance::CheckedHandle(arguments->At(0));
-  GET_NATIVE_ARGUMENT(String, function_name, arguments->At(1));
-  GET_NATIVE_ARGUMENT(Array, func_args, arguments->At(2));
+  const Instance& instance =
+      Instance::CheckedHandle(arguments->NativeArgAt(0));
+  GET_NATIVE_ARGUMENT(String, function_name, arguments->NativeArgAt(1));
+  GET_NATIVE_ARGUMENT(Array, func_args, arguments->NativeArgAt(2));
   if (instance.IsNull()) {
     GrowableArray<const Object*> args;
     args.Add(&function_name);
@@ -59,14 +60,15 @@ DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 3) {
 
 
 DEFINE_NATIVE_ENTRY(Object_runtimeType, 1) {
-  const Instance& instance = Instance::CheckedHandle(arguments->At(0));
+  const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
   const Type& type = Type::Handle(instance.GetType());
   return type.Canonicalize();
 }
 
 
 DEFINE_NATIVE_ENTRY(AbstractType_toString, 1) {
-  const AbstractType& type = AbstractType::CheckedHandle(arguments->At(0));
+  const AbstractType& type =
+      AbstractType::CheckedHandle(arguments->NativeArgAt(0));
   return type.Name();
 }
 

@@ -60,7 +60,7 @@ void SetReturnValueHelper(Dart_NativeArguments, Dart_Handle);
 class NativeArguments {
  public:
   Isolate* isolate() const { return isolate_; }
-  int Count() const { return ArgcBits::decode(argc_tag_); }
+  int ArgCount() const { return ArgcBits::decode(argc_tag_); }
 
   // Returns true if the arguments are those of an instance function call.
   bool ToInstanceFunction() const {
@@ -72,9 +72,37 @@ class NativeArguments {
     return ClosureFunctionBit::decode(argc_tag_);
   }
 
-  RawObject* At(int index) const {
-    ASSERT(index >=0 && index < Count());
+  RawObject* ArgAt(int index) const {
+    ASSERT((index >= 0) && (index < ArgCount()));
     return (*argv_)[-index];
+  }
+
+  int NumHiddenArgs() const {
+    // For static closure functions, the closure at index 0 is hidden.
+    // In the instance closure function case, the receiver is accessed from
+    // the context and the closure at index 0 is hidden, so the apparent
+    // argument count remains unchanged.
+    if (ToClosureFunction() && !ToInstanceFunction()) {
+      return 1;
+    }
+    return 0;
+  }
+
+  int NativeArgCount() const {
+    return ArgCount() - NumHiddenArgs();
+  }
+
+  RawObject* NativeArgAt(int index) const {
+    const int num_hidden_args = NumHiddenArgs();
+    const int actual_index = index + num_hidden_args;
+    ASSERT((actual_index >= num_hidden_args) && (index < ArgCount()));
+    if ((index == 0) && ToClosureFunction() && ToInstanceFunction()) {
+      // Retrieve the receiver from the context.
+      const Context& context = Context::Handle(isolate_->top_context());
+      return context.At(0);
+    } else {
+      return ArgAt(actual_index);
+    }
   }
 
   void SetReturn(const Object& value) const;

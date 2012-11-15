@@ -21,8 +21,10 @@ DEFINE_FLAG(bool, trace_type_checks, false, "Trace runtime type checks.");
 DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 2) {
   // No need to type check the arguments. This function can only be called
   // internally from the VM.
-  intptr_t assertion_start = Smi::CheckedHandle(arguments->At(0)).Value();
-  intptr_t assertion_end = Smi::CheckedHandle(arguments->At(1)).Value();
+  intptr_t assertion_start =
+      Smi::CheckedHandle(arguments->NativeArgAt(0)).Value();
+  intptr_t assertion_end =
+      Smi::CheckedHandle(arguments->NativeArgAt(1)).Value();
 
   // Allocate a new instance of type AssertionError.
   const Instance& assertion_error = Instance::Handle(
@@ -60,11 +62,13 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 2) {
 DEFINE_NATIVE_ENTRY(TypeError_throwNew, 5) {
   // No need to type check the arguments. This function can only be called
   // internally from the VM.
-  intptr_t location = Smi::CheckedHandle(arguments->At(0)).Value();
-  const Instance& src_value = Instance::CheckedHandle(arguments->At(1));
-  const String& dst_type_name = String::CheckedHandle(arguments->At(2));
-  const String& dst_name = String::CheckedHandle(arguments->At(3));
-  const String& type_error = String::CheckedHandle(arguments->At(4));
+  intptr_t location = Smi::CheckedHandle(arguments->NativeArgAt(0)).Value();
+  const Instance& src_value =
+      Instance::CheckedHandle(arguments->NativeArgAt(1));
+  const String& dst_type_name =
+      String::CheckedHandle(arguments->NativeArgAt(2));
+  const String& dst_name = String::CheckedHandle(arguments->NativeArgAt(3));
+  const String& type_error = String::CheckedHandle(arguments->NativeArgAt(4));
   const String& src_type_name =
       String::Handle(Type::Handle(src_value.GetType()).UserVisibleName());
   Exceptions::CreateAndThrowTypeError(location, src_type_name,
@@ -78,7 +82,7 @@ DEFINE_NATIVE_ENTRY(TypeError_throwNew, 5) {
 // Arg0: index of the case clause token into which we fall through.
 // Return value: none, throws an exception.
 DEFINE_NATIVE_ENTRY(FallThroughError_throwNew, 1) {
-  GET_NATIVE_ARGUMENT(Smi, smi_pos, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Smi, smi_pos, arguments->NativeArgAt(0));
   intptr_t fallthrough_pos = smi_pos.Value();
 
   // Allocate a new instance of type FallThroughError.
@@ -110,8 +114,8 @@ DEFINE_NATIVE_ENTRY(FallThroughError_throwNew, 1) {
 // Arg1: class name of the abstract class that cannot be instantiated.
 // Return value: none, throws an exception.
 DEFINE_NATIVE_ENTRY(AbstractClassInstantiationError_throwNew, 2) {
-  GET_NATIVE_ARGUMENT(Smi, smi_pos, arguments->At(0));
-  GET_NATIVE_ARGUMENT(String, class_name, arguments->At(1));
+  GET_NATIVE_ARGUMENT(Smi, smi_pos, arguments->NativeArgAt(0));
+  GET_NATIVE_ARGUMENT(String, class_name, arguments->NativeArgAt(1));
   intptr_t error_pos = smi_pos.Value();
 
   // Allocate a new instance of type AbstractClassInstantiationError.
@@ -142,8 +146,8 @@ DEFINE_NATIVE_ENTRY(AbstractClassInstantiationError_throwNew, 2) {
 // Arg1: name of the method that was not resolved at compile time.
 // Return value: none, throws an exception.
 DEFINE_NATIVE_ENTRY(NoSuchMethodError_throwNew, 2) {
-  GET_NATIVE_ARGUMENT(Smi, smi_pos, arguments->At(0));
-  GET_NATIVE_ARGUMENT(String, function_name, arguments->At(1));
+  GET_NATIVE_ARGUMENT(Smi, smi_pos, arguments->NativeArgAt(0));
+  GET_NATIVE_ARGUMENT(String, function_name, arguments->NativeArgAt(1));
   intptr_t call_pos = smi_pos.Value();
   // Allocate a new instance of type NoSuchMethodError.
   const Instance& error = Instance::Handle(

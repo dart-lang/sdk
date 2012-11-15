@@ -36,7 +36,7 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
     CHECK_STACK_ALIGNMENT;                                                     \
     VERIFY_ON_TRANSITION;                                                      \
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);     \
-    ASSERT(arguments->Count() == argument_count);                              \
+    ASSERT(arguments->NativeArgCount() == argument_count);                     \
     if (FLAG_trace_natives) OS::Print("Calling native: %s\n", ""#name);        \
     {                                                                          \
       StackZone zone(arguments->isolate());                                    \

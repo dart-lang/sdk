@@ -44,14 +44,14 @@ static void LengthCheck(intptr_t len, intptr_t max) {
 
 
 #define GETTER_ARGUMENTS(ArrayT, ValueT)                                \
-  GET_NATIVE_ARGUMENT(ArrayT, array, arguments->At(0));                 \
-  GET_NATIVE_ARGUMENT(Smi, index, arguments->At(1));
+  GET_NATIVE_ARGUMENT(ArrayT, array, arguments->NativeArgAt(0));        \
+  GET_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
 
 
 #define SETTER_ARGUMENTS(ArrayT, ObjectT, ValueT)                       \
-  GET_NATIVE_ARGUMENT(ArrayT, array, arguments->At(0));                 \
-  GET_NATIVE_ARGUMENT(Smi, index, arguments->At(1));                    \
-  GET_NATIVE_ARGUMENT(ObjectT, value_object, arguments->At(2));
+  GET_NATIVE_ARGUMENT(ArrayT, array, arguments->NativeArgAt(0));        \
+  GET_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));           \
+  GET_NATIVE_ARGUMENT(ObjectT, value_object, arguments->NativeArgAt(2));
 
 
 #define GETTER(ArrayT, ObjectT, ValueT)                                 \
@@ -147,7 +147,7 @@ static void LengthCheck(intptr_t len, intptr_t max) {
 
 
 DEFINE_NATIVE_ENTRY(ByteArray_getLength, 1) {
-  GET_NATIVE_ARGUMENT(ByteArray, array, arguments->At(0));
+  GET_NATIVE_ARGUMENT(ByteArray, array, arguments->NativeArgAt(0));
   return Smi::New(array.Length());
 }
 
@@ -253,11 +253,11 @@ DEFINE_NATIVE_ENTRY(ByteArray_setFloat64, 3) {
 
 
 DEFINE_NATIVE_ENTRY(ByteArray_setRange, 5) {
-  ByteArray& dst = ByteArray::CheckedHandle(arguments->At(0));
-  GET_NATIVE_ARGUMENT(Smi, dst_start, arguments->At(1));
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->At(2));
-  GET_NATIVE_ARGUMENT(ByteArray, src, arguments->At(3));
-  GET_NATIVE_ARGUMENT(Smi, src_start, arguments->At(4));
+  ByteArray& dst = ByteArray::CheckedHandle(arguments->NativeArgAt(0));
+  GET_NATIVE_ARGUMENT(Smi, dst_start, arguments->NativeArgAt(1));
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(2));
+  GET_NATIVE_ARGUMENT(ByteArray, src, arguments->NativeArgAt(3));
+  GET_NATIVE_ARGUMENT(Smi, src_start, arguments->NativeArgAt(4));
   intptr_t length_value = length.Value();
   intptr_t src_start_value = src_start.Value();
   intptr_t dst_start_value = dst_start.Value();
@@ -278,7 +278,7 @@ DEFINE_NATIVE_ENTRY(ByteArray_setRange, 5) {
 // Int8Array
 
 DEFINE_NATIVE_ENTRY(Int8Array_new, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Int8Array::kMaxElements);
   return Int8Array::New(len);
@@ -298,7 +298,7 @@ DEFINE_NATIVE_ENTRY(Int8Array_setIndexed, 3) {
 // Uint8Array
 
 DEFINE_NATIVE_ENTRY(Uint8Array_new, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint8Array::kMaxElements);
   return Uint8Array::New(len);
@@ -318,7 +318,7 @@ DEFINE_NATIVE_ENTRY(Uint8Array_setIndexed, 3) {
 // Int16Array
 
 DEFINE_NATIVE_ENTRY(Int16Array_new, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Int16Array::kMaxElements);
   return Int16Array::New(len);
@@ -338,7 +338,7 @@ DEFINE_NATIVE_ENTRY(Int16Array_setIndexed, 3) {
 // Uint16Array
 
 DEFINE_NATIVE_ENTRY(Uint16Array_new, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint16Array::kMaxElements);
   return Uint16Array::New(len);
@@ -358,7 +358,7 @@ DEFINE_NATIVE_ENTRY(Uint16Array_setIndexed, 3) {
 // Int32Array
 
 DEFINE_NATIVE_ENTRY(Int32Array_new, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Int32Array::kMaxElements);
   return Int32Array::New(len);
@@ -378,7 +378,7 @@ DEFINE_NATIVE_ENTRY(Int32Array_setIndexed, 3) {
 // Uint32Array
 
 DEFINE_NATIVE_ENTRY(Uint32Array_new, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint32Array::kMaxElements);
   return Uint32Array::New(len);
@@ -398,7 +398,7 @@ DEFINE_NATIVE_ENTRY(Uint32Array_setIndexed, 3) {
 // Int64Array
 
 DEFINE_NATIVE_ENTRY(Int64Array_new, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Int64Array::kMaxElements);
   return Int64Array::New(len);
@@ -418,7 +418,7 @@ DEFINE_NATIVE_ENTRY(Int64Array_setIndexed, 3) {
 // Uint64Array
 
 DEFINE_NATIVE_ENTRY(Uint64Array_new, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint64Array::kMaxElements);
   return Uint64Array::New(len);
@@ -438,7 +438,7 @@ DEFINE_NATIVE_ENTRY(Uint64Array_setIndexed, 3) {
 // Float32Array
 
 DEFINE_NATIVE_ENTRY(Float32Array_new, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Float32Array::kMaxElements);
   return Float32Array::New(len);
@@ -458,7 +458,7 @@ DEFINE_NATIVE_ENTRY(Float32Array_setIndexed, 3) {
 // Float64Array
 
 DEFINE_NATIVE_ENTRY(Float64Array_new, 1) {
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Float64Array::kMaxElements);
   return Float64Array::New(len);

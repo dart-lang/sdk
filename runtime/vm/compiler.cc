@@ -57,8 +57,8 @@ DECLARE_FLAG(bool, print_flow_graph);
 // Compile a function. Should call only if the function has not been compiled.
 //   Arg0: function object.
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
-  ASSERT(arguments.Count() == kCompileFunctionRuntimeEntry.argument_count());
-  const Function& function = Function::CheckedHandle(arguments.At(0));
+  ASSERT(arguments.ArgCount() == kCompileFunctionRuntimeEntry.argument_count());
+  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   ASSERT(!function.HasCode());
   const Error& error = Error::Handle(Compiler::CompileFunction(function));
   if (!error.IsNull()) {
