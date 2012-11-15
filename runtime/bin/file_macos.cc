@@ -116,6 +116,7 @@ File* File::Open(const char* name, FileOpenMode mode) {
   if ((mode & kTruncate) != 0) {
     flags = flags | O_TRUNC;
   }
+  flags |= O_CLOEXEC;
   int fd = TEMP_FAILURE_RETRY(open(name, flags, 0666));
   if (fd < 0) {
     return NULL;
@@ -147,7 +148,7 @@ bool File::Exists(const char* name) {
 
 
 bool File::Create(const char* name) {
-  int fd = TEMP_FAILURE_RETRY(open(name, O_RDONLY | O_CREAT, 0666));
+  int fd = TEMP_FAILURE_RETRY(open(name, O_RDONLY | O_CREAT | O_CLOEXEC, 0666));
   if (fd < 0) {
     return false;
   }
