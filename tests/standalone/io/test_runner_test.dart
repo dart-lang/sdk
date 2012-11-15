@@ -15,7 +15,7 @@ class TestController {
 
   // Used as TestCase.completedCallback.
   static processCompletedTest(TestCase testCase) {
-    CommandOutput output = testCase.lastCommandOutput;
+    TestOutput output = testCase.output;
     print("Test: ${testCase.commands.last.commandLine}");
     if (output.unexpectedOutput) {
       throw "Unexpected output: ${output.result}";
