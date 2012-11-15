@@ -459,9 +459,7 @@ class ConcreteTypesInferrer {
     final ClassBaseType int = baseTypes.intBaseType;
     final ClassBaseType double = baseTypes.doubleBaseType;
     final ClassBaseType num = baseTypes.numBaseType;
-    for (String operator in ['add', 'mul', 'sub']) {
-      final String method = r"operator$".concat(operator);
-
+    for (String method in ['+', '*', '-']) {
       rule(int, method, int, int);
       rule(int, method, double, num);
       rule(int, method, num, num);
@@ -1050,8 +1048,14 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   SourceString canonicalizeCompoundOperator(String op) {
-    if (op == '++') return const SourceString(r'operator$add');
-    else return const SourceString(r'operator$sub');
+    // TODO(ahe): This class should work on elements or selectors, not
+    // names.  Otherwise, it is repeating work the resolver has
+    // already done (or should have done).  In this case, the problem
+    // is that the resolver is not recording the selectors it is
+    // registering in registerBinaryOperator in
+    // ResolverVisitor.visitSendSet.
+    if (op == '++') return const SourceString(r'+');
+    else return const SourceString(r'-');
   }
 
   // TODO(polux): handle sendset as expression

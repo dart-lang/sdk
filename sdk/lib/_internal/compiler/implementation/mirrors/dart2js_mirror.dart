@@ -1383,7 +1383,11 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
 
   factory Dart2JsMethodMirror(Dart2JsContainerMirror objectMirror,
                               FunctionElement function) {
-    String simpleName = function.name.slowToString();
+    String realName = function.name.slowToString();
+    // TODO(ahe): This method should not be calling
+    // Elements.operatorNameToIdentifier.
+    String simpleName =
+        Elements.operatorNameToIdentifier(function.name).slowToString();
     String displayName;
     String constructorName = null;
     String operatorName = null;
@@ -1424,7 +1428,7 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
       }
       // Simple name is TypeName.constructorName.
       displayName = simpleName;
-    } else if (simpleName == 'negate') {
+    } else if (realName == 'unary-') {
       kind = Dart2JsMethodKind.OPERATOR;
       operatorName = '-';
       // Simple name is 'unary-'.

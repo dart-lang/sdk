@@ -111,7 +111,7 @@ class Namer {
   }
 
   String instanceMethodName(FunctionElement element) {
-    SourceString name = element.name;
+    SourceString name = Elements.operatorNameToIdentifier(element.name);
     LibraryElement lib = element.getLibrary();
     if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
       ConstructorBodyElement bodyElement = element;
@@ -132,12 +132,14 @@ class Namer {
   }
 
   String publicInstanceMethodNameByArity(SourceString name, int arity) {
+    name = Elements.operatorNameToIdentifier(name);
     assert(!name.isPrivate());
     return '${name.slowToString()}\$$arity';
   }
 
   String instanceMethodInvocationName(LibraryElement lib, SourceString name,
                                       Selector selector) {
+    name = Elements.operatorNameToIdentifier(name);
     // TODO(floitsch): mangle, while preserving uniqueness.
     StringBuffer buffer = new StringBuffer();
     List<SourceString> names = selector.getOrderedNamedArguments();

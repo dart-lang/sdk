@@ -479,34 +479,29 @@ class ClosureTranslator extends Visitor {
 
   /** Returns a non-unique name for the given closure element. */
   String closureName(Element element) {
-    List<String> parts = <String>[];
+    Link<String> parts = const Link<String>();
     SourceString ownName = element.name;
     if (ownName == null || ownName.stringValue == "") {
-      parts.add("anon");
+      parts = parts.prepend("anon");
     } else {
-      parts.add(ownName.slowToString());
+      parts = parts.prepend(ownName.slowToString());
     }
     for (Element enclosingElement = element.enclosingElement;
          enclosingElement != null &&
-             (identical(enclosingElement.kind, ElementKind.GENERATIVE_CONSTRUCTOR_BODY)
+             (identical(enclosingElement.kind,
+                        ElementKind.GENERATIVE_CONSTRUCTOR_BODY)
               || identical(enclosingElement.kind, ElementKind.CLASS)
               || identical(enclosingElement.kind, ElementKind.FUNCTION)
               || identical(enclosingElement.kind, ElementKind.GETTER)
               || identical(enclosingElement.kind, ElementKind.SETTER));
          enclosingElement = enclosingElement.enclosingElement) {
-      SourceString surroundingName = enclosingElement.name;
-      if (surroundingName != null) {
-        String surroundingNameString = surroundingName.slowToString();
-        if (surroundingNameString != "") parts.add(surroundingNameString);
-      }
+      SourceString surroundingName =
+          Elements.operatorNameToIdentifier(enclosingElement.name);
+      parts = parts.prepend(surroundingName.slowToString());
     }
-    // Invert the parts.
-    for (int i = 0, j = parts.length - 1; i < j; i++, j--) {
-      var tmp = parts[i];
-      parts[i] = parts[j];
-      parts[j] = tmp;
-    }
-    return Strings.join(parts, "_");
+    StringBuffer sb = new StringBuffer();
+    parts.printOn(sb, '_');
+    return sb.toString();
   }
 
   ClosureClassMap globalizeClosure(FunctionExpression node, Element element) {

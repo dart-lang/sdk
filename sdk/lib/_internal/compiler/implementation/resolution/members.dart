@@ -1636,11 +1636,16 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     if (node.isOperator) {
       SourceString source = node.selector.asOperator().source;
       String string = source.stringValue;
-      if (identical(string, '!')   || identical(string, '&&')  || string == '||' ||
-          identical(string, 'is')  || identical(string, 'as')  ||
+      if (identical(string, '!') ||
+          identical(string, '&&') || identical(string, '||') ||
+          identical(string, 'is') || identical(string, 'as') ||
           identical(string, '===') || identical(string, '!==') ||
+          identical(string, '?') ||
           identical(string, '>>>')) {
         return null;
+      }
+      if (!isUserDefinableOperator(source.stringValue)) {
+        source = Elements.mapToUserOperator(source);
       }
       return node.arguments.isEmpty
           ? new Selector.unaryOperator(source)

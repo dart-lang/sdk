@@ -1802,62 +1802,92 @@ class Elements {
     return new SourceString('$r\$$s');
   }
 
-  static const SourceString OPERATOR_EQUALS =
-      const SourceString(r'operator$eq');
-
-  static SourceString constructOperatorName(SourceString selector,
-                                            bool isUnary) {
-    String str = selector.stringValue;
-    if (identical(str, '==') || identical(str, '!=')) return OPERATOR_EQUALS;
-
-    if (identical(str, '~')) {
-      str = 'not';
-    } else if (identical(str, '-') && isUnary) {
-      // TODO(ahe): Return something like 'unary -'.
-      return const SourceString('negate');
-    } else if (identical(str, '[]')) {
-      str = 'index';
-    } else if (identical(str, '[]=')) {
-      str = 'indexSet';
-    } else if (identical(str, '*') || identical(str, '*=')) {
-      str = 'mul';
-    } else if (identical(str, '/') || identical(str, '/=')) {
-      str = 'div';
-    } else if (identical(str, '%') || identical(str, '%=')) {
-      str = 'mod';
-    } else if (identical(str, '~/') || identical(str, '~/=')) {
-      str = 'tdiv';
-    } else if (identical(str, '+') || identical(str, '+=')) {
-      str = 'add';
-    } else if (identical(str, '-') || identical(str, '-=')) {
-      str = 'sub';
-    } else if (identical(str, '<<') || identical(str, '<<=')) {
-      str = 'shl';
-    } else if (identical(str, '>>') || identical(str, '>>=')) {
-      str = 'shr';
-    } else if (identical(str, '>=')) {
-      str = 'ge';
-    } else if (identical(str, '>')) {
-      str = 'gt';
-    } else if (identical(str, '<=')) {
-      str = 'le';
-    } else if (identical(str, '<')) {
-      str = 'lt';
-    } else if (identical(str, '&') || identical(str, '&=')) {
-      str = 'and';
-    } else if (identical(str, '^') || identical(str, '^=')) {
-      str = 'xor';
-    } else if (identical(str, '|') || identical(str, '|=')) {
-      str = 'or';
-    } else if (selector == const SourceString('negate')) {
-      // TODO(ahe): Remove this case: Legacy support for pre-0.11 spec.
-      return selector;
-    } else if (identical(str, '?')) {
-      return selector;
+  /**
+   * Map an operator-name to a valid Dart identifier.
+   *
+   * For non-operator names, this metod just returns its input.
+   *
+   * The results returned from this method are guaranteed to be valid
+   * JavaScript identifers, except it may include reserved words for
+   * non-operator names.
+   */
+  static SourceString operatorNameToIdentifier(SourceString name) {
+    if (name == null) return null;
+    String value = name.stringValue;
+    if (value == null) {
+      return name;
+    } else if (identical(value, '==')) {
+      return const SourceString(r'operator$eq');
+    } else if (identical(value, '~')) {
+      return const SourceString(r'operator$not');
+    } else if (identical(value, '[]')) {
+      return const SourceString(r'operator$index');
+    } else if (identical(value, '[]=')) {
+      return const SourceString(r'oprator$indexSet');
+    } else if (identical(value, '*')) {
+      return const SourceString(r'operator$mul');
+    } else if (identical(value, '/')) {
+      return const SourceString(r'operator$div');
+    } else if (identical(value, '%')) {
+      return const SourceString(r'operator$mod');
+    } else if (identical(value, '~/')) {
+      return const SourceString(r'operator$tdiv');
+    } else if (identical(value, '+')) {
+      return const SourceString(r'operator$add');
+    } else if (identical(value, '<<')) {
+      return const SourceString(r'operator$shl');
+    } else if (identical(value, '>>')) {
+      return const SourceString(r'operator$shr');
+    } else if (identical(value, '>=')) {
+      return const SourceString(r'operator$ge');
+    } else if (identical(value, '>')) {
+      return const SourceString(r'operator$gt');
+    } else if (identical(value, '<=')) {
+      return const SourceString(r'operator$le');
+    } else if (identical(value, '<')) {
+      return const SourceString(r'operator$lt');
+    } else if (identical(value, '&')) {
+      return const SourceString(r'operator$and');
+    } else if (identical(value, '^')) {
+      return const SourceString(r'operator$xor');
+    } else if (identical(value, '|')) {
+      return const SourceString(r'operator$or');
+    } else if (identical(value, '-')) {
+      return const SourceString(r'operator$sub');
+    } else if (identical(value, 'unary-')) {
+      return const SourceString(r'operator$negate');
     } else {
-      throw new Exception('Unhandled selector: ${selector.slowToString()}');
+      return name;
     }
-    return new SourceString('operator\$$str');
+  }
+
+  static SourceString constructOperatorName(SourceString op, bool isUnary) {
+    String value = op.stringValue;
+    if ((value === '==') ||
+        (value === '~') ||
+        (value === '[]') ||
+        (value === '[]=') ||
+        (value === '*') ||
+        (value === '/') ||
+        (value === '%') ||
+        (value === '~/') ||
+        (value === '+') ||
+        (value === '<<') ||
+        (value === '>>>') ||
+        (value === '>>') ||
+        (value === '>=') ||
+        (value === '>') ||
+        (value === '<=') ||
+        (value === '<') ||
+        (value === '&') ||
+        (value === '^') ||
+        (value === '|')) {
+      return op;
+    } else if (value === '-') {
+      return isUnary ? const SourceString('unary-') : op;
+    } else {
+      throw 'Unhandled operator: ${op.slowToString()}';
+    }
   }
 
   static SourceString mapToUserOperator(SourceString op) {
