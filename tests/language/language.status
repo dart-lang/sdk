@@ -381,6 +381,7 @@ string_escape1_negative_test: Skip
 *: Skip
 
 [ $compiler == dart2dart ]
+const_factory_redirection_test: Fail # TRIAGE
 redirecting_factory_infinite_steps_test/01: Fail, Pass # TRIAGE: fails in minified mode. http://dartbug.com/6603
 
 many_overridden_no_such_method_test: Fail, Pass # TRIAGE: fails in minified mode

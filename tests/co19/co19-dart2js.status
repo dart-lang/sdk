@@ -33,7 +33,6 @@ Language/05_Variables/05_Variables_A07_t10: Fail # TODO(ahe): Please triage this
 Language/05_Variables/05_Variables_A08_t01: Fail # TODO(ahe): Please triage this failure.
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # TODO(ahe): Please triage this failure.
 Language/06_Functions/06_Functions_A01_t22: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/07_Classes_A03_t01: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/07_Classes_A03_t07: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/1_Instance_Methods_A06_t01: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A05_t01: Fail # TODO(ahe): Please triage this failure.
@@ -56,7 +55,6 @@ Language/11_Expressions/11_Instance_Creation/1_New_A02_t03: Fail # TODO(ahe): Pl
 Language/11_Expressions/11_Instance_Creation/1_New_A02_t05: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/1_New_A02_t06: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/1_New_A02_t07: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/11_Instance_Creation/1_New_A14_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/2_Const_A01_t02: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/17_Getter_Invocation_A02_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/18_Assignment_A05_t02: Fail # TODO(ahe): Please triage this failure.

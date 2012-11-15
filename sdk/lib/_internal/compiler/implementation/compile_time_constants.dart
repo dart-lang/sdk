@@ -581,6 +581,7 @@ class CompileTimeConstantEvaluator extends Visitor {
 
     Send send = node.send;
     FunctionElement constructor = elements[send];
+    constructor = constructor.redirectionTarget;
     ClassElement classElement = constructor.getEnclosingClass();
     if (classElement.isInterface()) {
       compiler.resolver.resolveMethodElement(constructor);
