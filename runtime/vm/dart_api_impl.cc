@@ -1019,8 +1019,7 @@ DART_EXPORT bool Dart_PostIntArray(Dart_Port port_id,
 }
 
 
-DART_EXPORT bool Dart_PostCObject(Dart_Port port_id,
-                                  Dart_CObject* message) {
+DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message) {
   uint8_t* buffer = NULL;
   ApiMessageWriter writer(&buffer, allocator);
   bool success = writer.WriteCMessage(message);
