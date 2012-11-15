@@ -1950,7 +1950,8 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(list));
-  if (obj.IsUint8Array() || obj.IsExternalUint8Array()) {
+  if (obj.IsUint8Array() || obj.IsExternalUint8Array() ||
+      obj.IsInt8Array() || obj.IsExternalInt8Array()) {
     const ByteArray& byte_array = ByteArray::Cast(obj);
     if (Utils::RangeCheck(offset, length, byte_array.Length())) {
       ByteArray::Copy(native_array, byte_array, offset, length);

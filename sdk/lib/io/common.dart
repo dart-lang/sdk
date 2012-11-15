@@ -68,7 +68,9 @@ class _BufferAndOffset {
 // benefit that it is faster to access from the C code as well.
 _BufferAndOffset _ensureFastAndSerializableBuffer(
     List buffer, int offset, int bytes) {
-  if (buffer is Uint8List || _BufferUtils._isBuiltinList(buffer)) {
+  if (buffer is Uint8List ||
+      buffer is Int8List ||
+      _BufferUtils._isBuiltinList(buffer)) {
     return new _BufferAndOffset(buffer, offset);
   }
   var newBuffer = new Uint8List(bytes);
