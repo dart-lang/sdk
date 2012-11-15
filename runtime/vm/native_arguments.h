@@ -93,14 +93,13 @@ class NativeArguments {
   }
 
   RawObject* NativeArgAt(int index) const {
-    const int num_hidden_args = NumHiddenArgs();
-    const int actual_index = index + num_hidden_args;
-    ASSERT((actual_index >= num_hidden_args) && (index < ArgCount()));
+    ASSERT((index >= 0) && (index < NativeArgCount()));
     if ((index == 0) && ToClosureFunction() && ToInstanceFunction()) {
       // Retrieve the receiver from the context.
       const Context& context = Context::Handle(isolate_->top_context());
       return context.At(0);
     } else {
+      const int actual_index = index + NumHiddenArgs();
       return ArgAt(actual_index);
     }
   }
