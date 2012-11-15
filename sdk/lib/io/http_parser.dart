@@ -170,7 +170,7 @@ class _HttpParser {
               if (!_isTokenChar(byte)) {
                 throw new HttpParserException("Invalid request method");
               }
-              _method_or_status_code.addCharCode(byte);
+              _method_or_status_code.add(byte);
               if (!_requestParser) {
                 throw new HttpParserException("Invalid response line");
               }
@@ -195,12 +195,12 @@ class _HttpParser {
             } else {
               // Did not parse HTTP version. Expect method instead.
               for (int i = 0; i < _httpVersionIndex; i++) {
-                _method_or_status_code.addCharCode(_Const.HTTP[i]);
+                _method_or_status_code.add(_Const.HTTP[i]);
               }
               if (byte == _CharCode.SP) {
                 _state = _State.REQUEST_LINE_URI;
               } else {
-                _method_or_status_code.addCharCode(byte);
+                _method_or_status_code.add(byte);
                 _httpVersion = _HttpVersion.UNDETERMINED;
                 if (!_requestParser) {
                   throw new HttpParserException("Invalid response line");
@@ -243,7 +243,7 @@ class _HttpParser {
               if (_Const.SEPARATORS_AND_CR_LF.indexOf(byte) != -1) {
                 throw new HttpParserException("Invalid request method");
               }
-              _method_or_status_code.addCharCode(byte);
+              _method_or_status_code.add(byte);
             }
             break;
 
@@ -258,7 +258,7 @@ class _HttpParser {
               if (byte == _CharCode.CR || byte == _CharCode.LF) {
                 throw new HttpParserException("Invalid request URI");
               }
-              _uri_or_reason_phrase.addCharCode(byte);
+              _uri_or_reason_phrase.add(byte);
             }
             break;
 
@@ -289,8 +289,8 @@ class _HttpParser {
           case _State.REQUEST_LINE_ENDING:
             _expect(byte, _CharCode.LF);
             _messageType = _MessageType.REQUEST;
-            requestStart(_method_or_status_code.toString(),
-                         _uri_or_reason_phrase.toString(),
+            requestStart(new String.fromCharCodes(_method_or_status_code),
+                         new String.fromCharCodes(_uri_or_reason_phrase),
                          version);
             _method_or_status_code.clear();
             _uri_or_reason_phrase.clear();
@@ -307,7 +307,7 @@ class _HttpParser {
               if (byte < 0x30 && 0x39 < byte) {
                 throw new HttpParserException("Invalid response status code");
               } else {
-                _method_or_status_code.addCharCode(byte);
+                _method_or_status_code.add(byte);
               }
             }
             break;
@@ -322,14 +322,14 @@ class _HttpParser {
               if (byte == _CharCode.CR || byte == _CharCode.LF) {
                 throw new HttpParserException("Invalid response reason phrase");
               }
-              _uri_or_reason_phrase.addCharCode(byte);
+              _uri_or_reason_phrase.add(byte);
             }
             break;
 
           case _State.RESPONSE_LINE_ENDING:
             _expect(byte, _CharCode.LF);
             _messageType == _MessageType.RESPONSE;
-            int statusCode = parseInt(_method_or_status_code.toString());
+            int statusCode = parseInt(new String.fromCharCodes(_method_or_status_code));
             if (statusCode < 100 || statusCode > 599) {
               throw new HttpParserException("Invalid response status code");
             } else {
@@ -338,7 +338,7 @@ class _HttpParser {
                   statusCode <= 199 || statusCode == 204 || statusCode == 304;
             }
             responseStart(statusCode,
-                          _uri_or_reason_phrase.toString(),
+                          new String.fromCharCodes(_uri_or_reason_phrase),
                           version);
             _method_or_status_code.clear();
             _uri_or_reason_phrase.clear();
@@ -350,7 +350,7 @@ class _HttpParser {
               _state = _State.HEADER_ENDING;
             } else {
               // Start of new header field.
-              _headerField.addCharCode(_toLowerCase(byte));
+              _headerField.add(_toLowerCase(byte));
               _state = _State.HEADER_FIELD;
             }
             break;
@@ -362,7 +362,7 @@ class _HttpParser {
               if (!_isTokenChar(byte)) {
                 throw new HttpParserException("Invalid header field name");
               }
-              _headerField.addCharCode(_toLowerCase(byte));
+              _headerField.add(_toLowerCase(byte));
             }
             break;
 
@@ -371,7 +371,7 @@ class _HttpParser {
               _state = _State.HEADER_VALUE_FOLDING_OR_ENDING;
             } else if (byte != _CharCode.SP && byte != _CharCode.HT) {
               // Start of new header value.
-              _headerValue.addCharCode(byte);
+              _headerValue.add(byte);
               _state = _State.HEADER_VALUE;
             }
             break;
@@ -380,7 +380,7 @@ class _HttpParser {
             if (byte == _CharCode.CR) {
               _state = _State.HEADER_VALUE_FOLDING_OR_ENDING;
             } else {
-              _headerValue.addCharCode(byte);
+              _headerValue.add(byte);
             }
             break;
 
@@ -393,8 +393,8 @@ class _HttpParser {
             if (byte == _CharCode.SP || byte == _CharCode.HT) {
               _state = _State.HEADER_VALUE_START;
             } else {
-              String headerField = _headerField.toString();
-              String headerValue =_headerValue.toString();
+              String headerField = new String.fromCharCodes(_headerField);
+              String headerValue = new String.fromCharCodes(_headerValue);
               bool reportHeader = true;
               if (headerField == "content-length" && !_chunked) {
                 // Ignore the Content-Length header if Transfer-Encoding
@@ -431,7 +431,7 @@ class _HttpParser {
                 _state = _State.HEADER_ENDING;
               } else {
                 // Start of new header field.
-                _headerField.addCharCode(_toLowerCase(byte));
+                _headerField.add(_toLowerCase(byte));
                 _state = _State.HEADER_FIELD;
               }
             }
@@ -658,10 +658,10 @@ class _HttpParser {
   _reset() {
     _state = _State.START;
     _messageType = _MessageType.UNDETERMINED;
-    _headerField = new StringBuffer();
-    _headerValue = new StringBuffer();
-    _method_or_status_code = new StringBuffer();
-    _uri_or_reason_phrase = new StringBuffer();
+    _headerField = new List();
+    _headerValue = new List();
+    _method_or_status_code = new List();
+    _uri_or_reason_phrase = new List();
 
     _httpVersion = _HttpVersion.UNDETERMINED;
     _contentLength = -1;
@@ -735,10 +735,10 @@ class _HttpParser {
   int _state;
   int _httpVersionIndex;
   int _messageType;
-  StringBuffer _method_or_status_code;
-  StringBuffer _uri_or_reason_phrase;
-  StringBuffer _headerField;
-  StringBuffer _headerValue;
+  List _method_or_status_code;
+  List _uri_or_reason_phrase;
+  List _headerField;
+  List _headerValue;
 
   int _httpVersion;
   int _contentLength;
