@@ -313,7 +313,6 @@ DirectoryDescriptor gitPackageRevisionCacheDir(String name, [int modifier]) {
  */
 DirectoryDescriptor gitPackageRepoCacheDir(String name) {
   return dir(new RegExp("$name${r'-[a-f0-9]+'}"), [
-    dir('branches'),
     dir('hooks'),
     dir('info'),
     dir('objects'),
