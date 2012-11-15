@@ -1484,6 +1484,45 @@ DART_EXPORT Dart_Handle Dart_StringToUTF16(Dart_Handle str,
                                            uint16_t* utf16_array,
                                            intptr_t* length);
 
+/**
+ * Gets the storage size in bytes of a String.
+ *
+ * \param str A String.
+ * \param length Returns the storage size in bytes of the String.
+ *  This is the size in bytes needed to store the String.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_StringStorageSize(Dart_Handle str, intptr_t* size);
+
+
+/**
+ * Converts a String into an ExternalString.
+ * The original object is morphed into an external string object.
+ *
+ * \param array External space into which the string data will be
+ *   copied into. This must not move.
+ * \param length The size in bytes of the provided external space (array).
+ * \param peer An external pointer to associate with this string.
+ * \param cback A callback to be called when this string is finalized.
+ *
+ * \return the converted ExternalString object if no error occurs.
+ *   Otherwise returns an error handle.
+ *
+ * For example:
+ *  intptr_t size;
+ *  Dart_Handle result;
+ *  result = DartStringStorageSize(str, &size);
+ *  void* data = malloc(size);
+ *  result = Dart_MakeExternalString(str, data, size, NULL, NULL);
+ *
+ */
+DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
+                                                void* array,
+                                                intptr_t length,
+                                                void* peer,
+                                                Dart_PeerFinalizer cback);
+
 
 // --- Lists ---
 

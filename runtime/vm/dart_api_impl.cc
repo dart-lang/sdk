@@ -1709,6 +1709,51 @@ DART_EXPORT Dart_Handle Dart_StringToUTF16(Dart_Handle str,
 }
 
 
+DART_EXPORT Dart_Handle Dart_StringStorageSize(Dart_Handle str,
+                                               intptr_t* size) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const String& str_obj = Api::UnwrapStringHandle(isolate, str);
+  if (str_obj.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, str, String);
+  }
+  if (size == NULL) {
+    RETURN_NULL_ERROR(size);
+  }
+  *size = (str_obj.Length() * str_obj.CharSize());
+  return Api::Success(isolate);
+}
+
+
+DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
+                                                void* array,
+                                                intptr_t length,
+                                                void* peer,
+                                                Dart_PeerFinalizer cback) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const String& str_obj = Api::UnwrapStringHandle(isolate, str);
+  if (str_obj.IsExternal()) {
+    return str;  // String is already an external string.
+  }
+  if (str_obj.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, str, String);
+  }
+  if (array == NULL) {
+    RETURN_NULL_ERROR(array);
+  }
+  intptr_t str_size = (str_obj.Length() * str_obj.CharSize());
+  if ((length < str_size) || (length > String::kMaxElements)) {
+    return Api::NewError("Dart_MakeExternalString "
+                         "expects argument length to be in the range"
+                         "[%"Pd"..%"Pd"].",
+                         str_size, String::kMaxElements);
+  }
+  return Api::NewHandle(isolate,
+                        str_obj.MakeExternal(array, length, peer, cback));
+}
+
+
 // --- Lists ---
 
 

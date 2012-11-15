@@ -300,6 +300,9 @@ class Object {
   static void InitFromSnapshot(Isolate* isolate);
   static void InitOnce();
   static void RegisterSingletonClassNames();
+  static void MakeUnusedSpaceTraversable(const Object& obj,
+                                         intptr_t original_size,
+                                         intptr_t used_size);
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawObject));
@@ -3765,6 +3768,17 @@ class String : public Instance {
 
   void ToUTF8(uint8_t* utf8_array, intptr_t array_len) const;
 
+  // Copies the string characters into the provided external array
+  // and morphs the string object into an external string object.
+  // The remaining unused part of the original string object is marked as
+  // an Array object or a regular Object so that it can be traversed during
+  // garbage collection.
+  RawString* MakeExternal(void* array,
+                          intptr_t length,
+                          void* peer,
+                          Dart_PeerFinalizer cback) const;
+
+
   // Creates a new String object from a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
   static RawString* New(const char* cstr, Heap::Space space = Heap::kNew);
@@ -4310,6 +4324,7 @@ class Array : public Instance {
 
   HEAP_OBJECT_IMPLEMENTATION(Array, Instance);
   friend class Class;
+  friend class String;
 };
 
 

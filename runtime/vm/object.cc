@@ -474,6 +474,48 @@ void Object::RegisterSingletonClassNames() {
 }
 
 
+// Make unused space in an object whose type has been transformed safe
+// for traversing during GC.
+// The unused part of the transformed object is marked as an Array
+// object or a regular Object so that it can be traversed during garbage
+// collection.
+void Object::MakeUnusedSpaceTraversable(const Object& obj,
+                                        intptr_t original_size,
+                                        intptr_t used_size) {
+  ASSERT(Isolate::Current()->no_gc_scope_depth() > 0);
+  ASSERT(!obj.IsNull());
+  ASSERT(original_size >= used_size);
+  if (original_size > used_size) {
+    intptr_t leftover_size = original_size - used_size;
+
+    uword addr = RawObject::ToAddr(obj.raw()) + used_size;
+    if (leftover_size >= Array::InstanceSize(0)) {
+      // As we have enough space to use an array object, update the leftover
+      // space as an Array object.
+      RawArray* raw = reinterpret_cast<RawArray*>(RawObject::FromAddr(addr));
+      uword tags = 0;
+      tags = RawObject::SizeTag::update(leftover_size, tags);
+      tags = RawObject::ClassIdTag::update(kArrayCid, tags);
+      raw->ptr()->tags_ = tags;
+      intptr_t leftover_len =
+          ((leftover_size - Array::InstanceSize(0)) / kWordSize);
+      ASSERT(Array::InstanceSize(leftover_len) == leftover_size);
+      raw->ptr()->tags_ = tags;
+      raw->ptr()->length_ = Smi::New(leftover_len);
+    } else {
+      // Update the leftover space as a basic object.
+      ASSERT(leftover_size == Object::InstanceSize());
+      RawObject* raw =
+          reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
+      uword tags = 0;
+      tags = RawObject::SizeTag::update(leftover_size, tags);
+      tags = RawObject::ClassIdTag::update(kInstanceCid, tags);
+      raw->ptr()->tags_ = tags;
+    }
+  }
+}
+
+
 RawClass* Object::CreateAndRegisterInterface(const char* cname,
                                              const Script& script,
                                              const Library& lib) {
@@ -10384,6 +10426,91 @@ void String::ToUTF8(uint8_t* utf8_array, intptr_t array_len) const {
 }
 
 
+static void AddFinalizer(const Object& referent,
+                         void* peer,
+                         Dart_WeakPersistentHandleFinalizer callback) {
+  ASSERT(callback != NULL);
+  ApiState* state = Isolate::Current()->api_state();
+  ASSERT(state != NULL);
+  FinalizablePersistentHandle* weak_ref =
+      state->weak_persistent_handles().AllocateHandle();
+  weak_ref->set_raw(referent);
+  weak_ref->set_peer(peer);
+  weak_ref->set_callback(callback);
+}
+
+
+RawString* String::MakeExternal(void* array,
+                                intptr_t length,
+                                void* peer,
+                                Dart_PeerFinalizer cback) const {
+  ASSERT(array != NULL);
+  intptr_t str_length = this->Length();
+  ASSERT(length >= (str_length * this->CharSize()));
+  intptr_t class_id = raw()->GetClassId();
+  intptr_t used_size = 0;
+  intptr_t original_size = 0;
+  uword tags = 0;
+  NoGCScope no_gc;
+
+  if (class_id == kOneByteStringCid) {
+    used_size = ExternalOneByteString::InstanceSize();
+    original_size = OneByteString::InstanceSize(str_length);
+    ASSERT(original_size >= used_size);
+
+    // Copy the data into the external array.
+    if (str_length > 0) {
+      memmove(array, OneByteString::CharAddr(*this, 0), str_length);
+    }
+
+    // Update the class information of the object.
+    const intptr_t class_id = kExternalOneByteStringCid;
+    tags = RawObject::SizeTag::update(used_size, tags);
+    tags = RawObject::ClassIdTag::update(class_id, tags);
+    raw_ptr()->tags_ = tags;
+    const String& result = String::Handle(this->raw());
+    ExternalStringData<uint8_t>* ext_data = new ExternalStringData<uint8_t>(
+        reinterpret_cast<const uint8_t*>(array), peer, cback);
+    result.SetLength(str_length);
+    result.SetHash(0);
+    ExternalOneByteString::SetExternalData(result, ext_data);
+    AddFinalizer(result, ext_data, ExternalOneByteString::Finalize);
+  } else {
+    ASSERT(class_id == kTwoByteStringCid);
+    used_size = ExternalTwoByteString::InstanceSize();
+    original_size = TwoByteString::InstanceSize(str_length);
+    ASSERT(original_size >= used_size);
+
+    // Copy the data into the external array.
+    if (str_length > 0) {
+      memmove(array,
+              TwoByteString::CharAddr(*this, 0),
+              (str_length * kTwoByteChar));
+    }
+
+    // Update the class information of the object.
+    const intptr_t class_id = kExternalTwoByteStringCid;
+    tags = RawObject::SizeTag::update(used_size, tags);
+    tags = RawObject::ClassIdTag::update(class_id, tags);
+    raw_ptr()->tags_ = tags;
+    const String& result = String::Handle(this->raw());
+    ExternalStringData<uint16_t>* ext_data = new ExternalStringData<uint16_t>(
+        reinterpret_cast<const uint16_t*>(array), peer, cback);
+    result.SetLength(str_length);
+    result.SetHash(0);
+    ExternalTwoByteString::SetExternalData(result, ext_data);
+    AddFinalizer(result, ext_data, ExternalTwoByteString::Finalize);
+  }
+
+  // If there is any left over space fill it with either an Array object or
+  // just a plain object (depending on the amount of left over space) so
+  // that it can be traversed over successfully during garbage collection.
+  Object::MakeUnusedSpaceTraversable(*this, original_size, used_size);
+
+  return this->raw();
+}
+
+
 RawString* String::Transform(int32_t (*mapping)(int32_t ch),
                              const String& str,
                              Heap::Space space) {
@@ -10774,20 +10901,6 @@ RawTwoByteString* TwoByteString::Transform(int32_t (*mapping)(int32_t ch),
 }
 
 
-static void AddFinalizer(const Object& referent,
-                         void* peer,
-                         Dart_WeakPersistentHandleFinalizer callback) {
-  ASSERT(callback != NULL);
-  ApiState* state = Isolate::Current()->api_state();
-  ASSERT(state != NULL);
-  FinalizablePersistentHandle* weak_ref =
-      state->weak_persistent_handles().AllocateHandle();
-  weak_ref->set_raw(referent);
-  weak_ref->set_peer(peer);
-  weak_ref->set_callback(callback);
-}
-
-
 RawExternalOneByteString* ExternalOneByteString::New(
     const uint8_t* data,
     intptr_t len,
@@ -11017,33 +11130,8 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
   // If there is any left over space fill it with either an Array object or
   // just a plain object (depending on the amount of left over space) so
   // that it can be traversed over successfully during garbage collection.
-  if (capacity_size != used_size) {
-    ASSERT(capacity_len > used_len);
-    intptr_t leftover_size = capacity_size - used_size;
+  Object::MakeUnusedSpaceTraversable(array, capacity_size, used_size);
 
-    uword addr = RawObject::ToAddr(array.raw()) + used_size;
-    if (leftover_size >= Array::InstanceSize(0)) {
-      // As we have enough space to use an array object, update the leftover
-      // space as an Array object.
-      RawArray* raw = reinterpret_cast<RawArray*>(RawObject::FromAddr(addr));
-      tags = 0;
-      tags = RawObject::SizeTag::update(leftover_size, tags);
-      tags = RawObject::ClassIdTag::update(kArrayCid, tags);
-      raw->ptr()->tags_ = tags;
-      intptr_t leftover_len =
-          ((leftover_size - Array::InstanceSize(0)) / kWordSize);
-      raw->ptr()->tags_ = tags;
-      raw->ptr()->length_ = Smi::New(leftover_len);
-    } else {
-      // Update the leftover space as a basic object.
-      ASSERT(leftover_size == Object::InstanceSize());
-      RawObject* raw = reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
-      tags = 0;
-      tags = RawObject::SizeTag::update(leftover_size, tags);
-      tags = RawObject::ClassIdTag::update(kInstanceCid, tags);
-      raw->ptr()->tags_ = tags;
-    }
-  }
   return array.raw();
 }
 
