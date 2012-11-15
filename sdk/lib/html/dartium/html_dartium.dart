@@ -7997,14 +7997,6 @@ class DivElement extends _Element_Merged {
   factory DivElement() => _Elements.createDivElement();
   DivElement.internal(): super.internal();
 
-
-  /** @domName HTMLDivElement.align */
-  String get align native "HTMLDivElement_align_Getter";
-
-
-  /** @domName HTMLDivElement.align */
-  void set align(String value) native "HTMLDivElement_align_Setter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8485,7 +8477,7 @@ class DocumentFragment extends Node {
     this.insertAdjacentText('beforeend', text);
   }
 
-  void addHTML(String text) {
+  void addHtml(String text) {
     this.insertAdjacentHTML('beforeend', text);
   }
 
@@ -9340,7 +9332,7 @@ class Element extends Node implements ElementTraversal {
    * Parses the specified text as HTML and adds the resulting node after the
    * last child of this.
    */
-  void addHTML(String text) {
+  void addHtml(String text) {
     this.insertAdjacentHTML('beforeend', text);
   }
 
@@ -14944,10 +14936,6 @@ class LocalWindow extends EventTarget implements Window {
   DOMApplicationCache get applicationCache native "DOMWindow_applicationCache_Getter";
 
 
-  /** @domName DOMWindow.clientInformation */
-  Navigator get clientInformation native "DOMWindow_clientInformation_Getter";
-
-
   /** @domName DOMWindow.closed */
   bool get closed native "DOMWindow_closed_Getter";
 
@@ -15250,10 +15238,6 @@ class LocalWindow extends EventTarget implements Window {
 
   /** @domName DOMWindow.print */
   void print() native "DOMWindow_print_Callback";
-
-
-  /** @domName DOMWindow.prompt */
-  String prompt(String message, String defaultValue) native "DOMWindow_prompt_Callback";
 
 
   /** @domName DOMWindow.releaseEvents */
@@ -17600,7 +17584,7 @@ class Node extends EventTarget {
 
 
   /** @domName Node.nodeType */
-  int get $dom_nodeType native "Node_nodeType_Getter";
+  int get nodeType native "Node_nodeType_Getter";
 
 
   /** @domName Node.ownerDocument */
@@ -28512,6 +28496,7 @@ abstract class History {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 abstract class CssClassSet implements Set<String> {
 
   String toString() {
@@ -28640,6 +28625,7 @@ typedef void EventListener(Event event);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class FilteredElementList implements List {
   final Node _node;
@@ -29706,6 +29692,7 @@ class _DocumentFragmentFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _AudioContextFactoryProvider {
   static AudioContext createAudioContext() => _createAudioContext();
   static _createAudioContext([int numberOfChannels,
@@ -30302,11 +30289,11 @@ class _MessageTraverser {
     return visitObject(x);
   }
 
-  abstract visitPrimitive(x);
-  abstract visitList(List x);
-  abstract visitMap(Map x);
-  abstract visitSendPort(SendPort x);
-  abstract visitSendPortSync(SendPortSync x);
+  visitPrimitive(x);
+  visitList(List x);
+  visitMap(Map x);
+  visitSendPort(SendPort x);
+  visitSendPortSync(SendPortSync x);
 
   visitObject(Object x) {
     // TODO(floitsch): make this a real exception. (which one)?
@@ -30457,7 +30444,7 @@ class _Deserializer {
     return result;
   }
 
-  abstract deserializeSendPort(List x);
+  deserializeSendPort(List x);
 
   deserializeObject(List x) {
     // TODO(floitsch): Use real exception (which one?).
@@ -30468,6 +30455,7 @@ class _Deserializer {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 /**
  * Checks to see if the mutation observer API is supported on the current
@@ -30602,6 +30590,7 @@ class _Lists {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 // This API is exploratory.
 spawnDomFunction(Function topLevelFunction) => _Utils.spawnDomFunctionImpl(topLevelFunction);
 
@@ -30630,6 +30619,7 @@ class TestRunner {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _Utils {
   static List convertToList(List list) {

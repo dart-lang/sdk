@@ -6058,9 +6058,6 @@ class DirectoryReaderSync native "*DirectoryReaderSync" {
 class DivElement extends Element implements Element native "*HTMLDivElement" {
 
   factory DivElement() => _Elements.createDivElement();
-
-  /** @domName HTMLDivElement.align */
-  String align;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
