@@ -501,6 +501,7 @@ class SnapshotWriter : public BaseWriter {
 
   friend class RawArray;
   friend class RawClass;
+  friend class RawClosureData;
   friend class RawGrowableObjectArray;
   friend class RawImmutableArray;
   friend class RawJSRegExp;
