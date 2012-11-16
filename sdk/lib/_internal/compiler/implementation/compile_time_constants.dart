@@ -38,6 +38,8 @@ class ConstantHandler extends CompilerTask {
   String get name => 'ConstantHandler';
 
   void registerCompileTimeConstant(Constant constant) {
+    compiler.enqueuer.codegen.registerInstantiatedClass(
+        constant.computeType(compiler).element);
     compiledConstants.add(constant);
   }
 

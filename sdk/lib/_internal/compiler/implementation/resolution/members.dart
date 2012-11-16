@@ -2098,6 +2098,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLiteralList(LiteralList node) {
+    world.registerInstantiatedClass(compiler.listClass);
     NodeList arguments = node.typeArguments;
     if (arguments != null) {
       Link<Node> nodes = arguments.nodes;

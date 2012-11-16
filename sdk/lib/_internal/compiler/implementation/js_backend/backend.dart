@@ -647,6 +647,7 @@ class JavaScriptBackend extends Backend {
   CodeEmitterTask emitter;
 
   ClassElement jsStringClass;
+  ClassElement jsArrayClass;
   ClassElement objectInterceptorClass;
   Element getInterceptorMethod;
 
@@ -716,7 +717,7 @@ class JavaScriptBackend extends Backend {
 
   bool isInterceptorClass(Element element) {
     if (element == null) return false;
-    return element == jsStringClass;
+    return element == jsStringClass || element == jsArrayClass;
   }
 
   void addInterceptedSelector(Selector selector) {
@@ -749,6 +750,13 @@ class JavaScriptBackend extends Backend {
         initializeInterceptorElements();
       }
       result = jsStringClass;
+    } else if (cls == compiler.listClass) {
+      if (jsArrayClass == null) {
+        jsArrayClass =
+            compiler.findInterceptor(const SourceString('JSArray'));
+        initializeInterceptorElements();
+      }
+      result = jsArrayClass;
     }
 
     if (result == null) return;

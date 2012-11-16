@@ -2291,6 +2291,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return result;
   }
 
+  Element getInterceptor(Send send, Selector selector) {
+    if (!methodInterceptionEnabled) return null;
+    if (!backend.isInterceptorClass(currentElement.getEnclosingClass())
+        && send.receiver == null) {
+      // The call applies to [:this:] which can not be an interceptor
+      // object.
+      return null;
+    }
+    return interceptors.getStaticInterceptor(selector);
+  }
+
   void generateInstanceGetterWithCompiledReceiver(Send send,
                                                   HInstruction receiver) {
     assert(Elements.isInstanceSend(send, elements));
@@ -2302,10 +2313,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         : elements.getSelector(send.selector);
     assert(selector.isGetter());
     SourceString getterName = selector.name;
-    Element interceptor = null;
-    if (methodInterceptionEnabled) {
-      interceptor = interceptors.getStaticInterceptor(selector);
-    }
+    Element interceptor = getInterceptor(send, selector);
+
     bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
     if (interceptor == backend.getInterceptorMethod && interceptor != null) {
       // If we're using an interceptor class, emit a call to the
@@ -2386,10 +2395,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Selector selector = elements.getSelector(send);
     assert(selector.isSetter());
     SourceString setterName = selector.name;
-    Element interceptor = null;
-    if (methodInterceptionEnabled) {
-      interceptor = interceptors.getStaticInterceptor(selector);
-    }
+    Element interceptor = getInterceptor(send, selector);
     bool hasSetter = compiler.world.hasAnyUserDefinedSetter(selector);
     if (interceptor != null && interceptor == backend.getInterceptorMethod) {
       compiler.internalError(
@@ -2659,10 +2665,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       dartMethodName = node.selector.asIdentifier().source;
     }
 
-    Element interceptor = null;
-    if (methodInterceptionEnabled) {
-      interceptor = interceptors.getStaticInterceptor(selector);
-    }
+    Element interceptor = getInterceptor(node, selector);
 
     if (interceptor != null) {
       if (interceptor == backend.getInterceptorMethod) {

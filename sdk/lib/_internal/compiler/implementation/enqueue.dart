@@ -138,12 +138,6 @@ class Enqueuer {
   }
 
   void registerInstantiatedClass(ClassElement cls) {
-    if (cls.isInterface()) {
-      compiler.internalErrorOnElement(
-          // Use the current element, as this is where cls is referenced from.
-          compiler.currentElement,
-          'Expected a class, but $cls is an interface.');
-    }
     universe.instantiatedClasses.add(cls);
     onRegisterInstantiatedClass(cls);
     compiler.backend.registerInstantiatedClass(cls, this);
@@ -239,9 +233,7 @@ class Enqueuer {
         if (seenClasses.contains(cls)) continue;
         seenClasses.add(cls);
         cls.ensureResolved(compiler);
-        if (!cls.isInterface()) {
-          cls.implementation.forEachMember(processInstantiatedClassMember);
-        }
+        cls.implementation.forEachMember(processInstantiatedClassMember);
         if (isResolutionQueue) {
           compiler.resolver.checkMembers(cls);
         }

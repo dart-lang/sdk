@@ -6,6 +6,7 @@ library _interceptors;
 
 import 'dart:collection';
 
+part 'js_array.dart';
 part 'js_string.dart';
 
 /**
@@ -23,45 +24,8 @@ class ObjectInterceptor {
  */
 getInterceptor(object) {
   if (object is String) return const JSString();
+  if (isJsArray(object)) return const JSArray();
   return const ObjectInterceptor();
-}
-
-add$1(var receiver, var value) {
-  if (isJsArray(receiver)) {
-    checkGrowable(receiver, 'add');
-    JS('void', r'#.push(#)', receiver, value);
-    return;
-  }
-  return UNINTERCEPTED(receiver.add(value));
-}
-
-removeAt$1(var receiver, int index) {
-  if (isJsArray(receiver)) {
-    if (index is !int) throw new ArgumentError(index);
-    if (index < 0 || index >= receiver.length) {
-      throw new RangeError.value(index);
-    }
-    checkGrowable(receiver, 'removeAt');
-    return JS('var', r'#.splice(#, 1)[0]', receiver, index);
-  }
-  return UNINTERCEPTED(receiver.removeAt(index));
-}
-
-removeLast(var receiver) {
-  if (isJsArray(receiver)) {
-    checkGrowable(receiver, 'removeLast');
-    if (receiver.length == 0) throw new RangeError.value(-1);
-    return JS('var', r'#.pop()', receiver);
-  }
-  return UNINTERCEPTED(receiver.removeLast());
-}
-
-filter(var receiver, var predicate) {
-  if (!isJsArray(receiver)) {
-    return UNINTERCEPTED(receiver.filter(predicate));
-  } else {
-    return Collections.filter(receiver, [], predicate);
-  }
 }
 
 get$length(var receiver) {
@@ -103,13 +67,6 @@ toString(var value) {
   return JS('String', r'String(#)', value);
 }
 
-iterator(receiver) {
-  if (isJsArray(receiver)) {
-    return new ListIterator(receiver);
-  }
-  return UNINTERCEPTED(receiver.iterator());
-}
-
 get$isEmpty(receiver) {
   if (receiver is String || isJsArray(receiver)) {
     return JS('bool', r'#.length === 0', receiver);
@@ -149,70 +106,11 @@ compareTo(a, b) {
   }
 }
 
-addAll(receiver, collection) {
-  if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.addAll(collection));
-
-  // TODO(ahe): Use for-in when it is implemented correctly.
-  var iterator = collection.iterator();
-  while (iterator.hasNext) {
-    receiver.add(iterator.next());
+iterator(receiver) {
+  if (isJsArray(receiver)) {
+    return new ListIterator(receiver);
   }
-}
-
-addLast(receiver, value) {
-  if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.addLast(value));
-
-  checkGrowable(receiver, 'addLast');
-  JS('void', r'#.push(#)', receiver, value);
-}
-
-clear(receiver) {
-  if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.clear());
-  receiver.length = 0;
-}
-
-forEach(receiver, f) {
-  if (!isJsArray(receiver)) {
-    return UNINTERCEPTED(receiver.forEach(f));
-  } else {
-    return Collections.forEach(receiver, f);
-  }
-}
-
-map(receiver, f) {
-  if (!isJsArray(receiver)) {
-    return UNINTERCEPTED(receiver.map(f));
-  } else {
-    return Collections.map(receiver, [], f);
-  }
-}
-
-reduce(receiver, initialValue, f) {
-  if (!isJsArray(receiver)) {
-    return UNINTERCEPTED(receiver.reduce(initialValue, f));
-  } else {
-    return Collections.reduce(receiver, initialValue, f);
-  }
-}
-
-getRange(receiver, start, length) {
-  if (!isJsArray(receiver)) {
-    return UNINTERCEPTED(receiver.getRange(start, length));
-  }
-  if (0 == length) return [];
-  checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
-  checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
-  if (start is !int) throw new ArgumentError(start);
-  if (length is !int) throw new ArgumentError(length);
-  if (length < 0) throw new ArgumentError(length);
-  if (start < 0) throw new RangeError.value(start);
-  var end = start + length;
-  if (end > receiver.length) {
-    throw new RangeError.value(length);
-  }
-  if (length < 0) throw new ArgumentError(length);
-  // TODO(sra): We need a type that is exactly the JavaScript Array type.
-  return JS('=List', r'#.slice(#, #)', receiver, start, end);
+  return UNINTERCEPTED(receiver.iterator());
 }
 
 indexOf$1(receiver, element) {
