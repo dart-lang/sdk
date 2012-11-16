@@ -831,7 +831,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   bool visitLoopInfo(HLoopBlockInformation info) {
     HExpressionInformation condition = info.condition;
-    bool isConditionExpression = condition == null || isJSCondition(condition);
+    bool isConditionExpression = isJSCondition(condition);
 
     js.Loop loop;
 
@@ -973,9 +973,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         if (info.updates != null) {
           generateStatements(info.updates);
         }
-        if (condition == null) {
-          push(newLiteralBool(false));
-        } else if (isConditionExpression) {
+        if (isConditionExpression) {
           push(generateExpression(condition));
         } else {
           generateStatements(condition);

@@ -1933,10 +1933,17 @@ class LabelElement extends Element {
   final TargetElement target;
   bool isBreakTarget = false;
   bool isContinueTarget = false;
-  LabelElement(Label label, this.labelName, this.target,
+  LabelElement(Label label, String labelName, this.target,
                Element enclosingElement)
       : this.label = label,
-        super(label.identifier.source, ElementKind.LABEL, enclosingElement);
+        this.labelName = labelName,
+        // In case of a synthetic label, just use [labelName] for
+        // identifying the element.
+        super(label == null
+                  ? new SourceString(labelName)
+                  : label.identifier.source,
+              ElementKind.LABEL,
+              enclosingElement);
 
   void setBreakTarget() {
     isBreakTarget = true;

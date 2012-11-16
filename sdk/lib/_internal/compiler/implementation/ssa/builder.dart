@@ -1800,11 +1800,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   // For while loops, initializer and update are null.
   // The condition function must return a boolean result.
   // None of the functions must leave anything on the stack.
-  handleLoop(Node loop,
-             void initialize(),
-             HInstruction condition(),
-             void update(),
-             void body()) {
+  void handleLoop(Node loop,
+                  void initialize(),
+                  HInstruction condition(),
+                  void update(),
+                  void body()) {
     // Generate:
     //  <initializer>
     //  loop-entry:
@@ -1909,23 +1909,82 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       updateGraph = new SubExpression(updateBlock, updateEndBlock);
     }
 
-    conditionBlock.postProcessLoopHeader();
+    if (jumpHandler.hasAnyContinue() || bodyBlock != null) {
+      endLoop(conditionBlock, conditionExitBlock, jumpHandler, savedLocals);
+      conditionBlock.postProcessLoopHeader();
+      HLoopBlockInformation info =
+          new HLoopBlockInformation(
+              HLoopBlockInformation.loopType(loop),
+              wrapExpressionGraph(initializerGraph),
+              wrapExpressionGraph(conditionExpression),
+              wrapStatementGraph(bodyGraph),
+              wrapExpressionGraph(updateGraph),
+              conditionBlock.loopInformation.target,
+              conditionBlock.loopInformation.labels,
+              sourceFileLocationForBeginToken(loop),
+              sourceFileLocationForEndToken(loop));
 
-    endLoop(conditionBlock, conditionExitBlock, jumpHandler, savedLocals);
-    HLoopBlockInformation info =
-        new HLoopBlockInformation(
-            HLoopBlockInformation.loopType(loop),
-            wrapExpressionGraph(initializerGraph),
+      startBlock.setBlockFlow(info, current);
+      loopInfo.loopBlockInformation = info;
+    } else {
+      // There is no back edge for the loop, so we turn the code into:
+      // if (condition) {
+      //   body;
+      // } else {
+      //   // We always create an empty else block to avoid critical edges.
+      // }
+      // 
+      // If there is any break in the body, we attach a synthetic
+      // label to the if.
+      HBasicBlock elseBlock = addNewBlock();
+      open(elseBlock);
+      close(new HGoto());
+      endLoop(conditionBlock, null, jumpHandler, savedLocals);
+
+      // [endLoop] will not create an exit block if there are no
+      // breaks.
+      if (current == null) open(addNewBlock());
+      elseBlock.addSuccessor(current);
+      SubGraph elseGraph = new SubGraph(elseBlock, elseBlock);
+      // Remove the loop information attached to the header.
+      conditionBlock.loopInformation = null;
+
+      // Remove the [HLoopBranch] instruction and replace it with
+      // [HIf].
+      HInstruction condition = conditionExitBlock.last.inputs[0];
+      conditionExitBlock.addAtExit(new HIf(condition));
+      conditionExitBlock.addSuccessor(elseBlock);
+      conditionExitBlock.remove(conditionExitBlock.last);
+      HIfBlockInformation info =
+          new HIfBlockInformation(
             wrapExpressionGraph(conditionExpression),
             wrapStatementGraph(bodyGraph),
-            wrapExpressionGraph(updateGraph),
-            conditionBlock.loopInformation.target,
-            conditionBlock.loopInformation.labels,
-            sourceFileLocationForBeginToken(loop),
-            sourceFileLocationForEndToken(loop));
+            wrapStatementGraph(elseGraph));
 
-    startBlock.setBlockFlow(info, current);
-    loopInfo.loopBlockInformation = info;
+      conditionBlock.setBlockFlow(info, current);
+      conditionBlock.last.blockInformation = conditionBlock.blockFlow;
+
+      // If the body has any break, attach a synthesized label to the
+      // if block.
+      if (jumpHandler.hasAnyBreak()) {
+        TargetElement target = elements[loop];
+        LabelElement label = target.addLabel(null, 'loop');
+        label.isBreakTarget = true;
+        SubGraph labelGraph = new SubGraph(conditionBlock, current);
+        HLabeledBlockInformation labelInfo = new HLabeledBlockInformation(
+                new HSubGraphBlockInformation(labelGraph),
+                <LabelElement>[label]);
+
+        conditionBlock.setBlockFlow(labelInfo, current);
+
+        jumpHandler.forEachBreak((HBreak breakInstruction, _) {
+          HBasicBlock block = breakInstruction.block;
+          block.addAtExit(new HBreak.toLabel(label));
+          block.remove(breakInstruction);
+        });
+      }
+    }
+    jumpHandler.close();
   }
 
   visitFor(For node) {
@@ -2059,26 +2118,46 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           new SubExpression(conditionBlock, conditionEndBlock);
     }
 
-    loopEntryBlock.postProcessLoopHeader();
-
     endLoop(loopEntryBlock, conditionEndBlock, jumpHandler, localsHandler);
+    if (!isAbortingBody || hasContinues) {
+      loopEntryBlock.postProcessLoopHeader();
+      SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
+      HLoopBlockInformation loopBlockInfo =
+          new HLoopBlockInformation(
+              HLoopBlockInformation.DO_WHILE_LOOP,
+              null,
+              wrapExpressionGraph(conditionExpression),
+              wrapStatementGraph(bodyGraph),
+              null,
+              loopEntryBlock.loopInformation.target,
+              loopEntryBlock.loopInformation.labels,
+              sourceFileLocationForBeginToken(node),
+              sourceFileLocationForEndToken(node));
+      loopEntryBlock.setBlockFlow(loopBlockInfo, current);
+      loopInfo.loopBlockInformation = loopBlockInfo;
+    } else {
+      // If the loop has no back edge, we remove the loop information
+      // on the header.
+      loopEntryBlock.loopInformation = null;
+
+      // If the body of the loop has any break, we attach a
+      // synthesized label to the body.
+      if (jumpHandler.hasAnyBreak()) {
+        SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
+        TargetElement target = elements[node];
+        LabelElement label = target.addLabel(null, 'loop');
+        label.isBreakTarget = true;
+        HLabeledBlockInformation info = new HLabeledBlockInformation(
+            new HSubGraphBlockInformation(bodyGraph), <LabelElement>[label]);
+        loopEntryBlock.setBlockFlow(info, current);
+        jumpHandler.forEachBreak((HBreak breakInstruction, _) {
+          HBasicBlock block = breakInstruction.block;
+          block.addAtExit(new HBreak.toLabel(label));
+          block.remove(breakInstruction);
+        });
+      }
+    }
     jumpHandler.close();
-
-    SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
-
-    HLoopBlockInformation loopBlockInfo =
-        new HLoopBlockInformation(
-            HLoopBlockInformation.DO_WHILE_LOOP,
-            null,
-            wrapExpressionGraph(conditionExpression),
-            wrapStatementGraph(bodyGraph),
-            null,
-            loopEntryBlock.loopInformation.target,
-            loopEntryBlock.loopInformation.labels,
-            sourceFileLocationForBeginToken(node),
-            sourceFileLocationForEndToken(node));
-    loopEntryBlock.setBlockFlow(loopBlockInfo, current);
-    loopInfo.loopBlockInformation = loopBlockInfo;
   }
 
   visitFunctionExpression(FunctionExpression node) {
