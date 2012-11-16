@@ -2439,13 +2439,13 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
              "static method '%s' cannot be abstract",
              method->name->ToCString());
   }
-  if (method->has_const && !(method->IsConstructor() || method->IsFactory())) {
+  if (method->has_const && !method->IsFactoryOrConstructor()) {
     ErrorMsg(method->name_pos, "'const' not allowed for methods");
   }
-  if (method->IsFactoryOrConstructor() && method->has_abstract) {
+  if (method->has_abstract && method->IsFactoryOrConstructor()) {
     ErrorMsg(method->name_pos, "constructor cannot be abstract");
   }
-  if (method->IsConstructor() && method->has_const) {
+  if (method->has_const && method->IsConstructor()) {
     Class& cls = Class::Handle(library_.LookupClass(members->class_name()));
     cls.set_is_const();
   }
@@ -2612,13 +2612,9 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       ErrorMsg(method->name_pos,
                "external method '%s' may not have a function body",
                method->name->ToCString());
-    } else if (method->IsConstructor() && method->has_const) {
+    } else if (method->IsFactoryOrConstructor() && method->has_const) {
       ErrorMsg(method->name_pos,
-               "const constructor '%s' may not have a function body",
-               method->name->ToCString());
-    } else if (method->IsFactory() && method->has_const) {
-      ErrorMsg(method->name_pos,
-               "const factory '%s' may not have a function body",
+               "const constructor or factory '%s' may not have a function body",
                method->name->ToCString());
     } else if (members->is_interface()) {
       ErrorMsg(method->name_pos,
@@ -2644,9 +2640,9 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     } else if (members->is_interface()) {
       ErrorMsg(method->name_pos,
                "function body not allowed in interface declaration");
-    } else if (method->IsConstructor() && method->has_const) {
+    } else if (method->IsFactoryOrConstructor() && method->has_const) {
       ErrorMsg(method->name_pos,
-               "const constructor '%s' may not have a function body",
+               "const constructor or factory '%s' may not be native",
                method->name->ToCString());
     }
     if (method->redirect_name != NULL) {
@@ -8100,22 +8096,17 @@ RawObject* Parser::EvaluateConstConstructorCall(
   // +2 for implicit receiver and construction phase arguments.
   GrowableArray<const Object*> arg_values(arguments->length() + 2);
   Instance& instance = Instance::Handle();
-  if (!constructor.IsFactory()) {
-    instance = Instance::New(type_class, Heap::kOld);
-    if (!type_arguments.IsNull()) {
-      if (!type_arguments.IsInstantiated()) {
-        ErrorMsg("type must be constant in const constructor");
-      }
-      instance.SetTypeArguments(
-          AbstractTypeArguments::Handle(type_arguments.Canonicalize()));
+  ASSERT(!constructor.IsFactory());
+  instance = Instance::New(type_class, Heap::kOld);
+  if (!type_arguments.IsNull()) {
+    if (!type_arguments.IsInstantiated()) {
+      ErrorMsg("type must be constant in const constructor");
     }
-    arg_values.Add(&instance);
-    arg_values.Add(&Smi::ZoneHandle(Smi::New(Function::kCtorPhaseAll)));
-  } else {
-    // Prepend type_arguments to list of arguments to factory.
-    ASSERT(type_arguments.IsZoneHandle());
-    arg_values.Add(&type_arguments);
+    instance.SetTypeArguments(
+        AbstractTypeArguments::Handle(type_arguments.Canonicalize()));
   }
+  arg_values.Add(&instance);
+  arg_values.Add(&Smi::ZoneHandle(Smi::New(Function::kCtorPhaseAll)));
   for (int i = 0; i < arguments->length(); i++) {
     AstNode* arg = arguments->NodeAt(i);
     // Arguments have been evaluated to a literal value already.
@@ -8134,10 +8125,6 @@ RawObject* Parser::EvaluateConstConstructorCall(
         return Object::null();
       }
   } else {
-    if (constructor.IsFactory()) {
-      // The factory method returns the allocated object.
-      instance ^= result.raw();
-    }
     if (!instance.IsNull()) {
       instance ^= instance.Canonicalize();
     }
