@@ -143,11 +143,10 @@ def FixJavaHome():
     os.environ['JAVA_HOME'] = java_home
     print 'Setting java home to'
     print java_home
+    sys.stdout.flush()
 
 def ClobberBuilder():
   """ Clobber the builder before we do the build.
-  Args:
-     - mode: either 'debug' or 'release'
   """
   cmd = [sys.executable,
          './tools/clean_output_directory.py']
