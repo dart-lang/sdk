@@ -158,7 +158,10 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
         _err.close();
         _exitHandler.close();
         completer.completeException(
-            new ProcessException(status._errorMessage, status._errorCode));
+            new ProcessException(_path,
+                                 _arguments,
+                                 status._errorMessage,
+                                 status._errorCode));
         return;
       }
       _started = true;
@@ -245,7 +248,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
 
   void set onExit(void callback(int exitCode)) {
     if (_ended) {
-      throw new ProcessException("Process killed");
+      throw new ProcessException(_path, _arguments, "Process killed");
     }
     _onExit = callback;
   }
