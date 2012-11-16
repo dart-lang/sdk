@@ -1516,7 +1516,7 @@ DART_EXPORT bool Dart_IsString(Dart_Handle object) {
 }
 
 
-DART_EXPORT bool Dart_IsAsciiString(Dart_Handle object) {
+DART_EXPORT bool Dart_IsStringLatin1(Dart_Handle object) {
   return RawObject::IsOneByteStringClassId(Api::ClassId(object));
 }
 

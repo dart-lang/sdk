@@ -102,9 +102,9 @@ RawString* Symbols::New(const char* str) {
   if (len == 0) {
     return Symbols::New(reinterpret_cast<uint8_t*>(NULL), 0);
   }
-  if (type == Utf8::kAscii) {
+  if (type == Utf8::kLatin1) {
     uint8_t* characters = zone->Alloc<uint8_t>(len);
-    Utf8::DecodeToAscii(utf8_array, str_len, characters, len);
+    Utf8::DecodeToLatin1(utf8_array, str_len, characters, len);
     return New(characters, len);
   }
   ASSERT((type == Utf8::kBMP) || (type == Utf8::kSMP));

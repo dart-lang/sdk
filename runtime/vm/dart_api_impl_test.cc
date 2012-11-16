@@ -518,7 +518,7 @@ TEST_CASE(IsString) {
   Dart_Handle str8 = Dart_NewStringFromUTF8(data8, ARRAY_SIZE(data8));
   EXPECT_VALID(str8);
   EXPECT(Dart_IsString(str8));
-  EXPECT(Dart_IsAsciiString(str8));
+  EXPECT(Dart_IsStringLatin1(str8));
   EXPECT(!Dart_IsExternalString(str8));
 
   Dart_Handle ext8 = Dart_NewExternalUTF8String(data8, ARRAY_SIZE(data8),
@@ -532,7 +532,7 @@ TEST_CASE(IsString) {
   Dart_Handle str16 = Dart_NewStringFromUTF16(data16, ARRAY_SIZE(data16));
   EXPECT_VALID(str16);
   EXPECT(Dart_IsString(str16));
-  EXPECT(!Dart_IsAsciiString(str16));
+  EXPECT(!Dart_IsStringLatin1(str16));
   EXPECT(!Dart_IsExternalString(str16));
 
   Dart_Handle ext16 = Dart_NewExternalUTF16String(data16, ARRAY_SIZE(data16),
@@ -7263,8 +7263,8 @@ TEST_CASE(MakeExternalString) {
                                               NULL);
     EXPECT(Dart_IsString(str));
     EXPECT(Dart_IsString(empty_str));
-    EXPECT(Dart_IsAsciiString(str));
-    EXPECT(Dart_IsAsciiString(empty_str));
+    EXPECT(Dart_IsStringLatin1(str));
+    EXPECT(Dart_IsStringLatin1(empty_str));
     EXPECT(Dart_IsExternalString(str));
     EXPECT(Dart_IsExternalString(empty_str));
     EXPECT_VALID(Dart_StringLength(str, &length));
@@ -7276,7 +7276,7 @@ TEST_CASE(MakeExternalString) {
     Dart_Handle ascii_str = NewString(ascii);
     EXPECT_VALID(ascii_str);
     EXPECT(Dart_IsString(ascii_str));
-    EXPECT(Dart_IsAsciiString(ascii_str));
+    EXPECT(Dart_IsStringLatin1(ascii_str));
     EXPECT(!Dart_IsExternalString(ascii_str));
     EXPECT_VALID(Dart_StringLength(ascii_str, &length));
     EXPECT_EQ(expected_length, length);
@@ -7290,8 +7290,8 @@ TEST_CASE(MakeExternalString) {
                                   MakeExternalCback);
     EXPECT(Dart_IsString(str));
     EXPECT(Dart_IsString(ascii_str));
-    EXPECT(Dart_IsAsciiString(str));
-    EXPECT(Dart_IsAsciiString(ascii_str));
+    EXPECT(Dart_IsStringLatin1(str));
+    EXPECT(Dart_IsStringLatin1(ascii_str));
     EXPECT(Dart_IsExternalString(str));
     EXPECT(Dart_IsExternalString(ascii_str));
     EXPECT_VALID(Dart_StringLength(str, &length));
@@ -7308,7 +7308,7 @@ TEST_CASE(MakeExternalString) {
     Dart_Handle utf16_str = Dart_NewStringFromUTF8(data, ARRAY_SIZE(data));
     EXPECT_VALID(utf16_str);
     EXPECT(Dart_IsString(utf16_str));
-    EXPECT(!Dart_IsAsciiString(utf16_str));
+    EXPECT(!Dart_IsStringLatin1(utf16_str));
     EXPECT(!Dart_IsExternalString(utf16_str));
     EXPECT_VALID(Dart_StringLength(utf16_str, &length));
     EXPECT_EQ(expected_length, length);
@@ -7323,8 +7323,8 @@ TEST_CASE(MakeExternalString) {
                                   MakeExternalCback);
     EXPECT(Dart_IsString(str));
     EXPECT(Dart_IsString(utf16_str));
-    EXPECT(!Dart_IsAsciiString(str));
-    EXPECT(!Dart_IsAsciiString(utf16_str));
+    EXPECT(!Dart_IsStringLatin1(str));
+    EXPECT(!Dart_IsStringLatin1(utf16_str));
     EXPECT(Dart_IsExternalString(str));
     EXPECT(Dart_IsExternalString(utf16_str));
     EXPECT_VALID(Dart_StringLength(str, &length));

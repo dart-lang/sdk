@@ -347,13 +347,22 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       intptr_t len = ReadSmiValue();
       intptr_t hash = ReadSmiValue();
       USE(hash);
-      Dart_CObject* object = AllocateDartCObjectString(len);
+      uint8_t *latin1 =
+          reinterpret_cast<uint8_t*>(::malloc(len * sizeof(uint8_t)));
+      intptr_t utf8_len = 0;
+      for (intptr_t i = 0; i < len; i++) {
+        latin1[i] = Read<uint8_t>();
+        utf8_len += Utf8::Length(latin1[i]);
+      }
+      Dart_CObject* object = AllocateDartCObjectString(utf8_len);
       AddBackRef(object_id, object, kIsDeserialized);
       char* p = object->value.as_string;
       for (intptr_t i = 0; i < len; i++) {
-        p[i] = Read<uint8_t>();
+        p += Utf8::Encode(latin1[i], p);
       }
-      p[len] = '\0';
+      *p = '\0';
+      ASSERT(p == (object->value.as_string + utf8_len));
+      ::free(latin1);
       return object;
     }
     case kTwoByteStringCid: {
@@ -376,7 +385,7 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
         p += Utf8::Encode(utf16[i], p);
       }
       *p = '\0';
-      ASSERT(p == object->value.as_string + utf8_len);
+      ASSERT(p == (object->value.as_string + utf8_len));
       ::free(utf16);
       return object;
     }
@@ -772,16 +781,20 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       // Write out the serialization header value for this object.
       WriteInlinedHeader(object);
       // Write out the class and tags information.
-      WriteIndexedObject(type == Utf8::kAscii ? kOneByteStringCid
-                                              : kTwoByteStringCid);
+      WriteIndexedObject(type == Utf8::kLatin1 ? kOneByteStringCid
+                                               : kTwoByteStringCid);
       WriteIntptrValue(0);
       // Write string length, hash and content
       WriteSmi(len);
       WriteSmi(0);  // TODO(sgjesse): Hash - not written.
-      if (type == Utf8::kAscii) {
+      if (type == Utf8::kLatin1) {
+        uint8_t* latin1_str =
+            reinterpret_cast<uint8_t*>(::malloc(len * sizeof(uint8_t)));
+        Utf8::DecodeToLatin1(utf8_str, utf8_len, latin1_str, len);
         for (intptr_t i = 0; i < len; i++) {
-          Write<uint8_t>(utf8_str[i]);
+          Write<uint8_t>(latin1_str[i]);
         }
+        ::free(latin1_str);
       } else {
         // TODO(sgjesse): Make sure surrogate pairs are handled.
         uint16_t* utf16_str =

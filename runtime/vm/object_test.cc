@@ -576,13 +576,13 @@ TEST_CASE(String) {
 
   // Create a 1-byte string from an array of 2-byte elements.
   {
-    const uint16_t char16[] = { 0x00, 0x1F, 0x7F };
+    const uint16_t char16[] = { 0x00, 0x7F, 0xFF };
     const String& str8 = String::Handle(String::New(char16, 3));
     EXPECT(str8.IsOneByteString());
     EXPECT(!str8.IsTwoByteString());
     EXPECT_EQ(0x00, str8.CharAt(0));
-    EXPECT_EQ(0x1F, str8.CharAt(1));
-    EXPECT_EQ(0x7F, str8.CharAt(2));
+    EXPECT_EQ(0x7F, str8.CharAt(1));
+    EXPECT_EQ(0xFF, str8.CharAt(2));
   }
 
   // Create a 1-byte string from an array of 4-byte elements.

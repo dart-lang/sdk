@@ -10109,12 +10109,12 @@ RawString* String::New(const uint8_t* utf8_array,
                        Heap::Space space) {
   Utf8::Type type;
   intptr_t len = Utf8::CodePointCount(utf8_array, array_len, &type);
-  if (type == Utf8::kAscii) {
+  if (type == Utf8::kLatin1) {
     const String& strobj = String::Handle(OneByteString::New(len, space));
     if (len > 0) {
       NoGCScope no_gc;
-      Utf8::DecodeToAscii(utf8_array, array_len,
-                          OneByteString::CharAddr(strobj, 0), len);
+      Utf8::DecodeToLatin1(utf8_array, array_len,
+                           OneByteString::CharAddr(strobj, 0), len);
     }
     return strobj.raw();
   }
@@ -10132,7 +10132,7 @@ RawString* String::New(const uint16_t* utf16_array,
                        Heap::Space space) {
   bool is_one_byte_string = true;
   for (intptr_t i = 0; i < array_len; ++i) {
-    if (utf16_array[i] > 0x7F) {
+    if (utf16_array[i] > 0xFF) {
       is_one_byte_string = false;
       break;
     }
@@ -10150,7 +10150,7 @@ RawString* String::New(const uint32_t* utf32_array,
   bool is_one_byte_string = true;
   intptr_t utf16_len = array_len;
   for (intptr_t i = 0; i < array_len; ++i) {
-    if (utf32_array[i] > 0x7F) {
+    if (utf32_array[i] > 0xFF) {
       is_one_byte_string = false;
     }
     if (utf32_array[i] > 0xFFFF) {
@@ -10231,7 +10231,7 @@ void String::Copy(const String& dst, intptr_t dst_offset,
   if (dst.IsOneByteString()) {
     NoGCScope no_gc;
     for (intptr_t i = 0; i < array_len; ++i) {
-      ASSERT(utf16_array[i] <= 0x7F);
+      ASSERT(utf16_array[i] <= 0xFF);
       *OneByteString::CharAddr(dst, i + dst_offset) = utf16_array[i];
     }
   } else {
@@ -10386,7 +10386,7 @@ RawString* String::SubString(const String& str,
   intptr_t char_size = str.CharSize();
   if (char_size == kTwoByteChar) {
     for (intptr_t i = begin_index; i < begin_index + length; ++i) {
-      if (str.CharAt(i) > 0x7F) {
+      if (str.CharAt(i) > 0xFF) {
         is_one_byte_string = false;
         break;
       }
@@ -10413,16 +10413,8 @@ const char* String::ToCString() const {
 
 
 void String::ToUTF8(uint8_t* utf8_array, intptr_t array_len) const {
-  if (CharSize() == kOneByteChar) {
-    const String& obj = *this;
-    ASSERT(array_len >= obj.Length());
-    if (obj.Length() > 0) {
-      memmove(utf8_array, OneByteString::CharAddr(obj, 0), obj.Length());
-    }
-  } else {
-    ASSERT(array_len >= Utf8::Length(*this));
-    Utf8::Encode(*this, reinterpret_cast<char*>(utf8_array), array_len);
-  }
+  ASSERT(array_len >= Utf8::Length(*this));
+  Utf8::Encode(*this, reinterpret_cast<char*>(utf8_array), array_len);
 }
 
 
@@ -10530,10 +10522,10 @@ RawString* String::Transform(int32_t (*mapping)(int32_t ch),
   if (!has_mapping) {
     return str.raw();
   }
-  if (dst_max <= 0x7F) {
+  if (dst_max <= 0xFF) {
     return OneByteString::Transform(mapping, str, space);
   }
-  ASSERT(dst_max > 0x7F);
+  ASSERT(dst_max > 0xFF);
   return TwoByteString::Transform(mapping, str, space);
 }
 
@@ -10681,7 +10673,7 @@ RawOneByteString* OneByteString::New(const uint16_t* characters,
                                      Heap::Space space) {
   const String& result =String::Handle(OneByteString::New(len, space));
   for (intptr_t i = 0; i < len; ++i) {
-    ASSERT(characters[i] <= 0x7F);
+    ASSERT(characters[i] <= 0xFF);
     *CharAddr(result, i) = characters[i];
   }
   return OneByteString::raw(result);
@@ -10693,7 +10685,7 @@ RawOneByteString* OneByteString::New(const uint32_t* characters,
                                      Heap::Space space) {
   const String& result = String::Handle(OneByteString::New(len, space));
   for (intptr_t i = 0; i < len; ++i) {
-    ASSERT(characters[i] <= 0x7F);
+    ASSERT(characters[i] <= 0xFF);
     *CharAddr(result, i) = characters[i];
   }
   return OneByteString::raw(result);
@@ -10747,7 +10739,7 @@ RawOneByteString* OneByteString::Transform(int32_t (*mapping)(int32_t ch),
   const String& result = String::Handle(OneByteString::New(len, space));
   for (intptr_t i = 0; i < len; ++i) {
     int32_t ch = mapping(str.CharAt(i));
-    ASSERT(ch >= 0 && ch <= 0x7F);
+    ASSERT(ch >= 0 && ch <= 0xFF);
     *CharAddr(result, i) = ch;
   }
   return OneByteString::raw(result);

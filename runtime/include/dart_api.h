@@ -1326,9 +1326,9 @@ DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle double_obj, double* value);
 DART_EXPORT bool Dart_IsString(Dart_Handle object);
 
 /**
- * Is this object an ASCII String?
+ * Is this object a Latin-1 (ISO-8859-1) String?
  */
-DART_EXPORT bool Dart_IsAsciiString(Dart_Handle object);
+DART_EXPORT bool Dart_IsStringLatin1(Dart_Handle object);
 
 /**
  * Gets the length of a String.

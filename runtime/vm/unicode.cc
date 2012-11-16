@@ -58,8 +58,8 @@ static bool IsTrailByte(uint8_t code_unit) {
 }
 
 
-static bool IsAsciiSequenceStart(uint8_t code_unit) {
-  // Check is codepoint is <= U+007F
+static bool IsLatin1SequenceStart(uint8_t code_unit) {
+  // Check is codepoint is <= U+00FF
   return (code_unit <= Utf8::kMaxOneByteChar);
 }
 
@@ -101,17 +101,17 @@ intptr_t Utf8::CodePointCount(const uint8_t* utf8_array,
                               intptr_t array_len,
                               Type* type) {
   intptr_t len = 0;
-  Type char_type = kAscii;
+  Type char_type = kLatin1;
   for (intptr_t i = 0; i < array_len; i++) {
     uint8_t code_unit = utf8_array[i];
     if (!IsTrailByte(code_unit)) {
       ++len;
     }
-    if (!IsAsciiSequenceStart(code_unit)) {  // > U+007F
+    if (!IsLatin1SequenceStart(code_unit)) {  // > U+00FF
       if (IsSmpSequenceStart(code_unit)) {  // >= U+10000
         char_type = kSMP;
         ++len;
-      } else if (char_type == kAscii) {
+      } else if (char_type == kLatin1) {
         char_type = kBMP;
       }
     }
@@ -251,19 +251,26 @@ intptr_t Utf8::Decode(const uint8_t* utf8_array,
 }
 
 
-bool Utf8::DecodeToAscii(const uint8_t* utf8_array,
-                         intptr_t array_len,
-                         uint8_t* dst,
-                         intptr_t len) {
-  if (len < array_len) {
+bool Utf8::DecodeToLatin1(const uint8_t* utf8_array,
+                          intptr_t array_len,
+                          uint8_t* dst,
+                          intptr_t len) {
+  intptr_t i = 0;
+  intptr_t j = 0;
+  intptr_t num_bytes;
+  for (; (i < array_len) && (j < len); i += num_bytes, ++j) {
+    int32_t ch;
+    ASSERT(IsLatin1SequenceStart(utf8_array[i]));
+    num_bytes = Utf8::Decode(&utf8_array[i], (array_len - i), &ch);
+    if (ch == -1) {
+      return false;  // invalid input
+    }
+    ASSERT(ch <= 0xff);
+    dst[j] = ch;
+  }
+  if ((i < array_len) && (j == len)) {
     return false;  // output overflow
   }
-#ifdef DEBUG
-  for (intptr_t i = 0; i < array_len; i++) {
-    ASSERT(IsAsciiSequenceStart(utf8_array[i]));
-  }
-#endif
-  memmove(dst, utf8_array, array_len);
   return true;  // success
 }
 

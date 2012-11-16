@@ -15,7 +15,7 @@ class String;
 class Utf8 : AllStatic {
  public:
   enum Type {
-    kAscii = 0,  // ASCII character set.
+    kLatin1 = 0,  // Latin-1 character set.
     kBMP,  // Basic Multilingual Plane.
     kSMP,  // Supplementary Multilingual Plane.
   };
@@ -46,10 +46,10 @@ class Utf8 : AllStatic {
                          intptr_t array_len,
                          int32_t* ch);
 
-  static bool DecodeToAscii(const uint8_t* utf8_array,
-                            intptr_t array_len,
-                            uint8_t* dst,
-                            intptr_t len);
+  static bool DecodeToLatin1(const uint8_t* utf8_array,
+                             intptr_t array_len,
+                             uint8_t* dst,
+                             intptr_t len);
   static bool DecodeToUTF16(const uint8_t* utf8_array,
                             intptr_t array_len,
                             uint16_t* dst,
