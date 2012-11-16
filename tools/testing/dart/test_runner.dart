@@ -56,26 +56,27 @@ class Command {
  * contains static information about the test; actually running the test is
  * performed by [ProcessQueue] using a [RunningProcess] object.
  *
- * The output information is stored in a [TestOutput] instance contained
- * in the TestCase. The TestOutput instance is responsible for evaluating
- * if the test has passed, failed, crashed, or timed out, and the TestCase
- * has information about what the expected result of the test should be.
+ * The output information is stored in a [CommandOutput] instance contained
+ * in TestCase.commandOutputs. The last CommandOutput instance is responsible
+ * for evaluating if the test has passed, failed, crashed, or timed out, and the
+ * TestCase has information about what the expected result of the test should
+ * be.
  *
  * The TestCase has a callback function, [completedHandler], that is run when
  * the test is completed.
  */
 class TestCase {
   /**
-   * A list of commands to execute. Most test cases have a single command. Frog
-   * tests have two commands, one to compilate the source and another to execute
-   * it. Some isolate tests might even have three, if they require compiling
-   * multiple sources that are run in isolation.
+   * A list of commands to execute. Most test cases have a single command. 
+   * Dart2js tests have two commands, one to compile the source and another
+   * to execute it. Some isolate tests might even have three, if they require
+   * compiling multiple sources that are run in isolation.
    */
   List<Command> commands;
+  Map<Command, CommandOutput> commandOutputs = new Map<Command,CommandOutput>();
 
   Map configuration;
   String displayName;
-  TestOutput output;
   bool isNegative;
   Set<String> expectedOutcomes;
   TestCaseEvent completedHandler;
@@ -142,6 +143,15 @@ class TestCase {
       }
       commands = newCommands;
     }
+  }
+
+  CommandOutput get lastCommandOutput {
+    if (commandOutputs.length == 0) {
+      throw new Exception("CommandOutputs is empty, maybe no command was run? ("
+                          "displayName: '$displayName', "
+                          "configurationString: '$configurationString')");
+    }
+    return commandOutputs[commands[commandOutputs.length - 1]];
   }
 
   int get timeout {
@@ -239,21 +249,28 @@ class BrowserTestCase extends TestCase {
 
 
 /**
- * TestOutput records the output of a completed test: the process's exit code,
- * the standard output and standard error, whether the process timed out, and
- * the time the process took to run.  It also contains a pointer to the
+ * CommandOutput records the output of a completed command: the process's exit 
+ * code, the standard output and standard error, whether the process timed out,
+ * and the time the process took to run.  It also contains a pointer to the
  * [TestCase] this is the output of.
  */
-abstract class TestOutput {
-  factory TestOutput.fromCase(TestCase testCase,
-                              int exitCode,
-                              bool incomplete,
-                              bool timedOut,
-                              List<String> stdout,
-                              List<String> stderr,
-                              Duration time) {
-    return new TestOutputImpl.fromCase(
-        testCase, exitCode, incomplete, timedOut, stdout, stderr, time);
+abstract class CommandOutput {
+  factory CommandOutput.fromCase(TestCase testCase,
+                                 Command command,
+                                 int exitCode,
+                                 bool incomplete,
+                                 bool timedOut,
+                                 List<String> stdout,
+                                 List<String> stderr,
+                                 Duration time) {
+    return new CommandOutputImpl.fromCase(testCase, 
+                                          command,
+                                          exitCode,
+                                          incomplete,
+                                          timedOut,
+                                          stdout,
+                                          stderr,
+                                          time);
   }
 
   bool get incomplete;
@@ -281,7 +298,7 @@ abstract class TestOutput {
   List<String> get diagnostics;
 }
 
-class TestOutputImpl implements TestOutput {
+class CommandOutputImpl implements CommandOutput {
   TestCase testCase;
   int exitCode;
 
@@ -307,34 +324,53 @@ class TestOutputImpl implements TestOutput {
    */
   bool requestRetry = false;
 
-  // Don't call this constructor, call TestOutput.fromCase() to
+  // Don't call this constructor, call CommandOutput.fromCase() to
   // get a new TestOutput instance.
-  TestOutputImpl(TestCase this.testCase,
-                 int this.exitCode,
-                 bool this.incomplete,
-                 bool this.timedOut,
-                 List<String> this.stdout,
-                 List<String> this.stderr,
-                 Duration this.time) {
-    testCase.output = this;
+  CommandOutputImpl(TestCase this.testCase,
+                    Command command,
+                    int this.exitCode,
+                    bool this.incomplete,
+                    bool this.timedOut,
+                    List<String> this.stdout,
+                    List<String> this.stderr,
+                    Duration this.time) {
+    testCase.commandOutputs[command] = this;
     diagnostics = [];
   }
-  factory TestOutputImpl.fromCase(TestCase testCase,
-                                  int exitCode,
-                                  bool incomplete,
-                                  bool timedOut,
-                                  List<String> stdout,
-                                  List<String> stderr,
-                                  Duration time) {
+  factory CommandOutputImpl.fromCase(TestCase testCase,
+                                     Command command,
+                                     int exitCode,
+                                     bool incomplete,
+                                     bool timedOut,
+                                     List<String> stdout,
+                                     List<String> stderr,
+                                     Duration time) {
     if (testCase is BrowserTestCase) {
-      return new BrowserTestOutputImpl(testCase, exitCode, incomplete,
-          timedOut, stdout, stderr, time);
+      return new BrowserCommandOutputImpl(testCase,
+                                          command,
+                                          exitCode, 
+                                          incomplete,
+                                          timedOut,
+                                          stdout,
+                                          stderr,
+                                          time);
     } else if (testCase.configuration['compiler'] == 'dartc') {
-      return new AnalysisTestOutputImpl(testCase, exitCode, timedOut,
-          stdout, stderr, time);
+      return new AnalysisCommandOutputImpl(testCase,
+                                           command,
+                                           exitCode,
+                                           timedOut,
+                                           stdout,
+                                           stderr,
+                                           time);
     }
-    return new TestOutputImpl(testCase, exitCode, incomplete, timedOut,
-        stdout, stderr, time);
+    return new CommandOutputImpl(testCase,
+                                 command,
+                                 exitCode,
+                                 incomplete, 
+                                 timedOut,
+                                 stdout,
+                                 stderr,
+                                 time);
   }
 
   String get result =>
@@ -374,10 +410,24 @@ class TestOutputImpl implements TestOutput {
 
 }
 
-class BrowserTestOutputImpl extends TestOutputImpl {
-  BrowserTestOutputImpl(testCase, exitCode, incomplete,
-                        timedOut, stdout, stderr, time) :
-    super(testCase, exitCode, incomplete, timedOut, stdout, stderr, time);
+class BrowserCommandOutputImpl extends CommandOutputImpl {
+  BrowserCommandOutputImpl(
+      testCase,
+      command,
+      exitCode,
+      incomplete,
+      timedOut,
+      stdout,
+      stderr,
+      time) :
+    super(testCase,
+          command,
+          exitCode,
+          incomplete,
+          timedOut,
+          stdout,
+          stderr,
+          time);
 
   bool get didFail {
     // Browser case:
@@ -420,7 +470,7 @@ class BrowserTestOutputImpl extends TestOutputImpl {
 // The static analyzer does not actually execute code, so
 // the criteria for success now depend on the text sent
 // to stderr.
-class AnalysisTestOutputImpl extends TestOutputImpl {
+class AnalysisCommandOutputImpl extends CommandOutputImpl {
   // An error line has 8 fields that look like:
   // ERROR|COMPILER|MISSING_SOURCE|file:/tmp/t.dart|15|1|24|Missing source.
   final int ERROR_LEVEL = 0;
@@ -429,8 +479,14 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
 
   bool alreadyComputed = false;
   bool failResult;
-  AnalysisTestOutputImpl(testCase, exitCode, timedOut, stdout, stderr, time) :
-    super(testCase, exitCode, false, timedOut, stdout, stderr, time);
+  AnalysisCommandOutputImpl(testCase,
+                            command,
+                            exitCode,
+                            timedOut,
+                            stdout, 
+                            stderr,
+                            time) :
+    super(testCase, command, exitCode, false, timedOut, stdout, stderr, time);
 
   bool get didFail {
     if (!alreadyComputed) {
@@ -583,7 +639,7 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
  * A RunningProcess actually runs a test, getting the command lines from
  * its [TestCase], starting the test process (and first, a compilation
  * process if the TestCase is a [BrowserTestCase]), creating a timeout
- * timer, and recording the results in a new [TestOutput] object, which it
+ * timer, and recording the results in a new [CommandOutput] object, which it
  * attaches to the TestCase.  The lifetime of the RunningProcess is limited
  * to the time it takes to start the process, run the process, and record
  * the result; there are no pointers to it, so it should be available to
@@ -607,29 +663,25 @@ class RunningProcess {
       [this.allowRetries = false, this.processQueue]);
 
   /**
-   * Called when all commands are executed. [exitCode] is 0 if all command
-   * succeded, otherwise it will have the exit code of the first failing
-   * command.
+   * Called when all commands are executed. 
    */
-  void testComplete(int exitCode, bool incomplete) {
-    new TestOutput.fromCase(testCase, exitCode, incomplete, timedOut, stdout,
-                            stderr, new Date.now().difference(startTime));
+  void testComplete(CommandOutput lastCommandOutput) {
     timeoutTimer.cancel();
-    if (testCase.output.unexpectedOutput
+    if (lastCommandOutput.unexpectedOutput
         && testCase.configuration['verbose'] != null
         && testCase.configuration['verbose']) {
       print(testCase.displayName);
-      for (var line in testCase.output.stderr) print(line);
-      for (var line in testCase.output.stdout) print(line);
+      for (var line in lastCommandOutput.stderr) print(line);
+      for (var line in lastCommandOutput.stdout) print(line);
     }
     if (allowRetries && testCase.usesWebDriver
-        && testCase.output.unexpectedOutput
+        && lastCommandOutput.unexpectedOutput
         && (testCase as BrowserTestCase).numRetries > 0) {
       // Selenium tests can be flaky. Try rerunning.
-      testCase.output.requestRetry = true;
+      lastCommandOutput.requestRetry = true;
     }
-    if (testCase.output.requestRetry) {
-      testCase.output.requestRetry = false;
+    if (lastCommandOutput.requestRetry) {
+      lastCommandOutput.requestRetry = false;
       this.timedOut = false;
       (testCase as BrowserTestCase).numRetries--;
       print("Potential flake. Re-running ${testCase.displayName} "
@@ -648,7 +700,7 @@ class RunningProcess {
    * treats all but the last command as compilation steps. The last command is
    * the actual test and its output is analyzed in [testComplete].
    */
-  void stepExitHandler(int exitCode) {
+  void commandComplete(Command command, int exitCode) {
     process = null;
     int totalSteps = testCase.commands.length;
     String suffix =' (step $currentStep of $totalSteps)';
@@ -656,15 +708,16 @@ class RunningProcess {
       // Non-webdriver test timed out before it could complete. Webdriver tests
       // run their own timeouts by timing from the launch of the browser (which
       // could be delayed).
-      testComplete(0, true);
+      testComplete(createCommandOutput(command, 0, true));
     } else if (currentStep == totalSteps) {
       // Done with all test commands.
-      testComplete(exitCode, false);
+      testComplete(createCommandOutput(command, exitCode, false));
     } else if (exitCode != 0) {
       // One of the steps failed.
       stderr.add('test.dart: Compilation failed$suffix, exit code $exitCode\n');
-      testComplete(exitCode, true);
+      testComplete(createCommandOutput(command, exitCode, true));
     } else {
+      createCommandOutput(command, exitCode, true);
       // One compilation step successfully completed, move on to the
       // next step.
       stderr.add('test.dart: Compilation finished $suffix\n');
@@ -678,11 +731,35 @@ class RunningProcess {
         timeoutTimer.cancel();
         processQueue._getBatchRunner(testCase).startTest(testCase);
       } else {
-        runCommand(testCase.commands[currentStep++], stepExitHandler);
+        runCommand(testCase.commands[currentStep++], commandComplete);
       }
     }
   }
 
+  /**
+   * Called for all executed commands.
+   */
+  CommandOutput createCommandOutput(Command command,
+                                    int exitCode,
+                                    bool incomplete) {
+    var commandOutput = new CommandOutput.fromCase(
+        testCase,
+        command,
+        exitCode,
+        incomplete,
+        timedOut,
+        stdout,
+        stderr,
+        new Date.now().difference(startTime));
+    resetLocalOutputInformation();
+    return commandOutput;
+  }
+
+  void resetLocalOutputInformation() {
+    stdout = new List<String>();
+    stderr = new List<String>();
+  }
+  
   VoidFunction makeReadHandler(StringInputStream source,
                                List<String> destination) {
     void handler () {
@@ -698,18 +775,21 @@ class RunningProcess {
 
   void start() {
     Expect.isFalse(testCase.expectedOutcomes.contains(SKIP));
-    stdout = new List<String>();
-    stderr = new List<String>();
+    resetLocalOutputInformation();
     currentStep = 0;
     startTime = new Date.now();
-    runCommand(testCase.commands[currentStep++], stepExitHandler);
+    runCommand(testCase.commands[currentStep++], commandComplete);
   }
 
-  void runCommand(Command command, void exitHandler(int exitCode)) {
+  void runCommand(Command command, void commandCompleteHandler(Command, int)) {
+    void processExitHandler(int returnCode) {
+      commandCompleteHandler(command, returnCode);
+    }
+    
     Future processFuture = Process.start(command.executable, command.arguments);
     processFuture.then((Process p) {
       process = p;
-      process.onExit = exitHandler;
+      process.onExit = processExitHandler;
       var stdoutStringStream = new StringInputStream(process.stdout);
       var stderrStringStream = new StringInputStream(process.stderr);
       stdoutStringStream.onLine =
@@ -728,7 +808,7 @@ class RunningProcess {
       print("Process error:");
       print("  Command: $command");
       print("  Error: $e");
-      testComplete(-1, false);
+      testComplete(createCommandOutput(command, -1, false));
       return true;
     });
   }
@@ -759,6 +839,7 @@ class MutableValue<T> {
 }
 
 class BatchRunnerProcess {
+  Command _command;
   String _executable;
   List<String> _batchArguments;
 
@@ -779,6 +860,7 @@ class BatchRunnerProcess {
   bool _isWebDriver;
 
   BatchRunnerProcess(TestCase testCase) {
+    _command = testCase.commands.last;
     _executable = testCase.commands.last.executable;
     _batchArguments = testCase.batchRunnerArguments;
     _isWebDriver = testCase.usesWebDriver;
@@ -789,6 +871,7 @@ class BatchRunnerProcess {
   void startTest(TestCase testCase) {
     Expect.isNull(_currentTest);
     _currentTest = testCase;
+    _command = testCase.commands.last;
     if (_process == null) {
       // Start process if not yet started.
       _executable = testCase.commands.last.executable;
@@ -869,10 +952,14 @@ class BatchRunnerProcess {
     var exitCode = 0;
     if (outcome == "CRASH") exitCode = -10;
     if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
-    new TestOutput.fromCase(_currentTest, exitCode, false,
-                            (outcome == "TIMEOUT"),
-                            _testStdout, _testStderr,
-                            new Date.now().difference(_startTime));
+    new CommandOutput.fromCase(_currentTest,
+                               _command,
+                               exitCode,
+                               false,
+                               (outcome == "TIMEOUT"),
+                               _testStdout,
+                               _testStderr,
+                               new Date.now().difference(_startTime));
     var test = _currentTest;
     _currentTest = null;
     test.completed();

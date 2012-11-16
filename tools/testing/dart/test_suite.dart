@@ -946,7 +946,7 @@ class StandardTestSuite extends TestSuite {
             args.add('--out-expectation=${expectedOutput.toNativePath()}');
           }
         }
-        List<String> commandSet = new List<String>.from(commands);
+        List<Command> commandSet = new List<Command>.from(commands);
         if (subtestIndex != 0) {
          commandSet = [];
          if(TestUtils.usesWebDriver(runtime)) args.add('--force-refresh');
@@ -1505,7 +1505,8 @@ class TestUtils {
     // If a flaky test did fail, infos about it (i.e. test name, stdin, stdout)
     // will be written to this file. This is useful for the debugging of
     // flaky tests.
-    // When running on a built bot, the file can be made visible in the waterfall UI.
+    // When running on a built bot, the file can be made visible in the 
+    // waterfall UI.
     return ".flaky.log";
   }
 
