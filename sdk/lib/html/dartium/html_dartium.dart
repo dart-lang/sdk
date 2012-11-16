@@ -165,11 +165,10 @@ class AnalyserNode extends AudioNode {
 /// @domName HTMLAnchorElement
 class AnchorElement extends _Element_Merged {
 
-  factory AnchorElement({String href}) {
-    if (!?href) {
-      return _Elements.createAnchorElement();
-    }
-    return _Elements.createAnchorElement(href);
+  factory AnchorElement([String href]) {
+    var e = document.$dom_createElement("a");
+    if (!?href) e.href = href;
+    return e;
   }
   AnchorElement.internal(): super.internal();
 
@@ -536,7 +535,7 @@ class AppletElement extends _Element_Merged {
 /// @domName HTMLAreaElement
 class AreaElement extends _Element_Merged {
 
-  factory AreaElement() => _Elements.createAreaElement();
+  factory AreaElement() => document.$dom_createElement("area");
   AreaElement.internal(): super.internal();
 
 
@@ -1277,7 +1276,7 @@ class AudioSourceNode extends AudioNode {
 /// @domName HTMLBRElement
 class BRElement extends _Element_Merged {
 
-  factory BRElement() => _Elements.createBRElement();
+  factory BRElement() => document.$dom_createElement("br");
   BRElement.internal(): super.internal();
 
 
@@ -1315,7 +1314,7 @@ class BarInfo extends NativeFieldWrapperClass1 {
 /// @domName HTMLBaseElement
 class BaseElement extends _Element_Merged {
 
-  factory BaseElement() => _Elements.createBaseElement();
+  factory BaseElement() => document.$dom_createElement("base");
   BaseElement.internal(): super.internal();
 
 
@@ -1566,7 +1565,7 @@ class Blob extends NativeFieldWrapperClass1 {
 /// @domName HTMLBodyElement
 class BodyElement extends _Element_Merged {
 
-  factory BodyElement() => _Elements.createBodyElement();
+  factory BodyElement() => document.$dom_createElement("body");
   BodyElement.internal(): super.internal();
 
   /**
@@ -1656,7 +1655,7 @@ class BodyElementEvents extends ElementEvents {
 /// @domName HTMLButtonElement
 class ButtonElement extends _Element_Merged {
 
-  factory ButtonElement() => _Elements.createButtonElement();
+  factory ButtonElement() => document.$dom_createElement("button");
   ButtonElement.internal(): super.internal();
 
 
@@ -5371,14 +5370,11 @@ class CSSValue extends NativeFieldWrapperClass1 {
 
 class CanvasElement extends _Element_Merged {
 
-  factory CanvasElement({int width, int height}) {
-    if (!?width) {
-      return _Elements.createCanvasElement();
-    }
-    if (!?height) {
-      return _Elements.createCanvasElement(width);
-    }
-    return _Elements.createCanvasElement(width, height);
+  factory CanvasElement([int width, int height]) {
+    var e = document.$dom_createElement("canvas");
+    if (!?width) e.width = width;
+    if (!?height) e.height = height;
+    return e;
   }
   CanvasElement.internal(): super.internal();
 
@@ -6464,7 +6460,7 @@ class Console extends NativeFieldWrapperClass1 {
 /// @domName HTMLContentElement
 class ContentElement extends _Element_Merged {
 
-  factory ContentElement() => _Elements.createContentElement();
+  factory ContentElement() => document.$dom_createElement("content");
   ContentElement.internal(): super.internal();
 
 
@@ -6628,7 +6624,7 @@ class CustomEvent extends Event {
 /// @domName HTMLDListElement
 class DListElement extends _Element_Merged {
 
-  factory DListElement() => _Elements.createDListElement();
+  factory DListElement() => document.$dom_createElement("dl");
   DListElement.internal(): super.internal();
 
 
@@ -7385,7 +7381,7 @@ class DOMTokenList extends NativeFieldWrapperClass1 {
 /// @domName HTMLDataListElement
 class DataListElement extends _Element_Merged {
 
-  factory DataListElement() => _Elements.createDataListElement();
+  factory DataListElement() => document.$dom_createElement("datalist");
   DataListElement.internal(): super.internal();
 
 
@@ -7815,7 +7811,7 @@ class DelayNode extends AudioNode {
 /// @domName HTMLDetailsElement
 class DetailsElement extends _Element_Merged {
 
-  factory DetailsElement() => _Elements.createDetailsElement();
+  factory DetailsElement() => document.$dom_createElement("details");
   DetailsElement.internal(): super.internal();
 
 
@@ -7993,7 +7989,7 @@ class DirectoryReaderSync extends NativeFieldWrapperClass1 {
 /// @domName HTMLDivElement
 class DivElement extends _Element_Merged {
 
-  factory DivElement() => _Elements.createDivElement();
+  factory DivElement() => document.$dom_createElement("div");
   DivElement.internal(): super.internal();
 
 }
@@ -9843,7 +9839,7 @@ class ElementTraversal extends NativeFieldWrapperClass1 {
 /// @domName HTMLEmbedElement
 class EmbedElement extends _Element_Merged {
 
-  factory EmbedElement() => _Elements.createEmbedElement();
+  factory EmbedElement() => document.$dom_createElement("embed");
   EmbedElement.internal(): super.internal();
 
 
@@ -10394,7 +10390,7 @@ class EventTarget extends NativeFieldWrapperClass1 {
 /// @domName HTMLFieldSetElement
 class FieldSetElement extends _Element_Merged {
 
-  factory FieldSetElement() => _Elements.createFieldSetElement();
+  factory FieldSetElement() => document.$dom_createElement("fieldset");
   FieldSetElement.internal(): super.internal();
 
 
@@ -11212,7 +11208,7 @@ class FormData extends NativeFieldWrapperClass1 {
 /// @domName HTMLFormElement
 class FormElement extends _Element_Merged {
 
-  factory FormElement() => _Elements.createFormElement();
+  factory FormElement() => document.$dom_createElement("form");
   FormElement.internal(): super.internal();
 
 
@@ -11566,7 +11562,7 @@ class Geoposition extends NativeFieldWrapperClass1 {
 /// @domName HTMLHRElement
 class HRElement extends _Element_Merged {
 
-  factory HRElement() => _Elements.createHRElement();
+  factory HRElement() => document.$dom_createElement("hr");
   HRElement.internal(): super.internal();
 
 
@@ -11890,7 +11886,7 @@ class HashChangeEvent extends Event {
 /// @domName HTMLHeadElement
 class HeadElement extends _Element_Merged {
 
-  factory HeadElement() => _Elements.createHeadElement();
+  factory HeadElement() => document.$dom_createElement("head");
   HeadElement.internal(): super.internal();
 
 
@@ -11912,17 +11908,17 @@ class HeadElement extends _Element_Merged {
 /// @domName HTMLHeadingElement
 class HeadingElement extends _Element_Merged {
 
-  factory HeadingElement.h1() => _Elements.createHeadingElement_h1();
+  factory HeadingElement.h1() => document.$dom_createElement("h1");
 
-  factory HeadingElement.h2() => _Elements.createHeadingElement_h2();
+  factory HeadingElement.h2() => document.$dom_createElement("h2");
 
-  factory HeadingElement.h3() => _Elements.createHeadingElement_h3();
+  factory HeadingElement.h3() => document.$dom_createElement("h3");
 
-  factory HeadingElement.h4() => _Elements.createHeadingElement_h4();
+  factory HeadingElement.h4() => document.$dom_createElement("h4");
 
-  factory HeadingElement.h5() => _Elements.createHeadingElement_h5();
+  factory HeadingElement.h5() => document.$dom_createElement("h5");
 
-  factory HeadingElement.h6() => _Elements.createHeadingElement_h6();
+  factory HeadingElement.h6() => document.$dom_createElement("h6");
   HeadingElement.internal(): super.internal();
 
 
@@ -12030,7 +12026,7 @@ class HtmlDocument extends Document {
 /// @domName HTMLHtmlElement
 class HtmlElement extends _Element_Merged {
 
-  factory HtmlElement() => _Elements.createHtmlElement();
+  factory HtmlElement() => document.$dom_createElement("html");
   HtmlElement.internal(): super.internal();
 
 }
@@ -13243,7 +13239,7 @@ class IDBVersionChangeRequestEvents extends IDBRequestEvents {
 /// @domName HTMLIFrameElement
 class IFrameElement extends _Element_Merged {
 
-  factory IFrameElement() => _Elements.createIFrameElement();
+  factory IFrameElement() => document.$dom_createElement("iframe");
   IFrameElement.internal(): super.internal();
 
 
@@ -13411,17 +13407,12 @@ class ImageData extends NativeFieldWrapperClass1 {
 /// @domName HTMLImageElement
 class ImageElement extends _Element_Merged {
 
-  factory ImageElement({String src, int width, int height}) {
-    if (!?src) {
-      return _Elements.createImageElement();
-    }
-    if (!?width) {
-      return _Elements.createImageElement(src);
-    }
-    if (!?height) {
-      return _Elements.createImageElement(src, width);
-    }
-    return _Elements.createImageElement(src, width, height);
+  factory ImageElement([String src, int width, int height]) {
+    var e = document.$dom_createElement("img");
+    if (!?src) e.src = src;
+    if (!?width) e.width = width;
+    if (!?height) e.height = height;
+    return e;
   }
   ImageElement.internal(): super.internal();
 
@@ -13568,11 +13559,10 @@ class ImageElement extends _Element_Merged {
 /// @domName HTMLInputElement
 class InputElement extends _Element_Merged {
 
-  factory InputElement({String type}) {
-    if (!?type) {
-      return _Elements.createInputElement();
-    }
-    return _Elements.createInputElement(type);
+  factory InputElement([String type]) {
+    var e = document.$dom_createElement("input");
+    if (!?type) e.type = type;
+    return e;
   }
   InputElement.internal(): super.internal();
 
@@ -14542,7 +14532,7 @@ class KeyboardEvent extends UIEvent {
 /// @domName HTMLKeygenElement
 class KeygenElement extends _Element_Merged {
 
-  factory KeygenElement() => _Elements.createKeygenElement();
+  factory KeygenElement() => document.$dom_createElement("keygen");
   KeygenElement.internal(): super.internal();
 
 
@@ -14628,7 +14618,7 @@ class KeygenElement extends _Element_Merged {
 /// @domName HTMLLIElement
 class LIElement extends _Element_Merged {
 
-  factory LIElement() => _Elements.createLIElement();
+  factory LIElement() => document.$dom_createElement("li");
   LIElement.internal(): super.internal();
 
 
@@ -14658,7 +14648,7 @@ class LIElement extends _Element_Merged {
 /// @domName HTMLLabelElement
 class LabelElement extends _Element_Merged {
 
-  factory LabelElement() => _Elements.createLabelElement();
+  factory LabelElement() => document.$dom_createElement("label");
   LabelElement.internal(): super.internal();
 
 
@@ -14688,7 +14678,7 @@ class LabelElement extends _Element_Merged {
 /// @domName HTMLLegendElement
 class LegendElement extends _Element_Merged {
 
-  factory LegendElement() => _Elements.createLegendElement();
+  factory LegendElement() => document.$dom_createElement("legend");
   LegendElement.internal(): super.internal();
 
 
@@ -14714,7 +14704,7 @@ class LegendElement extends _Element_Merged {
 /// @domName HTMLLinkElement
 class LinkElement extends _Element_Merged {
 
-  factory LinkElement() => _Elements.createLinkElement();
+  factory LinkElement() => document.$dom_createElement("link");
   LinkElement.internal(): super.internal();
 
 
@@ -15546,7 +15536,7 @@ class LocalWindowEvents extends Events {
 /// @domName HTMLMapElement
 class MapElement extends _Element_Merged {
 
-  factory MapElement() => _Elements.createMapElement();
+  factory MapElement() => document.$dom_createElement("map");
   MapElement.internal(): super.internal();
 
 
@@ -16624,7 +16614,7 @@ class MemoryInfo extends NativeFieldWrapperClass1 {
 /// @domName HTMLMenuElement
 class MenuElement extends _Element_Merged {
 
-  factory MenuElement() => _Elements.createMenuElement();
+  factory MenuElement() => document.$dom_createElement("menu");
   MenuElement.internal(): super.internal();
 
 
@@ -16828,7 +16818,7 @@ typedef void MetadataCallback(Metadata metadata);
 /// @domName HTMLMeterElement
 class MeterElement extends _Element_Merged {
 
-  factory MeterElement() => _Elements.createMeterElement();
+  factory MeterElement() => document.$dom_createElement("meter");
   MeterElement.internal(): super.internal();
 
 
@@ -18235,7 +18225,7 @@ class OESVertexArrayObject extends NativeFieldWrapperClass1 {
 /// @domName HTMLOListElement
 class OListElement extends _Element_Merged {
 
-  factory OListElement() => _Elements.createOListElement();
+  factory OListElement() => document.$dom_createElement("ol");
   OListElement.internal(): super.internal();
 
 
@@ -18281,7 +18271,7 @@ class OListElement extends _Element_Merged {
 /// @domName HTMLObjectElement
 class ObjectElement extends _Element_Merged {
 
-  factory ObjectElement() => _Elements.createObjectElement();
+  factory ObjectElement() => document.$dom_createElement("object");
   ObjectElement.internal(): super.internal();
 
 
@@ -18463,7 +18453,7 @@ class OfflineAudioCompletionEvent extends Event {
 /// @domName HTMLOptGroupElement
 class OptGroupElement extends _Element_Merged {
 
-  factory OptGroupElement() => _Elements.createOptGroupElement();
+  factory OptGroupElement() => document.$dom_createElement("optgroup");
   OptGroupElement.internal(): super.internal();
 
 
@@ -18631,7 +18621,7 @@ class OscillatorNode extends AudioSourceNode {
 /// @domName HTMLOutputElement
 class OutputElement extends _Element_Merged {
 
-  factory OutputElement() => _Elements.createOutputElement();
+  factory OutputElement() => document.$dom_createElement("output");
   OutputElement.internal(): super.internal();
 
 
@@ -18883,7 +18873,7 @@ class PannerNode extends AudioNode {
 /// @domName HTMLParagraphElement
 class ParagraphElement extends _Element_Merged {
 
-  factory ParagraphElement() => _Elements.createParagraphElement();
+  factory ParagraphElement() => document.$dom_createElement("p");
   ParagraphElement.internal(): super.internal();
 
 
@@ -18905,7 +18895,7 @@ class ParagraphElement extends _Element_Merged {
 /// @domName HTMLParamElement
 class ParamElement extends _Element_Merged {
 
-  factory ParamElement() => _Elements.createParamElement();
+  factory ParamElement() => document.$dom_createElement("param");
   ParamElement.internal(): super.internal();
 
 
@@ -19323,7 +19313,7 @@ typedef void PositionErrorCallback(PositionError error);
 /// @domName HTMLPreElement
 class PreElement extends _Element_Merged {
 
-  factory PreElement() => _Elements.createPreElement();
+  factory PreElement() => document.$dom_createElement("pre");
   PreElement.internal(): super.internal();
 
 
@@ -19381,7 +19371,7 @@ class ProcessingInstruction extends Node {
 /// @domName HTMLProgressElement
 class ProgressElement extends _Element_Merged {
 
-  factory ProgressElement() => _Elements.createProgressElement();
+  factory ProgressElement() => document.$dom_createElement("progress");
   ProgressElement.internal(): super.internal();
 
 
@@ -20439,7 +20429,7 @@ class Screen extends NativeFieldWrapperClass1 {
 /// @domName HTMLScriptElement
 class ScriptElement extends _Element_Merged {
 
-  factory ScriptElement() => _Elements.createScriptElement();
+  factory ScriptElement() => document.$dom_createElement("script");
   ScriptElement.internal(): super.internal();
 
 
@@ -20617,7 +20607,7 @@ class ScriptProfileNode extends NativeFieldWrapperClass1 {
 /// @domName HTMLSelectElement
 class SelectElement extends _Element_Merged {
 
-  factory SelectElement() => _Elements.createSelectElement();
+  factory SelectElement() => document.$dom_createElement("select");
   SelectElement.internal(): super.internal();
 
 
@@ -21053,7 +21043,7 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
 /// @domName HTMLSourceElement
 class SourceElement extends _Element_Merged {
 
-  factory SourceElement() => _Elements.createSourceElement();
+  factory SourceElement() => document.$dom_createElement("source");
   SourceElement.internal(): super.internal();
 
 
@@ -21091,7 +21081,7 @@ class SourceElement extends _Element_Merged {
 /// @domName HTMLSpanElement
 class SpanElement extends _Element_Merged {
 
-  factory SpanElement() => _Elements.createSpanElement();
+  factory SpanElement() => document.$dom_createElement("span");
   SpanElement.internal(): super.internal();
 
 }
@@ -21700,7 +21690,7 @@ typedef void StringCallback(String data);
 /// @domName HTMLStyleElement
 class StyleElement extends _Element_Merged {
 
-  factory StyleElement() => _Elements.createStyleElement();
+  factory StyleElement() => document.$dom_createElement("style");
   StyleElement.internal(): super.internal();
 
 
@@ -21814,7 +21804,7 @@ class StyleSheet extends NativeFieldWrapperClass1 {
 /// @domName HTMLTableCaptionElement
 class TableCaptionElement extends _Element_Merged {
 
-  factory TableCaptionElement() => _Elements.createTableCaptionElement();
+  factory TableCaptionElement() => document.$dom_createElement("caption");
   TableCaptionElement.internal(): super.internal();
 
 
@@ -21836,7 +21826,7 @@ class TableCaptionElement extends _Element_Merged {
 /// @domName HTMLTableCellElement
 class TableCellElement extends _Element_Merged {
 
-  factory TableCellElement() => _Elements.createTableCellElement();
+  factory TableCellElement() => document.$dom_createElement("td");
   TableCellElement.internal(): super.internal();
 
 
@@ -21966,7 +21956,7 @@ class TableCellElement extends _Element_Merged {
 /// @domName HTMLTableColElement
 class TableColElement extends _Element_Merged {
 
-  factory TableColElement() => _Elements.createTableColElement();
+  factory TableColElement() => document.$dom_createElement("col");
   TableColElement.internal(): super.internal();
 
 
@@ -22028,7 +22018,7 @@ class TableColElement extends _Element_Merged {
 /// @domName HTMLTableElement
 class TableElement extends _Element_Merged {
 
-  factory TableElement() => _Elements.createTableElement();
+  factory TableElement() => document.$dom_createElement("table");
   TableElement.internal(): super.internal();
 
 
@@ -22182,7 +22172,7 @@ class TableElement extends _Element_Merged {
 /// @domName HTMLTableRowElement
 class TableRowElement extends _Element_Merged {
 
-  factory TableRowElement() => _Elements.createTableRowElement();
+  factory TableRowElement() => document.$dom_createElement("tr");
   TableRowElement.internal(): super.internal();
 
 
@@ -22336,7 +22326,7 @@ class Text extends CharacterData {
 /// @domName HTMLTextAreaElement
 class TextAreaElement extends _Element_Merged {
 
-  factory TextAreaElement() => _Elements.createTextAreaElement();
+  factory TextAreaElement() => document.$dom_createElement("textarea");
   TextAreaElement.internal(): super.internal();
 
 
@@ -23064,7 +23054,7 @@ typedef void TimeoutHandler();
 /// @domName HTMLTitleElement
 class TitleElement extends _Element_Merged {
 
-  factory TitleElement() => _Elements.createTitleElement();
+  factory TitleElement() => document.$dom_createElement("title");
   TitleElement.internal(): super.internal();
 
 }
@@ -23285,7 +23275,7 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 /// @domName HTMLTrackElement
 class TrackElement extends _Element_Merged {
 
-  factory TrackElement() => _Elements.createTrackElement();
+  factory TrackElement() => document.$dom_createElement("track");
   TrackElement.internal(): super.internal();
 
   static const int ERROR = 3;
@@ -23507,7 +23497,7 @@ class UIEvent extends Event {
 /// @domName HTMLUListElement
 class UListElement extends _Element_Merged {
 
-  factory UListElement() => _Elements.createUListElement();
+  factory UListElement() => document.$dom_createElement("ul");
   UListElement.internal(): super.internal();
 
 
@@ -24083,7 +24073,7 @@ class ValidityState extends NativeFieldWrapperClass1 {
 /// @domName HTMLVideoElement
 class VideoElement extends MediaElement {
 
-  factory VideoElement() => _Elements.createVideoElement();
+  factory VideoElement() => document.$dom_createElement("video");
   VideoElement.internal(): super.internal();
 
 
@@ -27053,311 +27043,6 @@ class _Element_Merged extends Element {
   /** @domName HTMLElement.insertAdjacentText */
   void insertAdjacentText(String where, String text) native "HTMLElement_insertAdjacentText_Callback";
 
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _Elements {
-
-
-  static AnchorElement createAnchorElement([String href]) {
-    AnchorElement _e = document.$dom_createElement("a");
-    if (href != null) _e.href = href;
-    return _e;
-  }
-
-  static AreaElement createAreaElement() {
-    AreaElement _e = document.$dom_createElement("area");
-    return _e;
-  }
-
-  static BRElement createBRElement() {
-    BRElement _e = document.$dom_createElement("br");
-    return _e;
-  }
-
-  static BaseElement createBaseElement() {
-    BaseElement _e = document.$dom_createElement("base");
-    return _e;
-  }
-
-  static BodyElement createBodyElement() {
-    BodyElement _e = document.$dom_createElement("body");
-    return _e;
-  }
-
-  static ButtonElement createButtonElement() {
-    ButtonElement _e = document.$dom_createElement("button");
-    return _e;
-  }
-
-  static CanvasElement createCanvasElement([int width, int height]) {
-    CanvasElement _e = document.$dom_createElement("canvas");
-    if (width != null) _e.width = width;
-    if (height != null) _e.height = height;
-    return _e;
-  }
-
-  static ContentElement createContentElement() {
-    ContentElement _e = document.$dom_createElement("content");
-    return _e;
-  }
-
-  static DListElement createDListElement() {
-    DListElement _e = document.$dom_createElement("dl");
-    return _e;
-  }
-
-  static DataListElement createDataListElement() {
-    DataListElement _e = document.$dom_createElement("datalist");
-    return _e;
-  }
-
-  static DetailsElement createDetailsElement() {
-    DetailsElement _e = document.$dom_createElement("details");
-    return _e;
-  }
-
-  static DivElement createDivElement() {
-    DivElement _e = document.$dom_createElement("div");
-    return _e;
-  }
-
-  static EmbedElement createEmbedElement() {
-    EmbedElement _e = document.$dom_createElement("embed");
-    return _e;
-  }
-
-  static FieldSetElement createFieldSetElement() {
-    FieldSetElement _e = document.$dom_createElement("fieldset");
-    return _e;
-  }
-
-  static FormElement createFormElement() {
-    FormElement _e = document.$dom_createElement("form");
-    return _e;
-  }
-
-  static HRElement createHRElement() {
-    HRElement _e = document.$dom_createElement("hr");
-    return _e;
-  }
-
-  static HeadElement createHeadElement() {
-    HeadElement _e = document.$dom_createElement("head");
-    return _e;
-  }
-
-  static HeadingElement createHeadingElement_h1() {
-    HeadingElement _e = document.$dom_createElement("h1");
-    return _e;
-  }
-
-  static HeadingElement createHeadingElement_h2() {
-    HeadingElement _e = document.$dom_createElement("h2");
-    return _e;
-  }
-
-  static HeadingElement createHeadingElement_h3() {
-    HeadingElement _e = document.$dom_createElement("h3");
-    return _e;
-  }
-
-  static HeadingElement createHeadingElement_h4() {
-    HeadingElement _e = document.$dom_createElement("h4");
-    return _e;
-  }
-
-  static HeadingElement createHeadingElement_h5() {
-    HeadingElement _e = document.$dom_createElement("h5");
-    return _e;
-  }
-
-  static HeadingElement createHeadingElement_h6() {
-    HeadingElement _e = document.$dom_createElement("h6");
-    return _e;
-  }
-
-  static HtmlElement createHtmlElement() {
-    HtmlElement _e = document.$dom_createElement("html");
-    return _e;
-  }
-
-  static IFrameElement createIFrameElement() {
-    IFrameElement _e = document.$dom_createElement("iframe");
-    return _e;
-  }
-
-  static ImageElement createImageElement([String src, int width, int height]) {
-    ImageElement _e = document.$dom_createElement("img");
-    if (src != null) _e.src = src;
-    if (width != null) _e.width = width;
-    if (height != null) _e.height = height;
-    return _e;
-  }
-
-  static InputElement createInputElement([String type]) {
-    InputElement _e = document.$dom_createElement("input");
-    if (type != null) _e.type = type;
-    return _e;
-  }
-
-  static KeygenElement createKeygenElement() {
-    KeygenElement _e = document.$dom_createElement("keygen");
-    return _e;
-  }
-
-  static LIElement createLIElement() {
-    LIElement _e = document.$dom_createElement("li");
-    return _e;
-  }
-
-  static LabelElement createLabelElement() {
-    LabelElement _e = document.$dom_createElement("label");
-    return _e;
-  }
-
-  static LegendElement createLegendElement() {
-    LegendElement _e = document.$dom_createElement("legend");
-    return _e;
-  }
-
-  static LinkElement createLinkElement() {
-    LinkElement _e = document.$dom_createElement("link");
-    return _e;
-  }
-
-  static MapElement createMapElement() {
-    MapElement _e = document.$dom_createElement("map");
-    return _e;
-  }
-
-  static MenuElement createMenuElement() {
-    MenuElement _e = document.$dom_createElement("menu");
-    return _e;
-  }
-
-  static MeterElement createMeterElement() {
-    MeterElement _e = document.$dom_createElement("meter");
-    return _e;
-  }
-
-  static OListElement createOListElement() {
-    OListElement _e = document.$dom_createElement("ol");
-    return _e;
-  }
-
-  static ObjectElement createObjectElement() {
-    ObjectElement _e = document.$dom_createElement("object");
-    return _e;
-  }
-
-  static OptGroupElement createOptGroupElement() {
-    OptGroupElement _e = document.$dom_createElement("optgroup");
-    return _e;
-  }
-
-  static OutputElement createOutputElement() {
-    OutputElement _e = document.$dom_createElement("output");
-    return _e;
-  }
-
-  static ParagraphElement createParagraphElement() {
-    ParagraphElement _e = document.$dom_createElement("p");
-    return _e;
-  }
-
-  static ParamElement createParamElement() {
-    ParamElement _e = document.$dom_createElement("param");
-    return _e;
-  }
-
-  static PreElement createPreElement() {
-    PreElement _e = document.$dom_createElement("pre");
-    return _e;
-  }
-
-  static ProgressElement createProgressElement() {
-    ProgressElement _e = document.$dom_createElement("progress");
-    return _e;
-  }
-
-  static ScriptElement createScriptElement() {
-    ScriptElement _e = document.$dom_createElement("script");
-    return _e;
-  }
-
-  static SelectElement createSelectElement() {
-    SelectElement _e = document.$dom_createElement("select");
-    return _e;
-  }
-
-  static SourceElement createSourceElement() {
-    SourceElement _e = document.$dom_createElement("source");
-    return _e;
-  }
-
-  static SpanElement createSpanElement() {
-    SpanElement _e = document.$dom_createElement("span");
-    return _e;
-  }
-
-  static StyleElement createStyleElement() {
-    StyleElement _e = document.$dom_createElement("style");
-    return _e;
-  }
-
-  static TableCaptionElement createTableCaptionElement() {
-    TableCaptionElement _e = document.$dom_createElement("caption");
-    return _e;
-  }
-
-  static TableCellElement createTableCellElement() {
-    TableCellElement _e = document.$dom_createElement("td");
-    return _e;
-  }
-
-  static TableColElement createTableColElement() {
-    TableColElement _e = document.$dom_createElement("col");
-    return _e;
-  }
-
-  static TableElement createTableElement() {
-    TableElement _e = document.$dom_createElement("table");
-    return _e;
-  }
-
-  static TableRowElement createTableRowElement() {
-    TableRowElement _e = document.$dom_createElement("tr");
-    return _e;
-  }
-
-  static TextAreaElement createTextAreaElement() {
-    TextAreaElement _e = document.$dom_createElement("textarea");
-    return _e;
-  }
-
-  static TitleElement createTitleElement() {
-    TitleElement _e = document.$dom_createElement("title");
-    return _e;
-  }
-
-  static TrackElement createTrackElement() {
-    TrackElement _e = document.$dom_createElement("track");
-    return _e;
-  }
-
-  static UListElement createUListElement() {
-    UListElement _e = document.$dom_createElement("ul");
-    return _e;
-  }
-
-  static VideoElement createVideoElement() {
-    VideoElement _e = document.$dom_createElement("video");
-    return _e;
-  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

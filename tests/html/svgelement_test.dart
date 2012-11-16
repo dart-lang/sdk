@@ -152,8 +152,8 @@ main() {
   group('outerHTML', () {
     test('outerHTML', () {
       final el = new SVGSVGElement();
-      el.elements.add(new SVGElement.tag("circle"));
-      el.elements.add(new SVGElement.tag("path"));
+      el.elements.add(new SVGCircleElement());
+      el.elements.add(new SVGPathElement());
       expect(el.outerHTML,
           '<svg version="1.1"><circle></circle><path></path></svg>');
     });
@@ -162,15 +162,15 @@ main() {
   group('innerHTML', () {
     test('get', () {
       final el = new SVGSVGElement();
-      el.elements.add(new SVGElement.tag("circle"));
-      el.elements.add(new SVGElement.tag("path"));
+      el.elements.add(new SVGCircleElement());
+      el.elements.add(new SVGPathElement());
       expect(el.innerHTML, '<circle></circle><path></path>');
     });
 
     test('set', () {
       final el = new SVGSVGElement();
-      el.elements.add(new SVGElement.tag("circle"));
-      el.elements.add(new SVGElement.tag("path"));
+      el.elements.add(new SVGCircleElement());
+      el.elements.add(new SVGPathElement());
       el.innerHTML = '<rect></rect><a></a>';
       expect(_nodeStrings(el.elements), ["rect", "a"]);
     });

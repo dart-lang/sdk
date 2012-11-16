@@ -58,9 +58,9 @@ _static_classes = set(['Url'])
 class ElementConstructorInfo(object):
   def __init__(self, name=None, tag=None,
                params=[], opt_params=[],
-               factory_provider_name='_Elements'):
+               factory_provider_name='document'):
     self.name = name          # The constructor name 'h1' in 'HeadingElement.h1'
-    self.tag = tag or name    # The HTML tag
+    self.tag = tag or name    # The HTML or SVG tag
     self.params = params
     self.opt_params = opt_params
     self.factory_provider_name = factory_provider_name
@@ -76,6 +76,7 @@ class ElementConstructorInfo(object):
     info.param_infos = map(lambda tXn: ParamInfo(tXn[1], tXn[0], True),
                            self.opt_params)
     info.requires_named_arguments = True
+    info.factory_parameters = ['"%s"' % self.tag]
     return info
 
 _html_element_constructors = {
@@ -148,39 +149,87 @@ _html_element_constructors = {
   'VideoElement': 'video'
 }
 
-def HtmlElementConstructorInfos(typename):
+_svg_element_constructors = {
+  'SVGAElement': 'a',
+  'SVGAnimateColorElement': 'animateColor',
+  'SVGAnimateElement': 'animate',
+  'SVGAnimateMotionElement': 'animateMotion',
+  'SVGAnimateTransformElement': 'animateTransform',
+  'SVGAnimationElement': 'animation',
+  'SVGCircleElement': 'circle',
+  'SVGClipPathElement': 'clipPath',
+  'SVGCursorElement': 'cursor',
+  'SVGDefsElement': 'defs',
+  'SVGDescElement': 'desc',
+  'SVGEllipseElement': 'ellipse',
+  'SVGFilterElement': 'filter',
+  'SVGFontElement': 'font',
+  'SVGFontFaceElement': 'font-face',
+  'SVGFontFaceFormatElement': 'font-face-format',
+  'SVGFontFaceNameElement': 'font-face-name',
+  'SVGFontFaceSrcElement': 'font-face-src',
+  'SVGFontFaceUriElement': 'font-face-uri',
+  'SVGForeignObjectElement': 'foreignObject',
+  'SVGGlyphElement': 'glyph',
+  'SVGGElement': 'g',
+  'SVGHKernElement': 'hkern',
+  'SVGImageElement': 'image',
+  'SVGLinearGradientElement': 'linearGradient',
+  'SVGLineElement': 'line',
+  'SVGMarkerElement': 'marker',
+  'SVGMaskElement': 'mask',
+  'SVGMPathElement': 'mpath',
+  'SVGPathElement': 'path',
+  'SVGPatternElement': 'pattern',
+  'SVGPolygonElement': 'polygon',
+  'SVGPolylineElement': 'polyline',
+  'SVGRadialGradientElement': 'radialGradient',
+  'SVGRectElement': 'rect',
+  'SVGScriptElement': 'script',
+  'SVGSetElement': 'set',
+  'SVGStopElement': 'stop',
+  'SVGStyleElement': 'style',
+  'SVGSwitchElement': 'switch',
+  'SVGSymbolElement': 'symbol',
+  'SVGTextElement': 'text',
+  'SVGTitleElement': 'title',
+  'SVGTRefElement': 'tref',
+  'SVGTSpanElement': 'tspan',
+  'SVGUseElement': 'use',
+  'SVGViewElement': 'view',
+  'SVGVKernElement': 'vkern',
+}
+
+_element_constructors = {
+  'html': _html_element_constructors,
+  'svg': _svg_element_constructors
+}
+
+_factory_ctr_strings = {
+  'html': {
+      'provider_name': 'document',
+      'constructor_name': '$dom_createElement'
+  },
+  'svg': {
+    'provider_name': '_SvgElementFactoryProvider',
+    'constructor_name': 'createSVGElement_tag',
+  },
+}
+
+def ElementConstructorInfos(typename, element_constructors,
+                            factory_provider_name='_Elements'):
   """Returns list of ElementConstructorInfos about the convenience constructors
-  for an Element."""
+  for an Element or SvgElement."""
   # TODO(sra): Handle multiple and named constructors.
-  if typename not in _html_element_constructors:
+  if typename not in element_constructors:
     return []
-  infos = _html_element_constructors[typename]
+  infos = element_constructors[typename]
   if isinstance(infos, str):
-    infos = ElementConstructorInfo(tag=infos)
+    infos = ElementConstructorInfo(tag=infos,
+        factory_provider_name=factory_provider_name)
   if not isinstance(infos, list):
     infos = [infos]
   return infos
-
-def EmitHtmlElementFactoryConstructors(emitter, infos, typename, class_name,
-                                       rename_type):
-  for info in infos:
-    constructor_info = info.ConstructorInfo(typename)
-
-    inits = emitter.Emit(
-        '\n'
-        '  static $RETURN_TYPE $CONSTRUCTOR($PARAMS) {\n'
-        '    $CLASS _e = document.$dom_createElement("$TAG");\n'
-        '$!INITS'
-        '    return _e;\n'
-        '  }\n',
-        RETURN_TYPE=rename_type(constructor_info.type_name),
-        CONSTRUCTOR=constructor_info.ConstructorFactoryName(rename_type),
-        CLASS=class_name,
-        TAG=info.tag,
-        PARAMS=constructor_info.ParametersDeclaration(
-            rename_type, force_optional=True))
-    for param in constructor_info.param_infos:
-      inits.Emit('    if ($E != null) _e.$E = $E;\n', E=param.name)
 
 # ------------------------------------------------------------------------------
 
@@ -226,6 +275,7 @@ class HtmlDartInterfaceGenerator(object):
     factory_provider = None
     if interface_name in interface_factories:
       factory_provider = interface_factories[interface_name]
+    factory_constructor_name = None
 
     constructors = []
     if interface_name in _static_classes:
@@ -240,18 +290,15 @@ class HtmlDartInterfaceGenerator(object):
       self._backend.EmitFactoryProvider(
           constructor_info, factory_provider, factory_provider_emitter)
 
-    infos = HtmlElementConstructorInfos(interface_name)
-    if infos:
-      template = self._template_loader.Load(
-          'factoryprovider_Elements.darttemplate')
-      EmitHtmlElementFactoryConstructors(
-          self._library_emitter.FileEmitter('_Elements', self._library_name,
-              template),
-          infos,
-          self._interface.id,
-          self._interface_type_info.implementation_name(),
-          self._DartType)
+    # HTML Elements and SVG Elements have convenience constructors.
+    infos = ElementConstructorInfos(interface_name,
+        _element_constructors[self._library_name], factory_provider_name=
+        _factory_ctr_strings[self._library_name]['provider_name'])
 
+    if infos:
+      factory_constructor_name = _factory_ctr_strings[
+          self._library_name]['constructor_name']
+    
     for info in infos:
       constructors.append(info.ConstructorInfo(self._interface.id))
       if factory_provider:
@@ -302,7 +349,7 @@ class HtmlDartInterfaceGenerator(object):
 
     self._backend.AddConstructors(constructors, factory_provider,
         self._interface_type_info.implementation_name(),
-        base_class)
+        base_class, factory_constructor_name=factory_constructor_name)
 
     events_class_name = self._event_generator.ProcessInterface(
         self._interface, interface_name,
