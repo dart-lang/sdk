@@ -9017,16 +9017,7 @@ class _FrozenElementListIterator implements Iterator<Element> {
   bool get hasNext => _index < _list.length;
 }
 
-/**
- * All your attribute manipulation needs in one place.
- * Extends the regular Map interface by automatically coercing non-string
- * values to strings.
- */
-abstract class AttributeMap implements Map<String, String> {
-  void operator []=(String key, value);
-}
-
-class _ElementAttributeMap extends AttributeMap {
+class _ElementAttributeMap implements Map<String, String> {
 
   final Element _element;
 
@@ -9121,7 +9112,7 @@ class _ElementAttributeMap extends AttributeMap {
  * Provides a Map abstraction on top of data-* attributes, similar to the
  * dataSet in the old DOM.
  */
-class _DataAttributeMap extends AttributeMap {
+class _DataAttributeMap implements Map<String, String> {
 
   final Map<String, String> $dom_attributes;
 
@@ -9245,7 +9236,7 @@ abstract class Element extends Node implements ElementTraversal {
    * @domName Element.hasAttribute, Element.getAttribute, Element.setAttribute,
    *   Element.removeAttribute
    */
-  _ElementAttributeMap get attributes => new _ElementAttributeMap(this);
+  Map<String, String> get attributes => new _ElementAttributeMap(this);
 
   void set attributes(Map<String, String> value) {
     Map<String, String> attributes = this.attributes;
