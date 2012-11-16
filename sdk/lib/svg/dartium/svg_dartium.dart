@@ -58,8 +58,6 @@ class _SVGSVGElementFactoryProvider {
 
 /// @domName SVGAElement
 class SVGAElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStylable, SVGURIReference, SVGExternalResourcesRequired, SVGTransformable {
-
-  factory SVGAElement() => _SvgElementFactoryProvider.createSVGElement_tag("a");
   SVGAElement.internal(): super.internal();
 
 
@@ -270,8 +268,6 @@ class SVGAngle extends NativeFieldWrapperClass1 {
 
 /// @domName SVGAnimateColorElement
 class SVGAnimateColorElement extends SVGAnimationElement {
-
-  factory SVGAnimateColorElement() => _SvgElementFactoryProvider.createSVGElement_tag("animateColor");
   SVGAnimateColorElement.internal(): super.internal();
 
 }
@@ -284,8 +280,6 @@ class SVGAnimateColorElement extends SVGAnimationElement {
 
 /// @domName SVGAnimateElement
 class SVGAnimateElement extends SVGAnimationElement {
-
-  factory SVGAnimateElement() => _SvgElementFactoryProvider.createSVGElement_tag("animate");
   SVGAnimateElement.internal(): super.internal();
 
 }
@@ -298,8 +292,6 @@ class SVGAnimateElement extends SVGAnimationElement {
 
 /// @domName SVGAnimateMotionElement
 class SVGAnimateMotionElement extends SVGAnimationElement {
-
-  factory SVGAnimateMotionElement() => _SvgElementFactoryProvider.createSVGElement_tag("animateMotion");
   SVGAnimateMotionElement.internal(): super.internal();
 
 }
@@ -312,8 +304,6 @@ class SVGAnimateMotionElement extends SVGAnimationElement {
 
 /// @domName SVGAnimateTransformElement
 class SVGAnimateTransformElement extends SVGAnimationElement {
-
-  factory SVGAnimateTransformElement() => _SvgElementFactoryProvider.createSVGElement_tag("animateTransform");
   SVGAnimateTransformElement.internal(): super.internal();
 
 }
@@ -835,8 +825,6 @@ class SVGAnimatedTransformList extends NativeFieldWrapperClass1 implements List<
 
 /// @domName SVGAnimationElement
 class SVGAnimationElement extends SVGElement implements ElementTimeControl, SVGTests, SVGExternalResourcesRequired {
-
-  factory SVGAnimationElement() => _SvgElementFactoryProvider.createSVGElement_tag("animation");
   SVGAnimationElement.internal(): super.internal();
 
 
@@ -901,8 +889,6 @@ class SVGAnimationElement extends SVGElement implements ElementTimeControl, SVGT
 
 /// @domName SVGCircleElement
 class SVGCircleElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired {
-
-  factory SVGCircleElement() => _SvgElementFactoryProvider.createSVGElement_tag("circle");
   SVGCircleElement.internal(): super.internal();
 
 
@@ -1003,8 +989,6 @@ class SVGCircleElement extends SVGElement implements SVGLangSpace, SVGStylable, 
 
 /// @domName SVGClipPathElement
 class SVGClipPathElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired {
-
-  factory SVGClipPathElement() => _SvgElementFactoryProvider.createSVGElement_tag("clipPath");
   SVGClipPathElement.internal(): super.internal();
 
 
@@ -1189,8 +1173,6 @@ class SVGComponentTransferFunctionElement extends SVGElement {
 
 /// @domName SVGCursorElement
 class SVGCursorElement extends SVGElement implements SVGURIReference, SVGTests, SVGExternalResourcesRequired {
-
-  factory SVGCursorElement() => _SvgElementFactoryProvider.createSVGElement_tag("cursor");
   SVGCursorElement.internal(): super.internal();
 
 
@@ -1235,8 +1217,6 @@ class SVGCursorElement extends SVGElement implements SVGURIReference, SVGTests, 
 
 /// @domName SVGDefsElement
 class SVGDefsElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired {
-
-  factory SVGDefsElement() => _SvgElementFactoryProvider.createSVGElement_tag("defs");
   SVGDefsElement.internal(): super.internal();
 
 
@@ -1325,8 +1305,6 @@ class SVGDefsElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
 
 /// @domName SVGDescElement
 class SVGDescElement extends SVGElement implements SVGLangSpace, SVGStylable {
-
-  factory SVGDescElement() => _SvgElementFactoryProvider.createSVGElement_tag("desc");
   SVGDescElement.internal(): super.internal();
 
 
@@ -1624,8 +1602,6 @@ class SVGElementInstanceEvents extends Events {
 
 /// @domName SVGEllipseElement
 class SVGEllipseElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired {
-
-  factory SVGEllipseElement() => _SvgElementFactoryProvider.createSVGElement_tag("ellipse");
   SVGEllipseElement.internal(): super.internal();
 
 
@@ -3040,8 +3016,6 @@ class SVGFETurbulenceElement extends SVGElement implements SVGFilterPrimitiveSta
 
 /// @domName SVGFilterElement
 class SVGFilterElement extends SVGElement implements SVGURIReference, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
-
-  factory SVGFilterElement() => _SvgElementFactoryProvider.createSVGElement_tag("filter");
   SVGFilterElement.internal(): super.internal();
 
 
@@ -3190,8 +3164,6 @@ class SVGFitToViewBox extends NativeFieldWrapperClass1 {
 
 /// @domName SVGFontElement
 class SVGFontElement extends SVGElement {
-
-  factory SVGFontElement() => _SvgElementFactoryProvider.createSVGElement_tag("font");
   SVGFontElement.internal(): super.internal();
 
 }
@@ -3204,8 +3176,6 @@ class SVGFontElement extends SVGElement {
 
 /// @domName SVGFontFaceElement
 class SVGFontFaceElement extends SVGElement {
-
-  factory SVGFontFaceElement() => _SvgElementFactoryProvider.createSVGElement_tag("font-face");
   SVGFontFaceElement.internal(): super.internal();
 
 }
@@ -3218,8 +3188,6 @@ class SVGFontFaceElement extends SVGElement {
 
 /// @domName SVGFontFaceFormatElement
 class SVGFontFaceFormatElement extends SVGElement {
-
-  factory SVGFontFaceFormatElement() => _SvgElementFactoryProvider.createSVGElement_tag("font-face-format");
   SVGFontFaceFormatElement.internal(): super.internal();
 
 }
@@ -3232,8 +3200,6 @@ class SVGFontFaceFormatElement extends SVGElement {
 
 /// @domName SVGFontFaceNameElement
 class SVGFontFaceNameElement extends SVGElement {
-
-  factory SVGFontFaceNameElement() => _SvgElementFactoryProvider.createSVGElement_tag("font-face-name");
   SVGFontFaceNameElement.internal(): super.internal();
 
 }
@@ -3246,8 +3212,6 @@ class SVGFontFaceNameElement extends SVGElement {
 
 /// @domName SVGFontFaceSrcElement
 class SVGFontFaceSrcElement extends SVGElement {
-
-  factory SVGFontFaceSrcElement() => _SvgElementFactoryProvider.createSVGElement_tag("font-face-src");
   SVGFontFaceSrcElement.internal(): super.internal();
 
 }
@@ -3260,8 +3224,6 @@ class SVGFontFaceSrcElement extends SVGElement {
 
 /// @domName SVGFontFaceUriElement
 class SVGFontFaceUriElement extends SVGElement {
-
-  factory SVGFontFaceUriElement() => _SvgElementFactoryProvider.createSVGElement_tag("font-face-uri");
   SVGFontFaceUriElement.internal(): super.internal();
 
 }
@@ -3274,8 +3236,6 @@ class SVGFontFaceUriElement extends SVGElement {
 
 /// @domName SVGForeignObjectElement
 class SVGForeignObjectElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired {
-
-  factory SVGForeignObjectElement() => _SvgElementFactoryProvider.createSVGElement_tag("foreignObject");
   SVGForeignObjectElement.internal(): super.internal();
 
 
@@ -3380,8 +3340,6 @@ class SVGForeignObjectElement extends SVGElement implements SVGLangSpace, SVGSty
 
 /// @domName SVGGElement
 class SVGGElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired {
-
-  factory SVGGElement() => _SvgElementFactoryProvider.createSVGElement_tag("g");
   SVGGElement.internal(): super.internal();
 
 
@@ -3470,8 +3428,6 @@ class SVGGElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTe
 
 /// @domName SVGGlyphElement
 class SVGGlyphElement extends SVGElement {
-
-  factory SVGGlyphElement() => _SvgElementFactoryProvider.createSVGElement_tag("glyph");
   SVGGlyphElement.internal(): super.internal();
 
 }
@@ -3612,8 +3568,6 @@ class SVGGradientElement extends SVGElement implements SVGURIReference, SVGExter
 
 /// @domName SVGHKernElement
 class SVGHKernElement extends SVGElement {
-
-  factory SVGHKernElement() => _SvgElementFactoryProvider.createSVGElement_tag("hkern");
   SVGHKernElement.internal(): super.internal();
 
 }
@@ -3626,8 +3580,6 @@ class SVGHKernElement extends SVGElement {
 
 /// @domName SVGImageElement
 class SVGImageElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStylable, SVGURIReference, SVGExternalResourcesRequired, SVGTransformable {
-
-  factory SVGImageElement() => _SvgElementFactoryProvider.createSVGElement_tag("image");
   SVGImageElement.internal(): super.internal();
 
 
@@ -3965,8 +3917,6 @@ class SVGLengthList extends NativeFieldWrapperClass1 implements List<SVGLength> 
 
 /// @domName SVGLineElement
 class SVGLineElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired {
-
-  factory SVGLineElement() => _SvgElementFactoryProvider.createSVGElement_tag("line");
   SVGLineElement.internal(): super.internal();
 
 
@@ -4071,8 +4021,6 @@ class SVGLineElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
 
 /// @domName SVGLinearGradientElement
 class SVGLinearGradientElement extends SVGGradientElement {
-
-  factory SVGLinearGradientElement() => _SvgElementFactoryProvider.createSVGElement_tag("linearGradient");
   SVGLinearGradientElement.internal(): super.internal();
 
 
@@ -4137,8 +4085,6 @@ class SVGLocatable extends NativeFieldWrapperClass1 {
 
 /// @domName SVGMPathElement
 class SVGMPathElement extends SVGElement implements SVGURIReference, SVGExternalResourcesRequired {
-
-  factory SVGMPathElement() => _SvgElementFactoryProvider.createSVGElement_tag("mpath");
   SVGMPathElement.internal(): super.internal();
 
 
@@ -4159,8 +4105,6 @@ class SVGMPathElement extends SVGElement implements SVGURIReference, SVGExternal
 
 /// @domName SVGMarkerElement
 class SVGMarkerElement extends SVGElement implements SVGLangSpace, SVGFitToViewBox, SVGExternalResourcesRequired, SVGStylable {
-
-  factory SVGMarkerElement() => _SvgElementFactoryProvider.createSVGElement_tag("marker");
   SVGMarkerElement.internal(): super.internal();
 
   static const int SVG_MARKERUNITS_STROKEWIDTH = 2;
@@ -4261,8 +4205,6 @@ class SVGMarkerElement extends SVGElement implements SVGLangSpace, SVGFitToViewB
 
 /// @domName SVGMaskElement
 class SVGMaskElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGExternalResourcesRequired {
-
-  factory SVGMaskElement() => _SvgElementFactoryProvider.createSVGElement_tag("mask");
   SVGMaskElement.internal(): super.internal();
 
 
@@ -4670,8 +4612,6 @@ class SVGPaint extends SVGColor {
 
 /// @domName SVGPathElement
 class SVGPathElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired {
-
-  factory SVGPathElement() => _SvgElementFactoryProvider.createSVGElement_tag("path");
   SVGPathElement.internal(): super.internal();
 
 
@@ -5747,8 +5687,6 @@ class SVGPathSegMovetoRel extends SVGPathSeg {
 
 /// @domName SVGPatternElement
 class SVGPatternElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStylable, SVGURIReference, SVGFitToViewBox, SVGExternalResourcesRequired {
-
-  factory SVGPatternElement() => _SvgElementFactoryProvider.createSVGElement_tag("pattern");
   SVGPatternElement.internal(): super.internal();
 
 
@@ -5925,8 +5863,6 @@ class SVGPointList extends NativeFieldWrapperClass1 {
 
 /// @domName SVGPolygonElement
 class SVGPolygonElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired {
-
-  factory SVGPolygonElement() => _SvgElementFactoryProvider.createSVGElement_tag("polygon");
   SVGPolygonElement.internal(): super.internal();
 
 
@@ -6023,8 +5959,6 @@ class SVGPolygonElement extends SVGElement implements SVGLangSpace, SVGStylable,
 
 /// @domName SVGPolylineElement
 class SVGPolylineElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired {
-
-  factory SVGPolylineElement() => _SvgElementFactoryProvider.createSVGElement_tag("polyline");
   SVGPolylineElement.internal(): super.internal();
 
 
@@ -6177,8 +6111,6 @@ class SVGPreserveAspectRatio extends NativeFieldWrapperClass1 {
 
 /// @domName SVGRadialGradientElement
 class SVGRadialGradientElement extends SVGGradientElement {
-
-  factory SVGRadialGradientElement() => _SvgElementFactoryProvider.createSVGElement_tag("radialGradient");
   SVGRadialGradientElement.internal(): super.internal();
 
 
@@ -6259,8 +6191,6 @@ class SVGRect extends NativeFieldWrapperClass1 {
 
 /// @domName SVGRectElement
 class SVGRectElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired {
-
-  factory SVGRectElement() => _SvgElementFactoryProvider.createSVGElement_tag("rect");
   SVGRectElement.internal(): super.internal();
 
 
@@ -6660,8 +6590,6 @@ class SVGSVGElement extends SVGElement implements SVGZoomAndPan, SVGLocatable, S
 
 /// @domName SVGScriptElement
 class SVGScriptElement extends SVGElement implements SVGURIReference, SVGExternalResourcesRequired {
-
-  factory SVGScriptElement() => _SvgElementFactoryProvider.createSVGElement_tag("script");
   SVGScriptElement.internal(): super.internal();
 
 
@@ -6690,8 +6618,6 @@ class SVGScriptElement extends SVGElement implements SVGURIReference, SVGExterna
 
 /// @domName SVGSetElement
 class SVGSetElement extends SVGAnimationElement {
-
-  factory SVGSetElement() => _SvgElementFactoryProvider.createSVGElement_tag("set");
   SVGSetElement.internal(): super.internal();
 
 }
@@ -6704,8 +6630,6 @@ class SVGSetElement extends SVGAnimationElement {
 
 /// @domName SVGStopElement
 class SVGStopElement extends SVGElement implements SVGStylable {
-
-  factory SVGStopElement() => _SvgElementFactoryProvider.createSVGElement_tag("stop");
   SVGStopElement.internal(): super.internal();
 
 
@@ -6885,8 +6809,6 @@ class SVGStylable extends NativeFieldWrapperClass1 {
 
 /// @domName SVGStyleElement
 class SVGStyleElement extends SVGElement implements SVGLangSpace {
-
-  factory SVGStyleElement() => _SvgElementFactoryProvider.createSVGElement_tag("style");
   SVGStyleElement.internal(): super.internal();
 
 
@@ -6947,8 +6869,6 @@ class SVGStyleElement extends SVGElement implements SVGLangSpace {
 
 /// @domName SVGSwitchElement
 class SVGSwitchElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired {
-
-  factory SVGSwitchElement() => _SvgElementFactoryProvider.createSVGElement_tag("switch");
   SVGSwitchElement.internal(): super.internal();
 
 
@@ -7037,8 +6957,6 @@ class SVGSwitchElement extends SVGElement implements SVGLangSpace, SVGStylable, 
 
 /// @domName SVGSymbolElement
 class SVGSymbolElement extends SVGElement implements SVGLangSpace, SVGFitToViewBox, SVGExternalResourcesRequired, SVGStylable {
-
-  factory SVGSymbolElement() => _SvgElementFactoryProvider.createSVGElement_tag("symbol");
   SVGSymbolElement.internal(): super.internal();
 
 
@@ -7091,8 +7009,6 @@ class SVGSymbolElement extends SVGElement implements SVGLangSpace, SVGFitToViewB
 
 /// @domName SVGTRefElement
 class SVGTRefElement extends SVGTextPositioningElement implements SVGURIReference {
-
-  factory SVGTRefElement() => _SvgElementFactoryProvider.createSVGElement_tag("tref");
   SVGTRefElement.internal(): super.internal();
 
 
@@ -7109,8 +7025,6 @@ class SVGTRefElement extends SVGTextPositioningElement implements SVGURIReferenc
 
 /// @domName SVGTSpanElement
 class SVGTSpanElement extends SVGTextPositioningElement {
-
-  factory SVGTSpanElement() => _SvgElementFactoryProvider.createSVGElement_tag("tspan");
   SVGTSpanElement.internal(): super.internal();
 
 }
@@ -7261,8 +7175,6 @@ class SVGTextContentElement extends SVGElement implements SVGLangSpace, SVGStyla
 
 /// @domName SVGTextElement
 class SVGTextElement extends SVGTextPositioningElement implements SVGTransformable {
-
-  factory SVGTextElement() => _SvgElementFactoryProvider.createSVGElement_tag("text");
   SVGTextElement.internal(): super.internal();
 
 
@@ -7375,8 +7287,6 @@ class SVGTextPositioningElement extends SVGTextContentElement {
 
 /// @domName SVGTitleElement
 class SVGTitleElement extends SVGElement implements SVGLangSpace, SVGStylable {
-
-  factory SVGTitleElement() => _SvgElementFactoryProvider.createSVGElement_tag("title");
   SVGTitleElement.internal(): super.internal();
 
 
@@ -7688,8 +7598,6 @@ class SVGUnitTypes extends NativeFieldWrapperClass1 {
 
 /// @domName SVGUseElement
 class SVGUseElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStylable, SVGURIReference, SVGExternalResourcesRequired, SVGTransformable {
-
-  factory SVGUseElement() => _SvgElementFactoryProvider.createSVGElement_tag("use");
   SVGUseElement.internal(): super.internal();
 
 
@@ -7806,8 +7714,6 @@ class SVGUseElement extends SVGElement implements SVGLangSpace, SVGTests, SVGSty
 
 /// @domName SVGVKernElement
 class SVGVKernElement extends SVGElement {
-
-  factory SVGVKernElement() => _SvgElementFactoryProvider.createSVGElement_tag("vkern");
   SVGVKernElement.internal(): super.internal();
 
 }
@@ -7820,8 +7726,6 @@ class SVGVKernElement extends SVGElement {
 
 /// @domName SVGViewElement
 class SVGViewElement extends SVGElement implements SVGFitToViewBox, SVGZoomAndPan, SVGExternalResourcesRequired {
-
-  factory SVGViewElement() => _SvgElementFactoryProvider.createSVGElement_tag("view");
   SVGViewElement.internal(): super.internal();
 
 
