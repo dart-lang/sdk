@@ -3262,7 +3262,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Element element = elements[node];
     HInstruction name;
     Element helper =
-        compiler.findHelper(RuntimeTypeInformation.CACHE_HELPER_NAME);
+        compiler.findHelper(const SourceString('createRuntimeType'));
     if (element.isClass()) {
       String string = rti.generateRuntimeTypeString(element, 0);
       name = addConstantString(node.selector, string);

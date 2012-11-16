@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('dart:_js_helper');
+library org_dartlang_js_helper;
 
-#import('dart:collection');
+import 'dart:collection';
 
-#source('constant_map.dart');
-#source('native_helper.dart');
-#source('regexp_helper.dart');
-#source('string_helper.dart');
-#source('mirror_opt_in_message.dart');
+part 'constant_map.dart';
+part 'native_helper.dart';
+part 'regexp_helper.dart';
+part 'string_helper.dart';
+part 'mirror_opt_in_message.dart';
 
 // Performance critical helper methods.
 add(var a, var b) => (a is num && b is num)
@@ -1483,20 +1483,15 @@ class TypeImpl implements Type {
   final String typeName;
   TypeImpl(this.typeName);
   toString() => typeName;
-}
-
-var runtimeTypeCache = JS('var', '{}');
-
-Type getOrCreateCachedRuntimeType(String key) {
-  Type result = JS('Type', r'#[#]', runtimeTypeCache, key);
-  if (result == null) {
-    result = new TypeImpl(key);
-    JS('var', r'#[#] = #', runtimeTypeCache, key, result);
+  bool operator ==(other) {
+    if (other is !TypeImpl) return false;
+    return typeName == other.typeName;
   }
-  return result;
 }
 
 String getRuntimeTypeString(var object) {
   var typeInfo = JS('var', r'#.builtin$typeInfo', object);
   return JS('String', r'#.runtimeType', typeInfo);
 }
+
+createRuntimeType(String name) => new TypeImpl(name);

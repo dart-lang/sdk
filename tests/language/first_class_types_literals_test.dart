@@ -9,25 +9,25 @@ class D {}
 typedef int Foo(bool b);
 
 sameType(a, b) {
-  Expect.identical(a.runtimeType, b.runtimeType);
+  Expect.equals(a.runtimeType, b.runtimeType);
 }
 
 main() {
   // Test type literals.
-  Expect.identical(int, int);
-  Expect.isFalse(identical(int, num));
-  Expect.identical(Foo, Foo);
+  Expect.equals(int, int);
+  Expect.notEquals(int, num);
+  Expect.equals(Foo, Foo);
 
   // Test that class literals return instances of Type.
   Expect.isTrue((D).runtimeType is Type);
 
   // Test that types from runtimeType and literals agree.
-  Expect.identical(int, 1.runtimeType);
-  Expect.identical(C, new C().runtimeType);
-  Expect.identical(D, new D().runtimeType);
+  Expect.equals(int, 1.runtimeType);
+  Expect.equals(C, new C().runtimeType);
+  Expect.equals(D, new D().runtimeType);
 
   // runtimeType on type is idempotent.
-  Expect.identical((D).runtimeType, (D).runtimeType.runtimeType);
+  Expect.equals((D).runtimeType, (D).runtimeType.runtimeType);
 
   // Test that operator calls on class literals go to Type.
   Expect.throws(() => C = 1, (e) => e is NoSuchMethodError);

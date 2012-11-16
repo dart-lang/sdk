@@ -9,13 +9,11 @@ import 'first_class_types_lib2.dart' as lib2;
 class C<X> {}
 
 sameType(a, b) {
-  Expect.identical(a.runtimeType, b.runtimeType);
+  Expect.equals(a.runtimeType, b.runtimeType);
 }
 
 differentType(a, b) {
-  print("a: ${a.runtimeType}");
-  print("b: ${b.runtimeType}");
-  Expect.isFalse(identical(a.runtimeType, b.runtimeType));
+  Expect.notEquals(a.runtimeType, b.runtimeType);
 }
 
 main() {

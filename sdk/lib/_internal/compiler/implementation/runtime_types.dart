@@ -11,10 +11,6 @@ import 'universe/universe.dart';
 import 'util/util.dart';
 
 class RuntimeTypeInformation {
-
-  static final SourceString CACHE_HELPER_NAME =
-      const SourceString('getOrCreateCachedRuntimeType');
-
   /**
    * Names used for elements in runtime type information. This map is kept to
    * detect elements with the same name and use a different name instead.

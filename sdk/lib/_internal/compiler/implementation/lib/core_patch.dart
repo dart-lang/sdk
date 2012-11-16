@@ -27,8 +27,8 @@ patch class Object {
   }
 
   patch Type get runtimeType {
-    String key = getRuntimeTypeString(this);
-    return getOrCreateCachedRuntimeType(key);
+    String type = getRuntimeTypeString(this);
+    return new TypeImpl(type);
   }
 }
 

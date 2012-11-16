@@ -570,17 +570,17 @@ get$isOdd(receiver) {
 
 get$runtimeType(receiver) {
   if (receiver is int) {
-    return getOrCreateCachedRuntimeType('int');
+    return createRuntimeType('int');
   } else if (receiver is String) {
-    return getOrCreateCachedRuntimeType('String');
+    return createRuntimeType('String');
   } else if (receiver is double) {
-    return getOrCreateCachedRuntimeType('double');
+    return createRuntimeType('double');
   } else if (receiver is bool) {
-    return getOrCreateCachedRuntimeType('bool');
+    return createRuntimeType('bool');
   } else if (receiver == null) {
-    return getOrCreateCachedRuntimeType('Null');
+    return createRuntimeType('Null');
   } else if (isJsArray(receiver)) {
-    return getOrCreateCachedRuntimeType('List');
+    return createRuntimeType('List');
   } else {
     return UNINTERCEPTED(receiver.runtimeType);
   }
