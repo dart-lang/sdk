@@ -943,18 +943,29 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         }
         break;
       case HLoopBlockInformation.DO_WHILE_LOOP:
-        // If there are phi copies after the condition, we cannot emit
-        // a pretty do/while loop, se we fallback to the generic
-        // emission of a loop.
-        CopyHandler handler = variableNames.getCopyHandler(info.end);
-        if (handler != null && !handler.isEmpty) return false;
         if (info.initializer != null) {
           generateStatements(info.initializer);
         }
         js.Block oldContainer = currentContainer;
         js.Statement body = new js.Block.empty();
+        // If there are phi copies in the block that jumps to the
+        // loop entry, we must emit the condition like this:
+        // do {
+        //   body;
+        //   if (condition) {
+        //     phi updates;
+        //     continue;
+        //   } else {
+        //     break;
+        //   }
+        // } while (true);
+        HBasicBlock avoidEdge = info.end.successors[0];
+        js.Statement updateBody = new js.Block.empty();
+        currentContainer = updateBody;
+        assignPhisOfSuccessors(avoidEdge);
+        bool hasPhiUpdates = !updateBody.statements.isEmpty;
         currentContainer = body;
-        if (!isConditionExpression || info.updates != null) {
+        if (hasPhiUpdates || !isConditionExpression || info.updates != null) {
           wrapLoopBodyForContinue(info);
         } else {
           visitBodyIgnoreLabels(info);
@@ -971,9 +982,13 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           use(condition.conditionExpression);
         }
         js.Expression jsCondition = pop();
+        if (hasPhiUpdates) {
+          updateBody.statements.add(new js.Continue(null));
+          body.statements.add(
+              new js.If(jsCondition, updateBody, new js.Break(null)));
+        }
+        loop = new js.Do(unwrapStatement(body), jsCondition);
         currentContainer = oldContainer;
-        body = unwrapStatement(body);
-        loop = new js.Do(body, jsCondition);
         break;
       default:
         compiler.internalError(
@@ -1244,16 +1259,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
       instruction = instruction.next;
     }
-    if (instruction is HLoopBranch) {
-      HLoopBranch branch = instruction;
-      // If the loop is a do/while loop, the phi updates must happen
-      // after the evaluation of the condition.
-      if (!branch.isDoWhile()) {
-        assignPhisOfSuccessors(node);
-      }
-    } else {
-      assignPhisOfSuccessors(node);
-    }
+    assignPhisOfSuccessors(node);
     visit(instruction);
   }
 
@@ -1870,11 +1876,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     HBasicBlock branchBlock = currentBlock;
     handleLoopCondition(node);
     List<HBasicBlock> dominated = currentBlock.dominatedBlocks;
-    if (node.isDoWhile()) {
-      // Now that the condition has been evaluated, we can update the
-      // phis of a do/while loop.
-      assignPhisOfSuccessors(node.block);
-    } else {
+    if (!node.isDoWhile()) {
       // For a do while loop, the body has already been visited.
       visitBasicBlock(dominated[0]);
     }

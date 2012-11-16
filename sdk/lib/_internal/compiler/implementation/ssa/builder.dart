@@ -2049,7 +2049,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       conditionEndBlock = close(
           new HLoopBranch(conditionInstruction, HLoopBranch.DO_WHILE_LOOP));
 
-      conditionEndBlock.addSuccessor(loopEntryBlock);  // The back-edge.
+      HBasicBlock avoidCriticalEdge = addNewBlock();
+      conditionEndBlock.addSuccessor(avoidCriticalEdge);
+      open(avoidCriticalEdge);
+      close(new HGoto());
+      avoidCriticalEdge.addSuccessor(loopEntryBlock); // The back-edge.
+
       conditionExpression =
           new SubExpression(conditionBlock, conditionEndBlock);
     }
