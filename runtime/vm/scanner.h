@@ -96,6 +96,13 @@ class Scanner : ValueObject {
   // Return true if str is an identifier.
   static bool IsIdent(const String& str);
 
+  // Does the token stream contain a valid literal. This is used to implement
+  // the Dart methods int.parse and double.parse.
+  static bool IsValidLiteral(const Scanner::GrowableTokenStream& tokens,
+                             Token::Kind literal_kind,
+                             bool* is_positive,
+                             String** value);
+
  private:
   struct ScanContext {
     ScanContext* next;

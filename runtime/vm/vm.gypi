@@ -78,6 +78,7 @@
       'includes': [
         '../lib/lib_sources.gypi',
         '../lib/isolate_sources.gypi',
+        '../lib/math_sources.gypi',
         '../lib/mirrors_sources.gypi',
         '../lib/scalarlist_sources.gypi',
       ],
@@ -106,6 +107,7 @@
       'includes': [
         '../lib/lib_sources.gypi',
         '../lib/isolate_sources.gypi',
+        '../lib/math_sources.gypi',
         '../lib/mirrors_sources.gypi',
         '../lib/scalarlist_sources.gypi',
       ],

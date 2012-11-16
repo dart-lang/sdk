@@ -27,6 +27,7 @@ namespace dart {
   V(Integer_moduloFromInteger, 2)                                              \
   V(Integer_greaterThanFromInteger, 2)                                         \
   V(Integer_equalToInteger, 2)                                                 \
+  V(Integer_parse, 1)                                                          \
   V(ReceivePortImpl_factory, 1)                                                \
   V(ReceivePortImpl_closeInternal, 1)                                          \
   V(SendPortImpl_sendInternal_, 3)                                             \
@@ -55,6 +56,7 @@ namespace dart {
   V(Double_ceil, 1)                                                            \
   V(Double_truncate, 1)                                                        \
   V(Double_toInt, 1)                                                           \
+  V(Double_parse, 1)                                                           \
   V(Double_toStringAsFixed, 2)                                                 \
   V(Double_toStringAsExponential, 2)                                           \
   V(Double_toStringAsPrecision, 2)                                             \
@@ -80,19 +82,17 @@ namespace dart {
   V(String_toLowerCase, 1)                                                     \
   V(String_toUpperCase, 1)                                                     \
   V(Strings_concatAll, 1)                                                      \
-  V(MathNatives_sqrt, 1)                                                       \
-  V(MathNatives_sin, 1)                                                        \
-  V(MathNatives_cos, 1)                                                        \
-  V(MathNatives_tan, 1)                                                        \
-  V(MathNatives_asin, 1)                                                       \
-  V(MathNatives_acos, 1)                                                       \
-  V(MathNatives_atan, 1)                                                       \
-  V(MathNatives_atan2, 2)                                                      \
-  V(MathNatives_exp, 1)                                                        \
-  V(MathNatives_log, 1)                                                        \
-  V(MathNatives_random, 0)                                                     \
-  V(MathNatives_parseInt, 1)                                                   \
-  V(MathNatives_parseDouble, 1)                                                \
+  V(Math_sqrt, 1)                                                              \
+  V(Math_sin, 1)                                                               \
+  V(Math_cos, 1)                                                               \
+  V(Math_tan, 1)                                                               \
+  V(Math_asin, 1)                                                              \
+  V(Math_acos, 1)                                                              \
+  V(Math_atan, 1)                                                              \
+  V(Math_atan2, 2)                                                             \
+  V(Math_exp, 1)                                                               \
+  V(Math_log, 1)                                                               \
+  V(Math_random, 0)                                                            \
   V(DateNatives_currentTimeMillis, 0)                                          \
   V(DateNatives_timeZoneName, 1)                                               \
   V(DateNatives_timeZoneOffsetInSeconds, 1)                                    \

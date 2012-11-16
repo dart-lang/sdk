@@ -60,7 +60,7 @@ void Bootstrap::SetupNativeResolver() {
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
 
-  library = Library::CollectionLibrary();
+  library = Library::MathLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
 

@@ -9,6 +9,7 @@
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -169,6 +170,32 @@ DEFINE_NATIVE_ENTRY(Integer_equalToInteger, 2) {
         left.ToCString(), right.ToCString());
   }
   return Bool::Get(left.CompareWith(right) == 0);
+}
+
+
+DEFINE_NATIVE_ENTRY(Integer_parse, 1) {
+  GET_NATIVE_ARGUMENT(String, value, arguments->NativeArgAt(0));
+  const String& dummy_key = String::Handle(Symbols::Empty());
+  Scanner scanner(value, dummy_key);
+  const Scanner::GrowableTokenStream& tokens = scanner.GetStream();
+  String* int_string;
+  bool is_positive;
+  if (Scanner::IsValidLiteral(tokens,
+                             Token::kINTEGER,
+                             &is_positive,
+                             &int_string)) {
+    if (is_positive) {
+      return Integer::New(*int_string);
+    }
+    String& temp = String::Handle();
+    temp = String::Concat(String::Handle(Symbols::New("-")), *int_string);
+    return Integer::New(temp);
+  }
+
+  GrowableArray<const Object*> args;
+  args.Add(&value);
+  Exceptions::ThrowByType(Exceptions::kFormat, args);
+  return Object::null();
 }
 
 

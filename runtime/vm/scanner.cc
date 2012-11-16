@@ -174,6 +174,36 @@ bool Scanner::IsIdent(const String& str) {
 }
 
 
+// This method is used when parsing integers and doubles in Dart code. We
+// are reusing the Scanner's handling of number literals in that situation.
+bool Scanner::IsValidLiteral(const Scanner::GrowableTokenStream& tokens,
+                             Token::Kind literal_kind,
+                             bool* is_positive,
+                             String** value) {
+  if ((tokens.length() == 2) &&
+      (tokens[0].kind == literal_kind) &&
+      (tokens[1].kind == Token::kEOS)) {
+    *is_positive = true;
+    *value = tokens[0].literal;
+    return true;
+  }
+  if ((tokens.length() == 3) &&
+      ((tokens[0].kind == Token::kTIGHTADD) ||
+       (tokens[0].kind == Token::kSUB)) &&
+      (tokens[1].kind == literal_kind) &&
+      (tokens[2].kind == Token::kEOS)) {
+    // Check there is no space between "+/-" and number.
+    if ((tokens[0].offset + 1) != tokens[1].offset) {
+      return false;
+    }
+    *is_positive = tokens[0].kind == Token::kTIGHTADD;
+    *value = tokens[1].literal;
+    return true;
+  }
+  return false;
+}
+
+
 void Scanner::ReadChar() {
   if (lookahead_pos_ < source_length_) {
     if (c0_ == '\n') {
