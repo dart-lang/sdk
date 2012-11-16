@@ -137,16 +137,17 @@ class ObjectStore {
   RawClass* bool_class() const { return bool_class_; }
   void set_bool_class(const Class& value) { bool_class_ = value.raw(); }
 
-  RawType* list_interface() const { return list_interface_; }
-  void set_list_interface(const Type& value) {
-    list_interface_ = value.raw();
-  }
+  RawClass* list_class() const { return list_class_; }
+  void set_list_class(const Class& value) { list_class_ = value.raw(); }
 
   RawClass* array_class() const { return array_class_; }
   void set_array_class(const Class& value) { array_class_ = value.raw(); }
   static intptr_t array_class_offset() {
     return OFFSET_OF(ObjectStore, array_class_);
   }
+
+  RawType* array_type() const { return array_type_; }
+  void set_array_type(const Type& value) { array_type_ = value.raw(); }
 
   RawClass* immutable_array_class() const { return immutable_array_class_; }
   void set_immutable_array_class(const Class& value) {
@@ -486,8 +487,9 @@ class ObjectStore {
   RawClass* external_two_byte_string_class_;
   RawType* bool_type_;
   RawClass* bool_class_;
-  RawType* list_interface_;
+  RawClass* list_class_;
   RawClass* array_class_;
+  RawType* array_type_;
   RawClass* immutable_array_class_;
   RawClass* growable_object_array_class_;
   RawClass* int8_array_class_;

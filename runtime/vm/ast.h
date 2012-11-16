@@ -289,6 +289,9 @@ class ArrayNode : public AstNode {
     ASSERT(type_.IsZoneHandle());
     ASSERT(!type_.IsNull());
     ASSERT(type_.IsFinalized());
+    // Type may be uninstantiated when creating a generic list literal.
+    ASSERT((type.arguments() == AbstractTypeArguments::null()) ||
+           ((AbstractTypeArguments::Handle(type.arguments()).Length() == 1)));
   }
 
   void VisitChildren(AstNodeVisitor* visitor) const;

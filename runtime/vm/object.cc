@@ -624,6 +624,13 @@ RawError* Object::Init(Isolate* isolate) {
   name = Symbols::ObjectArray();
   RegisterPrivateClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
+  // We cannot use NewNonParameterizedType(cls), because Array is parameterized.
+  type ^= Type::New(Object::Handle(cls.raw()),
+                    TypeArguments::Handle(),
+                    Scanner::kDummyTokenIndex);
+  type.set_is_finalized_instantiated();
+  type ^= type.Canonicalize();
+  object_store->set_array_type(type);
 
   cls = object_store->growable_object_array_class();  // Was allocated above.
   name = Symbols::GrowableObjectArray();
@@ -881,8 +888,7 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = CreateAndRegisterInterface("List", script, core_lib);
   pending_classes.Add(cls, Heap::kOld);
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_list_interface(type);
+  object_store->set_list_class(cls);
 
   cls = object_store->bool_class();
   type = Type::NewNonParameterizedType(cls);
@@ -8556,12 +8562,6 @@ bool AbstractType::IsFunctionType() const {
 }
 
 
-bool AbstractType::IsListInterface() const {
-  return HasResolvedTypeClass() &&
-      (type_class() == Type::Handle(Type::ListInterface()).type_class());
-}
-
-
 bool AbstractType::TypeTest(TypeTestKind test_kind,
                             const AbstractType& other,
                             Error* malformed_error) const {
@@ -8688,13 +8688,13 @@ RawType* Type::StringType() {
 }
 
 
-RawType* Type::Function() {
-  return Isolate::Current()->object_store()->function_type();
+RawType* Type::ArrayType() {
+  return Isolate::Current()->object_store()->array_type();
 }
 
 
-RawType* Type::ListInterface() {
-  return Isolate::Current()->object_store()->list_interface();
+RawType* Type::Function() {
+  return Isolate::Current()->object_store()->function_type();
 }
 
 
@@ -9136,11 +9136,14 @@ void TypeParameter::set_type_state(int8_t state) const {
 
 
 const char* TypeParameter::ToCString() const {
-  const char* format = "TypeParameter: name %s; index: %d";
+  const char* format = "TypeParameter: name %s; index: %d; class: %s";
   const char* name_cstr = String::Handle(Name()).ToCString();
-  intptr_t len = OS::SNPrint(NULL, 0, format, name_cstr, index()) + 1;
+  const Class& cls = Class::Handle(parameterized_class());
+  const char* cls_cstr =
+      cls.IsNull() ? " null" : String::Handle(cls.Name()).ToCString();
+  intptr_t len = OS::SNPrint(NULL, 0, format, name_cstr, index(), cls_cstr) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, name_cstr, index());
+  OS::SNPrint(chars, len, format, name_cstr, index(), cls_cstr);
   return chars;
 }
 

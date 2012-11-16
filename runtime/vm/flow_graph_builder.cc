@@ -2810,7 +2810,7 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
   arguments->Add(new LiteralNode(args_pos, method_name));
   // The second argument is an array containing the original method arguments.
   ArrayNode* args_array =
-      new ArrayNode(args_pos, Type::ZoneHandle(Type::ListInterface()));
+      new ArrayNode(args_pos, Type::ZoneHandle(Type::ArrayType()));
   for (intptr_t i = 0; i < method_arguments->length(); i++) {
     args_array->AddElement(method_arguments->NodeAt(i));
   }

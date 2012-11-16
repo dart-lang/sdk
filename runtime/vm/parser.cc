@@ -1358,7 +1358,7 @@ StaticCallNode* Parser::BuildInvocationMirrorAllocation(
   arguments->Add(new LiteralNode(args_pos, function_name));
   // The second argument is an array containing the original function arguments.
   ArrayNode* args_array = new ArrayNode(
-      args_pos, Type::ZoneHandle(Type::ListInterface()));
+      args_pos, Type::ZoneHandle(Type::ArrayType()));
   for (intptr_t i = 1; i < function_args.length(); i++) {
     args_array->AddElement(function_args.NodeAt(i));
   }
@@ -8694,10 +8694,10 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     }
   }
   ASSERT(type_arguments.IsNull() || (type_arguments.Length() == 1));
-  const Class& list_class = Class::Handle(
-      Type::Handle(Type::ListInterface()).type_class());
+  const Class& array_class = Class::Handle(
+      Type::Handle(Type::ArrayType()).type_class());
   Type& type = Type::ZoneHandle(
-      Type::New(list_class, type_arguments, type_pos));
+      Type::New(array_class, type_arguments, type_pos));
   type ^= ClassFinalizer::FinalizeType(
       current_class(), type, ClassFinalizer::kCanonicalize);
   ArrayNode* list = new ArrayNode(TokenPos(), type);
@@ -8763,27 +8763,42 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     return new LiteralNode(literal_pos, const_list);
   } else {
     // Factory call at runtime.
-    String& list_class_name = String::Handle(Symbols::ListImplementation());
-    const Class& list_class = Class::Handle(LookupCoreClass(list_class_name));
-    ASSERT(!list_class.IsNull());
-    const String& list_literal_factory_name =
+    // TODO(regis): Once _ListImpl is removed, use Symbols::List() instead of
+    // Symbols::ListImplementation() on the following line.
+    String& factory_class_name = String::Handle(Symbols::ListImplementation());
+    const Class& factory_class =
+        Class::Handle(LookupCoreClass(factory_class_name));
+    ASSERT(!factory_class.IsNull());
+    const String& factory_method_name =
         String::Handle(Symbols::ListLiteralFactory());
-    const Function& list_literal_factory = Function::ZoneHandle(
-        list_class.LookupFactory(list_literal_factory_name));
-    ASSERT(!list_literal_factory.IsNull());
+    const Function& factory_method = Function::ZoneHandle(
+        factory_class.LookupFactory(factory_method_name));
+    ASSERT(!factory_method.IsNull());
     if (!type_arguments.IsNull() &&
         !type_arguments.IsInstantiated() &&
         (current_block_->scope->function_level() > 0)) {
       // Make sure that the instantiator is captured.
       CaptureInstantiator();
     }
+    AbstractTypeArguments& factory_type_args =
+        AbstractTypeArguments::ZoneHandle(type_arguments.raw());
+    // If the factory class extends other parameterized classes, adjust the
+    // type argument vector.
+    if (!factory_type_args.IsNull() && (factory_class.NumTypeArguments() > 1)) {
+      ASSERT(factory_type_args.Length() == 1);
+      Type& factory_type = Type::Handle(Type::New(
+          factory_class, factory_type_args, type_pos, Heap::kNew));
+      factory_type ^= ClassFinalizer::FinalizeType(
+          current_class(), factory_type, ClassFinalizer::kFinalize);
+      factory_type_args = factory_type.arguments();
+      ASSERT(factory_type_args.Length() == factory_class.NumTypeArguments());
+    }
+    factory_type_args = factory_type_args.Canonicalize();
     ArgumentListNode* factory_param = new ArgumentListNode(literal_pos);
     factory_param->Add(list);
-    AbstractTypeArguments& canonical_type_arguments =
-        AbstractTypeArguments::ZoneHandle(type_arguments.Canonicalize());
     return CreateConstructorCallNode(literal_pos,
-                                     canonical_type_arguments,
-                                     list_literal_factory,
+                                     factory_type_args,
+                                     factory_method,
                                      factory_param);
   }
 }
@@ -8884,8 +8899,8 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
 
   // The kv_pair array is temporary and of element type dynamic. It is passed
   // to the factory to initialize a properly typed map.
-  ArrayNode* kv_pairs =
-      new ArrayNode(TokenPos(), Type::ZoneHandle(Type::ListInterface()));
+  ArrayNode* kv_pairs = new ArrayNode(
+      TokenPos(), Type::ZoneHandle(Type::ArrayType()));
 
   // Parse the map entries. Note: there may be an optional extra
   // comma after the last entry.
@@ -8965,6 +8980,9 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     const Class& immutable_map_class =
         Class::Handle(LookupCoreClass(immutable_map_class_name));
     ASSERT(!immutable_map_class.IsNull());
+    // If the immutable map class extends other parameterized classes, we need
+    // to adjust the type argument vector. This is currently not the case.
+    ASSERT(immutable_map_class.NumTypeArguments() == 2);
     ArgumentListNode* constr_args = new ArgumentListNode(TokenPos());
     constr_args->Add(new LiteralNode(literal_pos, key_value_array));
     const String& constr_name =
@@ -8986,25 +9004,40 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     }
   } else {
     // Factory call at runtime.
-    String& map_class_name = String::Handle(Symbols::MapImplementation());
-    const Class& map_class = Class::Handle(LookupCoreClass(map_class_name));
-    ASSERT(!map_class.IsNull());
-    const String& map_literal_factory_name =
+    String& factory_class_name = String::Handle(Symbols::MapImplementation());
+    const Class& factory_class =
+        Class::Handle(LookupCoreClass(factory_class_name));
+    ASSERT(!factory_class.IsNull());
+    const String& factory_method_name =
         String::Handle(Symbols::MapLiteralFactory());
-    const Function& map_literal_factory = Function::ZoneHandle(
-        map_class.LookupFactory(map_literal_factory_name));
-    ASSERT(!map_literal_factory.IsNull());
+    const Function& factory_method = Function::ZoneHandle(
+        factory_class.LookupFactory(factory_method_name));
+    ASSERT(!factory_method.IsNull());
     if (!map_type_arguments.IsNull() &&
         !map_type_arguments.IsInstantiated() &&
         (current_block_->scope->function_level() > 0)) {
       // Make sure that the instantiator is captured.
       CaptureInstantiator();
     }
+    AbstractTypeArguments& factory_type_args =
+        AbstractTypeArguments::ZoneHandle(map_type_arguments.raw());
+    // If the factory class extends other parameterized classes, adjust the
+    // type argument vector.
+    if (!factory_type_args.IsNull() && (factory_class.NumTypeArguments() > 2)) {
+      ASSERT(factory_type_args.Length() == 2);
+      Type& factory_type = Type::Handle(Type::New(
+          factory_class, factory_type_args, type_pos, Heap::kNew));
+      factory_type ^= ClassFinalizer::FinalizeType(
+          current_class(), factory_type, ClassFinalizer::kFinalize);
+      factory_type_args = factory_type.arguments();
+      ASSERT(factory_type_args.Length() == factory_class.NumTypeArguments());
+    }
+    factory_type_args = factory_type_args.Canonicalize();
     ArgumentListNode* factory_param = new ArgumentListNode(literal_pos);
     factory_param->Add(kv_pairs);
     return CreateConstructorCallNode(literal_pos,
-                                     map_type_arguments,
-                                     map_literal_factory,
+                                     factory_type_args,
+                                     factory_method,
                                      factory_param);
   }
 }
@@ -9456,8 +9489,8 @@ AstNode* Parser::ParseStringLiteral() {
   }
   // String interpolation needed.
   bool is_compiletime_const = true;
-  ArrayNode* values = new ArrayNode(TokenPos(),
-                                    Type::ZoneHandle(Type::ListInterface()));
+  ArrayNode* values = new ArrayNode(
+      TokenPos(), Type::ZoneHandle(Type::ArrayType()));
   while (CurrentToken() == Token::kSTRING) {
     values->AddElement(new LiteralNode(TokenPos(), *CurrentLiteral()));
     ConsumeToken();
@@ -9535,7 +9568,7 @@ AstNode* Parser::ParseArgumentDefinitionTest() {
     saved_args_desc_var =
         new LocalVariable(owner_function.token_pos(),
                           saved_args_desc_name,
-                          Type::ZoneHandle(Type::ListInterface()));
+                          Type::ZoneHandle(Type::ArrayType()));
     saved_args_desc_var->set_is_final();
     // The saved arguments descriptor variable must be added just after the
     // formal parameters. This simplifies the 2-step saving of a captured

@@ -1760,10 +1760,12 @@ DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
 static RawInstance* GetListInstance(Isolate* isolate, const Object& obj) {
   if (obj.IsInstance()) {
     const Instance& instance = Instance::Cast(obj);
-    const Type& type =
-        Type::Handle(isolate, isolate->object_store()->list_interface());
+    const Class& obj_class = Class::Handle(isolate, obj.clazz());
+    const Class& list_class =
+        Class::Handle(isolate, isolate->object_store()->list_class());
     Error& malformed_type_error = Error::Handle(isolate);
-    if (instance.IsInstanceOf(type,
+    if (obj_class.IsSubtypeOf(TypeArguments::Handle(isolate),
+                              list_class,
                               TypeArguments::Handle(isolate),
                               &malformed_type_error)) {
       ASSERT(malformed_type_error.IsNull());  // Type is a raw List.

@@ -33,7 +33,7 @@ enum {
   kIntType,
   kBoolType,
   kStringType,
-  kListInterface,
+  kArrayType,
 
   kInstanceObjectId,
   kMaxPredefinedObjectIds,

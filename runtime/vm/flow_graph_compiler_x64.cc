@@ -158,7 +158,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
       __ cmpl(kClassIdReg, Immediate(type_class.id()));
       __ j(EQUAL, is_instance_lbl);
     }
-    if (type.IsListInterface()) {
+    if (type_class.raw() == Isolate::Current()->object_store()->list_class()) {
       GenerateListTypeCheck(kClassIdReg, is_instance_lbl);
     }
     return GenerateSubtype1TestCacheLookup(

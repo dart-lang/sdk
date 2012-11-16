@@ -83,7 +83,7 @@ DEFINE_RUNTIME_ENTRY(TraceFunctionExit, 1) {
 // This runtime entry is never called for allocating a List of a generic type,
 // because a prior run time call instantiates the element type if necessary.
 // Arg0: array length.
-// Arg1: array element type.
+// Arg1: array type arguments, i.e. vector of 1 type, the element type.
 // Return value: newly allocated array of length arg0.
 DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
   ASSERT(arguments.ArgCount() == kAllocateArrayRuntimeEntry.argument_count());

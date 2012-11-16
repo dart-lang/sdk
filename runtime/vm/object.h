@@ -3222,9 +3222,6 @@ class AbstractType : public Instance {
   // Check if this type represents the 'Function' type.
   bool IsFunctionType() const;
 
-  // Check if this type represents the 'List' interface.
-  bool IsListInterface() const;
-
   // Check if this type is an interface type.
   bool IsInterfaceType() const {
     if (!HasResolvedTypeClass()) {
@@ -3343,11 +3340,11 @@ class Type : public AbstractType {
   // The 'String' type.
   static RawType* StringType();
 
+  // The 'Array' type.
+  static RawType* ArrayType();
+
   // The 'Function' interface type.
   static RawType* Function();
-
-  // The 'List' interface type.
-  static RawType* ListInterface();
 
   // The finalized type of the given non-parameterized class.
   static RawType* NewNonParameterizedType(const Class& type_class);
@@ -4257,6 +4254,7 @@ class Array : public Instance {
     return raw_ptr()->type_arguments_;
   }
   virtual void SetTypeArguments(const AbstractTypeArguments& value) const {
+    ASSERT(value.IsNull() || ((value.Length() == 1) && value.IsInstantiated()));
     StorePointer(&raw_ptr()->type_arguments_, value.raw());
   }
 
@@ -4384,6 +4382,7 @@ class GrowableObjectArray : public Instance {
     return raw_ptr()->type_arguments_;
   }
   virtual void SetTypeArguments(const AbstractTypeArguments& value) const {
+    ASSERT(value.IsNull() || ((value.Length() == 1) && value.IsInstantiated()));
     const Array& contents = Array::Handle(data());
     contents.SetTypeArguments(value);
     StorePointer(&raw_ptr()->type_arguments_, value.raw());
