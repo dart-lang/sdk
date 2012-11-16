@@ -89,7 +89,8 @@ main() {
 
     schedulePub(args: ['install'],
         error: new RegExp(r'Warning: Package "foo" does not have a "lib" '
-            'directory.'),
+            'directory so you will not be able to import any libraries from '
+            'it.'),
         output: new RegExp(r"Dependencies installed!$"));
 
     run();
@@ -271,24 +272,5 @@ main() {
 
       run();
     });
-  });
-
-  // TODO(rnystrom): Remove this when old layout support is removed. (#4964)
-  test('shows a warning if the entrypoint uses the old layout', () {
-    // The symlink should use the name in the pubspec, not the name of the
-    // directory.
-    dir(appPath, [
-      pubspec({"name": "myapp_name"}),
-      file("foo.dart", 'main() => "foo";'),
-    ]).scheduleCreate();
-
-    schedulePub(args: ['install'],
-        error: '''
-        Warning: Package "myapp_name" is using a deprecated layout.
-        See http://www.dartlang.org/docs/pub-package-manager/package-layout.html for details.
-        ''',
-        output: new RegExp(r"Dependencies installed!$"));
-
-    run();
   });
 }
