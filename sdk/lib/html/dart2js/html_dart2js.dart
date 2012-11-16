@@ -5747,6 +5747,8 @@ class DOMMimeTypeArray implements JavaScriptIndexingBehavior, List<DOMMimeType> 
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  DOMMimeType get first => this[0];
+
   DOMMimeType get last => this[length - 1];
 
   DOMMimeType removeLast() {
@@ -5885,6 +5887,8 @@ class DOMPluginArray implements JavaScriptIndexingBehavior, List<DOMPlugin> nati
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  DOMPlugin get first => this[0];
 
   DOMPlugin get last => this[length - 1];
 
@@ -7235,6 +7239,11 @@ class _ChildrenElementList implements List {
     return result;
   }
 
+  Element get first {
+    return _element.$dom_firstElementChild;
+  }
+
+
   Element get last {
     return _element.$dom_lastElementChild;
   }
@@ -7248,10 +7257,6 @@ class _FrozenElementList implements List {
   final List<Node> _nodeList;
 
   _FrozenElementList._wrap(this._nodeList);
-
-  Element get first {
-    return _nodeList[0];
-  }
 
   bool contains(Element element) {
     for (Element el in this) {
@@ -7360,6 +7365,8 @@ class _FrozenElementList implements List {
   Element removeLast() {
     throw new UnsupportedError('');
   }
+
+  Element get first => _nodeList.first;
 
   Element get last => _nodeList.last;
 }
@@ -9015,6 +9022,8 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  num get first => this[0];
+
   num get last => this[length - 1];
 
   num removeLast() {
@@ -9123,6 +9132,8 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  num get first => this[0];
 
   num get last => this[length - 1];
 
@@ -9490,6 +9501,8 @@ class HTMLAllCollection implements JavaScriptIndexingBehavior, List<Node> native
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  Node get first => this[0];
+
   Node get last => this[length - 1];
 
   Node removeLast() {
@@ -9592,6 +9605,8 @@ class HTMLCollection implements JavaScriptIndexingBehavior, List<Node> native "*
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  Node get first => this[0];
 
   Node get last => this[length - 1];
 
@@ -11245,6 +11260,8 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  int get first => this[0];
+
   int get last => this[length - 1];
 
   int removeLast() {
@@ -11354,6 +11371,8 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  int get first => this[0];
+
   int get last => this[length - 1];
 
   int removeLast() {
@@ -11462,6 +11481,8 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  int get first => this[0];
 
   int get last => this[length - 1];
 
@@ -13607,6 +13628,8 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  Node get first => this[0];
+
   Node get last => this[length - 1];
 
   Node removeLast() {
@@ -14143,6 +14166,8 @@ class _ListWrapper<E> implements List<E> {
 
   E removeLast() => _list.removeLast();
 
+  E get first => _list.first;
+
   E get last => _list.last;
 
   List<E> getRange(int start, int rangeLength) =>
@@ -14156,8 +14181,6 @@ class _ListWrapper<E> implements List<E> {
 
   void insertRange(int start, int rangeLength, [E initialValue = null]) =>
     _list.insertRange(start, rangeLength, initialValue);
-
-  E get first => _list[0];
 }
 
 /**
@@ -15923,6 +15946,8 @@ class SQLResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  Map get first => this[0];
+
   Map get last => this[length - 1];
 
   Map removeLast() {
@@ -16437,6 +16462,8 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  SourceBuffer get first => this[0];
+
   SourceBuffer get last => this[length - 1];
 
   SourceBuffer removeLast() {
@@ -16589,6 +16616,8 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  SpeechGrammar get first => this[0];
 
   SpeechGrammar get last => this[length - 1];
 
@@ -17609,6 +17638,8 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  TextTrackCue get first => this[0];
+
   TextTrackCue get last => this[length - 1];
 
   TextTrackCue removeLast() {
@@ -17714,6 +17745,8 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  TextTrack get first => this[0];
 
   TextTrack get last => this[length - 1];
 
@@ -17938,6 +17971,8 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  Touch get first => this[0];
 
   Touch get last => this[length - 1];
 
@@ -18213,6 +18248,8 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  int get first => this[0];
+
   int get last => this[length - 1];
 
   int removeLast() {
@@ -18322,6 +18359,8 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  int get first => this[0];
+
   int get last => this[length - 1];
 
   int removeLast() {
@@ -18430,6 +18469,8 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  int get first => this[0];
 
   int get last => this[length - 1];
 
@@ -20617,6 +20658,8 @@ class _CSSRuleList implements JavaScriptIndexingBehavior, List<CSSRule> native "
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  CSSRule get first => this[0];
+
   CSSRule get last => this[length - 1];
 
   CSSRule removeLast() {
@@ -20714,6 +20757,8 @@ class _CSSValueList extends CSSValue implements List<CSSValue>, JavaScriptIndexi
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  CSSValue get first => this[0];
+
   CSSValue get last => this[length - 1];
 
   CSSValue removeLast() {
@@ -20810,6 +20855,8 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  ClientRect get first => this[0];
 
   ClientRect get last => this[length - 1];
 
@@ -20916,6 +20963,8 @@ class _DOMStringList implements JavaScriptIndexingBehavior, List<String> native 
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  String get first => this[0];
 
   String get last => this[length - 1];
 
@@ -21339,6 +21388,8 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  Entry get first => this[0];
+
   Entry get last => this[length - 1];
 
   Entry removeLast() {
@@ -21435,6 +21486,8 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  EntrySync get first => this[0];
 
   EntrySync get last => this[length - 1];
 
@@ -21541,6 +21594,8 @@ class _FileList implements JavaScriptIndexingBehavior, List<File> native "*FileL
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  File get first => this[0];
 
   File get last => this[length - 1];
 
@@ -21667,6 +21722,8 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  Gamepad get first => this[0];
 
   Gamepad get last => this[length - 1];
 
@@ -21817,6 +21874,8 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  MediaStream get first => this[0];
 
   MediaStream get last => this[length - 1];
 
@@ -22078,6 +22137,8 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  SpeechInputResult get first => this[0];
+
   SpeechInputResult get last => this[length - 1];
 
   SpeechInputResult removeLast() {
@@ -22184,6 +22245,8 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  SpeechRecognitionResult get first => this[0];
+
   SpeechRecognitionResult get last => this[length - 1];
 
   SpeechRecognitionResult removeLast() {
@@ -22280,6 +22343,8 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  StyleSheet get first => this[0];
 
   StyleSheet get last => this[length - 1];
 
@@ -22401,6 +22466,8 @@ class _WebKitAnimationList implements JavaScriptIndexingBehavior, List<Animation
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  Animation get first => this[0];
 
   Animation get last => this[length - 1];
 
@@ -22777,6 +22844,8 @@ class FilteredElementList implements List {
     if (start == null) start = length - 1;
     return _filtered.lastIndexOf(element, start);
   }
+
+  Element get first => _filtered.first;
 
   Element get last => _filtered.last;
 }

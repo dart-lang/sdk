@@ -145,6 +145,10 @@ class _GrowableObjectArray<T> implements List<T> {
     return elem;
   }
 
+  T get first {
+    return this[0];
+  }
+
   T get last {
     return this[length - 1];
   }

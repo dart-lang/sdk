@@ -154,6 +154,13 @@ insertRange$3(receiver, start, length, initialValue) {
   return listInsertRange(receiver, start, length, initialValue);
 }
 
+get$first(receiver) {
+  if (!isJsArray(receiver)) {
+    return UNINTERCEPTED(receiver.first);
+  }
+  return receiver[0];
+}
+
 get$last(receiver) {
   if (!isJsArray(receiver)) {
     return UNINTERCEPTED(receiver.last);
