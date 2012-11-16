@@ -35,11 +35,24 @@ class Namer {
   final Map<String, String> globalNameMap;
   final Map<String, int> popularNameCounters;
 
+  /**
+   * A cache of names used for bailout methods. We make sure two
+   * bailout methods cannot have the same name because if the two
+   * bailout methods are in a class and a subclass, we would
+   * call the wrong bailout method at runtime. To make it
+   * simple, we don't keep track of inheritance and always avoid
+   * similar names.
+   */
+  final Set<String> usedBailoutInstanceNames;
+  final Map<Element, String> bailoutNames;
+
   final Map<Constant, String> constantNames;
 
   Namer(this.compiler)
       : globals = new Map<Element, String>(),
         shortPrivateNameOwners = new Map<String, LibraryElement>(),
+        bailoutNames = new Map<Element, String>(),
+        usedBailoutInstanceNames = new Set<String>(),
         usedGlobalNames = new Set<String>(),
         usedInstanceNames = new Set<String>(),
         instanceNameMap = new Map<String, String>(),
@@ -49,8 +62,10 @@ class Namer {
 
   String get ISOLATE => 'Isolate';
   String get ISOLATE_PROPERTIES => r'$isolateProperties';
-  /** Some closures must contain their name. The name is stored in
-    * [STATIC_CLOSURE_NAME_NAME]. */
+  /**
+   * Some closures must contain their name. The name is stored in
+   * [STATIC_CLOSURE_NAME_NAME].
+   */
   String get STATIC_CLOSURE_NAME_NAME => r'$name';
   SourceString get CLOSURE_INVOCATION_NAME => Compiler.CALL_OPERATOR_NAME;
   bool get shouldMinify => false;
@@ -303,13 +318,23 @@ class Namer {
   }
 
   String getBailoutName(Element element) {
+    String name = bailoutNames[element];
+    if (name != null) return name;
     bool global = !element.isInstanceMember();
-    var unminifiedName = '${getName(element)}\$bailout';
+    String unminifiedName = '${getName(element)}\$bailout';
     if (global) {
-      return getMappedGlobalName(unminifiedName);
+      name = getMappedGlobalName(unminifiedName);
     } else {
-      return getMappedInstanceName(unminifiedName);
+      name = unminifiedName;
+      int i = 0;
+      while (usedBailoutInstanceNames.contains(name)) {
+        name = '$unminifiedName${i++}';
+      }
+      name = getMappedInstanceName(name);
+      usedBailoutInstanceNames.add(name);
     }
+    bailoutNames[element] = name;
+    return name;
   }
 
   /**

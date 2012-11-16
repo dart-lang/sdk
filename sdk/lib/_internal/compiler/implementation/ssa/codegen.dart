@@ -2626,8 +2626,6 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 
     js.Expression bailoutTarget;
     if (element.isInstanceMember()) {
-      // TODO(ngeoffray): This does not work in case we come from a
-      // super call. We must make bailout names unique.
       String bailoutName = namer.getBailoutName(element);
       bailoutTarget = new js.PropertyAccess.field(new js.This(), bailoutName);
     } else {
