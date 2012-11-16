@@ -305,7 +305,12 @@ class OperationInfo(object):
        is named, e.g. 'fromList' in  Int8Array.fromList(list).
     type_name: A string, the name of the return type of the operation.
     param_infos: A list of ParamInfo.
+    factory_parameters: A list of parameters used for custom designed Factory
+        calls.
   """
+  
+  def __init__(self):
+    self.factory_parameters = None
 
   def ParametersDeclaration(self, rename_type, force_optional=False):
     def FormatParam(param):
@@ -356,11 +361,18 @@ class OperationInfo(object):
   def ConstructorFactoryName(self, rename_type):
     return 'create' + self._ConstructorFullName(rename_type).replace('.', '_')
 
-  def GenerateFactoryInvocation(self, rename_type, emitter, factory_provider):
+  def GenerateFactoryInvocation(self, rename_type, emitter, factory_name,
+      factory_constructor_name=None, factory_parameters=None):
     has_optional = any(param_info.is_optional
         for param_info in self.param_infos)
 
-    factory_name = self.ConstructorFactoryName(rename_type)
+    if not factory_constructor_name:
+      factory_constructor_name = self.ConstructorFactoryName(rename_type)
+      factory_parameters = self.ParametersAsArgumentList()
+      has_factory_provider = True
+    else:
+      factory_parameters = ', '.join(factory_parameters)
+      has_factory_provider = False
     if not has_optional:
       emitter.Emit(
           '\n'
@@ -368,11 +380,19 @@ class OperationInfo(object):
           '$FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n',
           CTOR=self._ConstructorFullName(rename_type),
           PARAMS=self.ParametersDeclaration(rename_type),
-          FACTORY=factory_provider,
-          CTOR_FACTORY_NAME=factory_name,
-          FACTORY_PARAMS=self.ParametersAsArgumentList())
+          FACTORY=factory_name,
+          CTOR_FACTORY_NAME=factory_constructor_name,
+          FACTORY_PARAMS=factory_parameters)
       return
+    if has_factory_provider:
+      self._GenerateFactoryOptParams(rename_type, emitter, factory_name)
+    else:
+      self._GenerateFactoryOptParamsWithoutFactoryProvider(rename_type, emitter,
+          factory_name, factory_constructor_name, factory_parameters)
 
+  def _GenerateFactoryOptParams(self, rename_type, emitter, factory_provider):
+    """Helper method for creating generic factory constructors with optional
+    parameters that use factory providers."""
     dispatcher_emitter = emitter.Emit(
         '\n'
         '  factory $CTOR($PARAMS) {\n'
@@ -382,7 +402,7 @@ class OperationInfo(object):
         CTOR=self._ConstructorFullName(rename_type),
         PARAMS=self.ParametersDeclaration(rename_type),
         FACTORY=factory_provider,
-        CTOR_FACTORY_NAME=factory_name,
+        CTOR_FACTORY_NAME=self.ConstructorFactoryName(rename_type),
         FACTORY_PARAMS=self.ParametersAsArgumentList())
 
     # If we have optional parameters, check to see if they are set
@@ -394,12 +414,34 @@ class OperationInfo(object):
         '    }\n',
         OPT_PARAM_NAME=self.param_infos[index].name,
         FACTORY=factory_provider,
-        CTOR_FACTORY_NAME=factory_name,
+        CTOR_FACTORY_NAME=self.ConstructorFactoryName(rename_type),
         FACTORY_PARAMS=self.ParametersAsArgumentList(index))
 
     for index, param_info in enumerate(self.param_infos):
       if param_info.is_optional:
         EmitOptionalParameterInvocation(index)
+  
+  def _GenerateFactoryOptParamsWithoutFactoryProvider(self, rename_type,
+      emitter, factory_name, factory_constructor_name, factory_parameters): 
+    """Helper method for creating a factory constructor with optional
+    parameters that does not call a factory provider, it simply creates the
+    object itself. This is currently used for SVGElements and HTMLElements."""
+    inits = emitter.Emit(
+        '\n'
+        '  factory $CONSTRUCTOR($PARAMS) {\n'	
+        '    var e = $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
+        '$!INITS'
+        '    return e;\n'
+        '  }\n',
+        CONSTRUCTOR=self._ConstructorFullName(rename_type),
+        FACTORY=factory_name,
+        CTOR_FACTORY_NAME=factory_constructor_name,
+        PARAMS=self.ParametersDeclaration(rename_type),
+        FACTORY_PARAMS=factory_parameters)
+    for index, param_info in enumerate(self.param_infos):
+      if param_info.is_optional:
+        inits.Emit('    if ($E != null) e.$E = $E;\n',
+            E=self.param_infos[index].name)
 
 def ConstantOutputOrder(a, b):
   """Canonical output ordering for constants."""

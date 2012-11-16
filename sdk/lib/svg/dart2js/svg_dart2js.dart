@@ -56,6 +56,8 @@ class _SVGSVGElementFactoryProvider {
 /// @domName SVGAElement
 class SVGAElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStylable, SVGURIReference, SVGExternalResourcesRequired, SVGTransformable native "*SVGAElement" {
 
+  factory SVGAElement() => _SVGElementFactoryProvider.createSVGElement_tag("a");
+
   /** @domName SVGAElement.target */
   final SVGAnimatedString target;
 
@@ -205,6 +207,8 @@ class SVGAngle native "*SVGAngle" {
 
 /// @domName SVGAnimateColorElement
 class SVGAnimateColorElement extends SVGAnimationElement native "*SVGAnimateColorElement" {
+
+  factory SVGAnimateColorElement() => _SVGElementFactoryProvider.createSVGElement_tag("animateColor");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -213,6 +217,8 @@ class SVGAnimateColorElement extends SVGAnimationElement native "*SVGAnimateColo
 
 /// @domName SVGAnimateElement
 class SVGAnimateElement extends SVGAnimationElement native "*SVGAnimateElement" {
+
+  factory SVGAnimateElement() => _SVGElementFactoryProvider.createSVGElement_tag("animate");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -221,6 +227,8 @@ class SVGAnimateElement extends SVGAnimationElement native "*SVGAnimateElement" 
 
 /// @domName SVGAnimateMotionElement
 class SVGAnimateMotionElement extends SVGAnimationElement native "*SVGAnimateMotionElement" {
+
+  factory SVGAnimateMotionElement() => _SVGElementFactoryProvider.createSVGElement_tag("animateMotion");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -229,6 +237,8 @@ class SVGAnimateMotionElement extends SVGAnimationElement native "*SVGAnimateMot
 
 /// @domName SVGAnimateTransformElement
 class SVGAnimateTransformElement extends SVGAnimationElement native "*SVGAnimateTransformElement" {
+
+  factory SVGAnimateTransformElement() => _SVGElementFactoryProvider.createSVGElement_tag("animateTransform");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -661,6 +671,8 @@ class SVGAnimatedTransformList implements JavaScriptIndexingBehavior, List<SVGAn
 /// @domName SVGAnimationElement
 class SVGAnimationElement extends SVGElement implements ElementTimeControl, SVGTests, SVGExternalResourcesRequired native "*SVGAnimationElement" {
 
+  factory SVGAnimationElement() => _SVGElementFactoryProvider.createSVGElement_tag("animation");
+
   /** @domName SVGAnimationElement.targetElement */
   final SVGElement targetElement;
 
@@ -713,6 +725,8 @@ class SVGAnimationElement extends SVGElement implements ElementTimeControl, SVGT
 
 /// @domName SVGCircleElement
 class SVGCircleElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGCircleElement" {
+
+  factory SVGCircleElement() => _SVGElementFactoryProvider.createSVGElement_tag("circle");
 
   /** @domName SVGCircleElement.cx */
   final SVGAnimatedLength cx;
@@ -793,6 +807,8 @@ class SVGCircleElement extends SVGElement implements SVGLangSpace, SVGStylable, 
 
 /// @domName SVGClipPathElement
 class SVGClipPathElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGClipPathElement" {
+
+  factory SVGClipPathElement() => _SVGElementFactoryProvider.createSVGElement_tag("clipPath");
 
   /** @domName SVGClipPathElement.clipPathUnits */
   final SVGAnimatedEnumeration clipPathUnits;
@@ -940,6 +956,8 @@ class SVGComponentTransferFunctionElement extends SVGElement native "*SVGCompone
 /// @domName SVGCursorElement
 class SVGCursorElement extends SVGElement implements SVGURIReference, SVGTests, SVGExternalResourcesRequired native "*SVGCursorElement" {
 
+  factory SVGCursorElement() => _SVGElementFactoryProvider.createSVGElement_tag("cursor");
+
   /** @domName SVGCursorElement.x */
   final SVGAnimatedLength x;
 
@@ -977,6 +995,8 @@ class SVGCursorElement extends SVGElement implements SVGURIReference, SVGTests, 
 
 /// @domName SVGDefsElement
 class SVGDefsElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGDefsElement" {
+
+  factory SVGDefsElement() => _SVGElementFactoryProvider.createSVGElement_tag("defs");
 
   // From SVGExternalResourcesRequired
 
@@ -1048,6 +1068,8 @@ class SVGDefsElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
 
 /// @domName SVGDescElement
 class SVGDescElement extends SVGElement implements SVGLangSpace, SVGStylable native "*SVGDescElement" {
+
+  factory SVGDescElement() => _SVGElementFactoryProvider.createSVGElement_tag("desc");
 
   // From SVGLangSpace
 
@@ -1307,6 +1329,8 @@ class SVGElementInstanceEvents extends Events {
 
 /// @domName SVGEllipseElement
 class SVGEllipseElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGEllipseElement" {
+
+  factory SVGEllipseElement() => _SVGElementFactoryProvider.createSVGElement_tag("ellipse");
 
   /** @domName SVGEllipseElement.cx */
   final SVGAnimatedLength cx;
@@ -2433,6 +2457,8 @@ class SVGFETurbulenceElement extends SVGElement implements SVGFilterPrimitiveSta
 /// @domName SVGFilterElement
 class SVGFilterElement extends SVGElement implements SVGURIReference, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable native "*SVGFilterElement" {
 
+  factory SVGFilterElement() => _SVGElementFactoryProvider.createSVGElement_tag("filter");
+
   /** @domName SVGFilterElement.filterResX */
   final SVGAnimatedInteger filterResX;
 
@@ -2535,6 +2561,8 @@ abstract class SVGFitToViewBox {
 
 /// @domName SVGFontElement
 class SVGFontElement extends SVGElement native "*SVGFontElement" {
+
+  factory SVGFontElement() => _SVGElementFactoryProvider.createSVGElement_tag("font");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2543,6 +2571,8 @@ class SVGFontElement extends SVGElement native "*SVGFontElement" {
 
 /// @domName SVGFontFaceElement
 class SVGFontFaceElement extends SVGElement native "*SVGFontFaceElement" {
+
+  factory SVGFontFaceElement() => _SVGElementFactoryProvider.createSVGElement_tag("font-face");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2551,6 +2581,8 @@ class SVGFontFaceElement extends SVGElement native "*SVGFontFaceElement" {
 
 /// @domName SVGFontFaceFormatElement
 class SVGFontFaceFormatElement extends SVGElement native "*SVGFontFaceFormatElement" {
+
+  factory SVGFontFaceFormatElement() => _SVGElementFactoryProvider.createSVGElement_tag("font-face-format");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2559,6 +2591,8 @@ class SVGFontFaceFormatElement extends SVGElement native "*SVGFontFaceFormatElem
 
 /// @domName SVGFontFaceNameElement
 class SVGFontFaceNameElement extends SVGElement native "*SVGFontFaceNameElement" {
+
+  factory SVGFontFaceNameElement() => _SVGElementFactoryProvider.createSVGElement_tag("font-face-name");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2567,6 +2601,8 @@ class SVGFontFaceNameElement extends SVGElement native "*SVGFontFaceNameElement"
 
 /// @domName SVGFontFaceSrcElement
 class SVGFontFaceSrcElement extends SVGElement native "*SVGFontFaceSrcElement" {
+
+  factory SVGFontFaceSrcElement() => _SVGElementFactoryProvider.createSVGElement_tag("font-face-src");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2575,6 +2611,8 @@ class SVGFontFaceSrcElement extends SVGElement native "*SVGFontFaceSrcElement" {
 
 /// @domName SVGFontFaceUriElement
 class SVGFontFaceUriElement extends SVGElement native "*SVGFontFaceUriElement" {
+
+  factory SVGFontFaceUriElement() => _SVGElementFactoryProvider.createSVGElement_tag("font-face-uri");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2583,6 +2621,8 @@ class SVGFontFaceUriElement extends SVGElement native "*SVGFontFaceUriElement" {
 
 /// @domName SVGForeignObjectElement
 class SVGForeignObjectElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGForeignObjectElement" {
+
+  factory SVGForeignObjectElement() => _SVGElementFactoryProvider.createSVGElement_tag("foreignObject");
 
   /** @domName SVGForeignObjectElement.height */
   final SVGAnimatedLength height;
@@ -2667,6 +2707,8 @@ class SVGForeignObjectElement extends SVGElement implements SVGLangSpace, SVGSty
 /// @domName SVGGElement
 class SVGGElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGGElement" {
 
+  factory SVGGElement() => _SVGElementFactoryProvider.createSVGElement_tag("g");
+
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
@@ -2737,6 +2779,8 @@ class SVGGElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTe
 
 /// @domName SVGGlyphElement
 class SVGGlyphElement extends SVGElement native "*SVGGlyphElement" {
+
+  factory SVGGlyphElement() => _SVGElementFactoryProvider.createSVGElement_tag("glyph");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2833,6 +2877,8 @@ class SVGGradientElement extends SVGElement implements SVGURIReference, SVGExter
 
 /// @domName SVGHKernElement
 class SVGHKernElement extends SVGElement native "*SVGHKernElement" {
+
+  factory SVGHKernElement() => _SVGElementFactoryProvider.createSVGElement_tag("hkern");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2841,6 +2887,8 @@ class SVGHKernElement extends SVGElement native "*SVGHKernElement" {
 
 /// @domName SVGImageElement
 class SVGImageElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStylable, SVGURIReference, SVGExternalResourcesRequired, SVGTransformable native "*SVGImageElement" {
+
+  factory SVGImageElement() => _SVGElementFactoryProvider.createSVGElement_tag("image");
 
   /** @domName SVGImageElement.height */
   final SVGAnimatedLength height;
@@ -3110,6 +3158,8 @@ class SVGLengthList implements JavaScriptIndexingBehavior, List<SVGLength> nativ
 /// @domName SVGLineElement
 class SVGLineElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGLineElement" {
 
+  factory SVGLineElement() => _SVGElementFactoryProvider.createSVGElement_tag("line");
+
   /** @domName SVGLineElement.x1 */
   final SVGAnimatedLength x1;
 
@@ -3193,6 +3243,8 @@ class SVGLineElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
 /// @domName SVGLinearGradientElement
 class SVGLinearGradientElement extends SVGGradientElement native "*SVGLinearGradientElement" {
 
+  factory SVGLinearGradientElement() => _SVGElementFactoryProvider.createSVGElement_tag("linearGradient");
+
   /** @domName SVGLinearGradientElement.x1 */
   final SVGAnimatedLength x1;
 
@@ -3237,6 +3289,8 @@ abstract class SVGLocatable {
 /// @domName SVGMPathElement
 class SVGMPathElement extends SVGElement implements SVGURIReference, SVGExternalResourcesRequired native "*SVGMPathElement" {
 
+  factory SVGMPathElement() => _SVGElementFactoryProvider.createSVGElement_tag("mpath");
+
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
@@ -3254,6 +3308,8 @@ class SVGMPathElement extends SVGElement implements SVGURIReference, SVGExternal
 
 /// @domName SVGMarkerElement
 class SVGMarkerElement extends SVGElement implements SVGLangSpace, SVGFitToViewBox, SVGExternalResourcesRequired, SVGStylable native "*SVGMarkerElement" {
+
+  factory SVGMarkerElement() => _SVGElementFactoryProvider.createSVGElement_tag("marker");
 
   static const int SVG_MARKERUNITS_STROKEWIDTH = 2;
 
@@ -3333,6 +3389,8 @@ class SVGMarkerElement extends SVGElement implements SVGLangSpace, SVGFitToViewB
 
 /// @domName SVGMaskElement
 class SVGMaskElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGExternalResourcesRequired native "*SVGMaskElement" {
+
+  factory SVGMaskElement() => _SVGElementFactoryProvider.createSVGElement_tag("mask");
 
   /** @domName SVGMaskElement.height */
   final SVGAnimatedLength height;
@@ -3640,6 +3698,8 @@ class SVGPaint extends SVGColor native "*SVGPaint" {
 
 /// @domName SVGPathElement
 class SVGPathElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGPathElement" {
+
+  factory SVGPathElement() => _SVGElementFactoryProvider.createSVGElement_tag("path");
 
   /** @domName SVGPathElement.animatedNormalizedPathSegList */
   final SVGPathSegList animatedNormalizedPathSegList;
@@ -4290,6 +4350,8 @@ class SVGPathSegMovetoRel extends SVGPathSeg native "*SVGPathSegMovetoRel" {
 /// @domName SVGPatternElement
 class SVGPatternElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStylable, SVGURIReference, SVGFitToViewBox, SVGExternalResourcesRequired native "*SVGPatternElement" {
 
+  factory SVGPatternElement() => _SVGElementFactoryProvider.createSVGElement_tag("pattern");
+
   /** @domName SVGPatternElement.height */
   final SVGAnimatedLength height;
 
@@ -4419,6 +4481,8 @@ class SVGPointList native "*SVGPointList" {
 /// @domName SVGPolygonElement
 class SVGPolygonElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGPolygonElement" {
 
+  factory SVGPolygonElement() => _SVGElementFactoryProvider.createSVGElement_tag("polygon");
+
   /** @domName SVGPolygonElement.animatedPoints */
   final SVGPointList animatedPoints;
 
@@ -4495,6 +4559,8 @@ class SVGPolygonElement extends SVGElement implements SVGLangSpace, SVGStylable,
 
 /// @domName SVGPolylineElement
 class SVGPolylineElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGPolylineElement" {
+
+  factory SVGPolylineElement() => _SVGElementFactoryProvider.createSVGElement_tag("polyline");
 
   /** @domName SVGPolylineElement.animatedPoints */
   final SVGPointList animatedPoints;
@@ -4615,6 +4681,8 @@ class SVGPreserveAspectRatio native "*SVGPreserveAspectRatio" {
 /// @domName SVGRadialGradientElement
 class SVGRadialGradientElement extends SVGGradientElement native "*SVGRadialGradientElement" {
 
+  factory SVGRadialGradientElement() => _SVGElementFactoryProvider.createSVGElement_tag("radialGradient");
+
   /** @domName SVGRadialGradientElement.cx */
   final SVGAnimatedLength cx;
 
@@ -4660,6 +4728,8 @@ class SVGRect native "*SVGRect" {
 
 /// @domName SVGRectElement
 class SVGRectElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGRectElement" {
+
+  factory SVGRectElement() => _SVGElementFactoryProvider.createSVGElement_tag("rect");
 
   /** @domName SVGRectElement.height */
   final SVGAnimatedLength height;
@@ -4965,6 +5035,8 @@ class SVGSVGElement extends SVGElement implements SVGZoomAndPan, SVGLocatable, S
 /// @domName SVGScriptElement
 class SVGScriptElement extends SVGElement implements SVGURIReference, SVGExternalResourcesRequired native "*SVGScriptElement" {
 
+  factory SVGScriptElement() => _SVGElementFactoryProvider.createSVGElement_tag("script");
+
   /** @domName SVGScriptElement.type */
   String type;
 
@@ -4985,6 +5057,8 @@ class SVGScriptElement extends SVGElement implements SVGURIReference, SVGExterna
 
 /// @domName SVGSetElement
 class SVGSetElement extends SVGAnimationElement native "*SVGSetElement" {
+
+  factory SVGSetElement() => _SVGElementFactoryProvider.createSVGElement_tag("set");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4993,6 +5067,8 @@ class SVGSetElement extends SVGAnimationElement native "*SVGSetElement" {
 
 /// @domName SVGStopElement
 class SVGStopElement extends SVGElement implements SVGStylable native "*SVGStopElement" {
+
+  factory SVGStopElement() => _SVGElementFactoryProvider.createSVGElement_tag("stop");
 
   /** @domName SVGStopElement.offset */
   final SVGAnimatedNumber offset;
@@ -5148,6 +5224,8 @@ abstract class SVGStylable {
 /// @domName SVGStyleElement
 class SVGStyleElement extends SVGElement implements SVGLangSpace native "*SVGStyleElement" {
 
+  factory SVGStyleElement() => _SVGElementFactoryProvider.createSVGElement_tag("style");
+
   /** @domName SVGStyleElement.disabled */
   bool disabled;
 
@@ -5181,6 +5259,8 @@ class SVGStyleElement extends SVGElement implements SVGLangSpace native "*SVGSty
 
 /// @domName SVGSwitchElement
 class SVGSwitchElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGSwitchElement" {
+
+  factory SVGSwitchElement() => _SVGElementFactoryProvider.createSVGElement_tag("switch");
 
   // From SVGExternalResourcesRequired
 
@@ -5253,6 +5333,8 @@ class SVGSwitchElement extends SVGElement implements SVGLangSpace, SVGStylable, 
 /// @domName SVGSymbolElement
 class SVGSymbolElement extends SVGElement implements SVGLangSpace, SVGFitToViewBox, SVGExternalResourcesRequired, SVGStylable native "*SVGSymbolElement" {
 
+  factory SVGSymbolElement() => _SVGElementFactoryProvider.createSVGElement_tag("symbol");
+
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
@@ -5293,6 +5375,8 @@ class SVGSymbolElement extends SVGElement implements SVGLangSpace, SVGFitToViewB
 /// @domName SVGTRefElement
 class SVGTRefElement extends SVGTextPositioningElement implements SVGURIReference native "*SVGTRefElement" {
 
+  factory SVGTRefElement() => _SVGElementFactoryProvider.createSVGElement_tag("tref");
+
   // From SVGURIReference
 
   /** @domName SVGURIReference.href */
@@ -5305,6 +5389,8 @@ class SVGTRefElement extends SVGTextPositioningElement implements SVGURIReferenc
 
 /// @domName SVGTSpanElement
 class SVGTSpanElement extends SVGTextPositioningElement native "*SVGTSpanElement" {
+
+  factory SVGTSpanElement() => _SVGElementFactoryProvider.createSVGElement_tag("tspan");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5416,6 +5502,8 @@ class SVGTextContentElement extends SVGElement implements SVGLangSpace, SVGStyla
 /// @domName SVGTextElement
 class SVGTextElement extends SVGTextPositioningElement implements SVGTransformable native "*SVGTextElement" {
 
+  factory SVGTextElement() => _SVGElementFactoryProvider.createSVGElement_tag("text");
+
   // From SVGLocatable
 
   /** @domName SVGLocatable.farthestViewportElement */
@@ -5505,6 +5593,8 @@ class SVGTextPositioningElement extends SVGTextContentElement native "*SVGTextPo
 
 /// @domName SVGTitleElement
 class SVGTitleElement extends SVGElement implements SVGLangSpace, SVGStylable native "*SVGTitleElement" {
+
+  factory SVGTitleElement() => _SVGElementFactoryProvider.createSVGElement_tag("title");
 
   // From SVGLangSpace
 
@@ -5757,6 +5847,8 @@ class SVGUnitTypes native "*SVGUnitTypes" {
 /// @domName SVGUseElement
 class SVGUseElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStylable, SVGURIReference, SVGExternalResourcesRequired, SVGTransformable native "*SVGUseElement" {
 
+  factory SVGUseElement() => _SVGElementFactoryProvider.createSVGElement_tag("use");
+
   /** @domName SVGUseElement.animatedInstanceRoot */
   final SVGElementInstance animatedInstanceRoot;
 
@@ -5850,6 +5942,8 @@ class SVGUseElement extends SVGElement implements SVGLangSpace, SVGTests, SVGSty
 
 /// @domName SVGVKernElement
 class SVGVKernElement extends SVGElement native "*SVGVKernElement" {
+
+  factory SVGVKernElement() => _SVGElementFactoryProvider.createSVGElement_tag("vkern");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5858,6 +5952,8 @@ class SVGVKernElement extends SVGElement native "*SVGVKernElement" {
 
 /// @domName SVGViewElement
 class SVGViewElement extends SVGElement implements SVGFitToViewBox, SVGZoomAndPan, SVGExternalResourcesRequired native "*SVGViewElement" {
+
+  factory SVGViewElement() => _SVGElementFactoryProvider.createSVGElement_tag("view");
 
   /** @domName SVGViewElement.viewTarget */
   final SVGStringList viewTarget;

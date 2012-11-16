@@ -208,10 +208,10 @@ class DartiumBackend(HtmlDartGenerator):
         ARGUMENTS=constructor_info.ParametersAsArgumentList(),
         NATIVE_NAME=native_binding)
 
-  def AddConstructors(self, constructors, factory_provider, class_name,
-      base_class):
-    super(DartiumBackend, self).AddConstructors(constructors, factory_provider,
-        class_name, base_class)
+  def AddConstructors(self, constructors, factory_name, class_name,
+      base_class, factory_constructor_name=None):
+    super(DartiumBackend, self).AddConstructors(constructors, factory_name,
+        class_name, base_class, factory_constructor_name)
 
     super_constructor = ''
     if base_class and base_class != 'NativeFieldWrapperClass1':

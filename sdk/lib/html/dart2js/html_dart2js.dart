@@ -113,10 +113,9 @@ class AnalyserNode extends AudioNode native "*AnalyserNode" {
 class AnchorElement extends Element implements Element native "*HTMLAnchorElement" {
 
   factory AnchorElement({String href}) {
-    if (!?href) {
-      return _Elements.createAnchorElement();
-    }
-    return _Elements.createAnchorElement(href);
+    var e = document.$dom_createElement("a");
+    if (href != null) e.href = href;
+    return e;
   }
 
   /** @domName HTMLAnchorElement.charset */
@@ -298,7 +297,7 @@ class AppletElement extends Element implements Element native "*HTMLAppletElemen
 /// @domName HTMLAreaElement
 class AreaElement extends Element implements Element native "*HTMLAreaElement" {
 
-  factory AreaElement() => _Elements.createAreaElement();
+  factory AreaElement() => document.$dom_createElement("area");
 
   /** @domName HTMLAreaElement.alt */
   String alt;
@@ -763,7 +762,7 @@ class AudioSourceNode extends AudioNode native "*AudioSourceNode" {
 /// @domName HTMLBRElement
 class BRElement extends Element implements Element native "*HTMLBRElement" {
 
-  factory BRElement() => _Elements.createBRElement();
+  factory BRElement() => document.$dom_createElement("br");
 
   /** @domName HTMLBRElement.clear */
   String clear;
@@ -787,7 +786,7 @@ class BarInfo native "*BarInfo" {
 /// @domName HTMLBaseElement
 class BaseElement extends Element implements Element native "*HTMLBaseElement" {
 
-  factory BaseElement() => _Elements.createBaseElement();
+  factory BaseElement() => document.$dom_createElement("base");
 
   /** @domName HTMLBaseElement.href */
   String href;
@@ -944,7 +943,7 @@ class Blob native "*Blob" {
 /// @domName HTMLBodyElement
 class BodyElement extends Element implements Element native "*HTMLBodyElement" {
 
-  factory BodyElement() => _Elements.createBodyElement();
+  factory BodyElement() => document.$dom_createElement("body");
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -1005,7 +1004,7 @@ class BodyElementEvents extends ElementEvents {
 /// @domName HTMLButtonElement
 class ButtonElement extends Element implements Element native "*HTMLButtonElement" {
 
-  factory ButtonElement() => _Elements.createButtonElement();
+  factory ButtonElement() => document.$dom_createElement("button");
 
   /** @domName HTMLButtonElement.autofocus */
   bool autofocus;
@@ -4772,13 +4771,10 @@ class CSSValue native "*CSSValue" {
 class CanvasElement extends Element implements Element native "*HTMLCanvasElement" {
 
   factory CanvasElement({int width, int height}) {
-    if (!?width) {
-      return _Elements.createCanvasElement();
-    }
-    if (!?height) {
-      return _Elements.createCanvasElement(width);
-    }
-    return _Elements.createCanvasElement(width, height);
+    var e = document.$dom_createElement("canvas");
+    if (width != null) e.width = width;
+    if (height != null) e.height = height;
+    return e;
   }
 
   /** @domName HTMLCanvasElement.height */
@@ -5343,7 +5339,7 @@ class Console
 /// @domName HTMLContentElement
 class ContentElement extends Element implements Element native "*HTMLContentElement" {
 
-  factory ContentElement() => _Elements.createContentElement();
+  factory ContentElement() => document.$dom_createElement("content");
 
   /** @domName HTMLContentElement.resetStyleInheritance */
   bool resetStyleInheritance;
@@ -5452,7 +5448,7 @@ class CustomEvent extends Event native "*CustomEvent" {
 /// @domName HTMLDListElement
 class DListElement extends Element implements Element native "*HTMLDListElement" {
 
-  factory DListElement() => _Elements.createDListElement();
+  factory DListElement() => document.$dom_createElement("dl");
 
   /** @domName HTMLDListElement.compact */
   bool compact;
@@ -6058,7 +6054,7 @@ class DOMTokenList native "*DOMTokenList" {
 /// @domName HTMLDataListElement
 class DataListElement extends Element implements Element native "*HTMLDataListElement" {
 
-  factory DataListElement() => _Elements.createDataListElement();
+  factory DataListElement() => document.$dom_createElement("datalist");
 
   /** @domName HTMLDataListElement.options */
   final HTMLCollection options;
@@ -6276,7 +6272,7 @@ class DelayNode extends AudioNode native "*DelayNode" {
 /// @domName HTMLDetailsElement
 class DetailsElement extends Element implements Element native "*HTMLDetailsElement" {
 
-  factory DetailsElement() => _Elements.createDetailsElement();
+  factory DetailsElement() => document.$dom_createElement("details");
 
   /** @domName HTMLDetailsElement.open */
   bool open;
@@ -6448,7 +6444,7 @@ class DirectoryReaderSync native "*DirectoryReaderSync" {
 /// @domName HTMLDivElement
 class DivElement extends Element implements Element native "*HTMLDivElement" {
 
-  factory DivElement() => _Elements.createDivElement();
+  factory DivElement() => document.$dom_createElement("div");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8170,7 +8166,7 @@ abstract class ElementTraversal {
 /// @domName HTMLEmbedElement
 class EmbedElement extends Element implements Element native "*HTMLEmbedElement" {
 
-  factory EmbedElement() => _Elements.createEmbedElement();
+  factory EmbedElement() => document.$dom_createElement("embed");
 
   /** @domName HTMLEmbedElement.align */
   String align;
@@ -8577,7 +8573,7 @@ class EventTarget native "*EventTarget" {
 /// @domName HTMLFieldSetElement
 class FieldSetElement extends Element implements Element native "*HTMLFieldSetElement" {
 
-  factory FieldSetElement() => _Elements.createFieldSetElement();
+  factory FieldSetElement() => document.$dom_createElement("fieldset");
 
   /** @domName HTMLFieldSetElement.disabled */
   bool disabled;
@@ -9207,7 +9203,7 @@ class FormData native "*FormData" {
 /// @domName HTMLFormElement
 class FormElement extends Element implements Element native "*HTMLFormElement" {
 
-  factory FormElement() => _Elements.createFormElement();
+  factory FormElement() => document.$dom_createElement("form");
 
   /** @domName HTMLFormElement.acceptCharset */
   String acceptCharset;
@@ -9416,7 +9412,7 @@ class Geoposition native "*Geoposition" {
 /// @domName HTMLHRElement
 class HRElement extends Element implements Element native "*HTMLHRElement" {
 
-  factory HRElement() => _Elements.createHRElement();
+  factory HRElement() => document.$dom_createElement("hr");
 
   /** @domName HTMLHRElement.align */
   String align;
@@ -9685,7 +9681,7 @@ class HashChangeEvent extends Event native "*HashChangeEvent" {
 /// @domName HTMLHeadElement
 class HeadElement extends Element implements Element native "*HTMLHeadElement" {
 
-  factory HeadElement() => _Elements.createHeadElement();
+  factory HeadElement() => document.$dom_createElement("head");
 
   /** @domName HTMLHeadElement.profile */
   String profile;
@@ -9698,17 +9694,17 @@ class HeadElement extends Element implements Element native "*HTMLHeadElement" {
 /// @domName HTMLHeadingElement
 class HeadingElement extends Element implements Element native "*HTMLHeadingElement" {
 
-  factory HeadingElement.h1() => _Elements.createHeadingElement_h1();
+  factory HeadingElement.h1() => document.$dom_createElement("h1");
 
-  factory HeadingElement.h2() => _Elements.createHeadingElement_h2();
+  factory HeadingElement.h2() => document.$dom_createElement("h2");
 
-  factory HeadingElement.h3() => _Elements.createHeadingElement_h3();
+  factory HeadingElement.h3() => document.$dom_createElement("h3");
 
-  factory HeadingElement.h4() => _Elements.createHeadingElement_h4();
+  factory HeadingElement.h4() => document.$dom_createElement("h4");
 
-  factory HeadingElement.h5() => _Elements.createHeadingElement_h5();
+  factory HeadingElement.h5() => document.$dom_createElement("h5");
 
-  factory HeadingElement.h6() => _Elements.createHeadingElement_h6();
+  factory HeadingElement.h6() => document.$dom_createElement("h6");
 
   /** @domName HTMLHeadingElement.align */
   String align;
@@ -9805,7 +9801,7 @@ class HtmlDocument extends Document native "*HTMLDocument" {
 /// @domName HTMLHtmlElement
 class HtmlElement extends Element implements Element native "*HTMLHtmlElement" {
 
-  factory HtmlElement() => _Elements.createHtmlElement();
+  factory HtmlElement() => document.$dom_createElement("html");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10821,7 +10817,7 @@ class IDBVersionChangeRequestEvents extends IDBRequestEvents {
 /// @domName HTMLIFrameElement
 class IFrameElement extends Element implements Element native "*HTMLIFrameElement" {
 
-  factory IFrameElement() => _Elements.createIFrameElement();
+  factory IFrameElement() => document.$dom_createElement("iframe");
 
   /** @domName HTMLIFrameElement.align */
   String align;
@@ -10913,16 +10909,11 @@ class ImageData native "*ImageData" {
 class ImageElement extends Element implements Element native "*HTMLImageElement" {
 
   factory ImageElement({String src, int width, int height}) {
-    if (!?src) {
-      return _Elements.createImageElement();
-    }
-    if (!?width) {
-      return _Elements.createImageElement(src);
-    }
-    if (!?height) {
-      return _Elements.createImageElement(src, width);
-    }
-    return _Elements.createImageElement(src, width, height);
+    var e = document.$dom_createElement("img");
+    if (src != null) e.src = src;
+    if (width != null) e.width = width;
+    if (height != null) e.height = height;
+    return e;
   }
 
   /** @domName HTMLImageElement.align */
@@ -10991,10 +10982,9 @@ class ImageElement extends Element implements Element native "*HTMLImageElement"
 class InputElement extends Element implements Element native "*HTMLInputElement" {
 
   factory InputElement({String type}) {
-    if (!?type) {
-      return _Elements.createInputElement();
-    }
-    return _Elements.createInputElement(type);
+    var e = document.$dom_createElement("input");
+    if (type != null) e.type = type;
+    return e;
   }
 
   /**
@@ -11604,7 +11594,7 @@ class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 /// @domName HTMLKeygenElement
 class KeygenElement extends Element implements Element native "*HTMLKeygenElement" {
 
-  factory KeygenElement() => _Elements.createKeygenElement();
+  factory KeygenElement() => document.$dom_createElement("keygen");
 
   /** @domName HTMLKeygenElement.autofocus */
   bool autofocus;
@@ -11653,7 +11643,7 @@ class KeygenElement extends Element implements Element native "*HTMLKeygenElemen
 /// @domName HTMLLIElement
 class LIElement extends Element implements Element native "*HTMLLIElement" {
 
-  factory LIElement() => _Elements.createLIElement();
+  factory LIElement() => document.$dom_createElement("li");
 
   /** @domName HTMLLIElement.type */
   String type;
@@ -11669,7 +11659,7 @@ class LIElement extends Element implements Element native "*HTMLLIElement" {
 /// @domName HTMLLabelElement
 class LabelElement extends Element implements Element native "*HTMLLabelElement" {
 
-  factory LabelElement() => _Elements.createLabelElement();
+  factory LabelElement() => document.$dom_createElement("label");
 
   /** @domName HTMLLabelElement.control */
   final Element control;
@@ -11688,7 +11678,7 @@ class LabelElement extends Element implements Element native "*HTMLLabelElement"
 /// @domName HTMLLegendElement
 class LegendElement extends Element implements Element native "*HTMLLegendElement" {
 
-  factory LegendElement() => _Elements.createLegendElement();
+  factory LegendElement() => document.$dom_createElement("legend");
 
   /** @domName HTMLLegendElement.align */
   String align;
@@ -11704,7 +11694,7 @@ class LegendElement extends Element implements Element native "*HTMLLegendElemen
 /// @domName HTMLLinkElement
 class LinkElement extends Element implements Element native "*HTMLLinkElement" {
 
-  factory LinkElement() => _Elements.createLinkElement();
+  factory LinkElement() => document.$dom_createElement("link");
 
   /** @domName HTMLLinkElement.charset */
   String charset;
@@ -12411,7 +12401,7 @@ class LocalWindowEvents extends Events {
 /// @domName HTMLMapElement
 class MapElement extends Element implements Element native "*HTMLMapElement" {
 
-  factory MapElement() => _Elements.createMapElement();
+  factory MapElement() => document.$dom_createElement("map");
 
   /** @domName HTMLMapElement.areas */
   final HTMLCollection areas;
@@ -13104,7 +13094,7 @@ class MemoryInfo native "*MemoryInfo" {
 /// @domName HTMLMenuElement
 class MenuElement extends Element implements Element native "*HTMLMenuElement" {
 
-  factory MenuElement() => _Elements.createMenuElement();
+  factory MenuElement() => document.$dom_createElement("menu");
 
   /** @domName HTMLMenuElement.compact */
   bool compact;
@@ -13255,7 +13245,7 @@ typedef void MetadataCallback(Metadata metadata);
 /// @domName HTMLMeterElement
 class MeterElement extends Element implements Element native "*HTMLMeterElement" {
 
-  factory MeterElement() => _Elements.createMeterElement();
+  factory MeterElement() => document.$dom_createElement("meter");
 
   /** @domName HTMLMeterElement.high */
   num high;
@@ -14465,7 +14455,7 @@ class OESVertexArrayObject native "*OESVertexArrayObject" {
 /// @domName HTMLOListElement
 class OListElement extends Element implements Element native "*HTMLOListElement" {
 
-  factory OListElement() => _Elements.createOListElement();
+  factory OListElement() => document.$dom_createElement("ol");
 
   /** @domName HTMLOListElement.compact */
   bool compact;
@@ -14487,7 +14477,7 @@ class OListElement extends Element implements Element native "*HTMLOListElement"
 /// @domName HTMLObjectElement
 class ObjectElement extends Element implements Element native "*HTMLObjectElement" {
 
-  factory ObjectElement() => _Elements.createObjectElement();
+  factory ObjectElement() => document.$dom_createElement("object");
 
   /** @domName HTMLObjectElement.align */
   String align;
@@ -14574,7 +14564,7 @@ class OfflineAudioCompletionEvent extends Event native "*OfflineAudioCompletionE
 /// @domName HTMLOptGroupElement
 class OptGroupElement extends Element implements Element native "*HTMLOptGroupElement" {
 
-  factory OptGroupElement() => _Elements.createOptGroupElement();
+  factory OptGroupElement() => document.$dom_createElement("optgroup");
 
   /** @domName HTMLOptGroupElement.disabled */
   bool disabled;
@@ -14682,7 +14672,7 @@ class OscillatorNode extends AudioSourceNode native "*OscillatorNode" {
 /// @domName HTMLOutputElement
 class OutputElement extends Element implements Element native "*HTMLOutputElement" {
 
-  factory OutputElement() => _Elements.createOutputElement();
+  factory OutputElement() => document.$dom_createElement("output");
 
   /** @domName HTMLOutputElement.defaultValue */
   String defaultValue;
@@ -14835,7 +14825,7 @@ class PannerNode extends AudioNode native "*PannerNode" {
 /// @domName HTMLParagraphElement
 class ParagraphElement extends Element implements Element native "*HTMLParagraphElement" {
 
-  factory ParagraphElement() => _Elements.createParagraphElement();
+  factory ParagraphElement() => document.$dom_createElement("p");
 
   /** @domName HTMLParagraphElement.align */
   String align;
@@ -14848,7 +14838,7 @@ class ParagraphElement extends Element implements Element native "*HTMLParagraph
 /// @domName HTMLParamElement
 class ParamElement extends Element implements Element native "*HTMLParamElement" {
 
-  factory ParamElement() => _Elements.createParamElement();
+  factory ParamElement() => document.$dom_createElement("param");
 
   /** @domName HTMLParamElement.name */
   String name;
@@ -15196,7 +15186,7 @@ typedef void PositionErrorCallback(PositionError error);
 /// @domName HTMLPreElement
 class PreElement extends Element implements Element native "*HTMLPreElement" {
 
-  factory PreElement() => _Elements.createPreElement();
+  factory PreElement() => document.$dom_createElement("pre");
 
   /** @domName HTMLPreElement.width */
   int width;
@@ -15229,7 +15219,7 @@ class ProcessingInstruction extends Node native "*ProcessingInstruction" {
 /// @domName HTMLProgressElement
 class ProgressElement extends Element implements Element native "*HTMLProgressElement" {
 
-  factory ProgressElement() => _Elements.createProgressElement();
+  factory ProgressElement() => document.$dom_createElement("progress");
 
   /** @domName HTMLProgressElement.labels */
   final List<Node> labels;
@@ -16079,7 +16069,7 @@ class Screen native "*Screen" {
 /// @domName HTMLScriptElement
 class ScriptElement extends Element implements Element native "*HTMLScriptElement" {
 
-  factory ScriptElement() => _Elements.createScriptElement();
+  factory ScriptElement() => document.$dom_createElement("script");
 
   /** @domName HTMLScriptElement.async */
   bool async;
@@ -16187,7 +16177,7 @@ class ScriptProfileNode native "*ScriptProfileNode" {
 
 class SelectElement extends Element implements Element native "*HTMLSelectElement" {
 
-  factory SelectElement() => _Elements.createSelectElement();
+  factory SelectElement() => document.$dom_createElement("select");
 
   /** @domName HTMLSelectElement.autofocus */
   bool autofocus;
@@ -16507,7 +16497,7 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
 /// @domName HTMLSourceElement
 class SourceElement extends Element implements Element native "*HTMLSourceElement" {
 
-  factory SourceElement() => _Elements.createSourceElement();
+  factory SourceElement() => document.$dom_createElement("source");
 
   /** @domName HTMLSourceElement.media */
   String media;
@@ -16526,7 +16516,7 @@ class SourceElement extends Element implements Element native "*HTMLSourceElemen
 /// @domName HTMLSpanElement
 class SpanElement extends Element implements Element native "*HTMLSpanElement" {
 
-  factory SpanElement() => _Elements.createSpanElement();
+  factory SpanElement() => document.$dom_createElement("span");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16991,7 +16981,7 @@ typedef void StringCallback(String data);
 /// @domName HTMLStyleElement
 class StyleElement extends Element implements Element native "*HTMLStyleElement" {
 
-  factory StyleElement() => _Elements.createStyleElement();
+  factory StyleElement() => document.$dom_createElement("style");
 
   /** @domName HTMLStyleElement.disabled */
   bool disabled;
@@ -17059,7 +17049,7 @@ class StyleSheet native "*StyleSheet" {
 /// @domName HTMLTableCaptionElement
 class TableCaptionElement extends Element implements Element native "*HTMLTableCaptionElement" {
 
-  factory TableCaptionElement() => _Elements.createTableCaptionElement();
+  factory TableCaptionElement() => document.$dom_createElement("caption");
 
   /** @domName HTMLTableCaptionElement.align */
   String align;
@@ -17072,7 +17062,7 @@ class TableCaptionElement extends Element implements Element native "*HTMLTableC
 /// @domName HTMLTableCellElement
 class TableCellElement extends Element implements Element native "*HTMLTableCellElement" {
 
-  factory TableCellElement() => _Elements.createTableCellElement();
+  factory TableCellElement() => document.$dom_createElement("td");
 
   /** @domName HTMLTableCellElement.abbr */
   String abbr;
@@ -17127,7 +17117,7 @@ class TableCellElement extends Element implements Element native "*HTMLTableCell
 /// @domName HTMLTableColElement
 class TableColElement extends Element implements Element native "*HTMLTableColElement" {
 
-  factory TableColElement() => _Elements.createTableColElement();
+  factory TableColElement() => document.$dom_createElement("col");
 
   /** @domName HTMLTableColElement.align */
   String align;
@@ -17154,7 +17144,7 @@ class TableColElement extends Element implements Element native "*HTMLTableColEl
 
 class TableElement extends Element implements Element native "*HTMLTableElement" {
 
-  factory TableElement() => _Elements.createTableElement();
+  factory TableElement() => document.$dom_createElement("table");
 
   /** @domName HTMLTableElement.align */
   String align;
@@ -17242,7 +17232,7 @@ class TableElement extends Element implements Element native "*HTMLTableElement"
 /// @domName HTMLTableRowElement
 class TableRowElement extends Element implements Element native "*HTMLTableRowElement" {
 
-  factory TableRowElement() => _Elements.createTableRowElement();
+  factory TableRowElement() => document.$dom_createElement("tr");
 
   /** @domName HTMLTableRowElement.align */
   String align;
@@ -17331,7 +17321,7 @@ class Text extends CharacterData native "*Text" {
 /// @domName HTMLTextAreaElement
 class TextAreaElement extends Element implements Element native "*HTMLTextAreaElement" {
 
-  factory TextAreaElement() => _Elements.createTextAreaElement();
+  factory TextAreaElement() => document.$dom_createElement("textarea");
 
   /** @domName HTMLTextAreaElement.autofocus */
   bool autofocus;
@@ -17822,7 +17812,7 @@ typedef void TimeoutHandler();
 /// @domName HTMLTitleElement
 class TitleElement extends Element implements Element native "*HTMLTitleElement" {
 
-  factory TitleElement() => _Elements.createTitleElement();
+  factory TitleElement() => document.$dom_createElement("title");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18008,7 +17998,7 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
 /// @domName HTMLTrackElement
 class TrackElement extends Element implements Element native "*HTMLTrackElement" {
 
-  factory TrackElement() => _Elements.createTrackElement();
+  factory TrackElement() => document.$dom_createElement("track");
 
   static const int ERROR = 3;
 
@@ -18160,7 +18150,7 @@ class UIEvent extends Event native "*UIEvent" {
 /// @domName HTMLUListElement
 class UListElement extends Element implements Element native "*HTMLUListElement" {
 
-  factory UListElement() => _Elements.createUListElement();
+  factory UListElement() => document.$dom_createElement("ul");
 
   /** @domName HTMLUListElement.compact */
   bool compact;
@@ -18595,7 +18585,7 @@ class ValidityState native "*ValidityState" {
 /// @domName HTMLVideoElement
 class VideoElement extends MediaElement native "*HTMLVideoElement" {
 
-  factory VideoElement() => _Elements.createVideoElement();
+  factory VideoElement() => document.$dom_createElement("video");
 
   /** @domName HTMLVideoElement.height */
   int height;
@@ -21010,311 +21000,6 @@ class _DataViewFactoryProvider {
       return JS('DataView', 'new DataView(#,#)', buffer, byteOffset);
     }
     return JS('DataView', 'new DataView(#,#,#)', buffer, byteOffset, byteLength);
-  }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _Elements {
-
-
-  static AnchorElement createAnchorElement([String href]) {
-    AnchorElement _e = document.$dom_createElement("a");
-    if (href != null) _e.href = href;
-    return _e;
-  }
-
-  static AreaElement createAreaElement() {
-    AreaElement _e = document.$dom_createElement("area");
-    return _e;
-  }
-
-  static BRElement createBRElement() {
-    BRElement _e = document.$dom_createElement("br");
-    return _e;
-  }
-
-  static BaseElement createBaseElement() {
-    BaseElement _e = document.$dom_createElement("base");
-    return _e;
-  }
-
-  static BodyElement createBodyElement() {
-    BodyElement _e = document.$dom_createElement("body");
-    return _e;
-  }
-
-  static ButtonElement createButtonElement() {
-    ButtonElement _e = document.$dom_createElement("button");
-    return _e;
-  }
-
-  static CanvasElement createCanvasElement([int width, int height]) {
-    CanvasElement _e = document.$dom_createElement("canvas");
-    if (width != null) _e.width = width;
-    if (height != null) _e.height = height;
-    return _e;
-  }
-
-  static ContentElement createContentElement() {
-    ContentElement _e = document.$dom_createElement("content");
-    return _e;
-  }
-
-  static DListElement createDListElement() {
-    DListElement _e = document.$dom_createElement("dl");
-    return _e;
-  }
-
-  static DataListElement createDataListElement() {
-    DataListElement _e = document.$dom_createElement("datalist");
-    return _e;
-  }
-
-  static DetailsElement createDetailsElement() {
-    DetailsElement _e = document.$dom_createElement("details");
-    return _e;
-  }
-
-  static DivElement createDivElement() {
-    DivElement _e = document.$dom_createElement("div");
-    return _e;
-  }
-
-  static EmbedElement createEmbedElement() {
-    EmbedElement _e = document.$dom_createElement("embed");
-    return _e;
-  }
-
-  static FieldSetElement createFieldSetElement() {
-    FieldSetElement _e = document.$dom_createElement("fieldset");
-    return _e;
-  }
-
-  static FormElement createFormElement() {
-    FormElement _e = document.$dom_createElement("form");
-    return _e;
-  }
-
-  static HRElement createHRElement() {
-    HRElement _e = document.$dom_createElement("hr");
-    return _e;
-  }
-
-  static HeadElement createHeadElement() {
-    HeadElement _e = document.$dom_createElement("head");
-    return _e;
-  }
-
-  static HeadingElement createHeadingElement_h1() {
-    HeadingElement _e = document.$dom_createElement("h1");
-    return _e;
-  }
-
-  static HeadingElement createHeadingElement_h2() {
-    HeadingElement _e = document.$dom_createElement("h2");
-    return _e;
-  }
-
-  static HeadingElement createHeadingElement_h3() {
-    HeadingElement _e = document.$dom_createElement("h3");
-    return _e;
-  }
-
-  static HeadingElement createHeadingElement_h4() {
-    HeadingElement _e = document.$dom_createElement("h4");
-    return _e;
-  }
-
-  static HeadingElement createHeadingElement_h5() {
-    HeadingElement _e = document.$dom_createElement("h5");
-    return _e;
-  }
-
-  static HeadingElement createHeadingElement_h6() {
-    HeadingElement _e = document.$dom_createElement("h6");
-    return _e;
-  }
-
-  static HtmlElement createHtmlElement() {
-    HtmlElement _e = document.$dom_createElement("html");
-    return _e;
-  }
-
-  static IFrameElement createIFrameElement() {
-    IFrameElement _e = document.$dom_createElement("iframe");
-    return _e;
-  }
-
-  static ImageElement createImageElement([String src, int width, int height]) {
-    ImageElement _e = document.$dom_createElement("img");
-    if (src != null) _e.src = src;
-    if (width != null) _e.width = width;
-    if (height != null) _e.height = height;
-    return _e;
-  }
-
-  static InputElement createInputElement([String type]) {
-    InputElement _e = document.$dom_createElement("input");
-    if (type != null) _e.type = type;
-    return _e;
-  }
-
-  static KeygenElement createKeygenElement() {
-    KeygenElement _e = document.$dom_createElement("keygen");
-    return _e;
-  }
-
-  static LIElement createLIElement() {
-    LIElement _e = document.$dom_createElement("li");
-    return _e;
-  }
-
-  static LabelElement createLabelElement() {
-    LabelElement _e = document.$dom_createElement("label");
-    return _e;
-  }
-
-  static LegendElement createLegendElement() {
-    LegendElement _e = document.$dom_createElement("legend");
-    return _e;
-  }
-
-  static LinkElement createLinkElement() {
-    LinkElement _e = document.$dom_createElement("link");
-    return _e;
-  }
-
-  static MapElement createMapElement() {
-    MapElement _e = document.$dom_createElement("map");
-    return _e;
-  }
-
-  static MenuElement createMenuElement() {
-    MenuElement _e = document.$dom_createElement("menu");
-    return _e;
-  }
-
-  static MeterElement createMeterElement() {
-    MeterElement _e = document.$dom_createElement("meter");
-    return _e;
-  }
-
-  static OListElement createOListElement() {
-    OListElement _e = document.$dom_createElement("ol");
-    return _e;
-  }
-
-  static ObjectElement createObjectElement() {
-    ObjectElement _e = document.$dom_createElement("object");
-    return _e;
-  }
-
-  static OptGroupElement createOptGroupElement() {
-    OptGroupElement _e = document.$dom_createElement("optgroup");
-    return _e;
-  }
-
-  static OutputElement createOutputElement() {
-    OutputElement _e = document.$dom_createElement("output");
-    return _e;
-  }
-
-  static ParagraphElement createParagraphElement() {
-    ParagraphElement _e = document.$dom_createElement("p");
-    return _e;
-  }
-
-  static ParamElement createParamElement() {
-    ParamElement _e = document.$dom_createElement("param");
-    return _e;
-  }
-
-  static PreElement createPreElement() {
-    PreElement _e = document.$dom_createElement("pre");
-    return _e;
-  }
-
-  static ProgressElement createProgressElement() {
-    ProgressElement _e = document.$dom_createElement("progress");
-    return _e;
-  }
-
-  static ScriptElement createScriptElement() {
-    ScriptElement _e = document.$dom_createElement("script");
-    return _e;
-  }
-
-  static SelectElement createSelectElement() {
-    SelectElement _e = document.$dom_createElement("select");
-    return _e;
-  }
-
-  static SourceElement createSourceElement() {
-    SourceElement _e = document.$dom_createElement("source");
-    return _e;
-  }
-
-  static SpanElement createSpanElement() {
-    SpanElement _e = document.$dom_createElement("span");
-    return _e;
-  }
-
-  static StyleElement createStyleElement() {
-    StyleElement _e = document.$dom_createElement("style");
-    return _e;
-  }
-
-  static TableCaptionElement createTableCaptionElement() {
-    TableCaptionElement _e = document.$dom_createElement("caption");
-    return _e;
-  }
-
-  static TableCellElement createTableCellElement() {
-    TableCellElement _e = document.$dom_createElement("td");
-    return _e;
-  }
-
-  static TableColElement createTableColElement() {
-    TableColElement _e = document.$dom_createElement("col");
-    return _e;
-  }
-
-  static TableElement createTableElement() {
-    TableElement _e = document.$dom_createElement("table");
-    return _e;
-  }
-
-  static TableRowElement createTableRowElement() {
-    TableRowElement _e = document.$dom_createElement("tr");
-    return _e;
-  }
-
-  static TextAreaElement createTextAreaElement() {
-    TextAreaElement _e = document.$dom_createElement("textarea");
-    return _e;
-  }
-
-  static TitleElement createTitleElement() {
-    TitleElement _e = document.$dom_createElement("title");
-    return _e;
-  }
-
-  static TrackElement createTrackElement() {
-    TrackElement _e = document.$dom_createElement("track");
-    return _e;
-  }
-
-  static UListElement createUListElement() {
-    UListElement _e = document.$dom_createElement("ul");
-    return _e;
-  }
-
-  static VideoElement createVideoElement() {
-    VideoElement _e = document.$dom_createElement("video");
-    return _e;
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
