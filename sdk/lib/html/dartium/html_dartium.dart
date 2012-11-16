@@ -7374,6 +7374,8 @@ class DOMMimeTypeArray extends NativeFieldWrapperClass1 implements List<DOMMimeT
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  DOMMimeType get first => this[0];
+
   DOMMimeType get last => this[length - 1];
 
   DOMMimeType removeLast() {
@@ -7534,6 +7536,8 @@ class DOMPluginArray extends NativeFieldWrapperClass1 implements List<DOMPlugin>
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  DOMPlugin get first => this[0];
 
   DOMPlugin get last => this[length - 1];
 
@@ -9255,6 +9259,11 @@ class _ChildrenElementList implements List {
     return result;
   }
 
+  Element get first {
+    return _element.$dom_firstElementChild;
+  }
+
+
   Element get last {
     return _element.$dom_lastElementChild;
   }
@@ -9268,10 +9277,6 @@ class _FrozenElementList implements List {
   final List<Node> _nodeList;
 
   _FrozenElementList._wrap(this._nodeList);
-
-  Element get first {
-    return _nodeList[0];
-  }
 
   bool contains(Element element) {
     for (Element el in this) {
@@ -9380,6 +9385,8 @@ class _FrozenElementList implements List {
   Element removeLast() {
     throw new UnsupportedError('');
   }
+
+  Element get first => _nodeList.first;
 
   Element get last => _nodeList.last;
 }
@@ -11347,6 +11354,8 @@ class Float32Array extends ArrayBufferView implements List<num> {
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  num get first => this[0];
+
   num get last => this[length - 1];
 
   num removeLast() {
@@ -11477,6 +11486,8 @@ class Float64Array extends ArrayBufferView implements List<num> {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  num get first => this[0];
 
   num get last => this[length - 1];
 
@@ -12055,6 +12066,8 @@ class HTMLAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  Node get first => this[0];
+
   Node get last => this[length - 1];
 
   Node removeLast() {
@@ -12165,6 +12178,8 @@ class HTMLCollection extends NativeFieldWrapperClass1 implements List<Node> {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  Node get first => this[0];
 
   Node get last => this[length - 1];
 
@@ -14495,6 +14510,8 @@ class Int16Array extends ArrayBufferView implements List<int> {
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  int get first => this[0];
+
   int get last => this[length - 1];
 
   int removeLast() {
@@ -14626,6 +14643,8 @@ class Int32Array extends ArrayBufferView implements List<int> {
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  int get first => this[0];
+
   int get last => this[length - 1];
 
   int removeLast() {
@@ -14756,6 +14775,8 @@ class Int8Array extends ArrayBufferView implements List<int> {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  int get first => this[0];
 
   int get last => this[length - 1];
 
@@ -17648,6 +17669,8 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  Node get first => this[0];
+
   Node get last => this[length - 1];
 
   Node removeLast() {
@@ -18248,6 +18271,8 @@ class _ListWrapper<E> implements List<E> {
 
   E removeLast() => _list.removeLast();
 
+  E get first => _list.first;
+
   E get last => _list.last;
 
   List<E> getRange(int start, int rangeLength) =>
@@ -18261,8 +18286,6 @@ class _ListWrapper<E> implements List<E> {
 
   void insertRange(int start, int rangeLength, [E initialValue = null]) =>
     _list.insertRange(start, rangeLength, initialValue);
-
-  E get first => _list[0];
 }
 
 /**
@@ -20663,6 +20686,8 @@ class SQLResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  Map get first => this[0];
+
   Map get last => this[length - 1];
 
   Map removeLast() {
@@ -21381,6 +21406,8 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  SourceBuffer get first => this[0];
+
   SourceBuffer get last => this[length - 1];
 
   SourceBuffer removeLast() {
@@ -21579,6 +21606,8 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  SpeechGrammar get first => this[0];
 
   SpeechGrammar get last => this[length - 1];
 
@@ -23241,6 +23270,8 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  TextTrackCue get first => this[0];
+
   TextTrackCue get last => this[length - 1];
 
   TextTrackCue removeLast() {
@@ -23353,6 +23384,8 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  TextTrack get first => this[0];
 
   TextTrack get last => this[length - 1];
 
@@ -23624,6 +23657,8 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  Touch get first => this[0];
 
   Touch get last => this[length - 1];
 
@@ -23993,6 +24028,8 @@ class Uint16Array extends ArrayBufferView implements List<int> {
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  int get first => this[0];
+
   int get last => this[length - 1];
 
   int removeLast() {
@@ -24124,6 +24161,8 @@ class Uint32Array extends ArrayBufferView implements List<int> {
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  int get first => this[0];
+
   int get last => this[length - 1];
 
   int removeLast() {
@@ -24254,6 +24293,8 @@ class Uint8Array extends ArrayBufferView implements List<int> {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  int get first => this[0];
 
   int get last => this[length - 1];
 
@@ -26939,6 +26980,8 @@ class _CSSRuleList extends NativeFieldWrapperClass1 implements List<CSSRule> {
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  CSSRule get first => this[0];
+
   CSSRule get last => this[length - 1];
 
   CSSRule removeLast() {
@@ -27042,6 +27085,8 @@ class _CSSValueList extends CSSValue implements List<CSSValue> {
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  CSSValue get first => this[0];
+
   CSSValue get last => this[length - 1];
 
   CSSValue removeLast() {
@@ -27144,6 +27189,8 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  ClientRect get first => this[0];
 
   ClientRect get last => this[length - 1];
 
@@ -27255,6 +27302,8 @@ class _DOMStringList extends NativeFieldWrapperClass1 implements List<String> {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  String get first => this[0];
 
   String get last => this[length - 1];
 
@@ -27812,6 +27861,8 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  Entry get first => this[0];
+
   Entry get last => this[length - 1];
 
   Entry removeLast() {
@@ -27914,6 +27965,8 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  EntrySync get first => this[0];
 
   EntrySync get last => this[length - 1];
 
@@ -28025,6 +28078,8 @@ class _FileList extends NativeFieldWrapperClass1 implements List<File> {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  File get first => this[0];
 
   File get last => this[length - 1];
 
@@ -28152,6 +28207,8 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  Gamepad get first => this[0];
 
   Gamepad get last => this[length - 1];
 
@@ -28304,6 +28361,8 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  MediaStream get first => this[0];
 
   MediaStream get last => this[length - 1];
 
@@ -28512,6 +28571,8 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  SpeechInputResult get first => this[0];
+
   SpeechInputResult get last => this[length - 1];
 
   SpeechInputResult removeLast() {
@@ -28623,6 +28684,8 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  SpeechRecognitionResult get first => this[0];
+
   SpeechRecognitionResult get last => this[length - 1];
 
   SpeechRecognitionResult removeLast() {
@@ -28725,6 +28788,8 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  StyleSheet get first => this[0];
 
   StyleSheet get last => this[length - 1];
 
@@ -28836,6 +28901,8 @@ class _WebKitAnimationList extends NativeFieldWrapperClass1 implements List<Anim
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  Animation get first => this[0];
 
   Animation get last => this[length - 1];
 
@@ -29174,6 +29241,8 @@ class FilteredElementList implements List {
     if (start == null) start = length - 1;
     return _filtered.lastIndexOf(element, start);
   }
+
+  Element get first => _filtered.first;
 
   Element get last => _filtered.last;
 }

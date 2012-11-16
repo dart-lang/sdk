@@ -100,5 +100,7 @@ class FilteredElementList implements List {
     return _filtered.lastIndexOf(element, start);
   }
 
+  Element get first => _filtered.first;
+
   Element get last => _filtered.last;
 }

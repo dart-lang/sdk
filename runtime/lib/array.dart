@@ -138,6 +138,10 @@ class _ObjectArray<E> implements List<E> {
         "Cannot remove in a non-extendable array");
   }
 
+  E get first {
+    return this[0];
+  }
+
   E get last {
     return this[length - 1];
   }
@@ -283,6 +287,10 @@ class _ImmutableArray<E> implements List<E> {
   E removeLast() {
     throw new UnsupportedError(
         "Cannot remove in a non-extendable array");
+  }
+
+  E get first {
+    return this[0];
   }
 
   E get last {
