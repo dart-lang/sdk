@@ -605,6 +605,8 @@ class ParserError {
   toString() => reason;
 }
 
+typedef int IdGenerator();
+
 /**
  * A parser event listener designed to work with [PartialParser]. It
  * builds elements representing the top-level declarations found in
@@ -612,7 +614,7 @@ class ParserError {
  * [compilationUnitElement].
  */
 class ElementListener extends Listener {
-  Function idGenerator;
+  final IdGenerator idGenerator;
   final DiagnosticListener listener;
   final CompilationUnitElement compilationUnitElement;
   final StringValidator stringValidator;
@@ -623,10 +625,9 @@ class ElementListener extends Listener {
   Link<MetadataAnnotation> metadata = const Link<MetadataAnnotation>();
 
   ElementListener(DiagnosticListener listener,
-                  CompilationUnitElement this.compilationUnitElement,
-                  int idGenerator())
+                  this.compilationUnitElement,
+                  this.idGenerator)
       : this.listener = listener,
-        this.idGenerator = idGenerator,
         stringValidator = new StringValidator(listener),
         interpolationScope = const Link<StringQuoting>();
 
@@ -791,6 +792,7 @@ class ElementListener extends Listener {
     pushElement(new PartialClassElement(
         name.source, interfaceKeyword, endToken, compilationUnitElement, id));
     rejectBuiltInIdentifier(name);
+    listener.onDeprecatedFeature(interfaceKeyword, 'interface declarations');
   }
 
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
@@ -1005,8 +1007,9 @@ class ElementListener extends Listener {
     metadata = metadata.prepend(annotation);
   }
 
+  // TODO(ahe): Remove this method.
   void addScriptTag(ScriptTag tag) {
-    // TODO(ahe): Remove this method.
+    listener.onDeprecatedFeature(tag, '# tags');
     addLibraryTag(tag.toLibraryTag());
   }
 
@@ -1337,6 +1340,9 @@ class NodeListener extends ElementListener {
     } else {
       NodeList arguments = new NodeList.singleton(argument);
       pushNode(new Send(receiver, new Operator(token), arguments));
+    }
+    if (identical(tokenString, '===') || identical(tokenString, '!==')) {
+      listener.onDeprecatedFeature(token, tokenString);
     }
   }
 

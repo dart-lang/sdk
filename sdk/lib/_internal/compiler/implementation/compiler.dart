@@ -113,6 +113,8 @@ abstract class Compiler implements DiagnosticListener {
   final bool enableConcreteTypeInference;
   final bool analyzeAll;
   final bool enableNativeLiveTypeAnalysis;
+  final bool rejectDeprecatedFeatures;
+  final bool checkDeprecationInSdk;
 
   bool disableInlining = false;
 
@@ -225,6 +227,8 @@ abstract class Compiler implements DiagnosticListener {
             bool generateSourceMap: true,
             bool disallowUnsafeEval: false,
             this.analyzeAll: false,
+            this.rejectDeprecatedFeatures: false,
+            this.checkDeprecationInSdk: false,
             List<String> strips: const []})
       : libraries = new Map<String, LibraryElement>(),
         progress = new Stopwatch() {
@@ -341,12 +345,10 @@ abstract class Compiler implements DiagnosticListener {
     try {
       runCompiler(uri);
     } on CompilerCancelledException catch (exception) {
-      log(exception.toString());
-      log('compilation failed');
+      log('Error: $exception');
       return false;
     }
     tracer.close();
-    log('compilation succeeded');
     return true;
   }
 
@@ -399,12 +401,11 @@ abstract class Compiler implements DiagnosticListener {
   LibraryElement scanBuiltinLibrary(String filename);
 
   void initializeSpecialClasses() {
-    bool coreLibValid = true;
+    final List missingClasses = [];
     ClassElement lookupSpecialClass(SourceString name) {
       ClassElement result = coreLibrary.find(name);
       if (result == null) {
-        log('core library class $name missing');
-        coreLibValid = false;
+        missingClasses.add(name.slowToString());
       }
       return result;
     }
@@ -424,8 +425,8 @@ abstract class Compiler implements DiagnosticListener {
     dynamicClass = lookupSpecialClass(const SourceString('Dynamic_'));
     nullClass = lookupSpecialClass(const SourceString('Null'));
     types = new Types(this, dynamicClass);
-    if (!coreLibValid) {
-      cancel('core library does not contain required classes');
+    if (!missingClasses.isEmpty) {
+      cancel('core library does not contain required classes: $missingClasses');
     }
   }
 
@@ -765,6 +766,21 @@ abstract class Compiler implements DiagnosticListener {
     // TODO(ahe): The names Diagnostic and api.Diagnostic are in
     // conflict. Fix it.
     reportDiagnostic(span, "$message", kind);
+  }
+
+  void onDeprecatedFeature(Spannable span, String feature) {
+    if (currentElement == null)
+      throw new SpannableAssertionFailure(span, feature);
+    if (!checkDeprecationInSdk &&
+        currentElement.getLibrary().isPlatformLibrary) {
+      return;
+    }
+    var kind = rejectDeprecatedFeatures
+        ? api.Diagnostic.ERROR : api.Diagnostic.WARNING;
+    var message = rejectDeprecatedFeatures
+        ? MessageKind.DEPRECATED_FEATURE_ERROR.error([feature])
+        : MessageKind.DEPRECATED_FEATURE_WARNING.error([feature]);
+    reportMessage(spanFromSpannable(span), message, kind);
   }
 
   void reportDiagnostic(SourceSpan span, String message, api.Diagnostic kind);

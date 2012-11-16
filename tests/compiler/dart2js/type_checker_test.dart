@@ -124,7 +124,7 @@ testOperators() {
     analyze("{ bool b = (1 ${op} false); }", MessageKind.NOT_ASSIGNABLE);
     analyze("{ bool b = (true ${op} 2); }", MessageKind.NOT_ASSIGNABLE);
   }
-  for (final op in ['>', '<', '<=', '>=', '==', '!=', '===', '!==']) {
+  for (final op in ['>', '<', '<=', '>=', '==', '!=']) {
     analyze("{ bool b = 1 ${op} 2; }");
     analyze("{ int i = 1 ${op} 2; }", MessageKind.NOT_ASSIGNABLE);
     analyze("{ int i; bool b = (i = true) ${op} 2; }",

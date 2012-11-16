@@ -192,13 +192,16 @@ class NativeEnqueuerBase implements NativeEnqueuer {
   }
 
   bool isNativeMethod(Element element) {
+    if (!element.getLibrary().canUseNative) return false;
     // Native method?
-    Node node = element.parseNode(compiler);
-    if (node is! FunctionExpression) return false;
-    node = node.body;
-    Token token = node.getBeginToken();
-    if (token.stringValue == 'native') return true;
-    return false;
+    return compiler.withCurrentElement(element, () {
+      Node node = element.parseNode(compiler);
+      if (node is! FunctionExpression) return false;
+      node = node.body;
+      Token token = node.getBeginToken();
+      if (identical(token.stringValue, 'native')) return true;
+      return false;
+    });
   }
 
   void registerFieldLoad(Element field) {

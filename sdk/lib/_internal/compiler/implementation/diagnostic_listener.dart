@@ -19,4 +19,6 @@ abstract class DiagnosticListener {
   SourceSpan spanFromNode(Node node, [Uri uri]);
 
   void reportMessage(SourceSpan span, Diagnostic message, api.Diagnostic kind);
+
+  void onDeprecatedFeature(Spannable span, String feature);
 }

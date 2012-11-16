@@ -21,7 +21,7 @@ class SpannableAssertionFailure {
   final String message;
   SpannableAssertionFailure(this.node, this.message);
 
-  String toString() => 'compiler crashed.';
+  String toString() => 'Compiler crashed: $message.';
 }
 
 /// Writes the characters of [iterator] on [buffer].  The characters

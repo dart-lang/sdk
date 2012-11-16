@@ -198,8 +198,30 @@ main(value) {
 REMOVED,
 ];
 
+// TODO(ahe): It would probably be better if this test used the real
+// core library sources, as its purpose is to detect failure to
+// optimize fixed-sized arrays.
+const String DEFAULT_CORELIB_WITH_LIST_INTERFACE = r'''
+  print(var obj) {}
+  abstract class num {}
+  abstract class int extends num { }
+  abstract class double extends num { }
+  class bool {}
+  class String {}
+  class Object {}
+  class Type {}
+  class Function {}
+  interface List default ListImplementation { List([length]);}
+  class ListImplementation { factory List([length]) => null; }
+  abstract class Map {}
+  class Closure {}
+  class Null {}
+  class Dynamic_ {}
+  bool identical(Object a, Object b) {}''';
+
 expect(String code, int kind) {
-  String generated = compile(code);
+  String generated =
+      compile(code, coreSource: DEFAULT_CORELIB_WITH_LIST_INTERFACE);
   switch (kind) {
     case REMOVED:
       Expect.isTrue(!generated.contains('ioore'));

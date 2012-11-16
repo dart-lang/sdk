@@ -1048,12 +1048,14 @@ class TypeResolver {
     if (send != null) {
       typeName = send.selector;
     }
-    if (identical(typeName.source.stringValue, 'void')) {
+    String stringValue = typeName.source.stringValue;
+    if (identical(stringValue, 'void')) {
       return compiler.types.voidType.element;
-    } else if (
-        // TODO(aprelev@gmail.com): Remove deprecated Dynamic keyword support.
-        identical(typeName.source.stringValue, 'Dynamic')
-        || identical(typeName.source.stringValue, 'dynamic')) {
+    } else if (identical(stringValue, 'Dynamic')) {
+      // TODO(aprelev@gmail.com): Remove deprecated Dynamic keyword support.
+      compiler.onDeprecatedFeature(typeName, 'Dynamic');
+      return compiler.dynamicClass;
+    } else if (identical(stringValue, 'dynamic')) {
       return compiler.dynamicClass;
     } else if (send != null) {
       Element e = scope.lookup(send.receiver.asIdentifier().source);
@@ -2926,13 +2928,17 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
       }
     } else {
       if (element.isGetter()) {
-        if (!element.getLibrary().isPlatformLibrary) {
-          // TODO(ahe): Remove the isPlatformLibrary check.
-          if (!identical(formalParameters.getEndToken().next.stringValue, 'native')) {
-            // TODO(ahe): Remove the check for native keyword.
+        if (!identical(formalParameters.getEndToken().next.stringValue,
+                       // TODO(ahe): Remove the check for native keyword.
+                       'native')) {
+          if (compiler.rejectDeprecatedFeatures &&
+              // TODO(ahe): Remove isPlatformLibrary check.
+              !element.getLibrary().isPlatformLibrary) {
             compiler.reportMessage(compiler.spanFromNode(formalParameters),
                                    MessageKind.EXTRA_FORMALS.error([]),
-                                   Diagnostic.WARNING);
+                                   Diagnostic.ERROR);
+          } else {
+            compiler.onDeprecatedFeature(formalParameters, 'getter parameters');
           }
         }
       }

@@ -604,8 +604,8 @@ testClassHierarchy() {
                 compiler.errors[0].message.kind);
 
   compiler = new MockCompiler();
-  compiler.parseScript("""interface A extends B {}
-                          interface B extends A {}
+  compiler.parseScript("""abstract class A extends B {}
+                          abstract class B extends A {}
                           class C implements A {}
                           main() { return new C(); }""");
   mainElement = compiler.mainApp.find(MAIN);

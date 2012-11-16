@@ -165,6 +165,10 @@ void compile(List<String> argv) {
     new OptionHandler('--disallow-unsafe-eval', passThrough),
     new OptionHandler('--analyze-all', passThrough),
     new OptionHandler('--enable-native-live-type-analysis', passThrough),
+    new OptionHandler('--reject-deprecated-language-features', passThrough),
+    new OptionHandler('--report-sdk-use-of-deprecated-language-features',
+                      passThrough),
+
     // The following two options must come last.
     new OptionHandler('-.*', (String argument) {
       helpAndFail('Error: Unknown option "$argument".');
@@ -418,7 +422,22 @@ be removed in a future version:
     Disables dynamic generation of code in the generated output. This is
     necessary to satisfy CSP restrictions (see http://www.w3.org/TR/CSP/).
     This flag is not continuously tested. Please report breakages and we
-    will fix them as soon as possible.''');
+    will fix them as soon as possible.
+
+  --reject-deprecated-language-features
+    Reject deprecated language features.  Without this option, the
+    compiler will accept language features that are no longer valid
+    according to The Dart Programming Language Specification, version
+    0.12, M1.
+
+  --report-sdk-use-of-deprecated-language-features
+    Report use of deprecated features in Dart platform libraries.
+    Without this option, the compiler will silently accept use of
+    deprecated language features from these libraries.  The option
+    --reject-deprecated-language-features controls if these usages are
+    reported as errors or warnings.
+
+'''.trim());
 }
 
 void helpAndExit(bool verbose) {
