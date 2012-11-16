@@ -157,7 +157,7 @@ class _Double implements double {
     // look at the fractionDigits first.
 
     // Step 7.
-    if (fractionDigits !== null &&
+    if (fractionDigits != null &&
         (fractionDigits < 0 || fractionDigits > 20)) {
       // TODO(antonm): should be proper RangeError or Dart counterpart.
       throw "Range error";
@@ -169,7 +169,7 @@ class _Double implements double {
 
     // The dart function prints the shortest representation when fractionDigits
     // equals null. The native function wants -1 instead.
-    fractionDigits = (fractionDigits === null) ? -1 : fractionDigits;
+    fractionDigits = (fractionDigits == null) ? -1 : fractionDigits;
 
     return _toStringAsExponential(fractionDigits);
   }

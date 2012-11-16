@@ -10,10 +10,10 @@ main() {
     var s3 = "ab" "cd" "ef" "gh";
     var s4 = "a" "b" "c" "d" "e" "f" "g" "h";
     var s5 = "a" 'b' r"c" r'd' """e""" '''f''' r"""g""" r'''h''';
-    Expect.isTrue(s1 === s2);
-    Expect.isTrue(s1 === s3);
-    Expect.isTrue(s1 === s4);
-    Expect.isTrue(s1 === s5);
+    Expect.isTrue(identical(s1, s2));
+    Expect.isTrue(identical(s1, s3));
+    Expect.isTrue(identical(s1, s4));
+    Expect.isTrue(identical(s1, s5));
   }
   {
     // Separating whitespace isn't necessary for the tokenizer.
@@ -22,18 +22,18 @@ main() {
     var s3 = "ab""cd""ef""gh";
     var s4 = "a""b""c""d""e""f""g""h";
     var s5 = "a"'b'r"c"r'd'"""e"""'''f'''r"""g"""r'''h''';
-    Expect.isTrue(s1 === s2);
-    Expect.isTrue(s1 === s3);
-    Expect.isTrue(s1 === s4);
-    Expect.isTrue(s1 === s5);
+    Expect.isTrue(identical(s1, s2));
+    Expect.isTrue(identical(s1, s3));
+    Expect.isTrue(identical(s1, s4));
+    Expect.isTrue(identical(s1, s5));
     // "a""""""b""" should be tokenized as "a" """""b""", aka. "a" '""b'.
-    Expect.isTrue('a""b' === "a""""""b""");
+    Expect.isTrue(identical('a""b', "a""""""b"""));
     // """a""""""""b""" is 'a' '""b'.
-    Expect.isTrue('a""b' === """a""""""""b""");
+    Expect.isTrue(identical('a""b', """a""""""""b"""));
     // Raw strings.
-    Expect.isTrue('ab' === "a"r"b");
-    Expect.isTrue('ab' === r"a""b");
-    Expect.isTrue('ab' === r"a"r"b");
+    Expect.isTrue(identical('ab', "a"r"b"));
+    Expect.isTrue(identical('ab', r"a""b"));
+    Expect.isTrue(identical('ab', r"a"r"b"));
   }
 
   // Newlines are just whitespace.
@@ -41,7 +41,7 @@ main() {
   "def"
   "ghi"
   "jkl";
-  Expect.isTrue("abcdefghijkl" === ms1);
+  Expect.isTrue(identical("abcdefghijkl", ms1));
 
   // Works with multiline strings too.
   var ms2 = """abc
@@ -50,7 +50,7 @@ main() {
   ghi
   jkl
   """;
-  Expect.isTrue("abc\n  def  ghi\n  jkl\n  " === ms2, "Multiline: $ms2");
+  Expect.isTrue(identical("abc\n  def  ghi\n  jkl\n  ", ms2), "Multiline: $ms2");
 
   // Binds stronger than property access (it's considered one literal).
   Expect.equals(5, "ab" "cde".length, "Associativity");

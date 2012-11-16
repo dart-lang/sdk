@@ -2,11 +2,11 @@
  * Creates database.html, examples.html, and obsolete.html.
  */
 
-#library("prettyPrint");
+library prettyPrint;
 
-#import("dart:io");
-#import("dart:json");
-#import("util.dart");
+import 'dart:io';
+import 'dart:json';
+import 'util.dart';
 
 String orEmpty(String str) {
   return str == null ? "" : str;
@@ -52,7 +52,7 @@ int addMissing(StringBuffer sb, String type, Map members) {
 void main() {
   // Database of code documentation.
   final Map<String, Map> database = JSON.parse(
-      new File('output/database.filtered.json').readAsTextSync());
+      new File('output/database.filtered.json').readAsStringSync());
 
   // Types we have documentation for.
   matchedTypes = new Set<String>();

@@ -32,6 +32,7 @@ class ObjectPointerVisitor;
   V(Value, "value")                                                            \
   V(ExprTemp, ":expr_temp")                                                    \
   V(AnonymousClosure, "<anonymous closure>")                                   \
+  V(ClosureParameter, ":closure")                                              \
   V(PhaseParameter, ":phase")                                                  \
   V(TypeArgumentsParameter, ":type_arguments")                                 \
   V(AssertionError, "AssertionErrorImplementation")                            \
@@ -41,12 +42,11 @@ class ObjectPointerVisitor;
     "AbstractClassInstantiationErrorImplementation")                           \
   V(NoSuchMethodError, "NoSuchMethodErrorImplementation")                      \
   V(ThrowNew, "_throwNew")                                                     \
-  V(ListLiteralFactoryClass, "_ListLiteralFactory")                            \
-  V(ListLiteralFactory, "List.fromLiteral")                                    \
+  V(ListLiteralFactory, "List._fromLiteral")                                   \
   V(ListImplementation, "_ListImpl")                                           \
   V(ListFactory, "List.")                                                      \
-  V(MapLiteralFactoryClass, "_MapLiteralFactory")                              \
-  V(MapLiteralFactory, "Map.fromLiteral")                                      \
+  V(MapImplementation, "_HashMapImpl")                                         \
+  V(MapLiteralFactory, "Map._fromLiteral")                                     \
   V(ImmutableMap, "ImmutableMap")                                              \
   V(ImmutableMapConstructor, "ImmutableMap._create")                           \
   V(StringBase, "_StringBase")                                                 \
@@ -74,6 +74,8 @@ class ObjectPointerVisitor;
   V(InstantiatedTypeArguments, "InstantiatedTypeArguments")                    \
   V(PatchClass, "PatchClass")                                                  \
   V(Function, "Function")                                                      \
+  V(FunctionResult, "function result")                                         \
+  V(FactoryResult, "factory result")                                           \
   V(ClosureData, "ClosureData")                                                \
   V(RedirectionData, "RedirectionData")                                        \
   V(Field, "Field")                                                            \
@@ -113,7 +115,7 @@ class ObjectPointerVisitor;
   V(ExternalOneByteString, "_ExternalOneByteString")                           \
   V(ExternalTwoByteString, "_ExternalTwoByteString")                           \
   V(Stacktrace, "Stacktrace")                                                  \
-  V(JSSyntaxRegExp, "JSSyntaxRegExp")                                          \
+  V(JSSyntaxRegExp, "_JSSyntaxRegExp")                                         \
   V(Object, "Object")                                                          \
   V(_Int8Array, "_Int8Array")                                                  \
   V(_Uint8Array, "_Uint8Array")                                                \

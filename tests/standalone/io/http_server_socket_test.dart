@@ -26,7 +26,7 @@ class ExpectedDataOutputStream implements OutputStream {
   }
 
   bool writeFrom(List data, [int offset = 0, int len]) {
-    if (len === null) len = data.length - offset;
+    if (len == null) len = data.length - offset;
     _onData(data.getRange(offset, len));
     return true;
   }
@@ -82,6 +82,18 @@ class SocketMock implements Socket {
     } else {
       _onClosed();
     }
+  }
+
+  List<int> read([int len]) {
+    var result;
+    if (len == null) {
+      result = _data;
+      _data = [];
+    } else {
+      result = new Uint8List(len);
+      readList(result, 0, len);
+    }
+    return result;
   }
 
   int readList(List<int> buffer, int offset, int count) {

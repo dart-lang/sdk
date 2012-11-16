@@ -30,11 +30,19 @@ class Compiler extends leg.Compiler {
             enableTypeAssertions: hasOption(options, '--enable-checked-mode'),
             enableUserAssertions: hasOption(options, '--enable-checked-mode'),
             enableMinification: hasOption(options, '--minify'),
+            enableNativeLiveTypeAnalysis:
+              hasOption(options, '--enable-native-live-type-analysis'),
             emitJavaScript: !hasOption(options, '--output-type=dart'),
             disallowUnsafeEval: hasOption(options, '--disallow-unsafe-eval'),
+            analyzeAll: hasOption(options, '--analyze-all'),
+            rejectDeprecatedFeatures:
+                hasOption(options, '--reject-deprecated-language-features'),
+            checkDeprecationInSdk:
+                hasOption(options,
+                          '--report-sdk-use-of-deprecated-language-features'),
             strips: getStrips(options),
             enableConcreteTypeInference:
-              hasOption(options, '--enable-concrete-type-inference')) {
+                hasOption(options, '--enable-concrete-type-inference')) {
     if (!libraryRoot.path.endsWith("/")) {
       throw new ArgumentError("libraryRoot must end with a /");
     }

@@ -39,7 +39,7 @@ class MandelbrotState {
   }
 
   void notifyProcessedLine(LineProcessorClient client, int y, List<int> line) {
-    assert(_result[y] === null);
+    assert(_result[y] == null);
     _result[y] = line;
     _lineProcessedBy[y] = client;
 

@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@native("*A")
+import 'native_metadata.dart';
+
+@Native("*A")
 class A {
 }
 
-@native("*B")
+@Native("*B")
 class B extends A  {
   @native foo();
 }
@@ -14,7 +16,7 @@ class B extends A  {
 @native makeA();
 @native makeB();
 
-@native("""
+@Native("""
 function inherits(child, parent) {
   if (child.prototype.__proto__) {
     child.prototype.__proto__ = parent.prototype;

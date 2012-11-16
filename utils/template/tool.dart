@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('templatetool');
+library templatetool;
 
-#import('dart:io');
-#import('template.dart');
-#import('../lib/file_system.dart');
-#import('../lib/file_system_vm.dart');
+import 'dart:io';
+import 'template.dart';
+import '../lib/file_system.dart';
+import '../lib/file_system_vm.dart';
 
 
 FileSystem files;

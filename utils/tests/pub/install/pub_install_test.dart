@@ -15,7 +15,7 @@ main() {
       dir(appPath, []).scheduleCreate();
 
       schedulePub(args: ['install'],
-          error: const RegExp(r'^Could not find a file named "pubspec\.yaml"'),
+          error: new RegExp(r'^Could not find a file named "pubspec\.yaml"'),
           exitCode: 1);
 
       run();
@@ -27,7 +27,7 @@ main() {
       ]).scheduleCreate();
 
       schedulePub(args: ['install'],
-          error: const RegExp(r'^pubspec.yaml is missing the required "name" '
+          error: new RegExp(r'^pubspec.yaml is missing the required "name" '
               r'field \(e\.g\. "name: myapp"\)\.'),
           exitCode: 1);
 
@@ -44,7 +44,7 @@ main() {
     ]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: const RegExp(r"Dependencies installed!$"));
+        output: new RegExp(r"Dependencies installed!$"));
 
     dir(packagesPath, [
       dir("myapp_name", [
@@ -63,7 +63,7 @@ main() {
     ]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: const RegExp(r"Dependencies installed!$"));
+        output: new RegExp(r"Dependencies installed!$"));
 
     dir(packagesPath, [
       nothing("myapp_name")
@@ -88,9 +88,10 @@ main() {
     ]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        error: const RegExp(r'Warning: Package "foo" does not have a "lib" '
-            'directory.'),
-        output: const RegExp(r"Dependencies installed!$"));
+        error: new RegExp(r'Warning: Package "foo" does not have a "lib" '
+            'directory so you will not be able to import any libraries from '
+            'it.'),
+        output: new RegExp(r"Dependencies installed!$"));
 
     run();
   });
@@ -102,7 +103,7 @@ main() {
 
     schedulePub(args: ['install'],
         error: '',
-        output: const RegExp(r"Dependencies installed!$"));
+        output: new RegExp(r"Dependencies installed!$"));
 
     run();
   });
@@ -118,7 +119,7 @@ main() {
     ]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: const RegExp(r"Dependencies installed!$"));
+        output: new RegExp(r"Dependencies installed!$"));
 
     dir(packagesPath, [
       nothing('foo'),
@@ -137,7 +138,7 @@ main() {
       ]).scheduleCreate();
 
       schedulePub(args: ['install'],
-          output: const RegExp(r"Dependencies installed!$"));
+          output: new RegExp(r"Dependencies installed!$"));
 
       dir(appPath, [
         dir("test", [
@@ -167,7 +168,7 @@ main() {
       ]).scheduleCreate();
 
       schedulePub(args: ['install'],
-          output: const RegExp(r"Dependencies installed!$"));
+          output: new RegExp(r"Dependencies installed!$"));
 
       dir(appPath, [
         dir("example", [
@@ -189,6 +190,36 @@ main() {
       run();
     });
 
+    test('"tool/" and its subdirectories', () {
+      dir(appPath, [
+        appPubspec([]),
+        libDir('foo'),
+        dir("tool", [dir("subtool")])
+      ]).scheduleCreate();
+
+      schedulePub(args: ['install'],
+          output: new RegExp(r"Dependencies installed!$"));
+
+      dir(appPath, [
+        dir("tool", [
+          dir("packages", [
+            dir("myapp", [
+              file('foo.dart', 'main() => "foo";')
+            ])
+          ]),
+          dir("subtool", [
+            dir("packages", [
+              dir("myapp", [
+                file('foo.dart', 'main() => "foo";')
+              ])
+            ])
+          ])
+        ])
+      ]).scheduleValidate();
+
+      run();
+    });
+
     test('"web/" and its subdirectories', () {
       dir(appPath, [
         appPubspec([]),
@@ -197,7 +228,7 @@ main() {
       ]).scheduleCreate();
 
       schedulePub(args: ['install'],
-          output: const RegExp(r"Dependencies installed!$"));
+          output: new RegExp(r"Dependencies installed!$"));
 
       dir(appPath, [
         dir("web", [
@@ -227,7 +258,7 @@ main() {
       ]).scheduleCreate();
 
       schedulePub(args: ['install'],
-          output: const RegExp(r"Dependencies installed!$"));
+          output: new RegExp(r"Dependencies installed!$"));
 
       dir(appPath, [
         dir("bin", [
@@ -241,24 +272,5 @@ main() {
 
       run();
     });
-  });
-
-  // TODO(rnystrom): Remove this when old layout support is removed. (#4964)
-  test('shows a warning if the entrypoint uses the old layout', () {
-    // The symlink should use the name in the pubspec, not the name of the
-    // directory.
-    dir(appPath, [
-      pubspec({"name": "myapp_name"}),
-      file("foo.dart", 'main() => "foo";'),
-    ]).scheduleCreate();
-
-    schedulePub(args: ['install'],
-        error: '''
-        Warning: Package "myapp_name" is using a deprecated layout.
-        See http://www.dartlang.org/docs/pub-package-manager/package-layout.html for details.
-        ''',
-        output: const RegExp(r"Dependencies installed!$"));
-
-    run();
   });
 }

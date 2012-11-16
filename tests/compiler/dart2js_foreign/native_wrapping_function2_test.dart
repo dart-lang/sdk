@@ -2,28 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'native_metadata.dart';
+
 typedef void Callback0();
 typedef void Callback1(arg1);
 typedef void Callback2(arg1, arg2);
 
-@native("*A")
+@Native("*A")
 class A {
-  @native("return closure();")
+  @Native("return closure();")
   foo0(Callback0 closure);
 
-  @native("return closure(arg1);")
+  @Native("return closure(arg1);")
   foo1(Callback1 closure, arg1);
 
-  @native("return closure(arg1, arg2);")
+  @Native("return closure(arg1, arg2);")
   foo2(Callback2 closure, arg1, arg2);
 
-  @native("return closure == (void 0) ? 42 : closure();")
+  @Native("return closure == (void 0) ? 42 : closure();")
   foo3([Callback0 closure]);
 }
 
 @native makeA();
 
-@native("""
+@Native("""
 function A() {}
 makeA = function(){return new A;};
 """)

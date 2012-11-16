@@ -176,4 +176,13 @@ class MemberListener extends NodeListener {
     metadata = const Link<MetadataAnnotation>();
     enclosingElement.addMember(memberElement, listener);
   }
+
+  void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
+    popNode(); // Discard arguments.
+    if (periodBeforeName != null) {
+      popNode(); // Discard name.
+    }
+    popNode(); // Discard node (Send or Identifier).
+    pushMetadata(new PartialMetadataAnnotation(beginToken));
+  }
 }

@@ -22,13 +22,11 @@
 namespace dart {
 
 DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
-DEFINE_FLAG(bool, trace_functions, false, "Trace entry of each function.");
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(bool, report_usage_count);
-DECLARE_FLAG(bool, trace_functions);
 DECLARE_FLAG(int, optimization_counter_threshold);
 
 void CompilerDeoptInfo::BuildReturnAddress(DeoptInfoBuilder* builder,
@@ -147,6 +145,7 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
       block_info_(block_order_.length()),
       deopt_infos_(),
       is_optimizing_(is_optimizing),
+      may_reoptimize_(false),
       bool_true_(Bool::ZoneHandle(Bool::True())),
       bool_false_(Bool::ZoneHandle(Bool::False())),
       double_class_(Class::ZoneHandle(
@@ -433,8 +432,8 @@ bool FlowGraphCompiler::TryIntrinsify() {
   if (!CanOptimize()) return false;
   // Intrinsification skips arguments checks, therefore disable if in checked
   // mode.
-  if (FLAG_intrinsify && !FLAG_trace_functions && !FLAG_enable_type_checks) {
-    if ((parsed_function().function().kind() == RawFunction::kImplicitGetter)) {
+  if (FLAG_intrinsify && !FLAG_enable_type_checks) {
+    if (parsed_function().function().kind() == RawFunction::kImplicitGetter) {
       // An implicit getter must have a specific AST structure.
       const SequenceNode& sequence_node = *parsed_function().node_sequence();
       ASSERT(sequence_node.length() == 1);
@@ -446,7 +445,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
       GenerateInlinedGetter(load_node.field().Offset());
       return true;
     }
-    if ((parsed_function().function().kind() == RawFunction::kImplicitSetter)) {
+    if (parsed_function().function().kind() == RawFunction::kImplicitSetter) {
       // An implicit setter must have a specific AST structure.
       // Sequence node has one store node and one return NULL node.
       const SequenceNode& sequence_node = *parsed_function().node_sequence();
@@ -461,10 +460,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
   }
   // Even if an intrinsified version of the function was successfully
   // generated, it may fall through to the non-intrinsified method body.
-  if (!FLAG_trace_functions) {
-    return Intrinsifier::Intrinsify(parsed_function().function(), assembler());
-  }
-  return false;
+  return Intrinsifier::Intrinsify(parsed_function().function(), assembler());
 }
 
 
@@ -480,6 +476,39 @@ void FlowGraphCompiler::GenerateInstanceCall(
   const Array& arguments_descriptor =
       DartEntry::ArgumentsDescriptor(argument_count, argument_names);
   uword label_address = 0;
+  if (is_optimizing() && (ic_data.NumberOfChecks() == 0)) {
+    if (ic_data.is_closure_call()) {
+      // This IC call may be closure call only.
+      label_address = StubCode::ClosureCallInlineCacheEntryPoint();
+      ExternalLabel target_label("InlineCache", label_address);
+      EmitInstanceCall(&target_label,
+                       ICData::ZoneHandle(ic_data.AsUnaryClassChecks()),
+                       arguments_descriptor, argument_count,
+                       deopt_id, token_pos, locs);
+      return;
+    }
+    // Emit IC call that will count and thus may need reoptimization at
+    // return instruction.
+    may_reoptimize_ = true;
+    switch (ic_data.num_args_tested()) {
+      case 1:
+        label_address = StubCode::OneArgOptimizedCheckInlineCacheEntryPoint();
+        break;
+      case 2:
+        label_address = StubCode::TwoArgsOptimizedCheckInlineCacheEntryPoint();
+        break;
+      case 3:
+        label_address =
+            StubCode::ThreeArgsOptimizedCheckInlineCacheEntryPoint();
+        break;
+      default:
+        UNIMPLEMENTED();
+    }
+    ExternalLabel target_label("InlineCache", label_address);
+    EmitOptimizedInstanceCall(&target_label, ic_data, arguments_descriptor,
+                              argument_count, deopt_id, token_pos, locs);
+    return;
+  }
   if (is_optimizing()) {
     // Megamorphic call requires one argument ICData.
     ASSERT(ic_data.num_args_tested() == 1);
@@ -500,7 +529,6 @@ void FlowGraphCompiler::GenerateInstanceCall(
     }
   }
   ExternalLabel target_label("InlineCache", label_address);
-
   EmitInstanceCall(&target_label, ic_data, arguments_descriptor, argument_count,
                    deopt_id, token_pos, locs);
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('libraries');
+library libraries;
 
 /**
  * A bit flag used by [LibraryInfo] indicating that a library is used by dart2js
@@ -29,11 +29,6 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
   "core": const LibraryInfo(
       "core/core.dart",
       dart2jsPatchPath: "_internal/compiler/implementation/lib/core_patch.dart"),
-
-  "coreimpl": const LibraryInfo(
-      "coreimpl/coreimpl.dart",
-      implementation: true,
-      dart2jsPatchPath: "_internal/compiler/implementation/lib/coreimpl_patch.dart"),
 
   "crypto": const LibraryInfo(
       "crypto/crypto.dart"),
@@ -74,6 +69,11 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
       "scalarlist/scalarlist.dart",
       category: "Server",
       dart2jsPatchPath: "_internal/compiler/implementation/lib/scalarlist_patch.dart"),
+
+  "svg": const LibraryInfo(
+        "svg/dartium/svg_dartium.dart",
+        category: "Client",
+        dart2jsPath: "svg/dart2js/svg_dart2js.dart"),
 
   "uri": const LibraryInfo(
       "uri/uri.dart"),
@@ -140,7 +140,7 @@ class LibraryInfo {
    * The implication is that these libraries are less commonly used
    * and that tools like Dart Editor should not show these libraries
    * in a list of all libraries unless the user specifically asks the tool to
-   * do so. (E.g. "coreimpl" contains implementation for the "core" library).
+   * do so.
    */
   final bool implementation;
 

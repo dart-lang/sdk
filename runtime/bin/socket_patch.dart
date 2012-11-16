@@ -137,7 +137,7 @@ class _SocketBase extends NativeFieldWrapperClass1 {
   }
 
   int get port {
-    if (_port === null) {
+    if (_port == null) {
       _port = _getPort();
     }
     return _port;
@@ -190,7 +190,7 @@ class _SocketBase extends NativeFieldWrapperClass1 {
   }
 
   void _sendToEventHandler(int data) {
-    if (_handler === null) {
+    if (_handler == null) {
       _handler = new ReceivePort();
       _handler.receive((var message, ignored) { _multiplex(message); });
     }
@@ -495,8 +495,8 @@ class _Socket extends _SocketBase implements Socket {
 
   InputStream get inputStream {
     if (_inputStream == null) {
-      if (_handlerMap[_SocketBase._IN_EVENT] !== null ||
-          _handlerMap[_SocketBase._CLOSE_EVENT] !== null) {
+      if (_handlerMap[_SocketBase._IN_EVENT] != null ||
+          _handlerMap[_SocketBase._CLOSE_EVENT] != null) {
         throw new StreamException(
             "Cannot get input stream when socket handlers are used");
       }
@@ -507,7 +507,7 @@ class _Socket extends _SocketBase implements Socket {
 
   OutputStream get outputStream {
     if (_outputStream == null) {
-      if (_handlerMap[_SocketBase._OUT_EVENT] !== null) {
+      if (_handlerMap[_SocketBase._OUT_EVENT] != null) {
         throw new StreamException(
             "Cannot get input stream when socket handlers are used");
       }
@@ -548,17 +548,17 @@ class _Socket extends _SocketBase implements Socket {
       // handler (connect handler cannot be called again). Change this
       // before calling any handlers as handlers can change the
       // handlers.
-      if (_clientWriteHandler === null) _onWrite = _clientWriteHandler;
+      if (_clientWriteHandler == null) _onWrite = _clientWriteHandler;
 
       // First out event is socket connected event.
-      if (_clientConnectHandler !== null) _clientConnectHandler();
+      if (_clientConnectHandler != null) _clientConnectHandler();
       _clientConnectHandler = null;
 
       // Always (even for the first out event) call the write handler.
-      if (_clientWriteHandler !== null) _clientWriteHandler();
+      if (_clientWriteHandler != null) _clientWriteHandler();
     }
 
-    if (_clientConnectHandler === null && _clientWriteHandler === null) {
+    if (_clientConnectHandler == null && _clientWriteHandler == null) {
       _onWrite = null;
     } else {
       if (_seenFirstOutEvent) {
@@ -570,14 +570,14 @@ class _Socket extends _SocketBase implements Socket {
   }
 
   int get remotePort {
-    if (_remotePort === null) {
+    if (_remotePort == null) {
       remoteHost;
     }
     return _remotePort;
   }
 
   String get remoteHost {
-    if (_remoteHost === null) {
+    if (_remoteHost == null) {
       List peer = _getRemotePeer();
       _remoteHost = peer[0];
       _remotePort = peer[1];

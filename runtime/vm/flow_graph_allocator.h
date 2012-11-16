@@ -153,6 +153,19 @@ class FlowGraphAllocator : public ValueObject {
   // the unallocated live range as possible.
   void AllocateAnyRegister(LiveRange* unallocated);
 
+  // Returns true if the given range has only unconstrained uses in
+  // the given loop.
+  bool RangeHasOnlyUnconstrainedUsesInLoop(LiveRange* range, intptr_t loop_id);
+
+  // Returns true if there is a register blocked by a range that
+  // has only unconstrained uses in the loop. Such range is a good
+  // eviction candidate when allocator tries to allocate loop phi.
+  // Spilling loop phi will have a bigger negative impact on the
+  // performance because it introduces multiple operations with memory
+  // inside the loop body and on the back edge.
+  bool HasCheapEvictionCandidate(LiveRange* phi_range);
+  bool IsCheapToEvictRegisterInLoop(BlockInfo* loop, intptr_t reg);
+
   // Assign selected non-free register to an unallocated live range and
   // evict any interference that can be evicted by splitting and spilling
   // parts of interfering live ranges.  Place non-spilled parts into
@@ -305,10 +318,21 @@ class BlockInfo : public ZoneAllocated {
     loop_ = loop;
   }
 
+  BlockEntryInstr* last_block() const { return last_block_; }
+  void set_last_block(BlockEntryInstr* last_block) {
+    last_block_ = last_block;
+  }
+
+  intptr_t loop_id() const { return loop_id_; }
+  void set_loop_id(intptr_t loop_id) { loop_id_ = loop_id; }
+
  private:
   BlockEntryInstr* entry_;
   BlockInfo* loop_;
   bool is_loop_header_;
+
+  BlockEntryInstr* last_block_;
+  intptr_t loop_id_;
 
   DISALLOW_COPY_AND_ASSIGN(BlockInfo);
 };
@@ -467,6 +491,8 @@ class LiveRange : public ZoneAllocated {
       first_safepoint_(NULL),
       last_safepoint_(NULL),
       next_sibling_(NULL),
+      has_only_any_uses_in_loops_(0),
+      is_loop_phi_(false),
       finger_() {
   }
 
@@ -524,6 +550,25 @@ class LiveRange : public ZoneAllocated {
     return spill_slot_;
   }
 
+  bool HasOnlyUnconstrainedUsesInLoop(intptr_t loop_id) const {
+    if (loop_id < kBitsPerWord) {
+      const intptr_t mask = static_cast<intptr_t>(1) << loop_id;
+      return (has_only_any_uses_in_loops_ & mask) != 0;
+    }
+    return false;
+  }
+
+  void MarkHasOnlyUnconstrainedUsesInLoop(intptr_t loop_id) {
+    if (loop_id < kBitsPerWord) {
+      has_only_any_uses_in_loops_ |= static_cast<intptr_t>(1) << loop_id;
+    }
+  }
+
+  bool is_loop_phi() const { return is_loop_phi_; }
+  void mark_loop_phi() {
+    is_loop_phi_ = true;
+  }
+
  private:
   LiveRange(intptr_t vreg,
             Location::Representation rep,
@@ -541,6 +586,8 @@ class LiveRange : public ZoneAllocated {
       first_safepoint_(first_safepoint),
       last_safepoint_(NULL),
       next_sibling_(next_sibling),
+      has_only_any_uses_in_loops_(0),
+      is_loop_phi_(false),
       finger_() {
   }
 
@@ -557,6 +604,9 @@ class LiveRange : public ZoneAllocated {
   SafepointPosition* last_safepoint_;
 
   LiveRange* next_sibling_;
+
+  intptr_t has_only_any_uses_in_loops_;
+  bool is_loop_phi_;
 
   AllocationFinger finger_;
 

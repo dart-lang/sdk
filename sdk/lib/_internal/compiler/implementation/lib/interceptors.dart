@@ -2,51 +2,35 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('dart:_interceptors');
+library _interceptors;
 
-#import('dart:collection');
+import 'dart:collection';
 
-add$1(var receiver, var value) {
-  if (isJsArray(receiver)) {
-    checkGrowable(receiver, 'add');
-    JS('Object', r'#.push(#)', receiver, value);
-    return;
-  }
-  return UNINTERCEPTED(receiver.add(value));
+part 'js_array.dart';
+part 'js_string.dart';
+
+/**
+ * The interceptor class for all non-primitive objects. All its
+ * members are synthethized by the compiler's emitter.
+ */
+class ObjectInterceptor {
+  const ObjectInterceptor();
 }
 
-removeAt$1(var receiver, var index) {
-  if (isJsArray(receiver)) {
-    if (index is !int) throw new ArgumentError(index);
-    if (index < 0 || index >= receiver.length) {
-      throw new RangeError.value(index);
-    }
-    checkGrowable(receiver, 'removeAt');
-    return JS("Object", r'#.splice(#, 1)[0]', receiver, index);
-  }
-  return UNINTERCEPTED(receiver.removeAt(index));
-}
-
-removeLast(var receiver) {
-  if (isJsArray(receiver)) {
-    checkGrowable(receiver, 'removeLast');
-    if (receiver.length == 0) throw new RangeError.value(-1);
-    return JS('Object', r'#.pop()', receiver);
-  }
-  return UNINTERCEPTED(receiver.removeLast());
-}
-
-filter(var receiver, var predicate) {
-  if (!isJsArray(receiver)) {
-    return UNINTERCEPTED(receiver.filter(predicate));
-  } else {
-    return Collections.filter(receiver, [], predicate);
-  }
+/**
+ * Get the interceptor for [object]. Called by the compiler when it needs
+ * to emit a call to an intercepted method, that is a method that is
+ * defined in an interceptor class.
+ */
+getInterceptor(object) {
+  if (object is String) return const JSString();
+  if (isJsArray(object)) return const JSArray();
+  return const ObjectInterceptor();
 }
 
 get$length(var receiver) {
   if (receiver is String || isJsArray(receiver)) {
-    return JS('num', r'#.length', receiver);
+    return JS('num', r'#.length', receiver);  // TODO(sra): Use 'int'?
   } else {
     return UNINTERCEPTED(receiver.length);
   }
@@ -66,7 +50,7 @@ set$length(receiver, newLength) {
 }
 
 toString(var value) {
-  if (JS('bool', r'typeof # == "object" && # !== null', value, value)) {
+  if (JS('bool', r'typeof # == "object" && # != null', value, value)) {
     if (isJsArray(value)) {
       return Collections.collectionToString(value);
     } else {
@@ -80,25 +64,7 @@ toString(var value) {
   if (JS('bool', r'typeof # == "function"', value)) {
     return 'Closure';
   }
-  return JS('string', r'String(#)', value);
-}
-
-iterator(receiver) {
-  if (isJsArray(receiver)) {
-    return new ListIterator(receiver);
-  }
-  return UNINTERCEPTED(receiver.iterator());
-}
-
-charCodeAt(var receiver, int index) {
-  if (receiver is String) {
-    if (index is !num) throw new ArgumentError(index);
-    if (index < 0) throw new RangeError.value(index);
-    if (index >= receiver.length) throw new RangeError.value(index);
-    return JS('int', r'#.charCodeAt(#)', receiver, index);
-  } else {
-    return UNINTERCEPTED(receiver.charCodeAt(index));
-  }
+  return JS('String', r'String(#)', value);
 }
 
 get$isEmpty(receiver) {
@@ -140,69 +106,11 @@ compareTo(a, b) {
   }
 }
 
-addAll(receiver, collection) {
-  if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.addAll(collection));
-
-  // TODO(ahe): Use for-in when it is implemented correctly.
-  var iterator = collection.iterator();
-  while (iterator.hasNext) {
-    receiver.add(iterator.next());
+iterator(receiver) {
+  if (isJsArray(receiver)) {
+    return new ListIterator(receiver);
   }
-}
-
-addLast(receiver, value) {
-  if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.addLast(value));
-
-  checkGrowable(receiver, 'addLast');
-  JS('Object', r'#.push(#)', receiver, value);
-}
-
-clear(receiver) {
-  if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.clear());
-  receiver.length = 0;
-}
-
-forEach(receiver, f) {
-  if (!isJsArray(receiver)) {
-    return UNINTERCEPTED(receiver.forEach(f));
-  } else {
-    return Collections.forEach(receiver, f);
-  }
-}
-
-map(receiver, f) {
-  if (!isJsArray(receiver)) {
-    return UNINTERCEPTED(receiver.map(f));
-  } else {
-    return Collections.map(receiver, [], f);
-  }
-}
-
-reduce(receiver, initialValue, f) {
-  if (!isJsArray(receiver)) {
-    return UNINTERCEPTED(receiver.reduce(initialValue, f));
-  } else {
-    return Collections.reduce(receiver, initialValue, f);
-  }
-}
-
-getRange(receiver, start, length) {
-  if (!isJsArray(receiver)) {
-    return UNINTERCEPTED(receiver.getRange(start, length));
-  }
-  if (0 == length) return [];
-  checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
-  checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
-  if (start is !int) throw new ArgumentError(start);
-  if (length is !int) throw new ArgumentError(length);
-  if (length < 0) throw new ArgumentError(length);
-  if (start < 0) throw new RangeError.value(start);
-  var end = start + length;
-  if (end > receiver.length) {
-    throw new RangeError.value(length);
-  }
-  if (length < 0) throw new ArgumentError(length);
-  return JS('Object', r'#.slice(#, #)', receiver, start, end);
+  return UNINTERCEPTED(receiver.iterator());
 }
 
 indexOf$1(receiver, element) {
@@ -502,19 +410,6 @@ toRadixString(receiver, radix) {
   return JS('String', r'#.toString(#)', receiver, radix);
 }
 
-allMatches(receiver, str) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.allMatches(str));
-  checkString(str);
-  return allMatchesInStringUnchecked(receiver, str);
-}
-
-concat(receiver, other) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.concat(other));
-
-  if (other is !String) throw new ArgumentError(other);
-  return JS('String', r'# + #', receiver, other);
-}
-
 contains$1(receiver, other) {
   if (receiver is String) {
     return contains$2(receiver, other, 0);
@@ -535,91 +430,6 @@ contains$2(receiver, other, startIndex) {
   return stringContainsUnchecked(receiver, other, startIndex);
 }
 
-endsWith(receiver, other) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.endsWith(other));
-
-  checkString(other);
-  int receiverLength = receiver.length;
-  int otherLength = other.length;
-  if (otherLength > receiverLength) return false;
-  return other == receiver.substring(receiverLength - otherLength);
-}
-
-replaceAll(receiver, from, to) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.replaceAll(from, to));
-
-  checkString(to);
-  return stringReplaceAllUnchecked(receiver, from, to);
-}
-
-replaceFirst(receiver, from, to) {
-  if (receiver is !String) {
-    return UNINTERCEPTED(receiver.replaceFirst(from, to));
-  }
-  checkString(to);
-  return stringReplaceFirstUnchecked(receiver, from, to);
-}
-
-split(receiver, pattern) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.split(pattern));
-  checkNull(pattern);
-  return stringSplitUnchecked(receiver, pattern);
-}
-
-splitChars(receiver) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.splitChars());
-
-  return JS('List', r'#.split("")', receiver);
-}
-
-startsWith(receiver, other) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.startsWith(other));
-  checkString(other);
-
-  int length = other.length;
-  if (length > receiver.length) return false;
-  return JS('bool', r'# == #', other,
-            JS('String', r'#.substring(0, #)', receiver, length));
-}
-
-substring$1(receiver, startIndex) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.substring(startIndex));
-
-  return substring$2(receiver, startIndex, null);
-}
-
-substring$2(receiver, startIndex, endIndex) {
-  if (receiver is !String) {
-    return UNINTERCEPTED(receiver.substring(startIndex, endIndex));
-  }
-  checkNum(startIndex);
-  var length = receiver.length;
-  if (endIndex == null) endIndex = length;
-  checkNum(endIndex);
-  if (startIndex < 0 ) throw new RangeError.value(startIndex);
-  if (startIndex > endIndex) throw new RangeError.value(startIndex);
-  if (endIndex > length) throw new RangeError.value(endIndex);
-  return substringUnchecked(receiver, startIndex, endIndex);
-}
-
-toLowerCase(receiver) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.toLowerCase());
-
-  return JS('String', r'#.toLowerCase()', receiver);
-}
-
-toUpperCase(receiver) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.toUpperCase());
-
-  return JS('String', r'#.toUpperCase()', receiver);
-}
-
-trim(receiver) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.trim());
-
-  return JS('String', r'#.trim()', receiver);
-}
-
 /**
  * This is the [Jenkins hash function][1] but using masking to keep
  * values in SMI range.
@@ -630,30 +440,20 @@ get$hashCode(receiver) {
   // TODO(ahe): This method shouldn't have to use JS. Update when our
   // optimizations are smarter.
   if (receiver == null) return 0;
-  if (receiver is num) return JS('int', r'# & 0x1FFFFFFF', receiver);
+  if (receiver is num) return receiver & 0x1FFFFFFF;
   if (receiver is bool) return receiver ? 0x40377024 : 0xc18c0076;
   if (isJsArray(receiver)) return Primitives.objectHashCode(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.hashCode);
   int hash = 0;
-  int length = JS('int', r'#.length', receiver);
+  int length = receiver.length;
   for (int i = 0; i < length; i++) {
     hash = 0x1fffffff & (hash + JS('int', r'#.charCodeAt(#)', receiver, i));
-    hash = 0x1fffffff & (hash + JS('int', r'# << #', 0x0007ffff & hash, 10));
-    hash ^= hash >> 6;
+    hash = 0x1fffffff & (hash + (0x0007ffff & hash) << 10);
+    hash = JS('int', '# ^ (# >> 6)', hash, hash);
   }
-  hash = 0x1fffffff & (hash + JS('int', r'# << #', 0x03ffffff & hash, 3));
-  hash ^= hash >> 11;
-  return 0x1fffffff & (hash + JS('int', r'# << #', 0x00003fff & hash, 15));
-}
-
-get$charCodes(receiver) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.charCodes);
-  int len = receiver.length;
-  List<int> result = new List<int>(len);
-  for (int i = 0; i < len; i++) {
-    result[i] = receiver.charCodeAt(i);
-  }
-  return result;
+  hash = 0x1fffffff & (hash + (0x03ffffff & hash) <<  3);
+  hash = JS('int', '# ^ (# >> 11)', hash, hash);
+  return 0x1fffffff & (hash + (0x00003fff & hash) << 15);
 }
 
 get$isEven(receiver) {
@@ -668,17 +468,17 @@ get$isOdd(receiver) {
 
 get$runtimeType(receiver) {
   if (receiver is int) {
-    return getOrCreateCachedRuntimeType('int');
+    return createRuntimeType('int');
   } else if (receiver is String) {
-    return getOrCreateCachedRuntimeType('String');
+    return createRuntimeType('String');
   } else if (receiver is double) {
-    return getOrCreateCachedRuntimeType('double');
+    return createRuntimeType('double');
   } else if (receiver is bool) {
-    return getOrCreateCachedRuntimeType('bool');
+    return createRuntimeType('bool');
   } else if (receiver == null) {
-    return getOrCreateCachedRuntimeType('Null');
+    return createRuntimeType('Null');
   } else if (isJsArray(receiver)) {
-    return getOrCreateCachedRuntimeType('List');
+    return createRuntimeType('List');
   } else {
     return UNINTERCEPTED(receiver.runtimeType);
   }

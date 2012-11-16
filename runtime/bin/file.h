@@ -5,13 +5,6 @@
 #ifndef BIN_FILE_H_
 #define BIN_FILE_H_
 
-#if defined(_WIN32)
-typedef signed __int64 int64_t;
-typedef unsigned __int8 uint8_t;
-#else
-#include <stdint.h>
-#endif
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

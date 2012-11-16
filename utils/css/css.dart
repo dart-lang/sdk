@@ -2,26 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('css');
+library css;
 
-#import('dart:math', prefix: 'Math');
-#import("../lib/file_system.dart");
-#import('../lib/file_system_memory.dart');
+import 'dart:math' as Math;
+import '../lib/file_system.dart';
+import '../lib/file_system_memory.dart';
 
-#source('cssoptions.dart');
-#source('source.dart');
-#source('tokenkind.dart');
-#source('token.dart');
-#source('tokenizer_base.dart');
-#source('tokenizer.dart');
-#source('treebase.dart');
-#source('tree.dart');
-#source('cssselectorexception.dart');
-#source('cssworld.dart');
-#source('parser.dart');
-#source('validate.dart');
-#source('generate.dart');
-#source('world.dart');
+part 'cssoptions.dart';
+part 'source.dart';
+part 'tokenkind.dart';
+part 'token.dart';
+part 'tokenizer_base.dart';
+part 'tokenizer.dart';
+part 'treebase.dart';
+part 'tree.dart';
+part 'cssselectorexception.dart';
+part 'cssworld.dart';
+part 'parser.dart';
+part 'validate.dart';
+part 'generate.dart';
+part 'world.dart';
 
 
 void initCssWorld([bool commandLine = true]) {

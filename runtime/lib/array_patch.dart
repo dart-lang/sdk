@@ -7,7 +7,7 @@
 // fixed size array.
 patch class _ListImpl<E> {
   /* patch */ factory List([int length = null]) {
-    if (length === null) {
+    if (length == null) {
       return new _GrowableObjectArray<E>();
     } else {
       return new _ObjectArray<E>(length);
@@ -18,6 +18,17 @@ patch class _ListImpl<E> {
     _GrowableObjectArray<E> list = new _GrowableObjectArray<E>();
     for (final e in other) {
       list.add(e);
+    }
+    return list;
+  }
+
+  // Factory constructing a mutable List from a parser generated List literal.
+  // [elements] contains elements that are already type checked.
+  factory List._fromLiteral(List elements) {
+    var list = new List<E>();
+    if (elements.length > 0) {
+      list._setData(elements);
+      list.length = elements.length;
     }
     return list;
   }

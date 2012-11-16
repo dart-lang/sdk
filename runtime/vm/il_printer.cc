@@ -113,6 +113,7 @@ static void PrintICData(BufferFormatter* f, const ICData& ic_data) {
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
     GrowableArray<intptr_t> class_ids;
     ic_data.GetCheckAt(i, &class_ids, &target);
+    const intptr_t count = ic_data.GetCountAt(i);
     if (i > 0) {
       f->Print(" | ");
     }
@@ -123,6 +124,9 @@ static void PrintICData(BufferFormatter* f, const ICData& ic_data) {
       const Class& cls =
           Class::Handle(Isolate::Current()->class_table()->At(class_ids[k]));
       f->Print("%s", String::Handle(cls.Name()).ToCString());
+    }
+    if (count > 0) {
+      f->Print(" #%"Pd, count);
     }
   }
   f->Print("]");

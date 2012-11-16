@@ -42,6 +42,8 @@ class Builtin {
  private:
   static Dart_NativeFunction NativeLookup(Dart_Handle name,
                                           int argument_count);
+  static Dart_NativeFunction BuiltinNativeLookup(Dart_Handle name,
+                                                 int argument_count);
 
   static const char builtin_source_[];
   static const char crypto_source_[];

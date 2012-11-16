@@ -210,9 +210,14 @@ class Parser {
     assert(optional('@', token));
     token = parseIdentifier(token.next);
     token = parseQualifiedRestOpt(token);
-    token = parseQualifiedRestOpt(token);
+    token = parseTypeArgumentsOpt(token);
+    Token period = null;
+    if (optional('.', token)) {
+      period = token;
+      token = parseIdentifier(token.next);
+    }
     token = parseArgumentsOpt(token);
-    listener.endMetadata(atToken, token);
+    listener.endMetadata(atToken, period, token);
     return token;
   }
 

@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Library tag to allow the test to run on Dartium.
-#library('hmac_sha256_test');
+library hmac_sha256_test;
 
-#import("dart:crypto");
+import 'dart:crypto';
 
-#source('hmac_sha256_test_vectors.dart');
+part 'hmac_sha256_test_vectors.dart';
 
 void testStandardVectors(inputs, keys, macs) {
   for (var i = 0; i < inputs.length; i++) {

@@ -3,10 +3,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("utf32_tests");
-#import("dunit.dart");
-#import("../../string_encoding/unicode_core.dart");
-#import("../../string_encoding/utf32.dart");
+library utf32_tests;
+import 'dunit.dart';
+import '../../string_encoding/unicode_core.dart';
+import '../../string_encoding/utf32.dart';
 
 void main() {
   TestSuite suite = new TestSuite();

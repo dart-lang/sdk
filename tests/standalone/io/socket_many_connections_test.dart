@@ -35,7 +35,7 @@ class SocketManyConnectionsTest {
 
     for (int i = 0; i < CONNECTIONS; i++) {
       _sockets[i] = new Socket(TestingServer.HOST, _port);
-      if (_sockets[i] !== null) {
+      if (_sockets[i] != null) {
         _sockets[i].onConnect = connectHandler;
       } else {
         Expect.fail("socket creation failed");

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import('4740_library.dart');
+import '4740_library.dart';
 
 main() {
   Expect.throws(() => new Foo._internal(), (e) => e is NoSuchMethodError);

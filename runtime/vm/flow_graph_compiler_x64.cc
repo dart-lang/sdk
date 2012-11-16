@@ -20,7 +20,6 @@ namespace dart {
 
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
-DECLARE_FLAG(bool, trace_functions);
 DECLARE_FLAG(bool, use_sse41);
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 
@@ -159,7 +158,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
       __ cmpl(kClassIdReg, Immediate(type_class.id()));
       __ j(EQUAL, is_instance_lbl);
     }
-    if (type.IsListInterface()) {
+    if (type_class.raw() == Isolate::Current()->object_store()->list_class()) {
       GenerateListTypeCheck(kClassIdReg, is_instance_lbl);
     }
     return GenerateSubtype1TestCacheLookup(
@@ -268,7 +267,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
         kClassIdReg, type, is_instance_lbl, is_not_instance_lbl);
     return false;
   }
-  if (type.IsStringInterface()) {
+  if (type.IsStringType()) {
     GenerateStringTypeCheck(kClassIdReg, is_instance_lbl, is_not_instance_lbl);
     return false;
   }
@@ -627,17 +626,15 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
 void FlowGraphCompiler::CopyParameters() {
   __ Comment("Copy parameters");
   const Function& function = parsed_function().function();
-  const bool is_native_instance_closure =
-      function.is_native() && function.IsImplicitInstanceClosureFunction();
   LocalScope* scope = parsed_function().node_sequence()->scope();
   const int num_fixed_params = function.num_fixed_parameters();
   const int num_opt_pos_params = function.NumOptionalPositionalParameters();
-  int num_opt_named_params = function.NumOptionalNamedParameters();
+  const int num_opt_named_params = function.NumOptionalNamedParameters();
   const int num_params =
       num_fixed_params + num_opt_pos_params + num_opt_named_params;
-  int implicit_this_param_pos = is_native_instance_closure ? -1 : 0;
+  ASSERT(function.NumParameters() == num_params);
   ASSERT(parsed_function().first_parameter_index() ==
-         ParsedFunction::kFirstLocalSlotIndex + implicit_this_param_pos);
+         ParsedFunction::kFirstLocalSlotIndex);
 
   // Check that min_num_pos_args <= num_pos_args <= max_num_pos_args,
   // where num_pos_args is the number of positional arguments passed in.
@@ -668,19 +665,12 @@ void FlowGraphCompiler::CopyParameters() {
 
   // Let RDI point to the last copied positional argument, i.e. to
   // fp[ParsedFunction::kFirstLocalSlotIndex - (num_pos_args - 1)].
-  const int index =
-      ParsedFunction::kFirstLocalSlotIndex + 1 + implicit_this_param_pos;
-  // First copy captured receiver if function is an implicit native closure.
-  if (is_native_instance_closure) {
-    __ movq(RAX, FieldAddress(CTX, Context::variable_offset(0)));
-    __ movq(Address(RBP, (index * kWordSize)), RAX);
-  }
+  const int index = ParsedFunction::kFirstLocalSlotIndex + 1;
   __ SmiUntag(RCX);
   __ movq(RAX, RCX);
   __ negq(RAX);
   // -num_pos_args is in RAX.
-  // (ParsedFunction::kFirstLocalSlotIndex + 1 + implicit_this_param_pos)
-  // is in index.
+  // (ParsedFunction::kFirstLocalSlotIndex + 1) is in index.
   __ leaq(RDI, Address(RBP, RAX, TIMES_8, (index * kWordSize)));
   Label loop, loop_condition;
   __ jmp(&loop_condition, Assembler::kNearJump);
@@ -756,8 +746,8 @@ void FlowGraphCompiler::CopyParameters() {
       // We do not use the final allocation index of the variable here, i.e.
       // scope->VariableAt(i)->index(), because captured variables still need
       // to be copied to the context that is not yet allocated.
-      intptr_t computed_param_pos = (ParsedFunction::kFirstLocalSlotIndex -
-                                     param_pos + implicit_this_param_pos);
+      const intptr_t computed_param_pos =
+          ParsedFunction::kFirstLocalSlotIndex - param_pos;
       const Address param_addr(RBP, (computed_param_pos * kWordSize));
       __ movq(param_addr, RAX);
       __ Bind(&next_parameter);
@@ -767,7 +757,8 @@ void FlowGraphCompiler::CopyParameters() {
     // Check that RDI now points to the null terminator in the array descriptor.
     __ cmpq(Address(RDI, 0), raw_null);
     __ j(EQUAL, &all_arguments_processed, Assembler::kNearJump);
-  } else if (num_opt_pos_params > 0) {
+  } else {
+    ASSERT(num_opt_pos_params > 0);
     // Number of positional args is the second Smi in descriptor array (R10).
     __ movq(RCX, FieldAddress(R10, Array::data_offset() + (1 * kWordSize)));
     __ SmiUntag(RCX);
@@ -787,8 +778,8 @@ void FlowGraphCompiler::CopyParameters() {
       // We do not use the final allocation index of the variable here, i.e.
       // scope->VariableAt(i)->index(), because captured variables still need
       // to be copied to the context that is not yet allocated.
-      intptr_t computed_param_pos = (ParsedFunction::kFirstLocalSlotIndex -
-                                     param_pos + implicit_this_param_pos);
+      const intptr_t computed_param_pos =
+          ParsedFunction::kFirstLocalSlotIndex - param_pos;
       const Address param_addr(RBP, (computed_param_pos * kWordSize));
       __ movq(param_addr, RAX);
       __ Bind(&next_parameter);
@@ -799,9 +790,6 @@ void FlowGraphCompiler::CopyParameters() {
     // Check that RCX equals RBX, i.e. no named arguments passed.
     __ cmpq(RCX, RBX);
     __ j(EQUAL, &all_arguments_processed, Assembler::kNearJump);
-  } else {
-    ASSERT(is_native_instance_closure);
-    __ jmp(&all_arguments_processed, Assembler::kNearJump);
   }
 
   __ Bind(&wrong_num_arguments);
@@ -846,23 +834,6 @@ void FlowGraphCompiler::CopyParameters() {
                                       0);  // No registers.
   }
 
-  if (FLAG_trace_functions) {
-    __ pushq(RAX);  // Preserve result.
-    __ PushObject(Function::ZoneHandle(function.raw()));
-    // We do not use GenerateCallRuntime because of the non-standard (empty)
-    // stackmap used here.
-    __ CallRuntime(kTraceFunctionExitRuntimeEntry);
-    AddCurrentDescriptor(PcDescriptors::kOther,
-                         Isolate::kNoDeoptId,
-                         0);  // No token position.
-    if (is_optimizing()) {
-      stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
-                                        empty_stack_bitmap,
-                                        0);  // No registers.
-    }
-    __ popq(RAX);  // Remove argument.
-    __ popq(RAX);  // Restore result.
-  }
   __ LeaveFrame();
   __ ret();
 
@@ -1072,6 +1043,32 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t token_pos,
   __ CallRuntime(entry);
   AddCurrentDescriptor(PcDescriptors::kOther, Isolate::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
+}
+
+
+void FlowGraphCompiler::EmitOptimizedInstanceCall(
+    ExternalLabel* target_label,
+    const ICData& ic_data,
+    const Array& arguments_descriptor,
+    intptr_t argument_count,
+    intptr_t deopt_id,
+    intptr_t token_pos,
+    LocationSummary* locs) {
+  // Each ICData propagated from unoptimized to optimized code contains the
+  // function that corresponds to the Dart function of that IC call. Due
+  // to inlining in optimized code, that function may not correspond to the
+  // top-level function (parsed_function().function()) which could be
+  // reoptimized and which counter needs to be incremented.
+  // Pass the function explicitly.
+  __ LoadObject(RDI, parsed_function().function());
+  __ LoadObject(RBX, ic_data);
+  __ LoadObject(R10, arguments_descriptor);
+  GenerateDartCall(deopt_id,
+                   token_pos,
+                   target_label,
+                   PcDescriptors::kIcCall,
+                   locs);
+  __ Drop(argument_count);
 }
 
 

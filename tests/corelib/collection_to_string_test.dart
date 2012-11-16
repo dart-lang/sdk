@@ -6,8 +6,8 @@
  * Tests for the toString methods on collections and maps.
  */
 
-#library('collection_to_string');
-#import('dart:math', prefix: 'Math');
+library collection_to_string;
+import 'dart:math' as Math;
 
 // TODO(jjb): seed random number generator when API allows it
 

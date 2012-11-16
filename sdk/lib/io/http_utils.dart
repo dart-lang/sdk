@@ -262,7 +262,7 @@ class _HttpUtils {
 
     bool isDelimiter(String s) {
       int char = s.charCodeAt(0);
-      if (char === 0x09) return true;
+      if (char == 0x09) return true;
       if (char >= 0x20 && char <= 0x2F) return true;
       if (char >= 0x3B && char <= 0x40) return true;
       if (char >= 0x5B && char <= 0x60) return true;
@@ -315,21 +315,21 @@ class _HttpUtils {
 
     for (var token in tokens) {
       if (token.length < 1) continue;
-      if (timeStr === null && token.length >= 5 && isDigit(token[0]) &&
+      if (timeStr == null && token.length >= 5 && isDigit(token[0]) &&
           (token[1] == ":" || (isDigit(token[1]) && token[2] == ":"))) {
         timeStr = token;
-      } else if (dayOfMonthStr === null && isDigit(token[0])) {
+      } else if (dayOfMonthStr == null && isDigit(token[0])) {
         dayOfMonthStr = token;
-      } else if (monthStr === null && getMonth(token) >= 0) {
+      } else if (monthStr == null && getMonth(token) >= 0) {
         monthStr = token;
-      } else if (yearStr === null && token.length >= 2 &&
+      } else if (yearStr == null && token.length >= 2 &&
                  isDigit(token[0]) && isDigit(token[1])) {
         yearStr = token;
       }
     }
 
-    if (timeStr === null || dayOfMonthStr === null ||
-        monthStr === null || yearStr === null) {
+    if (timeStr == null || dayOfMonthStr == null ||
+        monthStr == null || yearStr == null) {
       error();
     }
 
@@ -344,7 +344,7 @@ class _HttpUtils {
     int month = getMonth(monthStr) + 1;
 
     var timeList = timeStr.split(":");
-    if (timeList.length !== 3) error();
+    if (timeList.length != 3) error();
     int hour = toInt(timeList[0]);
     int minute = toInt(timeList[1]);
     int second = toInt(timeList[2]);

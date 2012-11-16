@@ -303,6 +303,14 @@ const char* JumpNode::Name() const {
 }
 
 
+const Instance* LoadLocalNode::EvalConstExpr() const {
+  if (local().IsConst()) {
+    return local().ConstValue();
+  }
+  return NULL;
+}
+
+
 AstNode* LoadLocalNode::MakeAssignmentNode(AstNode* rhs) {
   if (local().is_final()) {
     return NULL;

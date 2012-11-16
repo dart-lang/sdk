@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("panda_test");
-#import("panda_lib.dart", prefix:"p");
+library panda_test;
+import 'panda_lib.dart' as p;
 
 void main() {
   p.Panda x = new p.Panda();

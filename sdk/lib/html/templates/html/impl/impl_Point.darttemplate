@@ -4,6 +4,8 @@
 
 // WARNING: Do not edit - generated code.
 
+part of html;
+
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   factory $CLASSNAME(num x, num y) => _$(CLASSNAME)FactoryProvider.create$CLASSNAME(x, y);
 $!MEMBERS

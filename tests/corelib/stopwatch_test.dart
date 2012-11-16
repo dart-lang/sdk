@@ -4,8 +4,8 @@
 
 // Dart test program for testing stopwatch support.
 
-#library('stopwatch_test');
-#import('dart:math');
+library stopwatch_test;
+import 'dart:math';
 
 class StopwatchTest {
   static bool checkTicking(Stopwatch sw) {

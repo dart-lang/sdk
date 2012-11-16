@@ -198,7 +198,7 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
     while (true) {
       // [existingKey] can be either of type [K] or [_DeletedKeySentinel].
       Object existingKey = _keys[hash];
-      if (existingKey === null) {
+      if (existingKey == null) {
         // We are sure the key is not already in the set.
         // If the current slot is empty and we didn't find any
         // insertion slot before, return this slot.
@@ -208,7 +208,8 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
       } else if (existingKey == key) {
         // The key is already in the map. Return its slot.
         return hash;
-      } else if ((insertionIndex < 0) && (_DELETED_KEY === existingKey)) {
+      } else if ((insertionIndex < 0) &&
+                 (identical(existingKey, _DELETED_KEY))) {
         // The slot contains a deleted element. Because previous calls to this
         // method may not have had this slot deleted, we must continue iterate
         // to find if there is a slot with the given key.
@@ -232,7 +233,7 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
       Object existingKey = _keys[hash];
       // If the slot does not contain anything (in particular, it does not
       // contain a deleted key), we know the key is not in the map.
-      if (existingKey === null) return -1;
+      if (existingKey == null) return -1;
       // The key is in the map, return its index.
       if (existingKey == key) return hash;
       // Go to the next probe.
@@ -278,7 +279,7 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
       // [key] can be either of type [K] or [_DeletedKeySentinel].
       Object key = oldKeys[i];
       // If there is no key, we don't need to deal with the current slot.
-      if (key === null || key === _DELETED_KEY) {
+      if (key == null || identical(key, _DELETED_KEY)) {
         continue;
       }
       V value = oldValues[i];
@@ -303,7 +304,7 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
   void operator []=(K key, V value) {
     _ensureCapacity();
     int index = _probeForAdding(key);
-    if ((_keys[index] === null) || (_keys[index] === _DELETED_KEY)) {
+    if ((_keys[index] == null) || (identical(_keys[index], _DELETED_KEY))) {
       _numberOfEntries++;
     }
     _keys[index] = key;
@@ -351,7 +352,7 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
     int length = _keys.length;
     for (int i = 0; i < length; i++) {
       var key = _keys[i];
-      if ((key !== null) && (key !== _DELETED_KEY)) {
+      if ((key != null) && (!identical(key, _DELETED_KEY))) {
         f(key, _values[i]);
       }
     }
@@ -361,7 +362,7 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
   Collection<K> get keys {
     List<K> list = new List<K>(length);
     int i = 0;
-    forEach(void _(K key, V value) {
+    forEach((K key, V value) {
       list[i++] = key;
     });
     return list;
@@ -370,7 +371,7 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
   Collection<V> get values {
     List<V> list = new List<V>(length);
     int i = 0;
-    forEach(void _(K key, V value) {
+    forEach((K key, V value) {
       list[i++] = value;
     });
     return list;
@@ -384,7 +385,7 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
     int length = _values.length;
     for (int i = 0; i < length; i++) {
       var key = _keys[i];
-      if ((key !== null) && (key !== _DELETED_KEY)) {
+      if ((key != null) && (!identical(key, _DELETED_KEY))) {
         if (_values[i] == value) return true;
       }
     }
@@ -450,20 +451,20 @@ class _LinkedHashMapImpl<K, V> implements LinkedHashMap<K, V> {
 
   V operator [](K key) {
     DoubleLinkedQueueEntry<_KeyValuePair<K, V>> entry = _map[key];
-    if (entry === null) return null;
+    if (entry == null) return null;
     return entry.element.value;
   }
 
   V remove(K key) {
     DoubleLinkedQueueEntry<_KeyValuePair<K, V>> entry = _map.remove(key);
-    if (entry === null) return null;
+    if (entry == null) return null;
     entry.remove();
     return entry.element.value;
   }
 
   V putIfAbsent(K key, V ifAbsent()) {
     V value = this[key];
-    if ((this[key] === null) && !(containsKey(key))) {
+    if ((this[key] == null) && !(containsKey(key))) {
       value = ifAbsent();
       this[key] = value;
     }
@@ -473,7 +474,7 @@ class _LinkedHashMapImpl<K, V> implements LinkedHashMap<K, V> {
   Collection<K> get keys {
     List<K> list = new List<K>(length);
     int index = 0;
-    _list.forEach(void _(_KeyValuePair<K, V> entry) {
+    _list.forEach((_KeyValuePair<K, V> entry) {
       list[index++] = entry.key;
     });
     assert(index == length);
@@ -484,7 +485,7 @@ class _LinkedHashMapImpl<K, V> implements LinkedHashMap<K, V> {
   Collection<V> get values {
     List<V> list = new List<V>(length);
     int index = 0;
-    _list.forEach(void _(_KeyValuePair<K, V> entry) {
+    _list.forEach((_KeyValuePair<K, V> entry) {
       list[index++] = entry.value;
     });
     assert(index == length);
@@ -492,7 +493,7 @@ class _LinkedHashMapImpl<K, V> implements LinkedHashMap<K, V> {
   }
 
   void forEach(void f(K key, V value)) {
-    _list.forEach(void _(_KeyValuePair<K, V> entry) {
+    _list.forEach((_KeyValuePair<K, V> entry) {
       f(entry.key, entry.value);
     });
   }
@@ -502,7 +503,7 @@ class _LinkedHashMapImpl<K, V> implements LinkedHashMap<K, V> {
   }
 
   bool containsValue(V value) {
-    return _list.some(bool _(_KeyValuePair<K, V> entry) {
+    return _list.some((_KeyValuePair<K, V> entry) {
       return (entry.value == value);
     });
   }

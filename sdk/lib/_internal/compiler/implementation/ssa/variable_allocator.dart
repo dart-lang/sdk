@@ -441,12 +441,17 @@ class VariableNames {
  */
 class VariableNamer {
   final VariableNames names;
+  final Compiler compiler;
   final Set<String> usedNames;
   final Map<Element, String> parameterNames;
   final List<String> freeTemporaryNames;
   int temporaryIndex = 0;
+  static final RegExp regexp = new RegExp('t[0-9]+');
 
-  VariableNamer(LiveEnvironment environment, this.names, this.parameterNames)
+  VariableNamer(LiveEnvironment environment,
+                this.names,
+                this.parameterNames,
+                this.compiler)
     : usedNames = new Set<String>(),
       freeTemporaryNames = new List<String>() {
     // [VariableNames.swapTemp] is used when there is a cycle in a copy handler.
@@ -511,11 +516,11 @@ class VariableNamer {
       if (name != null) return addAllocatedName(instruction, name);
     }
 
-    // The dom/html libraries have inline JS code that reference	
-    // parameter names directly. Long-term such code will be rejected.
-    // Now, just don't mangle the parameter name.
     if (instruction is HParameterValue
         && instruction.sourceElement.enclosingElement.isNative()) {
+      // The dom/html libraries have inline JS code that reference	
+      // parameter names directly. Long-term such code will be rejected.
+      // Now, just don't mangle the parameter name.
       name = instruction.sourceElement.name.slowToString();
     } else if (instruction.sourceElement != null) {
       name = allocateWithHint(instruction.sourceElement.name.slowToString());
@@ -530,7 +535,6 @@ class VariableNamer {
         name = allocateTemporary();
       }
     }
-
     return addAllocatedName(instruction, name);
   }
 
@@ -550,7 +554,6 @@ class VariableNamer {
   void freeName(HInstruction instruction) {
     String ownName = names.ownName[instruction];
     if (ownName != null) {
-      RegExp regexp = const RegExp('t[0-9]+');
       // We check if we have already looked for temporary names
       // because if we haven't, chances are the temporary we allocate
       // in this block can match a phi with the same name in the
@@ -599,7 +602,7 @@ class SsaVariableAllocator extends HBaseVisitor {
 
   void visitBasicBlock(HBasicBlock block) {
     VariableNamer namer = new VariableNamer(
-        liveInstructions[block], names, parameterNames);
+        liveInstructions[block], names, parameterNames, compiler);
 
     block.forEachPhi((HPhi phi) {
       handlePhi(phi, namer);
@@ -618,7 +621,8 @@ class SsaVariableAllocator extends HBaseVisitor {
     // TODO(ngeoffray): locals/parameters are being generated at use site,
     // but we need a name for them. We should probably not make
     // them generate at use site to make things simpler.
-    if (instruction is HLocalValue && instruction is !HThis) return true;
+    if (instruction is HThis) return false;
+    if (instruction is HLocalValue) return true;
     if (instruction.usedBy.isEmpty) return false;
     if (generateAtUseSite.contains(instruction)) return false;
     // A [HCheck] instruction that has control flow needs a name only if its

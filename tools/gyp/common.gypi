@@ -14,6 +14,8 @@
     'component': 'static_library',
     'target_arch': 'ia32',
     'v8_location': '<(DEPTH)/../third_party/v8',
+    # Flag that tells us whether to build native support for dart:io.
+    'dart_io_support': 1,
   },
   'conditions': [
     [ 'OS=="linux"', {

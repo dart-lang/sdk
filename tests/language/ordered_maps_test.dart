@@ -11,7 +11,7 @@ class OrderedMapsTest {
   }
 
   static void testMaps(map1, map2, bool isConst) {
-    Expect.equals(true, map1 !== map2);
+    Expect.isFalse(identical(map1, map2));
 
     var keys = map1.keys;
     Expect.equals(2, keys.length);

@@ -34,14 +34,6 @@ RawScript* Bootstrap::LoadCoreScript(bool patch) {
 }
 
 
-RawScript* Bootstrap::LoadCoreImplScript(bool patch) {
-  // TODO(iposva): Use proper library name.
-  const char* url = patch ? "dart:coreimpl-patch" : "bootstrap_impl";
-  const char* source = patch ? corelib_impl_patch_ : corelib_impl_source_;
-  return LoadScript(url, source, patch);
-}
-
-
 RawScript* Bootstrap::LoadCollectionScript(bool patch) {
   const char* url = patch ? "dart:collection-patch" : "dart:collection";
   const char* source = patch ? collection_source_ : collection_source_;

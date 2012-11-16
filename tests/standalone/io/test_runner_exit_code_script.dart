@@ -16,17 +16,19 @@ main() {
     new ProgressIndicator.fromName(progressType, startTime, false);
   // Build a dummy test case.
   var configuration = new TestOptionsParser().parse(['--timeout', '2'])[0];
+  var dummyCommand = new Command("noop", []);
   var testCase = new TestCase('failing_test.dart',
-                              [],
+                              [dummyCommand],
                               configuration,
                               (_) => null,
                               new Set<String>.from(['PASS']));
+
   // Simulate the test.dart use of the progress indicator.
   progress.testAdded();
   progress.allTestsKnown();
   progress.start(testCase);
-  new TestOutput.fromCase(testCase, 1, false, false, [], [],
-                          new Date.now().difference(startTime));
+  new CommandOutput.fromCase(testCase, dummyCommand, 1, false, false, [], [],
+                             new Date.now().difference(startTime));
   progress.done(testCase);
   progress.allDone();
 }

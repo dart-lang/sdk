@@ -43,26 +43,26 @@ main() {
 
 
 test1(a) {
-  return a === 3;
+  return identical(a, 3);
 }
 
 test2(a) {
-  return a !== 3;
+  return !identical(a, 3);
 }
 
 
 test2r(a) {
-  return 3 !== a;
+  return !identical(3, a);
 }
 
 
 test3() {
-  return get5() === 5;
+  return identical(get5(), 5);
 }
 
 
 test4(a) {
-  if (a === 3) {
+  if (identical(a, 3)) {
     return 1;
   } else {
     return 2;
@@ -71,7 +71,7 @@ test4(a) {
 
 
 test5(a) {
-  if (a !== 3) {
+  if (!identical(a, 3)) {
     return 1;
   } else {
     return 2;
@@ -80,7 +80,7 @@ test5(a) {
 
 
 test6() {
-  if (get5() === 5) {
+  if (identical(get5(), 5)) {
     return 1;
   } else {
     return 2;
@@ -92,12 +92,12 @@ get5() {
 }
 
 test7() {
-  return null !== null;
+  return null != null;
 }
 
 
 test8() {
-  if (null !== null) {
+  if (null != null) {
     return 1;
   } else {
     return 2;
@@ -106,31 +106,31 @@ test8() {
 
 
 test9(a) {
-  return a === 0;
+  return identical(a, 0);
 }
 
 
 test9r(a) {
-  return 0 === a;
+  return identical(0, a);
 }
 
 
 test10(a) {
-  return a !== 0;
+  return !identical(a, 0);
 }
 
 test10r(a) {
-  return 0 !== a;
+  return !identical(0, a);
 }
 
 test11(a) {
-  if (a === 0) {
-    Expect.isTrue(0 === a);
-    Expect.isFalse(a !== 0);
-    Expect.isFalse(0 !== a);
+  if (identical(a, 0)) {
+    Expect.isTrue(identical(0, a));
+    Expect.isFalse(!identical(a, 0));
+    Expect.isFalse(!identical(0, a));
   } else {
-    Expect.isFalse(0 === a);
-    Expect.isTrue(a !== 0);
-    Expect.isTrue(0 !== a);
+    Expect.isFalse(identical(0, a));
+    Expect.isTrue(!identical(a, 0));
+    Expect.isTrue(!identical(0, a));
   }
 }

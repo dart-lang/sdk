@@ -5,13 +5,11 @@
 class C<T> {}
 
 sameType(a, b) {
-  Expect.identical(a.runtimeType, b.runtimeType);
+  Expect.equals(a.runtimeType, b.runtimeType);
 }
 
 differentType(a, b) {
-  print("a: ${a.runtimeType}");
-  print("b: ${b.runtimeType}");
-  Expect.isFalse(a.runtimeType === b.runtimeType);
+  Expect.isFalse(a.runtimeType == b.runtimeType);
 }
 
 main() {

@@ -4,8 +4,8 @@
 
 // Test for correct hidden native class when interface has same name.
 
-#library('main');
-#import('native_library_same_name_used_lib1.dart');
+library main;
+import 'native_library_same_name_used_lib1.dart';
 
 void setup() native """
   // This code is all inside 'setup' and so not accesible from the global scope.

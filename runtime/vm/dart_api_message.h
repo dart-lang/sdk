@@ -131,7 +131,7 @@ class ApiMessageWriter : public BaseWriter {
   void WriteMessage(intptr_t field_count, intptr_t *data);
 
   // Writes a message with a single object.
-  void WriteCMessage(Dart_CObject* object);
+  bool WriteCMessage(Dart_CObject* object);
 
  private:
   static const intptr_t kDartCObjectTypeBits = 4;
@@ -152,10 +152,10 @@ class ApiMessageWriter : public BaseWriter {
   void WriteInt32(Dart_CObject* object);
   void WriteInt64(Dart_CObject* object);
   void WriteInlinedHeader(Dart_CObject* object);
-  void WriteCObject(Dart_CObject* object);
-  void WriteCObjectRef(Dart_CObject* object);
-  void WriteForwardedCObject(Dart_CObject* object);
-  void WriteCObjectInlined(Dart_CObject* object, Dart_CObject::Type type);
+  bool WriteCObject(Dart_CObject* object);
+  bool WriteCObjectRef(Dart_CObject* object);
+  bool WriteForwardedCObject(Dart_CObject* object);
+  bool WriteCObjectInlined(Dart_CObject* object, Dart_CObject::Type type);
 
   intptr_t object_id_;
   Dart_CObject** forward_list_;

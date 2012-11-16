@@ -1,0 +1,82 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+part of html;
+
+class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$!MEMBERS
+  /** @domName Document.body */
+  BodyElement get body => document.$dom_body;
+
+  /** @domName Document.body */
+  void set body(BodyElement value) {
+    document.$dom_body = value;
+  }
+
+  /** @domName Document.caretRangeFromPoint */
+  Range caretRangeFromPoint(int x, int y) {
+    return document.$dom_caretRangeFromPoint(x, y);
+  }
+
+  /** @domName Document.elementFromPoint */
+  Element elementFromPoint(int x, int y) {
+    return document.$dom_elementFromPoint(x, y);
+  }
+
+  /** @domName Document.head */
+  HeadElement get head => document.$dom_head;
+
+  /** @domName Document.lastModified */
+  String get lastModified => document.$dom_lastModified;
+
+  /** @domName Document.referrer */
+  String get referrer => document.$dom_referrer;
+
+  /** @domName Document.styleSheets */
+  List<StyleSheet> get styleSheets => document.$dom_styleSheets;
+
+  /** @domName Document.title */
+  String get title => document.$dom_title;
+
+  /** @domName Document.title */
+  void set title(String value) {
+    document.$dom_title = value;
+  }
+
+  /** @domName Document.webkitCancelFullScreen */
+  void webkitCancelFullScreen() {
+    document.$dom_webkitCancelFullScreen();
+  }
+
+  /** @domName Document.webkitExitFullscreen */
+  void webkitExitFullscreen() {
+    document.$dom_webkitExitFullscreen();
+  }
+
+  /** @domName Document.webkitExitPointerLock */
+  void webkitExitPointerLock() {
+    document.$dom_webkitExitPointerLock();
+  }
+
+  /** @domName Document.webkitFullscreenElement */
+  Element get webkitFullscreenElement => document.$dom_webkitFullscreenElement;
+
+  /** @domName Document.webkitFullscreenEnabled */
+  bool get webkitFullscreenEnabled => document.$dom_webkitFullscreenEnabled;
+
+  /** @domName Document.webkitHidden */
+  bool get webkitHidden => document.$dom_webkitHidden;
+
+  /** @domName Document.webkitIsFullScreen */
+  bool get webkitIsFullScreen => document.$dom_webkitIsFullScreen;
+
+  /** @domName Document.webkitPointerLockElement */
+  Element get webkitPointerLockElement =>
+      document.$dom_webkitPointerLockElement;
+
+  /** @domName Document.webkitVisibilityState */
+  String get webkitVisibilityState => document.$dom_webkitVisibilityState;
+}

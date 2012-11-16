@@ -177,11 +177,23 @@ class Dart2JsDiagnosticListener implements DiagnosticListener {
   void internalError(String message,
                      {Node node, Token token, HInstruction instruction,
                       Element element}) {
-    cancel('Internal error: $message', node, token, instruction, element);
+    cancel('Internal error: $message', node: node, token: token,
+           instruction: instruction, element: element);
   }
 
   void internalErrorOnElement(Element element, String message) {
     internalError(message, element: element);
+  }
+
+  SourceSpan spanFromNode(Node node, [Uri uri]) {
+    // TODO(johnniwinther): implement this.
+    throw 'unimplemented';
+  }
+
+  void reportMessage(SourceSpan span, Diagnostic message,
+                     diagnostics.Diagnostic kind) {
+    // TODO(johnniwinther): implement this.
+    throw 'unimplemented';
   }
 }
 
@@ -253,7 +265,7 @@ class LibraryCompiler extends api.Compiler {
   }
 
   void processQueueList(Enqueuer world, List<LibraryElement> elements) {
-    backend.processNativeClasses(world, libraries.values);
+    world.nativeEnqueuer.processNativeClasses(libraries.values);
     for (var library in elements) {
       library.forEachLocalMember((element) {
         world.addToWorkList(element);
@@ -1371,7 +1383,11 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
 
   factory Dart2JsMethodMirror(Dart2JsContainerMirror objectMirror,
                               FunctionElement function) {
-    String simpleName = function.name.slowToString();
+    String realName = function.name.slowToString();
+    // TODO(ahe): This method should not be calling
+    // Elements.operatorNameToIdentifier.
+    String simpleName =
+        Elements.operatorNameToIdentifier(function.name).slowToString();
     String displayName;
     String constructorName = null;
     String operatorName = null;
@@ -1412,7 +1428,7 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
       }
       // Simple name is TypeName.constructorName.
       displayName = simpleName;
-    } else if (simpleName == 'negate') {
+    } else if (realName == 'unary-') {
       kind = Dart2JsMethodKind.OPERATOR;
       operatorName = '-';
       // Simple name is 'unary-'.
@@ -1536,4 +1552,3 @@ class Dart2JsFieldMirror extends Dart2JsMemberMirror implements VariableMirror {
     }
   }
 }
-

@@ -8,13 +8,11 @@
  * scalar character codes accessible through the [charCodeAt] or the
  * [charCodes] method.
  */
-interface String
-    extends Comparable, Pattern, Sequence<String>
-    default _StringImpl {
+abstract class String implements Comparable, Pattern, Sequence<String> {
   /**
    * Allocates a new String for the specified [charCodes].
    */
-  String.fromCharCodes(List<int> charCodes);
+  external factory String.fromCharCodes(List<int> charCodes);
 
   /**
    * Gets the character (as [String]) at the given [index].
@@ -130,23 +128,4 @@ interface String
    * where all characters are made upper case. Returns [:this:] otherwise.
    */
   String toUpperCase();
-}
-
-class _StringImpl {
-  /**
-   * Factory implementation of String.fromCharCodes:
-   * Allocates a new String for the specified [charCodes].
-   */
-  external factory String.fromCharCodes(List<int> charCodes);
-
-  /**
-   * Joins all the given strings to create a new string.
-   */
-  external static String join(List<String> strings, String separator);
-
-  /**
-   * Concatenates all the given strings to create a new string.
-   */
-  external static String concatAll(List<String> strings);
-
 }

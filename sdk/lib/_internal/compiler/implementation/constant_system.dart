@@ -4,18 +4,18 @@
 
 part of dart2js;
 
-interface Operation {
-  final SourceString name;
+abstract class Operation {
+  SourceString get name;
   bool isUserDefinable();
 }
 
-interface UnaryOperation extends Operation {
+abstract class UnaryOperation extends Operation {
   /** Returns [:null:] if it was unable to fold the operation. */
   Constant fold(Constant constant);
   apply(value);
 }
 
-interface BinaryOperation extends Operation {
+abstract class BinaryOperation extends Operation {
   /** Returns [:null:] if it was unable to fold the operation. */
   Constant fold(Constant left, Constant right);
   apply(left, right);
@@ -24,7 +24,7 @@ interface BinaryOperation extends Operation {
 /**
  * A [ConstantSystem] is responsible for creating constants and folding them.
  */
-interface ConstantSystem {
+abstract class ConstantSystem {
   BinaryOperation get add;
   BinaryOperation get bitAnd;
   UnaryOperation get bitNot;

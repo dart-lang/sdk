@@ -1,5 +1,5 @@
-#import('dart:html');
-#source('realviews.dart');
+import 'dart:html';
+part 'realviews.dart';
 
 class Division {
   String name;

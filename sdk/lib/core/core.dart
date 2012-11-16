@@ -4,7 +4,6 @@
 
 #library("dart:core");
 
-#import("dart:coreimpl");
 #import("dart:collection");
 
 #source("bool.dart");

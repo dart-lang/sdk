@@ -6,10 +6,10 @@
  * The primary library file for the archive library. This is the only file that
  * should be imported by clients.
  */
-#library("archive");
+library archive;
 
-#import("entry.dart", prefix: "entry");
-#import("reader.dart", prefix: "reader");
+import 'entry.dart' as entry;
+import 'reader.dart' as reader;
 
 // TODO(nweiz): Remove this when 3071 is fixed.
 /** An error raised by the archive library. */

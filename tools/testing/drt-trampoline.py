@@ -41,7 +41,7 @@ def main(argv):
         raise Exception(
             'Bad file expectation (%s), ' % out_expected_file
             + 'please specify either a .txt or a .png file')
-    elif arg.endswith('.html'):
+    elif '.html' in arg:
       test_file = arg
     else:
       cmd.append(arg)

@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("compiler_helper.dart");
+import 'compiler_helper.dart';
 
 const String TEST_ONE = r"""
 class A {}
 bool foo(bar) {
   var x = new A();
   var y = new A();
-  return x === y;
+  return identical(x, y);
 }
 """;
 
@@ -17,11 +17,11 @@ main() {
   String generated = compile(TEST_ONE, entry: 'foo');
 
   // Check that no boolify code is generated.
-  RegExp regexp = const RegExp("=== true");
+  RegExp regexp = new RegExp("=== true");
   Iterator matches = regexp.allMatches(generated).iterator();
   Expect.isFalse(matches.hasNext);
 
-  regexp = const RegExp("===");
+  regexp = new RegExp("===");
   matches = regexp.allMatches(generated).iterator();
   Expect.isTrue(matches.hasNext);
   matches.next();

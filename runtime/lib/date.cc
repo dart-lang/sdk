@@ -16,7 +16,7 @@ namespace dart {
 static int32_t kMaxAllowedSeconds = 2100000000;
 
 DEFINE_NATIVE_ENTRY(DateNatives_timeZoneName, 1) {
-  GET_NATIVE_ARGUMENT(Integer, dart_seconds, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Integer, dart_seconds, arguments->NativeArgAt(0));
   int64_t seconds = dart_seconds.AsInt64Value();
   if (seconds < 0 || seconds > kMaxAllowedSeconds) {
     GrowableArray<const Object*> args;
@@ -29,7 +29,7 @@ DEFINE_NATIVE_ENTRY(DateNatives_timeZoneName, 1) {
 
 
 DEFINE_NATIVE_ENTRY(DateNatives_timeZoneOffsetInSeconds, 1) {
-  GET_NATIVE_ARGUMENT(Integer, dart_seconds, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Integer, dart_seconds, arguments->NativeArgAt(0));
   int64_t seconds = dart_seconds.AsInt64Value();
   if (seconds < 0 || seconds > kMaxAllowedSeconds) {
     GrowableArray<const Object*> args;

@@ -20,7 +20,7 @@ void DumpFunction(const Library& lib, const char* cname, const char* fname) {
   EXPECT(!cls.IsNull());
 
   String& funcname = String::Handle(String::New(fname));
-  Function& function = Function::Handle(cls.LookupStaticFunction(funcname));
+  Function& function = Function::ZoneHandle(cls.LookupStaticFunction(funcname));
   EXPECT(!function.IsNull());
 
   bool retval;

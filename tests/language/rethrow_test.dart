@@ -26,7 +26,7 @@ class RethrowTest {
           throwException();
           Expect.fail("Should have thrown an exception");
         } catch (e) {
-          Expect.equals(true, e === currentException);
+          Expect.equals(true, identical(e, currentException));
           throw;
           Expect.fail("Should have thrown an exception");
         }
@@ -34,7 +34,7 @@ class RethrowTest {
         Expect.fail("Should not have caught OtherException");
       }
     } catch (e) {
-      Expect.equals(true, e === currentException);
+      Expect.equals(true, identical(e, currentException));
     }
   }
 
@@ -44,12 +44,12 @@ class RethrowTest {
         throwException();
         Expect.fail("Should have thrown an exception");
       } catch (e) {
-        Expect.equals(true, e === currentException);
+        Expect.equals(true, identical(e, currentException));
         throw;
         Expect.fail("Should have thrown an exception");
       }
     } catch (e) {
-      Expect.equals(true, e === currentException);
+      Expect.equals(true, identical(e, currentException));
     }
   }
 }

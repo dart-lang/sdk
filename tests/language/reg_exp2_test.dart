@@ -23,7 +23,7 @@ class RegExp2Test {
 ''';
    String extensions = 'jpg|jpeg|png';
    String tag = findImageTag_(text, extensions);
-   Expect.equals(true, tag !== null);
+   Expect.isNotNull(tag);
  }
 }
 

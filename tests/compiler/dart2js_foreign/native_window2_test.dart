@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'native_metadata.dart';
+
 interface Window {
   final int document;
 }
 
 // Defining this global object makes Frog eager on optimizing
 // call sites where the receiver is typed 'Window'.
-@native("@*DOMWindow")
+@Native("@*DOMWindow")
 class _DOMWindowJs implements Window  {
   final int document;
 }

@@ -35,7 +35,7 @@ class OptionHandler {
 String extractParameter(String argument) {
   // m[0] is the entire match (which will be equal to argument). m[1]
   // is something like "-o" or "--out=", and m[2] is the parameter.
-  Match m = const RegExp('^(-[a-z]|--.+=)(.*)').firstMatch(argument);
+  Match m = new RegExp('^(-[a-z]|--.+=)(.*)').firstMatch(argument);
   if (m == null) helpAndFail('Error: Unknown option "$argument".');
   return m[2];
 }
@@ -109,6 +109,12 @@ void compile(List<String> argv) {
     passThrough(argument);
   }
 
+  String getDepsOutput(Map<String, SourceFile> sourceFiles) {
+    var filenames = new List.from(sourceFiles.keys);
+    filenames.sort();
+    return Strings.join(filenames, "\n");
+  }
+
   setStrip(String argument) {
     stripArgumentSet = true;
     passThrough(argument);
@@ -157,6 +163,12 @@ void compile(List<String> argv) {
     new OptionHandler(r'--help|/\?|/h', (_) => wantHelp = true),
     new OptionHandler('--package-root=.+|-p.+', setPackageRoot),
     new OptionHandler('--disallow-unsafe-eval', passThrough),
+    new OptionHandler('--analyze-all', passThrough),
+    new OptionHandler('--enable-native-live-type-analysis', passThrough),
+    new OptionHandler('--reject-deprecated-language-features', passThrough),
+    new OptionHandler('--report-sdk-use-of-deprecated-language-features',
+                      passThrough),
+
     // The following two options must come last.
     new OptionHandler('-.*', (String argument) {
       helpAndFail('Error: Unknown option "$argument".');
@@ -283,6 +295,7 @@ void compile(List<String> argv) {
       sourceMapOut.path.substring(sourceMapOut.path.lastIndexOf('/') + 1);
   code = '$code\n//@ sourceMappingURL=${sourceMapFileName}';
   writeString(out, code);
+  writeString(new Uri.fromString('$out.deps'), getDepsOutput(sourceFiles));
   int bytesWritten = code.length;
   info('compiled $dartBytesRead bytes Dart -> $bytesWritten bytes '
        '$outputLanguage in ${relativize(cwd, out, isWindows)}');
@@ -367,6 +380,12 @@ Supported options:
   -p<path>, --package-root=<path>
     Where to find packages, that is, "package:..." imports.
 
+  --analyze-all
+    Analyze all code.  Without this option, the compiler only analyzes
+    code that is reachable from [main].  This option is useful for
+    finding errors in libraries, but using it can result in bigger and
+    slower output.
+
   --minify
     Generate minified output.
 
@@ -395,11 +414,30 @@ be removed in a future version:
   --enable-concrete-type-inference
     Enable experimental concrete type inference.
 
+  --enable-native-live-type-analysis
+    Remove unused native types from dart:html and related libraries. This is
+    expected to become the default behavior.
+
   --disallow-unsafe-eval
     Disables dynamic generation of code in the generated output. This is
     necessary to satisfy CSP restrictions (see http://www.w3.org/TR/CSP/).
     This flag is not continuously tested. Please report breakages and we
-    will fix them as soon as possible.''');
+    will fix them as soon as possible.
+
+  --reject-deprecated-language-features
+    Reject deprecated language features.  Without this option, the
+    compiler will accept language features that are no longer valid
+    according to The Dart Programming Language Specification, version
+    0.12, M1.
+
+  --report-sdk-use-of-deprecated-language-features
+    Report use of deprecated features in Dart platform libraries.
+    Without this option, the compiler will silently accept use of
+    deprecated language features from these libraries.  The option
+    --reject-deprecated-language-features controls if these usages are
+    reported as errors or warnings.
+
+'''.trim());
 }
 
 void helpAndExit(bool verbose) {

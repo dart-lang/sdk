@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@native("*A")
+import 'native_metadata.dart';
+
+@Native("*A")
 class A {}
 @native makeA();
 
-@native("""
+@Native("""
 function A() {}
 makeA = function(){return new A;};
 """)

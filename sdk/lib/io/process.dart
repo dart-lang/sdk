@@ -214,8 +214,25 @@ class ProcessSignal {
 
 
 class ProcessException implements Exception {
-  const ProcessException([String this.message = "", int this.errorCode = 0]);
-  String toString() => "ProcessException: $message ($errorCode)";
+  const ProcessException(String this.executable,
+                         List<String> this.arguments,
+                         [String this.message = "",
+                          int this.errorCode = 0]);
+  String toString() {
+    var msg = (message == null) ? 'OS error code: $errorCode' : message;
+    var args = Strings.join(arguments, ' ');
+    return "ProcessException: $msg\n  Command: $executable $args";
+  }
+
+  /**
+   * Contains the executable provided for the process.
+   */
+  final String executable;
+
+  /**
+   * Contains the arguments provided for the process.
+   */
+  final List<String> arguments;
 
   /**
    * Contains the system message for the process exception if any.

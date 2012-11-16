@@ -45,7 +45,7 @@ class ListTest {
     List a = new List(len);
     Expect.equals(true, a is List);
     Expect.equals(len, a.length);
-    a.forEach(f(element) { Expect.equals(null, element); });
+    a.forEach((element) { Expect.equals(null, element); });
     a[1] = 1;
     Expect.equals(1, a[1]);
     Expect.throws(() => a[len], (e) => e is RangeError);

@@ -508,8 +508,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
       const AbstractType& dst_type =
           AbstractType::ZoneHandle(
               owner()->parsed_function().function().result_type());
-      const String& dst_name =
-          String::ZoneHandle(Symbols::New("function result"));
+      const String& dst_name = String::ZoneHandle(Symbols::FunctionResult());
       return_value = BuildAssignableValue(node->value()->token_pos(),
                                           return_value,
                                           dst_type,
@@ -606,7 +605,22 @@ bool EffectGraphVisitor::CanSkipTypeCheck(intptr_t token_pos,
 //                              type:     AbstractType
 //                              dst_name: String }
 void EffectGraphVisitor::VisitAssignableNode(AssignableNode* node) {
-  UNREACHABLE();
+  ValueGraphVisitor for_value(owner(), temp_index(), loop_depth());
+  node->expr()->Visit(&for_value);
+  Append(for_value);
+  Definition* checked_value;
+  if (CanSkipTypeCheck(node->expr()->token_pos(),
+                       for_value.value(),
+                       node->type(),
+                       node->dst_name())) {
+    checked_value = for_value.value()->definition();  // No check needed.
+  } else {
+    checked_value = BuildAssertAssignable(node->expr()->token_pos(),
+                                          for_value.value(),
+                                          node->type(),
+                                          node->dst_name());
+  }
+  ReturnDefinition(checked_value);
 }
 
 
@@ -871,8 +885,6 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
                             &instantiator,
                             &instantiator_type_arguments);
   }
-  // TODO(zerny): Remove this when issues 5216 and 5217 are fixed.
-  InlineBailout("instance of");
   InstanceOfInstr* instance_of =
       new InstanceOfInstr(node->token_pos(),
                           for_left_value.value(),
@@ -1483,6 +1495,18 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
 void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   const Function& function = node->function();
 
+  if (function.IsImplicitStaticClosureFunction()) {
+    Instance& closure = Instance::ZoneHandle();
+    closure ^= function.implicit_static_closure();
+    if (closure.IsNull()) {
+      ObjectStore* object_store = Isolate::Current()->object_store();
+      const Context& context = Context::Handle(object_store->empty_context());
+      closure ^= Closure::New(function, context, Heap::kOld);
+      function.set_implicit_static_closure(closure);
+    }
+    ReturnDefinition(new ConstantInstr(closure));
+    return;
+  }
   Value* receiver = NULL;
   if (function.IsNonImplicitClosureFunction()) {
     // The context scope may have already been set by the non-optimizing
@@ -1496,13 +1520,12 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
       function.set_context_scope(context_scope);
     }
     receiver = BuildNullValue();
-  } else if (function.IsImplicitInstanceClosureFunction()) {
+  } else {
+    ASSERT(function.IsImplicitInstanceClosureFunction());
     ValueGraphVisitor for_receiver(owner(), temp_index(), loop_depth());
     node->receiver()->Visit(&for_receiver);
     Append(for_receiver);
     receiver = for_receiver.value();
-  } else {
-    receiver = BuildNullValue();
   }
   PushArgumentInstr* push_receiver = PushArgument(receiver);
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
@@ -2787,7 +2810,7 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
   arguments->Add(new LiteralNode(args_pos, method_name));
   // The second argument is an array containing the original method arguments.
   ArrayNode* args_array =
-      new ArrayNode(args_pos, Type::ZoneHandle(Type::ListInterface()));
+      new ArrayNode(args_pos, Type::ZoneHandle(Type::ArrayType()));
   for (intptr_t i = 0; i < method_arguments->length(); i++) {
     args_array->AddElement(method_arguments->NodeAt(i));
   }

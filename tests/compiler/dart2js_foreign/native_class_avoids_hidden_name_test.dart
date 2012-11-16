@@ -4,13 +4,15 @@
 
 // Test that hidden native class names are not used by generated code.
 
-@native("*B")
+import 'native_metadata.dart';
+
+@Native("*B")
 class A {
   get name => 'A';
   static A create() => makeA();
 }
 
-@native("*C")
+@Native("*C")
 class B {
   get name => 'B';
   static B create() => makeB();
@@ -24,7 +26,7 @@ class C {  // Ordinary class with name clashing with native class.
 @native makeA();
 @native makeB();
 
-@native("""
+@Native("""
 // Poison hidden native names 'B' and 'C' to prove the compiler didn't place
 // anthing on the hidden native class.
 B = null;
@@ -32,7 +34,7 @@ C = null;
 """)
 void setup1();
 
-@native("""
+@Native("""
 // This code is all inside 'setup' and so not accesible from the global scope.
 function B(){}
 function C(){}

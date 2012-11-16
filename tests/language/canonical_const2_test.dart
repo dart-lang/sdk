@@ -5,5 +5,5 @@
 // Check that compile-time constants are correctly canonicalized.
 
 main() {
-  Expect.isTrue(const <num>[1,2] !== const <num>[1.0,2.0]);
+  Expect.isFalse(identical(const <num>[1,2], const <num>[1.0,2.0]));
 }

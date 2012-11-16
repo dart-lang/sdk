@@ -19,7 +19,7 @@ class FunctionLiteralsTest {
     h(42);  // make sure it is parsed as a function call
     Expect.equals(20, h(10));
 
-    var a = int _(x) {return x + 2;};
+    var a = (x) {return x + 2;};
     Expect.equals(7, a(5));
 
     Expect.equals(10, apply((k) { return k << 1;}, 5));

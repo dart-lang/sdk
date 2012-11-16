@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("reader");
+library reader;
 
-#import("input_stream.dart");
-#import("options.dart");
-#import("read_request.dart");
-#import("utils.dart");
+import 'input_stream.dart';
+import 'options.dart';
+import 'read_request.dart';
+import 'utils.dart';
 
 /**
  * A class for extracting and decompressing an archive.

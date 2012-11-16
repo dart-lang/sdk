@@ -6,12 +6,14 @@
 // parameters set to null. These parameters should be treated as if they
 // do not have a default value for the native methods.
 
-@native("*A")
+import 'native_metadata.dart';
+
+@Native("*A")
 class A {
   @native int foo(int x);
 }
 
-@native("*B")
+@Native("*B")
 class B {
   @native int foo([x = null, y, z = null]);
 }
@@ -22,7 +24,7 @@ class B {
 @native A makeA() { return new A(); }
 @native B makeB() { return new B(); }
 
-@native("""
+@Native("""
 function A() {}
 A.prototype.foo = function () { return arguments.length; };
 

@@ -5,19 +5,21 @@
 // Test that we put native names and not Dart names into the dynamic
 // dispatch table.
 
-@native("*NativeA")
+import 'native_metadata.dart';
+
+@Native("*NativeA")
 class A {
   @native foo();
 }
 
-@native("*NativeB")
+@Native("*NativeB")
 class B extends A  {
 }
 
 @native A makeA() { return new A(); }
 @native B makeB() { return new B(); }
 
-@native("""
+@Native("""
 function inherits(child, parent) {
   if (child.prototype.__proto__) {
     child.prototype.__proto__ = parent.prototype;

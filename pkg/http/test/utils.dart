@@ -28,6 +28,24 @@ void startServer() {
   _server.addRequestHandler((request) => request.path == '/error',
       (request, response) {
     response.statusCode = 400;
+    response.contentLength = 0;
+    response.outputStream.close();
+  });
+
+  _server.addRequestHandler((request) => request.path == '/loop',
+      (request, response) {
+    var n = int.parse(new Uri.fromString(request.uri).query);
+    response.statusCode = 302;
+    response.headers.set('location', '/loop?${n + 1}');
+    response.contentLength = 0;
+    response.outputStream.close();
+  });
+
+  _server.addRequestHandler((request) => request.path == '/redirect',
+      (request, response) {
+    response.statusCode = 302;
+    response.headers.set('location', '/');
+    response.contentLength = 0;
     response.outputStream.close();
   });
 
@@ -95,7 +113,6 @@ class _Parse extends BaseMatcher {
   _Parse(this._matcher);
 
   bool matches(item, MatchState matchState) {
-    print("_Parse.matches [$item]");
     if (item is! String) return false;
 
     var parsed;
@@ -137,4 +154,20 @@ const Matcher throwsHttpException =
 class _HttpException extends TypeMatcher {
   const _HttpException() : super("HttpException");
   bool matches(item, MatchState matchState) => item is HttpException;
+}
+
+/// A matcher for RedirectLimitExceededExceptions.
+const isRedirectLimitExceededException =
+    const _RedirectLimitExceededException();
+
+/// A matcher for functions that throw RedirectLimitExceededException.
+const Matcher throwsRedirectLimitExceededException =
+    const Throws(isRedirectLimitExceededException);
+
+class _RedirectLimitExceededException extends TypeMatcher {
+  const _RedirectLimitExceededException() :
+      super("RedirectLimitExceededException");
+
+  bool matches(item, MatchState matchState) =>
+    item is RedirectLimitExceededException;
 }

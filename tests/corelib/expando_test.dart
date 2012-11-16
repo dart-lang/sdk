@@ -23,7 +23,7 @@ class ExpandoTest {
 
   static visit(object) {
     int count = visits[object];
-    count = (count === null) ? 1 : count + 1;
+    count = (count == null) ? 1 : count + 1;
     visits[object] = count;
   }
 

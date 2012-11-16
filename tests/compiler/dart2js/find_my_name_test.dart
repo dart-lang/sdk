@@ -18,7 +18,6 @@ class Foo {
   ClassElement foo = parseUnit(code, compiler, compiler.mainApp).head;
   foo.parseNode(compiler);
   for (Element e in foo.localMembers) {
-    // TODO(ahe): Should test for e.name.slowToString() instead.
-    Expect.equals(code.indexOf('operator+'), e.position().charOffset);
+    Expect.equals(code.indexOf(e.name.slowToString()), e.position().charOffset);
   }
 }

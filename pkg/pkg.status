@@ -9,6 +9,10 @@
 # arithmetic natively, i.e., the VM.
 fixnum/test/int_64_vm_test: Skip
 
+# Skip the cURL tests until we have bundled binaries to run them on all
+# platforms.
+http/test/curl_client_test: Skip
+
 [$compiler == dart2dart]
 *: Skip
 

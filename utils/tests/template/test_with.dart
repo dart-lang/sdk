@@ -4,8 +4,8 @@
 //       productview2.tmpl
 
 
-#import('dart:html');
-#source('productview.dart');
+import 'dart:html';
+part 'productview.dart';
 
 class Person {
   String name;

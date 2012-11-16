@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("compiler_helper.dart");
+import 'compiler_helper.dart';
 
 const String TEST_ONE = r"""
 foo(a) {
@@ -47,7 +47,7 @@ main() {
   Expect.isTrue(generated.contains(r'return a === true ? $.foo(2) : b;'));
 
   generated = compile(TEST_TWO, entry: 'foo');
-  regexp = const RegExp("foo\\(1\\)");
+  regexp = new RegExp("foo\\(1\\)");
   matches = regexp.allMatches(generated).iterator();
   checkNumberOfMatches(matches, 1);
 

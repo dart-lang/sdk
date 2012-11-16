@@ -49,7 +49,7 @@ class StringBuffer implements OutputStream {
    * Appends [str] to the buffer.
    */
   void append(String str) {
-    if (str === null || str.isEmpty) return;
+    if (str == null || str.isEmpty) return;
     buffer_.add(str);
     length_ += str.length;
   }

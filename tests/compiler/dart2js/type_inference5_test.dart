@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("compiler_helper.dart");
+import 'compiler_helper.dart';
 
 const String TEST_ONE = r"""
 foo(j) {
@@ -22,7 +22,7 @@ main() {
   // Also make sure that we are not just in bailout mode without speculative
   // types by grepping for the integer-bailout check on argument j.
   var argname =
-      const RegExp(r'function(?: [a-z]+)?\(([a-zA-Z0-9_]+)\)').firstMatch(generated)[1];
+      new RegExp(r'function(?: [a-z]+)?\(([a-zA-Z0-9_]+)\)').firstMatch(generated)[1];
   print(argname);
   RegExp regexp = new RegExp(getIntTypeCheck(argname));
   Expect.isTrue(regexp.hasMatch(generated));

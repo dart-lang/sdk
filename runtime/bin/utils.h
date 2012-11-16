@@ -16,6 +16,7 @@ class OSError {
   enum SubSystem {
     kSystem,
     kGetAddressInfo,
+    kNSS,
     kUnknown = -1
   };
 
@@ -50,6 +51,18 @@ class OSError {
   char* message_;
 
   DISALLOW_COPY_AND_ASSIGN(OSError);
+};
+
+class StringUtils {
+ public:
+  // The following methods convert the argument if needed.  The
+  // conversions are only needed on Windows. If the methods returns a
+  // pointer that is different from the input pointer the returned
+  // pointer is allocated with malloc and should be freed using free.
+  static const char* SystemStringToUtf8(const char* str);
+  static char* SystemStringToUtf8(char* str);
+  static const char* Utf8ToSystemString(const char* utf8);
+  static char* Utf8ToSystemString(char* utf8);
 };
 
 #endif  // BIN_UTILS_H_

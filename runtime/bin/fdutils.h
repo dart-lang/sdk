@@ -10,6 +10,8 @@
 
 class FDUtils {
  public:
+  static bool SetCloseOnExec(intptr_t fd);
+
   static bool SetNonBlocking(intptr_t fd);
   static bool SetBlocking(intptr_t fd);
 

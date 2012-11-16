@@ -117,7 +117,7 @@ class PipeServerGame {
 
     // Connect to the server.
     _socket = new Socket(TestingServer.HOST, _port);
-    if (_socket !== null) {
+    if (_socket != null) {
       _socket.onConnect = connectHandler;
     } else {
       Expect.fail("socket creation failed");

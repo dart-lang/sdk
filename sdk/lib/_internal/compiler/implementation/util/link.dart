@@ -30,7 +30,6 @@ class Link<T> implements Iterable<T> {
   const Link();
 
   Link<T> prepend(T element) {
-    // TODO(ahe): Use new Link<T>, but this cost 8% performance on VM.
     return new LinkEntry<T>(element, this);
   }
 

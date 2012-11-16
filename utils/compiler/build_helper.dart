@@ -36,7 +36,7 @@ main() {
       'dart2js-developer',
       dartUri, dartVmUri,
       'sdk/lib/_internal/compiler/implementation/dart2js.dart',
-      ' --enable_checked_mode');
+      r' ${DART_VM_FLAGS:---enable_checked_mode}');
   writeScript(developerUri, developerScript);
 
   List<String> dartdocScript = buildScript(

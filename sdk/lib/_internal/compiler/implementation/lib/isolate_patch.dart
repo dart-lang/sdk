@@ -4,7 +4,7 @@
 
 // Patch file for the dart:isolate library.
 
-#import("dart:uri");
+import 'dart:uri';
 
 /**
  * Called by the compiler to support switching
@@ -85,7 +85,7 @@ void startRootIsolate(entry) {
 // TODO(eub, sigmund): move the "manager" to be entirely in JS.
 // Running any Dart code outside the context of an isolate gives it
 // the change to break the isolate abstraction.
-_Manager get _globalState => JS("Object", r"$globalState");
+_Manager get _globalState => JS("_Manager", r"$globalState");
 set _globalState(_Manager val) {
   JS("void", r"$globalState = #", val);
 }
@@ -188,9 +188,9 @@ class _Manager {
   }
 
   void _nativeDetectEnvironment() {
-    JS("void", r"#.isWorker = $isWorker", this);
-    JS("void", r"#.supportsWorkers = $supportsWorkers", this);
-    JS("void", r"#.fromCommandLine = typeof(window) == 'undefined'", this);
+    JS("void", r"# = $isWorker", isWorker);
+    JS("void", r"# = $supportsWorkers", supportsWorkers);
+    JS("void", r"# = typeof(window) == 'undefined'", fromCommandLine);
   }
 
   void _nativeInitWorkerMessageHandler() {
@@ -238,7 +238,7 @@ class _IsolateContext {
    * Run [code] in the context of the isolate represented by [this]. Note this
    * is called from JavaScript (see $wrap_call in corejs.dart).
    */
-  Dynamic eval(Function code) {
+  dynamic eval(Function code) {
     var old = _globalState.currentContext;
     _globalState.currentContext = this;
     this._setGlobals();
@@ -393,10 +393,10 @@ class _MainManagerStub implements _ManagerStub {
  * are actually available.
  */
 class _WorkerStub implements _ManagerStub native "*Worker" {
-  get id => JS("Object", "#.id", this);
+  get id => JS("var", "#.id", this);
   void set id(i) { JS("void", "#.id = #", this, i); }
   void set onmessage(f) { JS("void", "#.onmessage = #", this, f); }
-  void postMessage(msg) => JS("Object", "#.postMessage(#)", this, msg);
+  void postMessage(msg) => JS("void", "#.postMessage(#)", this, msg);
   // terminate() is implemented by Worker.
   void terminate();
 }
@@ -412,14 +412,15 @@ class _IsolateNatives {
   static String get _thisScript => JS("String", r"$thisScriptUrl");
 
   /** Starts a new worker with the given URL. */
-  static _WorkerStub _newWorker(url) => JS("Object", r"new Worker(#)", url);
+  static _WorkerStub _newWorker(url) => JS("_WorkerStub", r"new Worker(#)", url);
 
   /**
    * Assume that [e] is a browser message event and extract its message data.
    * We don't import the dom explicitly so, when workers are disabled, this
    * library can also run on top of nodejs.
    */
-  static _getEventData(e) => JS("Object", "#.data", e);
+  //static _getEventData(e) => JS("Object", "#.data", e);
+  static _getEventData(e) => JS("", "#.data", e);
 
   /**
    * Process messages on a worker, either to control the worker instance or to
@@ -488,7 +489,7 @@ class _IsolateNatives {
    * Extract the constructor of runnable, so it can be allocated in another
    * isolate.
    */
-  static Dynamic _getJSConstructor(Isolate runnable) {
+  static dynamic _getJSConstructor(Isolate runnable) {
     return JS("Object", "#.constructor", runnable);
   }
 
@@ -496,16 +497,16 @@ class _IsolateNatives {
   // TODO(sigmund): find a browser-generic way to support this.
   // TODO(floitsch): is this function still used? If yes, should we use
   // Primitives.objectTypeName instead?
-  static Dynamic _getJSConstructorName(Isolate runnable) {
+  static dynamic _getJSConstructorName(Isolate runnable) {
     return JS("Object", "#.constructor.name", runnable);
   }
 
   /** Find a constructor given its name. */
-  static Dynamic _getJSConstructorFromName(String factoryName) {
+  static dynamic _getJSConstructorFromName(String factoryName) {
     return JS("Object", r"$globalThis[#]", factoryName);
   }
 
-  static Dynamic _getJSFunctionFromName(String functionName) {
+  static dynamic _getJSFunctionFromName(String functionName) {
     return JS("Object", r"$globalThis[#]", functionName);
   }
 
@@ -519,7 +520,7 @@ class _IsolateNatives {
   }
 
   /** Create a new JavaScript object instance given its constructor. */
-  static Dynamic _allocate(var ctor) {
+  static dynamic _allocate(var ctor) {
     return JS("Object", "new #()", ctor);
   }
 
@@ -791,7 +792,7 @@ class _BufferingSendPort extends _BaseSendPort implements SendPort {
 }
 
 /** Default factory for receive ports. */
-patch class _ReceivePortFactory {
+patch class ReceivePort {
   patch factory ReceivePort() {
     return new _ReceivePortImpl();
   }
@@ -1015,7 +1016,7 @@ class _JsVisitedMap implements _MessageTraverserVisitedMap {
   }
 
   _getAttachedInfo(var o) {
-    return JS("Object", "#['__MessageTraverser__attached_info__']", o);
+    return JS("", "#['__MessageTraverser__attached_info__']", o);
   }
 }
 
@@ -1171,7 +1172,7 @@ class _Serializer extends _MessageTraverser {
 
 /** Deserializes arrays created with [_Serializer]. */
 class _Deserializer {
-  Map<int, Dynamic> _deserialized;
+  Map<int, dynamic> _deserialized;
 
   _Deserializer();
 

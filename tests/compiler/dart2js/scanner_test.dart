@@ -11,7 +11,7 @@ part '../../../sdk/lib/_internal/compiler/implementation/scanner/byte_array_scan
 
 Token scan(List<int> bytes) => new ByteArrayScanner(bytes).tokenize();
 
-bool isRunningOnJavaScript() => 1 === 1.0;
+bool isRunningOnJavaScript() => identical(1, 1.0);
 
 main() {
   // Google favorite: "Îñţérñåţîöñåļîžåţîờñ".

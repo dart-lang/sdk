@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("compiler_helper.dart");
+import 'compiler_helper.dart';
 
 const String TEST_ONE = r"""
 foo(int a, int b, bool param2) {
@@ -19,7 +19,7 @@ foo(int a, int b, bool param2) {
 
 main() {
   String generated = compile(TEST_ONE, entry: 'foo');
-  RegExp regexp = const RegExp('a \\+ b');
+  RegExp regexp = new RegExp('a \\+ b');
   Iterator matches = regexp.allMatches(generated).iterator();
   Expect.isTrue(matches.hasNext);
   matches.next();

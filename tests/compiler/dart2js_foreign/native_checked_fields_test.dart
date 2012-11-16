@@ -4,12 +4,14 @@
 
 // Test that type checks occur on assignment to fields of native methods.
 
-@native("*A")
+import 'native_metadata.dart';
+
+@Native("*A")
 class A {
   int foo;
 }
 
-@native("*B")
+@Native("*B")
 class B {
   String foo;
 }
@@ -17,7 +19,7 @@ class B {
 @native A makeA() { return new A(); }
 @native B makeB() { return new B(); }
 
-@native("""
+@Native("""
 function A() {}
 
 function B() {}

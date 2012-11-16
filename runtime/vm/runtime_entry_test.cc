@@ -36,9 +36,9 @@ const Function& RegisterFakeFunction(const char* name, const Code& code) {
 // Arg1: a smi.
 // Result: a smi representing arg0 - arg1.
 DEFINE_RUNTIME_ENTRY(TestSmiSub, 2) {
-  ASSERT(arguments.Count() == kTestSmiSubRuntimeEntry.argument_count());
-  const Smi& left = Smi::CheckedHandle(arguments.At(0));
-  const Smi& right = Smi::CheckedHandle(arguments.At(1));
+  ASSERT(arguments.ArgCount() == kTestSmiSubRuntimeEntry.argument_count());
+  const Smi& left = Smi::CheckedHandle(arguments.ArgAt(0));
+  const Smi& right = Smi::CheckedHandle(arguments.ArgAt(1));
   // Ignoring overflow in the calculation below.
   intptr_t result = left.Value() - right.Value();
   arguments.SetReturn(Smi::Handle(Smi::New(result)));

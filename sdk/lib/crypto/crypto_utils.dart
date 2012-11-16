@@ -6,7 +6,7 @@ class _LineWrappingStringBuffer {
   _LineWrappingStringBuffer(int this._lineLength) : _sb = new StringBuffer();
 
   void add(String s) {
-    if (_lineLength !== null && _currentLineLength == _lineLength) {
+    if (_lineLength != null && _currentLineLength == _lineLength) {
       _sb.add('\r\n');
       _currentLineLength = 0;
     }
@@ -21,7 +21,7 @@ class _LineWrappingStringBuffer {
   int _currentLineLength = 0;
 }
 
-class _CryptoUtils {
+abstract class _CryptoUtils {
   static String bytesToHex(List<int> bytes) {
     var result = new StringBuffer();
     for (var part in bytes) {

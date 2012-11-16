@@ -4,11 +4,13 @@
 
 // Test the feature where the native string declares the native method's name.
 
-@native("*A")
+import 'native_metadata.dart';
+
+@Native("*A")
 class A {
-  @native('fooA') int foo();
-  @native('barA') int bar();
-  @native('bazA') int baz();
+  @Native('fooA') int foo();
+  @Native('barA') int bar();
+  @Native('bazA') int baz();
 }
 
 @native A makeA();
@@ -18,7 +20,7 @@ class B {
   int baz() => 900;
 }
 
-@native("""
+@Native("""
 // This code is all inside 'setup' and so not accesible from the global scope.
 function A(){}
 A.prototype.fooA = function(){return 100;};

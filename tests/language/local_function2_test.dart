@@ -9,7 +9,7 @@ class Parameterized<T> {
   Parameterized() { }
   T mul3(F f, T t) { return 3*f(t); }
   T test(T t) {
-    return mul3(T _(T t) { return 3*t; }, t);
+    return mul3((T t) { return 3*t; }, t);
   }
 }
 

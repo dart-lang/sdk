@@ -14,7 +14,7 @@ class U {}
 class V {}
 class W {}
 
-sameType(a, b) => Expect.identical(a.runtimeType, b.runtimeType);
+sameType(a, b) => Expect.equals(a.runtimeType, b.runtimeType);
 
 main() {
   A a = new A<U, V, W>();

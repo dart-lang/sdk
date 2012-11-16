@@ -184,19 +184,19 @@ abstract class File {
   List<int> readAsBytesSync();
 
   /**
-   * Read the entire file contents as text using the given
+   * Read the entire file contents as a string using the given
    * [encoding].
    *
    * Returns a [:Future<String>:] that completes with the string once
    * the file contents has been read.
    */
-  Future<String> readAsText([Encoding encoding = Encoding.UTF_8]);
+  Future<String> readAsString([Encoding encoding = Encoding.UTF_8]);
 
   /**
-   * Synchronously read the entire file contents as text using the
+   * Synchronously read the entire file contents as a string using the
    * given [encoding].
    */
-  String readAsTextSync([Encoding encoding = Encoding.UTF_8]);
+  String readAsStringSync([Encoding encoding = Encoding.UTF_8]);
 
   /**
    * Read the entire file contents as lines of text using the give

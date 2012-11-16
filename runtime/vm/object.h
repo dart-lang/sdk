@@ -300,6 +300,9 @@ class Object {
   static void InitFromSnapshot(Isolate* isolate);
   static void InitOnce();
   static void RegisterSingletonClassNames();
+  static void MakeUnusedSpaceTraversable(const Object& obj,
+                                         intptr_t original_size,
+                                         intptr_t used_size);
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawObject));
@@ -1147,6 +1150,9 @@ class Function : public Object {
   RawClass* signature_class() const;
   void set_signature_class(const Class& value) const;
 
+  RawInstance* implicit_static_closure() const;
+  void set_implicit_static_closure(const Instance& closure) const;
+
   RawCode* closure_allocation_stub() const;
   void set_closure_allocation_stub(const Code& value) const;
 
@@ -1519,6 +1525,11 @@ class ClosureData: public Object {
   // Signature class of this closure function or signature function.
   RawClass* signature_class() const { return raw_ptr()->signature_class_; }
   void set_signature_class(const Class& value) const;
+
+  RawInstance* implicit_static_closure() const {
+    return raw_ptr()->closure_;
+  }
+  void set_implicit_static_closure(const Instance& closure) const;
 
   RawCode* closure_allocation_stub() const {
     return raw_ptr()->closure_allocation_stub_;
@@ -1955,7 +1966,6 @@ class Library : public Object {
   static void InitNativeWrappersLibrary(Isolate* isolate);
 
   static RawLibrary* CoreLibrary();
-  static RawLibrary* CoreImplLibrary();
   static RawLibrary* CollectionLibrary();
   static RawLibrary* MathLibrary();
   static RawLibrary* IsolateLibrary();
@@ -2570,6 +2580,8 @@ class Code : public Object {
   uword GetDeoptBeforePcAtDeoptId(intptr_t deopt_id) const;
   uword GetDeoptAfterPcAtDeoptId(intptr_t deopt_id) const;
 
+  uword GetPcForDeoptId(intptr_t deopt_id, PcDescriptors::Kind kind) const;
+
   // Returns true if there is an object in the code between 'start_offset'
   // (inclusive) and 'end_offset' (exclusive).
   bool ObjectExistsInArea(intptr_t start_offest, intptr_t end_offset) const;
@@ -2626,7 +2638,6 @@ class Code : public Object {
     *PointerOffsetAddrAt(index) = offset_in_instructions;
   }
 
-  uword GetPcForDeoptId(intptr_t deopt_id, PcDescriptors::Kind kind) const;
 
   // New is a private method as RawInstruction and RawCode objects should
   // only be created using the Code::FinalizeCode method. This method creates
@@ -2720,10 +2731,16 @@ class ContextScope : public Object {
   void SetNameAt(intptr_t scope_index, const String& name) const;
 
   bool IsFinalAt(intptr_t scope_index) const;
-  void SetIsFinalAt(intptr_t scope_index, bool is_const) const;
+  void SetIsFinalAt(intptr_t scope_index, bool is_final) const;
+
+  bool IsConstAt(intptr_t scope_index) const;
+  void SetIsConstAt(intptr_t scope_index, bool is_const) const;
 
   RawAbstractType* TypeAt(intptr_t scope_index) const;
   void SetTypeAt(intptr_t scope_index, const AbstractType& type) const;
+
+  RawInstance* ConstValueAt(intptr_t scope_index) const;
+  void SetConstValueAt(intptr_t scope_index, const Instance& value) const;
 
   intptr_t ContextIndexAt(intptr_t scope_index) const;
   void SetContextIndexAt(intptr_t scope_index, intptr_t context_index) const;
@@ -2786,6 +2803,18 @@ class ICData : public Object {
     return raw_ptr()->deopt_id_;
   }
 
+  intptr_t deopt_reason() const {
+    return raw_ptr()->deopt_reason_;
+  }
+
+  void set_deopt_reason(intptr_t reason) const;
+
+  bool is_closure_call() const {
+    return raw_ptr()->is_closure_call_ == 1;
+  }
+
+  void set_is_closure_call(bool value) const;
+
   intptr_t NumberOfChecks() const;
 
   static intptr_t InstanceSize() {
@@ -2806,6 +2835,10 @@ class ICData : public Object {
 
   static intptr_t function_offset() {
     return OFFSET_OF(RawICData, function_);
+  }
+
+  static intptr_t is_closure_call_offset() {
+    return OFFSET_OF(RawICData, is_closure_call_);
   }
 
   // Adding checks.
@@ -2833,6 +2866,8 @@ class ICData : public Object {
   RawFunction* GetTargetAt(intptr_t index) const;
   RawFunction* GetTargetForReceiverClassId(intptr_t class_id) const;
 
+  intptr_t GetCountAt(intptr_t index) const;
+
   // Returns this->raw() if num_args_tested == 1 and arg_nr == 1, otherwise
   // returns a new ICData object containing only unique arg_nr checks.
   RawICData* AsUnaryClassChecksForArgNr(intptr_t arg_nr) const;
@@ -2848,6 +2883,16 @@ class ICData : public Object {
                         const String& target_name,
                         intptr_t deopt_id,
                         intptr_t num_args_tested);
+
+  static intptr_t TestEntryLengthFor(intptr_t num_args);
+
+  static intptr_t TargetIndexFor(intptr_t num_args) {
+    return num_args;
+  }
+
+  static intptr_t CountIndexFor(intptr_t num_args) {
+    return (num_args + 1);
+  }
 
  private:
   RawArray* ic_data() const {
@@ -3061,13 +3106,8 @@ class Instance : public Object {
     return ((index >= 0) && (index < clazz()->ptr()->num_native_fields_));
   }
 
-  intptr_t GetNativeField(int index) const {
-    return *NativeFieldAddr(index);
-  }
-
-  void SetNativeField(int index, intptr_t value) const {
-    *NativeFieldAddr(index) = value;
-  }
+  inline intptr_t GetNativeField(Isolate* isolate, int index) const;
+  void SetNativeField(int index, intptr_t value) const;
 
   // Returns true if the instance is a closure object.
   bool IsClosure() const;
@@ -3086,11 +3126,8 @@ class Instance : public Object {
   RawObject** FieldAddr(const Field& field) const {
     return FieldAddrAtOffset(field.Offset());
   }
-  intptr_t* NativeFieldAddr(int index) const {
-    ASSERT(IsValidNativeIndex(index));
-    return reinterpret_cast<intptr_t*>((raw_value() - kHeapObjectTag)
-                                       + (index * kWordSize)
-                                       + sizeof(RawObject));
+  RawObject** NativeFieldsAddr() const {
+    return FieldAddrAtOffset(sizeof(RawObject));
   }
   void SetFieldAtOffset(intptr_t offset, const Object& value) const {
     StorePointer(FieldAddrAtOffset(offset), value.raw());
@@ -3179,14 +3216,11 @@ class AbstractType : public Instance {
   // Check if this type represents the 'num' type.
   bool IsNumberType() const;
 
-  // Check if this type represents the 'String' interface.
-  bool IsStringInterface() const;
+  // Check if this type represents the 'String' type.
+  bool IsStringType() const;
 
   // Check if this type represents the 'Function' type.
   bool IsFunctionType() const;
-
-  // Check if this type represents the 'List' interface.
-  bool IsListInterface() const;
 
   // Check if this type is an interface type.
   bool IsInterfaceType() const {
@@ -3303,14 +3337,14 @@ class Type : public AbstractType {
   // The 'num' interface type.
   static RawType* Number();
 
-  // The 'String' interface type.
-  static RawType* StringInterface();
+  // The 'String' type.
+  static RawType* StringType();
+
+  // The 'Array' type.
+  static RawType* ArrayType();
 
   // The 'Function' interface type.
   static RawType* Function();
-
-  // The 'List' interface type.
-  static RawType* ListInterface();
 
   // The finalized type of the given non-parameterized class.
   static RawType* NewNonParameterizedType(const Class& type_class);
@@ -3730,6 +3764,17 @@ class String : public Instance {
   void* GetPeer() const;
 
   void ToUTF8(uint8_t* utf8_array, intptr_t array_len) const;
+
+  // Copies the string characters into the provided external array
+  // and morphs the string object into an external string object.
+  // The remaining unused part of the original string object is marked as
+  // an Array object or a regular Object so that it can be traversed during
+  // garbage collection.
+  RawString* MakeExternal(void* array,
+                          intptr_t length,
+                          void* peer,
+                          Dart_PeerFinalizer cback) const;
+
 
   // Creates a new String object from a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
@@ -4209,6 +4254,7 @@ class Array : public Instance {
     return raw_ptr()->type_arguments_;
   }
   virtual void SetTypeArguments(const AbstractTypeArguments& value) const {
+    ASSERT(value.IsNull() || ((value.Length() == 1) && value.IsInstantiated()));
     StorePointer(&raw_ptr()->type_arguments_, value.raw());
   }
 
@@ -4276,6 +4322,7 @@ class Array : public Instance {
 
   HEAP_OBJECT_IMPLEMENTATION(Array, Instance);
   friend class Class;
+  friend class String;
 };
 
 
@@ -4335,6 +4382,7 @@ class GrowableObjectArray : public Instance {
     return raw_ptr()->type_arguments_;
   }
   virtual void SetTypeArguments(const AbstractTypeArguments& value) const {
+    ASSERT(value.IsNull() || ((value.Length() == 1) && value.IsInstantiated()));
     const Array& contents = Array::Handle(data());
     contents.SetTypeArguments(value);
     StorePointer(&raw_ptr()->type_arguments_, value.raw());
@@ -5833,6 +5881,18 @@ void Field::SetOffset(intptr_t value) const {
 
 void Context::SetAt(intptr_t index, const Instance& value) const {
   StorePointer(InstanceAddr(index), value.raw());
+}
+
+
+intptr_t Instance::GetNativeField(Isolate* isolate, int index) const {
+  ASSERT(IsValidNativeIndex(index));
+  NoGCScope no_gc;
+  RawIntPtrArray* native_fields =
+      reinterpret_cast<RawIntPtrArray*>(*NativeFieldsAddr());
+  if (native_fields == IntPtrArray::null()) {
+    return 0;
+  }
+  return native_fields->ptr()->data_[index];
 }
 
 

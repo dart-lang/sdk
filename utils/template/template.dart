@@ -2,24 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('template');
+library template;
 
-#import('dart:math', prefix: 'Math');
-#import('../css/css.dart', prefix:'css');
-#import('../lib/file_system_memory.dart');
+import 'dart:math' as Math;
+import '../css/css.dart' as css;
+import '../lib/file_system_memory.dart';
 
-#source('tokenkind.dart');
-#source('token.dart');
-#source('source.dart');
-#source('tokenizer_base.dart');
-#source('tokenizer.dart');
-#source('parser.dart');
-#source('codegen.dart');
-#source('tree.dart');
-#source('htmltree.dart');
-#source('utils.dart');
-#source('temploptions.dart');
-#source('world.dart');
+part 'tokenkind.dart';
+part 'token.dart';
+part 'source.dart';
+part 'tokenizer_base.dart';
+part 'tokenizer.dart';
+part 'parser.dart';
+part 'codegen.dart';
+part 'tree.dart';
+part 'htmltree.dart';
+part 'utils.dart';
+part 'temploptions.dart';
+part 'world.dart';
 
 
 void initHtmlWorld([bool commandLine = true]) {

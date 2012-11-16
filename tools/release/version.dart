@@ -122,7 +122,7 @@ class Version {
   int getRevisionFromSvnInfo(String info) {
     if (info == null || info == '') return 0;
     var lines = info.split("\n");
-    RegExp exp = const RegExp(r"Last Changed Rev: (\d*)");
+    RegExp exp = new RegExp(r"Last Changed Rev: (\d*)");
     for (var line in lines) {
       if (exp.hasMatch(line)) {
         String revisionString = (exp.firstMatch(line).group(1));

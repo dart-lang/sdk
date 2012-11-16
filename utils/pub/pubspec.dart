@@ -48,7 +48,6 @@ class Pubspec {
   factory Pubspec.parse(String contents, SourceRegistry sources) {
     var name = null;
     var version = Version.none;
-    var dependencies = <PackageRef>[];
 
     if (contents.trim() == '') return new Pubspec.empty();
 
@@ -71,67 +70,34 @@ class Pubspec {
       version = new Version.parse(parsedPubspec['version']);
     }
 
-    if (parsedPubspec.containsKey('dependencies')) {
-      var dependencyEntries = parsedPubspec['dependencies'];
-      if (dependencyEntries is! Map ||
-          dependencyEntries.keys.some((e) => e is! String)) {
-        throw new FormatException(
-            'The pubspec dependencies should be a map of package names, but '
-            'was ${dependencyEntries}.');
-      }
-
-      dependencyEntries.forEach((name, spec) {
-        var description, source;
-        var versionConstraint = new VersionRange();
-        if (spec == null) {
-          description = name;
-          source = sources.defaultSource;
-        } else if (spec is String) {
-          description = name;
-          source = sources.defaultSource;
-          versionConstraint = new VersionConstraint.parse(spec);
-        } else if (spec is Map) {
-          if (spec.containsKey('version')) {
-            versionConstraint = new VersionConstraint.parse(
-                spec.remove('version'));
-          }
-
-          var sourceNames = spec.keys;
-          if (sourceNames.length > 1) {
-            throw new FormatException(
-                'Dependency $name may only have one source: $sourceNames.');
-          }
-
-          var sourceName = only(sourceNames);
-          if (sourceName is! String) {
-            throw new FormatException(
-                'Source name $sourceName should be a string.');
-          }
-
-          source = sources[sourceName];
-          description = spec[sourceName];
-        } else {
-          throw new FormatException(
-              'Dependency specification $spec should be a string or a '
-              'mapping.');
-        }
-
-        source.validateDescription(description, fromLockFile: false);
-
-        dependencies.add(new PackageRef(
-            name, source, versionConstraint, description));
-      });
-    }
+    var dependencies = _parseDependencies(sources,
+        parsedPubspec['dependencies']);
 
     // Even though the pub app itself doesn't use these fields, we validate
     // them here so that users find errors early before they try to upload to
     // the server:
+    // TODO(rnystrom): We should split this validation into separate layers:
+    // 1. Stuff that is required in any pubspec to perform any command. Things
+    //    like "must have a name". That should go here.
+    // 2. Stuff that is required to upload a package. Things like "homepage
+    //    must use a valid scheme". That should go elsewhere. pub upload should
+    //    call it, and we should provide a separate command to show the user,
+    //    and also expose it to the editor in some way.
 
-    if (parsedPubspec.containsKey('homepage') &&
-        parsedPubspec['homepage'] is! String) {
-      throw new FormatException(
-          'The "homepage" field should be a string, but was '
-          '${parsedPubspec["homepage"]}.');
+    if (parsedPubspec.containsKey('homepage')) {
+      var homepage = parsedPubspec['homepage'];
+
+      if (homepage is! String) {
+        throw new FormatException(
+            'The "homepage" field should be a string, but was "$homepage".');
+      }
+
+      var goodScheme = new RegExp(r'^https?:');
+      if (!goodScheme.hasMatch(homepage)) {
+        throw new FormatException(
+            'The "homepage" field should be an "http:" or "https:" URL, but '
+            'was "$homepage".');
+      }
     }
 
     if (parsedPubspec.containsKey('author') &&
@@ -162,4 +128,59 @@ class Pubspec {
 
     return new Pubspec(name, version, dependencies);
   }
+}
+
+List<PackageRef> _parseDependencies(SourceRegistry sources, yaml) {
+  var dependencies = <PackageRef>[];
+
+  // Allow an empty dependencies key.
+  if (yaml == null) return dependencies;
+
+  if (yaml is! Map || yaml.keys.some((e) => e is! String)) {
+    throw new FormatException(
+        'The pubspec dependencies should be a map of package names, but '
+        'was ${yaml}.');
+  }
+
+  yaml.forEach((name, spec) {
+    var description, source;
+    var versionConstraint = new VersionRange();
+    if (spec == null) {
+      description = name;
+      source = sources.defaultSource;
+    } else if (spec is String) {
+      description = name;
+      source = sources.defaultSource;
+      versionConstraint = new VersionConstraint.parse(spec);
+    } else if (spec is Map) {
+      if (spec.containsKey('version')) {
+        versionConstraint = new VersionConstraint.parse(spec.remove('version'));
+      }
+
+      var sourceNames = spec.keys;
+      if (sourceNames.length > 1) {
+        throw new FormatException(
+            'Dependency $name may only have one source: $sourceNames.');
+      }
+
+      var sourceName = only(sourceNames);
+      if (sourceName is! String) {
+        throw new FormatException(
+            'Source name $sourceName should be a string.');
+      }
+
+      source = sources[sourceName];
+      description = spec[sourceName];
+    } else {
+      throw new FormatException(
+          'Dependency specification $spec should be a string or a mapping.');
+    }
+
+    source.validateDescription(description, fromLockFile: false);
+
+    dependencies.add(new PackageRef(
+        name, source, versionConstraint, description));
+  });
+
+  return dependencies;
 }

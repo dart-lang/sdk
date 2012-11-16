@@ -19,9 +19,9 @@ bool _isGitInstalledCache;
 String _gitCommandCache;
 
 /** Gets the current working directory. */
-String get workingDir => new File('.').fullPathSync();
+String get currentWorkingDir => new File('.').fullPathSync();
 
-const Pattern NEWLINE_PATTERN = const RegExp("\r\n?|\n\r?");
+final NEWLINE_PATTERN = new RegExp("\r\n?|\n\r?");
 
 /**
  * Prints the given string to `stderr` on its own line.
@@ -118,7 +118,7 @@ Future<bool> fileExists(file) {
  * a [File].
  */
 Future<String> readTextFile(file) {
-  return new File(_getPath(file)).readAsText(Encoding.UTF_8);
+  return new File(_getPath(file)).readAsString(Encoding.UTF_8);
 }
 
 /**
@@ -318,67 +318,52 @@ Future<File> createSymlink(from, to) {
 }
 
 /**
- * Creates a new symlink that creates an alias from the package [from] to [to],
- * both of which can be a [String], [File], or [Directory]. Returns a [Future]
- * which completes to the symlink file (i.e. [to]).
- *
- * Unlike [createSymlink], this has heuristics to detect if [from] is using
- * the old or new style of package layout. If it's using the new style, then
- * it will create a symlink to the "lib" directory contained inside that
- * package directory. Otherwise, it just symlinks to the package directory
- * itself.
+ * Creates a new symlink that creates an alias from the `lib` directory of
+ * package [from] to [to], both of which can be a [String], [File], or
+ * [Directory]. Returns a [Future] which completes to the symlink file (i.e.
+ * [to]). If [from] does not have a `lib` directory, this shows a warning if
+ * appropriate and then does nothing.
  */
-// TODO(rnystrom): Remove this when old style packages are no longer supported.
-// See: http://code.google.com/p/dart/issues/detail?id=4964.
 Future<File> createPackageSymlink(String name, from, to,
     {bool isSelfLink: false}) {
-  // If from contains any Dart files at the top level (aside from build.dart)
-  // we assume that means it's an old style package.
-  return listDir(from).chain((contents) {
-    var isOldStyle = contents.some(
-        (file) => file.endsWith('.dart') && basename(file) != 'build.dart');
+  // See if the package has a "lib" directory.
+  from = join(from, 'lib');
+  return dirExists(from).chain((exists) {
+    if (exists) return createSymlink(from, to);
 
-    if (isOldStyle) {
-      if (isSelfLink) {
-        printError('Warning: Package "$name" is using a deprecated layout.');
-        printError('See http://www.dartlang.org/docs/pub-package-manager/'
-            'package-layout.html for details.');
-
-        // Do not create self-links on old style packages.
-        return new Future.immediate(to);
-      } else {
-        return createSymlink(from, to);
-      }
+    // It's OK for the self link (i.e. the root package) to not have a lib
+    // directory since it may just be a leaf application that only has
+    // code in bin or web.
+    if (!isSelfLink) {
+      printError(
+          'Warning: Package "$name" does not have a "lib" directory so you '
+          'will not be able to import any libraries from it.');
     }
 
-    // It's a new style package, so symlink to the 'lib' directory. But only
-    // if the package actually *has* one. Otherwise, we won't create a
-    // symlink at all.
-    from = join(from, 'lib');
-    return dirExists(from).chain((exists) {
-      if (exists) {
-        return createSymlink(from, to);
-      } else {
-        // It's OK for the self link (i.e. the root package) to not have a lib
-        // directory since it may just be a leaf application that only has
-        // code in bin or web.
-        if (!isSelfLink) {
-          printError(
-              'Warning: Package "$name" does not have a "lib" directory.');
-        }
-
-        return new Future.immediate(to);
-      }
-    });
+    return new Future.immediate(to);
   });
 }
 
-/**
- * Given [entry] which may be a [String], [File], or [Directory] relative to
- * the current working directory, returns its full canonicalized path.
- */
-// TODO(rnystrom): Should this be async?
-String getFullPath(entry) => new File(_getPath(entry)).fullPathSync();
+/// Given [entry] which may be a [String], [File], or [Directory] relative to
+/// the current working directory, returns its full canonicalized path.
+String getFullPath(entry) {
+  var path = _getPath(entry);
+
+  // Don't do anything if it's already absolute.
+  if (Platform.operatingSystem == 'windows') {
+    // An absolute path on Windows is either UNC (two leading backslashes),
+    // or a drive letter followed by a colon and a slash.
+    var ABSOLUTE = new RegExp(r'^(\\\\|[a-zA-Z]:[/\\])');
+    if (ABSOLUTE.hasMatch(path)) return path;
+  } else {
+    if (path.startsWith('/')) return path;
+  }
+
+  // Using Path.join here instead of File().fullPathSync() because the former
+  // does not require an actual file to exist at that path.
+  return new Path.fromNative(currentWorkingDir).join(new Path(path))
+      .toNativePath();
+}
 
 // TODO(nweiz): make this configurable
 /**

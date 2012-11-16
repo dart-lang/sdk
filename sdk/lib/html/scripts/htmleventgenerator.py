@@ -195,7 +195,7 @@ class HtmlEventGenerator(object):
     self._template_loader = template_loader
 
   def ProcessInterface(self, interface, html_interface_name, custom_events,
-                       events_interface_emitter, events_implementation_emitter):
+                       events_implementation_emitter):
     events = set([attr for attr in interface.attributes
                   if attr.type.id == 'EventListener'])
     if not events and interface.id not in _html_explicit_event_classes:
@@ -203,10 +203,10 @@ class HtmlEventGenerator(object):
 
     self._event_classes.add(interface.id)
     events_class_name = html_interface_name + 'Events'
-    parent_events_interface = self._GetParentEventsInterface(interface)
+    parent_events_class_name = self._GetParentEventsClassName(interface)
 
     if not events:
-      return parent_events_interface
+      return parent_events_class_name
 
     template_file = 'impl_%s.darttemplate' % events_class_name
     template = (self._template_loader.TryLoad(template_file) or
@@ -219,7 +219,7 @@ class HtmlEventGenerator(object):
     implementation_events_members = events_implementation_emitter.Emit(
         template,
         CLASSNAME=events_class_name,
-        SUPER='%s' % parent_events_interface)
+        SUPER='%s' % parent_events_class_name)
 
     dom_event_names = set()
     for event in events:
@@ -245,18 +245,18 @@ class HtmlEventGenerator(object):
     return events_class_name
 
   # TODO(jacobr): this isn't quite right....
-  def _GetParentEventsInterface(self, interface):
+  def _GetParentEventsClassName(self, interface):
     # Ugly hack as we don't specify that Document and DocumentFragment inherit
     # from Element in our IDL.
     if interface.id == 'Document' or interface.id == 'DocumentFragment':
       return 'ElementEvents'
 
-    parent_events_interface = 'Events'
+    parent_events_class_name = 'Events'
     interfaces_with_events = set()
     for parent in self._database.Hierarchy(interface):
       if parent != interface and parent.id in self._event_classes:
-        parent_events_interface = parent.id + 'Events'
+        parent_events_class_name = parent.id + 'Events'
         interfaces_with_events.add(parent)
     if len(interfaces_with_events) > 1:
       raise Exception('Only one parent event class allowed ' + interface.id)
-    return parent_events_interface
+    return parent_events_class_name

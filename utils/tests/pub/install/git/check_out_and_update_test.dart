@@ -21,7 +21,7 @@ main() {
     appDir([{"git": "../foo.git"}]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: const RegExp(r"Dependencies installed!$"));
+        output: new RegExp(r"Dependencies installed!$"));
 
     dir(cachePath, [
       dir('git', [
@@ -46,7 +46,7 @@ main() {
     ]).scheduleCommit();
 
     schedulePub(args: ['install'],
-        output: const RegExp(r"Dependencies installed!$"));
+        output: new RegExp(r"Dependencies installed!$"));
 
     // When we download a new version of the git package, we should re-use the
     // git/cache directory but create a new git/ directory.

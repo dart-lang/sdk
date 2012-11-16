@@ -2,6 +2,7 @@ library SVG3Test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
+import 'dart:svg';
 
 // Test that SVG elements have the operations advertised through all the IDL
 // interfaces.  This is a 'duck typing' test, and does not explicitly use 'is'
@@ -12,9 +13,9 @@ main() {
   var isString = predicate((x) => x is String, 'is a String');
   var isStringList = predicate((x) => x is List<String>, 'is a List<String>');
   var isSVGMatrix = predicate((x) => x is SVGMatrix, 'is a SVGMatrix');
-  var isSVGAnimatedBoolean = 
+  var isSVGAnimatedBoolean =
       predicate((x) => x is SVGAnimatedBoolean, 'is an SVGAnimatedBoolean');
-  var isSVGAnimatedString = 
+  var isSVGAnimatedString =
       predicate((x) => x is SVGAnimatedString, 'is an SVGAnimatedString');
   var isSVGRect = predicate((x) => x is SVGRect, 'is a SVGRect');
   var isSVGAnimatedTransformList =

@@ -21,14 +21,17 @@ import "mock_compiler.dart";
 import "parser_helper.dart";
 
 String compile(String code, {String entry: 'main',
+                             String coreSource: DEFAULT_CORELIB,
                              bool enableTypeAssertions: false,
-                             bool minify: false}) {
+                             bool minify: false,
+                             bool analyzeAll: false}) {
   MockCompiler compiler =
       new MockCompiler(enableTypeAssertions: enableTypeAssertions,
+                       coreSource: coreSource,
                        enableMinification: minify);
   compiler.parseScript(code);
   lego.Element element = compiler.mainApp.find(buildSourceString(entry));
-  if (element === null) return null;
+  if (element == null) return null;
   compiler.backend.enqueueHelpers(compiler.enqueuer.resolution);
   compiler.processQueue(compiler.enqueuer.resolution, element);
   var context = new js.JavaScriptItemCompilationContext();
@@ -37,8 +40,8 @@ String compile(String code, {String entry: 'main',
   return compiler.enqueuer.codegen.lookupCode(element);
 }
 
-MockCompiler compilerFor(String code, Uri uri) {
-  MockCompiler compiler = new MockCompiler();
+MockCompiler compilerFor(String code, Uri uri, {bool analyzeAll: false}) {
+  MockCompiler compiler = new MockCompiler(analyzeAll: analyzeAll);
   compiler.sourceFiles[uri.toString()] = new SourceFile(uri.toString(), code);
   return compiler;
 }

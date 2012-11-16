@@ -4,13 +4,15 @@
 
 // Test that type checks occur on native methods.
 
-@native("*A")
+import 'native_metadata.dart';
+
+@Native("*A")
 class A {
   @native int foo(int x);
   @native int cmp(A other);
 }
 
-@native("*B")
+@Native("*B")
 class B {
   @native String foo(String x);
   @native int cmp(B other);
@@ -19,7 +21,7 @@ class B {
 @native A makeA() { return new A(); }
 @native B makeB() { return new B(); }
 
-@native("""
+@Native("""
 function A() {}
 A.prototype.foo = function (x) { return x + 1; };
 A.prototype.cmp = function (x) { return 0; };

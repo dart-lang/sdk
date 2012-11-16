@@ -505,9 +505,19 @@ void RawClosureData::WriteTo(SnapshotWriter* writer,
   writer->WriteVMIsolateObject(kClosureDataCid);
   writer->WriteIntptrValue(writer->GetObjectTags(this));
 
-  // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
-  visitor.VisitPointers(from(), to());
+  // Context scope.
+  // We don't write the context scope in the snapshot.
+  writer->WriteObjectImpl(Object::null());
+
+  // Parent function.
+  writer->WriteObjectImpl(ptr()->parent_function_);
+
+  // Signature class.
+  writer->WriteObjectImpl(ptr()->signature_class_);
+
+  // Static closure/Closure allocation stub.
+  // We don't write the closure or allocation stub in the snapshot.
+  writer->WriteObjectImpl(Object::null());
 }
 
 
@@ -1213,49 +1223,15 @@ RawContextScope* ContextScope::ReadFrom(SnapshotReader* reader,
                                         intptr_t object_id,
                                         intptr_t tags,
                                         Snapshot::Kind kind) {
-  ASSERT(reader != NULL);
-  ASSERT(kind == Snapshot::kMessage);
-
-  // Allocate context scope object.
-  intptr_t num_vars = reader->ReadIntptrValue();
-  ContextScope& scope = ContextScope::ZoneHandle(reader->isolate(),
-                                                 ContextScope::New(num_vars));
-  reader->AddBackRef(object_id, &scope, kIsDeserialized);
-
-  // Set the object tags.
-  scope.set_tags(tags);
-
-  // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (scope.raw()->to(num_vars) - scope.raw()->from());
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    scope.StorePointer((scope.raw()->from() + i), reader->ReadObjectRef());
-  }
-
-  return scope.raw();
+  UNREACHABLE();
+  return NULL;
 }
 
 
 void RawContextScope::WriteTo(SnapshotWriter* writer,
                               intptr_t object_id,
                               Snapshot::Kind kind) {
-  ASSERT(writer != NULL);
-  ASSERT(kind == Snapshot::kMessage);
-
-  // Write out the serialization header value for this object.
-  writer->WriteInlinedObjectHeader(object_id);
-
-  // Write out the class and tags information.
-  writer->WriteVMIsolateObject(kContextScopeCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
-
-  // Serialize number of variables.
-  writer->WriteIntptrValue(ptr()->num_variables_);
-
-  // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
-  visitor.VisitPointers(from(), to(ptr()->num_variables_));
+  UNREACHABLE();
 }
 
 

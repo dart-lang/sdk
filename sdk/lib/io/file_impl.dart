@@ -249,10 +249,10 @@ class _FileOutputStream extends _BaseOutputStream implements OutputStream {
   void _processPendingOperations() {
     _pendingOperations.forEach((buffer) {
       if (buffer is _PendingOperation) {
-        if (buffer === _PendingOperation.CLOSE) {
+        if (identical(buffer, _PendingOperation.CLOSE)) {
           close();
         } else {
-          assert(buffer === _PendingOperation.FLUSH);
+          assert(identical(buffer, _PendingOperation.FLUSH));
           flush();
         }
       } else {
@@ -609,7 +609,7 @@ class _File extends _FileBase implements File {
     return result;
   }
 
-  Future<String> readAsText([Encoding encoding = Encoding.UTF_8]) {
+  Future<String> readAsString([Encoding encoding = Encoding.UTF_8]) {
     _ensureFileService();
     return readAsBytes().transform((bytes) {
       if (bytes.length == 0) return "";
@@ -619,7 +619,7 @@ class _File extends _FileBase implements File {
     });
   }
 
-  String readAsTextSync([Encoding encoding = Encoding.UTF_8]) {
+  String readAsStringSync([Encoding encoding = Encoding.UTF_8]) {
     var decoder = _StringDecoders.decoder(encoding);
     List<int> bytes = readAsBytesSync();
     if (bytes.length == 0) return "";

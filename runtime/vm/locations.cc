@@ -53,9 +53,25 @@ Location Location::RegisterOrConstant(Value* value) {
 }
 
 
+Location Location::RegisterOrSmiConstant(Value* value) {
+  ConstantInstr* constant = value->definition()->AsConstant();
+  return ((constant != NULL) && constant->value().IsSmi())
+      ? Location::Constant(constant->value())
+      : Location::RequiresRegister();
+}
+
+
 Location Location::FixedRegisterOrConstant(Value* value, Register reg) {
   ConstantInstr* constant = value->definition()->AsConstant();
   return (constant != NULL)
+      ? Location::Constant(constant->value())
+      : Location::RegisterLocation(reg);
+}
+
+
+Location Location::FixedRegisterOrSmiConstant(Value* value, Register reg) {
+  ConstantInstr* constant = value->definition()->AsConstant();
+  return ((constant != NULL) && constant->value().IsSmi())
       ? Location::Constant(constant->value())
       : Location::RegisterLocation(reg);
 }

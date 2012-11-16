@@ -9,6 +9,7 @@ html_interface_renames = {
     'DOMURL': 'Url',
     'DOMWindow': 'LocalWindow',
     'History': 'LocalHistory',
+    'HTMLDocument' : 'HtmlDocument',
     'Location': 'LocalLocation',
     'WebKitAnimation': 'Animation',
     'WebKitAnimationEvent': 'AnimationEvent',
@@ -37,14 +38,34 @@ _private_html_members = set([
   'Document.createEvent',
   'Document.createTextNode',
   'Document.createTouchList',
-  'DocumentFragment.querySelector',
-  'DocumentFragment.querySelectorAll',
   'Document.getElementById',
   'Document.getElementsByClassName',
   'Document.getElementsByName',
   'Document.getElementsByTagName',
   'Document.querySelector',
   'Document.querySelectorAll',
+
+  # Moved to HTMLDocument.
+  'Document.body',
+  'Document.caretRangeFromPoint',
+  'Document.elementFromPoint',
+  'Document.head',
+  'Document.lastModified',
+  'Document.referrer',
+  'Document.styleSheets',
+  'Document.title',
+  'Document.webkitCancelFullScreen',
+  'Document.webkitExitFullscreen',
+  'Document.webkitExitPointerLock',
+  'Document.webkitFullscreenElement',
+  'Document.webkitFullscreenEnabled',
+  'Document.webkitHidden',
+  'Document.webkitIsFullScreen',
+  'Document.webkitPointerLockElement',
+  'Document.webkitVisibilityState',
+
+  'DocumentFragment.querySelector',
+  'DocumentFragment.querySelectorAll',
   'Element.childElementCount',
   'Element.children',
   'Element.className',
@@ -69,7 +90,6 @@ _private_html_members = set([
   'Node.childNodes',
   'Node.firstChild',
   'Node.lastChild',
-  "Node.nodeType",
   'Node.removeChild',
   'Node.replaceChild',
   'ShadowRoot.getElementById',
@@ -122,6 +142,8 @@ _removed_html_members = set([
 #    "DOMImplementation.*",
     "CanvasRenderingContext2D.setFillColor",
     "CanvasRenderingContext2D.setStrokeColor",
+    "DivElement.align",
+    'Document.applets',
     "Document.get:forms",
 #    "Document.get:selectedStylesheetSet",
 #    "Document.set:selectedStylesheetSet",
@@ -134,6 +156,7 @@ _removed_html_members = set([
     "Document.get:width",
     "Element.getElementsByTagNameNS",
     "Document.get:compatMode",
+    'Document.images',
     "Document.importNode",
     "Document.evaluate",
     "Document.get:images",
@@ -161,6 +184,8 @@ _removed_html_members = set([
     "Document.xmlVersion",
     "Document.get:anchors",
     "Document.getElementsByTagNameNS",
+    'Document.webkitCurrentFullScreenElement',
+    'Document.webkitFullScreenKeyboardInputAllowed',
     "DocumentType.*",
     "Element.hasAttributeNS",
     "Element.getAttributeNS",
@@ -171,6 +196,7 @@ _removed_html_members = set([
     "Element.setAttributeNodeNS",
     "Element.getAttributeNodeNS",
     "Element.setAttributeNS",
+    "Event.srcElement",
     "BodyElement.text",
     "AnchorElement.text",
     "OptionElement.text",
@@ -260,8 +286,10 @@ _removed_html_members = set([
     "Node.lookupPrefix",
     "Node.get:PROCESSING_INSTRUCTION_NODE",
     'ShadowRoot.getElementsByTagNameNS',
+    "LocalWindow.clientInformation",
     "LocalWindow.get:frames",
     "LocalWindow.get:length",
+    "LocalWindow.prompt",
     "LocalWindow.webkitCancelRequestAnimationFrame",
     "WheelEvent.wheelDelta",
     ])
@@ -271,12 +299,12 @@ class HtmlRenamer(object):
     self._database = database
 
   def RenameInterface(self, interface):
-    if interface.id.startswith('HTML'):
+    if interface.id in html_interface_renames:
+      return html_interface_renames[interface.id]
+    elif interface.id.startswith('HTML'):
       if any(interface.id in ['Element', 'Document']
              for interface in self._database.Hierarchy(interface)):
         return interface.id[len('HTML'):]
-    elif interface.id in html_interface_renames:
-      return html_interface_renames[interface.id]
     return interface.id
 
   def RenameMember(self, interface_name, member_node, member, member_prefix=''):
@@ -309,3 +337,8 @@ class HtmlRenamer(object):
       member_name = html_interface_name + '.' + member_prefix + member
       if member_name in candidates:
         return member_name
+
+  def GetLibraryName(self, interface):
+    if interface.id.startswith('SVG'):
+      return 'svg'
+    return 'html'

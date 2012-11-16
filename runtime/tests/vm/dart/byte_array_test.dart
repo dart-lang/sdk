@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Library tag to be able to run in html test framework.
-#library("ByteArrayTest.dart");
+library byte_array_test;
 
-#import('dart:scalarlist');
+import 'dart:scalarlist';
 
 class ByteArrayTest {
   static testInt8List() {

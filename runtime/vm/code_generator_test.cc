@@ -216,20 +216,18 @@ CODEGEN_TEST_GENERATE(NativeDecCodegen, test) {
   default_values.SetAt(0, Smi::ZoneHandle(Smi::New(1)));  // b = 1.
   test->set_default_parameter_values(default_values);
   const Function& function = test->function();
+  function.set_is_native(true);
   function.set_num_fixed_parameters(num_fixed_params);
   function.SetNumOptionalParameters(num_opt_params, true);
-  const bool has_opt_params = true;
   const String& native_name =
       String::ZoneHandle(Symbols::New("TestSmiSub"));
   NativeFunction native_function =
       reinterpret_cast<NativeFunction>(TestSmiSub);
   node_seq->Add(new ReturnNode(kPos,
                                new NativeBodyNode(kPos,
+                                                  function,
                                                   native_name,
-                                                  native_function,
-                                                  num_params,
-                                                  has_opt_params,
-                                                  false)));
+                                                  native_function)));
 }
 
 
@@ -392,6 +390,7 @@ CODEGEN_TEST_GENERATE(NativeSumCodegen, test) {
   default_values.SetAt(2, Smi::ZoneHandle(Smi::New(-32)));
   test->set_default_parameter_values(default_values);
   const Function& function = test->function();
+  function.set_is_native(true);
   function.set_num_fixed_parameters(num_fixed_params);
   function.SetNumOptionalParameters(num_opt_params, true);
   function.set_parameter_types(Array::Handle(Array::New(num_params)));
@@ -400,18 +399,15 @@ CODEGEN_TEST_GENERATE(NativeSumCodegen, test) {
   for (int i = 0; i < num_params - 1; i++) {
     function.SetParameterTypeAt(i, param_type);
   }
-  const bool has_opt_params = true;
   const String& native_name =
       String::ZoneHandle(Symbols::New("TestSmiSum"));
   NativeFunction native_function =
       reinterpret_cast<NativeFunction>(TestSmiSum);
   node_seq->Add(new ReturnNode(kPos,
                                new NativeBodyNode(kPos,
+                                                  function,
                                                   native_name,
-                                                  native_function,
-                                                  num_params,
-                                                  has_opt_params,
-                                                  false)));
+                                                  native_function)));
 }
 
 

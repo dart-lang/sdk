@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that parameters keep their names in the output.
 
-#import("compiler_helper.dart");
-#import("parser_helper.dart");
+import 'compiler_helper.dart';
+import 'parser_helper.dart';
 
 const String TEST_INVOCATION0 = r"""
 main() {
@@ -52,7 +52,7 @@ closureInvocation() {
 // the closure.
 closureBailout() {
   String generated = compileAll(TEST_BAILOUT);
-  RegExp regexp = const RegExp(r'call\$0: function');
+  RegExp regexp = new RegExp(r'call\$0: function');
   Iterator<Match> matches = regexp.allMatches(generated).iterator();
   checkNumberOfMatches(matches, 1);
 }

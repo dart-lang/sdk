@@ -982,9 +982,14 @@ void Assembler::andq(Register dst, const Address& address) {
 
 
 void Assembler::andq(Register dst, const Immediate& imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitRegisterREX(dst, REX_W);
-  EmitComplex(4, Operand(dst), imm);
+  if (imm.is_int32()) {
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    EmitRegisterREX(dst, REX_W);
+    EmitComplex(4, Operand(dst), imm);
+  } else {
+    movq(TMP, imm);
+    andq(dst, TMP);
+  }
 }
 
 
@@ -1006,9 +1011,14 @@ void Assembler::orq(Register dst, const Address& address) {
 
 
 void Assembler::orq(Register dst, const Immediate& imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitRegisterREX(dst, REX_W);
-  EmitComplex(1, Operand(dst), imm);
+  if (imm.is_int32()) {
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    EmitRegisterREX(dst, REX_W);
+    EmitComplex(1, Operand(dst), imm);
+  } else {
+    movq(TMP, imm);
+    orq(dst, TMP);
+  }
 }
 
 
@@ -1038,9 +1048,14 @@ void Assembler::xorq(const Address& dst, Register src) {
 
 
 void Assembler::xorq(Register dst, const Immediate& imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitRegisterREX(dst, REX_W);
-  EmitComplex(6, Operand(dst), imm);
+  if (imm.is_int32()) {
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    EmitRegisterREX(dst, REX_W);
+    EmitComplex(6, Operand(dst), imm);
+  } else {
+    movq(TMP, imm);
+    xorq(dst, TMP);
+  }
 }
 
 
@@ -1076,9 +1091,14 @@ void Assembler::addl(const Address& address, const Immediate& imm) {
 
 
 void Assembler::addq(Register reg, const Immediate& imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitRegisterREX(reg, REX_W);
-  EmitComplex(0, Operand(reg), imm);
+  if (imm.is_int32()) {
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    EmitRegisterREX(reg, REX_W);
+    EmitComplex(0, Operand(reg), imm);
+  } else {
+    movq(TMP, imm);
+    addq(reg, TMP);
+  }
 }
 
 
@@ -1156,7 +1176,8 @@ void Assembler::imull(Register dst, Register src) {
 
 void Assembler::imull(Register reg, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitRegisterREX(reg, REX_NONE);
+  Operand operand(reg);
+  EmitOperandREX(reg, operand, REX_NONE);
   EmitUint8(0x69);
   EmitOperand(reg & 7, Operand(reg));
   EmitImmediate(imm);
@@ -1170,6 +1191,21 @@ void Assembler::imulq(Register dst, Register src) {
   EmitUint8(0x0F);
   EmitUint8(0xAF);
   EmitOperand(dst & 7, operand);
+}
+
+
+void Assembler::imulq(Register reg, const Immediate& imm) {
+  if (imm.is_int32()) {
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    Operand operand(reg);
+    EmitOperandREX(reg, operand, REX_W);
+    EmitUint8(0x69);
+    EmitOperand(reg & 7, Operand(reg));
+    EmitImmediate(imm);
+  } else {
+    movq(TMP, imm);
+    imulq(reg, TMP);
+  }
 }
 
 
@@ -1192,9 +1228,14 @@ void Assembler::subq(Register dst, Register src) {
 
 
 void Assembler::subq(Register reg, const Immediate& imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitRegisterREX(reg, REX_W);
-  EmitComplex(5, Operand(reg), imm);
+  if (imm.is_int32()) {
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    EmitRegisterREX(reg, REX_W);
+    EmitComplex(5, Operand(reg), imm);
+  } else {
+    movq(TMP, imm);
+    subq(reg, TMP);
+  }
 }
 
 

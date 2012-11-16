@@ -228,8 +228,9 @@ Monitor::WaitResult Monitor::Wait(int64_t millis) {
     VALIDATE_PTHREAD_RESULT(result);
   } else {
     struct timespec ts;
-    int64_t secs = millis / 1000;
-    int64_t nanos = (millis - (secs * 1000)) * 1000000;
+    int64_t secs = millis / kMillisecondsPerSecond;
+    int64_t nanos = (millis - (secs * kMillisecondsPerSecond)) *
+        kNanosecondsPerMillisecond;
     ts.tv_sec = secs;
     ts.tv_nsec = nanos;
     int result = pthread_cond_timedwait_relative_np(data_.cond(),

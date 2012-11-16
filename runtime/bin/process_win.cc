@@ -8,6 +8,7 @@
 #include "bin/process.h"
 #include "bin/eventhandler.h"
 #include "bin/thread.h"
+#include "bin/utils.h"
 #include "platform/globals.h"
 
 static const int kReadHandle = 0;
@@ -398,6 +399,12 @@ int Process::Start(const char* path,
   PROCESS_INFORMATION process_info;
   ZeroMemory(&process_info, sizeof(process_info));
 
+  // Transform input strings to system format.
+  path = StringUtils::Utf8ToSystemString(path);
+  for (int i = 0; i < arguments_length; i++) {
+     arguments[i] = StringUtils::Utf8ToSystemString(arguments[i]);
+  }
+
   // Compute command-line length.
   int command_line_length = strlen(path);
   for (int i = 0; i < arguments_length; i++) {
@@ -410,6 +417,8 @@ int Process::Start(const char* path,
     int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
     CloseProcessPipes(
         stdin_handles, stdout_handles, stderr_handles, exit_handles);
+    free(const_cast<char*>(path));
+    for (int i = 0; i < arguments_length; i++) free(arguments[i]);
     return error_code;
   }
 
@@ -427,10 +436,17 @@ int Process::Start(const char* path,
     remaining -= written;
     ASSERT(remaining >= 0);
   }
+  free(const_cast<char*>(path));
+  for (int i = 0; i < arguments_length; i++) free(arguments[i]);
 
   // Create environment block if an environment is supplied.
   char* environment_block = NULL;
   if (environment != NULL) {
+    // Convert environment strings to system strings.
+    for (intptr_t i = 0; i < environment_length; i++) {
+      environment[i] = StringUtils::Utf8ToSystemString(environment[i]);
+    }
+
     // An environment block is a sequence of zero-terminated strings
     // followed by a block-terminating zero char.
     intptr_t block_size = 1;
@@ -452,6 +468,11 @@ int Process::Start(const char* path,
     // Block-terminating zero char.
     environment_block[block_index++] = '\0';
     ASSERT(block_index == block_size);
+    for (intptr_t i = 0; i < environment_length; i++) free(environment[i]);
+  }
+
+  if (working_directory != NULL) {
+    working_directory = StringUtils::Utf8ToSystemString(working_directory);
   }
 
   // Create process.
@@ -469,6 +490,9 @@ int Process::Start(const char* path,
   // Deallocate command-line and environment block strings.
   delete[] command_line;
   delete[] environment_block;
+  if (working_directory != NULL) {
+    free(const_cast<char*>(working_directory));
+  }
 
   if (result == 0) {
     int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);

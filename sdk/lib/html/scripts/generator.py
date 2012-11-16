@@ -401,17 +401,6 @@ class OperationInfo(object):
       if param_info.is_optional:
         EmitOptionalParameterInvocation(index)
 
-
-  def CopyAndWidenDefaultParameters(self):
-    """Returns equivalent OperationInfo, but default parameters are dynamic."""
-    info = copy.copy(self)
-    info.param_infos = [param.Copy() for param in self.param_infos]
-    for param in info.param_infos:
-      if param.is_optional:
-        param.type_id = None
-    return info
-
-
 def ConstantOutputOrder(a, b):
   """Canonical output ordering for constants."""
   if a.id < b.id: return -1
@@ -477,13 +466,13 @@ dart2js_conversions = {
     # as well.  Note, there are no functions that take a non-local Window
     # as a parameter / setter.
     'DOMWindow get':
-      Conversion('_convertNativeToDart_Window', 'Window', 'Window'),
+      Conversion('_convertNativeToDart_Window', 'dynamic', 'Window'),
     'EventTarget get':
-      Conversion('_convertNativeToDart_EventTarget', 'EventTarget',
+      Conversion('_convertNativeToDart_EventTarget', 'dynamic',
                  'EventTarget'),
     'EventTarget set':
       Conversion('_convertDartToNative_EventTarget', 'EventTarget',
-                 'EventTarget'),
+                 'dynamic'),
 
     'IDBKey get':
       Conversion('_convertNativeToDart_IDBKey', 'dynamic', 'dynamic'),
@@ -955,12 +944,10 @@ _idl_type_registry = {
     'DOMException': TypeData(clazz='Interface', native_type='DOMCoreException'),
     'DOMStringMap': TypeData(clazz='Interface', dart_type='Map<String, String>'),
     'DOMWindow': TypeData(clazz='Interface', custom_to_dart=True),
-    'Document': TypeData(clazz='Interface', merged_interface='HTMLDocument'),
     'Element': TypeData(clazz='Interface', merged_interface='HTMLElement',
         custom_to_dart=True),
     'EventListener': TypeData(clazz='Interface', custom_to_native=True),
     'EventTarget': TypeData(clazz='Interface', custom_to_native=True),
-    'HTMLDocument': TypeData(clazz='Interface', merged_into='Document'),
     'HTMLElement': TypeData(clazz='Interface', merged_into='Element',
         custom_to_dart=True),
     'IDBAny': TypeData(clazz='Interface', dart_type='dynamic', custom_to_native=True),

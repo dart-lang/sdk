@@ -19,7 +19,7 @@ int _rotl32(int val, int shift) {
 
 // Base class encapsulating common behavior for cryptographic hash
 // functions.
-class _HashBase implements Hash {
+abstract class _HashBase implements Hash {
   _HashBase(int this._chunkSizeInWords,
             int this._digestSizeInWords,
             bool this._bigEndianWords)
@@ -58,10 +58,10 @@ class _HashBase implements Hash {
   }
 
   // Create a fresh instance of this Hash.
-  abstract newInstance();
+  newInstance();
 
   // One round of the hash computation.
-  abstract _updateHash(List<int> m);
+  _updateHash(List<int> m);
 
   // Helper methods.
   _add32(x, y) => (x + y) & _MASK_32;

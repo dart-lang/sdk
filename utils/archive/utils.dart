@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("utils");
+library utils;
 
-#import("dart-ext:dart_archive");
-#import("dart:isolate");
-#import("archive.dart", prefix: "archive");
+import 'dart-ext:dart_archive';
+import 'dart:isolate';
+import 'archive.dart' as archive;
 
 /** The cache of the port used to communicate with the C extension. */
 SendPort _port;

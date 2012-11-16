@@ -151,6 +151,10 @@ import 'dart:isolate';
 import 'matcher.dart';
 export 'matcher.dart';
 
+// TODO(amouravski): We should not need to import mock here, but it's necessary
+// to enable dartdoc on the mock library, as it's not picked up normally.
+import 'mock.dart';
+
 part 'src/config.dart';
 part 'src/test_case.dart';
 
@@ -834,7 +838,7 @@ _completeTests() {
 }
 
 String _fullSpec(String spec) {
-  if (spec === null) return '$_currentGroup';
+  if (spec == null) return '$_currentGroup';
   return _currentGroup != '' ? '$_currentGroup$groupSep$spec' : spec;
 }
 

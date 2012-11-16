@@ -3,6 +3,7 @@
 /compiler_corelib_sources.gypi
 /dummy.target.mk
 /dartc.target.mk
+/dart_analyzer.target.mk
 /test_sources.gypi
 /sources.gypi
 /jsonlib_sources.xml

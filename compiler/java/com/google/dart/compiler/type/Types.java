@@ -714,6 +714,9 @@ public class Types {
     if (type.getQuality().ordinal() > quality.ordinal()) {
       return type;
     }
+    if (quality == TypeQuality.EXACT) {
+      return type;
+    }
     Set<Class<?>> interfaceSet = getAllImplementedInterfaces(type.getClass());
     if (!interfaceSet.isEmpty()) {
       Class<?>[] interfaces = (Class[]) interfaceSet.toArray(new Class[interfaceSet.size()]);

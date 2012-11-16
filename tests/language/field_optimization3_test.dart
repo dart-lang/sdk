@@ -18,7 +18,7 @@ class A {
   }
   setA(value) { a = value; }
   setB(value) { b = value; }
-  operator >(other) => other === 0.2;
+  operator >(other) => other == 0.2;
 }
 
 main() {

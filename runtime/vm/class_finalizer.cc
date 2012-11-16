@@ -20,13 +20,87 @@ DEFINE_FLAG(bool, print_classes, false, "Prints details about loaded classes.");
 DEFINE_FLAG(bool, trace_class_finalization, false, "Trace class finalization.");
 DEFINE_FLAG(bool, trace_type_finalization, false, "Trace type finalization.");
 DECLARE_FLAG(bool, enable_type_checks);
-
+DECLARE_FLAG(bool, use_cha);
 
 bool ClassFinalizer::AllClassesFinalized() {
   ObjectStore* object_store = Isolate::Current()->object_store();
   const GrowableObjectArray& classes =
       GrowableObjectArray::Handle(object_store->pending_classes());
   return classes.Length() == 0;
+}
+
+
+// Removes optimized code once we load more classes, since --use_cha based
+// optimizations may have become invalid.
+// Only methods which owner classes where subclasses can be invalid.
+// TODO(srdjan): Be even more precise by recording the exact CHA optimization.
+static void RemoveOptimizedCode(
+    const GrowableArray<intptr_t>& added_subclasses_to_cids) {
+  ASSERT(FLAG_use_cha);
+  if (added_subclasses_to_cids.is_empty()) return;
+  // Deoptimize all live frames.
+  DeoptimizeIfOwner(added_subclasses_to_cids);
+  // Switch all functions' code to unoptimized.
+  const ClassTable& class_table = *Isolate::Current()->class_table();
+  Class& cls = Class::Handle();
+  Array& array = Array::Handle();
+  Function& function = Function::Handle();
+  for (intptr_t i = 0; i < added_subclasses_to_cids.length(); i++) {
+    intptr_t cid = added_subclasses_to_cids[i];
+    cls = class_table.At(cid);
+    ASSERT(!cls.IsNull());
+    array = cls.functions();
+    intptr_t num_functions = array.IsNull() ? 0 : array.Length();
+    for (intptr_t f = 0; f < num_functions; f++) {
+      function ^= array.At(f);
+      ASSERT(!function.IsNull());
+      if (function.HasOptimizedCode()) {
+        function.SwitchToUnoptimizedCode();
+      }
+    }
+  }
+}
+
+
+void AddSuperType(const Type& type,
+                  GrowableArray<intptr_t>* finalized_super_classes) {
+  ASSERT(type.HasResolvedTypeClass());
+  if (type.IsObjectType()) {
+    return;
+  }
+  const Class& cls = Class::Handle(type.type_class());
+  ASSERT(cls.is_finalized());
+  const intptr_t cid = cls.id();
+  for (intptr_t i = 0; i < finalized_super_classes->length(); i++) {
+    if ((*finalized_super_classes)[i] == cid) {
+      // Already added.
+      return;
+    }
+  }
+  finalized_super_classes->Add(cid);
+  const Type& super_type = Type::Handle(cls.super_type());
+  AddSuperType(super_type, finalized_super_classes);
+}
+
+
+// Use array instead of set since we expect very few subclassed classes
+// to occur.
+static void CollectFinalizedSuperClasses(
+    const GrowableObjectArray& pending_classes,
+    GrowableArray<intptr_t>* finalized_super_classes) {
+  Class& cls = Class::Handle();
+  Type& super_type = Type::Handle();
+  for (intptr_t i = 0; i < pending_classes.Length(); i++) {
+    cls ^= pending_classes.At(i);
+    ASSERT(!cls.is_finalized());
+    super_type ^= cls.super_type();
+    if (!super_type.IsNull()) {
+      if (super_type.HasResolvedTypeClass() &&
+          Class::Handle(super_type.type_class()).is_finalized()) {
+        AddSuperType(super_type, finalized_super_classes);
+      }
+    }
+  }
 }
 
 
@@ -45,6 +119,8 @@ bool ClassFinalizer::FinalizePendingClasses() {
   if (AllClassesFinalized()) {
     return true;
   }
+
+  GrowableArray<intptr_t> added_subclasses_to_cids;
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
@@ -52,6 +128,9 @@ bool ClassFinalizer::FinalizePendingClasses() {
     GrowableObjectArray& class_array = GrowableObjectArray::Handle();
     class_array = object_store->pending_classes();
     ASSERT(!class_array.IsNull());
+    // Collect superclasses that were already finalized before this run of
+    // finalization.
+    CollectFinalizedSuperClasses(class_array, &added_subclasses_to_cids);
     Class& cls = Class::Handle();
     // First resolve all superclasses.
     for (intptr_t i = 0; i < class_array.Length(); i++) {
@@ -84,6 +163,9 @@ bool ClassFinalizer::FinalizePendingClasses() {
     retval = false;
   }
   isolate->set_long_jump_base(base);
+  if (FLAG_use_cha) {
+    RemoveOptimizedCode(added_subclasses_to_cids);
+  }
   return retval;
 }
 
@@ -252,8 +334,7 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
   }
   // If cls belongs to core lib or to core lib's implementation, restrictions
   // about allowed interfaces are lifted.
-  if ((cls.library() != Library::CoreLibrary()) &&
-      (cls.library() != Library::CoreImplLibrary())) {
+  if (cls.library() != Library::CoreLibrary()) {
     // Prevent extending core implementation classes.
     bool is_error = false;
     switch (super_class.id()) {
@@ -295,14 +376,17 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
       case kWeakPropertyCid:
         is_error = true;
         break;
-      default:
+      default: {
         // Special case: classes for which we don't have a known class id.
         // TODO(regis): Why isn't comparing to kIntegerCid enough?
         if (Type::Handle(Type::Double()).type_class() == super_class.raw() ||
-            Type::Handle(Type::IntType()).type_class() == super_class.raw()) {
+            Type::Handle(Type::IntType()).type_class() == super_class.raw() ||
+            Type::Handle(
+                Type::StringType()).type_class() == super_class.raw()) {
           is_error = true;
         }
         break;
+      }
     }
     if (is_error) {
       const Script& script = Script::Handle(cls.script());
@@ -929,8 +1013,35 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
                                                  const Function& function) {
   // Resolve result type.
   AbstractType& type = AbstractType::Handle(function.result_type());
+  // TODO(regis): Remove this code once the parser checks the factory name and
+  // once the core library is fixed. See issue 6641.
   // In case of a factory, the parser sets the factory result type to a type
-  // with an unresolved class whose name matches the factory name.
+  // with an unresolved class whose name matches the factory name and no type
+  // arguments. We resolve the class and specify type arguments in case the
+  // class is generic.
+  if (function.IsFactory()) {
+    Type& factory_result_type = Type::Handle();
+    factory_result_type ^= type.raw();
+    ASSERT(factory_result_type.arguments() == TypeArguments::null());
+    const UnresolvedClass& unresolved_factory_class =
+        UnresolvedClass::Handle(factory_result_type.unresolved_class());
+    const Class& factory_class =
+        Class::Handle(ResolveClass(cls, unresolved_factory_class));
+    if (factory_class.IsNull()) {
+      type = NewFinalizedMalformedType(
+          Error::Handle(),  // No previous error.
+          cls,
+          unresolved_factory_class.token_pos(),
+          kTryResolve,  // No compile-time error.
+          "cannot resolve factory class name '%s' from '%s'",
+          String::Handle(unresolved_factory_class.Name()).ToCString(),
+          String::Handle(cls.Name()).ToCString());
+    } else {
+      type = Type::New(factory_class,
+                       TypeArguments::Handle(factory_class.type_parameters()),
+                       unresolved_factory_class.token_pos());
+    }
+  }
   // It is not a compile time error if this name does not resolve to a class or
   // interface.
   ResolveType(cls, type, kCanonicalize);
@@ -1359,9 +1470,7 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
 
   // If cls belongs to core lib or to core lib's implementation, restrictions
   // about allowed interfaces are lifted.
-  const bool cls_belongs_to_core_lib =
-      (cls.library() == Library::CoreLibrary()) ||
-      (cls.library() == Library::CoreImplLibrary());
+  const bool cls_belongs_to_core_lib = cls.library() == Library::CoreLibrary();
 
   // Resolve and check the interfaces of cls.
   visited->Add(cls_index);
@@ -1392,7 +1501,7 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
           interface.IsNumberType() ||
           interface.IsIntType() ||
           interface.IsDoubleType() ||
-          interface.IsStringInterface() ||
+          interface.IsStringType() ||
           (interface.IsFunctionType() && !cls.IsSignatureClass()) ||
           interface.IsDynamicType()) {
         const Script& script = Script::Handle(cls.script());

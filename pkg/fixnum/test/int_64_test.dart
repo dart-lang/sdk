@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library int64test;
-import '../fixnum.dart';
+import '../lib/fixnum.dart';
 
 void main() {
   testAdditive();
@@ -102,7 +102,7 @@ void testComparisons() {
   Expect.isTrue(!(new int64.fromInt(12) == new int64.fromInt(11)));
   Expect.isTrue(new int64.fromInt(12) >= new int64.fromInt(11));
   Expect.isTrue(new int64.fromInt(12) > new int64.fromInt(11));
-  
+
   Expect.isTrue(new int64.fromInt(-10) > new int64.fromInt(-11));
   Expect.isTrue(new int64.fromInt(10) > new int64.fromInt(-11));
   Expect.isTrue(!(new int64.fromInt(-10) > new int64.fromInt(11)));
@@ -214,7 +214,7 @@ void testDiv() {
   Expect.equals(int64.ZERO, int64.ONE ~/ int64.TWO);
   Expect.equals(new int64.fromInts(0x3fffffff, 0xffffffff),
     int64.MAX_VALUE ~/ int64.TWO);
-  
+
   Expect.equals(int64.ZERO, int64.ZERO ~/ new int64.fromInt(1000));
   Expect.equals(int64.ONE, int64.MIN_VALUE ~/ int64.MIN_VALUE);
   Expect.equals(int64.ZERO, new int64.fromInt(1000) ~/ int64.MIN_VALUE);
@@ -235,7 +235,7 @@ void testDiv() {
     new int64.fromInt(1000000000) ~/ new int64.fromInt(8192));
   Expect.equals(new int64.fromInt(122055),
     new int64.fromInt(1000000000) ~/ new int64.fromInt(8193));
-  
+
   Expect.equals(new int64.fromInts(0x1fffff, 0xffffffff),
     int64.MAX_VALUE ~/ new int64.fromInts(0x00000000, 0x00000400));
   Expect.equals(new int64.fromInts(0x1fff, 0xffffffff),
@@ -250,7 +250,7 @@ void testDiv() {
     int64.MAX_VALUE ~/ new int64.fromInts(0x00040000, 0x00000000));
   Expect.equals(new int64.fromInt(31),
     int64.MAX_VALUE ~/ new int64.fromInts(0x04000000, 0x00000000));
-  
+
   Expect.equals(new int64.fromInts(0x2AAAAA, 0xAAAAAAAA),
       int64.MAX_VALUE ~/ new int64.fromInts(0x00000000, 0x00000300));
   Expect.equals(new int64.fromInts(0x2, 0xAAAAAAAA),
@@ -347,13 +347,13 @@ void testMultiplicative() {
   Expect.equals(new int64.fromInt(0),
     new int64.fromInt(100) * new int64.fromInt(0));
 
-  Expect.equals(new int64.fromInts(0x7ff63f7c, 0x1df4d840), 
+  Expect.equals(new int64.fromInts(0x7ff63f7c, 0x1df4d840),
       new int64.fromInts(0x12345678, 0x12345678) *
       new int64.fromInts(0x1234, 0x12345678));
-  Expect.equals(new int64.fromInts(0x7ff63f7c, 0x1df4d840), 
+  Expect.equals(new int64.fromInts(0x7ff63f7c, 0x1df4d840),
       new int64.fromInts(0xf2345678, 0x12345678) *
       new int64.fromInts(0x1234, 0x12345678));
-  Expect.equals(new int64.fromInts(0x297e3f7c, 0x1df4d840), 
+  Expect.equals(new int64.fromInts(0x297e3f7c, 0x1df4d840),
       new int64.fromInts(0xf2345678, 0x12345678) *
       new int64.fromInts(0xffff1234, 0x12345678));
 
@@ -435,7 +435,7 @@ void testShift() {
     (-new int64.fromInts(8, 0)) >> 1);
   Expect.equals(new int64.fromInts(0x7ffffffc, 0x0),
     (-new int64.fromInts(8, 0)).shiftRightUnsigned(1));
-  
+
   Expect.equals(new int64.fromInts(0x00723456, 0x789abcde),
       new int64.fromInts(0x72345678, 0x9abcdef0) >> 8);
   Expect.equals(new int64.fromInts(0x00007234, 0x56789abc),
@@ -473,7 +473,7 @@ void testShift() {
       new int64.fromInts(0x72345678, 0x9abcde00).shiftRightUnsigned(44));
   Expect.equals(new int64.fromInts(0x00000000, 0x00007234),
       new int64.fromInts(0x72345678, 0x9abcdef0).shiftRightUnsigned(48));
-  
+
   Expect.equals(new int64.fromInts(0xff923456, 0x789abcde),
       new int64.fromInts(0x92345678, 0x9abcdef0) >> 8);
   Expect.equals(new int64.fromInts(0xffff9234, 0x56789abc),

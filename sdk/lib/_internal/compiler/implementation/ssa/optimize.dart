@@ -39,7 +39,7 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaConstantFolder(constantSystem, backend, work, types),
           new SsaTypeConversionInserter(compiler),
           new SsaTypePropagator(compiler, types),
-          new SsaCheckInserter(backend, types, context.boundsChecked),
+          new SsaCheckInserter(backend, work, types, context.boundsChecked),
           new SsaConstantFolder(constantSystem, backend, work, types),
           new SsaRedundantPhiEliminator(),
           new SsaDeadPhiEliminator(),
@@ -81,7 +81,7 @@ class SsaOptimizerTask extends CompilerTask {
           // Then run the [SsaCheckInserter] because the type propagator also
           // propagated types non-speculatively. For example, it might have
           // propagated the type array for a call to the List constructor.
-          new SsaCheckInserter(backend, types, context.boundsChecked)];
+          new SsaCheckInserter(backend, work, types, context.boundsChecked)];
       runPhases(graph, phases);
       return !work.guards.isEmpty;
     });
@@ -102,7 +102,7 @@ class SsaOptimizerTask extends CompilerTask {
       // Also run the type propagator, to please the codegen in case
       // no other optimization is run.
       runPhases(graph, <OptimizationPhase>[
-          new SsaCheckInserter(backend, types, context.boundsChecked),
+          new SsaCheckInserter(backend, work, types, context.boundsChecked),
           new SsaTypePropagator(compiler, types)]);
     });
   }
@@ -459,7 +459,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HType leftType = types[left];
     if (leftType.isExact()) {
       HBoundedType type = leftType;
-      Element element = type.lookupMember(Elements.OPERATOR_EQUALS);
+      Element element = type.lookupMember(const SourceString('=='));
       if (element != null) {
         // If the left-hand side is guaranteed to be a non-primitive
         // type and and it defines operator==, we emit a call to that
@@ -651,15 +651,22 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   final HTypeMap types;
   final ConstantSystem constantSystem;
   final Set<HInstruction> boundsChecked;
+  final WorkItem work;
   final String name = "SsaCheckInserter";
   HGraph graph;
   Element lengthInterceptor;
+  Selector lengthSelector;
 
-  SsaCheckInserter(JavaScriptBackend backend, this.types, this.boundsChecked)
+  SsaCheckInserter(JavaScriptBackend backend,
+                   this.work,
+                   this.types,
+                   this.boundsChecked)
       : constantSystem = backend.constantSystem {
     SourceString lengthString = const SourceString('length');
+    lengthSelector =
+        new Selector.getter(lengthString, work.element.getLibrary());
     lengthInterceptor =
-        backend.builder.interceptors.getStaticGetInterceptor(lengthString);
+        backend.builder.interceptors.getStaticInterceptor(lengthSelector);
   }
 
   void visitGraph(HGraph graph) {
@@ -681,11 +688,8 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
                                  HInstruction index) {
     HStatic interceptor = new HStatic(lengthInterceptor);
     node.block.addBefore(node, interceptor);
-    Selector selector = new Selector.getter(
-        const SourceString('length'),
-        lengthInterceptor.getLibrary());  // TODO(kasperl): Wrong.
     HInvokeInterceptor length = new HInvokeInterceptor(
-        selector, <HInstruction>[interceptor, receiver], true);
+        lengthSelector, <HInstruction>[interceptor, receiver], true);
     types[length] = HType.INTEGER;
     node.block.addBefore(node, length);
 

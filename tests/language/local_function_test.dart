@@ -93,14 +93,6 @@ class LocalFunctionTest {
   static void hep(Function f) {
     f();
   }
-  static testSelfReference3(int n) {
-    int i = 0;
-    var yup;  // Not in same scope as yup below.
-    hep(yup() {
-      if (++i < n) hep(yup);
-    });
-    return i;
-  }
   static testNesting(int n) {
     var a = new List(n*n);
     f0() {
@@ -188,13 +180,9 @@ class LocalFunctionTest {
     Expect.equals(320, new LocalFunctionTest().method(10));
     Expect.equals(145, new LocalFunctionTest().testExecute(10));
     Expect.equals(5, testSelfReference1(5));
-    Expect.equals(5, testSelfReference3(5));
     Expect.equals(24*25/2, testNesting(5));
     Expect.equals(true, testClosureCallStatement(7));
-    Expect.equals(99, doThis(10, int _(n) => n * n - 1));
-    Expect.equals(99, doThis(10, int f(n) => n * n - 1));
     Expect.equals(99, doThis(10, (n) => n * n - 1));
-    Expect.equals(99, doThis(10, f(n) => n * n - 1));
     testExceptions();
   }
 }

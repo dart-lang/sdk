@@ -45,42 +45,38 @@ class Interceptors {
     compiler.unimplemented('Unknown operator', node: op);
   }
 
-  // TODO(karlklose,kasperl): change uses of getStatic[Get|Set]Interceptor to
-  // use this function.
-  Element getStaticInterceptorBySelector(Selector selector) {
+  Element getStaticInterceptor(Selector selector) {
+    // Check if we have an interceptor method implemented with
+    // interceptor classes.
+    JavaScriptBackend backend = compiler.backend;
+    if (backend.shouldInterceptSelector(selector)) {
+      return backend.getInterceptorMethod;
+    }
+
+    // Fall back to the old interceptor mechanism.
+    String name = selector.name.slowToString();
     if (selector.isGetter()) {
       // TODO(lrn): If there is no get-interceptor, but there is a
       // method-interceptor, we should generate a get-interceptor automatically.
-      return getStaticGetInterceptor(selector.name);
+      String mangledName = "get\$$name";
+      return compiler.findInterceptor(new SourceString(mangledName));
     } else if (selector.isSetter()) {
-      return getStaticSetInterceptor(selector.name);
+      String mangledName = "set\$$name";
+      return compiler.findInterceptor(new SourceString(mangledName));
     } else {
-      return getStaticInterceptor(selector.name, selector.argumentCount);
+      Element element = compiler.findInterceptor(new SourceString(name));
+      if (element != null && element.isFunction()) {
+        // Only pick the function element with the short name if the
+        // number of parameters it expects matches the number we're
+        // passing modulo the receiver.
+        FunctionElement function = element;
+        if (function.parameterCount(compiler) == selector.argumentCount + 1) {
+          return element;
+        }
+      }
+      String longMangledName = "$name\$${selector.argumentCount}";
+      return compiler.findInterceptor(new SourceString(longMangledName));
     }
-  }
-
-  Element getStaticInterceptor(SourceString name, int parameters) {
-    String mangledName = name.slowToString();
-    Element element = compiler.findInterceptor(new SourceString(mangledName));
-    if (element != null && element.isFunction()) {
-      // Only pick the function element with the short name if the
-      // number of parameters it expects matches the number we're
-      // passing modulo the receiver.
-      FunctionElement function = element;
-      if (function.parameterCount(compiler) == parameters + 1) return element;
-    }
-    String longMangledName = "$mangledName\$$parameters";
-    return compiler.findInterceptor(new SourceString(longMangledName));
-  }
-
-  Element getStaticGetInterceptor(SourceString name) {
-    String mangledName = "get\$${name.slowToString()}";
-    return compiler.findInterceptor(new SourceString(mangledName));
-  }
-
-  Element getStaticSetInterceptor(SourceString name) {
-    String mangledName = "set\$${name.slowToString()}";
-    return compiler.findInterceptor(new SourceString(mangledName));
   }
 
   Element getOperatorInterceptor(Operator op) {
@@ -412,9 +408,9 @@ class LocalsHandler {
     });
     if (closureData.isClosure()) {
       // Inside closure redirect references to itself to [:this:].
-      HInstruction thisInstruction = new HThis();
-      builder.add(thisInstruction);
-      updateLocal(closureData.closureElement, thisInstruction);
+      builder.thisInstruction = new HThis(closureData.thisElement);
+      builder.graph.entry.addAtEntry(builder.thisInstruction);
+      updateLocal(closureData.closureElement, builder.thisInstruction);
     } else if (element.isInstanceMember()
                || element.isGenerativeConstructor()) {
       // Once closures have been mapped to classes their instance members might
@@ -422,9 +418,19 @@ class LocalsHandler {
       // context.
       ClassElement cls = element.getEnclosingClass();
       DartType type = cls.computeType(builder.compiler);
-      HInstruction thisInstruction = new HThis(new HBoundedType.nonNull(type));
-      builder.add(thisInstruction);
-      directLocals[closureData.thisElement] = thisInstruction;
+      builder.thisInstruction = new HThis(closureData.thisElement,
+                                          new HBoundedType.nonNull(type));
+      builder.graph.entry.addAtEntry(builder.thisInstruction);
+      directLocals[closureData.thisElement] = builder.thisInstruction;
+    }
+
+    if (builder.backend.isInterceptorClass(element.getEnclosingClass())) {
+      Element parameter = new Element(
+          const SourceString('receiver'), ElementKind.VARIABLE, element);
+      HParameterValue value = new HParameterValue(parameter);
+      builder.graph.entry.addAfter(
+          directLocals[closureData.thisElement], value);
+      directLocals[closureData.thisElement] = value;
     }
   }
 
@@ -893,6 +899,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   LocalsHandler localsHandler;
   HInstruction rethrowableException;
   Map<Element, HInstruction> parameters;
+  HInstruction thisInstruction;
   final RuntimeTypeInformation rti;
   HParameterValue lastAddedParameter;
 
@@ -1155,6 +1162,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return true;
   }
 
+  inlinedFrom(Element element, f()) {
+    return compiler.withCurrentElement(element, () {
+      sourceElementStack.add(element);
+      var result = f();
+      sourceElementStack.removeLast();
+      return result;
+    });
+  }
+
   /**
    * Documentation wanted -- johnniwinther
    *
@@ -1165,16 +1181,19 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                              Selector selector,
                              Link<Node> arguments,
                              List<FunctionElement> constructors,
-                             Map<Element, HInstruction> fieldValues) {
+                             Map<Element, HInstruction> fieldValues,
+                             FunctionElement inlinedFromElement) {
     compiler.withCurrentElement(constructor, () {
       assert(invariant(constructor, constructor.isImplementation));
       constructors.addLast(constructor);
 
       List<HInstruction> compiledArguments = new List<HInstruction>();
-      bool succeeded = addStaticSendArgumentsToList(selector,
-                                                    arguments,
-                                                    constructor,
-                                                    compiledArguments);
+      bool succeeded =
+          inlinedFrom(inlinedFromElement,
+                       () => addStaticSendArgumentsToList(selector,
+                                                          arguments,
+                                                          constructor,
+                                                          compiledArguments));
       if (!succeeded) {
         // Non-matching super and redirects are compile-time errors and thus
         // checked by the resolver.
@@ -1259,7 +1278,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           Selector selector = elements.getSelector(call);
           Link<Node> arguments = call.arguments;
           inlineSuperOrRedirect(target, selector, arguments, constructors,
-                                fieldValues);
+                                fieldValues, constructor);
           foundSuperOrRedirect = true;
         } else {
           // A field initializer.
@@ -1293,7 +1312,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                               selector,
                               const Link<Node>(),
                               constructors,
-                              fieldValues);
+                              fieldValues,
+                              constructor);
       }
     }
   }
@@ -1313,7 +1333,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           Node node = member.parseNode(compiler);
           SendSet assignment = node.asSendSet();
           HInstruction value;
-          if (assignment === null) {
+          if (assignment == null) {
             value = graph.addConstantNull(constantSystem);
           } else {
             Node right = assignment.arguments.head;
@@ -1472,12 +1492,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // This is the code we emit for a parameter that is being checked
       // on whether it was given at value at the call site:
       //
-      // foo([a = 42) {
+      // foo([a = 42]) {
       //   if (?a) print('parameter passed $a');
       // }
       //
       // foo([a = 42]) {
-      //   var t1 = a === sentinel;
+      //   var t1 = identical(a, sentinel);
       //   if (t1) a = 42;
       //   if (!t1) print('parameter passed ' + a);
       // }
@@ -2271,6 +2291,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return result;
   }
 
+  Element getInterceptor(Send send, Selector selector) {
+    if (!methodInterceptionEnabled) return null;
+    if (!backend.isInterceptorClass(currentElement.getEnclosingClass())
+        && send.receiver == null) {
+      // The call applies to [:this:] which can not be an interceptor
+      // object.
+      return null;
+    }
+    return interceptors.getStaticInterceptor(selector);
+  }
+
   void generateInstanceGetterWithCompiledReceiver(Send send,
                                                   HInstruction receiver) {
     assert(Elements.isInstanceSend(send, elements));
@@ -2282,13 +2313,32 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         : elements.getSelector(send.selector);
     assert(selector.isGetter());
     SourceString getterName = selector.name;
-    Element staticInterceptor = null;
-    if (methodInterceptionEnabled) {
-      staticInterceptor = interceptors.getStaticGetInterceptor(getterName);
-    }
+    Element interceptor = getInterceptor(send, selector);
+
     bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
-    if (staticInterceptor != null) {
-      HStatic target = new HStatic(staticInterceptor);
+    if (interceptor == backend.getInterceptorMethod && interceptor != null) {
+      // If we're using an interceptor class, emit a call to the
+      // interceptor method and then the actual dynamic call on the
+      // interceptor object.
+      HInstruction instruction;
+      if (backend.isInterceptorClass(currentElement.getEnclosingClass())
+          && send.receiver == null) {
+        instruction = thisInstruction;
+      } else {
+        HStatic target = new HStatic(interceptor);
+        add(target);
+        instruction = new HInvokeStatic(<HInstruction>[target, receiver]);
+        add(instruction);
+      }
+      instruction = new HInvokeDynamicGetter(
+          selector, null, instruction, !hasGetter);
+      // Add the receiver as an argument to the getter call on the
+      // interceptor.
+      instruction.inputs.add(receiver);
+      pushWithPosition(instruction, send);
+    } else if (elements[send] == null && interceptor != null) {
+      // Use the old, deprecated interceptor mechanism.
+      HStatic target = new HStatic(interceptor);
       add(target);
       List<HInstruction> inputs = <HInstruction>[target, receiver];
       pushWithPosition(new HInvokeInterceptor(selector, inputs, !hasGetter),
@@ -2345,13 +2395,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Selector selector = elements.getSelector(send);
     assert(selector.isSetter());
     SourceString setterName = selector.name;
-    Element staticInterceptor = null;
-    if (methodInterceptionEnabled) {
-      staticInterceptor = interceptors.getStaticSetInterceptor(setterName);
-    }
+    Element interceptor = getInterceptor(send, selector);
     bool hasSetter = compiler.world.hasAnyUserDefinedSetter(selector);
-    if (staticInterceptor != null) {
-      HStatic target = new HStatic(staticInterceptor);
+    if (interceptor != null && interceptor == backend.getInterceptorMethod) {
+      compiler.internalError(
+          'Unimplemented intercepted setter call with interceptor classes');
+    } else if (interceptor != null && elements[send] == null) {
+      HStatic target = new HStatic(interceptor);
       add(target);
       List<HInstruction> inputs = <HInstruction>[target, receiver, value];
       addWithPosition(new HInvokeInterceptor(selector, inputs), send);
@@ -2615,20 +2665,41 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       dartMethodName = node.selector.asIdentifier().source;
     }
 
-    Element interceptor = null;
-    if (methodInterceptionEnabled && node.receiver != null) {
-      interceptor = interceptors.getStaticInterceptor(dartMethodName,
-                                                      node.argumentCount());
-    }
+    Element interceptor = getInterceptor(node, selector);
+
     if (interceptor != null) {
-      HStatic target = new HStatic(interceptor);
-      add(target);
-      inputs.add(target);
-      visit(node.receiver);
-      inputs.add(pop());
-      addGenericSendArgumentsToList(node.arguments, inputs);
-      pushWithPosition(new HInvokeInterceptor(selector, inputs), node);
-      return;
+      if (interceptor == backend.getInterceptorMethod) {
+        if (backend.isInterceptorClass(currentElement.getEnclosingClass())
+            && node.receiver == null) {
+          inputs.add(thisInstruction);
+          inputs.add(localsHandler.readThis());
+        } else {
+          HStatic target = new HStatic(interceptor);
+          add(target);
+          visit(node.receiver);
+          HInstruction receiver = pop();
+          HInstruction instruction =
+              new HInvokeStatic(<HInstruction>[target, receiver]);
+          add(instruction);
+          inputs.add(instruction);
+          inputs.add(receiver);
+        }
+        addDynamicSendArgumentsToList(node, inputs);
+        // The first entry in the inputs list is the interceptor. The
+        // second is the receiver, and the others are the arguments.
+        HInstruction instruction = new HInvokeDynamicMethod(selector, inputs);
+        pushWithPosition(instruction, node);
+        return;
+      } else if (elements[node] == null) {
+        HStatic target = new HStatic(interceptor);
+        add(target);
+        inputs.add(target);
+        visit(node.receiver);
+        inputs.add(pop());
+        addGenericSendArgumentsToList(node.arguments, inputs);
+        pushWithPosition(new HInvokeInterceptor(selector, inputs), node);
+        return;
+      }
     }
 
     Element element = elements[node];
@@ -2728,7 +2799,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     addGenericSendArgumentsToList(node.arguments, inputs);
     String name = backend.namer.publicInstanceMethodNameByArity(
-        Elements.OPERATOR_EQUALS, 1);
+        const SourceString('=='), 1);
     push(new HForeign(new DartString.literal('!!#.$name'),
                       const LiteralDartString('bool'),
                       inputs));
@@ -3090,7 +3161,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return;
     }
 
-    if (type.element.modifiers.isAbstract() &&
+    if (constructor.getEnclosingClass().isAbstract(compiler) &&
         constructor.isGenerativeConstructor()) {
       generateAbstractClassInstantiationError(node, type.name.slowToString());
       return;
@@ -3194,7 +3265,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Element element = elements[node];
     HInstruction name;
     Element helper =
-        compiler.findHelper(RuntimeTypeInformation.CACHE_HELPER_NAME);
+        compiler.findHelper(const SourceString('createRuntimeType'));
     if (element.isClass()) {
       String string = rti.generateRuntimeTypeString(element, 0);
       name = addConstantString(node.selector, string);
@@ -3686,7 +3757,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction iterator;
     void buildInitializer() {
       SourceString iteratorName = const SourceString("iterator");
-      Element interceptor = interceptors.getStaticInterceptor(iteratorName, 0);
+      Selector selector =
+          new Selector.call(iteratorName, work.element.getLibrary(), 0);
+      Element interceptor = interceptors.getStaticInterceptor(selector);
       assert(interceptor != null);
       visit(node.expression);
       pushInvokeHelper1(interceptor, pop());
@@ -3695,7 +3768,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction buildCondition() {
       SourceString name = const SourceString('hasNext');
       Selector selector = new Selector.getter(name, work.element.getLibrary());
-      if (interceptors.getStaticGetInterceptor(name) != null) {
+      if (interceptors.getStaticInterceptor(selector) != null) {
         compiler.internalError("hasNext getter must not be intercepted",
                                node: node);
       }

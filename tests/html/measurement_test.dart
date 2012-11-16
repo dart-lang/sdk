@@ -26,17 +26,13 @@ main() {
   });
 
   test('requestLayoutFrame', () {
-    var rect;
     var computedStyle;
     window.requestLayoutFrame(expectAsync0(() {
-      expect(rect.isComplete, isTrue);
-      expect(computedStyle.isComplete, isTrue);
+      expect(computedStyle.isComplete, true);
     }));
 
     final element = document.body;
-    rect = element.rect;
     computedStyle = element.computedStyle;
-    expect(rect.isComplete, isFalse);
     expect(computedStyle.isComplete, isFalse);
   });
 

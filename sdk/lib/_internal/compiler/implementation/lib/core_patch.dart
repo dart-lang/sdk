@@ -27,8 +27,8 @@ patch class Object {
   }
 
   patch Type get runtimeType {
-    String key = getRuntimeTypeString(this);
-    return getOrCreateCachedRuntimeType(key);
+    String type = getRuntimeTypeString(this);
+    return new TypeImpl(type);
   }
 }
 
@@ -36,7 +36,7 @@ patch class Object {
 patch class Function {
   patch static apply(Function function,
                      List positionalArguments,
-                     [Map<String,Dynamic> namedArguments]) {
+                     [Map<String,dynamic> namedArguments]) {
     return Primitives.applyFunction(
         function, positionalArguments, namedArguments);
   }
@@ -167,8 +167,7 @@ patch class _ListImpl<E> {
 }
 
 
-// Patch for String implementation.
-patch class _StringImpl {
+patch class String {
   patch factory String.fromCharCodes(List<int> charCodes) {
     checkNull(charCodes);
     if (!isJsArray(charCodes)) {
@@ -177,7 +176,10 @@ patch class _StringImpl {
     }
     return Primitives.stringFromCharCodes(charCodes);
   }
+}
 
+// Patch for String implementation.
+patch class Strings {
   patch static String join(List<String> strings, String separator) {
     checkNull(strings);
     checkNull(separator);
@@ -211,4 +213,13 @@ patch class _StringImpl {
     }
     return array;
   }
+}
+
+patch class RegExp {
+  patch factory RegExp(String pattern,
+                       {bool multiLine: false,
+                        bool ignoreCase: false})
+    => new JSSyntaxRegExp(pattern,
+                          multiLine: multiLine,
+                          ignoreCase: ignoreCase);
 }

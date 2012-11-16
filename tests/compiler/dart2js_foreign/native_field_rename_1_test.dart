@@ -6,7 +6,9 @@
 // fields.  However, native fields keep their name.  The implication: a getter
 // for the field must be based on the field's name, not the field's jsname.
 
-@native("*A")
+import 'native_metadata.dart';
+
+@Native("*A")
 class A {
   int key;                    //  jsname is 'key'
   int getKey() => key;
@@ -18,9 +20,9 @@ class B {
   int getKey() => key;
 }
 
-@native("*X")
+@Native("*X")
 class X {
-  @native('key') int native_key_method();
+  @Native('key') int native_key_method();
   // This should cause B.key to be renamed, but not A.key.
 
   @natve('key') int key();
@@ -30,7 +32,7 @@ class X {
 @native X makeX();
 
 
-@native("""
+@Native("""
 // This code is all inside 'setup' and so not accesible from the global scope.
 function A(){ this.key = 111; }
 A.prototype.getKey = function(){return this.key;};

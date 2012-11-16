@@ -7,6 +7,7 @@
 #import("dart:io");
 #import("test_runner.dart");
 #import("test_suite.dart");
+#import("status_file_parser.dart");
 
 class ProgressIndicator {
   ProgressIndicator(this._startTime, this._printTiming)
@@ -45,7 +46,15 @@ class ProgressIndicator {
   }
 
   void done(TestCase test) {
-    if (test.output.unexpectedOutput) {
+    if (test.isFlaky && test.lastCommandOutput.result != PASS) {
+      var buf = new StringBuffer();
+      for (var l in _buildFailureOutput(test)) {
+        buf.add("$l\n");
+      }
+      _appendToFlakyFile(buf.toString());
+    }
+
+    if (test.lastCommandOutput.unexpectedOutput) {
       _failedTests++;
       _printFailureOutput(test);
     } else {
@@ -64,16 +73,17 @@ class ProgressIndicator {
 
   void _printTimingInformation() {
     if (_printTiming) {
+      // TODO: We should take all the commands into account
       Duration d = (new Date.now()).difference(_startTime);
       print('\n--- Total time: ${_timeString(d)} ---');
       _tests.sort((a, b) {
-        Duration aDuration = a.output.time;
-        Duration bDuration = b.output.time;
+        Duration aDuration = a.lastCommandOutput.time;
+        Duration bDuration = b.lastCommandOutput.time;
         return bDuration.inMilliseconds - aDuration.inMilliseconds;
       });
       for (int i = 0; i < 20 && i < _tests.length; i++) {
         var name = _tests[i].displayName;
-        var duration = _tests[i].output.time;
+        var duration = _tests[i].lastCommandOutput.time;
         var configuration = _tests[i].configurationString;
         print('${duration} - $configuration $name');
       }
@@ -120,6 +130,14 @@ class ProgressIndicator {
   String _header(String header) => header;
 
   void _printFailureOutput(TestCase test) {
+    var failureOutput = _buildFailureOutput(test);
+    for (var line in failureOutput) {
+      print(line);
+    }
+    _failureSummary.addAll(failureOutput);
+  }
+  
+  List<String> _buildFailureOutput(TestCase test) {
     List<String> output = new List<String>();
     output.add('');
     output.add(_header('FAILED: ${test.configurationString}'
@@ -130,9 +148,9 @@ class ProgressIndicator {
       expected.add('$expectation ');
     }
     output.add(expected.toString());
-    output.add('Actual: ${test.output.result}');
-    if (!test.output.hasTimedOut && test.info != null) {
-      if (test.output.incomplete && !test.info.hasCompileError) {
+    output.add('Actual: ${test.lastCommandOutput.result}');
+    if (!test.lastCommandOutput.hasTimedOut && test.info != null) {
+      if (test.lastCommandOutput.incomplete && !test.info.hasCompileError) {
         output.add('Unexpected compile-time error.');
       } else {
         if (test.info.hasCompileError) {
@@ -143,24 +161,24 @@ class ProgressIndicator {
         }
       }
     }
-    if (!test.output.diagnostics.isEmpty) {
+    if (!test.lastCommandOutput.diagnostics.isEmpty) {
       String prefix = 'diagnostics:';
-      for (var s in test.output.diagnostics) {
+      for (var s in test.lastCommandOutput.diagnostics) {
         output.add('$prefix ${s}');
         prefix = '   ';
       }
     }
-    if (!test.output.stdout.isEmpty) {
+    if (!test.lastCommandOutput.stdout.isEmpty) {
       output.add('');
       output.add('stdout:');
-      for (var s in test.output.stdout) {
+      for (var s in test.lastCommandOutput.stdout) {
         output.add(s);
       }
     }
-    if (!test.output.stderr.isEmpty) {
+    if (!test.lastCommandOutput.stderr.isEmpty) {
       output.add('');
       output.add('stderr:');
-      for (var s in test.output.stderr) {
+      for (var s in test.lastCommandOutput.stderr) {
         output.add(s);
       }
     }
@@ -170,10 +188,7 @@ class ProgressIndicator {
           ? "Command line" : "Compilation command");
       output.add('$message: ${c.commandLine}');
     }
-    for (String line in output) {
-      print(line);
-    }
-    _failureSummary.addAll(output);
+    return output;
   }
 
   void _printFailureSummary() {
@@ -194,6 +209,13 @@ class ProgressIndicator {
       print('=== ${_failedTests} test$pluralSuffix failed');
       print('===\n');
     }
+  }
+
+  void _appendToFlakyFile(String msg) {
+    var file = new File(TestUtils.flakyFileName());
+    var fd = file.openSync(FileMode.APPEND);
+    fd.writeStringSync(msg);
+    fd.closeSync();
   }
 
   int get numFailedTests => _failedTests;
@@ -326,7 +348,7 @@ class LineProgressIndicator extends ProgressIndicator {
 
   void _printDoneProgress(TestCase test) {
     var status = 'pass';
-    if (test.output.unexpectedOutput) {
+    if (test.lastCommandOutput.unexpectedOutput) {
       status = 'fail';
     }
     print('Done ${test.configurationString} ${test.displayName}: $status');
@@ -344,7 +366,7 @@ class VerboseProgressIndicator extends ProgressIndicator {
 
   void _printDoneProgress(TestCase test) {
     var status = 'pass';
-    if (test.output.unexpectedOutput) {
+    if (test.lastCommandOutput.unexpectedOutput) {
       status = 'fail';
     }
     print('Done ${test.configurationString} ${test.displayName}: $status');
@@ -375,7 +397,7 @@ class BuildbotProgressIndicator extends ProgressIndicator {
 
   void _printDoneProgress(TestCase test) {
     var status = 'pass';
-    if (test.output.unexpectedOutput) {
+    if (test.lastCommandOutput.unexpectedOutput) {
       status = 'fail';
     }
     var percent = ((_completedTests() / _foundTests) * 100).toInt().toString();
@@ -400,11 +422,11 @@ class DiffProgressIndicator extends ColorProgressIndicator {
       : super(startTime, printTiming);
 
   void _printFailureOutput(TestCase test) {
-    String status = '${test.displayName}: ${test.output.result}';
+    String status = '${test.displayName}: ${test.lastCommandOutput.result}';
     List<String> configs =
         statusToConfigs.putIfAbsent(status, () => <String>[]);
     configs.add(test.configurationString);
-    if (test.output.hasTimedOut) {
+    if (test.lastCommandOutput.hasTimedOut) {
       print('\n${test.displayName} timed out on ${test.configurationString}');
     }
   }

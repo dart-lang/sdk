@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of html;
+
 class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
 
   Document get document => JS('Document', '#.document', this);
@@ -46,7 +48,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
     }
   }
 
-  var _location_wrapper;  // Cached wrapped Location object.
+  _LocationWrapper _location_wrapper;  // Cached wrapped Location object.
 
   // Native getter and setter to access raw Location object.
   Location get _location => JS('Location', '#.location', this);

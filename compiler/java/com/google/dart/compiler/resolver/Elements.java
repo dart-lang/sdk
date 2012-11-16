@@ -92,13 +92,26 @@ public class Elements {
   }
 
   public static LibraryElement getLibraryElement(Element element) {
-    do {
-      if (ElementKind.of(element).equals(ElementKind.LIBRARY)) {
-        break;
+    while (element != null) {
+      if (ElementKind.of(element) == ElementKind.LIBRARY) {
+        return (LibraryElement) element;
       }
-      element = element.getEnclosingElement();
-    } while (element != null && element.getEnclosingElement() != element);
-    return (LibraryElement) element;
+      EnclosingElement enclosingElement = element.getEnclosingElement();
+      if (enclosingElement == element) {
+        return null;
+      }
+      element = enclosingElement;
+    };
+    return null;
+  }
+  
+  /**
+   * @return <code>true</code> if "a" and "b" are declared in the same {@link LibraryElement}.
+   */
+  public static boolean areSameLibrary(Element a, Element b) {
+    LibraryElement aLibrary = getLibraryElement(a);
+    LibraryElement bLibrary = getLibraryElement(b);
+    return Objects.equal(aLibrary, bLibrary);
   }
 
   @VisibleForTesting
@@ -761,9 +774,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
     return Elements.isLibrarySource(source, "/core/corelib.dart")
         || Elements.isLibrarySource(source, "/core/corelib_impl.dart")
         // New core library file names
-        || Elements.isLibrarySource(source, "/core/core.dart")
-        || Elements.isLibrarySource(source, "/core/coreimpl.dart")
-        || Elements.isLibrarySource(source, "/coreimpl/coreimpl.dart");
+        || Elements.isLibrarySource(source, "/core/core.dart");
   }
   
   public static boolean isHtmlLibrarySource(Source source) {

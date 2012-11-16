@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of html;
+
 // TODO(nweiz): when all implementations we target have the same name for the
-// coreimpl implementation of List<E>, extend that rather than wrapping.
+// implementation of List<E>, extend that rather than wrapping.
 class _ListWrapper<E> implements List<E> {
   List _list;
 
@@ -93,7 +95,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<Node>(this);
+    return new FixedSizeListIterator<Node>(this);
   }
 
   // From Collection<Node>:

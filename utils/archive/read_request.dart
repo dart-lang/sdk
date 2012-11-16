@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /** The request ids for read-related messages to send to the C extension. */
-#library("read_request");
+library read_request;
 
 final int NEW = 0;
 final int SUPPORT_FILTER_ALL = 1;

@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("QueueTest.dart");
-#import("dart:coreimpl");
+library queue_test;
 
 class QueueTest {
 
@@ -174,7 +173,7 @@ class QueueTest {
     DoubleLinkedQueueEntry<int> entry1 = queue1.firstEntry();
     DoubleLinkedQueueEntry<int> entry2 = queue2.firstEntry();
     while (entry1 != null) {
-      Expect.equals(true, entry1 !== entry2);
+      Expect.equals(true, !identical(entry1, entry2));
       entry1 = entry1.nextEntry();
       entry2 = entry2.nextEntry();
     }

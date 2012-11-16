@@ -20,19 +20,16 @@ namespace dart {
 
 CODEGEN_TEST_GENERATE(NativePatchStaticCall, test) {
   SequenceNode* node_seq = test->node_sequence();
-  const int num_params = 0;
-  const bool has_opt_params = false;
   const String& native_name =
       String::ZoneHandle(Symbols::New("TestStaticCallPatching"));
   NativeFunction native_function =
       reinterpret_cast<NativeFunction>(TestStaticCallPatching);
+  test->function().set_is_native(true);
   node_seq->Add(new ReturnNode(Scanner::kDummyTokenIndex,
                                new NativeBodyNode(Scanner::kDummyTokenIndex,
+                                                  test->function(),
                                                   native_name,
-                                                  native_function,
-                                                  num_params,
-                                                  has_opt_params,
-                                                  false)));
+                                                  native_function)));
 }
 
 CODEGEN_TEST2_GENERATE(PatchStaticCall, function, test) {

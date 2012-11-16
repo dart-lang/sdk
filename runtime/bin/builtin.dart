@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("builtin");
-#import("dart:uri");
+library builtin;
+import 'dart:uri';
 
 // Corelib 'print' implementation.
 void _print(arg) {
@@ -147,7 +147,7 @@ String _filePathFromPackageUri(Uri uri) {
   }
 
   var path;
-  if (_packageRoot !== null) {
+  if (_packageRoot != null) {
     path = "${_packageRoot}${uri.path}";
   } else {
     path = _entrypoint.resolve('packages/${uri.path}').path;

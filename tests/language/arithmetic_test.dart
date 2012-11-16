@@ -55,6 +55,11 @@ class ArithmeticTest {
       b = -1;
       Expect.equals(1 << i, a ~/ b);
     }
+    for (int i = 0; i < 80; i++) {
+      a = -1 << i;
+      b = -1;
+      Expect.equals(1 << i, a ~/ b);
+    }
     a = 22;
     b = 4.0;
     // Smi & double.
@@ -412,9 +417,18 @@ class ArithmeticTest {
     Expect.equals(true, (10).hashCode == (10).hashCode);
   }
 
+  static int div(a, b) => a ~/ b;
+
+  static void testSmiDivDeopt() {
+    var a = -0x40000000;
+    var b = -1;
+    for (var i = 0; i < 10; i++) Expect.equals(0x40000000, div(a, b));
+  }
+
   static testMain() {
     for (int i = 0; i < 1500; i++) {
       runOne();
+      testSmiDivDeopt();
     }
   }
 }

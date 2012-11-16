@@ -110,14 +110,14 @@ class _HashSetImpl<E> implements HashSet<E> {
   }
 
   void addAll(Collection<E> collection) {
-    collection.forEach(void _(E value) {
+    collection.forEach((E value) {
       add(value);
     });
   }
 
   Set<E> intersection(Collection<E> collection) {
     Set<E> result = new Set<E>();
-    collection.forEach(void _(E value) {
+    collection.forEach((E value) {
       if (contains(value)) result.add(value);
     });
     return result;
@@ -128,39 +128,39 @@ class _HashSetImpl<E> implements HashSet<E> {
   }
 
   void removeAll(Collection<E> collection) {
-    collection.forEach(void _(E value) {
+    collection.forEach((E value) {
       remove(value);
     });
   }
 
   bool containsAll(Collection<E> collection) {
-    return collection.every(bool _(E value) {
+    return collection.every((E value) {
       return contains(value);
     });
   }
 
   void forEach(void f(E element)) {
-    _backingMap.forEach(void _(E key, E value) {
+    _backingMap.forEach((E key, E value) {
       f(key);
     });
   }
 
   Set map(f(E element)) {
     Set result = new Set();
-    _backingMap.forEach(void _(E key, E value) {
+    _backingMap.forEach((E key, E value) {
       result.add(f(key));
     });
     return result;
   }
 
-  Dynamic reduce(Dynamic initialValue,
-                 Dynamic combine(Dynamic previousValue, E element)) {
+  dynamic reduce(dynamic initialValue,
+                 dynamic combine(dynamic previousValue, E element)) {
     return Collections.reduce(this, initialValue, combine);
   }
 
   Set<E> filter(bool f(E element)) {
     Set<E> result = new Set<E>();
-    _backingMap.forEach(void _(E key, E value) {
+    _backingMap.forEach((E key, E value) {
       if (f(key)) result.add(key);
     });
     return result;
@@ -234,7 +234,7 @@ class _HashSetIterator<E> implements Iterator<E> {
     do {
       if (++_nextValidIndex >= length) break;
       entry = _entries[_nextValidIndex];
-    } while ((entry === null) || (entry === deletedKey));
+    } while ((entry == null) || identical(entry, deletedKey));
   }
 
   // The entries in the set. May contain null or the sentinel value.

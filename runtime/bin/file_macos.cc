@@ -12,6 +12,7 @@
 #include <limits.h>
 
 #include "bin/builtin.h"
+#include "bin/fdutils.h"
 
 class FileHandle {
  public:
@@ -120,6 +121,7 @@ File* File::Open(const char* name, FileOpenMode mode) {
   if (fd < 0) {
     return NULL;
   }
+  FDUtils::SetCloseOnExec(fd);
   if (((mode & kWrite) != 0) && ((mode & kTruncate) == 0)) {
     int position = TEMP_FAILURE_RETRY(lseek(fd, 0, SEEK_END));
     if (position < 0) {

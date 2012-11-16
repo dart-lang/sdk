@@ -43,19 +43,6 @@ public class SystemLibrariesReaderTest extends TestCase {
             + "\n  could not find " + file);
       }
     }
-
-    // check content
-    //   "coreimpl": const LibraryInfo(
-    //       "coreimpl/coreimpl_runtime.dart",
-    //       implementation: true,
-    //       dart2jsPath: "compiler/implementation/lib/coreimpl.dart",
-    //       dart2jsPatchPath: "compiler/implementation/lib/coreimpl_patch.dart")
-    DartLibrary library = librariesMap.get("dart:coreimpl");
-    assertTrue(library != null);
-    assertEquals("dart:coreimpl",library.getShortName());
-    assertTrue(library.isImplementation());
-    assertEquals("Shared", library.getCategory());   
-    
   }
   
 }

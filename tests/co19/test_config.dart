@@ -4,11 +4,11 @@
 
 #library("co19_test_config");
 
-#import("dart:io");
-#import("../../tools/testing/dart/test_suite.dart");
+#import('dart:io');
+#import('../../tools/testing/dart/test_suite.dart');
 
 class Co19TestSuite extends StandardTestSuite {
-  RegExp _testRegExp = const RegExp(r"t[0-9]{2}.dart$");
+  RegExp _testRegExp = new RegExp(r"t[0-9]{2}.dart$");
 
   Co19TestSuite(Map configuration)
       : super(configuration,
@@ -20,5 +20,5 @@ class Co19TestSuite extends StandardTestSuite {
                "tests/co19/co19-dart2js.status"]);
 
   bool isTestFile(String filename) => _testRegExp.hasMatch(filename);
-  bool listRecursively() => true;
+  bool get listRecursively => true;
 }

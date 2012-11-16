@@ -22,7 +22,7 @@ class ImmutableMap<K, V> implements Map<K, V> {
   }
 
   bool get isEmpty {
-    return kvPairs_.length === 0;
+    return kvPairs_.length == 0;
   }
 
   int get length {

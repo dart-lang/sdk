@@ -1,0 +1,22 @@
+#!/bin/bash
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Setting CUR_DIR this way is ugly, but is needed to handle the case where
+# sdk/bin has been symlinked to. On MacOS, readlink doesn't work with this case.
+CUR_DIR="$(cd "${0%/*}" ; pwd -P)"
+
+if [ -z "$DART_CONFIGURATION" ];
+then
+  DART_CONFIGURATION="ReleaseIA32"
+fi
+
+if [[ `uname` -eq 'Darwin' ]]; 
+then
+  BIN_DIR="$CUR_DIR"/../../xcodebuild/$DART_CONFIGURATION
+else
+  BIN_DIR="$CUR_DIR"/../../out/$DART_CONFIGURATION
+fi 
+
+exec "$BIN_DIR"/dart "$@"

@@ -29,6 +29,7 @@ intptr_t Socket::CreateConnect(const char* host, const intptr_t port) {
     return -1;
   }
 
+  FDUtils::SetCloseOnExec(fd);
   FDUtils::SetNonBlocking(fd);
 
   server = gethostbyname(host);
@@ -187,6 +188,8 @@ intptr_t ServerSocket::CreateBindListen(const char* host,
     fprintf(stderr, "Error CreateBind: %s\n", strerror(errno));
     return -1;
   }
+
+  FDUtils::SetCloseOnExec(fd);
 
   int optval = 1;
   TEMP_FAILURE_RETRY(

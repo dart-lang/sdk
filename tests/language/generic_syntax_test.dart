@@ -17,7 +17,7 @@ class GenericSyntaxTest<B, C, D, E, F> {
   }
 
   void bar(x) {
-    Expect.equals(null, x());
+    Expect.equals(null, x(null));
   }
 
   test() {
@@ -29,7 +29,7 @@ class GenericSyntaxTest<B, C, D, E, F> {
     var f = 6;
     var g = 7;
     var h = null;
-    bar(A<B, C, D, E, F> g() { return h; });  // 'A<B' starts a generic type.
+    bar((A<B, C, D, E, F> g) { return h; });  // 'A<B' starts a generic type.
     foo(a<b, c, d, e, f> g);  // 'a<b' is a boolean function argument.
   }
 

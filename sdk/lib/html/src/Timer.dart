@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of html;
+
 // TODO(antonm): support not DOM isolates too.
 class _Timer implements Timer {
   final canceller;

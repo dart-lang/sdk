@@ -4,10 +4,10 @@
 
 // TODO(terry): Investigate common library for file I/O shared between frog and tools.
 
-#library('file_system_vm');
-#import('dart:io');
-#import('file_system.dart');
-#import('dart:utf');
+library file_system_vm;
+import 'dart:io';
+import 'file_system.dart';
+import 'dart:utf';
 
 /** File system implementation using the vm api's. */
 class VMFileSystem implements FileSystem {

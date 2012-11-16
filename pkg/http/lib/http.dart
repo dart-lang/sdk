@@ -65,6 +65,7 @@ import 'src/response.dart';
 export 'src/base_client.dart';
 export 'src/base_request.dart';
 export 'src/base_response.dart';
+export 'src/curl_client.dart';
 export 'src/client.dart';
 export 'src/multipart_file.dart';
 export 'src/multipart_request.dart';

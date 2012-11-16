@@ -572,7 +572,10 @@ class RawClosureData : public RawObject {
   RawContextScope* context_scope_;
   RawFunction* parent_function_;  // Enclosing function of this local function.
   RawClass* signature_class_;
-  RawCode* closure_allocation_stub_;  // Stub code for allocation of closures.
+  union {
+    RawInstance* closure_;  // Closure object for static implicit closures.
+    RawCode* closure_allocation_stub_;  // Stub code for allocation of closures.
+  };
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->closure_allocation_stub_);
   }
@@ -894,7 +897,11 @@ class RawContextScope : public RawObject {
     RawSmi* token_pos;
     RawString* name;
     RawBool* is_final;
-    RawAbstractType* type;
+    RawBool* is_const;
+    union {
+      RawAbstractType* type;
+      RawInstance* value;  // iff is_const is true
+    };
     RawSmi* context_index;
     RawSmi* context_level;
   };
@@ -925,6 +932,8 @@ class RawICData : public RawObject {
   }
   intptr_t deopt_id_;         // Deoptimization id corresponding to this IC.
   intptr_t num_args_tested_;  // Number of arguments tested in IC.
+  uint8_t deopt_reason_;      // Last deoptimization reason.
+  uint8_t is_closure_call_;   // 0 or 1.
 };
 
 
@@ -932,7 +941,6 @@ class RawSubtypeTestCache : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(SubtypeTestCache);
   RawArray* cache_;
 };
-
 
 
 class RawError : public RawObject {
@@ -1231,6 +1239,18 @@ class RawGrowableObjectArray : public RawInstance {
 };
 
 
+// Define an aliases for intptr_t.
+#if defined(ARCH_IS_32_BIT)
+#define RawIntPtrArray RawInt32Array
+#define IntPtrArray Int32Array
+#elif defined(ARCH_IS_64_BIT)
+#define RawIntPtrArray RawInt64Array
+#define IntPtrArray Int64Array
+#else
+#error Architecture is not 32-bit or 64-bit.
+#endif  // ARCH_IS_32_BIT
+
+
 class RawByteArray : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ByteArray);
 
@@ -1278,6 +1298,8 @@ class RawInt32Array : public RawByteArray {
 
   // Variable length data follows here.
   int32_t data_[0];
+
+  friend class Instance;
 };
 
 
@@ -1294,6 +1316,8 @@ class RawInt64Array : public RawByteArray {
 
   // Variable length data follows here.
   int64_t data_[0];
+
+  friend class Instance;
 };
 
 

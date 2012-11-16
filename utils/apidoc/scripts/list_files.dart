@@ -7,9 +7,9 @@
  * used when building API documentation. Used by gyp to determine when apidocs
  * need to be regenerated (see `apidoc.gyp`).
  */
-#library('list_files');
+library list_files;
 
-#import('dart:io');
+import 'dart:io';
 
 const allowedExtensions = const [
   '.css', '.dart', '.ico', '.js', '.json', '.png', '.sh', '.txt'

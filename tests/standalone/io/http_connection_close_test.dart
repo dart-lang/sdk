@@ -6,7 +6,7 @@
 #import("dart:isolate");
 #import("dart:io");
 
-void testHttp10Close() {
+void testHttp10Close(bool closeRequest) {
   HttpServer server = new HttpServer();
   server.listen("127.0.0.1", 0, backlog: 5);
 
@@ -14,15 +14,16 @@ void testHttp10Close() {
   socket.onConnect = () {
     List<int> buffer = new List<int>(1024);
     socket.outputStream.writeString("GET / HTTP/1.0\r\n\r\n");
+    if (closeRequest) socket.outputStream.close();
     socket.onData = () => socket.readList(buffer, 0, buffer.length);
     socket.onClosed = () {
-      socket.close(true);
+      if (!closeRequest) socket.close(true);
       server.close();
     };
   };
 }
 
-void testHttp11Close() {
+void testHttp11Close(bool closeRequest) {
   HttpServer server = new HttpServer();
   server.listen("127.0.0.1", 0, backlog: 5);
 
@@ -31,15 +32,18 @@ void testHttp11Close() {
     List<int> buffer = new List<int>(1024);
     socket.outputStream.writeString(
         "GET / HTTP/1.1\r\nConnection: close\r\n\r\n");
+    if (closeRequest) socket.outputStream.close();
     socket.onData = () => socket.readList(buffer, 0, buffer.length);
     socket.onClosed = () {
-      socket.close(true);
+      if (!closeRequest) socket.close(true);
       server.close();
     };
   };
 }
 
 main() {
-  testHttp10Close();
-  testHttp11Close();
+  testHttp10Close(false);
+  testHttp10Close(true);
+  testHttp11Close(false);
+  testHttp11Close(true);
 }

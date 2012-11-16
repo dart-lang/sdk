@@ -13,9 +13,10 @@
 // is no place in the Dart language to communicate (3).  So we use the following
 // fake body technique.
 
+import 'native_metadata.dart';
 
 // The exception type.
-@native("*E")
+@Native("*E")
 class E {
   @native E._used();  // Bogus native constructor, called only from fake body.
 
@@ -23,7 +24,7 @@ class E {
 }
 
 // Type with exception-throwing methods.
-@native("*A")
+@Native("*A")
 class A {
   @native op(int x) {
     // Fake body calls constructor to mark the exception class (E) as used.
@@ -39,14 +40,14 @@ class B {
 
 @native makeA();
 
-@native("""
+@Native("""
 // Ensure we are not relying on global names 'A' and 'E'.
 A = null;
 E = null;
 """)
 void setup1();
 
-@native("""
+@Native("""
 // This code is all inside 'setup2' and so not accesible from the global scope.
 function E(x){ this.code = x; }
 

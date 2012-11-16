@@ -913,6 +913,8 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle object);
  * data outside the Dart heap. These objects are totally detached from
  * the Dart heap. Only a subset of the Dart objects have a
  * representation as a Dart_CObject.
+ *
+ * The string encoding in the 'value.as_string' is UTF-8.
  */
 typedef struct _Dart_CObject {
   enum Type {
@@ -1324,9 +1326,9 @@ DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle double_obj, double* value);
 DART_EXPORT bool Dart_IsString(Dart_Handle object);
 
 /**
- * Is this object an ASCII String?
+ * Is this object a Latin-1 (ISO-8859-1) String?
  */
-DART_EXPORT bool Dart_IsAsciiString(Dart_Handle object);
+DART_EXPORT bool Dart_IsStringLatin1(Dart_Handle object);
 
 /**
  * Gets the length of a String.
@@ -1481,6 +1483,45 @@ DART_EXPORT Dart_Handle Dart_StringToUTF8(Dart_Handle str,
 DART_EXPORT Dart_Handle Dart_StringToUTF16(Dart_Handle str,
                                            uint16_t* utf16_array,
                                            intptr_t* length);
+
+/**
+ * Gets the storage size in bytes of a String.
+ *
+ * \param str A String.
+ * \param length Returns the storage size in bytes of the String.
+ *  This is the size in bytes needed to store the String.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_StringStorageSize(Dart_Handle str, intptr_t* size);
+
+
+/**
+ * Converts a String into an ExternalString.
+ * The original object is morphed into an external string object.
+ *
+ * \param array External space into which the string data will be
+ *   copied into. This must not move.
+ * \param length The size in bytes of the provided external space (array).
+ * \param peer An external pointer to associate with this string.
+ * \param cback A callback to be called when this string is finalized.
+ *
+ * \return the converted ExternalString object if no error occurs.
+ *   Otherwise returns an error handle.
+ *
+ * For example:
+ *  intptr_t size;
+ *  Dart_Handle result;
+ *  result = DartStringStorageSize(str, &size);
+ *  void* data = malloc(size);
+ *  result = Dart_MakeExternalString(str, data, size, NULL, NULL);
+ *
+ */
+DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
+                                                void* array,
+                                                intptr_t length,
+                                                void* peer,
+                                                Dart_PeerFinalizer cback);
 
 
 // --- Lists ---

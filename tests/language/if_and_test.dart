@@ -11,7 +11,7 @@ int64_bits(x) => x;
 class A {
   opshr(int n, a2) {
     int res2;
-    bool negative = a2 === 496;
+    bool negative = a2 == 496;
 
     res2 = _shiftRight(a2, n);
     if (negative) {

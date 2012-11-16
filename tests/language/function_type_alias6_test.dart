@@ -13,9 +13,9 @@ class D {
 }
 
 main() {
-  var f = _(List x) { };
+  var f = (List x) { };
   Expect.isTrue(f is F);
-  var g = _(List<F> x) { };
+  var g = (List<F> x) { };
   Expect.isTrue(g is F);
   var d = new D();
   Expect.isTrue(d.foo is !C);

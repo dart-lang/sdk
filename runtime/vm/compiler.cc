@@ -57,8 +57,8 @@ DECLARE_FLAG(bool, print_flow_graph);
 // Compile a function. Should call only if the function has not been compiled.
 //   Arg0: function object.
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
-  ASSERT(arguments.Count() == kCompileFunctionRuntimeEntry.argument_count());
-  const Function& function = Function::CheckedHandle(arguments.At(0));
+  ASSERT(arguments.ArgCount() == kCompileFunctionRuntimeEntry.argument_count());
+  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   ASSERT(!function.HasCode());
   const Error& error = Error::Handle(Compiler::CompileFunction(function));
   if (!error.IsNull()) {
@@ -435,7 +435,8 @@ static RawError* CompileFunctionHelper(const Function& function,
     TIMERSCOPE(time_compilation);
     Timer per_compile_timer(FLAG_trace_compiler, "Compilation time");
     per_compile_timer.Start();
-    ParsedFunction* parsed_function = new ParsedFunction(function);
+    ParsedFunction* parsed_function = new ParsedFunction(
+        Function::ZoneHandle(function.raw()));
     if (FLAG_trace_compiler) {
       OS::Print("Compiling %sfunction: '%s' @ token %"Pd"\n",
                 (optimized ? "optimized " : ""),
@@ -535,7 +536,9 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
   for (int i = 0; i < functions.Length(); i++) {
     func ^= functions.At(i);
     ASSERT(!func.IsNull());
-    if (!func.HasCode() && !func.is_abstract()) {
+    if (!func.HasCode() &&
+        !func.is_abstract() &&
+        !func.IsRedirectingFactory()) {
       error = CompileFunction(func);
       if (!error.IsNull()) {
         return error.raw();
@@ -561,7 +564,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     // The function needs to be associated with a named Class: the interface
     // Function fits the bill.
     const char* kEvalConst = "eval_const";
-    const Function& func = Function::Handle(Function::New(
+    const Function& func = Function::ZoneHandle(Function::New(
         String::Handle(Symbols::New(kEvalConst)),
         RawFunction::kConstImplicitGetter,
         true,  // static function.
@@ -582,7 +585,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     // here.
     ParsedFunction* parsed_function = new ParsedFunction(func);
     parsed_function->SetNodeSequence(fragment);
-    parsed_function->set_default_parameter_values(Array::Handle());
+    parsed_function->set_default_parameter_values(Array::ZoneHandle());
     parsed_function->set_expression_temp_var(
         ParsedFunction::CreateExpressionTempVar(0));
     fragment->scope()->AddVariable(parsed_function->expression_temp_var());

@@ -26,3 +26,19 @@ void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
     UNREACHABLE();
   }
 }
+
+const char* StringUtils::SystemStringToUtf8(const char* str) {
+  return str;
+}
+
+const char* StringUtils::Utf8ToSystemString(const char* utf8) {
+  return utf8;
+}
+
+char* StringUtils::SystemStringToUtf8(char* str) {
+  return str;
+}
+
+char* StringUtils::Utf8ToSystemString(char* utf8) {
+  return utf8;
+}

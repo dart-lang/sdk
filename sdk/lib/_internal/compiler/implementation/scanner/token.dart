@@ -177,8 +177,8 @@ class StringToken extends Token {
   String slowToString() => value.slowToString();
 }
 
-interface SourceString extends Iterable<int> default StringWrapper {
-  const SourceString(String string);
+abstract class SourceString extends Iterable<int> {
+  const factory SourceString(String string) = StringWrapper;
 
   void printOn(StringBuffer sb);
 

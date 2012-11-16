@@ -21,7 +21,7 @@ abstract class Source {
    * The name of the source. Should be lower-case, suitable for use in a
    * filename, and unique accross all sources.
    */
-  abstract String get name;
+  String get name;
 
   /// Whether or not this source is the default source.
   bool get isDefault => systemCache.sources.defaultSource == this;
@@ -34,7 +34,7 @@ abstract class Source {
    * packages. It doesn't need to be cached if all packages are available
    * locally.
    */
-  abstract bool get shouldCache;
+  bool get shouldCache;
 
   /**
    * The system cache with which this source is registered.

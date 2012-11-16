@@ -53,7 +53,9 @@ static bool HandleDir(char* dir_name,
     if (written != strlen(dir_name)) {
       return false;
     }
-    bool ok = listing->HandleDirectory(path);
+    char* utf8_path = StringUtils::SystemStringToUtf8(path);
+    bool ok = listing->HandleDirectory(utf8_path);
+    free(utf8_path);
     if (!ok) return ok;
     if (recursive) {
       return ListRecursively(path, recursive, listing);
@@ -74,7 +76,10 @@ static bool HandleFile(char* file_name,
   if (written != strlen(file_name)) {
     return false;
   };
-  return listing->HandleFile(path);
+  char* utf8_path = StringUtils::SystemStringToUtf8(path);
+  bool ok = listing->HandleFile(utf8_path);
+  free(utf8_path);
+  return ok;
 }
 
 
@@ -125,7 +130,9 @@ static bool ComputeFullSearchPath(const char* dir_name,
 
 static void PostError(DirectoryListing* listing,
                       const char* dir_name) {
-  listing->HandleError(dir_name);
+  const char* utf8_path = StringUtils::SystemStringToUtf8(dir_name);
+  listing->HandleError(utf8_path);
+  free(const_cast<char*>(utf8_path));
 }
 
 
@@ -314,44 +321,61 @@ static bool DeleteRecursively(const char* dir_name) {
 bool Directory::List(const char* dir_name,
                      bool recursive,
                      DirectoryListing* listing) {
-  bool completed = ListRecursively(dir_name, recursive, listing);
+  const char* system_name = StringUtils::Utf8ToSystemString(dir_name);
+  bool completed = ListRecursively(system_name, recursive, listing);
+  free(const_cast<char*>(system_name));
   return completed;
 }
 
 
-Directory::ExistsResult Directory::Exists(const char* dir_name) {
+static Directory::ExistsResult ExistsHelper(const char* dir_name) {
   DWORD attributes = GetFileAttributes(dir_name);
   if (attributes == INVALID_FILE_ATTRIBUTES) {
     DWORD last_error = GetLastError();
     if (last_error == ERROR_FILE_NOT_FOUND ||
         last_error == ERROR_PATH_NOT_FOUND) {
-      return DOES_NOT_EXIST;
+      return Directory::DOES_NOT_EXIST;
     } else {
       // We might not be able to get the file attributes for other
       // reasons such as lack of permissions. In that case we do
       // not know if the directory exists.
-      return UNKNOWN;
+      return Directory::UNKNOWN;
     }
   }
   bool exists = (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
-  return exists ? EXISTS : DOES_NOT_EXIST;
+  return exists ? Directory::EXISTS : Directory::DOES_NOT_EXIST;
+}
+
+
+Directory::ExistsResult Directory::Exists(const char* dir_name) {
+  const char* system_name = StringUtils::Utf8ToSystemString(dir_name);
+  Directory::ExistsResult result = ExistsHelper(system_name);
+  free(const_cast<char*>(system_name));
+  return result;
 }
 
 
 char* Directory::Current() {
-  char* result;
   int length = GetCurrentDirectory(0, NULL);
-  result = reinterpret_cast<char*>(malloc(length + 1));
-  GetCurrentDirectory(length + 1, result);
+  char* current = reinterpret_cast<char*>(malloc(length + 1));
+  GetCurrentDirectory(length + 1, current);
+  char* result = StringUtils::SystemStringToUtf8(current);
+  free(current);
   return result;
 }
 
 
 bool Directory::Create(const char* dir_name) {
+  const char* system_name = StringUtils::Utf8ToSystemString(dir_name);
   // If the directory already exists and is a directory do not
   // attempt to create it again and treat it as a success.
-  if (Exists(dir_name) == EXISTS) return true;
-  return (CreateDirectory(dir_name, NULL) != 0);
+  if (ExistsHelper(system_name) == EXISTS) {
+    free(const_cast<char*>(system_name));
+    return true;
+  }
+  int create_status = CreateDirectory(system_name, NULL);
+  free(const_cast<char*>(system_name));
+  return (create_status != 0);
 }
 
 
@@ -369,7 +393,10 @@ char* Directory::CreateTemp(const char* const_template) {
       return NULL;
     }
   } else {
-    snprintf(path, MAX_PATH, "%s", const_template);
+    const char* system_template =
+        StringUtils::Utf8ToSystemString(const_template);
+    snprintf(path, MAX_PATH, "%s", system_template);
+    free(const_cast<char*>(system_template));
     path_length = strlen(path);
   }
   // Length of tempdir-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx is 44.
@@ -401,30 +428,44 @@ char* Directory::CreateTemp(const char* const_template) {
     free(path);
     return NULL;
   }
-  return path;
+  char* result = StringUtils::SystemStringToUtf8(path);
+  free(path);
+  return result;
 }
 
 
 bool Directory::Delete(const char* dir_name, bool recursive) {
+  bool result = false;
+  const char* system_dir_name =
+      StringUtils::Utf8ToSystemString(dir_name);
   if (!recursive) {
-    return (RemoveDirectory(dir_name) != 0);
+    result = (RemoveDirectory(system_dir_name) != 0);
   } else {
-    return DeleteRecursively(dir_name);
+    result = DeleteRecursively(system_dir_name);
   }
+  free(const_cast<char*>(system_dir_name));
+  return result;
 }
 
 
 bool Directory::Rename(const char* path, const char* new_path) {
-  ExistsResult exists = Exists(path);
+  const char* system_path = StringUtils::Utf8ToSystemString(path);
+  const char* system_new_path =
+      StringUtils::Utf8ToSystemString(new_path);
+  ExistsResult exists = ExistsHelper(system_path);
   if (exists != EXISTS) return false;
-  ExistsResult new_exists = Exists(new_path);
+  ExistsResult new_exists = ExistsHelper(system_new_path);
   // MoveFile does not allow replacing exising directories. Therefore,
   // if the new_path is currently a directory we need to delete it
   // first.
   if (new_exists == EXISTS) {
-    bool success = DeleteRecursively(new_path);
+    bool success = DeleteRecursively(system_new_path);
     if (!success) return false;
   }
   DWORD flags = MOVEFILE_WRITE_THROUGH;
-  return (MoveFileEx(path, new_path, flags) != 0);
+  int move_status =
+      MoveFileEx(system_path, system_new_path, flags);
+  free(const_cast<char*>(system_path));
+  free(const_cast<char*>(system_new_path));
+  return (move_status != 0);
 }

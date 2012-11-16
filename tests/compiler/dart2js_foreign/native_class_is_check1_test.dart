@@ -4,6 +4,8 @@
 
 // Test for correct simple is-checks on hidden native classes.
 
+import 'native_metadata.dart';
+
 interface I {
   I read();
   write(I x);
@@ -11,7 +13,7 @@ interface I {
 
 // Native implementation.
 
-@native("*A")
+@Native("*A")
 class A implements I  {
   // The native class accepts only other native instances.
   @native A read();
@@ -20,7 +22,7 @@ class A implements I  {
 
 @native makeA();
 
-@native("""
+@Native("""
 // This code is all inside 'setup' and so not accesible from the global scope.
 function A(){}
 A.prototype.read = function() { return this._x; };

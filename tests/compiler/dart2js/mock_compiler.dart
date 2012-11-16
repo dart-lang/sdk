@@ -66,8 +66,7 @@ const String DEFAULT_CORELIB = r'''
   class Object {}
   class Type {}
   class Function {}
-  interface List default ListImplementation { List([length]);}
-  class ListImplementation { factory List([length]) => null; }
+  class List {}
   abstract class Map {}
   class Closure {}
   class Null {}
@@ -85,17 +84,21 @@ class MockCompiler extends Compiler {
                 String interceptorsSource: DEFAULT_INTERCEPTORSLIB,
                 bool enableTypeAssertions: false,
                 bool enableMinification: false,
-                bool enableConcreteTypeInference: false})
+                bool enableConcreteTypeInference: false,
+                bool analyzeAll: false})
       : warnings = [], errors = [],
         sourceFiles = new Map<String, SourceFile>(),
         super(enableTypeAssertions: enableTypeAssertions,
               enableMinification: enableMinification,
-              enableConcreteTypeInference: enableConcreteTypeInference) {
+              enableConcreteTypeInference: enableConcreteTypeInference,
+              analyzeAll: analyzeAll) {
     coreLibrary = createLibrary("core", coreSource);
     // We need to set the assert method to avoid calls with a 'null'
     // target being interpreted as a call to assert.
     jsHelperLibrary = createLibrary("helper", helperSource);
     importHelperLibrary(coreLibrary);
+    libraryLoader.importLibrary(jsHelperLibrary, coreLibrary, null);
+
     assertMethod = jsHelperLibrary.find(buildSourceString('assert'));
     interceptorsLibrary = createLibrary("interceptors", interceptorsSource);
 
@@ -135,7 +138,7 @@ class MockCompiler extends Compiler {
 
   void reportMessage(SourceSpan span, var message, api.Diagnostic kind) {
     var diagnostic = new WarningMessage(null, message.message);
-    if (kind === api.Diagnostic.ERROR) {
+    if (kind == api.Diagnostic.ERROR) {
       errors.add(diagnostic);
     } else {
       warnings.add(diagnostic);
@@ -183,7 +186,7 @@ class MockCompiler extends Compiler {
   }
 
   parseScript(String text, [LibraryElement library]) {
-    if (library === null) library = mainApp;
+    if (library == null) library = mainApp;
     parseUnit(text, this, library);
   }
 
@@ -204,7 +207,7 @@ class MockCompiler extends Compiler {
 
   Script readScript(Uri uri, [ScriptTag node]) {
     SourceFile sourceFile = sourceFiles[uri.toString()];
-    if (sourceFile === null) throw new ArgumentError(uri);
+    if (sourceFile == null) throw new ArgumentError(uri);
     return new Script(uri, sourceFile);
   }
 }

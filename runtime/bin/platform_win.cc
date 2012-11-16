@@ -5,7 +5,6 @@
 #include "bin/platform.h"
 #include "bin/socket.h"
 
-
 bool Platform::Initialize() {
   // Nothing to do on Windows.
   return true;
@@ -36,7 +35,7 @@ bool Platform::LocalHostname(char *buffer, intptr_t buffer_length) {
 
 
 char** Platform::Environment(intptr_t* count) {
-  char* strings = GetEnvironmentStringsA();
+  char* strings = GetEnvironmentStrings();
   if (strings == NULL) return NULL;
   char* tmp = strings;
   intptr_t i = 0;
@@ -46,11 +45,18 @@ char** Platform::Environment(intptr_t* count) {
   }
   *count = i;
   char** result = new char*[i];
+  tmp = strings;
   for (intptr_t current = 0; current < i; current++) {
-    result[current] = strings;
-    strings += (strlen(strings) + 1);
+    result[current] = StringUtils::SystemStringToUtf8(tmp);
+    tmp += (strlen(tmp) + 1);
   }
+  FreeEnvironmentStrings(strings);
   return result;
+}
+
+void Platform::FreeEnvironment(char** env, int count) {
+  for (int i = 0; i < count; i++) free(env[i]);
+  delete[] env;
 }
 
 

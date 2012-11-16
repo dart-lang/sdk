@@ -474,6 +474,48 @@ void Object::RegisterSingletonClassNames() {
 }
 
 
+// Make unused space in an object whose type has been transformed safe
+// for traversing during GC.
+// The unused part of the transformed object is marked as an Array
+// object or a regular Object so that it can be traversed during garbage
+// collection.
+void Object::MakeUnusedSpaceTraversable(const Object& obj,
+                                        intptr_t original_size,
+                                        intptr_t used_size) {
+  ASSERT(Isolate::Current()->no_gc_scope_depth() > 0);
+  ASSERT(!obj.IsNull());
+  ASSERT(original_size >= used_size);
+  if (original_size > used_size) {
+    intptr_t leftover_size = original_size - used_size;
+
+    uword addr = RawObject::ToAddr(obj.raw()) + used_size;
+    if (leftover_size >= Array::InstanceSize(0)) {
+      // As we have enough space to use an array object, update the leftover
+      // space as an Array object.
+      RawArray* raw = reinterpret_cast<RawArray*>(RawObject::FromAddr(addr));
+      uword tags = 0;
+      tags = RawObject::SizeTag::update(leftover_size, tags);
+      tags = RawObject::ClassIdTag::update(kArrayCid, tags);
+      raw->ptr()->tags_ = tags;
+      intptr_t leftover_len =
+          ((leftover_size - Array::InstanceSize(0)) / kWordSize);
+      ASSERT(Array::InstanceSize(leftover_len) == leftover_size);
+      raw->ptr()->tags_ = tags;
+      raw->ptr()->length_ = Smi::New(leftover_len);
+    } else {
+      // Update the leftover space as a basic object.
+      ASSERT(leftover_size == Object::InstanceSize());
+      RawObject* raw =
+          reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
+      uword tags = 0;
+      tags = RawObject::SizeTag::update(leftover_size, tags);
+      tags = RawObject::ClassIdTag::update(kInstanceCid, tags);
+      raw->ptr()->tags_ = tags;
+    }
+  }
+}
+
+
 RawClass* Object::CreateAndRegisterInterface(const char* cname,
                                              const Script& script,
                                              const Library& lib) {
@@ -560,8 +602,6 @@ RawError* Object::Init(Isolate* isolate) {
   Library::InitCoreLibrary(isolate);
   Library& core_lib = Library::Handle(Library::CoreLibrary());
   ASSERT(!core_lib.IsNull());
-  Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
-  ASSERT(!core_impl_lib.IsNull());
 
   const GrowableObjectArray& pending_classes =
       GrowableObjectArray::Handle(GrowableObjectArray::New(Heap::kOld));
@@ -573,9 +613,6 @@ RawError* Object::Init(Isolate* isolate) {
   // Now that the symbol table is initialized and that the core dictionary as
   // well as the core implementation dictionary have been setup, preallocate
   // remaining classes and register them by name in the dictionaries.
-  const Script& impl_script = Script::Handle(
-      Bootstrap::LoadCoreImplScript(false));
-
   String& name = String::Handle();
   cls = Class::New<Bool>();
   object_store->set_bool_class(cls);
@@ -587,6 +624,13 @@ RawError* Object::Init(Isolate* isolate) {
   name = Symbols::ObjectArray();
   RegisterPrivateClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
+  // We cannot use NewNonParameterizedType(cls), because Array is parameterized.
+  type ^= Type::New(Object::Handle(cls.raw()),
+                    TypeArguments::Handle(),
+                    Scanner::kDummyTokenIndex);
+  type.set_is_finalized_instantiated();
+  type ^= type.Canonicalize();
+  object_store->set_array_type(type);
 
   cls = object_store->growable_object_array_class();  // Was allocated above.
   name = Symbols::GrowableObjectArray();
@@ -627,14 +671,14 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<Stacktrace>();
   object_store->set_stacktrace_class(cls);
   name = Symbols::Stacktrace();
-  RegisterClass(cls, name, core_impl_lib);
+  RegisterClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
   // Super type set below, after Object is allocated.
 
   cls = Class::New<JSRegExp>();
   object_store->set_jsregexp_class(cls);
   name = Symbols::JSSyntaxRegExp();
-  RegisterClass(cls, name, core_impl_lib);
+  RegisterPrivateClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   // Initialize the base interfaces used by the core VM classes.
@@ -835,15 +879,16 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_double_type(type);
 
-  cls = CreateAndRegisterInterface("String", script, core_lib);
+  name = Symbols::New("String");
+  cls = Class::New<Instance>(name, script, Scanner::kDummyTokenIndex);
+  RegisterClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
-  object_store->set_string_interface(type);
+  object_store->set_string_type(type);
 
   cls = CreateAndRegisterInterface("List", script, core_lib);
   pending_classes.Add(cls, Heap::kOld);
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_list_interface(type);
+  object_store->set_list_class(cls);
 
   cls = object_store->bool_class();
   type = Type::NewNonParameterizedType(cls);
@@ -898,15 +943,6 @@ RawError* Object::Init(Isolate* isolate) {
   }
   Script& patch_script = Script::Handle(Bootstrap::LoadCoreScript(true));
   error = core_lib.Patch(patch_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  error = Bootstrap::Compile(core_impl_lib, impl_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  patch_script = Bootstrap::LoadCoreImplScript(true);
-  error = core_impl_lib.Patch(patch_script);
   if (!error.IsNull()) {
     return error.raw();
   }
@@ -1867,8 +1903,9 @@ RawClass* Class::NewNativeWrapper(const Library& library,
     cls.SetFunctions(empty_array);
     // Set super class to Object.
     cls.set_super_type(Type::Handle(Type::ObjectType()));
-    // Compute instance size.
-    intptr_t instance_size = (field_count * kWordSize) + sizeof(RawObject);
+    // Compute instance size. First word contains a pointer to a properly
+    // sized typed array once the first native field has been set.
+    intptr_t instance_size = sizeof(RawObject) + kWordSize;
     cls.set_instance_size(RoundedAllocationSize(instance_size));
     cls.set_next_field_offset(instance_size);
     cls.set_num_native_fields(field_count);
@@ -3064,6 +3101,27 @@ void Function::set_context_scope(const ContextScope& value) const {
 }
 
 
+RawInstance* Function::implicit_static_closure() const {
+  if (IsImplicitStaticClosureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(!obj.IsNull());
+    return ClosureData::Cast(obj).implicit_static_closure();
+  }
+  return Instance::null();
+}
+
+
+void Function::set_implicit_static_closure(const Instance& closure) const {
+  if (IsImplicitStaticClosureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(!obj.IsNull());
+    ClosureData::Cast(obj).set_implicit_static_closure(closure);
+    return;
+  }
+  UNREACHABLE();
+}
+
+
 RawCode* Function::closure_allocation_stub() const {
   if (IsClosureFunction()) {
     const Object& obj = Object::Handle(raw_ptr()->data_);
@@ -3409,11 +3467,16 @@ intptr_t Function::NumImplicitParameters() const {
       return 2;  // Instance, phase.
     }
   }
-  if (!is_static() &&
-      kind() != RawFunction::kClosureFunction &&
-      kind() != RawFunction::kSignatureFunction) {
+  if ((kind() == RawFunction::kClosureFunction) ||
+      (kind() == RawFunction::kSignatureFunction)) {
+    return 1;  // Closure object.
+  }
+  if (!is_static()) {
     // Closure functions defined inside instance (i.e. non-static) functions are
     // marked as non-static, but they do not have a receiver.
+    // Closures are handled above.
+    ASSERT((kind() != RawFunction::kClosureFunction) &&
+           (kind() != RawFunction::kSignatureFunction));
     return 1;  // Receiver.
   }
   return 0;  // No implicit parameters.
@@ -3866,9 +3929,11 @@ RawFunction* Function::ImplicitClosureFunction() const {
   closure_function.set_result_type(AbstractType::Handle(result_type()));
 
   // Set closure function's formal parameters to this formal parameters,
-  // removing the receiver if this is an instance method.
+  // removing the receiver if this is an instance method and adding the closure
+  // object as first parameter.
+  const int kClosure = 1;
   const int has_receiver = is_static() ? 0 : 1;
-  const int num_fixed_params = num_fixed_parameters() - has_receiver;
+  const int num_fixed_params = kClosure - has_receiver + num_fixed_parameters();
   const int num_opt_params = NumOptionalParameters();
   const bool has_opt_pos_params = HasOptionalPositionalParameters();
   const int num_params = num_fixed_params + num_opt_params;
@@ -3880,10 +3945,15 @@ RawFunction* Function::ImplicitClosureFunction() const {
                                                                 Heap::kOld)));
   AbstractType& param_type = AbstractType::Handle();
   String& param_name = String::Handle();
-  for (int i = 0; i < num_params; i++) {
-    param_type = ParameterTypeAt(i + has_receiver);
+  // Add implicit closure object parameter.
+  param_type = Type::DynamicType();
+  closure_function.SetParameterTypeAt(0, param_type);
+  param_name = Symbols::ClosureParameter();
+  closure_function.SetParameterNameAt(0, param_name);
+  for (int i = kClosure; i < num_params; i++) {
+    param_type = ParameterTypeAt(has_receiver - kClosure + i);
     closure_function.SetParameterTypeAt(i, param_type);
-    param_name = ParameterNameAt(i + has_receiver);
+    param_name = ParameterNameAt(has_receiver - kClosure + i);
     closure_function.SetParameterNameAt(i, param_name);
   }
 
@@ -3976,7 +4046,12 @@ RawString* Function::BuildSignature(
   const intptr_t num_opt_params = num_opt_pos_params + num_opt_named_params;
   ASSERT((num_fixed_params + num_opt_params) == num_params);
   pieces.Add(kLParen);
-  for (intptr_t i = 0; i < num_fixed_params; i++) {
+  intptr_t i = 0;
+  if (name_visibility == kUserVisibleName) {
+    // Hide implicit parameters.
+    i = NumImplicitParameters();
+  }
+  while (i < num_fixed_params) {
     param_type = ParameterTypeAt(i);
     ASSERT(!param_type.IsNull());
     if (instantiate && !param_type.IsInstantiated()) {
@@ -3987,6 +4062,7 @@ RawString* Function::BuildSignature(
     if (i != (num_params - 1)) {
       pieces.Add(kCommaSpace);
     }
+    i++;
   }
   if (num_opt_params > 0) {
     if (num_opt_pos_params > 0) {
@@ -4147,6 +4223,13 @@ const char* Function::ToCString() const {
 
 void ClosureData::set_context_scope(const ContextScope& value) const {
   StorePointer(&raw_ptr()->context_scope_, value.raw());
+}
+
+
+void ClosureData::set_implicit_static_closure(const Instance& closure) const {
+  ASSERT(!closure.IsNull());
+  ASSERT(raw_ptr()->closure_ == Instance::null());
+  StorePointer(&raw_ptr()->closure_, closure.raw());
 }
 
 
@@ -5835,19 +5918,7 @@ void Library::InitCoreLibrary(Isolate* isolate) {
   const Library& core_lib =
       Library::Handle(Library::NewLibraryHelper(core_lib_url, false));
   core_lib.Register();
-  const Namespace& core_ns = Namespace::Handle(
-      Namespace::New(core_lib, Array::Handle(), Array::Handle()));
   isolate->object_store()->set_core_library(core_lib);
-  const String& core_impl_lib_url =
-      String::Handle(Symbols::New("dart:coreimpl"));
-  const Library& core_impl_lib =
-      Library::Handle(Library::NewLibraryHelper(core_impl_lib_url, false));
-  isolate->object_store()->set_core_impl_library(core_impl_lib);
-  core_impl_lib.Register();
-  const Namespace& impl_ns = Namespace::Handle(
-      Namespace::New(core_impl_lib, Array::Handle(), Array::Handle()));
-  core_lib.AddImport(impl_ns);
-  core_impl_lib.AddImport(core_ns);
   Library::InitMathLibrary(isolate);
   const Library& math_lib = Library::Handle(Library::MathLibrary());
   const Namespace& math_ns = Namespace::Handle(
@@ -5858,9 +5929,7 @@ void Library::InitCoreLibrary(Isolate* isolate) {
   const Namespace& collection_ns = Namespace::Handle(
       Namespace::New(collection_lib, Array::Handle(), Array::Handle()));
   core_lib.AddImport(math_ns);
-  core_impl_lib.AddImport(math_ns);
   core_lib.AddImport(collection_ns);
-  core_impl_lib.AddImport(collection_ns);
   isolate->object_store()->set_root_library(Library::Handle());
 
   // Hook up predefined classes without setting their library pointers. These
@@ -5887,10 +5956,6 @@ void Library::InitMathLibrary(Isolate* isolate) {
   const String& url = String::Handle(Symbols::New("dart:math"));
   const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
   lib.Register();
-  const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
-  const Namespace& impl_ns = Namespace::Handle(
-      Namespace::New(core_impl_lib, Array::Handle(), Array::Handle()));
-  lib.AddImport(impl_ns);
   isolate->object_store()->set_math_library(lib);
 }
 
@@ -6038,11 +6103,6 @@ void Library::Register() const {
 
 RawLibrary* Library::CoreLibrary() {
   return Isolate::Current()->object_store()->core_library();
-}
-
-
-RawLibrary* Library::CoreImplLibrary() {
-  return Isolate::Current()->object_store()->core_impl_library();
 }
 
 
@@ -7136,7 +7196,7 @@ uword Code::GetDeoptAfterPcAtDeoptId(intptr_t deopt_id) const {
 
 
 const char* Code::ToCString() const {
-  const char* kFormat = "Code entry:0x%d";
+  const char* kFormat = "Code entry:%p";
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, EntryPoint()) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, EntryPoint());
@@ -7211,6 +7271,7 @@ RawArray* Code::ExtractTypeFeedbackArray() const {
 
 void Code::ExtractUncalledStaticCallDeoptIds(
     GrowableArray<intptr_t>* deopt_ids) const {
+  ASSERT(!IsNull() && !is_optimized());
   ASSERT(deopt_ids != NULL);
   deopt_ids->Clear();
   const PcDescriptors& descriptors =
@@ -7335,7 +7396,18 @@ void ContextScope::SetIsFinalAt(intptr_t scope_index, bool is_final) const {
 }
 
 
+bool ContextScope::IsConstAt(intptr_t scope_index) const {
+  return Bool::Handle(VariableDescAddr(scope_index)->is_const).value();
+}
+
+
+void ContextScope::SetIsConstAt(intptr_t scope_index, bool is_const) const {
+  VariableDescAddr(scope_index)->is_const = Bool::Get(is_const);
+}
+
+
 RawAbstractType* ContextScope::TypeAt(intptr_t scope_index) const {
+  ASSERT(!IsConstAt(scope_index));
   return VariableDescAddr(scope_index)->type;
 }
 
@@ -7343,6 +7415,19 @@ RawAbstractType* ContextScope::TypeAt(intptr_t scope_index) const {
 void ContextScope::SetTypeAt(
     intptr_t scope_index, const AbstractType& type) const {
   StorePointer(&(VariableDescAddr(scope_index)->type), type.raw());
+}
+
+
+RawInstance* ContextScope::ConstValueAt(intptr_t scope_index) const {
+  ASSERT(IsConstAt(scope_index));
+  return VariableDescAddr(scope_index)->value;
+}
+
+
+void ContextScope::SetConstValueAt(
+    intptr_t scope_index, const Instance& value) const {
+  ASSERT(IsConstAt(scope_index));
+  StorePointer(&(VariableDescAddr(scope_index)->value), value.raw());
 }
 
 
@@ -7374,11 +7459,12 @@ const char* ContextScope::ToCString() const {
 
 
 const char* ICData::ToCString() const {
-  const char* kFormat = "ICData target:%s";
+  const char* kFormat = "ICData target:'%s' num-checks: %"Pd"";
   const String& name = String::Handle(target_name());
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, name.ToCString()) + 1;
+  const intptr_t num = NumberOfChecks();
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, name.ToCString(), num) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, name.ToCString());
+  OS::SNPrint(chars, len, kFormat, name.ToCString(), num);
   return chars;
 }
 
@@ -7408,8 +7494,22 @@ void ICData::set_ic_data(const Array& value) const {
 }
 
 
+void ICData::set_deopt_reason(intptr_t deopt_reason) const {
+  raw_ptr()->deopt_reason_ = deopt_reason;
+}
+
+void ICData::set_is_closure_call(bool value) const {
+  raw_ptr()->is_closure_call_ = value ? 1 : 0;
+}
+
+
+intptr_t ICData::TestEntryLengthFor(intptr_t num_args) {
+  return num_args + 1 /* target function*/ + 1 /* frequency */;
+}
+
+
 intptr_t ICData::TestEntryLength() const {
-  return num_args_tested() + 1 /* target function*/;
+  return TestEntryLengthFor(num_args_tested());
 }
 
 
@@ -7470,7 +7570,8 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
     data.SetAt(data_pos++, Smi::Handle(Smi::New(class_ids[i])));
   }
   ASSERT(!target.IsNull());
-  data.SetAt(data_pos, target);
+  data.SetAt(data_pos++, target);
+  data.SetAt(data_pos, Smi::Handle(Smi::New(1)));
 }
 
 
@@ -7493,18 +7594,17 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
   WriteSentinel();
   intptr_t data_pos = old_num * TestEntryLength();
   if ((receiver_class_id == kSmiCid) && (data_pos > 0)) {
-    // Instert kSmiCid in position 0.
-    const intptr_t zero_class_id = GetReceiverClassIdAt(0);
-    ASSERT(zero_class_id != kSmiCid);  // Simple duplicate entry check.
-    const Function& zero_target = Function::Handle(GetTargetAt(0));
-    data.SetAt(0, Smi::Handle(Smi::New(receiver_class_id)));
-    data.SetAt(1, target);
-    data.SetAt(data_pos, Smi::Handle(Smi::New(zero_class_id)));
-    data.SetAt(data_pos + 1, zero_target);
-  } else {
-    data.SetAt(data_pos, Smi::Handle(Smi::New(receiver_class_id)));
-    data.SetAt(data_pos + 1, target);
+    ASSERT(GetReceiverClassIdAt(0) != kSmiCid);
+    // Move class occupying position 0 to the data_pos.
+    for (intptr_t i = 0; i < TestEntryLength(); i++) {
+      data.SetAt(data_pos + i, Object::Handle(data.At(i)));
+    }
+    // Insert kSmiCid in position 0.
+    data_pos = 0;
   }
+  data.SetAt(data_pos, Smi::Handle(Smi::New(receiver_class_id)));
+  data.SetAt(data_pos + 1, target);
+  data.SetAt(data_pos + 2, Smi::Handle(Smi::New(1)));
 }
 
 
@@ -7522,7 +7622,7 @@ void ICData::GetCheckAt(intptr_t index,
     smi ^= data.At(data_pos++);
     class_ids->Add(smi.Value());
   }
-  (*target) ^= data.At(data_pos);
+  (*target) ^= data.At(data_pos++);
 }
 
 
@@ -7564,6 +7664,16 @@ RawFunction* ICData::GetTargetAt(intptr_t index) const {
   const intptr_t data_pos = index * TestEntryLength() + num_args_tested();
   ASSERT(Object::Handle(data.At(data_pos)).IsFunction());
   return reinterpret_cast<RawFunction*>(data.At(data_pos));
+}
+
+
+intptr_t ICData::GetCountAt(intptr_t index) const {
+  const Array& data = Array::Handle(ic_data());
+  const intptr_t data_pos = index * TestEntryLength() +
+      CountIndexFor(num_args_tested());
+  Smi& smi = Smi::Handle();
+  smi ^= data.At(data_pos);
+  return smi.Value();
 }
 
 
@@ -7682,7 +7792,9 @@ RawICData* ICData::New(const Function& function,
   result.set_target_name(target_name);
   result.set_deopt_id(deopt_id);
   result.set_num_args_tested(num_args_tested);
-  // Number of array elements in one test entry (num_args_tested + 1)
+  result.set_deopt_reason(kDeoptUnknown);
+  result.set_is_closure_call(false);
+  // Number of array elements in one test entry.
   intptr_t len = result.TestEntryLength();
   // IC data array must be null terminated (sentinel entry).
   const Array& ic_data = Array::Handle(Array::New(len, Heap::kOld));
@@ -8144,6 +8256,20 @@ bool Instance::IsInstanceOf(const AbstractType& other,
 }
 
 
+void Instance::SetNativeField(int index, intptr_t value) const {
+  ASSERT(IsValidNativeIndex(index));
+  Object& native_fields = Object::Handle(*NativeFieldsAddr());
+  if (native_fields.IsNull()) {
+    // Allocate backing storage for the native fields.
+    const Class& cls = Class::Handle(clazz());
+    int num_native_fields = cls.num_native_fields();
+    native_fields = IntPtrArray::New(num_native_fields);
+    StorePointer(NativeFieldsAddr(), native_fields.raw());
+  }
+  IntPtrArray::Cast(native_fields).SetAt(index, value);
+}
+
+
 bool Instance::IsClosure() const {
   const Class& cls = Class::Handle(clazz());
   return cls.IsSignatureClass();
@@ -8158,14 +8284,6 @@ RawInstance* Instance::New(const Class& cls, Heap::Space space) {
     RawObject* raw = Object::Allocate(cls.id(), instance_size, space);
     NoGCScope no_gc;
     result ^= raw;
-    uword addr = reinterpret_cast<uword>(result.raw_ptr());
-    // Initialize fields.
-    intptr_t offset = sizeof(RawObject);
-    // Initialize all native fields to NULL.
-    for (intptr_t i = 0; i < cls.num_native_fields(); i++) {
-      *reinterpret_cast<uword*>(addr + offset) = 0;
-      offset += kWordSize;
-    }
   }
   return result.raw();
 }
@@ -8432,21 +8550,15 @@ bool AbstractType::IsNumberType() const {
 }
 
 
-bool AbstractType::IsStringInterface() const {
+bool AbstractType::IsStringType() const {
   return HasResolvedTypeClass() &&
-      (type_class() == Type::Handle(Type::StringInterface()).type_class());
+      (type_class() == Type::Handle(Type::StringType()).type_class());
 }
 
 
 bool AbstractType::IsFunctionType() const {
   return HasResolvedTypeClass() &&
       (type_class() == Type::Handle(Type::Function()).type_class());
-}
-
-
-bool AbstractType::IsListInterface() const {
-  return HasResolvedTypeClass() &&
-      (type_class() == Type::Handle(Type::ListInterface()).type_class());
 }
 
 
@@ -8571,18 +8683,18 @@ RawType* Type::Number() {
 }
 
 
-RawType* Type::StringInterface() {
-  return Isolate::Current()->object_store()->string_interface();
+RawType* Type::StringType() {
+  return Isolate::Current()->object_store()->string_type();
+}
+
+
+RawType* Type::ArrayType() {
+  return Isolate::Current()->object_store()->array_type();
 }
 
 
 RawType* Type::Function() {
   return Isolate::Current()->object_store()->function_type();
-}
-
-
-RawType* Type::ListInterface() {
-  return Isolate::Current()->object_store()->list_interface();
 }
 
 
@@ -9024,11 +9136,14 @@ void TypeParameter::set_type_state(int8_t state) const {
 
 
 const char* TypeParameter::ToCString() const {
-  const char* format = "TypeParameter: name %s; index: %d";
+  const char* format = "TypeParameter: name %s; index: %d; class: %s";
   const char* name_cstr = String::Handle(Name()).ToCString();
-  intptr_t len = OS::SNPrint(NULL, 0, format, name_cstr, index()) + 1;
+  const Class& cls = Class::Handle(parameterized_class());
+  const char* cls_cstr =
+      cls.IsNull() ? " null" : String::Handle(cls.Name()).ToCString();
+  intptr_t len = OS::SNPrint(NULL, 0, format, name_cstr, index(), cls_cstr) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, name_cstr, index());
+  OS::SNPrint(chars, len, format, name_cstr, index(), cls_cstr);
   return chars;
 }
 
@@ -9997,12 +10112,12 @@ RawString* String::New(const uint8_t* utf8_array,
                        Heap::Space space) {
   Utf8::Type type;
   intptr_t len = Utf8::CodePointCount(utf8_array, array_len, &type);
-  if (type == Utf8::kAscii) {
+  if (type == Utf8::kLatin1) {
     const String& strobj = String::Handle(OneByteString::New(len, space));
     if (len > 0) {
       NoGCScope no_gc;
-      Utf8::DecodeToAscii(utf8_array, array_len,
-                          OneByteString::CharAddr(strobj, 0), len);
+      Utf8::DecodeToLatin1(utf8_array, array_len,
+                           OneByteString::CharAddr(strobj, 0), len);
     }
     return strobj.raw();
   }
@@ -10020,7 +10135,7 @@ RawString* String::New(const uint16_t* utf16_array,
                        Heap::Space space) {
   bool is_one_byte_string = true;
   for (intptr_t i = 0; i < array_len; ++i) {
-    if (utf16_array[i] > 0x7F) {
+    if (utf16_array[i] > 0xFF) {
       is_one_byte_string = false;
       break;
     }
@@ -10038,7 +10153,7 @@ RawString* String::New(const uint32_t* utf32_array,
   bool is_one_byte_string = true;
   intptr_t utf16_len = array_len;
   for (intptr_t i = 0; i < array_len; ++i) {
-    if (utf32_array[i] > 0x7F) {
+    if (utf32_array[i] > 0xFF) {
       is_one_byte_string = false;
     }
     if (utf32_array[i] > 0xFFFF) {
@@ -10119,7 +10234,7 @@ void String::Copy(const String& dst, intptr_t dst_offset,
   if (dst.IsOneByteString()) {
     NoGCScope no_gc;
     for (intptr_t i = 0; i < array_len; ++i) {
-      ASSERT(utf16_array[i] <= 0x7F);
+      ASSERT(utf16_array[i] <= 0xFF);
       *OneByteString::CharAddr(dst, i + dst_offset) = utf16_array[i];
     }
   } else {
@@ -10274,7 +10389,7 @@ RawString* String::SubString(const String& str,
   intptr_t char_size = str.CharSize();
   if (char_size == kTwoByteChar) {
     for (intptr_t i = begin_index; i < begin_index + length; ++i) {
-      if (str.CharAt(i) > 0x7F) {
+      if (str.CharAt(i) > 0xFF) {
         is_one_byte_string = false;
         break;
       }
@@ -10301,16 +10416,93 @@ const char* String::ToCString() const {
 
 
 void String::ToUTF8(uint8_t* utf8_array, intptr_t array_len) const {
-  if (CharSize() == kOneByteChar) {
-    const String& obj = *this;
-    ASSERT(array_len >= obj.Length());
-    if (obj.Length() > 0) {
-      memmove(utf8_array, OneByteString::CharAddr(obj, 0), obj.Length());
+  ASSERT(array_len >= Utf8::Length(*this));
+  Utf8::Encode(*this, reinterpret_cast<char*>(utf8_array), array_len);
+}
+
+
+static void AddFinalizer(const Object& referent,
+                         void* peer,
+                         Dart_WeakPersistentHandleFinalizer callback) {
+  ASSERT(callback != NULL);
+  ApiState* state = Isolate::Current()->api_state();
+  ASSERT(state != NULL);
+  FinalizablePersistentHandle* weak_ref =
+      state->weak_persistent_handles().AllocateHandle();
+  weak_ref->set_raw(referent);
+  weak_ref->set_peer(peer);
+  weak_ref->set_callback(callback);
+}
+
+
+RawString* String::MakeExternal(void* array,
+                                intptr_t length,
+                                void* peer,
+                                Dart_PeerFinalizer cback) const {
+  ASSERT(array != NULL);
+  intptr_t str_length = this->Length();
+  ASSERT(length >= (str_length * this->CharSize()));
+  intptr_t class_id = raw()->GetClassId();
+  intptr_t used_size = 0;
+  intptr_t original_size = 0;
+  uword tags = 0;
+  NoGCScope no_gc;
+
+  if (class_id == kOneByteStringCid) {
+    used_size = ExternalOneByteString::InstanceSize();
+    original_size = OneByteString::InstanceSize(str_length);
+    ASSERT(original_size >= used_size);
+
+    // Copy the data into the external array.
+    if (str_length > 0) {
+      memmove(array, OneByteString::CharAddr(*this, 0), str_length);
     }
+
+    // Update the class information of the object.
+    const intptr_t class_id = kExternalOneByteStringCid;
+    tags = RawObject::SizeTag::update(used_size, tags);
+    tags = RawObject::ClassIdTag::update(class_id, tags);
+    raw_ptr()->tags_ = tags;
+    const String& result = String::Handle(this->raw());
+    ExternalStringData<uint8_t>* ext_data = new ExternalStringData<uint8_t>(
+        reinterpret_cast<const uint8_t*>(array), peer, cback);
+    result.SetLength(str_length);
+    result.SetHash(0);
+    ExternalOneByteString::SetExternalData(result, ext_data);
+    AddFinalizer(result, ext_data, ExternalOneByteString::Finalize);
   } else {
-    ASSERT(array_len >= Utf8::Length(*this));
-    Utf8::Encode(*this, reinterpret_cast<char*>(utf8_array), array_len);
+    ASSERT(class_id == kTwoByteStringCid);
+    used_size = ExternalTwoByteString::InstanceSize();
+    original_size = TwoByteString::InstanceSize(str_length);
+    ASSERT(original_size >= used_size);
+
+    // Copy the data into the external array.
+    if (str_length > 0) {
+      memmove(array,
+              TwoByteString::CharAddr(*this, 0),
+              (str_length * kTwoByteChar));
+    }
+
+    // Update the class information of the object.
+    const intptr_t class_id = kExternalTwoByteStringCid;
+    tags = RawObject::SizeTag::update(used_size, tags);
+    tags = RawObject::ClassIdTag::update(class_id, tags);
+    raw_ptr()->tags_ = tags;
+    const String& result = String::Handle(this->raw());
+    ExternalStringData<uint16_t>* ext_data = new ExternalStringData<uint16_t>(
+        reinterpret_cast<const uint16_t*>(array), peer, cback);
+    result.SetLength(str_length);
+    result.SetHash(0);
+    ExternalTwoByteString::SetExternalData(result, ext_data);
+    AddFinalizer(result, ext_data, ExternalTwoByteString::Finalize);
   }
+
+  // If there is any left over space fill it with either an Array object or
+  // just a plain object (depending on the amount of left over space) so
+  // that it can be traversed over successfully during garbage collection.
+  Object::MakeUnusedSpaceTraversable(*this, original_size, used_size);
+
+  return this->raw();
 }
 
 
@@ -10333,10 +10525,10 @@ RawString* String::Transform(int32_t (*mapping)(int32_t ch),
   if (!has_mapping) {
     return str.raw();
   }
-  if (dst_max <= 0x7F) {
+  if (dst_max <= 0xFF) {
     return OneByteString::Transform(mapping, str, space);
   }
-  ASSERT(dst_max > 0x7F);
+  ASSERT(dst_max > 0xFF);
   return TwoByteString::Transform(mapping, str, space);
 }
 
@@ -10484,7 +10676,7 @@ RawOneByteString* OneByteString::New(const uint16_t* characters,
                                      Heap::Space space) {
   const String& result =String::Handle(OneByteString::New(len, space));
   for (intptr_t i = 0; i < len; ++i) {
-    ASSERT(characters[i] <= 0x7F);
+    ASSERT(characters[i] <= 0xFF);
     *CharAddr(result, i) = characters[i];
   }
   return OneByteString::raw(result);
@@ -10496,7 +10688,7 @@ RawOneByteString* OneByteString::New(const uint32_t* characters,
                                      Heap::Space space) {
   const String& result = String::Handle(OneByteString::New(len, space));
   for (intptr_t i = 0; i < len; ++i) {
-    ASSERT(characters[i] <= 0x7F);
+    ASSERT(characters[i] <= 0xFF);
     *CharAddr(result, i) = characters[i];
   }
   return OneByteString::raw(result);
@@ -10550,7 +10742,7 @@ RawOneByteString* OneByteString::Transform(int32_t (*mapping)(int32_t ch),
   const String& result = String::Handle(OneByteString::New(len, space));
   for (intptr_t i = 0; i < len; ++i) {
     int32_t ch = mapping(str.CharAt(i));
-    ASSERT(ch >= 0 && ch <= 0x7F);
+    ASSERT(ch >= 0 && ch <= 0xFF);
     *CharAddr(result, i) = ch;
   }
   return OneByteString::raw(result);
@@ -10701,20 +10893,6 @@ RawTwoByteString* TwoByteString::Transform(int32_t (*mapping)(int32_t ch),
     *CharAddr(result, i) = ch;
   }
   return TwoByteString::raw(result);
-}
-
-
-static void AddFinalizer(const Object& referent,
-                         void* peer,
-                         Dart_WeakPersistentHandleFinalizer callback) {
-  ASSERT(callback != NULL);
-  ApiState* state = Isolate::Current()->api_state();
-  ASSERT(state != NULL);
-  FinalizablePersistentHandle* weak_ref =
-      state->weak_persistent_handles().AllocateHandle();
-  weak_ref->set_raw(referent);
-  weak_ref->set_peer(peer);
-  weak_ref->set_callback(callback);
 }
 
 
@@ -10947,33 +11125,8 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
   // If there is any left over space fill it with either an Array object or
   // just a plain object (depending on the amount of left over space) so
   // that it can be traversed over successfully during garbage collection.
-  if (capacity_size != used_size) {
-    ASSERT(capacity_len > used_len);
-    intptr_t leftover_size = capacity_size - used_size;
+  Object::MakeUnusedSpaceTraversable(array, capacity_size, used_size);
 
-    uword addr = RawObject::ToAddr(array.raw()) + used_size;
-    if (leftover_size >= Array::InstanceSize(0)) {
-      // As we have enough space to use an array object, update the leftover
-      // space as an Array object.
-      RawArray* raw = reinterpret_cast<RawArray*>(RawObject::FromAddr(addr));
-      tags = 0;
-      tags = RawObject::SizeTag::update(leftover_size, tags);
-      tags = RawObject::ClassIdTag::update(kArrayCid, tags);
-      raw->ptr()->tags_ = tags;
-      intptr_t leftover_len =
-          ((leftover_size - Array::InstanceSize(0)) / kWordSize);
-      raw->ptr()->tags_ = tags;
-      raw->ptr()->length_ = Smi::New(leftover_len);
-    } else {
-      // Update the leftover space as a basic object.
-      ASSERT(leftover_size == Object::InstanceSize());
-      RawObject* raw = reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
-      tags = 0;
-      tags = RawObject::SizeTag::update(leftover_size, tags);
-      tags = RawObject::ClassIdTag::update(kInstanceCid, tags);
-      raw->ptr()->tags_ = tags;
-    }
-  }
   return array.raw();
 }
 

@@ -4,7 +4,7 @@
 // Test that we get rid of duplicate type guards on a field when that
 // field is being gvn'ed.
 
-#import("compiler_helper.dart");
+import 'compiler_helper.dart';
 
 const String TEST = r"""
 class A {
@@ -26,7 +26,7 @@ main() {
 
 main() {
   String generated = compileAll(TEST);
-  RegExp regexp = const RegExp('foo\\\$0\\\$bailout');
+  RegExp regexp = new RegExp('foo\\\$0\\\$bailout');
   Iterator matches = regexp.allMatches(generated).iterator();
 
   // We check that there is only one call to the bailout method.

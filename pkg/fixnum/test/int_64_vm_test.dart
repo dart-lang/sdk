@@ -5,10 +5,13 @@
 // A test to compare the results of the fixnum library with the Dart VM
 
 library int64vmtest;
-import 'dart:math', prefix: 'Math';
-part '../intx.dart';
-part '../int32.dart';
-part '../int64.dart';
+import 'dart:math' as math;
+
+part '../lib/src/int32.dart';
+part '../lib/src/int64.dart';
+part '../lib/src/intx.dart';
+
+final random = new math.Random();
 
 void main() {
   int64VMTest test = new int64VMTest();
@@ -39,9 +42,9 @@ const int DISCARD = 0;
 int64 _randomInt64() {
   int i = 0;
   for (int b = 0; b < 64; b++) {
-      double rand = Math.random();
+      double rand = random.nextDouble();
       for (int j = 0; j < DISCARD; j++) {
-        rand = Math.random();
+        rand = random.nextDouble();
       }
       i = (i << 1) | ((rand > 0.5) ? 1 : 0);
   }
@@ -49,9 +52,9 @@ int64 _randomInt64() {
 }
 
 int _randomInt(int n) {
-  double rand = Math.random();
+  double rand = random.nextDouble();
   for (int i = 0; i < DISCARD; i++) {
-    rand = Math.random();
+    rand = random.nextDouble();
   }
   return (rand * n).floor().toInt();
 }
@@ -100,7 +103,7 @@ class int64VMTest {
   static const int BASE_VALUES = 32;
   static const int RANDOM_TESTS = 32;
   List<int64> TEST_VALUES;
-  
+
   int64VMTest() {
     Set<int64> testSet = new Set<int64>();
     for (int i = 0; i < BASE_VALUES; i++) {
@@ -275,7 +278,7 @@ class int64VMTest {
       Expect.fail("${op.name}: val0 = $val0, val1 = $val1");
     }
   }
-  
+
   void doTestBoolean(BooleanOp op) {
     print("Testing operator ${op.name}");
     for (int i = 0; i < TEST_VALUES.length; i++) {
@@ -308,7 +311,7 @@ class int64VMTest {
       Expect.fail("${op.name}: val = $val, shift = $shift");
     }
   }
- 
+
   void doTestShift(ShiftOp op) {
     print("Testing operator ${op.name}");
     for (int i = 0; i < TEST_VALUES.length; i++) {

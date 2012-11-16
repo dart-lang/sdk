@@ -21,7 +21,7 @@ class CallThroughGetterTest {
   }
 
   static void testTopLevel() {
-    topLevel = function() {
+    topLevel = () {
       return 2;
     };
     Expect.equals(1, TOP_LEVEL_CONST);
@@ -146,10 +146,10 @@ class B {
 
   B() : _order = new StringBuffer("") { }
 
-  get g0 { _mark('g'); return f0() { return _mark('f'); }; }
-  get g1 { _mark('g'); return f1(x) { return _mark('f'); }; }
-  get g2 { _mark('g'); return f2(x, y) { return _mark('f'); }; }
-  get g3 { _mark('g'); return f3(x, y, z) { return _mark('f'); }; }
+  get g0 { _mark('g'); return () { return _mark('f'); }; }
+  get g1 { _mark('g'); return (x) { return _mark('f'); }; }
+  get g2 { _mark('g'); return (x, y) { return _mark('f'); }; }
+  get g3 { _mark('g'); return (x, y, z) { return _mark('f'); }; }
 
   get x { _mark('x'); return 0; }
   get y { _mark('y'); return 1; }

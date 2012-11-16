@@ -2036,7 +2036,6 @@ public class DartParser extends CompletionHooksParserBase {
     List<DartAnnotation> metadata = parseMetadata();
     do {
       beginVariableDeclaration();
-      List<DartAnnotation> fieldMetadata = parseMetadata();
       DartIdentifier name = parseIdentifier();
       DartExpression value = null;
       if (optional(Token.ASSIGN)) {
@@ -2049,7 +2048,7 @@ public class DartParser extends CompletionHooksParserBase {
         reportError(name, ParserErrorCode.EXTERNAL_ONLY_METHOD);
       }
       DartField field = done(new DartField(name, modifiers, null, value));
-      setMetadata(field, fieldMetadata);
+      setMetadata(field, metadata);
       fields.add(field);
     } while (optional(Token.COMMA));
     DartFieldDefinition definition = new DartFieldDefinition(type, fields);
@@ -4931,7 +4930,7 @@ public class DartParser extends CompletionHooksParserBase {
     while (!done) {
       List<DartLabel> labels = new ArrayList<DartLabel>();
       beginSwitchMember(); // switch member
-      while (peek(0) == Token.IDENTIFIER) {
+      while (peek(0) == Token.IDENTIFIER && peek(1) == Token.COLON) {
         beginLabel();
         DartIdentifier identifier = parseIdentifier();
         expect(Token.COLON);
@@ -4951,7 +4950,7 @@ public class DartParser extends CompletionHooksParserBase {
         done = true;
         done(null);
       } else {
-        if (peek(0) != Token.EOS) {
+        if (peek(0) == Token.DEFAULT) {
           members.add(parseDefaultMember(labels));
         }
         expectCloseBrace(foundOpenBrace);

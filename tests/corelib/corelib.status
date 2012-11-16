@@ -31,9 +31,6 @@ unicode_test: Fail
 [ $arch == arm ]
 *: Skip
 
-[ $compiler == dart2js && $checked ]
-*: Skip
-
 [ $compiler == dart2js ]
 math_parse_double_test: Fail # Expect.equals(expected: <78187493520>, actual: <0>)
 math_test: Fail # issue 3333
@@ -68,19 +65,3 @@ null_nosuchmethod_test: Fail # inherited from VM
 null_test: Fail # inherited from VM
 unicode_test: Fail # inherited from VM
 
-[ $compiler == dartc ]
-# test issue 6324
-list_sort_test: Fail, OK
-sort_test: Fail, OK
-
-# test issue 6512
-big_integer_vm_test: Fail, OK
-collection_to_string_test: Fail, OK
-exception_implementation_test: Fail, OK
-futures_test: Fail, OK
-map_test: Fail, OK
-maps_test: Fail, OK
-queue_test: Fail, OK
-splay_tree_test: Fail, OK
-string_base_vm_test: Fail, OK
-stopwatch_test: Fail, OK

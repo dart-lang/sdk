@@ -10,7 +10,7 @@
  * It is intended for data structures where access by index is
  * the most efficient way to access the data.
  */
-abstract class Sequence<T> {
+abstract class Sequence<E> {
   /**
    * The limit of valid indices of the sequence.
    *
@@ -24,7 +24,7 @@ abstract class Sequence<T> {
    * Valid indices must be in the range [:0..length - 1:].
    * The lookup operator should be efficient.
    */
-  T operator[](int index);
+  E operator[](int index);
 }
 
 /**
@@ -100,7 +100,7 @@ class SequenceList<E> extends SequenceCollection<E> implements List<E> {
 
   int get length => sequence.length;
 
-  T operator[](int index) => sequence[index];
+  E operator[](int index) => sequence[index];
 
   int indexOf(E value, [int start = 0]) {
     for (int i = start; i < sequence.length; i++) {

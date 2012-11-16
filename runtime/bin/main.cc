@@ -231,6 +231,25 @@ static void WriteToPerfEventsFile(const char* buffer, int64_t num_bytes) {
   perf_events_symbols_file->WriteFully(buffer, num_bytes);
 }
 
+// Convert all the arguments to UTF8. On Windows, the arguments are
+// encoded in the current code page and not UTF8.
+//
+// Returns true if the arguments are converted. In that case
+// each of the arguments need to be deallocated using free.
+static bool Utf8ConvertArgv(int argc, char** argv) {
+  bool result = false;
+  for (int i = 0; i < argc; i++) {
+    char* arg = argv[i];
+    argv[i] = StringUtils::SystemStringToUtf8(arg);
+    if (i == 0) {
+      result = argv[i] != arg;
+    } else {
+      ASSERT(result == (argv[i] != arg));
+    }
+  }
+  return result;
+}
+
 
 // Parse out the command line arguments. Returns -1 if the arguments
 // are incorrect, 0 otherwise.
@@ -637,6 +656,10 @@ int main(int argc, char** argv) {
     fprintf(stderr, "Initialization failed\n");
   }
 
+  // On Windows, the argv strings are code page encoded and not
+  // utf8. We need to convert them to utf8.
+  bool argv_converted = Utf8ConvertArgv(argc, argv);
+
   // Parse command line arguments.
   if (ParseArguments(argc,
                      argv,
@@ -724,8 +747,8 @@ int main(int argc, char** argv) {
     result = SetBreakpoint(breakpoint_at, library);
     if (Dart_IsError(result)) {
       return ErrorExit("Error setting breakpoint at '%s': %s\n",
-          breakpoint_at,
-          Dart_GetError(result));
+                       breakpoint_at,
+                       Dart_GetError(result));
     }
   }
 
@@ -747,6 +770,10 @@ int main(int argc, char** argv) {
   Dart_ShutdownIsolate();
   // Terminate process exit-code handler.
   Process::TerminateExitCodeHandler();
+  // Free copied argument strings if converted.
+  if (argv_converted) {
+    for (int i = 0; i < argc; i++) free(argv[i]);
+  }
 
   return 0;
 }

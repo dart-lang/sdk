@@ -33,7 +33,8 @@ DEFINE_FLAG(bool, warn_legacy_dynamic, false,
             "Warning on legacy type Dynamic)");
 DEFINE_FLAG(bool, warn_legacy_getters, false,
             "Warning on legacy getter syntax");
-DECLARE_FLAG(bool, use_cha);
+DEFINE_FLAG(bool, strict_function_literals, false,
+            "enforce new function literal rules");
 
 static void CheckedModeHandler(bool value) {
   FLAG_enable_asserts = value;
@@ -154,11 +155,9 @@ void ParsedFunction::AllocateVariables() {
   const intptr_t num_fixed_params = function().num_fixed_parameters();
   const intptr_t num_opt_params = function().NumOptionalParameters();
   intptr_t num_params = num_fixed_params + num_opt_params;
-  const bool is_native_instance_closure =
-      function().is_native() && function().IsImplicitInstanceClosureFunction();
   // Compute start indices to parameters and locals, and the number of
   // parameters to copy.
-  if ((num_opt_params == 0) && !is_native_instance_closure) {
+  if (num_opt_params == 0) {
     // Parameter i will be at fp[1 + num_params - i] and local variable
     // j will be at fp[kFirstLocalSlotIndex - j].
     ASSERT(GetSavedArgumentsDescriptorVar() == NULL);
@@ -177,11 +176,6 @@ void ParsedFunction::AllocateVariables() {
     first_parameter_index_ = kFirstLocalSlotIndex;
     first_stack_local_index_ = first_parameter_index_ - num_params;
     num_copied_params_ = num_params;
-    if (is_native_instance_closure) {
-      num_copied_params_ += 1;
-      first_parameter_index_ -= 1;
-      first_stack_local_index_ -= 1;
-    }
   }
 
   // Allocate parameters and local variables, either in the local frame or
@@ -343,42 +337,8 @@ void Parser::SetPosition(intptr_t position) {
 }
 
 
-// Removes optimized code once we load more classes, since --use_cha based
-// optimizations may have become invalid.
-// TODO(srdjan): Note which functions use which CHA decision and deoptimize
-// only the necessary ones.
-static void RemoveOptimizedCode() {
-  ASSERT(FLAG_use_cha);
-  // Deoptimize all live frames.
-  DeoptimizeAll();
-  // Switch all functions' code to unoptimized.
-  const ClassTable& class_table = *Isolate::Current()->class_table();
-  Class& cls = Class::Handle();
-  Array& array = Array::Handle();
-  Function& function = Function::Handle();
-  const intptr_t num_cids = class_table.NumCids();
-  for (intptr_t i = kInstanceCid; i < num_cids; i++) {
-    if (!class_table.HasValidClassAt(i)) continue;
-    cls = class_table.At(i);
-    ASSERT(!cls.IsNull());
-    array = cls.functions();
-    intptr_t num_functions = array.IsNull() ? 0 : array.Length();
-    for (intptr_t f = 0; f < num_functions; f++) {
-      function ^= array.At(f);
-      ASSERT(!function.IsNull());
-      if (function.HasOptimizedCode()) {
-        function.SwitchToUnoptimizedCode();
-      }
-    }
-  }
-}
-
-
 void Parser::ParseCompilationUnit(const Library& library,
                                   const Script& script) {
-  if (FLAG_use_cha) {
-    RemoveOptimizedCode();
-  }
   ASSERT(Isolate::Current()->long_jump_base()->IsSafeToJump());
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
   Parser parser(script, library);
@@ -779,7 +739,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   const Script& script = Script::Handle(isolate, func.script());
   Parser parser(script, func, func.token_pos());
   SequenceNode* node_sequence = NULL;
-  Array& default_parameter_values = Array::Handle(isolate, Array::null());
+  Array& default_parameter_values = Array::ZoneHandle(isolate, Array::null());
   switch (func.kind()) {
     case RawFunction::kRegularFunction:
     case RawFunction::kClosureFunction:
@@ -1169,6 +1129,13 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
 
       // Finish parsing the function type parameter.
       ParamList func_params;
+
+      // Add implicit closure object parameter.
+      func_params.AddFinalParameter(
+          TokenPos(),
+          &String::ZoneHandle(Symbols::ClosureParameter()),
+          &Type::ZoneHandle(Type::DynamicType()));
+
       const bool no_explicit_default_values = false;
       ParseFormalParameterList(no_explicit_default_values, &func_params);
 
@@ -1365,14 +1332,6 @@ RawFunction* Parser::GetSuperFunction(intptr_t token_pos,
 }
 
 
-// Lookup class in the corelib implementation which contains various VM
-// helper methods and classes.
-static RawClass* LookupImplClass(const String& class_name) {
-  Library& coreimpl = Library::Handle(Library::CoreImplLibrary());
-  return coreimpl.LookupClassAllowPrivate(class_name);
-}
-
-
 // Lookup class in the core lib which also contains various VM
 // helper methods and classes. Allow look up of private classes.
 static RawClass* LookupCoreClass(const String& class_name) {
@@ -1399,7 +1358,7 @@ StaticCallNode* Parser::BuildInvocationMirrorAllocation(
   arguments->Add(new LiteralNode(args_pos, function_name));
   // The second argument is an array containing the original function arguments.
   ArrayNode* args_array = new ArrayNode(
-      args_pos, Type::ZoneHandle(Type::ListInterface()));
+      args_pos, Type::ZoneHandle(Type::ArrayType()));
   for (intptr_t i = 1; i < function_args.length(); i++) {
     args_array->AddElement(function_args.NodeAt(i));
   }
@@ -2279,15 +2238,22 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   OpenFunctionBlock(func);  // Build local scope for function.
 
   ParamList params;
-  // Static functions do not have a receiver.
-  // An instance closure may capture and access the receiver, but via the
-  // context and not via the first formal parameter.
-  // The first parameter of a factory is the AbstractTypeArguments vector of
-  // the type of the instance to be allocated.
-  if (!func.is_static() && !func.IsClosureFunction()) {
+  // An instance closure function may capture and access the receiver, but via
+  // the context and not via the first formal parameter.
+  if (func.IsClosureFunction()) {
+    // The first parameter of a closure function is the closure object.
+    ASSERT(!func.is_const());  // Closure functions cannot be const.
+    params.AddFinalParameter(
+        TokenPos(),
+        &String::ZoneHandle(Symbols::ClosureParameter()),
+        &Type::ZoneHandle(Type::DynamicType()));
+  } else if (!func.is_static()) {
+    // Static functions do not have a receiver.
     ASSERT(current_class().raw() == func.Owner());
     params.AddReceiver(ReceiverType(TokenPos()));
   } else if (func.IsFactory()) {
+    // The first parameter of a factory is the AbstractTypeArguments vector of
+    // the type of the instance to be allocated.
     params.AddFinalParameter(
         TokenPos(),
         &String::ZoneHandle(Symbols::TypeArgumentsParameter()),
@@ -2473,13 +2439,13 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
              "static method '%s' cannot be abstract",
              method->name->ToCString());
   }
-  if (method->has_const && !(method->IsConstructor() || method->IsFactory())) {
+  if (method->has_const && !method->IsFactoryOrConstructor()) {
     ErrorMsg(method->name_pos, "'const' not allowed for methods");
   }
-  if (method->IsFactoryOrConstructor() && method->has_abstract) {
+  if (method->has_abstract && method->IsFactoryOrConstructor()) {
     ErrorMsg(method->name_pos, "constructor cannot be abstract");
   }
-  if (method->IsConstructor() && method->has_const) {
+  if (method->has_const && method->IsConstructor()) {
     Class& cls = Class::Handle(library_.LookupClass(members->class_name()));
     cls.set_is_const();
   }
@@ -2646,13 +2612,9 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       ErrorMsg(method->name_pos,
                "external method '%s' may not have a function body",
                method->name->ToCString());
-    } else if (method->IsConstructor() && method->has_const) {
+    } else if (method->IsFactoryOrConstructor() && method->has_const) {
       ErrorMsg(method->name_pos,
-               "const constructor '%s' may not have a function body",
-               method->name->ToCString());
-    } else if (method->IsFactory() && method->has_const) {
-      ErrorMsg(method->name_pos,
-               "const factory '%s' may not have a function body",
+               "const constructor or factory '%s' may not have a function body",
                method->name->ToCString());
     } else if (members->is_interface()) {
       ErrorMsg(method->name_pos,
@@ -2678,9 +2640,9 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     } else if (members->is_interface()) {
       ErrorMsg(method->name_pos,
                "function body not allowed in interface declaration");
-    } else if (method->IsConstructor() && method->has_const) {
+    } else if (method->IsFactoryOrConstructor() && method->has_const) {
       ErrorMsg(method->name_pos,
-               "const constructor '%s' may not have a function body",
+               "const constructor or factory '%s' may not be native",
                method->name->ToCString());
     }
     if (method->redirect_name != NULL) {
@@ -3010,6 +2972,11 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
   if (IsIdentifier() &&
       (CurrentLiteral()->Equals(members->class_name()) || member.has_factory)) {
     if (member.has_factory) {
+      // TODO(regis): Simplify this code once the core library is fixed.
+      // See issue 6641.
+      // Per specification, the name of the factory must be the name of the
+      // immediately enclosing class.
+
       // The factory name may be qualified.
       QualIdent factory_name;
       ParseQualIdent(&factory_name);
@@ -3436,6 +3403,13 @@ void Parser::ParseFunctionTypeAlias(
     ErrorMsg("formal parameter list expected");
   }
   ParamList func_params;
+
+  // Add implicit closure object parameter.
+  func_params.AddFinalParameter(
+      TokenPos(),
+      &String::ZoneHandle(Symbols::ClosureParameter()),
+      &Type::ZoneHandle(Type::DynamicType()));
+
   const bool no_explicit_default_values = false;
   ParseFormalParameterList(no_explicit_default_values, &func_params);
   // The field 'is_static' has no meaning for signature functions.
@@ -4314,6 +4288,9 @@ void Parser::ParseLibraryName() {
 
 
 void Parser::ParseIdentList(GrowableObjectArray* names) {
+  if (!IsIdentifier()) {
+    ErrorMsg("identifier expected");
+  }
   while (IsIdentifier()) {
     names->Add(*CurrentLiteral());
     ConsumeToken();  // Identifier.
@@ -4455,6 +4432,10 @@ void Parser::ParseLibraryDefinition() {
     return;
   }
 
+  const bool is_script = (script_.kind() == RawScript::kScriptTag);
+  const bool is_library = (script_.kind() == RawScript::kLibraryTag);
+  ASSERT(script_.kind() != RawScript::kSourceTag);
+
   // We may read metadata tokens that are part of the toplevel
   // declaration that follows the library definitions. Therefore, we
   // need to remember the position of the last token that was
@@ -4465,11 +4446,14 @@ void Parser::ParseLibraryDefinition() {
     ParseLibraryName();
     metadata_pos = TokenPos();
     SkipMetadata();
-  } else if (script_.kind() == RawScript::kLibraryTag) {
+  } else if (is_library) {
     ErrorMsg("library name definition expected");
   }
   while ((CurrentToken() == Token::kIMPORT) ||
       (CurrentToken() == Token::kEXPORT)) {
+    if (is_script && (CurrentToken() == Token::kEXPORT)) {
+      ErrorMsg("export not allowed in scripts");
+    }
     ParseLibraryImportExport();
     metadata_pos = TokenPos();
     SkipMetadata();
@@ -4726,35 +4710,28 @@ void Parser::ParseNativeFunctionBlock(const ParamList* params,
   func.set_is_native(true);
   TRACE_PARSER("ParseNativeFunctionBlock");
   const Class& cls = Class::Handle(func.Owner());
-  const int num_parameters = params->parameters->length();
-  const bool is_instance_closure = func.IsImplicitInstanceClosureFunction();
-  int num_params_for_resolution = num_parameters;
+  ASSERT(func.NumParameters() == params->parameters->length());
 
   // Parse the function name out.
   const intptr_t native_pos = TokenPos();
   const String& native_name = ParseNativeDeclaration();
 
-  if (is_instance_closure) {
-    num_params_for_resolution += 1;  // account for 'this' when resolving.
-  }
   // Now resolve the native function to the corresponding native entrypoint.
+  const int num_params = NativeArguments::ParameterCountForResolution(func);
   NativeFunction native_function = NativeEntry::ResolveNative(
-      cls, native_name, num_params_for_resolution);
+      cls, native_name, num_params);
   if (native_function == NULL) {
     ErrorMsg(native_pos, "native function '%s' cannot be found",
         native_name.ToCString());
   }
 
-  const bool has_opt_params = (params->num_optional_parameters > 0);
-
   // Now add the NativeBodyNode and return statement.
   current_block_->statements->Add(
-      new ReturnNode(TokenPos(), new NativeBodyNode(TokenPos(),
-                                                    native_name,
-                                                    native_function,
-                                                    num_parameters,
-                                                    has_opt_params,
-                                                    is_instance_closure)));
+      new ReturnNode(TokenPos(),
+                     new NativeBodyNode(TokenPos(),
+                                        Function::ZoneHandle(func.raw()),
+                                        native_name,
+                                        native_function)));
 }
 
 
@@ -4844,6 +4821,10 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
     ConsumeToken();
     AstNode* expr = ParseExpr(is_const, kConsumeCascades);
     initialization = new StoreLocalNode(assign_pos, variable, expr);
+    if (is_const) {
+      ASSERT(expr->IsLiteralNode());
+      variable->SetConstValue(expr->AsLiteralNode()->literal());
+    }
   } else if (is_final || is_const) {
     ErrorMsg(ident_pos,
     "missing initialization of 'final' or 'const' variable");
@@ -4944,25 +4925,46 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   const String* function_name = NULL;
 
   result_type = Type::DynamicType();
-  if (CurrentToken() == Token::kVOID) {
-    ConsumeToken();
-    result_type = Type::VoidType();
-  } else if ((CurrentToken() == Token::kIDENT) &&
-             (LookaheadToken(1) != Token::kLPAREN)) {
-    result_type = ParseType(ClassFinalizer::kCanonicalize);
-  }
-  const intptr_t ident_pos = TokenPos();
-  if (IsIdentifier()) {
-    variable_name = CurrentLiteral();
-    function_name = variable_name;
-    ConsumeToken();
-  } else {
-    if (!is_literal) {
-      ErrorMsg("function name expected");
+
+  intptr_t ident_pos = TokenPos();
+  if (FLAG_strict_function_literals) {
+    if (is_literal) {
+      ASSERT(CurrentToken() == Token::kLPAREN);
+      function_name = &String::ZoneHandle(Symbols::AnonymousClosure());
+    } else {
+      if (CurrentToken() == Token::kVOID) {
+        ConsumeToken();
+        result_type = Type::VoidType();
+      } else if ((CurrentToken() == Token::kIDENT) &&
+                 (LookaheadToken(1) != Token::kLPAREN)) {
+        result_type = ParseType(ClassFinalizer::kCanonicalize);
+      }
+      ident_pos = TokenPos();
+      variable_name = ExpectIdentifier("function name expected");
+      function_name = variable_name;
     }
-    function_name = &String::ZoneHandle(Symbols::AnonymousClosure());
+  } else {
+    // TODO(hausner) remove this block once support for old-style function
+    // literals is gone.
+    if (CurrentToken() == Token::kVOID) {
+      ConsumeToken();
+      result_type = Type::VoidType();
+    } else if ((CurrentToken() == Token::kIDENT) &&
+               (LookaheadToken(1) != Token::kLPAREN)) {
+      result_type = ParseType(ClassFinalizer::kCanonicalize);
+    }
+    ident_pos = TokenPos();
+    if (IsIdentifier()) {
+      variable_name = CurrentLiteral();
+      function_name = variable_name;
+      ConsumeToken();
+    } else {
+      if (!is_literal) {
+        ErrorMsg("function name expected");
+      }
+      function_name = &String::ZoneHandle(Symbols::AnonymousClosure());
+    }
   }
-  ASSERT(ident_pos >= 0);
 
   if (CurrentToken() != Token::kLPAREN) {
     ErrorMsg("'(' expected");
@@ -5178,7 +5180,7 @@ bool Parser::IsSimpleLiteral(const AbstractType& type, Instance* value) {
     *value = CurrentDoubleLiteral();
     return true;
   } else if ((CurrentToken() == Token::kSTRING) &&
-      (no_check || type.IsStringInterface())) {
+      (no_check || type.IsStringType())) {
     *value = CurrentLiteral()->raw();
     return true;
   } else if ((CurrentToken() == Token::kTRUE) &&
@@ -5364,29 +5366,46 @@ bool Parser::IsTopLevelAccessor() {
 
 
 bool Parser::IsFunctionLiteral() {
-  if (!allow_function_literals_) {
-    return false;
-  }
-  const intptr_t saved_pos = TokenPos();
-  bool is_function_literal = false;
-  if (IsIdentifier() && (LookaheadToken(1) == Token::kLPAREN)) {
-    ConsumeToken();  // Consume function identifier.
-  } else if (TryParseReturnType()) {
-    if (!IsIdentifier()) {
-      SetPosition(saved_pos);
+  // TODO(hausner): Remove code block that supports old-style function
+  // literals.
+  if (FLAG_strict_function_literals) {
+    if (CurrentToken() != Token::kLPAREN || !allow_function_literals_) {
       return false;
     }
-    ConsumeToken();  // Comsume function identifier.
-  }
-  if (CurrentToken() == Token::kLPAREN) {
+    const intptr_t saved_pos = TokenPos();
+    bool is_function_literal = false;
     SkipToMatchingParenthesis();
     if ((CurrentToken() == Token::kLBRACE) ||
         (CurrentToken() == Token::kARROW)) {
       is_function_literal = true;
     }
+    SetPosition(saved_pos);
+    return is_function_literal;
+  } else {
+    if (!allow_function_literals_) {
+      return false;
+    }
+    const intptr_t saved_pos = TokenPos();
+    bool is_function_literal = false;
+    if (IsIdentifier() && (LookaheadToken(1) == Token::kLPAREN)) {
+      ConsumeToken();  // Consume function identifier.
+    } else if (TryParseReturnType()) {
+      if (!IsIdentifier()) {
+        SetPosition(saved_pos);
+        return false;
+      }
+      ConsumeToken();  // Comsume function identifier.
+    }
+    if (CurrentToken() == Token::kLPAREN) {
+      SkipToMatchingParenthesis();
+      if ((CurrentToken() == Token::kLBRACE) ||
+          (CurrentToken() == Token::kARROW)) {
+        is_function_literal = true;
+      }
+    }
+    SetPosition(saved_pos);
+    return is_function_literal;
   }
-  SetPosition(saved_pos);
-  return is_function_literal;
 }
 
 
@@ -8077,22 +8096,17 @@ RawObject* Parser::EvaluateConstConstructorCall(
   // +2 for implicit receiver and construction phase arguments.
   GrowableArray<const Object*> arg_values(arguments->length() + 2);
   Instance& instance = Instance::Handle();
-  if (!constructor.IsFactory()) {
-    instance = Instance::New(type_class, Heap::kOld);
-    if (!type_arguments.IsNull()) {
-      if (!type_arguments.IsInstantiated()) {
-        ErrorMsg("type must be constant in const constructor");
-      }
-      instance.SetTypeArguments(
-          AbstractTypeArguments::Handle(type_arguments.Canonicalize()));
+  ASSERT(!constructor.IsFactory());
+  instance = Instance::New(type_class, Heap::kOld);
+  if (!type_arguments.IsNull()) {
+    if (!type_arguments.IsInstantiated()) {
+      ErrorMsg("type must be constant in const constructor");
     }
-    arg_values.Add(&instance);
-    arg_values.Add(&Smi::ZoneHandle(Smi::New(Function::kCtorPhaseAll)));
-  } else {
-    // Prepend type_arguments to list of arguments to factory.
-    ASSERT(type_arguments.IsZoneHandle());
-    arg_values.Add(&type_arguments);
+    instance.SetTypeArguments(
+        AbstractTypeArguments::Handle(type_arguments.Canonicalize()));
   }
+  arg_values.Add(&instance);
+  arg_values.Add(&Smi::ZoneHandle(Smi::New(Function::kCtorPhaseAll)));
   for (int i = 0; i < arguments->length(); i++) {
     AstNode* arg = arguments->NodeAt(i);
     // Arguments have been evaluated to a literal value already.
@@ -8111,10 +8125,6 @@ RawObject* Parser::EvaluateConstConstructorCall(
         return Object::null();
       }
   } else {
-    if (constructor.IsFactory()) {
-      // The factory method returns the allocated object.
-      instance ^= result.raw();
-    }
     if (!instance.IsNull()) {
       instance ^= instance.Canonicalize();
     }
@@ -8135,7 +8145,11 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
   LocalVariable* local = LookupLocalScope(ident);
   if (local != NULL) {
     if (node != NULL) {
-      *node = new LoadLocalNode(ident_pos, local);
+      if (local->IsConst()) {
+        *node = new LiteralNode(ident_pos, *local->ConstValue());
+      } else {
+        *node = new LoadLocalNode(ident_pos, local);
+      }
     }
     return true;
   }
@@ -8680,10 +8694,10 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     }
   }
   ASSERT(type_arguments.IsNull() || (type_arguments.Length() == 1));
-  const Class& list_class = Class::Handle(
-      Type::Handle(Type::ListInterface()).type_class());
+  const Class& array_class = Class::Handle(
+      Type::Handle(Type::ArrayType()).type_class());
   Type& type = Type::ZoneHandle(
-      Type::New(list_class, type_arguments, type_pos));
+      Type::New(array_class, type_arguments, type_pos));
   type ^= ClassFinalizer::FinalizeType(
       current_class(), type, ClassFinalizer::kCanonicalize);
   ArrayNode* list = new ArrayNode(TokenPos(), type);
@@ -8749,29 +8763,42 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     return new LiteralNode(literal_pos, const_list);
   } else {
     // Factory call at runtime.
-    String& list_literal_factory_class_name = String::Handle(
-        Symbols::ListLiteralFactoryClass());
-    const Class& list_literal_factory_class =
-        Class::Handle(LookupCoreClass(list_literal_factory_class_name));
-    ASSERT(!list_literal_factory_class.IsNull());
-    const String& list_literal_factory_name =
+    // TODO(regis): Once _ListImpl is removed, use Symbols::List() instead of
+    // Symbols::ListImplementation() on the following line.
+    String& factory_class_name = String::Handle(Symbols::ListImplementation());
+    const Class& factory_class =
+        Class::Handle(LookupCoreClass(factory_class_name));
+    ASSERT(!factory_class.IsNull());
+    const String& factory_method_name =
         String::Handle(Symbols::ListLiteralFactory());
-    const Function& list_literal_factory = Function::ZoneHandle(
-        list_literal_factory_class.LookupFactory(list_literal_factory_name));
-    ASSERT(!list_literal_factory.IsNull());
+    const Function& factory_method = Function::ZoneHandle(
+        factory_class.LookupFactory(factory_method_name));
+    ASSERT(!factory_method.IsNull());
     if (!type_arguments.IsNull() &&
         !type_arguments.IsInstantiated() &&
         (current_block_->scope->function_level() > 0)) {
       // Make sure that the instantiator is captured.
       CaptureInstantiator();
     }
+    AbstractTypeArguments& factory_type_args =
+        AbstractTypeArguments::ZoneHandle(type_arguments.raw());
+    // If the factory class extends other parameterized classes, adjust the
+    // type argument vector.
+    if (!factory_type_args.IsNull() && (factory_class.NumTypeArguments() > 1)) {
+      ASSERT(factory_type_args.Length() == 1);
+      Type& factory_type = Type::Handle(Type::New(
+          factory_class, factory_type_args, type_pos, Heap::kNew));
+      factory_type ^= ClassFinalizer::FinalizeType(
+          current_class(), factory_type, ClassFinalizer::kFinalize);
+      factory_type_args = factory_type.arguments();
+      ASSERT(factory_type_args.Length() == factory_class.NumTypeArguments());
+    }
+    factory_type_args = factory_type_args.Canonicalize();
     ArgumentListNode* factory_param = new ArgumentListNode(literal_pos);
     factory_param->Add(list);
-    AbstractTypeArguments& canonical_type_arguments =
-        AbstractTypeArguments::ZoneHandle(type_arguments.Canonicalize());
     return CreateConstructorCallNode(literal_pos,
-                                     canonical_type_arguments,
-                                     list_literal_factory,
+                                     factory_type_args,
+                                     factory_method,
                                      factory_param);
   }
 }
@@ -8846,7 +8873,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                 "the key type and the value type");
       }
       TypeArguments& type_array = TypeArguments::Handle(TypeArguments::New(2));
-      type_array.SetTypeAt(0, Type::Handle(Type::StringInterface()));
+      type_array.SetTypeAt(0, Type::Handle(Type::StringType()));
       type_array.SetTypeAt(1, value_type);
       map_type_arguments = type_array.raw();
     } else if (map_type_arguments.Length() > 2) {
@@ -8857,7 +8884,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       const AbstractType& key_type =
           AbstractType::Handle(map_type_arguments.TypeAt(0));
       value_type = map_type_arguments.TypeAt(1);
-      if (!key_type.IsStringInterface()) {
+      if (!key_type.IsStringType()) {
         ErrorMsg(type_pos, "the key type of a map literal must be 'String'");
       }
     }
@@ -8872,8 +8899,8 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
 
   // The kv_pair array is temporary and of element type dynamic. It is passed
   // to the factory to initialize a properly typed map.
-  ArrayNode* kv_pairs =
-      new ArrayNode(TokenPos(), Type::ZoneHandle(Type::ListInterface()));
+  ArrayNode* kv_pairs = new ArrayNode(
+      TokenPos(), Type::ZoneHandle(Type::ArrayType()));
 
   // Parse the map entries. Note: there may be an optional extra
   // comma after the last entry.
@@ -8951,8 +8978,11 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     const String& immutable_map_class_name =
         String::Handle(Symbols::ImmutableMap());
     const Class& immutable_map_class =
-        Class::Handle(LookupImplClass(immutable_map_class_name));
+        Class::Handle(LookupCoreClass(immutable_map_class_name));
     ASSERT(!immutable_map_class.IsNull());
+    // If the immutable map class extends other parameterized classes, we need
+    // to adjust the type argument vector. This is currently not the case.
+    ASSERT(immutable_map_class.NumTypeArguments() == 2);
     ArgumentListNode* constr_args = new ArgumentListNode(TokenPos());
     constr_args->Add(new LiteralNode(literal_pos, key_value_array));
     const String& constr_name =
@@ -8974,27 +9004,40 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     }
   } else {
     // Factory call at runtime.
-    String& map_literal_factory_class_name = String::Handle(
-        Symbols::MapLiteralFactoryClass());
-    const Class& map_literal_factory_class =
-        Class::Handle(LookupCoreClass(map_literal_factory_class_name));
-    ASSERT(!map_literal_factory_class.IsNull());
-    const String& map_literal_factory_name =
+    String& factory_class_name = String::Handle(Symbols::MapImplementation());
+    const Class& factory_class =
+        Class::Handle(LookupCoreClass(factory_class_name));
+    ASSERT(!factory_class.IsNull());
+    const String& factory_method_name =
         String::Handle(Symbols::MapLiteralFactory());
-    const Function& map_literal_factory = Function::ZoneHandle(
-        map_literal_factory_class.LookupFactory(map_literal_factory_name));
-    ASSERT(!map_literal_factory.IsNull());
+    const Function& factory_method = Function::ZoneHandle(
+        factory_class.LookupFactory(factory_method_name));
+    ASSERT(!factory_method.IsNull());
     if (!map_type_arguments.IsNull() &&
         !map_type_arguments.IsInstantiated() &&
         (current_block_->scope->function_level() > 0)) {
       // Make sure that the instantiator is captured.
       CaptureInstantiator();
     }
+    AbstractTypeArguments& factory_type_args =
+        AbstractTypeArguments::ZoneHandle(map_type_arguments.raw());
+    // If the factory class extends other parameterized classes, adjust the
+    // type argument vector.
+    if (!factory_type_args.IsNull() && (factory_class.NumTypeArguments() > 2)) {
+      ASSERT(factory_type_args.Length() == 2);
+      Type& factory_type = Type::Handle(Type::New(
+          factory_class, factory_type_args, type_pos, Heap::kNew));
+      factory_type ^= ClassFinalizer::FinalizeType(
+          current_class(), factory_type, ClassFinalizer::kFinalize);
+      factory_type_args = factory_type.arguments();
+      ASSERT(factory_type_args.Length() == factory_class.NumTypeArguments());
+    }
+    factory_type_args = factory_type_args.Canonicalize();
     ArgumentListNode* factory_param = new ArgumentListNode(literal_pos);
     factory_param->Add(kv_pairs);
     return CreateConstructorCallNode(literal_pos,
-                                     map_type_arguments,
-                                     map_literal_factory,
+                                     factory_type_args,
+                                     factory_method,
                                      factory_param);
   }
 }
@@ -9188,6 +9231,10 @@ AstNode* Parser::ParseNewOperator() {
     ASSERT(!constructor_class.is_interface());
   }
 
+  // An additional type check of the result of a redirecting factory may be
+  // required.
+  AbstractType& type_bound = AbstractType::ZoneHandle();
+
   // Make sure that an appropriate constructor exists.
   const String& constructor_name =
       BuildConstructorName(constructor_class_name, named_constructor);
@@ -9214,18 +9261,28 @@ AstNode* Parser::ParseNewOperator() {
       }
       return ThrowNoSuchMethodError(call_pos, external_constructor_name);
     } else if (constructor.IsRedirectingFactory()) {
-      type = constructor.RedirectionType();
-      if (type.IsMalformed()) {
+      Type& redirect_type = Type::Handle(constructor.RedirectionType());
+      if (!redirect_type.IsMalformed() && !redirect_type.IsInstantiated()) {
+        // The type arguments of the redirection type are instantiated from the
+        // type arguments of the parsed type of the 'new' or 'const' expression.
+        redirect_type ^= redirect_type.InstantiateFrom(type_arguments);
+      }
+      if (redirect_type.IsMalformed()) {
         if (is_const) {
-          const Error& error = Error::Handle(type.malformed_error());
+          const Error& error = Error::Handle(redirect_type.malformed_error());
           ErrorMsg(error);
         }
-        return ThrowTypeError(type.token_pos(), type);
+        return ThrowTypeError(redirect_type.token_pos(), redirect_type);
       }
-      constructor = constructor.RedirectionTarget();
-      ASSERT(!constructor.IsNull());
+      if (FLAG_enable_type_checks && !redirect_type.IsSubtypeOf(type, NULL)) {
+        // Additional type checking of the result is necessary.
+        type_bound = type.raw();
+      }
+      type = redirect_type.raw();
       type_class = type.type_class();
       type_arguments = type.arguments();
+      constructor = constructor.RedirectionTarget();
+      ASSERT(!constructor.IsNull());
       constructor_class = constructor.Owner();
       ASSERT(type_class.raw() == constructor_class.raw());
     }
@@ -9238,8 +9295,7 @@ AstNode* Parser::ParseNewOperator() {
   // It is ok to call a factory method of an abstract class, but it is
   // a dynamic error to instantiate an abstract class.
   ASSERT(!constructor.IsNull());
-  if (constructor_class.is_abstract() &&
-      !constructor.IsFactory()) {
+  if (constructor_class.is_abstract() && !constructor.IsFactory()) {
     ArgumentListNode* arguments = new ArgumentListNode(type_pos);
     arguments->Add(new LiteralNode(
         TokenPos(), Integer::ZoneHandle(Integer::New(type_pos))));
@@ -9337,6 +9393,23 @@ AstNode* Parser::ParseNewOperator() {
       const Instance& const_instance = Instance::Cast(constructor_result);
       new_object = new LiteralNode(new_pos,
                                    Instance::ZoneHandle(const_instance.raw()));
+      if (!type_bound.IsNull()) {
+        ASSERT(!type_bound.IsMalformed());
+        Error& malformed_error = Error::Handle();
+        if (!const_instance.IsInstanceOf(type_bound,
+                                         TypeArguments::Handle(),
+                                         &malformed_error)) {
+          type_bound = ClassFinalizer::NewFinalizedMalformedType(
+              malformed_error,
+              current_class(),
+              new_pos,
+              ClassFinalizer::kTryResolve,  // No compile-time error.
+              "const factory result is not an instance of '%s'",
+              String::Handle(type_bound.UserVisibleName()).ToCString());
+          new_object = ThrowTypeError(new_pos, type_bound);
+        }
+        type_bound = AbstractType::null();
+      }
     }
   } else {
     CheckFunctionIsCallable(new_pos, constructor);
@@ -9351,6 +9424,10 @@ AstNode* Parser::ParseNewOperator() {
     // mode at runtime that it is within its declared bounds.
     new_object = CreateConstructorCallNode(
         new_pos, type_arguments, constructor, arguments);
+  }
+  if (!type_bound.IsNull()) {
+    const String& dst_name = String::ZoneHandle(Symbols::FactoryResult());
+    new_object = new AssignableNode(new_pos, new_object, type_bound, dst_name);
   }
   return new_object;
 }
@@ -9412,8 +9489,8 @@ AstNode* Parser::ParseStringLiteral() {
   }
   // String interpolation needed.
   bool is_compiletime_const = true;
-  ArrayNode* values = new ArrayNode(TokenPos(),
-                                    Type::ZoneHandle(Type::ListInterface()));
+  ArrayNode* values = new ArrayNode(
+      TokenPos(), Type::ZoneHandle(Type::ArrayType()));
   while (CurrentToken() == Token::kSTRING) {
     values->AddElement(new LiteralNode(TokenPos(), *CurrentLiteral()));
     ConsumeToken();
@@ -9491,7 +9568,7 @@ AstNode* Parser::ParseArgumentDefinitionTest() {
     saved_args_desc_var =
         new LocalVariable(owner_function.token_pos(),
                           saved_args_desc_name,
-                          Type::ZoneHandle(Type::ListInterface()));
+                          Type::ZoneHandle(Type::ArrayType()));
     saved_args_desc_var->set_is_final();
     // The saved arguments descriptor variable must be added just after the
     // formal parameters. This simplifies the 2-step saving of a captured
@@ -9651,6 +9728,9 @@ AstNode* Parser::ParsePrimary() {
 const Instance& Parser::EvaluateConstExpr(AstNode* expr) {
   if (expr->IsLiteralNode()) {
     return expr->AsLiteralNode()->literal();
+  } else if (expr->IsLoadLocalNode() &&
+      expr->AsLoadLocalNode()->local().IsConst()) {
+    return *expr->AsLoadLocalNode()->local().ConstValue();
   } else {
     ASSERT(expr->EvalConstExpr() != NULL);
     ReturnNode* ret = new ReturnNode(expr->token_pos(), expr);

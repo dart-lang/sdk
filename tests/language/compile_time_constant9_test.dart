@@ -12,5 +12,5 @@ class A {
 }
 
 main() {
-  Expect.isTrue(new A().x === new A().x);
+  Expect.isTrue(identical(new A().x, new A().x));
 }

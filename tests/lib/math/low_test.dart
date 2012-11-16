@@ -6,9 +6,9 @@
 // a power of 2.
 
 // Library tag to allow Dartium to run the test.
-#library("low_test.dart");
+library low_test;
 
-#import("dart:math");
+import 'dart:math';
 
 void main() {
   var n = (2 * (1<<32)) ~/ 3;

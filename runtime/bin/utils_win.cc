@@ -45,3 +45,37 @@ void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
   FormatMessageIntoBuffer(code_, message, kMaxMessageLength);
   SetMessage(message);
 }
+
+char* StringUtils::SystemStringToUtf8(char* str) {
+  int len = MultiByteToWideChar(CP_ACP, 0, str, -1, NULL, 0);
+  wchar_t* unicode = new wchar_t[len+1];
+  MultiByteToWideChar(CP_ACP, 0, str, -1, unicode, len);
+  unicode[len] = '\0';
+  len = WideCharToMultiByte(CP_UTF8, 0, unicode, -1, NULL, 0, NULL, NULL);
+  char* utf8 = reinterpret_cast<char*>(malloc(len+1));
+  WideCharToMultiByte(CP_UTF8, 0, unicode, -1, utf8, len, NULL, NULL);
+  utf8[len] = '\0';
+  delete[] unicode;
+  return utf8;
+}
+
+char* StringUtils::Utf8ToSystemString(char* utf8) {
+  int len = MultiByteToWideChar(CP_UTF8, 0, utf8, -1, NULL, 0);
+  wchar_t* unicode = new wchar_t[len+1];
+  MultiByteToWideChar(CP_UTF8, 0, utf8, -1, unicode, len);
+  unicode[len] = '\0';
+  len = WideCharToMultiByte(CP_ACP, 0, unicode, -1, NULL, 0, NULL, NULL);
+  char* ansi = reinterpret_cast<char*>(malloc(len+1));
+  WideCharToMultiByte(CP_ACP, 0, unicode, -1, ansi, len, NULL, NULL);
+  ansi[len] = '\0';
+  delete[] unicode;
+  return ansi;
+}
+
+const char* StringUtils::Utf8ToSystemString(const char* utf8) {
+  return const_cast<const char*>(Utf8ToSystemString(const_cast<char*>(utf8)));
+}
+
+const char* StringUtils::SystemStringToUtf8(const char* str) {
+  return const_cast<const char*>(Utf8ToSystemString(const_cast<char*>(str)));
+}

@@ -3,10 +3,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("BenchmarkTests");
-#import("dart:math", prefix: "Math");
-#import("../../../lib/utf/utf.dart", prefix: "SE");
-#source("benchmark_runner.dart");
+library BenchmarkTests;
+import 'dart:math' as Math;
+import '../../../lib/utf/utf.dart' as SE;
+part 'benchmark_runner.dart';
 
 void main() {
 

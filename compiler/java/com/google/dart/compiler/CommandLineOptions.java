@@ -30,9 +30,6 @@ public class CommandLineOptions {
         usage = "Batch mode (for unit testing)")
     private boolean batch = false;
 
-    @Option(name = "--expose_core_impl", usage = "Automatic import of dart:coreimpl library")
-    private boolean exposeCoreImpl = false;
-
     @Option(name = "--error_format",
         usage = "Format errors as normal or machine")
     private String errorFormat = "";
@@ -124,13 +121,6 @@ public class CommandLineOptions {
 
     @Argument
     private final List<String> sourceFiles = new ArrayList<String>();
-
-    /**
-     * @return <code>true</code> to automatically import dart:coreimpl
-     */
-    public boolean shouldExposeCoreImpl() {
-      return exposeCoreImpl;
-    }
 
     public String getJvmMetricOptions() {
       if (!showJvmMetrics) {

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("math_lib_test");
-#import("dart:math");
+library math_lib_test;
+import 'dart:math';
 
 main() {
   Expect.equals(2.0, sqrt(4));

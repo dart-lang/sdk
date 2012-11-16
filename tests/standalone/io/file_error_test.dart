@@ -273,12 +273,12 @@ void testReadAsTextNonExistent() {
   var file = new File("${temp.path}/nonExistentFile4");
 
   // Non-existing file should throw exception.
-  Expect.throws(() => file.readAsTextSync(),
+  Expect.throws(() => file.readAsStringSync(),
                 (e) => checkOpenNonExistentFileException(e));
 
-  var readAsTextFuture = file.readAsText(Encoding.ASCII);
-  readAsTextFuture.then((data) => Expect.fail("Unreachable code"));
-  readAsTextFuture.handleException((e) {
+  var readAsStringFuture = file.readAsString(Encoding.ASCII);
+  readAsStringFuture.then((data) => Expect.fail("Unreachable code"));
+  readAsStringFuture.handleException((e) {
     checkOpenNonExistentFileException(e);
     p.toSendPort().send(null);
     return true;

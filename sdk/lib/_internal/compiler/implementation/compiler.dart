@@ -74,8 +74,16 @@ abstract class Backend {
 
   void enqueueHelpers(Enqueuer world);
   void codegen(WorkItem work);
-  void processNativeClasses(Enqueuer world,
-                            Collection<LibraryElement> libraries);
+
+  // The backend determines the native resolution enqueuer, with a no-op
+  // default, so tools like dart2dart can ignore the native classes.
+  native.NativeEnqueuer nativeResolutionEnqueuer(world) {
+    return new native.NativeEnqueuer();
+  }
+  native.NativeEnqueuer nativeCodegenEnqueuer(world) {
+    return new native.NativeEnqueuer();
+  }
+
   void assembleProgram();
   List<CompilerTask> get tasks;
 
@@ -87,6 +95,7 @@ abstract class Backend {
   }
 
   SourceString getCheckedModeHelper(DartType type) => null;
+  void registerInstantiatedClass(ClassElement cls, Enqueuer enqueuer) {}
 
   Element getInterceptor(Selector selector);
 }
@@ -102,6 +111,10 @@ abstract class Compiler implements DiagnosticListener {
   final bool enableTypeAssertions;
   final bool enableUserAssertions;
   final bool enableConcreteTypeInference;
+  final bool analyzeAll;
+  final bool enableNativeLiveTypeAnalysis;
+  final bool rejectDeprecatedFeatures;
+  final bool checkDeprecationInSdk;
 
   bool disableInlining = false;
 
@@ -110,7 +123,6 @@ abstract class Compiler implements DiagnosticListener {
   CompilerTask measuredTask;
   Element _currentElement;
   LibraryElement coreLibrary;
-  LibraryElement coreImplLibrary;
   LibraryElement isolateLibrary;
   LibraryElement jsHelperLibrary;
   LibraryElement interceptorsLibrary;
@@ -210,9 +222,13 @@ abstract class Compiler implements DiagnosticListener {
             this.enableUserAssertions: false,
             this.enableConcreteTypeInference: false,
             this.enableMinification: false,
+            this.enableNativeLiveTypeAnalysis: false,
             bool emitJavaScript: true,
             bool generateSourceMap: true,
             bool disallowUnsafeEval: false,
+            this.analyzeAll: false,
+            this.rejectDeprecatedFeatures: false,
+            this.checkDeprecationInSdk: false,
             List<String> strips: const []})
       : libraries = new Map<String, LibraryElement>(),
         progress = new Stopwatch() {
@@ -329,12 +345,10 @@ abstract class Compiler implements DiagnosticListener {
     try {
       runCompiler(uri);
     } on CompilerCancelledException catch (exception) {
-      log(exception.toString());
-      log('compilation failed');
+      log('Error: $exception');
       return false;
     }
     tracer.close();
-    log('compilation succeeded');
     return true;
   }
 
@@ -376,8 +390,8 @@ abstract class Compiler implements DiagnosticListener {
   void onLibraryScanned(LibraryElement library, Uri uri) {
     if (dynamicClass != null) {
       // When loading the built-in libraries, dynamicClass is null. We
-      // take advantage of this as core and coreimpl import js_helper
-      // and see Dynamic this way.
+      // take advantage of this as core imports js_helper and sees [dynamic]
+      // this way.
       withCurrentElement(dynamicClass, () {
         library.addToScope(dynamicClass, this);
       });
@@ -387,12 +401,11 @@ abstract class Compiler implements DiagnosticListener {
   LibraryElement scanBuiltinLibrary(String filename);
 
   void initializeSpecialClasses() {
-    bool coreLibValid = true;
+    final List missingClasses = [];
     ClassElement lookupSpecialClass(SourceString name) {
       ClassElement result = coreLibrary.find(name);
       if (result == null) {
-        log('core library class $name missing');
-        coreLibValid = false;
+        missingClasses.add(name.slowToString());
       }
       return result;
     }
@@ -412,21 +425,19 @@ abstract class Compiler implements DiagnosticListener {
     dynamicClass = lookupSpecialClass(const SourceString('Dynamic_'));
     nullClass = lookupSpecialClass(const SourceString('Null'));
     types = new Types(this, dynamicClass);
-    if (!coreLibValid) {
-      cancel('core library does not contain required classes');
+    if (!missingClasses.isEmpty) {
+      cancel('core library does not contain required classes: $missingClasses');
     }
   }
 
   void scanBuiltinLibraries() {
-    loadCoreImplLibrary();
     jsHelperLibrary = scanBuiltinLibrary('_js_helper');
     interceptorsLibrary = scanBuiltinLibrary('_interceptors');
 
-    // The core and coreimpl libraries were loaded and patched before
-    // jsHelperLibrary was initialized, so it wasn't imported into those
-    // two libraries during patching.
+    // The core library was loaded and patched before jsHelperLibrary was
+    // initialized, so it wasn't imported into those two libraries during
+    // patching.
     importHelperLibrary(coreLibrary);
-    importHelperLibrary(coreImplLibrary);
     importHelperLibrary(interceptorsLibrary);
 
     addForeignFunctions(jsHelperLibrary);
@@ -443,11 +454,6 @@ abstract class Compiler implements DiagnosticListener {
     jsInvocationMirrorClass.ensureResolved(this);
     invokeOnMethod = jsInvocationMirrorClass.lookupLocalMember(
         const SourceString('invokeOn'));
-  }
-
-  void loadCoreImplLibrary() {
-    Uri coreImplUri = new Uri.fromComponents(scheme: 'dart', path: 'coreimpl');
-    coreImplLibrary = libraryLoader.loadLibrary(coreImplUri, null, coreImplUri);
   }
 
   void importHelperLibrary(LibraryElement library) {
@@ -487,7 +493,8 @@ abstract class Compiler implements DiagnosticListener {
         || libraryName == 'dart:mirrors'
         || libraryName == 'dart:isolate'
         || libraryName == 'dart:math'
-        || libraryName == 'dart:html') {
+        || libraryName == 'dart:html'
+        || libraryName == 'dart:svg') {
       if (libraryName == 'dart:html' || libraryName == 'dart:mirrors') {
         // dart:html needs access to convertDartClosureToJS.
         // dart:mirrors needs access to the Primitives class.
@@ -523,9 +530,10 @@ abstract class Compiler implements DiagnosticListener {
 
     log('Resolving...');
     phase = PHASE_RESOLVING;
+    if (analyzeAll) libraries.forEach((_, lib) => fullyEnqueueLibrary(lib));
     backend.enqueueHelpers(enqueuer.resolution);
     processQueue(enqueuer.resolution, main);
-    log('Resolved ${enqueuer.resolution.resolvedElements.length} elements.');
+    enqueuer.resolution.logSummary(log);
 
     if (compilationFailed) return;
 
@@ -539,7 +547,7 @@ abstract class Compiler implements DiagnosticListener {
     log('Compiling...');
     phase = PHASE_COMPILING;
     processQueue(enqueuer.codegen, main);
-    log('Compiled ${codegenWorld.generatedCode.length} methods.');
+    enqueuer.codegen.logSummary(log);
 
     if (compilationFailed) return;
 
@@ -548,8 +556,24 @@ abstract class Compiler implements DiagnosticListener {
     checkQueues();
   }
 
+  void fullyEnqueueLibrary(LibraryElement library) {
+    library.forEachLocalMember(fullyEnqueueTopLevelElement);
+  }
+
+  void fullyEnqueueTopLevelElement(Element element) {
+    if (element.isClass()) {
+      ClassElement cls = element;
+      cls.ensureResolved(this);
+      for (Element member in cls.localMembers) {
+        enqueuer.resolution.addToWorkList(member);
+      }
+    } else {
+      enqueuer.resolution.addToWorkList(element);
+    }
+  }
+
   void processQueue(Enqueuer world, Element main) {
-    backend.processNativeClasses(world, libraries.values);
+    world.nativeEnqueuer.processNativeClasses(libraries.values);
     world.addToWorkList(main);
     progress.reset();
     world.forEach((WorkItem work) {
@@ -615,14 +639,6 @@ abstract class Compiler implements DiagnosticListener {
     assert(invariant(element, element.isDeclaration));
     TreeElements elements = enqueuer.resolution.getCachedElements(element);
     if (elements != null) return elements;
-    final int allowed = ElementCategory.VARIABLE | ElementCategory.FUNCTION
-                        | ElementCategory.FACTORY;
-    ElementKind kind = element.kind;
-    if (!element.isAccessor() &&
-        ((identical(kind, ElementKind.ABSTRACT_FIELD)) ||
-         (kind.category & allowed) == 0)) {
-      return null;
-    }
     assert(parser != null);
     Node tree = parser.parse(element);
     validator.validate(tree);
@@ -750,6 +766,21 @@ abstract class Compiler implements DiagnosticListener {
     // TODO(ahe): The names Diagnostic and api.Diagnostic are in
     // conflict. Fix it.
     reportDiagnostic(span, "$message", kind);
+  }
+
+  void onDeprecatedFeature(Spannable span, String feature) {
+    if (currentElement == null)
+      throw new SpannableAssertionFailure(span, feature);
+    if (!checkDeprecationInSdk &&
+        currentElement.getLibrary().isPlatformLibrary) {
+      return;
+    }
+    var kind = rejectDeprecatedFeatures
+        ? api.Diagnostic.ERROR : api.Diagnostic.WARNING;
+    var message = rejectDeprecatedFeatures
+        ? MessageKind.DEPRECATED_FEATURE_ERROR.error([feature])
+        : MessageKind.DEPRECATED_FEATURE_WARNING.error([feature]);
+    reportMessage(spanFromSpannable(span), message, kind);
   }
 
   void reportDiagnostic(SourceSpan span, String message, api.Diagnostic kind);

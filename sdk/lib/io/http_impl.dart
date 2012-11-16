@@ -2,620 +2,86 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _HttpHeaders implements HttpHeaders {
-  _HttpHeaders() : _headers = new Map<String, List<String>>();
+// The close queue handles graceful closing of HTTP connections. When
+// a connection is added to the queue it will enter a wait state
+// waiting for all data written and possibly socket shutdown from
+// peer.
+class _CloseQueue {
+  _CloseQueue() : _q = new Set<_HttpConnectionBase>();
 
-  List<String> operator[](String name) {
-    name = name.toLowerCase();
-    return _headers[name];
-  }
-
-  String value(String name) {
-    name = name.toLowerCase();
-    List<String> values = _headers[name];
-    if (values == null) return null;
-    if (values.length > 1) {
-      throw new HttpException("More than one value for header $name");
+  void add(_HttpConnectionBase connection) {
+    void closeIfDone() {
+      // We only check for write closed here. This means that we are
+      // not waiting for the client to half-close the socket before
+      // fully closing the socket.
+      if (!connection._isWriteClosed) return;
+      _q.remove(connection);
+      connection._socket.close();
+      if (connection.onClosed != null) connection.onClosed();
     }
-    return values[0];
-  }
 
-  void add(String name, Object value) {
-    _checkMutable();
-    if (value is List) {
-      for (int i = 0; i < value.length; i++) {
-        _add(name, value[i]);
-      }
+    // If the connection is already fully closed don't insert it into the queue.
+    if (connection._isFullyClosed) {
+      connection._socket.close();
+      if (connection.onClosed != null) connection.onClosed();
+      return;
+    }
+
+    _q.add(connection);
+
+    // If output stream is not closed for writing close it now and
+    // wait for callback when closed.
+    if (!connection._isWriteClosed) {
+      connection._socket.outputStream.close();
+      connection._socket.outputStream.onClosed = () {
+        connection._state |= _HttpConnectionBase.WRITE_CLOSED;
+        closeIfDone();
+      };
     } else {
-      _add(name, value);
+      connection._socket.outputStream.onClosed = () { assert(false); };
     }
-  }
 
-  void set(String name, Object value) {
-    name = name.toLowerCase();
-    _checkMutable();
-    removeAll(name);
-    add(name, value);
-  }
-
-  void remove(String name, Object value) {
-    _checkMutable();
-    name = name.toLowerCase();
-    List<String> values = _headers[name];
-    if (values != null) {
-      int index = values.indexOf(value);
-      if (index != -1) {
-        values.removeRange(index, 1);
-      }
-    }
-  }
-
-  void removeAll(String name) {
-    _checkMutable();
-    name = name.toLowerCase();
-    _headers.remove(name);
-  }
-
-  void forEach(void f(String name, List<String> values)) {
-    _headers.forEach(f);
-  }
-
-  void noFolding(String name) {
-    if (_noFoldingHeaders == null) _noFoldingHeaders = new List<String>();
-    _noFoldingHeaders.add(name);
-  }
-
-  String get host => _host;
-
-  void set host(String host) {
-    _checkMutable();
-    _host = host;
-    _updateHostHeader();
-  }
-
-  int get port => _port;
-
-  void set port(int port) {
-    _checkMutable();
-    _port = port;
-    _updateHostHeader();
-  }
-
-  Date get ifModifiedSince {
-    List<String> values = _headers["if-modified-since"];
-    if (values != null) {
-      try {
-        return _HttpUtils.parseDate(values[0]);
-      } on Exception catch (e) {
-        return null;
-      }
-    }
-    return null;
-  }
-
-  void set ifModifiedSince(Date ifModifiedSince) {
-    _checkMutable();
-    // Format "ifModifiedSince" header with date in Greenwich Mean Time (GMT).
-    String formatted = _HttpUtils.formatDate(ifModifiedSince.toUtc());
-    _set("if-modified-since", formatted);
-  }
-
-  Date get date {
-    List<String> values = _headers["date"];
-    if (values != null) {
-      try {
-        return _HttpUtils.parseDate(values[0]);
-      } on Exception catch (e) {
-        return null;
-      }
-    }
-    return null;
-  }
-
-  void set date(Date date) {
-    _checkMutable();
-    // Format "Date" header with date in Greenwich Mean Time (GMT).
-    String formatted = _HttpUtils.formatDate(date.toUtc());
-    _set("date", formatted);
-  }
-
-  Date get expires {
-    List<String> values = _headers["expires"];
-    if (values != null) {
-      try {
-        return _HttpUtils.parseDate(values[0]);
-      } on Exception catch (e) {
-        return null;
-      }
-    }
-    return null;
-  }
-
-  void set expires(Date expires) {
-    _checkMutable();
-    // Format "Expires" header with date in Greenwich Mean Time (GMT).
-    String formatted = _HttpUtils.formatDate(expires.toUtc());
-    _set("expires", formatted);
-  }
-
-  ContentType get contentType {
-    var values = _headers["content-type"];
-    if (values != null) {
-      return new ContentType.fromString(values[0]);
+    // If socket is not closed for reading wait for callback.
+    if (!connection._isReadClosed) {
+      connection._socket.onClosed = () {
+        connection._state |= _HttpConnectionBase.READ_CLOSED;
+        // This is a nop, as we are not using the read closed
+        // information for anything. For both server and client
+        // connections the inbound message have been read to
+        // completion when the socket enters the close queue.
+      };
     } else {
-      return new ContentType();
+      connection._socket.onClosed = () { assert(false); };
     }
+
+    // Ignore any data on a socket in the close queue.
+    connection._socket.onData = connection._socket.read;
+
+    // If an error occurs immediately close the socket.
+    connection._socket.onError = (e) {
+      connection._state |= _HttpConnectionBase.WRITE_CLOSED;
+      closeIfDone();
+    };
   }
 
-  void set contentType(ContentType contentType) {
-    _checkMutable();
-    _set("content-type", contentType.toString());
-  }
-
-  void _add(String name, Object value) {
-    // TODO(sgjesse): Add immutable state throw HttpException is immutable.
-    if (name.toLowerCase() == "date") {
-      if (value is Date) {
-        date = value;
-      } else if (value is String) {
-        _set("date", value);
-      } else {
-        throw new HttpException("Unexpected type for header named $name");
-      }
-    } else if (name.toLowerCase() == "expires") {
-      if (value is Date) {
-        expires = value;
-      } else if (value is String) {
-        _set("expires", value);
-      } else {
-        throw new HttpException("Unexpected type for header named $name");
-      }
-    } else if (name.toLowerCase() == "if-modified-since") {
-      if (value is Date) {
-        ifModifiedSince = value;
-      } else if (value is String) {
-        _set("if-modified-since", value);
-      } else {
-        throw new HttpException("Unexpected type for header named $name");
-      }
-    } else if (name.toLowerCase() == "host") {
-      int pos = value.indexOf(":");
-      if (pos == -1) {
-        _host = value;
-        _port = HttpClient.DEFAULT_HTTP_PORT;
-      } else {
-        if (pos > 0) {
-          _host = value.substring(0, pos);
-        } else {
-          _host = null;
-        }
-        if (pos + 1 == value.length) {
-          _port = HttpClient.DEFAULT_HTTP_PORT;
-        } else {
-          try {
-            _port = parseInt(value.substring(pos + 1));
-          } on FormatException catch (e) {
-            _port = null;
-          }
-        }
-        _set("host", value);
-      }
-    } else if (name.toLowerCase() == "content-type") {
-      _set("content-type", value);
-    } else {
-      name = name.toLowerCase();
-      List<String> values = _headers[name];
-      if (values == null) {
-        values = new List<String>();
-        _headers[name] = values;
-      }
-      if (value is Date) {
-        values.add(_HttpUtils.formatDate(value));
-      } else {
-        values.add(value.toString());
-      }
-    }
-  }
-
-  void _set(String name, String value) {
-    name = name.toLowerCase();
-    List<String> values = new List<String>();
-    _headers[name] = values;
-    values.add(value);
-  }
-
-  _checkMutable() {
-    if (!_mutable) throw new HttpException("HTTP headers are not mutable");
-  }
-
-  _updateHostHeader() {
-    bool defaultPort = _port == null || _port == HttpClient.DEFAULT_HTTP_PORT;
-    String portPart = defaultPort ? "" : ":$_port";
-    _set("host", "$host$portPart");
-  }
-
-  _foldHeader(String name) {
-    if (name == "set-cookie" ||
-        (_noFoldingHeaders != null &&
-         _noFoldingHeaders.indexOf(name) != -1)) {
-      return false;
-    }
-    return true;
-  }
-
-  _write(_HttpConnectionBase connection) {
-    final COLONSP = const [_CharCode.COLON, _CharCode.SP];
-    final COMMASP = const [_CharCode.COMMA, _CharCode.SP];
-    final CRLF = const [_CharCode.CR, _CharCode.LF];
-
-    // Format headers.
-    _headers.forEach((String name, List<String> values) {
-      bool fold = _foldHeader(name);
-      List<int> data;
-      data = name.charCodes;
-      connection._write(data);
-      connection._write(COLONSP);
-      for (int i = 0; i < values.length; i++) {
-        if (i > 0) {
-          if (fold) {
-            connection._write(COMMASP);
-          } else {
-            connection._write(CRLF);
-            data = name.charCodes;
-            connection._write(data);
-            connection._write(COLONSP);
-          }
-        }
-        data = values[i].charCodes;
-        connection._write(data);
-      }
-      connection._write(CRLF);
+  void shutdown() {
+    _q.forEach((_HttpConnectionBase connection) {
+      connection._socket.close();
     });
   }
 
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    _headers.forEach((String name, List<String> values) {
-      sb.add(name);
-      sb.add(": ");
-      bool fold = _foldHeader(name);
-      for (int i = 0; i < values.length; i++) {
-        if (i > 0) {
-          if (fold) {
-            sb.add(", ");
-          } else {
-            sb.add("\n");
-            sb.add(name);
-            sb.add(": ");
-          }
-        }
-        sb.add(values[i]);
-      }
-      sb.add("\n");
-    });
-    return sb.toString();
-  }
-
-  bool _mutable = true;  // Are the headers currently mutable?
-  Map<String, List<String>> _headers;
-  List<String> _noFoldingHeaders;
-
-  String _host;
-  int _port;
-}
-
-
-class _HeaderValue implements HeaderValue {
-  _HeaderValue([String this.value = ""]);
-
-  _HeaderValue.fromString(String value, {this.parameterSeparator: ";"}) {
-    // Parse the string.
-    _parse(value);
-  }
-
-  Map<String, String> get parameters {
-    if (_parameters == null) _parameters = new Map<String, String>();
-    return _parameters;
-  }
-
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.add(value);
-    if (parameters != null && parameters.length > 0) {
-      _parameters.forEach((String name, String value) {
-        sb.add("; ");
-        sb.add(name);
-        sb.add("=");
-        sb.add(value);
-      });
-    }
-    return sb.toString();
-  }
-
-  void _parse(String s) {
-    int index = 0;
-
-    bool done() => index == s.length;
-
-    void skipWS() {
-      while (!done()) {
-        if (s[index] != " " && s[index] != "\t") return;
-        index++;
-      }
-    }
-
-    String parseValue() {
-      int start = index;
-      while (!done()) {
-        if (s[index] == " " ||
-            s[index] == "\t" ||
-            s[index] == parameterSeparator) break;
-        index++;
-      }
-      return s.substring(start, index).toLowerCase();
-    }
-
-    void expect(String expected) {
-      if (done() || s[index] != expected) {
-        throw new HttpException("Failed to parse header value");
-      }
-      index++;
-    }
-
-    void maybeExpect(String expected) {
-      if (s[index] == expected) index++;
-    }
-
-    void parseParameters() {
-      _parameters = new Map<String, String>();
-
-      String parseParameterName() {
-        int start = index;
-        while (!done()) {
-          if (s[index] == " " || s[index] == "\t" || s[index] == "=") break;
-          index++;
-        }
-        return s.substring(start, index).toLowerCase();
-      }
-
-      String parseParameterValue() {
-        if (s[index] == "\"") {
-          // Parse quoted value.
-          StringBuffer sb = new StringBuffer();
-          index++;
-          while (!done()) {
-            if (s[index] == "\\") {
-              if (index + 1 == s.length) {
-                throw new HttpException("Failed to parse header value");
-              }
-              index++;
-            } else if (s[index] == "\"") {
-              index++;
-              break;
-            }
-            sb.add(s[index]);
-            index++;
-          }
-          return sb.toString();
-        } else {
-          // Parse non-quoted value.
-          return parseValue();
-        }
-      }
-
-      while (!done()) {
-        skipWS();
-        if (done()) return;
-        String name = parseParameterName();
-        skipWS();
-        expect("=");
-        skipWS();
-        String value = parseParameterValue();
-        _parameters[name] = value;
-        skipWS();
-        if (done()) return;
-        expect(parameterSeparator);
-      }
-    }
-
-    skipWS();
-    value = parseValue();
-    skipWS();
-    if (done()) return;
-    maybeExpect(parameterSeparator);
-    parseParameters();
-  }
-
-  String value;
-  String parameterSeparator;
-  Map<String, String> _parameters;
-}
-
-
-class _ContentType extends _HeaderValue implements ContentType {
-  _ContentType(String primaryType, String subType)
-      : _primaryType = primaryType, _subType = subType, super("");
-
-  _ContentType.fromString(String value) : super.fromString(value);
-
-  String get value => "$_primaryType/$_subType";
-
-  void set value(String s) {
-    int index = s.indexOf("/");
-    if (index == -1 || index == (s.length - 1)) {
-      primaryType = s.trim().toLowerCase();
-      subType = "";
-    } else {
-      primaryType = s.substring(0, index).trim().toLowerCase();
-      subType = s.substring(index + 1).trim().toLowerCase();
-    }
-  }
-
-  String get primaryType => _primaryType;
-
-  void set primaryType(String s) {
-    _primaryType = s;
-  }
-
-  String get subType => _subType;
-
-  void set subType(String s) {
-    _subType = s;
-  }
-
-  String get charset => parameters["charset"];
-
-  void set charset(String s) {
-    parameters["charset"] = s;
-  }
-
-  String _primaryType = "";
-  String _subType = "";
-}
-
-
-class _Cookie implements Cookie {
-  _Cookie([String this.name, String this.value]);
-
-  _Cookie.fromSetCookieValue(String value) {
-    // Parse the Set-Cookie header value.
-    _parseSetCookieValue(value);
-  }
-
-  // Parse a Set-Cookie header value according to the rules in RFC 6265.
-  void _parseSetCookieValue(String s) {
-    int index = 0;
-
-    bool done() => index == s.length;
-
-    String parseName() {
-      int start = index;
-      while (!done()) {
-        if (s[index] == "=") break;
-        index++;
-      }
-      return s.substring(start, index).trim().toLowerCase();
-    }
-
-    String parseValue() {
-      int start = index;
-      while (!done()) {
-        if (s[index] == ";") break;
-        index++;
-      }
-      return s.substring(start, index).trim().toLowerCase();
-    }
-
-    void expect(String expected) {
-      if (done()) throw new HttpException("Failed to parse header value [$s]");
-      if (s[index] != expected) {
-        throw new HttpException("Failed to parse header value [$s]");
-      }
-      index++;
-    }
-
-    void parseAttributes() {
-      String parseAttributeName() {
-        int start = index;
-        while (!done()) {
-          if (s[index] == "=" || s[index] == ";") break;
-          index++;
-        }
-        return s.substring(start, index).trim().toLowerCase();
-      }
-
-      String parseAttributeValue() {
-        int start = index;
-        while (!done()) {
-          if (s[index] == ";") break;
-          index++;
-        }
-        return s.substring(start, index).trim().toLowerCase();
-      }
-
-      while (!done()) {
-        String name = parseAttributeName();
-        String value = "";
-        if (!done() && s[index] == "=") {
-          index++;  // Skip the = character.
-          value = parseAttributeValue();
-        }
-        if (name == "expires") {
-          expires = _HttpUtils.parseCookieDate(value);
-        } else if (name == "max-age") {
-          maxAge = parseInt(value);
-        } else if (name == "domain") {
-          domain = value;
-        } else if (name == "path") {
-          path = value;
-        } else if (name == "httponly") {
-          httpOnly = true;
-        } else if (name == "secure") {
-          secure = true;
-        }
-        if (!done()) index++;  // Skip the ; character
-      }
-    }
-
-    name = parseName();
-    if (done() || name.length == 0) {
-      throw new HttpException("Failed to parse header value [$s]");
-    }
-    index++;  // Skip the = character.
-    value = parseValue();
-    if (done()) return;
-    index++;  // Skip the ; character.
-    parseAttributes();
-  }
-
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.add(name);
-    sb.add("=");
-    sb.add(value);
-    if (expires != null) {
-      sb.add("; Expires=");
-      sb.add(_HttpUtils.formatDate(expires));
-    }
-    if (maxAge != null) {
-      sb.add("; Max-Age=");
-      sb.add(maxAge);
-    }
-    if (domain != null) {
-      sb.add("; Domain=");
-      sb.add(domain);
-    }
-    if (path != null) {
-      sb.add("; Path=");
-      sb.add(path);
-    }
-    if (secure) sb.add("; Secure");
-    if (httpOnly) sb.add("; HttpOnly");
-    return sb.toString();
-  }
-
-  String name;
-  String value;
-  Date expires;
-  int maxAge;
-  String domain;
-  String path;
-  bool httpOnly = false;
-  bool secure = false;
+  final Set<_HttpConnectionBase> _q;
 }
 
 
 class _HttpRequestResponseBase {
-  final int START = 0;
-  final int HEADER_SENT = 1;
-  final int DONE = 2;
-  final int UPGRADED = 3;
+  static const int START = 0;
+  static const int HEADER_SENT = 1;
+  static const int DONE = 2;
+  static const int UPGRADED = 3;
 
   _HttpRequestResponseBase(_HttpConnectionBase this._httpConnection)
-      : _headers = new _HttpHeaders() {
-    _state = START;
-    _headResponse = false;
-  }
+      : _state = START, _headResponse = false;
 
   int get contentLength => _contentLength;
   HttpHeaders get headers => _headers;
@@ -695,14 +161,6 @@ class _HttpRequestResponseBase {
         throw new HttpException("Sending less than specified content length");
       }
       assert(_headResponse || _bodyBytesWritten == _contentLength);
-    }
-    // If we are done writing the response, and either the client has
-    // closed or the connection is not persistent, we can close. Also
-    // if using HTTP 1.0 and the content length was not known we must
-    // close to indicate end of body.
-    if (!persistentConnection || _httpConnection._closing ||
-        (_protocolVersion == "1.0" && _contentLength < 0)) {
-      _httpConnection._close();
     }
     return allWritten;
   }
@@ -855,7 +313,6 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
   InputStream get inputStream {
     if (_inputStream == null) {
       _inputStream = new _HttpInputStream(this);
-      _inputStream._streamMarkedClosed = _dataEndCalled;
     }
     return _inputStream;
   }
@@ -872,17 +329,14 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
     return _session = sessionManager.createSession(init);
   }
 
-  void _onRequestStart(String method, String uri, String version) {
+  void _onRequestReceived(String method,
+                          String uri,
+                          String version,
+                          _HttpHeaders headers) {
     _method = method;
     _uri = uri;
     _parseRequestUri(uri);
-  }
-
-  void _onHeaderReceived(String name, String value) {
-    _headers.add(name, value);
-  }
-
-  void _onHeadersComplete() {
+    _headers = headers;
     if (_httpConnection._server._sessionManagerInstance != null) {
       // Map to session if exists.
       var sessionId = cookies.reduce(null, (last, cookie) {
@@ -913,8 +367,11 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
   }
 
   void _onDataEnd() {
-    if (_inputStream != null) _inputStream._closeReceived();
-    _dataEndCalled = true;
+    if (_inputStream != null) {
+      _inputStream._closeReceived();
+    } else {
+      inputStream._streamMarkedClosed = true;
+    }
   }
 
   // Escaped characters in uri are expected to have been parsed.
@@ -957,7 +414,6 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
   Map<String, String> _queryParameters;
   _HttpInputStream _inputStream;
   _BufferList _buffer;
-  bool _dataEndCalled = false;
   Function _streamErrorHandler;
   _HttpSession _session;
 }
@@ -967,10 +423,14 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
 class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   _HttpResponse(_HttpConnection httpConnection)
       : super(httpConnection),
-        _statusCode = HttpStatus.OK;
+        _statusCode = HttpStatus.OK {
+    _headers = new _HttpHeaders();
+  }
 
   void set contentLength(int contentLength) {
-    if (_state >= HEADER_SENT) throw new HttpException("Header already sent");
+    if (_state >= _HttpRequestResponseBase.HEADER_SENT) {
+      throw new HttpException("Header already sent");
+    }
     _contentLength = contentLength;
   }
 
@@ -992,7 +452,9 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   }
 
   OutputStream get outputStream {
-    if (_state >= DONE) throw new HttpException("Response closed");
+    if (_state >= _HttpRequestResponseBase.DONE) {
+      throw new HttpException("Response closed");
+    }
     if (_outputStream == null) {
       _outputStream = new _HttpOutputStream(this);
     }
@@ -1000,27 +462,18 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   }
 
   DetachedSocket detachSocket() {
-    if (_state >= DONE) throw new HttpException("Response closed");
+    if (_state >= _HttpRequestResponseBase.DONE) {
+      throw new HttpException("Response closed");
+    }
     // Ensure that headers are written.
-    if (_state == START) {
+    if (_state == _HttpRequestResponseBase.START) {
       _writeHeader();
     }
-    _state = UPGRADED;
+    _state = _HttpRequestResponseBase.UPGRADED;
     // Ensure that any trailing data is written.
     _writeDone();
     // Indicate to the connection that the response handling is done.
     return _httpConnection._detachSocket();
-  }
-
-  void _responseEnd() {
-    _ensureHeadersSent();
-    _state = DONE;
-    // Stop tracking no pending write events.
-    _httpConnection._onNoPendingWrites = null;
-    // Ensure that any trailing data is written.
-    _writeDone();
-    // Indicate to the connection that the response handling is done.
-    _httpConnection._responseDone();
   }
 
   // Delegate functions for the HttpOutputStream implementation.
@@ -1039,11 +492,18 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   }
 
   void _streamClose() {
-    _responseEnd();
+    _ensureHeadersSent();
+    _state = _HttpRequestResponseBase.DONE;
+    // Stop tracking no pending write events.
+    _httpConnection._onNoPendingWrites = null;
+    // Ensure that any trailing data is written.
+    _writeDone();
+    // Indicate to the connection that the response handling is done.
+    _httpConnection._responseClosed();
   }
 
   void _streamSetNoPendingWriteHandler(callback()) {
-    if (_state != DONE) {
+    if (_state != _HttpRequestResponseBase.DONE) {
       _httpConnection._onNoPendingWrites = callback;
     }
   }
@@ -1162,7 +622,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
 
     // Write headers.
     bool allWritten = _writeHeaders();
-    _state = HEADER_SENT;
+    _state = _HttpRequestResponseBase.HEADER_SENT;
     return allWritten;
   }
 
@@ -1256,32 +716,49 @@ class _HttpOutputStream extends _BaseOutputStream implements OutputStream {
 
 
 abstract class _HttpConnectionBase {
-  _HttpConnectionBase() : _httpParser = new _HttpParser(),
-                          hashCode = _nextHashCode {
+  static const int IDLE = 0;
+  static const int ACTIVE = 1;
+  static const int REQUEST_DONE = 2;
+  static const int RESPONSE_DONE = 4;
+  static const int ALL_DONE = REQUEST_DONE | RESPONSE_DONE;
+  static const int READ_CLOSED = 8;
+  static const int WRITE_CLOSED = 16;
+  static const int FULLY_CLOSED = READ_CLOSED | WRITE_CLOSED;
+
+  _HttpConnectionBase() : hashCode = _nextHashCode {
     _nextHashCode = (_nextHashCode + 1) & 0xFFFFFFF;
   }
 
+  bool get _isRequestDone => (_state & REQUEST_DONE) == REQUEST_DONE;
+  bool get _isResponseDone => (_state & RESPONSE_DONE) == RESPONSE_DONE;
+  bool get _isAllDone => (_state & ALL_DONE) == ALL_DONE;
+  bool get _isReadClosed => (_state & READ_CLOSED) == READ_CLOSED;
+  bool get _isWriteClosed => (_state & WRITE_CLOSED) == WRITE_CLOSED;
+  bool get _isFullyClosed => (_state & FULLY_CLOSED) == FULLY_CLOSED;
+
   void _connectionEstablished(Socket socket) {
     _socket = socket;
-    // Register handler for socket events.
-    _socket.onData = _onData;
-    _socket.onClosed = _onClosed;
-    _socket.onError = _onError;
+    // Register handlers for socket events. All socket events are
+    // passed to the HTTP parser.
+    _socket.onData = () {
+      List<int> buffer = _socket.read();
+      if (buffer != null) {
+        _httpParser.streamData(buffer);
+      }
+    };
+    _socket.onClosed = _httpParser.streamDone;
+    _socket.onError = _httpParser.streamError;
     // Ignore errors in the socket output stream as this is getting
     // the same errors as the socket itself.
     _socket.outputStream.onError = (e) => null;
   }
 
   bool _write(List<int> data, [bool copyBuffer = false]) {
-    if (!_error && !_closing) {
-      return _socket.outputStream.write(data, copyBuffer);
-    }
+    return _socket.outputStream.write(data, copyBuffer);
   }
 
   bool _writeFrom(List<int> buffer, [int offset, int len]) {
-    if (!_error && !_closing) {
-      return _socket.outputStream.writeFrom(buffer, offset, len);
-    }
+    return _socket.outputStream.writeFrom(buffer, offset, len);
   }
 
   bool _flush() {
@@ -1289,40 +766,11 @@ abstract class _HttpConnectionBase {
   }
 
   bool _close() {
-    _closing = true;
     _socket.outputStream.close();
   }
 
   bool _destroy() {
-    _closing = true;
     _socket.close();
-  }
-
-  void _onData() {
-    int available = _socket.available();
-    if (available == 0) {
-      return;
-    }
-
-    List<int> buffer = new Uint8List(available);
-    int bytesRead = _socket.readList(buffer, 0, available);
-    if (bytesRead > 0) {
-      _httpParser.writeList(buffer, 0, bytesRead);
-    }
-  }
-
-  void _onClosed() {
-    _closing = true;
-    _onConnectionClosed(null);
-  }
-
-  void _onError(e) {
-    // If an error occurs, make sure to close the socket if one is associated.
-    _error = true;
-    if (_socket != null) {
-      _socket.close();
-    }
-    _onConnectionClosed(e);
   }
 
   DetachedSocket _detachSocket() {
@@ -1337,7 +785,7 @@ abstract class _HttpConnectionBase {
   }
 
   HttpConnectionInfo get connectionInfo {
-    if (_socket == null || _closing || _error) return null;
+    if (_socket == null) return null;
     try {
       _HttpConnectionInfo info = new _HttpConnectionInfo();
       info.remoteHost = _socket.remoteHost;
@@ -1348,21 +796,18 @@ abstract class _HttpConnectionBase {
     return null;
   }
 
-  void _onConnectionClosed(e);
-  void _responseDone();
-
   void set _onNoPendingWrites(void callback()) {
-    if (!_error) {
-      _socket.outputStream.onNoPendingWrites = callback;
-    }
+    _socket.outputStream.onNoPendingWrites = callback;
   }
 
+  int _state = IDLE;
+
   Socket _socket;
-  bool _closing = false;  // Is the socket closed by the client?
-  bool _error = false;  // Is the socket closed due to an error?
   _HttpParser _httpParser;
 
+  // Callbacks.
   Function onDetach;
+  Function onClosed;
 
   // Hash code for HTTP connection. Currently this is just a counter.
   final int hashCode;
@@ -1373,82 +818,46 @@ abstract class _HttpConnectionBase {
 // HTTP server connection over a socket.
 class _HttpConnection extends _HttpConnectionBase {
   _HttpConnection(HttpServer this._server) {
+    _httpParser = new _HttpParser.requestParser();
     // Register HTTP parser callbacks.
-    _httpParser.requestStart =
-      (method, uri, version) => _onRequestStart(method, uri, version);
-    _httpParser.responseStart =
-      (statusCode, reasonPhrase, version) =>
-      _onResponseStart(statusCode, reasonPhrase, version);
-    _httpParser.headerReceived =
-        (name, value) => _onHeaderReceived(name, value);
-    _httpParser.headersComplete = () => _onHeadersComplete();
-    _httpParser.dataReceived = (data) => _onDataReceived(data);
-    _httpParser.dataEnd = (close) => _onDataEnd(close);
-    _httpParser.error = (e) => _onError(e);
+    _httpParser.requestStart = _onRequestReceived;
+    _httpParser.dataReceived = _onDataReceived;
+    _httpParser.dataEnd = _onDataEnd;
+    _httpParser.error = _onError;
+    _httpParser.closed = _onClosed;
+    _httpParser.responseStart = (statusCode, reasonPhrase, version) {
+      assert(false);
+    };
   }
 
-  void _onConnectionClosed(e) {
-    // Don't report errors when HTTP parser is in idle state. Clients
-    // can close the connection and cause a connection reset by peer
-    // error which is OK.
-    if (e != null && !_httpParser.isIdle) {
-      onError(e);
-      // Propagate the error to the streams.
-      if (_request != null && _request._streamErrorHandler != null) {
-        _request._streamErrorHandler(e);
-      }
-      if (_response != null && _response._streamErrorHandler != null) {
-        _response._streamErrorHandler(e);
-      }
-    }
-
-    // If currently not processing any request close the socket when
-    // we are done writing the response.
-    if (_httpParser.isIdle) {
-      // If the httpParser is idle and we get an error from the
-      // connection we deal with that as a closed connection and not
-      // as an error. When the client disappears we get a connection
-      // reset by peer and that is OK.
-      if (e != null) {
-        onClosed();
-      } else {
-        _socket.outputStream.onClosed = () {
-          _destroy();
-          onClosed();
-        };
-        // If the client closes and we are done writing the response
-        // the connection should be closed.
-        if (_response == null) _close();
-      }
-    } else {
-      // Processing a request.
-      if (e == null) {
-        // Indicate connection close to the HTTP parser.
-        _httpParser.connectionClosed();
-      }
-    }
+  void _onClosed() {
+    _state |= _HttpConnectionBase.READ_CLOSED;
   }
 
-  void _onRequestStart(String method, String uri, String version) {
+  void _onError(e) {
+    onError(e);
+    // Propagate the error to the streams.
+    if (_request != null && _request._streamErrorHandler != null) {
+      _request._streamErrorHandler(e);
+    }
+    if (_response != null && _response._streamErrorHandler != null) {
+      _response._streamErrorHandler(e);
+    }
+    if (_socket != null) _socket.close();
+  }
+
+  void _onRequestReceived(String method,
+                          String uri,
+                          String version,
+                          _HttpHeaders headers) {
+    _state = _HttpConnectionBase.ACTIVE;
     // Create new request and response objects for this request.
     _request = new _HttpRequest(this);
     _response = new _HttpResponse(this);
-    _request._onRequestStart(method, uri, version);
+    _request._onRequestReceived(method, uri, version, headers);
     _request._protocolVersion = version;
     _response._protocolVersion = version;
     _response._headResponse = method == "HEAD";
-  }
-
-  void _onResponseStart(int statusCode, String reasonPhrase, String version) {
-    // TODO(sgjesse): Error handling.
-  }
-
-  void _onHeaderReceived(String name, String value) {
-    _request._onHeaderReceived(name, value);
-  }
-
-  void _onHeadersComplete() {
-    _request._onHeadersComplete();
     _response.persistentConnection = _httpParser.persistentConnection;
     if (onRequestReceived != null) {
       onRequestReceived(_request, _response);
@@ -1459,20 +868,34 @@ class _HttpConnection extends _HttpConnectionBase {
     _request._onDataReceived(data);
   }
 
-  void _onDataEnd(bool close) {
-    _request._onDataEnd();
+  void _checkDone() {
+    if (_isAllDone) {
+      // If we are done writing the response, and either the client
+      // has closed or the connection is not persistent, we must
+      // close. Also if using HTTP 1.0 and the content length was not
+      // known we must close to indicate end of body.
+      bool close =
+          !_response.persistentConnection ||
+          (_response._protocolVersion == "1.0" && _response._contentLength < 0);
+      _request = null;
+      _response = null;
+      if (_isReadClosed || close) {
+        _server._closeQueue.add(this);
+      } else {
+        _state = _HttpConnectionBase.IDLE;
+      }
+    }
   }
 
-  void _responseDone() {
-    // If the connection is closing then close the output stream to
-    // fully close the socket.
-    if (_closing) {
-      _socket.outputStream.onClosed = () {
-        _socket.close();
-        onClosed();
-      };
-    }
-    _response = null;
+  void _onDataEnd(bool close) {
+    _request._onDataEnd();
+    _state |= _HttpConnectionBase.REQUEST_DONE;
+    _checkDone();
+  }
+
+  void _responseClosed() {
+    _state |= _HttpConnectionBase.RESPONSE_DONE;
+    _checkDone();
   }
 
   HttpServer _server;
@@ -1481,7 +904,6 @@ class _HttpConnection extends _HttpConnectionBase {
 
   // Callbacks.
   Function onRequestReceived;
-  Function onClosed;
   Function onError;
 }
 
@@ -1496,7 +918,8 @@ class _RequestHandlerRegistration {
 // managed by the server and as requests are received the request.
 class _HttpServer implements HttpServer {
   _HttpServer() : _connections = new Set<_HttpConnection>(),
-                  _handlers = new List<_RequestHandlerRegistration>();
+                  _handlers = new List<_RequestHandlerRegistration>(),
+                  _closeQueue = new _CloseQueue();
 
   void listen(String host, int port, {int backlog: 128}) {
     listenOn(new ServerSocket(host, port, backlog));
@@ -1537,6 +960,7 @@ class _HttpServer implements HttpServer {
   }
 
   void close() {
+    _closeQueue.shutdown();
     if (_sessionManagerInstance != null) {
       _sessionManagerInstance.close();
       _sessionManagerInstance = null;
@@ -1552,7 +976,7 @@ class _HttpServer implements HttpServer {
   }
 
   int get port {
-    if (_server === null) {
+    if (_server == null) {
       throw new HttpException("The HttpServer is not listening on a port.");
     }
     return _server.port;
@@ -1607,6 +1031,7 @@ class _HttpServer implements HttpServer {
   List<_RequestHandlerRegistration> _handlers;
   Object _defaultHandler;
   Function _onError;
+  _CloseQueue _closeQueue;
   _HttpSessionManager _sessionManagerInstance;
 }
 
@@ -1617,6 +1042,7 @@ class _HttpClientRequest
                      Uri this._uri,
                      _HttpClientConnection connection)
       : super(connection) {
+    _headers = new _HttpHeaders();
     _connection = connection;
     // Default GET and HEAD requests to have no content.
     if (_method == "GET" || _method == "HEAD") {
@@ -1625,7 +1051,9 @@ class _HttpClientRequest
   }
 
   void set contentLength(int contentLength) {
-    if (_state >= HEADER_SENT) throw new HttpException("Header already sent");
+    if (_state >= _HttpRequestResponseBase.HEADER_SENT) {
+      throw new HttpException("Header already sent");
+    }
     _contentLength = contentLength;
   }
 
@@ -1659,16 +1087,16 @@ class _HttpClientRequest
 
   void _streamClose() {
     _ensureHeadersSent();
-    _state = DONE;
+    _state = _HttpRequestResponseBase.DONE;
     // Stop tracking no pending write events.
     _httpConnection._onNoPendingWrites = null;
     // Ensure that any trailing data is written.
     _writeDone();
-    _connection._requestDone();
+    _connection._requestClosed();
   }
 
   void _streamSetNoPendingWriteHandler(callback()) {
-    if (_state != DONE) {
+    if (_state != _HttpRequestResponseBase.DONE) {
       _httpConnection._onNoPendingWrites = callback;
     }
   }
@@ -1732,7 +1160,7 @@ class _HttpClientRequest
 
     // Write headers.
     _writeHeaders();
-    _state = HEADER_SENT;
+    _state = _HttpRequestResponseBase.HEADER_SENT;
   }
 
   String _method;
@@ -1775,22 +1203,54 @@ class _HttpClientResponse
   InputStream get inputStream {
     if (_inputStream == null) {
       _inputStream = new _HttpInputStream(this);
-      _inputStream._streamMarkedClosed = _dataEndCalled;
     }
     return _inputStream;
   }
 
-  void _onRequestStart(String method, String uri, String version) {
-    // TODO(sgjesse): Error handling
-  }
-
-  void _onResponseStart(int statusCode, String reasonPhrase, String version) {
+  void _onResponseReceived(int statusCode,
+                           String reasonPhrase,
+                           String version,
+                           _HttpHeaders headers) {
     _statusCode = statusCode;
     _reasonPhrase = reasonPhrase;
-  }
+    _headers = headers;
+    // Get parsed content length.
+    _contentLength = _httpConnection._httpParser.contentLength;
 
-  void _onHeaderReceived(String name, String value) {
-    _headers.add(name, value);
+    // Prepare for receiving data.
+    _headers._mutable = false;
+    _buffer = new _BufferList();
+
+    if (isRedirect && _connection.followRedirects) {
+      if (_connection._redirects == null ||
+          _connection._redirects.length < _connection.maxRedirects) {
+        // Check the location header.
+        List<String> location = headers[HttpHeaders.LOCATION];
+        if (location == null || location.length > 1) {
+           throw new RedirectException("Invalid redirect",
+                                       _connection._redirects);
+        }
+        // Check for redirect loop
+        if (_connection._redirects != null) {
+          Uri redirectUrl = new Uri.fromString(location[0]);
+          for (int i = 0; i < _connection._redirects.length; i++) {
+            if (_connection._redirects[i].location.toString() ==
+                redirectUrl.toString()) {
+              throw new RedirectLoopException(_connection._redirects);
+            }
+          }
+        }
+        // Drain body and redirect.
+        inputStream.onData = inputStream.read;
+        _connection.redirect();
+      } else {
+        throw new RedirectLimitExceededException(_connection._redirects);
+      }
+    } else if (statusCode == HttpStatus.UNAUTHORIZED) {
+      _handleUnauthorized();
+    } else if (_connection._onResponse != null) {
+      _connection._onResponse(this);
+    }
   }
 
   void _handleUnauthorized() {
@@ -1866,55 +1326,17 @@ class _HttpClientResponse
     }
   }
 
-  void _onHeadersComplete() {
-    // Get parsed content length.
-    _contentLength = _httpConnection._httpParser.contentLength;
-
-    // Prepare for receiving data.
-    _headers._mutable = false;
-    _buffer = new _BufferList();
-
-    if (isRedirect && _connection.followRedirects) {
-      if (_connection._redirects == null ||
-          _connection._redirects.length < _connection.maxRedirects) {
-        // Check the location header.
-        List<String> location = headers[HttpHeaders.LOCATION];
-        if (location == null || location.length > 1) {
-           throw new RedirectException("Invalid redirect",
-                                       _connection._redirects);
-        }
-        // Check for redirect loop
-        if (_connection._redirects != null) {
-          Uri redirectUrl = new Uri.fromString(location[0]);
-          for (int i = 0; i < _connection._redirects.length; i++) {
-            if (_connection._redirects[i].location.toString() ==
-                redirectUrl.toString()) {
-              throw new RedirectLoopException(_connection._redirects);
-            }
-          }
-        }
-        // Drain body and redirect.
-        inputStream.onData = inputStream.read;
-        _connection.redirect();
-      } else {
-        throw new RedirectLimitExceededException(_connection._redirects);
-      }
-    } else if (statusCode == HttpStatus.UNAUTHORIZED) {
-      _handleUnauthorized();
-    } else if (_connection._onResponse != null) {
-      _connection._onResponse(this);
-    }
-  }
-
   void _onDataReceived(List<int> data) {
     _buffer.add(data);
     if (_inputStream != null) _inputStream._dataReceived();
   }
 
   void _onDataEnd() {
-    _connection._responseDone();
-    if (_inputStream != null) _inputStream._closeReceived();
-    _dataEndCalled = true;
+    if (_inputStream != null) {
+      _inputStream._closeReceived();
+    } else {
+      inputStream._streamMarkedClosed = true;
+    }
   }
 
   // Delegate functions for the HttpInputStream implementation.
@@ -1942,7 +1364,6 @@ class _HttpClientResponse
   _HttpClientConnection _connection;
   _HttpInputStream _inputStream;
   _BufferList _buffer;
-  bool _dataEndCalled = false;
 
   Function _streamErrorHandler;
 }
@@ -1950,64 +1371,52 @@ class _HttpClientResponse
 
 class _HttpClientConnection
     extends _HttpConnectionBase implements HttpClientConnection {
-  static const int NONE = 0;
-  static const int REQUEST_DONE = 1;
-  static const int RESPONSE_DONE = 2;
-  static const int ALL_DONE = REQUEST_DONE | RESPONSE_DONE;
 
-  _HttpClientConnection(_HttpClient this._client);
+  _HttpClientConnection(_HttpClient this._client) {
+    _httpParser = new _HttpParser.responseParser();
+  }
 
   void _connectionEstablished(_SocketConnection socketConn) {
     super._connectionEstablished(socketConn._socket);
     _socketConn = socketConn;
     // Register HTTP parser callbacks.
-    _httpParser.requestStart =
-      (method, uri, version) => _onRequestStart(method, uri, version);
-    _httpParser.responseStart =
-      (statusCode, reasonPhrase, version) =>
-      _onResponseStart(statusCode, reasonPhrase, version);
-    _httpParser.headerReceived =
-        (name, value) => _onHeaderReceived(name, value);
-    _httpParser.headersComplete = () => _onHeadersComplete();
-    _httpParser.dataReceived = (data) => _onDataReceived(data);
-    _httpParser.dataEnd = (closed) => _onDataEnd(closed);
-    _httpParser.error = (e) => _onError(e);
+    _httpParser.responseStart = _onResponseReceived;
+    _httpParser.dataReceived = _onDataReceived;
+    _httpParser.dataEnd = _onDataEnd;
+    _httpParser.error = _onError;
+    _httpParser.closed = _onClosed;
+    _httpParser.requestStart = (method, uri, version) { assert(false); };
+    _state = _HttpConnectionBase.ACTIVE;
   }
-
-  bool get _isRequestDone => (_state & REQUEST_DONE) == REQUEST_DONE;
-  bool get _isResponseDone => (_state & RESPONSE_DONE) == RESPONSE_DONE;
-  bool get _isAllDone => (_state & ALL_DONE) == ALL_DONE;
 
   void _checkSocketDone() {
     if (_isAllDone) {
-      if (!_closing) {
+      // If we are done writing the response, and either the server
+      // has closed or the connection is not persistent, we must
+      // close.
+      if (_isReadClosed || !_response.persistentConnection) {
+        this.onClosed = () {
+          _client._closedSocketConnection(_socketConn);
+        };
+        _client._closeQueue.add(this);
+      } else {
         _client._returnSocketConnection(_socketConn);
-      }
-      _socket = null;
-      _socketConn = null;
-      assert(_pendingRedirect == null || _pendingRetry == null);
-      if (_pendingRedirect != null) {
-        _doRedirect(_pendingRedirect);
-        _pendingRedirect = null;
-      } else if (_pendingRetry != null) {
-        _doRetry(_pendingRetry);
-        _pendingRetry = null;
+        _socket = null;
+        _socketConn = null;
+        assert(_pendingRedirect == null || _pendingRetry == null);
+        if (_pendingRedirect != null) {
+          _doRedirect(_pendingRedirect);
+          _pendingRedirect = null;
+        } else if (_pendingRetry != null) {
+          _doRetry(_pendingRetry);
+          _pendingRetry = null;
+        }
       }
     }
   }
 
-  void _requestDone() {
-    _state |= REQUEST_DONE;
-    _checkSocketDone();
-  }
-
-  void _responseDone() {
-    if (_closing) {
-      if (_socket != null) {
-        _socket.close();
-      }
-    }
-    _state |= RESPONSE_DONE;
+  void _requestClosed() {
+    _state |= _HttpConnectionBase.REQUEST_DONE;
     _checkSocketDone();
   }
 
@@ -2024,44 +1433,31 @@ class _HttpClientConnection
     return _detachSocket();
   }
 
-  void _onConnectionClosed(e) {
+  void _onClosed() {
+    _state |= _HttpConnectionBase.READ_CLOSED;
+  }
+
+  void _onError(e) {
     // Socket is closed either due to an error or due to normal socket close.
-    if (e != null) {
-      if (_onErrorCallback != null) {
-        _onErrorCallback(e);
-      } else {
-        throw e;
-      }
-    }
-    _closing = true;
-    if (e != null) {
-      // Propagate the error to the streams.
-      if (_response != null && _response._streamErrorHandler != null) {
-        _response._streamErrorHandler(e);
-      }
-      _responseDone();
+    if (_onErrorCallback != null) {
+      _onErrorCallback(e);
     } else {
-      // If there was no socket error the socket was closed
-      // normally. Indicate closing to the HTTP Parser as there might
-      // still be an HTTP error.
-      _httpParser.connectionClosed();
+      throw e;
+    }
+    // Propagate the error to the streams.
+    if (_response != null && _response._streamErrorHandler != null) {
+       _response._streamErrorHandler(e);
+    }
+    if (_socketConn != null) {
+      _client._closeSocketConnection(_socketConn);
     }
   }
 
-  void _onRequestStart(String method, String uri, String version) {
-    // TODO(sgjesse): Error handling.
-  }
-
-  void _onResponseStart(int statusCode, String reasonPhrase, String version) {
-    _response._onResponseStart(statusCode, reasonPhrase, version);
-  }
-
-  void _onHeaderReceived(String name, String value) {
-    _response._onHeaderReceived(name, value);
-  }
-
-  void _onHeadersComplete() {
-    _response._onHeadersComplete();
+  void _onResponseReceived(int statusCode,
+                           String reasonPhrase,
+                           String version,
+                           _HttpHeaders headers) {
+    _response._onResponseReceived(statusCode, reasonPhrase, version, headers);
   }
 
   void _onDataReceived(List<int> data) {
@@ -2069,8 +1465,9 @@ class _HttpClientConnection
   }
 
   void _onDataEnd(bool close) {
-    if (close) _closing = true;
     _response._onDataEnd();
+    _state |= _HttpConnectionBase.RESPONSE_DONE;
+    _checkSocketDone();
   }
 
   void set onRequest(void handler(HttpClientRequest request)) {
@@ -2091,7 +1488,7 @@ class _HttpClientConnection
     _response = null;
 
     // Retry the URL using the same connection instance.
-    _state = NONE;
+    _state = _HttpConnectionBase.IDLE;
     _client._openUrl(retry.method, retry.location, this);
   }
 
@@ -2135,8 +1532,6 @@ class _HttpClientConnection
     }
   }
 
-  int _state = NONE;
-
   List<RedirectInfo> get redirects => _redirects;
 
   Function _onRequest;
@@ -2174,6 +1569,13 @@ class _SocketConnection {
     _socket.onClosed = null;
     _socket.onError = null;
     _returnTime = new Date.now();
+  }
+
+  void _close() {
+    _socket.onData = null;
+    _socket.onClosed = null;
+    _socket.onError = null;
+    _socket.close();
   }
 
   Duration _idleTime(Date now) => now.difference(_returnTime);
@@ -2245,6 +1647,7 @@ class _HttpClient implements HttpClient {
 
   _HttpClient() : _openSockets = new Map(),
                   _activeSockets = new Set(),
+                  _closeQueue = new _CloseQueue(),
                   credentials = new List<_Credentials>(),
                   _shutdown = false;
 
@@ -2303,15 +1706,16 @@ class _HttpClient implements HttpClient {
   set findProxy(String f(Uri uri)) => _findProxy = f;
 
   void shutdown() {
-     _openSockets.forEach((String key, Queue<_SocketConnection> connections) {
-       while (!connections.isEmpty) {
-         _SocketConnection socketConn = connections.removeFirst();
-         socketConn._socket.close();
-       }
-     });
-     _activeSockets.forEach((_SocketConnection socketConn) {
-       socketConn._socket.close();
-     });
+    _closeQueue.shutdown();
+    _openSockets.forEach((String key, Queue<_SocketConnection> connections) {
+      while (!connections.isEmpty) {
+        _SocketConnection socketConn = connections.removeFirst();
+        socketConn._socket.close();
+      }
+    });
+    _activeSockets.forEach((_SocketConnection socketConn) {
+      socketConn._socket.close();
+    });
     if (_evictionTimer != null) _cancelEvictionTimer();
      _shutdown = true;
   }
@@ -2333,7 +1737,8 @@ class _HttpClient implements HttpClient {
     void _establishConnection(String host,
                               int port,
                               _ProxyConfiguration proxyConfiguration,
-                              int proxyIndex) {
+                              int proxyIndex,
+                              bool reusedConnection) {
 
       void _connectionOpened(_SocketConnection socketConn,
                              _HttpClientConnection connection,
@@ -2357,7 +1762,9 @@ class _HttpClient implements HttpClient {
             cr.authorize(request);
           }
         }
-        if (connection._onRequest != null) {
+        // A reused connection is indicating either redirect or retry
+        // where the onRequest callback should not be issued again.
+        if (connection._onRequest != null && !reusedConnection) {
           connection._onRequest(request);
         } else {
           request.outputStream.close();
@@ -2391,7 +1798,8 @@ class _HttpClient implements HttpClient {
           proxyIndex++;
           if (proxyIndex < proxyConfiguration.proxies.length) {
             // Try the next proxy in the list.
-            _establishConnection(host, port, proxyConfiguration, proxyIndex);
+            _establishConnection(
+                host, port, proxyConfiguration, proxyIndex, false);
           } else {
             // Report the error through the HttpClientConnection object to
             // the client.
@@ -2426,8 +1834,11 @@ class _HttpClient implements HttpClient {
     int port = url.port == 0 ? HttpClient.DEFAULT_HTTP_PORT : url.port;
 
     // Create a new connection object if we are not re-using an existing one.
+    var reusedConnection = false;
     if (connection == null) {
       connection = new _HttpClientConnection(this);
+    } else {
+      reusedConnection = true;
     }
     connection.onDetach = () => _activeSockets.remove(connection._socketConn);
 
@@ -2440,7 +1851,7 @@ class _HttpClient implements HttpClient {
     }
 
     // Establish the connection starting with the first proxy configured.
-    _establishConnection(host, port, proxyConfiguration, 0);
+    _establishConnection(host, port, proxyConfiguration, 0, reusedConnection);
 
     return connection;
   }
@@ -2470,7 +1881,7 @@ class _HttpClient implements HttpClient {
         Date now = new Date.now();
         List<String> emptyKeys = new List<String>();
         _openSockets.forEach(
-            void _(String key, Queue<_SocketConnection> connections) {
+            (String key, Queue<_SocketConnection> connections) {
               // As returned connections are added at the head of the
               // list remove from the tail.
               while (!connections.isEmpty) {
@@ -2500,6 +1911,15 @@ class _HttpClient implements HttpClient {
     sockets.addFirst(socketConn);
   }
 
+  void _closeSocketConnection(_SocketConnection socketConn) {
+    socketConn._close();
+    _activeSockets.remove(socketConn);
+  }
+
+  void _closedSocketConnection(_SocketConnection socketConn) {
+    _activeSockets.remove(socketConn);
+  }
+
   _Credentials _findCredentials(Uri url, [_AuthenticationScheme scheme]) {
     // Look for credentials.
     _Credentials cr =
@@ -2524,6 +1944,7 @@ class _HttpClient implements HttpClient {
   Function _onOpen;
   Map<String, Queue<_SocketConnection>> _openSockets;
   Set<_SocketConnection> _activeSockets;
+  _CloseQueue _closeQueue;
   List<_Credentials> credentials;
   Timer _evictionTimer;
   Function _findProxy;

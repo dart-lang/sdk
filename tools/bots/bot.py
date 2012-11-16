@@ -137,7 +137,7 @@ def RunBot(parse_name, custom_steps, build_step=BuildSDK):
   os.chdir(DART_PATH)
 
   try:
-    Clobber(build_info.mode)
+    Clobber()
     build_step(build_info)
 
     custom_steps(build_info)
@@ -171,7 +171,7 @@ def GetBotName():
   return name, True
 
 
-def Clobber(mode):
+def Clobber():
   """
   Clobbers the builder before we do the build, if appropriate.
 
@@ -182,8 +182,7 @@ def Clobber(mode):
 
   with BuildStep('Clobber'):
     cmd = [sys.executable,
-           './tools/clean_output_directory.py',
-           '--mode=' + mode]
+           './tools/clean_output_directory.py']
     print 'Clobbering %s' % (' '.join(cmd))
     RunProcess(cmd)
 

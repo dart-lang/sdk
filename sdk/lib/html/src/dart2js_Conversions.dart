@@ -26,6 +26,8 @@
 // We omit an unwrapper for Window as no methods take a non-local
 // window as a parameter.
 
+part of html;
+
 Window _convertNativeToDart_Window(win) {
   return _DOMWindowCrossFrame._createSafe(win);
 }
@@ -61,6 +63,15 @@ class _TypedImageData implements ImageData {
 }
 
 ImageData _convertNativeToDart_ImageData(nativeImageData) {
+
+  // None of the native getters that return ImageData have the type ImageData
+  // since that is incorrect for FireFox (which returns a plain Object).  So we
+  // need something that tells the compiler that the ImageData class has been
+  // instantiated.
+  // TODO(sra): Remove this when all the ImageData returning APIs have been
+  // annotated as returning the union ImageData + Object.
+  JS('ImageData', '0');
+
   if (nativeImageData is ImageData) return nativeImageData;
 
   // On Firefox the above test fails because imagedata is a plain object.
@@ -76,7 +87,7 @@ ImageData _convertNativeToDart_ImageData(nativeImageData) {
 // with native names.
 _convertDartToNative_ImageData(ImageData imageData) {
   if (imageData is _TypedImageData) {
-    return JS('Object', '{data: #, height: #, width: #}',
+    return JS('', '{data: #, height: #, width: #}',
         imageData.data, imageData.height, imageData.width);
   }
   return imageData;

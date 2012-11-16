@@ -8,7 +8,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
-
+#include "bin/io_natives.h"
 
 Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
   /* { url_, source_, patch_url_, patch_source_, has_natives_ } */
@@ -27,6 +27,15 @@ Dart_Handle Builtin::Source(BuiltinLibraryId id) {
   return Dart_NewApiError("Unreachable code in Builtin::Source (%d).", id);
 }
 
+/**
+ * Looks up native functions in both libdart_builtin and libdart_io.
+ */
+Dart_NativeFunction Builtin::NativeLookup(Dart_Handle name,
+                                          int argument_count) {
+  Dart_NativeFunction result = BuiltinNativeLookup(name, argument_count);
+  if (result != NULL) return result;
+  return IONativeLookup(name, argument_count);
+}
 
 void Builtin::SetNativeResolver(BuiltinLibraryId id) {
   ASSERT((sizeof(builtin_libraries_) / sizeof(builtin_lib_props)) ==

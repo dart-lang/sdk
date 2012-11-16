@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'native_metadata.dart';
+
 typedef void MyFunctionType();
 
-@native("*A")
+@Native("*A")
 class A {
   @native setClosure(MyFunctionType f);
   @native check(MyFunctionType f);
@@ -13,7 +15,7 @@ class A {
 
 @native makeA() { return new A(); }
 
-@native("""
+@Native("""
 function A() {}
 A.prototype.setClosure = function(f) { this.f = f; };
 A.prototype.check = function(f) { return this.f === f; };

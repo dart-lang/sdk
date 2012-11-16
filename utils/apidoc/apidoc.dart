@@ -33,6 +33,8 @@ void main() {
   bool generateAppCache = false;
 
   List<String> excludedLibraries = <String>[];
+  List<String> includedLibraries = <String>[];
+
 
   // Parse the command-line arguments.
   for (int i = 0; i < args.length; i++) {
@@ -54,6 +56,8 @@ void main() {
       default:
         if (arg.startsWith('--exclude-lib=')) {
           excludedLibraries.add(arg.substring('--exclude-lib='.length));
+        } else if (arg.startsWith('--include-lib=')) {
+          includedLibraries.add(arg.substring('--include-lib='.length));
         } else if (arg.startsWith('--out=')) {
           outputDir = new Path.fromNative(arg.substring('--out='.length));
         } else {
@@ -81,7 +85,7 @@ void main() {
 
   print('Parsing MDN data...');
   final mdnFile = new File.fromPath(doc.scriptDir.append('mdn/database.json'));
-  final mdn = JSON.parse(mdnFile.readAsTextSync());
+  final mdn = JSON.parse(mdnFile.readAsStringSync());
 
   print('Cross-referencing dart:html...');
   HtmlDiff.initialize(libPath);
@@ -107,8 +111,6 @@ void main() {
       apidocLibraries.add(new Path('dart:$name'));
     }
   });
-
-  final includedLibraries = <String>[];
 
   var lister = new Directory.fromPath(doc.scriptDir.append('../../pkg')).list();
   lister.onDir = (dirPath) {
@@ -184,7 +186,7 @@ class Htmldoc extends doc.Dartdoc {
   }
 
   doc.DocComment getRecordedLibraryComment(LibraryMirror library) {
-    if (doc.displayName(library) == HTML_LIBRARY_NAME) {
+    if (HTML_LIBRARY_NAMES.contains(doc.displayName(library))) {
       return libraryComment;
     }
     return null;
@@ -382,14 +384,14 @@ class Apidoc extends doc.Dartdoc {
   doc.DocComment createDocComment(String text,
                                   [ClassMirror inheritedFrom]) {
     String strippedText =
-        text.replaceAll(const RegExp("@([a-zA-Z]+) ([^;]+)(?:;|\$)"),
+        text.replaceAll(new RegExp("@([a-zA-Z]+) ([^;]+)(?:;|\$)"),
                         '').trim();
     if (strippedText.isEmpty) return null;
     return super.createDocComment(strippedText, inheritedFrom);
   }
 
   doc.DocComment getLibraryComment(LibraryMirror library) {
-    if (doc.displayName(library) == HTML_LIBRARY_NAME) {
+    if (HTML_LIBRARY_NAMES.contains(doc.displayName(library))) {
       return htmldoc.libraryComment;
     }
     return super.getLibraryComment(library);
@@ -411,13 +413,13 @@ class Apidoc extends doc.Dartdoc {
                             doc.DocComment fileComment,
                             doc.DocComment handWrittenComment) {
     // Prefer the hand-written comment first.
-    if (handWrittenComment !== null) return handWrittenComment;
+    if (handWrittenComment != null) return handWrittenComment;
 
     // Otherwise, prefer comment from the (possibly generated) Dart file.
-    if (fileComment !== null) return fileComment;
+    if (fileComment != null) return fileComment;
 
     // Finally, fallback on MDN if available.
-    if (mdnComment !== null) {
+    if (mdnComment != null) {
       mdnUrl = mdnComment.mdnUrl;
       return mdnComment;
     }
@@ -469,7 +471,7 @@ class Apidoc extends doc.Dartdoc {
     }
 
     var typeString = '';
-    if (doc.displayName(type.library) == HTML_LIBRARY_NAME) {
+    if (HTML_LIBRARY_NAMES.contains(doc.displayName(type.library))) {
       // If it's an HTML type, try to map it to a base DOM type so we can find
       // the MDN docs.
       final domTypes = _diff.htmlTypesToDom[type.qualifiedName];
@@ -503,7 +505,7 @@ class Apidoc extends doc.Dartdoc {
   MdnComment includeMdnMemberComment(MemberMirror member) {
     var library = findLibrary(member);
     var memberString = '';
-    if (doc.displayName(library) == HTML_LIBRARY_NAME) {
+    if (HTML_LIBRARY_NAMES.contains(doc.displayName(library))) {
       // If it's an HTML type, try to map it to a DOM type name so we can find
       // the MDN docs.
       final domMembers = _diff.htmlToDom[member.qualifiedName];

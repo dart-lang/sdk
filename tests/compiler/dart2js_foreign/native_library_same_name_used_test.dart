@@ -4,10 +4,11 @@
 
 // Test for correct hidden native class when interface has same name.
 
-#library('main');
-#import('native_library_same_name_used_lib1.dart');
+library main;
+import 'native_library_same_name_used_lib1.dart';
+import 'native_metadata.dart';
 
-@native("""
+@Native("""
   // This code is all inside 'setup' and so not accesible from the global scope.
   function I(){}
   I.prototype.read = function() { return this._x; };

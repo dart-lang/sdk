@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('Peg Parser');
+library Peg Parser;
 
 /*
  * The following functions are combinators for building Rules.
@@ -781,7 +781,7 @@ class _MemoRule extends _Rule {
   _match(state, pos) {
     // See if we are still parsing the same input.  Relies on the fact that the
     // input is a string and strings are immutable.
-    if (parseInstance !== state._text) {
+    if (!identical(parseInstance, state._text)) {
       map = new Map<int,Object>();
       parseInstance = state._text;
     }

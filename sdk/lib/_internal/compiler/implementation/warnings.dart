@@ -243,9 +243,20 @@ class MessageKind {
   static const MISSING_FORMALS = const MessageKind(
       "Error: Formal parameters are missing.");
 
-  // TODO(ahe): Change the message below when it becomes an error.
   static const EXTRA_FORMALS = const MessageKind(
-      "Warning: Formal parameters will not be allowed here in M1.");
+      "Error: Formal parameters are not allowed here.");
+
+  // TODO(ahe): This message is hard to localize.  This is acceptable,
+  // as it will be removed when we ship Dart version 1.0.
+  static const DEPRECATED_FEATURE_WARNING = const MessageKind(
+      "Warning: deprecated language feature, #{1}, "
+      "will be removed in a future Dart milestone.");
+
+  // TODO(ahe): This message is hard to localize.  This is acceptable,
+  // as it will be removed when we ship Dart version 1.0.
+  static const DEPRECATED_FEATURE_ERROR = const MessageKind(
+      "Error: #{1} are not legal "
+      "due to option --reject-deprecated-language-features.");
 
   static const CONSTRUCTOR_WITH_RETURN_TYPE = const MessageKind(
       "Error: cannot have return type for constructor.");

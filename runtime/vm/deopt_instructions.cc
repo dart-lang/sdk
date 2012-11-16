@@ -5,6 +5,7 @@
 #include "vm/deopt_instructions.h"
 
 #include "vm/assembler_macros.h"
+#include "vm/code_patcher.h"
 #include "vm/intermediate_language.h"
 #include "vm/locations.h"
 #include "vm/parser.h"
@@ -17,7 +18,8 @@ DEFINE_FLAG(bool, compress_deopt_info, true,
 DeoptimizationContext::DeoptimizationContext(intptr_t* to_frame_start,
                                              intptr_t to_frame_size,
                                              const Array& object_table,
-                                             intptr_t num_args)
+                                             intptr_t num_args,
+                                             DeoptReasonId deopt_reason)
     : object_table_(object_table),
       to_frame_(to_frame_start),
       to_frame_size_(to_frame_size),
@@ -26,6 +28,7 @@ DeoptimizationContext::DeoptimizationContext(intptr_t* to_frame_start,
       registers_copy_(NULL),
       xmm_registers_copy_(NULL),
       num_args_(num_args),
+      deopt_reason_(deopt_reason),
       isolate_(Isolate::Current()) {
   from_frame_ = isolate_->deopt_frame_copy();
   from_frame_size_ = isolate_->deopt_frame_copy_size();
@@ -256,6 +259,18 @@ class DeoptRetBeforeAddressInstr : public DeoptInstr {
     uword continue_at_pc = code.GetDeoptBeforePcAtDeoptId(deopt_id_);
     intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
     *to_addr = continue_at_pc;
+
+
+    uword pc = code.GetPcForDeoptId(deopt_id_, PcDescriptors::kIcCall);
+    if (pc != 0) {
+      // If the deoptimization happened at an IC call, update the IC data
+      // to avoid repeated deoptimization at the same site next time around.
+      const ICData& ic_data = ICData::Handle(
+          CodePatcher::GetInstanceCallIcDataAt(pc));
+      if (!ic_data.IsNull()) {
+        ic_data.set_deopt_reason(deopt_context->deopt_reason());
+      }
+    }
   }
 
  private:

@@ -92,51 +92,12 @@ class ConstantEmitter implements ConstantVisitor {
   void writeEscapedString(DartString string,
                           CodeBuffer buffer,
                           Node diagnosticNode) {
-    Iterator<int> iterator = string.iterator();
-    while (iterator.hasNext) {
-      int code = iterator.next();
-      if (identical(code, $SQ)) {
-        buffer.add(r"\'");
-      } else if (identical(code, $LF)) {
-        buffer.add(r'\n');
-      } else if (identical(code, $CR)) {
-        buffer.add(r'\r');
-      } else if (identical(code, $LS)) {
-        // This Unicode line terminator and $PS are invalid in JS string
-        // literals.
-        buffer.add(r'\u2028');
-      } else if (identical(code, $PS)) {
-        buffer.add(r'\u2029');
-      } else if (identical(code, $BACKSLASH)) {
-        buffer.add(r'\\');
-      } else {
-        if (code > 0xffff) {
-          compiler.reportError(
-              diagnosticNode,
-              'Unhandled non-BMP character: U+${code.toRadixString(16)}');
-        }
-        // TODO(lrn): Consider whether all codes above 0x7f really need to
-        // be escaped. We build a Dart string here, so it should be a literal
-        // stage that converts it to, e.g., UTF-8 for a JS interpreter.
-        if (code < 0x20) {
-          buffer.add(r'\x');
-          if (code < 0x10) buffer.add('0');
-          buffer.add(code.toRadixString(16));
-        } else if (code >= 0x80) {
-          if (code < 0x100) {
-            buffer.add(r'\x');
-          } else {
-            buffer.add(r'\u');
-            if (code < 0x1000) {
-              buffer.add('0');
-            }
-          }
-          buffer.add(code.toRadixString(16));
-        } else {
-          buffer.addCharCode(code);
-        }
-      }
+    void onError(code) {
+      compiler.reportError(
+          diagnosticNode,
+          'Unhandled non-BMP character: U+${code.toRadixString(16)}');
     }
+    writeJsonEscapedCharsOn(string.iterator(), buffer, onError);
   }
 
   void visitString(StringConstant constant) {

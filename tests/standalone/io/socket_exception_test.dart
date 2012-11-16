@@ -17,7 +17,7 @@ class SocketExceptionTest {
     bool wrongExceptionCaught = false;
 
     ServerSocket server = new ServerSocket(HOST, PORT, 10);
-    Expect.equals(true, server !== null);
+    Expect.equals(true, server != null);
     server.close();
     try {
       server.close();
@@ -39,11 +39,11 @@ class SocketExceptionTest {
     bool wrongExceptionCaught = false;
 
     ServerSocket server = new ServerSocket(HOST, PORT, 10);
-    Expect.equals(true, server !== null);
+    Expect.equals(true, server != null);
     int port = server.port;
     Socket client = new Socket(HOST, port);
     client.onConnect = () {
-      Expect.equals(true, client !== null);
+      Expect.equals(true, client != null);
       InputStream input = client.inputStream;
       OutputStream output = client.outputStream;
       client.close();
@@ -120,11 +120,11 @@ class SocketExceptionTest {
     bool wrongExceptionCaught = false;
 
     ServerSocket server = new ServerSocket(HOST, PORT, 10);
-    Expect.equals(true, server !== null);
+    Expect.equals(true, server != null);
     int port = server.port;
     Socket client = new Socket(HOST, port);
     client.onConnect = () {
-      Expect.equals(true, client !== null);
+      Expect.equals(true, client != null);
       try {
         List<int> buffer = new List<int>(10);
         client.readList(buffer, -1, 1);

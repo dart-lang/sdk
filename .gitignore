@@ -1,6 +1,6 @@
 # These ignores are auto-generated from the canonical svn ignore metadata
 # using:
-# 
+#
 #  $ git svn create-ignore
 #
 # Whenever possible, prefer creating ignores in svn and then generating them
@@ -12,9 +12,11 @@
 /dart.Makefile
 /dart.xcodeproj
 /dart2js.target.mk
+/dart2js_bot.target.mk
 /Makefile
 /out
 /runtime.target.mk
+/samples.target.mk
 /upload_sdk.target.mk
 /xcodebuild
 /upload_sdk.vcxproj
@@ -69,3 +71,6 @@ third_party/gsutil/*/gsutilc
 
 # From the Mac OS X Finder
 .DS_Store
+
+# Pub generated "packages" directories
+packages

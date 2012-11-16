@@ -5,7 +5,7 @@
 
 class RegExp1Test {
   static testMain() {
-    RegExp exp1 = const RegExp("bar|foo");
+    RegExp exp1 = new RegExp("bar|foo");
     Expect.equals(true, exp1.hasMatch("foo"));
     Expect.equals(true, exp1.hasMatch("bar"));
     Expect.equals(false, exp1.hasMatch("gim"));
@@ -14,7 +14,7 @@ class RegExp1Test {
     Expect.equals(false, exp1.multiLine);
     Expect.equals(false, exp1.ignoreCase);
 
-    RegExp exp2 = const RegExp("o+", ignoreCase: true);
+    RegExp exp2 = new RegExp("o+", ignoreCase: true);
     Expect.equals(true, exp2.hasMatch("this looks good"));
     Expect.equals(true, exp2.hasMatch("fOO"));
     Expect.equals(false, exp2.hasMatch("bar"));

@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that parameters keep their names in the output.
 
-#import("compiler_helper.dart");
-#import("parser_helper.dart");
+import 'compiler_helper.dart';
+import 'parser_helper.dart';
 
 const String TEST_ONE = r"""
 class A { foo() => 499; }
@@ -85,7 +85,7 @@ main() {
 main() {
   // At some point Dart2js generated bad object literals with dangling commas:
   // { a: true, }. Make sure this doesn't happen again.
-  RegExp danglingComma = const RegExp(r',[ \n]*}');
+  RegExp danglingComma = new RegExp(r',[ \n]*}');
   String generated = compileAll(TEST_ONE);
   Expect.isFalse(danglingComma.hasMatch(generated));
 

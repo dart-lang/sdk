@@ -114,7 +114,7 @@ List<int> encodeString(String string, Encoding encoding) {
 
 /// A regular expression that matches strings that are composed entirely of
 /// ASCII-compatible characters.
-final RegExp _ASCII_ONLY = const RegExp(r"^[\x00-\x7F]+$");
+final RegExp _ASCII_ONLY = new RegExp(r"^[\x00-\x7F]+$");
 
 /// Returns whether [string] is composed entirely of ASCII-compatible
 /// characters.
@@ -133,6 +133,8 @@ Uint8List toUint8List(List<int> input) {
 
 /// Buffers all input from an InputStream and returns it as a future.
 Future<List<int>> consumeInputStream(InputStream stream) {
+  if (stream.closed) return new Future<List<int>>.immediate(<int>[]);
+
   var completer = new Completer<List<int>>();
   /// TODO(nweiz): use BufferList when issue 6409 is fixed
   var buffer = <int>[];
@@ -182,4 +184,27 @@ Future forEachFuture(Iterable input, Future fn(element)) {
     return fn(iterator.next()).chain(nextElement);
   }
   return nextElement(null);
+}
+
+/// Creates a temporary directory and passes its path to [fn]. Once the [Future]
+/// returned by [fn] completes, the temporary directory and all its contents
+/// will be deleted.
+Future withTempDir(Future fn(String path)) {
+  var tempDir;
+  var future = new Directory('').createTemp().chain((dir) {
+    tempDir = dir;
+    return fn(tempDir.path);
+  });
+  future.onComplete((_) => tempDir.delete(recursive: true));
+  return future;
+}
+
+/// Configures [future] so that its result (success or exception) is passed on
+/// to [completer].
+void chainToCompleter(Future future, Completer completer) {
+  future.handleException((e) {
+    completer.completeException(e);
+    return true;
+  });
+  future.then(completer.complete);
 }

@@ -99,7 +99,7 @@ class PartialParser extends Parser {
     } else if (identical(value, '=>')) {
       token = parseExpression(token.next);
       expectSemicolon(token);
-    } else if (value === '=') {
+    } else if (value == '=') {
       token = parseRedirectingFactoryBody(token);
       expectSemicolon(token);
     } else {

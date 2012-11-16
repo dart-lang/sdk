@@ -6,7 +6,9 @@
 // inheritance, the superclass method must not be reached by a call on the
 // subclass.
 
-@native("*A")
+import 'native_metadata.dart';
+
+@Native("*A")
 class A {
   var _field;
 
@@ -16,7 +18,7 @@ class A {
   int method(int z) => _field + z;
 }
 
-@native("*B")
+@Native("*B")
 class B extends A  {
   var _field2;
 
@@ -29,7 +31,7 @@ class B extends A  {
 @native A makeA() { return new A(); }
 @native B makeB() { return new B(); }
 
-@native(r"""
+@Native(r"""
 function inherits(child, parent) {
   if (child.prototype.__proto__) {
     child.prototype.__proto__ = parent.prototype;

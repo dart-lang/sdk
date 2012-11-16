@@ -1037,24 +1037,24 @@ class FileTest {
     });
     var name = getFilename("tests/vm/data/fixed_length_file");
     var f = new File(name);
-    f.readAsText(Encoding.UTF_8).then((text) {
+    f.readAsString(Encoding.UTF_8).then((text) {
       Expect.isTrue(text.endsWith("42 bytes."));
       Expect.equals(42, text.length);
       var name = getDataFilename("tests/standalone/io/read_as_text.dat");
       var f = new File(name);
-      f.readAsText(Encoding.UTF_8).then((text) {
+      f.readAsString(Encoding.UTF_8).then((text) {
         Expect.equals(6, text.length);
         var expected = [955, 120, 46, 32, 120, 10];
         Expect.listEquals(expected, text.charCodes);
-        f.readAsText(Encoding.ISO_8859_1).then((text) {
+        f.readAsString(Encoding.ISO_8859_1).then((text) {
           Expect.equals(7, text.length);
           var expected = [206, 187, 120, 46, 32, 120, 10];
           Expect.listEquals(expected, text.charCodes);
-          var readAsTextFuture = f.readAsText(Encoding.ASCII);
-          readAsTextFuture.then((text) {
+          var readAsStringFuture = f.readAsString(Encoding.ASCII);
+          readAsStringFuture.then((text) {
             Expect.fail("Non-ascii char should cause error");
           });
-          readAsTextFuture.handleException((e) {
+          readAsStringFuture.handleException((e) {
             port.toSendPort().send(1);
             return true;
           });
@@ -1071,7 +1071,7 @@ class FileTest {
     });
     var name = getFilename("tests/vm/data/empty_file");
     var f = new File(name);
-    f.readAsText(Encoding.UTF_8).then((text) {
+    f.readAsString(Encoding.UTF_8).then((text) {
       port.toSendPort().send(text.length);
       return true;
     });
@@ -1079,16 +1079,16 @@ class FileTest {
 
   static void testReadAsTextSync() {
     var name = getFilename("tests/vm/data/fixed_length_file");
-    var text = new File(name).readAsTextSync();
+    var text = new File(name).readAsStringSync();
     Expect.isTrue(text.endsWith("42 bytes."));
     Expect.equals(42, text.length);
     name = getDataFilename("tests/standalone/io/read_as_text.dat");
-    text = new File(name).readAsTextSync();
+    text = new File(name).readAsStringSync();
     Expect.equals(6, text.length);
     var expected = [955, 120, 46, 32, 120, 10];
     Expect.listEquals(expected, text.charCodes);
-    Expect.throws(() { new File(name).readAsTextSync(Encoding.ASCII); });
-    text = new File(name).readAsTextSync(Encoding.ISO_8859_1);
+    Expect.throws(() { new File(name).readAsStringSync(Encoding.ASCII); });
+    text = new File(name).readAsStringSync(Encoding.ISO_8859_1);
     expected = [206, 187, 120, 46, 32, 120, 10];
     Expect.equals(7, text.length);
     Expect.listEquals(expected, text.charCodes);
@@ -1096,7 +1096,7 @@ class FileTest {
 
   static void testReadAsTextSyncEmptyFile() {
     var name = getFilename("tests/vm/data/empty_file");
-    var text = new File(name).readAsTextSync();
+    var text = new File(name).readAsStringSync();
     Expect.equals(0, text.length);
   }
 
@@ -1137,14 +1137,14 @@ class FileTest {
     });
     var f = new File('.');
     Expect.throws(f.readAsBytesSync, (e) => e is FileIOException);
-    Expect.throws(f.readAsTextSync, (e) => e is FileIOException);
+    Expect.throws(f.readAsStringSync, (e) => e is FileIOException);
     Expect.throws(f.readAsLinesSync, (e) => e is FileIOException);
     var readAsBytesFuture = f.readAsBytes();
     readAsBytesFuture.then((bytes) => Expect.fail("no bytes expected"));
     readAsBytesFuture.handleException((e) {
-      var readAsTextFuture = f.readAsText(Encoding.UTF_8);
-      readAsTextFuture.then((text) => Expect.fail("no text expected"));
-      readAsTextFuture.handleException((e) {
+      var readAsStringFuture = f.readAsString(Encoding.UTF_8);
+      readAsStringFuture.then((text) => Expect.fail("no text expected"));
+      readAsStringFuture.handleException((e) {
         var readAsLinesFuture = f.readAsLines(Encoding.UTF_8);
         readAsLinesFuture.then((lines) => Expect.fail("no lines expected"));
         readAsLinesFuture.handleException((e) {
@@ -1232,7 +1232,7 @@ class FileTest {
                   openedFile.length().then((l) {
                     Expect.equals(4, l);
                     openedFile.close().then((_) {
-                      file.readAsText().then((readBack) {
+                      file.readAsString().then((readBack) {
                         Expect.stringEquals(readBack, '$string$string');
                         file.delete().then((_) {
                           file.exists().then((e) {
@@ -1265,7 +1265,7 @@ class FileTest {
     openedFile.writeStringSync(string);
     Expect.equals(4, openedFile.lengthSync());
     openedFile.closeSync();
-    var readBack = file.readAsTextSync();
+    var readBack = file.readAsStringSync();
     Expect.stringEquals(readBack, '$string$string');
     file.deleteSync();
     Expect.isFalse(file.existsSync());

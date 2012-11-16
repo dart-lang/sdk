@@ -84,15 +84,11 @@ testInvocationMirrors() {
   testInvocationMirror(n.bar(42), 'bar', [42], {});
   testInvocationMirror(n.bar(x: 42), 'bar', [], {"x": 42});
   testInvocationMirror(n.bar(37, x: 42), 'bar', [37], {"x": 42});
-  testInvocationMirror((n.bar)(), 'bar', [], {});
-  testInvocationMirror((n.bar)(42), 'bar', [42]);
-  testInvocationMirror((n.bar)(x: 42), 'bar', [], {"x": 42});
-  testInvocationMirror((n.bar)(37, x: 42), 'bar', [37], {"x": 42});
 
   // Missing operator access.
   testInvocationMirror(n + 4, '+', [4], {});
   testInvocationMirror(n - 4, '-', [4], {});
-  testInvocationMirror(-n, '-', [], {});
+  testInvocationMirror(-n, 'unary-', [], {});
   testInvocationMirror(n[42], '[]', [42], {});
   testInvocationMirror((n..[37] = 42).last, '[]=', [37, 42], {});
 
@@ -152,17 +148,22 @@ testNoSuchMethodErrors() {
   test(Function block) {
     Expect.throws(block, (e) => e is NoSuchMethodError);
   }
-
+  var n = new N();
   var o = new Object();
   test(() => o.bar);
   test(() => o.bar = 42);
   test(() => o.bar());
+  test(() => o + 2);
+  test(() => -o);
+  test(() => o[0]);
+  test(() => o[0] = 42);
+  test(() => o());
   test(() => o.toString = 42);
   test(() => o.toString(42));
   test(() => o.toString(x: 37));
   test(() => o.hashCode = 42);
   test(() => o.hashCode());  // Thrown by int.noSuchMethod.
-  test(() => o());
+  test(n.flif);  // Extracted method has no noSuchMethod.
 }
 
 main() {

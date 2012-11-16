@@ -10,12 +10,14 @@
 // * Named arguments are passed in the correct position, so require preceding
 // arguments to be passed.
 
-@native("*A")
+import 'native_metadata.dart';
+
+@Native("*A")
 class A {
   @native int foo(int x);
 }
 
-@native("*B")
+@Native("*B")
 class B {
   @native int foo([x, y, z]);
 }
@@ -26,7 +28,7 @@ class B {
 @native A makeA() { return new A(); }
 @native B makeB() { return new B(); }
 
-@native("""
+@Native("""
 function A() {}
 A.prototype.foo = function () { return arguments.length; };
 

@@ -4,14 +4,16 @@
 
 // Make sure we can have a native with a name that is a JavaScript keyword.
 
-@native("*A")
+import 'native_metadata.dart';
+
+@Native("*A")
 class A {
   @native int delete();
 }
 
 @native A makeA() { return new A(); }
 
-@native("""
+@Native("""
 function A() {}
 A.prototype.delete = function() { return 87; };
 

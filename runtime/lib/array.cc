@@ -14,10 +14,10 @@ namespace dart {
 
 DEFINE_NATIVE_ENTRY(ObjectArray_allocate, 2) {
   const AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::CheckedHandle(arguments->At(0));
+      AbstractTypeArguments::CheckedHandle(arguments->NativeArgAt(0));
   ASSERT(type_arguments.IsNull() ||
          (type_arguments.IsInstantiated() && (type_arguments.Length() == 1)));
-  GET_NATIVE_ARGUMENT(Smi, length, arguments->At(1));
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(1));
   intptr_t len = length.Value();
   if (len < 0 || len > Array::kMaxElements) {
     const String& error = String::Handle(String::NewFormatted(
@@ -34,8 +34,8 @@ DEFINE_NATIVE_ENTRY(ObjectArray_allocate, 2) {
 
 
 DEFINE_NATIVE_ENTRY(ObjectArray_getIndexed, 2) {
-  const Array& array = Array::CheckedHandle(arguments->At(0));
-  GET_NATIVE_ARGUMENT(Smi, index, arguments->At(1));
+  const Array& array = Array::CheckedHandle(arguments->NativeArgAt(0));
+  GET_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
   if ((index.Value() < 0) || (index.Value() >= array.Length())) {
     GrowableArray<const Object*> arguments;
     arguments.Add(&index);
@@ -46,9 +46,9 @@ DEFINE_NATIVE_ENTRY(ObjectArray_getIndexed, 2) {
 
 
 DEFINE_NATIVE_ENTRY(ObjectArray_setIndexed, 3) {
-  const Array& array = Array::CheckedHandle(arguments->At(0));
-  GET_NATIVE_ARGUMENT(Smi, index, arguments->At(1));
-  const Instance& value = Instance::CheckedHandle(arguments->At(2));
+  const Array& array = Array::CheckedHandle(arguments->NativeArgAt(0));
+  GET_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
+  const Instance& value = Instance::CheckedHandle(arguments->NativeArgAt(2));
   if ((index.Value() < 0) || (index.Value() >= array.Length())) {
     GrowableArray<const Object*> arguments;
     arguments.Add(&index);
@@ -60,18 +60,18 @@ DEFINE_NATIVE_ENTRY(ObjectArray_setIndexed, 3) {
 
 
 DEFINE_NATIVE_ENTRY(ObjectArray_getLength, 1) {
-  const Array& array = Array::CheckedHandle(arguments->At(0));
+  const Array& array = Array::CheckedHandle(arguments->NativeArgAt(0));
   return Smi::New(array.Length());
 }
 
 
 // ObjectArray src, int srcStart, int dstStart, int count.
 DEFINE_NATIVE_ENTRY(ObjectArray_copyFromObjectArray, 5) {
-  const Array& dest = Array::CheckedHandle(arguments->At(0));
-  GET_NATIVE_ARGUMENT(Array, source, arguments->At(1));
-  GET_NATIVE_ARGUMENT(Smi, src_start, arguments->At(2));
-  GET_NATIVE_ARGUMENT(Smi, dst_start, arguments->At(3));
-  GET_NATIVE_ARGUMENT(Smi, count, arguments->At(4));
+  const Array& dest = Array::CheckedHandle(arguments->NativeArgAt(0));
+  GET_NATIVE_ARGUMENT(Array, source, arguments->NativeArgAt(1));
+  GET_NATIVE_ARGUMENT(Smi, src_start, arguments->NativeArgAt(2));
+  GET_NATIVE_ARGUMENT(Smi, dst_start, arguments->NativeArgAt(3));
+  GET_NATIVE_ARGUMENT(Smi, count, arguments->NativeArgAt(4));
   intptr_t icount = count.Value();
   if (icount < 0) {
     GrowableArray<const Object*> args;

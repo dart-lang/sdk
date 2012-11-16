@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("compiler_helper.dart");
+import 'compiler_helper.dart';
 
 const int REMOVED = 0;
 const int ABOVE_ZERO = 1;
@@ -198,8 +198,30 @@ main(value) {
 REMOVED,
 ];
 
+// TODO(ahe): It would probably be better if this test used the real
+// core library sources, as its purpose is to detect failure to
+// optimize fixed-sized arrays.
+const String DEFAULT_CORELIB_WITH_LIST_INTERFACE = r'''
+  print(var obj) {}
+  abstract class num {}
+  abstract class int extends num { }
+  abstract class double extends num { }
+  class bool {}
+  class String {}
+  class Object {}
+  class Type {}
+  class Function {}
+  interface List default ListImplementation { List([length]);}
+  class ListImplementation { factory List([length]) => null; }
+  abstract class Map {}
+  class Closure {}
+  class Null {}
+  class Dynamic_ {}
+  bool identical(Object a, Object b) {}''';
+
 expect(String code, int kind) {
-  String generated = compile(code);
+  String generated =
+      compile(code, coreSource: DEFAULT_CORELIB_WITH_LIST_INTERFACE);
   switch (kind) {
     case REMOVED:
       Expect.isTrue(!generated.contains('ioore'));
@@ -221,13 +243,13 @@ expect(String code, int kind) {
       break;
 
     case ONE_CHECK:
-      RegExp regexp = const RegExp('ioore');
+      RegExp regexp = new RegExp('ioore');
       Iterator matches = regexp.allMatches(generated).iterator();
       checkNumberOfMatches(matches, 1);
       break;
 
     case ONE_ZERO_CHECK:
-      RegExp regexp = const RegExp('< 0');
+      RegExp regexp = new RegExp('< 0');
       Iterator matches = regexp.allMatches(generated).iterator();
       checkNumberOfMatches(matches, 1);
       break;

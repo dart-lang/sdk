@@ -12,7 +12,7 @@
 namespace dart {
 
 DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
-  GET_NATIVE_ARGUMENT(Array, a, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Array, a, arguments->NativeArgAt(0));
   // TODO(srdjan): Check that parameterized type is an int.
   Zone* zone = isolate->current_zone();
   intptr_t array_len = a.Length();
@@ -51,9 +51,9 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
 
 
 DEFINE_NATIVE_ENTRY(StringBase_substringUnchecked, 3) {
-  GET_NATIVE_ARGUMENT(String, receiver, arguments->At(0));
-  GET_NATIVE_ARGUMENT(Smi, start_obj, arguments->At(1));
-  GET_NATIVE_ARGUMENT(Smi, end_obj, arguments->At(2));
+  GET_NATIVE_ARGUMENT(String, receiver, arguments->NativeArgAt(0));
+  GET_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));
+  GET_NATIVE_ARGUMENT(Smi, end_obj, arguments->NativeArgAt(2));
 
   intptr_t start = start_obj.Value();
   intptr_t end = end_obj.Value();
@@ -62,7 +62,7 @@ DEFINE_NATIVE_ENTRY(StringBase_substringUnchecked, 3) {
 
 
 DEFINE_NATIVE_ENTRY(String_getHashCode, 1) {
-  const String& receiver = String::CheckedHandle(arguments->At(0));
+  const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
   intptr_t hash_val = receiver.Hash();
   ASSERT(hash_val > 0);
   ASSERT(Smi::IsValid(hash_val));
@@ -71,7 +71,7 @@ DEFINE_NATIVE_ENTRY(String_getHashCode, 1) {
 
 
 DEFINE_NATIVE_ENTRY(String_getLength, 1) {
-  const String& receiver = String::CheckedHandle(arguments->At(0));
+  const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
   return Smi::New(receiver.Length());
 }
 
@@ -98,16 +98,17 @@ static int32_t StringValueAt(const String& str, const Integer& index) {
 
 
 DEFINE_NATIVE_ENTRY(String_charAt, 2) {
-  const String& receiver = String::CheckedHandle(arguments->At(0));
-  GET_NATIVE_ARGUMENT(Integer, index, arguments->At(1));
+  const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
+  GET_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
   uint32_t value = StringValueAt(receiver, index);
   ASSERT(value <= 0x10FFFF);
   return Symbols::New(&value, 1);
 }
 
 DEFINE_NATIVE_ENTRY(String_charCodeAt, 2) {
-  const String& receiver = String::CheckedHandle(arguments->At(0));
-  GET_NATIVE_ARGUMENT(Integer, index, arguments->At(1));
+  const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
+  GET_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
+
   int32_t value = StringValueAt(receiver, index);
   ASSERT(value >= 0);
   ASSERT(value <= 0x10FFFF);
@@ -116,28 +117,28 @@ DEFINE_NATIVE_ENTRY(String_charCodeAt, 2) {
 
 
 DEFINE_NATIVE_ENTRY(String_concat, 2) {
-  const String& receiver = String::CheckedHandle(arguments->At(0));
-  GET_NATIVE_ARGUMENT(String, b, arguments->At(1));
+  const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
+  GET_NATIVE_ARGUMENT(String, b, arguments->NativeArgAt(1));
   return String::Concat(receiver, b);
 }
 
 
 DEFINE_NATIVE_ENTRY(String_toLowerCase, 1) {
-  const String& receiver = String::CheckedHandle(arguments->At(0));
+  const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
   ASSERT(!receiver.IsNull());
   return String::ToLowerCase(receiver);
 }
 
 
 DEFINE_NATIVE_ENTRY(String_toUpperCase, 1) {
-  const String& receiver = String::CheckedHandle(arguments->At(0));
+  const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
   ASSERT(!receiver.IsNull());
   return String::ToUpperCase(receiver);
 }
 
 
 DEFINE_NATIVE_ENTRY(Strings_concatAll, 1) {
-  GET_NATIVE_ARGUMENT(Array, strings, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Array, strings, arguments->NativeArgAt(0));
   ASSERT(!strings.IsNull());
   // Check that the array contains strings.
   Instance& elem = Instance::Handle();

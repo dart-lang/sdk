@@ -5,7 +5,6 @@
 library SVGElement2Test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
-import 'dart:html';
 import 'svgelement_test.dart' as originalTest;
 
 class A {

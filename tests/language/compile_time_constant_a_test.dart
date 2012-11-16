@@ -73,8 +73,8 @@ main() {
   Expect.throws(() => m2.putIfAbsent('z', () => 499), isUnsupportedError);
   Expect.throws(() => m2['a'] = 499, isUnsupportedError);
 
-  Expect.isTrue(m3['m1'] === m1);
-  Expect.isTrue(m3['m2'] === m2);
+  Expect.identical(m3['m1'], m1);
+  Expect.identical(m3['m2'], m2);
 
   Expect.listEquals(['z', 'a', 'm'], m4.keys);
   Expect.listEquals([9, 8, 7], m4.values);
@@ -91,7 +91,7 @@ main() {
   Expect.isTrue(m5.containsKey(''));
   Expect.equals(1, m5.length);
 
-  Expect.isTrue(m1 === m6);
+  Expect.identical(m1, m6);
 
   Expect.isTrue(m7.isEmpty);
   Expect.equals(0, m7.length);

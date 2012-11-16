@@ -12,20 +12,21 @@ class Printer implements NodeVisitor {
   bool inForInit = false;
   bool atStatementBegin = false;
   final DanglingElseVisitor danglingElseVisitor;
-  final Namer namer;
+  final LocalNamer localNamer;
   bool pendingSemicolon = false;
   bool pendingSpace = false;
+  static final identifierRegexp = new RegExp(r'^[a-zA-Z_0-9$]');
 
   Printer(leg.Compiler compiler, { allowVariableMinification: true })
       : shouldCompressOutput = compiler.enableMinification,
         this.compiler = compiler,
         outBuffer = new leg.CodeBuffer(),
         danglingElseVisitor = new DanglingElseVisitor(compiler),
-        namer = determineRenamer(compiler.enableMinification,
-                                 allowVariableMinification);
+        localNamer = determineRenamer(compiler.enableMinification,
+                                      allowVariableMinification);
 
-  static Namer determineRenamer(bool shouldCompressOutput,
-                                bool allowVariableMinification) {
+  static LocalNamer determineRenamer(bool shouldCompressOutput,
+                                     bool allowVariableMinification) {
     return (shouldCompressOutput && allowVariableMinification)
         ? new MinifyRenamer() : new IdentityNamer();
   }
@@ -46,7 +47,6 @@ class Printer implements NodeVisitor {
 
   void out(String str) {
     if (str != "") {
-      const identifierRegexp = const RegExp(r'^[a-zA-Z_0-9$]');
       if (pendingSemicolon && (!shouldCompressOutput || str != "}")) {
         outBuffer.add(";");
       }
@@ -391,7 +391,7 @@ class Printer implements NodeVisitor {
       visitNestedExpression(name, PRIMARY,
                             newInForInit: false, newAtStatementBegin: false);
     }
-    namer.enterScope(vars);
+    localNamer.enterScope(vars);
     out("(");
     if (fun.params != null) {
       visitCommaSeparated(fun.params, PRIMARY,
@@ -399,7 +399,7 @@ class Printer implements NodeVisitor {
     }
     out(")");
     blockBody(fun.body, needsSeparation: false, needsNewline: false);
-    namer.leaveScope();
+    localNamer.leaveScope();
   }
 
   visitFunctionDeclaration(FunctionDeclaration declaration) {
@@ -639,7 +639,7 @@ class Printer implements NodeVisitor {
   }
 
   visitVariableUse(VariableUse ref) {
-    out(namer.getName(ref.name));
+    out(localNamer.getName(ref.name));
   }
 
   visitThis(This node) {
@@ -647,11 +647,11 @@ class Printer implements NodeVisitor {
   }
 
   visitVariableDeclaration(VariableDeclaration decl) {
-    out(namer.getName(decl.name));
+    out(localNamer.getName(decl.name));
   }
 
   visitParameter(Parameter param) {
-    out(namer.getName(param.name));
+    out(localNamer.getName(param.name));
   }
 
   bool isDigit(int charCode) {
@@ -944,7 +944,7 @@ leg.CodeBuffer prettyPrint(Node node, leg.Compiler compiler,
 }
 
 
-abstract class Namer {
+abstract class LocalNamer {
   String getName(String oldName);
   String declareVariable(String oldName);
   String declareParameter(String oldName);
@@ -953,7 +953,7 @@ abstract class Namer {
 }
 
 
-class IdentityNamer implements Namer {
+class IdentityNamer implements LocalNamer {
   String getName(String oldName) => oldName;
   String declareVariable(String oldName) => oldName;
   String declareParameter(String oldName) => oldName;
@@ -962,7 +962,7 @@ class IdentityNamer implements Namer {
 }
 
 
-class MinifyRenamer implements Namer {
+class MinifyRenamer implements LocalNamer {
   final List<Map<String, String>> maps = [];
   final List<int> parameterNumberStack = [];
   final List<int> variableNumberStack = [];
@@ -1067,7 +1067,7 @@ class MinifyRenamer implements Namer {
       codes.add(charCodes.$0 + digit);
       newName = new String.fromCharCodes(codes);
     }
-    assert(const RegExp(r'[a-zA-Z][a-zA-Z0-9]*').hasMatch(newName));
+    assert(new RegExp(r'[a-zA-Z][a-zA-Z0-9]*').hasMatch(newName));
     maps.last[oldName] = newName;
     return newName;
   }

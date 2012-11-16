@@ -4,15 +4,16 @@
 
 library NodeTest;
 import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
+import 'dart:svg';
 
 Node makeNode() => new Element.tag('div');
 Node makeNodeWithChildren() =>
   new Element.html("<div>Foo<br/><!--baz--></div>");
 
 main() {
-  useHtmlConfiguration();
+  useHtmlIndividualConfiguration();
 
   var isText = predicate((x) => x is Text, 'is a Text');
   var isComment = predicate((x) => x is Comment, 'is a Comment');

@@ -1022,7 +1022,9 @@ DART_EXPORT bool Dart_PostIntArray(Dart_Port port_id,
 DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message) {
   uint8_t* buffer = NULL;
   ApiMessageWriter writer(&buffer, allocator);
-  writer.WriteCMessage(message);
+  bool success = writer.WriteCMessage(message);
+
+  if (!success) return success;
 
   // Post the message at the given port.
   return PortMap::PostMessage(new Message(
@@ -1514,7 +1516,7 @@ DART_EXPORT bool Dart_IsString(Dart_Handle object) {
 }
 
 
-DART_EXPORT bool Dart_IsAsciiString(Dart_Handle object) {
+DART_EXPORT bool Dart_IsStringLatin1(Dart_Handle object) {
   return RawObject::IsOneByteStringClassId(Api::ClassId(object));
 }
 
@@ -1707,16 +1709,63 @@ DART_EXPORT Dart_Handle Dart_StringToUTF16(Dart_Handle str,
 }
 
 
+DART_EXPORT Dart_Handle Dart_StringStorageSize(Dart_Handle str,
+                                               intptr_t* size) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const String& str_obj = Api::UnwrapStringHandle(isolate, str);
+  if (str_obj.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, str, String);
+  }
+  if (size == NULL) {
+    RETURN_NULL_ERROR(size);
+  }
+  *size = (str_obj.Length() * str_obj.CharSize());
+  return Api::Success(isolate);
+}
+
+
+DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
+                                                void* array,
+                                                intptr_t length,
+                                                void* peer,
+                                                Dart_PeerFinalizer cback) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const String& str_obj = Api::UnwrapStringHandle(isolate, str);
+  if (str_obj.IsExternal()) {
+    return str;  // String is already an external string.
+  }
+  if (str_obj.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, str, String);
+  }
+  if (array == NULL) {
+    RETURN_NULL_ERROR(array);
+  }
+  intptr_t str_size = (str_obj.Length() * str_obj.CharSize());
+  if ((length < str_size) || (length > String::kMaxElements)) {
+    return Api::NewError("Dart_MakeExternalString "
+                         "expects argument length to be in the range"
+                         "[%"Pd"..%"Pd"].",
+                         str_size, String::kMaxElements);
+  }
+  return Api::NewHandle(isolate,
+                        str_obj.MakeExternal(array, length, peer, cback));
+}
+
+
 // --- Lists ---
 
 
 static RawInstance* GetListInstance(Isolate* isolate, const Object& obj) {
   if (obj.IsInstance()) {
     const Instance& instance = Instance::Cast(obj);
-    const Type& type =
-        Type::Handle(isolate, isolate->object_store()->list_interface());
+    const Class& obj_class = Class::Handle(isolate, obj.clazz());
+    const Class& list_class =
+        Class::Handle(isolate, isolate->object_store()->list_class());
     Error& malformed_type_error = Error::Handle(isolate);
-    if (instance.IsInstanceOf(type,
+    if (obj_class.IsSubtypeOf(TypeArguments::Handle(isolate),
+                              list_class,
                               TypeArguments::Handle(isolate),
                               &malformed_type_error)) {
       ASSERT(malformed_type_error.IsNull());  // Type is a raw List.
@@ -1948,7 +1997,8 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(list));
-  if (obj.IsUint8Array() || obj.IsExternalUint8Array()) {
+  if (obj.IsUint8Array() || obj.IsExternalUint8Array() ||
+      obj.IsInt8Array() || obj.IsExternalInt8Array()) {
     const ByteArray& byte_array = ByteArray::Cast(obj);
     if (Utils::RangeCheck(offset, length, byte_array.Length())) {
       ByteArray::Copy(native_array, byte_array, offset, length);
@@ -3832,7 +3882,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeInstanceField(Dart_Handle obj,
         "%s: invalid index %d passed in to access native instance field",
         CURRENT_FUNC, index);
   }
-  *value = instance.GetNativeField(index);
+  *value = instance.GetNativeField(isolate, index);
   return Api::Success(isolate);
 }
 
@@ -3936,20 +3986,18 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
 DART_EXPORT Dart_Handle Dart_GetNativeArgument(Dart_NativeArguments args,
                                                int index) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  if (index < 0 || index >= arguments->Count()) {
+  if ((index < 0) || (index >= arguments->NativeArgCount())) {
     return Api::NewError(
         "%s: argument 'index' out of range. Expected 0..%d but saw %d.",
-        CURRENT_FUNC, arguments->Count() - 1, index);
+        CURRENT_FUNC, arguments->NativeArgCount() - 1, index);
   }
-  Isolate* isolate = arguments->isolate();
-  CHECK_ISOLATE(isolate);
-  return Api::NewHandle(isolate, arguments->At(index));
+  return Api::NewHandle(arguments->isolate(), arguments->NativeArgAt(index));
 }
 
 
 DART_EXPORT int Dart_GetNativeArgumentCount(Dart_NativeArguments args) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  return arguments->Count();
+  return arguments->NativeArgCount();
 }
 
 

@@ -5,7 +5,7 @@
 
 class RegExpTest {
   static test1() {
-    RegExp exp = const RegExp("(\\w+)");
+    RegExp exp = new RegExp("(\\w+)");
     String str = "Parse my string";
     List<Match> matches = new List<Match>.from(exp.allMatches(str));
     Expect.equals(3, matches.length);

@@ -30,23 +30,23 @@ main() {
   var info = a.foo();
   Expect.equals('foo', info.name);
   Expect.isTrue(info.args.isEmpty);
-  Expect.isTrue(info.receiver === a);
+  Expect.isTrue(identical(info.receiver, a));
 
   info = a.foo(2);
   Expect.equals('foo', info.name);
   Expect.isTrue(info.args.length == 1);
-  Expect.isTrue(info.args[0] === 2);
-  Expect.isTrue(info.receiver === a);
+  Expect.isTrue(info.args[0] == 2);
+  Expect.isTrue(identical(info.receiver, a));
 
   info = a.bar;
   Expect.equals('bar', info.name);
   Expect.isTrue(info.args.length == 0);
-  Expect.isTrue(info.receiver === a);
+  Expect.isTrue(identical(info.receiver, a));
 
   a.bar = 2;
   info = topLevelInfo;
   Expect.equals('bar', info.name);
   Expect.isTrue(info.args.length == 1);
-  Expect.isTrue(info.args[0] === 2);
-  Expect.isTrue(info.receiver === a);
+  Expect.isTrue(info.args[0] == 2);
+  Expect.isTrue(identical(info.receiver, a));
 }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of html;
+
 // TODO(jacobr): use _Lists.dart to remove some of the duplicated
 // functionality.
 class _ChildrenElementList implements List {
@@ -470,136 +472,17 @@ class _DataAttributeMap extends AttributeMap {
   String _strip(String key) => key.substring(5);
 }
 
-abstract class CssClassSet implements Set<String> {
-  /**
-   * Adds the class [token] to the element if it is not on it, removes it if it
-   * is.
-   */
-  bool toggle(String token);
-
-  /**
-   * Returns [:true:] if classes cannot be added or removed from this
-   * [:CssClassSet:].
-   */
-  bool get frozen;
-}
-
-class _CssClassSet extends CssClassSet {
+class _ElementCssClassSet extends CssClassSet {
 
   final Element _element;
 
-  _CssClassSet(this._element);
+  _ElementCssClassSet(this._element);
 
-  String toString() => _formatSet(_read());
+  Set<String> readClasses() {
+    var s = new Set<String>();
+    var classname = _element.$dom_className;
 
-  // interface Iterable - BEGIN
-  Iterator<String> iterator() => _read().iterator();
-  // interface Iterable - END
-
-  // interface Collection - BEGIN
-  void forEach(void f(String element)) {
-    _read().forEach(f);
-  }
-
-  Collection map(f(String element)) => _read().map(f);
-
-  Collection<String> filter(bool f(String element)) => _read().filter(f);
-
-  bool every(bool f(String element)) => _read().every(f);
-
-  bool some(bool f(String element)) => _read().some(f);
-
-  bool get isEmpty => _read().isEmpty;
-
-  /**
-   * Returns [:true:] if classes cannot be added or removed from this
-   * [:CssClassSet:].
-   */
-  bool get frozen => false;
-
-  int get length =>_read().length;
-
-  // interface Collection - END
-
-  // interface Set - BEGIN
-  bool contains(String value) => _read().contains(value);
-
-  void add(String value) {
-    // TODO - figure out if we need to do any validation here
-    // or if the browser natively does enough
-    _modify((s) => s.add(value));
-  }
-
-  bool remove(String value) {
-    Set<String> s = _read();
-    bool result = s.remove(value);
-    _write(s);
-    return result;
-  }
-
-  /**
-   * Adds the class [token] to the element if it is not on it, removes it if it
-   * is.
-   */
-  bool toggle(String value) {
-    Set<String> s = _read();
-    bool result = false;
-    if (s.contains(value)) {
-      s.remove(value);
-    } else {
-      s.add(value);
-      result = true;
-    }
-    _write(s);
-    return result;
-  }
-
-  void addAll(Collection<String> collection) {
-    // TODO - see comment above about validation
-    _modify((s) => s.addAll(collection));
-  }
-
-  void removeAll(Collection<String> collection) {
-    _modify((s) => s.removeAll(collection));
-  }
-
-  bool isSubsetOf(Collection<String> collection) =>
-    _read().isSubsetOf(collection);
-
-  bool containsAll(Collection<String> collection) =>
-    _read().containsAll(collection);
-
-  Set<String> intersection(Collection<String> other) =>
-    _read().intersection(other);
-
-  void clear() {
-    _modify((s) => s.clear());
-  }
-  // interface Set - END
-
-  /**
-   * Helper method used to modify the set of css classes on this element.
-   *
-   *   f - callback with:
-   *      s - a Set of all the css class name currently on this element.
-   *
-   *   After f returns, the modified set is written to the
-   *       className property of this element.
-   */
-  void _modify( f(Set<String> s)) {
-    Set<String> s = _read();
-    f(s);
-    _write(s);
-  }
-
-  /**
-   * Read the class names from the Element class property,
-   * and put them into a set (duplicates are discarded).
-   */
-  Set<String> _read() {
-    // TODO(mattsh) simplify this once split can take regex.
-    Set<String> s = new Set<String>();
-    for (String name in _classname().split(' ')) {
+    for (String name in classname.split(' ')) {
       String trimmed = name.trim();
       if (!trimmed.isEmpty) {
         s.add(trimmed);
@@ -608,24 +491,9 @@ class _CssClassSet extends CssClassSet {
     return s;
   }
 
-  /**
-   * Read the class names as a space-separated string. This is meant to be
-   * overridden by subclasses.
-   */
-  String _classname() => _element.$dom_className;
-
-  /**
-   * Join all the elements of a set into one string and write
-   * back to the element.
-   */
-  void _write(Set s) {
-    _element.$dom_className = _formatSet(s);
-  }
-
-  String _formatSet(Set<String> s) {
-    // TODO(mattsh) should be able to pass Set to String.joins http:/b/5398605
+  void writeClasses(Set<String> s) {
     List list = new List.from(s);
-    return Strings.join(list, ' ');
+    _element.$dom_className = Strings.join(list, ' ');
   }
 }
 
@@ -645,53 +513,6 @@ class _SimpleClientRect implements ClientRect {
   }
 
   String toString() => "($left, $top, $width, $height)";
-}
-
-// TODO(jacobr): we cannot currently be lazy about calculating the client
-// rects as we must perform all measurement queries at a safe point to avoid
-// triggering unneeded layouts.
-/**
- * All your element measurement needs in one place.
- * @domName none
- */
-class ElementRect {
-  // Relative to offsetParent.
-  final ClientRect client;
-  final ClientRect offset;
-  final ClientRect scroll;
-
-  // TODO(jacobr): should we move these outside of ElementRect to avoid the
-  // overhead of computing them every time even though they are rarely used.
-  final ClientRect _boundingClientRect;
-  final _ClientRectList _clientRects;
-
-  ElementRect(Element element) :
-    client = new _SimpleClientRect(element.clientLeft,
-                                  element.clientTop,
-                                  element.clientWidth,
-                                  element.clientHeight),
-    offset = new _SimpleClientRect(element.offsetLeft,
-                                  element.offsetTop,
-                                  element.offsetWidth,
-                                  element.offsetHeight),
-    scroll = new _SimpleClientRect(element.scrollLeft,
-                                  element.scrollTop,
-                                  element.scrollWidth,
-                                  element.scrollHeight),
-    _boundingClientRect = element.getBoundingClientRect(),
-    _clientRects = element.getClientRects();
-
-  // In global coords.
-  ClientRect get bounding => _boundingClientRect;
-
-  // In global coords.
-  List<ClientRect> get clientRects {
-    final out = new List(_clientRects.length);
-    for (num i = 0; i < _clientRects.length; i++) {
-      out[i] = _clientRects.item(i);
-    }
-    return out;
-  }
 }
 
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
@@ -733,7 +554,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
   /** @domName className, classList */
-  CssClassSet get classes => new _CssClassSet(this);
+  CssClassSet get classes => new _ElementCssClassSet(this);
 
   void set classes(Collection<String> value) {
     CssClassSet classSet = classes;
@@ -750,17 +571,6 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     for (String key in value.keys) {
       dataAttributes[key] = value[key];
     }
-  }
-
-  /**
-   * @domName getClientRects, getBoundingClientRect, clientHeight, clientWidth,
-   * clientTop, clientLeft, offsetHeight, offsetWidth, offsetTop, offsetLeft,
-   * scrollHeight, scrollWidth, scrollTop, scrollLeft
-   */
-  Future<ElementRect> get rect {
-    return _createMeasurementFuture(
-        () => new ElementRect(this),
-        new Completer<ElementRect>());
   }
 
   /** @domName Window.getComputedStyle */
@@ -787,7 +597,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    * Parses the specified text as HTML and adds the resulting node after the
    * last child of this.
    */
-  void addHTML(String text) {
+  void addHtml(String text) {
     this.insertAdjacentHTML('beforeend', text);
   }
 
@@ -889,7 +699,7 @@ $!MEMBERS
 // Temporary dispatch hook to support WebComponents.
 Function dynamicUnknownElementDispatcher;
 
-final _START_TAG_REGEXP = const RegExp('<(\\w+)');
+final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 class _ElementFactoryProvider {
   static final _CUSTOM_PARENT_TAG_MAP = const {
     'body' : 'html',

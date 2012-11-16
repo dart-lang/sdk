@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing class 'StringBase' (currently VM specific).
 
-#library("StringBaseTest.dart");
+library string_base_test;
 
 class StringBaseTest {
 

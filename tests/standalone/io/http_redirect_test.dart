@@ -21,6 +21,23 @@ HttpServer setupServer() {
      });
   }
 
+  // Setup simple redirect.
+  server.addRequestHandler(
+     (HttpRequest request) => request.path == "/redirect",
+     (HttpRequest request, HttpResponse response) {
+       response.headers.set(HttpHeaders.LOCATION,
+                            "http://127.0.0.1:${server.port}/location");
+       response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+       response.outputStream.close();
+     }
+  );
+  server.addRequestHandler(
+     (HttpRequest request) => request.path == "/location",
+     (HttpRequest request, HttpResponse response) {
+       response.outputStream.close();
+     }
+  );
+
   // Setup redirect chain.
   int n = 1;
   addRedirectHandler(n++, HttpStatus.MOVED_PERMANENTLY);
@@ -94,6 +111,35 @@ void testAutoRedirect() {
   HttpServer server = setupServer();
   HttpClient client = new HttpClient();
 
+  var requestCount = 0;
+
+  void onRequest(HttpClientRequest request) {
+    requestCount++;
+    request.outputStream.close();
+  }
+
+  void onResponse(HttpClientResponse response) {
+    response.inputStream.onData =
+        () => Expect.fail("Response data not expected");
+    response.inputStream.onClosed = () {
+      Expect.equals(1, requestCount);
+      server.close();
+      client.shutdown();
+    };
+  };
+
+  HttpClientConnection conn =
+      client.getUrl(
+          new Uri.fromString("http://127.0.0.1:${server.port}/redirect"));
+  conn.onRequest = onRequest;
+  conn.onResponse = onResponse;
+  conn.onError = (e) => Expect.fail("Error not expected ($e)");
+}
+
+void testAutoRedirectLimit() {
+  HttpServer server = setupServer();
+  HttpClient client = new HttpClient();
+
   HttpClientConnection conn =
       client.getUrl(new Uri.fromString("http://127.0.0.1:${server.port}/1"));
   conn.onResponse = (HttpClientResponse response) {
@@ -130,5 +176,6 @@ void testRedirectLoop() {
 main() {
   testManualRedirect();
   testAutoRedirect();
+  testAutoRedirectLimit();
   testRedirectLoop();
 }

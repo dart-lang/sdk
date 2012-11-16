@@ -65,7 +65,6 @@ class FunctionTest {
 
   static void testMain() {
     var test = new FunctionTest();
-    test.testRecursiveClosureRef();
     test.testForEach();
     test.testVarOrder1();
     test.testVarOrder2();
@@ -74,7 +73,6 @@ class FunctionTest {
     test.testLexicalClosureRef3();
     test.testLexicalClosureRef4();
     test.testLexicalClosureRef5();
-    test.testFunctionScopes();
     test.testDefaultParametersOrder();
     test.testParametersOrder();
     test.testFunctionDefaults1();
@@ -216,25 +214,6 @@ class FunctionTest {
 
   int tempField;
 
-  // Validate that a closure that calls the private name of a function (for
-  // for recursion) calls the version of function with the bound names.
-  void testRecursiveClosureRef() {
-    tempField = 2;
-    var x = 3;
-    var g = f(a) {
-       tempField++;
-       x++;
-       if (a > 0) {
-         f(--a);
-       }
-    };
-    g(2);
-
-
-    Expect.equals(5, tempField);
-    Expect.equals(6, x);
-  }
-
   void testForEach() {
     List<int> vals = [1,2,3];
     int total = 0;
@@ -242,33 +221,6 @@ class FunctionTest {
       total += v;
     });
     Expect.equals(6, total);
-  }
-
-  void testFunctionScopes() {
-    // Function expression. 'recurse' is only defined within the function body.
-    // FAILS:
-    // var factorial0 = function recurse(int x) {
-    //  return (x == 1) ? 1 : (x * recurse(x - 1));
-    // };
-    // TEMP:
-    var factorial0;
-    factorial0 = recurse(int x) {
-      return (x == 1) ? 1 : (x * factorial0(x - 1));
-    };
-    // END TEMP
-
-
-    // Function statement. 'factorial1' is defined in the outer scope.
-    int factorial1(int x) {
-      return (x == 1) ? 1 : (x * factorial1(x - 1));
-    }
-
-    // This would fail to compile if 'recurse' were defined in the outer scope.
-    // Which it shouldn't be.
-    int recurse = 42;
-
-    Expect.equals(6, factorial0(3));
-    Expect.equals(24, factorial0(4));
   }
 
   void testDefaultParametersOrder() {

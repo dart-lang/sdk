@@ -4,9 +4,9 @@
 // Test that dart2js gvns dynamic getters that don't have side
 // effects.
 
-#import('compiler_helper.dart');
-#import('parser_helper.dart');
-#import('dart:uri');
+import 'compiler_helper.dart';
+import 'parser_helper.dart';
+import 'dart:uri';
 
 const String TEST = r"""
 class A {
@@ -26,7 +26,7 @@ main() {
   var compiler = compilerFor(TEST, uri);
   compiler.runCompiler(uri);
   String generated = compiler.assembledCode;
-  RegExp regexp = const RegExp(r"get\$foo");
+  RegExp regexp = new RegExp(r"get\$foo");
   Iterator matches = regexp.allMatches(generated).iterator();
   checkNumberOfMatches(matches, 1);
   var cls = findElement(compiler, 'A');

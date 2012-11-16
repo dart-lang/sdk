@@ -38,7 +38,7 @@ checkNoSuchMethod(action()) {
   } catch (e) {
     ex = e;
   }
-  if (ex === null)
+  if (ex == null)
     expect(false, isTrue, reason: 'Action should have thrown exception');
 
   expect(ex, isNoSuchMethodError);

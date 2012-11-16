@@ -61,14 +61,27 @@ function(oldIsolate) {
 
   void emitBoundClosureClassHeader(String mangledName,
                                    String superName,
+                                   String extraArgument,
                                    CodeBuffer buffer) {
-    buffer.add("""
+    if (!extraArgument.isEmpty) {
+      buffer.add("""
+$classesCollector.$mangledName = {'': function $mangledName(
+    self, $extraArgument, target) {
+  this.self = self;
+  this.$extraArgument = $extraArgument,
+  this.target = target;
+ },
+ 'super': '$superName',
+""");
+    } else {
+      buffer.add("""
 $classesCollector.$mangledName = {'': function $mangledName(self, target) {
   this.self = self;
   this.target = target;
  },
  'super': '$superName',
 """);
+    }
   }
 
   void emitClassConstructor(ClassElement classElement, CodeBuffer buffer) {
@@ -83,6 +96,7 @@ $classesCollector.$mangledName = {'': function $mangledName(self, target) {
     List<String> fields = <String>[];
     visitClassFields(classElement, (Element member,
                                     String name,
+                                    String accessorName,
                                     bool needsGetter,
                                     bool needsSetter,
                                     bool needsCheckedSetter) {
@@ -123,21 +137,22 @@ $classesCollector.$mangledName = {'': function $mangledName(self, target) {
 
     visitClassFields(classElement, (Element member,
                                     String name,
+                                    String accessorName,
                                     bool needsGetter,
                                     bool needsSetter,
                                     bool needsCheckedSetter) {
       if (needsGetter) {
         emitComma();
-        generateGetter(member, name, buffer);
+        generateGetter(member, name, accessorName, buffer);
       }
       if (needsSetter) {
         emitComma();
-        generateSetter(member, name, buffer);
+        generateSetter(member, name, accessorName, buffer);
       }
       if (needsCheckedSetter) {
         assert(!needsSetter);
         emitComma();
-        generateCheckedSetter(member, name, buffer);
+        generateCheckedSetter(member, name, accessorName, buffer);
       }
     });
   }

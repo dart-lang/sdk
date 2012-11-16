@@ -9,38 +9,38 @@ class BoolTest {
   static void testEquality() {
     Expect.equals(true, true);
     Expect.equals(false, false);
-    Expect.equals(true, true === true);
-    Expect.equals(false, true === false);
-    Expect.equals(true, false === false);
-    Expect.equals(false, false === true);
-    Expect.equals(false, true !== true);
-    Expect.equals(true, true !== false);
-    Expect.equals(false, false !== false);
-    Expect.equals(true, false !== true);
-    Expect.equals(true, true == true);
-    Expect.equals(false, true == false);
-    Expect.equals(true, false == false);
-    Expect.equals(false, false == true);
-    Expect.equals(false, true != true);
-    Expect.equals(true, true != false);
-    Expect.equals(false, false != false);
-    Expect.equals(true, false != true);
-    Expect.equals(true, true === (true == true));
-    Expect.equals(true, false === (true == false));
-    Expect.equals(true, true === (false == false));
-    Expect.equals(true, false === (false == true));
-    Expect.equals(false, true !== (true == true));
-    Expect.equals(false, false !== (true == false));
-    Expect.equals(false, true !== (false == false));
-    Expect.equals(false, false !== (false == true));
-    Expect.equals(false, false === (true == true));
-    Expect.equals(false, true === (true == false));
-    Expect.equals(false, false === (false == false));
-    Expect.equals(false, true === (false == true));
-    Expect.equals(true, false !== (true == true));
-    Expect.equals(true, true !== (true == false));
-    Expect.equals(true, false !== (false == false));
-    Expect.equals(true, true !== (false == true));
+    Expect.isTrue(identical(true, true));
+    Expect.isFalse(identical(true, false));
+    Expect.isTrue(identical(false, false));
+    Expect.isFalse(identical(false, true));
+    Expect.isFalse(!identical(true, true));
+    Expect.isTrue(!identical(true, false));
+    Expect.isFalse(!identical(false, false));
+    Expect.isTrue(!identical(false, true));
+    Expect.isTrue(true == true);
+    Expect.isFalse(true == false);
+    Expect.isTrue(false == false);
+    Expect.isFalse(false == true);
+    Expect.isFalse(true != true);
+    Expect.isTrue(true != false);
+    Expect.isFalse(false != false);
+    Expect.isTrue(false != true);
+    Expect.isTrue(identical(true, (true == true)));
+    Expect.isTrue(identical(false, (true == false)));
+    Expect.isTrue(identical(true, (false == false)));
+    Expect.isTrue(identical(false, (false == true)));
+    Expect.isFalse(!identical(true, (true == true)));
+    Expect.isFalse(!identical(false, (true == false)));
+    Expect.isFalse(!identical(true, (false == false)));
+    Expect.isFalse(!identical(false, (false == true)));
+    Expect.isFalse(identical(false, (true == true)));
+    Expect.isFalse(identical(true, (true == false)));
+    Expect.isFalse(identical(false, (false == false)));
+    Expect.isFalse(identical(true, (false == true)));
+    Expect.isTrue(!identical(false, (true == true)));
+    Expect.isTrue(!identical(true, (true == false)));
+    Expect.isTrue(!identical(false, (false == false)));
+    Expect.isTrue(!identical(true, (false == true)));
     // Expect.equals could rely on a broken boolean equality.
     if (true == false) {
       throw "Expect.equals broken";
@@ -48,10 +48,10 @@ class BoolTest {
     if (false == true) {
       throw "Expect.equals broken";
     }
-    if (true === false) {
+    if (identical(true, false)) {
       throw "Expect.equals broken";
     }
-    if (false === true) {
+    if (identical(false, true)) {
       throw "Expect.equals broken";
     }
     if (true == true) {
@@ -62,11 +62,11 @@ class BoolTest {
     } else {
       throw "Expect.equals broken";
     }
-    if (true === true) {
+    if (identical(true, true)) {
     } else {
       throw "Expect.equals broken";
     }
-    if (false === false) {
+    if (identical(false, false)) {
     } else {
       throw "Expect.equals broken";
     }
@@ -78,11 +78,11 @@ class BoolTest {
     } else {
       throw "Expect.equals broken";
     }
-    if (true !== false) {
+    if (!identical(true, false)) {
     } else {
       throw "Expect.equals broken";
     }
-    if (false !== true) {
+    if (!identical(false, true)) {
     } else {
       throw "Expect.equals broken";
     }
@@ -92,10 +92,10 @@ class BoolTest {
     if (false != false) {
       throw "Expect.equals broken";
     }
-    if (true !== true) {
+    if (!identical(true, true)) {
       throw "Expect.equals broken";
     }
-    if (false !== false) {
+    if (!identical(false, false)) {
       throw "Expect.equals broken";
     }
   }

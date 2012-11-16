@@ -118,7 +118,7 @@ public enum ResolverErrorCode implements ErrorCode {
   FACTORY_CANNOT_BE_CONST("A factory cannot be const"),
   FIELD_DOES_NOT_HAVE_A_GETTER(ErrorSeverity.WARNING, "Field does not have a getter"),
   FIELD_DOES_NOT_HAVE_A_SETTER(ErrorSeverity.WARNING, "Field does not have a setter"),
-  FIELD_GETTER_SETTER_SAME_STATIC("Field's getter and setter should be both static or not static"),
+  FIELD_GETTER_SETTER_SAME_STATIC(ErrorSeverity.WARNING, "Field's getter and setter should be both static or not static"),
   FINAL_FIELD_MUST_BE_INITIALIZED("The final field %s must be initialized"),
   FORMAL_PARAMETER_NAME_EXPECTED("Formal parameter name expected"),
   // TODO(zundel): error message needs JUnit test - how to test #imports in junit?
@@ -170,6 +170,7 @@ public enum ResolverErrorCode implements ErrorCode {
   NOT_A_TYPE("type \"%s\" expected, but \"%s\" found"),
   // TODO(zundel): error message needs JUnit test (reachable code?)
   NOT_AN_INSTANCE_FIELD("%s is not an instance field"),
+  NOT_GENERATIVE_SUPER_CONSTRUCTOR("Constructor '%s' in class '%s' is not generative."),
   OPTIONAL_PARAMETERS_CANNOT_START_WITH_UNDER("Optional parameters cannot start with an '_' character"),
   PARAMETER_INIT_OUTSIDE_CONSTRUCTOR("Parameter initializers can only be used in constructors"),
   SUPER_METHOD_INVOCATION_IN_CONSTRUCTOR_INITIALIZER(

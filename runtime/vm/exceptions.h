@@ -48,6 +48,7 @@ class Exceptions : AllStatic {
                                       const String& malformed_error);
 
   enum ExceptionType {
+    kNone,
     kRange,
     kArgument,
     kNoSuchMethod,
@@ -57,6 +58,7 @@ class Exceptions : AllStatic {
     kInternalError,
     kNullPointer,
     kIllegalJSRegExp,
+    kArgumentError,
     kIsolateSpawn
   };
 

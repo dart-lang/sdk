@@ -6,11 +6,13 @@
 // interferes with subsequent resolving of the method.  This might happen if the
 // noSuchMethod is cached on Object.prototype.
 
-@native("*A1")
+import 'native_metadata.dart';
+
+@Native("*A1")
 class A1 {
 }
 
-@native("*B1")
+@Native("*B1")
 class B1 extends A1  {
 }
 
@@ -18,12 +20,12 @@ class B1 extends A1  {
 @native makeB1();
 
 
-@native("*A2")
+@Native("*A2")
 class A2 {
   @native foo([a=99]);
 }
 
-@native("*B2")
+@Native("*B2")
 class B2 extends A2  {
 }
 
@@ -32,7 +34,7 @@ class B2 extends A2  {
 
 @native makeObject();
 
-@native("""
+@Native("""
 // This code is all inside 'setup' and so not accesible from the global scope.
 function inherits(child, parent) {
   if (child.prototype.__proto__) {

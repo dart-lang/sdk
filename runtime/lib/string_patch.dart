@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch class _StringImpl {
+patch class String {
   /* patch */ factory String.fromCharCodes(List<int> charCodes) {
     return _StringBase.createFromCharCodes(charCodes);
   }
+}
 
+patch class Strings {
   /* patch */ static String join(List<String> strings, String separator) {
     return _StringBase.join(strings, separator);
   }

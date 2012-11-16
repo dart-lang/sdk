@@ -346,22 +346,34 @@ ASSEMBLER_TEST_RUN(SignedMultiply, entry) {
 
 
 ASSEMBLER_TEST_GENERATE(SignedMultiply64, assembler) {
+  __ pushq(R15);  // Callee saved.
   __ movq(RAX, Immediate(2));
   __ movq(RCX, Immediate(4));
   __ imulq(RAX, RCX);
+
   __ movq(R8, Immediate(2));
   __ movq(R9, Immediate(4));
   __ pushq(R9);
   __ imulq(R8, Address(RSP, 0));
   __ popq(R9);
   __ addq(RAX, R8);
+
+  __ movq(R10, Immediate(2));
+  __ movq(R11, Immediate(4));
+  __ imulq(R10, R11);
+  __ addq(RAX, R10);
+
+  __ movq(R15, Immediate(2));
+  __ imulq(R15, Immediate(4));
+  __ addq(RAX, R15);
+  __ popq(R15);
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(SignedMultiply64, entry) {
   typedef int64_t (*SignedMultiply64)();
-  EXPECT_EQ(16, reinterpret_cast<SignedMultiply64>(entry)());
+  EXPECT_EQ(32, reinterpret_cast<SignedMultiply64>(entry)());
 }
 
 
@@ -371,9 +383,15 @@ static const int64_t kProductLargeConstants = 0x5bbb29a7f52fbbd1;
 
 
 ASSEMBLER_TEST_GENERATE(SignedMultiplyLong, assembler) {
+  Label done;
   __ movq(RAX, Immediate(kLargeConstant));
   __ movq(RCX, Immediate(kAnotherLargeConstant));
   __ imulq(RAX, RCX);
+  __ imulq(RCX, Immediate(kLargeConstant));
+  __ cmpq(RAX, RCX);
+  __ j(EQUAL, &done);
+  __ int3();
+  __ Bind(&done);
   __ ret();
 }
 
@@ -414,6 +432,22 @@ ASSEMBLER_TEST_GENERATE(SignedMultiply1, assembler) {
 ASSEMBLER_TEST_RUN(SignedMultiply1, entry) {
   typedef int (*SignedMultiply1)();
   EXPECT_EQ(8000, reinterpret_cast<SignedMultiply1>(entry)());
+}
+
+
+ASSEMBLER_TEST_GENERATE(SignedMultiply2, assembler) {
+  __ pushq(R15);  // Callee saved.
+  __ movl(R15, Immediate(2));
+  __ imull(R15, Immediate(1000));
+  __ movl(RAX, R15);
+  __ popq(R15);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(SignedMultiply2, entry) {
+  typedef int (*SignedMultiply2)();
+  EXPECT_EQ(2000, reinterpret_cast<SignedMultiply2>(entry)());
 }
 
 
@@ -774,9 +808,7 @@ ASSEMBLER_TEST_GENERATE(LogicalOps64, assembler) {
   __ andq(RAX, Immediate(2));
   __ cmpq(RAX, Immediate(0));
   __ j(EQUAL, &donetest1);
-  // Be sure to skip this crashing code.
-  __ movq(RAX, Immediate(0));
-  __ movq(Address(RAX, 0), RAX);
+  __ int3();
   __ Bind(&donetest1);
 
   Label donetest2;
@@ -786,9 +818,7 @@ ASSEMBLER_TEST_GENERATE(LogicalOps64, assembler) {
   __ popq(RAX);
   __ cmpq(RCX, Immediate(0));
   __ j(NOT_EQUAL, &donetest2);
-  // Be sure to skip this crashing code.
-  __ movq(RAX, Immediate(0));
-  __ movq(Address(RAX, 0), RAX);
+  __ int3();
   __ Bind(&donetest2);
 
   Label donetest3;
@@ -796,9 +826,7 @@ ASSEMBLER_TEST_GENERATE(LogicalOps64, assembler) {
   __ orq(RAX, Immediate(0));
   __ cmpq(RAX, Immediate(0));
   __ j(EQUAL, &donetest3);
-  // Be sure to skip this crashing code.
-  __ movq(RAX, Immediate(0));
-  __ movq(Address(RAX, 0), RAX);
+  __ int3();
   __ Bind(&donetest3);
 
   Label donetest4;
@@ -806,9 +834,7 @@ ASSEMBLER_TEST_GENERATE(LogicalOps64, assembler) {
   __ orq(RAX, Immediate(0));
   __ cmpq(RAX, Immediate(0));
   __ j(NOT_EQUAL, &donetest4);
-  // Be sure to skip this crashing code.
-  __ movq(RAX, Immediate(0));
-  __ movq(Address(RAX, 0), RAX);
+  __ int3();
   __ Bind(&donetest4);
 
   Label donetest5;
@@ -817,9 +843,7 @@ ASSEMBLER_TEST_GENERATE(LogicalOps64, assembler) {
   __ movq(Address(RSP, 0), RAX);
   __ cmpq(Address(RSP, 0), Immediate(0xff));
   __ j(EQUAL, &donetest5);
-  // Be sure to skip this crashing code.
-  __ movq(RAX, Immediate(0));
-  __ movq(Address(RAX, 0), RAX);
+  __ int3();
   __ Bind(&donetest5);
   __ popq(RAX);
 
@@ -828,9 +852,7 @@ ASSEMBLER_TEST_GENERATE(LogicalOps64, assembler) {
   __ shlq(RAX, Immediate(3));
   __ cmpq(RAX, Immediate(8));
   __ j(EQUAL, &donetest6);
-  // Be sure to skip this crashing code.
-  __ movq(RAX, Immediate(0));
-  __ movq(Address(RAX, 0), RAX);
+  __ int3();
   __ Bind(&donetest6);
 
   Label donetest7;
@@ -838,9 +860,7 @@ ASSEMBLER_TEST_GENERATE(LogicalOps64, assembler) {
   __ shrq(RAX, Immediate(1));
   __ cmpq(RAX, Immediate(1));
   __ j(EQUAL, &donetest7);
-  // Be sure to skip this crashing code.
-  __ movq(RAX, Immediate(0));
-  __ movq(Address(RAX, 0), RAX);
+  __ int3();
   __ Bind(&donetest7);
 
   Label donetest8;
@@ -848,9 +868,7 @@ ASSEMBLER_TEST_GENERATE(LogicalOps64, assembler) {
   __ shrq(RAX, Immediate(3));
   __ cmpq(RAX, Immediate(1));
   __ j(EQUAL, &donetest8);
-  // Be sure to skip this crashing code.
-  __ movq(RAX, Immediate(0));
-  __ movq(Address(RAX, 0), RAX);
+  __ int3();
   __ Bind(&donetest8);
 
   Label donetest9;
@@ -859,9 +877,7 @@ ASSEMBLER_TEST_GENERATE(LogicalOps64, assembler) {
   __ shlq(RAX, RCX);
   __ cmpq(RAX, Immediate(8));
   __ j(EQUAL, &donetest9);
-  // Be sure to skip this crashing code.
-  __ movq(RAX, Immediate(0));
-  __ movq(Address(RAX, 0), RAX);
+  __ int3();
   __ Bind(&donetest9);
 
   Label donetest10;
@@ -870,9 +886,7 @@ ASSEMBLER_TEST_GENERATE(LogicalOps64, assembler) {
   __ shrq(RAX, RCX);
   __ cmpq(RAX, Immediate(1));
   __ j(EQUAL, &donetest10);
-  // Be sure to skip this crashing code.
-  __ movq(RAX, Immediate(0));
-  __ movq(Address(RAX, 0), RAX);
+  __ int3();
   __ Bind(&donetest10);
 
   Label donetest6a;
@@ -890,9 +904,7 @@ ASSEMBLER_TEST_GENERATE(LogicalOps64, assembler) {
   __ shrq(RAX, Immediate(1));
   __ cmpq(RAX, Immediate(1));
   __ j(EQUAL, &donetest7a);
-  // Be sure to skip this crashing code.
-  __ movq(RAX, Immediate(0));
-  __ movq(Address(RAX, 0), RAX);
+  __ int3();
   __ Bind(&donetest7a);
 
   Label donetest8a;
@@ -900,9 +912,7 @@ ASSEMBLER_TEST_GENERATE(LogicalOps64, assembler) {
   __ shrq(RAX, Immediate(3));
   __ cmpq(RAX, Immediate(1));
   __ j(EQUAL, &donetest8a);
-  // Be sure to skip this crashing code.
-  __ movq(RAX, Immediate(0));
-  __ movq(Address(RAX, 0), RAX);
+  __ int3();
   __ Bind(&donetest8a);
 
   Label donetest9a;
@@ -911,9 +921,7 @@ ASSEMBLER_TEST_GENERATE(LogicalOps64, assembler) {
   __ shlq(RAX, RCX);
   __ cmpq(RAX, Immediate(8));
   __ j(EQUAL, &donetest9a);
-  // Be sure to skip this crashing code.
-  __ movq(RAX, Immediate(0));
-  __ movq(Address(RAX, 0), RAX);
+  __ int3();
   __ Bind(&donetest9a);
 
   Label donetest10a;
@@ -922,9 +930,7 @@ ASSEMBLER_TEST_GENERATE(LogicalOps64, assembler) {
   __ shrq(RAX, RCX);
   __ cmpq(RAX, Immediate(1));
   __ j(EQUAL, &donetest10a);
-  // Be sure to skip this crashing code.
-  __ movq(RAX, Immediate(0));
-  __ movq(Address(RAX, 0), RAX);
+  __ int3();
   __ Bind(&donetest10a);
 
   Label donetest11a;
@@ -933,9 +939,7 @@ ASSEMBLER_TEST_GENERATE(LogicalOps64, assembler) {
   __ shrq(RAX, Immediate(3));
   __ cmpq(RAX, Immediate(0x10000000));
   __ j(EQUAL, &donetest11a);
-  // Be sure to skip this crashing code.
-  __ movq(RAX, Immediate(0));
-  __ movq(Address(RAX, 0), RAX);
+  __ int3();
   __ Bind(&donetest11a);
 
   Label donetest12a;
@@ -944,9 +948,7 @@ ASSEMBLER_TEST_GENERATE(LogicalOps64, assembler) {
   __ sarq(RAX, Immediate(3));
   __ cmpq(RAX, Immediate(0xf000000000000000));
   __ j(EQUAL, &donetest12a);
-  // Be sure to skip this crashing code.
-  __ movq(RAX, Immediate(0));
-  __ movq(Address(RAX, 0), RAX);
+  __ int3();
   __ Bind(&donetest12a);
 
   Label donetest13a;
@@ -956,10 +958,28 @@ ASSEMBLER_TEST_GENERATE(LogicalOps64, assembler) {
   __ sarq(RAX, RCX);
   __ cmpq(RAX, Immediate(0xf000000000000000));
   __ j(EQUAL, &donetest13a);
-  // Be sure to skip this crashing code.
-  __ movq(RAX, Immediate(0));
-  __ movq(Address(RAX, 0), RAX);
+  __ int3();
   __ Bind(&donetest13a);
+
+  Label donetest14, donetest15;
+  __ pushq(R15);  // Callee saved.
+  __ movq(R15, Immediate(0xf000000000000001));
+  __ andq(R15, Immediate(-1));
+  __ andq(R15, Immediate(0x8000000000000001));
+  __ orq(R15, Immediate(2));
+  __ orq(R15, Immediate(0xf800000000000000));
+  __ xorq(R15, Immediate(1));
+  __ xorq(R15, Immediate(0x0800000000000000));
+  __ cmpq(R15, Immediate(0xf000000000000002));
+  __ j(EQUAL, &donetest14);
+  __ int3();
+  __ Bind(&donetest14);
+  __ andq(R15, Immediate(2));
+  __ cmpq(R15, Immediate(2));
+  __ j(EQUAL, &donetest15);
+  __ int3();
+  __ Bind(&donetest15);
+  __ popq(R15);  // Callee saved.
 
   __ movq(RAX, Immediate(0));
   __ ret();

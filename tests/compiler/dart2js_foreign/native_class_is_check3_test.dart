@@ -4,6 +4,8 @@
 
 // Test for correct simple is-checks on hidden native classes.
 
+import 'native_metadata.dart';
+
 interface J {
 }
 
@@ -14,21 +16,21 @@ interface I extends J {
 
 // Native implementation.
 
-@native("*A")
+@Native("*A")
 class A implements I  {
   // The native class accepts only other native instances.
   @native A read();
   @native write(A x);
 }
 
-@native("*B")
+@Native("*B")
 class B extends A  {
 }
 
 @native makeA();
 @native makeB();
 
-@native("""
+@Native("""
 // This code is all inside 'setup' and so not accesible from the global scope.
 function inherits(child, parent) {
   if (child.prototype.__proto__) {

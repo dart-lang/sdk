@@ -257,20 +257,20 @@ class _DateImpl implements Date {
     //    - "20120227"
     //    - "2012-02-27T14Z"
     //    - "-123450101 00:00:00 Z"  // In the year -12345.
-    final RegExp re = const RegExp(
+    final RegExp re = new RegExp(
         r'^([+-]?\d?\d\d\d\d)-?(\d\d)-?(\d\d)'  // The day part.
         r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(.\d{1,6})?)?)? ?([zZ])?)?$');
     Match match = re.firstMatch(formattedString);
-    if (match !== null) {
+    if (match != null) {
       int parseIntOrZero(String matched) {
         // TODO(floitsch): we should not need to test against the empty string.
-        if (matched === null || matched == "") return 0;
+        if (matched == null || matched == "") return 0;
         return int.parse(matched);
       }
 
       double parseDoubleOrZero(String matched) {
         // TODO(floitsch): we should not need to test against the empty string.
-        if (matched === null || matched == "") return 0.0;
+        if (matched == null || matched == "") return 0.0;
         return double.parse(matched);
       }
 
@@ -287,10 +287,10 @@ class _DateImpl implements Date {
         millisecond = 999;
       }
       // TODO(floitsch): we should not need to test against the empty string.
-      bool isUtc = (match[8] !== null) && (match[8] != "");
+      bool isUtc = (match[8] != null) && (match[8] != "");
       int millisecondsSinceEpoch = _brokenDownDateToMillisecondsSinceEpoch(
           years, month, day, hour, minute, second, millisecond, isUtc);
-      if (millisecondsSinceEpoch === null) {
+      if (millisecondsSinceEpoch == null) {
         throw new ArgumentError(formattedString);
       }
       if (addOneMillisecond) millisecondsSinceEpoch++;
@@ -308,7 +308,7 @@ class _DateImpl implements Date {
     if (millisecondsSinceEpoch.abs() > _MAX_MILLISECONDS_SINCE_EPOCH) {
       throw new ArgumentError(millisecondsSinceEpoch);
     }
-    if (isUtc === null) throw new ArgumentError(isUtc);
+    if (isUtc == null) throw new ArgumentError(isUtc);
   }
 
   bool operator ==(other) {

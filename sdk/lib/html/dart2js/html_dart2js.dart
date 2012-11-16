@@ -2,6 +2,7 @@ library html;
 
 import 'dart:isolate';
 import 'dart:json';
+import 'dart:svg' as svg;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -17,7 +18,7 @@ import 'dart:json';
 
 LocalWindow get window => JS('LocalWindow', 'window');
 
-Document get document => JS('Document', 'document');
+HtmlDocument get document => JS('Document', 'document');
 
 Element query(String selector) => document.query(selector);
 List<Element> queryAll(String selector) => document.queryAll(selector);
@@ -42,6 +43,10 @@ _callPortSync(int id, message) {
 
 // TODO(vsm): Plumb this properly.
 spawnDomFunction(f) => spawnFunction(f);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName AbstractWorker
 class AbstractWorker extends EventTarget native "*AbstractWorker" {
@@ -67,6 +72,10 @@ class AbstractWorkerEvents extends Events {
 
   EventListenerList get error => this['error'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName AnalyserNode
 class AnalyserNode extends AudioNode native "*AnalyserNode" {
@@ -95,6 +104,10 @@ class AnalyserNode extends AudioNode native "*AnalyserNode" {
   /** @domName AnalyserNode.getFloatFrequencyData */
   void getFloatFrequencyData(Float32Array array) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLAnchorElement
 class AnchorElement extends Element implements Element native "*HTMLAnchorElement" {
@@ -169,6 +182,10 @@ class AnchorElement extends Element implements Element native "*HTMLAnchorElemen
   /** @domName HTMLAnchorElement.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebKitAnimation
 class Animation native "*WebKitAnimation" {
@@ -218,6 +235,10 @@ class Animation native "*WebKitAnimation" {
   /** @domName WebKitAnimation.play */
   void play() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebKitAnimationEvent
 class AnimationEvent extends Event native "*WebKitAnimationEvent" {
@@ -228,6 +249,10 @@ class AnimationEvent extends Event native "*WebKitAnimationEvent" {
   /** @domName WebKitAnimationEvent.elapsedTime */
   final num elapsedTime;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLAppletElement
 class AppletElement extends Element implements Element native "*HTMLAppletElement" {
@@ -265,6 +290,10 @@ class AppletElement extends Element implements Element native "*HTMLAppletElemen
   /** @domName HTMLAppletElement.width */
   String width;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLAreaElement
 class AreaElement extends Element implements Element native "*HTMLAreaElement" {
@@ -313,6 +342,10 @@ class AreaElement extends Element implements Element native "*HTMLAreaElement" {
   /** @domName HTMLAreaElement.target */
   String target;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ArrayBuffer
 class ArrayBuffer native "*ArrayBuffer" {
@@ -325,6 +358,10 @@ class ArrayBuffer native "*ArrayBuffer" {
   /** @domName ArrayBuffer.slice */
   ArrayBuffer slice(int begin, [int end]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ArrayBufferView
 class ArrayBufferView native "*ArrayBufferView" {
@@ -338,6 +375,10 @@ class ArrayBufferView native "*ArrayBufferView" {
   /** @domName ArrayBufferView.byteOffset */
   final int byteOffset;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Attr
 class Attr extends Node native "*Attr" {
@@ -357,6 +398,10 @@ class Attr extends Node native "*Attr" {
   /** @domName Attr.value */
   String value;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName AudioBuffer
 class AudioBuffer native "*AudioBuffer" {
@@ -390,6 +435,7 @@ typedef void AudioBufferCallback(AudioBuffer audioBuffer);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNode" {
 
@@ -456,6 +502,7 @@ class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNo
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class AudioContext extends EventTarget native "*AudioContext" {
   factory AudioContext() => _AudioContextFactoryProvider.createAudioContext();
@@ -562,6 +609,10 @@ class AudioContextEvents extends Events {
 
   EventListenerList get complete => this['complete'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName AudioDestinationNode
 class AudioDestinationNode extends AudioNode native "*AudioDestinationNode" {
@@ -569,6 +620,10 @@ class AudioDestinationNode extends AudioNode native "*AudioDestinationNode" {
   /** @domName AudioDestinationNode.numberOfChannels */
   final int numberOfChannels;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLAudioElement
 class AudioElement extends MediaElement native "*HTMLAudioElement" {
@@ -580,10 +635,18 @@ class AudioElement extends MediaElement native "*HTMLAudioElement" {
     return _AudioElementFactoryProvider.createAudioElement(src);
   }
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName AudioGain
 class AudioGain extends AudioParam native "*AudioGain" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName AudioListener
 class AudioListener native "*AudioListener" {
@@ -603,6 +666,10 @@ class AudioListener native "*AudioListener" {
   /** @domName AudioListener.setVelocity */
   void setVelocity(num x, num y, num z) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName AudioNode
 class AudioNode native "*AudioNode" {
@@ -622,6 +689,10 @@ class AudioNode native "*AudioNode" {
   /** @domName AudioNode.disconnect */
   void disconnect(int output) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName AudioParam
 class AudioParam native "*AudioParam" {
@@ -662,6 +733,10 @@ class AudioParam native "*AudioParam" {
   /** @domName AudioParam.setValueCurveAtTime */
   void setValueCurveAtTime(Float32Array values, num time, num duration) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName AudioProcessingEvent
 class AudioProcessingEvent extends Event native "*AudioProcessingEvent" {
@@ -672,10 +747,18 @@ class AudioProcessingEvent extends Event native "*AudioProcessingEvent" {
   /** @domName AudioProcessingEvent.outputBuffer */
   final AudioBuffer outputBuffer;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName AudioSourceNode
 class AudioSourceNode extends AudioNode native "*AudioSourceNode" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLBRElement
 class BRElement extends Element implements Element native "*HTMLBRElement" {
@@ -685,6 +768,10 @@ class BRElement extends Element implements Element native "*HTMLBRElement" {
   /** @domName HTMLBRElement.clear */
   String clear;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName BarInfo
 class BarInfo native "*BarInfo" {
@@ -692,6 +779,10 @@ class BarInfo native "*BarInfo" {
   /** @domName BarInfo.visible */
   final bool visible;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLBaseElement
 class BaseElement extends Element implements Element native "*HTMLBaseElement" {
@@ -704,6 +795,10 @@ class BaseElement extends Element implements Element native "*HTMLBaseElement" {
   /** @domName HTMLBaseElement.target */
   String target;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLBaseFontElement
 class BaseFontElement extends Element implements Element native "*HTMLBaseFontElement" {
@@ -717,6 +812,10 @@ class BaseFontElement extends Element implements Element native "*HTMLBaseFontEl
   /** @domName HTMLBaseFontElement.size */
   int size;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName BatteryManager
 class BatteryManager extends EventTarget native "*BatteryManager" {
@@ -760,6 +859,10 @@ class BatteryManagerEvents extends Events {
 
   EventListenerList get levelChange => this['levelchange'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName BeforeLoadEvent
 class BeforeLoadEvent extends Event native "*BeforeLoadEvent" {
@@ -767,6 +870,10 @@ class BeforeLoadEvent extends Event native "*BeforeLoadEvent" {
   /** @domName BeforeLoadEvent.url */
   final String url;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName BiquadFilterNode
 class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
@@ -802,6 +909,10 @@ class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
   /** @domName BiquadFilterNode.getFrequencyResponse */
   void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Blob
 class Blob native "*Blob" {
@@ -825,6 +936,10 @@ class Blob native "*Blob" {
   /** @domName Blob.slice */
   Blob slice([int start, int end, String contentType]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLBodyElement
 class BodyElement extends Element implements Element native "*HTMLBodyElement" {
@@ -882,6 +997,10 @@ class BodyElementEvents extends ElementEvents {
 
   EventListenerList get unload => this['unload'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLButtonElement
 class ButtonElement extends Element implements Element native "*HTMLButtonElement" {
@@ -939,10 +1058,18 @@ class ButtonElement extends Element implements Element native "*HTMLButtonElemen
   /** @domName HTMLButtonElement.setCustomValidity */
   void setCustomValidity(String error) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CDATASection
 class CDATASection extends Text native "*CDATASection" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSCharsetRule
 class CSSCharsetRule extends CSSRule native "*CSSCharsetRule" {
@@ -950,6 +1077,10 @@ class CSSCharsetRule extends CSSRule native "*CSSCharsetRule" {
   /** @domName CSSCharsetRule.encoding */
   String encoding;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSFontFaceRule
 class CSSFontFaceRule extends CSSRule native "*CSSFontFaceRule" {
@@ -957,6 +1088,10 @@ class CSSFontFaceRule extends CSSRule native "*CSSFontFaceRule" {
   /** @domName CSSFontFaceRule.style */
   final CSSStyleDeclaration style;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSImportRule
 class CSSImportRule extends CSSRule native "*CSSImportRule" {
@@ -970,6 +1105,10 @@ class CSSImportRule extends CSSRule native "*CSSImportRule" {
   /** @domName CSSImportRule.styleSheet */
   final CSSStyleSheet styleSheet;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebKitCSSKeyframeRule
 class CSSKeyframeRule extends CSSRule native "*WebKitCSSKeyframeRule" {
@@ -980,6 +1119,10 @@ class CSSKeyframeRule extends CSSRule native "*WebKitCSSKeyframeRule" {
   /** @domName WebKitCSSKeyframeRule.style */
   final CSSStyleDeclaration style;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebKitCSSKeyframesRule
 class CSSKeyframesRule extends CSSRule native "*WebKitCSSKeyframesRule" {
@@ -999,6 +1142,10 @@ class CSSKeyframesRule extends CSSRule native "*WebKitCSSKeyframesRule" {
   /** @domName WebKitCSSKeyframesRule.insertRule */
   void insertRule(String rule) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebKitCSSMatrix
 class CSSMatrix native "*WebKitCSSMatrix" {
@@ -1106,6 +1253,10 @@ class CSSMatrix native "*WebKitCSSMatrix" {
   /** @domName WebKitCSSMatrix.translate */
   CSSMatrix translate(num x, num y, num z) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSMediaRule
 class CSSMediaRule extends CSSRule native "*CSSMediaRule" {
@@ -1122,6 +1273,10 @@ class CSSMediaRule extends CSSRule native "*CSSMediaRule" {
   /** @domName CSSMediaRule.insertRule */
   int insertRule(String rule, int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSPageRule
 class CSSPageRule extends CSSRule native "*CSSPageRule" {
@@ -1132,6 +1287,10 @@ class CSSPageRule extends CSSRule native "*CSSPageRule" {
   /** @domName CSSPageRule.style */
   final CSSStyleDeclaration style;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSPrimitiveValue
 class CSSPrimitiveValue extends CSSValue native "*CSSPrimitiveValue" {
@@ -1218,6 +1377,10 @@ class CSSPrimitiveValue extends CSSValue native "*CSSPrimitiveValue" {
   /** @domName CSSPrimitiveValue.setStringValue */
   void setStringValue(int stringType, String stringValue) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSRule
 class CSSRule native "*CSSRule" {
@@ -1255,6 +1418,7 @@ class CSSRule native "*CSSRule" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 String _cachedBrowserPrefix;
 
@@ -4087,6 +4251,10 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     setProperty('zoom', value, '');
   }
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSStyleRule
 class CSSStyleRule extends CSSRule native "*CSSStyleRule" {
@@ -4097,6 +4265,10 @@ class CSSStyleRule extends CSSRule native "*CSSStyleRule" {
   /** @domName CSSStyleRule.style */
   final CSSStyleDeclaration style;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSStyleSheet
 class CSSStyleSheet extends StyleSheet native "*CSSStyleSheet" {
@@ -4122,6 +4294,10 @@ class CSSStyleSheet extends StyleSheet native "*CSSStyleSheet" {
   /** @domName CSSStyleSheet.removeRule */
   void removeRule(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebKitCSSTransformValue
 class CSSTransformValue extends _CSSValueList native "*WebKitCSSTransformValue" {
@@ -4171,10 +4347,18 @@ class CSSTransformValue extends _CSSValueList native "*WebKitCSSTransformValue" 
   /** @domName WebKitCSSTransformValue.operationType */
   final int operationType;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSUnknownRule
 class CSSUnknownRule extends CSSRule native "*CSSUnknownRule" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSValue
 class CSSValue native "*CSSValue" {
@@ -4196,6 +4380,7 @@ class CSSValue native "*CSSValue" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class CanvasElement extends Element implements Element native "*HTMLCanvasElement" {
 
@@ -4222,6 +4407,10 @@ class CanvasElement extends Element implements Element native "*HTMLCanvasElemen
   CanvasRenderingContext getContext(String contextId) native;
   CanvasRenderingContext2D get context2d => getContext('2d');
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CanvasGradient
 class CanvasGradient native "*CanvasGradient" {
@@ -4229,10 +4418,18 @@ class CanvasGradient native "*CanvasGradient" {
   /** @domName CanvasGradient.addColorStop */
   void addColorStop(num offset, String color) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CanvasPattern
 class CanvasPattern native "*CanvasPattern" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CanvasRenderingContext
 class CanvasRenderingContext native "*CanvasRenderingContext" {
@@ -4243,6 +4440,7 @@ class CanvasRenderingContext native "*CanvasRenderingContext" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRenderingContext2D" {
 
@@ -4331,20 +4529,19 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   void closePath() native;
 
   /** @domName CanvasRenderingContext2D.createImageData */
-  ImageData createImageData(imagedata_OR_sw, [sh]) {
-    if ((imagedata_OR_sw is ImageData || imagedata_OR_sw == null) &&
+  ImageData createImageData(imagedata_OR_sw, [num sh]) {
+    if ((?imagedata_OR_sw && (imagedata_OR_sw is ImageData || imagedata_OR_sw == null)) &&
         !?sh) {
       var imagedata_1 = _convertDartToNative_ImageData(imagedata_OR_sw);
       return _convertNativeToDart_ImageData(_createImageData_1(imagedata_1));
     }
-    if ((imagedata_OR_sw is num || imagedata_OR_sw == null) &&
-        (sh is num || sh == null)) {
+    if ((?imagedata_OR_sw && (imagedata_OR_sw is num || imagedata_OR_sw == null))) {
       return _convertNativeToDart_ImageData(_createImageData_2(imagedata_OR_sw, sh));
     }
     throw const Exception("Incorrect number or type of arguments");
   }
   _createImageData_1(imagedata) native "createImageData";
-  _createImageData_2(num sw, num sh) native "createImageData";
+  _createImageData_2(num sw, sh) native "createImageData";
 
   /** @domName CanvasRenderingContext2D.createLinearGradient */
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
@@ -4392,7 +4589,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   void moveTo(num x, num y) native;
 
   /** @domName CanvasRenderingContext2D.putImageData */
-  void putImageData(ImageData imagedata, num dx, num dy, [dirtyX, dirtyY, dirtyWidth, dirtyHeight]) {
+  void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if (!?dirtyX &&
         !?dirtyY &&
         !?dirtyWidth &&
@@ -4401,18 +4598,13 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
       _putImageData_1(imagedata_1, dx, dy);
       return;
     }
-    if ((dirtyX is num || dirtyX == null) &&
-        (dirtyY is num || dirtyY == null) &&
-        (dirtyWidth is num || dirtyWidth == null) &&
-        (dirtyHeight is num || dirtyHeight == null)) {
-      var imagedata_2 = _convertDartToNative_ImageData(imagedata);
-      _putImageData_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
-      return;
-    }
+    var imagedata_2 = _convertDartToNative_ImageData(imagedata);
+    _putImageData_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+    return;
     throw const Exception("Incorrect number or type of arguments");
   }
   void _putImageData_1(imagedata, dx, dy) native "putImageData";
-  void _putImageData_2(imagedata, dx, dy, num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight) native "putImageData";
+  void _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "putImageData";
 
   /** @domName CanvasRenderingContext2D.quadraticCurveTo */
   void quadraticCurveTo(num cpx, num cpy, num x, num y) native;
@@ -4481,7 +4673,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   _webkitGetImageDataHD_1(sx, sy, sw, sh) native "webkitGetImageDataHD";
 
   /** @domName CanvasRenderingContext2D.webkitPutImageDataHD */
-  void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [dirtyX, dirtyY, dirtyWidth, dirtyHeight]) {
+  void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if (!?dirtyX &&
         !?dirtyY &&
         !?dirtyWidth &&
@@ -4490,18 +4682,13 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
       _webkitPutImageDataHD_1(imagedata_1, dx, dy);
       return;
     }
-    if ((dirtyX is num || dirtyX == null) &&
-        (dirtyY is num || dirtyY == null) &&
-        (dirtyWidth is num || dirtyWidth == null) &&
-        (dirtyHeight is num || dirtyHeight == null)) {
-      var imagedata_2 = _convertDartToNative_ImageData(imagedata);
-      _webkitPutImageDataHD_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
-      return;
-    }
+    var imagedata_2 = _convertDartToNative_ImageData(imagedata);
+    _webkitPutImageDataHD_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+    return;
     throw const Exception("Incorrect number or type of arguments");
   }
   void _webkitPutImageDataHD_1(imagedata, dx, dy) native "webkitPutImageDataHD";
-  void _webkitPutImageDataHD_2(imagedata, dx, dy, num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight) native "webkitPutImageDataHD";
+  void _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "webkitPutImageDataHD";
 
 
   /**
@@ -4540,14 +4727,26 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
     this.strokeStyle = 'hsla($h, $s%, $l%, $a)';
   }
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ChannelMergerNode
 class ChannelMergerNode extends AudioNode native "*ChannelMergerNode" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ChannelSplitterNode
 class ChannelSplitterNode extends AudioNode native "*ChannelSplitterNode" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CharacterData
 class CharacterData extends Node native "*CharacterData" {
@@ -4576,6 +4775,10 @@ class CharacterData extends Node native "*CharacterData" {
   /** @domName CharacterData.substringData */
   String substringData(int offset, int length) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ClientRect
 class ClientRect native "*ClientRect" {
@@ -4598,6 +4801,10 @@ class ClientRect native "*ClientRect" {
   /** @domName ClientRect.width */
   final num width;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Clipboard
 class Clipboard native "*Clipboard" {
@@ -4629,6 +4836,10 @@ class Clipboard native "*Clipboard" {
   /** @domName Clipboard.setDragImage */
   void setDragImage(ImageElement image, int x, int y) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CloseEvent
 class CloseEvent extends Event native "*CloseEvent" {
@@ -4642,10 +4853,18 @@ class CloseEvent extends Event native "*CloseEvent" {
   /** @domName CloseEvent.wasClean */
   final bool wasClean;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Comment
 class Comment extends CharacterData native "*Comment" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CompositionEvent
 class CompositionEvent extends UIEvent native "*CompositionEvent" {
@@ -4659,6 +4878,7 @@ class CompositionEvent extends UIEvent native "*CompositionEvent" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class Console
     // Console is sometimes a singleton bag-of-properties without a prototype.
@@ -4728,6 +4948,10 @@ class Console
   void warn(Object arg) native;
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLContentElement
 class ContentElement extends Element implements Element native "*HTMLContentElement" {
@@ -4743,6 +4967,10 @@ class ContentElement extends Element implements Element native "*HTMLContentElem
   /** @domName HTMLContentElement.getDistributedNodes */
   List<Node> getDistributedNodes() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ConvolverNode
 class ConvolverNode extends AudioNode native "*ConvolverNode" {
@@ -4753,6 +4981,10 @@ class ConvolverNode extends AudioNode native "*ConvolverNode" {
   /** @domName ConvolverNode.normalize */
   bool normalize;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Coordinates
 class Coordinates native "*Coordinates" {
@@ -4778,6 +5010,10 @@ class Coordinates native "*Coordinates" {
   /** @domName Coordinates.speed */
   final num speed;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Counter
 class Counter native "*Counter" {
@@ -4791,6 +5027,10 @@ class Counter native "*Counter" {
   /** @domName Counter.separator */
   final String separator;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Crypto
 class Crypto native "*Crypto" {
@@ -4804,6 +5044,7 @@ class Crypto native "*Crypto" {
 
 // WARNING: Do not edit - generated code.
 
+
 class CustomEvent extends Event native "*CustomEvent" {
   factory CustomEvent(String type, [bool canBubble = true, bool cancelable = true,
       Object detail]) => _CustomEventFactoryProvider.createCustomEvent(
@@ -4816,6 +5057,10 @@ class CustomEvent extends Event native "*CustomEvent" {
   void $dom_initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native "initCustomEvent";
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLDListElement
 class DListElement extends Element implements Element native "*HTMLDListElement" {
@@ -4825,6 +5070,10 @@ class DListElement extends Element implements Element native "*HTMLDListElement"
   /** @domName HTMLDListElement.compact */
   bool compact;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DOMApplicationCache
 class DOMApplicationCache extends EventTarget native "*DOMApplicationCache" {
@@ -4888,6 +5137,10 @@ class DOMApplicationCacheEvents extends Events {
 
   EventListenerList get updateReady => this['updateready'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DOMError
 class DOMError native "*DOMError" {
@@ -4895,6 +5148,10 @@ class DOMError native "*DOMError" {
   /** @domName DOMError.name */
   final String name;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DOMException
 class DOMException native "*DOMException" {
@@ -4961,6 +5218,10 @@ class DOMException native "*DOMException" {
   /** @domName DOMException.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DOMFileSystem
 class DOMFileSystem native "*DOMFileSystem" {
@@ -4971,6 +5232,10 @@ class DOMFileSystem native "*DOMFileSystem" {
   /** @domName DOMFileSystem.root */
   final DirectoryEntry root;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DOMFileSystemSync
 class DOMFileSystemSync native "*DOMFileSystemSync" {
@@ -4981,6 +5246,10 @@ class DOMFileSystemSync native "*DOMFileSystemSync" {
   /** @domName DOMFileSystemSync.root */
   final DirectoryEntrySync root;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DOMImplementation
 class DOMImplementation native "*DOMImplementation" {
@@ -4995,11 +5264,15 @@ class DOMImplementation native "*DOMImplementation" {
   DocumentType createDocumentType(String qualifiedName, String publicId, String systemId) native;
 
   /** @domName DOMImplementation.createHTMLDocument */
-  Document createHTMLDocument(String title) native;
+  HtmlDocument createHTMLDocument(String title) native;
 
   /** @domName DOMImplementation.hasFeature */
   bool hasFeature(String feature, String version) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MimeType
 class DOMMimeType native "*MimeType" {
@@ -5016,6 +5289,10 @@ class DOMMimeType native "*MimeType" {
   /** @domName MimeType.type */
   final String type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MimeTypeArray
 class DOMMimeTypeArray implements JavaScriptIndexingBehavior, List<DOMMimeType> native "*MimeTypeArray" {
@@ -5037,7 +5314,7 @@ class DOMMimeTypeArray implements JavaScriptIndexingBehavior, List<DOMMimeType> 
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<DOMMimeType>(this);
+    return new FixedSizeListIterator<DOMMimeType>(this);
   }
 
   // From Collection<DOMMimeType>:
@@ -5112,6 +5389,10 @@ class DOMMimeTypeArray implements JavaScriptIndexingBehavior, List<DOMMimeType> 
   /** @domName MimeTypeArray.namedItem */
   DOMMimeType namedItem(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DOMParser
 class DOMParser native "*DOMParser" {
@@ -5121,6 +5402,10 @@ class DOMParser native "*DOMParser" {
   /** @domName DOMParser.parseFromString */
   Document parseFromString(String str, String contentType) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Plugin
 class DOMPlugin native "*Plugin" {
@@ -5143,6 +5428,10 @@ class DOMPlugin native "*Plugin" {
   /** @domName Plugin.namedItem */
   DOMMimeType namedItem(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName PluginArray
 class DOMPluginArray implements JavaScriptIndexingBehavior, List<DOMPlugin> native "*PluginArray" {
@@ -5164,7 +5453,7 @@ class DOMPluginArray implements JavaScriptIndexingBehavior, List<DOMPlugin> nati
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<DOMPlugin>(this);
+    return new FixedSizeListIterator<DOMPlugin>(this);
   }
 
   // From Collection<DOMPlugin>:
@@ -5242,6 +5531,10 @@ class DOMPluginArray implements JavaScriptIndexingBehavior, List<DOMPlugin> nati
   /** @domName PluginArray.refresh */
   void refresh(bool reload) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Selection
 class DOMSelection native "*Selection" {
@@ -5324,6 +5617,10 @@ class DOMSelection native "*Selection" {
   /** @domName Selection.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DOMSettableTokenList
 class DOMSettableTokenList extends DOMTokenList native "*DOMSettableTokenList" {
@@ -5331,9 +5628,18 @@ class DOMSettableTokenList extends DOMTokenList native "*DOMSettableTokenList" {
   /** @domName DOMSettableTokenList.value */
   String value;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName DOMStringMap
 abstract class DOMStringMap {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DOMTokenList
 class DOMTokenList native "*DOMTokenList" {
@@ -5353,6 +5659,10 @@ class DOMTokenList native "*DOMTokenList" {
   /** @domName DOMTokenList.toggle */
   bool toggle(String token, [bool force]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLDataListElement
 class DataListElement extends Element implements Element native "*HTMLDataListElement" {
@@ -5362,6 +5672,10 @@ class DataListElement extends Element implements Element native "*HTMLDataListEl
   /** @domName HTMLDataListElement.options */
   final HTMLCollection options;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DataTransferItem
 class DataTransferItem native "*DataTransferItem" {
@@ -5381,6 +5695,10 @@ class DataTransferItem native "*DataTransferItem" {
   /** @domName DataTransferItem.webkitGetAsEntry */
   Entry webkitGetAsEntry() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DataTransferItemList
 class DataTransferItemList native "*DataTransferItemList" {
@@ -5397,6 +5715,10 @@ class DataTransferItemList native "*DataTransferItemList" {
   /** @domName DataTransferItemList.item */
   DataTransferItem item(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DataView
 class DataView extends ArrayBufferView native "*DataView" {
@@ -5459,6 +5781,10 @@ class DataView extends ArrayBufferView native "*DataView" {
   /** @domName DataView.setUint8 */
   void setUint8(int byteOffset, int value) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Database
 class Database native "*Database" {
@@ -5483,6 +5809,10 @@ class Database native "*Database" {
 
 
 typedef void DatabaseCallback(database);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DatabaseSync
 class DatabaseSync native "*DatabaseSync" {
@@ -5502,6 +5832,10 @@ class DatabaseSync native "*DatabaseSync" {
   /** @domName DatabaseSync.transaction */
   void transaction(SQLTransactionSyncCallback callback) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DedicatedWorkerContext
 class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerContext" {
@@ -5513,7 +5847,7 @@ class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerConte
     new DedicatedWorkerContextEvents(this);
 
   /** @domName DedicatedWorkerContext.postMessage */
-  void postMessage(/*any*/ message, [messagePorts]) {
+  void postMessage(/*any*/ message, [List messagePorts]) {
     if (?messagePorts) {
       var message_1 = _convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, messagePorts);
@@ -5532,6 +5866,10 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 
   EventListenerList get message => this['message'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DelayNode
 class DelayNode extends AudioNode native "*DelayNode" {
@@ -5539,6 +5877,10 @@ class DelayNode extends AudioNode native "*DelayNode" {
   /** @domName DelayNode.delayTime */
   final AudioParam delayTime;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLDetailsElement
 class DetailsElement extends Element implements Element native "*HTMLDetailsElement" {
@@ -5548,6 +5890,10 @@ class DetailsElement extends Element implements Element native "*HTMLDetailsElem
   /** @domName HTMLDetailsElement.open */
   bool open;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DeviceMotionEvent
 class DeviceMotionEvent extends Event native "*DeviceMotionEvent" {
@@ -5555,6 +5901,10 @@ class DeviceMotionEvent extends Event native "*DeviceMotionEvent" {
   /** @domName DeviceMotionEvent.interval */
   final num interval;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DeviceOrientationEvent
 class DeviceOrientationEvent extends Event native "*DeviceOrientationEvent" {
@@ -5574,6 +5924,10 @@ class DeviceOrientationEvent extends Event native "*DeviceOrientationEvent" {
   /** @domName DeviceOrientationEvent.initDeviceOrientationEvent */
   void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLDirectoryElement
 class DirectoryElement extends Element implements Element native "*HTMLDirectoryElement" {
@@ -5581,6 +5935,10 @@ class DirectoryElement extends Element implements Element native "*HTMLDirectory
   /** @domName HTMLDirectoryElement.compact */
   bool compact;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DirectoryEntry
 class DirectoryEntry extends Entry native "*DirectoryEntry" {
@@ -5589,7 +5947,7 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
   DirectoryReader createReader() native;
 
   /** @domName DirectoryEntry.getDirectory */
-  void getDirectory(String path, {options, successCallback, errorCallback}) {
+  void getDirectory(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) {
     if (?errorCallback) {
       var options_1 = _convertDartToNative_Dictionary(options);
       _getDirectory_1(path, options_1, successCallback, errorCallback);
@@ -5614,7 +5972,7 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
   void _getDirectory_4(path) native "getDirectory";
 
   /** @domName DirectoryEntry.getFile */
-  void getFile(String path, {options, successCallback, errorCallback}) {
+  void getFile(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) {
     if (?errorCallback) {
       var options_1 = _convertDartToNative_Dictionary(options);
       _getFile_1(path, options_1, successCallback, errorCallback);
@@ -5641,6 +5999,10 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
   /** @domName DirectoryEntry.removeRecursively */
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DirectoryEntrySync
 class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
@@ -5665,6 +6027,10 @@ class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
   /** @domName DirectoryEntrySync.removeRecursively */
   void removeRecursively() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DirectoryReader
 class DirectoryReader native "*DirectoryReader" {
@@ -5672,6 +6038,10 @@ class DirectoryReader native "*DirectoryReader" {
   /** @domName DirectoryReader.readEntries */
   void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DirectoryReaderSync
 class DirectoryReaderSync native "*DirectoryReaderSync" {
@@ -5679,21 +6049,22 @@ class DirectoryReaderSync native "*DirectoryReaderSync" {
   /** @domName DirectoryReaderSync.readEntries */
   List<EntrySync> readEntries() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLDivElement
 class DivElement extends Element implements Element native "*HTMLDivElement" {
 
   factory DivElement() => _Elements.createDivElement();
-
-  /** @domName HTMLDivElement.align */
-  String align;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class Document extends Node
-    native "*HTMLDocument"
+
+class Document extends Node  native "*Document"
 {
 
 
@@ -5703,11 +6074,13 @@ class Document extends Node
   DocumentEvents get on =>
     new DocumentEvents(this);
 
-  /** @domName HTMLDocument.activeElement */
-  final Element activeElement;
+  /** @domName Document.body */
+  Element get $dom_body => JS("Element", "#.body", this);
 
   /** @domName Document.body */
-  Element body;
+  void set $dom_body(Element value) {
+    JS("void", "#.body = #", this, value);
+  }
 
   /** @domName Document.charset */
   String charset;
@@ -5717,7 +6090,7 @@ class Document extends Node
 
   /** @domName Document.defaultView */
   Window get window => _convertNativeToDart_Window(this._window);
-  Window get _window => JS("Window", "#.defaultView", this);
+  dynamic get _window => JS("dynamic", "#.defaultView", this);
 
   /** @domName Document.documentElement */
   final Element documentElement;
@@ -5726,13 +6099,13 @@ class Document extends Node
   final String domain;
 
   /** @domName Document.head */
-  final HeadElement head;
+  HeadElement get $dom_head => JS("HeadElement", "#.head", this);
 
   /** @domName Document.implementation */
   final DOMImplementation implementation;
 
   /** @domName Document.lastModified */
-  final String lastModified;
+  String get $dom_lastModified => JS("String", "#.lastModified", this);
 
   /** @domName Document.preferredStylesheetSet */
   final String preferredStylesheetSet;
@@ -5741,43 +6114,42 @@ class Document extends Node
   final String readyState;
 
   /** @domName Document.referrer */
-  final String referrer;
+  String get $dom_referrer => JS("String", "#.referrer", this);
 
   /** @domName Document.selectedStylesheetSet */
   String selectedStylesheetSet;
 
   /** @domName Document.styleSheets */
-  final List<StyleSheet> styleSheets;
+  List<StyleSheet> get $dom_styleSheets => JS("List<StyleSheet>", "#.styleSheets", this);
 
   /** @domName Document.title */
-  String title;
+  String get $dom_title => JS("String", "#.title", this);
 
-  /** @domName Document.webkitCurrentFullScreenElement */
-  final Element webkitCurrentFullScreenElement;
-
-  /** @domName Document.webkitFullScreenKeyboardInputAllowed */
-  final bool webkitFullScreenKeyboardInputAllowed;
+  /** @domName Document.title */
+  void set $dom_title(String value) {
+    JS("void", "#.title = #", this, value);
+  }
 
   /** @domName Document.webkitFullscreenElement */
-  final Element webkitFullscreenElement;
+  Element get $dom_webkitFullscreenElement => JS("Element", "#.webkitFullscreenElement", this);
 
   /** @domName Document.webkitFullscreenEnabled */
-  final bool webkitFullscreenEnabled;
+  bool get $dom_webkitFullscreenEnabled => JS("bool", "#.webkitFullscreenEnabled", this);
 
   /** @domName Document.webkitHidden */
-  final bool webkitHidden;
+  bool get $dom_webkitHidden => JS("bool", "#.webkitHidden", this);
 
   /** @domName Document.webkitIsFullScreen */
-  final bool webkitIsFullScreen;
+  bool get $dom_webkitIsFullScreen => JS("bool", "#.webkitIsFullScreen", this);
 
   /** @domName Document.webkitPointerLockElement */
-  final Element webkitPointerLockElement;
+  Element get $dom_webkitPointerLockElement => JS("Element", "#.webkitPointerLockElement", this);
 
   /** @domName Document.webkitVisibilityState */
-  final String webkitVisibilityState;
+  String get $dom_webkitVisibilityState => JS("String", "#.webkitVisibilityState", this);
 
   /** @domName Document.caretRangeFromPoint */
-  Range caretRangeFromPoint(int x, int y) native;
+  Range $dom_caretRangeFromPoint(int x, int y) native "caretRangeFromPoint";
 
   /** @domName Document.createCDATASection */
   CDATASection createCDATASection(String data) native;
@@ -5802,16 +6174,16 @@ class Document extends Node
 
   /** @domName Document.createTouch */
   Touch createTouch(LocalWindow window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) {
-    EventTarget target_1 = _convertDartToNative_EventTarget(target);
+    var target_1 = _convertDartToNative_EventTarget(target);
     return _createTouch_1(window, target_1, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
   }
-  Touch _createTouch_1(LocalWindow window, EventTarget target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native "createTouch";
+  Touch _createTouch_1(LocalWindow window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native "createTouch";
 
   /** @domName Document.createTouchList */
   TouchList $dom_createTouchList() native "createTouchList";
 
   /** @domName Document.elementFromPoint */
-  Element elementFromPoint(int x, int y) native;
+  Element $dom_elementFromPoint(int x, int y) native "elementFromPoint";
 
   /** @domName Document.execCommand */
   bool execCommand(String command, bool userInterface, String value) native;
@@ -5853,27 +6225,27 @@ class Document extends Node
   List<Node> $dom_querySelectorAll(String selectors) native "querySelectorAll";
 
   /** @domName Document.webkitCancelFullScreen */
-  void webkitCancelFullScreen() native;
+  void $dom_webkitCancelFullScreen() native "webkitCancelFullScreen";
 
   /** @domName Document.webkitExitFullscreen */
-  void webkitExitFullscreen() native;
+  void $dom_webkitExitFullscreen() native "webkitExitFullscreen";
 
   /** @domName Document.webkitExitPointerLock */
-  void webkitExitPointerLock() native;
+  void $dom_webkitExitPointerLock() native "webkitExitPointerLock";
 
   // TODO(jacobr): implement all Element methods not on Document.
 
   Element query(String selectors) {
     // It is fine for our RegExp to detect element id query selectors to have
     // false negatives but not false positives.
-    if (const RegExp("^#[_a-zA-Z]\\w*\$").hasMatch(selectors)) {
+    if (new RegExp("^#[_a-zA-Z]\\w*\$").hasMatch(selectors)) {
       return $dom_getElementById(selectors.substring(1));
     }
     return $dom_querySelector(selectors);
   }
 
   List<Element> queryAll(String selectors) {
-    if (const RegExp("""^\\[name=["'][^'"]+['"]\\]\$""").hasMatch(selectors)) {
+    if (new RegExp("""^\\[name=["'][^'"]+['"]\\]\$""").hasMatch(selectors)) {
       final mutableMatches = $dom_getElementsByName(
           selectors.substring(7,selectors.length - 2));
       int len = mutableMatches.length;
@@ -5882,7 +6254,7 @@ class Document extends Node
         copyOfMatches[i] = mutableMatches[i];
       }
       return new _FrozenElementList._wrap(copyOfMatches);
-    } else if (const RegExp("^[*a-zA-Z0-9]+\$").hasMatch(selectors)) {
+    } else if (new RegExp("^[*a-zA-Z0-9]+\$").hasMatch(selectors)) {
       final mutableMatches = $dom_getElementsByTagName(selectors);
       int len = mutableMatches.length;
       final copyOfMatches = new List<Element>(len);
@@ -6001,128 +6373,18 @@ class DocumentEvents extends ElementEvents {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _FilteredElementList implements List {
-  final Node _node;
-  final List<Node> _childNodes;
-
-  _FilteredElementList(Node node): _childNodes = node.nodes, _node = node;
-
-  // We can't memoize this, since it's possible that children will be messed
-  // with externally to this class.
-  //
-  // TODO(nweiz): Do we really need to copy the list to make the types work out?
-  List<Element> get _filtered =>
-    new List.from(_childNodes.filter((n) => n is Element));
-
-  void forEach(void f(Element element)) {
-    _filtered.forEach(f);
-  }
-
-  void operator []=(int index, Element value) {
-    this[index].replaceWith(value);
-  }
-
-  void set length(int newLength) {
-    final len = this.length;
-    if (newLength >= len) {
-      return;
-    } else if (newLength < 0) {
-      throw new ArgumentError("Invalid list length");
-    }
-
-    removeRange(newLength - 1, len - newLength);
-  }
-
-  void add(Element value) {
-    _childNodes.add(value);
-  }
-
-  void addAll(Collection<Element> collection) {
-    collection.forEach(add);
-  }
-
-  void addLast(Element value) {
-    add(value);
-  }
-
-  bool contains(Element element) {
-    return element is Element && _childNodes.contains(element);
-  }
-
-  void sort([Comparator<Element> compare = Comparable.compare]) {
-    throw new UnsupportedError('TODO(jacobr): should we impl?');
-  }
-
-  void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
-    throw new UnimplementedError();
-  }
-
-  void removeRange(int start, int rangeLength) {
-    _filtered.getRange(start, rangeLength).forEach((el) => el.remove());
-  }
-
-  void insertRange(int start, int rangeLength, [initialValue = null]) {
-    throw new UnimplementedError();
-  }
-
-  void clear() {
-    // Currently, ElementList#clear clears even non-element nodes, so we follow
-    // that behavior.
-    _childNodes.clear();
-  }
-
-  Element removeLast() {
-    final result = this.last;
-    if (result != null) {
-      result.remove();
-    }
-    return result;
-  }
-
-  Collection map(f(Element element)) => _filtered.map(f);
-  Collection<Element> filter(bool f(Element element)) => _filtered.filter(f);
-  bool every(bool f(Element element)) => _filtered.every(f);
-  bool some(bool f(Element element)) => _filtered.some(f);
-  bool get isEmpty => _filtered.isEmpty;
-  int get length => _filtered.length;
-  Element operator [](int index) => _filtered[index];
-  Iterator<Element> iterator() => _filtered.iterator();
-  List<Element> getRange(int start, int rangeLength) =>
-    _filtered.getRange(start, rangeLength);
-  int indexOf(Element element, [int start = 0]) =>
-    _filtered.indexOf(element, start);
-
-  int lastIndexOf(Element element, [int start = null]) {
-    if (start == null) start = length - 1;
-    return _filtered.lastIndexOf(element, start);
-  }
-
-  Element get last => _filtered.last;
-}
 
 Future<CSSStyleDeclaration> _emptyStyleFuture() {
   return _createMeasurementFuture(() => new Element.tag('div').style,
                                   new Completer<CSSStyleDeclaration>());
 }
 
-class EmptyElementRect implements ElementRect {
-  final ClientRect client = const _SimpleClientRect(0, 0, 0, 0);
-  final ClientRect offset = const _SimpleClientRect(0, 0, 0, 0);
-  final ClientRect scroll = const _SimpleClientRect(0, 0, 0, 0);
-  final ClientRect bounding = const _SimpleClientRect(0, 0, 0, 0);
-  final List<ClientRect> clientRects = const <ClientRect>[];
-
-  const EmptyElementRect();
-}
-
-class _FrozenCssClassSet extends _CssClassSet {
-  _FrozenCssClassSet() : super(null);
-
-  void _write(Set s) {
+class _FrozenCssClassSet extends CssClassSet {
+  void writeClasses(Set s) {
     throw new UnsupportedError(
         'frozen class set cannot be modified');
   }
-  Set<String> _read() => new Set<String>();
+  Set<String> readClasses() => new Set<String>();
 
   bool get frozen => true;
 }
@@ -6133,14 +6395,14 @@ class DocumentFragment extends Node native "*DocumentFragment" {
   factory DocumentFragment.html(String html) =>
       _DocumentFragmentFactoryProvider.createDocumentFragment_html(html);
 
-  factory DocumentFragment.svg(String svg) =>
-      new _DocumentFragmentFactoryProvider.createDocumentFragment_svg(svg);
+  factory DocumentFragment.svg(String svgContent) =>
+      new _DocumentFragmentFactoryProvider.createDocumentFragment_svg(svgContent);
 
   List<Element> _elements;
 
   List<Element> get elements {
     if (_elements == null) {
-      _elements = new _FilteredElementList(this);
+      _elements = new FilteredElementList(this);
     }
     return _elements;
   }
@@ -6211,13 +6473,8 @@ class DocumentFragment extends Node native "*DocumentFragment" {
     this.insertAdjacentText('beforeend', text);
   }
 
-  void addHTML(String text) {
+  void addHtml(String text) {
     this.insertAdjacentHTML('beforeend', text);
-  }
-
-  Future<ElementRect> get rect {
-    return _createMeasurementFuture(() => const EmptyElementRect(),
-                                    new Completer<ElementRect>());
   }
 
   // If we can come up with a semi-reasonable default value for an Element
@@ -6378,6 +6635,10 @@ class DocumentFragment extends Node native "*DocumentFragment" {
   List<Node> $dom_querySelectorAll(String selectors) native "querySelectorAll";
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DocumentType
 class DocumentType extends Node native "*DocumentType" {
@@ -6403,6 +6664,10 @@ class DocumentType extends Node native "*DocumentType" {
   /** @domName DocumentType.remove */
   void remove() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DynamicsCompressorNode
 class DynamicsCompressorNode extends AudioNode native "*DynamicsCompressorNode" {
@@ -6425,6 +6690,10 @@ class DynamicsCompressorNode extends AudioNode native "*DynamicsCompressorNode" 
   /** @domName DynamicsCompressorNode.threshold */
   final AudioParam threshold;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName EXTTextureFilterAnisotropic
 class EXTTextureFilterAnisotropic native "*EXTTextureFilterAnisotropic" {
@@ -6436,6 +6705,7 @@ class EXTTextureFilterAnisotropic native "*EXTTextureFilterAnisotropic" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 // TODO(jacobr): use _Lists.dart to remove some of the duplicated
 // functionality.
@@ -6905,136 +7175,17 @@ class _DataAttributeMap extends AttributeMap {
   String _strip(String key) => key.substring(5);
 }
 
-abstract class CssClassSet implements Set<String> {
-  /**
-   * Adds the class [token] to the element if it is not on it, removes it if it
-   * is.
-   */
-  bool toggle(String token);
-
-  /**
-   * Returns [:true:] if classes cannot be added or removed from this
-   * [:CssClassSet:].
-   */
-  bool get frozen;
-}
-
-class _CssClassSet extends CssClassSet {
+class _ElementCssClassSet extends CssClassSet {
 
   final Element _element;
 
-  _CssClassSet(this._element);
+  _ElementCssClassSet(this._element);
 
-  String toString() => _formatSet(_read());
+  Set<String> readClasses() {
+    var s = new Set<String>();
+    var classname = _element.$dom_className;
 
-  // interface Iterable - BEGIN
-  Iterator<String> iterator() => _read().iterator();
-  // interface Iterable - END
-
-  // interface Collection - BEGIN
-  void forEach(void f(String element)) {
-    _read().forEach(f);
-  }
-
-  Collection map(f(String element)) => _read().map(f);
-
-  Collection<String> filter(bool f(String element)) => _read().filter(f);
-
-  bool every(bool f(String element)) => _read().every(f);
-
-  bool some(bool f(String element)) => _read().some(f);
-
-  bool get isEmpty => _read().isEmpty;
-
-  /**
-   * Returns [:true:] if classes cannot be added or removed from this
-   * [:CssClassSet:].
-   */
-  bool get frozen => false;
-
-  int get length =>_read().length;
-
-  // interface Collection - END
-
-  // interface Set - BEGIN
-  bool contains(String value) => _read().contains(value);
-
-  void add(String value) {
-    // TODO - figure out if we need to do any validation here
-    // or if the browser natively does enough
-    _modify((s) => s.add(value));
-  }
-
-  bool remove(String value) {
-    Set<String> s = _read();
-    bool result = s.remove(value);
-    _write(s);
-    return result;
-  }
-
-  /**
-   * Adds the class [token] to the element if it is not on it, removes it if it
-   * is.
-   */
-  bool toggle(String value) {
-    Set<String> s = _read();
-    bool result = false;
-    if (s.contains(value)) {
-      s.remove(value);
-    } else {
-      s.add(value);
-      result = true;
-    }
-    _write(s);
-    return result;
-  }
-
-  void addAll(Collection<String> collection) {
-    // TODO - see comment above about validation
-    _modify((s) => s.addAll(collection));
-  }
-
-  void removeAll(Collection<String> collection) {
-    _modify((s) => s.removeAll(collection));
-  }
-
-  bool isSubsetOf(Collection<String> collection) =>
-    _read().isSubsetOf(collection);
-
-  bool containsAll(Collection<String> collection) =>
-    _read().containsAll(collection);
-
-  Set<String> intersection(Collection<String> other) =>
-    _read().intersection(other);
-
-  void clear() {
-    _modify((s) => s.clear());
-  }
-  // interface Set - END
-
-  /**
-   * Helper method used to modify the set of css classes on this element.
-   *
-   *   f - callback with:
-   *      s - a Set of all the css class name currently on this element.
-   *
-   *   After f returns, the modified set is written to the
-   *       className property of this element.
-   */
-  void _modify( f(Set<String> s)) {
-    Set<String> s = _read();
-    f(s);
-    _write(s);
-  }
-
-  /**
-   * Read the class names from the Element class property,
-   * and put them into a set (duplicates are discarded).
-   */
-  Set<String> _read() {
-    // TODO(mattsh) simplify this once split can take regex.
-    Set<String> s = new Set<String>();
-    for (String name in _classname().split(' ')) {
+    for (String name in classname.split(' ')) {
       String trimmed = name.trim();
       if (!trimmed.isEmpty) {
         s.add(trimmed);
@@ -7043,24 +7194,9 @@ class _CssClassSet extends CssClassSet {
     return s;
   }
 
-  /**
-   * Read the class names as a space-separated string. This is meant to be
-   * overridden by subclasses.
-   */
-  String _classname() => _element.$dom_className;
-
-  /**
-   * Join all the elements of a set into one string and write
-   * back to the element.
-   */
-  void _write(Set s) {
-    _element.$dom_className = _formatSet(s);
-  }
-
-  String _formatSet(Set<String> s) {
-    // TODO(mattsh) should be able to pass Set to String.joins http:/b/5398605
+  void writeClasses(Set<String> s) {
     List list = new List.from(s);
-    return Strings.join(list, ' ');
+    _element.$dom_className = Strings.join(list, ' ');
   }
 }
 
@@ -7080,53 +7216,6 @@ class _SimpleClientRect implements ClientRect {
   }
 
   String toString() => "($left, $top, $width, $height)";
-}
-
-// TODO(jacobr): we cannot currently be lazy about calculating the client
-// rects as we must perform all measurement queries at a safe point to avoid
-// triggering unneeded layouts.
-/**
- * All your element measurement needs in one place.
- * @domName none
- */
-class ElementRect {
-  // Relative to offsetParent.
-  final ClientRect client;
-  final ClientRect offset;
-  final ClientRect scroll;
-
-  // TODO(jacobr): should we move these outside of ElementRect to avoid the
-  // overhead of computing them every time even though they are rarely used.
-  final ClientRect _boundingClientRect;
-  final _ClientRectList _clientRects;
-
-  ElementRect(Element element) :
-    client = new _SimpleClientRect(element.clientLeft,
-                                  element.clientTop,
-                                  element.clientWidth,
-                                  element.clientHeight),
-    offset = new _SimpleClientRect(element.offsetLeft,
-                                  element.offsetTop,
-                                  element.offsetWidth,
-                                  element.offsetHeight),
-    scroll = new _SimpleClientRect(element.scrollLeft,
-                                  element.scrollTop,
-                                  element.scrollWidth,
-                                  element.scrollHeight),
-    _boundingClientRect = element.getBoundingClientRect(),
-    _clientRects = element.getClientRects();
-
-  // In global coords.
-  ClientRect get bounding => _boundingClientRect;
-
-  // In global coords.
-  List<ClientRect> get clientRects {
-    final out = new List(_clientRects.length);
-    for (num i = 0; i < _clientRects.length; i++) {
-      out[i] = _clientRects.item(i);
-    }
-    return out;
-  }
 }
 
 class Element extends Node implements ElementTraversal native "*Element" {
@@ -7168,7 +7257,7 @@ class Element extends Node implements ElementTraversal native "*Element" {
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
   /** @domName className, classList */
-  CssClassSet get classes => new _CssClassSet(this);
+  CssClassSet get classes => new _ElementCssClassSet(this);
 
   void set classes(Collection<String> value) {
     CssClassSet classSet = classes;
@@ -7185,17 +7274,6 @@ class Element extends Node implements ElementTraversal native "*Element" {
     for (String key in value.keys) {
       dataAttributes[key] = value[key];
     }
-  }
-
-  /**
-   * @domName getClientRects, getBoundingClientRect, clientHeight, clientWidth,
-   * clientTop, clientLeft, offsetHeight, offsetWidth, offsetTop, offsetLeft,
-   * scrollHeight, scrollWidth, scrollTop, scrollLeft
-   */
-  Future<ElementRect> get rect {
-    return _createMeasurementFuture(
-        () => new ElementRect(this),
-        new Completer<ElementRect>());
   }
 
   /** @domName Window.getComputedStyle */
@@ -7222,7 +7300,7 @@ class Element extends Node implements ElementTraversal native "*Element" {
    * Parses the specified text as HTML and adds the resulting node after the
    * last child of this.
    */
-  void addHTML(String text) {
+  void addHtml(String text) {
     this.insertAdjacentHTML('beforeend', text);
   }
 
@@ -7488,7 +7566,7 @@ class Element extends Node implements ElementTraversal native "*Element" {
 // Temporary dispatch hook to support WebComponents.
 Function dynamicUnknownElementDispatcher;
 
-final _START_TAG_REGEXP = const RegExp('<(\\w+)');
+final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 class _ElementFactoryProvider {
   static final _CUSTOM_PARENT_TAG_MAP = const {
     'body' : 'html',
@@ -7549,6 +7627,7 @@ class _ElementFactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class ElementEvents extends Events {
   ElementEvents(EventTarget _ptr) : super(_ptr);
@@ -7660,6 +7739,11 @@ class ElementEvents extends Events {
     }
   }
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName ElementTimeControl
 abstract class ElementTimeControl {
 
@@ -7675,6 +7759,11 @@ abstract class ElementTimeControl {
   /** @domName ElementTimeControl.endElementAt */
   void endElementAt(num offset);
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName ElementTraversal
 abstract class ElementTraversal {
 
@@ -7688,6 +7777,10 @@ abstract class ElementTraversal {
 
   Element previousElementSibling;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLEmbedElement
 class EmbedElement extends Element implements Element native "*HTMLEmbedElement" {
@@ -7712,6 +7805,10 @@ class EmbedElement extends Element implements Element native "*HTMLEmbedElement"
   /** @domName HTMLEmbedElement.width */
   String width;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName EntityReference
 class EntityReference extends Node native "*EntityReference" {
@@ -7724,6 +7821,10 @@ class EntityReference extends Node native "*EntityReference" {
 
 
 typedef void EntriesCallback(List<Entry> entries);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Entry
 class Entry native "*Entry" {
@@ -7769,6 +7870,10 @@ class Entry native "*Entry" {
 
 
 typedef void EntryCallback(Entry entry);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName EntrySync
 class EntrySync native "*EntrySync" {
@@ -7814,6 +7919,10 @@ class EntrySync native "*EntrySync" {
 
 
 typedef void ErrorCallback(FileError error);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ErrorEvent
 class ErrorEvent extends Event native "*ErrorEvent" {
@@ -7832,6 +7941,7 @@ class ErrorEvent extends Event native "*ErrorEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 class Event native "*Event" {
   // In JS, canBubble and cancelable are technically required parameters to
@@ -7897,7 +8007,7 @@ class Event native "*Event" {
 
   /** @domName Event.currentTarget */
   EventTarget get currentTarget => _convertNativeToDart_EventTarget(this._currentTarget);
-  EventTarget get _currentTarget => JS("EventTarget", "#.currentTarget", this);
+  dynamic get _currentTarget => JS("dynamic", "#.currentTarget", this);
 
   /** @domName Event.defaultPrevented */
   final bool defaultPrevented;
@@ -7908,13 +8018,9 @@ class Event native "*Event" {
   /** @domName Event.returnValue */
   bool returnValue;
 
-  /** @domName Event.srcElement */
-  EventTarget get srcElement => _convertNativeToDart_EventTarget(this._srcElement);
-  EventTarget get _srcElement => JS("EventTarget", "#.srcElement", this);
-
   /** @domName Event.target */
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
-  EventTarget get _target => JS("EventTarget", "#.target", this);
+  dynamic get _target => JS("dynamic", "#.target", this);
 
   /** @domName Event.timeStamp */
   final int timeStamp;
@@ -7935,6 +8041,10 @@ class Event native "*Event" {
   void stopPropagation() native;
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName EventException
 class EventException native "*EventException" {
@@ -7955,6 +8065,10 @@ class EventException native "*EventException" {
   /** @domName EventException.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName EventSource
 class EventSource extends EventTarget native "*EventSource" {
@@ -8007,6 +8121,7 @@ class EventSourceEvents extends Events {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class Events {
   /* Raw event target. */
@@ -8069,6 +8184,10 @@ class EventTarget native "*EventTarget" {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLFieldSetElement
 class FieldSetElement extends Element implements Element native "*HTMLFieldSetElement" {
@@ -8105,6 +8224,10 @@ class FieldSetElement extends Element implements Element native "*HTMLFieldSetEl
   /** @domName HTMLFieldSetElement.setCustomValidity */
   void setCustomValidity(String error) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName File
 class File extends Blob native "*File" {
@@ -8126,6 +8249,10 @@ class File extends Blob native "*File" {
 
 
 typedef void FileCallback(File file);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName FileEntry
 class FileEntry extends Entry native "*FileEntry" {
@@ -8136,6 +8263,10 @@ class FileEntry extends Entry native "*FileEntry" {
   /** @domName FileEntry.file */
   void file(FileCallback successCallback, [ErrorCallback errorCallback]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName FileEntrySync
 class FileEntrySync extends EntrySync native "*FileEntrySync" {
@@ -8146,6 +8277,10 @@ class FileEntrySync extends EntrySync native "*FileEntrySync" {
   /** @domName FileEntrySync.file */
   File file() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName FileError
 class FileError native "*FileError" {
@@ -8177,6 +8312,10 @@ class FileError native "*FileError" {
   /** @domName FileError.code */
   final int code;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName FileException
 class FileException native "*FileException" {
@@ -8217,6 +8356,10 @@ class FileException native "*FileException" {
   /** @domName FileException.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName FileReader
 class FileReader extends EventTarget native "*FileReader" {
@@ -8284,6 +8427,10 @@ class FileReaderEvents extends Events {
 
   EventListenerList get progress => this['progress'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName FileReaderSync
 class FileReaderSync native "*FileReaderSync" {
@@ -8310,6 +8457,10 @@ class FileReaderSync native "*FileReaderSync" {
 
 
 typedef void FileSystemCallback(DOMFileSystem fileSystem);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName FileWriter
 class FileWriter extends EventTarget native "*FileWriter" {
@@ -8383,6 +8534,10 @@ class FileWriterEvents extends Events {
 
 
 typedef void FileWriterCallback(FileWriter fileWriter);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName FileWriterSync
 class FileWriterSync native "*FileWriterSync" {
@@ -8402,6 +8557,10 @@ class FileWriterSync native "*FileWriterSync" {
   /** @domName FileWriterSync.write */
   void write(Blob data) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Float32Array
 class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<num> native "*Float32Array" {
@@ -8432,7 +8591,7 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<num>(this);
+    return new FixedSizeListIterator<num>(this);
   }
 
   // From Collection<num>:
@@ -8507,6 +8666,10 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   /** @domName Float32Array.subarray */
   Float32Array subarray(int start, [int end]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Float64Array
 class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<num> native "*Float64Array" {
@@ -8537,7 +8700,7 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<num>(this);
+    return new FixedSizeListIterator<num>(this);
   }
 
   // From Collection<num>:
@@ -8612,6 +8775,10 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   /** @domName Float64Array.subarray */
   Float64Array subarray(int start, [int end]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLFontElement
 class FontElement extends Element implements Element native "*HTMLFontElement" {
@@ -8625,6 +8792,10 @@ class FontElement extends Element implements Element native "*HTMLFontElement" {
   /** @domName HTMLFontElement.size */
   String size;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName FormData
 class FormData native "*FormData" {
@@ -8639,6 +8810,10 @@ class FormData native "*FormData" {
   /** @domName FormData.append */
   void append(String name, String value, String filename) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLFormElement
 class FormElement extends Element implements Element native "*HTMLFormElement" {
@@ -8684,13 +8859,17 @@ class FormElement extends Element implements Element native "*HTMLFormElement" {
   /** @domName HTMLFormElement.submit */
   void submit() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLFrameElement
 class FrameElement extends Element implements Element native "*HTMLFrameElement" {
 
   /** @domName HTMLFrameElement.contentWindow */
   Window get contentWindow => _convertNativeToDart_Window(this._contentWindow);
-  Window get _contentWindow => JS("Window", "#.contentWindow", this);
+  dynamic get _contentWindow => JS("dynamic", "#.contentWindow", this);
 
   /** @domName HTMLFrameElement.frameBorder */
   String frameBorder;
@@ -8725,6 +8904,10 @@ class FrameElement extends Element implements Element native "*HTMLFrameElement"
   /** @domName HTMLFrameElement.width */
   final int width;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLFrameSetElement
 class FrameSetElement extends Element implements Element native "*HTMLFrameSetElement" {
@@ -8771,6 +8954,10 @@ class FrameSetElementEvents extends ElementEvents {
 
   EventListenerList get unload => this['unload'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName GainNode
 class GainNode extends AudioNode native "*GainNode" {
@@ -8778,6 +8965,10 @@ class GainNode extends AudioNode native "*GainNode" {
   /** @domName GainNode.gain */
   final AudioGain gain;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Gamepad
 class Gamepad native "*Gamepad" {
@@ -8797,6 +8988,10 @@ class Gamepad native "*Gamepad" {
   /** @domName Gamepad.timestamp */
   final int timestamp;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Geolocation
 class Geolocation native "*Geolocation" {
@@ -8810,6 +9005,10 @@ class Geolocation native "*Geolocation" {
   /** @domName Geolocation.watchPosition */
   int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Geoposition
 class Geoposition native "*Geoposition" {
@@ -8820,6 +9019,10 @@ class Geoposition native "*Geoposition" {
   /** @domName Geoposition.timestamp */
   final int timestamp;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLHRElement
 class HRElement extends Element implements Element native "*HTMLHRElement" {
@@ -8838,6 +9041,10 @@ class HRElement extends Element implements Element native "*HTMLHRElement" {
   /** @domName HTMLHRElement.width */
   String width;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLAllCollection
 class HTMLAllCollection implements JavaScriptIndexingBehavior, List<Node> native "*HTMLAllCollection" {
@@ -8859,7 +9066,7 @@ class HTMLAllCollection implements JavaScriptIndexingBehavior, List<Node> native
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<Node>(this);
+    return new FixedSizeListIterator<Node>(this);
   }
 
   // From Collection<Node>:
@@ -8937,6 +9144,10 @@ class HTMLAllCollection implements JavaScriptIndexingBehavior, List<Node> native
   /** @domName HTMLAllCollection.tags */
   List<Node> tags(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLCollection
 class HTMLCollection implements JavaScriptIndexingBehavior, List<Node> native "*HTMLCollection" {
@@ -8958,7 +9169,7 @@ class HTMLCollection implements JavaScriptIndexingBehavior, List<Node> native "*
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<Node>(this);
+    return new FixedSizeListIterator<Node>(this);
   }
 
   // From Collection<Node>:
@@ -9033,6 +9244,10 @@ class HTMLCollection implements JavaScriptIndexingBehavior, List<Node> native "*
   /** @domName HTMLCollection.namedItem */
   Node namedItem(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLOptionsCollection
 class HTMLOptionsCollection extends HTMLCollection native "*HTMLOptionsCollection" {
@@ -9052,6 +9267,10 @@ class HTMLOptionsCollection extends HTMLCollection native "*HTMLOptionsCollectio
   /** @domName HTMLOptionsCollection.remove */
   void remove(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HashChangeEvent
 class HashChangeEvent extends Event native "*HashChangeEvent" {
@@ -9065,6 +9284,10 @@ class HashChangeEvent extends Event native "*HashChangeEvent" {
   /** @domName HashChangeEvent.initHashChangeEvent */
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLHeadElement
 class HeadElement extends Element implements Element native "*HTMLHeadElement" {
@@ -9074,6 +9297,10 @@ class HeadElement extends Element implements Element native "*HTMLHeadElement" {
   /** @domName HTMLHeadElement.profile */
   String profile;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLHeadingElement
 class HeadingElement extends Element implements Element native "*HTMLHeadingElement" {
@@ -9093,6 +9320,94 @@ class HeadingElement extends Element implements Element native "*HTMLHeadingElem
   /** @domName HTMLHeadingElement.align */
   String align;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+class HtmlDocument extends Document native "*HTMLDocument" {
+
+  /** @domName HTMLDocument.activeElement */
+  final Element activeElement;
+
+  /** @domName Document.body */
+  BodyElement get body => document.$dom_body;
+
+  /** @domName Document.body */
+  void set body(BodyElement value) {
+    document.$dom_body = value;
+  }
+
+  /** @domName Document.caretRangeFromPoint */
+  Range caretRangeFromPoint(int x, int y) {
+    return document.$dom_caretRangeFromPoint(x, y);
+  }
+
+  /** @domName Document.elementFromPoint */
+  Element elementFromPoint(int x, int y) {
+    return document.$dom_elementFromPoint(x, y);
+  }
+
+  /** @domName Document.head */
+  HeadElement get head => document.$dom_head;
+
+  /** @domName Document.lastModified */
+  String get lastModified => document.$dom_lastModified;
+
+  /** @domName Document.referrer */
+  String get referrer => document.$dom_referrer;
+
+  /** @domName Document.styleSheets */
+  List<StyleSheet> get styleSheets => document.$dom_styleSheets;
+
+  /** @domName Document.title */
+  String get title => document.$dom_title;
+
+  /** @domName Document.title */
+  void set title(String value) {
+    document.$dom_title = value;
+  }
+
+  /** @domName Document.webkitCancelFullScreen */
+  void webkitCancelFullScreen() {
+    document.$dom_webkitCancelFullScreen();
+  }
+
+  /** @domName Document.webkitExitFullscreen */
+  void webkitExitFullscreen() {
+    document.$dom_webkitExitFullscreen();
+  }
+
+  /** @domName Document.webkitExitPointerLock */
+  void webkitExitPointerLock() {
+    document.$dom_webkitExitPointerLock();
+  }
+
+  /** @domName Document.webkitFullscreenElement */
+  Element get webkitFullscreenElement => document.$dom_webkitFullscreenElement;
+
+  /** @domName Document.webkitFullscreenEnabled */
+  bool get webkitFullscreenEnabled => document.$dom_webkitFullscreenEnabled;
+
+  /** @domName Document.webkitHidden */
+  bool get webkitHidden => document.$dom_webkitHidden;
+
+  /** @domName Document.webkitIsFullScreen */
+  bool get webkitIsFullScreen => document.$dom_webkitIsFullScreen;
+
+  /** @domName Document.webkitPointerLockElement */
+  Element get webkitPointerLockElement =>
+      document.$dom_webkitPointerLockElement;
+
+  /** @domName Document.webkitVisibilityState */
+  String get webkitVisibilityState => document.$dom_webkitVisibilityState;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLHtmlElement
 class HtmlElement extends Element implements Element native "*HTMLHtmlElement" {
@@ -9102,6 +9417,7 @@ class HtmlElement extends Element implements Element native "*HTMLHtmlElement" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   factory HttpRequest.get(String url, onSuccess(HttpRequest request)) =>
@@ -9205,6 +9521,10 @@ class HttpRequestEvents extends Events {
 
   EventListenerList get readyStateChange => this['readystatechange'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName XMLHttpRequestException
 class HttpRequestException native "*XMLHttpRequestException" {
@@ -9225,6 +9545,10 @@ class HttpRequestException native "*XMLHttpRequestException" {
   /** @domName XMLHttpRequestException.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName XMLHttpRequestProgressEvent
 class HttpRequestProgressEvent extends ProgressEvent native "*XMLHttpRequestProgressEvent" {
@@ -9235,6 +9559,10 @@ class HttpRequestProgressEvent extends ProgressEvent native "*XMLHttpRequestProg
   /** @domName XMLHttpRequestProgressEvent.totalSize */
   final int totalSize;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName XMLHttpRequestUpload
 class HttpRequestUpload extends EventTarget native "*XMLHttpRequestUpload" {
@@ -9270,10 +9598,18 @@ class HttpRequestUploadEvents extends Events {
 
   EventListenerList get progress => this['progress'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBAny
 class IDBAny native "*IDBAny" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBCursor
 class IDBCursor native "*IDBCursor" {
@@ -9302,7 +9638,7 @@ class IDBCursor native "*IDBCursor" {
   void advance(int count) native;
 
   /** @domName IDBCursor.continueFunction */
-  void continueFunction([key]) {
+  void continueFunction([/*IDBKey*/ key]) {
     if (?key) {
       var key_1 = _convertDartToNative_IDBKey(key);
       _continueFunction_1(key_1);
@@ -9324,6 +9660,10 @@ class IDBCursor native "*IDBCursor" {
   }
   IDBRequest _update_1(value) native "update";
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBCursorWithValue
 class IDBCursorWithValue extends IDBCursor native "*IDBCursorWithValue" {
@@ -9334,6 +9674,7 @@ class IDBCursorWithValue extends IDBCursor native "*IDBCursorWithValue" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class IDBDatabase extends EventTarget native "*IDBDatabase" {
 
@@ -9401,7 +9742,7 @@ class IDBDatabase extends EventTarget native "*IDBDatabase" {
   void close() native;
 
   /** @domName IDBDatabase.createObjectStore */
-  IDBObjectStore createObjectStore(String name, [options]) {
+  IDBObjectStore createObjectStore(String name, [Map options]) {
     if (?options) {
       var options_1 = _convertDartToNative_Dictionary(options);
       return _createObjectStore_1(name, options_1);
@@ -9437,6 +9778,10 @@ class IDBDatabaseEvents extends Events {
 
   EventListenerList get versionChange => this['versionchange'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBDatabaseException
 class IDBDatabaseException native "*IDBDatabaseException" {
@@ -9479,6 +9824,10 @@ class IDBDatabaseException native "*IDBDatabaseException" {
   /** @domName IDBDatabaseException.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBFactory
 class IDBFactory native "*IDBFactory" {
@@ -9500,6 +9849,10 @@ class IDBFactory native "*IDBFactory" {
   /** @domName IDBFactory.webkitGetDatabaseNames */
   IDBRequest webkitGetDatabaseNames() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBIndex
 class IDBIndex native "*IDBIndex" {
@@ -9524,7 +9877,7 @@ class IDBIndex native "*IDBIndex" {
     if (!?key_OR_range) {
       return _count_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range == null)) {
+    if ((?key_OR_range && (key_OR_range is IDBKeyRange || key_OR_range == null))) {
       return _count_2(key_OR_range);
     }
     if (?key_OR_range) {
@@ -9539,7 +9892,7 @@ class IDBIndex native "*IDBIndex" {
 
   /** @domName IDBIndex.get */
   IDBRequest get(key) {
-    if ((key is IDBKeyRange || key == null)) {
+    if ((?key && (key is IDBKeyRange || key == null))) {
       return _get_1(key);
     }
     if (?key) {
@@ -9553,7 +9906,7 @@ class IDBIndex native "*IDBIndex" {
 
   /** @domName IDBIndex.getKey */
   IDBRequest getKey(key) {
-    if ((key is IDBKeyRange || key == null)) {
+    if ((?key && (key is IDBKeyRange || key == null))) {
       return _getKey_1(key);
     }
     if (?key) {
@@ -9566,17 +9919,16 @@ class IDBIndex native "*IDBIndex" {
   IDBRequest _getKey_2(key) native "getKey";
 
   /** @domName IDBIndex.openCursor */
-  IDBRequest openCursor([key_OR_range, direction]) {
+  IDBRequest openCursor([key_OR_range, String direction]) {
     if (!?key_OR_range &&
         !?direction) {
       return _openCursor_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
+    if ((?key_OR_range && (key_OR_range is IDBKeyRange || key_OR_range == null)) &&
         !?direction) {
       return _openCursor_2(key_OR_range);
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
-        (direction is String || direction == null)) {
+    if ((?key_OR_range && (key_OR_range is IDBKeyRange || key_OR_range == null))) {
       return _openCursor_3(key_OR_range, direction);
     }
     if (?key_OR_range &&
@@ -9584,8 +9936,7 @@ class IDBIndex native "*IDBIndex" {
       var key_1 = _convertDartToNative_IDBKey(key_OR_range);
       return _openCursor_4(key_1);
     }
-    if (?key_OR_range &&
-        (direction is String || direction == null)) {
+    if (?key_OR_range) {
       var key_2 = _convertDartToNative_IDBKey(key_OR_range);
       return _openCursor_5(key_2, direction);
     }
@@ -9593,22 +9944,21 @@ class IDBIndex native "*IDBIndex" {
   }
   IDBRequest _openCursor_1() native "openCursor";
   IDBRequest _openCursor_2(IDBKeyRange range) native "openCursor";
-  IDBRequest _openCursor_3(IDBKeyRange range, String direction) native "openCursor";
+  IDBRequest _openCursor_3(IDBKeyRange range, direction) native "openCursor";
   IDBRequest _openCursor_4(key) native "openCursor";
-  IDBRequest _openCursor_5(key, String direction) native "openCursor";
+  IDBRequest _openCursor_5(key, direction) native "openCursor";
 
   /** @domName IDBIndex.openKeyCursor */
-  IDBRequest openKeyCursor([key_OR_range, direction]) {
+  IDBRequest openKeyCursor([key_OR_range, String direction]) {
     if (!?key_OR_range &&
         !?direction) {
       return _openKeyCursor_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
+    if ((?key_OR_range && (key_OR_range is IDBKeyRange || key_OR_range == null)) &&
         !?direction) {
       return _openKeyCursor_2(key_OR_range);
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
-        (direction is String || direction == null)) {
+    if ((?key_OR_range && (key_OR_range is IDBKeyRange || key_OR_range == null))) {
       return _openKeyCursor_3(key_OR_range, direction);
     }
     if (?key_OR_range &&
@@ -9616,8 +9966,7 @@ class IDBIndex native "*IDBIndex" {
       var key_1 = _convertDartToNative_IDBKey(key_OR_range);
       return _openKeyCursor_4(key_1);
     }
-    if (?key_OR_range &&
-        (direction is String || direction == null)) {
+    if (?key_OR_range) {
       var key_2 = _convertDartToNative_IDBKey(key_OR_range);
       return _openKeyCursor_5(key_2, direction);
     }
@@ -9625,10 +9974,14 @@ class IDBIndex native "*IDBIndex" {
   }
   IDBRequest _openKeyCursor_1() native "openKeyCursor";
   IDBRequest _openKeyCursor_2(IDBKeyRange range) native "openKeyCursor";
-  IDBRequest _openKeyCursor_3(IDBKeyRange range, String direction) native "openKeyCursor";
+  IDBRequest _openKeyCursor_3(IDBKeyRange range, direction) native "openKeyCursor";
   IDBRequest _openKeyCursor_4(key) native "openKeyCursor";
-  IDBRequest _openKeyCursor_5(key, String direction) native "openKeyCursor";
+  IDBRequest _openKeyCursor_5(key, direction) native "openKeyCursor";
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBKey
 class IDBKey native "*IDBKey" {
@@ -9636,6 +9989,7 @@ class IDBKey native "*IDBKey" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class IDBKeyRange native "*IDBKeyRange" {
   /**
@@ -9680,7 +10034,7 @@ class IDBKeyRange native "*IDBKeyRange" {
   final bool upperOpen;
 
   /** @domName IDBKeyRange.bound_ */
-  static IDBKeyRange bound_(/*IDBKey*/ lower, /*IDBKey*/ upper, [lowerOpen, upperOpen]) {
+  static IDBKeyRange bound_(/*IDBKey*/ lower, /*IDBKey*/ upper, [bool lowerOpen, bool upperOpen]) {
     if (?upperOpen) {
       var lower_1 = _convertDartToNative_IDBKey(lower);
       var upper_2 = _convertDartToNative_IDBKey(upper);
@@ -9695,12 +10049,12 @@ class IDBKeyRange native "*IDBKeyRange" {
     var upper_6 = _convertDartToNative_IDBKey(upper);
     return _bound__3(lower_5, upper_6);
   }
-  IDBKeyRange _bound__1(lower, upper, bool lowerOpen, bool upperOpen) native "bound";
-  IDBKeyRange _bound__2(lower, upper, bool lowerOpen) native "bound";
+  IDBKeyRange _bound__1(lower, upper, lowerOpen, upperOpen) native "bound";
+  IDBKeyRange _bound__2(lower, upper, lowerOpen) native "bound";
   IDBKeyRange _bound__3(lower, upper) native "bound";
 
   /** @domName IDBKeyRange.lowerBound_ */
-  static IDBKeyRange lowerBound_(/*IDBKey*/ bound, [open]) {
+  static IDBKeyRange lowerBound_(/*IDBKey*/ bound, [bool open]) {
     if (?open) {
       var bound_1 = _convertDartToNative_IDBKey(bound);
       return _lowerBound__1(bound_1, open);
@@ -9708,7 +10062,7 @@ class IDBKeyRange native "*IDBKeyRange" {
     var bound_2 = _convertDartToNative_IDBKey(bound);
     return _lowerBound__2(bound_2);
   }
-  IDBKeyRange _lowerBound__1(bound, bool open) native "lowerBound";
+  IDBKeyRange _lowerBound__1(bound, open) native "lowerBound";
   IDBKeyRange _lowerBound__2(bound) native "lowerBound";
 
   /** @domName IDBKeyRange.only_ */
@@ -9719,7 +10073,7 @@ class IDBKeyRange native "*IDBKeyRange" {
   IDBKeyRange _only__1(value) native "only";
 
   /** @domName IDBKeyRange.upperBound_ */
-  static IDBKeyRange upperBound_(/*IDBKey*/ bound, [open]) {
+  static IDBKeyRange upperBound_(/*IDBKey*/ bound, [bool open]) {
     if (?open) {
       var bound_1 = _convertDartToNative_IDBKey(bound);
       return _upperBound__1(bound_1, open);
@@ -9727,10 +10081,14 @@ class IDBKeyRange native "*IDBKeyRange" {
     var bound_2 = _convertDartToNative_IDBKey(bound);
     return _upperBound__2(bound_2);
   }
-  IDBKeyRange _upperBound__1(bound, bool open) native "upperBound";
+  IDBKeyRange _upperBound__1(bound, open) native "upperBound";
   IDBKeyRange _upperBound__2(bound) native "upperBound";
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBObjectStore
 class IDBObjectStore native "*IDBObjectStore" {
@@ -9751,7 +10109,7 @@ class IDBObjectStore native "*IDBObjectStore" {
   final IDBTransaction transaction;
 
   /** @domName IDBObjectStore.add */
-  IDBRequest add(/*any*/ value, [key]) {
+  IDBRequest add(/*any*/ value, [/*IDBKey*/ key]) {
     if (?key) {
       var value_1 = _convertDartToNative_SerializedScriptValue(value);
       var key_2 = _convertDartToNative_IDBKey(key);
@@ -9771,7 +10129,7 @@ class IDBObjectStore native "*IDBObjectStore" {
     if (!?key_OR_range) {
       return _count_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range == null)) {
+    if ((?key_OR_range && (key_OR_range is IDBKeyRange || key_OR_range == null))) {
       return _count_2(key_OR_range);
     }
     if (?key_OR_range) {
@@ -9785,24 +10143,22 @@ class IDBObjectStore native "*IDBObjectStore" {
   IDBRequest _count_3(key) native "count";
 
   /** @domName IDBObjectStore.createIndex */
-  IDBIndex createIndex(String name, keyPath, [options]) {
-    if ((keyPath is List<String> || keyPath == null) &&
+  IDBIndex createIndex(String name, keyPath, [Map options]) {
+    if ((?keyPath && (keyPath is List<String> || keyPath == null)) &&
         !?options) {
       List keyPath_1 = _convertDartToNative_StringArray(keyPath);
       return _createIndex_1(name, keyPath_1);
     }
-    if ((keyPath is List<String> || keyPath == null) &&
-        (options is Map || options == null)) {
+    if ((?keyPath && (keyPath is List<String> || keyPath == null))) {
       List keyPath_2 = _convertDartToNative_StringArray(keyPath);
       var options_3 = _convertDartToNative_Dictionary(options);
       return _createIndex_2(name, keyPath_2, options_3);
     }
-    if ((keyPath is String || keyPath == null) &&
+    if ((?keyPath && (keyPath is String || keyPath == null)) &&
         !?options) {
       return _createIndex_3(name, keyPath);
     }
-    if ((keyPath is String || keyPath == null) &&
-        (options is Map || options == null)) {
+    if ((?keyPath && (keyPath is String || keyPath == null))) {
       var options_4 = _convertDartToNative_Dictionary(options);
       return _createIndex_4(name, keyPath, options_4);
     }
@@ -9815,7 +10171,7 @@ class IDBObjectStore native "*IDBObjectStore" {
 
   /** @domName IDBObjectStore.delete */
   IDBRequest delete(key_OR_keyRange) {
-    if ((key_OR_keyRange is IDBKeyRange || key_OR_keyRange == null)) {
+    if ((?key_OR_keyRange && (key_OR_keyRange is IDBKeyRange || key_OR_keyRange == null))) {
       return _delete_1(key_OR_keyRange);
     }
     if (?key_OR_keyRange) {
@@ -9832,7 +10188,7 @@ class IDBObjectStore native "*IDBObjectStore" {
 
   /** @domName IDBObjectStore.getObject */
   IDBRequest getObject(key) {
-    if ((key is IDBKeyRange || key == null)) {
+    if ((?key && (key is IDBKeyRange || key == null))) {
       return _getObject_1(key);
     }
     if (?key) {
@@ -9848,17 +10204,16 @@ class IDBObjectStore native "*IDBObjectStore" {
   IDBIndex index(String name) native;
 
   /** @domName IDBObjectStore.openCursor */
-  IDBRequest openCursor([key_OR_range, direction]) {
+  IDBRequest openCursor([key_OR_range, String direction]) {
     if (!?key_OR_range &&
         !?direction) {
       return _openCursor_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
+    if ((?key_OR_range && (key_OR_range is IDBKeyRange || key_OR_range == null)) &&
         !?direction) {
       return _openCursor_2(key_OR_range);
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
-        (direction is String || direction == null)) {
+    if ((?key_OR_range && (key_OR_range is IDBKeyRange || key_OR_range == null))) {
       return _openCursor_3(key_OR_range, direction);
     }
     if (?key_OR_range &&
@@ -9866,8 +10221,7 @@ class IDBObjectStore native "*IDBObjectStore" {
       var key_1 = _convertDartToNative_IDBKey(key_OR_range);
       return _openCursor_4(key_1);
     }
-    if (?key_OR_range &&
-        (direction is String || direction == null)) {
+    if (?key_OR_range) {
       var key_2 = _convertDartToNative_IDBKey(key_OR_range);
       return _openCursor_5(key_2, direction);
     }
@@ -9875,12 +10229,12 @@ class IDBObjectStore native "*IDBObjectStore" {
   }
   IDBRequest _openCursor_1() native "openCursor";
   IDBRequest _openCursor_2(IDBKeyRange range) native "openCursor";
-  IDBRequest _openCursor_3(IDBKeyRange range, String direction) native "openCursor";
+  IDBRequest _openCursor_3(IDBKeyRange range, direction) native "openCursor";
   IDBRequest _openCursor_4(key) native "openCursor";
-  IDBRequest _openCursor_5(key, String direction) native "openCursor";
+  IDBRequest _openCursor_5(key, direction) native "openCursor";
 
   /** @domName IDBObjectStore.put */
-  IDBRequest put(/*any*/ value, [key]) {
+  IDBRequest put(/*any*/ value, [/*IDBKey*/ key]) {
     if (?key) {
       var value_1 = _convertDartToNative_SerializedScriptValue(value);
       var key_2 = _convertDartToNative_IDBKey(key);
@@ -9892,6 +10246,10 @@ class IDBObjectStore native "*IDBObjectStore" {
   IDBRequest _put_1(value, key) native "put";
   IDBRequest _put_2(value) native "put";
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBOpenDBRequest
 class IDBOpenDBRequest extends IDBRequest implements EventTarget native "*IDBOpenDBRequest" {
@@ -9910,6 +10268,10 @@ class IDBOpenDBRequestEvents extends IDBRequestEvents {
 
   EventListenerList get upgradeNeeded => this['upgradeneeded'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBRequest
 class IDBRequest extends EventTarget native "*IDBRequest" {
@@ -9959,6 +10321,10 @@ class IDBRequestEvents extends Events {
 
   EventListenerList get success => this['success'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBTransaction
 class IDBTransaction extends EventTarget native "*IDBTransaction" {
@@ -10009,6 +10375,10 @@ class IDBTransactionEvents extends Events {
 
   EventListenerList get error => this['error'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBVersionChangeEvent
 class IDBUpgradeNeededEvent extends Event native "*IDBVersionChangeEvent" {
@@ -10019,6 +10389,10 @@ class IDBUpgradeNeededEvent extends Event native "*IDBVersionChangeEvent" {
   /** @domName IDBVersionChangeEvent.oldVersion */
   final int oldVersion;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBVersionChangeEvent
 class IDBVersionChangeEvent extends Event native "*IDBVersionChangeEvent" {
@@ -10026,6 +10400,10 @@ class IDBVersionChangeEvent extends Event native "*IDBVersionChangeEvent" {
   /** @domName IDBVersionChangeEvent.version */
   final String version;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IDBVersionChangeRequest
 class IDBVersionChangeRequest extends IDBRequest implements EventTarget native "*IDBVersionChangeRequest" {
@@ -10042,6 +10420,10 @@ class IDBVersionChangeRequestEvents extends IDBRequestEvents {
 
   EventListenerList get blocked => this['blocked'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLIFrameElement
 class IFrameElement extends Element implements Element native "*HTMLIFrameElement" {
@@ -10053,7 +10435,7 @@ class IFrameElement extends Element implements Element native "*HTMLIFrameElemen
 
   /** @domName HTMLIFrameElement.contentWindow */
   Window get contentWindow => _convertNativeToDart_Window(this._contentWindow);
-  Window get _contentWindow => JS("Window", "#.contentWindow", this);
+  dynamic get _contentWindow => JS("dynamic", "#.contentWindow", this);
 
   /** @domName HTMLIFrameElement.frameBorder */
   String frameBorder;
@@ -10096,6 +10478,10 @@ class IFrameElement extends Element implements Element native "*HTMLIFrameElemen
 
 
 typedef void IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnection00 source);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName IceCandidate
 class IceCandidate native "*IceCandidate" {
@@ -10108,6 +10494,10 @@ class IceCandidate native "*IceCandidate" {
   /** @domName IceCandidate.toSdp */
   String toSdp() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ImageData
 class ImageData native "*ImageData" {
@@ -10121,6 +10511,10 @@ class ImageData native "*ImageData" {
   /** @domName ImageData.width */
   final int width;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLImageElement
 class ImageElement extends Element implements Element native "*HTMLImageElement" {
@@ -10195,6 +10589,10 @@ class ImageElement extends Element implements Element native "*HTMLImageElement"
   /** @domName HTMLImageElement.y */
   final int y;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLInputElement
 class InputElement extends Element implements Element native "*HTMLInputElement" {
@@ -10389,6 +10787,10 @@ class InputElementEvents extends ElementEvents {
 
   EventListenerList get speechChange => this['webkitSpeechChange'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Int16Array
 class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Int16Array" {
@@ -10419,7 +10821,7 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<int>(this);
+    return new FixedSizeListIterator<int>(this);
   }
 
   // From Collection<int>:
@@ -10494,6 +10896,10 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   /** @domName Int16Array.subarray */
   Int16Array subarray(int start, [int end]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Int32Array
 class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Int32Array" {
@@ -10524,7 +10930,7 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<int>(this);
+    return new FixedSizeListIterator<int>(this);
   }
 
   // From Collection<int>:
@@ -10599,6 +11005,10 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   /** @domName Int32Array.subarray */
   Int32Array subarray(int start, [int end]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Int8Array
 class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Int8Array" {
@@ -10629,7 +11039,7 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<int>(this);
+    return new FixedSizeListIterator<int>(this);
   }
 
   // From Collection<int>:
@@ -10704,6 +11114,10 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
   /** @domName Int8Array.subarray */
   Int8Array subarray(int start, [int end]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName JavaScriptCallFrame
 class JavaScriptCallFrame native "*JavaScriptCallFrame" {
@@ -10751,6 +11165,10 @@ class JavaScriptCallFrame native "*JavaScriptCallFrame" {
   /** @domName JavaScriptCallFrame.scopeType */
   int scopeType(int scopeIndex) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName KeyboardEvent
 class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
@@ -10779,6 +11197,10 @@ class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
   /** @domName KeyboardEvent.initKeyboardEvent */
   void initKeyboardEvent(String type, bool canBubble, bool cancelable, LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLKeygenElement
 class KeygenElement extends Element implements Element native "*HTMLKeygenElement" {
@@ -10824,6 +11246,10 @@ class KeygenElement extends Element implements Element native "*HTMLKeygenElemen
   /** @domName HTMLKeygenElement.setCustomValidity */
   void setCustomValidity(String error) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLLIElement
 class LIElement extends Element implements Element native "*HTMLLIElement" {
@@ -10836,6 +11262,10 @@ class LIElement extends Element implements Element native "*HTMLLIElement" {
   /** @domName HTMLLIElement.value */
   int value;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLLabelElement
 class LabelElement extends Element implements Element native "*HTMLLabelElement" {
@@ -10851,6 +11281,10 @@ class LabelElement extends Element implements Element native "*HTMLLabelElement"
   /** @domName HTMLLabelElement.htmlFor */
   String htmlFor;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLLegendElement
 class LegendElement extends Element implements Element native "*HTMLLegendElement" {
@@ -10863,6 +11297,10 @@ class LegendElement extends Element implements Element native "*HTMLLegendElemen
   /** @domName HTMLLegendElement.form */
   final FormElement form;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLLinkElement
 class LinkElement extends Element implements Element native "*HTMLLinkElement" {
@@ -10902,6 +11340,10 @@ class LinkElement extends Element implements Element native "*HTMLLinkElement" {
   /** @domName HTMLLinkElement.type */
   String type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName History
 class LocalHistory implements History native "*History" {
@@ -10927,6 +11369,10 @@ class LocalHistory implements History native "*History" {
   /** @domName History.replaceState */
   void replaceState(Object data, String title, [String url]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Location
 class LocalLocation implements Location native "*Location" {
@@ -10973,6 +11419,10 @@ class LocalLocation implements Location native "*Location" {
   /** @domName Location.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName LocalMediaStream
 class LocalMediaStream extends MediaStream implements EventTarget native "*LocalMediaStream" {
@@ -10983,6 +11433,7 @@ class LocalMediaStream extends MediaStream implements EventTarget native "*Local
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
@@ -11028,7 +11479,7 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
     }
   }
 
-  var _location_wrapper;  // Cached wrapped Location object.
+  _LocationWrapper _location_wrapper;  // Cached wrapped Location object.
 
   // Native getter and setter to access raw Location object.
   Location get _location => JS('Location', '#.location', this);
@@ -11139,9 +11590,6 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   /** @domName Window.applicationCache */
   final DOMApplicationCache applicationCache;
 
-  /** @domName Window.clientInformation */
-  final Navigator clientInformation;
-
   /** @domName Window.closed */
   final bool closed;
 
@@ -11192,7 +11640,7 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   /** @domName Window.opener */
   Window get opener => _convertNativeToDart_Window(this._opener);
-  Window get _opener => JS("Window", "#.opener", this);
+  dynamic get _opener => JS("dynamic", "#.opener", this);
 
   /** @domName Window.outerHeight */
   final int outerHeight;
@@ -11211,7 +11659,7 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   /** @domName Window.parent */
   Window get parent => _convertNativeToDart_Window(this._parent);
-  Window get _parent => JS("Window", "#.parent", this);
+  dynamic get _parent => JS("dynamic", "#.parent", this);
 
   /** @domName Window.performance */
   final Performance performance;
@@ -11245,7 +11693,7 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   /** @domName Window.self */
   Window get self => _convertNativeToDart_Window(this._self);
-  Window get _self => JS("Window", "#.self", this);
+  dynamic get _self => JS("dynamic", "#.self", this);
 
   /** @domName Window.sessionStorage */
   final Storage sessionStorage;
@@ -11264,7 +11712,7 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   /** @domName Window.top */
   Window get top => _convertNativeToDart_Window(this._top);
-  Window get _top => JS("Window", "#.top", this);
+  dynamic get _top => JS("dynamic", "#.top", this);
 
   /** @domName DOMWindow.webkitIndexedDB */
   final IDBFactory webkitIndexedDB;
@@ -11277,7 +11725,7 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   /** @domName Window.window */
   Window get window => _convertNativeToDart_Window(this._window);
-  Window get _window => JS("Window", "#.window", this);
+  dynamic get _window => JS("dynamic", "#.window", this);
 
   /** @domName Window.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
@@ -11340,15 +11788,14 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
   /** @domName Window.postMessage */
-  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [messagePorts]) {
+  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) {
     if (?message &&
         !?messagePorts) {
       var message_1 = _convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, targetOrigin);
       return;
     }
-    if (?message &&
-        (messagePorts is List || messagePorts == null)) {
+    if (?message) {
       var message_2 = _convertDartToNative_SerializedScriptValue(message);
       _postMessage_2(message_2, targetOrigin, messagePorts);
       return;
@@ -11360,9 +11807,6 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   /** @domName Window.print */
   void print() native;
-
-  /** @domName Window.prompt */
-  String prompt(String message, String defaultValue) native;
 
   /** @domName Window.releaseEvents */
   void releaseEvents() native;
@@ -11560,6 +12004,10 @@ class LocalWindowEvents extends Events {
 
   EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLMapElement
 class MapElement extends Element implements Element native "*HTMLMapElement" {
@@ -11572,6 +12020,10 @@ class MapElement extends Element implements Element native "*HTMLMapElement" {
   /** @domName HTMLMapElement.name */
   String name;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLMarqueeElement
 class MarqueeElement extends Element implements Element native "*HTMLMarqueeElement" {
@@ -11615,6 +12067,10 @@ class MarqueeElement extends Element implements Element native "*HTMLMarqueeElem
   /** @domName HTMLMarqueeElement.stop */
   void stop() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaController
 class MediaController extends EventTarget native "*MediaController" {
@@ -11666,6 +12122,10 @@ class MediaController extends EventTarget native "*MediaController" {
   /** @domName MediaController.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLMediaElement
 class MediaElement extends Element implements Element native "*HTMLMediaElement" {
@@ -11868,6 +12328,10 @@ class MediaElementEvents extends ElementEvents {
 
   EventListenerList get needKey => this['webkitneedkey'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaElementAudioSourceNode
 class MediaElementAudioSourceNode extends AudioSourceNode native "*MediaElementAudioSourceNode" {
@@ -11875,6 +12339,10 @@ class MediaElementAudioSourceNode extends AudioSourceNode native "*MediaElementA
   /** @domName MediaElementAudioSourceNode.mediaElement */
   final MediaElement mediaElement;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaError
 class MediaError native "*MediaError" {
@@ -11892,6 +12360,10 @@ class MediaError native "*MediaError" {
   /** @domName MediaError.code */
   final int code;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaKeyError
 class MediaKeyError native "*MediaKeyError" {
@@ -11911,6 +12383,10 @@ class MediaKeyError native "*MediaKeyError" {
   /** @domName MediaKeyError.code */
   final int code;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaKeyEvent
 class MediaKeyEvent extends Event native "*MediaKeyEvent" {
@@ -11936,6 +12412,10 @@ class MediaKeyEvent extends Event native "*MediaKeyEvent" {
   /** @domName MediaKeyEvent.systemCode */
   final int systemCode;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaList
 class MediaList native "*MediaList" {
@@ -11955,6 +12435,10 @@ class MediaList native "*MediaList" {
   /** @domName MediaList.item */
   String item(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaQueryList
 class MediaQueryList native "*MediaQueryList" {
@@ -11971,12 +12455,21 @@ class MediaQueryList native "*MediaQueryList" {
   /** @domName MediaQueryList.removeListener */
   void removeListener(MediaQueryListListener listener) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName MediaQueryListListener
 abstract class MediaQueryListListener {
 
   /** @domName MediaQueryListListener.queryChanged */
   void queryChanged(MediaQueryList list);
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaSource
 class MediaSource extends EventTarget native "*MediaSource" {
@@ -12013,6 +12506,10 @@ class MediaSource extends EventTarget native "*MediaSource" {
   /** @domName MediaSource.removeSourceBuffer */
   void removeSourceBuffer(SourceBuffer buffer) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaStream
 class MediaStream extends EventTarget native "*MediaStream" {
@@ -12056,6 +12553,10 @@ class MediaStreamEvents extends Events {
 
   EventListenerList get ended => this['ended'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaStreamAudioSourceNode
 class MediaStreamAudioSourceNode extends AudioSourceNode native "*MediaStreamAudioSourceNode" {
@@ -12063,6 +12564,10 @@ class MediaStreamAudioSourceNode extends AudioSourceNode native "*MediaStreamAud
   /** @domName MediaStreamAudioSourceNode.mediaStream */
   final MediaStream mediaStream;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaStreamEvent
 class MediaStreamEvent extends Event native "*MediaStreamEvent" {
@@ -12070,6 +12575,10 @@ class MediaStreamEvent extends Event native "*MediaStreamEvent" {
   /** @domName MediaStreamEvent.stream */
   final MediaStream stream;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaStreamTrack
 class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
@@ -12117,6 +12626,10 @@ class MediaStreamTrackEvents extends Events {
 
   EventListenerList get unmute => this['unmute'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaStreamTrackEvent
 class MediaStreamTrackEvent extends Event native "*MediaStreamTrackEvent" {
@@ -12124,6 +12637,10 @@ class MediaStreamTrackEvent extends Event native "*MediaStreamTrackEvent" {
   /** @domName MediaStreamTrackEvent.track */
   final MediaStreamTrack track;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaStreamTrackList
 class MediaStreamTrackList extends EventTarget native "*MediaStreamTrackList" {
@@ -12163,6 +12680,10 @@ class MediaStreamTrackListEvents extends Events {
 
   EventListenerList get removeTrack => this['removetrack'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MemoryInfo
 class MemoryInfo native "*MemoryInfo" {
@@ -12176,6 +12697,10 @@ class MemoryInfo native "*MemoryInfo" {
   /** @domName MemoryInfo.usedJSHeapSize */
   final int usedJSHeapSize;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLMenuElement
 class MenuElement extends Element implements Element native "*HTMLMenuElement" {
@@ -12185,6 +12710,10 @@ class MenuElement extends Element implements Element native "*HTMLMenuElement" {
   /** @domName HTMLMenuElement.compact */
   bool compact;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MessageChannel
 class MessageChannel native "*MessageChannel" {
@@ -12197,6 +12726,10 @@ class MessageChannel native "*MessageChannel" {
   /** @domName MessageChannel.port2 */
   final MessagePort port2;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MessageEvent
 class MessageEvent extends Event native "*MessageEvent" {
@@ -12216,7 +12749,7 @@ class MessageEvent extends Event native "*MessageEvent" {
 
   /** @domName MessageEvent.source */
   Window get source => _convertNativeToDart_Window(this._source);
-  Window get _source => JS("Window", "#.source", this);
+  dynamic get _source => JS("dynamic", "#.source", this);
 
   /** @domName MessageEvent.initMessageEvent */
   void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, LocalWindow sourceArg, List messagePorts) native;
@@ -12224,6 +12757,10 @@ class MessageEvent extends Event native "*MessageEvent" {
   /** @domName MessageEvent.webkitInitMessageEvent */
   void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, LocalWindow sourceArg, List transferables) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MessagePort
 class MessagePort extends EventTarget native "*MessagePort" {
@@ -12244,7 +12781,7 @@ class MessagePort extends EventTarget native "*MessagePort" {
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
   /** @domName MessagePort.postMessage */
-  void postMessage(/*any*/ message, [messagePorts]) {
+  void postMessage(/*any*/ message, [List messagePorts]) {
     if (?messagePorts) {
       var message_1 = _convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, messagePorts);
@@ -12269,6 +12806,10 @@ class MessagePortEvents extends Events {
 
   EventListenerList get message => this['message'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLMetaElement
 class MetaElement extends Element implements Element native "*HTMLMetaElement" {
@@ -12285,6 +12826,10 @@ class MetaElement extends Element implements Element native "*HTMLMetaElement" {
   /** @domName HTMLMetaElement.scheme */
   String scheme;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Metadata
 class Metadata native "*Metadata" {
@@ -12303,6 +12848,10 @@ class Metadata native "*Metadata" {
 
 
 typedef void MetadataCallback(Metadata metadata);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLMeterElement
 class MeterElement extends Element implements Element native "*HTMLMeterElement" {
@@ -12330,6 +12879,10 @@ class MeterElement extends Element implements Element native "*HTMLMeterElement"
   /** @domName HTMLMeterElement.value */
   num value;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLModElement
 class ModElement extends Element implements Element native "*HTMLModElement" {
@@ -12343,6 +12896,7 @@ class ModElement extends Element implements Element native "*HTMLModElement" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class MouseEvent extends UIEvent native "*MouseEvent" {
   factory MouseEvent(String type, Window view, int detail, int screenX,
@@ -12382,7 +12936,7 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
 
   /** @domName MouseEvent.relatedTarget */
   EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._relatedTarget);
-  EventTarget get _relatedTarget => JS("EventTarget", "#.relatedTarget", this);
+  dynamic get _relatedTarget => JS("dynamic", "#.relatedTarget", this);
 
   /** @domName MouseEvent.screenX */
   final int screenX;
@@ -12410,11 +12964,11 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
 
   /** @domName MouseEvent.initMouseEvent */
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) {
-    EventTarget relatedTarget_1 = _convertDartToNative_EventTarget(relatedTarget);
+    var relatedTarget_1 = _convertDartToNative_EventTarget(relatedTarget);
     _$dom_initMouseEvent_1(type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget_1);
     return;
   }
-  void _$dom_initMouseEvent_1(type, canBubble, cancelable, LocalWindow view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, EventTarget relatedTarget) native "initMouseEvent";
+  void _$dom_initMouseEvent_1(type, canBubble, cancelable, LocalWindow view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget) native "initMouseEvent";
 
 
   int get offsetX {
@@ -12453,6 +13007,10 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
 
 
 typedef void MutationCallback(List<MutationRecord> mutations, MutationObserver observer);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MutationEvent
 class MutationEvent extends Event native "*MutationEvent" {
@@ -12484,6 +13042,7 @@ class MutationEvent extends Event native "*MutationEvent" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class MutationObserver native "*MutationObserver" {
 
@@ -12564,6 +13123,10 @@ class MutationObserver native "*MutationObserver" {
   // Call native function with no conversions.
   void _call(target, options) native 'observe';
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MutationRecord
 class MutationRecord native "*MutationRecord" {
@@ -12595,6 +13158,10 @@ class MutationRecord native "*MutationRecord" {
   /** @domName MutationRecord.type */
   final String type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName NamedNodeMap
 class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*NamedNodeMap" {
@@ -12616,7 +13183,7 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<Node>(this);
+    return new FixedSizeListIterator<Node>(this);
   }
 
   // From Collection<Node>:
@@ -12706,6 +13273,10 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
   /** @domName NamedNodeMap.setNamedItemNS */
   Node setNamedItemNS(Node node) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Navigator
 class Navigator native "*Navigator" {
@@ -12768,7 +13339,7 @@ class Navigator native "*Navigator" {
   List<Gamepad> webkitGetGamepads() native;
 
   /** @domName Navigator.webkitGetUserMedia */
-  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [errorCallback]) {
+  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]) {
     if (?errorCallback) {
       var options_1 = _convertDartToNative_Dictionary(options);
       _webkitGetUserMedia_1(options_1, successCallback, errorCallback);
@@ -12781,6 +13352,10 @@ class Navigator native "*Navigator" {
   void _webkitGetUserMedia_1(options, NavigatorUserMediaSuccessCallback successCallback, NavigatorUserMediaErrorCallback errorCallback) native "webkitGetUserMedia";
   void _webkitGetUserMedia_2(options, NavigatorUserMediaSuccessCallback successCallback) native "webkitGetUserMedia";
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName NavigatorUserMediaError
 class NavigatorUserMediaError native "*NavigatorUserMediaError" {
@@ -12809,6 +13384,7 @@ typedef void NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 /**
  * Lazy implementation of the child nodes of an element that does not request
@@ -13008,7 +13584,7 @@ class Node extends EventTarget native "*Node" {
   Node get nextNode => JS("Node", "#.nextSibling", this);
 
   /** @domName Node.nodeType */
-  int get $dom_nodeType => JS("int", "#.nodeType", this);
+  final int nodeType;
 
   /** @domName Node.ownerDocument */
   Document get document => JS("Document", "#.ownerDocument", this);
@@ -13058,6 +13634,10 @@ class Node extends EventTarget native "*Node" {
   Node $dom_replaceChild(Node newChild, Node oldChild) native "replaceChild";
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName NodeFilter
 class NodeFilter native "*NodeFilter" {
@@ -13097,6 +13677,10 @@ class NodeFilter native "*NodeFilter" {
   /** @domName NodeFilter.acceptNode */
   int acceptNode(Node n) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName NodeIterator
 class NodeIterator native "*NodeIterator" {
@@ -13132,8 +13716,9 @@ class NodeIterator native "*NodeIterator" {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 // TODO(nweiz): when all implementations we target have the same name for the
-// coreimpl implementation of List<E>, extend that rather than wrapping.
+// implementation of List<E>, extend that rather than wrapping.
 class _ListWrapper<E> implements List<E> {
   List _list;
 
@@ -13223,7 +13808,7 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<Node>(this);
+    return new FixedSizeListIterator<Node>(this);
   }
 
   // From Collection<Node>:
@@ -13313,6 +13898,10 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
   Node _item(int index) native "item";
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Notation
 class Notation extends Node native "*Notation" {
@@ -13323,6 +13912,10 @@ class Notation extends Node native "*Notation" {
   /** @domName Notation.systemId */
   final String systemId;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Notification
 class Notification extends EventTarget native "*Notification" {
@@ -13387,6 +13980,10 @@ class NotificationEvents extends Events {
 
   EventListenerList get show => this['show'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName NotificationCenter
 class NotificationCenter native "*NotificationCenter" {
@@ -13411,20 +14008,36 @@ class NotificationCenter native "*NotificationCenter" {
 
 
 typedef void NotificationPermissionCallback(String permission);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName OESElementIndexUint
 class OESElementIndexUint native "*OESElementIndexUint" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName OESStandardDerivatives
 class OESStandardDerivatives native "*OESStandardDerivatives" {
 
   static const int FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName OESTextureFloat
 class OESTextureFloat native "*OESTextureFloat" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName OESVertexArrayObject
 class OESVertexArrayObject native "*OESVertexArrayObject" {
@@ -13443,6 +14056,10 @@ class OESVertexArrayObject native "*OESVertexArrayObject" {
   /** @domName OESVertexArrayObject.isVertexArrayOES */
   bool isVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLOListElement
 class OListElement extends Element implements Element native "*HTMLOListElement" {
@@ -13461,6 +14078,10 @@ class OListElement extends Element implements Element native "*HTMLOListElement"
   /** @domName HTMLOListElement.type */
   String type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLObjectElement
 class ObjectElement extends Element implements Element native "*HTMLObjectElement" {
@@ -13533,6 +14154,10 @@ class ObjectElement extends Element implements Element native "*HTMLObjectElemen
   /** @domName HTMLObjectElement.setCustomValidity */
   void setCustomValidity(String error) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName OfflineAudioCompletionEvent
 class OfflineAudioCompletionEvent extends Event native "*OfflineAudioCompletionEvent" {
@@ -13540,6 +14165,10 @@ class OfflineAudioCompletionEvent extends Event native "*OfflineAudioCompletionE
   /** @domName OfflineAudioCompletionEvent.renderedBuffer */
   final AudioBuffer renderedBuffer;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLOptGroupElement
 class OptGroupElement extends Element implements Element native "*HTMLOptGroupElement" {
@@ -13552,6 +14181,10 @@ class OptGroupElement extends Element implements Element native "*HTMLOptGroupEl
   /** @domName HTMLOptGroupElement.label */
   String label;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLOptionElement
 class OptionElement extends Element implements Element native "*HTMLOptionElement" {
@@ -13593,6 +14226,10 @@ class OptionElement extends Element implements Element native "*HTMLOptionElemen
   /** @domName HTMLOptionElement.value */
   String value;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName OscillatorNode
 class OscillatorNode extends AudioSourceNode native "*OscillatorNode" {
@@ -13636,6 +14273,10 @@ class OscillatorNode extends AudioSourceNode native "*OscillatorNode" {
   /** @domName OscillatorNode.stop */
   void stop(num when) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLOutputElement
 class OutputElement extends Element implements Element native "*HTMLOutputElement" {
@@ -13678,6 +14319,10 @@ class OutputElement extends Element implements Element native "*HTMLOutputElemen
   /** @domName HTMLOutputElement.setCustomValidity */
   void setCustomValidity(String error) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName OverflowEvent
 class OverflowEvent extends Event native "*OverflowEvent" {
@@ -13697,6 +14342,10 @@ class OverflowEvent extends Event native "*OverflowEvent" {
   /** @domName OverflowEvent.verticalOverflow */
   final bool verticalOverflow;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName PagePopupController
 class PagePopupController native "*PagePopupController" {
@@ -13707,6 +14356,10 @@ class PagePopupController native "*PagePopupController" {
   /** @domName PagePopupController.setValueAndClosePopup */
   void setValueAndClosePopup(int numberValue, String stringValue) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName PageTransitionEvent
 class PageTransitionEvent extends Event native "*PageTransitionEvent" {
@@ -13714,6 +14367,10 @@ class PageTransitionEvent extends Event native "*PageTransitionEvent" {
   /** @domName PageTransitionEvent.persisted */
   final bool persisted;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName PannerNode
 class PannerNode extends AudioNode native "*PannerNode" {
@@ -13769,6 +14426,10 @@ class PannerNode extends AudioNode native "*PannerNode" {
   /** @domName PannerNode.setVelocity */
   void setVelocity(num x, num y, num z) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLParagraphElement
 class ParagraphElement extends Element implements Element native "*HTMLParagraphElement" {
@@ -13778,6 +14439,10 @@ class ParagraphElement extends Element implements Element native "*HTMLParagraph
   /** @domName HTMLParagraphElement.align */
   String align;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLParamElement
 class ParamElement extends Element implements Element native "*HTMLParamElement" {
@@ -13796,6 +14461,10 @@ class ParamElement extends Element implements Element native "*HTMLParamElement"
   /** @domName HTMLParamElement.valueType */
   String valueType;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName PeerConnection00
 class PeerConnection00 extends EventTarget native "*PeerConnection00" {
@@ -13858,7 +14527,7 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   /** @domName PeerConnection00.addStream */
-  void addStream(MediaStream stream, [mediaStreamHints]) {
+  void addStream(MediaStream stream, [Map mediaStreamHints]) {
     if (?mediaStreamHints) {
       var mediaStreamHints_1 = _convertDartToNative_Dictionary(mediaStreamHints);
       _addStream_1(stream, mediaStreamHints_1);
@@ -13874,7 +14543,7 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   void close() native;
 
   /** @domName PeerConnection00.createAnswer */
-  SessionDescription createAnswer(String offer, [mediaHints]) {
+  SessionDescription createAnswer(String offer, [Map mediaHints]) {
     if (?mediaHints) {
       var mediaHints_1 = _convertDartToNative_Dictionary(mediaHints);
       return _createAnswer_1(offer, mediaHints_1);
@@ -13885,7 +14554,7 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   SessionDescription _createAnswer_2(offer) native "createAnswer";
 
   /** @domName PeerConnection00.createOffer */
-  SessionDescription createOffer([mediaHints]) {
+  SessionDescription createOffer([Map mediaHints]) {
     if (?mediaHints) {
       var mediaHints_1 = _convertDartToNative_Dictionary(mediaHints);
       return _createOffer_1(mediaHints_1);
@@ -13914,7 +14583,7 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   void setRemoteDescription(int action, SessionDescription desc) native;
 
   /** @domName PeerConnection00.startIce */
-  void startIce([iceOptions]) {
+  void startIce([Map iceOptions]) {
     if (?iceOptions) {
       var iceOptions_1 = _convertDartToNative_Dictionary(iceOptions);
       _startIce_1(iceOptions_1);
@@ -13940,6 +14609,10 @@ class PeerConnection00Events extends Events {
 
   EventListenerList get stateChange => this['statechange'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Performance
 class Performance extends EventTarget native "*Performance" {
@@ -13956,6 +14629,10 @@ class Performance extends EventTarget native "*Performance" {
   /** @domName Performance.now */
   num now() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName PerformanceNavigation
 class PerformanceNavigation native "*PerformanceNavigation" {
@@ -13974,6 +14651,10 @@ class PerformanceNavigation native "*PerformanceNavigation" {
   /** @domName PerformanceNavigation.type */
   final int type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName PerformanceTiming
 class PerformanceTiming native "*PerformanceTiming" {
@@ -14047,6 +14728,7 @@ class PerformanceTiming native "*PerformanceTiming" {
 
 // WARNING: Do not edit - generated code.
 
+
 class Point native "*WebKitPoint" {
   factory Point(num x, num y) => _PointFactoryProvider.createPoint(x, y);
 
@@ -14057,6 +14739,10 @@ class Point native "*WebKitPoint" {
   num y;
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName PopStateEvent
 class PopStateEvent extends Event native "*PopStateEvent" {
@@ -14073,6 +14759,10 @@ class PopStateEvent extends Event native "*PopStateEvent" {
 
 
 typedef void PositionCallback(Geoposition position);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName PositionError
 class PositionError native "*PositionError" {
@@ -14097,6 +14787,10 @@ class PositionError native "*PositionError" {
 
 
 typedef void PositionErrorCallback(PositionError error);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLPreElement
 class PreElement extends Element implements Element native "*HTMLPreElement" {
@@ -14109,6 +14803,10 @@ class PreElement extends Element implements Element native "*HTMLPreElement" {
   /** @domName HTMLPreElement.wrap */
   bool wrap;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ProcessingInstruction
 class ProcessingInstruction extends Node native "*ProcessingInstruction" {
@@ -14122,6 +14820,10 @@ class ProcessingInstruction extends Node native "*ProcessingInstruction" {
   /** @domName ProcessingInstruction.target */
   final String target;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLProgressElement
 class ProgressElement extends Element implements Element native "*HTMLProgressElement" {
@@ -14140,6 +14842,10 @@ class ProgressElement extends Element implements Element native "*HTMLProgressEl
   /** @domName HTMLProgressElement.value */
   num value;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ProgressEvent
 class ProgressEvent extends Event native "*ProgressEvent" {
@@ -14153,6 +14859,10 @@ class ProgressEvent extends Event native "*ProgressEvent" {
   /** @domName ProgressEvent.total */
   final int total;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLQuoteElement
 class QuoteElement extends Element implements Element native "*HTMLQuoteElement" {
@@ -14160,6 +14870,10 @@ class QuoteElement extends Element implements Element native "*HTMLQuoteElement"
   /** @domName HTMLQuoteElement.cite */
   String cite;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName RGBColor
 class RGBColor native "*RGBColor" {
@@ -14173,6 +14887,10 @@ class RGBColor native "*RGBColor" {
   /** @domName RGBColor.red */
   final CSSPrimitiveValue red;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName RTCDataChannel
 class RTCDataChannel extends EventTarget native "*RTCDataChannel" {
@@ -14225,6 +14943,10 @@ class RTCDataChannelEvents extends Events {
 
   EventListenerList get open => this['open'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName RTCDataChannelEvent
 class RTCDataChannelEvent extends Event native "*RTCDataChannelEvent" {
@@ -14240,6 +14962,10 @@ class RTCDataChannelEvent extends Event native "*RTCDataChannelEvent" {
 
 
 typedef void RTCErrorCallback(String errorInformation);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName RTCIceCandidate
 class RTCIceCandidate native "*RTCIceCandidate" {
@@ -14255,6 +14981,10 @@ class RTCIceCandidate native "*RTCIceCandidate" {
   /** @domName RTCIceCandidate.sdpMid */
   final String sdpMid;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName RTCIceCandidateEvent
 class RTCIceCandidateEvent extends Event native "*RTCIceCandidateEvent" {
@@ -14262,6 +14992,10 @@ class RTCIceCandidateEvent extends Event native "*RTCIceCandidateEvent" {
   /** @domName RTCIceCandidateEvent.candidate */
   final RTCIceCandidate candidate;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName RTCPeerConnection
 class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
@@ -14304,7 +15038,7 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   void addIceCandidate(RTCIceCandidate candidate) native;
 
   /** @domName RTCPeerConnection.addStream */
-  void addStream(MediaStream stream, [mediaConstraints]) {
+  void addStream(MediaStream stream, [Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
       _addStream_1(stream, mediaConstraints_1);
@@ -14320,7 +15054,7 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   void close() native;
 
   /** @domName RTCPeerConnection.createAnswer */
-  void createAnswer(RTCSessionDescriptionCallback successCallback, [failureCallback, mediaConstraints]) {
+  void createAnswer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
       _createAnswer_1(successCallback, failureCallback, mediaConstraints_1);
@@ -14333,7 +15067,7 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   void _createAnswer_2(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback) native "createAnswer";
 
   /** @domName RTCPeerConnection.createDataChannel */
-  RTCDataChannel createDataChannel(String label, [options]) {
+  RTCDataChannel createDataChannel(String label, [Map options]) {
     if (?options) {
       var options_1 = _convertDartToNative_Dictionary(options);
       return _createDataChannel_1(label, options_1);
@@ -14344,7 +15078,7 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   RTCDataChannel _createDataChannel_2(label) native "createDataChannel";
 
   /** @domName RTCPeerConnection.createOffer */
-  void createOffer(RTCSessionDescriptionCallback successCallback, [failureCallback, mediaConstraints]) {
+  void createOffer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
       _createOffer_1(successCallback, failureCallback, mediaConstraints_1);
@@ -14375,7 +15109,7 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   void setRemoteDescription(RTCSessionDescription description, [VoidCallback successCallback, RTCErrorCallback failureCallback]) native;
 
   /** @domName RTCPeerConnection.updateIce */
-  void updateIce([configuration, mediaConstraints]) {
+  void updateIce([Map configuration, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var configuration_1 = _convertDartToNative_Dictionary(configuration);
       var mediaConstraints_2 = _convertDartToNative_Dictionary(mediaConstraints);
@@ -14412,6 +15146,10 @@ class RTCPeerConnectionEvents extends Events {
 
   EventListenerList get stateChange => this['statechange'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName RTCSessionDescription
 class RTCSessionDescription native "*RTCSessionDescription" {
@@ -14440,6 +15178,10 @@ typedef void RTCSessionDescriptionCallback(RTCSessionDescription sdp);
 
 
 typedef void RTCStatsCallback(RTCStatsResponse response);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName RTCStatsElement
 class RTCStatsElement native "*RTCStatsElement" {
@@ -14450,6 +15192,10 @@ class RTCStatsElement native "*RTCStatsElement" {
   /** @domName RTCStatsElement.stat */
   String stat(String name) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName RTCStatsReport
 class RTCStatsReport native "*RTCStatsReport" {
@@ -14460,6 +15206,10 @@ class RTCStatsReport native "*RTCStatsReport" {
   /** @domName RTCStatsReport.remote */
   final RTCStatsElement remote;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName RTCStatsResponse
 class RTCStatsResponse native "*RTCStatsResponse" {
@@ -14467,6 +15217,10 @@ class RTCStatsResponse native "*RTCStatsResponse" {
   /** @domName RTCStatsResponse.result */
   List<RTCStatsReport> result() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName RadioNodeList
 class RadioNodeList extends NodeList native "*RadioNodeList" {
@@ -14474,6 +15228,10 @@ class RadioNodeList extends NodeList native "*RadioNodeList" {
   /** @domName RadioNodeList.value */
   String value;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Range
 class Range native "*Range" {
@@ -14587,6 +15345,10 @@ class Range native "*Range" {
   /** @domName Range.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName RangeException
 class RangeException native "*RangeException" {
@@ -14607,6 +15369,10 @@ class RangeException native "*RangeException" {
   /** @domName RangeException.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Rect
 class Rect native "*Rect" {
@@ -14631,6 +15397,10 @@ class Rect native "*Rect" {
 
 
 typedef void RequestAnimationFrameCallback(num highResTime);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SQLError
 class SQLError native "*SQLError" {
@@ -14657,6 +15427,10 @@ class SQLError native "*SQLError" {
   /** @domName SQLError.message */
   final String message;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SQLException
 class SQLException native "*SQLException" {
@@ -14683,6 +15457,10 @@ class SQLException native "*SQLException" {
   /** @domName SQLException.message */
   final String message;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SQLResultSet
 class SQLResultSet native "*SQLResultSet" {
@@ -14696,6 +15474,10 @@ class SQLResultSet native "*SQLResultSet" {
   /** @domName SQLResultSet.rowsAffected */
   final int rowsAffected;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SQLResultSetRowList
 class SQLResultSetRowList implements JavaScriptIndexingBehavior, List<Map> native "*SQLResultSetRowList" {
@@ -14717,7 +15499,7 @@ class SQLResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<Map>(this);
+    return new FixedSizeListIterator<Map>(this);
   }
 
   // From Collection<Map>:
@@ -14808,6 +15590,10 @@ typedef void SQLStatementCallback(SQLTransaction transaction, SQLResultSet resul
 
 
 typedef void SQLStatementErrorCallback(SQLTransaction transaction, SQLError error);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SQLTransaction
 class SQLTransaction native "*SQLTransaction" {
@@ -14831,6 +15617,10 @@ typedef void SQLTransactionCallback(SQLTransaction transaction);
 
 
 typedef void SQLTransactionErrorCallback(SQLError error);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SQLTransactionSync
 class SQLTransactionSync native "*SQLTransactionSync" {
@@ -14846,5270 +15636,10 @@ class SQLTransactionSync native "*SQLTransactionSync" {
 
 
 typedef void SQLTransactionSyncCallback(SQLTransactionSync transaction);
-
-/// @domName SVGAElement
-class SVGAElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStylable, SVGURIReference, SVGExternalResourcesRequired, SVGTransformable native "*SVGAElement" {
-
-  /** @domName SVGAElement.target */
-  final SVGAnimatedString target;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGLocatable
-
-  /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
-
-  /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
-
-  /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
-
-  /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
-
-  /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
-
-  /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-
-  // From SVGTests
-
-  /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
-
-  /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
-
-  /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
-
-  /** @domName SVGTests.hasExtension */
-  bool hasExtension(String extension) native;
-
-  // From SVGTransformable
-
-  /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
-
-  // From SVGURIReference
-
-  /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
-}
-
-/// @domName SVGAltGlyphDefElement
-class SVGAltGlyphDefElement extends SVGElement native "*SVGAltGlyphDefElement" {
-}
-
-/// @domName SVGAltGlyphElement
-class SVGAltGlyphElement extends SVGTextPositioningElement implements SVGURIReference native "*SVGAltGlyphElement" {
-
-  /** @domName SVGAltGlyphElement.format */
-  String format;
-
-  /** @domName SVGAltGlyphElement.glyphRef */
-  String glyphRef;
-
-  // From SVGURIReference
-
-  /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
-}
-
-/// @domName SVGAltGlyphItemElement
-class SVGAltGlyphItemElement extends SVGElement native "*SVGAltGlyphItemElement" {
-}
-
-/// @domName SVGAngle
-class SVGAngle native "*SVGAngle" {
-
-  static const int SVG_ANGLETYPE_DEG = 2;
-
-  static const int SVG_ANGLETYPE_GRAD = 4;
-
-  static const int SVG_ANGLETYPE_RAD = 3;
-
-  static const int SVG_ANGLETYPE_UNKNOWN = 0;
-
-  static const int SVG_ANGLETYPE_UNSPECIFIED = 1;
-
-  /** @domName SVGAngle.unitType */
-  final int unitType;
-
-  /** @domName SVGAngle.value */
-  num value;
-
-  /** @domName SVGAngle.valueAsString */
-  String valueAsString;
-
-  /** @domName SVGAngle.valueInSpecifiedUnits */
-  num valueInSpecifiedUnits;
-
-  /** @domName SVGAngle.convertToSpecifiedUnits */
-  void convertToSpecifiedUnits(int unitType) native;
-
-  /** @domName SVGAngle.newValueSpecifiedUnits */
-  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) native;
-}
-
-/// @domName SVGAnimateColorElement
-class SVGAnimateColorElement extends SVGAnimationElement native "*SVGAnimateColorElement" {
-}
-
-/// @domName SVGAnimateElement
-class SVGAnimateElement extends SVGAnimationElement native "*SVGAnimateElement" {
-}
-
-/// @domName SVGAnimateMotionElement
-class SVGAnimateMotionElement extends SVGAnimationElement native "*SVGAnimateMotionElement" {
-}
-
-/// @domName SVGAnimateTransformElement
-class SVGAnimateTransformElement extends SVGAnimationElement native "*SVGAnimateTransformElement" {
-}
-
-/// @domName SVGAnimatedAngle
-class SVGAnimatedAngle native "*SVGAnimatedAngle" {
-
-  /** @domName SVGAnimatedAngle.animVal */
-  final SVGAngle animVal;
-
-  /** @domName SVGAnimatedAngle.baseVal */
-  final SVGAngle baseVal;
-}
-
-/// @domName SVGAnimatedBoolean
-class SVGAnimatedBoolean native "*SVGAnimatedBoolean" {
-
-  /** @domName SVGAnimatedBoolean.animVal */
-  final bool animVal;
-
-  /** @domName SVGAnimatedBoolean.baseVal */
-  bool baseVal;
-}
-
-/// @domName SVGAnimatedEnumeration
-class SVGAnimatedEnumeration native "*SVGAnimatedEnumeration" {
-
-  /** @domName SVGAnimatedEnumeration.animVal */
-  final int animVal;
-
-  /** @domName SVGAnimatedEnumeration.baseVal */
-  int baseVal;
-}
-
-/// @domName SVGAnimatedInteger
-class SVGAnimatedInteger native "*SVGAnimatedInteger" {
-
-  /** @domName SVGAnimatedInteger.animVal */
-  final int animVal;
-
-  /** @domName SVGAnimatedInteger.baseVal */
-  int baseVal;
-}
-
-/// @domName SVGAnimatedLength
-class SVGAnimatedLength native "*SVGAnimatedLength" {
-
-  /** @domName SVGAnimatedLength.animVal */
-  final SVGLength animVal;
-
-  /** @domName SVGAnimatedLength.baseVal */
-  final SVGLength baseVal;
-}
-
-/// @domName SVGAnimatedLengthList
-class SVGAnimatedLengthList implements JavaScriptIndexingBehavior, List<SVGAnimatedLength> native "*SVGAnimatedLengthList" {
-
-  /** @domName SVGAnimatedLengthList.animVal */
-  final SVGLengthList animVal;
-
-  /** @domName SVGAnimatedLengthList.baseVal */
-  final SVGLengthList baseVal;
-
-  SVGAnimatedLength operator[](int index) => JS("SVGAnimatedLength", "#[#]", this, index);
-
-  void operator[]=(int index, SVGAnimatedLength value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<SVGAnimatedLength> mixins.
-  // SVGAnimatedLength is the element type.
-
-  // From Iterable<SVGAnimatedLength>:
-
-  Iterator<SVGAnimatedLength> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new _FixedSizeListIterator<SVGAnimatedLength>(this);
-  }
-
-  // From Collection<SVGAnimatedLength>:
-
-  void add(SVGAnimatedLength value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(SVGAnimatedLength value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<SVGAnimatedLength> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(SVGAnimatedLength element) => _Collections.contains(this, element);
-
-  void forEach(void f(SVGAnimatedLength element)) => _Collections.forEach(this, f);
-
-  Collection map(f(SVGAnimatedLength element)) => _Collections.map(this, [], f);
-
-  Collection<SVGAnimatedLength> filter(bool f(SVGAnimatedLength element)) =>
-     _Collections.filter(this, <SVGAnimatedLength>[], f);
-
-  bool every(bool f(SVGAnimatedLength element)) => _Collections.every(this, f);
-
-  bool some(bool f(SVGAnimatedLength element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<SVGAnimatedLength>:
-
-  void sort([Comparator<SVGAnimatedLength> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(SVGAnimatedLength element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(SVGAnimatedLength element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  SVGAnimatedLength get last => this[length - 1];
-
-  SVGAnimatedLength removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<SVGAnimatedLength> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [SVGAnimatedLength initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<SVGAnimatedLength> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <SVGAnimatedLength>[]);
-
-  // -- end List<SVGAnimatedLength> mixins.
-}
-
-/// @domName SVGAnimatedNumber
-class SVGAnimatedNumber native "*SVGAnimatedNumber" {
-
-  /** @domName SVGAnimatedNumber.animVal */
-  final num animVal;
-
-  /** @domName SVGAnimatedNumber.baseVal */
-  num baseVal;
-}
-
-/// @domName SVGAnimatedNumberList
-class SVGAnimatedNumberList implements JavaScriptIndexingBehavior, List<SVGAnimatedNumber> native "*SVGAnimatedNumberList" {
-
-  /** @domName SVGAnimatedNumberList.animVal */
-  final SVGNumberList animVal;
-
-  /** @domName SVGAnimatedNumberList.baseVal */
-  final SVGNumberList baseVal;
-
-  SVGAnimatedNumber operator[](int index) => JS("SVGAnimatedNumber", "#[#]", this, index);
-
-  void operator[]=(int index, SVGAnimatedNumber value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<SVGAnimatedNumber> mixins.
-  // SVGAnimatedNumber is the element type.
-
-  // From Iterable<SVGAnimatedNumber>:
-
-  Iterator<SVGAnimatedNumber> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new _FixedSizeListIterator<SVGAnimatedNumber>(this);
-  }
-
-  // From Collection<SVGAnimatedNumber>:
-
-  void add(SVGAnimatedNumber value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(SVGAnimatedNumber value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<SVGAnimatedNumber> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(SVGAnimatedNumber element) => _Collections.contains(this, element);
-
-  void forEach(void f(SVGAnimatedNumber element)) => _Collections.forEach(this, f);
-
-  Collection map(f(SVGAnimatedNumber element)) => _Collections.map(this, [], f);
-
-  Collection<SVGAnimatedNumber> filter(bool f(SVGAnimatedNumber element)) =>
-     _Collections.filter(this, <SVGAnimatedNumber>[], f);
-
-  bool every(bool f(SVGAnimatedNumber element)) => _Collections.every(this, f);
-
-  bool some(bool f(SVGAnimatedNumber element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<SVGAnimatedNumber>:
-
-  void sort([Comparator<SVGAnimatedNumber> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(SVGAnimatedNumber element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(SVGAnimatedNumber element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  SVGAnimatedNumber get last => this[length - 1];
-
-  SVGAnimatedNumber removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<SVGAnimatedNumber> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [SVGAnimatedNumber initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<SVGAnimatedNumber> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <SVGAnimatedNumber>[]);
-
-  // -- end List<SVGAnimatedNumber> mixins.
-}
-
-/// @domName SVGAnimatedPreserveAspectRatio
-class SVGAnimatedPreserveAspectRatio native "*SVGAnimatedPreserveAspectRatio" {
-
-  /** @domName SVGAnimatedPreserveAspectRatio.animVal */
-  final SVGPreserveAspectRatio animVal;
-
-  /** @domName SVGAnimatedPreserveAspectRatio.baseVal */
-  final SVGPreserveAspectRatio baseVal;
-}
-
-/// @domName SVGAnimatedRect
-class SVGAnimatedRect native "*SVGAnimatedRect" {
-
-  /** @domName SVGAnimatedRect.animVal */
-  final SVGRect animVal;
-
-  /** @domName SVGAnimatedRect.baseVal */
-  final SVGRect baseVal;
-}
-
-/// @domName SVGAnimatedString
-class SVGAnimatedString native "*SVGAnimatedString" {
-
-  /** @domName SVGAnimatedString.animVal */
-  final String animVal;
-
-  /** @domName SVGAnimatedString.baseVal */
-  String baseVal;
-}
-
-/// @domName SVGAnimatedTransformList
-class SVGAnimatedTransformList implements JavaScriptIndexingBehavior, List<SVGAnimateTransformElement> native "*SVGAnimatedTransformList" {
-
-  /** @domName SVGAnimatedTransformList.animVal */
-  final SVGTransformList animVal;
-
-  /** @domName SVGAnimatedTransformList.baseVal */
-  final SVGTransformList baseVal;
-
-  SVGAnimateTransformElement operator[](int index) => JS("SVGAnimateTransformElement", "#[#]", this, index);
-
-  void operator[]=(int index, SVGAnimateTransformElement value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<SVGAnimateTransformElement> mixins.
-  // SVGAnimateTransformElement is the element type.
-
-  // From Iterable<SVGAnimateTransformElement>:
-
-  Iterator<SVGAnimateTransformElement> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new _FixedSizeListIterator<SVGAnimateTransformElement>(this);
-  }
-
-  // From Collection<SVGAnimateTransformElement>:
-
-  void add(SVGAnimateTransformElement value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(SVGAnimateTransformElement value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<SVGAnimateTransformElement> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(SVGAnimateTransformElement element) => _Collections.contains(this, element);
-
-  void forEach(void f(SVGAnimateTransformElement element)) => _Collections.forEach(this, f);
-
-  Collection map(f(SVGAnimateTransformElement element)) => _Collections.map(this, [], f);
-
-  Collection<SVGAnimateTransformElement> filter(bool f(SVGAnimateTransformElement element)) =>
-     _Collections.filter(this, <SVGAnimateTransformElement>[], f);
-
-  bool every(bool f(SVGAnimateTransformElement element)) => _Collections.every(this, f);
-
-  bool some(bool f(SVGAnimateTransformElement element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<SVGAnimateTransformElement>:
-
-  void sort([Comparator<SVGAnimateTransformElement> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(SVGAnimateTransformElement element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(SVGAnimateTransformElement element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  SVGAnimateTransformElement get last => this[length - 1];
-
-  SVGAnimateTransformElement removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<SVGAnimateTransformElement> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [SVGAnimateTransformElement initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<SVGAnimateTransformElement> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <SVGAnimateTransformElement>[]);
-
-  // -- end List<SVGAnimateTransformElement> mixins.
-}
-
-/// @domName SVGAnimationElement
-class SVGAnimationElement extends SVGElement implements ElementTimeControl, SVGTests, SVGExternalResourcesRequired native "*SVGAnimationElement" {
-
-  /** @domName SVGAnimationElement.targetElement */
-  final SVGElement targetElement;
-
-  /** @domName SVGAnimationElement.getCurrentTime */
-  num getCurrentTime() native;
-
-  /** @domName SVGAnimationElement.getSimpleDuration */
-  num getSimpleDuration() native;
-
-  /** @domName SVGAnimationElement.getStartTime */
-  num getStartTime() native;
-
-  // From ElementTimeControl
-
-  /** @domName ElementTimeControl.beginElement */
-  void beginElement() native;
-
-  /** @domName ElementTimeControl.beginElementAt */
-  void beginElementAt(num offset) native;
-
-  /** @domName ElementTimeControl.endElement */
-  void endElement() native;
-
-  /** @domName ElementTimeControl.endElementAt */
-  void endElementAt(num offset) native;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGTests
-
-  /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
-
-  /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
-
-  /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
-
-  /** @domName SVGTests.hasExtension */
-  bool hasExtension(String extension) native;
-}
-
-/// @domName SVGCircleElement
-class SVGCircleElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGCircleElement" {
-
-  /** @domName SVGCircleElement.cx */
-  final SVGAnimatedLength cx;
-
-  /** @domName SVGCircleElement.cy */
-  final SVGAnimatedLength cy;
-
-  /** @domName SVGCircleElement.r */
-  final SVGAnimatedLength r;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGLocatable
-
-  /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
-
-  /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
-
-  /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
-
-  /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
-
-  /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
-
-  /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-
-  // From SVGTests
-
-  /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
-
-  /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
-
-  /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
-
-  /** @domName SVGTests.hasExtension */
-  bool hasExtension(String extension) native;
-
-  // From SVGTransformable
-
-  /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
-}
-
-/// @domName SVGClipPathElement
-class SVGClipPathElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGClipPathElement" {
-
-  /** @domName SVGClipPathElement.clipPathUnits */
-  final SVGAnimatedEnumeration clipPathUnits;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGLocatable
-
-  /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
-
-  /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
-
-  /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
-
-  /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
-
-  /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
-
-  /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-
-  // From SVGTests
-
-  /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
-
-  /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
-
-  /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
-
-  /** @domName SVGTests.hasExtension */
-  bool hasExtension(String extension) native;
-
-  // From SVGTransformable
-
-  /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
-}
-
-/// @domName SVGColor
-class SVGColor extends CSSValue native "*SVGColor" {
-
-  static const int SVG_COLORTYPE_CURRENTCOLOR = 3;
-
-  static const int SVG_COLORTYPE_RGBCOLOR = 1;
-
-  static const int SVG_COLORTYPE_RGBCOLOR_ICCCOLOR = 2;
-
-  static const int SVG_COLORTYPE_UNKNOWN = 0;
-
-  /** @domName SVGColor.colorType */
-  final int colorType;
-
-  /** @domName SVGColor.rgbColor */
-  final RGBColor rgbColor;
-
-  /** @domName SVGColor.setColor */
-  void setColor(int colorType, String rgbColor, String iccColor) native;
-
-  /** @domName SVGColor.setRGBColor */
-  void setRGBColor(String rgbColor) native;
-
-  /** @domName SVGColor.setRGBColorICCColor */
-  void setRGBColorICCColor(String rgbColor, String iccColor) native;
-}
-
-/// @domName SVGComponentTransferFunctionElement
-class SVGComponentTransferFunctionElement extends SVGElement native "*SVGComponentTransferFunctionElement" {
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE = 3;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_GAMMA = 5;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY = 1;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_LINEAR = 4;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_TABLE = 2;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
-
-  /** @domName SVGComponentTransferFunctionElement.amplitude */
-  final SVGAnimatedNumber amplitude;
-
-  /** @domName SVGComponentTransferFunctionElement.exponent */
-  final SVGAnimatedNumber exponent;
-
-  /** @domName SVGComponentTransferFunctionElement.intercept */
-  final SVGAnimatedNumber intercept;
-
-  /** @domName SVGComponentTransferFunctionElement.offset */
-  final SVGAnimatedNumber offset;
-
-  /** @domName SVGComponentTransferFunctionElement.slope */
-  final SVGAnimatedNumber slope;
-
-  /** @domName SVGComponentTransferFunctionElement.tableValues */
-  final SVGAnimatedNumberList tableValues;
-
-  /** @domName SVGComponentTransferFunctionElement.type */
-  final SVGAnimatedEnumeration type;
-}
-
-/// @domName SVGCursorElement
-class SVGCursorElement extends SVGElement implements SVGURIReference, SVGTests, SVGExternalResourcesRequired native "*SVGCursorElement" {
-
-  /** @domName SVGCursorElement.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGCursorElement.y */
-  final SVGAnimatedLength y;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGTests
-
-  /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
-
-  /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
-
-  /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
-
-  /** @domName SVGTests.hasExtension */
-  bool hasExtension(String extension) native;
-
-  // From SVGURIReference
-
-  /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
-}
-
-/// @domName SVGDefsElement
-class SVGDefsElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGDefsElement" {
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGLocatable
-
-  /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
-
-  /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
-
-  /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
-
-  /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
-
-  /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
-
-  /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-
-  // From SVGTests
-
-  /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
-
-  /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
-
-  /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
-
-  /** @domName SVGTests.hasExtension */
-  bool hasExtension(String extension) native;
-
-  // From SVGTransformable
-
-  /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
-}
-
-/// @domName SVGDescElement
-class SVGDescElement extends SVGElement implements SVGLangSpace, SVGStylable native "*SVGDescElement" {
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-}
-
-/// @domName SVGDocument
-class SVGDocument extends Document native "*SVGDocument" {
-
-  /** @domName SVGDocument.rootElement */
-  final SVGSVGElement rootElement;
-
-  /** @domName SVGDocument.createEvent */
-  Event $dom_createEvent(String eventType) native "createEvent";
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-class _AttributeClassSet extends _CssClassSet {
-  _AttributeClassSet(element) : super(element);
-
-  String $dom_className() => _element.attributes['class'];
-
-  void _write(Set s) {
-    _element.attributes['class'] = _formatSet(s);
-  }
-}
-
-class SVGElement extends Element native "*SVGElement" {
-  factory SVGElement.tag(String tag) =>
-      _SVGElementFactoryProvider.createSVGElement_tag(tag);
-  factory SVGElement.svg(String svg) =>
-      _SVGElementFactoryProvider.createSVGElement_svg(svg);
-
-  CssClassSet get classes {
-    if (_cssClassSet == null) {
-      _cssClassSet = new _AttributeClassSet(_ptr);
-    }
-    return _cssClassSet;
-  }
-
-  List<Element> get elements => new _FilteredElementList(this);
-
-  void set elements(Collection<Element> value) {
-    final elements = this.elements;
-    elements.clear();
-    elements.addAll(value);
-  }
-
-  String get outerHTML {
-    final container = new Element.tag("div");
-    final SVGElement cloned = this.clone(true);
-    container.elements.add(cloned);
-    return container.innerHTML;
-  }
-
-  String get innerHTML {
-    final container = new Element.tag("div");
-    final SVGElement cloned = this.clone(true);
-    container.elements.addAll(cloned.elements);
-    return container.innerHTML;
-  }
-
-  void set innerHTML(String svg) {
-    final container = new Element.tag("div");
-    // Wrap the SVG string in <svg> so that SVGElements are created, rather than
-    // HTMLElements.
-    container.innerHTML = '<svg version="1.1">$svg</svg>';
-    this.elements = container.elements[0].elements;
-  }
-
-
-  // Shadowing definition.
-  /** @domName SVGElement.id */
-  String get id => JS("String", "#.id", this);
-
-  /** @domName SVGElement.id */
-  void set id(String value) {
-    JS("void", "#.id = #", this, value);
-  }
-
-  /** @domName SVGElement.ownerSVGElement */
-  final SVGSVGElement ownerSVGElement;
-
-  /** @domName SVGElement.viewportElement */
-  final SVGElement viewportElement;
-
-  /** @domName SVGElement.xmlbase */
-  String xmlbase;
-
-}
-
-/// @domName SVGElementInstance
-class SVGElementInstance extends EventTarget native "*SVGElementInstance" {
-
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
-  SVGElementInstanceEvents get on =>
-    new SVGElementInstanceEvents(this);
-
-  /** @domName SVGElementInstance.childNodes */
-  final List<SVGElementInstance> childNodes;
-
-  /** @domName SVGElementInstance.correspondingElement */
-  final SVGElement correspondingElement;
-
-  /** @domName SVGElementInstance.correspondingUseElement */
-  final SVGUseElement correspondingUseElement;
-
-  /** @domName SVGElementInstance.firstChild */
-  final SVGElementInstance firstChild;
-
-  /** @domName SVGElementInstance.lastChild */
-  final SVGElementInstance lastChild;
-
-  /** @domName SVGElementInstance.nextSibling */
-  final SVGElementInstance nextSibling;
-
-  /** @domName SVGElementInstance.parentNode */
-  final SVGElementInstance parentNode;
-
-  /** @domName SVGElementInstance.previousSibling */
-  final SVGElementInstance previousSibling;
-}
-
-class SVGElementInstanceEvents extends Events {
-  SVGElementInstanceEvents(EventTarget _ptr) : super(_ptr);
-
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get beforeCopy => this['beforecopy'];
-
-  EventListenerList get beforeCut => this['beforecut'];
-
-  EventListenerList get beforePaste => this['beforepaste'];
-
-  EventListenerList get blur => this['blur'];
-
-  EventListenerList get change => this['change'];
-
-  EventListenerList get click => this['click'];
-
-  EventListenerList get contextMenu => this['contextmenu'];
-
-  EventListenerList get copy => this['copy'];
-
-  EventListenerList get cut => this['cut'];
-
-  EventListenerList get doubleClick => this['dblclick'];
-
-  EventListenerList get drag => this['drag'];
-
-  EventListenerList get dragEnd => this['dragend'];
-
-  EventListenerList get dragEnter => this['dragenter'];
-
-  EventListenerList get dragLeave => this['dragleave'];
-
-  EventListenerList get dragOver => this['dragover'];
-
-  EventListenerList get dragStart => this['dragstart'];
-
-  EventListenerList get drop => this['drop'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get focus => this['focus'];
-
-  EventListenerList get input => this['input'];
-
-  EventListenerList get keyDown => this['keydown'];
-
-  EventListenerList get keyPress => this['keypress'];
-
-  EventListenerList get keyUp => this['keyup'];
-
-  EventListenerList get load => this['load'];
-
-  EventListenerList get mouseDown => this['mousedown'];
-
-  EventListenerList get mouseMove => this['mousemove'];
-
-  EventListenerList get mouseOut => this['mouseout'];
-
-  EventListenerList get mouseOver => this['mouseover'];
-
-  EventListenerList get mouseUp => this['mouseup'];
-
-  EventListenerList get mouseWheel => this['mousewheel'];
-
-  EventListenerList get paste => this['paste'];
-
-  EventListenerList get reset => this['reset'];
-
-  EventListenerList get resize => this['resize'];
-
-  EventListenerList get scroll => this['scroll'];
-
-  EventListenerList get search => this['search'];
-
-  EventListenerList get select => this['select'];
-
-  EventListenerList get selectStart => this['selectstart'];
-
-  EventListenerList get submit => this['submit'];
-
-  EventListenerList get unload => this['unload'];
-}
-
-/// @domName SVGEllipseElement
-class SVGEllipseElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGEllipseElement" {
-
-  /** @domName SVGEllipseElement.cx */
-  final SVGAnimatedLength cx;
-
-  /** @domName SVGEllipseElement.cy */
-  final SVGAnimatedLength cy;
-
-  /** @domName SVGEllipseElement.rx */
-  final SVGAnimatedLength rx;
-
-  /** @domName SVGEllipseElement.ry */
-  final SVGAnimatedLength ry;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGLocatable
-
-  /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
-
-  /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
-
-  /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
-
-  /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
-
-  /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
-
-  /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-
-  // From SVGTests
-
-  /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
-
-  /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
-
-  /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
-
-  /** @domName SVGTests.hasExtension */
-  bool hasExtension(String extension) native;
-
-  // From SVGTransformable
-
-  /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
-}
-
-/// @domName SVGException
-class SVGException native "*SVGException" {
-
-  static const int SVG_INVALID_VALUE_ERR = 1;
-
-  static const int SVG_MATRIX_NOT_INVERTABLE = 2;
-
-  static const int SVG_WRONG_TYPE_ERR = 0;
-
-  /** @domName SVGException.code */
-  final int code;
-
-  /** @domName SVGException.message */
-  final String message;
-
-  /** @domName SVGException.name */
-  final String name;
-
-  /** @domName SVGException.toString */
-  String toString() native;
-}
-/// @domName SVGExternalResourcesRequired
-abstract class SVGExternalResourcesRequired {
-
-  SVGAnimatedBoolean externalResourcesRequired;
-}
-
-/// @domName SVGFEBlendElement
-class SVGFEBlendElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEBlendElement" {
-
-  static const int SVG_FEBLEND_MODE_DARKEN = 4;
-
-  static const int SVG_FEBLEND_MODE_LIGHTEN = 5;
-
-  static const int SVG_FEBLEND_MODE_MULTIPLY = 2;
-
-  static const int SVG_FEBLEND_MODE_NORMAL = 1;
-
-  static const int SVG_FEBLEND_MODE_SCREEN = 3;
-
-  static const int SVG_FEBLEND_MODE_UNKNOWN = 0;
-
-  /** @domName SVGFEBlendElement.in1 */
-  final SVGAnimatedString in1;
-
-  /** @domName SVGFEBlendElement.in2 */
-  final SVGAnimatedString in2;
-
-  /** @domName SVGFEBlendElement.mode */
-  final SVGAnimatedEnumeration mode;
-
-  // From SVGFilterPrimitiveStandardAttributes
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-}
-
-/// @domName SVGFEColorMatrixElement
-class SVGFEColorMatrixElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEColorMatrixElement" {
-
-  static const int SVG_FECOLORMATRIX_TYPE_HUEROTATE = 3;
-
-  static const int SVG_FECOLORMATRIX_TYPE_LUMINANCETOALPHA = 4;
-
-  static const int SVG_FECOLORMATRIX_TYPE_MATRIX = 1;
-
-  static const int SVG_FECOLORMATRIX_TYPE_SATURATE = 2;
-
-  static const int SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
-
-  /** @domName SVGFEColorMatrixElement.in1 */
-  final SVGAnimatedString in1;
-
-  /** @domName SVGFEColorMatrixElement.type */
-  final SVGAnimatedEnumeration type;
-
-  /** @domName SVGFEColorMatrixElement.values */
-  final SVGAnimatedNumberList values;
-
-  // From SVGFilterPrimitiveStandardAttributes
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-}
-
-/// @domName SVGFEComponentTransferElement
-class SVGFEComponentTransferElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEComponentTransferElement" {
-
-  /** @domName SVGFEComponentTransferElement.in1 */
-  final SVGAnimatedString in1;
-
-  // From SVGFilterPrimitiveStandardAttributes
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-}
-
-/// @domName SVGFECompositeElement
-class SVGFECompositeElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFECompositeElement" {
-
-  static const int SVG_FECOMPOSITE_OPERATOR_ARITHMETIC = 6;
-
-  static const int SVG_FECOMPOSITE_OPERATOR_ATOP = 4;
-
-  static const int SVG_FECOMPOSITE_OPERATOR_IN = 2;
-
-  static const int SVG_FECOMPOSITE_OPERATOR_OUT = 3;
-
-  static const int SVG_FECOMPOSITE_OPERATOR_OVER = 1;
-
-  static const int SVG_FECOMPOSITE_OPERATOR_UNKNOWN = 0;
-
-  static const int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
-
-  /** @domName SVGFECompositeElement.in1 */
-  final SVGAnimatedString in1;
-
-  /** @domName SVGFECompositeElement.in2 */
-  final SVGAnimatedString in2;
-
-  /** @domName SVGFECompositeElement.k1 */
-  final SVGAnimatedNumber k1;
-
-  /** @domName SVGFECompositeElement.k2 */
-  final SVGAnimatedNumber k2;
-
-  /** @domName SVGFECompositeElement.k3 */
-  final SVGAnimatedNumber k3;
-
-  /** @domName SVGFECompositeElement.k4 */
-  final SVGAnimatedNumber k4;
-
-  /** @domName SVGFECompositeElement.operator */
-  final SVGAnimatedEnumeration operator;
-
-  // From SVGFilterPrimitiveStandardAttributes
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-}
-
-/// @domName SVGFEConvolveMatrixElement
-class SVGFEConvolveMatrixElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEConvolveMatrixElement" {
-
-  static const int SVG_EDGEMODE_DUPLICATE = 1;
-
-  static const int SVG_EDGEMODE_NONE = 3;
-
-  static const int SVG_EDGEMODE_UNKNOWN = 0;
-
-  static const int SVG_EDGEMODE_WRAP = 2;
-
-  /** @domName SVGFEConvolveMatrixElement.bias */
-  final SVGAnimatedNumber bias;
-
-  /** @domName SVGFEConvolveMatrixElement.divisor */
-  final SVGAnimatedNumber divisor;
-
-  /** @domName SVGFEConvolveMatrixElement.edgeMode */
-  final SVGAnimatedEnumeration edgeMode;
-
-  /** @domName SVGFEConvolveMatrixElement.in1 */
-  final SVGAnimatedString in1;
-
-  /** @domName SVGFEConvolveMatrixElement.kernelMatrix */
-  final SVGAnimatedNumberList kernelMatrix;
-
-  /** @domName SVGFEConvolveMatrixElement.kernelUnitLengthX */
-  final SVGAnimatedNumber kernelUnitLengthX;
-
-  /** @domName SVGFEConvolveMatrixElement.kernelUnitLengthY */
-  final SVGAnimatedNumber kernelUnitLengthY;
-
-  /** @domName SVGFEConvolveMatrixElement.orderX */
-  final SVGAnimatedInteger orderX;
-
-  /** @domName SVGFEConvolveMatrixElement.orderY */
-  final SVGAnimatedInteger orderY;
-
-  /** @domName SVGFEConvolveMatrixElement.preserveAlpha */
-  final SVGAnimatedBoolean preserveAlpha;
-
-  /** @domName SVGFEConvolveMatrixElement.targetX */
-  final SVGAnimatedInteger targetX;
-
-  /** @domName SVGFEConvolveMatrixElement.targetY */
-  final SVGAnimatedInteger targetY;
-
-  // From SVGFilterPrimitiveStandardAttributes
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-}
-
-/// @domName SVGFEDiffuseLightingElement
-class SVGFEDiffuseLightingElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEDiffuseLightingElement" {
-
-  /** @domName SVGFEDiffuseLightingElement.diffuseConstant */
-  final SVGAnimatedNumber diffuseConstant;
-
-  /** @domName SVGFEDiffuseLightingElement.in1 */
-  final SVGAnimatedString in1;
-
-  /** @domName SVGFEDiffuseLightingElement.kernelUnitLengthX */
-  final SVGAnimatedNumber kernelUnitLengthX;
-
-  /** @domName SVGFEDiffuseLightingElement.kernelUnitLengthY */
-  final SVGAnimatedNumber kernelUnitLengthY;
-
-  /** @domName SVGFEDiffuseLightingElement.surfaceScale */
-  final SVGAnimatedNumber surfaceScale;
-
-  // From SVGFilterPrimitiveStandardAttributes
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-}
-
-/// @domName SVGFEDisplacementMapElement
-class SVGFEDisplacementMapElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEDisplacementMapElement" {
-
-  static const int SVG_CHANNEL_A = 4;
-
-  static const int SVG_CHANNEL_B = 3;
-
-  static const int SVG_CHANNEL_G = 2;
-
-  static const int SVG_CHANNEL_R = 1;
-
-  static const int SVG_CHANNEL_UNKNOWN = 0;
-
-  /** @domName SVGFEDisplacementMapElement.in1 */
-  final SVGAnimatedString in1;
-
-  /** @domName SVGFEDisplacementMapElement.in2 */
-  final SVGAnimatedString in2;
-
-  /** @domName SVGFEDisplacementMapElement.scale */
-  final SVGAnimatedNumber scale;
-
-  /** @domName SVGFEDisplacementMapElement.xChannelSelector */
-  final SVGAnimatedEnumeration xChannelSelector;
-
-  /** @domName SVGFEDisplacementMapElement.yChannelSelector */
-  final SVGAnimatedEnumeration yChannelSelector;
-
-  // From SVGFilterPrimitiveStandardAttributes
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-}
-
-/// @domName SVGFEDistantLightElement
-class SVGFEDistantLightElement extends SVGElement native "*SVGFEDistantLightElement" {
-
-  /** @domName SVGFEDistantLightElement.azimuth */
-  final SVGAnimatedNumber azimuth;
-
-  /** @domName SVGFEDistantLightElement.elevation */
-  final SVGAnimatedNumber elevation;
-}
-
-/// @domName SVGFEDropShadowElement
-class SVGFEDropShadowElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEDropShadowElement" {
-
-  /** @domName SVGFEDropShadowElement.dx */
-  final SVGAnimatedNumber dx;
-
-  /** @domName SVGFEDropShadowElement.dy */
-  final SVGAnimatedNumber dy;
-
-  /** @domName SVGFEDropShadowElement.in1 */
-  final SVGAnimatedString in1;
-
-  /** @domName SVGFEDropShadowElement.stdDeviationX */
-  final SVGAnimatedNumber stdDeviationX;
-
-  /** @domName SVGFEDropShadowElement.stdDeviationY */
-  final SVGAnimatedNumber stdDeviationY;
-
-  /** @domName SVGFEDropShadowElement.setStdDeviation */
-  void setStdDeviation(num stdDeviationX, num stdDeviationY) native;
-
-  // From SVGFilterPrimitiveStandardAttributes
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-}
-
-/// @domName SVGFEFloodElement
-class SVGFEFloodElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEFloodElement" {
-
-  // From SVGFilterPrimitiveStandardAttributes
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-}
-
-/// @domName SVGFEFuncAElement
-class SVGFEFuncAElement extends SVGComponentTransferFunctionElement native "*SVGFEFuncAElement" {
-}
-
-/// @domName SVGFEFuncBElement
-class SVGFEFuncBElement extends SVGComponentTransferFunctionElement native "*SVGFEFuncBElement" {
-}
-
-/// @domName SVGFEFuncGElement
-class SVGFEFuncGElement extends SVGComponentTransferFunctionElement native "*SVGFEFuncGElement" {
-}
-
-/// @domName SVGFEFuncRElement
-class SVGFEFuncRElement extends SVGComponentTransferFunctionElement native "*SVGFEFuncRElement" {
-}
-
-/// @domName SVGFEGaussianBlurElement
-class SVGFEGaussianBlurElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEGaussianBlurElement" {
-
-  /** @domName SVGFEGaussianBlurElement.in1 */
-  final SVGAnimatedString in1;
-
-  /** @domName SVGFEGaussianBlurElement.stdDeviationX */
-  final SVGAnimatedNumber stdDeviationX;
-
-  /** @domName SVGFEGaussianBlurElement.stdDeviationY */
-  final SVGAnimatedNumber stdDeviationY;
-
-  /** @domName SVGFEGaussianBlurElement.setStdDeviation */
-  void setStdDeviation(num stdDeviationX, num stdDeviationY) native;
-
-  // From SVGFilterPrimitiveStandardAttributes
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-}
-
-/// @domName SVGFEImageElement
-class SVGFEImageElement extends SVGElement implements SVGURIReference, SVGLangSpace, SVGFilterPrimitiveStandardAttributes, SVGExternalResourcesRequired native "*SVGFEImageElement" {
-
-  /** @domName SVGFEImageElement.preserveAspectRatio */
-  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGFilterPrimitiveStandardAttributes
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-
-  // From SVGURIReference
-
-  /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
-}
-
-/// @domName SVGFEMergeElement
-class SVGFEMergeElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEMergeElement" {
-
-  // From SVGFilterPrimitiveStandardAttributes
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-}
-
-/// @domName SVGFEMergeNodeElement
-class SVGFEMergeNodeElement extends SVGElement native "*SVGFEMergeNodeElement" {
-
-  /** @domName SVGFEMergeNodeElement.in1 */
-  final SVGAnimatedString in1;
-}
-
-/// @domName SVGFEMorphologyElement
-class SVGFEMorphologyElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEMorphologyElement" {
-
-  static const int SVG_MORPHOLOGY_OPERATOR_DILATE = 2;
-
-  static const int SVG_MORPHOLOGY_OPERATOR_ERODE = 1;
-
-  static const int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
-
-  /** @domName SVGFEMorphologyElement.in1 */
-  final SVGAnimatedString in1;
-
-  /** @domName SVGFEMorphologyElement.operator */
-  final SVGAnimatedEnumeration operator;
-
-  /** @domName SVGFEMorphologyElement.radiusX */
-  final SVGAnimatedNumber radiusX;
-
-  /** @domName SVGFEMorphologyElement.radiusY */
-  final SVGAnimatedNumber radiusY;
-
-  /** @domName SVGFEMorphologyElement.setRadius */
-  void setRadius(num radiusX, num radiusY) native;
-
-  // From SVGFilterPrimitiveStandardAttributes
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-}
-
-/// @domName SVGFEOffsetElement
-class SVGFEOffsetElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEOffsetElement" {
-
-  /** @domName SVGFEOffsetElement.dx */
-  final SVGAnimatedNumber dx;
-
-  /** @domName SVGFEOffsetElement.dy */
-  final SVGAnimatedNumber dy;
-
-  /** @domName SVGFEOffsetElement.in1 */
-  final SVGAnimatedString in1;
-
-  // From SVGFilterPrimitiveStandardAttributes
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-}
-
-/// @domName SVGFEPointLightElement
-class SVGFEPointLightElement extends SVGElement native "*SVGFEPointLightElement" {
-
-  /** @domName SVGFEPointLightElement.x */
-  final SVGAnimatedNumber x;
-
-  /** @domName SVGFEPointLightElement.y */
-  final SVGAnimatedNumber y;
-
-  /** @domName SVGFEPointLightElement.z */
-  final SVGAnimatedNumber z;
-}
-
-/// @domName SVGFESpecularLightingElement
-class SVGFESpecularLightingElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFESpecularLightingElement" {
-
-  /** @domName SVGFESpecularLightingElement.in1 */
-  final SVGAnimatedString in1;
-
-  /** @domName SVGFESpecularLightingElement.specularConstant */
-  final SVGAnimatedNumber specularConstant;
-
-  /** @domName SVGFESpecularLightingElement.specularExponent */
-  final SVGAnimatedNumber specularExponent;
-
-  /** @domName SVGFESpecularLightingElement.surfaceScale */
-  final SVGAnimatedNumber surfaceScale;
-
-  // From SVGFilterPrimitiveStandardAttributes
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-}
-
-/// @domName SVGFESpotLightElement
-class SVGFESpotLightElement extends SVGElement native "*SVGFESpotLightElement" {
-
-  /** @domName SVGFESpotLightElement.limitingConeAngle */
-  final SVGAnimatedNumber limitingConeAngle;
-
-  /** @domName SVGFESpotLightElement.pointsAtX */
-  final SVGAnimatedNumber pointsAtX;
-
-  /** @domName SVGFESpotLightElement.pointsAtY */
-  final SVGAnimatedNumber pointsAtY;
-
-  /** @domName SVGFESpotLightElement.pointsAtZ */
-  final SVGAnimatedNumber pointsAtZ;
-
-  /** @domName SVGFESpotLightElement.specularExponent */
-  final SVGAnimatedNumber specularExponent;
-
-  /** @domName SVGFESpotLightElement.x */
-  final SVGAnimatedNumber x;
-
-  /** @domName SVGFESpotLightElement.y */
-  final SVGAnimatedNumber y;
-
-  /** @domName SVGFESpotLightElement.z */
-  final SVGAnimatedNumber z;
-}
-
-/// @domName SVGFETileElement
-class SVGFETileElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFETileElement" {
-
-  /** @domName SVGFETileElement.in1 */
-  final SVGAnimatedString in1;
-
-  // From SVGFilterPrimitiveStandardAttributes
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-}
-
-/// @domName SVGFETurbulenceElement
-class SVGFETurbulenceElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFETurbulenceElement" {
-
-  static const int SVG_STITCHTYPE_NOSTITCH = 2;
-
-  static const int SVG_STITCHTYPE_STITCH = 1;
-
-  static const int SVG_STITCHTYPE_UNKNOWN = 0;
-
-  static const int SVG_TURBULENCE_TYPE_FRACTALNOISE = 1;
-
-  static const int SVG_TURBULENCE_TYPE_TURBULENCE = 2;
-
-  static const int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
-
-  /** @domName SVGFETurbulenceElement.baseFrequencyX */
-  final SVGAnimatedNumber baseFrequencyX;
-
-  /** @domName SVGFETurbulenceElement.baseFrequencyY */
-  final SVGAnimatedNumber baseFrequencyY;
-
-  /** @domName SVGFETurbulenceElement.numOctaves */
-  final SVGAnimatedInteger numOctaves;
-
-  /** @domName SVGFETurbulenceElement.seed */
-  final SVGAnimatedNumber seed;
-
-  /** @domName SVGFETurbulenceElement.stitchTiles */
-  final SVGAnimatedEnumeration stitchTiles;
-
-  /** @domName SVGFETurbulenceElement.type */
-  final SVGAnimatedEnumeration type;
-
-  // From SVGFilterPrimitiveStandardAttributes
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-}
-
-/// @domName SVGFilterElement
-class SVGFilterElement extends SVGElement implements SVGURIReference, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable native "*SVGFilterElement" {
-
-  /** @domName SVGFilterElement.filterResX */
-  final SVGAnimatedInteger filterResX;
-
-  /** @domName SVGFilterElement.filterResY */
-  final SVGAnimatedInteger filterResY;
-
-  /** @domName SVGFilterElement.filterUnits */
-  final SVGAnimatedEnumeration filterUnits;
-
-  /** @domName SVGFilterElement.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGFilterElement.primitiveUnits */
-  final SVGAnimatedEnumeration primitiveUnits;
-
-  /** @domName SVGFilterElement.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGFilterElement.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGFilterElement.y */
-  final SVGAnimatedLength y;
-
-  /** @domName SVGFilterElement.setFilterRes */
-  void setFilterRes(int filterResX, int filterResY) native;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-
-  // From SVGURIReference
-
-  /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
-}
-/// @domName SVGFilterPrimitiveStandardAttributes
-abstract class SVGFilterPrimitiveStandardAttributes implements SVGStylable {
-
-  SVGAnimatedLength height;
-
-  SVGAnimatedString result;
-
-  SVGAnimatedLength width;
-
-  SVGAnimatedLength x;
-
-  SVGAnimatedLength y;
-
-  // From SVGStylable
-
-  SVGAnimatedString className;
-
-  CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name);
-}
-/// @domName SVGFitToViewBox
-abstract class SVGFitToViewBox {
-
-  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
-
-  SVGAnimatedRect viewBox;
-}
-
-/// @domName SVGFontElement
-class SVGFontElement extends SVGElement native "*SVGFontElement" {
-}
-
-/// @domName SVGFontFaceElement
-class SVGFontFaceElement extends SVGElement native "*SVGFontFaceElement" {
-}
-
-/// @domName SVGFontFaceFormatElement
-class SVGFontFaceFormatElement extends SVGElement native "*SVGFontFaceFormatElement" {
-}
-
-/// @domName SVGFontFaceNameElement
-class SVGFontFaceNameElement extends SVGElement native "*SVGFontFaceNameElement" {
-}
-
-/// @domName SVGFontFaceSrcElement
-class SVGFontFaceSrcElement extends SVGElement native "*SVGFontFaceSrcElement" {
-}
-
-/// @domName SVGFontFaceUriElement
-class SVGFontFaceUriElement extends SVGElement native "*SVGFontFaceUriElement" {
-}
-
-/// @domName SVGForeignObjectElement
-class SVGForeignObjectElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGForeignObjectElement" {
-
-  /** @domName SVGForeignObjectElement.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGForeignObjectElement.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGForeignObjectElement.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGForeignObjectElement.y */
-  final SVGAnimatedLength y;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGLocatable
-
-  /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
-
-  /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
-
-  /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
-
-  /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
-
-  /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
-
-  /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-
-  // From SVGTests
-
-  /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
-
-  /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
-
-  /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
-
-  /** @domName SVGTests.hasExtension */
-  bool hasExtension(String extension) native;
-
-  // From SVGTransformable
-
-  /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
-}
-
-/// @domName SVGGElement
-class SVGGElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGGElement" {
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGLocatable
-
-  /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
-
-  /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
-
-  /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
-
-  /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
-
-  /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
-
-  /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-
-  // From SVGTests
-
-  /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
-
-  /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
-
-  /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
-
-  /** @domName SVGTests.hasExtension */
-  bool hasExtension(String extension) native;
-
-  // From SVGTransformable
-
-  /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
-}
-
-/// @domName SVGGlyphElement
-class SVGGlyphElement extends SVGElement native "*SVGGlyphElement" {
-}
-
-/// @domName SVGGlyphRefElement
-class SVGGlyphRefElement extends SVGElement implements SVGURIReference, SVGStylable native "*SVGGlyphRefElement" {
-
-  /** @domName SVGGlyphRefElement.dx */
-  num dx;
-
-  /** @domName SVGGlyphRefElement.dy */
-  num dy;
-
-  /** @domName SVGGlyphRefElement.format */
-  String format;
-
-  /** @domName SVGGlyphRefElement.glyphRef */
-  String glyphRef;
-
-  /** @domName SVGGlyphRefElement.x */
-  num x;
-
-  /** @domName SVGGlyphRefElement.y */
-  num y;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-
-  // From SVGURIReference
-
-  /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
-}
-
-/// @domName SVGGradientElement
-class SVGGradientElement extends SVGElement implements SVGURIReference, SVGExternalResourcesRequired, SVGStylable native "*SVGGradientElement" {
-
-  static const int SVG_SPREADMETHOD_PAD = 1;
-
-  static const int SVG_SPREADMETHOD_REFLECT = 2;
-
-  static const int SVG_SPREADMETHOD_REPEAT = 3;
-
-  static const int SVG_SPREADMETHOD_UNKNOWN = 0;
-
-  /** @domName SVGGradientElement.gradientTransform */
-  final SVGAnimatedTransformList gradientTransform;
-
-  /** @domName SVGGradientElement.gradientUnits */
-  final SVGAnimatedEnumeration gradientUnits;
-
-  /** @domName SVGGradientElement.spreadMethod */
-  final SVGAnimatedEnumeration spreadMethod;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-
-  // From SVGURIReference
-
-  /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
-}
-
-/// @domName SVGHKernElement
-class SVGHKernElement extends SVGElement native "*SVGHKernElement" {
-}
-
-/// @domName SVGImageElement
-class SVGImageElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStylable, SVGURIReference, SVGExternalResourcesRequired, SVGTransformable native "*SVGImageElement" {
-
-  /** @domName SVGImageElement.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGImageElement.preserveAspectRatio */
-  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
-
-  /** @domName SVGImageElement.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGImageElement.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGImageElement.y */
-  final SVGAnimatedLength y;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGLocatable
-
-  /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
-
-  /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
-
-  /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
-
-  /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
-
-  /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
-
-  /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-
-  // From SVGTests
-
-  /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
-
-  /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
-
-  /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
-
-  /** @domName SVGTests.hasExtension */
-  bool hasExtension(String extension) native;
-
-  // From SVGTransformable
-
-  /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
-
-  // From SVGURIReference
-
-  /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
-}
-/// @domName SVGLangSpace
-abstract class SVGLangSpace {
-
-  String xmllang;
-
-  String xmlspace;
-}
-
-/// @domName SVGLength
-class SVGLength native "*SVGLength" {
-
-  static const int SVG_LENGTHTYPE_CM = 6;
-
-  static const int SVG_LENGTHTYPE_EMS = 3;
-
-  static const int SVG_LENGTHTYPE_EXS = 4;
-
-  static const int SVG_LENGTHTYPE_IN = 8;
-
-  static const int SVG_LENGTHTYPE_MM = 7;
-
-  static const int SVG_LENGTHTYPE_NUMBER = 1;
-
-  static const int SVG_LENGTHTYPE_PC = 10;
-
-  static const int SVG_LENGTHTYPE_PERCENTAGE = 2;
-
-  static const int SVG_LENGTHTYPE_PT = 9;
-
-  static const int SVG_LENGTHTYPE_PX = 5;
-
-  static const int SVG_LENGTHTYPE_UNKNOWN = 0;
-
-  /** @domName SVGLength.unitType */
-  final int unitType;
-
-  /** @domName SVGLength.value */
-  num value;
-
-  /** @domName SVGLength.valueAsString */
-  String valueAsString;
-
-  /** @domName SVGLength.valueInSpecifiedUnits */
-  num valueInSpecifiedUnits;
-
-  /** @domName SVGLength.convertToSpecifiedUnits */
-  void convertToSpecifiedUnits(int unitType) native;
-
-  /** @domName SVGLength.newValueSpecifiedUnits */
-  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) native;
-}
-
-/// @domName SVGLengthList
-class SVGLengthList implements JavaScriptIndexingBehavior, List<SVGLength> native "*SVGLengthList" {
-
-  /** @domName SVGLengthList.numberOfItems */
-  final int numberOfItems;
-
-  SVGLength operator[](int index) => JS("SVGLength", "#[#]", this, index);
-
-  void operator[]=(int index, SVGLength value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<SVGLength> mixins.
-  // SVGLength is the element type.
-
-  // From Iterable<SVGLength>:
-
-  Iterator<SVGLength> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new _FixedSizeListIterator<SVGLength>(this);
-  }
-
-  // From Collection<SVGLength>:
-
-  void add(SVGLength value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(SVGLength value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<SVGLength> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(SVGLength element) => _Collections.contains(this, element);
-
-  void forEach(void f(SVGLength element)) => _Collections.forEach(this, f);
-
-  Collection map(f(SVGLength element)) => _Collections.map(this, [], f);
-
-  Collection<SVGLength> filter(bool f(SVGLength element)) =>
-     _Collections.filter(this, <SVGLength>[], f);
-
-  bool every(bool f(SVGLength element)) => _Collections.every(this, f);
-
-  bool some(bool f(SVGLength element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<SVGLength>:
-
-  void sort([Comparator<SVGLength> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(SVGLength element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(SVGLength element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  SVGLength get last => this[length - 1];
-
-  SVGLength removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<SVGLength> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [SVGLength initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<SVGLength> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <SVGLength>[]);
-
-  // -- end List<SVGLength> mixins.
-
-  /** @domName SVGLengthList.appendItem */
-  SVGLength appendItem(SVGLength item) native;
-
-  /** @domName SVGLengthList.clear */
-  void clear() native;
-
-  /** @domName SVGLengthList.getItem */
-  SVGLength getItem(int index) native;
-
-  /** @domName SVGLengthList.initialize */
-  SVGLength initialize(SVGLength item) native;
-
-  /** @domName SVGLengthList.insertItemBefore */
-  SVGLength insertItemBefore(SVGLength item, int index) native;
-
-  /** @domName SVGLengthList.removeItem */
-  SVGLength removeItem(int index) native;
-
-  /** @domName SVGLengthList.replaceItem */
-  SVGLength replaceItem(SVGLength item, int index) native;
-}
-
-/// @domName SVGLineElement
-class SVGLineElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGLineElement" {
-
-  /** @domName SVGLineElement.x1 */
-  final SVGAnimatedLength x1;
-
-  /** @domName SVGLineElement.x2 */
-  final SVGAnimatedLength x2;
-
-  /** @domName SVGLineElement.y1 */
-  final SVGAnimatedLength y1;
-
-  /** @domName SVGLineElement.y2 */
-  final SVGAnimatedLength y2;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGLocatable
-
-  /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
-
-  /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
-
-  /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
-
-  /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
-
-  /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
-
-  /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-
-  // From SVGTests
-
-  /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
-
-  /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
-
-  /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
-
-  /** @domName SVGTests.hasExtension */
-  bool hasExtension(String extension) native;
-
-  // From SVGTransformable
-
-  /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
-}
-
-/// @domName SVGLinearGradientElement
-class SVGLinearGradientElement extends SVGGradientElement native "*SVGLinearGradientElement" {
-
-  /** @domName SVGLinearGradientElement.x1 */
-  final SVGAnimatedLength x1;
-
-  /** @domName SVGLinearGradientElement.x2 */
-  final SVGAnimatedLength x2;
-
-  /** @domName SVGLinearGradientElement.y1 */
-  final SVGAnimatedLength y1;
-
-  /** @domName SVGLinearGradientElement.y2 */
-  final SVGAnimatedLength y2;
-}
-/// @domName SVGLocatable
-abstract class SVGLocatable {
-
-  SVGElement farthestViewportElement;
-
-  SVGElement nearestViewportElement;
-
-  /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox();
-
-  /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM();
-
-  /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM();
-
-  /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element);
-}
-
-/// @domName SVGMPathElement
-class SVGMPathElement extends SVGElement implements SVGURIReference, SVGExternalResourcesRequired native "*SVGMPathElement" {
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGURIReference
-
-  /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
-}
-
-/// @domName SVGMarkerElement
-class SVGMarkerElement extends SVGElement implements SVGLangSpace, SVGFitToViewBox, SVGExternalResourcesRequired, SVGStylable native "*SVGMarkerElement" {
-
-  static const int SVG_MARKERUNITS_STROKEWIDTH = 2;
-
-  static const int SVG_MARKERUNITS_UNKNOWN = 0;
-
-  static const int SVG_MARKERUNITS_USERSPACEONUSE = 1;
-
-  static const int SVG_MARKER_ORIENT_ANGLE = 2;
-
-  static const int SVG_MARKER_ORIENT_AUTO = 1;
-
-  static const int SVG_MARKER_ORIENT_UNKNOWN = 0;
-
-  /** @domName SVGMarkerElement.markerHeight */
-  final SVGAnimatedLength markerHeight;
-
-  /** @domName SVGMarkerElement.markerUnits */
-  final SVGAnimatedEnumeration markerUnits;
-
-  /** @domName SVGMarkerElement.markerWidth */
-  final SVGAnimatedLength markerWidth;
-
-  /** @domName SVGMarkerElement.orientAngle */
-  final SVGAnimatedAngle orientAngle;
-
-  /** @domName SVGMarkerElement.orientType */
-  final SVGAnimatedEnumeration orientType;
-
-  /** @domName SVGMarkerElement.refX */
-  final SVGAnimatedLength refX;
-
-  /** @domName SVGMarkerElement.refY */
-  final SVGAnimatedLength refY;
-
-  /** @domName SVGMarkerElement.setOrientToAngle */
-  void setOrientToAngle(SVGAngle angle) native;
-
-  /** @domName SVGMarkerElement.setOrientToAuto */
-  void setOrientToAuto() native;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGFitToViewBox
-
-  /** @domName SVGFitToViewBox.preserveAspectRatio */
-  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
-
-  /** @domName SVGFitToViewBox.viewBox */
-  final SVGAnimatedRect viewBox;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-}
-
-/// @domName SVGMaskElement
-class SVGMaskElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGExternalResourcesRequired native "*SVGMaskElement" {
-
-  /** @domName SVGMaskElement.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGMaskElement.maskContentUnits */
-  final SVGAnimatedEnumeration maskContentUnits;
-
-  /** @domName SVGMaskElement.maskUnits */
-  final SVGAnimatedEnumeration maskUnits;
-
-  /** @domName SVGMaskElement.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGMaskElement.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGMaskElement.y */
-  final SVGAnimatedLength y;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-
-  // From SVGTests
-
-  /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
-
-  /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
-
-  /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
-
-  /** @domName SVGTests.hasExtension */
-  bool hasExtension(String extension) native;
-}
-
-/// @domName SVGMatrix
-class SVGMatrix native "*SVGMatrix" {
-
-  /** @domName SVGMatrix.a */
-  num a;
-
-  /** @domName SVGMatrix.b */
-  num b;
-
-  /** @domName SVGMatrix.c */
-  num c;
-
-  /** @domName SVGMatrix.d */
-  num d;
-
-  /** @domName SVGMatrix.e */
-  num e;
-
-  /** @domName SVGMatrix.f */
-  num f;
-
-  /** @domName SVGMatrix.flipX */
-  SVGMatrix flipX() native;
-
-  /** @domName SVGMatrix.flipY */
-  SVGMatrix flipY() native;
-
-  /** @domName SVGMatrix.inverse */
-  SVGMatrix inverse() native;
-
-  /** @domName SVGMatrix.multiply */
-  SVGMatrix multiply(SVGMatrix secondMatrix) native;
-
-  /** @domName SVGMatrix.rotate */
-  SVGMatrix rotate(num angle) native;
-
-  /** @domName SVGMatrix.rotateFromVector */
-  SVGMatrix rotateFromVector(num x, num y) native;
-
-  /** @domName SVGMatrix.scale */
-  SVGMatrix scale(num scaleFactor) native;
-
-  /** @domName SVGMatrix.scaleNonUniform */
-  SVGMatrix scaleNonUniform(num scaleFactorX, num scaleFactorY) native;
-
-  /** @domName SVGMatrix.skewX */
-  SVGMatrix skewX(num angle) native;
-
-  /** @domName SVGMatrix.skewY */
-  SVGMatrix skewY(num angle) native;
-
-  /** @domName SVGMatrix.translate */
-  SVGMatrix translate(num x, num y) native;
-}
-
-/// @domName SVGMetadataElement
-class SVGMetadataElement extends SVGElement native "*SVGMetadataElement" {
-}
-
-/// @domName SVGMissingGlyphElement
-class SVGMissingGlyphElement extends SVGElement native "*SVGMissingGlyphElement" {
-}
-
-/// @domName SVGNumber
-class SVGNumber native "*SVGNumber" {
-
-  /** @domName SVGNumber.value */
-  num value;
-}
-
-/// @domName SVGNumberList
-class SVGNumberList implements JavaScriptIndexingBehavior, List<SVGNumber> native "*SVGNumberList" {
-
-  /** @domName SVGNumberList.numberOfItems */
-  final int numberOfItems;
-
-  SVGNumber operator[](int index) => JS("SVGNumber", "#[#]", this, index);
-
-  void operator[]=(int index, SVGNumber value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<SVGNumber> mixins.
-  // SVGNumber is the element type.
-
-  // From Iterable<SVGNumber>:
-
-  Iterator<SVGNumber> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new _FixedSizeListIterator<SVGNumber>(this);
-  }
-
-  // From Collection<SVGNumber>:
-
-  void add(SVGNumber value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(SVGNumber value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<SVGNumber> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(SVGNumber element) => _Collections.contains(this, element);
-
-  void forEach(void f(SVGNumber element)) => _Collections.forEach(this, f);
-
-  Collection map(f(SVGNumber element)) => _Collections.map(this, [], f);
-
-  Collection<SVGNumber> filter(bool f(SVGNumber element)) =>
-     _Collections.filter(this, <SVGNumber>[], f);
-
-  bool every(bool f(SVGNumber element)) => _Collections.every(this, f);
-
-  bool some(bool f(SVGNumber element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<SVGNumber>:
-
-  void sort([Comparator<SVGNumber> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(SVGNumber element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(SVGNumber element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  SVGNumber get last => this[length - 1];
-
-  SVGNumber removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<SVGNumber> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [SVGNumber initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<SVGNumber> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <SVGNumber>[]);
-
-  // -- end List<SVGNumber> mixins.
-
-  /** @domName SVGNumberList.appendItem */
-  SVGNumber appendItem(SVGNumber item) native;
-
-  /** @domName SVGNumberList.clear */
-  void clear() native;
-
-  /** @domName SVGNumberList.getItem */
-  SVGNumber getItem(int index) native;
-
-  /** @domName SVGNumberList.initialize */
-  SVGNumber initialize(SVGNumber item) native;
-
-  /** @domName SVGNumberList.insertItemBefore */
-  SVGNumber insertItemBefore(SVGNumber item, int index) native;
-
-  /** @domName SVGNumberList.removeItem */
-  SVGNumber removeItem(int index) native;
-
-  /** @domName SVGNumberList.replaceItem */
-  SVGNumber replaceItem(SVGNumber item, int index) native;
-}
-
-/// @domName SVGPaint
-class SVGPaint extends SVGColor native "*SVGPaint" {
-
-  static const int SVG_PAINTTYPE_CURRENTCOLOR = 102;
-
-  static const int SVG_PAINTTYPE_NONE = 101;
-
-  static const int SVG_PAINTTYPE_RGBCOLOR = 1;
-
-  static const int SVG_PAINTTYPE_RGBCOLOR_ICCCOLOR = 2;
-
-  static const int SVG_PAINTTYPE_UNKNOWN = 0;
-
-  static const int SVG_PAINTTYPE_URI = 107;
-
-  static const int SVG_PAINTTYPE_URI_CURRENTCOLOR = 104;
-
-  static const int SVG_PAINTTYPE_URI_NONE = 103;
-
-  static const int SVG_PAINTTYPE_URI_RGBCOLOR = 105;
-
-  static const int SVG_PAINTTYPE_URI_RGBCOLOR_ICCCOLOR = 106;
-
-  /** @domName SVGPaint.paintType */
-  final int paintType;
-
-  /** @domName SVGPaint.uri */
-  final String uri;
-
-  /** @domName SVGPaint.setPaint */
-  void setPaint(int paintType, String uri, String rgbColor, String iccColor) native;
-
-  /** @domName SVGPaint.setUri */
-  void setUri(String uri) native;
-}
-
-/// @domName SVGPathElement
-class SVGPathElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGPathElement" {
-
-  /** @domName SVGPathElement.animatedNormalizedPathSegList */
-  final SVGPathSegList animatedNormalizedPathSegList;
-
-  /** @domName SVGPathElement.animatedPathSegList */
-  final SVGPathSegList animatedPathSegList;
-
-  /** @domName SVGPathElement.normalizedPathSegList */
-  final SVGPathSegList normalizedPathSegList;
-
-  /** @domName SVGPathElement.pathLength */
-  final SVGAnimatedNumber pathLength;
-
-  /** @domName SVGPathElement.pathSegList */
-  final SVGPathSegList pathSegList;
-
-  /** @domName SVGPathElement.createSVGPathSegArcAbs */
-  SVGPathSegArcAbs createSVGPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
-
-  /** @domName SVGPathElement.createSVGPathSegArcRel */
-  SVGPathSegArcRel createSVGPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
-
-  /** @domName SVGPathElement.createSVGPathSegClosePath */
-  SVGPathSegClosePath createSVGPathSegClosePath() native;
-
-  /** @domName SVGPathElement.createSVGPathSegCurvetoCubicAbs */
-  SVGPathSegCurvetoCubicAbs createSVGPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) native;
-
-  /** @domName SVGPathElement.createSVGPathSegCurvetoCubicRel */
-  SVGPathSegCurvetoCubicRel createSVGPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) native;
-
-  /** @domName SVGPathElement.createSVGPathSegCurvetoCubicSmoothAbs */
-  SVGPathSegCurvetoCubicSmoothAbs createSVGPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) native;
-
-  /** @domName SVGPathElement.createSVGPathSegCurvetoCubicSmoothRel */
-  SVGPathSegCurvetoCubicSmoothRel createSVGPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) native;
-
-  /** @domName SVGPathElement.createSVGPathSegCurvetoQuadraticAbs */
-  SVGPathSegCurvetoQuadraticAbs createSVGPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) native;
-
-  /** @domName SVGPathElement.createSVGPathSegCurvetoQuadraticRel */
-  SVGPathSegCurvetoQuadraticRel createSVGPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) native;
-
-  /** @domName SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothAbs */
-  SVGPathSegCurvetoQuadraticSmoothAbs createSVGPathSegCurvetoQuadraticSmoothAbs(num x, num y) native;
-
-  /** @domName SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothRel */
-  SVGPathSegCurvetoQuadraticSmoothRel createSVGPathSegCurvetoQuadraticSmoothRel(num x, num y) native;
-
-  /** @domName SVGPathElement.createSVGPathSegLinetoAbs */
-  SVGPathSegLinetoAbs createSVGPathSegLinetoAbs(num x, num y) native;
-
-  /** @domName SVGPathElement.createSVGPathSegLinetoHorizontalAbs */
-  SVGPathSegLinetoHorizontalAbs createSVGPathSegLinetoHorizontalAbs(num x) native;
-
-  /** @domName SVGPathElement.createSVGPathSegLinetoHorizontalRel */
-  SVGPathSegLinetoHorizontalRel createSVGPathSegLinetoHorizontalRel(num x) native;
-
-  /** @domName SVGPathElement.createSVGPathSegLinetoRel */
-  SVGPathSegLinetoRel createSVGPathSegLinetoRel(num x, num y) native;
-
-  /** @domName SVGPathElement.createSVGPathSegLinetoVerticalAbs */
-  SVGPathSegLinetoVerticalAbs createSVGPathSegLinetoVerticalAbs(num y) native;
-
-  /** @domName SVGPathElement.createSVGPathSegLinetoVerticalRel */
-  SVGPathSegLinetoVerticalRel createSVGPathSegLinetoVerticalRel(num y) native;
-
-  /** @domName SVGPathElement.createSVGPathSegMovetoAbs */
-  SVGPathSegMovetoAbs createSVGPathSegMovetoAbs(num x, num y) native;
-
-  /** @domName SVGPathElement.createSVGPathSegMovetoRel */
-  SVGPathSegMovetoRel createSVGPathSegMovetoRel(num x, num y) native;
-
-  /** @domName SVGPathElement.getPathSegAtLength */
-  int getPathSegAtLength(num distance) native;
-
-  /** @domName SVGPathElement.getPointAtLength */
-  SVGPoint getPointAtLength(num distance) native;
-
-  /** @domName SVGPathElement.getTotalLength */
-  num getTotalLength() native;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGLocatable
-
-  /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
-
-  /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
-
-  /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
-
-  /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
-
-  /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
-
-  /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-
-  // From SVGTests
-
-  /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
-
-  /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
-
-  /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
-
-  /** @domName SVGTests.hasExtension */
-  bool hasExtension(String extension) native;
-
-  // From SVGTransformable
-
-  /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
-}
-
-/// @domName SVGPathSeg
-class SVGPathSeg native "*SVGPathSeg" {
-
-  static const int PATHSEG_ARC_ABS = 10;
-
-  static const int PATHSEG_ARC_REL = 11;
-
-  static const int PATHSEG_CLOSEPATH = 1;
-
-  static const int PATHSEG_CURVETO_CUBIC_ABS = 6;
-
-  static const int PATHSEG_CURVETO_CUBIC_REL = 7;
-
-  static const int PATHSEG_CURVETO_CUBIC_SMOOTH_ABS = 16;
-
-  static const int PATHSEG_CURVETO_CUBIC_SMOOTH_REL = 17;
-
-  static const int PATHSEG_CURVETO_QUADRATIC_ABS = 8;
-
-  static const int PATHSEG_CURVETO_QUADRATIC_REL = 9;
-
-  static const int PATHSEG_CURVETO_QUADRATIC_SMOOTH_ABS = 18;
-
-  static const int PATHSEG_CURVETO_QUADRATIC_SMOOTH_REL = 19;
-
-  static const int PATHSEG_LINETO_ABS = 4;
-
-  static const int PATHSEG_LINETO_HORIZONTAL_ABS = 12;
-
-  static const int PATHSEG_LINETO_HORIZONTAL_REL = 13;
-
-  static const int PATHSEG_LINETO_REL = 5;
-
-  static const int PATHSEG_LINETO_VERTICAL_ABS = 14;
-
-  static const int PATHSEG_LINETO_VERTICAL_REL = 15;
-
-  static const int PATHSEG_MOVETO_ABS = 2;
-
-  static const int PATHSEG_MOVETO_REL = 3;
-
-  static const int PATHSEG_UNKNOWN = 0;
-
-  /** @domName SVGPathSeg.pathSegType */
-  final int pathSegType;
-
-  /** @domName SVGPathSeg.pathSegTypeAsLetter */
-  final String pathSegTypeAsLetter;
-}
-
-/// @domName SVGPathSegArcAbs
-class SVGPathSegArcAbs extends SVGPathSeg native "*SVGPathSegArcAbs" {
-
-  /** @domName SVGPathSegArcAbs.angle */
-  num angle;
-
-  /** @domName SVGPathSegArcAbs.largeArcFlag */
-  bool largeArcFlag;
-
-  /** @domName SVGPathSegArcAbs.r1 */
-  num r1;
-
-  /** @domName SVGPathSegArcAbs.r2 */
-  num r2;
-
-  /** @domName SVGPathSegArcAbs.sweepFlag */
-  bool sweepFlag;
-
-  /** @domName SVGPathSegArcAbs.x */
-  num x;
-
-  /** @domName SVGPathSegArcAbs.y */
-  num y;
-}
-
-/// @domName SVGPathSegArcRel
-class SVGPathSegArcRel extends SVGPathSeg native "*SVGPathSegArcRel" {
-
-  /** @domName SVGPathSegArcRel.angle */
-  num angle;
-
-  /** @domName SVGPathSegArcRel.largeArcFlag */
-  bool largeArcFlag;
-
-  /** @domName SVGPathSegArcRel.r1 */
-  num r1;
-
-  /** @domName SVGPathSegArcRel.r2 */
-  num r2;
-
-  /** @domName SVGPathSegArcRel.sweepFlag */
-  bool sweepFlag;
-
-  /** @domName SVGPathSegArcRel.x */
-  num x;
-
-  /** @domName SVGPathSegArcRel.y */
-  num y;
-}
-
-/// @domName SVGPathSegClosePath
-class SVGPathSegClosePath extends SVGPathSeg native "*SVGPathSegClosePath" {
-}
-
-/// @domName SVGPathSegCurvetoCubicAbs
-class SVGPathSegCurvetoCubicAbs extends SVGPathSeg native "*SVGPathSegCurvetoCubicAbs" {
-
-  /** @domName SVGPathSegCurvetoCubicAbs.x */
-  num x;
-
-  /** @domName SVGPathSegCurvetoCubicAbs.x1 */
-  num x1;
-
-  /** @domName SVGPathSegCurvetoCubicAbs.x2 */
-  num x2;
-
-  /** @domName SVGPathSegCurvetoCubicAbs.y */
-  num y;
-
-  /** @domName SVGPathSegCurvetoCubicAbs.y1 */
-  num y1;
-
-  /** @domName SVGPathSegCurvetoCubicAbs.y2 */
-  num y2;
-}
-
-/// @domName SVGPathSegCurvetoCubicRel
-class SVGPathSegCurvetoCubicRel extends SVGPathSeg native "*SVGPathSegCurvetoCubicRel" {
-
-  /** @domName SVGPathSegCurvetoCubicRel.x */
-  num x;
-
-  /** @domName SVGPathSegCurvetoCubicRel.x1 */
-  num x1;
-
-  /** @domName SVGPathSegCurvetoCubicRel.x2 */
-  num x2;
-
-  /** @domName SVGPathSegCurvetoCubicRel.y */
-  num y;
-
-  /** @domName SVGPathSegCurvetoCubicRel.y1 */
-  num y1;
-
-  /** @domName SVGPathSegCurvetoCubicRel.y2 */
-  num y2;
-}
-
-/// @domName SVGPathSegCurvetoCubicSmoothAbs
-class SVGPathSegCurvetoCubicSmoothAbs extends SVGPathSeg native "*SVGPathSegCurvetoCubicSmoothAbs" {
-
-  /** @domName SVGPathSegCurvetoCubicSmoothAbs.x */
-  num x;
-
-  /** @domName SVGPathSegCurvetoCubicSmoothAbs.x2 */
-  num x2;
-
-  /** @domName SVGPathSegCurvetoCubicSmoothAbs.y */
-  num y;
-
-  /** @domName SVGPathSegCurvetoCubicSmoothAbs.y2 */
-  num y2;
-}
-
-/// @domName SVGPathSegCurvetoCubicSmoothRel
-class SVGPathSegCurvetoCubicSmoothRel extends SVGPathSeg native "*SVGPathSegCurvetoCubicSmoothRel" {
-
-  /** @domName SVGPathSegCurvetoCubicSmoothRel.x */
-  num x;
-
-  /** @domName SVGPathSegCurvetoCubicSmoothRel.x2 */
-  num x2;
-
-  /** @domName SVGPathSegCurvetoCubicSmoothRel.y */
-  num y;
-
-  /** @domName SVGPathSegCurvetoCubicSmoothRel.y2 */
-  num y2;
-}
-
-/// @domName SVGPathSegCurvetoQuadraticAbs
-class SVGPathSegCurvetoQuadraticAbs extends SVGPathSeg native "*SVGPathSegCurvetoQuadraticAbs" {
-
-  /** @domName SVGPathSegCurvetoQuadraticAbs.x */
-  num x;
-
-  /** @domName SVGPathSegCurvetoQuadraticAbs.x1 */
-  num x1;
-
-  /** @domName SVGPathSegCurvetoQuadraticAbs.y */
-  num y;
-
-  /** @domName SVGPathSegCurvetoQuadraticAbs.y1 */
-  num y1;
-}
-
-/// @domName SVGPathSegCurvetoQuadraticRel
-class SVGPathSegCurvetoQuadraticRel extends SVGPathSeg native "*SVGPathSegCurvetoQuadraticRel" {
-
-  /** @domName SVGPathSegCurvetoQuadraticRel.x */
-  num x;
-
-  /** @domName SVGPathSegCurvetoQuadraticRel.x1 */
-  num x1;
-
-  /** @domName SVGPathSegCurvetoQuadraticRel.y */
-  num y;
-
-  /** @domName SVGPathSegCurvetoQuadraticRel.y1 */
-  num y1;
-}
-
-/// @domName SVGPathSegCurvetoQuadraticSmoothAbs
-class SVGPathSegCurvetoQuadraticSmoothAbs extends SVGPathSeg native "*SVGPathSegCurvetoQuadraticSmoothAbs" {
-
-  /** @domName SVGPathSegCurvetoQuadraticSmoothAbs.x */
-  num x;
-
-  /** @domName SVGPathSegCurvetoQuadraticSmoothAbs.y */
-  num y;
-}
-
-/// @domName SVGPathSegCurvetoQuadraticSmoothRel
-class SVGPathSegCurvetoQuadraticSmoothRel extends SVGPathSeg native "*SVGPathSegCurvetoQuadraticSmoothRel" {
-
-  /** @domName SVGPathSegCurvetoQuadraticSmoothRel.x */
-  num x;
-
-  /** @domName SVGPathSegCurvetoQuadraticSmoothRel.y */
-  num y;
-}
-
-/// @domName SVGPathSegLinetoAbs
-class SVGPathSegLinetoAbs extends SVGPathSeg native "*SVGPathSegLinetoAbs" {
-
-  /** @domName SVGPathSegLinetoAbs.x */
-  num x;
-
-  /** @domName SVGPathSegLinetoAbs.y */
-  num y;
-}
-
-/// @domName SVGPathSegLinetoHorizontalAbs
-class SVGPathSegLinetoHorizontalAbs extends SVGPathSeg native "*SVGPathSegLinetoHorizontalAbs" {
-
-  /** @domName SVGPathSegLinetoHorizontalAbs.x */
-  num x;
-}
-
-/// @domName SVGPathSegLinetoHorizontalRel
-class SVGPathSegLinetoHorizontalRel extends SVGPathSeg native "*SVGPathSegLinetoHorizontalRel" {
-
-  /** @domName SVGPathSegLinetoHorizontalRel.x */
-  num x;
-}
-
-/// @domName SVGPathSegLinetoRel
-class SVGPathSegLinetoRel extends SVGPathSeg native "*SVGPathSegLinetoRel" {
-
-  /** @domName SVGPathSegLinetoRel.x */
-  num x;
-
-  /** @domName SVGPathSegLinetoRel.y */
-  num y;
-}
-
-/// @domName SVGPathSegLinetoVerticalAbs
-class SVGPathSegLinetoVerticalAbs extends SVGPathSeg native "*SVGPathSegLinetoVerticalAbs" {
-
-  /** @domName SVGPathSegLinetoVerticalAbs.y */
-  num y;
-}
-
-/// @domName SVGPathSegLinetoVerticalRel
-class SVGPathSegLinetoVerticalRel extends SVGPathSeg native "*SVGPathSegLinetoVerticalRel" {
-
-  /** @domName SVGPathSegLinetoVerticalRel.y */
-  num y;
-}
-
-/// @domName SVGPathSegList
-class SVGPathSegList implements JavaScriptIndexingBehavior, List<SVGPathSeg> native "*SVGPathSegList" {
-
-  /** @domName SVGPathSegList.numberOfItems */
-  final int numberOfItems;
-
-  SVGPathSeg operator[](int index) => JS("SVGPathSeg", "#[#]", this, index);
-
-  void operator[]=(int index, SVGPathSeg value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<SVGPathSeg> mixins.
-  // SVGPathSeg is the element type.
-
-  // From Iterable<SVGPathSeg>:
-
-  Iterator<SVGPathSeg> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new _FixedSizeListIterator<SVGPathSeg>(this);
-  }
-
-  // From Collection<SVGPathSeg>:
-
-  void add(SVGPathSeg value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(SVGPathSeg value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<SVGPathSeg> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(SVGPathSeg element) => _Collections.contains(this, element);
-
-  void forEach(void f(SVGPathSeg element)) => _Collections.forEach(this, f);
-
-  Collection map(f(SVGPathSeg element)) => _Collections.map(this, [], f);
-
-  Collection<SVGPathSeg> filter(bool f(SVGPathSeg element)) =>
-     _Collections.filter(this, <SVGPathSeg>[], f);
-
-  bool every(bool f(SVGPathSeg element)) => _Collections.every(this, f);
-
-  bool some(bool f(SVGPathSeg element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<SVGPathSeg>:
-
-  void sort([Comparator<SVGPathSeg> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(SVGPathSeg element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(SVGPathSeg element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  SVGPathSeg get last => this[length - 1];
-
-  SVGPathSeg removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<SVGPathSeg> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [SVGPathSeg initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<SVGPathSeg> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <SVGPathSeg>[]);
-
-  // -- end List<SVGPathSeg> mixins.
-
-  /** @domName SVGPathSegList.appendItem */
-  SVGPathSeg appendItem(SVGPathSeg newItem) native;
-
-  /** @domName SVGPathSegList.clear */
-  void clear() native;
-
-  /** @domName SVGPathSegList.getItem */
-  SVGPathSeg getItem(int index) native;
-
-  /** @domName SVGPathSegList.initialize */
-  SVGPathSeg initialize(SVGPathSeg newItem) native;
-
-  /** @domName SVGPathSegList.insertItemBefore */
-  SVGPathSeg insertItemBefore(SVGPathSeg newItem, int index) native;
-
-  /** @domName SVGPathSegList.removeItem */
-  SVGPathSeg removeItem(int index) native;
-
-  /** @domName SVGPathSegList.replaceItem */
-  SVGPathSeg replaceItem(SVGPathSeg newItem, int index) native;
-}
-
-/// @domName SVGPathSegMovetoAbs
-class SVGPathSegMovetoAbs extends SVGPathSeg native "*SVGPathSegMovetoAbs" {
-
-  /** @domName SVGPathSegMovetoAbs.x */
-  num x;
-
-  /** @domName SVGPathSegMovetoAbs.y */
-  num y;
-}
-
-/// @domName SVGPathSegMovetoRel
-class SVGPathSegMovetoRel extends SVGPathSeg native "*SVGPathSegMovetoRel" {
-
-  /** @domName SVGPathSegMovetoRel.x */
-  num x;
-
-  /** @domName SVGPathSegMovetoRel.y */
-  num y;
-}
-
-/// @domName SVGPatternElement
-class SVGPatternElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStylable, SVGURIReference, SVGFitToViewBox, SVGExternalResourcesRequired native "*SVGPatternElement" {
-
-  /** @domName SVGPatternElement.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGPatternElement.patternContentUnits */
-  final SVGAnimatedEnumeration patternContentUnits;
-
-  /** @domName SVGPatternElement.patternTransform */
-  final SVGAnimatedTransformList patternTransform;
-
-  /** @domName SVGPatternElement.patternUnits */
-  final SVGAnimatedEnumeration patternUnits;
-
-  /** @domName SVGPatternElement.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGPatternElement.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGPatternElement.y */
-  final SVGAnimatedLength y;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGFitToViewBox
-
-  /** @domName SVGFitToViewBox.preserveAspectRatio */
-  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
-
-  /** @domName SVGFitToViewBox.viewBox */
-  final SVGAnimatedRect viewBox;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-
-  // From SVGTests
-
-  /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
-
-  /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
-
-  /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
-
-  /** @domName SVGTests.hasExtension */
-  bool hasExtension(String extension) native;
-
-  // From SVGURIReference
-
-  /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
-}
-
-/// @domName SVGPoint
-class SVGPoint native "*SVGPoint" {
-
-  /** @domName SVGPoint.x */
-  num x;
-
-  /** @domName SVGPoint.y */
-  num y;
-
-  /** @domName SVGPoint.matrixTransform */
-  SVGPoint matrixTransform(SVGMatrix matrix) native;
-}
-
-/// @domName SVGPointList
-class SVGPointList native "*SVGPointList" {
-
-  /** @domName SVGPointList.numberOfItems */
-  final int numberOfItems;
-
-  /** @domName SVGPointList.appendItem */
-  SVGPoint appendItem(SVGPoint item) native;
-
-  /** @domName SVGPointList.clear */
-  void clear() native;
-
-  /** @domName SVGPointList.getItem */
-  SVGPoint getItem(int index) native;
-
-  /** @domName SVGPointList.initialize */
-  SVGPoint initialize(SVGPoint item) native;
-
-  /** @domName SVGPointList.insertItemBefore */
-  SVGPoint insertItemBefore(SVGPoint item, int index) native;
-
-  /** @domName SVGPointList.removeItem */
-  SVGPoint removeItem(int index) native;
-
-  /** @domName SVGPointList.replaceItem */
-  SVGPoint replaceItem(SVGPoint item, int index) native;
-}
-
-/// @domName SVGPolygonElement
-class SVGPolygonElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGPolygonElement" {
-
-  /** @domName SVGPolygonElement.animatedPoints */
-  final SVGPointList animatedPoints;
-
-  /** @domName SVGPolygonElement.points */
-  final SVGPointList points;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGLocatable
-
-  /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
-
-  /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
-
-  /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
-
-  /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
-
-  /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
-
-  /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-
-  // From SVGTests
-
-  /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
-
-  /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
-
-  /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
-
-  /** @domName SVGTests.hasExtension */
-  bool hasExtension(String extension) native;
-
-  // From SVGTransformable
-
-  /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
-}
-
-/// @domName SVGPolylineElement
-class SVGPolylineElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGPolylineElement" {
-
-  /** @domName SVGPolylineElement.animatedPoints */
-  final SVGPointList animatedPoints;
-
-  /** @domName SVGPolylineElement.points */
-  final SVGPointList points;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGLocatable
-
-  /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
-
-  /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
-
-  /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
-
-  /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
-
-  /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
-
-  /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-
-  // From SVGTests
-
-  /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
-
-  /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
-
-  /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
-
-  /** @domName SVGTests.hasExtension */
-  bool hasExtension(String extension) native;
-
-  // From SVGTransformable
-
-  /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
-}
-
-/// @domName SVGPreserveAspectRatio
-class SVGPreserveAspectRatio native "*SVGPreserveAspectRatio" {
-
-  static const int SVG_MEETORSLICE_MEET = 1;
-
-  static const int SVG_MEETORSLICE_SLICE = 2;
-
-  static const int SVG_MEETORSLICE_UNKNOWN = 0;
-
-  static const int SVG_PRESERVEASPECTRATIO_NONE = 1;
-
-  static const int SVG_PRESERVEASPECTRATIO_UNKNOWN = 0;
-
-  static const int SVG_PRESERVEASPECTRATIO_XMAXYMAX = 10;
-
-  static const int SVG_PRESERVEASPECTRATIO_XMAXYMID = 7;
-
-  static const int SVG_PRESERVEASPECTRATIO_XMAXYMIN = 4;
-
-  static const int SVG_PRESERVEASPECTRATIO_XMIDYMAX = 9;
-
-  static const int SVG_PRESERVEASPECTRATIO_XMIDYMID = 6;
-
-  static const int SVG_PRESERVEASPECTRATIO_XMIDYMIN = 3;
-
-  static const int SVG_PRESERVEASPECTRATIO_XMINYMAX = 8;
-
-  static const int SVG_PRESERVEASPECTRATIO_XMINYMID = 5;
-
-  static const int SVG_PRESERVEASPECTRATIO_XMINYMIN = 2;
-
-  /** @domName SVGPreserveAspectRatio.align */
-  int align;
-
-  /** @domName SVGPreserveAspectRatio.meetOrSlice */
-  int meetOrSlice;
-}
-
-/// @domName SVGRadialGradientElement
-class SVGRadialGradientElement extends SVGGradientElement native "*SVGRadialGradientElement" {
-
-  /** @domName SVGRadialGradientElement.cx */
-  final SVGAnimatedLength cx;
-
-  /** @domName SVGRadialGradientElement.cy */
-  final SVGAnimatedLength cy;
-
-  /** @domName SVGRadialGradientElement.fr */
-  final SVGAnimatedLength fr;
-
-  /** @domName SVGRadialGradientElement.fx */
-  final SVGAnimatedLength fx;
-
-  /** @domName SVGRadialGradientElement.fy */
-  final SVGAnimatedLength fy;
-
-  /** @domName SVGRadialGradientElement.r */
-  final SVGAnimatedLength r;
-}
-
-/// @domName SVGRect
-class SVGRect native "*SVGRect" {
-
-  /** @domName SVGRect.height */
-  num height;
-
-  /** @domName SVGRect.width */
-  num width;
-
-  /** @domName SVGRect.x */
-  num x;
-
-  /** @domName SVGRect.y */
-  num y;
-}
-
-/// @domName SVGRectElement
-class SVGRectElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGRectElement" {
-
-  /** @domName SVGRectElement.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGRectElement.rx */
-  final SVGAnimatedLength rx;
-
-  /** @domName SVGRectElement.ry */
-  final SVGAnimatedLength ry;
-
-  /** @domName SVGRectElement.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGRectElement.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGRectElement.y */
-  final SVGAnimatedLength y;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGLocatable
-
-  /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
-
-  /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
-
-  /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
-
-  /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
-
-  /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
-
-  /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-
-  // From SVGTests
-
-  /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
-
-  /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
-
-  /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
-
-  /** @domName SVGTests.hasExtension */
-  bool hasExtension(String extension) native;
-
-  // From SVGTransformable
-
-  /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
-}
-
-/// @domName SVGRenderingIntent
-class SVGRenderingIntent native "*SVGRenderingIntent" {
-
-  static const int RENDERING_INTENT_ABSOLUTE_COLORIMETRIC = 5;
-
-  static const int RENDERING_INTENT_AUTO = 1;
-
-  static const int RENDERING_INTENT_PERCEPTUAL = 2;
-
-  static const int RENDERING_INTENT_RELATIVE_COLORIMETRIC = 3;
-
-  static const int RENDERING_INTENT_SATURATION = 4;
-
-  static const int RENDERING_INTENT_UNKNOWN = 0;
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class SVGSVGElement extends SVGElement implements SVGZoomAndPan, SVGLocatable, SVGLangSpace, SVGTests, SVGStylable, SVGFitToViewBox, SVGExternalResourcesRequired native "*SVGSVGElement" {
-  factory SVGSVGElement() => _SVGSVGElementFactoryProvider.createSVGSVGElement();
-
-
-  /** @domName SVGSVGElement.contentScriptType */
-  String contentScriptType;
-
-  /** @domName SVGSVGElement.contentStyleType */
-  String contentStyleType;
-
-  /** @domName SVGSVGElement.currentScale */
-  num currentScale;
-
-  /** @domName SVGSVGElement.currentTranslate */
-  final SVGPoint currentTranslate;
-
-  /** @domName SVGSVGElement.currentView */
-  final SVGViewSpec currentView;
-
-  /** @domName SVGSVGElement.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGSVGElement.pixelUnitToMillimeterX */
-  final num pixelUnitToMillimeterX;
-
-  /** @domName SVGSVGElement.pixelUnitToMillimeterY */
-  final num pixelUnitToMillimeterY;
-
-  /** @domName SVGSVGElement.screenPixelToMillimeterX */
-  final num screenPixelToMillimeterX;
-
-  /** @domName SVGSVGElement.screenPixelToMillimeterY */
-  final num screenPixelToMillimeterY;
-
-  /** @domName SVGSVGElement.useCurrentView */
-  final bool useCurrentView;
-
-  /** @domName SVGSVGElement.viewport */
-  final SVGRect viewport;
-
-  /** @domName SVGSVGElement.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGSVGElement.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGSVGElement.y */
-  final SVGAnimatedLength y;
-
-  /** @domName SVGSVGElement.animationsPaused */
-  bool animationsPaused() native;
-
-  /** @domName SVGSVGElement.checkEnclosure */
-  bool checkEnclosure(SVGElement element, SVGRect rect) native;
-
-  /** @domName SVGSVGElement.checkIntersection */
-  bool checkIntersection(SVGElement element, SVGRect rect) native;
-
-  /** @domName SVGSVGElement.createSVGAngle */
-  SVGAngle createSVGAngle() native;
-
-  /** @domName SVGSVGElement.createSVGLength */
-  SVGLength createSVGLength() native;
-
-  /** @domName SVGSVGElement.createSVGMatrix */
-  SVGMatrix createSVGMatrix() native;
-
-  /** @domName SVGSVGElement.createSVGNumber */
-  SVGNumber createSVGNumber() native;
-
-  /** @domName SVGSVGElement.createSVGPoint */
-  SVGPoint createSVGPoint() native;
-
-  /** @domName SVGSVGElement.createSVGRect */
-  SVGRect createSVGRect() native;
-
-  /** @domName SVGSVGElement.createSVGTransform */
-  SVGTransform createSVGTransform() native;
-
-  /** @domName SVGSVGElement.createSVGTransformFromMatrix */
-  SVGTransform createSVGTransformFromMatrix(SVGMatrix matrix) native;
-
-  /** @domName SVGSVGElement.deselectAll */
-  void deselectAll() native;
-
-  /** @domName SVGSVGElement.forceRedraw */
-  void forceRedraw() native;
-
-  /** @domName SVGSVGElement.getCurrentTime */
-  num getCurrentTime() native;
-
-  /** @domName SVGSVGElement.getElementById */
-  Element getElementById(String elementId) native;
-
-  /** @domName SVGSVGElement.getEnclosureList */
-  List<Node> getEnclosureList(SVGRect rect, SVGElement referenceElement) native;
-
-  /** @domName SVGSVGElement.getIntersectionList */
-  List<Node> getIntersectionList(SVGRect rect, SVGElement referenceElement) native;
-
-  /** @domName SVGSVGElement.pauseAnimations */
-  void pauseAnimations() native;
-
-  /** @domName SVGSVGElement.setCurrentTime */
-  void setCurrentTime(num seconds) native;
-
-  /** @domName SVGSVGElement.suspendRedraw */
-  int suspendRedraw(int maxWaitMilliseconds) native;
-
-  /** @domName SVGSVGElement.unpauseAnimations */
-  void unpauseAnimations() native;
-
-  /** @domName SVGSVGElement.unsuspendRedraw */
-  void unsuspendRedraw(int suspendHandleId) native;
-
-  /** @domName SVGSVGElement.unsuspendRedrawAll */
-  void unsuspendRedrawAll() native;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGFitToViewBox
-
-  /** @domName SVGFitToViewBox.preserveAspectRatio */
-  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
-
-  /** @domName SVGFitToViewBox.viewBox */
-  final SVGAnimatedRect viewBox;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGLocatable
-
-  /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
-
-  /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
-
-  /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
-
-  /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
-
-  /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
-
-  /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-
-  // From SVGTests
-
-  /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
-
-  /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
-
-  /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
-
-  /** @domName SVGTests.hasExtension */
-  bool hasExtension(String extension) native;
-
-  // From SVGZoomAndPan
-
-  /** @domName SVGZoomAndPan.zoomAndPan */
-  int zoomAndPan;
-
-}
-
-/// @domName SVGScriptElement
-class SVGScriptElement extends SVGElement implements SVGURIReference, SVGExternalResourcesRequired native "*SVGScriptElement" {
-
-  /** @domName SVGScriptElement.type */
-  String type;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGURIReference
-
-  /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
-}
-
-/// @domName SVGSetElement
-class SVGSetElement extends SVGAnimationElement native "*SVGSetElement" {
-}
-
-/// @domName SVGStopElement
-class SVGStopElement extends SVGElement implements SVGStylable native "*SVGStopElement" {
-
-  /** @domName SVGStopElement.offset */
-  final SVGAnimatedNumber offset;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-}
-
-/// @domName SVGStringList
-class SVGStringList implements JavaScriptIndexingBehavior, List<String> native "*SVGStringList" {
-
-  /** @domName SVGStringList.numberOfItems */
-  final int numberOfItems;
-
-  String operator[](int index) => JS("String", "#[#]", this, index);
-
-  void operator[]=(int index, String value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<String> mixins.
-  // String is the element type.
-
-  // From Iterable<String>:
-
-  Iterator<String> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new _FixedSizeListIterator<String>(this);
-  }
-
-  // From Collection<String>:
-
-  void add(String value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(String value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<String> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(String element) => _Collections.contains(this, element);
-
-  void forEach(void f(String element)) => _Collections.forEach(this, f);
-
-  Collection map(f(String element)) => _Collections.map(this, [], f);
-
-  Collection<String> filter(bool f(String element)) =>
-     _Collections.filter(this, <String>[], f);
-
-  bool every(bool f(String element)) => _Collections.every(this, f);
-
-  bool some(bool f(String element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<String>:
-
-  void sort([Comparator<String> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(String element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(String element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  String get last => this[length - 1];
-
-  String removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [String initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<String> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <String>[]);
-
-  // -- end List<String> mixins.
-
-  /** @domName SVGStringList.appendItem */
-  String appendItem(String item) native;
-
-  /** @domName SVGStringList.clear */
-  void clear() native;
-
-  /** @domName SVGStringList.getItem */
-  String getItem(int index) native;
-
-  /** @domName SVGStringList.initialize */
-  String initialize(String item) native;
-
-  /** @domName SVGStringList.insertItemBefore */
-  String insertItemBefore(String item, int index) native;
-
-  /** @domName SVGStringList.removeItem */
-  String removeItem(int index) native;
-
-  /** @domName SVGStringList.replaceItem */
-  String replaceItem(String item, int index) native;
-}
-/// @domName SVGStylable
-abstract class SVGStylable {
-
-  SVGAnimatedString className;
-
-  CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name);
-}
-
-/// @domName SVGStyleElement
-class SVGStyleElement extends SVGElement implements SVGLangSpace native "*SVGStyleElement" {
-
-  /** @domName SVGStyleElement.disabled */
-  bool disabled;
-
-  /** @domName SVGStyleElement.media */
-  String media;
-
-  // Shadowing definition.
-  /** @domName SVGStyleElement.title */
-  String get title => JS("String", "#.title", this);
-
-  /** @domName SVGStyleElement.title */
-  void set title(String value) {
-    JS("void", "#.title = #", this, value);
-  }
-
-  /** @domName SVGStyleElement.type */
-  String type;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-}
-
-/// @domName SVGSwitchElement
-class SVGSwitchElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGSwitchElement" {
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGLocatable
-
-  /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
-
-  /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
-
-  /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
-
-  /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
-
-  /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
-
-  /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-
-  // From SVGTests
-
-  /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
-
-  /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
-
-  /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
-
-  /** @domName SVGTests.hasExtension */
-  bool hasExtension(String extension) native;
-
-  // From SVGTransformable
-
-  /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
-}
-
-/// @domName SVGSymbolElement
-class SVGSymbolElement extends SVGElement implements SVGLangSpace, SVGFitToViewBox, SVGExternalResourcesRequired, SVGStylable native "*SVGSymbolElement" {
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGFitToViewBox
-
-  /** @domName SVGFitToViewBox.preserveAspectRatio */
-  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
-
-  /** @domName SVGFitToViewBox.viewBox */
-  final SVGAnimatedRect viewBox;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-}
-
-/// @domName SVGTRefElement
-class SVGTRefElement extends SVGTextPositioningElement implements SVGURIReference native "*SVGTRefElement" {
-
-  // From SVGURIReference
-
-  /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
-}
-
-/// @domName SVGTSpanElement
-class SVGTSpanElement extends SVGTextPositioningElement native "*SVGTSpanElement" {
-}
-/// @domName SVGTests
-abstract class SVGTests {
-
-  SVGStringList requiredExtensions;
-
-  SVGStringList requiredFeatures;
-
-  SVGStringList systemLanguage;
-
-  /** @domName SVGTests.hasExtension */
-  bool hasExtension(String extension);
-}
-
-/// @domName SVGTextContentElement
-class SVGTextContentElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGExternalResourcesRequired native "*SVGTextContentElement" {
-
-  static const int LENGTHADJUST_SPACING = 1;
-
-  static const int LENGTHADJUST_SPACINGANDGLYPHS = 2;
-
-  static const int LENGTHADJUST_UNKNOWN = 0;
-
-  /** @domName SVGTextContentElement.lengthAdjust */
-  final SVGAnimatedEnumeration lengthAdjust;
-
-  /** @domName SVGTextContentElement.textLength */
-  final SVGAnimatedLength textLength;
-
-  /** @domName SVGTextContentElement.getCharNumAtPosition */
-  int getCharNumAtPosition(SVGPoint point) native;
-
-  /** @domName SVGTextContentElement.getComputedTextLength */
-  num getComputedTextLength() native;
-
-  /** @domName SVGTextContentElement.getEndPositionOfChar */
-  SVGPoint getEndPositionOfChar(int offset) native;
-
-  /** @domName SVGTextContentElement.getExtentOfChar */
-  SVGRect getExtentOfChar(int offset) native;
-
-  /** @domName SVGTextContentElement.getNumberOfChars */
-  int getNumberOfChars() native;
-
-  /** @domName SVGTextContentElement.getRotationOfChar */
-  num getRotationOfChar(int offset) native;
-
-  /** @domName SVGTextContentElement.getStartPositionOfChar */
-  SVGPoint getStartPositionOfChar(int offset) native;
-
-  /** @domName SVGTextContentElement.getSubStringLength */
-  num getSubStringLength(int offset, int length) native;
-
-  /** @domName SVGTextContentElement.selectSubString */
-  void selectSubString(int offset, int length) native;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-
-  // From SVGTests
-
-  /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
-
-  /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
-
-  /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
-
-  /** @domName SVGTests.hasExtension */
-  bool hasExtension(String extension) native;
-}
-
-/// @domName SVGTextElement
-class SVGTextElement extends SVGTextPositioningElement implements SVGTransformable native "*SVGTextElement" {
-
-  // From SVGLocatable
-
-  /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
-
-  /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
-
-  /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
-
-  /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
-
-  /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
-
-  /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
-
-  // From SVGTransformable
-
-  /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
-}
-
-/// @domName SVGTextPathElement
-class SVGTextPathElement extends SVGTextContentElement implements SVGURIReference native "*SVGTextPathElement" {
-
-  static const int TEXTPATH_METHODTYPE_ALIGN = 1;
-
-  static const int TEXTPATH_METHODTYPE_STRETCH = 2;
-
-  static const int TEXTPATH_METHODTYPE_UNKNOWN = 0;
-
-  static const int TEXTPATH_SPACINGTYPE_AUTO = 1;
-
-  static const int TEXTPATH_SPACINGTYPE_EXACT = 2;
-
-  static const int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
-
-  /** @domName SVGTextPathElement.method */
-  final SVGAnimatedEnumeration method;
-
-  /** @domName SVGTextPathElement.spacing */
-  final SVGAnimatedEnumeration spacing;
-
-  /** @domName SVGTextPathElement.startOffset */
-  final SVGAnimatedLength startOffset;
-
-  // From SVGURIReference
-
-  /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
-}
-
-/// @domName SVGTextPositioningElement
-class SVGTextPositioningElement extends SVGTextContentElement native "*SVGTextPositioningElement" {
-
-  /** @domName SVGTextPositioningElement.dx */
-  final SVGAnimatedLengthList dx;
-
-  /** @domName SVGTextPositioningElement.dy */
-  final SVGAnimatedLengthList dy;
-
-  /** @domName SVGTextPositioningElement.rotate */
-  final SVGAnimatedNumberList rotate;
-
-  /** @domName SVGTextPositioningElement.x */
-  final SVGAnimatedLengthList x;
-
-  /** @domName SVGTextPositioningElement.y */
-  final SVGAnimatedLengthList y;
-}
-
-/// @domName SVGTitleElement
-class SVGTitleElement extends SVGElement implements SVGLangSpace, SVGStylable native "*SVGTitleElement" {
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-}
-
-/// @domName SVGTransform
-class SVGTransform native "*SVGTransform" {
-
-  static const int SVG_TRANSFORM_MATRIX = 1;
-
-  static const int SVG_TRANSFORM_ROTATE = 4;
-
-  static const int SVG_TRANSFORM_SCALE = 3;
-
-  static const int SVG_TRANSFORM_SKEWX = 5;
-
-  static const int SVG_TRANSFORM_SKEWY = 6;
-
-  static const int SVG_TRANSFORM_TRANSLATE = 2;
-
-  static const int SVG_TRANSFORM_UNKNOWN = 0;
-
-  /** @domName SVGTransform.angle */
-  final num angle;
-
-  /** @domName SVGTransform.matrix */
-  final SVGMatrix matrix;
-
-  /** @domName SVGTransform.type */
-  final int type;
-
-  /** @domName SVGTransform.setMatrix */
-  void setMatrix(SVGMatrix matrix) native;
-
-  /** @domName SVGTransform.setRotate */
-  void setRotate(num angle, num cx, num cy) native;
-
-  /** @domName SVGTransform.setScale */
-  void setScale(num sx, num sy) native;
-
-  /** @domName SVGTransform.setSkewX */
-  void setSkewX(num angle) native;
-
-  /** @domName SVGTransform.setSkewY */
-  void setSkewY(num angle) native;
-
-  /** @domName SVGTransform.setTranslate */
-  void setTranslate(num tx, num ty) native;
-}
-
-/// @domName SVGTransformList
-class SVGTransformList implements JavaScriptIndexingBehavior, List<SVGTransform> native "*SVGTransformList" {
-
-  /** @domName SVGTransformList.numberOfItems */
-  final int numberOfItems;
-
-  SVGTransform operator[](int index) => JS("SVGTransform", "#[#]", this, index);
-
-  void operator[]=(int index, SVGTransform value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<SVGTransform> mixins.
-  // SVGTransform is the element type.
-
-  // From Iterable<SVGTransform>:
-
-  Iterator<SVGTransform> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new _FixedSizeListIterator<SVGTransform>(this);
-  }
-
-  // From Collection<SVGTransform>:
-
-  void add(SVGTransform value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(SVGTransform value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<SVGTransform> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(SVGTransform element) => _Collections.contains(this, element);
-
-  void forEach(void f(SVGTransform element)) => _Collections.forEach(this, f);
-
-  Collection map(f(SVGTransform element)) => _Collections.map(this, [], f);
-
-  Collection<SVGTransform> filter(bool f(SVGTransform element)) =>
-     _Collections.filter(this, <SVGTransform>[], f);
-
-  bool every(bool f(SVGTransform element)) => _Collections.every(this, f);
-
-  bool some(bool f(SVGTransform element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<SVGTransform>:
-
-  void sort([Comparator<SVGTransform> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(SVGTransform element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(SVGTransform element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  SVGTransform get last => this[length - 1];
-
-  SVGTransform removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<SVGTransform> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [SVGTransform initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<SVGTransform> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <SVGTransform>[]);
-
-  // -- end List<SVGTransform> mixins.
-
-  /** @domName SVGTransformList.appendItem */
-  SVGTransform appendItem(SVGTransform item) native;
-
-  /** @domName SVGTransformList.clear */
-  void clear() native;
-
-  /** @domName SVGTransformList.consolidate */
-  SVGTransform consolidate() native;
-
-  /** @domName SVGTransformList.createSVGTransformFromMatrix */
-  SVGTransform createSVGTransformFromMatrix(SVGMatrix matrix) native;
-
-  /** @domName SVGTransformList.getItem */
-  SVGTransform getItem(int index) native;
-
-  /** @domName SVGTransformList.initialize */
-  SVGTransform initialize(SVGTransform item) native;
-
-  /** @domName SVGTransformList.insertItemBefore */
-  SVGTransform insertItemBefore(SVGTransform item, int index) native;
-
-  /** @domName SVGTransformList.removeItem */
-  SVGTransform removeItem(int index) native;
-
-  /** @domName SVGTransformList.replaceItem */
-  SVGTransform replaceItem(SVGTransform item, int index) native;
-}
-/// @domName SVGTransformable
-abstract class SVGTransformable implements SVGLocatable {
-
-  SVGAnimatedTransformList transform;
-
-  // From SVGLocatable
-
-  SVGElement farthestViewportElement;
-
-  SVGElement nearestViewportElement;
-
-  /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox();
-
-  /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM();
-
-  /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM();
-
-  /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element);
-}
-/// @domName SVGURIReference
-abstract class SVGURIReference {
-
-  SVGAnimatedString href;
-}
-
-/// @domName SVGUnitTypes
-class SVGUnitTypes native "*SVGUnitTypes" {
-
-  static const int SVG_UNIT_TYPE_OBJECTBOUNDINGBOX = 2;
-
-  static const int SVG_UNIT_TYPE_UNKNOWN = 0;
-
-  static const int SVG_UNIT_TYPE_USERSPACEONUSE = 1;
-}
-
-/// @domName SVGUseElement
-class SVGUseElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStylable, SVGURIReference, SVGExternalResourcesRequired, SVGTransformable native "*SVGUseElement" {
-
-  /** @domName SVGUseElement.animatedInstanceRoot */
-  final SVGElementInstance animatedInstanceRoot;
-
-  /** @domName SVGUseElement.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGUseElement.instanceRoot */
-  final SVGElementInstance instanceRoot;
-
-  /** @domName SVGUseElement.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGUseElement.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGUseElement.y */
-  final SVGAnimatedLength y;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGLocatable
-
-  /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
-
-  /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
-
-  /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
-
-  /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
-
-  /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
-
-  /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-
-  // From SVGTests
-
-  /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
-
-  /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
-
-  /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
-
-  /** @domName SVGTests.hasExtension */
-  bool hasExtension(String extension) native;
-
-  // From SVGTransformable
-
-  /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
-
-  // From SVGURIReference
-
-  /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
-}
-
-/// @domName SVGVKernElement
-class SVGVKernElement extends SVGElement native "*SVGVKernElement" {
-}
-
-/// @domName SVGViewElement
-class SVGViewElement extends SVGElement implements SVGFitToViewBox, SVGZoomAndPan, SVGExternalResourcesRequired native "*SVGViewElement" {
-
-  /** @domName SVGViewElement.viewTarget */
-  final SVGStringList viewTarget;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGFitToViewBox
-
-  /** @domName SVGFitToViewBox.preserveAspectRatio */
-  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
-
-  /** @domName SVGFitToViewBox.viewBox */
-  final SVGAnimatedRect viewBox;
-
-  // From SVGZoomAndPan
-
-  /** @domName SVGZoomAndPan.zoomAndPan */
-  int zoomAndPan;
-}
-
-/// @domName SVGViewSpec
-class SVGViewSpec native "*SVGViewSpec" {
-
-  /** @domName SVGViewSpec.preserveAspectRatio */
-  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
-
-  /** @domName SVGViewSpec.preserveAspectRatioString */
-  final String preserveAspectRatioString;
-
-  /** @domName SVGViewSpec.transform */
-  final SVGTransformList transform;
-
-  /** @domName SVGViewSpec.transformString */
-  final String transformString;
-
-  /** @domName SVGViewSpec.viewBox */
-  final SVGAnimatedRect viewBox;
-
-  /** @domName SVGViewSpec.viewBoxString */
-  final String viewBoxString;
-
-  /** @domName SVGViewSpec.viewTarget */
-  final SVGElement viewTarget;
-
-  /** @domName SVGViewSpec.viewTargetString */
-  final String viewTargetString;
-
-  /** @domName SVGViewSpec.zoomAndPan */
-  int zoomAndPan;
-}
-/// @domName SVGZoomAndPan
-abstract class SVGZoomAndPan {
-
-  static const int SVG_ZOOMANDPAN_DISABLE = 1;
-
-  static const int SVG_ZOOMANDPAN_MAGNIFY = 2;
-
-  static const int SVG_ZOOMANDPAN_UNKNOWN = 0;
-
-  int zoomAndPan;
-}
-
-/// @domName SVGZoomEvent
-class SVGZoomEvent extends UIEvent native "*SVGZoomEvent" {
-
-  /** @domName SVGZoomEvent.newScale */
-  final num newScale;
-
-  /** @domName SVGZoomEvent.newTranslate */
-  final SVGPoint newTranslate;
-
-  /** @domName SVGZoomEvent.previousScale */
-  final num previousScale;
-
-  /** @domName SVGZoomEvent.previousTranslate */
-  final SVGPoint previousTranslate;
-
-  /** @domName SVGZoomEvent.zoomRectScreen */
-  final SVGRect zoomRectScreen;
-}
 
 /// @domName Screen
 class Screen native "*Screen" {
@@ -20138,6 +15668,10 @@ class Screen native "*Screen" {
   /** @domName Screen.width */
   final int width;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLScriptElement
 class ScriptElement extends Element implements Element native "*HTMLScriptElement" {
@@ -20168,6 +15702,10 @@ class ScriptElement extends Element implements Element native "*HTMLScriptElemen
   /** @domName HTMLScriptElement.type */
   String type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ScriptProcessorNode
 class ScriptProcessorNode extends AudioNode implements EventTarget native "*ScriptProcessorNode" {
@@ -20187,6 +15725,10 @@ class ScriptProcessorNodeEvents extends Events {
 
   EventListenerList get audioProcess => this['audioprocess'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ScriptProfile
 class ScriptProfile native "*ScriptProfile" {
@@ -20200,6 +15742,10 @@ class ScriptProfile native "*ScriptProfile" {
   /** @domName ScriptProfile.uid */
   final int uid;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ScriptProfileNode
 class ScriptProfileNode native "*ScriptProfileNode" {
@@ -20234,6 +15780,7 @@ class ScriptProfileNode native "*ScriptProfileNode" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class SelectElement extends Element implements Element native "*HTMLSelectElement" {
 
@@ -20312,6 +15859,10 @@ class SelectElement extends Element implements Element native "*HTMLSelectElemen
     }
   }
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SessionDescription
 class SessionDescription native "*SessionDescription" {
@@ -20324,6 +15875,10 @@ class SessionDescription native "*SessionDescription" {
   /** @domName SessionDescription.toSdp */
   String toSdp() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLShadowElement
 class ShadowElement extends Element implements Element native "*HTMLShadowElement" {
@@ -20336,6 +15891,7 @@ class ShadowElement extends Element implements Element native "*HTMLShadowElemen
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
 
@@ -20371,6 +15927,10 @@ class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
   static bool get supported =>
       JS('bool', '!!(window.ShadowRoot || window.WebKitShadowRoot)');
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SharedWorker
 class SharedWorker extends AbstractWorker native "*SharedWorker" {
@@ -20385,6 +15945,10 @@ class SharedWorker extends AbstractWorker native "*SharedWorker" {
   /** @domName SharedWorker.port */
   final MessagePort port;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SharedWorkerContext
 class SharedWorkerContext extends WorkerContext native "*SharedWorkerContext" {
@@ -20404,6 +15968,10 @@ class SharedWorkerContextEvents extends WorkerContextEvents {
 
   EventListenerList get connect => this['connect'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SourceBuffer
 class SourceBuffer native "*SourceBuffer" {
@@ -20420,6 +15988,10 @@ class SourceBuffer native "*SourceBuffer" {
   /** @domName SourceBuffer.append */
   void append(Uint8Array data) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SourceBufferList
 class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior, List<SourceBuffer> native "*SourceBufferList" {
@@ -20441,7 +16013,7 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<SourceBuffer>(this);
+    return new FixedSizeListIterator<SourceBuffer>(this);
   }
 
   // From Collection<SourceBuffer>:
@@ -20522,6 +16094,10 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
   /** @domName SourceBufferList.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLSourceElement
 class SourceElement extends Element implements Element native "*HTMLSourceElement" {
@@ -20537,12 +16113,20 @@ class SourceElement extends Element implements Element native "*HTMLSourceElemen
   /** @domName HTMLSourceElement.type */
   String type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLSpanElement
 class SpanElement extends Element implements Element native "*HTMLSpanElement" {
 
   factory SpanElement() => _Elements.createSpanElement();
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SpeechGrammar
 class SpeechGrammar native "*SpeechGrammar" {
@@ -20555,6 +16139,10 @@ class SpeechGrammar native "*SpeechGrammar" {
   /** @domName SpeechGrammar.weight */
   num weight;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SpeechGrammarList
 class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGrammar> native "*SpeechGrammarList" {
@@ -20578,7 +16166,7 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<SpeechGrammar>(this);
+    return new FixedSizeListIterator<SpeechGrammar>(this);
   }
 
   // From Collection<SpeechGrammar>:
@@ -20656,6 +16244,10 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
   /** @domName SpeechGrammarList.item */
   SpeechGrammar item(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SpeechInputEvent
 class SpeechInputEvent extends Event native "*SpeechInputEvent" {
@@ -20663,6 +16255,10 @@ class SpeechInputEvent extends Event native "*SpeechInputEvent" {
   /** @domName SpeechInputEvent.results */
   final List<SpeechInputResult> results;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SpeechInputResult
 class SpeechInputResult native "*SpeechInputResult" {
@@ -20673,6 +16269,10 @@ class SpeechInputResult native "*SpeechInputResult" {
   /** @domName SpeechInputResult.utterance */
   final String utterance;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SpeechRecognition
 class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
@@ -20744,6 +16344,10 @@ class SpeechRecognitionEvents extends Events {
 
   EventListenerList get start => this['start'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SpeechRecognitionAlternative
 class SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
@@ -20754,6 +16358,10 @@ class SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
   /** @domName SpeechRecognitionAlternative.transcript */
   final String transcript;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SpeechRecognitionError
 class SpeechRecognitionError extends Event native "*SpeechRecognitionError" {
@@ -20782,6 +16390,10 @@ class SpeechRecognitionError extends Event native "*SpeechRecognitionError" {
   /** @domName SpeechRecognitionError.message */
   final String message;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SpeechRecognitionEvent
 class SpeechRecognitionEvent extends Event native "*SpeechRecognitionEvent" {
@@ -20795,6 +16407,10 @@ class SpeechRecognitionEvent extends Event native "*SpeechRecognitionEvent" {
   /** @domName SpeechRecognitionEvent.resultIndex */
   final int resultIndex;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SpeechRecognitionResult
 class SpeechRecognitionResult native "*SpeechRecognitionResult" {
@@ -20814,6 +16430,7 @@ class SpeechRecognitionResult native "*SpeechRecognitionResult" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class Storage implements Map<String, String>  native "*Storage" {
 
@@ -20883,6 +16500,10 @@ class Storage implements Map<String, String>  native "*Storage" {
   void $dom_setItem(String key, String data) native "setItem";
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName StorageEvent
 class StorageEvent extends Event native "*StorageEvent" {
@@ -20905,6 +16526,10 @@ class StorageEvent extends Event native "*StorageEvent" {
   /** @domName StorageEvent.initStorageEvent */
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName StorageInfo
 class StorageInfo native "*StorageInfo" {
@@ -20951,6 +16576,10 @@ typedef void StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaI
 
 
 typedef void StringCallback(String data);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLStyleElement
 class StyleElement extends Element implements Element native "*HTMLStyleElement" {
@@ -20972,6 +16601,10 @@ class StyleElement extends Element implements Element native "*HTMLStyleElement"
   /** @domName HTMLStyleElement.type */
   String type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName StyleMedia
 class StyleMedia native "*StyleMedia" {
@@ -20982,6 +16615,10 @@ class StyleMedia native "*StyleMedia" {
   /** @domName StyleMedia.matchMedium */
   bool matchMedium(String mediaquery) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName StyleSheet
 class StyleSheet native "*StyleSheet" {
@@ -21007,6 +16644,10 @@ class StyleSheet native "*StyleSheet" {
   /** @domName StyleSheet.type */
   final String type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLTableCaptionElement
 class TableCaptionElement extends Element implements Element native "*HTMLTableCaptionElement" {
@@ -21016,6 +16657,10 @@ class TableCaptionElement extends Element implements Element native "*HTMLTableC
   /** @domName HTMLTableCaptionElement.align */
   String align;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLTableCellElement
 class TableCellElement extends Element implements Element native "*HTMLTableCellElement" {
@@ -21067,6 +16712,10 @@ class TableCellElement extends Element implements Element native "*HTMLTableCell
   /** @domName HTMLTableCellElement.width */
   String width;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLTableColElement
 class TableColElement extends Element implements Element native "*HTMLTableColElement" {
@@ -21094,6 +16743,7 @@ class TableColElement extends Element implements Element native "*HTMLTableColEl
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class TableElement extends Element implements Element native "*HTMLTableElement" {
 
@@ -21177,6 +16827,10 @@ class TableElement extends Element implements Element native "*HTMLTableElement"
 
   Element _createTBody() native 'createTBody';
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLTableRowElement
 class TableRowElement extends Element implements Element native "*HTMLTableRowElement" {
@@ -21213,6 +16867,10 @@ class TableRowElement extends Element implements Element native "*HTMLTableRowEl
   /** @domName HTMLTableRowElement.insertCell */
   Element insertCell(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLTableSectionElement
 class TableSectionElement extends Element implements Element native "*HTMLTableSectionElement" {
@@ -21244,6 +16902,7 @@ class TableSectionElement extends Element implements Element native "*HTMLTableS
 
 // WARNING: Do not edit - generated code.
 
+
 class Text extends CharacterData native "*Text" {
   factory Text(String data) => _TextFactoryProvider.createText(data);
 
@@ -21257,6 +16916,10 @@ class Text extends CharacterData native "*Text" {
   Text splitText(int offset) native;
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLTextAreaElement
 class TextAreaElement extends Element implements Element native "*HTMLTextAreaElement" {
@@ -21347,6 +17010,10 @@ class TextAreaElement extends Element implements Element native "*HTMLTextAreaEl
   /** @domName HTMLTextAreaElement.setSelectionRange */
   void setSelectionRange(int start, int end, [String direction]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName TextEvent
 class TextEvent extends UIEvent native "*TextEvent" {
@@ -21357,6 +17024,10 @@ class TextEvent extends UIEvent native "*TextEvent" {
   /** @domName TextEvent.initTextEvent */
   void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName TextMetrics
 class TextMetrics native "*TextMetrics" {
@@ -21364,6 +17035,10 @@ class TextMetrics native "*TextMetrics" {
   /** @domName TextMetrics.width */
   final num width;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName TextTrack
 class TextTrack extends EventTarget native "*TextTrack" {
@@ -21413,6 +17088,10 @@ class TextTrackEvents extends Events {
 
   EventListenerList get cueChange => this['cuechange'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName TextTrackCue
 class TextTrackCue extends EventTarget native "*TextTrackCue" {
@@ -21481,6 +17160,10 @@ class TextTrackCueEvents extends Events {
 
   EventListenerList get exit => this['exit'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName TextTrackCueList
 class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior native "*TextTrackCueList" {
@@ -21502,7 +17185,7 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<TextTrackCue>(this);
+    return new FixedSizeListIterator<TextTrackCue>(this);
   }
 
   // From Collection<TextTrackCue>:
@@ -21577,6 +17260,10 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
   /** @domName TextTrackCueList.item */
   TextTrackCue item(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName TextTrackList
 class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, List<TextTrack> native "*TextTrackList" {
@@ -21604,7 +17291,7 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<TextTrack>(this);
+    return new FixedSizeListIterator<TextTrack>(this);
   }
 
   // From Collection<TextTrack>:
@@ -21691,6 +17378,10 @@ class TextTrackListEvents extends Events {
 
   EventListenerList get addTrack => this['addtrack'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName TimeRanges
 class TimeRanges native "*TimeRanges" {
@@ -21712,12 +17403,20 @@ class TimeRanges native "*TimeRanges" {
 
 
 typedef void TimeoutHandler();
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLTitleElement
 class TitleElement extends Element implements Element native "*HTMLTitleElement" {
 
   factory TitleElement() => _Elements.createTitleElement();
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Touch
 class Touch native "*Touch" {
@@ -21745,7 +17444,7 @@ class Touch native "*Touch" {
 
   /** @domName Touch.target */
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
-  EventTarget get _target => JS("EventTarget", "#.target", this);
+  dynamic get _target => JS("dynamic", "#.target", this);
 
   /** @domName Touch.webkitForce */
   final num webkitForce;
@@ -21759,6 +17458,10 @@ class Touch native "*Touch" {
   /** @domName Touch.webkitRotationAngle */
   final num webkitRotationAngle;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName TouchEvent
 class TouchEvent extends UIEvent native "*TouchEvent" {
@@ -21787,6 +17490,10 @@ class TouchEvent extends UIEvent native "*TouchEvent" {
   /** @domName TouchEvent.initTouchEvent */
   void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, LocalWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName TouchList
 class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*TouchList" {
@@ -21808,7 +17515,7 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<Touch>(this);
+    return new FixedSizeListIterator<Touch>(this);
   }
 
   // From Collection<Touch>:
@@ -21880,6 +17587,10 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
   /** @domName TouchList.item */
   Touch item(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLTrackElement
 class TrackElement extends Element implements Element native "*HTMLTrackElement" {
@@ -21920,6 +17631,10 @@ class TrackElement extends Element implements Element native "*HTMLTrackElement"
   /** @domName HTMLTrackElement.track */
   final TextTrack track;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName TrackEvent
 class TrackEvent extends Event native "*TrackEvent" {
@@ -21927,6 +17642,10 @@ class TrackEvent extends Event native "*TrackEvent" {
   /** @domName TrackEvent.track */
   final Object track;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebKitTransitionEvent
 class TransitionEvent extends Event native "*WebKitTransitionEvent" {
@@ -21937,6 +17656,10 @@ class TransitionEvent extends Event native "*WebKitTransitionEvent" {
   /** @domName WebKitTransitionEvent.propertyName */
   final String propertyName;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName TreeWalker
 class TreeWalker native "*TreeWalker" {
@@ -21977,6 +17700,10 @@ class TreeWalker native "*TreeWalker" {
   /** @domName TreeWalker.previousSibling */
   Node previousSibling() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName UIEvent
 class UIEvent extends Event native "*UIEvent" {
@@ -22004,7 +17731,7 @@ class UIEvent extends Event native "*UIEvent" {
 
   /** @domName UIEvent.view */
   Window get view => _convertNativeToDart_Window(this._view);
-  Window get _view => JS("Window", "#.view", this);
+  dynamic get _view => JS("dynamic", "#.view", this);
 
   /** @domName UIEvent.which */
   final int which;
@@ -22012,6 +17739,10 @@ class UIEvent extends Event native "*UIEvent" {
   /** @domName UIEvent.initUIEvent */
   void initUIEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLUListElement
 class UListElement extends Element implements Element native "*HTMLUListElement" {
@@ -22024,6 +17755,10 @@ class UListElement extends Element implements Element native "*HTMLUListElement"
   /** @domName HTMLUListElement.type */
   String type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Uint16Array
 class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Uint16Array" {
@@ -22054,7 +17789,7 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<int>(this);
+    return new FixedSizeListIterator<int>(this);
   }
 
   // From Collection<int>:
@@ -22129,6 +17864,10 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   /** @domName Uint16Array.subarray */
   Uint16Array subarray(int start, [int end]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Uint32Array
 class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Uint32Array" {
@@ -22159,7 +17898,7 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<int>(this);
+    return new FixedSizeListIterator<int>(this);
   }
 
   // From Collection<int>:
@@ -22234,6 +17973,10 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   /** @domName Uint32Array.subarray */
   Uint32Array subarray(int start, [int end]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Uint8Array
 class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Uint8Array" {
@@ -22264,7 +18007,7 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<int>(this);
+    return new FixedSizeListIterator<int>(this);
   }
 
   // From Collection<int>:
@@ -22339,6 +18082,10 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   /** @domName Uint8Array.subarray */
   Uint8Array subarray(int start, [int end]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Uint8ClampedArray
 class Uint8ClampedArray extends Uint8Array native "*Uint8ClampedArray" {
@@ -22361,6 +18108,10 @@ class Uint8ClampedArray extends Uint8Array native "*Uint8ClampedArray" {
   /** @domName Uint8ClampedArray.subarray */
   Uint8ClampedArray subarray(int start, [int end]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLUnknownElement
 class UnknownElement extends Element implements Element native "*HTMLUnknownElement" {
@@ -22368,6 +18119,7 @@ class UnknownElement extends Element implements Element native "*HTMLUnknownElem
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class Url native "*URL" {
 
@@ -22381,6 +18133,10 @@ class Url native "*URL" {
          '(window.URL || window.webkitURL).revokeObjectURL(#)', objectUrl);
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ValidityState
 class ValidityState native "*ValidityState" {
@@ -22412,6 +18168,10 @@ class ValidityState native "*ValidityState" {
   /** @domName ValidityState.valueMissing */
   final bool valueMissing;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName HTMLVideoElement
 class VideoElement extends MediaElement native "*HTMLVideoElement" {
@@ -22465,6 +18225,10 @@ class VideoElement extends MediaElement native "*HTMLVideoElement" {
 
 
 typedef void VoidCallback();
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WaveShaperNode
 class WaveShaperNode extends AudioNode native "*WaveShaperNode" {
@@ -22472,10 +18236,18 @@ class WaveShaperNode extends AudioNode native "*WaveShaperNode" {
   /** @domName WaveShaperNode.curve */
   Float32Array curve;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WaveTable
 class WaveTable native "*WaveTable" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLActiveInfo
 class WebGLActiveInfo native "*WebGLActiveInfo" {
@@ -22489,10 +18261,18 @@ class WebGLActiveInfo native "*WebGLActiveInfo" {
   /** @domName WebGLActiveInfo.type */
   final int type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLBuffer
 class WebGLBuffer native "*WebGLBuffer" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLCompressedTextureS3TC
 class WebGLCompressedTextureS3TC native "*WebGLCompressedTextureS3TC" {
@@ -22505,6 +18285,10 @@ class WebGLCompressedTextureS3TC native "*WebGLCompressedTextureS3TC" {
 
   static const int COMPRESSED_RGB_S3TC_DXT1_EXT = 0x83F0;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLContextAttributes
 class WebGLContextAttributes native "*WebGLContextAttributes" {
@@ -22527,6 +18311,10 @@ class WebGLContextAttributes native "*WebGLContextAttributes" {
   /** @domName WebGLContextAttributes.stencil */
   bool stencil;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLContextEvent
 class WebGLContextEvent extends Event native "*WebGLContextEvent" {
@@ -22534,6 +18322,10 @@ class WebGLContextEvent extends Event native "*WebGLContextEvent" {
   /** @domName WebGLContextEvent.statusMessage */
   final String statusMessage;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLDebugRendererInfo
 class WebGLDebugRendererInfo native "*WebGLDebugRendererInfo" {
@@ -22542,6 +18334,10 @@ class WebGLDebugRendererInfo native "*WebGLDebugRendererInfo" {
 
   static const int UNMASKED_VENDOR_WEBGL = 0x9245;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLDebugShaders
 class WebGLDebugShaders native "*WebGLDebugShaders" {
@@ -22549,16 +18345,28 @@ class WebGLDebugShaders native "*WebGLDebugShaders" {
   /** @domName WebGLDebugShaders.getTranslatedShaderSource */
   String getTranslatedShaderSource(WebGLShader shader) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLDepthTexture
 class WebGLDepthTexture native "*WebGLDepthTexture" {
 
   static const int UNSIGNED_INT_24_8_WEBGL = 0x84FA;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLFramebuffer
 class WebGLFramebuffer native "*WebGLFramebuffer" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLLoseContext
 class WebGLLoseContext native "*WebGLLoseContext" {
@@ -22569,14 +18377,26 @@ class WebGLLoseContext native "*WebGLLoseContext" {
   /** @domName WebGLLoseContext.restoreContext */
   void restoreContext() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLProgram
 class WebGLProgram native "*WebGLProgram" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLRenderbuffer
 class WebGLRenderbuffer native "*WebGLRenderbuffer" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLRenderingContext
 class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderingContext" {
@@ -23484,15 +19304,12 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
   /** @domName WebGLRenderingContext.texImage2D */
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [format, type, pixels]) {
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
-        (format is int || format == null) &&
-        (type is int || type == null) &&
-        (pixels is ArrayBufferView || pixels == null)) {
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, ArrayBufferView pixels]) {
+    if ((?border_OR_canvas_OR_image_OR_pixels_OR_video && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null))) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
+    if ((?border_OR_canvas_OR_image_OR_pixels_OR_video && (border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video == null)) &&
         !?format &&
         !?type &&
         !?pixels) {
@@ -23500,21 +19317,21 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
       _texImage2D_2(target, level, internalformat, format_OR_width, height_OR_type, pixels_1);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
+    if ((?border_OR_canvas_OR_image_OR_pixels_OR_video && (border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null)) &&
         !?format &&
         !?type &&
         !?pixels) {
       _texImage2D_3(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
+    if ((?border_OR_canvas_OR_image_OR_pixels_OR_video && (border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null)) &&
         !?format &&
         !?type &&
         !?pixels) {
       _texImage2D_4(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
+    if ((?border_OR_canvas_OR_image_OR_pixels_OR_video && (border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null)) &&
         !?format &&
         !?type &&
         !?pixels) {
@@ -23523,7 +19340,7 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
     }
     throw const Exception("Incorrect number or type of arguments");
   }
-  void _texImage2D_1(target, level, internalformat, width, height, int border, int format, int type, ArrayBufferView pixels) native "texImage2D";
+  void _texImage2D_1(target, level, internalformat, width, height, int border, format, type, ArrayBufferView pixels) native "texImage2D";
   void _texImage2D_2(target, level, internalformat, format, type, pixels) native "texImage2D";
   void _texImage2D_3(target, level, internalformat, format, type, ImageElement image) native "texImage2D";
   void _texImage2D_4(target, level, internalformat, format, type, CanvasElement canvas) native "texImage2D";
@@ -23536,33 +19353,31 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
   void texParameteri(int target, int pname, int param) native;
 
   /** @domName WebGLRenderingContext.texSubImage2D */
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [type, pixels]) {
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
-        (type is int || type == null) &&
-        (pixels is ArrayBufferView || pixels == null)) {
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, ArrayBufferView pixels]) {
+    if ((?canvas_OR_format_OR_image_OR_pixels_OR_video && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null))) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
+    if ((?canvas_OR_format_OR_image_OR_pixels_OR_video && (canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video == null)) &&
         !?type &&
         !?pixels) {
       var pixels_1 = _convertDartToNative_ImageData(canvas_OR_format_OR_image_OR_pixels_OR_video);
       _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width, height_OR_type, pixels_1);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
+    if ((?canvas_OR_format_OR_image_OR_pixels_OR_video && (canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null)) &&
         !?type &&
         !?pixels) {
       _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
+    if ((?canvas_OR_format_OR_image_OR_pixels_OR_video && (canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null)) &&
         !?type &&
         !?pixels) {
       _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
+    if ((?canvas_OR_format_OR_image_OR_pixels_OR_video && (canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null)) &&
         !?type &&
         !?pixels) {
       _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
@@ -23570,7 +19385,7 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
     }
     throw const Exception("Incorrect number or type of arguments");
   }
-  void _texSubImage2D_1(target, level, xoffset, yoffset, width, height, int format, int type, ArrayBufferView pixels) native "texSubImage2D";
+  void _texSubImage2D_1(target, level, xoffset, yoffset, width, height, int format, type, ArrayBufferView pixels) native "texSubImage2D";
   void _texSubImage2D_2(target, level, xoffset, yoffset, format, type, pixels) native "texSubImage2D";
   void _texSubImage2D_3(target, level, xoffset, yoffset, format, type, ImageElement image) native "texSubImage2D";
   void _texSubImage2D_4(target, level, xoffset, yoffset, format, type, CanvasElement canvas) native "texSubImage2D";
@@ -23669,10 +19484,18 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
   /** @domName WebGLRenderingContext.viewport */
   void viewport(int x, int y, int width, int height) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLShader
 class WebGLShader native "*WebGLShader" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLShaderPrecisionFormat
 class WebGLShaderPrecisionFormat native "*WebGLShaderPrecisionFormat" {
@@ -23686,18 +19509,34 @@ class WebGLShaderPrecisionFormat native "*WebGLShaderPrecisionFormat" {
   /** @domName WebGLShaderPrecisionFormat.rangeMin */
   final int rangeMin;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLTexture
 class WebGLTexture native "*WebGLTexture" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLUniformLocation
 class WebGLUniformLocation native "*WebGLUniformLocation" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebGLVertexArrayObjectOES
 class WebGLVertexArrayObjectOES native "*WebGLVertexArrayObjectOES" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebKitCSSFilterValue
 class WebKitCSSFilterValue extends _CSSValueList native "*WebKitCSSFilterValue" {
@@ -23729,6 +19568,10 @@ class WebKitCSSFilterValue extends _CSSValueList native "*WebKitCSSFilterValue" 
   /** @domName WebKitCSSFilterValue.operationType */
   final int operationType;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebKitNamedFlow
 class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
@@ -23765,6 +19608,7 @@ class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 class WebSocket extends EventTarget native "*WebSocket" {
   factory WebSocket(String url) => _WebSocketFactoryProvider.createWebSocket(url);
@@ -23835,6 +19679,7 @@ class WebSocketEvents extends Events {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class WheelEvent extends MouseEvent native "*WheelEvent" {
 
@@ -23918,6 +19763,10 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
   int get _deltaMode => JS('int', '#.deltaMode', this);
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName Worker
 class Worker extends AbstractWorker native "*Worker" {
@@ -23931,7 +19780,7 @@ class Worker extends AbstractWorker native "*Worker" {
     new WorkerEvents(this);
 
   /** @domName Worker.postMessage */
-  void postMessage(/*SerializedScriptValue*/ message, [messagePorts]) {
+  void postMessage(/*SerializedScriptValue*/ message, [List messagePorts]) {
     if (?messagePorts) {
       var message_1 = _convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, messagePorts);
@@ -23953,6 +19802,10 @@ class WorkerEvents extends AbstractWorkerEvents {
 
   EventListenerList get message => this['message'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WorkerContext
 class WorkerContext extends EventTarget native "*WorkerContext" {
@@ -24036,6 +19889,10 @@ class WorkerContextEvents extends Events {
 
   EventListenerList get error => this['error'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WorkerLocation
 class WorkerLocation native "*WorkerLocation" {
@@ -24067,6 +19924,10 @@ class WorkerLocation native "*WorkerLocation" {
   /** @domName WorkerLocation.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WorkerNavigator
 class WorkerNavigator native "*WorkerNavigator" {
@@ -24086,6 +19947,10 @@ class WorkerNavigator native "*WorkerNavigator" {
   /** @domName WorkerNavigator.userAgent */
   final String userAgent;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName XMLSerializer
 class XMLSerializer native "*XMLSerializer" {
@@ -24095,6 +19960,10 @@ class XMLSerializer native "*XMLSerializer" {
   /** @domName XMLSerializer.serializeToString */
   String serializeToString(Node node) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName XPathEvaluator
 class XPathEvaluator native "*XPathEvaluator" {
@@ -24110,6 +19979,10 @@ class XPathEvaluator native "*XPathEvaluator" {
   /** @domName XPathEvaluator.evaluate */
   XPathResult evaluate(String expression, Node contextNode, XPathNSResolver resolver, int type, XPathResult inResult) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName XPathException
 class XPathException native "*XPathException" {
@@ -24130,6 +20003,10 @@ class XPathException native "*XPathException" {
   /** @domName XPathException.toString */
   String toString() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName XPathExpression
 class XPathExpression native "*XPathExpression" {
@@ -24137,6 +20014,10 @@ class XPathExpression native "*XPathExpression" {
   /** @domName XPathExpression.evaluate */
   XPathResult evaluate(Node contextNode, int type, XPathResult inResult) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName XPathNSResolver
 class XPathNSResolver native "*XPathNSResolver" {
@@ -24144,6 +20025,10 @@ class XPathNSResolver native "*XPathNSResolver" {
   /** @domName XPathNSResolver.lookupNamespaceURI */
   String lookupNamespaceURI(String prefix) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName XPathResult
 class XPathResult native "*XPathResult" {
@@ -24195,6 +20080,10 @@ class XPathResult native "*XPathResult" {
   /** @domName XPathResult.snapshotItem */
   Node snapshotItem(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName XSLTProcessor
 class XSLTProcessor native "*XSLTProcessor" {
@@ -24229,6 +20118,7 @@ class XSLTProcessor native "*XSLTProcessor" {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _ArrayBufferFactoryProvider {
   static ArrayBuffer createArrayBuffer(int length) =>
       JS('ArrayBuffer', 'new ArrayBuffer(#)', length);
@@ -24236,6 +20126,7 @@ class _ArrayBufferFactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _AudioElementFactoryProvider {
   static AudioElement createAudioElement([String src = null]) {
@@ -24246,6 +20137,7 @@ class _AudioElementFactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _BlobFactoryProvider {
   static Blob createBlob([List blobParts = null, String type, String endings]) {
@@ -24271,10 +20163,15 @@ class _BlobFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _CSSMatrixFactoryProvider {
   static CSSMatrix createCSSMatrix([String cssValue = '']) =>
       JS('CSSMatrix', 'new WebKitCSSMatrix(#)', cssValue);
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSRuleList
 class _CSSRuleList implements JavaScriptIndexingBehavior, List<CSSRule> native "*CSSRuleList" {
@@ -24296,7 +20193,7 @@ class _CSSRuleList implements JavaScriptIndexingBehavior, List<CSSRule> native "
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<CSSRule>(this);
+    return new FixedSizeListIterator<CSSRule>(this);
   }
 
   // From Collection<CSSRule>:
@@ -24368,6 +20265,10 @@ class _CSSRuleList implements JavaScriptIndexingBehavior, List<CSSRule> native "
   /** @domName CSSRuleList.item */
   CSSRule item(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName CSSValueList
 class _CSSValueList extends CSSValue implements List<CSSValue>, JavaScriptIndexingBehavior native "*CSSValueList" {
@@ -24389,7 +20290,7 @@ class _CSSValueList extends CSSValue implements List<CSSValue>, JavaScriptIndexi
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<CSSValue>(this);
+    return new FixedSizeListIterator<CSSValue>(this);
   }
 
   // From Collection<CSSValue>:
@@ -24461,6 +20362,10 @@ class _CSSValueList extends CSSValue implements List<CSSValue>, JavaScriptIndexi
   /** @domName CSSValueList.item */
   CSSValue item(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName ClientRectList
 class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> native "*ClientRectList" {
@@ -24482,7 +20387,7 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<ClientRect>(this);
+    return new FixedSizeListIterator<ClientRect>(this);
   }
 
   // From Collection<ClientRect>:
@@ -24558,10 +20463,15 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _DOMParserFactoryProvider {
   static DOMParser createDOMParser() =>
       JS('DOMParser', 'new DOMParser()' );
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DOMStringList
 class _DOMStringList implements JavaScriptIndexingBehavior, List<String> native "*DOMStringList" {
@@ -24583,7 +20493,7 @@ class _DOMStringList implements JavaScriptIndexingBehavior, List<String> native 
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<String>(this);
+    return new FixedSizeListIterator<String>(this);
   }
 
   // From Collection<String>:
@@ -24661,6 +20571,7 @@ class _DOMStringList implements JavaScriptIndexingBehavior, List<String> native 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _DataViewFactoryProvider {
   static DataView createDataView(
@@ -24979,6 +20890,10 @@ class _Elements {
     return _e;
   }
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName EntryArray
 class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*EntryArray" {
@@ -25000,7 +20915,7 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<Entry>(this);
+    return new FixedSizeListIterator<Entry>(this);
   }
 
   // From Collection<Entry>:
@@ -25072,6 +20987,10 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
   /** @domName EntryArray.item */
   Entry item(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName EntryArraySync
 class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> native "*EntryArraySync" {
@@ -25093,7 +21012,7 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<EntrySync>(this);
+    return new FixedSizeListIterator<EntrySync>(this);
   }
 
   // From Collection<EntrySync>:
@@ -25169,10 +21088,15 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _EventSourceFactoryProvider {
   static EventSource createEventSource(String scriptUrl) =>
       JS('EventSource', 'new EventSource(#)', scriptUrl);
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName FileList
 class _FileList implements JavaScriptIndexingBehavior, List<File> native "*FileList" {
@@ -25194,7 +21118,7 @@ class _FileList implements JavaScriptIndexingBehavior, List<File> native "*FileL
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<File>(this);
+    return new FixedSizeListIterator<File>(this);
   }
 
   // From Collection<File>:
@@ -25270,6 +21194,7 @@ class _FileList implements JavaScriptIndexingBehavior, List<File> native "*FileL
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _FileReaderFactoryProvider {
   static FileReader createFileReader() =>
       JS('FileReader', 'new FileReader()' );
@@ -25277,6 +21202,7 @@ class _FileReaderFactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _FileReaderSyncFactoryProvider {
   static FileReaderSync createFileReaderSync() =>
@@ -25286,12 +21212,17 @@ class _FileReaderSyncFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _FormDataFactoryProvider {
   static FormData createFormData([FormElement form = null]) {
     if (form == null) return JS('FormData', 'new FormData()');
     return JS('FormData', 'new FormData(#)', form);
   }
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName GamepadList
 class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "*GamepadList" {
@@ -25313,7 +21244,7 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<Gamepad>(this);
+    return new FixedSizeListIterator<Gamepad>(this);
   }
 
   // From Collection<Gamepad>:
@@ -25389,6 +21320,7 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _HttpRequestFactoryProvider {
   static HttpRequest createHttpRequest() =>
       JS('HttpRequest', 'new XMLHttpRequest()');
@@ -25405,6 +21337,7 @@ class _HttpRequestFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _IceCandidateFactoryProvider {
   static IceCandidate createIceCandidate(String label, String candidateLine) =>
       JS('IceCandidate', 'new IceCandidate(#,#)', label, candidateLine);
@@ -25412,6 +21345,7 @@ class _IceCandidateFactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _MediaControllerFactoryProvider {
   static MediaController createMediaController() =>
@@ -25421,6 +21355,7 @@ class _MediaControllerFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _MediaSourceFactoryProvider {
   static MediaSource createMediaSource() =>
       JS('MediaSource', 'new MediaSource()' );
@@ -25429,10 +21364,15 @@ class _MediaSourceFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _MediaStreamFactoryProvider {
   static MediaStream createMediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) =>
       JS('MediaStream', 'new MediaStream(#,#)', audioTracks, videoTracks);
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName MediaStreamList
 class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> native "*MediaStreamList" {
@@ -25454,7 +21394,7 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<MediaStream>(this);
+    return new FixedSizeListIterator<MediaStream>(this);
   }
 
   // From Collection<MediaStream>:
@@ -25530,6 +21470,7 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _MessageChannelFactoryProvider {
   static MessageChannel createMessageChannel() =>
       JS('MessageChannel', 'new MessageChannel()' );
@@ -25538,8 +21479,22 @@ class _MessageChannelFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _MutationObserverFactoryProvider {
-  static MutationObserver createMutationObserver(MutationCallback callback) native '''
+  static MutationObserver createMutationObserver(MutationCallback callback) {
+
+    // This is a hack to cause MutationRecord to appear to be instantiated.
+    //
+    // MutationCallback has a parameter type List<MutationRecord>.  From this we
+    // infer a list is created in the browser, but not the element type, because
+    // other native fields and methods return plain List which is too general
+    // and would imply creating anything.  This statement is a work-around.
+    JS('MutationRecord','0');
+
+    return _createMutationObserver(callback);
+  }
+
+  static MutationObserver _createMutationObserver(MutationCallback callback) native '''
     var constructor =
         window.MutationObserver || window.WebKitMutationObserver ||
         window.MozMutationObserver;
@@ -25560,6 +21515,7 @@ class _MutationObserverFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _NotificationFactoryProvider {
   static Notification createNotification(String title, [Map options]) =>
       JS('Notification', 'new Notification(#,#)', title, options);
@@ -25567,6 +21523,7 @@ class _NotificationFactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _OptionElementFactoryProvider {
   static OptionElement createOptionElement(
@@ -25592,6 +21549,7 @@ class _OptionElementFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _PeerConnection00FactoryProvider {
   static PeerConnection00 createPeerConnection00(String serverConfiguration, IceCallback iceCallback) =>
       JS('PeerConnection00', 'new PeerConnection00(#,#)', serverConfiguration, iceCallback);
@@ -25599,6 +21557,7 @@ class _PeerConnection00FactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _RTCIceCandidateFactoryProvider {
   static RTCIceCandidate createRTCIceCandidate(Map dictionary) =>
@@ -25608,6 +21567,7 @@ class _RTCIceCandidateFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _RTCPeerConnectionFactoryProvider {
   static RTCPeerConnection createRTCPeerConnection(Map rtcIceServers, [Map mediaConstraints]) =>
       JS('RTCPeerConnection', 'new RTCPeerConnection(#,#)', rtcIceServers, mediaConstraints);
@@ -25616,106 +21576,15 @@ class _RTCPeerConnectionFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _RTCSessionDescriptionFactoryProvider {
   static RTCSessionDescription createRTCSessionDescription(Map dictionary) =>
       JS('RTCSessionDescription', 'new RTCSessionDescription(#)', dictionary);
 }
-
-/// @domName SVGElementInstanceList
-class _SVGElementInstanceList implements JavaScriptIndexingBehavior, List<SVGElementInstance> native "*SVGElementInstanceList" {
-
-  /** @domName SVGElementInstanceList.length */
-  final int length;
-
-  SVGElementInstance operator[](int index) => JS("SVGElementInstance", "#[#]", this, index);
-
-  void operator[]=(int index, SVGElementInstance value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<SVGElementInstance> mixins.
-  // SVGElementInstance is the element type.
-
-  // From Iterable<SVGElementInstance>:
-
-  Iterator<SVGElementInstance> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new _FixedSizeListIterator<SVGElementInstance>(this);
-  }
-
-  // From Collection<SVGElementInstance>:
-
-  void add(SVGElementInstance value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(SVGElementInstance value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<SVGElementInstance> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(SVGElementInstance element) => _Collections.contains(this, element);
-
-  void forEach(void f(SVGElementInstance element)) => _Collections.forEach(this, f);
-
-  Collection map(f(SVGElementInstance element)) => _Collections.map(this, [], f);
-
-  Collection<SVGElementInstance> filter(bool f(SVGElementInstance element)) =>
-     _Collections.filter(this, <SVGElementInstance>[], f);
-
-  bool every(bool f(SVGElementInstance element)) => _Collections.every(this, f);
-
-  bool some(bool f(SVGElementInstance element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<SVGElementInstance>:
-
-  void sort([Comparator<SVGElementInstance> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(SVGElementInstance element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(SVGElementInstance element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  SVGElementInstance get last => this[length - 1];
-
-  SVGElementInstance removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<SVGElementInstance> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [SVGElementInstance initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<SVGElementInstance> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <SVGElementInstance>[]);
-
-  // -- end List<SVGElementInstance> mixins.
-
-  /** @domName SVGElementInstanceList.item */
-  SVGElementInstance item(int index) native;
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _SessionDescriptionFactoryProvider {
   static SessionDescription createSessionDescription(String sdp) =>
@@ -25725,6 +21594,7 @@ class _SessionDescriptionFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _ShadowRootFactoryProvider {
   static ShadowRoot createShadowRoot(Element host) =>
       JS('ShadowRoot',
@@ -25733,6 +21603,7 @@ class _ShadowRootFactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _SharedWorkerFactoryProvider {
   static SharedWorker createSharedWorker(String scriptURL, [String name]) {
@@ -25744,6 +21615,7 @@ class _SharedWorkerFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _SpeechGrammarFactoryProvider {
   static SpeechGrammar createSpeechGrammar() =>
       JS('SpeechGrammar', 'new SpeechGrammar()' );
@@ -25752,10 +21624,15 @@ class _SpeechGrammarFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _SpeechGrammarListFactoryProvider {
   static SpeechGrammarList createSpeechGrammarList() =>
       JS('SpeechGrammarList', 'new SpeechGrammarList()' );
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SpeechInputResultList
 class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechInputResult> native "*SpeechInputResultList" {
@@ -25777,7 +21654,7 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<SpeechInputResult>(this);
+    return new FixedSizeListIterator<SpeechInputResult>(this);
   }
 
   // From Collection<SpeechInputResult>:
@@ -25853,10 +21730,15 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _SpeechRecognitionFactoryProvider {
   static SpeechRecognition createSpeechRecognition() =>
       JS('SpeechRecognition', 'new SpeechRecognition()' );
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SpeechRecognitionResultList
 class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<SpeechRecognitionResult> native "*SpeechRecognitionResultList" {
@@ -25878,7 +21760,7 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<SpeechRecognitionResult>(this);
+    return new FixedSizeListIterator<SpeechRecognitionResult>(this);
   }
 
   // From Collection<SpeechRecognitionResult>:
@@ -25950,6 +21832,10 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
   /** @domName SpeechRecognitionResultList.item */
   SpeechRecognitionResult item(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName StyleSheetList
 class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> native "*StyleSheetList" {
@@ -25971,7 +21857,7 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<StyleSheet>(this);
+    return new FixedSizeListIterator<StyleSheet>(this);
   }
 
   // From Collection<StyleSheet>:
@@ -26047,6 +21933,7 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _TextTrackCueFactoryProvider {
   static TextTrackCue createTextTrackCue(
       String id, num startTime, num endTime, String text,
@@ -26066,6 +21953,10 @@ class _TextTrackCueFactoryProvider {
                   id, startTime, endTime, text, settings, pauseOnExit);
   }
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WebKitAnimationList
 class _WebKitAnimationList implements JavaScriptIndexingBehavior, List<Animation> native "*WebKitAnimationList" {
@@ -26087,7 +21978,7 @@ class _WebKitAnimationList implements JavaScriptIndexingBehavior, List<Animation
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new _FixedSizeListIterator<Animation>(this);
+    return new FixedSizeListIterator<Animation>(this);
   }
 
   // From Collection<Animation>:
@@ -26163,6 +22054,7 @@ class _WebKitAnimationList implements JavaScriptIndexingBehavior, List<Animation
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _WorkerFactoryProvider {
   static Worker createWorker(String scriptUrl) =>
       JS('Worker', 'new Worker(#)', scriptUrl);
@@ -26170,6 +22062,7 @@ class _WorkerFactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _XMLSerializerFactoryProvider {
   static XMLSerializer createXMLSerializer() =>
@@ -26179,6 +22072,7 @@ class _XMLSerializerFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _XPathEvaluatorFactoryProvider {
   static XPathEvaluator createXPathEvaluator() =>
       JS('XPathEvaluator', 'new XPathEvaluator()' );
@@ -26187,6 +22081,7 @@ class _XPathEvaluatorFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _XSLTProcessorFactoryProvider {
   static XSLTProcessor createXSLTProcessor() =>
       JS('XSLTProcessor', 'new XSLTProcessor()' );
@@ -26194,6 +22089,7 @@ class _XSLTProcessorFactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 abstract class Window {
   // Fields.
@@ -26221,14 +22117,279 @@ abstract class History {
   void forward();
   void go(int distance);
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+abstract class CssClassSet implements Set<String> {
+
+  String toString() {
+    return Strings.join(new List.from(readClasses()), ' ');
+  }
+
+  /**
+   * Adds the class [token] to the element if it is not on it, removes it if it
+   * is.
+   */
+  bool toggle(String value) {
+    Set<String> s = readClasses();
+    bool result = false;
+    if (s.contains(value)) {
+      s.remove(value);
+    } else {
+      s.add(value);
+      result = true;
+    }
+    writeClasses(s);
+    return result;
+  }
+
+  /**
+   * Returns [:true:] if classes cannot be added or removed from this
+   * [:CssClassSet:].
+   */
+  bool get frozen => false;
+
+  // interface Iterable - BEGIN
+  Iterator<String> iterator() => readClasses().iterator();
+  // interface Iterable - END
+
+  // interface Collection - BEGIN
+  void forEach(void f(String element)) {
+    readClasses().forEach(f);
+  }
+
+  Collection map(f(String element)) => readClasses().map(f);
+
+  Collection<String> filter(bool f(String element)) => readClasses().filter(f);
+
+  bool every(bool f(String element)) => readClasses().every(f);
+
+  bool some(bool f(String element)) => readClasses().some(f);
+
+  bool get isEmpty => readClasses().isEmpty;
+
+  int get length =>readClasses().length;
+  // interface Collection - END
+
+  // interface Set - BEGIN
+  bool contains(String value) => readClasses().contains(value);
+
+  void add(String value) {
+    // TODO - figure out if we need to do any validation here
+    // or if the browser natively does enough
+    _modify((s) => s.add(value));
+  }
+
+  bool remove(String value) {
+    Set<String> s = readClasses();
+    bool result = s.remove(value);
+    writeClasses(s);
+    return result;
+  }
+
+  void addAll(Collection<String> collection) {
+    // TODO - see comment above about validation
+    _modify((s) => s.addAll(collection));
+  }
+
+  void removeAll(Collection<String> collection) {
+    _modify((s) => s.removeAll(collection));
+  }
+
+  bool isSubsetOf(Collection<String> collection) =>
+    readClasses().isSubsetOf(collection);
+
+  bool containsAll(Collection<String> collection) =>
+    readClasses().containsAll(collection);
+
+  Set<String> intersection(Collection<String> other) =>
+    readClasses().intersection(other);
+
+  void clear() {
+    _modify((s) => s.clear());
+  }
+  // interface Set - END
+
+  /**
+   * Helper method used to modify the set of css classes on this element.
+   *
+   *   f - callback with:
+   *      s - a Set of all the css class name currently on this element.
+   *
+   *   After f returns, the modified set is written to the
+   *       className property of this element.
+   */
+  void _modify( f(Set<String> s)) {
+    Set<String> s = readClasses();
+    f(s);
+    writeClasses(s);
+  }
+
+  /**
+   * Read the class names from the Element class property,
+   * and put them into a set (duplicates are discarded).
+   * This is intended to be overridden by specific implementations.
+   */
+  Set<String> readClasses();
+
+  /**
+   * Join all the elements of a set into one string and write
+   * back to the element.
+   * This is intended to be overridden by specific implementations.
+   */
+  void writeClasses(Set<String> s);
+}
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
+/**
+ * Utils for device detection.
+ */
+class _Device {
+  /**
+   * Gets the browser's user agent. Using this function allows tests to inject
+   * the user agent.
+   * Returns the user agent.
+   */
+  static String get userAgent => window.navigator.userAgent;
+
+  /**
+   * Determines if the current device is running Opera.
+   */
+  static bool get isOpera => userAgent.contains("Opera", 0);
+
+  /**
+   * Determines if the current device is running Internet Explorer.
+   */
+  static bool get isIE => !isOpera && userAgent.contains("MSIE", 0);
+
+  /**
+   * Determines if the current device is running Firefox.
+   */
+  static bool get isFirefox => userAgent.contains("Firefox", 0);
+
+  /**
+   * Determines if the current device is running WebKit.
+   */
+  static bool get isWebKit => !isOpera && userAgent.contains("WebKit", 0);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 typedef void EventListener(Event event);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+class FilteredElementList implements List {
+  final Node _node;
+  final List<Node> _childNodes;
+
+  FilteredElementList(Node node): _childNodes = node.nodes, _node = node;
+
+  // We can't memoize this, since it's possible that children will be messed
+  // with externally to this class.
+  //
+  // TODO(nweiz): Do we really need to copy the list to make the types work out?
+  List<Element> get _filtered =>
+    new List.from(_childNodes.filter((n) => n is Element));
+
+  void forEach(void f(Element element)) {
+    _filtered.forEach(f);
+  }
+
+  void operator []=(int index, Element value) {
+    this[index].replaceWith(value);
+  }
+
+  void set length(int newLength) {
+    final len = this.length;
+    if (newLength >= len) {
+      return;
+    } else if (newLength < 0) {
+      throw new ArgumentError("Invalid list length");
+    }
+
+    removeRange(newLength - 1, len - newLength);
+  }
+
+  void add(Element value) {
+    _childNodes.add(value);
+  }
+
+  void addAll(Collection<Element> collection) {
+    collection.forEach(add);
+  }
+
+  void addLast(Element value) {
+    add(value);
+  }
+
+  bool contains(Element element) {
+    return element is Element && _childNodes.contains(element);
+  }
+
+  void sort([Comparator<Element> compare = Comparable.compare]) {
+    throw new UnsupportedError('TODO(jacobr): should we impl?');
+  }
+
+  void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
+    throw new UnimplementedError();
+  }
+
+  void removeRange(int start, int rangeLength) {
+    _filtered.getRange(start, rangeLength).forEach((el) => el.remove());
+  }
+
+  void insertRange(int start, int rangeLength, [initialValue = null]) {
+    throw new UnimplementedError();
+  }
+
+  void clear() {
+    // Currently, ElementList#clear clears even non-element nodes, so we follow
+    // that behavior.
+    _childNodes.clear();
+  }
+
+  Element removeLast() {
+    final result = this.last;
+    if (result != null) {
+      result.remove();
+    }
+    return result;
+  }
+
+  Collection map(f(Element element)) => _filtered.map(f);
+  Collection<Element> filter(bool f(Element element)) => _filtered.filter(f);
+  bool every(bool f(Element element)) => _filtered.every(f);
+  bool some(bool f(Element element)) => _filtered.some(f);
+  bool get isEmpty => _filtered.isEmpty;
+  int get length => _filtered.length;
+  Element operator [](int index) => _filtered[index];
+  Iterator<Element> iterator() => _filtered.iterator();
+  List<Element> getRange(int start, int rangeLength) =>
+    _filtered.getRange(start, rangeLength);
+  int indexOf(Element element, [int start = 0]) =>
+    _filtered.indexOf(element, start);
+
+  int lastIndexOf(Element element, [int start = null]) {
+    if (start == null) start = length - 1;
+    return _filtered.lastIndexOf(element, start);
+  }
+
+  Element get last => _filtered.last;
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 /**
  * Defines the keycode values for keys that are returned by 
@@ -26242,189 +22403,190 @@ abstract class KeyCode {
   // These constant names were borrowed from Closure's Keycode enumeration
   // class.
   // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keycodes.js.source.html  
-  static final int WIN_KEY_FF_LINUX = 0;
-  static final int MAC_ENTER = 3;
-  static final int BACKSPACE = 8;
-  static final int TAB = 9;
+  static const int WIN_KEY_FF_LINUX = 0;
+  static const int MAC_ENTER = 3;
+  static const int BACKSPACE = 8;
+  static const int TAB = 9;
   /** NUM_CENTER is also NUMLOCK for FF and Safari on Mac. */
-  static final int NUM_CENTER = 12;
-  static final int ENTER = 13;
-  static final int SHIFT = 16;
-  static final int CTRL = 17;
-  static final int ALT = 18;
-  static final int PAUSE = 19;
-  static final int CAPS_LOCK = 20;
-  static final int ESC = 27;
-  static final int SPACE = 32;
-  static final int PAGE_UP = 33;
-  static final int PAGE_DOWN = 34;
-  static final int END = 35;
-  static final int HOME = 36;
-  static final int LEFT = 37;
-  static final int UP = 38;
-  static final int RIGHT = 39;
-  static final int DOWN = 40;
-  static final int NUM_NORTH_EAST = 33;
-  static final int NUM_SOUTH_EAST = 34;
-  static final int NUM_SOUTH_WEST = 35;
-  static final int NUM_NORTH_WEST = 36;
-  static final int NUM_WEST = 37;
-  static final int NUM_NORTH = 38;
-  static final int NUM_EAST = 39;
-  static final int NUM_SOUTH = 40;
-  static final int PRINT_SCREEN = 44;
-  static final int INSERT = 45;
-  static final int NUM_INSERT = 45;
-  static final int DELETE = 46;
-  static final int NUM_DELETE = 46;
-  static final int ZERO = 48;
-  static final int ONE = 49;
-  static final int TWO = 50;
-  static final int THREE = 51;
-  static final int FOUR = 52;
-  static final int FIVE = 53;
-  static final int SIX = 54;
-  static final int SEVEN = 55;
-  static final int EIGHT = 56;
-  static final int NINE = 57;
-  static final int FF_SEMICOLON = 59;
-  static final int FF_EQUALS = 61;
+  static const int NUM_CENTER = 12;
+  static const int ENTER = 13;
+  static const int SHIFT = 16;
+  static const int CTRL = 17;
+  static const int ALT = 18;
+  static const int PAUSE = 19;
+  static const int CAPS_LOCK = 20;
+  static const int ESC = 27;
+  static const int SPACE = 32;
+  static const int PAGE_UP = 33;
+  static const int PAGE_DOWN = 34;
+  static const int END = 35;
+  static const int HOME = 36;
+  static const int LEFT = 37;
+  static const int UP = 38;
+  static const int RIGHT = 39;
+  static const int DOWN = 40;
+  static const int NUM_NORTH_EAST = 33;
+  static const int NUM_SOUTH_EAST = 34;
+  static const int NUM_SOUTH_WEST = 35;
+  static const int NUM_NORTH_WEST = 36;
+  static const int NUM_WEST = 37;
+  static const int NUM_NORTH = 38;
+  static const int NUM_EAST = 39;
+  static const int NUM_SOUTH = 40;
+  static const int PRINT_SCREEN = 44;
+  static const int INSERT = 45;
+  static const int NUM_INSERT = 45;
+  static const int DELETE = 46;
+  static const int NUM_DELETE = 46;
+  static const int ZERO = 48;
+  static const int ONE = 49;
+  static const int TWO = 50;
+  static const int THREE = 51;
+  static const int FOUR = 52;
+  static const int FIVE = 53;
+  static const int SIX = 54;
+  static const int SEVEN = 55;
+  static const int EIGHT = 56;
+  static const int NINE = 57;
+  static const int FF_SEMICOLON = 59;
+  static const int FF_EQUALS = 61;
   /**
    * CAUTION: The question mark is for US-keyboard layouts. It varies
    * for other locales and keyboard layouts.
    */
-  static final int QUESTION_MARK = 63;
-  static final int A = 65;
-  static final int B = 66;
-  static final int C = 67;
-  static final int D = 68;
-  static final int E = 69;
-  static final int F = 70;
-  static final int G = 71;
-  static final int H = 72;
-  static final int I = 73;
-  static final int J = 74;
-  static final int K = 75;
-  static final int L = 76;
-  static final int M = 77;
-  static final int N = 78;
-  static final int O = 79;
-  static final int P = 80;
-  static final int Q = 81;
-  static final int R = 82;
-  static final int S = 83;
-  static final int T = 84;
-  static final int U = 85;
-  static final int V = 86;
-  static final int W = 87;
-  static final int X = 88;
-  static final int Y = 89;
-  static final int Z = 90;
-  static final int META = 91;
-  static final int WIN_KEY_LEFT = 91;
-  static final int WIN_KEY_RIGHT = 92;
-  static final int CONTEXT_MENU = 93;
-  static final int NUM_ZERO = 96;
-  static final int NUM_ONE = 97;
-  static final int NUM_TWO = 98;
-  static final int NUM_THREE = 99;
-  static final int NUM_FOUR = 100;
-  static final int NUM_FIVE = 101;
-  static final int NUM_SIX = 102;
-  static final int NUM_SEVEN = 103;
-  static final int NUM_EIGHT = 104;
-  static final int NUM_NINE = 105;
-  static final int NUM_MULTIPLY = 106;
-  static final int NUM_PLUS = 107;
-  static final int NUM_MINUS = 109;
-  static final int NUM_PERIOD = 110;
-  static final int NUM_DIVISION = 111;
-  static final int F1 = 112;
-  static final int F2 = 113;
-  static final int F3 = 114;
-  static final int F4 = 115;
-  static final int F5 = 116;
-  static final int F6 = 117;
-  static final int F7 = 118;
-  static final int F8 = 119;
-  static final int F9 = 120;
-  static final int F10 = 121;
-  static final int F11 = 122;
-  static final int F12 = 123;
-  static final int NUMLOCK = 144;
-  static final int SCROLL_LOCK = 145;
+  static const int QUESTION_MARK = 63;
+  static const int A = 65;
+  static const int B = 66;
+  static const int C = 67;
+  static const int D = 68;
+  static const int E = 69;
+  static const int F = 70;
+  static const int G = 71;
+  static const int H = 72;
+  static const int I = 73;
+  static const int J = 74;
+  static const int K = 75;
+  static const int L = 76;
+  static const int M = 77;
+  static const int N = 78;
+  static const int O = 79;
+  static const int P = 80;
+  static const int Q = 81;
+  static const int R = 82;
+  static const int S = 83;
+  static const int T = 84;
+  static const int U = 85;
+  static const int V = 86;
+  static const int W = 87;
+  static const int X = 88;
+  static const int Y = 89;
+  static const int Z = 90;
+  static const int META = 91;
+  static const int WIN_KEY_LEFT = 91;
+  static const int WIN_KEY_RIGHT = 92;
+  static const int CONTEXT_MENU = 93;
+  static const int NUM_ZERO = 96;
+  static const int NUM_ONE = 97;
+  static const int NUM_TWO = 98;
+  static const int NUM_THREE = 99;
+  static const int NUM_FOUR = 100;
+  static const int NUM_FIVE = 101;
+  static const int NUM_SIX = 102;
+  static const int NUM_SEVEN = 103;
+  static const int NUM_EIGHT = 104;
+  static const int NUM_NINE = 105;
+  static const int NUM_MULTIPLY = 106;
+  static const int NUM_PLUS = 107;
+  static const int NUM_MINUS = 109;
+  static const int NUM_PERIOD = 110;
+  static const int NUM_DIVISION = 111;
+  static const int F1 = 112;
+  static const int F2 = 113;
+  static const int F3 = 114;
+  static const int F4 = 115;
+  static const int F5 = 116;
+  static const int F6 = 117;
+  static const int F7 = 118;
+  static const int F8 = 119;
+  static const int F9 = 120;
+  static const int F10 = 121;
+  static const int F11 = 122;
+  static const int F12 = 123;
+  static const int NUMLOCK = 144;
+  static const int SCROLL_LOCK = 145;
 
   // OS-specific media keys like volume controls and browser controls.
-  static final int FIRST_MEDIA_KEY = 166;
-  static final int LAST_MEDIA_KEY = 183;
+  static const int FIRST_MEDIA_KEY = 166;
+  static const int LAST_MEDIA_KEY = 183;
 
   /**
    * CAUTION: This constant requires localization for other locales and keyboard
    * layouts.
    */
-  static final int SEMICOLON = 186;
+  static const int SEMICOLON = 186;
   /**
    * CAUTION: This constant requires localization for other locales and keyboard
    * layouts.
    */
-  static final int DASH = 189;
+  static const int DASH = 189;
   /**
    * CAUTION: This constant requires localization for other locales and keyboard
    * layouts.
    */
-  static final int EQUALS = 187;
+  static const int EQUALS = 187;
   /**
    * CAUTION: This constant requires localization for other locales and keyboard
    * layouts.
    */
-  static final int COMMA = 188;
+  static const int COMMA = 188;
   /**
    * CAUTION: This constant requires localization for other locales and keyboard
    * layouts.
    */
-  static final int PERIOD = 190;
+  static const int PERIOD = 190;
   /**
    * CAUTION: This constant requires localization for other locales and keyboard
    * layouts.
    */
-  static final int SLASH = 191;
+  static const int SLASH = 191;
   /**
    * CAUTION: This constant requires localization for other locales and keyboard
    * layouts.
    */
-  static final int APOSTROPHE = 192;
+  static const int APOSTROPHE = 192;
   /**
    * CAUTION: This constant requires localization for other locales and keyboard
    * layouts.
    */
-  static final int TILDE = 192;
+  static const int TILDE = 192;
   /**
    * CAUTION: This constant requires localization for other locales and keyboard
    * layouts.
    */
-  static final int SINGLE_QUOTE = 222;
+  static const int SINGLE_QUOTE = 222;
   /**
    * CAUTION: This constant requires localization for other locales and keyboard
    * layouts.
    */
-  static final int OPEN_SQUARE_BRACKET = 219;
+  static const int OPEN_SQUARE_BRACKET = 219;
   /**
    * CAUTION: This constant requires localization for other locales and keyboard
    * layouts.
    */
-  static final int BACKSLASH = 220;
+  static const int BACKSLASH = 220;
   /**
    * CAUTION: This constant requires localization for other locales and keyboard
    * layouts.
    */
-  static final int CLOSE_SQUARE_BRACKET = 221;
-  static final int WIN_KEY = 224;
-  static final int MAC_FF_META = 224;
-  static final int WIN_IME = 229;
+  static const int CLOSE_SQUARE_BRACKET = 221;
+  static const int WIN_KEY = 224;
+  static const int MAC_FF_META = 224;
+  static const int WIN_IME = 229;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 /**
  * Defines the standard key locations returned by
@@ -26470,6 +22632,7 @@ abstract class KeyLocation {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 /**
  * Defines the standard keyboard identifier names for keys that are returned
@@ -26964,6 +23127,7 @@ abstract class KeyName {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 /**
  * Contains the set of standard values returned by HTMLDocument.getReadyState.
  */
@@ -26987,6 +23151,7 @@ abstract class ReadyState {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 // TODO(antonm): support not DOM isolates too.
 class _Timer implements Timer {
@@ -27015,6 +23180,7 @@ get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool 
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 /**
  * The [Collections] class implements static methods useful when
@@ -27075,6 +23241,7 @@ class _Collections {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _HttpRequestUtils {
 
   // Helper for factory HttpRequest.get
@@ -27102,6 +23269,7 @@ class _HttpRequestUtils {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 _serialize(var message) {
   return new _JsSerializer().traverse(message);
@@ -27302,6 +23470,7 @@ String _getPortSyncEventData(CustomEvent event) => event.detail;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 typedef Object ComputeValue();
 
@@ -27504,6 +23673,7 @@ void _completeMeasurementFutures() {
 
 // Patch file for the dart:isolate library.
 
+
 /********************************************************
   Inserted from lib/isolate/serialization.dart
  ********************************************************/
@@ -27548,11 +23718,11 @@ class _MessageTraverser {
     return visitObject(x);
   }
 
-  abstract visitPrimitive(x);
-  abstract visitList(List x);
-  abstract visitMap(Map x);
-  abstract visitSendPort(SendPort x);
-  abstract visitSendPortSync(SendPortSync x);
+  visitPrimitive(x);
+  visitList(List x);
+  visitMap(Map x);
+  visitSendPort(SendPort x);
+  visitSendPortSync(SendPortSync x);
 
   visitObject(Object x) {
     // TODO(floitsch): make this a real exception. (which one)?
@@ -27703,7 +23873,7 @@ class _Deserializer {
     return result;
   }
 
-  abstract deserializeSendPort(List x);
+  deserializeSendPort(List x);
 
   deserializeObject(List x) {
     // TODO(floitsch): Use real exception (which one?).
@@ -27714,6 +23884,7 @@ class _Deserializer {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _CustomEventFactoryProvider {
   static CustomEvent createCustomEvent(String type, [bool canBubble = true,
@@ -27782,49 +23953,15 @@ class _DocumentFragmentFactoryProvider {
   //   return fragment;
   // }
 
-  static DocumentFragment createDocumentFragment_svg(String svg) {
+  static DocumentFragment createDocumentFragment_svg(String svgContent) {
     final fragment = new DocumentFragment();
-    final e = new SVGSVGElement();
-    e.innerHTML = svg;
+    final e = new svg.SVGSVGElement();
+    e.innerHTML = svgContent;
 
     // Copy list first since we don't want liveness during iteration.
     final List nodes = new List.from(e.nodes);
     fragment.nodes.addAll(nodes);
     return fragment;
-  }
-}
-
-class _SVGElementFactoryProvider {
-  static SVGElement createSVGElement_tag(String tag) {
-    final Element temp =
-      document.$dom_createElementNS("http://www.w3.org/2000/svg", tag);
-    return temp;
-  }
-
-  static SVGElement createSVGElement_svg(String svg) {
-    Element parentTag;
-    final match = _START_TAG_REGEXP.firstMatch(svg);
-    if (match != null && match.group(1).toLowerCase() == 'svg') {
-      parentTag = new Element.tag('div');
-    } else {
-      parentTag = new SVGSVGElement();
-    }
-
-    parentTag.innerHTML = svg;
-    if (parentTag.elements.length == 1) return parentTag.elements.removeLast();
-
-    throw new ArgumentError(
-        'SVG had ${parentTag.elements.length} '
-        'top-level elements but 1 expected');
-  }
-}
-
-class _SVGSVGElementFactoryProvider {
-  static SVGSVGElement createSVGSVGElement() {
-    final el = new SVGElement.tag("svg");
-    // The SVG spec requires the version attribute to match the spec version
-    el.attributes['version'] = "1.1";
-    return el;
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27854,6 +23991,7 @@ class _SVGSVGElementFactoryProvider {
 // We need to test for EventTarget here as well as it's a base type.
 // We omit an unwrapper for Window as no methods take a non-local
 // window as a parameter.
+
 
 Window _convertNativeToDart_Window(win) {
   return _DOMWindowCrossFrame._createSafe(win);
@@ -27890,6 +24028,15 @@ class _TypedImageData implements ImageData {
 }
 
 ImageData _convertNativeToDart_ImageData(nativeImageData) {
+
+  // None of the native getters that return ImageData have the type ImageData
+  // since that is incorrect for FireFox (which returns a plain Object).  So we
+  // need something that tells the compiler that the ImageData class has been
+  // instantiated.
+  // TODO(sra): Remove this when all the ImageData returning APIs have been
+  // annotated as returning the union ImageData + Object.
+  JS('ImageData', '0');
+
   if (nativeImageData is ImageData) return nativeImageData;
 
   // On Firefox the above test fails because imagedata is a plain object.
@@ -27905,7 +24052,7 @@ ImageData _convertNativeToDart_ImageData(nativeImageData) {
 // with native names.
 _convertDartToNative_ImageData(ImageData imageData) {
   if (imageData is _TypedImageData) {
-    return JS('Object', '{data: #, height: #, width: #}',
+    return JS('', '{data: #, height: #, width: #}',
         imageData.data, imageData.height, imageData.width);
   }
   return imageData;
@@ -28255,6 +24402,7 @@ bool _isImmutableJavaScriptArray(value) =>
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 // TODO(vsm): Unify with Dartium version.
 class _DOMWindowCrossFrame implements Window {
   // Private window.  Note, this is a window in another frame, so it
@@ -28358,6 +24506,7 @@ class _HistoryCrossFrame implements History {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _AudioContextFactoryProvider {
 
   static AudioContext createAudioContext() {
@@ -28383,6 +24532,7 @@ class _TextFactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _IDBKeyRangeFactoryProvider {
 
@@ -28451,39 +24601,54 @@ class _LocationWrapper implements LocalLocation {
 
   // String hash;
   String get hash => _get(_ptr, 'hash');
-  void set hash(String value) => _set(_ptr, 'hash', value);
+  void set hash(String value) {
+    _set(_ptr, 'hash', value);
+  }
 
   // String host;
   String get host => _get(_ptr, 'host');
-  void set host(String value) => _set(_ptr, 'host', value);
+  void set host(String value) {
+    _set(_ptr, 'host', value);
+  }
 
   // String hostname;
   String get hostname => _get(_ptr, 'hostname');
-  void set hostname(String value) => _set(_ptr, 'hostname', value);
+  void set hostname(String value) {
+    _set(_ptr, 'hostname', value);
+  }
 
   // String href;
   String get href => _get(_ptr, 'href');
-  void set href(String value) => _set(_ptr, 'href', value);
+  void set href(String value) {
+    _set(_ptr, 'href', value);
+  }
 
   // final String origin;
   String get origin => _get(_ptr, 'origin');
 
   // String pathname;
   String get pathname => _get(_ptr, 'pathname');
-  void set pathname(String value) => _set(_ptr, 'pathname', value);
+  void set pathname(String value) {
+    _set(_ptr, 'pathname', value);
+  }
 
   // String port;
   String get port => _get(_ptr, 'port');
-  void set port(String value) => _set(_ptr, 'port', value);
+  void set port(String value) {
+    _set(_ptr, 'port', value);
+  }
 
   // String protocol;
   String get protocol => _get(_ptr, 'protocol');
-  void set protocol(String value) => _set(_ptr, 'protocol', value);
+  void set protocol(String value) {
+    _set(_ptr, 'protocol', value);
+  }
 
   // String search;
   String get search => _get(_ptr, 'search');
-  void set search(String value) => _set(_ptr, 'search', value);
-
+  void set search(String value) {
+    _set(_ptr, 'search', value);
+  }
 
   void assign(String url) => JS('void', '#.assign(#)', _ptr, url);
 
@@ -28501,6 +24666,7 @@ class _LocationWrapper implements LocalLocation {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 /**
  * Checks to see if the mutation observer API is supported on the current
  * platform.
@@ -28510,6 +24676,7 @@ bool _isMutationObserverSupported() =>
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _TypedArrayFactoryProvider {
 
@@ -28660,6 +24827,7 @@ class _TypedArrayFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 // TODO(rnystrom): add a way to supress public classes from DartDoc output.
 // TODO(jacobr): we can remove this class now that we are using the $dom_
 // convention for deprecated methods rather than truly private methods.
@@ -28674,48 +24842,15 @@ class Testing {
     target.$dom_removeEventListener(type, listener, useCapture);
   }
 
-}// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-/**
- * Utils for device detection.
- */
-class _Device {
-  /**
-   * Gets the browser's user agent. Using this function allows tests to inject
-   * the user agent.
-   * Returns the user agent.
-   */
-  static String get userAgent => window.navigator.userAgent;
-
-  /**
-   * Determines if the current device is running Opera.
-   */
-  static bool get isOpera => userAgent.contains("Opera", 0);
-
-  /**
-   * Determines if the current device is running Internet Explorer.
-   */
-  static bool get isIE => !isOpera && userAgent.contains("MSIE", 0);
-
-  /**
-   * Determines if the current device is running Firefox.
-   */
-  static bool get isFirefox => userAgent.contains("Firefox", 0);
-
-  /**
-   * Determines if the current device is running WebKit.
-   */
-  static bool get isWebKit => !isOpera && userAgent.contains("WebKit", 0);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 // Iterator for arrays with fixed size.
-class _FixedSizeListIterator<T> extends _VariableSizeListIterator<T> {
-  _FixedSizeListIterator(List<T> array)
+class FixedSizeListIterator<T> extends _VariableSizeListIterator<T> {
+  FixedSizeListIterator(List<T> array)
       : super(array),
         _length = array.length;
 
@@ -28745,6 +24880,7 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _Lists {
 

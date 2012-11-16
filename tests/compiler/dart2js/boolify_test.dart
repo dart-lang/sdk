@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("boolified_operator_test.dart");
-#import("compiler_helper.dart");
+library boolified_operator_test;
+import 'compiler_helper.dart';
 
 const String TEST = r"""
 foo() {

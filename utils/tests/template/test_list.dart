@@ -2,8 +2,8 @@
 //
 //       applications.tmpl
 
-#import('dart:html');
-#source('applications.dart');
+import 'dart:html';
+part 'applications.dart';
 
 class Product {
   String name;

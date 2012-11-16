@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that parameters keep their names in the output.
 
-#import("compiler_helper.dart");
+import 'compiler_helper.dart';
 
 const String TEST_ONE = r"""
 void foo(bar) {

@@ -5,12 +5,14 @@
 // This is a similar test to NativeCallArity1FrogTest, but makes sure
 // that subclasses also get the right number of arguments.
 
-@native("*A")
+import 'native_metadata.dart';
+
+@Native("*A")
 class A {
   @native int foo([x, y]);
 }
 
-@native("*B")
+@Native("*B")
 class B extends A  {
   @native int foo([x, y]);
 }
@@ -18,7 +20,7 @@ class B extends A  {
 @native A makeA() { return new A(); }
 @native B makeB() { return new B(); }
 
-@native("""
+@Native("""
 function inherits(child, parent) {
   if (child.prototype.__proto__) {
     child.prototype.__proto__ = parent.prototype;

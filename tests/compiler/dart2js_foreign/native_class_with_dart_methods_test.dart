@@ -4,7 +4,9 @@
 
 // Additional Dart code may be 'placed on' hidden native classes.
 
-@native("*A")
+import 'native_metadata.dart';
+
+@Native("*A")
 class A {
 
   var _field;
@@ -17,7 +19,7 @@ class A {
 
 @native A makeA() { return new A(); }
 
-@native("""
+@Native("""
 function A() {}
 makeA = function(){return new A;};
 """)

@@ -107,6 +107,7 @@ void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Socket_ReadList)(Dart_NativeArguments args) {
   Dart_EnterScope();
+  static bool short_socket_reads = Dart_IsVMFlagSet("short_socket_read");
   Dart_Handle socket_obj = Dart_GetNativeArgument(args, 0);
   intptr_t socket = 0;
   Socket::GetSocketIdNativeField(socket_obj, &socket);
@@ -124,7 +125,7 @@ void FUNCTION_NAME(Socket_ReadList)(Dart_NativeArguments args) {
       Dart_PropagateError(result);
     }
     ASSERT((offset + length) <= buffer_len);
-    if (Dart_IsVMFlagSet("short_socket_read")) {
+    if (short_socket_reads) {
       length = (length + 1) / 2;
     }
     uint8_t* buffer = new uint8_t[length];
@@ -156,6 +157,7 @@ void FUNCTION_NAME(Socket_ReadList)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
   Dart_EnterScope();
+  static bool short_socket_writes = Dart_IsVMFlagSet("short_socket_write");
   Dart_Handle socket_obj = Dart_GetNativeArgument(args, 0);
   intptr_t socket = 0;
   Socket::GetSocketIdNativeField(socket_obj, &socket);
@@ -172,7 +174,7 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
   }
   ASSERT((offset + length) <= buffer_len);
 
-  if (Dart_IsVMFlagSet("short_socket_write")) {
+  if (short_socket_writes) {
     length = (length + 1) / 2;
   }
 

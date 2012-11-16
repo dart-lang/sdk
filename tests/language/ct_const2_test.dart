@@ -68,8 +68,8 @@ const BOP6 = BOOL_LIT && true;
 const BOP7 = false || BOOL_LIT;
 const BOP8 = STRING_LIT == "World!";
 const BOP9 = "Hello" != STRING_LIT;
-const BOP10 = INT_LIT === INT_LIT_REF;
-const BOP11 = BOOL_LIT !== true;
+const BOP10 = INT_LIT == INT_LIT_REF;
+const BOP11 = BOOL_LIT != true;
 
 // Multiple binary expressions
 const BOP20 = 1 * INT_LIT / 3 + INT_LIT + 9;

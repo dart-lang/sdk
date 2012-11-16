@@ -25,7 +25,7 @@ public class UnitTestBatchRunner {
    *
    * @param batchArgs command line arguments forwarded from main().
    */
-  public static void runAsBatch(String[] batchArgs, Invocation toolInvocation) throws Throwable {
+  public static boolean runAsBatch(String[] batchArgs, Invocation toolInvocation) throws Throwable {
     System.out.println(">>> BATCH START");
 
     // Read command lines in from stdin and create a new compiler for each one.
@@ -34,6 +34,7 @@ public class UnitTestBatchRunner {
     long startTime = System.currentTimeMillis();
     int testsFailed = 0;
     int totalTests = 0;
+    boolean batchResult = true;
     try {
       String line;
       for (; (line = cmdlineReader.readLine()) != null; totalTests++) {
@@ -45,6 +46,7 @@ public class UnitTestBatchRunner {
         if (!result) {
           testsFailed++;
         }
+        batchResult &= result;
         // Write stderr end token and flush.
         System.err.println(">>> EOF STDERR");
         System.err.flush();
@@ -63,5 +65,6 @@ public class UnitTestBatchRunner {
     System.out.println(">>> BATCH END (" + (totalTests - testsFailed) + "/"
         + totalTests + ") " + elapsed + "ms");
     System.out.flush();
+    return batchResult;
   }
 }

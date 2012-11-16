@@ -36,13 +36,15 @@ class ParsedFunction : public ZoneAllocated {
       : function_(function),
         node_sequence_(NULL),
         instantiator_(NULL),
-        default_parameter_values_(Array::Handle()),
+        default_parameter_values_(Array::ZoneHandle()),
         saved_context_var_(NULL),
         expression_temp_var_(NULL),
         first_parameter_index_(0),
         first_stack_local_index_(0),
         num_copied_params_(0),
-        num_stack_locals_(0) { }
+        num_stack_locals_(0) {
+    ASSERT(function.IsZoneHandle());
+  }
 
   const Function& function() const { return function_; }
 
@@ -59,6 +61,7 @@ class ParsedFunction : public ZoneAllocated {
     return default_parameter_values_;
   }
   void set_default_parameter_values(const Array& default_parameter_values) {
+    ASSERT(default_parameter_values.IsZoneHandle());
     default_parameter_values_ = default_parameter_values.raw();
   }
 

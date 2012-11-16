@@ -20,7 +20,6 @@
 namespace dart {
 
 DECLARE_FLAG(int, optimization_counter_threshold);
-DECLARE_FLAG(bool, trace_functions);
 DECLARE_FLAG(bool, propagate_ic_data);
 
 // Generic summary for call instructions that have all arguments pushed
@@ -36,52 +35,64 @@ LocationSummary* ReturnInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 1;
   LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
   locs->set_in(0, Location::RegisterLocation(RAX));
-  locs->set_temp(0, Location::RequiresRegister());
+  locs->set_temp(0, Location::RegisterLocation(RDX));
   return locs;
 }
 
 
+// Attempt optimized compilation at return instruction instead of at the entry.
+// The entry needs to be patchable, no inlined objects are allowed in the area
+// that will be overwritten by the patch instruction: a jump).
 void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Function& function =
+      Function::ZoneHandle(compiler->parsed_function().function().raw());
   Register result = locs()->in(0).reg();
-  Register temp = locs()->temp(0).reg();
+  Register func_reg = locs()->temp(0).reg();
   ASSERT(result == RAX);
-  if (!compiler->is_optimizing()) {
+  if (compiler->is_optimizing()) {
+    if (compiler->may_reoptimize()) {
+      // Increment of counter occurs only in optimized IC calls, as they
+      // can cause reoptimization.
+      Label done;
+      __ LoadObject(func_reg, function);
+      __ cmpq(FieldAddress(func_reg, Function::usage_counter_offset()),
+          Immediate(FLAG_optimization_counter_threshold));
+      __ j(LESS, &done, Assembler::kNearJump);
+      // Equal (or greater), optimize. Note that counter can reach equality
+      // only at return instruction.
+      // The stub call preserves result register (EAX).
+      ASSERT(func_reg == RDX);
+      compiler->GenerateCall(0,  // no token position.
+                             &StubCode::OptimizeFunctionLabel(),
+                             PcDescriptors::kOther,
+                             locs());
+      __ Bind(&done);
+    }
+  } else {
     __ Comment("Check function counter");
     // Count only in unoptimized code.
     // TODO(srdjan): Replace the counting code with a type feedback
     // collection and counting stub.
-    const Function& function =
-          Function::ZoneHandle(compiler->parsed_function().function().raw());
-    __ LoadObject(temp, function);
-    __ incq(FieldAddress(temp, Function::usage_counter_offset()));
+    __ LoadObject(func_reg, function);
+    __ incq(FieldAddress(func_reg, Function::usage_counter_offset()));
     if (FlowGraphCompiler::CanOptimize() &&
         compiler->parsed_function().function().is_optimizable()) {
       // Do not optimize if usage count must be reported.
-      __ cmpq(FieldAddress(temp, Function::usage_counter_offset()),
+      __ cmpq(FieldAddress(func_reg, Function::usage_counter_offset()),
           Immediate(FLAG_optimization_counter_threshold));
       Label not_yet_hot;
       __ j(LESS, &not_yet_hot, Assembler::kNearJump);
-      __ pushq(result);  // Preserve result.
-      __ pushq(temp);  // Argument for runtime: function to optimize.
-      __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry);
-      __ popq(temp);  // Remove argument.
-      __ popq(result);  // Restore result.
+      // Equal (or greater), optimize.
+      // The stub call preserves result register(RAX)
+      ASSERT(func_reg == RDX);
+      compiler->GenerateCall(0,  // no token position.
+                             &StubCode::OptimizeFunctionLabel(),
+                             PcDescriptors::kOther,
+                             locs());
       __ Bind(&not_yet_hot);
     }
-  }
-  if (FLAG_trace_functions) {
-    const Function& function =
-        Function::ZoneHandle(compiler->parsed_function().function().raw());
-    __ LoadObject(temp, function);
-    __ pushq(result);  // Preserve result.
-    __ pushq(temp);
-    compiler->GenerateCallRuntime(0,
-                                  kTraceFunctionExitRuntimeEntry,
-                                  NULL);
-    __ popq(temp);  // Remove argument.
-    __ popq(result);  // Restore result.
   }
 #if defined(DEBUG)
   // TODO(srdjan): Fix for functions with finally clause.
@@ -293,7 +304,11 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     locs->set_in(0, Location::RegisterOrConstant(left()));
-    locs->set_in(1, Location::RegisterOrConstant(right()));
+    // Only one input can be a constant operand. The case of two constant
+    // operands should be handled by constant propagation.
+    locs->set_in(1, locs->in(0).IsConstant()
+                        ? Location::RequiresRegister()
+                        : Location::RegisterOrConstant(right()));
     locs->set_out(Location::RequiresRegister());
     return locs;
   }
@@ -355,7 +370,13 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   ICData& equality_ic_data = ICData::ZoneHandle(original_ic_data.raw());
   if (compiler->is_optimizing() && FLAG_propagate_ic_data) {
     ASSERT(!original_ic_data.IsNull());
-    equality_ic_data = original_ic_data.AsUnaryClassChecks();
+    if (original_ic_data.NumberOfChecks() == 0) {
+      // IC call for reoptimization populates original ICData.
+      equality_ic_data = original_ic_data.raw();
+    } else {
+      // Megamorphic call.
+      equality_ic_data = original_ic_data.AsUnaryClassChecks();
+    }
   } else {
     equality_ic_data = ICData::New(compiler->parsed_function().function(),
                                    operator_name,
@@ -618,35 +639,9 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                 BranchInstr* branch) {
   Location left = locs.in(0);
   Location right = locs.in(1);
+  ASSERT(!left.IsConstant() || !right.IsConstant());
 
   Condition true_condition = TokenKindToSmiCondition(kind);
-
-  if (left.IsConstant() && right.IsConstant()) {
-    bool result = false;
-    // One of them could be NULL (for equality only).
-    if (left.constant().IsNull() || right.constant().IsNull()) {
-      ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
-      result = left.constant().IsNull() && right.constant().IsNull();
-      if (kind == Token::kNE) {
-        result = !result;
-      }
-    } else {
-      // TODO(vegorov): should be eliminated earlier by constant propagation.
-      result = FlowGraphCompiler::EvaluateCondition(
-          true_condition,
-          Smi::Cast(left.constant()).Value(),
-          Smi::Cast(right.constant()).Value());
-    }
-
-    if (branch != NULL) {
-      branch->EmitBranchOnValue(compiler, result);
-    } else {
-      __ LoadObject(locs.out().reg(), result ? compiler->bool_true()
-                                             : compiler->bool_false());
-    }
-
-    return;
-  }
 
   if (left.IsConstant()) {
     __ CompareObject(right.reg(), left.constant());
@@ -802,7 +797,11 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary() const {
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RegisterOrConstant(left()));
-    summary->set_in(1, Location::RegisterOrConstant(right()));
+    // Only one input can be a constant operand. The case of two constant
+    // operands should be handled by constant propagation.
+    summary->set_in(1, summary->in(0).IsConstant()
+                           ? Location::RequiresRegister()
+                           : Location::RegisterOrConstant(right()));
     summary->set_out(Location::RequiresRegister());
     return summary;
   }
@@ -868,7 +867,13 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ICData& relational_ic_data = ICData::ZoneHandle(ic_data()->raw());
   if (compiler->is_optimizing() && FLAG_propagate_ic_data) {
     ASSERT(!ic_data()->IsNull());
-    relational_ic_data = ic_data()->AsUnaryClassChecks();
+    if (ic_data()->NumberOfChecks() == 0) {
+      // IC call for reoptimization populates original ICData.
+      relational_ic_data = ic_data()->raw();
+    } else {
+      // Megamorphic call.
+      relational_ic_data = ic_data()->AsUnaryClassChecks();
+    }
   } else {
     relational_ic_data = ICData::New(compiler->parsed_function().function(),
                                      function_name,
@@ -922,18 +927,14 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::ZoneHandle());
   // Pass a pointer to the first argument in RAX.
-  intptr_t arg_count = argument_count();
-  if (is_native_instance_closure()) {
-    arg_count += 1;
-  }
-  if (!has_optional_parameters() && !is_native_instance_closure()) {
-    __ leaq(RAX, Address(RBP, (1 + arg_count) * kWordSize));
+  if (!function().HasOptionalParameters()) {
+    __ leaq(RAX, Address(RBP, (1 + function().NumParameters()) * kWordSize));
   } else {
     __ leaq(RAX,
             Address(RBP, ParsedFunction::kFirstLocalSlotIndex * kWordSize));
   }
   __ movq(RBX, Immediate(reinterpret_cast<uword>(native_c_function())));
-  __ movq(R10, Immediate(arg_count));
+  __ movq(R10, Immediate(NativeArguments::ComputeArgcTag(function())));
   compiler->GenerateCall(token_pos(),
                          &StubCode::CallNativeCFunctionLabel(),
                          PcDescriptors::kOther,
@@ -1612,26 +1613,24 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
-    summary->set_in(1, Location::RegisterLocation(RCX));
+    summary->set_in(1, Location::FixedRegisterOrSmiConstant(right(), RCX));
     summary->set_out(Location::SameAsFirstInput());
     return summary;
   } else if (op_kind() == Token::kSHL) {
-    // Two Smi operands can easily overflow into Mint.
-    const intptr_t kNumTemps = 2;
+    const intptr_t kNumTemps = 1;
     LocationSummary* summary =
-        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
-    summary->set_in(0, Location::RegisterLocation(RAX));
-    summary->set_in(1, Location::RegisterLocation(RDX));
-    summary->set_out(Location::RegisterLocation(RAX));
-    summary->set_temp(0, Location::RegisterLocation(RBX));
-    summary->set_temp(1, Location::RegisterLocation(RCX));
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_in(1, Location::FixedRegisterOrSmiConstant(right(), RCX));
+    summary->set_temp(0, Location::RequiresRegister());
+    summary->set_out(Location::SameAsFirstInput());
     return summary;
   } else {
     const intptr_t kNumTemps = 0;
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
-    summary->set_in(1, Location::RequiresRegister());
+    summary->set_in(1, Location::RegisterOrSmiConstant(right()));
     summary->set_out(Location::SameAsFirstInput());
     return summary;
   }
@@ -1661,6 +1660,13 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       case Token::kSUB: {
         __ subq(left, Immediate(imm));
+        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        break;
+      }
+      case Token::kMUL: {
+        // Keep left value tagged and untag right value.
+        const intptr_t value = Smi::Cast(constant).Value();
+        __ imulq(left, Immediate(value));
         if (deopt != NULL) __ j(OVERFLOW, deopt);
         break;
       }
@@ -1701,6 +1707,28 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ SmiTag(left);
         break;
       }
+      case Token::kSHL: {
+        // shlq operation masks the count to 6 bits.
+        const intptr_t kCountLimit = 0x3F;
+        intptr_t value = Smi::Cast(constant).Value();
+        if (value == 0) break;
+        if ((value < 0) || (value >= kCountLimit)) {
+          // This condition may not be known earlier in some cases because
+          // of constant propagation, inlining, etc.
+          __ jmp(deopt);
+          break;
+        }
+        Register temp = locs()->temp(0).reg();
+        __ movq(temp, left);
+        __ shlq(left, Immediate(value));
+        __ sarq(left, Immediate(value));
+        __ cmpq(left, temp);
+        __ j(NOT_EQUAL, deopt);  // Overflow.
+        // Shift for result now we know there is no overflow.
+        __ shlq(left, Immediate(value));
+        break;
+      }
+
       default:
         UNREACHABLE();
         break;
@@ -1766,16 +1794,22 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kSHR: {
-      // sarq operation masks the count to 6 bits.
-      const Immediate kCountLimit = Immediate(0x3F);
-      __ cmpq(right, Immediate(0));
-      __ j(LESS, deopt);
+      if (CanDeoptimize()) {
+        __ cmpq(right, Immediate(0));
+        __ j(LESS, deopt);
+      }
       __ SmiUntag(right);
-      __ cmpq(right, kCountLimit);
-      Label count_ok;
-      __ j(LESS, &count_ok, Assembler::kNearJump);
-      __ movq(right, kCountLimit);
-      __ Bind(&count_ok);
+      // sarq operation masks the count to 6 bits.
+      const intptr_t kCountLimit = 0x3F;
+      Range* right_range = this->right()->definition()->range();
+      if ((right_range == NULL) ||
+          !right_range->IsWithin(RangeBoundary::kMinusInfinity, kCountLimit)) {
+        __ cmpq(right, Immediate(kCountLimit));
+        Label count_ok;
+        __ j(LESS, &count_ok, Assembler::kNearJump);
+        __ movq(right, Immediate(kCountLimit));
+        __ Bind(&count_ok);
+      }
       ASSERT(right == RCX);  // Count must be in RCX
       __ SmiUntag(left);
       __ sarq(left, right);
@@ -1784,7 +1818,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     case Token::kSHL: {
       Register temp = locs()->temp(0).reg();
-      Label call_method, done;
       // Check if count too large for handling it inlined.
       __ movq(temp, left);
       Range* right_range = this->right()->definition()->range();
@@ -1793,38 +1826,17 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       if (right_needs_check) {
         __ cmpq(right,
             Immediate(reinterpret_cast<int64_t>(Smi::New(Smi::kBits))));
-        __ j(ABOVE_EQUAL, &call_method, Assembler::kNearJump);
+        __ j(ABOVE_EQUAL, deopt);
       }
-      Register right_temp = locs()->temp(1).reg();
-      ASSERT(right_temp == RCX);  // Count must be in RCX
-      __ movq(right_temp, right);
-      __ SmiUntag(right_temp);
+      ASSERT(right == RCX);  // Count must be in RCX
+      __ SmiUntag(right);
       // Overflow test (preserve temp and right);
-      __ shlq(left, right_temp);
-      __ sarq(left, right_temp);
+      __ shlq(left, right);
+      __ sarq(left, right);
       __ cmpq(left, temp);
-      __ j(NOT_EQUAL, &call_method, Assembler::kNearJump);  // Overflow.
+      __ j(NOT_EQUAL, deopt);  // Overflow.
       // Shift for result now we know there is no overflow.
-      __ shlq(left, right_temp);
-      __ jmp(&done);
-      {
-        __ Bind(&call_method);
-        Function& target = Function::ZoneHandle(
-            ic_data()->GetTargetForReceiverClassId(kSmiCid));
-        ASSERT(!target.IsNull());
-        const intptr_t kArgumentCount = 2;
-        __ pushq(temp);
-        __ pushq(right);
-        compiler->GenerateStaticCall(
-            deopt_id(),
-            instance_call()->token_pos(),
-            target,
-            kArgumentCount,
-            Array::Handle(),  // No argument names.
-            locs());
-        ASSERT(result == RAX);
-      }
-      __ Bind(&done);
+      __ shlq(left, right);
       break;
     }
     case Token::kDIV: {
@@ -2264,8 +2276,8 @@ LocationSummary* CheckArrayBoundInstr::MakeLocationSummary() const {
   const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_in(1, Location::RegisterOrConstant(index()));
+  locs->set_in(0, Location::RegisterOrSmiConstant(array()));
+  locs->set_in(1, Location::RegisterOrSmiConstant(index()));
   return locs;
 }
 

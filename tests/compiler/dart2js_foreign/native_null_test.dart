@@ -5,21 +5,23 @@
 // Test that parameters in native methods are not mangled. This test is needed
 // until we change all libraries to using the JS foreign element.
 
-@native("*A")
+import 'native_metadata.dart';
+
+@Native("*A")
 class A {
-  @native("return null;")
+  @Native("return null;")
   returnNull();
-  @native("return undefined;")
+  @Native("return undefined;")
   returnUndefined();
-  @native("return '';")
+  @Native("return '';")
   returnEmptyString();
-  @native("return 0;")
+  @Native("return 0;")
   returnZero();
 }
 
 @native A makeA();
 
-@native("""
+@Native("""
 function A() {}
 makeA = function(){return new A;};
 """)

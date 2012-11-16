@@ -267,6 +267,7 @@
       'sources': [
         'builtin_natives.cc',
         'builtin.h',
+        'io_natives.h',
       ],
       'includes': [
         'builtin_impl_sources.gypi',
@@ -298,6 +299,41 @@
             'libraries': [
               '-ldl',
             ],
+          },
+        }],
+      ],
+    },
+    {
+      'target_name': 'libdart_io',
+      'type': 'static_library',
+      'include_dirs': [
+        '..',
+      ],
+      'sources': [
+        'io_natives.h',
+        'io_natives.cc',
+      ],
+      'includes': [
+        'io_impl_sources.gypi',
+      ],
+      'conditions': [
+        [ 'dart_io_support==1', {
+          'dependencies': [
+            'bin/net/ssl.gyp:libssl_dart',
+          ],
+        }],
+        ['OS=="win"', {
+          # TODO(antonm): fix the implementation.
+          # Current implementation accepts char* strings
+          # and therefore fails to compile once _UNICODE is
+          # enabled.  That should be addressed using -A
+          # versions of functions and adding necessary conversions.
+          'configurations': {
+            'Common_Base': {
+              'msvs_configuration_attributes': {
+                'CharacterSet': '0',
+              },
+            },
           },
         }],
       ],
@@ -339,7 +375,8 @@
       ],
       'sources': [
         'gen_snapshot.cc',
-        'builtin.cc',
+        # Only looks up native functions in libdart_builtin, not libdart_io.
+        'builtin_gen_snapshot.cc',
         # Include generated source files.
         '<(builtin_cc_file)',
         '<(crypto_cc_file)',
@@ -421,6 +458,7 @@
       'dependencies': [
         'libdart_export',
         'libdart_builtin',
+        'libdart_io',
         'generate_snapshot_file',
       ],
       'include_dirs': [
@@ -434,7 +472,7 @@
       'conditions': [
         ['OS=="win"', {
           'link_settings': {
-            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],
+            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib', '-lwinmm.lib' ],
           },
           # Generate an import library on Windows, by exporting a function.
           # Extensions use this import library to link to the API in dart.exe.
@@ -453,6 +491,7 @@
       'dependencies': [
         'libdart_withcore',
         'libdart_builtin',
+        'libdart_io',
       ],
       'include_dirs': [
         '..',
@@ -473,7 +512,7 @@
       'conditions': [
         ['OS=="win"', {
           'link_settings': {
-            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],
+            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib', '-lwinmm.lib' ],
           },
           # Generate an import library on Windows, by exporting a function.
           # Extensions use this import library to link to the API in dart.exe.
@@ -497,6 +536,7 @@
       'dependencies': [
         'libdart_withcore',
         'libdart_builtin',
+        'libdart_io',
         'generate_snapshot_test_dat_file',
       ],
       'include_dirs': [
@@ -534,7 +574,7 @@
       'conditions': [
         ['OS=="win"', {
           'link_settings': {
-            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],
+            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib', '-lwinmm.lib' ],
           },
         }],
       ],

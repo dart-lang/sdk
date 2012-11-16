@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('ShadowDOMTest');
+library ShadowDOMTest;
 
-#import('dart:html');
+import 'dart:html';
 
 // Test that children of a shadow host get distributed properly to the
 // insertion points of a shadow subtree. Output should be three boxes,

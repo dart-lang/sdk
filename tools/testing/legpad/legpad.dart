@@ -42,7 +42,7 @@ class Legpad {
   void diagnosticHandler(uri_lib.Uri uri, int begin, int end,
                                  String message, bool fatal) {
     warnings.add(message);
-    if (uri !== null) {
+    if (uri != null) {
       warnings.add(" ($uri: $begin, $end)");
     }
     if (fatal) {
@@ -72,7 +72,7 @@ class Legpad {
     Stopwatch stopwatch = new Stopwatch()..start();
     runLeg();
     int elapsedMillis = stopwatch.elapsedMilliseconds;
-    if (output === null) {
+    if (output == null) {
       output = "throw 'dart2js compilation error';\n";
     }
 
@@ -114,7 +114,7 @@ class Legpad {
 
   void setText(String id, String text) {
     html.Element element = html.document.query("#$id");
-    if (element === null) {
+    if (element == null) {
       throw new Exception("Can't find element $id");
     }
     element.innerHTML = htmlEscape(text);
@@ -122,7 +122,7 @@ class Legpad {
 
   String getText(String id) {
     html.Element element = html.document.query("#$id");
-    if (element === null) {
+    if (element == null) {
       throw new Exception("Can't find element $id");
     }
     return element.text.trim();

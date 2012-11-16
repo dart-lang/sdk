@@ -12,8 +12,8 @@ class ScopeVariableTest {
     {
       var c;
       int d;
-      Expect.equals(true, c === null);
-      Expect.equals(true, d === null);
+      Expect.equals(true, c == null);
+      Expect.equals(true, d == null);
     }
   }
 
@@ -21,7 +21,7 @@ class ScopeVariableTest {
     var a = "Test";
     {
       var a;
-      Expect.equals(true, a === null);
+      Expect.equals(true, a == null);
       a = "a";
       Expect.equals(true, a == "a");
     }

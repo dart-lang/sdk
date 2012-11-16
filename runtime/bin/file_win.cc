@@ -104,7 +104,9 @@ File* File::Open(const char* name, FileOpenMode mode) {
   if ((mode & kTruncate) != 0) {
     flags = flags | O_TRUNC;
   }
-  int fd = open(name, flags, 0666);
+  const char* system_name = StringUtils::Utf8ToSystemString(name);
+  int fd = open(system_name, flags, 0666);
+  free(const_cast<char*>(system_name));
   if (fd < 0) {
     return NULL;
   }
@@ -126,7 +128,10 @@ File* File::OpenStdio(int fd) {
 
 bool File::Exists(const char* name) {
   struct stat st;
-  if (stat(name, &st) == 0) {
+  const char* system_name = StringUtils::Utf8ToSystemString(name);
+  bool stat_status = stat(system_name, &st);
+  free(const_cast<char*>(system_name));
+  if (stat_status == 0) {
     return ((st.st_mode & S_IFMT) == S_IFREG);
   } else {
     return false;
@@ -135,7 +140,9 @@ bool File::Exists(const char* name) {
 
 
 bool File::Create(const char* name) {
-  int fd = open(name, O_RDONLY | O_CREAT, 0666);
+  const char* system_name = StringUtils::Utf8ToSystemString(name);
+  int fd = open(system_name, O_RDONLY | O_CREAT, 0666);
+  free(const_cast<char*>(system_name));
   if (fd < 0) {
     return false;
   }
@@ -144,7 +151,9 @@ bool File::Create(const char* name) {
 
 
 bool File::Delete(const char* name) {
-  int status = remove(name);
+  const char* system_name = StringUtils::Utf8ToSystemString(name);
+  int status = remove(system_name);
+  free(const_cast<char*>(system_name));
   if (status == -1) {
     return false;
   }
@@ -154,7 +163,10 @@ bool File::Delete(const char* name) {
 
 off_t File::LengthFromName(const char* name) {
   struct stat st;
-  if (stat(name, &st) == 0) {
+  const char* system_name = StringUtils::Utf8ToSystemString(name);
+  int stat_status = stat(system_name, &st);
+  free(const_cast<char*>(system_name));
+  if (stat_status == 0) {
     return st.st_size;
   }
   return -1;
@@ -163,7 +175,10 @@ off_t File::LengthFromName(const char* name) {
 
 time_t File::LastModified(const char* name) {
   struct stat st;
-  if (stat(name, &st) == 0) {
+  const char* system_name = StringUtils::Utf8ToSystemString(name);
+  int stat_status = stat(system_name, &st);
+  free(const_cast<char*>(system_name));
+  if (stat_status == 0) {
     return st.st_mtime;
   }
   return -1;
@@ -181,39 +196,53 @@ bool File::IsAbsolutePath(const char* pathname) {
 
 char* File::GetCanonicalPath(const char* pathname) {
   struct stat st;
-  if (stat(pathname, &st) != 0) {
+  const char* system_name = StringUtils::Utf8ToSystemString(pathname);
+  int stat_status = stat(system_name, &st);
+  if (stat_status != 0) {
     SetLastError(ERROR_FILE_NOT_FOUND);
+    free(const_cast<char*>(system_name));
     return NULL;
   }
-  int required_size = GetFullPathName(pathname, 0, NULL, NULL);
+  int required_size = GetFullPathName(system_name, 0, NULL, NULL);
   char* path = static_cast<char*>(malloc(required_size));
-  int written = GetFullPathName(pathname, required_size, path, NULL);
+  int written = GetFullPathName(system_name, required_size, path, NULL);
+  free(const_cast<char*>(system_name));
   ASSERT(written == (required_size - 1));
-  return path;
+  char* result = StringUtils::SystemStringToUtf8(path);
+  free(path);
+  return result;
 }
 
 
 char* File::GetContainingDirectory(char* pathname) {
   struct stat st;
-  if (stat(pathname, &st) == 0) {
+  char* system_name = StringUtils::Utf8ToSystemString(pathname);
+  int stat_status = stat(system_name, &st);
+  if (stat_status == 0) {
     if ((st.st_mode & S_IFMT) != S_IFREG) {
       SetLastError(ERROR_FILE_NOT_FOUND);
+      free(system_name);
       return NULL;
     }
   } else {
     SetLastError(ERROR_FILE_NOT_FOUND);
+    free(system_name);
     return NULL;
   }
-  int required_size = GetFullPathName(pathname, 0, NULL, NULL);
+  int required_size = GetFullPathName(system_name, 0, NULL, NULL);
   char* path = static_cast<char*>(malloc(required_size));
   char* file_part = NULL;
-  int written = GetFullPathName(pathname, required_size, path, &file_part);
+  int written =
+    GetFullPathName(system_name, required_size, path, &file_part);
+  free(system_name);
   ASSERT(written == (required_size - 1));
   ASSERT(file_part != NULL);
   ASSERT(file_part > path);
   ASSERT(file_part[-1] == '\\');
   file_part[-1] = '\0';
-  return path;
+  char* result = StringUtils::SystemStringToUtf8(path);
+  free(path);
+  return result;
 }
 
 

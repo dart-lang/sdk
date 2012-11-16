@@ -56,6 +56,8 @@ default_factory2_test/01: Fail # Type bounds for type variable not checked.
 closure_type_test: Fail # does not detect type error in checked mode.
 function_type_test: Fail # does not detect type error in checked mode.
 function_malformed_result_type_test: Fail # does not detect type error in checked mode.
+factory1_test/00: Fail
+factory1_test/01: Fail
 
 type_parameter_test/01: Fail # Issue 4932
 type_parameter_test/02: Fail # Issue 4932
@@ -67,6 +69,13 @@ super_call4_test: Fail # Badly generated noSuchMethod call.
 [ $compiler == dart2js && $unchecked ]
 assertion_test: Fail
 new_expression_type_args_test/02: Fail # Test does not conform with spec.
+factory_redirection_test/08: Fail
+factory_redirection_test/09: Fail
+factory_redirection_test/10: Fail
+factory_redirection_test/11: Fail
+factory_redirection_test/12: Fail
+factory_redirection_test/13: Fail
+factory_redirection_test/14: Fail
 
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.
@@ -85,18 +94,20 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dart2js ]
-factory_redirection_test/none: fail
-factory_redirection_test/01: fail
-factory_redirection_test/02: fail
-factory_redirection_test/03: fail
-factory_redirection_test/05: fail
-factory_redirection_test/06: fail
+arithmetic_test: Fail # http://dartbug.com/6627
+factory_redirection_test/01: Fail
+factory_redirection_test/02: Crash
+factory_redirection_test/03: Crash
+factory_redirection_test/05: Fail
+factory_redirection_test/07: Fail
 final_variable_assignment_test/01: Fail
 final_variable_assignment_test/02: Fail
 final_variable_assignment_test/03: Fail
 final_variable_assignment_test/04: Fail
 bad_override_test/01: Fail
 bad_override_test/02: Fail
+const_locals_test: Fail
+const_nested_test: Fail
 bad_constructor_test/04: Fail # http://dartbug.com/5519
 bad_constructor_test/05: Fail # http://dartbug.com/5519
 bad_constructor_test/06: Fail # http://dartbug.com/5519

@@ -518,7 +518,7 @@ TEST_CASE(IsString) {
   Dart_Handle str8 = Dart_NewStringFromUTF8(data8, ARRAY_SIZE(data8));
   EXPECT_VALID(str8);
   EXPECT(Dart_IsString(str8));
-  EXPECT(Dart_IsAsciiString(str8));
+  EXPECT(Dart_IsStringLatin1(str8));
   EXPECT(!Dart_IsExternalString(str8));
 
   Dart_Handle ext8 = Dart_NewExternalUTF8String(data8, ARRAY_SIZE(data8),
@@ -532,7 +532,7 @@ TEST_CASE(IsString) {
   Dart_Handle str16 = Dart_NewStringFromUTF16(data16, ARRAY_SIZE(data16));
   EXPECT_VALID(str16);
   EXPECT(Dart_IsString(str16));
-  EXPECT(!Dart_IsAsciiString(str16));
+  EXPECT(!Dart_IsStringLatin1(str16));
   EXPECT(!Dart_IsExternalString(str16));
 
   Dart_Handle ext16 = Dart_NewExternalUTF16String(data16, ARRAY_SIZE(data16),
@@ -2909,15 +2909,16 @@ TEST_CASE(InjectNativeFields1) {
   obj ^= Api::UnwrapHandle(result);
   const Class& cls = Class::Handle(obj.clazz());
   // We expect the newly created "NativeFields" object to have
-  // 2 dart instance fields (fld1, fld2) and kNumNativeFields native fields.
+  // 2 dart instance fields (fld1, fld2) and a reference to the native fields.
   // Hence the size of an instance of "NativeFields" should be
-  // (kNumNativeFields + 2) * kWordSize + size of object header.
+  // (1 + 2) * kWordSize + size of object header.
   // We check to make sure the instance size computed by the VM matches
   // our expectations.
   intptr_t header_size = sizeof(RawObject);
-  EXPECT_EQ(Utils::RoundUp(((kNumNativeFields + 2) * kWordSize) + header_size,
+  EXPECT_EQ(Utils::RoundUp(((1 + 2) * kWordSize) + header_size,
                            kObjectAlignment),
             cls.instance_size());
+  EXPECT_EQ(kNumNativeFields, cls.num_native_fields());
 }
 
 
@@ -2977,15 +2978,16 @@ TEST_CASE(InjectNativeFields3) {
   obj ^= Api::UnwrapHandle(result);
   const Class& cls = Class::Handle(obj.clazz());
   // We expect the newly created "NativeFields" object to have
-  // 2 dart instance fields (fld1, fld2) and kNumNativeFields native fields.
+  // 2 dart instance fields (fld1, fld2) and a reference to the native fields.
   // Hence the size of an instance of "NativeFields" should be
-  // (kNumNativeFields + 2) * kWordSize + size of object header.
+  // (1 + 2) * kWordSize + size of object header.
   // We check to make sure the instance size computed by the VM matches
   // our expectations.
   intptr_t header_size = sizeof(RawObject);
-  EXPECT_EQ(Utils::RoundUp(((kNumNativeFields + 2) * kWordSize) + header_size,
+  EXPECT_EQ(Utils::RoundUp(((1 + 2) * kWordSize) + header_size,
                            kObjectAlignment),
             cls.instance_size());
+  EXPECT_EQ(kNumNativeFields, cls.num_native_fields());
 }
 
 
@@ -3223,7 +3225,7 @@ TEST_CASE(NegativeNativeFieldAccess) {
       "  return obj;\n"
       "}\n"
       "Function testMain2() {\n"
-      "  return function() {};\n"
+      "  return () {};\n"
       "}\n";
   Dart_Handle result;
   DARTSCOPE_NOCHECKS(Isolate::Current());
@@ -3277,6 +3279,41 @@ TEST_CASE(NegativeNativeFieldAccess) {
   EXPECT(Dart_IsError(result));
   result = Dart_SetNativeInstanceField(retobj, kNativeFld0, 400);
   EXPECT(Dart_IsError(result));
+}
+
+
+TEST_CASE(NegativeNativeFieldInIsolateMessage) {
+  const char* kScriptChars =
+      "import 'dart:isolate';\n"
+      "import 'dart:nativewrappers';\n"
+      "echo() {\n"
+      "  port.receive((msg, reply) {\n"
+      "    reply.send('echoing ${msg(1)}}');\n"
+      "  });\n"
+      "}\n"
+      "class Test extends NativeFieldWrapperClass2 {\n"
+      "  Test(this.i, this.j);\n"
+      "  int i, j;\n"
+      "}\n"
+      "main() {\n"
+      "  var snd = spawnFunction(echo);\n"
+      "  var obj = new Test(1,2);\n"
+      "  snd.send(obj, port.toSendPort());\n"
+      "  port.receive((msg, reply) {\n"
+      "    print('from worker ${msg}');\n"
+      "  });\n"
+      "}\n";
+
+  DARTSCOPE_NOCHECKS(Isolate::Current());
+
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  // Invoke 'main' which should spawn an isolate and try to send an
+  // object with native fields over to the spawned isolate. This
+  // should result in an unhandled exception which is checked.
+  Dart_Handle retobj = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT(Dart_IsError(retobj));
 }
 
 
@@ -7160,6 +7197,191 @@ TEST_CASE(CollectTwoOldSpacePeers) {
   Dart_ExitScope();
   isolate->heap()->CollectGarbage(Heap::kOld);
   EXPECT_EQ(0, isolate->heap()->PeerCount());
+}
+
+
+// Test API call to make strings external.
+static void MakeExternalCback(void* peer) {
+  *static_cast<int*>(peer) *= 2;
+}
+
+
+TEST_CASE(MakeExternalString) {
+  int peer8 = 40;
+  int peer16 = 41;
+  intptr_t length = 0;
+  intptr_t expected_length = 0;
+  {
+    Dart_EnterScope();
+
+    // First test some negative conditions.
+    uint8_t data8[] = { 'h', 'e', 'l', 'l', 'o' };
+    const char* err = "string";
+    Dart_Handle err_str = NewString(err);
+    Dart_Handle ext_err_str = Dart_NewExternalUTF8String(
+        data8, ARRAY_SIZE(data8), NULL, NULL);
+    Dart_Handle result = Dart_MakeExternalString(Dart_Null(),
+                                                 data8,
+                                                 ARRAY_SIZE(data8),
+                                                 NULL,
+                                                 NULL);
+    EXPECT(Dart_IsError(result));  // Null string object passed in.
+    result = Dart_MakeExternalString(err_str,
+                                     NULL,
+                                     ARRAY_SIZE(data8),
+                                     NULL,
+                                     NULL);
+    EXPECT(Dart_IsError(result));  // Null array pointer passed in.
+    result = Dart_MakeExternalString(err_str,
+                                     data8,
+                                     1,
+                                     NULL,
+                                     NULL);
+    EXPECT(Dart_IsError(result));  // Invalid length passed in.
+
+    const intptr_t kLength = 10;
+    intptr_t size = 0;
+
+    // Test with an external string.
+    result = Dart_MakeExternalString(ext_err_str,
+                                     data8,
+                                     ARRAY_SIZE(data8),
+                                     NULL,
+                                     NULL);
+    EXPECT(Dart_IsString(result));
+    EXPECT(Dart_IsExternalString(result));
+
+    // Test with an empty string.
+    Dart_Handle empty_str = NewString("");
+    EXPECT(Dart_IsString(empty_str));
+    EXPECT(!Dart_IsExternalString(empty_str));
+    uint8_t ext_empty_str[kLength];
+    Dart_Handle str = Dart_MakeExternalString(empty_str,
+                                              ext_empty_str,
+                                              kLength,
+                                              NULL,
+                                              NULL);
+    EXPECT(Dart_IsString(str));
+    EXPECT(Dart_IsString(empty_str));
+    EXPECT(Dart_IsStringLatin1(str));
+    EXPECT(Dart_IsStringLatin1(empty_str));
+    EXPECT(Dart_IsExternalString(str));
+    EXPECT(Dart_IsExternalString(empty_str));
+    EXPECT_VALID(Dart_StringLength(str, &length));
+    EXPECT_EQ(0, length);
+
+    // Test with a one byte ascii string.
+    const char* ascii = "string";
+    expected_length = strlen(ascii);
+    Dart_Handle ascii_str = NewString(ascii);
+    EXPECT_VALID(ascii_str);
+    EXPECT(Dart_IsString(ascii_str));
+    EXPECT(Dart_IsStringLatin1(ascii_str));
+    EXPECT(!Dart_IsExternalString(ascii_str));
+    EXPECT_VALID(Dart_StringLength(ascii_str, &length));
+    EXPECT_EQ(expected_length, length);
+
+    uint8_t ext_ascii_str[kLength];
+    EXPECT_VALID(Dart_StringStorageSize(ascii_str, &size));
+    str = Dart_MakeExternalString(ascii_str,
+                                  ext_ascii_str,
+                                  size,
+                                  &peer8,
+                                  MakeExternalCback);
+    EXPECT(Dart_IsString(str));
+    EXPECT(Dart_IsString(ascii_str));
+    EXPECT(Dart_IsStringLatin1(str));
+    EXPECT(Dart_IsStringLatin1(ascii_str));
+    EXPECT(Dart_IsExternalString(str));
+    EXPECT(Dart_IsExternalString(ascii_str));
+    EXPECT_VALID(Dart_StringLength(str, &length));
+    EXPECT_EQ(expected_length, length);
+    EXPECT_VALID(Dart_StringLength(ascii_str, &length));
+    EXPECT_EQ(expected_length, length);
+    EXPECT(Dart_IdentityEquals(str, ascii_str));
+    for (intptr_t i = 0; i < length; i++) {
+      EXPECT_EQ(ascii[i], ext_ascii_str[i]);
+    }
+
+    uint8_t data[] = { 0xE4, 0xBA, 0x8c };  // U+4E8C.
+    expected_length = 1;
+    Dart_Handle utf16_str = Dart_NewStringFromUTF8(data, ARRAY_SIZE(data));
+    EXPECT_VALID(utf16_str);
+    EXPECT(Dart_IsString(utf16_str));
+    EXPECT(!Dart_IsStringLatin1(utf16_str));
+    EXPECT(!Dart_IsExternalString(utf16_str));
+    EXPECT_VALID(Dart_StringLength(utf16_str, &length));
+    EXPECT_EQ(expected_length, length);
+
+    // Test with a two byte string.
+    uint16_t ext_utf16_str[kLength];
+    EXPECT_VALID(Dart_StringStorageSize(utf16_str, &size));
+    str = Dart_MakeExternalString(utf16_str,
+                                  ext_utf16_str,
+                                  size,
+                                  &peer16,
+                                  MakeExternalCback);
+    EXPECT(Dart_IsString(str));
+    EXPECT(Dart_IsString(utf16_str));
+    EXPECT(!Dart_IsStringLatin1(str));
+    EXPECT(!Dart_IsStringLatin1(utf16_str));
+    EXPECT(Dart_IsExternalString(str));
+    EXPECT(Dart_IsExternalString(utf16_str));
+    EXPECT_VALID(Dart_StringLength(str, &length));
+    EXPECT_EQ(expected_length, length);
+    EXPECT_VALID(Dart_StringLength(utf16_str, &length));
+    EXPECT_EQ(expected_length, length);
+    EXPECT(Dart_IdentityEquals(str, utf16_str));
+    for (intptr_t i = 0; i < length; i++) {
+      EXPECT_EQ(0x4e8c, ext_utf16_str[i]);
+    }
+
+    Dart_ExitScope();
+  }
+  EXPECT_EQ(40, peer8);
+  EXPECT_EQ(41, peer16);
+  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+  EXPECT_EQ(80, peer8);
+  EXPECT_EQ(82, peer16);
+}
+
+
+TEST_CASE(LazyLoadDeoptimizes) {
+  const char* kLoadFirst =
+      "start(a) {\n"
+      "  var obj = (a == 1) ? createB() : new A();\n"
+      "  for (int i = 0; i < 4000; i++) {\n"
+      "    var res = obj.foo();\n"
+      "    if (a == 1) { if (res != 1) throw 'Error'; }\n"
+      "    else if (res != 2) throw 'Error'; \n"
+      "  }\n"
+      "}\n"
+      "\n"
+      "createB() => new B();"
+      "\n"
+      "class A {\n"
+      "  foo() => goo();\n"
+      "  goo() => 2;\n"
+      "}\n";
+  const char* kLoadSecond =
+      "class B extends A {\n"
+      "  goo() => 1;\n"
+      "}\n";
+  Dart_Handle result;
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib1 = TestCase::LoadTestScript(kLoadFirst, NULL);
+  Dart_Handle dart_args[1];
+  dart_args[0] = Dart_NewInteger(0);
+  result = Dart_Invoke(lib1, NewString("start"), 1, dart_args);
+  EXPECT_VALID(result);
+
+  Dart_Handle source = NewString(kLoadSecond);
+  Dart_Handle url = NewString(TestCase::url());
+  Dart_LoadSource(TestCase::lib(), url, source);
+
+  dart_args[0] = Dart_NewInteger(1);
+  result = Dart_Invoke(lib1, NewString("start"), 1, dart_args);
+  EXPECT_VALID(result);
 }
 
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).

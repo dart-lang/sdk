@@ -2,18 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("yaml");
+library yaml;
 
-#import('dart:math', prefix: 'Math');
+import 'dart:math' as Math;
 
-#import("deep_equals.dart");
+import 'deep_equals.dart';
 
-#source("yaml_map.dart");
-#source("model.dart");
-#source("parser.dart");
-#source("visitor.dart");
-#source("composer.dart");
-#source("constructor.dart");
+part 'yaml_map.dart';
+part 'model.dart';
+part 'parser.dart';
+part 'visitor.dart';
+part 'composer.dart';
+part 'constructor.dart';
 
 /**
  * Loads a single document from a YAML string. If the string contains more than

@@ -12,7 +12,7 @@ abstract class _BaseDataInputStream {
       _checkScheduleCallbacks();
       return null;
     }
-    if (len !== null) {
+    if (len != null) {
       if (len <= 0) {
         throw new StreamException("Illegal length $len");
       } else if (bytesToRead > len) {
@@ -24,7 +24,7 @@ abstract class _BaseDataInputStream {
 
   int readInto(List<int> buffer, [int offset = 0, int len]) {
     if (_closeCallbackCalled || _scheduledCloseCallback != null) return 0;
-    if (len === null) len = buffer.length;
+    if (len == null) len = buffer.length;
     if (offset < 0) throw new StreamException("Illegal offset $offset");
     if (len < 0) throw new StreamException("Illegal length $len");
     int bytesToRead = min(len, available());
@@ -71,7 +71,7 @@ abstract class _BaseDataInputStream {
     // More data has been received asynchronously. Perform the data
     // handler callback now.
     _cancelScheduledDataCallback();
-    if (_clientDataHandler !== null) {
+    if (_clientDataHandler != null) {
       _clientDataHandler();
     }
     _checkScheduleCallbacks();
@@ -83,7 +83,7 @@ abstract class _BaseDataInputStream {
     _streamMarkedClosed = true;
     if (available() == 0) {
       _closeCallbackCalled = true;
-      if (_clientCloseHandler !== null) _clientCloseHandler();
+      if (_clientCloseHandler != null) _clientCloseHandler();
     } else {
       _checkScheduleCallbacks();
     }
@@ -99,7 +99,7 @@ abstract class _BaseDataInputStream {
   void _checkScheduleCallbacks() {
     void issueDataCallback(Timer timer) {
       _scheduledDataCallback = null;
-      if (_clientDataHandler !== null) {
+      if (_clientDataHandler != null) {
         _clientDataHandler();
         _checkScheduleCallbacks();
       }
@@ -108,7 +108,7 @@ abstract class _BaseDataInputStream {
     void issueCloseCallback(Timer timer) {
       _scheduledCloseCallback = null;
       _closeCallbackCalled = true;
-      if (_clientCloseHandler !== null) _clientCloseHandler();
+      if (_clientCloseHandler != null) _clientCloseHandler();
     }
 
     // Schedule data callback if there is more data to read. Schedule
@@ -154,7 +154,7 @@ void _pipe(InputStream input, OutputStream output, {bool close}) {
 
   pipeDataHandler = () {
     List<int> data;
-    while ((data = input.read()) !== null) {
+    while ((data = input.read()) != null) {
       if (!output.write(data)) {
         input.onData = null;
         output.onNoPendingWrites = pipeNoPendingWriteHandler;
@@ -165,7 +165,7 @@ void _pipe(InputStream input, OutputStream output, {bool close}) {
 
   pipeCloseHandler = () {
     if (close) output.close();
-    if (_inputCloseHandler !== null) {
+    if (_inputCloseHandler != null) {
       _inputCloseHandler();
     }
   };

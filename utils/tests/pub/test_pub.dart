@@ -313,7 +313,6 @@ DirectoryDescriptor gitPackageRevisionCacheDir(String name, [int modifier]) {
  */
 DirectoryDescriptor gitPackageRepoCacheDir(String name) {
   return dir(new RegExp("$name${r'-[a-f0-9]+'}"), [
-    dir('branches'),
     dir('hooks'),
     dir('info'),
     dir('objects'),
@@ -409,7 +408,7 @@ String _packageName(String sourceName, description) {
   switch (sourceName) {
   case "git":
     var url = description is String ? description : description['url'];
-    return basename(url.replaceFirst(const RegExp(r"(\.git)?/?$"), ""));
+    return basename(url.replaceFirst(new RegExp(r"(\.git)?/?$"), ""));
   case "hosted":
     if (description is String) return description;
     return description['name'];
@@ -720,26 +719,26 @@ abstract class Descriptor {
    * Creates the file or directory within [dir]. Returns a [Future] that is
    * completed after the creation is done.
    */
-  abstract Future create(dir);
+  Future create(dir);
 
   /**
    * Validates that this descriptor correctly matches the corresponding file
    * system entry within [dir]. Returns a [Future] that completes to `null` if
    * the entry is valid, or throws an error if it failed.
    */
-  abstract Future validate(String dir);
+  Future validate(String dir);
 
   /**
    * Deletes the file or directory within [dir]. Returns a [Future] that is
    * completed after the deletion is done.
    */
-  abstract Future delete(String dir);
+  Future delete(String dir);
 
   /**
    * Loads the file at [path] from within this descriptor. If [path] is empty,
    * loads the contents of the descriptor itself.
    */
-  abstract InputStream load(List<String> path);
+  InputStream load(List<String> path);
 
   /**
    * Schedules the directory to be created before Pub is run with [runPub]. The

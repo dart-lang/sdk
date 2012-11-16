@@ -231,11 +231,9 @@ MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
     const Function& function) {
   // Only core and math library methods can be recognized.
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
   const Library& math_lib = Library::Handle(Library::MathLibrary());
   const Class& function_class = Class::Handle(function.Owner());
   if ((function_class.library() != core_lib.raw()) &&
-      (function_class.library() != core_impl_lib.raw()) &&
       (function_class.library() != math_lib.raw())) {
     return kUnknown;
   }
@@ -1329,6 +1327,12 @@ bool BinarySmiOpInstr::CanDeoptimize() const {
     case Token::kBIT_OR:
     case Token::kBIT_XOR:
       return false;
+    case Token::kSHR: {
+      // Can't deopt if shift-count is known positive.
+      Range* right_range = this->right()->definition()->range();
+      return (right_range == NULL)
+          || !right_range->IsWithin(0, RangeBoundary::kPlusInfinity);
+    }
     default:
       return overflow_;
   }
@@ -1841,14 +1845,12 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 
 
 void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // The arguments to the stub include the closure.  The arguments
-  // descriptor describes the closure's arguments (and so does not include
-  // the closure).
+  // The arguments to the stub include the closure, as does the arguments
+  // descriptor.
   Register temp_reg = locs()->temp(0).reg();
   int argument_count = ArgumentCount();
   const Array& arguments_descriptor =
-      DartEntry::ArgumentsDescriptor(argument_count - 1,
-                                         argument_names());
+      DartEntry::ArgumentsDescriptor(argument_count, argument_names());
   __ LoadObject(temp_reg, arguments_descriptor);
   compiler->GenerateDartCall(deopt_id(),
                              token_pos(),
@@ -1873,7 +1875,8 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                checked_argument_count());
   }
   if (compiler->is_optimizing()) {
-    if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
+    ASSERT(HasICData());
+    if (ic_data()->NumberOfChecks() > 0) {
       const ICData& unary_ic_data =
           ICData::ZoneHandle(ic_data()->AsUnaryClassChecks());
       compiler->GenerateInstanceCall(deopt_id(),
@@ -1883,11 +1886,16 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                      locs(),
                                      unary_ic_data);
     } else {
-      Label* deopt =
-          compiler->AddDeoptStub(deopt_id(), kDeoptInstanceCallNoICData);
-      __ jmp(deopt);
+      // Call was not visited yet, use original ICData in order to populate it.
+      compiler->GenerateInstanceCall(deopt_id(),
+                                     token_pos(),
+                                     ArgumentCount(),
+                                     argument_names(),
+                                     locs(),
+                                     call_ic_data);
     }
   } else {
+    // Unoptimized code.
     ASSERT(!HasICData());
     compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
                                    deopt_id(),
@@ -2022,6 +2030,7 @@ LocationSummary* CreateClosureInstr::MakeLocationSummary() const {
 
 void CreateClosureInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Function& closure_function = function();
+  ASSERT(!closure_function.IsImplicitStaticClosureFunction());
   const Code& stub = Code::Handle(
       StubCode::GetAllocationStubForClosure(closure_function));
   const ExternalLabel label(closure_function.ToCString(), stub.EntryPoint());
@@ -2506,8 +2515,6 @@ void BinarySmiOpInstr::InferRange() {
     return;
   }
 
-
-  // If left is a l
   RangeBoundary left_min =
     IsArrayLength(left_defn) ?
         RangeBoundary::FromDefinition(left_defn) : left_range->min();

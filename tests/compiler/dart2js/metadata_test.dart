@@ -44,7 +44,8 @@ void checkAnnotation(String name, String declaration,
     MetadataAnnotation annotation2 = element.metadata.tail.head;
     annotation1.ensureResolved(compiler);
     annotation2.ensureResolved(compiler);
-    Expect.isTrue(annotation1 !== annotation2, 'expected unique instances');
+    Expect.isFalse(identical(annotation1, annotation2),
+                   'expected unique instances');
     Expect.notEquals(annotation1, annotation2, 'expected unequal instances');
     Constant value1 = annotation1.value;
     Constant value2 = annotation2.value;
@@ -97,7 +98,8 @@ void checkAnnotation(String name, String declaration,
     MetadataAnnotation annotation2 = element.metadata.tail.head;
     annotation1.ensureResolved(compiler);
     annotation2.ensureResolved(compiler);
-    Expect.isTrue(annotation1 !== annotation2, 'expected unique instances');
+    Expect.isFalse(identical(annotation1, annotation2),
+                   'expected unique instances');
     Expect.notEquals(annotation1, annotation2, 'expected unequal instances');
     Constant value1 = annotation1.value;
     Constant value2 = annotation2.value;

@@ -76,6 +76,12 @@ class ResolverTask extends CompilerTask {
 
   TreeElements resolve(Element element) {
     return measure(() {
+      if (Elements.isErroneousElement(element)) return null;
+
+      for (MetadataAnnotation metadata in element.metadata) {
+        metadata.ensureResolved(compiler);
+      }
+
       ElementKind kind = element.kind;
       if (identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR) ||
           identical(kind, ElementKind.FUNCTION) ||
@@ -89,6 +95,14 @@ class ResolverTask extends CompilerTask {
       if (identical(kind, ElementKind.PARAMETER) ||
           identical(kind, ElementKind.FIELD_PARAMETER)) {
         return resolveParameter(element);
+      }
+      if (element.isClass()) {
+        ClassElement cls = element;
+        cls.ensureResolved(compiler);
+        return null;
+      } else if (element.isTypedef() || element.isTypeVariable()) {
+        element.computeType(compiler);
+        return null;
       }
 
       compiler.unimplemented("resolve($element)",
@@ -445,6 +459,9 @@ class ResolverTask extends CompilerTask {
       // TODO(johnniwinther): Check matching type variables and
       // empty extends/implements clauses.
     }
+    for (MetadataAnnotation metadata in element.metadata) {
+      metadata.ensureResolved(compiler);
+    }
   }
 
   void checkMembers(ClassElement cls) {
@@ -628,7 +645,7 @@ class ResolverTask extends CompilerTask {
           visitorFor(annotation.annotatedElement.enclosingElement);
       node.accept(visitor);
       annotation.value = compiler.constantHandler.compileNodeWithDefinitions(
-          node, visitor.mapping);
+          node, visitor.mapping, isConst: true);
 
       annotation.resolutionState = STATE_DONE;
     }));
@@ -1031,12 +1048,14 @@ class TypeResolver {
     if (send != null) {
       typeName = send.selector;
     }
-    if (identical(typeName.source.stringValue, 'void')) {
+    String stringValue = typeName.source.stringValue;
+    if (identical(stringValue, 'void')) {
       return compiler.types.voidType.element;
-    } else if (
-        // TODO(aprelev@gmail.com): Remove deprecated Dynamic keyword support.
-        identical(typeName.source.stringValue, 'Dynamic')
-        || identical(typeName.source.stringValue, 'dynamic')) {
+    } else if (identical(stringValue, 'Dynamic')) {
+      // TODO(aprelev@gmail.com): Remove deprecated Dynamic keyword support.
+      compiler.onDeprecatedFeature(typeName, 'Dynamic');
+      return compiler.dynamicClass;
+    } else if (identical(stringValue, 'dynamic')) {
       return compiler.dynamicClass;
     } else if (send != null) {
       Element e = scope.lookup(send.receiver.asIdentifier().source);
@@ -1201,8 +1220,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     Element result = scope.lookup(name);
     if (!Elements.isUnresolved(result)) {
       if (!inInstanceContext && result.isInstanceMember()) {
-        error(node, MessageKind.NO_INSTANCE_AVAILABLE, [node]);
-        // TODO(johnniwinther): Create an ErroneousElement.
+        compiler.reportMessage(compiler.spanFromNode(node),
+            MessageKind.NO_INSTANCE_AVAILABLE.error([name]),
+            Diagnostic.ERROR);
+        return new ErroneousElement(MessageKind.NO_INSTANCE_AVAILABLE,
+                                    [name],
+                                    name, enclosingElement);
       } else if (result.isAmbiguous()) {
         AmbiguousElement ambiguous = result;
         compiler.reportMessage(compiler.spanFromNode(node),
@@ -1472,7 +1495,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         enclosingElement);
     Scope oldScope = scope; // The scope is modified by [setupFunction].
     setupFunction(node, function);
-    defineElement(node, function, doAddToScope: node.name !== null);
+    defineElement(node, function, doAddToScope: node.name != null);
 
     Element previousEnclosingElement = enclosingElement;
     enclosingElement = function;
@@ -1615,11 +1638,16 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     if (node.isOperator) {
       SourceString source = node.selector.asOperator().source;
       String string = source.stringValue;
-      if (identical(string, '!')   || identical(string, '&&')  || string == '||' ||
-          identical(string, 'is')  || identical(string, 'as')  ||
+      if (identical(string, '!') ||
+          identical(string, '&&') || identical(string, '||') ||
+          identical(string, 'is') || identical(string, 'as') ||
           identical(string, '===') || identical(string, '!==') ||
+          identical(string, '?') ||
           identical(string, '>>>')) {
         return null;
+      }
+      if (!isUserDefinableOperator(source.stringValue)) {
+        source = Elements.mapToUserOperator(source);
       }
       return node.arguments.isEmpty
           ? new Selector.unaryOperator(source)
@@ -1735,6 +1763,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       } else if (!selector.applies(target, compiler)) {
         warnArgumentMismatch(node, target);
       }
+
+      if (target != null &&
+          target.kind == ElementKind.FOREIGN &&
+          selector.name == const SourceString('JS')) {
+        world.nativeEnqueuer.registerJsCall(node, this);
+      }
     }
 
     // TODO(ngeoffray): Warn if target is null and the send is
@@ -1749,6 +1783,15 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     // mismatch.
     warning(node.argumentsNode, MessageKind.INVALID_ARGUMENTS,
             [target.name]);
+  }
+
+  /// Callback for native enqueuer to parse a type.  Returns [:null:] on error.
+  DartType resolveTypeFromString(String typeName) {
+    Element element = scope.lookup(new SourceString(typeName));
+    if (element == null) return null;
+    if (element is! ClassElement) return null;
+    element.ensureResolved(compiler);
+    return element.computeType(compiler);
   }
 
   visitSendSet(SendSet node) {
@@ -1857,12 +1900,14 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLiteralString(LiteralString node) {
+    world.registerInstantiatedClass(compiler.stringClass);
   }
 
   visitLiteralNull(LiteralNull node) {
   }
 
   visitStringJuxtaposition(StringJuxtaposition node) {
+    world.registerInstantiatedClass(compiler.stringClass);
     node.visitChildren(this);
   }
 
@@ -2053,6 +2098,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLiteralList(LiteralList node) {
+    world.registerInstantiatedClass(compiler.listClass);
     NodeList arguments = node.typeArguments;
     if (arguments != null) {
       Link<Node> nodes = arguments.nodes;
@@ -2074,6 +2120,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitStringInterpolation(StringInterpolation node) {
+    world.registerInstantiatedClass(compiler.stringClass);
     node.visitChildren(this);
   }
 
@@ -2608,8 +2655,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     LibraryElement lib = element.getLibrary();
     return
       !identical(lib, compiler.coreLibrary) &&
-      !identical(lib, compiler.coreImplLibrary) &&
       !identical(lib, compiler.jsHelperLibrary) &&
+      !identical(lib, compiler.interceptorsLibrary) &&
       (identical(type.element, compiler.dynamicClass) ||
        identical(type.element, compiler.boolClass) ||
        identical(type.element, compiler.numClass) ||
@@ -2882,13 +2929,17 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
       }
     } else {
       if (element.isGetter()) {
-        if (!element.getLibrary().isPlatformLibrary) {
-          // TODO(ahe): Remove the isPlatformLibrary check.
-          if (!identical(formalParameters.getEndToken().next.stringValue, 'native')) {
-            // TODO(ahe): Remove the check for native keyword.
+        if (!identical(formalParameters.getEndToken().next.stringValue,
+                       // TODO(ahe): Remove the check for native keyword.
+                       'native')) {
+          if (compiler.rejectDeprecatedFeatures &&
+              // TODO(ahe): Remove isPlatformLibrary check.
+              !element.getLibrary().isPlatformLibrary) {
             compiler.reportMessage(compiler.spanFromNode(formalParameters),
                                    MessageKind.EXTRA_FORMALS.error([]),
-                                   Diagnostic.WARNING);
+                                   Diagnostic.ERROR);
+          } else {
+            compiler.onDeprecatedFeature(formalParameters, 'getter parameters');
           }
         }
       }

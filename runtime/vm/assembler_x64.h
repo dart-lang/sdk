@@ -440,6 +440,7 @@ class Assembler : public ValueObject {
 
   void imulq(Register dst, Register src);
   void imulq(Register dst, const Address& address);
+  void imulq(Register dst, const Immediate& imm);
 
   void subq(Register dst, Register src);
   void subq(Register reg, const Immediate& imm);

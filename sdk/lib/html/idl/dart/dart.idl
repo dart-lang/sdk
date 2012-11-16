@@ -36,7 +36,6 @@ module html {
   interface HTMLCanvasElement {
     [Suppressed] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] in DOMString type) raises(DOMException);
     [Custom] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] in DOMString type, [Optional] in float quality) raises(DOMException);
-
   };
 
   [Supplemental]
@@ -47,6 +46,9 @@ module html {
   [Supplemental]
   interface HTMLSelectElement {
     [Suppressed] void add([Optional=DefaultIsUndefined] in HTMLElement element, [Optional=DefaultIsUndefined] in HTMLElement before);
+    [Suppressed, Custom] void remove();
+    [Custom] void remove(in long index);
+    [Custom] void remove(in HTMLOptionElement option);
   };
 
   [Supplemental]

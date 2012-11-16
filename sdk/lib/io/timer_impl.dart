@@ -13,7 +13,7 @@ class _Timer implements Timer {
                            int milliSeconds,
                            bool repeating) {
     _EventHandler._start();
-    if (_timers === null) {
+    if (_timers == null) {
       _timers = new DoubleLinkedQueue<_Timer>();
     }
     Timer timer = new _Timer._internal();
@@ -51,8 +51,8 @@ class _Timer implements Timer {
     DoubleLinkedQueueEntry<_Timer> entry = _timers.firstEntry();
     DoubleLinkedQueueEntry<_Timer> first = _timers.firstEntry();
 
-     while (entry !== null) {
-      if (entry.element === this) {
+     while (entry != null) {
+      if (identical(entry.element, this)) {
         entry.remove();
         if (first.element == this) {
           entry = _timers.firstEntry();
@@ -72,10 +72,10 @@ class _Timer implements Timer {
   // earliest timer in the list.  Timers with the same wakeup time are enqueued
   // in order and notified in FIFO order.
   void _addTimerToList() {
-    if (_callback !== null) {
+    if (_callback != null) {
 
       DoubleLinkedQueueEntry<_Timer> entry = _timers.firstEntry();
-      while (entry !== null) {
+      while (entry != null) {
         if (_wakeupTime < entry.element._wakeupTime) {
           entry.prepend(this);
           return;
@@ -95,15 +95,15 @@ class _Timer implements Timer {
       return;
     }
 
-    if (_timers.firstEntry() === null) {
+    if (_timers.firstEntry() == null) {
       // No pending timers: Close the receive port and let the event handler
       // know.
-      if (_receivePort !== null) {
+      if (_receivePort != null) {
         _EventHandler._sendData(null, _receivePort, _NO_TIMER);
         _shutdownTimerHandler();
       }
     } else {
-      if (_receivePort === null) {
+      if (_receivePort == null) {
         // Create a receive port and register a message handler for the timer
         // events.
         _createTimerHandler();
@@ -126,7 +126,7 @@ class _Timer implements Timer {
       // Collect all pending timers.
       DoubleLinkedQueueEntry<_Timer> entry = _timers.firstEntry();
       var pending_timers = new List();
-      while (entry !== null) {
+      while (entry != null) {
         _Timer timer = entry.element;
         if (timer._wakeupTime <= currentTime) {
           entry.remove();
@@ -160,7 +160,7 @@ class _Timer implements Timer {
       _notifyEventHandler();
     }
 
-    if(_receivePort === null) {
+    if(_receivePort == null) {
       _receivePort = new ReceivePort();
       _receivePort.receive((var message, ignored) {
         _handleTimeout();

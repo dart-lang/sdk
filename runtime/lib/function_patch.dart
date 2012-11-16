@@ -5,7 +5,7 @@
 patch class Function {
   /* patch */ static apply(Function function,
                            List positionalArguments,
-                           [Map<String,Dynamic> namedArguments]) {
+                           [Map<String,dynamic> namedArguments]) {
     throw new UnimplementedError('Function.apply not implemented');
   }
 }

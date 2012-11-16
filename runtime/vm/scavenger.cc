@@ -73,6 +73,8 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         heap_(scavenger->heap_),
         vm_heap_(Dart::vm_isolate()->heap()),
         delayed_weak_stack_(),
+        growth_policy_(PageSpace::kControlGrowth),
+        bytes_promoted_(0),
         visiting_old_pointers_(false),
         in_scavenge_pointer_(false) {}
 
@@ -106,6 +108,8 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       WeakProperty::Clear(it->second);
     }
   }
+
+  intptr_t bytes_promoted() { return bytes_promoted_; }
 
  private:
   void UpdateStoreBuffer(RawObject** p, RawObject* obj) {
@@ -175,14 +179,30 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         //
         // This object is a survivor of a previous scavenge. Attempt to promote
         // the object.
-        new_addr = heap_->TryAllocate(size, Heap::kOld);
+        new_addr = heap_->TryAllocate(size, Heap::kOld, growth_policy_);
         if (new_addr != 0) {
           // If promotion succeeded then we need to remember it so that it can
           // be traversed later.
           scavenger_->PushToPromotedStack(new_addr);
-        } else {
-          // Promotion did not succeed. Copy into the to space instead.
+          bytes_promoted_ += size;
+        } else if (!scavenger_->had_promotion_failure_) {
+          // Signal a promotion failure and set the growth policy for
+          // this, and all subsequent promotion allocations, to force
+          // growth.
           scavenger_->had_promotion_failure_ = true;
+          growth_policy_ = PageSpace::kForceGrowth;
+          new_addr = heap_->TryAllocate(size, Heap::kOld, growth_policy_);
+          if (new_addr != 0) {
+            scavenger_->PushToPromotedStack(new_addr);
+            bytes_promoted_ += size;
+          } else {
+            // Promotion did not succeed. Copy into the to space
+            // instead.
+            new_addr = scavenger_->TryAllocate(size);
+          }
+        } else {
+          ASSERT(growth_policy_ == PageSpace::kForceGrowth);
+          // Promotion did not succeed. Copy into the to space instead.
           new_addr = scavenger_->TryAllocate(size);
         }
       }
@@ -211,6 +231,8 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   typedef std::multimap<RawObject*, RawWeakProperty*> DelaySet;
   DelaySet delay_set_;
   GrowableArray<RawObject*> delayed_weak_stack_;
+  PageSpace::GrowthPolicy growth_policy_;
+  intptr_t bytes_promoted_;
 
   bool visiting_old_pointers_;
   bool in_scavenge_pointer_;
@@ -615,6 +637,9 @@ void Scavenger::Scavenge(bool invoke_api_callbacks, const char* gc_reason) {
   }
   Timer timer(FLAG_verbose_gc, "Scavenge");
   timer.Start();
+
+  intptr_t in_use_before = in_use();
+
   // Setup the visitor and run a scavenge.
   ScavengerVisitor visitor(isolate, this);
   Prologue(isolate, invoke_api_callbacks);
@@ -627,10 +652,17 @@ void Scavenger::Scavenge(bool invoke_api_callbacks, const char* gc_reason) {
   ProcessPeerReferents();
   Epilogue(isolate, invoke_api_callbacks);
   timer.Stop();
+
   if (FLAG_verbose_gc) {
-    OS::PrintErr("Scavenge[%d]: %"Pd64"us\n",
+    const intptr_t KB2 = KB / 2;
+    OS::PrintErr("Scavenge[%d]: %"Pd64"us (%"Pd"K -> %"Pd"K, %"Pd"K)\n"
+                 "Promoted %"Pd"K\n",
                  count_,
-                 timer.TotalElapsedTime());
+                 timer.TotalElapsedTime(),
+                 (in_use_before + KB2) / KB,
+                 (in_use() + KB2) / KB,
+                 (capacity() + KB2) / KB,
+                 (visitor.bytes_promoted() + KB2) / KB);
   }
 
   if (FLAG_verify_after_gc) {

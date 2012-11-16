@@ -12,5 +12,7 @@ class VersionCommand extends PubCommand {
   String get usage => 'pub version';
   bool get requiresEntrypoint => false;
 
-  Future onRun() => printVersion();
+  Future onRun() {
+    printVersion();
+  }
 }

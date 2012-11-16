@@ -9,7 +9,7 @@ import '../../../sdk/lib/_internal/compiler/implementation/util/uri_extras.dart'
 
 void testRelativize() {
   void c(String expected, String base, String path, bool isWindows) {
-    if (isWindows === null) {
+    if (isWindows == null) {
       c(expected, base, path, true);
       c(expected, base, path, false);
       return;

@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('Utf8Test');
-#import('dart:utf');
+library utf8_test;
+import 'dart:utf';
 
 String decode(List<int> bytes) => decodeUtf8(bytes);
 
-bool isRunningOnJavaScript() => 1 === 1.0;
+bool isRunningOnJavaScript() => identical(1, 1.0);
 
 main() {
   // Google favorite: "Îñţérñåţîöñåļîžåţîờñ".

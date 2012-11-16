@@ -31,8 +31,8 @@ main() {
     foo(Class[0]); /// 17: compile-time error
     foo(Class[0].field); /// 18: compile-time error
     foo(Class[0].method()); /// 19: compile-time error
-    Class === null; /// 20: compile-time error
-    null === Class; /// 21: compile-time error
+    Class == null; /// 20: compile-time error
+    null == Class; /// 21: compile-time error
     Class[0] = 91; /// 22: compile-time error
     Class++; /// 23: compile-time error
     ++Class; /// 24: compile-time error

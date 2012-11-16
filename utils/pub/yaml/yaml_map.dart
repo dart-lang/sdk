@@ -85,7 +85,7 @@ class _WrappedHashKey {
 int _hashCode(obj, [List parents]) {
   if (parents == null) {
     parents = [];
-  } else if (parents.some((p) => p === obj)) {
+  } else if (parents.some((p) => identical(p, obj))) {
     return -1;
   }
 
