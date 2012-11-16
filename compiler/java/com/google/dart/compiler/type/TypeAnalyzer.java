@@ -1860,7 +1860,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitFunctionExpression(DartFunctionExpression node) {
       node.visitChildren(this);
-      Type result = ((Element) node.getElement()).getType();
+      Type result = node.getElement().getType();
       result.getClass(); // quick null check
       return result;
     }

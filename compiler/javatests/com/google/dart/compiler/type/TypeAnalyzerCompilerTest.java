@@ -5625,4 +5625,20 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors(),
         errEx(ResolverErrorCode.NOT_GENERATIVE_SUPER_CONSTRUCTOR, 8, 9, 13));
   }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6718
+   */
+  public void test_initializerInMethod() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var x;",
+        "  B() : x = (foo() { }) {}",
+        "}",
+        "");
+    assertErrors(result.getErrors(),
+        errEx(ResolverErrorCode.INITIALIZER_ONLY_IN_GENERATIVE_CONSTRUCTOR, 4, 9, 15));
+  }
 }

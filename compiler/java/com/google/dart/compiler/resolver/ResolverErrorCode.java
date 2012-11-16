@@ -127,6 +127,7 @@ public enum ResolverErrorCode implements ErrorCode {
   ILLEGAL_ACCESS_TO_PRIVATE_MEMBER("\"%s\" refers to \"%s\" which is in a different library"),
   ILLEGAL_FIELD_ACCESS_FROM_STATIC("Illegal access of instance field %s from static scope"),
   ILLEGAL_METHOD_ACCESS_FROM_STATIC("Illegal access of instance method %s from static scope"),
+  INITIALIZER_ONLY_IN_GENERATIVE_CONSTRUCTOR("Initializers are allowed only in non-redirecting generative constructors"),
   INIT_FIELD_ONLY_IMMEDIATELY_SURROUNDING_CLASS(
       "Only fields of immediately surrounding class can be initialized"),
   INSTANCE_METHOD_FROM_INITIALIZER("Instance methods cannot be referenced from constructor initializer"),

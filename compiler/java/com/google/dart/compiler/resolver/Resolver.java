@@ -715,9 +715,18 @@ public class Resolver {
       }
       resolve(functionNode.getBody());
 
-      if (Elements.isNonFactoryConstructor(member)
-          && !(body instanceof DartNativeBlock)) {
+      if (Elements.isNonFactoryConstructor(member) && !(body instanceof DartNativeBlock)) {
         resolveInitializers(node, initializedFields);
+      }
+
+      // only generative constructor can have initializers, so resolve them, but report error 
+      if (!member.isConstructor() || member.getModifiers().isFactory()) {
+        for (DartInitializer initializer : node.getInitializers()) {
+          resolve(initializer);
+          if (initializer.getName() != null) {
+            onError(initializer, ResolverErrorCode.INITIALIZER_ONLY_IN_GENERATIVE_CONSTRUCTOR);
+          }
+        }
       }
       
       // resolve redirecting factory constructor
