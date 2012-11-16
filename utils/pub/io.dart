@@ -118,7 +118,7 @@ Future<bool> fileExists(file) {
  * a [File].
  */
 Future<String> readTextFile(file) {
-  return new File(_getPath(file)).readAsText(Encoding.UTF_8);
+  return new File(_getPath(file)).readAsString(Encoding.UTF_8);
 }
 
 /**

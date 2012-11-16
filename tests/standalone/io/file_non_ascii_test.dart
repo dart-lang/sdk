@@ -25,7 +25,7 @@ main() {
             f.fullPath().then((p) {
               Expect.isTrue(p.endsWith('${precomposed}.dat') ||
                             p.endsWith('${decomposed}.dat'));
-              f.readAsText().then((contents) {
+              f.readAsString().then((contents) {
                 Expect.equals(precomposed, contents);
                 port.close();
               });

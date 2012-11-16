@@ -22,6 +22,6 @@ class FileDataReader implements LocaleDataReader {
   /// Read the locale data found for [locale] on our [path].
   Future read(String locale) {
     var file = new File('$path$locale.json');
-    return file.readAsText();
+    return file.readAsString();
   }
 }

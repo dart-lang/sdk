@@ -13,7 +13,7 @@ import 'util.dart';
 void main() {
   // Database of code documentation.
   Map<String, List> database = JSON.parse(
-      new File('output/database.json').readAsTextSync());
+      new File('output/database.json').readAsStringSync());
   final filteredDb = {};
   final obsolete = [];
   for (String type in database.keys) {

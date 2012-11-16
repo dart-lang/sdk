@@ -9,7 +9,7 @@ Map<String, Map> get allProps {
   if (_allProps == null) {
     // Database of expected property names for each type in WebKit.
     _allProps = JSON.parse(
-        new File('data/dartIdl.json').readAsTextSync());
+        new File('data/dartIdl.json').readAsStringSync());
   }
   return _allProps;
 }

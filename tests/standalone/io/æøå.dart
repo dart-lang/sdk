@@ -5,5 +5,5 @@
 import 'dart:io';
 
 main() {
-  Expect.equals('æøå', new File('æøå.dat').readAsTextSync());
+  Expect.equals('æøå', new File('æøå.dat').readAsStringSync());
 }

@@ -85,7 +85,7 @@ void main() {
 
   print('Parsing MDN data...');
   final mdnFile = new File.fromPath(doc.scriptDir.append('mdn/database.json'));
-  final mdn = JSON.parse(mdnFile.readAsTextSync());
+  final mdn = JSON.parse(mdnFile.readAsStringSync());
 
   print('Cross-referencing dart:html...');
   HtmlDiff.initialize(libPath);

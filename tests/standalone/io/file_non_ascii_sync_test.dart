@@ -21,5 +21,5 @@ main() {
   Expect.isTrue(f.fullPathSync().endsWith('${precomposed}.dat') ||
                 f.fullPathSync().endsWith('${decomposed}.dat'));
   // The contents of the file is precomposed utf8.
-  Expect.equals(precomposed, f.readAsTextSync());
+  Expect.equals(precomposed, f.readAsStringSync());
 }

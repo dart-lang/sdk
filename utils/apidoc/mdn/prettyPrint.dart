@@ -52,7 +52,7 @@ int addMissing(StringBuffer sb, String type, Map members) {
 void main() {
   // Database of code documentation.
   final Map<String, Map> database = JSON.parse(
-      new File('output/database.filtered.json').readAsTextSync());
+      new File('output/database.filtered.json').readAsStringSync());
 
   // Types we have documentation for.
   matchedTypes = new Set<String>();

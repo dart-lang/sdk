@@ -23,12 +23,12 @@ fuzzSyncMethods() {
       doItSync(f.fullPathSync);
       doItSync(() => f.openInputStream().onError = (e) => null);
       doItSync(f.readAsBytesSync);
-      doItSync(f.readAsTextSync);
+      doItSync(f.readAsStringSync);
       doItSync(f.readAsLinesSync);
       typeMapping.forEach((k2, v2) {
         doItSync(() => f.openSync(v2));
         doItSync(() => f.openOutputStream(v2).onError = (e) => null);
-        doItSync(() => f.readAsTextSync(v2));
+        doItSync(() => f.readAsStringSync(v2));
         doItSync(() => f.readAsLinesSync(v2));
       });
     });
@@ -50,10 +50,10 @@ fuzzAsyncMethods() {
       futures.add(doItAsync(f.fullPath));
       futures.add(doItAsync(f.readAsBytes));
       futures.add(doItAsync(f.readAsLines));
-      futures.add(doItAsync(f.readAsText));
+      futures.add(doItAsync(f.readAsString));
       typeMapping.forEach((k2, v2) {
         futures.add(doItAsync(() => f.open(v2)));
-        futures.add(doItAsync(() => f.readAsText(v2)));
+        futures.add(doItAsync(() => f.readAsString(v2)));
         futures.add(doItAsync(() => f.readAsLines(v2)));
       });
     });
