@@ -77,7 +77,7 @@ class HttpParserTest {
       dataEndCalled = false;
       method = null;
       uri = null;
-      headers = new Map();
+      headers = null;
       bytesReceived = 0;
     }
 
@@ -222,7 +222,7 @@ class HttpParserTest {
       dataEndClose = null;
       statusCode = -1;
       reasonPhrase = null;
-      headers = new Map();
+      headers = null;
       bytesReceived = 0;
     }
 
