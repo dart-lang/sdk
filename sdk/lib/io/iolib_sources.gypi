@@ -14,6 +14,7 @@
     'file.dart',
     'file_impl.dart',
     'http.dart',
+    'http_headers.dart',
     'http_impl.dart',
     'http_parser.dart',
     'http_session.dart',

@@ -10,6 +10,7 @@ part "../../../sdk/lib/io/chunked_stream.dart";
 part "../../../sdk/lib/io/string_stream.dart";
 part "../../../sdk/lib/io/stream_util.dart";
 part "../../../sdk/lib/io/http.dart";
+part "../../../sdk/lib/io/http_headers.dart";
 part "../../../sdk/lib/io/http_impl.dart";
 part "../../../sdk/lib/io/http_parser.dart";
 part "../../../sdk/lib/io/http_utils.dart";

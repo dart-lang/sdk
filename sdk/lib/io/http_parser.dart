@@ -99,8 +99,6 @@ class _MessageType {
  *
  *   [:requestStart:]
  *   [:responseStart:]
- *   [:headerReceived:]
- *   [:headersComplete:]
  *   [:dataReceived:]
  *   [:dataEnd:]
  *   [:closed:]
@@ -113,7 +111,7 @@ class _MessageType {
  * The connection upgrades (e.g. switching from HTTP/1.1 to the
  * WebSocket protocol) is handled in a special way. If connection
  * upgrade is specified in the headers, then on the callback to
- * [:headersComplete:] the [:upgrade:] property on the [:HttpParser:]
+ * [:responseStart:] the [:upgrade:] property on the [:HttpParser:]
  * object will be [:true:] indicating that from now on the protocol is
  * not HTTP anymore and no more callbacks will happen, that is
  * [:dataReceived:] and [:dataEnd:] are not called in this case as
@@ -289,11 +287,6 @@ class _HttpParser {
           case _State.REQUEST_LINE_ENDING:
             _expect(byte, _CharCode.LF);
             _messageType = _MessageType.REQUEST;
-            requestStart(new String.fromCharCodes(_method_or_status_code),
-                         new String.fromCharCodes(_uri_or_reason_phrase),
-                         version);
-            _method_or_status_code.clear();
-            _uri_or_reason_phrase.clear();
             _state = _State.HEADER_START;
             break;
 
@@ -329,19 +322,14 @@ class _HttpParser {
           case _State.RESPONSE_LINE_ENDING:
             _expect(byte, _CharCode.LF);
             _messageType == _MessageType.RESPONSE;
-            int statusCode = parseInt(new String.fromCharCodes(_method_or_status_code));
-            if (statusCode < 100 || statusCode > 599) {
+             _statusCode = parseInt(new String.fromCharCodes(_method_or_status_code));
+            if (_statusCode < 100 || _statusCode > 599) {
               throw new HttpParserException("Invalid response status code");
             } else {
               // Check whether this response will never have a body.
               _noMessageBody =
-                  statusCode <= 199 || statusCode == 204 || statusCode == 304;
+                  _statusCode <= 199 || _statusCode == 204 || _statusCode == 304;
             }
-            responseStart(statusCode,
-                          new String.fromCharCodes(_uri_or_reason_phrase),
-                          version);
-            _method_or_status_code.clear();
-            _uri_or_reason_phrase.clear();
             _state = _State.HEADER_START;
             break;
 
@@ -411,7 +399,8 @@ class _HttpParser {
                   } else if (token == "upgrade") {
                     _connectionUpgrade = true;
                   }
-                  headerReceived(headerField, token);
+                  _headers.add(headerField, token);
+
                 }
                 reportHeader = false;
               } else if (headerField == "transfer-encoding" &&
@@ -422,7 +411,7 @@ class _HttpParser {
                 _contentLength = -1;
               }
               if (reportHeader) {
-                headerReceived(headerField, headerValue);
+                _headers.add(headerField, headerValue);
               }
               _headerField.clear();
               _headerValue.clear();
@@ -449,9 +438,23 @@ class _HttpParser {
             }
             if (_connectionUpgrade) {
               _state = _State.UPGRADED;
-              headersComplete();
+            }
+            if (_requestParser) {
+              requestStart(new String.fromCharCodes(_method_or_status_code),
+                           new String.fromCharCodes(_uri_or_reason_phrase),
+                           version,
+                           _headers);
             } else {
-              headersComplete();
+              responseStart(_statusCode,
+                            new String.fromCharCodes(_uri_or_reason_phrase),
+                            version,
+                            _headers);
+            }
+            _method_or_status_code.clear();
+            _uri_or_reason_phrase.clear();
+            if (!_connectionUpgrade) {
+              _method_or_status_code.clear();
+              _uri_or_reason_phrase.clear();
               if (_chunked) {
                 _state = _State.CHUNK_SIZE;
                 _remainingContent = 0;
@@ -672,6 +675,8 @@ class _HttpParser {
     _noMessageBody = false;
     _responseToMethod = null;
     _remainingContent = null;
+
+    _headers = new _HttpHeaders();
   }
 
   _releaseBuffer() {
@@ -735,6 +740,7 @@ class _HttpParser {
   int _state;
   int _httpVersionIndex;
   int _messageType;
+  int _statusCode;
   List _method_or_status_code;
   List _uri_or_reason_phrase;
   List _headerField;
@@ -750,11 +756,11 @@ class _HttpParser {
   String _responseToMethod;  // Indicates the method used for the request.
   int _remainingContent;
 
+  _HttpHeaders _headers = new _HttpHeaders();
+
   // Callbacks.
   Function requestStart;
   Function responseStart;
-  Function headerReceived;
-  Function headersComplete;
   Function dataReceived;
   Function dataEnd;
   Function error;

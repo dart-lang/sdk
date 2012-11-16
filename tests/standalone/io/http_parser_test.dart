@@ -5,6 +5,8 @@
 import 'dart:math';
 import 'dart:scalarlist';
 
+part '../../../sdk/lib/io/http.dart';
+part '../../../sdk/lib/io/http_headers.dart';
 part '../../../sdk/lib/io/http_parser.dart';
 
 class HttpParserTest {
@@ -32,20 +34,18 @@ class HttpParserTest {
     String method;
     String uri;
     String version;
-    Map headers;
+    HttpHeaders headers;
     int contentLength;
     int bytesReceived;
 
     void reset() {
       httpParser = new _HttpParser.requestParser();
-      httpParser.requestStart = (m, u, v) { method = m; uri = u; version = v; };
-      httpParser.responseStart = (s, r, v) { Expect.fail("Expected request"); };
-      httpParser.headerReceived = (f, v) {
-        Expect.isFalse(headersCompleteCalled);
-        headers[f] = v;
-      };
-      httpParser.headersComplete = () {
-        Expect.isFalse(headersCompleteCalled);
+      httpParser.requestStart = (m, u, v, h) {
+        method = m;
+        uri = u;
+        version = v;
+        headers = h;
+        headersCompleteCalled = true;
         if (!chunked) {
           Expect.equals(expectedContentLength, httpParser.contentLength);
         } else {
@@ -54,11 +54,14 @@ class HttpParserTest {
         if (expectedHeaders != null) {
           expectedHeaders.forEach(
               (String name, String value) =>
-                  Expect.equals(value, headers[name]));
+              Expect.equals(value, headers[name][0]));
         }
         Expect.equals(upgrade, httpParser.upgrade);
         Expect.equals(connectionClose, !httpParser.persistentConnection);
         headersCompleteCalled = true;
+      };
+      httpParser.responseStart = (s, r, v, h) {
+        Expect.fail("Expected request");
       };
       httpParser.dataReceived = (List<int> data) {
         Expect.isTrue(headersCompleteCalled);
@@ -173,7 +176,7 @@ class HttpParserTest {
     int statusCode;
     String reasonPhrase;
     String version;
-    Map headers;
+    HttpHeaders headers;
     int contentLength;
     int bytesReceived;
 
@@ -182,17 +185,14 @@ class HttpParserTest {
       if (responseToMethod != null) {
         httpParser.responseToMethod = responseToMethod;
       }
-      httpParser.requestStart = (m, u, v) => Expect.fail("Expected response");
-      httpParser.responseStart = (s, r, v) {
+      httpParser.requestStart = (m, u, v, h) {
+        Expect.fail("Expected response");
+      };
+      httpParser.responseStart = (s, r, v, h) {
         statusCode = s;
         reasonPhrase = r;
         version = v;
-      };
-      httpParser.headerReceived = (f, v) {
-        Expect.isFalse(headersCompleteCalled);
-        headers[f] = v;
-      };
-      httpParser.headersComplete = () {
+        headers = h;
         Expect.isFalse(headersCompleteCalled);
         if (!chunked && !close) {
           Expect.equals(expectedContentLength, httpParser.contentLength);
@@ -201,7 +201,7 @@ class HttpParserTest {
         }
         if (expectedHeaders != null) {
           expectedHeaders.forEach((String name, String value) {
-            Expect.equals(value, headers[name]);
+            Expect.equals(value, headers[name][0]);
           });
         }
         Expect.equals(upgrade, httpParser.upgrade);
@@ -325,7 +325,9 @@ class HttpParserTest {
     });
 
     request = "GET / HTTP/1.0\r\n\r\n";
-    _testParseRequest(request, "GET", "/", expectedVersion: "1.0", connectionClose: true);
+    _testParseRequest(request, "GET", "/",
+                      expectedVersion: "1.0",
+                      connectionClose: true);
 
     request = "GET / HTTP/1.0\r\nConnection: keep-alive\r\n\r\n";
     _testParseRequest(request, "GET", "/", expectedVersion: "1.0");
@@ -588,7 +590,8 @@ Sec-WebSocket-Version: 13\r
                        expectedContentLength: 10,
                        expectedBytesReceived: 0);
 
-    response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: Close\r\n\r\n";
+    response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n"
+               "Connection: Close\r\n\r\n";
     _testParseResponse(response,
                        200,
                        "OK",
@@ -603,8 +606,13 @@ Sec-WebSocket-Version: 13\r
                        expectedVersion: "1.0",
                        connectionClose: true);
 
-    response = "HTTP/1.0 200 OK\r\nContent-Length: 0\r\nConnection: Keep-Alive\r\n\r\n";
-    _testParseResponse(response, 200, "OK", expectedContentLength: 0, expectedVersion: "1.0");
+    response = "HTTP/1.0 200 OK\r\nContent-Length: 0\r\n"
+               "Connection: Keep-Alive\r\n\r\n";
+    _testParseResponse(response,
+                       200,
+                       "OK",
+                       expectedContentLength: 0,
+                       expectedVersion: "1.0");
 
     response = "HTTP/1.1 204 No Content\r\nContent-Length: 11\r\n\r\n";
     _testParseResponse(response,
