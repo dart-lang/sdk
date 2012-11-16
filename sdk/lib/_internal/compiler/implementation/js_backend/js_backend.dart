@@ -23,4 +23,5 @@ part 'constant_system_javascript.dart';
 part 'emitter.dart';
 part 'emitter_no_eval.dart';
 part 'namer.dart';
+part 'minify_namer.dart';
 part 'native_emitter.dart';

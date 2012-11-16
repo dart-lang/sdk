@@ -8,8 +8,6 @@ part of js_backend;
  * Assigns JavaScript identifiers to Dart variables, class-names and members.
  */
 class Namer {
-  final Compiler compiler;
-
   static Set<String> _jsReserved = null;
   Set<String> get jsReserved {
     if (_jsReserved == null) {
@@ -20,32 +18,44 @@ class Namer {
     return _jsReserved;
   }
 
+  final String CURRENT_ISOLATE = r'$';
+
   /**
    * Map from top-level or static elements to their unique identifiers provided
    * by [getName].
    *
    * Invariant: Keys must be declaration elements.
    */
+  final Compiler compiler;
   final Map<Element, String> globals;
-  final Map<String, int> usedGlobals;
   final Map<String, LibraryElement> shortPrivateNameOwners;
+  final Set<String> usedGlobalNames;
+  final Set<String> usedInstanceNames;
+  final Map<String, String> instanceNameMap;
+  final Map<String, String> globalNameMap;
+  final Map<String, int> popularNameCounters;
 
   final Map<Constant, String> constantNames;
 
   Namer(this.compiler)
       : globals = new Map<Element, String>(),
-        usedGlobals = new Map<String, int>(),
         shortPrivateNameOwners = new Map<String, LibraryElement>(),
-        constantNames = new Map<Constant, String>();
+        usedGlobalNames = new Set<String>(),
+        usedInstanceNames = new Set<String>(),
+        instanceNameMap = new Map<String, String>(),
+        globalNameMap = new Map<String, String>(),
+        constantNames = new Map<Constant, String>(),
+        popularNameCounters = new Map<String, int>();
 
-  final String CURRENT_ISOLATE = r'$';
-  final String ISOLATE = 'Isolate';
-  final String ISOLATE_PROPERTIES = r"$isolateProperties";
+  String get ISOLATE => 'Isolate';
+  String get ISOLATE_PROPERTIES => r'$isolateProperties';
   /** Some closures must contain their name. The name is stored in
     * [STATIC_CLOSURE_NAME_NAME]. */
-  final String STATIC_CLOSURE_NAME_NAME = r'$name';
-  static const SourceString CLOSURE_INVOCATION_NAME =
-      Compiler.CALL_OPERATOR_NAME;
+  String get STATIC_CLOSURE_NAME_NAME => r'$name';
+  SourceString get CLOSURE_INVOCATION_NAME => Compiler.CALL_OPERATOR_NAME;
+  bool get shouldMinify => false;
+
+  bool isReserved(String name) => name == ISOLATE;
 
   String constantName(Constant constant) {
     // In the current implementation it doesn't make sense to give names to
@@ -54,16 +64,30 @@ class Namer {
     assert(!constant.isFunction());
     String result = constantNames[constant];
     if (result == null) {
-      result = getFreshGlobalName("CTC");
+      String longName;
+      if (shouldMinify) {
+        if (constant.isString()) {
+          StringConstant stringConstant = constant;
+          // The minifier never returns the same string as we suggested so we
+          // can suggest any name and it will use it as input to the hashing
+          // algorithm.  This means that constants will tend to have the same
+          // name from version to version of the program being minfied.
+          longName = stringConstant.value.slowToString();
+        } else {
+          longName = "C";
+        }
+      } else {
+        longName = "CTC";
+      }
+      result = getFreshName(longName, usedGlobalNames);
       constantNames[constant] = result;
     }
     return result;
   }
 
   String closureInvocationName(Selector selector) {
-    // TODO(floitsch): mangle, while not conflicting with instance names.
-    return instanceMethodInvocationName(null, CLOSURE_INVOCATION_NAME,
-                                        selector);
+    return
+        instanceMethodInvocationName(null, CLOSURE_INVOCATION_NAME, selector);
   }
 
   String breakLabelName(LabelElement label) {
@@ -89,6 +113,7 @@ class Namer {
    * mangles the [name] so that each library has a unique name.
    */
   String privateName(LibraryElement lib, SourceString name) {
+    String result;
     if (name.isPrivate()) {
       String nameString = name.slowToString();
       // The first library asking for a short private name wins.
@@ -97,17 +122,22 @@ class Namer {
       // If a private name could clash with a mangled private name we don't
       // use the short name. For example a private name "_lib3_foo" would
       // clash with "_foo" from "lib3".
-      if (identical(owner, lib) && !nameString.startsWith('_$LIBRARY_PREFIX')) {
-        return nameString;
+      if (owner == lib &&
+          !nameString.startsWith('_$LIBRARY_PREFIX') &&
+          !shouldMinify) {
+        result = nameString;
+      } else {
+        String libName = getName(lib);
+        // If a library name does not start with the [LIBRARY_PREFIX] then our
+        // assumptions about clashing with mangled private members do not hold.
+        assert(shouldMinify || libName.startsWith(LIBRARY_PREFIX));
+        // TODO(erikcorry): Fix this with other manglings to avoid clashes.
+        result = '_lib$libName\$$nameString';
       }
-      String libName = getName(lib);
-      // If a library name does not start with the [LIBRARY_PREFIX] then our
-      // assumptions about clashing with mangled private members do not hold.
-      assert(libName.startsWith(LIBRARY_PREFIX));
-      return '_$libName$nameString';
     } else {
-      return name.slowToString();
+      result = name.slowToString();
     }
+    return result;
   }
 
   String instanceMethodName(FunctionElement element) {
@@ -120,21 +150,27 @@ class Namer {
     FunctionSignature signature = element.computeSignature(compiler);
     String methodName =
         '${privateName(lib, name)}\$${signature.parameterCount}';
-    if (!signature.optionalParametersAreNamed) {
-      return methodName;
-    } else if (!signature.optionalParameters.isEmpty) {
+    if (signature.optionalParametersAreNamed &&
+        !signature.optionalParameters.isEmpty) {
       StringBuffer buffer = new StringBuffer();
       signature.orderedOptionalParameters.forEach((Element element) {
         buffer.add('\$${JsNames.getValid(element.name.slowToString())}');
       });
-      return '$methodName$buffer';
+      methodName = '$methodName$buffer';
     }
+    if (name == CLOSURE_INVOCATION_NAME) return methodName;
+    return getMappedInstanceName(methodName);
   }
 
   String publicInstanceMethodNameByArity(SourceString name, int arity) {
     name = Elements.operatorNameToIdentifier(name);
     assert(!name.isPrivate());
-    return '${name.slowToString()}\$$arity';
+    var base = name.slowToString();
+    // We don't mangle the closure invoking function name because it is
+    // generated in applyFunction.
+    var proposedName = '$base\$$arity';
+    if (base == CLOSURE_INVOCATION_NAME) return proposedName;
+    return getMappedInstanceName(proposedName);
   }
 
   String instanceMethodInvocationName(LibraryElement lib, SourceString name,
@@ -147,12 +183,16 @@ class Namer {
       buffer.add(r'$');
       argumentName.printOn(buffer);
     }
-    return '${privateName(lib, name)}\$${selector.argumentCount}$buffer';
+    if (name == CLOSURE_INVOCATION_NAME) {
+      return '$CLOSURE_INVOCATION_NAME\$${selector.argumentCount}$buffer';
+    }
+    return getMappedInstanceName(
+        '${privateName(lib, name)}\$${selector.argumentCount}$buffer');
   }
 
   String instanceFieldName(LibraryElement libraryElement, SourceString name) {
     String proposedName = privateName(libraryElement, name);
-    return safeName(proposedName);
+    return getMappedInstanceName(proposedName);
   }
 
   String shadowedFieldName(Element fieldElement) {
@@ -161,45 +201,71 @@ class Namer {
     String libName = getName(libraryElement);
     String clsName = getName(cls);
     String instanceName = instanceFieldName(libraryElement, fieldElement.name);
-    return safeName('$libName\$$clsName\$$instanceName');
+    return getMappedInstanceName('$libName\$$clsName\$$instanceName');
   }
 
   String setterName(LibraryElement lib, SourceString name) {
     // We dynamically create setters from the field-name. The setter name must
     // therefore be derived from the instance field-name.
-    String fieldName = safeName(privateName(lib, name));
+    String fieldName = getMappedInstanceName(privateName(lib, name));
     return 'set\$$fieldName';
   }
 
   String publicGetterName(SourceString name) {
     // We dynamically create getters from the field-name. The getter name must
     // therefore be derived from the instance field-name.
-    String fieldName = safeName(name.slowToString());
+    String fieldName = getMappedInstanceName(name.slowToString());
     return 'get\$$fieldName';
   }
 
   String getterName(LibraryElement lib, SourceString name) {
     // We dynamically create getters from the field-name. The getter name must
     // therefore be derived from the instance field-name.
-    String fieldName = safeName(privateName(lib, name));
+    String fieldName = getMappedInstanceName(privateName(lib, name));
     return 'get\$$fieldName';
   }
 
-  String getFreshGlobalName(String proposedName) {
-    String name = proposedName;
-    int count = usedGlobals[name];
-    if (count != null) {
-      // Not the first time we see this name. Append a number to make it unique.
-      do {
-        name = '$proposedName${count++}';
-      } while (usedGlobals[name] != null);
-      // Record the count in case we see this name later. We
-      // frequently see names multiple times, as all our closures use
-      // the same name for their class.
-      usedGlobals[proposedName] = count;
+  String publicSetterName(SourceString name) {
+    // We dynamically create setter from the field-name. The setter name must
+    // therefore be derived from the instance field-name.
+    String fieldName = name.slowToString();
+    return 'set\$$fieldName';
+  }
+
+  String getMappedGlobalName(String proposedName) {
+    var newName = globalNameMap[proposedName];
+    if (newName == null) {
+      newName = getFreshName(proposedName, usedGlobalNames);
+      globalNameMap[proposedName] = newName;
     }
-    usedGlobals[name] = 0;
-    return name;
+    return newName;
+  }
+
+  String getMappedInstanceName(String proposedName) {
+    var newName = instanceNameMap[proposedName];
+    if (newName == null) {
+      newName = getFreshName(proposedName, usedInstanceNames);
+      instanceNameMap[proposedName] = newName;
+    }
+    return newName;
+  }
+
+  String getFreshName(String proposedName, Set<String> usedNames) {
+    var candidate;
+    proposedName = safeName(proposedName);
+    if (!usedNames.contains(proposedName)) {
+      candidate = proposedName;
+    } else {
+      var counter = popularNameCounters[proposedName];
+      var i = counter == null ? 0 : counter;
+      while (usedNames.contains("$proposedName$i")) {
+        i++;
+      }
+      popularNameCounters[proposedName] = i + 1;
+      candidate = "$proposedName$i";
+    }
+    usedNames.add(candidate);
+    return candidate;
   }
 
   static const String LIBRARY_PREFIX = "lib";
@@ -227,17 +293,23 @@ class Namer {
       } else {
         name = element.name.slowToString();
       }
-    } else if (identical(element.kind, ElementKind.LIBRARY)) {
+    } else if (element.isLibrary()) {
       name = LIBRARY_PREFIX;
     } else {
       name = element.name.slowToString();
     }
     // Prefix the name with '$' if it is reserved.
-    return safeName(name);
+    return name;
   }
 
   String getBailoutName(Element element) {
-    return '${getName(element)}\$bailout';
+    bool global = !element.isInstanceMember();
+    var unminifiedName = '${getName(element)}\$bailout';
+    if (global) {
+      return getMappedGlobalName(unminifiedName);
+    } else {
+      return getMappedInstanceName(unminifiedName);
+    }
   }
 
   /**
@@ -276,17 +348,25 @@ class Namer {
       if (identical(kind, ElementKind.VARIABLE) ||
           identical(kind, ElementKind.PARAMETER)) {
         // The name is not guaranteed to be unique.
-        return guess;
+        return safeName(guess);
       }
-      if (identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR) ||
-          identical(kind, ElementKind.FUNCTION) ||
-          identical(kind, ElementKind.CLASS) ||
-          identical(kind, ElementKind.FIELD) ||
-          identical(kind, ElementKind.GETTER) ||
-          identical(kind, ElementKind.SETTER) ||
-          identical(kind, ElementKind.TYPEDEF) ||
-          identical(kind, ElementKind.LIBRARY)) {
-        String result = getFreshGlobalName(guess);
+      if (kind == ElementKind.GENERATIVE_CONSTRUCTOR ||
+          kind == ElementKind.FUNCTION ||
+          kind == ElementKind.CLASS ||
+          kind == ElementKind.FIELD ||
+          kind == ElementKind.GETTER ||
+          kind == ElementKind.SETTER ||
+          kind == ElementKind.TYPEDEF ||
+          kind == ElementKind.LIBRARY) {
+        bool isNative = false;
+        if (identical(kind, ElementKind.CLASS)) {
+          ClassElement class_elt = element;
+          isNative = class_elt.isNative();
+        }
+        if (Elements.isInstanceField(element)) {
+          isNative = element.isNative();
+        }
+        String result = isNative ? guess : getFreshName(guess, usedGlobalNames);
         globals[element] = result;
         return result;
       }
@@ -296,9 +376,8 @@ class Namer {
   }
 
   String getLazyInitializerName(Element element) {
-    // TODO(floitsch): mangle while not conflicting with other statics.
     assert(Elements.isStaticOrTopLevelField(element));
-    return "get\$${getName(element)}";
+    return getMappedGlobalName("get\$${getName(element)}");
   }
 
   String isolatePropertiesAccess(Element element) {
@@ -314,7 +393,8 @@ class Namer {
   }
 
   String isolateBailoutAccess(Element element) {
-    return '${isolateAccess(element)}\$bailout';
+    String newName = getMappedGlobalName('${getName(element)}\$bailout');
+    return '$CURRENT_ISOLATE.$newName';
   }
 
   String isolateLazyInitializerAccess(Element element) {
@@ -322,6 +402,7 @@ class Namer {
   }
 
   String operatorIs(Element element) {
+    // TODO(erikcorry): Reduce from is$x to ix when we are minifying.
     return 'is\$${getName(element)}';
   }
 

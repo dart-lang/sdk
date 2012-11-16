@@ -690,10 +690,8 @@ class JavaScriptBackend extends Backend {
     return <CompilerTask>[builder, optimizer, generator, emitter];
   }
 
-  JavaScriptBackend(Compiler compiler,
-                    bool generateSourceMap,
-                    bool disableEval)
-      : namer = new Namer(compiler),
+  JavaScriptBackend(Compiler compiler, bool generateSourceMap, bool disableEval)
+      : namer = determineNamer(compiler),
         returnInfo = new Map<Element, ReturnInfo>(),
         invalidateAfterCodegen = new List<Element>(),
         interceptors = new Interceptors(compiler),
@@ -708,6 +706,12 @@ class JavaScriptBackend extends Backend {
     generator = new SsaCodeGeneratorTask(this);
     argumentTypes = new ArgumentTypesRegistry(this);
     fieldTypes = new FieldTypesRegistry(this);
+  }
+
+  static Namer determineNamer(Compiler compiler) {
+    return compiler.enableMinification ?
+        new MinifyNamer(compiler) :
+        new Namer(compiler);
   }
 
   bool isInterceptorClass(Element element) {
