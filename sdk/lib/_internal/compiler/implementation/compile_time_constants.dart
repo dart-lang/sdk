@@ -134,7 +134,7 @@ class ConstantHandler extends CompilerTask {
             && element.isField()) {
           DartType elementType = element.computeType(compiler);
           DartType constantType = value.computeType(compiler);
-          if (!compiler.types.isSubtype(constantType, elementType)) {
+          if (!constantSystem.isSubtype(compiler, constantType, elementType)) {
             if (isConst) {
               MessageKind kind = MessageKind.NOT_ASSIGNABLE;
               compiler.reportError(node, new CompileTimeConstantError(
