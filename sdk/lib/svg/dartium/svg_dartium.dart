@@ -498,8 +498,6 @@ class SVGAnimatedLengthList extends NativeFieldWrapperClass1 implements List<SVG
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGAnimatedLength get first => this[0];
-
   SVGAnimatedLength get last => this[length - 1];
 
   SVGAnimatedLength removeLast() {
@@ -626,8 +624,6 @@ class SVGAnimatedNumberList extends NativeFieldWrapperClass1 implements List<SVG
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
-
-  SVGAnimatedNumber get first => this[0];
 
   SVGAnimatedNumber get last => this[length - 1];
 
@@ -795,8 +791,6 @@ class SVGAnimatedTransformList extends NativeFieldWrapperClass1 implements List<
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
-
-  SVGAnimateTransformElement get first => this[0];
 
   SVGAnimateTransformElement get last => this[length - 1];
 
@@ -3862,8 +3856,6 @@ class SVGLengthList extends NativeFieldWrapperClass1 implements List<SVGLength> 
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGLength get first => this[0];
-
   SVGLength get last => this[length - 1];
 
   SVGLength removeLast() {
@@ -4510,8 +4502,6 @@ class SVGNumberList extends NativeFieldWrapperClass1 implements List<SVGNumber> 
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
-
-  SVGNumber get first => this[0];
 
   SVGNumber get last => this[length - 1];
 
@@ -5579,8 +5569,6 @@ class SVGPathSegList extends NativeFieldWrapperClass1 implements List<SVGPathSeg
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
-
-  SVGPathSeg get first => this[0];
 
   SVGPathSeg get last => this[length - 1];
 
@@ -6736,8 +6724,6 @@ class SVGStringList extends NativeFieldWrapperClass1 implements List<String> {
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  String get first => this[0];
-
   String get last => this[length - 1];
 
   String removeLast() {
@@ -7469,8 +7455,6 @@ class SVGTransformList extends NativeFieldWrapperClass1 implements List<SVGTrans
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGTransform get first => this[0];
-
   SVGTransform get last => this[length - 1];
 
   SVGTransform removeLast() {
@@ -7953,8 +7937,6 @@ class _SVGElementInstanceList extends NativeFieldWrapperClass1 implements List<S
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
-
-  SVGElementInstance get first => this[0];
 
   SVGElementInstance get last => this[length - 1];
 

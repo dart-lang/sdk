@@ -57,8 +57,6 @@ $endif
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  $E get first => this[0];
-
   $E get last => this[length - 1];
 
   $E removeLast() {

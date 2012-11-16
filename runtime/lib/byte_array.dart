@@ -206,10 +206,6 @@ abstract class _ByteArrayBase {
         "Cannot remove from a non-extendable array");
   }
 
-  get first {
-    return this[0];
-  }
-
   get last {
     return this[length - 1];
   }
@@ -1686,10 +1682,6 @@ class _ByteArrayViewBase {
   int removeLast() {
     throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
-  }
-
-  get first {
-    return this[0];
   }
 
   get last {

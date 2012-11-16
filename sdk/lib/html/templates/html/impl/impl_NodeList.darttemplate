@@ -52,8 +52,6 @@ class _ListWrapper<E> implements List<E> {
 
   E removeLast() => _list.removeLast();
 
-  E get first => _list.first;
-
   E get last => _list.last;
 
   List<E> getRange(int start, int rangeLength) =>
@@ -67,6 +65,8 @@ class _ListWrapper<E> implements List<E> {
 
   void insertRange(int start, int rangeLength, [E initialValue = null]) =>
     _list.insertRange(start, rangeLength, initialValue);
+
+  E get first => _list[0];
 }
 
 /**

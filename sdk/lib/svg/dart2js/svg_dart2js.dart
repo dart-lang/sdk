@@ -374,8 +374,6 @@ class SVGAnimatedLengthList implements JavaScriptIndexingBehavior, List<SVGAnima
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGAnimatedLength get first => this[0];
-
   SVGAnimatedLength get last => this[length - 1];
 
   SVGAnimatedLength removeLast() {
@@ -486,8 +484,6 @@ class SVGAnimatedNumberList implements JavaScriptIndexingBehavior, List<SVGAnima
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
-
-  SVGAnimatedNumber get first => this[0];
 
   SVGAnimatedNumber get last => this[length - 1];
 
@@ -627,8 +623,6 @@ class SVGAnimatedTransformList implements JavaScriptIndexingBehavior, List<SVGAn
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
-
-  SVGAnimateTransformElement get first => this[0];
 
   SVGAnimateTransformElement get last => this[length - 1];
 
@@ -3056,8 +3050,6 @@ class SVGLengthList implements JavaScriptIndexingBehavior, List<SVGLength> nativ
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGLength get first => this[0];
-
   SVGLength get last => this[length - 1];
 
   SVGLength removeLast() {
@@ -3546,8 +3538,6 @@ class SVGNumberList implements JavaScriptIndexingBehavior, List<SVGNumber> nativ
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
-
-  SVGNumber get first => this[0];
 
   SVGNumber get last => this[length - 1];
 
@@ -4207,8 +4197,6 @@ class SVGPathSegList implements JavaScriptIndexingBehavior, List<SVGPathSeg> nat
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
-
-  SVGPathSeg get first => this[0];
 
   SVGPathSeg get last => this[length - 1];
 
@@ -5079,8 +5067,6 @@ class SVGStringList implements JavaScriptIndexingBehavior, List<String> native "
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  String get first => this[0];
-
   String get last => this[length - 1];
 
   String removeLast() {
@@ -5645,8 +5631,6 @@ class SVGTransformList implements JavaScriptIndexingBehavior, List<SVGTransform>
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGTransform get first => this[0];
-
   SVGTransform get last => this[length - 1];
 
   SVGTransform removeLast() {
@@ -6024,8 +6008,6 @@ class _SVGElementInstanceList implements JavaScriptIndexingBehavior, List<SVGEle
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
-
-  SVGElementInstance get first => this[0];
 
   SVGElementInstance get last => this[length - 1];
 

@@ -123,12 +123,6 @@ interface List<E> extends Collection<E>, Sequence<E>
   E removeLast();
 
   /**
-   * Returns the first element of the list, or throws an out of bounds
-   * exception if the list is empty.
-   */
-  E get first;
-
-  /**
    * Returns the last element of the list, or throws an out of bounds
    * exception if the list is empty.
    */

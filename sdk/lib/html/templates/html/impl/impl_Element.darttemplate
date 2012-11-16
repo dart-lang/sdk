@@ -145,11 +145,6 @@ class _ChildrenElementList implements List {
     return result;
   }
 
-  Element get first {
-    return _element.$dom_firstElementChild;
-  }
-
-
   Element get last {
     return _element.$dom_lastElementChild;
   }
@@ -163,6 +158,10 @@ class _FrozenElementList implements List {
   final List<Node> _nodeList;
 
   _FrozenElementList._wrap(this._nodeList);
+
+  Element get first {
+    return _nodeList[0];
+  }
 
   bool contains(Element element) {
     for (Element el in this) {
@@ -271,8 +270,6 @@ class _FrozenElementList implements List {
   Element removeLast() {
     throw new UnsupportedError('');
   }
-
-  Element get first => _nodeList.first;
 
   Element get last => _nodeList.last;
 }

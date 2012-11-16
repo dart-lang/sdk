@@ -117,7 +117,6 @@ class SequenceList<E> extends SequenceCollection<E> implements List<E> {
     return -1;
   }
 
-  E get first => sequence[0];
   E get last => sequence[sequence.length - 1];
 
   List<E> getRange(int start, int length) {
