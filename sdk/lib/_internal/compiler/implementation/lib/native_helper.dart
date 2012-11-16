@@ -42,7 +42,6 @@ String typeNameInOpera(obj) {
 String typeNameInFirefox(obj) {
   String name = JS('String', '#', constructorNameFallback(obj));
   if (name == 'Window') return 'DOMWindow';
-  if (name == 'Document') return 'HTMLDocument';
   if (name == 'XMLDocument') return 'Document';
   if (name == 'WorkerMessageEvent') return 'MessageEvent';
   if (name == 'DragEvent') return 'MouseEvent';

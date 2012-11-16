@@ -17,25 +17,24 @@ import 'dart:svg' as svg;
 
 
 
-// FIXME (blois): Rename to _window (ditto __document).
-LocalWindow __window;
+LocalWindow _window;
 
 LocalWindow get window {
-  if (__window != null) {
-    return __window;
+  if (_window != null) {
+    return _window;
   }
-  __window = _Utils.window();
-  return __window;
+  _window = _Utils.window();
+  return _window;
 }
 
-Document __document;
+HtmlDocument _document;
 
-Document get document {
-  if (__document != null) {
-    return __document;
+HtmlDocument get document {
+  if (_document != null) {
+    return _document;
   }
-  __document = window.document;
-  return __document;
+  _document = window.document;
+  return _document;
 }
 
 
@@ -6878,7 +6877,7 @@ class DOMImplementation extends NativeFieldWrapperClass1 {
 
 
   /** @domName DOMImplementation.createHTMLDocument */
-  Document createHTMLDocument(String title) native "DOMImplementation_createHTMLDocument_Callback";
+  HtmlDocument createHTMLDocument(String title) native "DOMImplementation_createHTMLDocument_Callback";
 
 
   /** @domName DOMImplementation.hasFeature */
@@ -8003,7 +8002,7 @@ class DivElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 
-class Document extends Node
+class Document extends Node 
 {
 
   Document.internal(): super.internal();
@@ -8014,16 +8013,13 @@ class Document extends Node
   DocumentEvents get on =>
     new DocumentEvents(this);
 
-  /** @domName HTMLDocument.activeElement */
-  Element get activeElement;
+
+  /** @domName Document.body */
+  Element get $dom_body native "Document_body_Getter";
 
 
   /** @domName Document.body */
-  Element get body native "Document_body_Getter";
-
-
-  /** @domName Document.body */
-  void set body(Element value) native "Document_body_Setter";
+  void set $dom_body(Element value) native "Document_body_Setter";
 
 
   /** @domName Document.charset */
@@ -8055,7 +8051,7 @@ class Document extends Node
 
 
   /** @domName Document.head */
-  HeadElement get head native "Document_head_Getter";
+  HeadElement get $dom_head native "Document_head_Getter";
 
 
   /** @domName Document.implementation */
@@ -8063,7 +8059,7 @@ class Document extends Node
 
 
   /** @domName Document.lastModified */
-  String get lastModified native "Document_lastModified_Getter";
+  String get $dom_lastModified native "Document_lastModified_Getter";
 
 
   /** @domName Document.preferredStylesheetSet */
@@ -8075,7 +8071,7 @@ class Document extends Node
 
 
   /** @domName Document.referrer */
-  String get referrer native "Document_referrer_Getter";
+  String get $dom_referrer native "Document_referrer_Getter";
 
 
   /** @domName Document.selectedStylesheetSet */
@@ -8087,51 +8083,43 @@ class Document extends Node
 
 
   /** @domName Document.styleSheets */
-  List<StyleSheet> get styleSheets native "Document_styleSheets_Getter";
+  List<StyleSheet> get $dom_styleSheets native "Document_styleSheets_Getter";
 
 
   /** @domName Document.title */
-  String get title native "Document_title_Getter";
+  String get $dom_title native "Document_title_Getter";
 
 
   /** @domName Document.title */
-  void set title(String value) native "Document_title_Setter";
-
-
-  /** @domName Document.webkitCurrentFullScreenElement */
-  Element get webkitCurrentFullScreenElement native "Document_webkitCurrentFullScreenElement_Getter";
-
-
-  /** @domName Document.webkitFullScreenKeyboardInputAllowed */
-  bool get webkitFullScreenKeyboardInputAllowed native "Document_webkitFullScreenKeyboardInputAllowed_Getter";
+  void set $dom_title(String value) native "Document_title_Setter";
 
 
   /** @domName Document.webkitFullscreenElement */
-  Element get webkitFullscreenElement native "Document_webkitFullscreenElement_Getter";
+  Element get $dom_webkitFullscreenElement native "Document_webkitFullscreenElement_Getter";
 
 
   /** @domName Document.webkitFullscreenEnabled */
-  bool get webkitFullscreenEnabled native "Document_webkitFullscreenEnabled_Getter";
+  bool get $dom_webkitFullscreenEnabled native "Document_webkitFullscreenEnabled_Getter";
 
 
   /** @domName Document.webkitHidden */
-  bool get webkitHidden native "Document_webkitHidden_Getter";
+  bool get $dom_webkitHidden native "Document_webkitHidden_Getter";
 
 
   /** @domName Document.webkitIsFullScreen */
-  bool get webkitIsFullScreen native "Document_webkitIsFullScreen_Getter";
+  bool get $dom_webkitIsFullScreen native "Document_webkitIsFullScreen_Getter";
 
 
   /** @domName Document.webkitPointerLockElement */
-  Element get webkitPointerLockElement native "Document_webkitPointerLockElement_Getter";
+  Element get $dom_webkitPointerLockElement native "Document_webkitPointerLockElement_Getter";
 
 
   /** @domName Document.webkitVisibilityState */
-  String get webkitVisibilityState native "Document_webkitVisibilityState_Getter";
+  String get $dom_webkitVisibilityState native "Document_webkitVisibilityState_Getter";
 
 
   /** @domName Document.caretRangeFromPoint */
-  Range caretRangeFromPoint(int x, int y) native "Document_caretRangeFromPoint_Callback";
+  Range $dom_caretRangeFromPoint(int x, int y) native "Document_caretRangeFromPoint_Callback";
 
 
   /** @domName Document.createCDATASection */
@@ -8171,7 +8159,7 @@ class Document extends Node
 
 
   /** @domName Document.elementFromPoint */
-  Element elementFromPoint(int x, int y) native "Document_elementFromPoint_Callback";
+  Element $dom_elementFromPoint(int x, int y) native "Document_elementFromPoint_Callback";
 
 
   /** @domName Document.execCommand */
@@ -8227,15 +8215,15 @@ class Document extends Node
 
 
   /** @domName Document.webkitCancelFullScreen */
-  void webkitCancelFullScreen() native "Document_webkitCancelFullScreen_Callback";
+  void $dom_webkitCancelFullScreen() native "Document_webkitCancelFullScreen_Callback";
 
 
   /** @domName Document.webkitExitFullscreen */
-  void webkitExitFullscreen() native "Document_webkitExitFullscreen_Callback";
+  void $dom_webkitExitFullscreen() native "Document_webkitExitFullscreen_Callback";
 
 
   /** @domName Document.webkitExitPointerLock */
-  void webkitExitPointerLock() native "Document_webkitExitPointerLock_Callback";
+  void $dom_webkitExitPointerLock() native "Document_webkitExitPointerLock_Callback";
 
   // TODO(jacobr): implement all Element methods not on Document.
 
@@ -11945,6 +11933,92 @@ class HeadingElement extends _Element_Merged {
   /** @domName HTMLHeadingElement.align */
   void set align(String value) native "HTMLHeadingElement_align_Setter";
 
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+class HtmlDocument extends Document {
+  HtmlDocument.internal(): super.internal();
+
+
+  /** @domName HTMLDocument.activeElement */
+  Element get activeElement native "HTMLDocument_activeElement_Getter";
+
+  /** @domName Document.body */
+  BodyElement get body => document.$dom_body;
+
+  /** @domName Document.body */
+  void set body(BodyElement value) {
+    document.$dom_body = value;
+  }
+
+  /** @domName Document.caretRangeFromPoint */
+  Range caretRangeFromPoint(int x, int y) {
+    return document.$dom_caretRangeFromPoint(x, y);
+  }
+
+  /** @domName Document.elementFromPoint */
+  Element elementFromPoint(int x, int y) {
+    return document.$dom_elementFromPoint(x, y);
+  }
+
+  /** @domName Document.head */
+  HeadElement get head => document.$dom_head;
+
+  /** @domName Document.lastModified */
+  String get lastModified => document.$dom_lastModified;
+
+  /** @domName Document.referrer */
+  String get referrer => document.$dom_referrer;
+
+  /** @domName Document.styleSheets */
+  List<StyleSheet> get styleSheets => document.$dom_styleSheets;
+
+  /** @domName Document.title */
+  String get title => document.$dom_title;
+
+  /** @domName Document.title */
+  void set title(String value) {
+    document.$dom_title = value;
+  }
+
+  /** @domName Document.webkitCancelFullScreen */
+  void webkitCancelFullScreen() {
+    document.$dom_webkitCancelFullScreen();
+  }
+
+  /** @domName Document.webkitExitFullscreen */
+  void webkitExitFullscreen() {
+    document.$dom_webkitExitFullscreen();
+  }
+
+  /** @domName Document.webkitExitPointerLock */
+  void webkitExitPointerLock() {
+    document.$dom_webkitExitPointerLock();
+  }
+
+  /** @domName Document.webkitFullscreenElement */
+  Element get webkitFullscreenElement => document.$dom_webkitFullscreenElement;
+
+  /** @domName Document.webkitFullscreenEnabled */
+  bool get webkitFullscreenEnabled => document.$dom_webkitFullscreenEnabled;
+
+  /** @domName Document.webkitHidden */
+  bool get webkitHidden => document.$dom_webkitHidden;
+
+  /** @domName Document.webkitIsFullScreen */
+  bool get webkitIsFullScreen => document.$dom_webkitIsFullScreen;
+
+  /** @domName Document.webkitPointerLockElement */
+  Element get webkitPointerLockElement =>
+      document.$dom_webkitPointerLockElement;
+
+  /** @domName Document.webkitVisibilityState */
+  String get webkitVisibilityState => document.$dom_webkitVisibilityState;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26843,22 +26917,6 @@ class _DOMStringList extends NativeFieldWrapperClass1 implements List<String> {
 
 class _DataViewFactoryProvider {
   static DataView createDataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) native "DataView_constructor_Callback";
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName HTMLDocument
-class _Document_Merged extends Document {
-  _Document_Merged.internal(): super.internal();
-
-
-  /** @domName HTMLDocument.activeElement */
-  Element get activeElement native "HTMLDocument_activeElement_Getter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

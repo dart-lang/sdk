@@ -43,7 +43,7 @@ part '$AUXILIARY_DIR/_Lists.dart';
 
 LocalWindow get window => JS('LocalWindow', 'window');
 
-Document get document => JS('Document', 'document');
+HtmlDocument get document => JS('Document', 'document');
 
 Element query(String selector) => document.query(selector);
 List<Element> queryAll(String selector) => document.queryAll(selector);

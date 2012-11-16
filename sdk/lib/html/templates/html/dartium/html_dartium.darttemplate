@@ -39,25 +39,24 @@ part '$AUXILIARY_DIR/_Lists.dart';
 part '$AUXILIARY_DIR/native_DOMPublic.dart';
 part '$AUXILIARY_DIR/native_DOMImplementation.dart';
 
-// FIXME (blois): Rename to _window (ditto __document).
-LocalWindow __window;
+LocalWindow _window;
 
 LocalWindow get window {
-  if (__window != null) {
-    return __window;
+  if (_window != null) {
+    return _window;
   }
-  __window = _Utils.window();
-  return __window;
+  _window = _Utils.window();
+  return _window;
 }
 
-Document __document;
+HtmlDocument _document;
 
-Document get document {
-  if (__document != null) {
-    return __document;
+HtmlDocument get document {
+  if (_document != null) {
+    return _document;
   }
-  __document = window.document;
-  return __document;
+  _document = window.document;
+  return _document;
 }
 
 

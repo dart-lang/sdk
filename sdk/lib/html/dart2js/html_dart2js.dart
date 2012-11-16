@@ -18,7 +18,7 @@ import 'dart:svg' as svg;
 
 LocalWindow get window => JS('LocalWindow', 'window');
 
-Document get document => JS('Document', 'document');
+HtmlDocument get document => JS('Document', 'document');
 
 Element query(String selector) => document.query(selector);
 List<Element> queryAll(String selector) => document.queryAll(selector);
@@ -5264,7 +5264,7 @@ class DOMImplementation native "*DOMImplementation" {
   DocumentType createDocumentType(String qualifiedName, String publicId, String systemId) native;
 
   /** @domName DOMImplementation.createHTMLDocument */
-  Document createHTMLDocument(String title) native;
+  HtmlDocument createHTMLDocument(String title) native;
 
   /** @domName DOMImplementation.hasFeature */
   bool hasFeature(String feature, String version) native;
@@ -6064,8 +6064,7 @@ class DivElement extends Element implements Element native "*HTMLDivElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-class Document extends Node
-    native "*HTMLDocument"
+class Document extends Node  native "*Document"
 {
 
 
@@ -6075,11 +6074,13 @@ class Document extends Node
   DocumentEvents get on =>
     new DocumentEvents(this);
 
-  /** @domName HTMLDocument.activeElement */
-  final Element activeElement;
+  /** @domName Document.body */
+  Element get $dom_body => JS("Element", "#.body", this);
 
   /** @domName Document.body */
-  Element body;
+  void set $dom_body(Element value) {
+    JS("void", "#.body = #", this, value);
+  }
 
   /** @domName Document.charset */
   String charset;
@@ -6098,13 +6099,13 @@ class Document extends Node
   final String domain;
 
   /** @domName Document.head */
-  final HeadElement head;
+  HeadElement get $dom_head => JS("HeadElement", "#.head", this);
 
   /** @domName Document.implementation */
   final DOMImplementation implementation;
 
   /** @domName Document.lastModified */
-  final String lastModified;
+  String get $dom_lastModified => JS("String", "#.lastModified", this);
 
   /** @domName Document.preferredStylesheetSet */
   final String preferredStylesheetSet;
@@ -6113,43 +6114,42 @@ class Document extends Node
   final String readyState;
 
   /** @domName Document.referrer */
-  final String referrer;
+  String get $dom_referrer => JS("String", "#.referrer", this);
 
   /** @domName Document.selectedStylesheetSet */
   String selectedStylesheetSet;
 
   /** @domName Document.styleSheets */
-  final List<StyleSheet> styleSheets;
+  List<StyleSheet> get $dom_styleSheets => JS("List<StyleSheet>", "#.styleSheets", this);
 
   /** @domName Document.title */
-  String title;
+  String get $dom_title => JS("String", "#.title", this);
 
-  /** @domName Document.webkitCurrentFullScreenElement */
-  final Element webkitCurrentFullScreenElement;
-
-  /** @domName Document.webkitFullScreenKeyboardInputAllowed */
-  final bool webkitFullScreenKeyboardInputAllowed;
+  /** @domName Document.title */
+  void set $dom_title(String value) {
+    JS("void", "#.title = #", this, value);
+  }
 
   /** @domName Document.webkitFullscreenElement */
-  final Element webkitFullscreenElement;
+  Element get $dom_webkitFullscreenElement => JS("Element", "#.webkitFullscreenElement", this);
 
   /** @domName Document.webkitFullscreenEnabled */
-  final bool webkitFullscreenEnabled;
+  bool get $dom_webkitFullscreenEnabled => JS("bool", "#.webkitFullscreenEnabled", this);
 
   /** @domName Document.webkitHidden */
-  final bool webkitHidden;
+  bool get $dom_webkitHidden => JS("bool", "#.webkitHidden", this);
 
   /** @domName Document.webkitIsFullScreen */
-  final bool webkitIsFullScreen;
+  bool get $dom_webkitIsFullScreen => JS("bool", "#.webkitIsFullScreen", this);
 
   /** @domName Document.webkitPointerLockElement */
-  final Element webkitPointerLockElement;
+  Element get $dom_webkitPointerLockElement => JS("Element", "#.webkitPointerLockElement", this);
 
   /** @domName Document.webkitVisibilityState */
-  final String webkitVisibilityState;
+  String get $dom_webkitVisibilityState => JS("String", "#.webkitVisibilityState", this);
 
   /** @domName Document.caretRangeFromPoint */
-  Range caretRangeFromPoint(int x, int y) native;
+  Range $dom_caretRangeFromPoint(int x, int y) native "caretRangeFromPoint";
 
   /** @domName Document.createCDATASection */
   CDATASection createCDATASection(String data) native;
@@ -6183,7 +6183,7 @@ class Document extends Node
   TouchList $dom_createTouchList() native "createTouchList";
 
   /** @domName Document.elementFromPoint */
-  Element elementFromPoint(int x, int y) native;
+  Element $dom_elementFromPoint(int x, int y) native "elementFromPoint";
 
   /** @domName Document.execCommand */
   bool execCommand(String command, bool userInterface, String value) native;
@@ -6225,13 +6225,13 @@ class Document extends Node
   List<Node> $dom_querySelectorAll(String selectors) native "querySelectorAll";
 
   /** @domName Document.webkitCancelFullScreen */
-  void webkitCancelFullScreen() native;
+  void $dom_webkitCancelFullScreen() native "webkitCancelFullScreen";
 
   /** @domName Document.webkitExitFullscreen */
-  void webkitExitFullscreen() native;
+  void $dom_webkitExitFullscreen() native "webkitExitFullscreen";
 
   /** @domName Document.webkitExitPointerLock */
-  void webkitExitPointerLock() native;
+  void $dom_webkitExitPointerLock() native "webkitExitPointerLock";
 
   // TODO(jacobr): implement all Element methods not on Document.
 
@@ -9319,6 +9319,90 @@ class HeadingElement extends Element implements Element native "*HTMLHeadingElem
 
   /** @domName HTMLHeadingElement.align */
   String align;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+class HtmlDocument extends Document native "*HTMLDocument" {
+
+  /** @domName HTMLDocument.activeElement */
+  final Element activeElement;
+
+  /** @domName Document.body */
+  BodyElement get body => document.$dom_body;
+
+  /** @domName Document.body */
+  void set body(BodyElement value) {
+    document.$dom_body = value;
+  }
+
+  /** @domName Document.caretRangeFromPoint */
+  Range caretRangeFromPoint(int x, int y) {
+    return document.$dom_caretRangeFromPoint(x, y);
+  }
+
+  /** @domName Document.elementFromPoint */
+  Element elementFromPoint(int x, int y) {
+    return document.$dom_elementFromPoint(x, y);
+  }
+
+  /** @domName Document.head */
+  HeadElement get head => document.$dom_head;
+
+  /** @domName Document.lastModified */
+  String get lastModified => document.$dom_lastModified;
+
+  /** @domName Document.referrer */
+  String get referrer => document.$dom_referrer;
+
+  /** @domName Document.styleSheets */
+  List<StyleSheet> get styleSheets => document.$dom_styleSheets;
+
+  /** @domName Document.title */
+  String get title => document.$dom_title;
+
+  /** @domName Document.title */
+  void set title(String value) {
+    document.$dom_title = value;
+  }
+
+  /** @domName Document.webkitCancelFullScreen */
+  void webkitCancelFullScreen() {
+    document.$dom_webkitCancelFullScreen();
+  }
+
+  /** @domName Document.webkitExitFullscreen */
+  void webkitExitFullscreen() {
+    document.$dom_webkitExitFullscreen();
+  }
+
+  /** @domName Document.webkitExitPointerLock */
+  void webkitExitPointerLock() {
+    document.$dom_webkitExitPointerLock();
+  }
+
+  /** @domName Document.webkitFullscreenElement */
+  Element get webkitFullscreenElement => document.$dom_webkitFullscreenElement;
+
+  /** @domName Document.webkitFullscreenEnabled */
+  bool get webkitFullscreenEnabled => document.$dom_webkitFullscreenEnabled;
+
+  /** @domName Document.webkitHidden */
+  bool get webkitHidden => document.$dom_webkitHidden;
+
+  /** @domName Document.webkitIsFullScreen */
+  bool get webkitIsFullScreen => document.$dom_webkitIsFullScreen;
+
+  /** @domName Document.webkitPointerLockElement */
+  Element get webkitPointerLockElement =>
+      document.$dom_webkitPointerLockElement;
+
+  /** @domName Document.webkitVisibilityState */
+  String get webkitVisibilityState => document.$dom_webkitVisibilityState;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

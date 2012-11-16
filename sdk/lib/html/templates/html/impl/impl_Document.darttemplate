@@ -4,10 +4,7 @@
 
 part of html;
 
-class $CLASSNAME extends Node
-$if DART2JS
-    native "*HTMLDocument"
-$endif
+class $CLASSNAME extends Node $NATIVESPEC
 {
 
 $!MEMBERS
