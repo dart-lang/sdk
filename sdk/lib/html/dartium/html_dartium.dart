@@ -9238,7 +9238,7 @@ class _SimpleClientRect implements ClientRect {
   String toString() => "($left, $top, $width, $height)";
 }
 
-class Element extends Node implements ElementTraversal {
+abstract class Element extends Node implements ElementTraversal {
 
   factory Element.html(String html) =>
       _ElementFactoryProvider.createElement_html(html);
