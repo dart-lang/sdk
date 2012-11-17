@@ -26,7 +26,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
       _$(CLASSNAME)FactoryProvider.createDocumentFragment_html(html);
 
   factory $CLASSNAME.svg(String svgContent) =>
-      new _$(CLASSNAME)FactoryProvider.createDocumentFragment_svg(svgContent);
+      _$(CLASSNAME)FactoryProvider.createDocumentFragment_svg(svgContent);
 
   List<Element> _elements;
 

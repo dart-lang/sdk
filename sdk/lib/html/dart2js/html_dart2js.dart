@@ -6783,7 +6783,7 @@ class DocumentFragment extends Node native "*DocumentFragment" {
       _DocumentFragmentFactoryProvider.createDocumentFragment_html(html);
 
   factory DocumentFragment.svg(String svgContent) =>
-      new _DocumentFragmentFactoryProvider.createDocumentFragment_svg(svgContent);
+      _DocumentFragmentFactoryProvider.createDocumentFragment_svg(svgContent);
 
   List<Element> _elements;
 
@@ -9813,7 +9813,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
       _HttpRequestFactoryProvider.createHttpRequest_get(url, onSuccess);
 
   factory HttpRequest.getWithCredentials(String url, onSuccess(HttpRequest request)) =>
-      _HttpRequestFactoryProvider.createHttpRequestgetWithCredentials(url, onSuccess);
+      _HttpRequestFactoryProvider.createHttpRequest_getWithCredentials(url, onSuccess);
 
 
   factory HttpRequest() => _HttpRequestFactoryProvider.createHttpRequest();
@@ -10438,9 +10438,9 @@ class IDBKeyRange native "*IDBKeyRange" {
     var upper_6 = _convertDartToNative_IDBKey(upper);
     return _bound__3(lower_5, upper_6);
   }
-  IDBKeyRange _bound__1(lower, upper, lowerOpen, upperOpen) native "bound";
-  IDBKeyRange _bound__2(lower, upper, lowerOpen) native "bound";
-  IDBKeyRange _bound__3(lower, upper) native "bound";
+  static IDBKeyRange _bound__1(lower, upper, lowerOpen, upperOpen) native "bound";
+  static IDBKeyRange _bound__2(lower, upper, lowerOpen) native "bound";
+  static IDBKeyRange _bound__3(lower, upper) native "bound";
 
   /** @domName IDBKeyRange.lowerBound_ */
   static IDBKeyRange lowerBound_(/*IDBKey*/ bound, [bool open]) {
@@ -10451,15 +10451,15 @@ class IDBKeyRange native "*IDBKeyRange" {
     var bound_2 = _convertDartToNative_IDBKey(bound);
     return _lowerBound__2(bound_2);
   }
-  IDBKeyRange _lowerBound__1(bound, open) native "lowerBound";
-  IDBKeyRange _lowerBound__2(bound) native "lowerBound";
+  static IDBKeyRange _lowerBound__1(bound, open) native "lowerBound";
+  static IDBKeyRange _lowerBound__2(bound) native "lowerBound";
 
   /** @domName IDBKeyRange.only_ */
   static IDBKeyRange only_(/*IDBKey*/ value) {
     var value_1 = _convertDartToNative_IDBKey(value);
     return _only__1(value_1);
   }
-  IDBKeyRange _only__1(value) native "only";
+  static IDBKeyRange _only__1(value) native "only";
 
   /** @domName IDBKeyRange.upperBound_ */
   static IDBKeyRange upperBound_(/*IDBKey*/ bound, [bool open]) {
@@ -10470,8 +10470,8 @@ class IDBKeyRange native "*IDBKeyRange" {
     var bound_2 = _convertDartToNative_IDBKey(bound);
     return _upperBound__2(bound_2);
   }
-  IDBKeyRange _upperBound__1(bound, open) native "upperBound";
-  IDBKeyRange _upperBound__2(bound) native "upperBound";
+  static IDBKeyRange _upperBound__1(bound, open) native "upperBound";
+  static IDBKeyRange _upperBound__2(bound) native "upperBound";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22064,21 +22064,21 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
 
 class _TextTrackCueFactoryProvider {
   static TextTrackCue createTextTrackCue(
-      String id, num startTime, num endTime, String text,
+      num startTime, num endTime, String text,
       [String settings, bool pauseOnExit]) {
         if (settings == null) {
           return JS('TextTrackCue',
-                    'new TextTrackCue(#,#,#,#)',
-                    id, startTime, endTime, text);
+                    'new TextTrackCue(#,#,#)',
+                    startTime, endTime, text);
         }
         if (pauseOnExit == null) {
           return JS('TextTrackCue',
-                    'new TextTrackCue(#,#,#,#,#)',
-                    id, startTime, endTime, text, settings);
+                    'new TextTrackCue(#,#,#,#)',
+                    startTime, endTime, text, settings);
         }
         return JS('TextTrackCue',
-                  'new TextTrackCue(#,#,#,#,#,#)',
-                  id, startTime, endTime, text, settings, pauseOnExit);
+                  'new TextTrackCue(#,#,#,#,#)',
+                  startTime, endTime, text, settings, pauseOnExit);
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

@@ -782,7 +782,8 @@ class Dart2JSBackend(HtmlDartGenerator):
         call_emitter.Emit('$(INDENT)return $CALL;\n', CALL=call)
 
       self._members_emitter.Emit(
-          '  $TYPE$TARGET($PARAMS) native "$NATIVE";\n',
+          '  $MODIFIERS$TYPE$TARGET($PARAMS) native "$NATIVE";\n',
+          MODIFIERS='static ' if info.IsStatic() else '',
           TYPE=TypeOrNothing(native_return_type),
           TARGET=target,
           PARAMS=', '.join(target_parameters),
