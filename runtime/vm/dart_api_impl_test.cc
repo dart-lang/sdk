@@ -2647,7 +2647,7 @@ TEST_CASE(FieldAccess) {
       "  return new Fields();\n"
       "}\n";
   const char* kImportedScriptChars =
-      "#library('library_name');\n"
+      "library library_name;\n"
       "var imported_fld = 'imported';\n"
       "var _imported_fld = 'hidden imported';\n"
       "get imported_getset_fld { return _gs_fld1; }\n"
@@ -2951,7 +2951,7 @@ TEST_CASE(InjectNativeFields2) {
 
 TEST_CASE(InjectNativeFields3) {
   const char* kScriptChars =
-      "#import('dart:nativewrappers');"
+      "import 'dart:nativewrappers';"
       "class NativeFields extends NativeFieldWrapperClass2 {\n"
       "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
       "  int fld1;\n"
@@ -2993,7 +2993,7 @@ TEST_CASE(InjectNativeFields3) {
 
 TEST_CASE(InjectNativeFields4) {
   const char* kScriptChars =
-      "#import('dart:nativewrappers');"
+      "import 'dart:nativewrappers';"
       "class NativeFields extends NativeFieldWrapperClass2 {\n"
       "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
       "  int fld1;\n"
@@ -3015,7 +3015,7 @@ TEST_CASE(InjectNativeFields4) {
   // We expect the test script to fail finalization with the error below:
   EXPECT(Dart_IsError(result));
   Dart_Handle expected_error = Dart_Error(
-      "'dart:test-lib': Error: line 1 pos 38: "
+      "'dart:test-lib': Error: line 1 pos 36: "
       "class 'NativeFields' is trying to extend a native fields class, "
       "but library '%s' has no native resolvers",
       TestCase::url());
@@ -3025,7 +3025,7 @@ TEST_CASE(InjectNativeFields4) {
 
 TEST_CASE(InjectNativeFieldsSuperClass) {
   const char* kScriptChars =
-      "#import('dart:nativewrappers');"
+      "import 'dart:nativewrappers';"
       "class NativeFieldsSuper extends NativeFieldWrapperClass1 {\n"
       "  NativeFieldsSuper() : fld1 = 42 {}\n"
       "  int fld1;\n"
@@ -3185,7 +3185,7 @@ TEST_CASE(NativeFieldAccess) {
 
 TEST_CASE(ImplicitNativeFieldAccess) {
   const char* kScriptChars =
-      "#import('dart:nativewrappers');"
+      "import 'dart:nativewrappers';"
       "class NativeFields extends NativeFieldWrapperClass4 {\n"
       "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
       "  int fld0;\n"
@@ -3811,11 +3811,11 @@ TEST_CASE(Invoke_Null) {
 
 TEST_CASE(Invoke_CrossLibrary) {
   const char* kLibrary1Chars =
-      "#library('library1_name');\n"
+      "library library1_name;\n"
       "void local() {}\n"
       "void _local() {}\n";
   const char* kLibrary2Chars =
-      "#library('library2_name');\n"
+      "library library2_name;\n"
       "void imported() {}\n"
       "void _imported() {}\n";
 
@@ -5115,11 +5115,11 @@ TEST_CASE(LoadScript_CompileError) {
 
 TEST_CASE(LookupLibrary) {
   const char* kScriptChars =
-      "#import('library1.dart');"
+      "import 'library1_dart';"
       "main() {}";
   const char* kLibrary1Chars =
-      "#library('library1.dart');"
-      "#import('library2.dart');";
+      "library library1_dart;"
+      "import 'library2_dart';";
 
   // Create a test library and Load up a test script in it.
   Dart_Handle url = NewString(TestCase::url());
@@ -5129,7 +5129,7 @@ TEST_CASE(LookupLibrary) {
   result = Dart_LoadScript(url, source);
   EXPECT_VALID(result);
 
-  url = NewString("library1.dart");
+  url = NewString("library1_dart");
   source = NewString(kLibrary1Chars);
   result = Dart_LoadLibrary(url, source);
   EXPECT_VALID(result);
@@ -5162,7 +5162,7 @@ TEST_CASE(LookupLibrary) {
 
 TEST_CASE(LibraryName) {
   const char* kLibrary1Chars =
-      "#library('library1_name');";
+      "library library1_name;";
   Dart_Handle url = NewString("library1_url");
   Dart_Handle source = NewString(kLibrary1Chars);
   Dart_Handle lib = Dart_LoadLibrary(url, source);
@@ -5195,7 +5195,7 @@ TEST_CASE(LibraryName) {
 
 TEST_CASE(LibraryUrl) {
   const char* kLibrary1Chars =
-      "#library('library1_name');";
+      "library library1_name;";
   Dart_Handle url = NewString("library1_url");
   Dart_Handle source = NewString(kLibrary1Chars);
   Dart_Handle lib = Dart_LoadLibrary(url, source);
@@ -5228,7 +5228,7 @@ TEST_CASE(LibraryUrl) {
 
 TEST_CASE(LibraryGetClassNames) {
   const char* kLibraryChars =
-      "#library('library_name');\n"
+      "library library_name;\n"
       "\n"
       "class A {}\n"
       "class B {}\n"
@@ -5265,7 +5265,7 @@ TEST_CASE(LibraryGetClassNames) {
 
 TEST_CASE(GetFunctionNames) {
   const char* kLibraryChars =
-      "#library('library_name');\n"
+      "library library_name;\n"
       "\n"
       "void A() {}\n"
       "get B => 11;\n"
@@ -5335,7 +5335,7 @@ TEST_CASE(GetFunctionNames) {
 
 TEST_CASE(GetVariableNames) {
   const char* kLibraryChars =
-      "#library('library_name');\n"
+      "library library_name;\n"
       "\n"
       "var A;\n"
       "get B => 12;\n"
@@ -5400,9 +5400,9 @@ TEST_CASE(GetVariableNames) {
 
 TEST_CASE(LibraryImportLibrary) {
   const char* kLibrary1Chars =
-      "#library('library1_name');";
+      "library library1_name;";
   const char* kLibrary2Chars =
-      "#library('library2_name');";
+      "library library2_name;";
   Dart_Handle error = Dart_Error("incoming error");
   Dart_Handle result;
 
@@ -5455,7 +5455,7 @@ TEST_CASE(LibraryImportLibrary) {
 
 TEST_CASE(ImportLibraryWithPrefix) {
   const char* kLibrary1Chars =
-      "#library('library1_name');"
+      "library library1_name;"
       "int bar() => 42;";
   Dart_Handle url1 = NewString("library1_url");
   Dart_Handle source1 = NewString(kLibrary1Chars);
@@ -5464,7 +5464,7 @@ TEST_CASE(ImportLibraryWithPrefix) {
   EXPECT(Dart_IsLibrary(lib1));
 
   const char* kLibrary2Chars =
-      "#library('library2_name');"
+      "library library2_name;"
       "int foobar() => foo.bar();";
   Dart_Handle url2 = NewString("library2_url");
   Dart_Handle source2 = NewString(kLibrary2Chars);
@@ -5496,7 +5496,7 @@ TEST_CASE(ImportLibraryWithPrefix) {
 
 TEST_CASE(LoadLibrary) {
   const char* kLibrary1Chars =
-      "#library('library1_name');";
+      "library library1_name;";
   Dart_Handle error = Dart_Error("incoming error");
   Dart_Handle result;
 
@@ -5548,7 +5548,7 @@ TEST_CASE(LoadLibrary) {
 
 TEST_CASE(LoadLibrary_CompileError) {
   const char* kLibrary1Chars =
-      "#library('library1_name');"
+      "library library1_name;"
       ")";
   Dart_Handle url = NewString("library1_url");
   Dart_Handle source = NewString(kLibrary1Chars);
@@ -5560,7 +5560,7 @@ TEST_CASE(LoadLibrary_CompileError) {
 
 TEST_CASE(LoadSource) {
   const char* kLibrary1Chars =
-      "#library('library1_name');";
+      "library library1_name;";
   const char* kSourceChars =
       "// Something innocuous";
   const char* kBadSourceChars =
@@ -5643,7 +5643,7 @@ TEST_CASE(LoadSource) {
 
 TEST_CASE(LoadSource_LateLoad) {
   const char* kLibrary1Chars =
-      "#library('library1_name');\n"
+      "library library1_name;\n"
       "class OldClass {\n"
       "  foo() => 'foo';\n"
       "}\n";
@@ -5688,7 +5688,7 @@ TEST_CASE(LoadSource_LateLoad) {
 
 TEST_CASE(LoadPatch) {
   const char* kLibrary1Chars =
-      "#library('library1_name');";
+      "library library1_name;";
   const char* kSourceChars =
       "external int foo();";
   const char* kPatchChars =
@@ -5737,7 +5737,7 @@ static Dart_NativeFunction PatchNativeResolver(Dart_Handle name,
 
 TEST_CASE(ParsePatchLibrary) {
   const char* kLibraryChars =
-  "#library('patched_library');\n"
+  "library patched_library;\n"
   "class A {\n"
   "  final fvalue;\n"
   "  var _f;\n"
@@ -5779,7 +5779,7 @@ TEST_CASE(ParsePatchLibrary) {
   "patch(x) => x*3;\n";
 
   const char* kScriptChars =
-  "#import('theLibrary');\n"
+  "import 'theLibrary';\n"
   "e1() => unpatched();\n"
   "m1() => topLevel(2);\n"
   "m2() {\n"
@@ -5982,16 +5982,16 @@ TEST_CASE(SetNativeResolver) {
 // in the importing library.
 TEST_CASE(ImportLibrary2) {
   const char* kScriptChars =
-      "#import('library1.dart');\n"
+      "import 'library1_dart';\n"
       "var foo;\n"
       "main() { foo = 0; }\n";
   const char* kLibrary1Chars =
-      "#library('library1.dart');\n"
-      "#import('library2.dart');\n"
+      "library library1_dart;\n"
+      "import 'library2_dart';\n"
       "var foo;\n";
   const char* kLibrary2Chars =
-      "#library('library2.dart');\n"
-      "#import('library1.dart');\n"
+      "library library2_dart;\n"
+      "import 'library1_dart';\n"
       "var foo;\n";
   Dart_Handle result;
   // Create a test library and Load up a test script in it.
@@ -6001,11 +6001,11 @@ TEST_CASE(ImportLibrary2) {
   EXPECT_VALID(result);
   result = Dart_LoadScript(url, source);
 
-  url = NewString("library1.dart");
+  url = NewString("library1_dart");
   source = NewString(kLibrary1Chars);
   Dart_LoadLibrary(url, source);
 
-  url = NewString("library2.dart");
+  url = NewString("library2_dart");
   source = NewString(kLibrary2Chars);
   Dart_LoadLibrary(url, source);
 
@@ -6018,15 +6018,15 @@ TEST_CASE(ImportLibrary2) {
 // an error if that name is referenced.
 TEST_CASE(ImportLibrary3) {
   const char* kScriptChars =
-      "#import('library2.dart');\n"
-      "#import('library1.dart');\n"
+      "import 'library2_dart';\n"
+      "import 'library1_dart';\n"
       "var foo_top = 10;  // foo has dup def. So should be an error.\n"
       "main() { foo = 0; }\n";
   const char* kLibrary1Chars =
-      "#library('library1.dart');\n"
+      "library library1_dart;\n"
       "var foo;";
   const char* kLibrary2Chars =
-      "#library('library2.dart');\n"
+      "library library2_dart;\n"
       "var foo;";
   Dart_Handle result;
 
@@ -6038,11 +6038,11 @@ TEST_CASE(ImportLibrary3) {
   result = Dart_LoadScript(url, source);
   EXPECT_VALID(result);
 
-  url = NewString("library2.dart");
+  url = NewString("library2_dart");
   source = NewString(kLibrary2Chars);
   Dart_LoadLibrary(url, source);
 
-  url = NewString("library1.dart");
+  url = NewString("library1_dart");
   source = NewString(kLibrary1Chars);
   Dart_LoadLibrary(url, source);
 
@@ -6056,14 +6056,14 @@ TEST_CASE(ImportLibrary3) {
 // not an error if that name is not used.
 TEST_CASE(ImportLibrary4) {
   const char* kScriptChars =
-      "#import('library2.dart');\n"
-      "#import('library1.dart');\n"
+      "import 'library2_dart';\n"
+      "import 'library1_dart';\n"
       "main() {  }\n";
   const char* kLibrary1Chars =
-      "#library('library1.dart');\n"
+      "library library1_dart;\n"
       "var foo;";
   const char* kLibrary2Chars =
-      "#library('library2.dart');\n"
+      "library library2_dart;\n"
       "var foo;";
   Dart_Handle result;
 
@@ -6075,11 +6075,11 @@ TEST_CASE(ImportLibrary4) {
   result = Dart_LoadScript(url, source);
   EXPECT_VALID(result);
 
-  url = NewString("library2.dart");
+  url = NewString("library2_dart");
   source = NewString(kLibrary2Chars);
   Dart_LoadLibrary(url, source);
 
-  url = NewString("library1.dart");
+  url = NewString("library1_dart");
   source = NewString(kLibrary1Chars);
   Dart_LoadLibrary(url, source);
 
@@ -6090,13 +6090,13 @@ TEST_CASE(ImportLibrary4) {
 
 TEST_CASE(ImportLibrary5) {
   const char* kScriptChars =
-      "#import('lib.dart');\n"
+      "import 'lib.dart';\n"
       "interface Y {\n"
       "  void set handler(void callback(List<int> x));\n"
       "}\n"
       "void main() {}\n";
   const char* kLibraryChars =
-      "#library('lib.dart');\n"
+      "library lib.dart;\n"
       "interface X {\n"
       "  void set handler(void callback(List<int> x));\n"
       "}\n";
@@ -6161,7 +6161,7 @@ UNIT_TEST_CASE(NewNativePort) {
 
   TestIsolateScope __test_isolate__;
   const char* kScriptChars =
-      "#import('dart:isolate');\n"
+      "import 'dart:isolate';\n"
       "void callPort(SendPort port) {\n"
       "    port.call(null).then((message) {\n"
       "      throw new Exception(message);\n"
@@ -6212,8 +6212,8 @@ static bool RunLoopTestCallback(const char* script_name,
                                 void* data,
                                 char** error) {
   const char* kScriptChars =
-      "#import('builtin');\n"
-      "#import('dart:isolate');\n"
+      "import 'builtin';\n"
+      "import 'dart:isolate';\n"
       "void entry() {\n"
       "  port.receive((message, replyTo) {\n"
       "    if (message) {\n"

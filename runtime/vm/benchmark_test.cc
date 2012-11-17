@@ -275,7 +275,7 @@ BENCHMARK(Dart2JSCompileAll) {
   char* script = NULL;
   if (dart_root != NULL) {
     const char* kFormatStr =
-        "#import('%s/sdk/lib/_internal/compiler/compiler.dart');";
+        "import '%s/sdk/lib/_internal/compiler/compiler.dart';";
     intptr_t len = OS::SNPrint(NULL, 0, kFormatStr, dart_root) + 1;
     script = reinterpret_cast<char*>(malloc(len));
     EXPECT(script != NULL);
@@ -286,7 +286,7 @@ BENCHMARK(Dart2JSCompileAll) {
     EXPECT_VALID(lib);
   } else {
     Dart_Handle lib = TestCase::LoadTestScript(
-        "#import('sdk/lib/_internal/compiler/compiler.dart');",
+        "import 'sdk/lib/_internal/compiler/compiler.dart';",
         reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));
     EXPECT_VALID(lib);
   }

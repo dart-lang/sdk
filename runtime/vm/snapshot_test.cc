@@ -1030,7 +1030,7 @@ UNIT_TEST_CASE(FullSnapshot1) {
 
 UNIT_TEST_CASE(ScriptSnapshot) {
   const char* kLibScriptChars =
-      "#library('dart:import-lib');"
+      "library dart_import_lib;"
       "class LibFields  {"
       "  LibFields(int i, int j) : fld1 = i, fld2 = j {}"
       "  int fld1;"
@@ -1095,7 +1095,7 @@ UNIT_TEST_CASE(ScriptSnapshot) {
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
 
     // Load the library.
-    Dart_Handle import_lib = Dart_LoadLibrary(NewString("dart:import-lib"),
+    Dart_Handle import_lib = Dart_LoadLibrary(NewString("dart_import_lib"),
                                               NewString(kLibScriptChars));
     EXPECT_VALID(import_lib);
 
@@ -1701,7 +1701,7 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
 UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
   const int kArrayLength = 10;
   static const char* kScriptChars =
-      "#import('dart:scalarlist');\n"
+      "import 'dart:scalarlist';\n"
       "final int kArrayLength = 10;\n"
       "getStringList() {\n"
       "  var s = 'Hello, world!';\n"
@@ -1872,7 +1872,7 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
 UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
   const int kArrayLength = 10;
   static const char* kScriptChars =
-      "#import('dart:scalarlist');\n"
+      "import 'dart:scalarlist';\n"
       "final int kArrayLength = 10;\n"
       "getStringList() {\n"
       "  var s = 'Hello, world!';\n"
@@ -2048,7 +2048,7 @@ UNIT_TEST_CASE(PostCObject) {
   // Create a native port for posting from C to Dart
   TestIsolateScope __test_isolate__;
   const char* kScriptChars =
-      "#import('dart:isolate');\n"
+      "import 'dart:isolate';\n"
       "main() {\n"
       "  var messageCount = 0;\n"
       "  var exception = '';\n"
