@@ -8,24 +8,25 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:uri';
 
-import '../../unittest/lib/unittest.dart';
-import '../lib/http.dart' as http;
-import '../lib/src/utils.dart';
-import 'utils.dart';
+import '../../../pkg/unittest/lib/unittest.dart';
+import '../../../pkg/http/lib/http.dart' as http;
+import '../../../pkg/http/test/utils.dart';
+import '../../pub/curl_client.dart';
+import '../../pub/io.dart';
 
 void main() {
   setUp(startServer);
   tearDown(stopServer);
 
   test('head', () {
-    expect(new http.CurlClient().head(serverUrl).transform((response) {
+    expect(new CurlClient().head(serverUrl).transform((response) {
       expect(response.statusCode, equals(200));
       expect(response.body, equals(''));
     }), completes);
   });
 
   test('get', () {
-    expect(new http.CurlClient().get(serverUrl, headers: {
+    expect(new CurlClient().get(serverUrl, headers: {
       'X-Random-Header': 'Value',
       'X-Other-Header': 'Other Value'
     }).transform((response) {
@@ -42,7 +43,7 @@ void main() {
   });
 
   test('post', () {
-    expect(new http.CurlClient().post(serverUrl, headers: {
+    expect(new CurlClient().post(serverUrl, headers: {
       'X-Random-Header': 'Value',
       'X-Other-Header': 'Other Value'
     }, fields: {
@@ -67,7 +68,7 @@ void main() {
   });
 
   test('post without fields', () {
-    expect(new http.CurlClient().post(serverUrl, headers: {
+    expect(new CurlClient().post(serverUrl, headers: {
       'X-Random-Header': 'Value',
       'X-Other-Header': 'Other Value',
       'Content-Type': 'text/plain'
@@ -86,7 +87,7 @@ void main() {
   });
 
   test('put', () {
-    expect(new http.CurlClient().put(serverUrl, headers: {
+    expect(new CurlClient().put(serverUrl, headers: {
       'X-Random-Header': 'Value',
       'X-Other-Header': 'Other Value'
     }, fields: {
@@ -111,7 +112,7 @@ void main() {
   });
 
   test('put without fields', () {
-    expect(new http.CurlClient().put(serverUrl, headers: {
+    expect(new CurlClient().put(serverUrl, headers: {
       'X-Random-Header': 'Value',
       'X-Other-Header': 'Other Value',
       'Content-Type': 'text/plain'
@@ -130,7 +131,7 @@ void main() {
   });
 
   test('delete', () {
-    expect(new http.CurlClient().delete(serverUrl, headers: {
+    expect(new CurlClient().delete(serverUrl, headers: {
       'X-Random-Header': 'Value',
       'X-Other-Header': 'Other Value'
     }).transform((response) {
@@ -147,7 +148,7 @@ void main() {
   });
 
   test('read', () {
-    expect(new http.CurlClient().read(serverUrl, headers: {
+    expect(new CurlClient().read(serverUrl, headers: {
       'X-Random-Header': 'Value',
       'X-Other-Header': 'Other Value'
     }), completion(parse(equals({
@@ -161,12 +162,12 @@ void main() {
   });
 
   test('read throws an error for a 4** status code', () {
-    expect(new http.CurlClient().read(serverUrl.resolve('/error')),
+    expect(new CurlClient().read(serverUrl.resolve('/error')),
         throwsHttpException);
   });
 
   test('readBytes', () {
-    var future = new http.CurlClient().readBytes(serverUrl, headers: {
+    var future = new CurlClient().readBytes(serverUrl, headers: {
       'X-Random-Header': 'Value',
       'X-Other-Header': 'Other Value'
     }).transform((bytes) => new String.fromCharCodes(bytes));
@@ -182,12 +183,12 @@ void main() {
   });
 
   test('readBytes throws an error for a 4** status code', () {
-    expect(new http.CurlClient().readBytes(serverUrl.resolve('/error')),
+    expect(new CurlClient().readBytes(serverUrl.resolve('/error')),
         throwsHttpException);
   });
 
   test('#send a StreamedRequest', () {
-    var client = new http.CurlClient();
+    var client = new CurlClient();
     var request = new http.StreamedRequest("POST", serverUrl);
     request.headers[HttpHeaders.CONTENT_TYPE] =
       'application/json; charset=utf-8';
@@ -214,7 +215,7 @@ void main() {
 
   test('with one redirect', () {
     var url = serverUrl.resolve('/redirect');
-    expect(new http.CurlClient().get(url).transform((response) {
+    expect(new CurlClient().get(url).transform((response) {
       expect(response.statusCode, equals(200));
       expect(response.body, parse(equals({
         'method': 'GET',
@@ -225,36 +226,36 @@ void main() {
   });
 
   test('with too many redirects', () {
-    expect(new http.CurlClient().get(serverUrl.resolve('/loop?1')),
+    expect(new CurlClient().get(serverUrl.resolve('/loop?1')),
         throwsRedirectLimitExceededException);
   });
 
   test('with a generic failure', () {
-    expect(new http.CurlClient().get('url fail'),
+    expect(new CurlClient().get('url fail'),
         throwsHttpException);
   });
 
   test('with one redirect via HEAD', () {
     var url = serverUrl.resolve('/redirect');
-    expect(new http.CurlClient().head(url).transform((response) {
+    expect(new CurlClient().head(url).transform((response) {
       expect(response.statusCode, equals(200));
     }), completes);
   });
 
   test('with too many redirects via HEAD', () {
-    expect(new http.CurlClient().head(serverUrl.resolve('/loop?1')),
+    expect(new CurlClient().head(serverUrl.resolve('/loop?1')),
         throwsRedirectLimitExceededException);
   });
 
   test('with a generic failure via HEAD', () {
-    expect(new http.CurlClient().head('url fail'),
+    expect(new CurlClient().head('url fail'),
         throwsHttpException);
   });
 
   test('without following redirects', () {
     var request = new http.Request('GET', serverUrl.resolve('/redirect'));
     request.followRedirects = false;
-    expect(new http.CurlClient().send(request).chain(http.Response.fromStream)
+    expect(new CurlClient().send(request).chain(http.Response.fromStream)
         .transform((response) {
       expect(response.statusCode, equals(302));
       expect(response.isRedirect, true);

@@ -6,15 +6,14 @@ library curl_client;
 
 import 'dart:io';
 
-import 'base_client.dart';
-import 'base_request.dart';
-import 'streamed_response.dart';
+import '../../pkg/http/lib/http.dart' as http;
+import 'io.dart';
 import 'utils.dart';
 
-/// A drop-in replacement for [Client] that uses the `curl` command-line utility
-/// rather than [dart:io] to make requests. This class will only exist
+/// A drop-in replacement for [http.Client] that uses the `curl` command-line
+/// utility rather than [dart:io] to make requests. This class will only exist
 /// temporarily until [dart:io] natively supports requests over HTTPS.
-class CurlClient extends BaseClient {
+class CurlClient extends http.BaseClient {
   /// The path to the `curl` executable to run. By default, this will look up
   /// `curl` on the system path.
   final String executable;
@@ -25,7 +24,7 @@ class CurlClient extends BaseClient {
     : executable = executable == null ? "curl" : executable;
 
   /// Sends a request via `curl` and returns the response.
-  Future<StreamedResponse> send(BaseRequest request) {
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
     var requestStream = request.finalize();
     return withTempDir((tempDir) {
       var headerFile = new Path(tempDir).append("curl-headers").toNativePath();
@@ -48,7 +47,8 @@ class CurlClient extends BaseClient {
   /// Returns the list of arguments to `curl` necessary for performing
   /// [request]. [headerFile] is the path to the file where the response headers
   /// should be stored.
-  List<String> _argumentsForRequest(BaseRequest request, String headerFile) {
+  List<String> _argumentsForRequest(
+      http.BaseRequest request, String headerFile) {
     var arguments = ["--dump-header", headerFile];
     if (request.method == 'HEAD') {
       arguments.add("--head");
@@ -72,7 +72,7 @@ class CurlClient extends BaseClient {
       'accept': '',
       'user-agent': ''
     };
-    mapAddAll(headers, request.headers);
+    request.headers.forEach((name, value) => headers[name] = value);
     if (request.contentLength < 0) {
       headers['content-length'] = '';
       headers['transfer-encoding'] = 'chunked';
@@ -106,7 +106,7 @@ class CurlClient extends BaseClient {
             .transform((stderrBytes) {
         var message = new String.fromCharCodes(stderrBytes);
         if (exitCode == 47) {
-          throw new RedirectLimitExceededException(message);
+          throw new RedirectLimitExceededException([]);
         } else {
           throw new HttpException(message);
         }
@@ -148,9 +148,9 @@ class CurlClient extends BaseClient {
     return completer.future;
   }
 
-  /// Returns a [StreamedResponse] from the response data printed by the `curl`
-  /// [process]. [lines] are the headers that `curl` wrote to a file.
-  StreamedResponse _buildResponse(Process process, List<String> lines) {
+  /// Returns a [http.StreamedResponse] from the response data printed by the
+  /// `curl` [process]. [lines] are the headers that `curl` wrote to a file.
+  http.StreamedResponse _buildResponse(Process process, List<String> lines) {
     // When curl follows redirects, it prints the redirect headers as well as
     // the headers of the final request. Each block is separated by a blank
     // line. We just care about the last block. There is one trailing empty
@@ -162,7 +162,7 @@ class CurlClient extends BaseClient {
     var status = int.parse(statusParts[1]);
     var isRedirect = status >= 300 && status < 400;
     var reasonPhrase =
-        Strings.join(" ", statusParts.getRange(2, statusParts.length - 2));
+        Strings.join(statusParts.getRange(2, statusParts.length - 2), " ");
     var headers = <String>{};
     for (var line in lines) {
       if (line.isEmpty) continue;
@@ -179,7 +179,7 @@ class CurlClient extends BaseClient {
       contentLength = int.parse(headers['content-length']);
     }
 
-    return new StreamedResponse(responseStream, status, contentLength,
+    return new http.StreamedResponse(responseStream, status, contentLength,
         headers: headers,
         isRedirect: isRedirect,
         reasonPhrase: reasonPhrase);

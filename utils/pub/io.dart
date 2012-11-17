@@ -535,6 +535,19 @@ Future timeout(Future input, int milliseconds, String message) {
   return completer.future;
 }
 
+/// Creates a temporary directory and passes its path to [fn]. Once the [Future]
+/// returned by [fn] completes, the temporary directory and all its contents
+/// will be deleted.
+Future withTempDir(Future fn(String path)) {
+  var tempDir;
+  var future = new Directory('').createTemp().chain((dir) {
+    tempDir = dir;
+    return fn(tempDir.path);
+  });
+  future.onComplete((_) => tempDir.delete(recursive: true));
+  return future;
+}
+
 /// Tests whether or not the git command-line app is available for use.
 Future<bool> get isGitInstalled {
   if (_isGitInstalledCache != null) {
