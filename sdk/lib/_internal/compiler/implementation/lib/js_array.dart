@@ -38,7 +38,7 @@ class JSArray<E> implements List<E> {
   }
 
   void addAll(Collection<E> collection) {
-    for (Element e in collection) {
+    for (E e in collection) {
       this.add(e);
     }
   }
