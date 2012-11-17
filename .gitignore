@@ -74,3 +74,6 @@ third_party/gsutil/*/gsutilc
 
 # Pub generated "packages" directories
 packages
+
+# Vim temporary swap files.
+*.swp
