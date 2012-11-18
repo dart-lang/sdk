@@ -705,17 +705,11 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
     self._type_registry = type_registry
 
   def dart_type(self):
-    # TODO(podivilov): why NodeList is special?
-    if self.idl_type() == 'NodeList':
-      return 'List<Node>'
     if self.list_item_type() and not self.has_generated_interface():
       return 'List<%s>' % self._type_registry.TypeInfo(self._data.item_type).dart_type()
     return self._data.dart_type or self._dart_interface_name
 
   def narrow_dart_type(self):
-    # TODO(podivilov): why NodeList is special?
-    if self.idl_type() == 'NodeList':
-      return 'List<Node>'
     if self.list_item_type():
       return self.idl_type()
     # TODO(podivilov): only primitive and collection types should override
@@ -727,8 +721,6 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
     return self.interface_name()
 
   def interface_name(self):
-    if self.list_item_type() and not self.has_generated_interface():
-      return self.dart_type()
     return self._dart_interface_name
 
   def implementation_name(self):
@@ -1022,7 +1014,8 @@ _idl_type_registry = {
     'MediaStreamList': TypeData(clazz='Interface',
         item_type='MediaStream', suppress_interface=True),
     'NamedNodeMap': TypeData(clazz='Interface', item_type='Node'),
-    'NodeList': TypeData(clazz='Interface', item_type='Node'),
+    'NodeList': TypeData(clazz='Interface', item_type='Node',
+                         suppress_interface=True),
     'SVGAnimatedLengthList': TypeData(clazz='Interface',
         item_type='SVGAnimatedLength'),
     'SVGAnimatedNumberList': TypeData(clazz='Interface',

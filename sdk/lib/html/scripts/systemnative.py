@@ -392,20 +392,12 @@ class DartiumBackend(HtmlDartGenerator):
     if self._HasNativeIndexSetter():
       self._EmitNativeIndexSetter(dart_element_type)
     else:
-      # The HTML library implementation of NodeList has a custom indexed setter
-      # implementation that uses the parent node the NodeList is associated
-      # with if one is available.
-      if self._interface.id != 'NodeList':
-        self._members_emitter.Emit(
-            '\n'
-            '  void operator[]=(int index, $TYPE value) {\n'
-            '    throw new UnsupportedError("Cannot assign element of immutable List.");\n'
-            '  }\n',
-            TYPE=dart_element_type)
-
-    # The list interface for this class is manually generated.
-    if self._interface.id == 'NodeList':
-      return
+      self._members_emitter.Emit(
+          '\n'
+          '  void operator[]=(int index, $TYPE value) {\n'
+          '    throw new UnsupportedError("Cannot assign element of immutable List.");\n'
+          '  }\n',
+          TYPE=dart_element_type)
 
     # TODO(sra): Use separate mixins for mutable implementations of List<T>.
     # TODO(sra): Use separate mixins for typed array implementations of List<T>.

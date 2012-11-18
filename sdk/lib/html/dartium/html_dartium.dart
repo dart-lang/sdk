@@ -17900,7 +17900,7 @@ class _ChildNodeListLazy implements List {
   Collection map(f(Node element)) => _Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
-     new _NodeListWrapper(_Collections.filter(this, <Node>[], f));
+     _Collections.filter(this, <Node>[], f);
 
   bool every(bool f(Node element)) => _Collections.every(this, f);
 
@@ -17936,7 +17936,7 @@ class _ChildNodeListLazy implements List {
         "Cannot insertRange on immutable List.");
   }
   List<Node> getRange(int start, int rangeLength) =>
-    new _NodeListWrapper(_Lists.getRange(this, start, rangeLength, <Node>[]));
+      _Lists.getRange(this, start, rangeLength, <Node>[]);
 
   // -- end List<Node> mixins.
 
@@ -18206,195 +18206,6 @@ class NodeIterator extends NativeFieldWrapperClass1 {
 
   /** @domName NodeIterator.previousNode */
   Node previousNode() native "NodeIterator_previousNode_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-// TODO(nweiz): when all implementations we target have the same name for the
-// implementation of List<E>, extend that rather than wrapping.
-class _ListWrapper<E> implements List<E> {
-  List _list;
-
-  _ListWrapper(List this._list);
-
-  Iterator<E> iterator() => _list.iterator();
-
-  bool contains(E element) => _list.contains(element);
-
-  void forEach(void f(E element)) => _list.forEach(f);
-
-  Collection map(f(E element)) => _list.map(f);
-
-  List<E> filter(bool f(E element)) => _list.filter(f);
-
-  bool every(bool f(E element)) => _list.every(f);
-
-  bool some(bool f(E element)) => _list.some(f);
-
-  bool get isEmpty => _list.isEmpty;
-
-  int get length => _list.length;
-
-  E operator [](int index) => _list[index];
-
-  void operator []=(int index, E value) { _list[index] = value; }
-
-  void set length(int newLength) { _list.length = newLength; }
-
-  void add(E value) => _list.add(value);
-
-  void addLast(E value) => _list.addLast(value);
-
-  void addAll(Collection<E> collection) => _list.addAll(collection);
-
-  void sort([Comparator<E> compare = Comparable.compare]) => _list.sort(compare);
-
-  int indexOf(E element, [int start = 0]) => _list.indexOf(element, start);
-
-  int lastIndexOf(E element, [int start = 0]) =>
-    _list.lastIndexOf(element, start);
-
-  void clear() => _list.clear();
-
-  E removeLast() => _list.removeLast();
-
-  E get first => _list.first;
-
-  E get last => _list.last;
-
-  List<E> getRange(int start, int rangeLength) =>
-    _list.getRange(start, rangeLength);
-
-  void setRange(int start, int rangeLength, List<E> from, [int startFrom = 0])
-      => _list.setRange(start, rangeLength, from, startFrom);
-
-  void removeRange(int start, int rangeLength) =>
-    _list.removeRange(start, rangeLength);
-
-  void insertRange(int start, int rangeLength, [E initialValue = null]) =>
-    _list.insertRange(start, rangeLength, initialValue);
-}
-
-/**
- * This class is used to insure the results of list operations are NodeLists
- * instead of lists.
- */
-class _NodeListWrapper extends _ListWrapper<Node> implements List {
-  _NodeListWrapper(List list) : super(list);
-
-  List<Node> filter(bool f(Node element)) =>
-    new _NodeListWrapper(_list.filter(f));
-
-  List<Node> getRange(int start, int rangeLength) =>
-    new _NodeListWrapper(_list.getRange(start, rangeLength));
-}
-
-class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
-  Node _parent;
-
-  // -- start List<Node> mixins.
-  // Node is the element type.
-
-  // From Iterable<Node>:
-
-  Iterator<Node> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<Node>(this);
-  }
-
-  // From Collection<Node>:
-
-  void add(Node value) {
-    _parent.$dom_appendChild(value);
-  }
-
-  void addLast(Node value) {
-    _parent.$dom_appendChild(value);
-  }
-
-  void addAll(Collection<Node> collection) {
-    for (Node node in collection) {
-      _parent.$dom_appendChild(node);
-    }
-  }
-
-  Node removeLast() {
-    final result = this.last;
-    if (result != null) {
-      _parent.$dom_removeChild(result);
-    }
-    return result;
-  }
-
-  void clear() {
-    _parent.text = '';
-  }
-
-  void operator []=(int index, Node value) {
-    _parent.$dom_replaceChild(value, this[index]);
-  }
-
-  bool contains(Node element) => _Collections.contains(this, element);
-
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
-
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
-
-  Collection<Node> filter(bool f(Node element)) =>
-     new _NodeListWrapper(_Collections.filter(this, <Node>[], f));
-
-  bool every(bool f(Node element)) => _Collections.every(this, f);
-
-  bool some(bool f(Node element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<Node>:
-
-  void sort([Comparator<Node> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(Node element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Node element, [int start = 0]) =>
-      _Lists.lastIndexOf(this, element, start);
-
-  Node get last => this[length - 1];
-  Node get first => this[0];
-
-  // FIXME: implement thesee.
-  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-  void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-  List<Node> getRange(int start, int rangeLength) =>
-    new _NodeListWrapper(_Lists.getRange(this, start, rangeLength, <Node>[]));
-
-  // -- end List<Node> mixins.
-
-  NodeList.internal();
-
-
-  /** @domName NodeList.length */
-  int get length native "NodeList_length_Getter";
-
-  Node operator[](int index) native "NodeList_item_Callback";
-
-
-  /** @domName NodeList.item */
-  Node _item(int index) native "NodeList_item_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20273,7 +20084,7 @@ class RTCStatsResponse extends NativeFieldWrapperClass1 {
 
 
 /// @domName RadioNodeList
-class RadioNodeList extends NodeList {
+class RadioNodeList extends _NodeList {
   RadioNodeList.internal(): super.internal();
 
 
@@ -28092,6 +27903,111 @@ class _MessageChannelFactoryProvider {
 
 class _MutationObserverFactoryProvider {
   static MutationObserver createMutationObserver(MutationCallback callback) native "MutationObserver_constructor_Callback";
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName NodeList
+class _NodeList extends NativeFieldWrapperClass1 implements List<Node> {
+  _NodeList.internal();
+
+
+  /** @domName NodeList.length */
+  int get length native "NodeList_length_Getter";
+
+  Node operator[](int index) native "NodeList_item_Callback";
+
+  void operator[]=(int index, Node value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<Node> mixins.
+  // Node is the element type.
+
+  // From Iterable<Node>:
+
+  Iterator<Node> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<Node>(this);
+  }
+
+  // From Collection<Node>:
+
+  void add(Node value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(Node value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Node> collection) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  bool contains(Node element) => _Collections.contains(this, element);
+
+  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+
+  Collection map(f(Node element)) => _Collections.map(this, [], f);
+
+  Collection<Node> filter(bool f(Node element)) =>
+     _Collections.filter(this, <Node>[], f);
+
+  bool every(bool f(Node element)) => _Collections.every(this, f);
+
+  bool some(bool f(Node element)) => _Collections.some(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  // From List<Node>:
+
+  void sort([Comparator<Node> compare = Comparable.compare]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(Node element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Node element, [int start]) {
+    if (start == null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  Node get first => this[0];
+
+  Node get last => this[length - 1];
+
+  Node removeLast() {
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<Node> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Node>[]);
+
+  // -- end List<Node> mixins.
+
+
+  /** @domName NodeList.item */
+  Node _item(int index) native "NodeList_item_Callback";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

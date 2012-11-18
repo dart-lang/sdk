@@ -486,26 +486,21 @@ class Dart2JSBackend(HtmlDartGenerator):
           ' JS("void", "#[#] = #", this, index, value);\n',
           TYPE=self._NarrowInputType(element_type))
     else:
-      # The HTML library implementation of NodeList has a custom indexed setter
-      # implementation that uses the parent node the NodeList is associated
-      # with if one is available.
-      if self._interface.id != 'NodeList':
-        self._members_emitter.Emit(
-            '\n'
-            '  void operator[]=(int index, $TYPE value) {\n'
-            '    throw new UnsupportedError("Cannot assign element of immutable List.");\n'
-            '  }\n',
-            TYPE=self._NarrowInputType(element_type))
+      self._members_emitter.Emit(
+          '\n'
+          '  void operator[]=(int index, $TYPE value) {\n'
+          '    throw new UnsupportedError("Cannot assign element of immutable List.");\n'
+          '  }\n',
+          TYPE=self._NarrowInputType(element_type))
 
     # TODO(sra): Use separate mixins for mutable implementations of List<T>.
     # TODO(sra): Use separate mixins for typed array implementations of List<T>.
-    if self._interface.id != 'NodeList':
-      template_file = 'immutable_list_mixin.darttemplate'
-      has_contains = any(op.id == 'contains' for op in self._interface.operations)
-      template = self._template_loader.Load(
-          template_file,
-          {'DEFINE_CONTAINS': not has_contains})
-      self._members_emitter.Emit(template, E=self._DartType(element_type))
+    template_file = 'immutable_list_mixin.darttemplate'
+    has_contains = any(op.id == 'contains' for op in self._interface.operations)
+    template = self._template_loader.Load(
+        template_file,
+        {'DEFINE_CONTAINS': not has_contains})
+    self._members_emitter.Emit(template, E=self._DartType(element_type))
 
   def EmitAttribute(self, attribute, html_name, read_only):
     if self._HasCustomImplementation(attribute.id):
