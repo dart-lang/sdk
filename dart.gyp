@@ -125,5 +125,12 @@
         'samples/sample_extension/sample_extension.gyp:sample_extension',
       ],
     },
+    {
+      'target_name': 'packages',
+      'type': 'none',
+      'dependencies': [
+        'pkg/pkg.gyp:pkg_packages',
+      ],
+    },
   ],
 }

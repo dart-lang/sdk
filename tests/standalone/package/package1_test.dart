@@ -2,5 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// PackageRoot=none
+
 #library('package1_test.dart');
 #import('package:package1.dart');

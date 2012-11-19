@@ -105,11 +105,7 @@ abstract class TestSuite {
   /**
    * The output directory for this suite's configuration.
    */
-  String get buildDir {
-    var mode = (configuration['mode'] == 'debug') ? 'Debug' : 'Release';
-    var arch = configuration['arch'].toUpperCase();
-    return "${TestUtils.outputDir(configuration)}$mode$arch";
-  }
+  String get buildDir => TestUtils.buildDir(configuration);
 
   /**
    * The path to the compiler for this suite's configuration. Returns `null` if
@@ -931,6 +927,13 @@ class StandardTestSuite extends TestSuite {
               dumpRenderTreeFilename,
               '--no-timeout'
           ];
+          if (compiler == 'none') {
+            String packageRoot =
+                packageRootArgument(optionsFromFile['packageRoot']);
+            if (packageRoot != null) {
+              args.add(packageRoot);
+            }
+          }
           if (runtime == 'drt' &&
               (compiler == 'none' || compiler == 'dart2dart')) {
             var dartFlags = ['--ignore-unrecognized-flags'];
@@ -1096,6 +1099,11 @@ class StandardTestSuite extends TestSuite {
 
   List<String> commonArgumentsFromFile(Path filePath, Map optionsFromFile) {
     List args = TestUtils.standardOptions(configuration);
+
+    String packageRoot = packageRootArgument(optionsFromFile['packageRoot']);
+    if (packageRoot != null) {
+      args.add(packageRoot);
+    }
     args.addAll(additionalOptions(filePath));
     if (configuration['compiler'] == 'dartc') {
       args.add('--error_format');
@@ -1121,6 +1129,15 @@ class StandardTestSuite extends TestSuite {
     }
 
     return args;
+  }
+
+  String packageRootArgument(String packageRootFromFile) {
+    if (packageRootFromFile == "none") return null;
+    String packageRoot = packageRootFromFile;
+    if (packageRootFromFile == null) {
+      packageRoot = "$buildDir/packages/";
+    }
+    return "--package-root=$packageRoot";
   }
 
   /**
@@ -1183,6 +1200,7 @@ class StandardTestSuite extends TestSuite {
     RegExp testOptionsRegExp = new RegExp(r"// VMOptions=(.*)");
     RegExp dartOptionsRegExp = new RegExp(r"// DartOptions=(.*)");
     RegExp otherScriptsRegExp = new RegExp(r"// OtherScripts=(.*)");
+    RegExp packageRootRegExp = new RegExp(r"// PackageRoot=(.*)");
     RegExp multiTestRegExp = new RegExp(r"/// [0-9][0-9]:(.*)");
     RegExp multiHtmlTestRegExp =
         new RegExp(r"useHtmlIndividualConfiguration()");
@@ -1217,6 +1235,7 @@ class StandardTestSuite extends TestSuite {
     // Find the options in the file.
     List<List> result = new List<List>();
     List<String> dartOptions;
+    String packageRoot;
     bool hasCompileError = contents.contains("@compile-error");
     bool hasRuntimeError = contents.contains("@runtime-error");
     bool isStaticClean = false;
@@ -1234,6 +1253,15 @@ class StandardTestSuite extends TestSuite {
             'More than one "// DartOptions=" line in test $filePath');
       }
       dartOptions = match[1].split(' ').filter((e) => e != '');
+    }
+
+    matches = packageRootRegExp.allMatches(contents);
+    for (var match in matches) {
+      if (packageRoot != null) {
+        throw new Exception(
+            'More than one "// PackageRoot=" line in test $filePath');
+      }
+      packageRoot = match[1];
     }
 
     matches = staticCleanRegExp.allMatches(contents);
@@ -1284,6 +1312,7 @@ class StandardTestSuite extends TestSuite {
 
     return { "vmOptions": result,
              "dartOptions": dartOptions,
+             "packageRoot": packageRoot,
              "hasCompileError": hasCompileError,
              "hasRuntimeError": hasRuntimeError,
              "isStaticClean" : isStaticClean,
@@ -1579,6 +1608,11 @@ class TestUtils {
   static bool isJsCommandLineRuntime(String runtime) =>
       const ['d8', 'jsshell'].contains(runtime);
 
+  static String buildDir(Map configuration) {
+    var mode = (configuration['mode'] == 'debug') ? 'Debug' : 'Release';
+    var arch = configuration['arch'].toUpperCase();
+    return "${TestUtils.outputDir(configuration)}$mode$arch";
+  }
 }
 
 class SummaryReport {
