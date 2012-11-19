@@ -482,8 +482,8 @@ class Dart2JSBackend(HtmlDartGenerator):
     if 'CustomIndexedSetter' in self._interface.ext_attrs:
       self._members_emitter.Emit(
           '\n'
-          '  void operator[]=(int index, $TYPE value) =>'
-          ' JS("void", "#[#] = #", this, index, value);\n',
+          '  void operator[]=(int index, $TYPE value) {'
+          ' JS("void", "#[#] = #", this, index, value); }',
           TYPE=self._NarrowInputType(element_type))
     else:
       self._members_emitter.Emit(

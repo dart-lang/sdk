@@ -3702,11 +3702,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else {
       visit(node.expression);
       value = pop();
-      if (value is HForeign) {
-        // TODO(6530, 6534): remove this check.
-      } else {
-        value = potentiallyCheckType(value, returnType);
-      }
+      value = potentiallyCheckType(value, returnType);
     }
 
     handleInTryStatement();
