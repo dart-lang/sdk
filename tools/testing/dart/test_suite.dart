@@ -20,7 +20,6 @@
 #import("test_runner.dart");
 #import("multitest.dart");
 #import("drt_updater.dart");
-#import("dart:uri");
 
 #source("browser_test.dart");
 
@@ -440,19 +439,6 @@ class StandardTestSuite extends TestSuite {
         recursive: true);
   }
 
-  Collection<Uri> get dart2JsBootstrapDependencies {
-    if (!useDart2JsFromSdk) return [];
-    
-    var snapshotPath = TestUtils.absolutePath(new Path(buildDir).join(
-        new Path('dart-sdk/lib/_internal/compiler/'
-                 'implementation/dart2js.dart.snapshot'))).toString();
-    return [new Uri.fromComponents(scheme: 'file', path: snapshotPath)];
-  }
-
-  bool get useDart2JsFromSdk {
-    return configuration['use_sdk'];
-  }
-
   /**
    * The default implementation assumes a file is a test if
    * it ends in "Test.dart".
@@ -708,12 +694,7 @@ class StandardTestSuite extends TestSuite {
       args = new List.from(args);
       String tempDir = createOutputDirectory(info.filePath, '');
       args.add('--out=$tempDir/out.js');
-      List<Command> commands = 
-          <Command>[new Dart2JsCommand("$tempDir/out.js",
-                                       !useDart2JsFromSdk,
-                                       dart2JsBootstrapDependencies,
-                                       dartShellFileName,
-                                       args)];
+      List<Command> commands = <Command>[new Command(dartShellFileName, args)];
       if (info.hasCompileError) {
         // Do not attempt to run the compiled result. A compilation
         // error should be reported by the compilation command.
@@ -1025,13 +1006,6 @@ class StandardTestSuite extends TestSuite {
       // Run the compiler script via the Dart VM.
       args.insertRange(0, 1, executable);
       executable = dartShellFileName;
-    }
-    if (configuration['compiler'] == 'dart2js') {
-      return new Dart2JsCommand(outputFile,
-                                !useDart2JsFromSdk, 
-                                dart2JsBootstrapDependencies,
-                                dartShellFileName,
-                                args);
     }
     return new Command(executable, args);
   }
@@ -1520,31 +1494,6 @@ class JUnitTestSuite extends TestSuite {
   }
 }
 
-class LastModifiedCache {
-  Map<String, Date> _cache = <String, Date>{};
-
-  /**
-   * Returns the last modified date of the given [uri].
-   * 
-   * The return value will be cached for future queries. If [uri] is a local
-   * file, it's last modified [Date] will be returned. If the file does not
-   * exist, null will be returned instead.
-   * In case [uri] is not a local file, this method will always return
-   * the current date.
-   */
-  Date getLastModified(Uri uri) {
-    if (uri.scheme == "file") {
-      if (_cache.containsKey(uri.path)) {
-        return _cache[uri.path];
-      }
-      var file = new File(new Path(uri.path).toNativePath());
-      _cache[uri.path] = file.existsSync() ? file.lastModifiedSync() : null;
-      return _cache[uri.path];
-    }
-    return new Date.now();
-  }
-}
-
 class TestUtils {
   /**
    * The libraries in this directory relies on finding various files
@@ -1553,8 +1502,7 @@ class TestUtils {
    * script must set this to '.../dart/tools/test.dart'.
    */
   static String testScriptPath = new Options().script;
-  static LastModifiedCache lastModifiedCache = new LastModifiedCache();
-  static Path currentWorkingDirectory = new Path.fromNative(new Directory.current().path);
+
   /**
    * Creates a directory using a [relativePath] to an existing
    * [base] directory if that [relativePath] does not already exist.
@@ -1600,13 +1548,6 @@ class TestUtils {
     if (!configuration['list'] && !(new File(filename).existsSync())) {
       throw "Executable '$filename' does not exist";
     }
-  }
-
-  static Path absolutePath(Path path) {
-    if (!path.isAbsolute) {
-      return currentWorkingDirectory.join(path);
-    }
-    return path;
   }
 
   static String outputDir(Map configuration) {
