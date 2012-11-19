@@ -6,28 +6,46 @@ import 'dart:io';
 import 'dart:isolate';
 
 main() {
-  var port = new ReceivePort();
-  Directory scriptDir = new File(new Options().script).directorySync();
-  var f = new File("${scriptDir.path}/æøå/æøå.dat");
+  ReceivePort port = new ReceivePort();
+
   // On MacOS you get the decomposed utf8 form of file and directory
   // names from the system. Therefore, we have to check for both here.
   var precomposed = 'æøå';
   var decomposed = new String.fromCharCodes([47, 230, 248, 97, 778]);
-  f.exists().then((e) {
-    Expect.isTrue(e);
-    f.create().then((_) {
-      f.directory().then((d) {
-        Expect.isTrue(d.path.endsWith(precomposed) ||
-                      d.path.endsWith(decomposed));
-        f.length().then((l) {
-          Expect.equals(6, l);
-          f.lastModified().then((_) {
-            f.fullPath().then((p) {
-              Expect.isTrue(p.endsWith('${precomposed}.dat') ||
-                            p.endsWith('${decomposed}.dat'));
-              f.readAsString().then((contents) {
-                Expect.equals(precomposed, contents);
-                port.close();
+
+  new Directory('').createTemp().then((tempDir) {
+      Directory nonAsciiDir = new Directory('${tempDir.path}/æøå');
+      nonAsciiDir.create().then((nonAsciiDir) {
+        nonAsciiDir.exists().then((result) {
+          Expect.isTrue(result);
+          File nonAsciiFile = new File('${nonAsciiDir.path}/æøå.txt');
+          nonAsciiFile.open(FileMode.WRITE).then((opened) {
+            opened.writeString('æøå').then((_) {
+              opened.close().then((_) {
+                nonAsciiFile.exists().then((result) {
+                  Expect.isTrue(result);
+                  nonAsciiFile.readAsString().then((contents) {
+                    // The contents of the file is precomposed utf8.
+                    Expect.equals(precomposed, contents);
+                    nonAsciiFile.create().then((_) {
+                      nonAsciiFile.directory().then((d) {
+                      Expect.isTrue(d.path.endsWith(precomposed) ||
+                                    d.path.endsWith(decomposed));
+                      nonAsciiFile.length().then((length) {
+                        Expect.equals(6, length);
+                        nonAsciiFile.lastModified().then((_) {
+                          nonAsciiFile.fullPath().then((path) {
+                            Expect.isTrue(path.endsWith('${precomposed}.txt') ||
+                                          path.endsWith('${decomposed}.txt'));
+                            tempDir.delete(recursive: true).then((_) {
+                              port.close();
+                            });
+                          });
+                        });
+                      });
+                    });
+                  });
+                });
               });
             });
           });

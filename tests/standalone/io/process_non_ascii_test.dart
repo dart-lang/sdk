@@ -3,15 +3,35 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:isolate';
 
 main() {
-  var scriptDir = new File(new Options().script).directorySync();
+  var port = new ReceivePort();
   var executable = new File(new Options().executable).fullPathSync();
+  var tempDir = new Directory('').createTempSync();
+  var nonAsciiDir = new Directory('${tempDir.path}/æøå');
+  nonAsciiDir.createSync();
+  var nonAsciiFile = new File('${nonAsciiDir.path}/æøå.dart');
+  var opened = nonAsciiFile.openSync(FileMode.WRITE);
+  opened.writeStringSync(
+"""
+import 'dart:io';
+
+main() {
+  Expect.equals('æøå', new File('æøå.txt').readAsStringSync());
+}
+""");
+  opened.closeSync();
+  var nonAsciiTxtFile = new File('${nonAsciiDir.path}/æøå.txt');
+  opened = nonAsciiTxtFile.openSync(FileMode.WRITE);
+  opened.writeStringSync('æøå');
+  opened.closeSync();
   var options = new ProcessOptions();
-  options.workingDirectory = "${scriptDir.path}/æøå";
-  var script = "${scriptDir.path}/æøå.dart";
-  print(options.workingDirectory);
+  options.workingDirectory = nonAsciiDir.path;
+  var script = nonAsciiFile.name;
   Process.run(executable, [script], options).then((result) {
     Expect.equals(0, result.exitCode);
+    tempDir.deleteSync(recursive: true);
+    port.close();
   });
 }

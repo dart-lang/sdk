@@ -5,21 +5,28 @@
 import 'dart:io';
 
 main() {
-  Directory scriptDir = new File(new Options().script).directorySync();
-  var f = new File("${scriptDir.path}/æøå/æøå.dat");
+  Directory tempDir = new Directory('').createTempSync();
+  Directory nonAsciiDir = new Directory('${tempDir.path}/æøå');
+  nonAsciiDir.createSync();
+  Expect.isTrue(nonAsciiDir.existsSync());
+  File nonAsciiFile = new File('${nonAsciiDir.path}/æøå.txt');
+  RandomAccessFile opened = nonAsciiFile.openSync(FileMode.WRITE);
+  opened.writeStringSync('æøå');
+  opened.closeSync();
+  Expect.isTrue(nonAsciiFile.existsSync());
   // On MacOS you get the decomposed utf8 form of file and directory
   // names from the system. Therefore, we have to check for both here.
   var precomposed = 'æøå';
   var decomposed = new String.fromCharCodes([47, 230, 248, 97, 778]);
-  Expect.isTrue(f.existsSync());
-  f.createSync();
-  var path = f.directorySync().path;
-  Expect.isTrue(f.directorySync().path.endsWith(precomposed) ||
-                f.directorySync().path.endsWith(decomposed));
-  Expect.equals(6, f.lengthSync());
-  f.lastModifiedSync();
-  Expect.isTrue(f.fullPathSync().endsWith('${precomposed}.dat') ||
-                f.fullPathSync().endsWith('${decomposed}.dat'));
   // The contents of the file is precomposed utf8.
-  Expect.equals(precomposed, f.readAsStringSync());
+  Expect.equals(precomposed, nonAsciiFile.readAsStringSync());
+  nonAsciiFile.createSync();
+  var path = nonAsciiFile.directorySync().path;
+  Expect.isTrue(path.endsWith(precomposed) || path.endsWith(decomposed));
+  Expect.equals(6, nonAsciiFile.lengthSync());
+  nonAsciiFile.lastModifiedSync();
+  path = nonAsciiFile.fullPathSync();
+  Expect.isTrue(path.endsWith('${precomposed}.txt') ||
+                path.endsWith('${decomposed}.txt'));
+  tempDir.deleteSync(recursive: true);
 }
