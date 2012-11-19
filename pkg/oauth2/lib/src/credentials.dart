@@ -80,6 +80,7 @@ class Credentials {
     try {
       parsed = JSON.parse(json);
     } catch (e) {
+      // TODO(nweiz): narrow this catch clause once issue 6775 is fixed.
       validate(false, 'invalid JSON');
     }
 

@@ -42,6 +42,7 @@ Credentials handleAccessTokenResponse(
   try {
     parameters = JSON.parse(response.body);
   } catch (e) {
+    // TODO(nweiz): narrow this catch clause once issue 6775 is fixed.
     validate(false, 'invalid JSON');
   }
 
@@ -111,6 +112,7 @@ void _handleErrorResponse(http.Response response, Uri tokenEndpoint) {
   try {
     parameters = JSON.parse(response.body);
   } catch (e) {
+    // TODO(nweiz): narrow this catch clause once issue 6775 is fixed.
     validate(false, 'invalid JSON');
   }
 
