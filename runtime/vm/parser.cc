@@ -5035,9 +5035,13 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   // class in the current library (but not in its imports) and only create a new
   // canonical signature class if it does not exist yet.
   const String& signature = String::Handle(function.Signature());
-  Class& signature_class = Class::ZoneHandle(
-      library_.LookupLocalClass(signature));
-
+  Class& signature_class = Class::ZoneHandle();
+  if (!is_new_closure) {
+    signature_class = function.signature_class();
+  }
+  if (signature_class.IsNull()) {
+    signature_class = library_.LookupLocalClass(signature);
+  }
   if (signature_class.IsNull()) {
     // If we don't have a signature class yet, this must be a closure we
     // have not parsed before.

@@ -2481,7 +2481,12 @@ RawString* UnresolvedClass::Name() const {
 
 
 const char* UnresolvedClass::ToCString() const {
-  return "UnresolvedClass";
+  const char* format = "unresolved class '%s'";
+  const char* cname =  String::Handle(Name()).ToCString();
+  intptr_t len = OS::SNPrint(NULL, 0, format, cname) + 1;
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+  OS::SNPrint(chars, len, format, cname);
+  return chars;
 }
 
 
@@ -9014,18 +9019,21 @@ const char* Type::ToCString() const {
   if (IsResolved()) {
     const AbstractTypeArguments& type_arguments =
         AbstractTypeArguments::Handle(arguments());
+    const char* class_name;
+    if (HasResolvedTypeClass()) {
+      class_name = String::Handle(
+          Class::Handle(type_class()).Name()).ToCString();
+    } else {
+      class_name = UnresolvedClass::Handle(unresolved_class()).ToCString();
+    }
     if (type_arguments.IsNull()) {
       const char* format = "Type: class '%s'";
-      const char* class_name =
-          String::Handle(Class::Handle(type_class()).Name()).ToCString();
       intptr_t len = OS::SNPrint(NULL, 0, format, class_name) + 1;
       char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
       OS::SNPrint(chars, len, format, class_name);
       return chars;
     } else {
       const char* format = "Type: class '%s', args:[%s]";
-      const char* class_name =
-          String::Handle(Class::Handle(type_class()).Name()).ToCString();
       const char* args_cstr =
           AbstractTypeArguments::Handle(arguments()).ToCString();
       intptr_t len = OS::SNPrint(NULL, 0, format, class_name, args_cstr) + 1;
