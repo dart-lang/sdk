@@ -26,7 +26,7 @@ DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 3) {
     GrowableArray<const Object*> args;
     args.Add(&function_name);
     args.Add(&func_args);
-    Exceptions::ThrowByType(Exceptions::kNullPointer, args);
+    Exceptions::ThrowByType(Exceptions::kNullThrown, args);
   }
   const Object& null_object = Object::Handle(Object::null());
   GrowableArray<const Object*> dart_arguments(3);

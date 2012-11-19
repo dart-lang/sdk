@@ -1379,7 +1379,7 @@ DEFINE_RUNTIME_ENTRY(ReportObjectNotClosure, 2) {
   if (instance.IsNull()) {
     dart_arguments.Add(&function_name);
     dart_arguments.Add(&function_args);
-    Exceptions::ThrowByType(Exceptions::kNullPointer, dart_arguments);
+    Exceptions::ThrowByType(Exceptions::kNullThrown, dart_arguments);
     UNREACHABLE();
   }
 

@@ -48,8 +48,6 @@ type_error_test: Fail # http://dartbug.com/5280
 
 compile_time_constant10_test/none: Fail # issue 5214
 
-call_through_null_getter_test: Fail # issue 6124
-
 invocation_mirror_test: Fail # issue 3326, 3622.
 no_such_method_test: Fail # issue 3326, 3622.
 
@@ -588,8 +586,6 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 type_error_test: Fail, OK # VM bug: http://dartbug.com/5280
-
-call_through_null_getter_test: Fail # issue 6130
 
 # This is a VM error when the compiled code is run.
 invocation_mirror_test: Fail # issue 3326, 3622.

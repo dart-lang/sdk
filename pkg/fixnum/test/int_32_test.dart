@@ -132,26 +132,26 @@ void main() {
 
   try {
     new int32.fromInt(17) < null;
-    Expect.fail("x < null should throw NullPointerException");
-  } on NullPointerException catch (e) {
+    Expect.fail("x < null should throw ArgumentError");
+  } on ArgumentError catch (e) {
   }
 
   try {
     new int32.fromInt(17) <= null;
-    Expect.fail("x <= null should throw NullPointerException");
-  } on NullPointerException catch (e) {
+    Expect.fail("x <= null should throw ArgumentError");
+  } on ArgumentError catch (e) {
   }
 
   try {
     new int32.fromInt(17) > null;
-    Expect.fail("x > null should throw NullPointerException");
-  } on NullPointerException catch (e) {
+    Expect.fail("x > null should throw ArgumentError");
+  } on ArgumentError catch (e) {
   }
 
   try {
     new int32.fromInt(17) < null;
-    Expect.fail("x >= null should throw NullPointerException");
-  } on NullPointerException catch (e) {
+    Expect.fail("x >= null should throw ArgumentError");
+  } on ArgumentError catch (e) {
   }
 
   Expect.isFalse(new int32.fromInt(17) == null);

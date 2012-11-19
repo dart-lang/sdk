@@ -267,7 +267,6 @@ Language/11_Expressions/11_Instance_Creation/2_Const_A06_t01: Fail # http://dart
 Language/11_Expressions/11_Instance_Creation/2_Const_A06_t02: Fail # http://dartbug.com/5519
 Language/11_Expressions/11_Instance_Creation/2_Const_A10_t01: Fail # inherited from VM
 Language/11_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A04_t01: Fail # http://dartbug.com/5519
-Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Fail # inherited from VM
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail # inherited from VM
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t02: Fail # inherited from VM
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail # inherited from VM
@@ -275,16 +274,7 @@ Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t03: Fail # inherited from VM
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t04: Fail # http://dartbug.com/5519
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t06: Fail # inherited from VM
-Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t02: Fail # inherited from VM
-Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t03: Fail # inherited from VM
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t08: Fail # inherited from VM
-Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A05_t01: Fail # inherited from VM
-Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A06_t02: Fail # inherited from VM
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: Fail # co19 issue 251 or issue 5732
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A03_t02: Fail # co19 issue 251 or issue 5732
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A03_t03: Fail # co19 issue 251 or issue 5732
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A07_t01: Fail # co19 issue 251 or issue 5732
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A08_t02: Fail # co19 issue 251 or issue 5732
 Language/11_Expressions/17_Getter_Invocation_A02_t01: Fail # inherited from VM
 Language/11_Expressions/18_Assignment_A05_t02: Fail # inherited from VM
 Language/11_Expressions/18_Assignment_A05_t04: Fail # inherited from VM
@@ -515,6 +505,115 @@ LibTest/core/Match/operator_subscript_A02_t01: Fail, OK # co19 issue 290
 LibTest/core/String/charCodeAt_A02_t01: Fail, OK # co19 issue 290
 LibTest/core/String/operator_subscript_A02_t01: Fail, OK # co19 issue 290
 LibTest/core/String/substring_A02_t01: Fail, OK # co19 issue 290
+
+Language/05_Variables/05_Variables_A09_t01: Fail, OK # co19 issue 316
+Language/06_Functions/3_Type_of_a_Function_A01_t01: Fail, OK # co19 issue 316
+Language/07_Classes/2_Getters_A02_t01: Fail, OK # co19 issue 316
+Language/07_Classes/8_Static_Variables_A02_t01: Fail, OK # co19 issue 316
+Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A01_t01: Fail, OK # co19 issue 316
+Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t01: Fail, OK # co19 issue 316
+Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t02: Fail, OK # co19 issue 316
+Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t03: Fail, OK # co19 issue 316
+Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t04: Fail, OK # co19 issue 316
+Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t05: Fail, OK # co19 issue 316
+Language/11_Expressions/02_Null_A05_t02: Fail, OK # co19 issue 316
+Language/11_Expressions/08_Throw_A03_t04: Fail, OK # co19 issue 316
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A06_t01: Fail, OK # co19 issue 316
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A06_t02: Fail, OK # co19 issue 316
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A07_t01: Fail, OK # co19 issue 316
+Language/12_Statements/06_For/2_For_in_A01_t04: Fail, OK # co19 issue 316
+Language/14_Types/6_Type_Dynamic_A03_t01: Fail, OK # co19 issue 316
+Language/14_Types/6_Type_Dynamic_A04_t01: Fail, OK # co19 issue 316
+LibTest/core/Date/Date.fromString_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/Date/Date_A01_t02: Fail, OK # co19 issue 316
+LibTest/core/Date/add_A05_t01: Fail, OK # co19 issue 316
+LibTest/core/Date/compareTo_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/Date/difference_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/Date/subtract_A05_t01: Fail, OK # co19 issue 316
+LibTest/core/Duration/Duration_A03_t01: Fail, OK # co19 issue 316
+LibTest/core/Expect/approxEquals_A03_t01: Fail, OK # co19 issue 316
+LibTest/core/Expect/listEquals_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/Expect/setEquals_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/Expect/throws_A01_t03: Fail, OK # co19 issue 316
+LibTest/core/Future/handleException_A01_t01: Fail, OK # co19 issue 316
+LibTest/core/Future/handleException_A01_t07: Fail, OK # co19 issue 316
+LibTest/core/Future/hasValue_A01_t01: Fail, OK # co19 issue 316
+LibTest/core/Future/isComplete_A01_t01: Fail, OK # co19 issue 316
+LibTest/core/Future/then_A01_t01: Fail, OK # co19 issue 316
+LibTest/core/Future/then_A01_t05: Fail, OK # co19 issue 316
+LibTest/core/Future/value_A01_t03: Fail, OK # co19 issue 316
+LibTest/core/Futures/wait_A03_t01: Fail, OK # co19 issue 316
+LibTest/core/HashMap/HashMap.from_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/HashSet/HashSet.from_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/LinkedHashMap/LinkedHashMap.from_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/List/List.from_A03_t01: Fail, OK # co19 issue 316
+LibTest/core/List/addAll_A03_t01: Fail, OK # co19 issue 316
+LibTest/core/List/getRange_A05_t01: Fail, OK # co19 issue 316
+LibTest/core/List/insertRange_A07_t01: Fail, OK # co19 issue 316
+LibTest/core/List/length_A06_t01: Fail, OK # co19 issue 316
+LibTest/core/List/removeRange_A06_t01: Fail, OK # co19 issue 316
+LibTest/core/List/setRange_A06_t01: Fail, OK # co19 issue 316
+LibTest/core/Map/containsKey_A01_t02: Fail, OK # co19 issue 316
+LibTest/core/Map/forEach_A01_t04: Fail, OK # co19 issue 316
+LibTest/core/Map/operator_subscript_A01_t02: Fail, OK # co19 issue 316
+LibTest/core/Map/operator_subscripted_assignment_A01_t02: Fail, OK # co19 issue 316
+LibTest/core/Map/putIfAbsent_A01_t06: Fail, OK # co19 issue 316
+LibTest/core/Map/putIfAbsent_A01_t08: Fail, OK # co19 issue 316
+LibTest/core/Map/remove_A01_t02: Fail, OK # co19 issue 316
+LibTest/core/NullPointerException/NullPointerException_A01_t01: Fail, OK # co19 issue 316
+LibTest/core/NullPointerException/toString_A01_t01: Fail, OK # co19 issue 316
+LibTest/core/Queue/Queue.from_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/Queue/addAll_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/RegExp/allMatches_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/RegExp/firstMatch_A03_t01: Fail, OK # co19 issue 316
+LibTest/core/RegExp/hasMatch_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/RegExp/stringMatch_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/Set/Set.from_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/Set/addAll_A01_t02: Fail, OK # co19 issue 316
+LibTest/core/Set/add_A01_t02: Fail, OK # co19 issue 316
+LibTest/core/Set/containsAll_A01_t02: Fail, OK # co19 issue 316
+LibTest/core/Set/contains_A01_t02: Fail, OK # co19 issue 316
+LibTest/core/Set/intersection_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/Set/intersection_A03_t01: Fail, OK # co19 issue 316
+LibTest/core/Set/isSubsetOf_A01_t02: Fail, OK # co19 issue 316
+LibTest/core/Set/removeAll_A01_t02: Fail, OK # co19 issue 316
+LibTest/core/Set/remove_A01_t02: Fail, OK # co19 issue 316
+LibTest/core/String/String.fromCharCodes_A03_t01: Fail, OK # co19 issue 316
+LibTest/core/String/contains_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/String/endsWith_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/String/indexOf_A03_t01: Fail, OK # co19 issue 316
+LibTest/core/String/lastIndexOf_A03_t01: Fail, OK # co19 issue 316
+LibTest/core/String/split_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/String/startsWith_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/StringBuffer/addAll_A03_t01: Fail, OK # co19 issue 316
+LibTest/core/Strings/concatAll_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/Strings/concatAll_A03_t01: Fail, OK # co19 issue 316
+LibTest/core/Strings/join_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/Strings/join_A03_t01: Fail, OK # co19 issue 316
+LibTest/core/double/operator_GE_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/double/operator_GT_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/double/operator_LE_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/double/operator_LT_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/double/operator_addition_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/double/operator_division_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/double/operator_multiplication_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/double/operator_remainder_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/double/operator_subtraction_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/double/operator_truncating_division_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/double/remainder_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/double/toStringAsFixed_A02_t01: Fail, OK # co19 issue 316
+LibTest/core/double/toStringAsPrecision_A02_t01: Fail, OK # co19 issue 316
+LibTest/math/acos_A01_t04: Fail, OK # co19 issue 316
+LibTest/math/asin_A01_t04: Fail, OK # co19 issue 316
+LibTest/math/atan2_A01_t04: Fail, OK # co19 issue 316
+LibTest/math/atan_A01_t03: Fail, OK # co19 issue 316
+LibTest/math/cos_A01_t03: Fail, OK # co19 issue 316
+LibTest/math/exp_A01_t03: Fail, OK # co19 issue 316
+LibTest/math/log_A01_t04: Fail, OK # co19 issue 316
+LibTest/math/pow_A19_t01: Fail, OK # co19 issue 316
+LibTest/math/sin_A01_t03: Fail, OK # co19 issue 316
+LibTest/math/sqrt_A01_t04: Fail, OK # co19 issue 316
+LibTest/math/tan_A01_t03: Fail, OK # co19 issue 316
 
 [ $compiler == dart2dart && $system == windows ]
 LibTest/core/double/operator_remainder_A01_t04: Fail # Result is NaN

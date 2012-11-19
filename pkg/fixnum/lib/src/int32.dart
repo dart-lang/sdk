@@ -142,7 +142,7 @@ class int32 implements intx {
   // will be truncated.
   int _convert(other) {
     if (other == null) {
-      throw new NullPointerException();
+      throw new ArgumentError("other is null");
     } else if (other is intx) {
       return other.toInt32()._i;
     } else if (other is int) {

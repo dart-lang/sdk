@@ -189,7 +189,7 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
   }
 
   int _probeForAdding(K key) {
-    if (key == null) throw const NullPointerException();
+    if (key == null) throw new ArgumentError(null);
     int hash = _firstProbe(key.hashCode, _keys.length);
     int numberOfProbes = 1;
     int initialHash = hash;
@@ -224,7 +224,7 @@ class _HashMapImpl<K, V> implements HashMap<K, V> {
   }
 
   int _probeForLookup(K key) {
-    if (key == null) throw const NullPointerException();
+    if (key == null) throw new ArgumentError(null);
     int hash = _firstProbe(key.hashCode, _keys.length);
     int numberOfProbes = 1;
     int initialHash = hash;
