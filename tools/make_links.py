@@ -30,16 +30,25 @@ def make_link(source, target):
   # End of temporary code.
 
   if os.path.islink(target):
+    print 'Removing %s' % target
+    sys.stdout.flush()
     os.unlink(target)
 
+  if os.path.isdir(target):
+    print 'Removing %s' % target
+    sys.stdout.flush()
+    os.rmdir(target)
+
   if utils.GuessOS() == 'win32':
-    return subprocess.call(['mklink', '/j', target, source])
+    source = os.path.relpath(source)
+    return subprocess.call(['mklink', '/j', target, source], shell=True)
   else:
+    source = os.path.relpath(source, start=target)
     return subprocess.call(['ln', '-s', source, target])
 
 
 def main(argv):
-  target = argv[1]
+  target = os.path.relpath(argv[1])
   for source in argv[2:]:
     # Assume the source directory is named ".../TARGET_NAME/lib".
     (name, lib) = os.path.split(source)
@@ -47,8 +56,7 @@ def main(argv):
       name = source
     # Remove any addtional path components preceding TARGET_NAME.
     (path, name) = os.path.split(name)
-    exit_code = make_link(os.path.relpath(source, start=target),
-                          os.path.join(target, name))
+    exit_code = make_link(source, os.path.join(target, name))
     if exit_code != 0:
       return exit_code
   return 0
