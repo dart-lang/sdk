@@ -183,11 +183,13 @@ canvasrenderingcontext2d_test: Fail
 datalistelement_test: Pass,Fail
 document_test: Fail
 dom_constructors_test: Fail
+element_test/additionalConstructors: Fail
 element_test/attributes: Fail, Crash
+element_test/constructors: Fail
 element_test/elements: Crash
 element_test/eventListening: Fail
 element_test/_ElementList: Fail, Crash
-element_test/queryAll: Crash
+element_test/queryAll: Fail, Crash
 element_add_test: Fail
 element_constructor_1_test: Fail
 element_webkit_test: Fail
@@ -199,10 +201,11 @@ node_test: Skip # Issue 6457
 serialized_script_value_test: Fail
 svgelement2_test: Fail
 svgelement_test/constructors: Crash
+svgelement_test/css: Crash
 svgelement_test/additionalConstructors: Fail
 svgelement_test/elementget: Fail
 svgelement_test/elementset: Fail
-svgelement_test/innerHTML: Crash
+svgelement_test/innerHTML: Crash, Fail
 svgelement_test/outerHTML: Fail
 svgelement_test/svg: Fail
 url_test: Fail
