@@ -10,7 +10,6 @@
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
-#include "vm/random.h"
 #include "vm/scanner.h"
 #include "vm/symbols.h"
 
@@ -65,10 +64,6 @@ DEFINE_NATIVE_ENTRY(Math_exp, 1) {
 DEFINE_NATIVE_ENTRY(Math_log, 1) {
   GET_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
   return Double::New(log(operand.value()));
-}
-
-DEFINE_NATIVE_ENTRY(Math_random, 0) {
-  return Double::New(static_cast<double>(Random::RandomInt32()-1)/0x80000000);
 }
 
 }  // namespace dart

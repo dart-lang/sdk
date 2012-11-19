@@ -92,7 +92,6 @@ namespace dart {
   V(Math_atan2, 2)                                                             \
   V(Math_exp, 1)                                                               \
   V(Math_log, 1)                                                               \
-  V(Math_random, 0)                                                            \
   V(DateNatives_currentTimeMillis, 0)                                          \
   V(DateNatives_timeZoneName, 1)                                               \
   V(DateNatives_timeZoneOffsetInSeconds, 1)                                    \
