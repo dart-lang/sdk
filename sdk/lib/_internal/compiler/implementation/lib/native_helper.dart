@@ -48,6 +48,7 @@ String typeNameInFirefox(obj) {
   if (name == 'DataTransfer') return 'Clipboard';
   if (name == 'MouseScrollEvent') return 'WheelEvent';
   if (name == 'OfflineResourceList') return 'DOMApplicationCache';
+  if (name == 'GeoGeolocation') return 'Geolocation';
   return name;
 }
 
@@ -71,6 +72,7 @@ String typeNameInIE(obj) {
   if (name == 'HTMLPhraseElement') return 'HTMLElement';
   if (name == 'MSStyleCSSProperties') return 'CSSStyleDeclaration';
   if (name == 'MouseWheelEvent') return 'WheelEvent';
+  if (name == 'Position') return 'Geoposition';
   return name;
 }
 
