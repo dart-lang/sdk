@@ -1092,6 +1092,7 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
                                        intptr_t deopt_id,
                                        intptr_t token_pos,
                                        LocationSummary* locs) {
+  // TODO(srdjan): Remove load ECX with function.
   __ LoadObject(ECX, function);
   __ LoadObject(EDX, arguments_descriptor);
   // Do not use the code from the function, but let the code be patched so that
@@ -1101,6 +1102,7 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
                    &StubCode::CallStaticFunctionLabel(),
                    PcDescriptors::kFuncCall,
                    locs);
+  AddStaticCallTarget(function);
   __ Drop(argument_count);
 }
 

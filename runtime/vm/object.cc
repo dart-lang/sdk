@@ -7007,8 +7007,41 @@ void Code::set_object_table(const Array& array) const {
 }
 
 
-void Code::set_resolved_static_calls(const GrowableObjectArray& val) const {
-  StorePointer(&raw_ptr()->resolved_static_calls_, val.raw());
+void Code::set_static_calls_target_table(const Array& value) const {
+  StorePointer(&raw_ptr()->static_calls_target_table_, value.raw());
+}
+
+
+RawFunction* Code::GetStaticCallTargetFunctionAt(uword pc) const {
+  RawObject* raw_code_offset =
+      reinterpret_cast<RawObject*>(Smi::New(pc - EntryPoint()));
+  const Array& array =
+      Array::Handle(raw_ptr()->static_calls_target_table_);
+  for (intptr_t i = 0; i < array.Length(); i += kSCallTableEntryLength) {
+    if (array.At(i) == raw_code_offset) {
+      Function& function = Function::Handle();
+      function ^= array.At(i + kSCallTableFunctionEntry);
+      return function.raw();
+    }
+  }
+  return Function::null();
+}
+
+
+void Code::SetStaticCallTargetCodeAt(uword pc, const Code& code) const {
+  RawObject* raw_code_offset =
+      reinterpret_cast<RawObject*>(Smi::New(pc - EntryPoint()));
+  const Array& array =
+      Array::Handle(raw_ptr()->static_calls_target_table_);
+  for (intptr_t i = 0; i < array.Length(); i += kSCallTableEntryLength) {
+    if (array.At(i) == raw_code_offset) {
+      ASSERT(code.IsNull() ||
+             (code.function() == array.At(i + kSCallTableFunctionEntry)));
+      array.SetAt(i + kSCallTableCodeEntry, code);
+      return;
+    }
+  }
+  UNREACHABLE();
 }
 
 

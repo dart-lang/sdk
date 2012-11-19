@@ -770,46 +770,6 @@ DEFINE_RUNTIME_ENTRY(ReThrow, 2) {
 }
 
 
-static bool UpdateResolvedStaticCall(const Code& code,
-                              intptr_t offset,
-                              const Code& target_code) {
-  // PC offsets are mapped to the corresponding code object in the
-  // resolved_static_calls array. The array grows as static calls are being
-  // resolved.
-  const int kOffset = 0;
-  const int kCode = 1;
-  const int kEntrySize = 2;
-
-  GrowableObjectArray& resolved_static_calls =
-      GrowableObjectArray::Handle(code.resolved_static_calls());
-  intptr_t index = -1;
-  if (resolved_static_calls.IsNull()) {
-    resolved_static_calls = GrowableObjectArray::New(2, Heap::kOld);
-    code.set_resolved_static_calls(resolved_static_calls);
-  } else {
-    // Search for the offset in the resolved static calls.
-    const intptr_t len = resolved_static_calls.Length();
-    Object& off = Object::Handle();
-    for (intptr_t i = 0; i < len; i += kEntrySize) {
-      off = resolved_static_calls.At(i + kOffset);
-      if (Smi::Cast(off).Value() == offset) {
-        index = i;
-        break;
-      }
-    }
-  }
-  if (index == -1) {
-    // The static call with this offset is not yet present: Add it.
-    resolved_static_calls.Add(Smi::Handle(Smi::New(offset)));
-    resolved_static_calls.Add(target_code);
-  } else {
-    // Overwrite the currently recorded target.
-    resolved_static_calls.SetAt(index + kCode, target_code);
-  }
-  return index != -1;
-}
-
-
 DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   // This function is called after successful resolving and compilation of
   // the target method.
@@ -827,10 +787,7 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   ASSERT(target != new_target);
   CodePatcher::PatchStaticCallAt(caller_frame->pc(), new_target);
   const Code& code = Code::Handle(caller_frame->LookupDartCode());
-  bool found = UpdateResolvedStaticCall(code,
-                                        caller_frame->pc() - code.EntryPoint(),
-                                        target_code);
-  ASSERT(!found);
+  code.SetStaticCallTargetCodeAt(caller_frame->pc(), target_code);
   if (FLAG_trace_patching) {
     OS::Print("PatchStaticCall: patching from %#"Px" to '%s' %#"Px"\n",
         caller_frame->pc(),
@@ -1591,10 +1548,7 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 1) {
     ASSERT(target != new_entry_point);  // Why patch otherwise.
     CodePatcher::PatchStaticCallAt(frame->pc(), new_entry_point);
     const Code& code = Code::Handle(frame->LookupDartCode());
-    bool found = UpdateResolvedStaticCall(code,
-                                          frame->pc() - code.EntryPoint(),
-                                          target_code);
-    ASSERT(found);
+    code.SetStaticCallTargetCodeAt(frame->pc(), target_code);
     if (FLAG_trace_patching) {
       OS::Print("FixCallersTarget: patching from %#"Px" to '%s' %#"Px"\n",
           frame->pc(),

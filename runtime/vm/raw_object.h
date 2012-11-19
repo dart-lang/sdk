@@ -745,9 +745,9 @@ class RawCode : public RawObject {
   RawPcDescriptors* pc_descriptors_;
   RawArray* deopt_info_array_;
   RawArray* object_table_;
+  RawArray* static_calls_target_table_;  // (code-offset, function, code).
   RawArray* stackmaps_;
   RawLocalVarDescriptors* var_descriptors_;
-  RawGrowableObjectArray* resolved_static_calls_;
   RawArray* comments_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->comments_);

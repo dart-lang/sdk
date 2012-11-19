@@ -2486,10 +2486,22 @@ class Code : public Object {
   void set_stackmaps(const Array& maps) const;
   RawStackmap* GetStackmap(uword pc, Array* stackmaps, Stackmap* map) const;
 
-  RawGrowableObjectArray* resolved_static_calls() const {
-    return raw_ptr()->resolved_static_calls_;
+  enum {
+    kSCallTableOffsetEntry = 0,
+    kSCallTableFunctionEntry = 1,
+    kSCallTableCodeEntry = 2,
+    kSCallTableEntryLength = 3,
+  };
+
+  void set_static_calls_target_table(const Array& value) const;
+  RawArray* static_calls_target_table() const {
+    return raw_ptr()->static_calls_target_table_;
   }
-  void set_resolved_static_calls(const GrowableObjectArray& val) const;
+
+  // Returns null if there is no static call at 'pc'.
+  RawFunction* GetStaticCallTargetFunctionAt(uword pc) const;
+  // Aborts if there is no static call at 'pc'.
+  void SetStaticCallTargetCodeAt(uword pc, const Code& code) const;
 
   class Comments : public ZoneAllocated {
    public:

@@ -192,6 +192,7 @@ class FlowGraphCompiler : public ValueObject {
   void FinalizeStackmaps(const Code& code);
   void FinalizeVarDescriptors(const Code& code);
   void FinalizeComments(const Code& code);
+  void FinalizeStaticCallTargetsTable(const Code& code);
 
   const Bool& bool_true() const { return bool_true_; }
   const Bool& bool_false() const { return bool_false_; }
@@ -227,6 +228,8 @@ class FlowGraphCompiler : public ValueObject {
                                                 Register index);
 
  private:
+  void AddStaticCallTarget(const Function& function);
+
   void GenerateDeferredCode();
 
   void EmitInstructionPrologue(Instruction* instr);
@@ -320,6 +323,8 @@ class FlowGraphCompiler : public ValueObject {
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<CompilerDeoptInfo*> deopt_infos_;
   GrowableArray<SlowPathCode*> slow_path_code_;
+  // Stores: [code offset, function, null(code)].
+  const GrowableObjectArray& static_calls_target_table_;
   const bool is_optimizing_;
   // Set to true if optimized code has IC calls.
   bool may_reoptimize_;

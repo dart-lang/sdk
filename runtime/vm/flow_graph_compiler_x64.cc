@@ -1096,6 +1096,7 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
                                        intptr_t deopt_id,
                                        intptr_t token_pos,
                                        LocationSummary* locs) {
+  // TODO(srdjan): Remove load RBX with function.
   __ LoadObject(RBX, function);
   __ LoadObject(R10, arguments_descriptor);
   // Do not use the code from the function, but let the code be patched so that
@@ -1105,6 +1106,7 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
                    &StubCode::CallStaticFunctionLabel(),
                    PcDescriptors::kFuncCall,
                    locs);
+  AddStaticCallTarget(function);
   __ Drop(argument_count);
 }
 
