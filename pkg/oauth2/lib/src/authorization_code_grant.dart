@@ -75,7 +75,7 @@ class AuthorizationCodeGrant {
   final Uri tokenEndpoint;
 
   /// The HTTP client used to make HTTP requests.
-  http.BaseClient _httpClient;
+  http.Client _httpClient;
 
   /// The URL to which the resource owner will be redirected after they
   /// authorize this client with the authorization server.
@@ -101,7 +101,7 @@ class AuthorizationCodeGrant {
       this.secret,
       this.authorizationEndpoint,
       this.tokenEndpoint,
-      {http.BaseClient httpClient})
+      {http.Client httpClient})
     : _httpClient = httpClient == null ? new http.Client() : httpClient;
 
   /// Returns the URL to which the resource owner should be redirected to

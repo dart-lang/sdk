@@ -145,7 +145,7 @@ class Credentials {
       String identifier,
       String secret,
       {List<String> newScopes,
-       http.BaseClient httpClient}) {
+       http.Client httpClient}) {
     var scopes = this.scopes;
     if (newScopes != null) scopes = newScopes;
     if (scopes == null) scopes = <String>[];

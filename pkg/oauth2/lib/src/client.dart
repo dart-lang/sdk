@@ -14,9 +14,8 @@ import 'utils.dart';
 
 // TODO(nweiz): Add an onCredentialsRefreshed event once we have some event
 // infrastructure.
-/// An OAuth2 client. This acts as a drop-in replacement for an
-/// [http.BaseClient], while sending OAuth2 authorization credentials along with
-/// each request.
+/// An OAuth2 client. This acts as a drop-in replacement for an [http.Client],
+/// while sending OAuth2 authorization credentials along with each request.
 ///
 /// The client also automatically refreshes its credentials if possible. When it
 /// makes a request, if its credentials are expired, it will first refresh them.
@@ -62,7 +61,7 @@ class Client extends http.BaseClient {
   Credentials _credentials;
 
   /// The underlying HTTP client.
-  http.BaseClient _httpClient;
+  http.Client _httpClient;
 
   /// Creates a new client from a pre-existing set of credentials. When
   /// authorizing a client for the first time, you should use
@@ -74,7 +73,7 @@ class Client extends http.BaseClient {
       this.identifier,
       this.secret,
       this._credentials,
-      {http.BaseClient httpClient})
+      {http.Client httpClient})
     : _httpClient = httpClient == null ? new http.Client() : httpClient;
 
   /// Sends an HTTP request with OAuth2 authorization credentials attached. This

@@ -8,75 +8,89 @@ import 'dart:io';
 
 import 'base_client.dart';
 import 'base_request.dart';
+import 'io_client.dart';
 import 'streamed_response.dart';
 import 'utils.dart';
 
-/// An HTTP client which takes care of maintaining persistent connections across
-/// multiple requests to the same server. If you only need to send a single
-/// request, it's usually easier to use [head], [get], [post],
+/// The interface for HTTP clients that take care of maintaining persistent
+/// connections across multiple requests to the same server. If you only need to
+/// send a single request, it's usually easier to use [head], [get], [post],
 /// [put], or [delete] instead.
 ///
-/// When creating an HTTP client class with additional functionality, it's
-/// recommended that you subclass [BaseClient] and wrap another instance of
-/// [BaseClient] rather than subclassing [Client] directly. This allows all
-/// subclasses of [BaseClient] to be mutually composable.
-class Client extends BaseClient {
-  /// The underlying `dart:io` HTTP client.
-  HttpClient _inner;
+/// When creating an HTTP client class with additional functionality, you must
+/// extend [BaseClient] rather than [Client]. In most cases, you can wrap
+/// another instance of [Client] and add functionality on top of that. This
+/// allows all classes implementing [Client] to be mutually composable.
+abstract class Client {
+  /// Creates a new Client using the default implementation. This implementation
+  /// uses an underlying `dart:io` [HttpClient] to make requests.
+  factory Client() => new IOClient();
 
-  /// Creates a new HTTP client.
-  Client() : _inner = new HttpClient();
+  /// Sends an HTTP HEAD request with the given headers to the given URL, which
+  /// can be a [Uri] or a [String].
+  ///
+  /// For more fine-grained control over the request, use [send] instead.
+  Future<Response> head(url, {Map<String, String> headers});
+
+  /// Sends an HTTP GET request with the given headers to the given URL, which
+  /// can be a [Uri] or a [String].
+  ///
+  /// For more fine-grained control over the request, use [send] instead.
+  Future<Response> get(url, {Map<String, String> headers});
+
+  /// Sends an HTTP POST request with the given headers and fields to the given
+  /// URL, which can be a [Uri] or a [String]. If any fields are specified, the
+  /// content-type is automatically set to
+  /// `"application/x-www-form-urlencoded"`.
+  ///
+  /// For more fine-grained control over the request, use [send] instead.
+  Future<Response> post(url,
+      {Map<String, String> headers,
+       Map<String, String> fields});
+
+  /// Sends an HTTP PUT request with the given headers and fields to the given
+  /// URL, which can be a [Uri] or a [String]. If any fields are specified, the
+  /// content-type is automatically set to
+  /// `"application/x-www-form-urlencoded"`.
+  ///
+  /// For more fine-grained control over the request, use [send] instead.
+  Future<Response> put(url,
+      {Map<String, String> headers,
+       Map<String, String> fields});
+
+  /// Sends an HTTP DELETE request with the given headers to the given URL,
+  /// which can be a [Uri] or a [String].
+  ///
+  /// For more fine-grained control over the request, use [send] instead.
+  Future<Response> delete(url, {Map<String, String> headers});
+
+  /// Sends an HTTP GET request with the given headers to the given URL, which
+  /// can be a [Uri] or a [String], and returns a Future that completes to the
+  /// body of the response as a String.
+  ///
+  /// The Future will emit an [HttpException] if the response doesn't have a
+  /// success status code.
+  ///
+  /// For more fine-grained control over the request and response, use [send] or
+  /// [get] instead.
+  Future<String> read(url, {Map<String, String> headers});
+
+  /// Sends an HTTP GET request with the given headers to the given URL, which
+  /// can be a [Uri] or a [String], and returns a Future that completes to the
+  /// body of the response as a list of bytes.
+  ///
+  /// The Future will emit an [HttpException] if the response doesn't have a
+  /// success status code.
+  ///
+  /// For more fine-grained control over the request and response, use [send] or
+  /// [get] instead.
+  Future<Uint8List> readBytes(url, {Map<String, String> headers});
 
   /// Sends an HTTP request and asynchronously returns the response.
-  Future<StreamedResponse> send(BaseRequest request) {
-    var stream = request.finalize();
+  Future<StreamedResponse> send(BaseRequest request);
 
-    var completer = new Completer<StreamedResponse>();
-    var connection = _inner.openUrl(request.method, request.url);
-    connection.onError = (e) {
-      async.then((_) {
-        // TODO(nweiz): remove this when issue 4974 is fixed
-        if (completer.future.isComplete) throw e;
-
-        completer.completeException(e);
-      });
-    };
-
-    connection.onRequest = (underlyingRequest) {
-      underlyingRequest.contentLength = request.contentLength;
-      underlyingRequest.persistentConnection = request.persistentConnection;
-      request.headers.forEach((name, value) {
-        underlyingRequest.headers.set(name, value);
-      });
-
-      if (stream.closed) {
-        underlyingRequest.outputStream.close();
-      } else {
-        stream.pipe(underlyingRequest.outputStream);
-      }
-    };
-
-    connection.onResponse = (response) {
-      var headers = <String>{};
-      response.headers.forEach((key, value) => headers[key] = value);
-
-      completer.complete(new StreamedResponse(
-          response.inputStream,
-          response.statusCode,
-          response.contentLength,
-          headers: headers,
-          isRedirect: response.isRedirect,
-          persistentConnection: response.persistentConnection,
-          reasonPhrase: response.reasonPhrase));
-    };
-
-    return completer.future;
-  }
-
-  /// Closes the client. This terminates all active connections. If a client
-  /// remains unclosed, the Dart process may not terminate.
-  void close() {
-    if (_inner != null) _inner.shutdown();
-    _inner = null;
-  }
+  /// Closes the client and cleans up any resources associated with it. It's
+  /// important to close each client when it's done being used; failing to do so
+  /// can cause the Dart process to hang.
+  void close();
 }
