@@ -18,7 +18,7 @@ final redirectUrl = new Uri.fromString('http://example.com/redirect');
 
 ExpectClient client;
 
-AuthorizationCodeGrant grant;
+oauth2.AuthorizationCodeGrant grant;
 
 void createGrant() {
   client = new ExpectClient();

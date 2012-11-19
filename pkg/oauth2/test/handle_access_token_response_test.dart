@@ -18,7 +18,7 @@ final Uri tokenEndpoint = new Uri.fromString("https://example.com/token");
 
 final Date startTime = new Date.now();
 
-Credentials handle(http.Response response) =>
+oauth2.Credentials handle(http.Response response) =>
   handleAccessTokenResponse(response, tokenEndpoint, startTime, ["scope"]);
 
 void main() {
@@ -102,11 +102,11 @@ void main() {
   group('a success response', () {
     oauth2.Credentials handleSuccess(
         {String contentType: "application/json",
-         String accessToken: 'access token',
-         String tokenType: 'bearer',
-         String expiresIn,
-         String refreshToken,
-         String scope}) {
+         accessToken: 'access token',
+         tokenType: 'bearer',
+         expiresIn,
+         refreshToken,
+         scope}) {
       return handle(new http.Response(JSON.stringify({
         'access_token': accessToken,
         'token_type': tokenType,
