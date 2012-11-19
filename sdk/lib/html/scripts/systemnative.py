@@ -80,7 +80,10 @@ class DartiumBackend(HtmlDartGenerator):
           ARGUMENTS_DECLARATION=arguments_declaration,
           ARGUMENT_COUNT=len(arguments))
 
-    cpp_header_emitter = self._cpp_library_emitter.CreateHeaderEmitter(self._interface.id, True)
+    cpp_header_emitter = self._cpp_library_emitter.CreateHeaderEmitter(
+        self._interface.id,
+        self._renamer.GetLibraryName(self._interface),
+        True)
     cpp_header_emitter.Emit(
         self._template_loader.Load('cpp_callback_header.template'),
         INTERFACE=self._interface.id,
@@ -112,7 +115,9 @@ class DartiumBackend(HtmlDartGenerator):
   def StartInterface(self, memebers_emitter):
     # Create emitters for c++ implementation.
     if not IsPureInterface(self._interface.id):
-      self._cpp_header_emitter = self._cpp_library_emitter.CreateHeaderEmitter(self._interface.id)
+      self._cpp_header_emitter = self._cpp_library_emitter.CreateHeaderEmitter(
+          self._interface.id,
+          self._renamer.GetLibraryName(self._interface))
       self._cpp_impl_emitter = self._cpp_library_emitter.CreateSourceEmitter(self._interface.id)
     else:
       self._cpp_header_emitter = emitter.Emitter()
@@ -854,13 +859,15 @@ class CPPLibraryEmitter():
   def __init__(self, emitters, cpp_sources_dir):
     self._emitters = emitters
     self._cpp_sources_dir = cpp_sources_dir
-    self._headers_list = []
+    self._library_headers = {}
     self._sources_list = []
 
-  def CreateHeaderEmitter(self, interface_name, is_callback=False):
+  def CreateHeaderEmitter(self, interface_name, library_name, is_callback=False):
     path = os.path.join(self._cpp_sources_dir, 'Dart%s.h' % interface_name)
     if not is_callback:
-      self._headers_list.append(path)
+      if not library_name in self._library_headers:
+        self._library_headers[library_name] = []
+      self._library_headers[library_name].append(path)
     return self._emitters.FileEmitter(path)
 
   def CreateSourceEmitter(self, interface_name):
@@ -879,12 +886,17 @@ class CPPLibraryEmitter():
         includes_emitter.Emit('#include "$PATH"\n', PATH=path)
 
   def EmitResolver(self, template, output_dir):
-    file_path = os.path.join(output_dir, 'DartResolver.cpp')
-    includes_emitter, body_emitter = self._emitters.FileEmitter(file_path).Emit(template)
-    for header_file in self._headers_list:
-      path = os.path.relpath(header_file, output_dir)
-      includes_emitter.Emit('#include "$PATH"\n', PATH=path)
-      body_emitter.Emit(
-          '    if (Dart_NativeFunction func = $CLASS_NAME::resolver(name, argumentCount))\n'
-          '        return func;\n',
-          CLASS_NAME=os.path.splitext(os.path.basename(path))[0])
+    for library_name in self._library_headers.keys():
+      file_path = os.path.join(output_dir, '%s_DartResolver.cpp' % library_name)
+      includes_emitter, body_emitter = self._emitters.FileEmitter(file_path).Emit(
+        template,
+        LIBRARY_NAME=library_name)
+
+      headers = self._library_headers[library_name]
+      for header_file in headers:
+        path = os.path.relpath(header_file, output_dir)
+        includes_emitter.Emit('#include "$PATH"\n', PATH=path)
+        body_emitter.Emit(
+            '    if (Dart_NativeFunction func = $CLASS_NAME::resolver(name, argumentCount))\n'
+            '        return func;\n',
+            CLASS_NAME=os.path.splitext(os.path.basename(path))[0])
