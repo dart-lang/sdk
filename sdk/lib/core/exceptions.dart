@@ -5,19 +5,31 @@
 // Exceptions are thrown either by the VM or from Dart code.
 
 /**
- * Interface implemented by all core library exceptions.
- * Defaults to an implementation that only carries a simple message.
+ * A marker interface implemented by all core library exceptions.
+ *
+ * An [Exception] is intended to convey information to the user about a failure,
+ * so that the error can be addressed programmatically. It is intended to be
+ * caught, and it should contain useful data fields.
+ *
+ * Creating instances of [Exception] directly with [:new Exception("message"):]
+ * is discouraged, and only included as a temporary measure during development,
+ * until the actual exceptions used by a library are done.
  */
 abstract class Exception {
-  const factory Exception([var message]) = _ExceptionImplementation;
+  factory Exception([var message]) => new _ExceptionImplementation(message);
 }
 
 
 /** Default implementation of [Exception] which carries a message. */
 class _ExceptionImplementation implements Exception {
   final message;
-  const _ExceptionImplementation([this.message]);
-  String toString() => (message == null) ? "Exception" : "Exception: $message";
+
+  _ExceptionImplementation([this.message]);
+
+  String toString() {
+    if (message == null) return "Exception";
+    return "Exception: $message";
+  }
 }
 
 

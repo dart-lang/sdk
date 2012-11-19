@@ -151,7 +151,7 @@ checkCastError(o) {
   try {
     print(o);
   } on TypeError catch (e) {
-    print('unexpected type error: ${NoSuchMethodError.safeToString(e)}');
+    print('unexpected type error: ${Error.safeToString(e)}');
     throw; // Unexpected type error.
   } on CastError catch (e) {
     print(e); // This might provoke an error.

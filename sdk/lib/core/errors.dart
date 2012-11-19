@@ -4,6 +4,31 @@
 
 class Error {
   const Error();
+
+  /**
+   * Safely convert a value to a [String] description.
+   *
+   * The conversion is guaranteed to not throw, so it won't use the object's
+   * toString method.
+   */
+  static String safeToString(Object object) {
+    if (object is int || object is double || object is bool || null == object) {
+      return object.toString();
+    }
+    if (object is String) {
+      // TODO(ahe): Remove backslash when http://dartbug.com/4995 is fixed.
+      const backslash = '\\';
+      String escaped = object
+        .replaceAll('$backslash', '$backslash$backslash')
+        .replaceAll('\n', '${backslash}n')
+        .replaceAll('\r', '${backslash}r')
+        .replaceAll('"',  '$backslash"');
+      return '"$escaped"';
+    }
+    return _objectToString(object);
+  }
+
+  external static String _objectToString(Object object);
 }
 
 /**
@@ -120,7 +145,7 @@ class NoSuchMethodError implements Error {
         if (i > 0) {
           sb.add(", ");
         }
-        sb.add(safeToString(_arguments[i]));
+        sb.add(Error.safeToString(_arguments[i]));
       }
     }
     if (_namedArguments != null) {
@@ -130,13 +155,13 @@ class NoSuchMethodError implements Error {
         }
         sb.add(key);
         sb.add(": ");
-        sb.add(safeToString(value));
+        sb.add(Error.safeToString(value));
         i++;
       });
     }
     if (_existingArgumentNames == null) {
       return "NoSuchMethodError : method not found: '$_memberName'\n"
-          "Receiver: ${safeToString(_receiver)}\n"
+          "Receiver: ${Error.safeToString(_receiver)}\n"
           "Arguments: [$sb]";
     } else {
       String actualParameters = sb.toString();
@@ -150,30 +175,11 @@ class NoSuchMethodError implements Error {
       String formalParameters = sb.toString();
       return "NoSuchMethodError: incorrect number of arguments passed to "
           "method named '$_memberName'\n"
-          "Receiver: ${safeToString(_receiver)}\n"
+          "Receiver: ${Error.safeToString(_receiver)}\n"
           "Tried calling: $_memberName($actualParameters)\n"
           "Found: $_memberName($formalParameters)";
     }
   }
-
-  static String safeToString(Object object) {
-    if (object is int || object is double || object is bool || null == object) {
-      return object.toString();
-    }
-    if (object is String) {
-      // TODO(ahe): Remove backslash when http://dartbug.com/4995 is fixed.
-      const backslash = '\\';
-      String escaped = object
-        .replaceAll('$backslash', '$backslash$backslash')
-        .replaceAll('\n', '${backslash}n')
-        .replaceAll('\r', '${backslash}r')
-        .replaceAll('"',  '$backslash"');
-      return '"$escaped"';
-    }
-    return _objectToString(object);
-  }
-
-  external static String _objectToString(Object object);
 }
 
 

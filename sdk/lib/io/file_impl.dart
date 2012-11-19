@@ -357,7 +357,7 @@ class _File extends _FileBase implements File {
   // Constructor for file.
   _File(String this._name) {
     if (_name is! String) {
-      throw new ArgumentError('${NoSuchMethodError.safeToString(_name)} '
+      throw new ArgumentError('${Error.safeToString(_name)} '
                               'is not a String');
     }
   }

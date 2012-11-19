@@ -809,7 +809,7 @@ class Dart2JSBackend(HtmlDartGenerator):
             GenerateChecksAndCall(operation, position)
         GenerateChecksAndCall(operation, len(operation.arguments))
       body.Emit(
-          '    throw const Exception("Incorrect number or type of arguments");'
+          '    throw new ArgumentError("Incorrect number or type of arguments");'
           '\n');
     else:
       operation = operations[0]

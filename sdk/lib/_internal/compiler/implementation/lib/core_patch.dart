@@ -82,7 +82,7 @@ patch class double {
   patch static double parse(String source) => Primitives.parseDouble(source);
 }
 
-patch class NoSuchMethodError {
+patch class Error {
   patch static String _objectToString(Object object) {
     return Primitives.objectToString(object);
   }
