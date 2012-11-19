@@ -21,15 +21,16 @@ import utils
 
 
 def make_link(source, target):
-  if os.path.islink(target):
-    os.unlink(target)
-
   # TODO(ahe): Remove this code when the build bots are green again.
-  bug_cleanup = os.path.join(source, 'lib')
+  bug_cleanup = os.path.join(target, 'lib')
   if os.path.islink(bug_cleanup):
     print 'Removing %s' % bug_cleanup
+    sys.stdout.flush()
     os.unlink(bug_cleanup)
   # End of temporary code.
+
+  if os.path.islink(target):
+    os.unlink(target)
 
   if utils.GuessOS() == 'win32':
     return subprocess.call(['mklink', '/j', target, source])
