@@ -884,7 +884,7 @@ class StandardTestSuite extends TestSuite {
       if (compiler != 'none') {
         commands.add(_compileCommand(
             dartWrapperFilename, compiledDartWrapperFilename,
-            compiler, tempDir, vmOptions));
+            compiler, tempDir, vmOptions, optionsFromFile));
 
         // some tests require compiling multiple input scripts.
         List<String> otherScripts = optionsFromFile['otherScripts'];
@@ -895,7 +895,7 @@ class StandardTestSuite extends TestSuite {
           Path fromPath = filePath.directoryPath.join(namePath);
           commands.add(_compileCommand(
               fromPath.toNativePath(), '$tempDir/$baseName.js',
-              compiler, tempDir, vmOptions));
+              compiler, tempDir, vmOptions, optionsFromFile));
         }
       }
 
@@ -984,12 +984,17 @@ class StandardTestSuite extends TestSuite {
 
   /** Helper to create a compilation command for a single input file. */
   Command _compileCommand(String inputFile, String outputFile,
-      String compiler, String dir, var vmOptions) {
+      String compiler, String dir, vmOptions, optionsFromFile) {
     String executable = compilerPath;
     List<String> args = TestUtils.standardOptions(configuration);
     switch (compiler) {
       case 'dart2js':
       case 'dart2dart':
+        String packageRoot =
+          packageRootArgument(optionsFromFile['packageRoot']);
+        if (packageRoot != null) {
+          args.add(packageRoot);
+        }
         if (compiler == 'dart2dart') args.add('--out=$outputFile');
         args.add('--out=$outputFile');
         args.add(inputFile);

@@ -39,11 +39,12 @@ def make_link(source, target):
     sys.stdout.flush()
     os.rmdir(target)
 
+  print 'Creating link from %s to %s' % (source, target)
+  sys.stdout.flush()
+
   if utils.GuessOS() == 'win32':
-    source = os.path.relpath(source)
     return subprocess.call(['mklink', '/j', target, source], shell=True)
   else:
-    source = os.path.relpath(source, start=target)
     return subprocess.call(['ln', '-s', source, target])
 
 
@@ -56,6 +57,10 @@ def main(argv):
       name = source
     # Remove any addtional path components preceding TARGET_NAME.
     (path, name) = os.path.split(name)
+    if utils.GuessOS() == 'win32':
+      source = os.path.relpath(source)
+    else:
+      source = os.path.relpath(source, start=target)
     exit_code = make_link(source, os.path.join(target, name))
     if exit_code != 0:
       return exit_code
