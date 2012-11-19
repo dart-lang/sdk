@@ -1911,7 +1911,7 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
       "getMixedList() {\n"
       "  var list = [];\n"
       "  for (var i = 0; i < kArrayLength; i++) {\n"
-      "    list.add(((i % 2) == 0) ? 'A' : 2.72);\n"
+      "    list.add(((i % 2) == 0) ? '.' : 2.72);\n"
       "  }\n"
       "  return list;\n"
       "}\n"
@@ -2017,7 +2017,7 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
         if ((i % 2) == 0) {
           EXPECT_EQ(root->value.as_array.values[0], element);
           EXPECT_EQ(Dart_CObject::kString, element->type);
-          EXPECT_STREQ("A", element->value.as_string);
+          EXPECT_STREQ(".", element->value.as_string);
         } else {
           EXPECT_EQ(root->value.as_array.values[1], element);
           EXPECT_EQ(Dart_CObject::kDouble, element->type);

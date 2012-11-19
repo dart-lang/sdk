@@ -17,7 +17,8 @@ ApiMessageReader::ApiMessageReader(const uint8_t* buffer,
                                    ReAlloc alloc)
     : BaseReader(buffer, length),
       alloc_(alloc),
-      backward_references_(kNumInitialReferences) {
+      backward_references_(kNumInitialReferences),
+      vm_symbol_references_(NULL) {
   Init();
 }
 
@@ -215,13 +216,31 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
 
 Dart_CObject* ApiMessageReader::ReadVMSymbol(intptr_t object_id) {
   if (Symbols::IsVMSymbolId(object_id)) {
+    intptr_t symbol_id = object_id - kMaxPredefinedObjectIds;
+    Dart_CObject* object;
+    if (vm_symbol_references_ != NULL &&
+        (object = vm_symbol_references_[symbol_id]) != NULL) {
+      return object;
+    }
+
+    if (vm_symbol_references_ == NULL) {
+      intptr_t size = sizeof(*vm_symbol_references_) * Symbols::kMaxId;
+      vm_symbol_references_ =
+          reinterpret_cast<Dart_CObject**>(alloc_(NULL, 0, size));
+#ifdef DEBUG
+      memset(vm_symbol_references_, 0, size);
+#endif
+    }
+
     RawOneByteString* str =
         reinterpret_cast<RawOneByteString*>(Symbols::GetVMSymbol(object_id));
     intptr_t len = Smi::Value(str->ptr()->length_);
-    Dart_CObject* object = AllocateDartCObjectString(len);
+    object = AllocateDartCObjectString(len);
     char* p = object->value.as_string;
     memmove(p, str->ptr()->data_, len);
     p[len] = '\0';
+    ASSERT(vm_symbol_references_[symbol_id] == NULL);
+    vm_symbol_references_[symbol_id] = object;
     return object;
   }
   // No other VM isolate objects are supported.
