@@ -373,6 +373,9 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     variableNames = allocator.names;
     shouldGroupVarDeclarations = allocator.names.numberOfVariables > 1;
 
+    // Don't register a return type for lazily initialized variables.
+    if (work.element is! FunctionElement) return;
+
     // Register return types to the backend.
     graph.exit.predecessors.forEach((HBasicBlock block) {
       HInstruction last = block.last;
