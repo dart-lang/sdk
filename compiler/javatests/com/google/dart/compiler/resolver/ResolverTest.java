@@ -1057,6 +1057,8 @@ public class ResolverTest extends ResolverTestCase {
         "  result = instance.setter3;",
         "  instance.setter3 = 1;",
         "}"),
+        errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_SETTER, 13, 3, 7),
+        errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_GETTER, 14, 12, 7),
         errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_SETTER, 17, 5, 7),
         errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_GETTER, 18, 14, 7));
   }

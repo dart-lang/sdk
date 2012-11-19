@@ -1262,6 +1262,20 @@ public class Resolver {
         }
       }
 
+      if (ElementKind.of(element) == ElementKind.FIELD) {
+        FieldElement fieldElement = (FieldElement) element;
+        if (fieldElement.getModifiers().isAbstractField()) {
+          if (fieldElement.getGetter() == null && ASTNodes.inGetterContext(x)) {
+            topLevelContext.onError(x, ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_GETTER);
+            x.markResolutionAlreadyReportedThatTheMethodCouldNotBeFound();
+          }
+          if (fieldElement.getSetter() == null && ASTNodes.inSetterContext(x)) {
+            topLevelContext.onError(x, ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_SETTER);
+            x.markResolutionAlreadyReportedThatTheMethodCouldNotBeFound();
+          }
+        }
+      }
+
       // May be local variable declared in lexical scope, but its declaration is not visited yet.
       if (getContext().getScope().isDeclaredButNotReachedVariable(name)) {
         onError(x, ResolverErrorCode.USING_LOCAL_VARIABLE_BEFORE_DECLARATION, x);

@@ -5351,6 +5351,32 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors(), errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 5, 5, 1));
   }
 
+  public void test_field_unqualifiedAccess_read() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  set f(x) {}",
+        "  run() {",
+        "    var v = f;",
+        "  }",
+        "}",
+        "");
+    assertErrors(result.getErrors(), errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_GETTER, 5, 13, 1));
+  }
+  
+  public void test_field_unqualifiedAccess_write() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  get f => 0;",
+        "  run() {",
+        "    f = 1;",
+        "  }",
+        "}",
+        "");
+    assertErrors(result.getErrors(), errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_SETTER, 5, 5, 1));
+  }
+
   public void test_typeVariableScope_staticField() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
