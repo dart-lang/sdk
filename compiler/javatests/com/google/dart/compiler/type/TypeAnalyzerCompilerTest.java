@@ -5496,6 +5496,41 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
   
   /**
+   * We should resolve sub-type member only if there is only sub-type with such member.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6776
+   */
+  public void test_trySubTypeMember_moreThanOneMember() throws Exception {
+    compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
+      @Override
+      public boolean typeChecksForInferredTypes() {
+        return true;
+      }
+    });
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Event {}",
+        "class MouseEvent extends Event {",
+        "  int clientX;",
+        "}",
+        "class ScreenEvent extends Event {",
+        "  int clientX;",
+        "}",
+        "typedef Listener(Event event);",
+        "class Button {",
+        "  addListener(Listener listener) {}",
+        "}",
+        "main() {",
+        "  Button button = new Button();",
+        "  button.addListener((event) {",
+        "    event.clientX;",
+        "  });",
+        "}",
+        "");
+    assertErrors(result.getErrors(), errEx(TypeErrorCode.NOT_A_MEMBER_OF_INFERRED, 16, 11, 7));
+  }
+  
+  /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=6491
    */
