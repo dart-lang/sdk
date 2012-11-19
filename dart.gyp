@@ -13,6 +13,9 @@
       'actions': []
     },
     {
+      # This is the target that is built on the VM build bots.  It
+      # must depend on anything that is required by the VM test
+      # suites.
       'target_name': 'runtime',
       'type': 'none',
       'dependencies': [
@@ -21,6 +24,7 @@
         'runtime/dart-runtime.gyp:run_vm_tests',
         'runtime/dart-runtime.gyp:process_test',
         'runtime/dart-runtime.gyp:test_extension',
+        'packages',
       ],
     },
     {
@@ -104,11 +108,15 @@
       ],
     },
     {
+      # This is the target that is built on the dart2js build bots.
+      # It must depend on anything that is required by the dart2js
+      # test suites.
       'target_name': 'dart2js_bot',
       'type': 'none',
       'dependencies': [
         'third_party/v8/src/d8.gyp:d8',
         'create_sdk',
+        'packages',
       ],
     },
     {
