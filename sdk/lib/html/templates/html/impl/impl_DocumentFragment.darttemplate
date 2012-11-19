@@ -35,10 +35,13 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     this.children = value;
   }
 
+$if DART2JS
   // Native field is used only by Dart code so does not lead to instantiation
   // of native classes
   @Creates('Null')
+$endif
   List<Element> _children;
+
   List<Element> get children {
     if (_children == null) {
       _children = new FilteredElementList(this);

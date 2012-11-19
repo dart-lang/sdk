@@ -8784,10 +8784,8 @@ class DocumentFragment extends Node {
     this.children = value;
   }
 
-  // Native field is used only by Dart code so does not lead to instantiation
-  // of native classes
-  @Creates('Null')
   List<Element> _children;
+
   List<Element> get children {
     if (_children == null) {
       _children = new FilteredElementList(this);

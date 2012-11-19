@@ -99,7 +99,7 @@ _convertDartToNative_ImageData(ImageData imageData) {
 Map _convertNativeToDart_Dictionary(object) {
   if (object == null) return null;
   var dict = {};
-  for (final key in JS('List', 'Object.getOwnPropertyNames(#)', object)) {
+  for (final key in JS('=List', 'Object.getOwnPropertyNames(#)', object)) {
     dict[key] = JS('var', '#[#]', object, key);
   }
   return dict;
@@ -276,7 +276,7 @@ _convertDartToNative_PrepareForStructuredClone(value) {
       var copy = readSlot(slot);
       if (copy != null) {
         if (true == copy) {  // Cycle, so commit to making a copy.
-          copy = JS('List', 'new Array(#)', length);
+          copy = JS('=List', 'new Array(#)', length);
           writeSlot(slot, copy);
         }
         return copy;
@@ -296,7 +296,7 @@ _convertDartToNative_PrepareForStructuredClone(value) {
           if (!identical(elementCopy, element)) {
             copy = readSlot(slot);   // Cyclic reference may have created it.
             if (true == copy) {
-              copy = JS('List', 'new Array(#)', length);
+              copy = JS('=List', 'new Array(#)', length);
               writeSlot(slot, copy);
             }
             for (int j = 0; j < i; j++) {
@@ -313,7 +313,7 @@ _convertDartToNative_PrepareForStructuredClone(value) {
         }
       } else {
         // Not a JavaScript Array.  We are forced to make a copy.
-        copy = JS('List', 'new Array(#)', length);
+        copy = JS('=List', 'new Array(#)', length);
         writeSlot(slot, copy);
       }
 
@@ -393,7 +393,7 @@ _convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) {
       copy = {};
 
       writeSlot(slot, copy);
-      for (final key in JS('List', 'Object.keys(#)', e)) {
+      for (final key in JS('=List', 'Object.keys(#)', e)) {
         copy[key] = walk(JS('var', '#[#]', e, key));
       }
       return copy;
@@ -407,7 +407,7 @@ _convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) {
       int length = e.length;
       // Since a JavaScript Array is an instance of Dart List, we can modify it
       // in-place unless we must copy.
-      copy = mustCopy ? JS('List', 'new Array(#)', length) : e;
+      copy = mustCopy ? JS('=List', 'new Array(#)', length) : e;
       writeSlot(slot, copy);
 
       for (int i = 0; i < length; i++) {
@@ -433,3 +433,20 @@ bool _isJavaScriptSimpleObject(value) =>
     JS('bool', 'Object.getPrototypeOf(#) === Object.prototype', value);
 bool _isImmutableJavaScriptArray(value) =>
     JS('bool', r'!!(#.immutable$list)', value);
+
+
+
+const String _serializedScriptValue =
+    'num|String|bool|'
+    '=List|=Object|'
+    'Blob|File|ArrayBuffer|ArrayBufferView'
+    // TODO(sra): Add Date, RegExp.
+    ;
+const _annotation_Creates_SerializedScriptValue =
+    const Creates(_serializedScriptValue);
+const _annotation_Returns_SerializedScriptValue =
+    const Returns(_serializedScriptValue);
+
+const String _idbKey = '=List|=Object|num|String';  // TODO(sra): Add Date.
+const _annotation_Creates_IDBKey = const Creates(_idbKey);
+const _annotation_Returns_IDBKey = const Returns(_idbKey);

@@ -583,6 +583,86 @@ def FindConversion(idl_type, direction, interface, member):
 
 # ------------------------------------------------------------------------------
 
+# Annotations to be placed on members.  The table is indexed by the IDL
+# interface and member name, and by IDL return or field type name.  Both are
+# used to assemble the annotations:
+#
+#   INTERFACE.MEMBER: annotations for member.
+#   +TYPE:            add annotations only if there are member annotations.
+#   TYPE:             add regardless of member annotations.
+
+dart2js_annotations = {
+
+    # Rather than have the result of an IDBRequest as a union over all possible
+    # results, we mark the result as instantiating any classes, and mark
+    # each operation with the classes that it could cause to be asynchronously
+    # instantiated.
+    'IDBRequest.result':  "@Creates('Null')",
+
+    # The source is usually a participant in the operation that generated the
+    # IDBRequest.
+    'IDBRequest.source':  "@Creates('Null')",
+
+    'IDBFactory.open': "@Creates('IDBDatabase')",
+
+    'IDBObjectStore.put': "@_annotation_Creates_IDBKey",
+    'IDBObjectStore.add': "@_annotation_Creates_IDBKey",
+    'IDBObjectStore.get': "@_annotation_Creates_SerializedScriptValue",
+    'IDBObjectStore.openCursor': "@Creates('IDBCursor')",
+
+    'IDBIndex.get': "@_annotation_Creates_SerializedScriptValue",
+    'IDBIndex.getKey':
+      "@_annotation_Creates_SerializedScriptValue "
+      # The source is the object store behind the index.
+      "@Creates('IDBObjectStore')",
+    'IDBIndex.openCursor': "@Creates('IDBCursor')",
+    'IDBIndex.openKeyCursor': "@Creates('IDBCursor')",
+
+    'IDBCursorWithValue.value':
+      '@_annotation_Creates_SerializedScriptValue '
+      '@_annotation_Returns_SerializedScriptValue',
+
+    'IDBCursor.key': "@_annotation_Creates_IDBKey @_annotation_Returns_IDBKey",
+
+    '+IDBRequest': "@Returns('IDBRequest') @Creates('IDBRequest')",
+
+    '+IDBOpenDBRequest': "@Returns('IDBRequest') @Creates('IDBRequest')",
+    '+IDBVersionChangeRequest': "@Returns('IDBRequest') @Creates('IDBRequest')",
+
+
+    'FileReader.result': "@Creates('String|ArrayBuffer|Null')",
+
+    'CanvasRenderingContext2D.createImageData':
+      "@Creates('ImageData|=Object')",
+
+    'CanvasRenderingContext2D.getImageData':
+      "@Creates('ImageData|=Object')",
+
+    'CanvasRenderingContext2D.webkitGetImageDataHD':
+      "@Creates('ImageData|=Object')",
+
+    'XMLHttpRequest.response':
+      "@Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')",
+
+    'SQLResultSetRowList.item': "@Creates('=Object')",
+}
+
+def FindAnnotations(idl_type, interface_name, member_name):
+  ann1 = dart2js_annotations.get("%s.%s" % (interface_name, member_name))
+  if ann1:
+    ann2 = dart2js_annotations.get('+' + idl_type)
+    if ann2:
+      return ann2 + ' ' + ann1
+    ann2 = dart2js_annotations.get(idl_type)
+    if ann2:
+      return ann2 + ' ' + ann1
+    return ann1
+
+  ann2 = dart2js_annotations.get(idl_type)
+  return ann2
+
+# ------------------------------------------------------------------------------
+
 class IDLTypeInfo(object):
   def __init__(self, idl_type, data):
     self._idl_type = idl_type

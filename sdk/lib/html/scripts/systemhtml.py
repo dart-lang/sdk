@@ -548,17 +548,20 @@ class Dart2JSBackend(HtmlDartGenerator):
 
     output_type = self.SecureOutputType(attribute.type.id)
     input_type = self._NarrowInputType(attribute.type.id)
+    annotations = self._Annotations(attribute.type.id, attribute.id)
     self.EmitAttributeDocumentation(attribute)
     if not read_only:
       self._members_emitter.Emit(
-          '\n  $TYPE $NAME;'
+          '\n  $ANNOTATIONS$TYPE $NAME;'
           '\n',
+          ANNOTATIONS=annotations,
           NAME=DartDomNameOfAttribute(attribute),
           TYPE=output_type)
     else:
       self._members_emitter.Emit(
-          '\n  final $TYPE $NAME;'
+          '\n  $(ANNOTATIONS)final $TYPE $NAME;'
           '\n',
+          ANNOTATIONS=annotations,
           NAME=DartDomNameOfAttribute(attribute),
           TYPE=output_type)
 
@@ -660,8 +663,10 @@ class Dart2JSBackend(HtmlDartGenerator):
     if html_name != info.declared_name:
       return_type = self.SecureOutputType(info.type_name)
 
-      operation_emitter = self._members_emitter.Emit('$!SCOPE',
+      operation_emitter = self._members_emitter.Emit(
+          '$!SCOPE',
           MODIFIERS='static ' if info.IsStatic() else '',
+          ANNOTATIONS=self._Annotations(info.type_name, info.declared_name),
           TYPE=return_type,
           HTML_NAME=html_name,
           NAME=info.declared_name,
@@ -669,13 +674,14 @@ class Dart2JSBackend(HtmlDartGenerator):
 
       operation_emitter.Emit(
           '\n'
-          #'  // @native("$NAME")\n;'
-          '  $MODIFIERS$TYPE $(HTML_NAME)($PARAMS) native "$NAME";\n')
+          '  $ANNOTATIONS'
+          '$MODIFIERS$TYPE $(HTML_NAME)($PARAMS) native "$NAME";\n')
     else:
       self._members_emitter.Emit(
           '\n'
-          '  $MODIFIERS$TYPE $NAME($PARAMS) native;\n',
+          '  $ANNOTATIONS$MODIFIERS$TYPE $NAME($PARAMS) native;\n',
           MODIFIERS='static ' if info.IsStatic() else '',
+          ANNOTATIONS=self._Annotations(info.type_name, info.declared_name),
           TYPE=self.SecureOutputType(info.type_name),
           NAME=info.name,
           PARAMS=info.ParametersDeclaration(self._NarrowInputType))
@@ -777,8 +783,9 @@ class Dart2JSBackend(HtmlDartGenerator):
         call_emitter.Emit('$(INDENT)return $CALL;\n', CALL=call)
 
       self._members_emitter.Emit(
-          '  $MODIFIERS$TYPE$TARGET($PARAMS) native "$NATIVE";\n',
+          '  $MODIFIERS$ANNOTATIONS$TYPE$TARGET($PARAMS) native "$NATIVE";\n',
           MODIFIERS='static ' if info.IsStatic() else '',
+          ANNOTATIONS=self._Annotations(info.type_name, info.declared_name),
           TYPE=TypeOrNothing(native_return_type),
           TARGET=target,
           PARAMS=', '.join(target_parameters),
@@ -861,6 +868,13 @@ class Dart2JSBackend(HtmlDartGenerator):
     member_name = '%s.%s' % (self._interface_type_info.interface_name(),
                              member_name)
     return member_name in _js_custom_members
+
+  def _Annotations(self, idl_type, member_name):
+    annotations = FindAnnotations(idl_type, self._interface.id, member_name)
+    if annotations:
+      return '%s\n  ' % annotations
+    else:
+      return ''
 
   def CustomJSMembers(self):
     return _js_custom_members

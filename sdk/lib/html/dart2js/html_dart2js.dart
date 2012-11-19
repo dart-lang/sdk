@@ -4923,7 +4923,9 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+  @Creates('ImageData|=Object')
   _createImageData_1(imagedata) native "createImageData";
+  @Creates('ImageData|=Object')
   _createImageData_2(num sw, sh) native "createImageData";
 
   /** @domName CanvasRenderingContext2D.createLinearGradient */
@@ -4954,6 +4956,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   ImageData getImageData(num sx, num sy, num sw, num sh) {
     return _convertNativeToDart_ImageData(_getImageData_1(sx, sy, sw, sh));
   }
+  @Creates('ImageData|=Object')
   _getImageData_1(sx, sy, sw, sh) native "getImageData";
 
   /** @domName CanvasRenderingContext2D.getLineDash */
@@ -5053,6 +5056,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) {
     return _convertNativeToDart_ImageData(_webkitGetImageDataHD_1(sx, sy, sw, sh));
   }
+  @Creates('ImageData|=Object')
   _webkitGetImageDataHD_1(sx, sy, sw, sh) native "webkitGetImageDataHD";
 
   /** @domName CanvasRenderingContext2D.webkitPutImageDataHD */
@@ -6796,6 +6800,7 @@ class DocumentFragment extends Node native "*DocumentFragment" {
   // of native classes
   @Creates('Null')
   List<Element> _children;
+
   List<Element> get children {
     if (_children == null) {
       _children = new FilteredElementList(this);
@@ -8785,6 +8790,7 @@ class FileReader extends EventTarget native "*FileReader" {
   final int readyState;
 
   /** @domName FileReader.result */
+  @Creates('String|ArrayBuffer|Null')
   final Object result;
 
   /** @domName FileReader.abort */
@@ -9855,6 +9861,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   final int readyState;
 
   /** @domName XMLHttpRequest.response */
+  @Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')
   final Object response;
 
   /** @domName XMLHttpRequest.responseText */
@@ -10032,6 +10039,7 @@ class IDBCursor native "*IDBCursor" {
   final String direction;
 
   /** @domName IDBCursor.key */
+  @_annotation_Creates_IDBKey @_annotation_Returns_IDBKey
   final Object key;
 
   /** @domName IDBCursor.primaryKey */
@@ -10075,6 +10083,7 @@ class IDBCursor native "*IDBCursor" {
 class IDBCursorWithValue extends IDBCursor native "*IDBCursorWithValue" {
 
   /** @domName IDBCursorWithValue.value */
+  @_annotation_Creates_SerializedScriptValue @_annotation_Returns_SerializedScriptValue
   final Object value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10250,6 +10259,7 @@ class IDBFactory native "*IDBFactory" {
   IDBVersionChangeRequest deleteDatabase(String name) native;
 
   /** @domName IDBFactory.open */
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBDatabase')
   IDBOpenDBRequest open(String name, [int version]) native;
 
   /** @domName IDBFactory.webkitGetDatabaseNames */
@@ -10307,7 +10317,9 @@ class IDBIndex native "*IDBIndex" {
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue
   IDBRequest _get_1(IDBKeyRange key) native "get";
+  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue
   IDBRequest _get_2(key) native "get";
 
   /** @domName IDBIndex.getKey */
@@ -10321,7 +10333,9 @@ class IDBIndex native "*IDBIndex" {
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue @Creates('IDBObjectStore')
   IDBRequest _getKey_1(IDBKeyRange key) native "getKey";
+  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue @Creates('IDBObjectStore')
   IDBRequest _getKey_2(key) native "getKey";
 
   /** @domName IDBIndex.openCursor */
@@ -10348,10 +10362,15 @@ class IDBIndex native "*IDBIndex" {
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openCursor_1() native "openCursor";
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openCursor_2(IDBKeyRange range) native "openCursor";
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openCursor_3(IDBKeyRange range, direction) native "openCursor";
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openCursor_4(key) native "openCursor";
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openCursor_5(key, direction) native "openCursor";
 
   /** @domName IDBIndex.openKeyCursor */
@@ -10378,10 +10397,15 @@ class IDBIndex native "*IDBIndex" {
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openKeyCursor_1() native "openKeyCursor";
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openKeyCursor_2(IDBKeyRange range) native "openKeyCursor";
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openKeyCursor_3(IDBKeyRange range, direction) native "openKeyCursor";
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openKeyCursor_4(key) native "openKeyCursor";
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openKeyCursor_5(key, direction) native "openKeyCursor";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10524,7 +10548,9 @@ class IDBObjectStore native "*IDBObjectStore" {
     var value_3 = _convertDartToNative_SerializedScriptValue(value);
     return _add_2(value_3);
   }
+  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_IDBKey
   IDBRequest _add_1(value, key) native "add";
+  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_IDBKey
   IDBRequest _add_2(value) native "add";
 
   /** @domName IDBObjectStore.clear */
@@ -10603,7 +10629,9 @@ class IDBObjectStore native "*IDBObjectStore" {
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue
   IDBRequest _getObject_1(IDBKeyRange key) native "get";
+  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue
   IDBRequest _getObject_2(key) native "get";
 
   /** @domName IDBObjectStore.index */
@@ -10633,10 +10661,15 @@ class IDBObjectStore native "*IDBObjectStore" {
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openCursor_1() native "openCursor";
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openCursor_2(IDBKeyRange range) native "openCursor";
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openCursor_3(IDBKeyRange range, direction) native "openCursor";
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openCursor_4(key) native "openCursor";
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openCursor_5(key, direction) native "openCursor";
 
   /** @domName IDBObjectStore.put */
@@ -10649,7 +10682,9 @@ class IDBObjectStore native "*IDBObjectStore" {
     var value_3 = _convertDartToNative_SerializedScriptValue(value);
     return _put_2(value_3);
   }
+  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_IDBKey
   IDBRequest _put_1(value, key) native "put";
+  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_IDBKey
   IDBRequest _put_2(value) native "put";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10702,6 +10737,7 @@ class IDBRequest extends EventTarget native "*IDBRequest" {
   dynamic get _result => JS("dynamic", "#.result", this);
 
   /** @domName IDBRequest.source */
+  @Creates('Null')
   final dynamic source;
 
   /** @domName IDBRequest.transaction */
@@ -15793,6 +15829,7 @@ class SQLResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
   Map item(int index) {
     return _convertNativeToDart_Dictionary(_item_1(index));
   }
+  @Creates('=Object')
   _item_1(index) native "item";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24136,7 +24173,7 @@ _convertDartToNative_ImageData(ImageData imageData) {
 Map _convertNativeToDart_Dictionary(object) {
   if (object == null) return null;
   var dict = {};
-  for (final key in JS('List', 'Object.getOwnPropertyNames(#)', object)) {
+  for (final key in JS('=List', 'Object.getOwnPropertyNames(#)', object)) {
     dict[key] = JS('var', '#[#]', object, key);
   }
   return dict;
@@ -24313,7 +24350,7 @@ _convertDartToNative_PrepareForStructuredClone(value) {
       var copy = readSlot(slot);
       if (copy != null) {
         if (true == copy) {  // Cycle, so commit to making a copy.
-          copy = JS('List', 'new Array(#)', length);
+          copy = JS('=List', 'new Array(#)', length);
           writeSlot(slot, copy);
         }
         return copy;
@@ -24333,7 +24370,7 @@ _convertDartToNative_PrepareForStructuredClone(value) {
           if (!identical(elementCopy, element)) {
             copy = readSlot(slot);   // Cyclic reference may have created it.
             if (true == copy) {
-              copy = JS('List', 'new Array(#)', length);
+              copy = JS('=List', 'new Array(#)', length);
               writeSlot(slot, copy);
             }
             for (int j = 0; j < i; j++) {
@@ -24350,7 +24387,7 @@ _convertDartToNative_PrepareForStructuredClone(value) {
         }
       } else {
         // Not a JavaScript Array.  We are forced to make a copy.
-        copy = JS('List', 'new Array(#)', length);
+        copy = JS('=List', 'new Array(#)', length);
         writeSlot(slot, copy);
       }
 
@@ -24430,7 +24467,7 @@ _convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) {
       copy = {};
 
       writeSlot(slot, copy);
-      for (final key in JS('List', 'Object.keys(#)', e)) {
+      for (final key in JS('=List', 'Object.keys(#)', e)) {
         copy[key] = walk(JS('var', '#[#]', e, key));
       }
       return copy;
@@ -24444,7 +24481,7 @@ _convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) {
       int length = e.length;
       // Since a JavaScript Array is an instance of Dart List, we can modify it
       // in-place unless we must copy.
-      copy = mustCopy ? JS('List', 'new Array(#)', length) : e;
+      copy = mustCopy ? JS('=List', 'new Array(#)', length) : e;
       writeSlot(slot, copy);
 
       for (int i = 0; i < length; i++) {
@@ -24470,6 +24507,23 @@ bool _isJavaScriptSimpleObject(value) =>
     JS('bool', 'Object.getPrototypeOf(#) === Object.prototype', value);
 bool _isImmutableJavaScriptArray(value) =>
     JS('bool', r'!!(#.immutable$list)', value);
+
+
+
+const String _serializedScriptValue =
+    'num|String|bool|'
+    '=List|=Object|'
+    'Blob|File|ArrayBuffer|ArrayBufferView'
+    // TODO(sra): Add Date, RegExp.
+    ;
+const _annotation_Creates_SerializedScriptValue =
+    const Creates(_serializedScriptValue);
+const _annotation_Returns_SerializedScriptValue =
+    const Returns(_serializedScriptValue);
+
+const String _idbKey = '=List|=Object|num|String';  // TODO(sra): Add Date.
+const _annotation_Creates_IDBKey = const Creates(_idbKey);
+const _annotation_Returns_IDBKey = const Returns(_idbKey);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
