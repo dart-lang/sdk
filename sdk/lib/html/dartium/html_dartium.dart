@@ -21740,7 +21740,7 @@ class Storage extends NativeFieldWrapperClass1 implements Map<String, String>  {
 
   String operator [](String key) => $dom_getItem(key);
 
-  void operator []=(String key, String value) => $dom_setItem(key, value);
+  void operator []=(String key, String value) { $dom_setItem(key, value); }
 
   String putIfAbsent(String key, String ifAbsent()) {
     if (!containsKey(key)) this[key] = ifAbsent();

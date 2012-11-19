@@ -2,6 +2,7 @@
 # Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
+import re
 
 html_interface_renames = {
     'DOMCoreException': 'DOMException',
@@ -11,6 +12,9 @@ html_interface_renames = {
     'History': 'LocalHistory',
     'HTMLDocument' : 'HtmlDocument',
     'Location': 'LocalLocation',
+    'SVGDocument': 'SvgDocument', # Manual to avoid name conflicts.
+    'SVGElement': 'SvgElement', # Manual to avoid name conflicts.
+    'SVGSVGElement': 'SvgSvgElement', # Manual to avoid name conflicts.
     'WebKitAnimation': 'Animation',
     'WebKitAnimationEvent': 'AnimationEvent',
     'WebKitBlobBuilder': 'BlobBuilder',
@@ -117,9 +121,9 @@ _renamed_html_members = {
     'Node.parentNode': 'parent',
     'Node.previousSibling': 'previousNode',
     'Node.textContent': 'text',
-    'SVGElement.className': '$dom_svgClassName',
-    'SVGAnimatedString.className': '$dom_svgClassName',
-    'SVGStylable.className': '$dom_svgClassName',
+    'SvgElement.className': '$dom_svgClassName',
+    'AnimatedString.className': '$dom_svgClassName',
+    'Stylable.className': '$dom_svgClassName',
     'Url.createObjectURL': 'createObjectUrl',
     'Url.revokeObjectURL': 'revokeObjectUrl',
 }
@@ -305,7 +309,7 @@ class HtmlRenamer(object):
       if any(interface.id in ['Element', 'Document']
              for interface in self._database.Hierarchy(interface)):
         return interface.id[len('HTML'):]
-    return interface.id
+    return self.DartifyTypeName(interface.id)
 
   def RenameMember(self, interface_name, member_node, member, member_prefix=''):
     """
@@ -339,6 +343,37 @@ class HtmlRenamer(object):
         return member_name
 
   def GetLibraryName(self, interface):
-    if interface.id.startswith('SVG'):
+    return self._GetLibraryName(interface.id)
+
+  def _GetLibraryName(self, idl_type_name):
+    """
+    Gets the name of the library this type should live in.
+    This is private because this should use interfaces to resolve the library.
+    """
+
+    if idl_type_name.startswith('SVG'):
       return 'svg'
     return 'html'
+
+  def DartifyTypeName(self, type_name):
+    """Converts a DOM name to a Dart-friendly class name. """
+    library_name = self._GetLibraryName(type_name)
+    # Only renaming SVG for now.
+    if library_name != 'svg':
+      return type_name
+
+    # Strip off the SVG prefix.
+    name = re.sub(r'^SVG', '', type_name)
+
+    def toLower(match):
+      return match.group(1) + match.group(2).lower() + match.group(3)
+
+    # We're looking for a sequence of letters which start with capital letter
+    # then a series of caps and finishes with either the end of the string or
+    # a capital letter.
+    # The [0-9] check is for names such as 2D or 3D
+    # The following test cases should match as:
+    #   WebKitCSSFilterValue: WebKit(C)(SS)(F)ilterValue
+    #   XPathNSResolver: (X)()(P)ath(N)(S)(R)esolver (no change)
+    #   IFrameElement: (I)()(F)rameElement (no change)
+    return re.sub(r'([A-Z])([A-Z]{2,})([A-Z]|$)', toLower, name)

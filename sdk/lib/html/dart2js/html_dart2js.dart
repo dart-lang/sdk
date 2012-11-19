@@ -8962,8 +8962,7 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   num operator[](int index) => JS("num", "#[#]", this, index);
 
-  void operator[]=(int index, num value) { JS("void", "#[#] = #", this, index, value); }
-  // -- start List<num> mixins.
+  void operator[]=(int index, num value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<num> mixins.
   // num is the element type.
 
   // From Iterable<num>:
@@ -9073,8 +9072,7 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   num operator[](int index) => JS("num", "#[#]", this, index);
 
-  void operator[]=(int index, num value) { JS("void", "#[#] = #", this, index, value); }
-  // -- start List<num> mixins.
+  void operator[]=(int index, num value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<num> mixins.
   // num is the element type.
 
   // From Iterable<num>:
@@ -11194,8 +11192,7 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }
-  // -- start List<int> mixins.
+  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
   // int is the element type.
 
   // From Iterable<int>:
@@ -11305,8 +11302,7 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }
-  // -- start List<int> mixins.
+  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
   // int is the element type.
 
   // From Iterable<int>:
@@ -11416,8 +11412,7 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }
-  // -- start List<int> mixins.
+  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
   // int is the element type.
 
   // From Iterable<int>:
@@ -17996,8 +17991,7 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }
-  // -- start List<int> mixins.
+  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
   // int is the element type.
 
   // From Iterable<int>:
@@ -18107,8 +18101,7 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }
-  // -- start List<int> mixins.
+  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
   // int is the element type.
 
   // From Iterable<int>:
@@ -18218,8 +18211,7 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }
-  // -- start List<int> mixins.
+  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
   // int is the element type.
 
   // From Iterable<int>:

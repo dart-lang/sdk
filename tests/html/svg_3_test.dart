@@ -2,7 +2,7 @@ library SVG3Test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
-import 'dart:svg';
+import 'dart:svg' as svg;
 
 // Test that SVG elements have the operations advertised through all the IDL
 // interfaces.  This is a 'duck typing' test, and does not explicitly use 'is'
@@ -12,15 +12,15 @@ main() {
 
   var isString = predicate((x) => x is String, 'is a String');
   var isStringList = predicate((x) => x is List<String>, 'is a List<String>');
-  var isSVGMatrix = predicate((x) => x is SVGMatrix, 'is a SVGMatrix');
-  var isSVGAnimatedBoolean =
-      predicate((x) => x is SVGAnimatedBoolean, 'is an SVGAnimatedBoolean');
-  var isSVGAnimatedString =
-      predicate((x) => x is SVGAnimatedString, 'is an SVGAnimatedString');
-  var isSVGRect = predicate((x) => x is SVGRect, 'is a SVGRect');
-  var isSVGAnimatedTransformList =
-      predicate((x) => x is SVGAnimatedTransformList,
-          'is an SVGAnimatedTransformList');
+  var isSvgMatrix = predicate((x) => x is svg.Matrix, 'is a svg.Matrix');
+  var isSvgAnimatedBoolean =
+      predicate((x) => x is svg.AnimatedBoolean, 'is an svg.AnimatedBoolean');
+  var isSvgAnimatedString =
+      predicate((x) => x is svg.AnimatedString, 'is an svg.AnimatedString');
+  var isSvgRect = predicate((x) => x is svg.Rect, 'is a svg.Rect');
+  var isSvgAnimatedTransformList =
+      predicate((x) => x is svg.AnimatedTransformList,
+          'is an svg.AnimatedTransformList');
   var isCSSStyleDeclaration =
       predicate((x) => x is CSSStyleDeclaration, 'is a CSSStyleDeclaration');
   var isCSSValue = predicate((x) => x is CSSValue, 'is a CSSValue');
@@ -39,9 +39,9 @@ main() {
   useHtmlConfiguration();
 
   /**
-   * Verifies that [e] supports the operations on the SVGTests interface.
+   * Verifies that [e] supports the operations on the svg.Tests interface.
    */
-  checkSVGTests(e) {
+  checkSvgTests(e) {
     // Just check that the operations seem to exist.
     var rx = e.requiredExtensions;
     expect(rx, isStringList);
@@ -55,9 +55,9 @@ main() {
   }
 
   /**
-   * Verifies that [e] supports the operations on the SVGLangSpace interface.
+   * Verifies that [e] supports the operations on the svg.LangSpace interface.
    */
-  checkSVGLangSpace(e) {
+  checkSvgLangSpace(e) {
     // Just check that the attribtes seem to exist.
     var lang = e.xmllang;
     e.xmllang = lang;
@@ -71,21 +71,21 @@ main() {
 
   /**
    * Verifies that [e] supports the operations on the
-   * SVGExternalResourcesRequired interface.
+   * svg.ExternalResourcesRequired interface.
    */
-  checkSVGExternalResourcesRequired(e) {
+  checkSvgExternalResourcesRequired(e) {
     var b = e.externalResourcesRequired;
-    expect(b, isSVGAnimatedBoolean);
+    expect(b, isSvgAnimatedBoolean);
     expect(b.baseVal, isFalse);
     expect(b.animVal, isFalse);
   }
 
   /**
-   * Verifies that [e] supports the operations on the SVGStylable interface.
+   * Verifies that [e] supports the operations on the svg.Stylable interface.
    */
-  checkSVGStylable(e) {
+  checkSvgStylable(e) {
     var className = e.$dom_svgClassName;
-    expect(className, isSVGAnimatedString);
+    expect(className, isSvgAnimatedString);
 
     var s = e.style;
     expect(s, isCSSStyleDeclaration);
@@ -95,33 +95,33 @@ main() {
   }
 
   /**
-   * Verifies that [e] supports the operations on the SVGLocatable interface.
+   * Verifies that [e] supports the operations on the svg.Locatable interface.
    */
-  checkSVGLocatable(e) {
+  checkSvgLocatable(e) {
     var v1 = e.farthestViewportElement;
     var v2 = e.nearestViewportElement;
     expect(v1, same(v2));
 
     var bbox = e.getBBox();
-    expect(bbox, isSVGRect);
+    expect(bbox, isSvgRect);
 
     var ctm = e.getCTM();
-    expect(ctm, isSVGMatrix);
+    expect(ctm, isSvgMatrix);
 
     var sctm = e.getScreenCTM();
-    expect(sctm, isSVGMatrix);
+    expect(sctm, isSvgMatrix);
 
     var xf2e = e.getTransformToElement(e);
-    expect(xf2e, isSVGMatrix);
+    expect(xf2e, isSvgMatrix);
   }
 
   /**
-   * Verifies that [e] supports the operations on the SVGTransformable
+   * Verifies that [e] supports the operations on the svg.Transformable
    * interface.
    */
-  checkSVGTransformable(e) {
+  checkSvgTransformable(e) {
     var trans = e.transform;
-    expect(trans, isSVGAnimatedTransformList);
+    expect(trans, isSvgAnimatedTransformList);
   }
 
   testRect(name, checker) {
@@ -133,12 +133,12 @@ main() {
       });
   }
 
-  testRect('rect_SVGTests', checkSVGTests);
-  testRect('rect_SVGLangSpace', checkSVGLangSpace);
-  testRect('rect_SVGExternalResourcesRequired',
-           checkSVGExternalResourcesRequired);
-  testRect('rect_SVGStylable', checkSVGStylable);
-  testRect('rect_SVGLocatable', checkSVGLocatable);
-  testRect('rect_SVGTransformable', checkSVGTransformable);
+  testRect('rect_SvgTests', checkSvgTests);
+  testRect('rect_SvgLangSpace', checkSvgLangSpace);
+  testRect('rect_SvgExternalResourcesRequired',
+           checkSvgExternalResourcesRequired);
+  testRect('rect_SvgStylable', checkSvgStylable);
+  testRect('rect_SvgLocatable', checkSvgLocatable);
+  testRect('rect_SvgTransformable', checkSvgTransformable);
 
 }

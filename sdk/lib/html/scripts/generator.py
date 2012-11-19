@@ -724,10 +724,7 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
     return self._dart_interface_name
 
   def implementation_name(self):
-    if self.list_item_type():
-      implementation_name = self.idl_type()
-    else:
-      implementation_name = self.interface_name()
+    implementation_name = self._dart_interface_name
     if self.merged_into():
       implementation_name = '_%s_Merged' % implementation_name
 
@@ -856,9 +853,9 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
 
 
 class SVGTearOffIDLTypeInfo(InterfaceIDLTypeInfo):
-  def __init__(self, idl_type, data, type_registry):
+  def __init__(self, idl_type, data, interface_name, type_registry):
     super(SVGTearOffIDLTypeInfo, self).__init__(
-        idl_type, data, idl_type, type_registry)
+        idl_type, data, interface_name, type_registry)
 
   def native_type(self):
     if self._data.native_type:
@@ -1115,12 +1112,15 @@ class TypeRegistry(object):
         dart_interface_name = self._renamer.RenameInterface(
             self._database.GetInterface(type_name))
       else:
-        dart_interface_name = type_name
+        dart_interface_name = self._renamer.DartifyTypeName(type_name)
       return InterfaceIDLTypeInfo(type_name, type_data, dart_interface_name,
                                   self)
 
     if type_data.clazz == 'SVGTearOff':
-      return SVGTearOffIDLTypeInfo(type_name, type_data, self)
+      dart_interface_name = self._renamer.RenameInterface(
+          self._database.GetInterface(type_name))
+      return SVGTearOffIDLTypeInfo(
+          type_name, type_data, dart_interface_name, self)
 
     class_name = '%sIDLTypeInfo' % type_data.clazz
     return globals()[class_name](type_name, type_data)

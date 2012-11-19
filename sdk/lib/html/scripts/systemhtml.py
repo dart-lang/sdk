@@ -150,54 +150,54 @@ _html_element_constructors = {
 }
 
 _svg_element_constructors = {
-  'SVGAElement': 'a',
-  'SVGAnimateColorElement': 'animateColor',
-  'SVGAnimateElement': 'animate',
-  'SVGAnimateMotionElement': 'animateMotion',
-  'SVGAnimateTransformElement': 'animateTransform',
-  'SVGAnimationElement': 'animation',
-  'SVGCircleElement': 'circle',
-  'SVGClipPathElement': 'clipPath',
-  'SVGCursorElement': 'cursor',
-  'SVGDefsElement': 'defs',
-  'SVGDescElement': 'desc',
-  'SVGEllipseElement': 'ellipse',
-  'SVGFilterElement': 'filter',
-  'SVGFontElement': 'font',
-  'SVGFontFaceElement': 'font-face',
-  'SVGFontFaceFormatElement': 'font-face-format',
-  'SVGFontFaceNameElement': 'font-face-name',
-  'SVGFontFaceSrcElement': 'font-face-src',
-  'SVGFontFaceUriElement': 'font-face-uri',
-  'SVGForeignObjectElement': 'foreignObject',
-  'SVGGlyphElement': 'glyph',
-  'SVGGElement': 'g',
-  'SVGHKernElement': 'hkern',
-  'SVGImageElement': 'image',
-  'SVGLinearGradientElement': 'linearGradient',
-  'SVGLineElement': 'line',
-  'SVGMarkerElement': 'marker',
-  'SVGMaskElement': 'mask',
-  'SVGMPathElement': 'mpath',
-  'SVGPathElement': 'path',
-  'SVGPatternElement': 'pattern',
-  'SVGPolygonElement': 'polygon',
-  'SVGPolylineElement': 'polyline',
-  'SVGRadialGradientElement': 'radialGradient',
-  'SVGRectElement': 'rect',
-  'SVGScriptElement': 'script',
-  'SVGSetElement': 'set',
-  'SVGStopElement': 'stop',
-  'SVGStyleElement': 'style',
-  'SVGSwitchElement': 'switch',
-  'SVGSymbolElement': 'symbol',
-  'SVGTextElement': 'text',
-  'SVGTitleElement': 'title',
-  'SVGTRefElement': 'tref',
-  'SVGTSpanElement': 'tspan',
-  'SVGUseElement': 'use',
-  'SVGViewElement': 'view',
-  'SVGVKernElement': 'vkern',
+  'AElement': 'a',
+  'AnimateColorElement': 'animateColor',
+  'AnimateElement': 'animate',
+  'AnimateMotionElement': 'animateMotion',
+  'AnimateTransformElement': 'animateTransform',
+  'AnimationElement': 'animation',
+  'CircleElement': 'circle',
+  'ClipPathElement': 'clipPath',
+  'CursorElement': 'cursor',
+  'DefsElement': 'defs',
+  'DescElement': 'desc',
+  'EllipseElement': 'ellipse',
+  'FilterElement': 'filter',
+  'FontElement': 'font',
+  'FontFaceElement': 'font-face',
+  'FontFaceFormatElement': 'font-face-format',
+  'FontFaceNameElement': 'font-face-name',
+  'FontFaceSrcElement': 'font-face-src',
+  'FontFaceUriElement': 'font-face-uri',
+  'ForeignObjectElement': 'foreignObject',
+  'GlyphElement': 'glyph',
+  'GElement': 'g',
+  'HKernElement': 'hkern',
+  'ImageElement': 'image',
+  'LinearGradientElement': 'linearGradient',
+  'LineElement': 'line',
+  'MarkerElement': 'marker',
+  'MaskElement': 'mask',
+  'MPathElement': 'mpath',
+  'PathElement': 'path',
+  'PatternElement': 'pattern',
+  'PolygonElement': 'polygon',
+  'PolylineElement': 'polyline',
+  'RadialGradientElement': 'radialGradient',
+  'RectElement': 'rect',
+  'ScriptElement': 'script',
+  'SetElement': 'set',
+  'StopElement': 'stop',
+  'StyleElement': 'style',
+  'SwitchElement': 'switch',
+  'SymbolElement': 'symbol',
+  'TextElement': 'text',
+  'TitleElement': 'title',
+  'TRefElement': 'tref',
+  'TSpanElement': 'tspan',
+  'UseElement': 'use',
+  'ViewElement': 'view',
+  'VKernElement': 'vkern',
 }
 
 _element_constructors = {
@@ -211,8 +211,8 @@ _factory_ctr_strings = {
       'constructor_name': '$dom_createElement'
   },
   'svg': {
-    'provider_name': '_SVGElementFactoryProvider',
-    'constructor_name': 'createSVGElement_tag',
+    'provider_name': '_SvgElementFactoryProvider',
+    'constructor_name': 'createSvgElement_tag',
   },
 }
 
@@ -298,7 +298,7 @@ class HtmlDartInterfaceGenerator(object):
     if infos:
       factory_constructor_name = _factory_ctr_strings[
           self._library_name]['constructor_name']
-    
+
     for info in infos:
       constructors.append(info.ConstructorInfo(self._interface.id))
       if factory_provider:
@@ -920,7 +920,8 @@ class DartLibraryEmitter():
     self._dart_libraries = dart_libraries
 
   def FileEmitter(self, basename, library_name, template=None):
-    path = os.path.join(self._dart_sources_dir, '%s.dart' % basename)
+    aux_dir = os.path.join(self._dart_sources_dir, library_name)
+    path = os.path.join(aux_dir, '%s.dart' % basename)
     if not path in self._path_to_emitter:
       emitter = self._multiemitter.FileEmitter(path)
       if not template is None:

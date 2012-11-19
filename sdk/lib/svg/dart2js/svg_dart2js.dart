@@ -15,20 +15,20 @@ import 'dart:html';
 
 final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 
-class _SVGElementFactoryProvider {
-  static SVGElement createSVGElement_tag(String tag) {
+class _SvgElementFactoryProvider {
+  static SvgElement createSvgElement_tag(String tag) {
     final Element temp =
       document.$dom_createElementNS("http://www.w3.org/2000/svg", tag);
     return temp;
   }
 
-  static SVGElement createSVGElement_svg(String svg) {
+  static SvgElement createSvgElement_svg(String svg) {
     Element parentTag;
     final match = _START_TAG_REGEXP.firstMatch(svg);
     if (match != null && match.group(1).toLowerCase() == 'svg') {
       parentTag = new Element.tag('div');
     } else {
-      parentTag = new SVGSVGElement();
+      parentTag = new SvgSvgElement();
     }
 
     parentTag.innerHTML = svg;
@@ -40,9 +40,9 @@ class _SVGElementFactoryProvider {
   }
 }
 
-class _SVGSVGElementFactoryProvider {
-  static SVGSVGElement createSVGSVGElement() {
-    final el = new SVGElement.tag("svg");
+class _SvgSvgElementFactoryProvider {
+  static SvgSvgElement createSvgSvgElement() {
+    final el = new SvgElement.tag("svg");
     // The SVG spec requires the version attribute to match the spec version
     el.attributes['version'] = "1.1";
     return el;
@@ -54,17 +54,17 @@ class _SVGSVGElementFactoryProvider {
 
 
 /// @domName SVGAElement
-class SVGAElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStylable, SVGURIReference, SVGExternalResourcesRequired, SVGTransformable native "*SVGAElement" {
+class AElement extends SvgElement implements Transformable, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace native "*SVGAElement" {
 
-  factory SVGAElement() => _SVGElementFactoryProvider.createSVGElement_tag("a");
+  factory AElement() => _SvgElementFactoryProvider.createSvgElement_tag("a");
 
   /** @domName SVGAElement.target */
-  final SVGAnimatedString target;
+  final AnimatedString target;
 
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
@@ -77,27 +77,27 @@ class SVGAElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStyla
   // From SVGLocatable
 
   /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
+  final SvgElement farthestViewportElement;
 
   /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
+  final SvgElement nearestViewportElement;
 
   /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
+  Rect getBBox() native;
 
   /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
+  Matrix getCTM() native;
 
   /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
+  Matrix getScreenCTM() native;
 
   /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
+  Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -108,13 +108,13 @@ class SVGAElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStyla
   // From SVGTests
 
   /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
+  final StringList requiredExtensions;
 
   /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
+  final StringList requiredFeatures;
 
   /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
+  final StringList systemLanguage;
 
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension) native;
@@ -122,12 +122,12 @@ class SVGAElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStyla
   // From SVGTransformable
 
   /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
+  final AnimatedTransformList transform;
 
   // From SVGURIReference
 
   /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
+  final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -135,7 +135,7 @@ class SVGAElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStyla
 
 
 /// @domName SVGAltGlyphDefElement
-class SVGAltGlyphDefElement extends SVGElement native "*SVGAltGlyphDefElement" {
+class AltGlyphDefElement extends SvgElement native "*SVGAltGlyphDefElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -143,7 +143,7 @@ class SVGAltGlyphDefElement extends SVGElement native "*SVGAltGlyphDefElement" {
 
 
 /// @domName SVGAltGlyphElement
-class SVGAltGlyphElement extends SVGTextPositioningElement implements SVGURIReference native "*SVGAltGlyphElement" {
+class AltGlyphElement extends TextPositioningElement implements UriReference native "*SVGAltGlyphElement" {
 
   /** @domName SVGAltGlyphElement.format */
   String format;
@@ -154,7 +154,7 @@ class SVGAltGlyphElement extends SVGTextPositioningElement implements SVGURIRefe
   // From SVGURIReference
 
   /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
+  final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -162,7 +162,7 @@ class SVGAltGlyphElement extends SVGTextPositioningElement implements SVGURIRefe
 
 
 /// @domName SVGAltGlyphItemElement
-class SVGAltGlyphItemElement extends SVGElement native "*SVGAltGlyphItemElement" {
+class AltGlyphItemElement extends SvgElement native "*SVGAltGlyphItemElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -170,7 +170,7 @@ class SVGAltGlyphItemElement extends SVGElement native "*SVGAltGlyphItemElement"
 
 
 /// @domName SVGAngle
-class SVGAngle native "*SVGAngle" {
+class Angle native "*SVGAngle" {
 
   static const int SVG_ANGLETYPE_DEG = 2;
 
@@ -206,9 +206,9 @@ class SVGAngle native "*SVGAngle" {
 
 
 /// @domName SVGAnimateColorElement
-class SVGAnimateColorElement extends SVGAnimationElement native "*SVGAnimateColorElement" {
+class AnimateColorElement extends AnimationElement native "*SVGAnimateColorElement" {
 
-  factory SVGAnimateColorElement() => _SVGElementFactoryProvider.createSVGElement_tag("animateColor");
+  factory AnimateColorElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateColor");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -216,9 +216,9 @@ class SVGAnimateColorElement extends SVGAnimationElement native "*SVGAnimateColo
 
 
 /// @domName SVGAnimateElement
-class SVGAnimateElement extends SVGAnimationElement native "*SVGAnimateElement" {
+class AnimateElement extends AnimationElement native "*SVGAnimateElement" {
 
-  factory SVGAnimateElement() => _SVGElementFactoryProvider.createSVGElement_tag("animate");
+  factory AnimateElement() => _SvgElementFactoryProvider.createSvgElement_tag("animate");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -226,9 +226,9 @@ class SVGAnimateElement extends SVGAnimationElement native "*SVGAnimateElement" 
 
 
 /// @domName SVGAnimateMotionElement
-class SVGAnimateMotionElement extends SVGAnimationElement native "*SVGAnimateMotionElement" {
+class AnimateMotionElement extends AnimationElement native "*SVGAnimateMotionElement" {
 
-  factory SVGAnimateMotionElement() => _SVGElementFactoryProvider.createSVGElement_tag("animateMotion");
+  factory AnimateMotionElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateMotion");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -236,9 +236,9 @@ class SVGAnimateMotionElement extends SVGAnimationElement native "*SVGAnimateMot
 
 
 /// @domName SVGAnimateTransformElement
-class SVGAnimateTransformElement extends SVGAnimationElement native "*SVGAnimateTransformElement" {
+class AnimateTransformElement extends AnimationElement native "*SVGAnimateTransformElement" {
 
-  factory SVGAnimateTransformElement() => _SVGElementFactoryProvider.createSVGElement_tag("animateTransform");
+  factory AnimateTransformElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateTransform");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -246,13 +246,13 @@ class SVGAnimateTransformElement extends SVGAnimationElement native "*SVGAnimate
 
 
 /// @domName SVGAnimatedAngle
-class SVGAnimatedAngle native "*SVGAnimatedAngle" {
+class AnimatedAngle native "*SVGAnimatedAngle" {
 
   /** @domName SVGAnimatedAngle.animVal */
-  final SVGAngle animVal;
+  final Angle animVal;
 
   /** @domName SVGAnimatedAngle.baseVal */
-  final SVGAngle baseVal;
+  final Angle baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -260,7 +260,7 @@ class SVGAnimatedAngle native "*SVGAnimatedAngle" {
 
 
 /// @domName SVGAnimatedBoolean
-class SVGAnimatedBoolean native "*SVGAnimatedBoolean" {
+class AnimatedBoolean native "*SVGAnimatedBoolean" {
 
   /** @domName SVGAnimatedBoolean.animVal */
   final bool animVal;
@@ -274,7 +274,7 @@ class SVGAnimatedBoolean native "*SVGAnimatedBoolean" {
 
 
 /// @domName SVGAnimatedEnumeration
-class SVGAnimatedEnumeration native "*SVGAnimatedEnumeration" {
+class AnimatedEnumeration native "*SVGAnimatedEnumeration" {
 
   /** @domName SVGAnimatedEnumeration.animVal */
   final int animVal;
@@ -288,7 +288,7 @@ class SVGAnimatedEnumeration native "*SVGAnimatedEnumeration" {
 
 
 /// @domName SVGAnimatedInteger
-class SVGAnimatedInteger native "*SVGAnimatedInteger" {
+class AnimatedInteger native "*SVGAnimatedInteger" {
 
   /** @domName SVGAnimatedInteger.animVal */
   final int animVal;
@@ -302,13 +302,13 @@ class SVGAnimatedInteger native "*SVGAnimatedInteger" {
 
 
 /// @domName SVGAnimatedLength
-class SVGAnimatedLength native "*SVGAnimatedLength" {
+class AnimatedLength native "*SVGAnimatedLength" {
 
   /** @domName SVGAnimatedLength.animVal */
-  final SVGLength animVal;
+  final Length animVal;
 
   /** @domName SVGAnimatedLength.baseVal */
-  final SVGLength baseVal;
+  final Length baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -316,83 +316,83 @@ class SVGAnimatedLength native "*SVGAnimatedLength" {
 
 
 /// @domName SVGAnimatedLengthList
-class SVGAnimatedLengthList implements JavaScriptIndexingBehavior, List<SVGAnimatedLength> native "*SVGAnimatedLengthList" {
+class AnimatedLengthList implements JavaScriptIndexingBehavior, List<AnimatedLength> native "*SVGAnimatedLengthList" {
 
   /** @domName SVGAnimatedLengthList.animVal */
-  final SVGLengthList animVal;
+  final LengthList animVal;
 
   /** @domName SVGAnimatedLengthList.baseVal */
-  final SVGLengthList baseVal;
+  final LengthList baseVal;
 
-  SVGAnimatedLength operator[](int index) => JS("SVGAnimatedLength", "#[#]", this, index);
+  AnimatedLength operator[](int index) => JS("AnimatedLength", "#[#]", this, index);
 
-  void operator[]=(int index, SVGAnimatedLength value) {
+  void operator[]=(int index, AnimatedLength value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
-  // -- start List<SVGAnimatedLength> mixins.
-  // SVGAnimatedLength is the element type.
+  // -- start List<AnimatedLength> mixins.
+  // AnimatedLength is the element type.
 
-  // From Iterable<SVGAnimatedLength>:
+  // From Iterable<AnimatedLength>:
 
-  Iterator<SVGAnimatedLength> iterator() {
+  Iterator<AnimatedLength> iterator() {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new FixedSizeListIterator<SVGAnimatedLength>(this);
+    return new FixedSizeListIterator<AnimatedLength>(this);
   }
 
-  // From Collection<SVGAnimatedLength>:
+  // From Collection<AnimatedLength>:
 
-  void add(SVGAnimatedLength value) {
+  void add(AnimatedLength value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(SVGAnimatedLength value) {
+  void addLast(AnimatedLength value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<SVGAnimatedLength> collection) {
+  void addAll(Collection<AnimatedLength> collection) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(SVGAnimatedLength element) => _Collections.contains(this, element);
+  bool contains(AnimatedLength element) => _Collections.contains(this, element);
 
-  void forEach(void f(SVGAnimatedLength element)) => _Collections.forEach(this, f);
+  void forEach(void f(AnimatedLength element)) => _Collections.forEach(this, f);
 
-  Collection map(f(SVGAnimatedLength element)) => _Collections.map(this, [], f);
+  Collection map(f(AnimatedLength element)) => _Collections.map(this, [], f);
 
-  Collection<SVGAnimatedLength> filter(bool f(SVGAnimatedLength element)) =>
-     _Collections.filter(this, <SVGAnimatedLength>[], f);
+  Collection<AnimatedLength> filter(bool f(AnimatedLength element)) =>
+     _Collections.filter(this, <AnimatedLength>[], f);
 
-  bool every(bool f(SVGAnimatedLength element)) => _Collections.every(this, f);
+  bool every(bool f(AnimatedLength element)) => _Collections.every(this, f);
 
-  bool some(bool f(SVGAnimatedLength element)) => _Collections.some(this, f);
+  bool some(bool f(AnimatedLength element)) => _Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
-  // From List<SVGAnimatedLength>:
+  // From List<AnimatedLength>:
 
-  void sort([Comparator<SVGAnimatedLength> compare = Comparable.compare]) {
+  void sort([Comparator<AnimatedLength> compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
-  int indexOf(SVGAnimatedLength element, [int start = 0]) =>
+  int indexOf(AnimatedLength element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(SVGAnimatedLength element, [int start]) {
+  int lastIndexOf(AnimatedLength element, [int start]) {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGAnimatedLength get first => this[0];
+  AnimatedLength get first => this[0];
 
-  SVGAnimatedLength get last => this[length - 1];
+  AnimatedLength get last => this[length - 1];
 
-  SVGAnimatedLength removeLast() {
+  AnimatedLength removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<SVGAnimatedLength> from, [int startFrom]) {
+  void setRange(int start, int rangeLength, List<AnimatedLength> from, [int startFrom]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -400,14 +400,14 @@ class SVGAnimatedLengthList implements JavaScriptIndexingBehavior, List<SVGAnima
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [SVGAnimatedLength initialValue]) {
+  void insertRange(int start, int rangeLength, [AnimatedLength initialValue]) {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
-  List<SVGAnimatedLength> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <SVGAnimatedLength>[]);
+  List<AnimatedLength> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <AnimatedLength>[]);
 
-  // -- end List<SVGAnimatedLength> mixins.
+  // -- end List<AnimatedLength> mixins.
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -415,7 +415,7 @@ class SVGAnimatedLengthList implements JavaScriptIndexingBehavior, List<SVGAnima
 
 
 /// @domName SVGAnimatedNumber
-class SVGAnimatedNumber native "*SVGAnimatedNumber" {
+class AnimatedNumber native "*SVGAnimatedNumber" {
 
   /** @domName SVGAnimatedNumber.animVal */
   final num animVal;
@@ -429,83 +429,83 @@ class SVGAnimatedNumber native "*SVGAnimatedNumber" {
 
 
 /// @domName SVGAnimatedNumberList
-class SVGAnimatedNumberList implements JavaScriptIndexingBehavior, List<SVGAnimatedNumber> native "*SVGAnimatedNumberList" {
+class AnimatedNumberList implements JavaScriptIndexingBehavior, List<AnimatedNumber> native "*SVGAnimatedNumberList" {
 
   /** @domName SVGAnimatedNumberList.animVal */
-  final SVGNumberList animVal;
+  final NumberList animVal;
 
   /** @domName SVGAnimatedNumberList.baseVal */
-  final SVGNumberList baseVal;
+  final NumberList baseVal;
 
-  SVGAnimatedNumber operator[](int index) => JS("SVGAnimatedNumber", "#[#]", this, index);
+  AnimatedNumber operator[](int index) => JS("AnimatedNumber", "#[#]", this, index);
 
-  void operator[]=(int index, SVGAnimatedNumber value) {
+  void operator[]=(int index, AnimatedNumber value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
-  // -- start List<SVGAnimatedNumber> mixins.
-  // SVGAnimatedNumber is the element type.
+  // -- start List<AnimatedNumber> mixins.
+  // AnimatedNumber is the element type.
 
-  // From Iterable<SVGAnimatedNumber>:
+  // From Iterable<AnimatedNumber>:
 
-  Iterator<SVGAnimatedNumber> iterator() {
+  Iterator<AnimatedNumber> iterator() {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new FixedSizeListIterator<SVGAnimatedNumber>(this);
+    return new FixedSizeListIterator<AnimatedNumber>(this);
   }
 
-  // From Collection<SVGAnimatedNumber>:
+  // From Collection<AnimatedNumber>:
 
-  void add(SVGAnimatedNumber value) {
+  void add(AnimatedNumber value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(SVGAnimatedNumber value) {
+  void addLast(AnimatedNumber value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<SVGAnimatedNumber> collection) {
+  void addAll(Collection<AnimatedNumber> collection) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(SVGAnimatedNumber element) => _Collections.contains(this, element);
+  bool contains(AnimatedNumber element) => _Collections.contains(this, element);
 
-  void forEach(void f(SVGAnimatedNumber element)) => _Collections.forEach(this, f);
+  void forEach(void f(AnimatedNumber element)) => _Collections.forEach(this, f);
 
-  Collection map(f(SVGAnimatedNumber element)) => _Collections.map(this, [], f);
+  Collection map(f(AnimatedNumber element)) => _Collections.map(this, [], f);
 
-  Collection<SVGAnimatedNumber> filter(bool f(SVGAnimatedNumber element)) =>
-     _Collections.filter(this, <SVGAnimatedNumber>[], f);
+  Collection<AnimatedNumber> filter(bool f(AnimatedNumber element)) =>
+     _Collections.filter(this, <AnimatedNumber>[], f);
 
-  bool every(bool f(SVGAnimatedNumber element)) => _Collections.every(this, f);
+  bool every(bool f(AnimatedNumber element)) => _Collections.every(this, f);
 
-  bool some(bool f(SVGAnimatedNumber element)) => _Collections.some(this, f);
+  bool some(bool f(AnimatedNumber element)) => _Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
-  // From List<SVGAnimatedNumber>:
+  // From List<AnimatedNumber>:
 
-  void sort([Comparator<SVGAnimatedNumber> compare = Comparable.compare]) {
+  void sort([Comparator<AnimatedNumber> compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
-  int indexOf(SVGAnimatedNumber element, [int start = 0]) =>
+  int indexOf(AnimatedNumber element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(SVGAnimatedNumber element, [int start]) {
+  int lastIndexOf(AnimatedNumber element, [int start]) {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGAnimatedNumber get first => this[0];
+  AnimatedNumber get first => this[0];
 
-  SVGAnimatedNumber get last => this[length - 1];
+  AnimatedNumber get last => this[length - 1];
 
-  SVGAnimatedNumber removeLast() {
+  AnimatedNumber removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<SVGAnimatedNumber> from, [int startFrom]) {
+  void setRange(int start, int rangeLength, List<AnimatedNumber> from, [int startFrom]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -513,14 +513,14 @@ class SVGAnimatedNumberList implements JavaScriptIndexingBehavior, List<SVGAnima
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [SVGAnimatedNumber initialValue]) {
+  void insertRange(int start, int rangeLength, [AnimatedNumber initialValue]) {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
-  List<SVGAnimatedNumber> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <SVGAnimatedNumber>[]);
+  List<AnimatedNumber> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <AnimatedNumber>[]);
 
-  // -- end List<SVGAnimatedNumber> mixins.
+  // -- end List<AnimatedNumber> mixins.
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -528,13 +528,13 @@ class SVGAnimatedNumberList implements JavaScriptIndexingBehavior, List<SVGAnima
 
 
 /// @domName SVGAnimatedPreserveAspectRatio
-class SVGAnimatedPreserveAspectRatio native "*SVGAnimatedPreserveAspectRatio" {
+class AnimatedPreserveAspectRatio native "*SVGAnimatedPreserveAspectRatio" {
 
   /** @domName SVGAnimatedPreserveAspectRatio.animVal */
-  final SVGPreserveAspectRatio animVal;
+  final PreserveAspectRatio animVal;
 
   /** @domName SVGAnimatedPreserveAspectRatio.baseVal */
-  final SVGPreserveAspectRatio baseVal;
+  final PreserveAspectRatio baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -542,13 +542,13 @@ class SVGAnimatedPreserveAspectRatio native "*SVGAnimatedPreserveAspectRatio" {
 
 
 /// @domName SVGAnimatedRect
-class SVGAnimatedRect native "*SVGAnimatedRect" {
+class AnimatedRect native "*SVGAnimatedRect" {
 
   /** @domName SVGAnimatedRect.animVal */
-  final SVGRect animVal;
+  final Rect animVal;
 
   /** @domName SVGAnimatedRect.baseVal */
-  final SVGRect baseVal;
+  final Rect baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -556,7 +556,7 @@ class SVGAnimatedRect native "*SVGAnimatedRect" {
 
 
 /// @domName SVGAnimatedString
-class SVGAnimatedString native "*SVGAnimatedString" {
+class AnimatedString native "*SVGAnimatedString" {
 
   /** @domName SVGAnimatedString.animVal */
   final String animVal;
@@ -570,83 +570,83 @@ class SVGAnimatedString native "*SVGAnimatedString" {
 
 
 /// @domName SVGAnimatedTransformList
-class SVGAnimatedTransformList implements JavaScriptIndexingBehavior, List<SVGAnimateTransformElement> native "*SVGAnimatedTransformList" {
+class AnimatedTransformList implements JavaScriptIndexingBehavior, List<AnimateTransformElement> native "*SVGAnimatedTransformList" {
 
   /** @domName SVGAnimatedTransformList.animVal */
-  final SVGTransformList animVal;
+  final TransformList animVal;
 
   /** @domName SVGAnimatedTransformList.baseVal */
-  final SVGTransformList baseVal;
+  final TransformList baseVal;
 
-  SVGAnimateTransformElement operator[](int index) => JS("SVGAnimateTransformElement", "#[#]", this, index);
+  AnimateTransformElement operator[](int index) => JS("AnimateTransformElement", "#[#]", this, index);
 
-  void operator[]=(int index, SVGAnimateTransformElement value) {
+  void operator[]=(int index, AnimateTransformElement value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
-  // -- start List<SVGAnimateTransformElement> mixins.
-  // SVGAnimateTransformElement is the element type.
+  // -- start List<AnimateTransformElement> mixins.
+  // AnimateTransformElement is the element type.
 
-  // From Iterable<SVGAnimateTransformElement>:
+  // From Iterable<AnimateTransformElement>:
 
-  Iterator<SVGAnimateTransformElement> iterator() {
+  Iterator<AnimateTransformElement> iterator() {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new FixedSizeListIterator<SVGAnimateTransformElement>(this);
+    return new FixedSizeListIterator<AnimateTransformElement>(this);
   }
 
-  // From Collection<SVGAnimateTransformElement>:
+  // From Collection<AnimateTransformElement>:
 
-  void add(SVGAnimateTransformElement value) {
+  void add(AnimateTransformElement value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(SVGAnimateTransformElement value) {
+  void addLast(AnimateTransformElement value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<SVGAnimateTransformElement> collection) {
+  void addAll(Collection<AnimateTransformElement> collection) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(SVGAnimateTransformElement element) => _Collections.contains(this, element);
+  bool contains(AnimateTransformElement element) => _Collections.contains(this, element);
 
-  void forEach(void f(SVGAnimateTransformElement element)) => _Collections.forEach(this, f);
+  void forEach(void f(AnimateTransformElement element)) => _Collections.forEach(this, f);
 
-  Collection map(f(SVGAnimateTransformElement element)) => _Collections.map(this, [], f);
+  Collection map(f(AnimateTransformElement element)) => _Collections.map(this, [], f);
 
-  Collection<SVGAnimateTransformElement> filter(bool f(SVGAnimateTransformElement element)) =>
-     _Collections.filter(this, <SVGAnimateTransformElement>[], f);
+  Collection<AnimateTransformElement> filter(bool f(AnimateTransformElement element)) =>
+     _Collections.filter(this, <AnimateTransformElement>[], f);
 
-  bool every(bool f(SVGAnimateTransformElement element)) => _Collections.every(this, f);
+  bool every(bool f(AnimateTransformElement element)) => _Collections.every(this, f);
 
-  bool some(bool f(SVGAnimateTransformElement element)) => _Collections.some(this, f);
+  bool some(bool f(AnimateTransformElement element)) => _Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
-  // From List<SVGAnimateTransformElement>:
+  // From List<AnimateTransformElement>:
 
-  void sort([Comparator<SVGAnimateTransformElement> compare = Comparable.compare]) {
+  void sort([Comparator<AnimateTransformElement> compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
-  int indexOf(SVGAnimateTransformElement element, [int start = 0]) =>
+  int indexOf(AnimateTransformElement element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(SVGAnimateTransformElement element, [int start]) {
+  int lastIndexOf(AnimateTransformElement element, [int start]) {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGAnimateTransformElement get first => this[0];
+  AnimateTransformElement get first => this[0];
 
-  SVGAnimateTransformElement get last => this[length - 1];
+  AnimateTransformElement get last => this[length - 1];
 
-  SVGAnimateTransformElement removeLast() {
+  AnimateTransformElement removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<SVGAnimateTransformElement> from, [int startFrom]) {
+  void setRange(int start, int rangeLength, List<AnimateTransformElement> from, [int startFrom]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -654,14 +654,14 @@ class SVGAnimatedTransformList implements JavaScriptIndexingBehavior, List<SVGAn
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [SVGAnimateTransformElement initialValue]) {
+  void insertRange(int start, int rangeLength, [AnimateTransformElement initialValue]) {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
-  List<SVGAnimateTransformElement> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <SVGAnimateTransformElement>[]);
+  List<AnimateTransformElement> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <AnimateTransformElement>[]);
 
-  // -- end List<SVGAnimateTransformElement> mixins.
+  // -- end List<AnimateTransformElement> mixins.
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -669,12 +669,12 @@ class SVGAnimatedTransformList implements JavaScriptIndexingBehavior, List<SVGAn
 
 
 /// @domName SVGAnimationElement
-class SVGAnimationElement extends SVGElement implements ElementTimeControl, SVGTests, SVGExternalResourcesRequired native "*SVGAnimationElement" {
+class AnimationElement extends SvgElement implements Tests, ElementTimeControl, ExternalResourcesRequired native "*SVGAnimationElement" {
 
-  factory SVGAnimationElement() => _SVGElementFactoryProvider.createSVGElement_tag("animation");
+  factory AnimationElement() => _SvgElementFactoryProvider.createSvgElement_tag("animation");
 
   /** @domName SVGAnimationElement.targetElement */
-  final SVGElement targetElement;
+  final SvgElement targetElement;
 
   /** @domName SVGAnimationElement.getCurrentTime */
   num getCurrentTime() native;
@@ -702,18 +702,18 @@ class SVGAnimationElement extends SVGElement implements ElementTimeControl, SVGT
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGTests
 
   /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
+  final StringList requiredExtensions;
 
   /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
+  final StringList requiredFeatures;
 
   /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
+  final StringList systemLanguage;
 
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension) native;
@@ -724,23 +724,23 @@ class SVGAnimationElement extends SVGElement implements ElementTimeControl, SVGT
 
 
 /// @domName SVGCircleElement
-class SVGCircleElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGCircleElement" {
+class CircleElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGCircleElement" {
 
-  factory SVGCircleElement() => _SVGElementFactoryProvider.createSVGElement_tag("circle");
+  factory CircleElement() => _SvgElementFactoryProvider.createSvgElement_tag("circle");
 
   /** @domName SVGCircleElement.cx */
-  final SVGAnimatedLength cx;
+  final AnimatedLength cx;
 
   /** @domName SVGCircleElement.cy */
-  final SVGAnimatedLength cy;
+  final AnimatedLength cy;
 
   /** @domName SVGCircleElement.r */
-  final SVGAnimatedLength r;
+  final AnimatedLength r;
 
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
@@ -753,27 +753,27 @@ class SVGCircleElement extends SVGElement implements SVGLangSpace, SVGStylable, 
   // From SVGLocatable
 
   /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
+  final SvgElement farthestViewportElement;
 
   /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
+  final SvgElement nearestViewportElement;
 
   /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
+  Rect getBBox() native;
 
   /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
+  Matrix getCTM() native;
 
   /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
+  Matrix getScreenCTM() native;
 
   /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
+  Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -784,13 +784,13 @@ class SVGCircleElement extends SVGElement implements SVGLangSpace, SVGStylable, 
   // From SVGTests
 
   /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
+  final StringList requiredExtensions;
 
   /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
+  final StringList requiredFeatures;
 
   /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
+  final StringList systemLanguage;
 
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension) native;
@@ -798,7 +798,7 @@ class SVGCircleElement extends SVGElement implements SVGLangSpace, SVGStylable, 
   // From SVGTransformable
 
   /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
+  final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -806,17 +806,17 @@ class SVGCircleElement extends SVGElement implements SVGLangSpace, SVGStylable, 
 
 
 /// @domName SVGClipPathElement
-class SVGClipPathElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGClipPathElement" {
+class ClipPathElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGClipPathElement" {
 
-  factory SVGClipPathElement() => _SVGElementFactoryProvider.createSVGElement_tag("clipPath");
+  factory ClipPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("clipPath");
 
   /** @domName SVGClipPathElement.clipPathUnits */
-  final SVGAnimatedEnumeration clipPathUnits;
+  final AnimatedEnumeration clipPathUnits;
 
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
@@ -829,27 +829,27 @@ class SVGClipPathElement extends SVGElement implements SVGLangSpace, SVGStylable
   // From SVGLocatable
 
   /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
+  final SvgElement farthestViewportElement;
 
   /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
+  final SvgElement nearestViewportElement;
 
   /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
+  Rect getBBox() native;
 
   /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
+  Matrix getCTM() native;
 
   /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
+  Matrix getScreenCTM() native;
 
   /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
+  Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -860,13 +860,13 @@ class SVGClipPathElement extends SVGElement implements SVGLangSpace, SVGStylable
   // From SVGTests
 
   /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
+  final StringList requiredExtensions;
 
   /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
+  final StringList requiredFeatures;
 
   /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
+  final StringList systemLanguage;
 
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension) native;
@@ -874,7 +874,7 @@ class SVGClipPathElement extends SVGElement implements SVGLangSpace, SVGStylable
   // From SVGTransformable
 
   /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
+  final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -882,7 +882,7 @@ class SVGClipPathElement extends SVGElement implements SVGLangSpace, SVGStylable
 
 
 /// @domName SVGColor
-class SVGColor extends CSSValue native "*SVGColor" {
+class Color extends CSSValue native "*SVGColor" {
 
   static const int SVG_COLORTYPE_CURRENTCOLOR = 3;
 
@@ -913,7 +913,7 @@ class SVGColor extends CSSValue native "*SVGColor" {
 
 
 /// @domName SVGComponentTransferFunctionElement
-class SVGComponentTransferFunctionElement extends SVGElement native "*SVGComponentTransferFunctionElement" {
+class ComponentTransferFunctionElement extends SvgElement native "*SVGComponentTransferFunctionElement" {
 
   static const int SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE = 3;
 
@@ -928,25 +928,25 @@ class SVGComponentTransferFunctionElement extends SVGElement native "*SVGCompone
   static const int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
 
   /** @domName SVGComponentTransferFunctionElement.amplitude */
-  final SVGAnimatedNumber amplitude;
+  final AnimatedNumber amplitude;
 
   /** @domName SVGComponentTransferFunctionElement.exponent */
-  final SVGAnimatedNumber exponent;
+  final AnimatedNumber exponent;
 
   /** @domName SVGComponentTransferFunctionElement.intercept */
-  final SVGAnimatedNumber intercept;
+  final AnimatedNumber intercept;
 
   /** @domName SVGComponentTransferFunctionElement.offset */
-  final SVGAnimatedNumber offset;
+  final AnimatedNumber offset;
 
   /** @domName SVGComponentTransferFunctionElement.slope */
-  final SVGAnimatedNumber slope;
+  final AnimatedNumber slope;
 
   /** @domName SVGComponentTransferFunctionElement.tableValues */
-  final SVGAnimatedNumberList tableValues;
+  final AnimatedNumberList tableValues;
 
   /** @domName SVGComponentTransferFunctionElement.type */
-  final SVGAnimatedEnumeration type;
+  final AnimatedEnumeration type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -954,31 +954,31 @@ class SVGComponentTransferFunctionElement extends SVGElement native "*SVGCompone
 
 
 /// @domName SVGCursorElement
-class SVGCursorElement extends SVGElement implements SVGURIReference, SVGTests, SVGExternalResourcesRequired native "*SVGCursorElement" {
+class CursorElement extends SvgElement implements UriReference, Tests, ExternalResourcesRequired native "*SVGCursorElement" {
 
-  factory SVGCursorElement() => _SVGElementFactoryProvider.createSVGElement_tag("cursor");
+  factory CursorElement() => _SvgElementFactoryProvider.createSvgElement_tag("cursor");
 
   /** @domName SVGCursorElement.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGCursorElement.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGTests
 
   /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
+  final StringList requiredExtensions;
 
   /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
+  final StringList requiredFeatures;
 
   /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
+  final StringList systemLanguage;
 
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension) native;
@@ -986,7 +986,7 @@ class SVGCursorElement extends SVGElement implements SVGURIReference, SVGTests, 
   // From SVGURIReference
 
   /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
+  final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -994,14 +994,14 @@ class SVGCursorElement extends SVGElement implements SVGURIReference, SVGTests, 
 
 
 /// @domName SVGDefsElement
-class SVGDefsElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGDefsElement" {
+class DefsElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGDefsElement" {
 
-  factory SVGDefsElement() => _SVGElementFactoryProvider.createSVGElement_tag("defs");
+  factory DefsElement() => _SvgElementFactoryProvider.createSvgElement_tag("defs");
 
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
@@ -1014,27 +1014,27 @@ class SVGDefsElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
   // From SVGLocatable
 
   /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
+  final SvgElement farthestViewportElement;
 
   /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
+  final SvgElement nearestViewportElement;
 
   /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
+  Rect getBBox() native;
 
   /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
+  Matrix getCTM() native;
 
   /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
+  Matrix getScreenCTM() native;
 
   /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
+  Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -1045,13 +1045,13 @@ class SVGDefsElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
   // From SVGTests
 
   /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
+  final StringList requiredExtensions;
 
   /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
+  final StringList requiredFeatures;
 
   /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
+  final StringList systemLanguage;
 
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension) native;
@@ -1059,7 +1059,7 @@ class SVGDefsElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
   // From SVGTransformable
 
   /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
+  final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1067,9 +1067,9 @@ class SVGDefsElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
 
 
 /// @domName SVGDescElement
-class SVGDescElement extends SVGElement implements SVGLangSpace, SVGStylable native "*SVGDescElement" {
+class DescElement extends SvgElement implements Stylable, LangSpace native "*SVGDescElement" {
 
-  factory SVGDescElement() => _SVGElementFactoryProvider.createSVGElement_tag("desc");
+  factory DescElement() => _SvgElementFactoryProvider.createSvgElement_tag("desc");
 
   // From SVGLangSpace
 
@@ -1082,7 +1082,7 @@ class SVGDescElement extends SVGElement implements SVGLangSpace, SVGStylable nat
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -1095,152 +1095,42 @@ class SVGDescElement extends SVGElement implements SVGLangSpace, SVGStylable nat
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGDocument
-class SVGDocument extends Document native "*SVGDocument" {
-
-  /** @domName SVGDocument.rootElement */
-  final SVGSVGElement rootElement;
-
-  /** @domName SVGDocument.createEvent */
-  Event $dom_createEvent(String eventType) native "createEvent";
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _AttributeClassSet extends CssClassSet {
-  final Element _element;
-
-  _AttributeClassSet(this._element);
-
-  Set<String> readClasses() {
-    var classname = _element.attributes['class'];
-
-    Set<String> s = new Set<String>();
-    if (classname == null) {
-      return s;
-    }
-    for (String name in classname.split(' ')) {
-      String trimmed = name.trim();
-      if (!trimmed.isEmpty) {
-        s.add(trimmed);
-      }
-    }
-    return s;
-  }
-
-  void writeClasses(Set s) {
-    List list = new List.from(s);
-    _element.attributes['class'] = Strings.join(list, ' ');
-  }
-}
-
-class SVGElement extends Element native "*SVGElement" {
-  factory SVGElement.tag(String tag) =>
-      _SVGElementFactoryProvider.createSVGElement_tag(tag);
-  factory SVGElement.svg(String svg) =>
-      _SVGElementFactoryProvider.createSVGElement_svg(svg);
-
-  _AttributeClassSet _cssClassSet;
-  CssClassSet get classes {
-    if (_cssClassSet == null) {
-      _cssClassSet = new _AttributeClassSet(this);
-    }
-    return _cssClassSet;
-  }
-
-  List<Element> get elements => new FilteredElementList(this);
-
-  void set elements(Collection<Element> value) {
-    final elements = this.elements;
-    elements.clear();
-    elements.addAll(value);
-  }
-
-  String get outerHTML {
-    final container = new Element.tag("div");
-    final SVGElement cloned = this.clone(true);
-    container.elements.add(cloned);
-    return container.innerHTML;
-  }
-
-  String get innerHTML {
-    final container = new Element.tag("div");
-    final SVGElement cloned = this.clone(true);
-    container.elements.addAll(cloned.elements);
-    return container.innerHTML;
-  }
-
-  void set innerHTML(String svg) {
-    final container = new Element.tag("div");
-    // Wrap the SVG string in <svg> so that SVGElements are created, rather than
-    // HTMLElements.
-    container.innerHTML = '<svg version="1.1">$svg</svg>';
-    this.elements = container.elements[0].elements;
-  }
-
-
-  // Shadowing definition.
-  /** @domName SVGElement.id */
-  String get id => JS("String", "#.id", this);
-
-  /** @domName SVGElement.id */
-  void set id(String value) {
-    JS("void", "#.id = #", this, value);
-  }
-
-  /** @domName SVGElement.ownerSVGElement */
-  final SVGSVGElement ownerSVGElement;
-
-  /** @domName SVGElement.viewportElement */
-  final SVGElement viewportElement;
-
-  /** @domName SVGElement.xmlbase */
-  String xmlbase;
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 /// @domName SVGElementInstance
-class SVGElementInstance extends EventTarget native "*SVGElementInstance" {
+class ElementInstance extends EventTarget native "*SVGElementInstance" {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  SVGElementInstanceEvents get on =>
-    new SVGElementInstanceEvents(this);
+  ElementInstanceEvents get on =>
+    new ElementInstanceEvents(this);
 
   /** @domName SVGElementInstance.childNodes */
-  final List<SVGElementInstance> childNodes;
+  final List<ElementInstance> childNodes;
 
   /** @domName SVGElementInstance.correspondingElement */
-  final SVGElement correspondingElement;
+  final SvgElement correspondingElement;
 
   /** @domName SVGElementInstance.correspondingUseElement */
-  final SVGUseElement correspondingUseElement;
+  final UseElement correspondingUseElement;
 
   /** @domName SVGElementInstance.firstChild */
-  final SVGElementInstance firstChild;
+  final ElementInstance firstChild;
 
   /** @domName SVGElementInstance.lastChild */
-  final SVGElementInstance lastChild;
+  final ElementInstance lastChild;
 
   /** @domName SVGElementInstance.nextSibling */
-  final SVGElementInstance nextSibling;
+  final ElementInstance nextSibling;
 
   /** @domName SVGElementInstance.parentNode */
-  final SVGElementInstance parentNode;
+  final ElementInstance parentNode;
 
   /** @domName SVGElementInstance.previousSibling */
-  final SVGElementInstance previousSibling;
+  final ElementInstance previousSibling;
 }
 
-class SVGElementInstanceEvents extends Events {
-  SVGElementInstanceEvents(EventTarget _ptr) : super(_ptr);
+class ElementInstanceEvents extends Events {
+  ElementInstanceEvents(EventTarget _ptr) : super(_ptr);
 
   EventListenerList get abort => this['abort'];
 
@@ -1328,26 +1218,26 @@ class SVGElementInstanceEvents extends Events {
 
 
 /// @domName SVGEllipseElement
-class SVGEllipseElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGEllipseElement" {
+class EllipseElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGEllipseElement" {
 
-  factory SVGEllipseElement() => _SVGElementFactoryProvider.createSVGElement_tag("ellipse");
+  factory EllipseElement() => _SvgElementFactoryProvider.createSvgElement_tag("ellipse");
 
   /** @domName SVGEllipseElement.cx */
-  final SVGAnimatedLength cx;
+  final AnimatedLength cx;
 
   /** @domName SVGEllipseElement.cy */
-  final SVGAnimatedLength cy;
+  final AnimatedLength cy;
 
   /** @domName SVGEllipseElement.rx */
-  final SVGAnimatedLength rx;
+  final AnimatedLength rx;
 
   /** @domName SVGEllipseElement.ry */
-  final SVGAnimatedLength ry;
+  final AnimatedLength ry;
 
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
@@ -1360,27 +1250,27 @@ class SVGEllipseElement extends SVGElement implements SVGLangSpace, SVGStylable,
   // From SVGLocatable
 
   /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
+  final SvgElement farthestViewportElement;
 
   /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
+  final SvgElement nearestViewportElement;
 
   /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
+  Rect getBBox() native;
 
   /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
+  Matrix getCTM() native;
 
   /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
+  Matrix getScreenCTM() native;
 
   /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
+  Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -1391,13 +1281,13 @@ class SVGEllipseElement extends SVGElement implements SVGLangSpace, SVGStylable,
   // From SVGTests
 
   /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
+  final StringList requiredExtensions;
 
   /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
+  final StringList requiredFeatures;
 
   /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
+  final StringList systemLanguage;
 
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension) native;
@@ -1405,7 +1295,7 @@ class SVGEllipseElement extends SVGElement implements SVGLangSpace, SVGStylable,
   // From SVGTransformable
 
   /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
+  final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1413,7 +1303,7 @@ class SVGEllipseElement extends SVGElement implements SVGLangSpace, SVGStylable,
 
 
 /// @domName SVGException
-class SVGException native "*SVGException" {
+class Exception native "*SVGException" {
 
   static const int SVG_INVALID_VALUE_ERR = 1;
 
@@ -1439,9 +1329,9 @@ class SVGException native "*SVGException" {
 
 
 /// @domName SVGExternalResourcesRequired
-abstract class SVGExternalResourcesRequired {
+abstract class ExternalResourcesRequired {
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  AnimatedBoolean externalResourcesRequired;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1449,7 +1339,7 @@ abstract class SVGExternalResourcesRequired {
 
 
 /// @domName SVGFEBlendElement
-class SVGFEBlendElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEBlendElement" {
+class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEBlendElement" {
 
   static const int SVG_FEBLEND_MODE_DARKEN = 4;
 
@@ -1464,35 +1354,35 @@ class SVGFEBlendElement extends SVGElement implements SVGFilterPrimitiveStandard
   static const int SVG_FEBLEND_MODE_UNKNOWN = 0;
 
   /** @domName SVGFEBlendElement.in1 */
-  final SVGAnimatedString in1;
+  final AnimatedString in1;
 
   /** @domName SVGFEBlendElement.in2 */
-  final SVGAnimatedString in2;
+  final AnimatedString in2;
 
   /** @domName SVGFEBlendElement.mode */
-  final SVGAnimatedEnumeration mode;
+  final AnimatedEnumeration mode;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
+  final AnimatedLength height;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
+  final AnimatedString result;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
+  final AnimatedLength width;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -1506,7 +1396,7 @@ class SVGFEBlendElement extends SVGElement implements SVGFilterPrimitiveStandard
 
 
 /// @domName SVGFEColorMatrixElement
-class SVGFEColorMatrixElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEColorMatrixElement" {
+class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEColorMatrixElement" {
 
   static const int SVG_FECOLORMATRIX_TYPE_HUEROTATE = 3;
 
@@ -1519,35 +1409,35 @@ class SVGFEColorMatrixElement extends SVGElement implements SVGFilterPrimitiveSt
   static const int SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
 
   /** @domName SVGFEColorMatrixElement.in1 */
-  final SVGAnimatedString in1;
+  final AnimatedString in1;
 
   /** @domName SVGFEColorMatrixElement.type */
-  final SVGAnimatedEnumeration type;
+  final AnimatedEnumeration type;
 
   /** @domName SVGFEColorMatrixElement.values */
-  final SVGAnimatedNumberList values;
+  final AnimatedNumberList values;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
+  final AnimatedLength height;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
+  final AnimatedString result;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
+  final AnimatedLength width;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -1561,32 +1451,32 @@ class SVGFEColorMatrixElement extends SVGElement implements SVGFilterPrimitiveSt
 
 
 /// @domName SVGFEComponentTransferElement
-class SVGFEComponentTransferElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEComponentTransferElement" {
+class FEComponentTransferElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEComponentTransferElement" {
 
   /** @domName SVGFEComponentTransferElement.in1 */
-  final SVGAnimatedString in1;
+  final AnimatedString in1;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
+  final AnimatedLength height;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
+  final AnimatedString result;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
+  final AnimatedLength width;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -1600,7 +1490,7 @@ class SVGFEComponentTransferElement extends SVGElement implements SVGFilterPrimi
 
 
 /// @domName SVGFECompositeElement
-class SVGFECompositeElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFECompositeElement" {
+class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFECompositeElement" {
 
   static const int SVG_FECOMPOSITE_OPERATOR_ARITHMETIC = 6;
 
@@ -1617,47 +1507,47 @@ class SVGFECompositeElement extends SVGElement implements SVGFilterPrimitiveStan
   static const int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
 
   /** @domName SVGFECompositeElement.in1 */
-  final SVGAnimatedString in1;
+  final AnimatedString in1;
 
   /** @domName SVGFECompositeElement.in2 */
-  final SVGAnimatedString in2;
+  final AnimatedString in2;
 
   /** @domName SVGFECompositeElement.k1 */
-  final SVGAnimatedNumber k1;
+  final AnimatedNumber k1;
 
   /** @domName SVGFECompositeElement.k2 */
-  final SVGAnimatedNumber k2;
+  final AnimatedNumber k2;
 
   /** @domName SVGFECompositeElement.k3 */
-  final SVGAnimatedNumber k3;
+  final AnimatedNumber k3;
 
   /** @domName SVGFECompositeElement.k4 */
-  final SVGAnimatedNumber k4;
+  final AnimatedNumber k4;
 
   /** @domName SVGFECompositeElement.operator */
-  final SVGAnimatedEnumeration operator;
+  final AnimatedEnumeration operator;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
+  final AnimatedLength height;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
+  final AnimatedString result;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
+  final AnimatedLength width;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -1671,7 +1561,7 @@ class SVGFECompositeElement extends SVGElement implements SVGFilterPrimitiveStan
 
 
 /// @domName SVGFEConvolveMatrixElement
-class SVGFEConvolveMatrixElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEConvolveMatrixElement" {
+class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEConvolveMatrixElement" {
 
   static const int SVG_EDGEMODE_DUPLICATE = 1;
 
@@ -1682,62 +1572,62 @@ class SVGFEConvolveMatrixElement extends SVGElement implements SVGFilterPrimitiv
   static const int SVG_EDGEMODE_WRAP = 2;
 
   /** @domName SVGFEConvolveMatrixElement.bias */
-  final SVGAnimatedNumber bias;
+  final AnimatedNumber bias;
 
   /** @domName SVGFEConvolveMatrixElement.divisor */
-  final SVGAnimatedNumber divisor;
+  final AnimatedNumber divisor;
 
   /** @domName SVGFEConvolveMatrixElement.edgeMode */
-  final SVGAnimatedEnumeration edgeMode;
+  final AnimatedEnumeration edgeMode;
 
   /** @domName SVGFEConvolveMatrixElement.in1 */
-  final SVGAnimatedString in1;
+  final AnimatedString in1;
 
   /** @domName SVGFEConvolveMatrixElement.kernelMatrix */
-  final SVGAnimatedNumberList kernelMatrix;
+  final AnimatedNumberList kernelMatrix;
 
   /** @domName SVGFEConvolveMatrixElement.kernelUnitLengthX */
-  final SVGAnimatedNumber kernelUnitLengthX;
+  final AnimatedNumber kernelUnitLengthX;
 
   /** @domName SVGFEConvolveMatrixElement.kernelUnitLengthY */
-  final SVGAnimatedNumber kernelUnitLengthY;
+  final AnimatedNumber kernelUnitLengthY;
 
   /** @domName SVGFEConvolveMatrixElement.orderX */
-  final SVGAnimatedInteger orderX;
+  final AnimatedInteger orderX;
 
   /** @domName SVGFEConvolveMatrixElement.orderY */
-  final SVGAnimatedInteger orderY;
+  final AnimatedInteger orderY;
 
   /** @domName SVGFEConvolveMatrixElement.preserveAlpha */
-  final SVGAnimatedBoolean preserveAlpha;
+  final AnimatedBoolean preserveAlpha;
 
   /** @domName SVGFEConvolveMatrixElement.targetX */
-  final SVGAnimatedInteger targetX;
+  final AnimatedInteger targetX;
 
   /** @domName SVGFEConvolveMatrixElement.targetY */
-  final SVGAnimatedInteger targetY;
+  final AnimatedInteger targetY;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
+  final AnimatedLength height;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
+  final AnimatedString result;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
+  final AnimatedLength width;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -1751,44 +1641,44 @@ class SVGFEConvolveMatrixElement extends SVGElement implements SVGFilterPrimitiv
 
 
 /// @domName SVGFEDiffuseLightingElement
-class SVGFEDiffuseLightingElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEDiffuseLightingElement" {
+class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEDiffuseLightingElement" {
 
   /** @domName SVGFEDiffuseLightingElement.diffuseConstant */
-  final SVGAnimatedNumber diffuseConstant;
+  final AnimatedNumber diffuseConstant;
 
   /** @domName SVGFEDiffuseLightingElement.in1 */
-  final SVGAnimatedString in1;
+  final AnimatedString in1;
 
   /** @domName SVGFEDiffuseLightingElement.kernelUnitLengthX */
-  final SVGAnimatedNumber kernelUnitLengthX;
+  final AnimatedNumber kernelUnitLengthX;
 
   /** @domName SVGFEDiffuseLightingElement.kernelUnitLengthY */
-  final SVGAnimatedNumber kernelUnitLengthY;
+  final AnimatedNumber kernelUnitLengthY;
 
   /** @domName SVGFEDiffuseLightingElement.surfaceScale */
-  final SVGAnimatedNumber surfaceScale;
+  final AnimatedNumber surfaceScale;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
+  final AnimatedLength height;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
+  final AnimatedString result;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
+  final AnimatedLength width;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -1802,7 +1692,7 @@ class SVGFEDiffuseLightingElement extends SVGElement implements SVGFilterPrimiti
 
 
 /// @domName SVGFEDisplacementMapElement
-class SVGFEDisplacementMapElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEDisplacementMapElement" {
+class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEDisplacementMapElement" {
 
   static const int SVG_CHANNEL_A = 4;
 
@@ -1815,41 +1705,41 @@ class SVGFEDisplacementMapElement extends SVGElement implements SVGFilterPrimiti
   static const int SVG_CHANNEL_UNKNOWN = 0;
 
   /** @domName SVGFEDisplacementMapElement.in1 */
-  final SVGAnimatedString in1;
+  final AnimatedString in1;
 
   /** @domName SVGFEDisplacementMapElement.in2 */
-  final SVGAnimatedString in2;
+  final AnimatedString in2;
 
   /** @domName SVGFEDisplacementMapElement.scale */
-  final SVGAnimatedNumber scale;
+  final AnimatedNumber scale;
 
   /** @domName SVGFEDisplacementMapElement.xChannelSelector */
-  final SVGAnimatedEnumeration xChannelSelector;
+  final AnimatedEnumeration xChannelSelector;
 
   /** @domName SVGFEDisplacementMapElement.yChannelSelector */
-  final SVGAnimatedEnumeration yChannelSelector;
+  final AnimatedEnumeration yChannelSelector;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
+  final AnimatedLength height;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
+  final AnimatedString result;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
+  final AnimatedLength width;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -1863,13 +1753,13 @@ class SVGFEDisplacementMapElement extends SVGElement implements SVGFilterPrimiti
 
 
 /// @domName SVGFEDistantLightElement
-class SVGFEDistantLightElement extends SVGElement native "*SVGFEDistantLightElement" {
+class FEDistantLightElement extends SvgElement native "*SVGFEDistantLightElement" {
 
   /** @domName SVGFEDistantLightElement.azimuth */
-  final SVGAnimatedNumber azimuth;
+  final AnimatedNumber azimuth;
 
   /** @domName SVGFEDistantLightElement.elevation */
-  final SVGAnimatedNumber elevation;
+  final AnimatedNumber elevation;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1877,22 +1767,22 @@ class SVGFEDistantLightElement extends SVGElement native "*SVGFEDistantLightElem
 
 
 /// @domName SVGFEDropShadowElement
-class SVGFEDropShadowElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEDropShadowElement" {
+class FEDropShadowElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEDropShadowElement" {
 
   /** @domName SVGFEDropShadowElement.dx */
-  final SVGAnimatedNumber dx;
+  final AnimatedNumber dx;
 
   /** @domName SVGFEDropShadowElement.dy */
-  final SVGAnimatedNumber dy;
+  final AnimatedNumber dy;
 
   /** @domName SVGFEDropShadowElement.in1 */
-  final SVGAnimatedString in1;
+  final AnimatedString in1;
 
   /** @domName SVGFEDropShadowElement.stdDeviationX */
-  final SVGAnimatedNumber stdDeviationX;
+  final AnimatedNumber stdDeviationX;
 
   /** @domName SVGFEDropShadowElement.stdDeviationY */
-  final SVGAnimatedNumber stdDeviationY;
+  final AnimatedNumber stdDeviationY;
 
   /** @domName SVGFEDropShadowElement.setStdDeviation */
   void setStdDeviation(num stdDeviationX, num stdDeviationY) native;
@@ -1900,24 +1790,24 @@ class SVGFEDropShadowElement extends SVGElement implements SVGFilterPrimitiveSta
   // From SVGFilterPrimitiveStandardAttributes
 
   /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
+  final AnimatedLength height;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
+  final AnimatedString result;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
+  final AnimatedLength width;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -1931,29 +1821,29 @@ class SVGFEDropShadowElement extends SVGElement implements SVGFilterPrimitiveSta
 
 
 /// @domName SVGFEFloodElement
-class SVGFEFloodElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEFloodElement" {
+class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEFloodElement" {
 
   // From SVGFilterPrimitiveStandardAttributes
 
   /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
+  final AnimatedLength height;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
+  final AnimatedString result;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
+  final AnimatedLength width;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -1967,7 +1857,7 @@ class SVGFEFloodElement extends SVGElement implements SVGFilterPrimitiveStandard
 
 
 /// @domName SVGFEFuncAElement
-class SVGFEFuncAElement extends SVGComponentTransferFunctionElement native "*SVGFEFuncAElement" {
+class FEFuncAElement extends ComponentTransferFunctionElement native "*SVGFEFuncAElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1975,7 +1865,7 @@ class SVGFEFuncAElement extends SVGComponentTransferFunctionElement native "*SVG
 
 
 /// @domName SVGFEFuncBElement
-class SVGFEFuncBElement extends SVGComponentTransferFunctionElement native "*SVGFEFuncBElement" {
+class FEFuncBElement extends ComponentTransferFunctionElement native "*SVGFEFuncBElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1983,7 +1873,7 @@ class SVGFEFuncBElement extends SVGComponentTransferFunctionElement native "*SVG
 
 
 /// @domName SVGFEFuncGElement
-class SVGFEFuncGElement extends SVGComponentTransferFunctionElement native "*SVGFEFuncGElement" {
+class FEFuncGElement extends ComponentTransferFunctionElement native "*SVGFEFuncGElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1991,7 +1881,7 @@ class SVGFEFuncGElement extends SVGComponentTransferFunctionElement native "*SVG
 
 
 /// @domName SVGFEFuncRElement
-class SVGFEFuncRElement extends SVGComponentTransferFunctionElement native "*SVGFEFuncRElement" {
+class FEFuncRElement extends ComponentTransferFunctionElement native "*SVGFEFuncRElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1999,16 +1889,16 @@ class SVGFEFuncRElement extends SVGComponentTransferFunctionElement native "*SVG
 
 
 /// @domName SVGFEGaussianBlurElement
-class SVGFEGaussianBlurElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEGaussianBlurElement" {
+class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEGaussianBlurElement" {
 
   /** @domName SVGFEGaussianBlurElement.in1 */
-  final SVGAnimatedString in1;
+  final AnimatedString in1;
 
   /** @domName SVGFEGaussianBlurElement.stdDeviationX */
-  final SVGAnimatedNumber stdDeviationX;
+  final AnimatedNumber stdDeviationX;
 
   /** @domName SVGFEGaussianBlurElement.stdDeviationY */
-  final SVGAnimatedNumber stdDeviationY;
+  final AnimatedNumber stdDeviationY;
 
   /** @domName SVGFEGaussianBlurElement.setStdDeviation */
   void setStdDeviation(num stdDeviationX, num stdDeviationY) native;
@@ -2016,24 +1906,24 @@ class SVGFEGaussianBlurElement extends SVGElement implements SVGFilterPrimitiveS
   // From SVGFilterPrimitiveStandardAttributes
 
   /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
+  final AnimatedLength height;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
+  final AnimatedString result;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
+  final AnimatedLength width;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -2047,32 +1937,32 @@ class SVGFEGaussianBlurElement extends SVGElement implements SVGFilterPrimitiveS
 
 
 /// @domName SVGFEImageElement
-class SVGFEImageElement extends SVGElement implements SVGURIReference, SVGLangSpace, SVGFilterPrimitiveStandardAttributes, SVGExternalResourcesRequired native "*SVGFEImageElement" {
+class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttributes, UriReference, ExternalResourcesRequired, LangSpace native "*SVGFEImageElement" {
 
   /** @domName SVGFEImageElement.preserveAspectRatio */
-  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  final AnimatedPreserveAspectRatio preserveAspectRatio;
 
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
+  final AnimatedLength height;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
+  final AnimatedString result;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
+  final AnimatedLength width;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   // From SVGLangSpace
 
@@ -2085,7 +1975,7 @@ class SVGFEImageElement extends SVGElement implements SVGURIReference, SVGLangSp
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -2096,7 +1986,7 @@ class SVGFEImageElement extends SVGElement implements SVGURIReference, SVGLangSp
   // From SVGURIReference
 
   /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
+  final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2104,29 +1994,29 @@ class SVGFEImageElement extends SVGElement implements SVGURIReference, SVGLangSp
 
 
 /// @domName SVGFEMergeElement
-class SVGFEMergeElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEMergeElement" {
+class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEMergeElement" {
 
   // From SVGFilterPrimitiveStandardAttributes
 
   /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
+  final AnimatedLength height;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
+  final AnimatedString result;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
+  final AnimatedLength width;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -2140,10 +2030,10 @@ class SVGFEMergeElement extends SVGElement implements SVGFilterPrimitiveStandard
 
 
 /// @domName SVGFEMergeNodeElement
-class SVGFEMergeNodeElement extends SVGElement native "*SVGFEMergeNodeElement" {
+class FEMergeNodeElement extends SvgElement native "*SVGFEMergeNodeElement" {
 
   /** @domName SVGFEMergeNodeElement.in1 */
-  final SVGAnimatedString in1;
+  final AnimatedString in1;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2151,7 +2041,7 @@ class SVGFEMergeNodeElement extends SVGElement native "*SVGFEMergeNodeElement" {
 
 
 /// @domName SVGFEMorphologyElement
-class SVGFEMorphologyElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEMorphologyElement" {
+class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEMorphologyElement" {
 
   static const int SVG_MORPHOLOGY_OPERATOR_DILATE = 2;
 
@@ -2160,16 +2050,16 @@ class SVGFEMorphologyElement extends SVGElement implements SVGFilterPrimitiveSta
   static const int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
 
   /** @domName SVGFEMorphologyElement.in1 */
-  final SVGAnimatedString in1;
+  final AnimatedString in1;
 
   /** @domName SVGFEMorphologyElement.operator */
-  final SVGAnimatedEnumeration operator;
+  final AnimatedEnumeration operator;
 
   /** @domName SVGFEMorphologyElement.radiusX */
-  final SVGAnimatedNumber radiusX;
+  final AnimatedNumber radiusX;
 
   /** @domName SVGFEMorphologyElement.radiusY */
-  final SVGAnimatedNumber radiusY;
+  final AnimatedNumber radiusY;
 
   /** @domName SVGFEMorphologyElement.setRadius */
   void setRadius(num radiusX, num radiusY) native;
@@ -2177,24 +2067,24 @@ class SVGFEMorphologyElement extends SVGElement implements SVGFilterPrimitiveSta
   // From SVGFilterPrimitiveStandardAttributes
 
   /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
+  final AnimatedLength height;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
+  final AnimatedString result;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
+  final AnimatedLength width;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -2208,38 +2098,38 @@ class SVGFEMorphologyElement extends SVGElement implements SVGFilterPrimitiveSta
 
 
 /// @domName SVGFEOffsetElement
-class SVGFEOffsetElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFEOffsetElement" {
+class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEOffsetElement" {
 
   /** @domName SVGFEOffsetElement.dx */
-  final SVGAnimatedNumber dx;
+  final AnimatedNumber dx;
 
   /** @domName SVGFEOffsetElement.dy */
-  final SVGAnimatedNumber dy;
+  final AnimatedNumber dy;
 
   /** @domName SVGFEOffsetElement.in1 */
-  final SVGAnimatedString in1;
+  final AnimatedString in1;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
+  final AnimatedLength height;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
+  final AnimatedString result;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
+  final AnimatedLength width;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -2253,16 +2143,16 @@ class SVGFEOffsetElement extends SVGElement implements SVGFilterPrimitiveStandar
 
 
 /// @domName SVGFEPointLightElement
-class SVGFEPointLightElement extends SVGElement native "*SVGFEPointLightElement" {
+class FEPointLightElement extends SvgElement native "*SVGFEPointLightElement" {
 
   /** @domName SVGFEPointLightElement.x */
-  final SVGAnimatedNumber x;
+  final AnimatedNumber x;
 
   /** @domName SVGFEPointLightElement.y */
-  final SVGAnimatedNumber y;
+  final AnimatedNumber y;
 
   /** @domName SVGFEPointLightElement.z */
-  final SVGAnimatedNumber z;
+  final AnimatedNumber z;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2270,41 +2160,41 @@ class SVGFEPointLightElement extends SVGElement native "*SVGFEPointLightElement"
 
 
 /// @domName SVGFESpecularLightingElement
-class SVGFESpecularLightingElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFESpecularLightingElement" {
+class FESpecularLightingElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFESpecularLightingElement" {
 
   /** @domName SVGFESpecularLightingElement.in1 */
-  final SVGAnimatedString in1;
+  final AnimatedString in1;
 
   /** @domName SVGFESpecularLightingElement.specularConstant */
-  final SVGAnimatedNumber specularConstant;
+  final AnimatedNumber specularConstant;
 
   /** @domName SVGFESpecularLightingElement.specularExponent */
-  final SVGAnimatedNumber specularExponent;
+  final AnimatedNumber specularExponent;
 
   /** @domName SVGFESpecularLightingElement.surfaceScale */
-  final SVGAnimatedNumber surfaceScale;
+  final AnimatedNumber surfaceScale;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
+  final AnimatedLength height;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
+  final AnimatedString result;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
+  final AnimatedLength width;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -2318,31 +2208,31 @@ class SVGFESpecularLightingElement extends SVGElement implements SVGFilterPrimit
 
 
 /// @domName SVGFESpotLightElement
-class SVGFESpotLightElement extends SVGElement native "*SVGFESpotLightElement" {
+class FESpotLightElement extends SvgElement native "*SVGFESpotLightElement" {
 
   /** @domName SVGFESpotLightElement.limitingConeAngle */
-  final SVGAnimatedNumber limitingConeAngle;
+  final AnimatedNumber limitingConeAngle;
 
   /** @domName SVGFESpotLightElement.pointsAtX */
-  final SVGAnimatedNumber pointsAtX;
+  final AnimatedNumber pointsAtX;
 
   /** @domName SVGFESpotLightElement.pointsAtY */
-  final SVGAnimatedNumber pointsAtY;
+  final AnimatedNumber pointsAtY;
 
   /** @domName SVGFESpotLightElement.pointsAtZ */
-  final SVGAnimatedNumber pointsAtZ;
+  final AnimatedNumber pointsAtZ;
 
   /** @domName SVGFESpotLightElement.specularExponent */
-  final SVGAnimatedNumber specularExponent;
+  final AnimatedNumber specularExponent;
 
   /** @domName SVGFESpotLightElement.x */
-  final SVGAnimatedNumber x;
+  final AnimatedNumber x;
 
   /** @domName SVGFESpotLightElement.y */
-  final SVGAnimatedNumber y;
+  final AnimatedNumber y;
 
   /** @domName SVGFESpotLightElement.z */
-  final SVGAnimatedNumber z;
+  final AnimatedNumber z;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2350,32 +2240,32 @@ class SVGFESpotLightElement extends SVGElement native "*SVGFESpotLightElement" {
 
 
 /// @domName SVGFETileElement
-class SVGFETileElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFETileElement" {
+class FETileElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFETileElement" {
 
   /** @domName SVGFETileElement.in1 */
-  final SVGAnimatedString in1;
+  final AnimatedString in1;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
+  final AnimatedLength height;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
+  final AnimatedString result;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
+  final AnimatedLength width;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -2389,7 +2279,7 @@ class SVGFETileElement extends SVGElement implements SVGFilterPrimitiveStandardA
 
 
 /// @domName SVGFETurbulenceElement
-class SVGFETurbulenceElement extends SVGElement implements SVGFilterPrimitiveStandardAttributes native "*SVGFETurbulenceElement" {
+class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFETurbulenceElement" {
 
   static const int SVG_STITCHTYPE_NOSTITCH = 2;
 
@@ -2404,44 +2294,44 @@ class SVGFETurbulenceElement extends SVGElement implements SVGFilterPrimitiveSta
   static const int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
 
   /** @domName SVGFETurbulenceElement.baseFrequencyX */
-  final SVGAnimatedNumber baseFrequencyX;
+  final AnimatedNumber baseFrequencyX;
 
   /** @domName SVGFETurbulenceElement.baseFrequencyY */
-  final SVGAnimatedNumber baseFrequencyY;
+  final AnimatedNumber baseFrequencyY;
 
   /** @domName SVGFETurbulenceElement.numOctaves */
-  final SVGAnimatedInteger numOctaves;
+  final AnimatedInteger numOctaves;
 
   /** @domName SVGFETurbulenceElement.seed */
-  final SVGAnimatedNumber seed;
+  final AnimatedNumber seed;
 
   /** @domName SVGFETurbulenceElement.stitchTiles */
-  final SVGAnimatedEnumeration stitchTiles;
+  final AnimatedEnumeration stitchTiles;
 
   /** @domName SVGFETurbulenceElement.type */
-  final SVGAnimatedEnumeration type;
+  final AnimatedEnumeration type;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  final SVGAnimatedLength height;
+  final AnimatedLength height;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  final SVGAnimatedString result;
+  final AnimatedString result;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  final SVGAnimatedLength width;
+  final AnimatedLength width;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -2455,33 +2345,33 @@ class SVGFETurbulenceElement extends SVGElement implements SVGFilterPrimitiveSta
 
 
 /// @domName SVGFilterElement
-class SVGFilterElement extends SVGElement implements SVGURIReference, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable native "*SVGFilterElement" {
+class FilterElement extends SvgElement implements UriReference, ExternalResourcesRequired, Stylable, LangSpace native "*SVGFilterElement" {
 
-  factory SVGFilterElement() => _SVGElementFactoryProvider.createSVGElement_tag("filter");
+  factory FilterElement() => _SvgElementFactoryProvider.createSvgElement_tag("filter");
 
   /** @domName SVGFilterElement.filterResX */
-  final SVGAnimatedInteger filterResX;
+  final AnimatedInteger filterResX;
 
   /** @domName SVGFilterElement.filterResY */
-  final SVGAnimatedInteger filterResY;
+  final AnimatedInteger filterResY;
 
   /** @domName SVGFilterElement.filterUnits */
-  final SVGAnimatedEnumeration filterUnits;
+  final AnimatedEnumeration filterUnits;
 
   /** @domName SVGFilterElement.height */
-  final SVGAnimatedLength height;
+  final AnimatedLength height;
 
   /** @domName SVGFilterElement.primitiveUnits */
-  final SVGAnimatedEnumeration primitiveUnits;
+  final AnimatedEnumeration primitiveUnits;
 
   /** @domName SVGFilterElement.width */
-  final SVGAnimatedLength width;
+  final AnimatedLength width;
 
   /** @domName SVGFilterElement.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGFilterElement.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   /** @domName SVGFilterElement.setFilterRes */
   void setFilterRes(int filterResX, int filterResY) native;
@@ -2489,7 +2379,7 @@ class SVGFilterElement extends SVGElement implements SVGURIReference, SVGLangSpa
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
@@ -2502,7 +2392,7 @@ class SVGFilterElement extends SVGElement implements SVGURIReference, SVGLangSpa
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -2513,7 +2403,7 @@ class SVGFilterElement extends SVGElement implements SVGURIReference, SVGLangSpa
   // From SVGURIReference
 
   /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
+  final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2521,21 +2411,21 @@ class SVGFilterElement extends SVGElement implements SVGURIReference, SVGLangSpa
 
 
 /// @domName SVGFilterPrimitiveStandardAttributes
-abstract class SVGFilterPrimitiveStandardAttributes implements SVGStylable {
+abstract class FilterPrimitiveStandardAttributes implements Stylable {
 
-  SVGAnimatedLength height;
+  AnimatedLength height;
 
-  SVGAnimatedString result;
+  AnimatedString result;
 
-  SVGAnimatedLength width;
+  AnimatedLength width;
 
-  SVGAnimatedLength x;
+  AnimatedLength x;
 
-  SVGAnimatedLength y;
+  AnimatedLength y;
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  AnimatedString className;
 
   CSSStyleDeclaration style;
 
@@ -2548,11 +2438,11 @@ abstract class SVGFilterPrimitiveStandardAttributes implements SVGStylable {
 
 
 /// @domName SVGFitToViewBox
-abstract class SVGFitToViewBox {
+abstract class FitToViewBox {
 
-  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  AnimatedPreserveAspectRatio preserveAspectRatio;
 
-  SVGAnimatedRect viewBox;
+  AnimatedRect viewBox;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2560,9 +2450,9 @@ abstract class SVGFitToViewBox {
 
 
 /// @domName SVGFontElement
-class SVGFontElement extends SVGElement native "*SVGFontElement" {
+class FontElement extends SvgElement native "*SVGFontElement" {
 
-  factory SVGFontElement() => _SVGElementFactoryProvider.createSVGElement_tag("font");
+  factory FontElement() => _SvgElementFactoryProvider.createSvgElement_tag("font");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2570,9 +2460,9 @@ class SVGFontElement extends SVGElement native "*SVGFontElement" {
 
 
 /// @domName SVGFontFaceElement
-class SVGFontFaceElement extends SVGElement native "*SVGFontFaceElement" {
+class FontFaceElement extends SvgElement native "*SVGFontFaceElement" {
 
-  factory SVGFontFaceElement() => _SVGElementFactoryProvider.createSVGElement_tag("font-face");
+  factory FontFaceElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2580,9 +2470,9 @@ class SVGFontFaceElement extends SVGElement native "*SVGFontFaceElement" {
 
 
 /// @domName SVGFontFaceFormatElement
-class SVGFontFaceFormatElement extends SVGElement native "*SVGFontFaceFormatElement" {
+class FontFaceFormatElement extends SvgElement native "*SVGFontFaceFormatElement" {
 
-  factory SVGFontFaceFormatElement() => _SVGElementFactoryProvider.createSVGElement_tag("font-face-format");
+  factory FontFaceFormatElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-format");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2590,9 +2480,9 @@ class SVGFontFaceFormatElement extends SVGElement native "*SVGFontFaceFormatElem
 
 
 /// @domName SVGFontFaceNameElement
-class SVGFontFaceNameElement extends SVGElement native "*SVGFontFaceNameElement" {
+class FontFaceNameElement extends SvgElement native "*SVGFontFaceNameElement" {
 
-  factory SVGFontFaceNameElement() => _SVGElementFactoryProvider.createSVGElement_tag("font-face-name");
+  factory FontFaceNameElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-name");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2600,9 +2490,9 @@ class SVGFontFaceNameElement extends SVGElement native "*SVGFontFaceNameElement"
 
 
 /// @domName SVGFontFaceSrcElement
-class SVGFontFaceSrcElement extends SVGElement native "*SVGFontFaceSrcElement" {
+class FontFaceSrcElement extends SvgElement native "*SVGFontFaceSrcElement" {
 
-  factory SVGFontFaceSrcElement() => _SVGElementFactoryProvider.createSVGElement_tag("font-face-src");
+  factory FontFaceSrcElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-src");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2610,9 +2500,9 @@ class SVGFontFaceSrcElement extends SVGElement native "*SVGFontFaceSrcElement" {
 
 
 /// @domName SVGFontFaceUriElement
-class SVGFontFaceUriElement extends SVGElement native "*SVGFontFaceUriElement" {
+class FontFaceUriElement extends SvgElement native "*SVGFontFaceUriElement" {
 
-  factory SVGFontFaceUriElement() => _SVGElementFactoryProvider.createSVGElement_tag("font-face-uri");
+  factory FontFaceUriElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-uri");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2620,26 +2510,26 @@ class SVGFontFaceUriElement extends SVGElement native "*SVGFontFaceUriElement" {
 
 
 /// @domName SVGForeignObjectElement
-class SVGForeignObjectElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGForeignObjectElement" {
+class ForeignObjectElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGForeignObjectElement" {
 
-  factory SVGForeignObjectElement() => _SVGElementFactoryProvider.createSVGElement_tag("foreignObject");
+  factory ForeignObjectElement() => _SvgElementFactoryProvider.createSvgElement_tag("foreignObject");
 
   /** @domName SVGForeignObjectElement.height */
-  final SVGAnimatedLength height;
+  final AnimatedLength height;
 
   /** @domName SVGForeignObjectElement.width */
-  final SVGAnimatedLength width;
+  final AnimatedLength width;
 
   /** @domName SVGForeignObjectElement.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGForeignObjectElement.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
@@ -2652,27 +2542,27 @@ class SVGForeignObjectElement extends SVGElement implements SVGLangSpace, SVGSty
   // From SVGLocatable
 
   /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
+  final SvgElement farthestViewportElement;
 
   /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
+  final SvgElement nearestViewportElement;
 
   /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
+  Rect getBBox() native;
 
   /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
+  Matrix getCTM() native;
 
   /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
+  Matrix getScreenCTM() native;
 
   /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
+  Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -2683,13 +2573,13 @@ class SVGForeignObjectElement extends SVGElement implements SVGLangSpace, SVGSty
   // From SVGTests
 
   /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
+  final StringList requiredExtensions;
 
   /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
+  final StringList requiredFeatures;
 
   /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
+  final StringList systemLanguage;
 
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension) native;
@@ -2697,7 +2587,7 @@ class SVGForeignObjectElement extends SVGElement implements SVGLangSpace, SVGSty
   // From SVGTransformable
 
   /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
+  final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2705,14 +2595,14 @@ class SVGForeignObjectElement extends SVGElement implements SVGLangSpace, SVGSty
 
 
 /// @domName SVGGElement
-class SVGGElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGGElement" {
+class GElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGGElement" {
 
-  factory SVGGElement() => _SVGElementFactoryProvider.createSVGElement_tag("g");
+  factory GElement() => _SvgElementFactoryProvider.createSvgElement_tag("g");
 
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
@@ -2725,27 +2615,27 @@ class SVGGElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTe
   // From SVGLocatable
 
   /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
+  final SvgElement farthestViewportElement;
 
   /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
+  final SvgElement nearestViewportElement;
 
   /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
+  Rect getBBox() native;
 
   /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
+  Matrix getCTM() native;
 
   /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
+  Matrix getScreenCTM() native;
 
   /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
+  Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -2756,13 +2646,13 @@ class SVGGElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTe
   // From SVGTests
 
   /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
+  final StringList requiredExtensions;
 
   /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
+  final StringList requiredFeatures;
 
   /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
+  final StringList systemLanguage;
 
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension) native;
@@ -2770,7 +2660,7 @@ class SVGGElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTe
   // From SVGTransformable
 
   /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
+  final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2778,9 +2668,9 @@ class SVGGElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTe
 
 
 /// @domName SVGGlyphElement
-class SVGGlyphElement extends SVGElement native "*SVGGlyphElement" {
+class GlyphElement extends SvgElement native "*SVGGlyphElement" {
 
-  factory SVGGlyphElement() => _SVGElementFactoryProvider.createSVGElement_tag("glyph");
+  factory GlyphElement() => _SvgElementFactoryProvider.createSvgElement_tag("glyph");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2788,7 +2678,7 @@ class SVGGlyphElement extends SVGElement native "*SVGGlyphElement" {
 
 
 /// @domName SVGGlyphRefElement
-class SVGGlyphRefElement extends SVGElement implements SVGURIReference, SVGStylable native "*SVGGlyphRefElement" {
+class GlyphRefElement extends SvgElement implements UriReference, Stylable native "*SVGGlyphRefElement" {
 
   /** @domName SVGGlyphRefElement.dx */
   num dx;
@@ -2811,7 +2701,7 @@ class SVGGlyphRefElement extends SVGElement implements SVGURIReference, SVGStyla
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -2822,7 +2712,7 @@ class SVGGlyphRefElement extends SVGElement implements SVGURIReference, SVGStyla
   // From SVGURIReference
 
   /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
+  final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2830,7 +2720,7 @@ class SVGGlyphRefElement extends SVGElement implements SVGURIReference, SVGStyla
 
 
 /// @domName SVGGradientElement
-class SVGGradientElement extends SVGElement implements SVGURIReference, SVGExternalResourcesRequired, SVGStylable native "*SVGGradientElement" {
+class GradientElement extends SvgElement implements UriReference, ExternalResourcesRequired, Stylable native "*SVGGradientElement" {
 
   static const int SVG_SPREADMETHOD_PAD = 1;
 
@@ -2841,23 +2731,23 @@ class SVGGradientElement extends SVGElement implements SVGURIReference, SVGExter
   static const int SVG_SPREADMETHOD_UNKNOWN = 0;
 
   /** @domName SVGGradientElement.gradientTransform */
-  final SVGAnimatedTransformList gradientTransform;
+  final AnimatedTransformList gradientTransform;
 
   /** @domName SVGGradientElement.gradientUnits */
-  final SVGAnimatedEnumeration gradientUnits;
+  final AnimatedEnumeration gradientUnits;
 
   /** @domName SVGGradientElement.spreadMethod */
-  final SVGAnimatedEnumeration spreadMethod;
+  final AnimatedEnumeration spreadMethod;
 
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -2868,7 +2758,7 @@ class SVGGradientElement extends SVGElement implements SVGURIReference, SVGExter
   // From SVGURIReference
 
   /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
+  final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2876,9 +2766,9 @@ class SVGGradientElement extends SVGElement implements SVGURIReference, SVGExter
 
 
 /// @domName SVGHKernElement
-class SVGHKernElement extends SVGElement native "*SVGHKernElement" {
+class HKernElement extends SvgElement native "*SVGHKernElement" {
 
-  factory SVGHKernElement() => _SVGElementFactoryProvider.createSVGElement_tag("hkern");
+  factory HKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("hkern");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2886,29 +2776,29 @@ class SVGHKernElement extends SVGElement native "*SVGHKernElement" {
 
 
 /// @domName SVGImageElement
-class SVGImageElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStylable, SVGURIReference, SVGExternalResourcesRequired, SVGTransformable native "*SVGImageElement" {
+class ImageElement extends SvgElement implements Transformable, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace native "*SVGImageElement" {
 
-  factory SVGImageElement() => _SVGElementFactoryProvider.createSVGElement_tag("image");
+  factory ImageElement() => _SvgElementFactoryProvider.createSvgElement_tag("image");
 
   /** @domName SVGImageElement.height */
-  final SVGAnimatedLength height;
+  final AnimatedLength height;
 
   /** @domName SVGImageElement.preserveAspectRatio */
-  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  final AnimatedPreserveAspectRatio preserveAspectRatio;
 
   /** @domName SVGImageElement.width */
-  final SVGAnimatedLength width;
+  final AnimatedLength width;
 
   /** @domName SVGImageElement.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGImageElement.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
@@ -2921,27 +2811,27 @@ class SVGImageElement extends SVGElement implements SVGLangSpace, SVGTests, SVGS
   // From SVGLocatable
 
   /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
+  final SvgElement farthestViewportElement;
 
   /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
+  final SvgElement nearestViewportElement;
 
   /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
+  Rect getBBox() native;
 
   /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
+  Matrix getCTM() native;
 
   /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
+  Matrix getScreenCTM() native;
 
   /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
+  Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -2952,13 +2842,13 @@ class SVGImageElement extends SVGElement implements SVGLangSpace, SVGTests, SVGS
   // From SVGTests
 
   /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
+  final StringList requiredExtensions;
 
   /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
+  final StringList requiredFeatures;
 
   /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
+  final StringList systemLanguage;
 
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension) native;
@@ -2966,12 +2856,12 @@ class SVGImageElement extends SVGElement implements SVGLangSpace, SVGTests, SVGS
   // From SVGTransformable
 
   /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
+  final AnimatedTransformList transform;
 
   // From SVGURIReference
 
   /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
+  final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2979,7 +2869,7 @@ class SVGImageElement extends SVGElement implements SVGLangSpace, SVGTests, SVGS
 
 
 /// @domName SVGLangSpace
-abstract class SVGLangSpace {
+abstract class LangSpace {
 
   String xmllang;
 
@@ -2991,7 +2881,7 @@ abstract class SVGLangSpace {
 
 
 /// @domName SVGLength
-class SVGLength native "*SVGLength" {
+class Length native "*SVGLength" {
 
   static const int SVG_LENGTHTYPE_CM = 6;
 
@@ -3039,80 +2929,80 @@ class SVGLength native "*SVGLength" {
 
 
 /// @domName SVGLengthList
-class SVGLengthList implements JavaScriptIndexingBehavior, List<SVGLength> native "*SVGLengthList" {
+class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SVGLengthList" {
 
   /** @domName SVGLengthList.numberOfItems */
   final int numberOfItems;
 
-  SVGLength operator[](int index) => JS("SVGLength", "#[#]", this, index);
+  Length operator[](int index) => JS("Length", "#[#]", this, index);
 
-  void operator[]=(int index, SVGLength value) {
+  void operator[]=(int index, Length value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
-  // -- start List<SVGLength> mixins.
-  // SVGLength is the element type.
+  // -- start List<Length> mixins.
+  // Length is the element type.
 
-  // From Iterable<SVGLength>:
+  // From Iterable<Length>:
 
-  Iterator<SVGLength> iterator() {
+  Iterator<Length> iterator() {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new FixedSizeListIterator<SVGLength>(this);
+    return new FixedSizeListIterator<Length>(this);
   }
 
-  // From Collection<SVGLength>:
+  // From Collection<Length>:
 
-  void add(SVGLength value) {
+  void add(Length value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(SVGLength value) {
+  void addLast(Length value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<SVGLength> collection) {
+  void addAll(Collection<Length> collection) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(SVGLength element) => _Collections.contains(this, element);
+  bool contains(Length element) => _Collections.contains(this, element);
 
-  void forEach(void f(SVGLength element)) => _Collections.forEach(this, f);
+  void forEach(void f(Length element)) => _Collections.forEach(this, f);
 
-  Collection map(f(SVGLength element)) => _Collections.map(this, [], f);
+  Collection map(f(Length element)) => _Collections.map(this, [], f);
 
-  Collection<SVGLength> filter(bool f(SVGLength element)) =>
-     _Collections.filter(this, <SVGLength>[], f);
+  Collection<Length> filter(bool f(Length element)) =>
+     _Collections.filter(this, <Length>[], f);
 
-  bool every(bool f(SVGLength element)) => _Collections.every(this, f);
+  bool every(bool f(Length element)) => _Collections.every(this, f);
 
-  bool some(bool f(SVGLength element)) => _Collections.some(this, f);
+  bool some(bool f(Length element)) => _Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
-  // From List<SVGLength>:
+  // From List<Length>:
 
-  void sort([Comparator<SVGLength> compare = Comparable.compare]) {
+  void sort([Comparator<Length> compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
-  int indexOf(SVGLength element, [int start = 0]) =>
+  int indexOf(Length element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(SVGLength element, [int start]) {
+  int lastIndexOf(Length element, [int start]) {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGLength get first => this[0];
+  Length get first => this[0];
 
-  SVGLength get last => this[length - 1];
+  Length get last => this[length - 1];
 
-  SVGLength removeLast() {
+  Length removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<SVGLength> from, [int startFrom]) {
+  void setRange(int start, int rangeLength, List<Length> from, [int startFrom]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -3120,35 +3010,35 @@ class SVGLengthList implements JavaScriptIndexingBehavior, List<SVGLength> nativ
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [SVGLength initialValue]) {
+  void insertRange(int start, int rangeLength, [Length initialValue]) {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
-  List<SVGLength> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <SVGLength>[]);
+  List<Length> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Length>[]);
 
-  // -- end List<SVGLength> mixins.
+  // -- end List<Length> mixins.
 
   /** @domName SVGLengthList.appendItem */
-  SVGLength appendItem(SVGLength item) native;
+  Length appendItem(Length item) native;
 
   /** @domName SVGLengthList.clear */
   void clear() native;
 
   /** @domName SVGLengthList.getItem */
-  SVGLength getItem(int index) native;
+  Length getItem(int index) native;
 
   /** @domName SVGLengthList.initialize */
-  SVGLength initialize(SVGLength item) native;
+  Length initialize(Length item) native;
 
   /** @domName SVGLengthList.insertItemBefore */
-  SVGLength insertItemBefore(SVGLength item, int index) native;
+  Length insertItemBefore(Length item, int index) native;
 
   /** @domName SVGLengthList.removeItem */
-  SVGLength removeItem(int index) native;
+  Length removeItem(int index) native;
 
   /** @domName SVGLengthList.replaceItem */
-  SVGLength replaceItem(SVGLength item, int index) native;
+  Length replaceItem(Length item, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3156,26 +3046,26 @@ class SVGLengthList implements JavaScriptIndexingBehavior, List<SVGLength> nativ
 
 
 /// @domName SVGLineElement
-class SVGLineElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGLineElement" {
+class LineElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGLineElement" {
 
-  factory SVGLineElement() => _SVGElementFactoryProvider.createSVGElement_tag("line");
+  factory LineElement() => _SvgElementFactoryProvider.createSvgElement_tag("line");
 
   /** @domName SVGLineElement.x1 */
-  final SVGAnimatedLength x1;
+  final AnimatedLength x1;
 
   /** @domName SVGLineElement.x2 */
-  final SVGAnimatedLength x2;
+  final AnimatedLength x2;
 
   /** @domName SVGLineElement.y1 */
-  final SVGAnimatedLength y1;
+  final AnimatedLength y1;
 
   /** @domName SVGLineElement.y2 */
-  final SVGAnimatedLength y2;
+  final AnimatedLength y2;
 
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
@@ -3188,27 +3078,27 @@ class SVGLineElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
   // From SVGLocatable
 
   /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
+  final SvgElement farthestViewportElement;
 
   /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
+  final SvgElement nearestViewportElement;
 
   /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
+  Rect getBBox() native;
 
   /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
+  Matrix getCTM() native;
 
   /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
+  Matrix getScreenCTM() native;
 
   /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
+  Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -3219,13 +3109,13 @@ class SVGLineElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
   // From SVGTests
 
   /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
+  final StringList requiredExtensions;
 
   /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
+  final StringList requiredFeatures;
 
   /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
+  final StringList systemLanguage;
 
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension) native;
@@ -3233,7 +3123,7 @@ class SVGLineElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
   // From SVGTransformable
 
   /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
+  final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3241,21 +3131,21 @@ class SVGLineElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
 
 
 /// @domName SVGLinearGradientElement
-class SVGLinearGradientElement extends SVGGradientElement native "*SVGLinearGradientElement" {
+class LinearGradientElement extends GradientElement native "*SVGLinearGradientElement" {
 
-  factory SVGLinearGradientElement() => _SVGElementFactoryProvider.createSVGElement_tag("linearGradient");
+  factory LinearGradientElement() => _SvgElementFactoryProvider.createSvgElement_tag("linearGradient");
 
   /** @domName SVGLinearGradientElement.x1 */
-  final SVGAnimatedLength x1;
+  final AnimatedLength x1;
 
   /** @domName SVGLinearGradientElement.x2 */
-  final SVGAnimatedLength x2;
+  final AnimatedLength x2;
 
   /** @domName SVGLinearGradientElement.y1 */
-  final SVGAnimatedLength y1;
+  final AnimatedLength y1;
 
   /** @domName SVGLinearGradientElement.y2 */
-  final SVGAnimatedLength y2;
+  final AnimatedLength y2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3263,23 +3153,23 @@ class SVGLinearGradientElement extends SVGGradientElement native "*SVGLinearGrad
 
 
 /// @domName SVGLocatable
-abstract class SVGLocatable {
+abstract class Locatable {
 
-  SVGElement farthestViewportElement;
+  SvgElement farthestViewportElement;
 
-  SVGElement nearestViewportElement;
+  SvgElement nearestViewportElement;
 
   /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox();
+  Rect getBBox();
 
   /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM();
+  Matrix getCTM();
 
   /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM();
+  Matrix getScreenCTM();
 
   /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element);
+  Matrix getTransformToElement(SvgElement element);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3287,19 +3177,19 @@ abstract class SVGLocatable {
 
 
 /// @domName SVGMPathElement
-class SVGMPathElement extends SVGElement implements SVGURIReference, SVGExternalResourcesRequired native "*SVGMPathElement" {
+class MPathElement extends SvgElement implements UriReference, ExternalResourcesRequired native "*SVGMPathElement" {
 
-  factory SVGMPathElement() => _SVGElementFactoryProvider.createSVGElement_tag("mpath");
+  factory MPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("mpath");
 
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGURIReference
 
   /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
+  final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3307,9 +3197,9 @@ class SVGMPathElement extends SVGElement implements SVGURIReference, SVGExternal
 
 
 /// @domName SVGMarkerElement
-class SVGMarkerElement extends SVGElement implements SVGLangSpace, SVGFitToViewBox, SVGExternalResourcesRequired, SVGStylable native "*SVGMarkerElement" {
+class MarkerElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, Stylable, LangSpace native "*SVGMarkerElement" {
 
-  factory SVGMarkerElement() => _SVGElementFactoryProvider.createSVGElement_tag("marker");
+  factory MarkerElement() => _SvgElementFactoryProvider.createSvgElement_tag("marker");
 
   static const int SVG_MARKERUNITS_STROKEWIDTH = 2;
 
@@ -3324,28 +3214,28 @@ class SVGMarkerElement extends SVGElement implements SVGLangSpace, SVGFitToViewB
   static const int SVG_MARKER_ORIENT_UNKNOWN = 0;
 
   /** @domName SVGMarkerElement.markerHeight */
-  final SVGAnimatedLength markerHeight;
+  final AnimatedLength markerHeight;
 
   /** @domName SVGMarkerElement.markerUnits */
-  final SVGAnimatedEnumeration markerUnits;
+  final AnimatedEnumeration markerUnits;
 
   /** @domName SVGMarkerElement.markerWidth */
-  final SVGAnimatedLength markerWidth;
+  final AnimatedLength markerWidth;
 
   /** @domName SVGMarkerElement.orientAngle */
-  final SVGAnimatedAngle orientAngle;
+  final AnimatedAngle orientAngle;
 
   /** @domName SVGMarkerElement.orientType */
-  final SVGAnimatedEnumeration orientType;
+  final AnimatedEnumeration orientType;
 
   /** @domName SVGMarkerElement.refX */
-  final SVGAnimatedLength refX;
+  final AnimatedLength refX;
 
   /** @domName SVGMarkerElement.refY */
-  final SVGAnimatedLength refY;
+  final AnimatedLength refY;
 
   /** @domName SVGMarkerElement.setOrientToAngle */
-  void setOrientToAngle(SVGAngle angle) native;
+  void setOrientToAngle(Angle angle) native;
 
   /** @domName SVGMarkerElement.setOrientToAuto */
   void setOrientToAuto() native;
@@ -3353,15 +3243,15 @@ class SVGMarkerElement extends SVGElement implements SVGLangSpace, SVGFitToViewB
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGFitToViewBox
 
   /** @domName SVGFitToViewBox.preserveAspectRatio */
-  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  final AnimatedPreserveAspectRatio preserveAspectRatio;
 
   /** @domName SVGFitToViewBox.viewBox */
-  final SVGAnimatedRect viewBox;
+  final AnimatedRect viewBox;
 
   // From SVGLangSpace
 
@@ -3374,7 +3264,7 @@ class SVGMarkerElement extends SVGElement implements SVGLangSpace, SVGFitToViewB
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -3388,32 +3278,32 @@ class SVGMarkerElement extends SVGElement implements SVGLangSpace, SVGFitToViewB
 
 
 /// @domName SVGMaskElement
-class SVGMaskElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGExternalResourcesRequired native "*SVGMaskElement" {
+class MaskElement extends SvgElement implements Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGMaskElement" {
 
-  factory SVGMaskElement() => _SVGElementFactoryProvider.createSVGElement_tag("mask");
+  factory MaskElement() => _SvgElementFactoryProvider.createSvgElement_tag("mask");
 
   /** @domName SVGMaskElement.height */
-  final SVGAnimatedLength height;
+  final AnimatedLength height;
 
   /** @domName SVGMaskElement.maskContentUnits */
-  final SVGAnimatedEnumeration maskContentUnits;
+  final AnimatedEnumeration maskContentUnits;
 
   /** @domName SVGMaskElement.maskUnits */
-  final SVGAnimatedEnumeration maskUnits;
+  final AnimatedEnumeration maskUnits;
 
   /** @domName SVGMaskElement.width */
-  final SVGAnimatedLength width;
+  final AnimatedLength width;
 
   /** @domName SVGMaskElement.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGMaskElement.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
@@ -3426,7 +3316,7 @@ class SVGMaskElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -3437,13 +3327,13 @@ class SVGMaskElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
   // From SVGTests
 
   /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
+  final StringList requiredExtensions;
 
   /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
+  final StringList requiredFeatures;
 
   /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
+  final StringList systemLanguage;
 
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension) native;
@@ -3454,7 +3344,7 @@ class SVGMaskElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
 
 
 /// @domName SVGMatrix
-class SVGMatrix native "*SVGMatrix" {
+class Matrix native "*SVGMatrix" {
 
   /** @domName SVGMatrix.a */
   num a;
@@ -3475,37 +3365,37 @@ class SVGMatrix native "*SVGMatrix" {
   num f;
 
   /** @domName SVGMatrix.flipX */
-  SVGMatrix flipX() native;
+  Matrix flipX() native;
 
   /** @domName SVGMatrix.flipY */
-  SVGMatrix flipY() native;
+  Matrix flipY() native;
 
   /** @domName SVGMatrix.inverse */
-  SVGMatrix inverse() native;
+  Matrix inverse() native;
 
   /** @domName SVGMatrix.multiply */
-  SVGMatrix multiply(SVGMatrix secondMatrix) native;
+  Matrix multiply(Matrix secondMatrix) native;
 
   /** @domName SVGMatrix.rotate */
-  SVGMatrix rotate(num angle) native;
+  Matrix rotate(num angle) native;
 
   /** @domName SVGMatrix.rotateFromVector */
-  SVGMatrix rotateFromVector(num x, num y) native;
+  Matrix rotateFromVector(num x, num y) native;
 
   /** @domName SVGMatrix.scale */
-  SVGMatrix scale(num scaleFactor) native;
+  Matrix scale(num scaleFactor) native;
 
   /** @domName SVGMatrix.scaleNonUniform */
-  SVGMatrix scaleNonUniform(num scaleFactorX, num scaleFactorY) native;
+  Matrix scaleNonUniform(num scaleFactorX, num scaleFactorY) native;
 
   /** @domName SVGMatrix.skewX */
-  SVGMatrix skewX(num angle) native;
+  Matrix skewX(num angle) native;
 
   /** @domName SVGMatrix.skewY */
-  SVGMatrix skewY(num angle) native;
+  Matrix skewY(num angle) native;
 
   /** @domName SVGMatrix.translate */
-  SVGMatrix translate(num x, num y) native;
+  Matrix translate(num x, num y) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3513,7 +3403,7 @@ class SVGMatrix native "*SVGMatrix" {
 
 
 /// @domName SVGMetadataElement
-class SVGMetadataElement extends SVGElement native "*SVGMetadataElement" {
+class MetadataElement extends SvgElement native "*SVGMetadataElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3521,7 +3411,7 @@ class SVGMetadataElement extends SVGElement native "*SVGMetadataElement" {
 
 
 /// @domName SVGMissingGlyphElement
-class SVGMissingGlyphElement extends SVGElement native "*SVGMissingGlyphElement" {
+class MissingGlyphElement extends SvgElement native "*SVGMissingGlyphElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3529,7 +3419,7 @@ class SVGMissingGlyphElement extends SVGElement native "*SVGMissingGlyphElement"
 
 
 /// @domName SVGNumber
-class SVGNumber native "*SVGNumber" {
+class Number native "*SVGNumber" {
 
   /** @domName SVGNumber.value */
   num value;
@@ -3540,80 +3430,80 @@ class SVGNumber native "*SVGNumber" {
 
 
 /// @domName SVGNumberList
-class SVGNumberList implements JavaScriptIndexingBehavior, List<SVGNumber> native "*SVGNumberList" {
+class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SVGNumberList" {
 
   /** @domName SVGNumberList.numberOfItems */
   final int numberOfItems;
 
-  SVGNumber operator[](int index) => JS("SVGNumber", "#[#]", this, index);
+  Number operator[](int index) => JS("Number", "#[#]", this, index);
 
-  void operator[]=(int index, SVGNumber value) {
+  void operator[]=(int index, Number value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
-  // -- start List<SVGNumber> mixins.
-  // SVGNumber is the element type.
+  // -- start List<Number> mixins.
+  // Number is the element type.
 
-  // From Iterable<SVGNumber>:
+  // From Iterable<Number>:
 
-  Iterator<SVGNumber> iterator() {
+  Iterator<Number> iterator() {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new FixedSizeListIterator<SVGNumber>(this);
+    return new FixedSizeListIterator<Number>(this);
   }
 
-  // From Collection<SVGNumber>:
+  // From Collection<Number>:
 
-  void add(SVGNumber value) {
+  void add(Number value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(SVGNumber value) {
+  void addLast(Number value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<SVGNumber> collection) {
+  void addAll(Collection<Number> collection) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(SVGNumber element) => _Collections.contains(this, element);
+  bool contains(Number element) => _Collections.contains(this, element);
 
-  void forEach(void f(SVGNumber element)) => _Collections.forEach(this, f);
+  void forEach(void f(Number element)) => _Collections.forEach(this, f);
 
-  Collection map(f(SVGNumber element)) => _Collections.map(this, [], f);
+  Collection map(f(Number element)) => _Collections.map(this, [], f);
 
-  Collection<SVGNumber> filter(bool f(SVGNumber element)) =>
-     _Collections.filter(this, <SVGNumber>[], f);
+  Collection<Number> filter(bool f(Number element)) =>
+     _Collections.filter(this, <Number>[], f);
 
-  bool every(bool f(SVGNumber element)) => _Collections.every(this, f);
+  bool every(bool f(Number element)) => _Collections.every(this, f);
 
-  bool some(bool f(SVGNumber element)) => _Collections.some(this, f);
+  bool some(bool f(Number element)) => _Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
-  // From List<SVGNumber>:
+  // From List<Number>:
 
-  void sort([Comparator<SVGNumber> compare = Comparable.compare]) {
+  void sort([Comparator<Number> compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
-  int indexOf(SVGNumber element, [int start = 0]) =>
+  int indexOf(Number element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(SVGNumber element, [int start]) {
+  int lastIndexOf(Number element, [int start]) {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGNumber get first => this[0];
+  Number get first => this[0];
 
-  SVGNumber get last => this[length - 1];
+  Number get last => this[length - 1];
 
-  SVGNumber removeLast() {
+  Number removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<SVGNumber> from, [int startFrom]) {
+  void setRange(int start, int rangeLength, List<Number> from, [int startFrom]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -3621,35 +3511,35 @@ class SVGNumberList implements JavaScriptIndexingBehavior, List<SVGNumber> nativ
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [SVGNumber initialValue]) {
+  void insertRange(int start, int rangeLength, [Number initialValue]) {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
-  List<SVGNumber> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <SVGNumber>[]);
+  List<Number> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Number>[]);
 
-  // -- end List<SVGNumber> mixins.
+  // -- end List<Number> mixins.
 
   /** @domName SVGNumberList.appendItem */
-  SVGNumber appendItem(SVGNumber item) native;
+  Number appendItem(Number item) native;
 
   /** @domName SVGNumberList.clear */
   void clear() native;
 
   /** @domName SVGNumberList.getItem */
-  SVGNumber getItem(int index) native;
+  Number getItem(int index) native;
 
   /** @domName SVGNumberList.initialize */
-  SVGNumber initialize(SVGNumber item) native;
+  Number initialize(Number item) native;
 
   /** @domName SVGNumberList.insertItemBefore */
-  SVGNumber insertItemBefore(SVGNumber item, int index) native;
+  Number insertItemBefore(Number item, int index) native;
 
   /** @domName SVGNumberList.removeItem */
-  SVGNumber removeItem(int index) native;
+  Number removeItem(int index) native;
 
   /** @domName SVGNumberList.replaceItem */
-  SVGNumber replaceItem(SVGNumber item, int index) native;
+  Number replaceItem(Number item, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3657,7 +3547,7 @@ class SVGNumberList implements JavaScriptIndexingBehavior, List<SVGNumber> nativ
 
 
 /// @domName SVGPaint
-class SVGPaint extends SVGColor native "*SVGPaint" {
+class Paint extends Color native "*SVGPaint" {
 
   static const int SVG_PAINTTYPE_CURRENTCOLOR = 102;
 
@@ -3697,87 +3587,87 @@ class SVGPaint extends SVGColor native "*SVGPaint" {
 
 
 /// @domName SVGPathElement
-class SVGPathElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGPathElement" {
+class PathElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGPathElement" {
 
-  factory SVGPathElement() => _SVGElementFactoryProvider.createSVGElement_tag("path");
+  factory PathElement() => _SvgElementFactoryProvider.createSvgElement_tag("path");
 
   /** @domName SVGPathElement.animatedNormalizedPathSegList */
-  final SVGPathSegList animatedNormalizedPathSegList;
+  final PathSegList animatedNormalizedPathSegList;
 
   /** @domName SVGPathElement.animatedPathSegList */
-  final SVGPathSegList animatedPathSegList;
+  final PathSegList animatedPathSegList;
 
   /** @domName SVGPathElement.normalizedPathSegList */
-  final SVGPathSegList normalizedPathSegList;
+  final PathSegList normalizedPathSegList;
 
   /** @domName SVGPathElement.pathLength */
-  final SVGAnimatedNumber pathLength;
+  final AnimatedNumber pathLength;
 
   /** @domName SVGPathElement.pathSegList */
-  final SVGPathSegList pathSegList;
+  final PathSegList pathSegList;
 
   /** @domName SVGPathElement.createSVGPathSegArcAbs */
-  SVGPathSegArcAbs createSVGPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
+  PathSegArcAbs createSVGPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
 
   /** @domName SVGPathElement.createSVGPathSegArcRel */
-  SVGPathSegArcRel createSVGPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
+  PathSegArcRel createSVGPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
 
   /** @domName SVGPathElement.createSVGPathSegClosePath */
-  SVGPathSegClosePath createSVGPathSegClosePath() native;
+  PathSegClosePath createSVGPathSegClosePath() native;
 
   /** @domName SVGPathElement.createSVGPathSegCurvetoCubicAbs */
-  SVGPathSegCurvetoCubicAbs createSVGPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) native;
+  PathSegCurvetoCubicAbs createSVGPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) native;
 
   /** @domName SVGPathElement.createSVGPathSegCurvetoCubicRel */
-  SVGPathSegCurvetoCubicRel createSVGPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) native;
+  PathSegCurvetoCubicRel createSVGPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) native;
 
   /** @domName SVGPathElement.createSVGPathSegCurvetoCubicSmoothAbs */
-  SVGPathSegCurvetoCubicSmoothAbs createSVGPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) native;
+  PathSegCurvetoCubicSmoothAbs createSVGPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) native;
 
   /** @domName SVGPathElement.createSVGPathSegCurvetoCubicSmoothRel */
-  SVGPathSegCurvetoCubicSmoothRel createSVGPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) native;
+  PathSegCurvetoCubicSmoothRel createSVGPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) native;
 
   /** @domName SVGPathElement.createSVGPathSegCurvetoQuadraticAbs */
-  SVGPathSegCurvetoQuadraticAbs createSVGPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) native;
+  PathSegCurvetoQuadraticAbs createSVGPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) native;
 
   /** @domName SVGPathElement.createSVGPathSegCurvetoQuadraticRel */
-  SVGPathSegCurvetoQuadraticRel createSVGPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) native;
+  PathSegCurvetoQuadraticRel createSVGPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) native;
 
   /** @domName SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothAbs */
-  SVGPathSegCurvetoQuadraticSmoothAbs createSVGPathSegCurvetoQuadraticSmoothAbs(num x, num y) native;
+  PathSegCurvetoQuadraticSmoothAbs createSVGPathSegCurvetoQuadraticSmoothAbs(num x, num y) native;
 
   /** @domName SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothRel */
-  SVGPathSegCurvetoQuadraticSmoothRel createSVGPathSegCurvetoQuadraticSmoothRel(num x, num y) native;
+  PathSegCurvetoQuadraticSmoothRel createSVGPathSegCurvetoQuadraticSmoothRel(num x, num y) native;
 
   /** @domName SVGPathElement.createSVGPathSegLinetoAbs */
-  SVGPathSegLinetoAbs createSVGPathSegLinetoAbs(num x, num y) native;
+  PathSegLinetoAbs createSVGPathSegLinetoAbs(num x, num y) native;
 
   /** @domName SVGPathElement.createSVGPathSegLinetoHorizontalAbs */
-  SVGPathSegLinetoHorizontalAbs createSVGPathSegLinetoHorizontalAbs(num x) native;
+  PathSegLinetoHorizontalAbs createSVGPathSegLinetoHorizontalAbs(num x) native;
 
   /** @domName SVGPathElement.createSVGPathSegLinetoHorizontalRel */
-  SVGPathSegLinetoHorizontalRel createSVGPathSegLinetoHorizontalRel(num x) native;
+  PathSegLinetoHorizontalRel createSVGPathSegLinetoHorizontalRel(num x) native;
 
   /** @domName SVGPathElement.createSVGPathSegLinetoRel */
-  SVGPathSegLinetoRel createSVGPathSegLinetoRel(num x, num y) native;
+  PathSegLinetoRel createSVGPathSegLinetoRel(num x, num y) native;
 
   /** @domName SVGPathElement.createSVGPathSegLinetoVerticalAbs */
-  SVGPathSegLinetoVerticalAbs createSVGPathSegLinetoVerticalAbs(num y) native;
+  PathSegLinetoVerticalAbs createSVGPathSegLinetoVerticalAbs(num y) native;
 
   /** @domName SVGPathElement.createSVGPathSegLinetoVerticalRel */
-  SVGPathSegLinetoVerticalRel createSVGPathSegLinetoVerticalRel(num y) native;
+  PathSegLinetoVerticalRel createSVGPathSegLinetoVerticalRel(num y) native;
 
   /** @domName SVGPathElement.createSVGPathSegMovetoAbs */
-  SVGPathSegMovetoAbs createSVGPathSegMovetoAbs(num x, num y) native;
+  PathSegMovetoAbs createSVGPathSegMovetoAbs(num x, num y) native;
 
   /** @domName SVGPathElement.createSVGPathSegMovetoRel */
-  SVGPathSegMovetoRel createSVGPathSegMovetoRel(num x, num y) native;
+  PathSegMovetoRel createSVGPathSegMovetoRel(num x, num y) native;
 
   /** @domName SVGPathElement.getPathSegAtLength */
   int getPathSegAtLength(num distance) native;
 
   /** @domName SVGPathElement.getPointAtLength */
-  SVGPoint getPointAtLength(num distance) native;
+  Point getPointAtLength(num distance) native;
 
   /** @domName SVGPathElement.getTotalLength */
   num getTotalLength() native;
@@ -3785,7 +3675,7 @@ class SVGPathElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
@@ -3798,27 +3688,27 @@ class SVGPathElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
   // From SVGLocatable
 
   /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
+  final SvgElement farthestViewportElement;
 
   /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
+  final SvgElement nearestViewportElement;
 
   /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
+  Rect getBBox() native;
 
   /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
+  Matrix getCTM() native;
 
   /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
+  Matrix getScreenCTM() native;
 
   /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
+  Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -3829,13 +3719,13 @@ class SVGPathElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
   // From SVGTests
 
   /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
+  final StringList requiredExtensions;
 
   /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
+  final StringList requiredFeatures;
 
   /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
+  final StringList systemLanguage;
 
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension) native;
@@ -3843,7 +3733,7 @@ class SVGPathElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
   // From SVGTransformable
 
   /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
+  final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3851,7 +3741,7 @@ class SVGPathElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
 
 
 /// @domName SVGPathSeg
-class SVGPathSeg native "*SVGPathSeg" {
+class PathSeg native "*SVGPathSeg" {
 
   static const int PATHSEG_ARC_ABS = 10;
 
@@ -3905,7 +3795,7 @@ class SVGPathSeg native "*SVGPathSeg" {
 
 
 /// @domName SVGPathSegArcAbs
-class SVGPathSegArcAbs extends SVGPathSeg native "*SVGPathSegArcAbs" {
+class PathSegArcAbs extends PathSeg native "*SVGPathSegArcAbs" {
 
   /** @domName SVGPathSegArcAbs.angle */
   num angle;
@@ -3934,7 +3824,7 @@ class SVGPathSegArcAbs extends SVGPathSeg native "*SVGPathSegArcAbs" {
 
 
 /// @domName SVGPathSegArcRel
-class SVGPathSegArcRel extends SVGPathSeg native "*SVGPathSegArcRel" {
+class PathSegArcRel extends PathSeg native "*SVGPathSegArcRel" {
 
   /** @domName SVGPathSegArcRel.angle */
   num angle;
@@ -3963,7 +3853,7 @@ class SVGPathSegArcRel extends SVGPathSeg native "*SVGPathSegArcRel" {
 
 
 /// @domName SVGPathSegClosePath
-class SVGPathSegClosePath extends SVGPathSeg native "*SVGPathSegClosePath" {
+class PathSegClosePath extends PathSeg native "*SVGPathSegClosePath" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3971,7 +3861,7 @@ class SVGPathSegClosePath extends SVGPathSeg native "*SVGPathSegClosePath" {
 
 
 /// @domName SVGPathSegCurvetoCubicAbs
-class SVGPathSegCurvetoCubicAbs extends SVGPathSeg native "*SVGPathSegCurvetoCubicAbs" {
+class PathSegCurvetoCubicAbs extends PathSeg native "*SVGPathSegCurvetoCubicAbs" {
 
   /** @domName SVGPathSegCurvetoCubicAbs.x */
   num x;
@@ -3997,7 +3887,7 @@ class SVGPathSegCurvetoCubicAbs extends SVGPathSeg native "*SVGPathSegCurvetoCub
 
 
 /// @domName SVGPathSegCurvetoCubicRel
-class SVGPathSegCurvetoCubicRel extends SVGPathSeg native "*SVGPathSegCurvetoCubicRel" {
+class PathSegCurvetoCubicRel extends PathSeg native "*SVGPathSegCurvetoCubicRel" {
 
   /** @domName SVGPathSegCurvetoCubicRel.x */
   num x;
@@ -4023,7 +3913,7 @@ class SVGPathSegCurvetoCubicRel extends SVGPathSeg native "*SVGPathSegCurvetoCub
 
 
 /// @domName SVGPathSegCurvetoCubicSmoothAbs
-class SVGPathSegCurvetoCubicSmoothAbs extends SVGPathSeg native "*SVGPathSegCurvetoCubicSmoothAbs" {
+class PathSegCurvetoCubicSmoothAbs extends PathSeg native "*SVGPathSegCurvetoCubicSmoothAbs" {
 
   /** @domName SVGPathSegCurvetoCubicSmoothAbs.x */
   num x;
@@ -4043,7 +3933,7 @@ class SVGPathSegCurvetoCubicSmoothAbs extends SVGPathSeg native "*SVGPathSegCurv
 
 
 /// @domName SVGPathSegCurvetoCubicSmoothRel
-class SVGPathSegCurvetoCubicSmoothRel extends SVGPathSeg native "*SVGPathSegCurvetoCubicSmoothRel" {
+class PathSegCurvetoCubicSmoothRel extends PathSeg native "*SVGPathSegCurvetoCubicSmoothRel" {
 
   /** @domName SVGPathSegCurvetoCubicSmoothRel.x */
   num x;
@@ -4063,7 +3953,7 @@ class SVGPathSegCurvetoCubicSmoothRel extends SVGPathSeg native "*SVGPathSegCurv
 
 
 /// @domName SVGPathSegCurvetoQuadraticAbs
-class SVGPathSegCurvetoQuadraticAbs extends SVGPathSeg native "*SVGPathSegCurvetoQuadraticAbs" {
+class PathSegCurvetoQuadraticAbs extends PathSeg native "*SVGPathSegCurvetoQuadraticAbs" {
 
   /** @domName SVGPathSegCurvetoQuadraticAbs.x */
   num x;
@@ -4083,7 +3973,7 @@ class SVGPathSegCurvetoQuadraticAbs extends SVGPathSeg native "*SVGPathSegCurvet
 
 
 /// @domName SVGPathSegCurvetoQuadraticRel
-class SVGPathSegCurvetoQuadraticRel extends SVGPathSeg native "*SVGPathSegCurvetoQuadraticRel" {
+class PathSegCurvetoQuadraticRel extends PathSeg native "*SVGPathSegCurvetoQuadraticRel" {
 
   /** @domName SVGPathSegCurvetoQuadraticRel.x */
   num x;
@@ -4103,7 +3993,7 @@ class SVGPathSegCurvetoQuadraticRel extends SVGPathSeg native "*SVGPathSegCurvet
 
 
 /// @domName SVGPathSegCurvetoQuadraticSmoothAbs
-class SVGPathSegCurvetoQuadraticSmoothAbs extends SVGPathSeg native "*SVGPathSegCurvetoQuadraticSmoothAbs" {
+class PathSegCurvetoQuadraticSmoothAbs extends PathSeg native "*SVGPathSegCurvetoQuadraticSmoothAbs" {
 
   /** @domName SVGPathSegCurvetoQuadraticSmoothAbs.x */
   num x;
@@ -4117,7 +4007,7 @@ class SVGPathSegCurvetoQuadraticSmoothAbs extends SVGPathSeg native "*SVGPathSeg
 
 
 /// @domName SVGPathSegCurvetoQuadraticSmoothRel
-class SVGPathSegCurvetoQuadraticSmoothRel extends SVGPathSeg native "*SVGPathSegCurvetoQuadraticSmoothRel" {
+class PathSegCurvetoQuadraticSmoothRel extends PathSeg native "*SVGPathSegCurvetoQuadraticSmoothRel" {
 
   /** @domName SVGPathSegCurvetoQuadraticSmoothRel.x */
   num x;
@@ -4131,7 +4021,7 @@ class SVGPathSegCurvetoQuadraticSmoothRel extends SVGPathSeg native "*SVGPathSeg
 
 
 /// @domName SVGPathSegLinetoAbs
-class SVGPathSegLinetoAbs extends SVGPathSeg native "*SVGPathSegLinetoAbs" {
+class PathSegLinetoAbs extends PathSeg native "*SVGPathSegLinetoAbs" {
 
   /** @domName SVGPathSegLinetoAbs.x */
   num x;
@@ -4145,7 +4035,7 @@ class SVGPathSegLinetoAbs extends SVGPathSeg native "*SVGPathSegLinetoAbs" {
 
 
 /// @domName SVGPathSegLinetoHorizontalAbs
-class SVGPathSegLinetoHorizontalAbs extends SVGPathSeg native "*SVGPathSegLinetoHorizontalAbs" {
+class PathSegLinetoHorizontalAbs extends PathSeg native "*SVGPathSegLinetoHorizontalAbs" {
 
   /** @domName SVGPathSegLinetoHorizontalAbs.x */
   num x;
@@ -4156,7 +4046,7 @@ class SVGPathSegLinetoHorizontalAbs extends SVGPathSeg native "*SVGPathSegLineto
 
 
 /// @domName SVGPathSegLinetoHorizontalRel
-class SVGPathSegLinetoHorizontalRel extends SVGPathSeg native "*SVGPathSegLinetoHorizontalRel" {
+class PathSegLinetoHorizontalRel extends PathSeg native "*SVGPathSegLinetoHorizontalRel" {
 
   /** @domName SVGPathSegLinetoHorizontalRel.x */
   num x;
@@ -4167,7 +4057,7 @@ class SVGPathSegLinetoHorizontalRel extends SVGPathSeg native "*SVGPathSegLineto
 
 
 /// @domName SVGPathSegLinetoRel
-class SVGPathSegLinetoRel extends SVGPathSeg native "*SVGPathSegLinetoRel" {
+class PathSegLinetoRel extends PathSeg native "*SVGPathSegLinetoRel" {
 
   /** @domName SVGPathSegLinetoRel.x */
   num x;
@@ -4181,7 +4071,7 @@ class SVGPathSegLinetoRel extends SVGPathSeg native "*SVGPathSegLinetoRel" {
 
 
 /// @domName SVGPathSegLinetoVerticalAbs
-class SVGPathSegLinetoVerticalAbs extends SVGPathSeg native "*SVGPathSegLinetoVerticalAbs" {
+class PathSegLinetoVerticalAbs extends PathSeg native "*SVGPathSegLinetoVerticalAbs" {
 
   /** @domName SVGPathSegLinetoVerticalAbs.y */
   num y;
@@ -4192,7 +4082,7 @@ class SVGPathSegLinetoVerticalAbs extends SVGPathSeg native "*SVGPathSegLinetoVe
 
 
 /// @domName SVGPathSegLinetoVerticalRel
-class SVGPathSegLinetoVerticalRel extends SVGPathSeg native "*SVGPathSegLinetoVerticalRel" {
+class PathSegLinetoVerticalRel extends PathSeg native "*SVGPathSegLinetoVerticalRel" {
 
   /** @domName SVGPathSegLinetoVerticalRel.y */
   num y;
@@ -4203,80 +4093,80 @@ class SVGPathSegLinetoVerticalRel extends SVGPathSeg native "*SVGPathSegLinetoVe
 
 
 /// @domName SVGPathSegList
-class SVGPathSegList implements JavaScriptIndexingBehavior, List<SVGPathSeg> native "*SVGPathSegList" {
+class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*SVGPathSegList" {
 
   /** @domName SVGPathSegList.numberOfItems */
   final int numberOfItems;
 
-  SVGPathSeg operator[](int index) => JS("SVGPathSeg", "#[#]", this, index);
+  PathSeg operator[](int index) => JS("PathSeg", "#[#]", this, index);
 
-  void operator[]=(int index, SVGPathSeg value) {
+  void operator[]=(int index, PathSeg value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
-  // -- start List<SVGPathSeg> mixins.
-  // SVGPathSeg is the element type.
+  // -- start List<PathSeg> mixins.
+  // PathSeg is the element type.
 
-  // From Iterable<SVGPathSeg>:
+  // From Iterable<PathSeg>:
 
-  Iterator<SVGPathSeg> iterator() {
+  Iterator<PathSeg> iterator() {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new FixedSizeListIterator<SVGPathSeg>(this);
+    return new FixedSizeListIterator<PathSeg>(this);
   }
 
-  // From Collection<SVGPathSeg>:
+  // From Collection<PathSeg>:
 
-  void add(SVGPathSeg value) {
+  void add(PathSeg value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(SVGPathSeg value) {
+  void addLast(PathSeg value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<SVGPathSeg> collection) {
+  void addAll(Collection<PathSeg> collection) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(SVGPathSeg element) => _Collections.contains(this, element);
+  bool contains(PathSeg element) => _Collections.contains(this, element);
 
-  void forEach(void f(SVGPathSeg element)) => _Collections.forEach(this, f);
+  void forEach(void f(PathSeg element)) => _Collections.forEach(this, f);
 
-  Collection map(f(SVGPathSeg element)) => _Collections.map(this, [], f);
+  Collection map(f(PathSeg element)) => _Collections.map(this, [], f);
 
-  Collection<SVGPathSeg> filter(bool f(SVGPathSeg element)) =>
-     _Collections.filter(this, <SVGPathSeg>[], f);
+  Collection<PathSeg> filter(bool f(PathSeg element)) =>
+     _Collections.filter(this, <PathSeg>[], f);
 
-  bool every(bool f(SVGPathSeg element)) => _Collections.every(this, f);
+  bool every(bool f(PathSeg element)) => _Collections.every(this, f);
 
-  bool some(bool f(SVGPathSeg element)) => _Collections.some(this, f);
+  bool some(bool f(PathSeg element)) => _Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
-  // From List<SVGPathSeg>:
+  // From List<PathSeg>:
 
-  void sort([Comparator<SVGPathSeg> compare = Comparable.compare]) {
+  void sort([Comparator<PathSeg> compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
-  int indexOf(SVGPathSeg element, [int start = 0]) =>
+  int indexOf(PathSeg element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(SVGPathSeg element, [int start]) {
+  int lastIndexOf(PathSeg element, [int start]) {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGPathSeg get first => this[0];
+  PathSeg get first => this[0];
 
-  SVGPathSeg get last => this[length - 1];
+  PathSeg get last => this[length - 1];
 
-  SVGPathSeg removeLast() {
+  PathSeg removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<SVGPathSeg> from, [int startFrom]) {
+  void setRange(int start, int rangeLength, List<PathSeg> from, [int startFrom]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -4284,35 +4174,35 @@ class SVGPathSegList implements JavaScriptIndexingBehavior, List<SVGPathSeg> nat
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [SVGPathSeg initialValue]) {
+  void insertRange(int start, int rangeLength, [PathSeg initialValue]) {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
-  List<SVGPathSeg> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <SVGPathSeg>[]);
+  List<PathSeg> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <PathSeg>[]);
 
-  // -- end List<SVGPathSeg> mixins.
+  // -- end List<PathSeg> mixins.
 
   /** @domName SVGPathSegList.appendItem */
-  SVGPathSeg appendItem(SVGPathSeg newItem) native;
+  PathSeg appendItem(PathSeg newItem) native;
 
   /** @domName SVGPathSegList.clear */
   void clear() native;
 
   /** @domName SVGPathSegList.getItem */
-  SVGPathSeg getItem(int index) native;
+  PathSeg getItem(int index) native;
 
   /** @domName SVGPathSegList.initialize */
-  SVGPathSeg initialize(SVGPathSeg newItem) native;
+  PathSeg initialize(PathSeg newItem) native;
 
   /** @domName SVGPathSegList.insertItemBefore */
-  SVGPathSeg insertItemBefore(SVGPathSeg newItem, int index) native;
+  PathSeg insertItemBefore(PathSeg newItem, int index) native;
 
   /** @domName SVGPathSegList.removeItem */
-  SVGPathSeg removeItem(int index) native;
+  PathSeg removeItem(int index) native;
 
   /** @domName SVGPathSegList.replaceItem */
-  SVGPathSeg replaceItem(SVGPathSeg newItem, int index) native;
+  PathSeg replaceItem(PathSeg newItem, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4320,7 +4210,7 @@ class SVGPathSegList implements JavaScriptIndexingBehavior, List<SVGPathSeg> nat
 
 
 /// @domName SVGPathSegMovetoAbs
-class SVGPathSegMovetoAbs extends SVGPathSeg native "*SVGPathSegMovetoAbs" {
+class PathSegMovetoAbs extends PathSeg native "*SVGPathSegMovetoAbs" {
 
   /** @domName SVGPathSegMovetoAbs.x */
   num x;
@@ -4334,7 +4224,7 @@ class SVGPathSegMovetoAbs extends SVGPathSeg native "*SVGPathSegMovetoAbs" {
 
 
 /// @domName SVGPathSegMovetoRel
-class SVGPathSegMovetoRel extends SVGPathSeg native "*SVGPathSegMovetoRel" {
+class PathSegMovetoRel extends PathSeg native "*SVGPathSegMovetoRel" {
 
   /** @domName SVGPathSegMovetoRel.x */
   num x;
@@ -4348,43 +4238,43 @@ class SVGPathSegMovetoRel extends SVGPathSeg native "*SVGPathSegMovetoRel" {
 
 
 /// @domName SVGPatternElement
-class SVGPatternElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStylable, SVGURIReference, SVGFitToViewBox, SVGExternalResourcesRequired native "*SVGPatternElement" {
+class PatternElement extends SvgElement implements FitToViewBox, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace native "*SVGPatternElement" {
 
-  factory SVGPatternElement() => _SVGElementFactoryProvider.createSVGElement_tag("pattern");
+  factory PatternElement() => _SvgElementFactoryProvider.createSvgElement_tag("pattern");
 
   /** @domName SVGPatternElement.height */
-  final SVGAnimatedLength height;
+  final AnimatedLength height;
 
   /** @domName SVGPatternElement.patternContentUnits */
-  final SVGAnimatedEnumeration patternContentUnits;
+  final AnimatedEnumeration patternContentUnits;
 
   /** @domName SVGPatternElement.patternTransform */
-  final SVGAnimatedTransformList patternTransform;
+  final AnimatedTransformList patternTransform;
 
   /** @domName SVGPatternElement.patternUnits */
-  final SVGAnimatedEnumeration patternUnits;
+  final AnimatedEnumeration patternUnits;
 
   /** @domName SVGPatternElement.width */
-  final SVGAnimatedLength width;
+  final AnimatedLength width;
 
   /** @domName SVGPatternElement.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGPatternElement.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGFitToViewBox
 
   /** @domName SVGFitToViewBox.preserveAspectRatio */
-  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  final AnimatedPreserveAspectRatio preserveAspectRatio;
 
   /** @domName SVGFitToViewBox.viewBox */
-  final SVGAnimatedRect viewBox;
+  final AnimatedRect viewBox;
 
   // From SVGLangSpace
 
@@ -4397,7 +4287,7 @@ class SVGPatternElement extends SVGElement implements SVGLangSpace, SVGTests, SV
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -4408,13 +4298,13 @@ class SVGPatternElement extends SVGElement implements SVGLangSpace, SVGTests, SV
   // From SVGTests
 
   /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
+  final StringList requiredExtensions;
 
   /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
+  final StringList requiredFeatures;
 
   /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
+  final StringList systemLanguage;
 
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension) native;
@@ -4422,15 +4312,17 @@ class SVGPatternElement extends SVGElement implements SVGLangSpace, SVGTests, SV
   // From SVGURIReference
 
   /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
+  final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
 
-/// @domName SVGPoint
-class SVGPoint native "*SVGPoint" {
+
+class Point native "*SVGPoint" {
+  factory Point(num x, num y) => _PointFactoryProvider.createPoint(x, y);
 
   /** @domName SVGPoint.x */
   num x;
@@ -4439,7 +4331,8 @@ class SVGPoint native "*SVGPoint" {
   num y;
 
   /** @domName SVGPoint.matrixTransform */
-  SVGPoint matrixTransform(SVGMatrix matrix) native;
+  Point matrixTransform(Matrix matrix) native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4447,31 +4340,31 @@ class SVGPoint native "*SVGPoint" {
 
 
 /// @domName SVGPointList
-class SVGPointList native "*SVGPointList" {
+class PointList native "*SVGPointList" {
 
   /** @domName SVGPointList.numberOfItems */
   final int numberOfItems;
 
   /** @domName SVGPointList.appendItem */
-  SVGPoint appendItem(SVGPoint item) native;
+  Point appendItem(Point item) native;
 
   /** @domName SVGPointList.clear */
   void clear() native;
 
   /** @domName SVGPointList.getItem */
-  SVGPoint getItem(int index) native;
+  Point getItem(int index) native;
 
   /** @domName SVGPointList.initialize */
-  SVGPoint initialize(SVGPoint item) native;
+  Point initialize(Point item) native;
 
   /** @domName SVGPointList.insertItemBefore */
-  SVGPoint insertItemBefore(SVGPoint item, int index) native;
+  Point insertItemBefore(Point item, int index) native;
 
   /** @domName SVGPointList.removeItem */
-  SVGPoint removeItem(int index) native;
+  Point removeItem(int index) native;
 
   /** @domName SVGPointList.replaceItem */
-  SVGPoint replaceItem(SVGPoint item, int index) native;
+  Point replaceItem(Point item, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4479,20 +4372,20 @@ class SVGPointList native "*SVGPointList" {
 
 
 /// @domName SVGPolygonElement
-class SVGPolygonElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGPolygonElement" {
+class PolygonElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGPolygonElement" {
 
-  factory SVGPolygonElement() => _SVGElementFactoryProvider.createSVGElement_tag("polygon");
+  factory PolygonElement() => _SvgElementFactoryProvider.createSvgElement_tag("polygon");
 
   /** @domName SVGPolygonElement.animatedPoints */
-  final SVGPointList animatedPoints;
+  final PointList animatedPoints;
 
   /** @domName SVGPolygonElement.points */
-  final SVGPointList points;
+  final PointList points;
 
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
@@ -4505,27 +4398,27 @@ class SVGPolygonElement extends SVGElement implements SVGLangSpace, SVGStylable,
   // From SVGLocatable
 
   /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
+  final SvgElement farthestViewportElement;
 
   /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
+  final SvgElement nearestViewportElement;
 
   /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
+  Rect getBBox() native;
 
   /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
+  Matrix getCTM() native;
 
   /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
+  Matrix getScreenCTM() native;
 
   /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
+  Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -4536,13 +4429,13 @@ class SVGPolygonElement extends SVGElement implements SVGLangSpace, SVGStylable,
   // From SVGTests
 
   /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
+  final StringList requiredExtensions;
 
   /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
+  final StringList requiredFeatures;
 
   /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
+  final StringList systemLanguage;
 
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension) native;
@@ -4550,7 +4443,7 @@ class SVGPolygonElement extends SVGElement implements SVGLangSpace, SVGStylable,
   // From SVGTransformable
 
   /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
+  final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4558,20 +4451,20 @@ class SVGPolygonElement extends SVGElement implements SVGLangSpace, SVGStylable,
 
 
 /// @domName SVGPolylineElement
-class SVGPolylineElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGPolylineElement" {
+class PolylineElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGPolylineElement" {
 
-  factory SVGPolylineElement() => _SVGElementFactoryProvider.createSVGElement_tag("polyline");
+  factory PolylineElement() => _SvgElementFactoryProvider.createSvgElement_tag("polyline");
 
   /** @domName SVGPolylineElement.animatedPoints */
-  final SVGPointList animatedPoints;
+  final PointList animatedPoints;
 
   /** @domName SVGPolylineElement.points */
-  final SVGPointList points;
+  final PointList points;
 
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
@@ -4584,27 +4477,27 @@ class SVGPolylineElement extends SVGElement implements SVGLangSpace, SVGStylable
   // From SVGLocatable
 
   /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
+  final SvgElement farthestViewportElement;
 
   /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
+  final SvgElement nearestViewportElement;
 
   /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
+  Rect getBBox() native;
 
   /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
+  Matrix getCTM() native;
 
   /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
+  Matrix getScreenCTM() native;
 
   /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
+  Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -4615,13 +4508,13 @@ class SVGPolylineElement extends SVGElement implements SVGLangSpace, SVGStylable
   // From SVGTests
 
   /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
+  final StringList requiredExtensions;
 
   /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
+  final StringList requiredFeatures;
 
   /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
+  final StringList systemLanguage;
 
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension) native;
@@ -4629,7 +4522,7 @@ class SVGPolylineElement extends SVGElement implements SVGLangSpace, SVGStylable
   // From SVGTransformable
 
   /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
+  final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4637,7 +4530,7 @@ class SVGPolylineElement extends SVGElement implements SVGLangSpace, SVGStylable
 
 
 /// @domName SVGPreserveAspectRatio
-class SVGPreserveAspectRatio native "*SVGPreserveAspectRatio" {
+class PreserveAspectRatio native "*SVGPreserveAspectRatio" {
 
   static const int SVG_MEETORSLICE_MEET = 1;
 
@@ -4679,27 +4572,27 @@ class SVGPreserveAspectRatio native "*SVGPreserveAspectRatio" {
 
 
 /// @domName SVGRadialGradientElement
-class SVGRadialGradientElement extends SVGGradientElement native "*SVGRadialGradientElement" {
+class RadialGradientElement extends GradientElement native "*SVGRadialGradientElement" {
 
-  factory SVGRadialGradientElement() => _SVGElementFactoryProvider.createSVGElement_tag("radialGradient");
+  factory RadialGradientElement() => _SvgElementFactoryProvider.createSvgElement_tag("radialGradient");
 
   /** @domName SVGRadialGradientElement.cx */
-  final SVGAnimatedLength cx;
+  final AnimatedLength cx;
 
   /** @domName SVGRadialGradientElement.cy */
-  final SVGAnimatedLength cy;
+  final AnimatedLength cy;
 
   /** @domName SVGRadialGradientElement.fr */
-  final SVGAnimatedLength fr;
+  final AnimatedLength fr;
 
   /** @domName SVGRadialGradientElement.fx */
-  final SVGAnimatedLength fx;
+  final AnimatedLength fx;
 
   /** @domName SVGRadialGradientElement.fy */
-  final SVGAnimatedLength fy;
+  final AnimatedLength fy;
 
   /** @domName SVGRadialGradientElement.r */
-  final SVGAnimatedLength r;
+  final AnimatedLength r;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4707,7 +4600,7 @@ class SVGRadialGradientElement extends SVGGradientElement native "*SVGRadialGrad
 
 
 /// @domName SVGRect
-class SVGRect native "*SVGRect" {
+class Rect native "*SVGRect" {
 
   /** @domName SVGRect.height */
   num height;
@@ -4727,32 +4620,32 @@ class SVGRect native "*SVGRect" {
 
 
 /// @domName SVGRectElement
-class SVGRectElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGRectElement" {
+class RectElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGRectElement" {
 
-  factory SVGRectElement() => _SVGElementFactoryProvider.createSVGElement_tag("rect");
+  factory RectElement() => _SvgElementFactoryProvider.createSvgElement_tag("rect");
 
   /** @domName SVGRectElement.height */
-  final SVGAnimatedLength height;
+  final AnimatedLength height;
 
   /** @domName SVGRectElement.rx */
-  final SVGAnimatedLength rx;
+  final AnimatedLength rx;
 
   /** @domName SVGRectElement.ry */
-  final SVGAnimatedLength ry;
+  final AnimatedLength ry;
 
   /** @domName SVGRectElement.width */
-  final SVGAnimatedLength width;
+  final AnimatedLength width;
 
   /** @domName SVGRectElement.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGRectElement.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
@@ -4765,27 +4658,27 @@ class SVGRectElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
   // From SVGLocatable
 
   /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
+  final SvgElement farthestViewportElement;
 
   /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
+  final SvgElement nearestViewportElement;
 
   /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
+  Rect getBBox() native;
 
   /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
+  Matrix getCTM() native;
 
   /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
+  Matrix getScreenCTM() native;
 
   /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
+  Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -4796,13 +4689,13 @@ class SVGRectElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
   // From SVGTests
 
   /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
+  final StringList requiredExtensions;
 
   /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
+  final StringList requiredFeatures;
 
   /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
+  final StringList systemLanguage;
 
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension) native;
@@ -4810,7 +4703,7 @@ class SVGRectElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
   // From SVGTransformable
 
   /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
+  final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4818,7 +4711,7 @@ class SVGRectElement extends SVGElement implements SVGLangSpace, SVGStylable, SV
 
 
 /// @domName SVGRenderingIntent
-class SVGRenderingIntent native "*SVGRenderingIntent" {
+class RenderingIntent native "*SVGRenderingIntent" {
 
   static const int RENDERING_INTENT_ABSOLUTE_COLORIMETRIC = 5;
 
@@ -4837,205 +4730,10 @@ class SVGRenderingIntent native "*SVGRenderingIntent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-class SVGSVGElement extends SVGElement implements SVGZoomAndPan, SVGLocatable, SVGLangSpace, SVGTests, SVGStylable, SVGFitToViewBox, SVGExternalResourcesRequired native "*SVGSVGElement" {
-  factory SVGSVGElement() => _SVGSVGElementFactoryProvider.createSVGSVGElement();
-
-
-  /** @domName SVGSVGElement.contentScriptType */
-  String contentScriptType;
-
-  /** @domName SVGSVGElement.contentStyleType */
-  String contentStyleType;
-
-  /** @domName SVGSVGElement.currentScale */
-  num currentScale;
-
-  /** @domName SVGSVGElement.currentTranslate */
-  final SVGPoint currentTranslate;
-
-  /** @domName SVGSVGElement.currentView */
-  final SVGViewSpec currentView;
-
-  /** @domName SVGSVGElement.height */
-  final SVGAnimatedLength height;
-
-  /** @domName SVGSVGElement.pixelUnitToMillimeterX */
-  final num pixelUnitToMillimeterX;
-
-  /** @domName SVGSVGElement.pixelUnitToMillimeterY */
-  final num pixelUnitToMillimeterY;
-
-  /** @domName SVGSVGElement.screenPixelToMillimeterX */
-  final num screenPixelToMillimeterX;
-
-  /** @domName SVGSVGElement.screenPixelToMillimeterY */
-  final num screenPixelToMillimeterY;
-
-  /** @domName SVGSVGElement.useCurrentView */
-  final bool useCurrentView;
-
-  /** @domName SVGSVGElement.viewport */
-  final SVGRect viewport;
-
-  /** @domName SVGSVGElement.width */
-  final SVGAnimatedLength width;
-
-  /** @domName SVGSVGElement.x */
-  final SVGAnimatedLength x;
-
-  /** @domName SVGSVGElement.y */
-  final SVGAnimatedLength y;
-
-  /** @domName SVGSVGElement.animationsPaused */
-  bool animationsPaused() native;
-
-  /** @domName SVGSVGElement.checkEnclosure */
-  bool checkEnclosure(SVGElement element, SVGRect rect) native;
-
-  /** @domName SVGSVGElement.checkIntersection */
-  bool checkIntersection(SVGElement element, SVGRect rect) native;
-
-  /** @domName SVGSVGElement.createSVGAngle */
-  SVGAngle createSVGAngle() native;
-
-  /** @domName SVGSVGElement.createSVGLength */
-  SVGLength createSVGLength() native;
-
-  /** @domName SVGSVGElement.createSVGMatrix */
-  SVGMatrix createSVGMatrix() native;
-
-  /** @domName SVGSVGElement.createSVGNumber */
-  SVGNumber createSVGNumber() native;
-
-  /** @domName SVGSVGElement.createSVGPoint */
-  SVGPoint createSVGPoint() native;
-
-  /** @domName SVGSVGElement.createSVGRect */
-  SVGRect createSVGRect() native;
-
-  /** @domName SVGSVGElement.createSVGTransform */
-  SVGTransform createSVGTransform() native;
-
-  /** @domName SVGSVGElement.createSVGTransformFromMatrix */
-  SVGTransform createSVGTransformFromMatrix(SVGMatrix matrix) native;
-
-  /** @domName SVGSVGElement.deselectAll */
-  void deselectAll() native;
-
-  /** @domName SVGSVGElement.forceRedraw */
-  void forceRedraw() native;
-
-  /** @domName SVGSVGElement.getCurrentTime */
-  num getCurrentTime() native;
-
-  /** @domName SVGSVGElement.getElementById */
-  Element getElementById(String elementId) native;
-
-  /** @domName SVGSVGElement.getEnclosureList */
-  List<Node> getEnclosureList(SVGRect rect, SVGElement referenceElement) native;
-
-  /** @domName SVGSVGElement.getIntersectionList */
-  List<Node> getIntersectionList(SVGRect rect, SVGElement referenceElement) native;
-
-  /** @domName SVGSVGElement.pauseAnimations */
-  void pauseAnimations() native;
-
-  /** @domName SVGSVGElement.setCurrentTime */
-  void setCurrentTime(num seconds) native;
-
-  /** @domName SVGSVGElement.suspendRedraw */
-  int suspendRedraw(int maxWaitMilliseconds) native;
-
-  /** @domName SVGSVGElement.unpauseAnimations */
-  void unpauseAnimations() native;
-
-  /** @domName SVGSVGElement.unsuspendRedraw */
-  void unsuspendRedraw(int suspendHandleId) native;
-
-  /** @domName SVGSVGElement.unsuspendRedrawAll */
-  void unsuspendRedrawAll() native;
-
-  // From SVGExternalResourcesRequired
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
-
-  // From SVGFitToViewBox
-
-  /** @domName SVGFitToViewBox.preserveAspectRatio */
-  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
-
-  /** @domName SVGFitToViewBox.viewBox */
-  final SVGAnimatedRect viewBox;
-
-  // From SVGLangSpace
-
-  /** @domName SVGLangSpace.xmllang */
-  String xmllang;
-
-  /** @domName SVGLangSpace.xmlspace */
-  String xmlspace;
-
-  // From SVGLocatable
-
-  /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
-
-  /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
-
-  /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
-
-  /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
-
-  /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
-
-  /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
-
-  // From SVGStylable
-
-  /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CSSStyleDeclaration style;
-
-  /** @domName SVGStylable.getPresentationAttribute */
-  CSSValue getPresentationAttribute(String name) native;
-
-  // From SVGTests
-
-  /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
-
-  /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
-
-  /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
-
-  /** @domName SVGTests.hasExtension */
-  bool hasExtension(String extension) native;
-
-  // From SVGZoomAndPan
-
-  /** @domName SVGZoomAndPan.zoomAndPan */
-  int zoomAndPan;
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 /// @domName SVGScriptElement
-class SVGScriptElement extends SVGElement implements SVGURIReference, SVGExternalResourcesRequired native "*SVGScriptElement" {
+class ScriptElement extends SvgElement implements UriReference, ExternalResourcesRequired native "*SVGScriptElement" {
 
-  factory SVGScriptElement() => _SVGElementFactoryProvider.createSVGElement_tag("script");
+  factory ScriptElement() => _SvgElementFactoryProvider.createSvgElement_tag("script");
 
   /** @domName SVGScriptElement.type */
   String type;
@@ -5043,12 +4741,12 @@ class SVGScriptElement extends SVGElement implements SVGURIReference, SVGExterna
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGURIReference
 
   /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
+  final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5056,9 +4754,9 @@ class SVGScriptElement extends SVGElement implements SVGURIReference, SVGExterna
 
 
 /// @domName SVGSetElement
-class SVGSetElement extends SVGAnimationElement native "*SVGSetElement" {
+class SetElement extends AnimationElement native "*SVGSetElement" {
 
-  factory SVGSetElement() => _SVGElementFactoryProvider.createSVGElement_tag("set");
+  factory SetElement() => _SvgElementFactoryProvider.createSvgElement_tag("set");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5066,17 +4764,17 @@ class SVGSetElement extends SVGAnimationElement native "*SVGSetElement" {
 
 
 /// @domName SVGStopElement
-class SVGStopElement extends SVGElement implements SVGStylable native "*SVGStopElement" {
+class StopElement extends SvgElement implements Stylable native "*SVGStopElement" {
 
-  factory SVGStopElement() => _SVGElementFactoryProvider.createSVGElement_tag("stop");
+  factory StopElement() => _SvgElementFactoryProvider.createSvgElement_tag("stop");
 
   /** @domName SVGStopElement.offset */
-  final SVGAnimatedNumber offset;
+  final AnimatedNumber offset;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -5090,7 +4788,7 @@ class SVGStopElement extends SVGElement implements SVGStylable native "*SVGStopE
 
 
 /// @domName SVGStringList
-class SVGStringList implements JavaScriptIndexingBehavior, List<String> native "*SVGStringList" {
+class StringList implements JavaScriptIndexingBehavior, List<String> native "*SVGStringList" {
 
   /** @domName SVGStringList.numberOfItems */
   final int numberOfItems;
@@ -5207,9 +4905,9 @@ class SVGStringList implements JavaScriptIndexingBehavior, List<String> native "
 
 
 /// @domName SVGStylable
-abstract class SVGStylable {
+abstract class Stylable {
 
-  SVGAnimatedString className;
+  AnimatedString className;
 
   CSSStyleDeclaration style;
 
@@ -5222,9 +4920,9 @@ abstract class SVGStylable {
 
 
 /// @domName SVGStyleElement
-class SVGStyleElement extends SVGElement implements SVGLangSpace native "*SVGStyleElement" {
+class StyleElement extends SvgElement implements LangSpace native "*SVGStyleElement" {
 
-  factory SVGStyleElement() => _SVGElementFactoryProvider.createSVGElement_tag("style");
+  factory StyleElement() => _SvgElementFactoryProvider.createSvgElement_tag("style");
 
   /** @domName SVGStyleElement.disabled */
   bool disabled;
@@ -5257,15 +4955,246 @@ class SVGStyleElement extends SVGElement implements SVGLangSpace native "*SVGSty
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGSwitchElement
-class SVGSwitchElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGTransformable, SVGExternalResourcesRequired native "*SVGSwitchElement" {
+/// @domName SVGDocument
+class SvgDocument extends Document native "*SVGDocument" {
 
-  factory SVGSwitchElement() => _SVGElementFactoryProvider.createSVGElement_tag("switch");
+  /** @domName SVGDocument.rootElement */
+  final SvgSvgElement rootElement;
+
+  /** @domName SVGDocument.createEvent */
+  Event $dom_createEvent(String eventType) native "createEvent";
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+class _AttributeClassSet extends CssClassSet {
+  final Element _element;
+
+  _AttributeClassSet(this._element);
+
+  Set<String> readClasses() {
+    var classname = _element.attributes['class'];
+
+    Set<String> s = new Set<String>();
+    if (classname == null) {
+      return s;
+    }
+    for (String name in classname.split(' ')) {
+      String trimmed = name.trim();
+      if (!trimmed.isEmpty) {
+        s.add(trimmed);
+      }
+    }
+    return s;
+  }
+
+  void writeClasses(Set s) {
+    List list = new List.from(s);
+    _element.attributes['class'] = Strings.join(list, ' ');
+  }
+}
+
+class SvgElement extends Element native "*SVGElement" {
+  factory SvgElement.tag(String tag) =>
+      _SvgElementFactoryProvider.createSvgElement_tag(tag);
+  factory SvgElement.svg(String svg) =>
+      _SvgElementFactoryProvider.createSvgElement_svg(svg);
+
+  _AttributeClassSet _cssClassSet;
+  CssClassSet get classes {
+    if (_cssClassSet == null) {
+      _cssClassSet = new _AttributeClassSet(this);
+    }
+    return _cssClassSet;
+  }
+
+  List<Element> get elements => new FilteredElementList(this);
+
+  void set elements(Collection<Element> value) {
+    final elements = this.elements;
+    elements.clear();
+    elements.addAll(value);
+  }
+
+  String get outerHTML {
+    final container = new Element.tag("div");
+    final SvgElement cloned = this.clone(true);
+    container.elements.add(cloned);
+    return container.innerHTML;
+  }
+
+  String get innerHTML {
+    final container = new Element.tag("div");
+    final SvgElement cloned = this.clone(true);
+    container.elements.addAll(cloned.elements);
+    return container.innerHTML;
+  }
+
+  void set innerHTML(String svg) {
+    final container = new Element.tag("div");
+    // Wrap the SVG string in <svg> so that SvgElements are created, rather than
+    // HTMLElements.
+    container.innerHTML = '<svg version="1.1">$svg</svg>';
+    this.elements = container.elements[0].elements;
+  }
+
+
+  // Shadowing definition.
+  /** @domName SVGElement.id */
+  String get id => JS("String", "#.id", this);
+
+  /** @domName SVGElement.id */
+  void set id(String value) {
+    JS("void", "#.id = #", this, value);
+  }
+
+  /** @domName SVGElement.ownerSVGElement */
+  final SvgSvgElement ownerSVGElement;
+
+  /** @domName SVGElement.viewportElement */
+  final SvgElement viewportElement;
+
+  /** @domName SVGElement.xmlbase */
+  String xmlbase;
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable, Locatable, ExternalResourcesRequired, ZoomAndPan, LangSpace native "*SVGSVGElement" {
+  factory SvgSvgElement() => _SvgSvgElementFactoryProvider.createSvgSvgElement();
+
+
+  /** @domName SVGSVGElement.contentScriptType */
+  String contentScriptType;
+
+  /** @domName SVGSVGElement.contentStyleType */
+  String contentStyleType;
+
+  /** @domName SVGSVGElement.currentScale */
+  num currentScale;
+
+  /** @domName SVGSVGElement.currentTranslate */
+  final Point currentTranslate;
+
+  /** @domName SVGSVGElement.currentView */
+  final ViewSpec currentView;
+
+  /** @domName SVGSVGElement.height */
+  final AnimatedLength height;
+
+  /** @domName SVGSVGElement.pixelUnitToMillimeterX */
+  final num pixelUnitToMillimeterX;
+
+  /** @domName SVGSVGElement.pixelUnitToMillimeterY */
+  final num pixelUnitToMillimeterY;
+
+  /** @domName SVGSVGElement.screenPixelToMillimeterX */
+  final num screenPixelToMillimeterX;
+
+  /** @domName SVGSVGElement.screenPixelToMillimeterY */
+  final num screenPixelToMillimeterY;
+
+  /** @domName SVGSVGElement.useCurrentView */
+  final bool useCurrentView;
+
+  /** @domName SVGSVGElement.viewport */
+  final Rect viewport;
+
+  /** @domName SVGSVGElement.width */
+  final AnimatedLength width;
+
+  /** @domName SVGSVGElement.x */
+  final AnimatedLength x;
+
+  /** @domName SVGSVGElement.y */
+  final AnimatedLength y;
+
+  /** @domName SVGSVGElement.animationsPaused */
+  bool animationsPaused() native;
+
+  /** @domName SVGSVGElement.checkEnclosure */
+  bool checkEnclosure(SvgElement element, Rect rect) native;
+
+  /** @domName SVGSVGElement.checkIntersection */
+  bool checkIntersection(SvgElement element, Rect rect) native;
+
+  /** @domName SVGSVGElement.createSVGAngle */
+  Angle createSVGAngle() native;
+
+  /** @domName SVGSVGElement.createSVGLength */
+  Length createSVGLength() native;
+
+  /** @domName SVGSVGElement.createSVGMatrix */
+  Matrix createSVGMatrix() native;
+
+  /** @domName SVGSVGElement.createSVGNumber */
+  Number createSVGNumber() native;
+
+  /** @domName SVGSVGElement.createSVGPoint */
+  Point createSVGPoint() native;
+
+  /** @domName SVGSVGElement.createSVGRect */
+  Rect createSVGRect() native;
+
+  /** @domName SVGSVGElement.createSVGTransform */
+  Transform createSVGTransform() native;
+
+  /** @domName SVGSVGElement.createSVGTransformFromMatrix */
+  Transform createSVGTransformFromMatrix(Matrix matrix) native;
+
+  /** @domName SVGSVGElement.deselectAll */
+  void deselectAll() native;
+
+  /** @domName SVGSVGElement.forceRedraw */
+  void forceRedraw() native;
+
+  /** @domName SVGSVGElement.getCurrentTime */
+  num getCurrentTime() native;
+
+  /** @domName SVGSVGElement.getElementById */
+  Element getElementById(String elementId) native;
+
+  /** @domName SVGSVGElement.getEnclosureList */
+  List<Node> getEnclosureList(Rect rect, SvgElement referenceElement) native;
+
+  /** @domName SVGSVGElement.getIntersectionList */
+  List<Node> getIntersectionList(Rect rect, SvgElement referenceElement) native;
+
+  /** @domName SVGSVGElement.pauseAnimations */
+  void pauseAnimations() native;
+
+  /** @domName SVGSVGElement.setCurrentTime */
+  void setCurrentTime(num seconds) native;
+
+  /** @domName SVGSVGElement.suspendRedraw */
+  int suspendRedraw(int maxWaitMilliseconds) native;
+
+  /** @domName SVGSVGElement.unpauseAnimations */
+  void unpauseAnimations() native;
+
+  /** @domName SVGSVGElement.unsuspendRedraw */
+  void unsuspendRedraw(int suspendHandleId) native;
+
+  /** @domName SVGSVGElement.unsuspendRedrawAll */
+  void unsuspendRedrawAll() native;
 
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
+
+  // From SVGFitToViewBox
+
+  /** @domName SVGFitToViewBox.preserveAspectRatio */
+  final AnimatedPreserveAspectRatio preserveAspectRatio;
+
+  /** @domName SVGFitToViewBox.viewBox */
+  final AnimatedRect viewBox;
 
   // From SVGLangSpace
 
@@ -5278,27 +5207,27 @@ class SVGSwitchElement extends SVGElement implements SVGLangSpace, SVGStylable, 
   // From SVGLocatable
 
   /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
+  final SvgElement farthestViewportElement;
 
   /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
+  final SvgElement nearestViewportElement;
 
   /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
+  Rect getBBox() native;
 
   /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
+  Matrix getCTM() native;
 
   /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
+  Matrix getScreenCTM() native;
 
   /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
+  Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -5309,13 +5238,87 @@ class SVGSwitchElement extends SVGElement implements SVGLangSpace, SVGStylable, 
   // From SVGTests
 
   /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
+  final StringList requiredExtensions;
 
   /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
+  final StringList requiredFeatures;
 
   /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
+  final StringList systemLanguage;
+
+  /** @domName SVGTests.hasExtension */
+  bool hasExtension(String extension) native;
+
+  // From SVGZoomAndPan
+
+  /** @domName SVGZoomAndPan.zoomAndPan */
+  int zoomAndPan;
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName SVGSwitchElement
+class SwitchElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGSwitchElement" {
+
+  factory SwitchElement() => _SvgElementFactoryProvider.createSvgElement_tag("switch");
+
+  // From SVGExternalResourcesRequired
+
+  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
+  final AnimatedBoolean externalResourcesRequired;
+
+  // From SVGLangSpace
+
+  /** @domName SVGLangSpace.xmllang */
+  String xmllang;
+
+  /** @domName SVGLangSpace.xmlspace */
+  String xmlspace;
+
+  // From SVGLocatable
+
+  /** @domName SVGLocatable.farthestViewportElement */
+  final SvgElement farthestViewportElement;
+
+  /** @domName SVGLocatable.nearestViewportElement */
+  final SvgElement nearestViewportElement;
+
+  /** @domName SVGLocatable.getBBox */
+  Rect getBBox() native;
+
+  /** @domName SVGLocatable.getCTM */
+  Matrix getCTM() native;
+
+  /** @domName SVGLocatable.getScreenCTM */
+  Matrix getScreenCTM() native;
+
+  /** @domName SVGLocatable.getTransformToElement */
+  Matrix getTransformToElement(SvgElement element) native;
+
+  // From SVGStylable
+
+  /** @domName SVGStylable.className */
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
+
+  // Use implementation from Element.
+  // final CSSStyleDeclaration style;
+
+  /** @domName SVGStylable.getPresentationAttribute */
+  CSSValue getPresentationAttribute(String name) native;
+
+  // From SVGTests
+
+  /** @domName SVGTests.requiredExtensions */
+  final StringList requiredExtensions;
+
+  /** @domName SVGTests.requiredFeatures */
+  final StringList requiredFeatures;
+
+  /** @domName SVGTests.systemLanguage */
+  final StringList systemLanguage;
 
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension) native;
@@ -5323,7 +5326,7 @@ class SVGSwitchElement extends SVGElement implements SVGLangSpace, SVGStylable, 
   // From SVGTransformable
 
   /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
+  final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5331,22 +5334,22 @@ class SVGSwitchElement extends SVGElement implements SVGLangSpace, SVGStylable, 
 
 
 /// @domName SVGSymbolElement
-class SVGSymbolElement extends SVGElement implements SVGLangSpace, SVGFitToViewBox, SVGExternalResourcesRequired, SVGStylable native "*SVGSymbolElement" {
+class SymbolElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, Stylable, LangSpace native "*SVGSymbolElement" {
 
-  factory SVGSymbolElement() => _SVGElementFactoryProvider.createSVGElement_tag("symbol");
+  factory SymbolElement() => _SvgElementFactoryProvider.createSvgElement_tag("symbol");
 
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGFitToViewBox
 
   /** @domName SVGFitToViewBox.preserveAspectRatio */
-  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  final AnimatedPreserveAspectRatio preserveAspectRatio;
 
   /** @domName SVGFitToViewBox.viewBox */
-  final SVGAnimatedRect viewBox;
+  final AnimatedRect viewBox;
 
   // From SVGLangSpace
 
@@ -5359,7 +5362,7 @@ class SVGSymbolElement extends SVGElement implements SVGLangSpace, SVGFitToViewB
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -5373,14 +5376,14 @@ class SVGSymbolElement extends SVGElement implements SVGLangSpace, SVGFitToViewB
 
 
 /// @domName SVGTRefElement
-class SVGTRefElement extends SVGTextPositioningElement implements SVGURIReference native "*SVGTRefElement" {
+class TRefElement extends TextPositioningElement implements UriReference native "*SVGTRefElement" {
 
-  factory SVGTRefElement() => _SVGElementFactoryProvider.createSVGElement_tag("tref");
+  factory TRefElement() => _SvgElementFactoryProvider.createSvgElement_tag("tref");
 
   // From SVGURIReference
 
   /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
+  final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5388,9 +5391,9 @@ class SVGTRefElement extends SVGTextPositioningElement implements SVGURIReferenc
 
 
 /// @domName SVGTSpanElement
-class SVGTSpanElement extends SVGTextPositioningElement native "*SVGTSpanElement" {
+class TSpanElement extends TextPositioningElement native "*SVGTSpanElement" {
 
-  factory SVGTSpanElement() => _SVGElementFactoryProvider.createSVGElement_tag("tspan");
+  factory TSpanElement() => _SvgElementFactoryProvider.createSvgElement_tag("tspan");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5398,13 +5401,13 @@ class SVGTSpanElement extends SVGTextPositioningElement native "*SVGTSpanElement
 
 
 /// @domName SVGTests
-abstract class SVGTests {
+abstract class Tests {
 
-  SVGStringList requiredExtensions;
+  StringList requiredExtensions;
 
-  SVGStringList requiredFeatures;
+  StringList requiredFeatures;
 
-  SVGStringList systemLanguage;
+  StringList systemLanguage;
 
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension);
@@ -5415,7 +5418,7 @@ abstract class SVGTests {
 
 
 /// @domName SVGTextContentElement
-class SVGTextContentElement extends SVGElement implements SVGLangSpace, SVGStylable, SVGTests, SVGExternalResourcesRequired native "*SVGTextContentElement" {
+class TextContentElement extends SvgElement implements Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGTextContentElement" {
 
   static const int LENGTHADJUST_SPACING = 1;
 
@@ -5424,22 +5427,22 @@ class SVGTextContentElement extends SVGElement implements SVGLangSpace, SVGStyla
   static const int LENGTHADJUST_UNKNOWN = 0;
 
   /** @domName SVGTextContentElement.lengthAdjust */
-  final SVGAnimatedEnumeration lengthAdjust;
+  final AnimatedEnumeration lengthAdjust;
 
   /** @domName SVGTextContentElement.textLength */
-  final SVGAnimatedLength textLength;
+  final AnimatedLength textLength;
 
   /** @domName SVGTextContentElement.getCharNumAtPosition */
-  int getCharNumAtPosition(SVGPoint point) native;
+  int getCharNumAtPosition(Point point) native;
 
   /** @domName SVGTextContentElement.getComputedTextLength */
   num getComputedTextLength() native;
 
   /** @domName SVGTextContentElement.getEndPositionOfChar */
-  SVGPoint getEndPositionOfChar(int offset) native;
+  Point getEndPositionOfChar(int offset) native;
 
   /** @domName SVGTextContentElement.getExtentOfChar */
-  SVGRect getExtentOfChar(int offset) native;
+  Rect getExtentOfChar(int offset) native;
 
   /** @domName SVGTextContentElement.getNumberOfChars */
   int getNumberOfChars() native;
@@ -5448,7 +5451,7 @@ class SVGTextContentElement extends SVGElement implements SVGLangSpace, SVGStyla
   num getRotationOfChar(int offset) native;
 
   /** @domName SVGTextContentElement.getStartPositionOfChar */
-  SVGPoint getStartPositionOfChar(int offset) native;
+  Point getStartPositionOfChar(int offset) native;
 
   /** @domName SVGTextContentElement.getSubStringLength */
   num getSubStringLength(int offset, int length) native;
@@ -5459,7 +5462,7 @@ class SVGTextContentElement extends SVGElement implements SVGLangSpace, SVGStyla
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
@@ -5472,7 +5475,7 @@ class SVGTextContentElement extends SVGElement implements SVGLangSpace, SVGStyla
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -5483,13 +5486,13 @@ class SVGTextContentElement extends SVGElement implements SVGLangSpace, SVGStyla
   // From SVGTests
 
   /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
+  final StringList requiredExtensions;
 
   /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
+  final StringList requiredFeatures;
 
   /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
+  final StringList systemLanguage;
 
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension) native;
@@ -5500,34 +5503,34 @@ class SVGTextContentElement extends SVGElement implements SVGLangSpace, SVGStyla
 
 
 /// @domName SVGTextElement
-class SVGTextElement extends SVGTextPositioningElement implements SVGTransformable native "*SVGTextElement" {
+class TextElement extends TextPositioningElement implements Transformable native "*SVGTextElement" {
 
-  factory SVGTextElement() => _SVGElementFactoryProvider.createSVGElement_tag("text");
+  factory TextElement() => _SvgElementFactoryProvider.createSvgElement_tag("text");
 
   // From SVGLocatable
 
   /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
+  final SvgElement farthestViewportElement;
 
   /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
+  final SvgElement nearestViewportElement;
 
   /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
+  Rect getBBox() native;
 
   /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
+  Matrix getCTM() native;
 
   /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
+  Matrix getScreenCTM() native;
 
   /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
+  Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGTransformable
 
   /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
+  final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5535,7 +5538,7 @@ class SVGTextElement extends SVGTextPositioningElement implements SVGTransformab
 
 
 /// @domName SVGTextPathElement
-class SVGTextPathElement extends SVGTextContentElement implements SVGURIReference native "*SVGTextPathElement" {
+class TextPathElement extends TextContentElement implements UriReference native "*SVGTextPathElement" {
 
   static const int TEXTPATH_METHODTYPE_ALIGN = 1;
 
@@ -5550,18 +5553,18 @@ class SVGTextPathElement extends SVGTextContentElement implements SVGURIReferenc
   static const int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
 
   /** @domName SVGTextPathElement.method */
-  final SVGAnimatedEnumeration method;
+  final AnimatedEnumeration method;
 
   /** @domName SVGTextPathElement.spacing */
-  final SVGAnimatedEnumeration spacing;
+  final AnimatedEnumeration spacing;
 
   /** @domName SVGTextPathElement.startOffset */
-  final SVGAnimatedLength startOffset;
+  final AnimatedLength startOffset;
 
   // From SVGURIReference
 
   /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
+  final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5569,22 +5572,22 @@ class SVGTextPathElement extends SVGTextContentElement implements SVGURIReferenc
 
 
 /// @domName SVGTextPositioningElement
-class SVGTextPositioningElement extends SVGTextContentElement native "*SVGTextPositioningElement" {
+class TextPositioningElement extends TextContentElement native "*SVGTextPositioningElement" {
 
   /** @domName SVGTextPositioningElement.dx */
-  final SVGAnimatedLengthList dx;
+  final AnimatedLengthList dx;
 
   /** @domName SVGTextPositioningElement.dy */
-  final SVGAnimatedLengthList dy;
+  final AnimatedLengthList dy;
 
   /** @domName SVGTextPositioningElement.rotate */
-  final SVGAnimatedNumberList rotate;
+  final AnimatedNumberList rotate;
 
   /** @domName SVGTextPositioningElement.x */
-  final SVGAnimatedLengthList x;
+  final AnimatedLengthList x;
 
   /** @domName SVGTextPositioningElement.y */
-  final SVGAnimatedLengthList y;
+  final AnimatedLengthList y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5592,9 +5595,9 @@ class SVGTextPositioningElement extends SVGTextContentElement native "*SVGTextPo
 
 
 /// @domName SVGTitleElement
-class SVGTitleElement extends SVGElement implements SVGLangSpace, SVGStylable native "*SVGTitleElement" {
+class TitleElement extends SvgElement implements Stylable, LangSpace native "*SVGTitleElement" {
 
-  factory SVGTitleElement() => _SVGElementFactoryProvider.createSVGElement_tag("title");
+  factory TitleElement() => _SvgElementFactoryProvider.createSvgElement_tag("title");
 
   // From SVGLangSpace
 
@@ -5607,7 +5610,7 @@ class SVGTitleElement extends SVGElement implements SVGLangSpace, SVGStylable na
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -5621,7 +5624,7 @@ class SVGTitleElement extends SVGElement implements SVGLangSpace, SVGStylable na
 
 
 /// @domName SVGTransform
-class SVGTransform native "*SVGTransform" {
+class Transform native "*SVGTransform" {
 
   static const int SVG_TRANSFORM_MATRIX = 1;
 
@@ -5641,13 +5644,13 @@ class SVGTransform native "*SVGTransform" {
   final num angle;
 
   /** @domName SVGTransform.matrix */
-  final SVGMatrix matrix;
+  final Matrix matrix;
 
   /** @domName SVGTransform.type */
   final int type;
 
   /** @domName SVGTransform.setMatrix */
-  void setMatrix(SVGMatrix matrix) native;
+  void setMatrix(Matrix matrix) native;
 
   /** @domName SVGTransform.setRotate */
   void setRotate(num angle, num cx, num cy) native;
@@ -5670,80 +5673,80 @@ class SVGTransform native "*SVGTransform" {
 
 
 /// @domName SVGTransformList
-class SVGTransformList implements JavaScriptIndexingBehavior, List<SVGTransform> native "*SVGTransformList" {
+class TransformList implements List<Transform>, JavaScriptIndexingBehavior native "*SVGTransformList" {
 
   /** @domName SVGTransformList.numberOfItems */
   final int numberOfItems;
 
-  SVGTransform operator[](int index) => JS("SVGTransform", "#[#]", this, index);
+  Transform operator[](int index) => JS("Transform", "#[#]", this, index);
 
-  void operator[]=(int index, SVGTransform value) {
+  void operator[]=(int index, Transform value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
-  // -- start List<SVGTransform> mixins.
-  // SVGTransform is the element type.
+  // -- start List<Transform> mixins.
+  // Transform is the element type.
 
-  // From Iterable<SVGTransform>:
+  // From Iterable<Transform>:
 
-  Iterator<SVGTransform> iterator() {
+  Iterator<Transform> iterator() {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new FixedSizeListIterator<SVGTransform>(this);
+    return new FixedSizeListIterator<Transform>(this);
   }
 
-  // From Collection<SVGTransform>:
+  // From Collection<Transform>:
 
-  void add(SVGTransform value) {
+  void add(Transform value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(SVGTransform value) {
+  void addLast(Transform value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<SVGTransform> collection) {
+  void addAll(Collection<Transform> collection) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(SVGTransform element) => _Collections.contains(this, element);
+  bool contains(Transform element) => _Collections.contains(this, element);
 
-  void forEach(void f(SVGTransform element)) => _Collections.forEach(this, f);
+  void forEach(void f(Transform element)) => _Collections.forEach(this, f);
 
-  Collection map(f(SVGTransform element)) => _Collections.map(this, [], f);
+  Collection map(f(Transform element)) => _Collections.map(this, [], f);
 
-  Collection<SVGTransform> filter(bool f(SVGTransform element)) =>
-     _Collections.filter(this, <SVGTransform>[], f);
+  Collection<Transform> filter(bool f(Transform element)) =>
+     _Collections.filter(this, <Transform>[], f);
 
-  bool every(bool f(SVGTransform element)) => _Collections.every(this, f);
+  bool every(bool f(Transform element)) => _Collections.every(this, f);
 
-  bool some(bool f(SVGTransform element)) => _Collections.some(this, f);
+  bool some(bool f(Transform element)) => _Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
-  // From List<SVGTransform>:
+  // From List<Transform>:
 
-  void sort([Comparator<SVGTransform> compare = Comparable.compare]) {
+  void sort([Comparator<Transform> compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
-  int indexOf(SVGTransform element, [int start = 0]) =>
+  int indexOf(Transform element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(SVGTransform element, [int start]) {
+  int lastIndexOf(Transform element, [int start]) {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGTransform get first => this[0];
+  Transform get first => this[0];
 
-  SVGTransform get last => this[length - 1];
+  Transform get last => this[length - 1];
 
-  SVGTransform removeLast() {
+  Transform removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<SVGTransform> from, [int startFrom]) {
+  void setRange(int start, int rangeLength, List<Transform> from, [int startFrom]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -5751,41 +5754,41 @@ class SVGTransformList implements JavaScriptIndexingBehavior, List<SVGTransform>
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [SVGTransform initialValue]) {
+  void insertRange(int start, int rangeLength, [Transform initialValue]) {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
-  List<SVGTransform> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <SVGTransform>[]);
+  List<Transform> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Transform>[]);
 
-  // -- end List<SVGTransform> mixins.
+  // -- end List<Transform> mixins.
 
   /** @domName SVGTransformList.appendItem */
-  SVGTransform appendItem(SVGTransform item) native;
+  Transform appendItem(Transform item) native;
 
   /** @domName SVGTransformList.clear */
   void clear() native;
 
   /** @domName SVGTransformList.consolidate */
-  SVGTransform consolidate() native;
+  Transform consolidate() native;
 
   /** @domName SVGTransformList.createSVGTransformFromMatrix */
-  SVGTransform createSVGTransformFromMatrix(SVGMatrix matrix) native;
+  Transform createSVGTransformFromMatrix(Matrix matrix) native;
 
   /** @domName SVGTransformList.getItem */
-  SVGTransform getItem(int index) native;
+  Transform getItem(int index) native;
 
   /** @domName SVGTransformList.initialize */
-  SVGTransform initialize(SVGTransform item) native;
+  Transform initialize(Transform item) native;
 
   /** @domName SVGTransformList.insertItemBefore */
-  SVGTransform insertItemBefore(SVGTransform item, int index) native;
+  Transform insertItemBefore(Transform item, int index) native;
 
   /** @domName SVGTransformList.removeItem */
-  SVGTransform removeItem(int index) native;
+  Transform removeItem(int index) native;
 
   /** @domName SVGTransformList.replaceItem */
-  SVGTransform replaceItem(SVGTransform item, int index) native;
+  Transform replaceItem(Transform item, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5793,37 +5796,27 @@ class SVGTransformList implements JavaScriptIndexingBehavior, List<SVGTransform>
 
 
 /// @domName SVGTransformable
-abstract class SVGTransformable implements SVGLocatable {
+abstract class Transformable implements Locatable {
 
-  SVGAnimatedTransformList transform;
+  AnimatedTransformList transform;
 
   // From SVGLocatable
 
-  SVGElement farthestViewportElement;
+  SvgElement farthestViewportElement;
 
-  SVGElement nearestViewportElement;
+  SvgElement nearestViewportElement;
 
   /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox();
+  Rect getBBox();
 
   /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM();
+  Matrix getCTM();
 
   /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM();
+  Matrix getScreenCTM();
 
   /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName SVGURIReference
-abstract class SVGURIReference {
-
-  SVGAnimatedString href;
+  Matrix getTransformToElement(SvgElement element);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5831,7 +5824,7 @@ abstract class SVGURIReference {
 
 
 /// @domName SVGUnitTypes
-class SVGUnitTypes native "*SVGUnitTypes" {
+class UnitTypes native "*SVGUnitTypes" {
 
   static const int SVG_UNIT_TYPE_OBJECTBOUNDINGBOX = 2;
 
@@ -5844,33 +5837,43 @@ class SVGUnitTypes native "*SVGUnitTypes" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGUseElement
-class SVGUseElement extends SVGElement implements SVGLangSpace, SVGTests, SVGStylable, SVGURIReference, SVGExternalResourcesRequired, SVGTransformable native "*SVGUseElement" {
+/// @domName SVGURIReference
+abstract class UriReference {
 
-  factory SVGUseElement() => _SVGElementFactoryProvider.createSVGElement_tag("use");
+  AnimatedString href;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName SVGUseElement
+class UseElement extends SvgElement implements Transformable, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace native "*SVGUseElement" {
+
+  factory UseElement() => _SvgElementFactoryProvider.createSvgElement_tag("use");
 
   /** @domName SVGUseElement.animatedInstanceRoot */
-  final SVGElementInstance animatedInstanceRoot;
+  final ElementInstance animatedInstanceRoot;
 
   /** @domName SVGUseElement.height */
-  final SVGAnimatedLength height;
+  final AnimatedLength height;
 
   /** @domName SVGUseElement.instanceRoot */
-  final SVGElementInstance instanceRoot;
+  final ElementInstance instanceRoot;
 
   /** @domName SVGUseElement.width */
-  final SVGAnimatedLength width;
+  final AnimatedLength width;
 
   /** @domName SVGUseElement.x */
-  final SVGAnimatedLength x;
+  final AnimatedLength x;
 
   /** @domName SVGUseElement.y */
-  final SVGAnimatedLength y;
+  final AnimatedLength y;
 
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
@@ -5883,27 +5886,27 @@ class SVGUseElement extends SVGElement implements SVGLangSpace, SVGTests, SVGSty
   // From SVGLocatable
 
   /** @domName SVGLocatable.farthestViewportElement */
-  final SVGElement farthestViewportElement;
+  final SvgElement farthestViewportElement;
 
   /** @domName SVGLocatable.nearestViewportElement */
-  final SVGElement nearestViewportElement;
+  final SvgElement nearestViewportElement;
 
   /** @domName SVGLocatable.getBBox */
-  SVGRect getBBox() native;
+  Rect getBBox() native;
 
   /** @domName SVGLocatable.getCTM */
-  SVGMatrix getCTM() native;
+  Matrix getCTM() native;
 
   /** @domName SVGLocatable.getScreenCTM */
-  SVGMatrix getScreenCTM() native;
+  Matrix getScreenCTM() native;
 
   /** @domName SVGLocatable.getTransformToElement */
-  SVGMatrix getTransformToElement(SVGElement element) native;
+  Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   /** @domName SVGStylable.className */
-  SVGAnimatedString get $dom_svgClassName => JS("SVGAnimatedString", "#.className", this);
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CSSStyleDeclaration style;
@@ -5914,13 +5917,13 @@ class SVGUseElement extends SVGElement implements SVGLangSpace, SVGTests, SVGSty
   // From SVGTests
 
   /** @domName SVGTests.requiredExtensions */
-  final SVGStringList requiredExtensions;
+  final StringList requiredExtensions;
 
   /** @domName SVGTests.requiredFeatures */
-  final SVGStringList requiredFeatures;
+  final StringList requiredFeatures;
 
   /** @domName SVGTests.systemLanguage */
-  final SVGStringList systemLanguage;
+  final StringList systemLanguage;
 
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension) native;
@@ -5928,12 +5931,12 @@ class SVGUseElement extends SVGElement implements SVGLangSpace, SVGTests, SVGSty
   // From SVGTransformable
 
   /** @domName SVGTransformable.transform */
-  final SVGAnimatedTransformList transform;
+  final AnimatedTransformList transform;
 
   // From SVGURIReference
 
   /** @domName SVGURIReference.href */
-  final SVGAnimatedString href;
+  final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5941,9 +5944,9 @@ class SVGUseElement extends SVGElement implements SVGLangSpace, SVGTests, SVGSty
 
 
 /// @domName SVGVKernElement
-class SVGVKernElement extends SVGElement native "*SVGVKernElement" {
+class VKernElement extends SvgElement native "*SVGVKernElement" {
 
-  factory SVGVKernElement() => _SVGElementFactoryProvider.createSVGElement_tag("vkern");
+  factory VKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("vkern");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5951,25 +5954,25 @@ class SVGVKernElement extends SVGElement native "*SVGVKernElement" {
 
 
 /// @domName SVGViewElement
-class SVGViewElement extends SVGElement implements SVGFitToViewBox, SVGZoomAndPan, SVGExternalResourcesRequired native "*SVGViewElement" {
+class ViewElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, ZoomAndPan native "*SVGViewElement" {
 
-  factory SVGViewElement() => _SVGElementFactoryProvider.createSVGElement_tag("view");
+  factory ViewElement() => _SvgElementFactoryProvider.createSvgElement_tag("view");
 
   /** @domName SVGViewElement.viewTarget */
-  final SVGStringList viewTarget;
+  final StringList viewTarget;
 
   // From SVGExternalResourcesRequired
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  final SVGAnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGFitToViewBox
 
   /** @domName SVGFitToViewBox.preserveAspectRatio */
-  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  final AnimatedPreserveAspectRatio preserveAspectRatio;
 
   /** @domName SVGFitToViewBox.viewBox */
-  final SVGAnimatedRect viewBox;
+  final AnimatedRect viewBox;
 
   // From SVGZoomAndPan
 
@@ -5982,28 +5985,28 @@ class SVGViewElement extends SVGElement implements SVGFitToViewBox, SVGZoomAndPa
 
 
 /// @domName SVGViewSpec
-class SVGViewSpec native "*SVGViewSpec" {
+class ViewSpec native "*SVGViewSpec" {
 
   /** @domName SVGViewSpec.preserveAspectRatio */
-  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  final AnimatedPreserveAspectRatio preserveAspectRatio;
 
   /** @domName SVGViewSpec.preserveAspectRatioString */
   final String preserveAspectRatioString;
 
   /** @domName SVGViewSpec.transform */
-  final SVGTransformList transform;
+  final TransformList transform;
 
   /** @domName SVGViewSpec.transformString */
   final String transformString;
 
   /** @domName SVGViewSpec.viewBox */
-  final SVGAnimatedRect viewBox;
+  final AnimatedRect viewBox;
 
   /** @domName SVGViewSpec.viewBoxString */
   final String viewBoxString;
 
   /** @domName SVGViewSpec.viewTarget */
-  final SVGElement viewTarget;
+  final SvgElement viewTarget;
 
   /** @domName SVGViewSpec.viewTargetString */
   final String viewTargetString;
@@ -6017,7 +6020,7 @@ class SVGViewSpec native "*SVGViewSpec" {
 
 
 /// @domName SVGZoomAndPan
-abstract class SVGZoomAndPan {
+abstract class ZoomAndPan {
 
   static const int SVG_ZOOMANDPAN_DISABLE = 1;
 
@@ -6033,22 +6036,22 @@ abstract class SVGZoomAndPan {
 
 
 /// @domName SVGZoomEvent
-class SVGZoomEvent extends UIEvent native "*SVGZoomEvent" {
+class ZoomEvent extends UIEvent native "*SVGZoomEvent" {
 
   /** @domName SVGZoomEvent.newScale */
   final num newScale;
 
   /** @domName SVGZoomEvent.newTranslate */
-  final SVGPoint newTranslate;
+  final Point newTranslate;
 
   /** @domName SVGZoomEvent.previousScale */
   final num previousScale;
 
   /** @domName SVGZoomEvent.previousTranslate */
-  final SVGPoint previousTranslate;
+  final Point previousTranslate;
 
   /** @domName SVGZoomEvent.zoomRectScreen */
-  final SVGRect zoomRectScreen;
+  final Rect zoomRectScreen;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6056,80 +6059,80 @@ class SVGZoomEvent extends UIEvent native "*SVGZoomEvent" {
 
 
 /// @domName SVGElementInstanceList
-class _SVGElementInstanceList implements JavaScriptIndexingBehavior, List<SVGElementInstance> native "*SVGElementInstanceList" {
+class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementInstance> native "*SVGElementInstanceList" {
 
   /** @domName SVGElementInstanceList.length */
   final int length;
 
-  SVGElementInstance operator[](int index) => JS("SVGElementInstance", "#[#]", this, index);
+  ElementInstance operator[](int index) => JS("ElementInstance", "#[#]", this, index);
 
-  void operator[]=(int index, SVGElementInstance value) {
+  void operator[]=(int index, ElementInstance value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
-  // -- start List<SVGElementInstance> mixins.
-  // SVGElementInstance is the element type.
+  // -- start List<ElementInstance> mixins.
+  // ElementInstance is the element type.
 
-  // From Iterable<SVGElementInstance>:
+  // From Iterable<ElementInstance>:
 
-  Iterator<SVGElementInstance> iterator() {
+  Iterator<ElementInstance> iterator() {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new FixedSizeListIterator<SVGElementInstance>(this);
+    return new FixedSizeListIterator<ElementInstance>(this);
   }
 
-  // From Collection<SVGElementInstance>:
+  // From Collection<ElementInstance>:
 
-  void add(SVGElementInstance value) {
+  void add(ElementInstance value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(SVGElementInstance value) {
+  void addLast(ElementInstance value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Collection<SVGElementInstance> collection) {
+  void addAll(Collection<ElementInstance> collection) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(SVGElementInstance element) => _Collections.contains(this, element);
+  bool contains(ElementInstance element) => _Collections.contains(this, element);
 
-  void forEach(void f(SVGElementInstance element)) => _Collections.forEach(this, f);
+  void forEach(void f(ElementInstance element)) => _Collections.forEach(this, f);
 
-  Collection map(f(SVGElementInstance element)) => _Collections.map(this, [], f);
+  Collection map(f(ElementInstance element)) => _Collections.map(this, [], f);
 
-  Collection<SVGElementInstance> filter(bool f(SVGElementInstance element)) =>
-     _Collections.filter(this, <SVGElementInstance>[], f);
+  Collection<ElementInstance> filter(bool f(ElementInstance element)) =>
+     _Collections.filter(this, <ElementInstance>[], f);
 
-  bool every(bool f(SVGElementInstance element)) => _Collections.every(this, f);
+  bool every(bool f(ElementInstance element)) => _Collections.every(this, f);
 
-  bool some(bool f(SVGElementInstance element)) => _Collections.some(this, f);
+  bool some(bool f(ElementInstance element)) => _Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
-  // From List<SVGElementInstance>:
+  // From List<ElementInstance>:
 
-  void sort([Comparator<SVGElementInstance> compare = Comparable.compare]) {
+  void sort([Comparator<ElementInstance> compare = Comparable.compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
-  int indexOf(SVGElementInstance element, [int start = 0]) =>
+  int indexOf(ElementInstance element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(SVGElementInstance element, [int start]) {
+  int lastIndexOf(ElementInstance element, [int start]) {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGElementInstance get first => this[0];
+  ElementInstance get first => this[0];
 
-  SVGElementInstance get last => this[length - 1];
+  ElementInstance get last => this[length - 1];
 
-  SVGElementInstance removeLast() {
+  ElementInstance removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<SVGElementInstance> from, [int startFrom]) {
+  void setRange(int start, int rangeLength, List<ElementInstance> from, [int startFrom]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -6137,15 +6140,15 @@ class _SVGElementInstanceList implements JavaScriptIndexingBehavior, List<SVGEle
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [SVGElementInstance initialValue]) {
+  void insertRange(int start, int rangeLength, [ElementInstance initialValue]) {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
-  List<SVGElementInstance> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <SVGElementInstance>[]);
+  List<ElementInstance> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <ElementInstance>[]);
 
-  // -- end List<SVGElementInstance> mixins.
+  // -- end List<ElementInstance> mixins.
 
   /** @domName SVGElementInstanceList.item */
-  SVGElementInstance item(int index) native;
+  ElementInstance item(int index) native;
 }

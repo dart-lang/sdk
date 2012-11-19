@@ -55,21 +55,21 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   String get outerHTML {
     final container = new Element.tag("div");
-    final SVGElement cloned = this.clone(true);
+    final SvgElement cloned = this.clone(true);
     container.elements.add(cloned);
     return container.innerHTML;
   }
 
   String get innerHTML {
     final container = new Element.tag("div");
-    final SVGElement cloned = this.clone(true);
+    final SvgElement cloned = this.clone(true);
     container.elements.addAll(cloned.elements);
     return container.innerHTML;
   }
 
   void set innerHTML(String svg) {
     final container = new Element.tag("div");
-    // Wrap the SVG string in <svg> so that SVGElements are created, rather than
+    // Wrap the SVG string in <svg> so that SvgElements are created, rather than
     // HTMLElements.
     container.innerHTML = '<svg version="1.1">$svg</svg>';
     this.elements = container.elements[0].elements;

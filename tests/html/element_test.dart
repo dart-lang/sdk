@@ -6,7 +6,7 @@ library ElementTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
-import 'dart:svg';
+import 'dart:svg' as svg;
 
 expectLargeRect(ClientRect rect) {
   expect(rect.top, 0);
@@ -522,7 +522,7 @@ main() {
     test('some', () {
       var el = makeElementWithChildren();
       expect(el.elements.some((n) => n is InputElement), isTrue);
-      expect(el.elements.some((n) => n is SVGElement), isFalse);
+      expect(el.elements.some((n) => n is svg.SvgElement), isFalse);
     });
 
     test('isEmpty', () {
@@ -664,7 +664,7 @@ main() {
     test('some', () {
       var el = getQueryAll();
       expect(el.some((n) => n is SpanElement), isTrue);
-      expect(el.some((n) => n is SVGElement), isFalse);
+      expect(el.some((n) => n is svg.SvgElement), isFalse);
     });
 
     test('isEmpty', () {
