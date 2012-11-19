@@ -117,6 +117,41 @@ abstract class HttpServer {
    * is 20 minutes.
    */
   set sessionTimeout(int timeout);
+
+  /**
+   * Returns a [:HttpConnectionsInfo:] object with an overview of the
+   * current connection handled by the server.
+   */
+  HttpConnectionsInfo connectionsInfo();
+}
+
+
+/**
+ * Overview information of the [:HttpServer:] socket connections.
+ */
+class HttpConnectionsInfo {
+  /**
+   * Total number of socket connections.
+   */
+  int total = 0;
+
+  /**
+   * Number of active connections where actual request/response
+   * processing is active.
+   */
+  int active = 0;
+
+  /**
+   * Number of idle connections held by clients as persistent connections.
+   */
+  int idle = 0;
+
+  /**
+   * Number of connections which are preparing to close. Note: These
+   * connections are also part of the [:active:] count as they might
+   * still be sending data to the client before finally closing.
+   */
+  int closing = 0;
 }
 
 

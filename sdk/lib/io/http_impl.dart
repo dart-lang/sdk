@@ -27,6 +27,7 @@ class _CloseQueue {
       return;
     }
 
+    connection._state |= _HttpConnectionBase.CLOSING;
     _q.add(connection);
 
     // If output stream is not closed for writing close it now and
@@ -49,6 +50,7 @@ class _CloseQueue {
         // information for anything. For both server and client
         // connections the inbound message have been read to
         // completion when the socket enters the close queue.
+        closeIfDone();
       };
     } else {
       connection._socket.onClosed = () { assert(false); };
@@ -718,17 +720,21 @@ class _HttpOutputStream extends _BaseOutputStream implements OutputStream {
 abstract class _HttpConnectionBase {
   static const int IDLE = 0;
   static const int ACTIVE = 1;
-  static const int REQUEST_DONE = 2;
-  static const int RESPONSE_DONE = 4;
+  static const int CLOSING = 2;
+  static const int REQUEST_DONE = 4;
+  static const int RESPONSE_DONE = 8;
   static const int ALL_DONE = REQUEST_DONE | RESPONSE_DONE;
-  static const int READ_CLOSED = 8;
-  static const int WRITE_CLOSED = 16;
+  static const int READ_CLOSED = 16;
+  static const int WRITE_CLOSED = 32;
   static const int FULLY_CLOSED = READ_CLOSED | WRITE_CLOSED;
 
   _HttpConnectionBase() : hashCode = _nextHashCode {
     _nextHashCode = (_nextHashCode + 1) & 0xFFFFFFF;
   }
 
+  bool get _isIdle => (_state & ACTIVE) == 0;
+  bool get _isActive => (_state & ACTIVE) == ACTIVE;
+  bool get _isClosing => (_state & CLOSING) == CLOSING;
   bool get _isRequestDone => (_state & REQUEST_DONE) == REQUEST_DONE;
   bool get _isResponseDone => (_state & RESPONSE_DONE) == RESPONSE_DONE;
   bool get _isAllDone => (_state & ALL_DONE) == ALL_DONE;
@@ -832,6 +838,7 @@ class _HttpConnection extends _HttpConnectionBase {
 
   void _onClosed() {
     _state |= _HttpConnectionBase.READ_CLOSED;
+    _checkDone();
   }
 
   void _onError(e) {
@@ -884,6 +891,9 @@ class _HttpConnection extends _HttpConnectionBase {
       } else {
         _state = _HttpConnectionBase.IDLE;
       }
+    } else if (_state == _HttpConnectionBase.READ_CLOSED) {
+      // If entering READ_CLOSED state while idle close the connection.
+      _server._closeQueue.add(this);
     }
   }
 
@@ -1024,6 +1034,21 @@ class _HttpServer implements HttpServer {
     return _sessionManagerInstance;
   }
 
+  HttpConnectionsInfo connectionsInfo() {
+    HttpConnectionsInfo result = new HttpConnectionsInfo();
+    result.total = _connections.length;
+    _connections.forEach((_HttpConnection conn) {
+      if (conn._isActive) {
+        result.active++;
+      } else if (conn._isIdle) {
+        result.idle++;
+      } else {
+        assert(result._isClosing);
+        result.closing++;
+      }
+    });
+    return result;
+  }
 
   ServerSocket _server;  // The server listen socket.
   bool _closeServer = false;
@@ -1435,6 +1460,7 @@ class _HttpClientConnection
 
   void _onClosed() {
     _state |= _HttpConnectionBase.READ_CLOSED;
+    _checkSocketDone();
   }
 
   void _onError(e) {
