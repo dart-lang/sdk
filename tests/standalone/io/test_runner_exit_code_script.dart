@@ -28,7 +28,7 @@ main() {
   progress.allTestsKnown();
   progress.start(testCase);
   new CommandOutput.fromCase(testCase, dummyCommand, 1, false, false, [], [],
-                             new Date.now().difference(startTime));
+                             new Date.now().difference(startTime), false);
   progress.done(testCase);
   progress.allDone();
 }

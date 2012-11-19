@@ -13,6 +13,7 @@
 
 #import("dart:io");
 #import("dart:isolate");
+#import("dart:uri");
 #import("status_file_parser.dart");
 #import("test_progress.dart");
 #import("test_suite.dart");
@@ -46,6 +47,62 @@ class Command {
   }
 
   String toString() => commandLine;
+
+  Future<bool> get outputIsUpToDate => new Future.immediate(false);
+}
+
+class Dart2JsCommand extends Command {
+  String _jsOutputFile;
+  bool _neverSkipCompilation;
+  List<Uri> _bootstrapDependencies;
+
+  Dart2JsCommand(this._jsOutputFile,
+                 this._neverSkipCompilation,
+                 this._bootstrapDependencies,
+                 String executable,
+                 List<String> arguments)
+      : super(executable, arguments);
+
+  Future<bool> get outputIsUpToDate {
+    if (_neverSkipCompilation) return new Future.immediate(false);
+
+    Future<List<Uri>> readDepsFile(String path) {
+      var file = new File(new Path(path).toNativePath());
+      if (!file.existsSync()) {
+        return new Future.immediate(null);
+      }
+      return file.readAsLines().transform((List<String> lines) {
+        var dependencies = new List<Uri>();
+        for (var line in lines) {
+          line = line.trim();
+          if (line.length > 0) {
+            dependencies.add(new Uri(line));
+          }
+        }
+        return dependencies;
+      });
+    }
+
+    return readDepsFile("$_jsOutputFile.deps").transform((dependencies) {
+      if (dependencies != null) {
+        dependencies.addAll(_bootstrapDependencies);
+        var jsOutputLastModified = TestUtils.lastModifiedCache.getLastModified(
+            new Uri.fromComponents(scheme: 'file', path: _jsOutputFile));
+        if (jsOutputLastModified != null) {
+          for (var dependency in dependencies) {
+            var dependencyLastModified = 
+                TestUtils.lastModifiedCache.getLastModified(dependency);
+            if (dependencyLastModified == null || 
+                dependencyLastModified > jsOutputLastModified) {
+              return false;
+            }
+          }
+          return true;
+        }
+      }
+      return false;
+    });
+  }
 }
 
 /**
@@ -262,7 +319,8 @@ abstract class CommandOutput {
                                  bool timedOut,
                                  List<String> stdout,
                                  List<String> stderr,
-                                 Duration time) {
+                                 Duration time,
+                                 bool compilationSkipped) {
     return new CommandOutputImpl.fromCase(testCase, 
                                           command,
                                           exitCode,
@@ -270,7 +328,8 @@ abstract class CommandOutput {
                                           timedOut,
                                           stdout,
                                           stderr,
-                                          time);
+                                          time,
+                                          compilationSkipped);
   }
 
   bool get incomplete;
@@ -296,6 +355,8 @@ abstract class CommandOutput {
   List<String> get stderr;
 
   List<String> get diagnostics;
+  
+  bool get compilationSkipped;
 }
 
 class CommandOutputImpl implements CommandOutput {
@@ -311,6 +372,7 @@ class CommandOutputImpl implements CommandOutput {
   List<String> stderr;
   Duration time;
   List<String> diagnostics;
+  bool compilationSkipped;
 
   /**
    * A flag to indicate we have already printed a warning about ignoring the VM
@@ -333,7 +395,8 @@ class CommandOutputImpl implements CommandOutput {
                     bool this.timedOut,
                     List<String> this.stdout,
                     List<String> this.stderr,
-                    Duration this.time) {
+                    Duration this.time,
+                    bool this.compilationSkipped) {
     testCase.commandOutputs[command] = this;
     diagnostics = [];
   }
@@ -344,7 +407,8 @@ class CommandOutputImpl implements CommandOutput {
                                      bool timedOut,
                                      List<String> stdout,
                                      List<String> stderr,
-                                     Duration time) {
+                                     Duration time,
+                                     bool compilationSkipped) {
     if (testCase is BrowserTestCase) {
       return new BrowserCommandOutputImpl(testCase,
                                           command,
@@ -353,7 +417,8 @@ class CommandOutputImpl implements CommandOutput {
                                           timedOut,
                                           stdout,
                                           stderr,
-                                          time);
+                                          time,
+                                          compilationSkipped);
     } else if (testCase.configuration['compiler'] == 'dartc') {
       return new AnalysisCommandOutputImpl(testCase,
                                            command,
@@ -361,7 +426,8 @@ class CommandOutputImpl implements CommandOutput {
                                            timedOut,
                                            stdout,
                                            stderr,
-                                           time);
+                                           time,
+                                           compilationSkipped);
     }
     return new CommandOutputImpl(testCase,
                                  command,
@@ -370,7 +436,8 @@ class CommandOutputImpl implements CommandOutput {
                                  timedOut,
                                  stdout,
                                  stderr,
-                                 time);
+                                 time,
+                                 compilationSkipped);
   }
 
   String get result =>
@@ -419,7 +486,8 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
       timedOut,
       stdout,
       stderr,
-      time) :
+      time,
+      compilationSkipped) :
     super(testCase,
           command,
           exitCode,
@@ -427,7 +495,8 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
           timedOut,
           stdout,
           stderr,
-          time);
+          time,
+          compilationSkipped);
 
   bool get didFail {
     // Browser case:
@@ -479,14 +548,24 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
 
   bool alreadyComputed = false;
   bool failResult;
+  
   AnalysisCommandOutputImpl(testCase,
                             command,
                             exitCode,
                             timedOut,
                             stdout, 
                             stderr,
-                            time) :
-    super(testCase, command, exitCode, false, timedOut, stdout, stderr, time);
+                            time,
+                            compilationSkipped) :
+    super(testCase,
+          command,
+          exitCode,
+          false,
+          timedOut,
+          stdout,
+          stderr,
+          time,
+          compilationSkipped);
 
   bool get didFail {
     if (!alreadyComputed) {
@@ -654,6 +733,7 @@ class RunningProcess {
   Timer timeoutTimer;
   List<String> stdout;
   List<String> stderr;
+  bool compilationSkipped;
   bool allowRetries;
 
   /** Which command of [testCase.commands] is currently being executed. */
@@ -666,7 +746,9 @@ class RunningProcess {
    * Called when all commands are executed. 
    */
   void testComplete(CommandOutput lastCommandOutput) {
-    timeoutTimer.cancel();
+    if (timeoutTimer != null) {
+      timeoutTimer.cancel();
+    }
     if (lastCommandOutput.unexpectedOutput
         && testCase.configuration['verbose'] != null
         && testCase.configuration['verbose']) {
@@ -728,7 +810,9 @@ class RunningProcess {
         // ff, safari, chrome, opera. (It is only null for runtime == vm)
         // This RunningProcess object is done, and hands over control to
         // BatchRunner.startTest(), which handles reporting, etc.
-        timeoutTimer.cancel();
+        if (timeoutTimer != null) {
+          timeoutTimer.cancel();
+        }
         processQueue._getBatchRunner(testCase).startTest(testCase);
       } else {
         runCommand(testCase.commands[currentStep++], commandComplete);
@@ -750,7 +834,8 @@ class RunningProcess {
         timedOut,
         stdout,
         stderr,
-        new Date.now().difference(startTime));
+        new Date.now().difference(startTime),
+        compilationSkipped);
     resetLocalOutputInformation();
     return commandOutput;
   }
@@ -758,6 +843,7 @@ class RunningProcess {
   void resetLocalOutputInformation() {
     stdout = new List<String>();
     stderr = new List<String>();
+    compilationSkipped = false;
   }
   
   VoidFunction makeReadHandler(StringInputStream source,
@@ -785,31 +871,42 @@ class RunningProcess {
     void processExitHandler(int returnCode) {
       commandCompleteHandler(command, returnCode);
     }
-    
-    Future processFuture = Process.start(command.executable, command.arguments);
-    processFuture.then((Process p) {
-      process = p;
-      process.onExit = processExitHandler;
-      var stdoutStringStream = new StringInputStream(process.stdout);
-      var stderrStringStream = new StringInputStream(process.stderr);
-      stdoutStringStream.onLine =
-          makeReadHandler(stdoutStringStream, stdout);
-      stderrStringStream.onLine =
-          makeReadHandler(stderrStringStream, stderr);
-      if (timeoutTimer == null) {
-        // Create one timeout timer when starting test case, remove it at end.
-        timeoutTimer = new Timer(1000 * testCase.timeout, timeoutHandler);
+
+    command.outputIsUpToDate.then((bool isUpToDate) {
+      if (isUpToDate) {
+        stdout.add("Skipped compilation because the old output is "
+                   "still up to date!");
+        compilationSkipped = true;
+        commandComplete(command, 0);
+      } else {
+        Future processFuture = Process.start(command.executable,
+                                             command.arguments);
+        processFuture.then((Process p) {
+          process = p;
+          process.onExit = processExitHandler;
+          var stdoutStringStream = new StringInputStream(process.stdout);
+          var stderrStringStream = new StringInputStream(process.stderr);
+          stdoutStringStream.onLine =
+              makeReadHandler(stdoutStringStream, stdout);
+          stderrStringStream.onLine =
+              makeReadHandler(stderrStringStream, stderr);
+          if (timeoutTimer == null) {
+            // Create one timeout timer when starting test case, remove it at 
+            // the end.
+            timeoutTimer = new Timer(1000 * testCase.timeout, timeoutHandler);
+          }
+          // If the timeout fired in between two commands, kill the just
+          // started process immediately.
+          if (timedOut) safeKill(process);
+        });
+        processFuture.handleException((e) {
+          print("Process error:");
+          print("  Command: $command");
+          print("  Error: $e");
+          testComplete(createCommandOutput(command, -1, false));
+          return true;
+        });
       }
-      // If the timeout fired in between two commands, kill the just
-      // started process immediately.
-      if (timedOut) safeKill(process);
-    });
-    processFuture.handleException((e) {
-      print("Process error:");
-      print("  Command: $command");
-      print("  Error: $e");
-      testComplete(createCommandOutput(command, -1, false));
-      return true;
     });
   }
 
@@ -959,7 +1056,8 @@ class BatchRunnerProcess {
                                (outcome == "TIMEOUT"),
                                _testStdout,
                                _testStderr,
-                               new Date.now().difference(_startTime));
+                               new Date.now().difference(_startTime),
+                               false);
     var test = _currentTest;
     _currentTest = null;
     test.completed();
