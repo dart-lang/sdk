@@ -95,7 +95,7 @@ class FsUtils {
   }
 
   String _readFile(File file) {
-    return file.readAsTextSync();
+    return file.readAsStringSync();
   }
 
   File _createFile(Path path) {
