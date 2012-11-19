@@ -1118,11 +1118,13 @@ abstract class HInstruction implements Spannable {
   bool isJsStatement(HTypeMap types) => false;
 
   bool dominates(HInstruction other) {
+    // An instruction does not dominates itself.
+    if (this == other) return false;
     if (block != other.block) return block.dominates(other.block);
 
-    HInstruction current = this;
+    HInstruction current = this.next;
     while (current != null) {
-      if (identical(current, other)) return true;
+      if (current == other) return true;
       current = current.next;
     }
     return false;
