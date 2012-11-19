@@ -984,6 +984,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           updateBody.statements.add(new js.Continue(null));
           body.statements.add(
               new js.If(jsCondition, updateBody, new js.Break(null)));
+          jsCondition = newLiteralBool(true);
         }
         loop = new js.Do(unwrapStatement(body), jsCondition);
         currentContainer = oldContainer;
