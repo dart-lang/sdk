@@ -6,7 +6,8 @@ library args_test;
 
 import '../../../pkg/unittest/lib/unittest.dart';
 
-import 'package:args/args.dart';
+// TODO(rnystrom): Use "package:" URL here when test.dart can handle pub.
+import '../lib/args.dart';
 
 main() {
   group('ArgParser.addFlag()', () {
