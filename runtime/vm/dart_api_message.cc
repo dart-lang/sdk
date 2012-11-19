@@ -227,9 +227,7 @@ Dart_CObject* ApiMessageReader::ReadVMSymbol(intptr_t object_id) {
       intptr_t size = sizeof(*vm_symbol_references_) * Symbols::kMaxId;
       vm_symbol_references_ =
           reinterpret_cast<Dart_CObject**>(alloc_(NULL, 0, size));
-#ifdef DEBUG
       memset(vm_symbol_references_, 0, size);
-#endif
     }
 
     RawOneByteString* str =
