@@ -15,6 +15,3 @@
 [ $system == windows ]
 install/git/*: Slow, Pass, Timeout
 update/git/*: Slow, Pass, Timeout
-# TODO(nweiz): enable this on Windows when we have a binary checked in. See
-# issue 6777.
-curl_test: Skip

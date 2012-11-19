@@ -14,14 +14,19 @@ import 'utils.dart';
 /// utility rather than [dart:io] to make requests. This class will only exist
 /// temporarily until [dart:io] natively supports requests over HTTPS.
 class CurlClient extends http.BaseClient {
-  /// The path to the `curl` executable to run. By default, this will look up
-  /// `curl` on the system path.
+  /// The path to the `curl` executable to run.
+  ///
+  /// By default on Unix-like operating systems, this will look up `curl` on the
+  /// system path. On Windows, it will use the bundled `curl.exe`.
   final String executable;
 
   /// Creates a new [CurlClient] with [executable] as the path to the `curl`
-  /// executable. By default, this will look up `curl` on the system path.
+  /// executable.
+  ///
+  /// By default on Unix-like operating systems, this will look up `curl` on the
+  /// system path. On Windows, it will use the bundled `curl.exe`.
   CurlClient([String executable])
-    : executable = executable == null ? "curl" : executable;
+    : executable = executable == null ? _defaultExecutable : executable;
 
   /// Sends a request via `curl` and returns the response.
   Future<http.StreamedResponse> send(http.BaseRequest request) {
@@ -30,7 +35,7 @@ class CurlClient extends http.BaseClient {
       var headerFile = new Path(tempDir).append("curl-headers").toNativePath();
       var arguments = _argumentsForRequest(request, headerFile);
       var process;
-      return Process.start("curl", arguments).chain((process_) {
+      return Process.start(executable, arguments).chain((process_) {
         process = process_;
         if (requestStream.closed) {
           process.stdin.close();
@@ -49,7 +54,14 @@ class CurlClient extends http.BaseClient {
   /// should be stored.
   List<String> _argumentsForRequest(
       http.BaseRequest request, String headerFile) {
-    var arguments = ["--dump-header", headerFile];
+    // Note: This line of code gets munged by create_sdk.py to be the correct
+    // relative path to the certificate file in the SDK.
+    var pathToCertificates = "../../third_party/curl/ca-certificates.crt";
+
+    var arguments = [
+      "--dump-header", headerFile,
+      "--cacert", relativeToPub(pathToCertificates)
+    ];
     if (request.method == 'HEAD') {
       arguments.add("--head");
     } else {
@@ -183,5 +195,16 @@ class CurlClient extends http.BaseClient {
         headers: headers,
         isRedirect: isRedirect,
         reasonPhrase: reasonPhrase);
+  }
+
+  /// The default executable to use for running curl. On Windows, this is the
+  /// path to the bundled `curl.exe`; elsewhere, this is just "curl", and we
+  /// assume it to be installed and on the user's PATH.
+  static String get _defaultExecutable {
+    if (Platform.operatingSystem != 'windows') return 'curl';
+    // Note: This line of code gets munged by create_sdk.py to be the correct
+    // relative path to curl in the SDK.
+    var pathToCurl = "../../third_party/curl/curl.exe";
+    return relativeToPub(pathToCurl);
   }
 }
