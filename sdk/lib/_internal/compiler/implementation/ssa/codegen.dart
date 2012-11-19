@@ -65,16 +65,6 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
   CodeBuffer generateMethod(WorkItem work, HGraph graph) {
     return measure(() {
-      JavaScriptItemCompilationContext context = work.compilationContext;
-      HTypeMap types = context.types;
-      graph.exit.predecessors.forEach((block) {
-        assert(block.last is HGoto || block.last is HReturn);
-        if (block.last is HReturn) {
-          backend.registerReturnType(work.element, types[block.last.inputs[0]]);
-        } else {
-          backend.registerReturnType(work.element, HType.NULL);
-        }
-      });
       compiler.tracer.traceGraph("codegen", graph);
       SsaOptimizedCodeGenerator codegen =
           new SsaOptimizedCodeGenerator(backend, work);
@@ -382,6 +372,17 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     allocator.visitGraph(graph);
     variableNames = allocator.names;
     shouldGroupVarDeclarations = allocator.names.numberOfVariables > 1;
+
+    // Register return types to the backend.
+    graph.exit.predecessors.forEach((HBasicBlock block) {
+      HInstruction last = block.last;
+      assert(last is HGoto || last is HReturn);
+      if (last is HReturn) {
+        backend.registerReturnType(work.element, types[last.inputs[0]]);
+      } else {
+        backend.registerReturnType(work.element, HType.NULL);
+      }
+    });
   }
 
   void handleDelayedVariableDeclarations() {
