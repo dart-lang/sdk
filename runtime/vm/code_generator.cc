@@ -770,29 +770,36 @@ DEFINE_RUNTIME_ENTRY(ReThrow, 2) {
 }
 
 
+// Patches static call with the target's entry point. Compiles target if
+// necessary.
 DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
-  // This function is called after successful resolving and compilation of
-  // the target method.
   ASSERT(arguments.ArgCount() == kPatchStaticCallRuntimeEntry.argument_count());
   DartFrameIterator iterator;
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
-  uword target = 0;
-  Function& target_function = Function::Handle();
-  CodePatcher::GetStaticCallAt(caller_frame->pc(), &target_function, &target);
-  ASSERT(target_function.HasCode());
+  const Code& caller_code = Code::Handle(caller_frame->LookupDartCode());
+  ASSERT(!caller_code.IsNull());
+  const Function& target_function = Function::Handle(
+      caller_code.GetStaticCallTargetFunctionAt(caller_frame->pc()));
+  if (!target_function.HasCode()) {
+    const Error& error =
+        Error::Handle(Compiler::CompileFunction(target_function));
+    if (!error.IsNull()) {
+      Exceptions::PropagateError(error);
+    }
+  }
   const Code& target_code = Code::Handle(target_function.CurrentCode());
-  uword new_target = target_code.EntryPoint();
-  // Verify that we are not patching repeatedly.
-  ASSERT(target != new_target);
-  CodePatcher::PatchStaticCallAt(caller_frame->pc(), new_target);
-  const Code& code = Code::Handle(caller_frame->LookupDartCode());
-  code.SetStaticCallTargetCodeAt(caller_frame->pc(), target_code);
+  // Before patching verify that we are not repeatedly patching to the same
+  // target.
+  ASSERT(target_code.EntryPoint() !=
+         CodePatcher::GetStaticCallTargetAt(caller_frame->pc()));
+  CodePatcher::PatchStaticCallAt(caller_frame->pc(), target_code.EntryPoint());
+  caller_code.SetStaticCallTargetCodeAt(caller_frame->pc(), target_code);
   if (FLAG_trace_patching) {
     OS::Print("PatchStaticCall: patching from %#"Px" to '%s' %#"Px"\n",
         caller_frame->pc(),
         target_function.ToFullyQualifiedCString(),
-        new_target);
+        target_code.EntryPoint());
   }
 }
 
@@ -1522,7 +1529,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 
 
 // The caller must be a static call in a Dart frame, or an entry frame.
-// Patch static call to point to 'new_entry_point'.
+// Patch static call to point to valid code's entry point.
 DEFINE_RUNTIME_ENTRY(FixCallersTarget, 1) {
   ASSERT(arguments.ArgCount() ==
       kFixCallersTargetRuntimeEntry.argument_count());
@@ -1538,11 +1545,7 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 1) {
   ASSERT(frame != NULL);
   if (!frame->IsEntryFrame()) {
     ASSERT(frame->IsDartFrame());
-    uword target = 0;
-    Function& target_function = Function::Handle();
-    CodePatcher::GetStaticCallAt(frame->pc(), &target_function, &target);
-    ASSERT(target_function.HasCode());
-    ASSERT(target_function.raw() == function.raw());
+    uword target = CodePatcher::GetStaticCallTargetAt(frame->pc());
     const Code& target_code = Code::Handle(function.CurrentCode());
     const uword new_entry_point = target_code.EntryPoint();
     ASSERT(target != new_entry_point);  // Why patch otherwise.
@@ -1552,7 +1555,7 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 1) {
     if (FLAG_trace_patching) {
       OS::Print("FixCallersTarget: patching from %#"Px" to '%s' %#"Px"\n",
           frame->pc(),
-          target_function.ToFullyQualifiedCString(),
+          Function::Handle(target_code.function()).ToFullyQualifiedCString(),
           new_entry_point);
     }
   }

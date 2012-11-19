@@ -7314,12 +7314,11 @@ void Code::ExtractUncalledStaticCallDeoptIds(
   deopt_ids->Clear();
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(this->pc_descriptors());
-  Function& function = Function::Handle();
   for (intptr_t i = 0; i < descriptors.Length(); i++) {
     if (descriptors.DescriptorKind(i) == PcDescriptors::kFuncCall) {
       // Static call.
-      uword target_addr;
-      CodePatcher::GetStaticCallAt(descriptors.PC(i), &function, &target_addr);
+      const uword target_addr =
+          CodePatcher::GetStaticCallTargetAt(descriptors.PC(i));
       if (target_addr == StubCode::CallStaticFunctionEntryPoint()) {
         deopt_ids->Add(descriptors.DeoptId(i));
       }

@@ -575,8 +575,7 @@ void CodeBreakpoint::PatchCode() {
       break;
     }
     case PcDescriptors::kFuncCall: {
-      Function& func = Function::Handle();
-      CodePatcher::GetStaticCallAt(pc_, &func, &saved_bytes_.target_address_);
+      saved_bytes_.target_address_ = CodePatcher::GetStaticCallTargetAt(pc_);
       CodePatcher::PatchStaticCallAt(pc_,
           StubCode::BreakpointStaticEntryPoint());
       break;

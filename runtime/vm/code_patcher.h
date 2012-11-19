@@ -43,10 +43,7 @@ class CodePatcher : public AllStatic {
   // or dynamic Dart call.
   static bool IsDartCall(uword return_address);
 
-  // Get static call information.
-  static void GetStaticCallAt(uword return_address,
-                              Function* function,
-                              uword* target);
+  static uword GetStaticCallTargetAt(uword return_address);
 
   // Get instance call information.
   static void GetInstanceCallAt(uword return_address,

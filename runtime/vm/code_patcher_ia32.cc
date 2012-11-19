@@ -139,14 +139,9 @@ class InstanceCall : public DartCallPattern {
 };
 
 
-void CodePatcher::GetStaticCallAt(uword return_address,
-                                  Function* function,
-                                  uword* target) {
-  ASSERT(function != NULL);
-  ASSERT(target != NULL);
+uword CodePatcher::GetStaticCallTargetAt(uword return_address) {
   StaticCall call(return_address);
-  *target = call.target();
-  *function = call.function();
+  return call.target();
 }
 
 
