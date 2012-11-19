@@ -424,13 +424,21 @@ class LocalsHandler {
       directLocals[closureData.thisElement] = builder.thisInstruction;
     }
 
-    if (builder.backend.isInterceptorClass(element.getEnclosingClass())) {
+    ClassElement cls = element.getEnclosingClass();
+    if (builder.backend.isInterceptorClass(cls)) {
       Element parameter = new Element(
           const SourceString('receiver'), ElementKind.VARIABLE, element);
       HParameterValue value = new HParameterValue(parameter);
       builder.graph.entry.addAfter(
           directLocals[closureData.thisElement], value);
       directLocals[closureData.thisElement] = value;
+      HType type = HType.UNKNOWN;
+      if (cls == builder.backend.jsArrayClass) {
+        type = HType.READABLE_ARRAY;
+      } else if (cls == builder.backend.jsStringClass) {
+        type = HType.STRING;
+      }
+      value.guaranteedType = type;
     }
   }
 

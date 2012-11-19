@@ -93,4 +93,35 @@ class JSString implements String {
     }
     return result;
   }
+
+  int indexOf(String other, [int start = 0]) {
+    checkNull(other);
+    if (start is !int) throw new ArgumentError(start);
+    if (other is !String) throw new ArgumentError(other);
+    if (start < 0) return -1;
+    return JS('int', r'#.indexOf(#, #)', this, other, start);
+  }
+
+  int lastIndexOf(String other, [int start]) {
+    checkNull(other);
+    if (other is !String) throw new ArgumentError(other);
+    if (start != null) {
+      if (start is !num) throw new ArgumentError(start);
+      if (start < 0) return -1;
+      if (start >= length) {
+        if (other == "") return length;
+        start = length - 1;
+      }
+    } else {
+      start = length - 1;
+    }
+    return stringLastIndexOfUnchecked(this, other, start);
+  }
+
+  bool contains(String other, [int startIndex = 0]) {
+    checkNull(other);
+    return stringContainsUnchecked(this, other, startIndex);
+  }
+
+  bool get isEmpty => length == 0;  
 }

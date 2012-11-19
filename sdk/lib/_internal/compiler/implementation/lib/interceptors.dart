@@ -49,6 +49,13 @@ set$length(receiver, newLength) {
   return newLength;
 }
 
+iterator(receiver) {
+  if (isJsArray(receiver)) {
+    return new ListIterator(receiver);
+  }
+  return UNINTERCEPTED(receiver.iterator());
+}
+
 toString(var value) {
   if (JS('bool', r'typeof # == "object" && # != null', value, value)) {
     if (isJsArray(value)) {
@@ -65,13 +72,6 @@ toString(var value) {
     return 'Closure';
   }
   return JS('String', r'String(#)', value);
-}
-
-get$isEmpty(receiver) {
-  if (receiver is String || isJsArray(receiver)) {
-    return JS('bool', r'#.length === 0', receiver);
-  }
-  return UNINTERCEPTED(receiver.isEmpty);
 }
 
 compareTo(a, b) {
@@ -104,188 +104,6 @@ compareTo(a, b) {
   } else {
     return UNINTERCEPTED(a.compareTo(b));
   }
-}
-
-iterator(receiver) {
-  if (isJsArray(receiver)) {
-    return new ListIterator(receiver);
-  }
-  return UNINTERCEPTED(receiver.iterator());
-}
-
-indexOf$1(receiver, element) {
-  if (isJsArray(receiver)) {
-    var length = JS('num', r'#.length', receiver);
-    return Arrays.indexOf(receiver, element, 0, length);
-  } else if (receiver is String) {
-    checkNull(element);
-    if (element is !String) throw new ArgumentError(element);
-    return JS('int', r'#.indexOf(#)', receiver, element);
-  }
-  return UNINTERCEPTED(receiver.indexOf(element));
-}
-
-indexOf$2(receiver, element, start) {
-  if (isJsArray(receiver)) {
-    if (start is !int) throw new ArgumentError(start);
-    var length = JS('num', r'#.length', receiver);
-    return Arrays.indexOf(receiver, element, start, length);
-  } else if (receiver is String) {
-    checkNull(element);
-    if (start is !int) throw new ArgumentError(start);
-    if (element is !String) throw new ArgumentError(element);
-    if (start < 0) return -1; // TODO(ahe): Is this correct?
-    return JS('int', r'#.indexOf(#, #)', receiver, element, start);
-  }
-  return UNINTERCEPTED(receiver.indexOf(element, start));
-}
-
-insertRange$2(receiver, start, length) {
-  if (isJsArray(receiver)) {
-    return insertRange$3(receiver, start, length, null);
-  }
-  return UNINTERCEPTED(receiver.insertRange(start, length));
-}
-
-insertRange$3(receiver, start, length, initialValue) {
-  if (!isJsArray(receiver)) {
-    return UNINTERCEPTED(receiver.insertRange(start, length, initialValue));
-  }
-  return listInsertRange(receiver, start, length, initialValue);
-}
-
-get$first(receiver) {
-  if (!isJsArray(receiver)) {
-    return UNINTERCEPTED(receiver.first);
-  }
-  return receiver[0];
-}
-
-get$last(receiver) {
-  if (!isJsArray(receiver)) {
-    return UNINTERCEPTED(receiver.last);
-  }
-  return receiver[receiver.length - 1];
-}
-
-lastIndexOf$1(receiver, element) {
-  if (isJsArray(receiver)) {
-    var start = JS('num', r'#.length', receiver);
-    return Arrays.lastIndexOf(receiver, element, start);
-  } else if (receiver is String) {
-    checkNull(element);
-    if (element is !String) throw new ArgumentError(element);
-    return JS('int', r'#.lastIndexOf(#)', receiver, element);
-  }
-  return UNINTERCEPTED(receiver.lastIndexOf(element));
-}
-
-lastIndexOf$2(receiver, element, start) {
-  if (isJsArray(receiver)) {
-    return Arrays.lastIndexOf(receiver, element, start);
-  } else if (receiver is String) {
-    checkNull(element);
-    if (element is !String) throw new ArgumentError(element);
-    if (start != null) {
-      if (start is !num) throw new ArgumentError(start);
-      if (start < 0) return -1;
-      if (start >= receiver.length) {
-        if (element == "") return receiver.length;
-        start = receiver.length - 1;
-      }
-    }
-    return stringLastIndexOfUnchecked(receiver, element, start);
-  }
-  return UNINTERCEPTED(receiver.lastIndexOf(element, start));
-}
-
-removeRange(receiver, start, length) {
-  if (!isJsArray(receiver)) {
-    return UNINTERCEPTED(receiver.removeRange(start, length));
-  }
-  checkGrowable(receiver, 'removeRange');
-  if (length == 0) {
-    return;
-  }
-  checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
-  checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
-  if (start is !int) throw new ArgumentError(start);
-  if (length is !int) throw new ArgumentError(length);
-  if (length < 0) throw new ArgumentError(length);
-  var receiverLength = JS('num', r'#.length', receiver);
-  if (start < 0 || start >= receiverLength) {
-    throw new RangeError.value(start);
-  }
-  if (start + length > receiverLength) {
-    throw new RangeError.value(start + length);
-  }
-  Arrays.copy(receiver,
-              start + length,
-              receiver,
-              start,
-              receiverLength - length - start);
-  receiver.length = receiverLength - length;
-}
-
-setRange$3(receiver, start, length, from) {
-  if (isJsArray(receiver)) {
-    return setRange$4(receiver, start, length, from, 0);
-  }
-  return UNINTERCEPTED(receiver.setRange(start, length, from));
-}
-
-setRange$4(receiver, start, length, from, startFrom) {
-  if (!isJsArray(receiver)) {
-    return UNINTERCEPTED(receiver.setRange(start, length, from, startFrom));
-  }
-
-  checkMutable(receiver, 'indexed set');
-  if (length == 0) return;
-  checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
-  checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
-  checkNull(from); // TODO(ahe): This is not specified but co19 tests it.
-  checkNull(startFrom); // TODO(ahe): This is not specified but co19 tests it.
-  if (start is !int) throw new ArgumentError(start);
-  if (length is !int) throw new ArgumentError(length);
-  if (startFrom is !int) throw new ArgumentError(startFrom);
-  if (length < 0) throw new ArgumentError(length);
-  if (start < 0) throw new RangeError.value(start);
-  if (start + length > receiver.length) {
-    throw new RangeError.value(start + length);
-  }
-
-  Arrays.copy(from, startFrom, receiver, start, length);
-}
-
-some(receiver, f) {
-  if (!isJsArray(receiver)) {
-    return UNINTERCEPTED(receiver.some(f));
-  } else {
-    return Collections.some(receiver, f);
-  }
-}
-
-every(receiver, f) {
-  if (!isJsArray(receiver)) {
-    return UNINTERCEPTED(receiver.every(f));
-  } else {
-    return Collections.every(receiver, f);
-  }
-}
-
-// TODO(ngeoffray): Make it possible to have just one "sort" function ends
-// an optional parameter.
-
-sort$0(receiver) {
-  if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.sort());
-  checkMutable(receiver, 'sort');
-  coreSort(receiver, Comparable.compare);
-}
-
-sort$1(receiver, compare) {
-  if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.sort(compare));
-  checkMutable(receiver, 'sort');
-  coreSort(receiver, compare);
 }
 
 get$isNegative(receiver) {
@@ -415,26 +233,6 @@ toRadixString(receiver, radix) {
   checkNum(radix);
   if (radix < 2 || radix > 36) throw new ArgumentError(radix);
   return JS('String', r'#.toString(#)', receiver, radix);
-}
-
-contains$1(receiver, other) {
-  if (receiver is String) {
-    return contains$2(receiver, other, 0);
-  } else if (isJsArray(receiver)) {
-    for (int i = 0; i < receiver.length; i++) {
-      if (other == receiver[i]) return true;
-    }
-    return false;
-  }
-  return UNINTERCEPTED(receiver.contains(other));
-}
-
-contains$2(receiver, other, startIndex) {
-  if (receiver is !String) {
-    return UNINTERCEPTED(receiver.contains(other, startIndex));
-  }
-  checkNull(other);
-  return stringContainsUnchecked(receiver, other, startIndex);
 }
 
 /**

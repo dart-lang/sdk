@@ -193,6 +193,8 @@ class StringTest {
     Expect.equals(5, "strstr".lastIndexOf("r", 5));
     Expect.equals(2, "strstr".lastIndexOf("r", 4));
     Expect.equals(2, "strstr".lastIndexOf("r", 3));
+    Expect.equals(5, "strstr".lastIndexOf("r"));
+    Expect.equals(5, "strstr".lastIndexOf("r"), null);
 
     String str = "hello";
     for (int i = 0; i < 10; i++) {
