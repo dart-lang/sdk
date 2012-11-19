@@ -408,6 +408,8 @@ void Object::InitOnce() {
   isolate->object_store()->set_array_class(cls);
   cls = Class::NewStringClass(kOneByteStringCid);
   isolate->object_store()->set_one_byte_string_class(cls);
+  cls = Class::NewStringClass(kTwoByteStringCid);
+  isolate->object_store()->set_two_byte_string_class(cls);
 
   // Allocate and initialize the empty_array instance.
   {
@@ -590,6 +592,10 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::NewStringClass(kOneByteStringCid);
   object_store->set_one_byte_string_class(cls);
 
+  // Pre-allocate the TwoByteString class needed by the symbol table.
+  cls = Class::NewStringClass(kTwoByteStringCid);
+  object_store->set_two_byte_string_class(cls);
+
   // Setup the symbol table for the symbols created in the isolate.
   Symbols::SetupSymbolTable(isolate);
 
@@ -650,8 +656,7 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterPrivateClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
-  cls = Class::NewStringClass(kTwoByteStringCid);
-  object_store->set_two_byte_string_class(cls);
+  cls = object_store->two_byte_string_class();  // Was allocated above.
   name = Symbols::TwoByteString();
   RegisterPrivateClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);

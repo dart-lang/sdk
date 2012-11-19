@@ -102,7 +102,7 @@ DEFINE_NATIVE_ENTRY(String_charAt, 2) {
   GET_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
   uint32_t value = StringValueAt(receiver, index);
   ASSERT(value <= 0x10FFFF);
-  return Symbols::New(&value, 1);
+  return Symbols::FromCharCode(value);
 }
 
 DEFINE_NATIVE_ENTRY(String_charCodeAt, 2) {

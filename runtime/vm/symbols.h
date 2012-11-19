@@ -146,16 +146,19 @@ class ObjectPointerVisitor;
 // without having to maintain copies in each isolate.
 class Symbols : public AllStatic {
  public:
+  enum { kMaxOneCharCodeSymbol = 0xFF };
+
   // List of strings that are pre created in the vm isolate.
-  enum {
+  enum SymbolId {
     kIllegal = 0,
 
 #define DEFINE_SYMBOL_INDEX(symbol, literal)                                   \
     k##symbol,
 PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
 #undef DEFINE_SYMBOL_INDEX
-
-    kMaxId,
+    kMaxPredefinedId,
+    kNullCharId = kMaxPredefinedId,
+    kMaxId = kNullCharId + kMaxOneCharCodeSymbol + 1,
   };
 
   // Access methods for symbols stored in the vm isolate.
@@ -183,11 +186,13 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_ACCESSOR)
                         intptr_t length);
 
   // Returns char* of predefined symbol.
-  static const char* Name(intptr_t symbol);
+  static const char* Name(SymbolId symbol);
+
+  static RawString* FromCharCode(uint32_t char_code);
 
  private:
   enum {
-    kInitialVMIsolateSymtabSize = ((Symbols::kMaxId + 15) & -16),
+    kInitialVMIsolateSymtabSize = ((kMaxId + 15) & -16),
     kInitialSymtabSize = 256
   };
 
@@ -218,11 +223,11 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_ACCESSOR)
   static RawObject* GetVMSymbol(intptr_t object_id);
   static bool IsVMSymbolId(intptr_t object_id) {
     return (object_id >= kMaxPredefinedObjectIds &&
-            object_id < (kMaxPredefinedObjectIds + Symbols::kMaxId));
+            object_id < (kMaxPredefinedObjectIds + kMaxId));
   }
 
   // List of symbols that are stored in the vm isolate for easy access.
-  static RawString* predefined_[Symbols::kMaxId];
+  static RawString* predefined_[kMaxId];
 
   friend class SnapshotReader;
   friend class SnapshotWriter;
