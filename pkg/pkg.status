@@ -46,6 +46,7 @@ intl/test/intl_message_basic_example_test: Skip
 [ $compiler == dartc ]
 unittest/test/mock_regexp_negative_test: Fail
 unittest/test/mock_stepwise_negative_test: Fail
+args/test/args_test: Fail # http://dartbug.com/6790
 
 [ $system == windows ]
 http/test/request_test: Pass, Timeout # Issue 6594
