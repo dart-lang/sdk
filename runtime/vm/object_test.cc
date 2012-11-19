@@ -1552,6 +1552,61 @@ TEST_CASE(Array) {
 }
 
 
+TEST_CASE(StringCodePointIterator) {
+  const String& str0 = String::Handle(String::New(""));
+  String::CodePointIterator it0(str0);
+  EXPECT(!it0.Next());
+
+  const String& str1 = String::Handle(String::New(" \xc3\xa7 "));
+  String::CodePointIterator it1(str1);
+  EXPECT(it1.Next());
+  EXPECT_EQ(' ', it1.Current());
+  EXPECT(it1.Next());
+  EXPECT_EQ(0xE7, it1.Current());
+  EXPECT(it1.Next());
+  EXPECT_EQ(' ', it1.Current());
+  EXPECT(!it1.Next());
+
+  const String& str2 = String::Handle(String::New("\xD7\x92\xD7\x9C"
+                                                  "\xD7\xA2\xD7\x93"
+                                                  "\xD7\x91\xD7\xA8"
+                                                  "\xD7\x9B\xD7\x94"));
+  String::CodePointIterator it2(str2);
+  EXPECT(it2.Next());
+  EXPECT_EQ(0x5D2, it2.Current());
+  EXPECT(it2.Next());
+  EXPECT_EQ(0x5DC, it2.Current());
+  EXPECT(it2.Next());
+  EXPECT_EQ(0x5E2, it2.Current());
+  EXPECT(it2.Next());
+  EXPECT_EQ(0x5D3, it2.Current());
+  EXPECT(it2.Next());
+  EXPECT_EQ(0x5D1, it2.Current());
+  EXPECT(it2.Next());
+  EXPECT_EQ(0x5E8, it2.Current());
+  EXPECT(it2.Next());
+  EXPECT_EQ(0x5DB, it2.Current());
+  EXPECT(it2.Next());
+  EXPECT_EQ(0x5D4, it2.Current());
+  EXPECT(!it2.Next());
+
+  const String& str3 = String::Handle(String::New("\xF0\x9D\x91\xA0"
+                                                  "\xF0\x9D\x91\xA1"
+                                                  "\xF0\x9D\x91\xA2"
+                                                  "\xF0\x9D\x91\xA3"));
+  String::CodePointIterator it3(str3);
+  EXPECT(it3.Next());
+  EXPECT_EQ(0x1D460, it3.Current());
+  EXPECT(it3.Next());
+  EXPECT_EQ(0x1D461, it3.Current());
+  EXPECT(it3.Next());
+  EXPECT_EQ(0x1D462, it3.Current());
+  EXPECT(it3.Next());
+  EXPECT_EQ(0x1D463, it3.Current());
+  EXPECT(!it3.Next());
+}
+
+
 TEST_CASE(GrowableObjectArray) {
   const int kArrayLen = 5;
   Smi& value = Smi::Handle();

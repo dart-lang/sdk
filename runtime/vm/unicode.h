@@ -24,11 +24,7 @@ class Utf8 : AllStatic {
   static const intptr_t kMaxTwoByteChar   = 0x7FF;
   static const intptr_t kMaxThreeByteChar = 0xFFFF;
   static const intptr_t kMaxFourByteChar  = 0x10FFFF;
-  static const intptr_t kMaxBmpCodepoint  = 0xffff;
-  static const int32_t kLeadOffset = (0xD800 - (0x10000 >> 10));
-  static const int32_t kSurrogateOffset = (0x10000 - (0xD800 << 10) - 0xDC00);
 
-  static void ConvertUTF32ToUTF16(int32_t codepoint, uint16_t* dst);
   static intptr_t CodePointCount(const uint8_t* utf8_array,
                                  intptr_t array_len,
                                  Type* type);
@@ -66,6 +62,44 @@ class Utf8 : AllStatic {
     const uint8_t* utf8_array = reinterpret_cast<const uint8_t*>(str);
     return DecodeToUTF32(utf8_array, array_len, dst, len);
   }
+};
+
+
+class Utf16 : AllStatic {
+ public:
+  static const int32_t kMaxBmpCodepoint  = 0xFFFF;
+
+  static const int32_t kLeadSurrogateOffset = (0xD800 - (0x10000 >> 10));
+
+  static const int32_t kSurrogateOffset = (0x10000 - (0xD800 << 10) - 0xDC00);
+
+  // Returns the length of the code point in UTF-16 code units.
+  static intptr_t Length(int32_t ch) {
+    return (ch <= kMaxBmpCodepoint) ? 1 : 2;
+  }
+
+  // Returns true if ch is a lead or trail surrogate.
+  static bool IsSurrogate(int32_t ch) {
+    return (ch & 0xFFFFF800) == 0xD800;
+  }
+
+  // Returns true if ch is a lead surrogate.
+  static bool IsLeadSurrogate(int32_t ch) {
+    return (ch & 0xFFFFFC00) == 0xD800;
+  }
+
+  // Returns true if ch is a low surrogate.
+  static bool IsTrailSurrogate(int32_t ch) {
+    return (ch & 0xFFFFFC00) == 0xDC00;
+  }
+
+  // Decodes a surrogate pair into a supplementary code point.
+  static int32_t Decode(int32_t lead, int32_t trail) {
+    return 0x10000 + ((lead & 0x3FF) << 10) + (trail & 0x3FF);
+  }
+
+  // Encodes a single code point.
+  static void Encode(int32_t codepoint, uint16_t* dst);
 };
 
 

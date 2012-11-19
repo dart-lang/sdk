@@ -10027,36 +10027,37 @@ bool String::Equals(const Instance& other) const {
 }
 
 
-bool String::Equals(const char* str) const {
-  ASSERT(str != NULL);
-  intptr_t len = strlen(str);
+bool String::Equals(const char* utf8_array) const {
+  ASSERT(utf8_array != NULL);
+  intptr_t len = strlen(utf8_array);
   for (intptr_t i = 0; i < this->Length(); ++i) {
-    if (*str == '\0') {
+    if (*utf8_array == '\0') {
       // Lengths don't match.
       return false;
     }
     int32_t ch;
-    intptr_t consumed = Utf8::Decode(reinterpret_cast<const uint8_t*>(str),
-                                     len,
-                                     &ch);
+    intptr_t consumed = Utf8::Decode(
+        reinterpret_cast<const uint8_t*>(utf8_array),
+        len,
+        &ch);
     if (consumed == 0 || this->CharAt(i) != ch) {
       return false;
     }
-    str += consumed;
+    utf8_array += consumed;
     len -= consumed;
   }
-  return *str == '\0';
+  return *utf8_array == '\0';
 }
 
 
-bool String::Equals(const uint8_t* characters, intptr_t len) const {
+bool String::Equals(const uint8_t* latin1_array, intptr_t len) const {
   if (len != this->Length()) {
     // Lengths don't match.
     return false;
   }
 
   for (intptr_t i = 0; i < len; i++) {
-    if (this->CharAt(i) != characters[i]) {
+    if (this->CharAt(i) != latin1_array[i]) {
       return false;
     }
   }
@@ -10064,14 +10065,14 @@ bool String::Equals(const uint8_t* characters, intptr_t len) const {
 }
 
 
-bool String::Equals(const uint16_t* characters, intptr_t len) const {
+bool String::Equals(const uint16_t* utf16_array, intptr_t len) const {
   if (len != this->Length()) {
     // Lengths don't match.
     return false;
   }
 
   for (intptr_t i = 0; i < len; i++) {
-    if (this->CharAt(i) != characters[i]) {
+    if (this->CharAt(i) != utf16_array[i]) {
       return false;
     }
   }
@@ -10079,16 +10080,17 @@ bool String::Equals(const uint16_t* characters, intptr_t len) const {
 }
 
 
-bool String::Equals(const uint32_t* characters, intptr_t len) const {
-  if (len != this->Length()) {
-    // Lengths don't match.
-    return false;
-  }
-
-  for (intptr_t i = 0; i < len; i++) {
-    if (this->CharAt(i) != static_cast<int32_t>(characters[i])) {
+bool String::Equals(const uint32_t* utf32_array, intptr_t len) const {
+  CodePointIterator it(*this);
+  intptr_t i = 0;
+  while (it.Next()) {
+    if (it.Current() != static_cast<int32_t>(utf32_array[i])) {
       return false;
     }
+    ++i;
+  }
+  if (i != len) {
+    return false;
   }
   return true;
 }
@@ -10549,10 +10551,9 @@ RawString* String::Transform(int32_t (*mapping)(int32_t ch),
   ASSERT(!str.IsNull());
   bool has_mapping = false;
   int32_t dst_max = 0;
-  intptr_t len = str.Length();
-  // TODO(cshapiro): assume a transform is required, rollback if not.
-  for (intptr_t i = 0; i < len; ++i) {
-    int32_t src = str.CharAt(i);
+  CodePointIterator it(str);
+  while (it.Next()) {
+    int32_t src = it.Current();
     int32_t dst = mapping(src);
     if (src != dst) {
       has_mapping = true;
@@ -10579,6 +10580,25 @@ RawString* String::ToUpperCase(const String& str, Heap::Space space) {
 RawString* String::ToLowerCase(const String& str, Heap::Space space) {
   // TODO(cshapiro): create a fast-path for OneByteString instances.
   return Transform(CaseMapping::ToLower, str, space);
+}
+
+
+bool String::CodePointIterator::Next() {
+  ASSERT(index_ >= -1);
+  ASSERT(index_ < str_.Length());
+  int d = Utf16::Length(ch_);
+  if (index_ == (str_.Length() - d)) {
+    return false;
+  }
+  index_ += d;
+  ch_ = str_.CharAt(index_);
+  if (Utf16::IsLeadSurrogate(ch_) && (index_ != (str_.Length() - 1))) {
+    int32_t ch2 = str_.CharAt(index_ + 1);
+    if (Utf16::IsTrailSurrogate(ch2)) {
+      ch_ = Utf16::Decode(ch_, ch2);
+    }
+  }
+  return true;
 }
 
 
@@ -10866,7 +10886,7 @@ RawTwoByteString* TwoByteString::New(intptr_t utf16_len,
     for (intptr_t i = 0; i < array_len; ++i) {
       if (utf32_array[i] > 0xffff) {
         ASSERT(j < (utf16_len - 1));
-        Utf8::ConvertUTF32ToUTF16(utf32_array[i], CharAddr(result, j));
+        Utf16::Encode(utf32_array[i], CharAddr(result, j));
         j += 2;
       } else {
         ASSERT(j < utf16_len);
@@ -10924,10 +10944,20 @@ RawTwoByteString* TwoByteString::Transform(int32_t (*mapping)(int32_t ch),
   ASSERT(!str.IsNull());
   intptr_t len = str.Length();
   const String& result = String::Handle(TwoByteString::New(len, space));
-  for (intptr_t i = 0; i < len; ++i) {
-    int32_t ch = mapping(str.CharAt(i));
-    ASSERT(ch >= 0 && ch <= 0xFFFF);
-    *CharAddr(result, i) = ch;
+  String::CodePointIterator it(str);
+  intptr_t i = 0;
+  while (it.Next()) {
+    int32_t src = it.Current();
+    int32_t dst = mapping(src);
+    ASSERT(dst >= 0 && dst <= 0x10FFFF);
+    intptr_t len = Utf16::Length(dst);
+    if (len == 1) {
+      *CharAddr(result, i) = dst;
+    } else {
+      ASSERT(len == 2);
+      Utf16::Encode(dst, CharAddr(result, i));
+    }
+    i += len;
   }
   return TwoByteString::raw(result);
 }

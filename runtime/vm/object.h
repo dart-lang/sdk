@@ -3720,6 +3720,29 @@ class String : public Instance {
   static const intptr_t kSizeofRawString = sizeof(RawObject) + (2 * kWordSize);
   static const intptr_t kMaxElements = kSmiMax / kTwoByteChar;
 
+  class CodePointIterator : public ValueObject {
+   public:
+    explicit CodePointIterator(const String& str)
+        : str_(str),
+          index_(-1),
+          ch_(-1) {
+    }
+
+    int32_t Current() {
+      ASSERT(index_ >= 0);
+      ASSERT(index_ < str_.Length());
+      return ch_;
+    }
+
+    bool Next();
+
+   private:
+    const String& str_;
+    intptr_t index_;
+    int32_t ch_;
+    DISALLOW_IMPLICIT_CONSTRUCTORS(CodePointIterator);
+  };
+
   intptr_t Length() const { return Smi::Value(raw_ptr()->length_); }
   static intptr_t length_offset() { return OFFSET_OF(RawString, length_); }
 

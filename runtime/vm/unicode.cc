@@ -70,12 +70,6 @@ static bool IsSmpSequenceStart(uint8_t code_unit) {
 }
 
 
-// Returns true if the code point is a high- or low-surrogate.
-static bool IsSurrogate(uint32_t code_point) {
-  return (code_point & 0xfffff800) == 0xd800;
-}
-
-
 // Returns true if the code point value is above Plane 17.
 static bool IsOutOfRange(uint32_t code_point) {
   return (code_point > 0x10FFFF);
@@ -85,14 +79,6 @@ static bool IsOutOfRange(uint32_t code_point) {
 // Returns true if the byte sequence is ill-formed.
 static bool IsNonShortestForm(uint32_t code_point, size_t num_bytes) {
   return code_point < kOverlongMinimum[num_bytes];
-}
-
-
-void Utf8::ConvertUTF32ToUTF16(int32_t codepoint, uint16_t* dst) {
-  ASSERT(codepoint > kMaxBmpCodepoint);
-  ASSERT(dst != NULL);
-  dst[0] = (Utf8::kLeadOffset + (codepoint >> 10));
-  dst[1] = (0xDC00 + (codepoint & 0x3FF));
 }
 
 
@@ -144,7 +130,7 @@ bool Utf8::IsValid(const uint8_t* utf8_array, intptr_t array_len) {
             (j == num_trail_bytes) &&
             !IsOutOfRange(ch) &&
             !IsNonShortestForm(ch, j) &&
-            !IsSurrogate(ch))) {
+            !Utf16::IsSurrogate(ch))) {
         return false;
       }
     }
@@ -169,8 +155,9 @@ intptr_t Utf8::Length(int32_t ch) {
 
 intptr_t Utf8::Length(const String& str) {
   intptr_t length = 0;
-  for (intptr_t i = 0; i < str.Length(); ++i) {
-    int32_t ch = str.CharAt(i);
+  String::CodePointIterator it(str);
+  while (it.Next()) {
+    int32_t ch = it.Current();
     length += Utf8::Length(ch);
   }
   return length;
@@ -205,8 +192,9 @@ intptr_t Utf8::Encode(int32_t ch, char* dst) {
 
 intptr_t Utf8::Encode(const String& src, char* dst, intptr_t len) {
   intptr_t pos = 0;
-  for (intptr_t i = 0; i < src.Length(); ++i) {
-    intptr_t ch = src.CharAt(i);
+  String::CodePointIterator it(src);
+  while (it.Next()) {
+    int32_t ch = it.Current();
     intptr_t num_bytes = Utf8::Length(ch);
     if (pos + num_bytes > len) {
       break;
@@ -224,7 +212,7 @@ intptr_t Utf8::Decode(const uint8_t* utf8_array,
   uint32_t ch = utf8_array[0] & 0xFF;
   intptr_t i = 1;
   if (ch >= 0x80) {
-    int32_t num_trail_bytes = kTrailBytes[ch];
+    intptr_t num_trail_bytes = kTrailBytes[ch];
     bool is_malformed = false;
     for (; i < num_trail_bytes; ++i) {
       if (i < array_len) {
@@ -241,7 +229,7 @@ intptr_t Utf8::Decode(const uint8_t* utf8_array,
           (i == num_trail_bytes) &&
           !IsOutOfRange(ch) &&
           !IsNonShortestForm(ch, i) &&
-          !IsSurrogate(ch))) {
+          !Utf16::IsSurrogate(ch))) {
       *dst = -1;
       return 0;
     }
@@ -290,7 +278,7 @@ bool Utf8::DecodeToUTF16(const uint8_t* utf8_array,
       return false;  // invalid input
     }
     if (is_smp) {
-      ConvertUTF32ToUTF16(ch, &(dst[j]));
+      Utf16::Encode(ch, &dst[j]);
       j = j + 1;
     } else {
       dst[j] = ch;
@@ -322,6 +310,14 @@ bool Utf8::DecodeToUTF32(const uint8_t* utf8_array,
     return false;  // output overflow
   }
   return true;  // success
+}
+
+
+void Utf16::Encode(int32_t codepoint, uint16_t* dst) {
+  ASSERT(codepoint > kMaxBmpCodepoint);
+  ASSERT(dst != NULL);
+  dst[0] = (Utf16::kLeadSurrogateOffset + (codepoint >> 10));
+  dst[1] = (0xDC00 + (codepoint & 0x3FF));
 }
 
 }  // namespace dart
