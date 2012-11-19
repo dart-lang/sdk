@@ -648,8 +648,12 @@ class JavaScriptBackend extends Backend {
 
   ClassElement jsStringClass;
   ClassElement jsArrayClass;
+  ClassElement jsNumberClass;
+  ClassElement jsIntClass;
+  ClassElement jsDoubleClass;
   ClassElement objectInterceptorClass;
   Element getInterceptorMethod;
+  bool _interceptorsAreInitialized = false;
 
   final Namer namer;
 
@@ -717,7 +721,11 @@ class JavaScriptBackend extends Backend {
 
   bool isInterceptorClass(Element element) {
     if (element == null) return false;
-    return element == jsStringClass || element == jsArrayClass;
+    return element == jsStringClass
+        || element == jsArrayClass
+        || element == jsIntClass
+        || element == jsDoubleClass
+        || element == jsNumberClass;
   }
 
   void addInterceptedSelector(Selector selector) {
@@ -738,35 +746,47 @@ class JavaScriptBackend extends Backend {
         compiler.findInterceptor(const SourceString('ObjectInterceptor'));
     getInterceptorMethod =
         compiler.findInterceptor(const SourceString('getInterceptor'));
+    jsStringClass =
+        compiler.findInterceptor(const SourceString('JSString'));
+    jsArrayClass =
+        compiler.findInterceptor(const SourceString('JSArray'));
+    jsNumberClass =
+        compiler.findInterceptor(const SourceString('JSNumber'));
+    jsIntClass =
+        compiler.findInterceptor(const SourceString('JSInt'));
+    jsDoubleClass =
+        compiler.findInterceptor(const SourceString('JSDouble'));
   }
 
-
-  void registerInstantiatedClass(ClassElement cls, Enqueuer enqueuer) {
-    ClassElement result = null;
-    if (cls == compiler.stringClass) {
-      if (jsStringClass == null) {
-        jsStringClass =
-            compiler.findInterceptor(const SourceString('JSString'));
-        initializeInterceptorElements();
-      }
-      result = jsStringClass;
-    } else if (cls == compiler.listClass) {
-      if (jsArrayClass == null) {
-        jsArrayClass =
-            compiler.findInterceptor(const SourceString('JSArray'));
-        initializeInterceptorElements();
-      }
-      result = jsArrayClass;
-    }
-
-    if (result == null) return;
-
-    result.forEachMember((_, Element member) {
+  void addInterceptors(ClassElement cls) {
+    cls.ensureResolved(compiler);
+    cls.forEachMember((ClassElement classElement, Element member) {
+      // TODO(ngeoffray): Support interceptors on Object methods.
+      if (classElement == compiler.objectClass) return;
       List<Element> list = interceptedElements.putIfAbsent(
           member.name, () => new List<Element>());
       list.add(member);
-    });
+    }, includeSuperMembers: true);
+  }
 
+  void registerInstantiatedClass(ClassElement cls, Enqueuer enqueuer) {
+    ClassElement result = null;
+    if (!_interceptorsAreInitialized) {
+      initializeInterceptorElements();
+      _interceptorsAreInitialized = true;
+    }
+    if (cls == compiler.stringClass) {
+      result = jsStringClass;
+    } else if (cls == compiler.listClass) {
+      result = jsArrayClass;
+    } else if (cls == compiler.intClass) {
+      result = jsIntClass;
+    } else if (cls == compiler.doubleClass) {
+      result = jsDoubleClass;
+    }
+
+    if (result == null) return;
+    if (enqueuer.isResolutionQueue) addInterceptors(result);
     enqueuer.registerInstantiatedClass(result);
   }
 

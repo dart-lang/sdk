@@ -437,6 +437,12 @@ class LocalsHandler {
         type = HType.READABLE_ARRAY;
       } else if (cls == builder.backend.jsStringClass) {
         type = HType.STRING;
+      } else if (cls == builder.backend.jsNumberClass) {
+        type = HType.NUMBER;
+      } else if (cls == builder.backend.jsIntClass) {
+        type = HType.INTEGER;
+      } else if (cls == builder.backend.jsDoubleClass) {
+        type = HType.DOUBLE;
       }
       value.guaranteedType = type;
     }

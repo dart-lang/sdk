@@ -138,6 +138,7 @@ class Enqueuer {
   }
 
   void registerInstantiatedClass(ClassElement cls) {
+    if (universe.instantiatedClasses.contains(cls)) return;
     universe.instantiatedClasses.add(cls);
     onRegisterInstantiatedClass(cls);
     compiler.backend.registerInstantiatedClass(cls, this);

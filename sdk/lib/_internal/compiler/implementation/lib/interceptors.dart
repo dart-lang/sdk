@@ -7,6 +7,7 @@ library _interceptors;
 import 'dart:collection';
 
 part 'js_array.dart';
+part 'js_number.dart';
 part 'js_string.dart';
 
 /**
@@ -25,6 +26,8 @@ class ObjectInterceptor {
 getInterceptor(object) {
   if (object is String) return const JSString();
   if (isJsArray(object)) return const JSArray();
+  if (object is int) return const JSInt();
+  if (object is double) return const JSDouble();
   return const ObjectInterceptor();
 }
 
@@ -74,167 +77,6 @@ toString(var value) {
   return JS('String', r'String(#)', value);
 }
 
-compareTo(a, b) {
-  if (checkNumbers(a, b)) {
-    if (a < b) {
-      return -1;
-    } else if (a > b) {
-      return 1;
-    } else if (a == b) {
-      if (a == 0) {
-        bool aIsNegative = a.isNegative;
-        bool bIsNegative = b.isNegative;
-        if (aIsNegative == bIsNegative) return 0;
-        if (aIsNegative) return -1;
-        return 1;
-      }
-      return 0;
-    } else if (a.isNaN) {
-      if (b.isNaN) {
-        return 0;
-      }
-      return 1;
-    } else {
-      return -1;
-    }
-  } else if (a is String) {
-    if (b is !String) throw new ArgumentError(b);
-    return JS('bool', r'# == #', a, b) ? 0
-      : JS('bool', r'# < #', a, b) ? -1 : 1;
-  } else {
-    return UNINTERCEPTED(a.compareTo(b));
-  }
-}
-
-get$isNegative(receiver) {
-  if (receiver is num) {
-    return (receiver == 0) ? (1 / receiver) < 0 : receiver < 0;
-  } else {
-    return UNINTERCEPTED(receiver.isNegative);
-  }
-}
-
-get$isNaN(receiver) {
-  if (receiver is num) {
-    return JS('bool', r'isNaN(#)', receiver);
-  } else {
-    return UNINTERCEPTED(receiver.isNaN);
-  }
-}
-
-remainder(a, b) {
-  if (checkNumbers(a, b)) {
-    return JS('num', r'# % #', a, b);
-  } else {
-    return UNINTERCEPTED(a.remainder(b));
-  }
-}
-
-abs(receiver) {
-  if (receiver is !num) return UNINTERCEPTED(receiver.abs());
-
-  return JS('num', r'Math.abs(#)', receiver);
-}
-
-toInt(receiver) {
-  if (receiver is !num) return UNINTERCEPTED(receiver.toInt());
-
-  if (receiver.isNaN) throw new FormatException('NaN');
-
-  if (receiver.isInfinite) throw new FormatException('Infinity');
-
-  var truncated = receiver.truncate();
-  return JS('bool', r'# == -0.0', truncated) ? 0 : truncated;
-}
-
-ceil(receiver) {
-  if (receiver is !num) return UNINTERCEPTED(receiver.ceil());
-
-  return JS('num', r'Math.ceil(#)', receiver);
-}
-
-floor(receiver) {
-  if (receiver is !num) return UNINTERCEPTED(receiver.floor());
-
-  return JS('num', r'Math.floor(#)', receiver);
-}
-
-get$isInfinite(receiver) {
-  if (receiver is !num) return UNINTERCEPTED(receiver.isInfinite);
-
-  return JS('bool', r'# == Infinity', receiver)
-    || JS('bool', r'# == -Infinity', receiver);
-}
-
-round(receiver) {
-  if (receiver is !num) return UNINTERCEPTED(receiver.round());
-
-  if (JS('bool', r'# < 0', receiver)) {
-    return JS('num', r'-Math.round(-#)', receiver);
-  } else {
-    return JS('num', r'Math.round(#)', receiver);
-  }
-}
-
-toDouble(receiver) {
-  if (receiver is !num) return UNINTERCEPTED(receiver.toDouble());
-
-  return receiver;
-}
-
-truncate(receiver) {
-  if (receiver is !num) return UNINTERCEPTED(receiver.truncate());
-
-  return receiver < 0 ? receiver.ceil() : receiver.floor();
-}
-
-toStringAsFixed(receiver, fractionDigits) {
-  if (receiver is !num) {
-    return UNINTERCEPTED(receiver.toStringAsFixed(fractionDigits));
-  }
-  checkNum(fractionDigits);
-
-  String result = JS('String', r'#.toFixed(#)', receiver, fractionDigits);
-  if (receiver == 0 && receiver.isNegative) return "-$result";
-  return result;
-}
-
-toStringAsExponential(receiver, fractionDigits) {
-  if (receiver is !num) {
-    return UNINTERCEPTED(receiver.toStringAsExponential(fractionDigits));
-  }
-  String result;
-  if (fractionDigits != null) {
-    checkNum(fractionDigits);
-    result = JS('String', r'#.toExponential(#)', receiver, fractionDigits);
-  } else {
-    result = JS('String', r'#.toExponential()', receiver);
-  }
-  if (receiver == 0 && receiver.isNegative) return "-$result";
-  return result;
-}
-
-toStringAsPrecision(receiver, fractionDigits) {
-  if (receiver is !num) {
-    return UNINTERCEPTED(receiver.toStringAsPrecision(fractionDigits));
-  }
-  checkNum(fractionDigits);
-
-  String result = JS('String', r'#.toPrecision(#)',
-                     receiver, fractionDigits);
-  if (receiver == 0 && receiver.isNegative) return "-$result";
-  return result;
-}
-
-toRadixString(receiver, radix) {
-  if (receiver is !num) {
-    return UNINTERCEPTED(receiver.toRadixString(radix));
-  }
-  checkNum(radix);
-  if (radix < 2 || radix > 36) throw new ArgumentError(radix);
-  return JS('String', r'#.toString(#)', receiver, radix);
-}
-
 /**
  * This is the [Jenkins hash function][1] but using masking to keep
  * values in SMI range.
@@ -259,16 +101,6 @@ get$hashCode(receiver) {
   hash = 0x1fffffff & (hash + (0x03ffffff & hash) <<  3);
   hash = JS('int', '# ^ (# >> 11)', hash, hash);
   return 0x1fffffff & (hash + (0x00003fff & hash) << 15);
-}
-
-get$isEven(receiver) {
-  if (receiver is !int) return UNINTERCEPTED(receiver.isEven);
-  return (receiver & 1) == 0;
-}
-
-get$isOdd(receiver) {
-  if (receiver is !int) return UNINTERCEPTED(receiver.isOdd);
-  return (receiver & 1) == 1;
 }
 
 get$runtimeType(receiver) {

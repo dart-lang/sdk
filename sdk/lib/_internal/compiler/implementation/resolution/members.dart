@@ -1891,9 +1891,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLiteralInt(LiteralInt node) {
+    world.registerInstantiatedClass(compiler.intClass);
   }
 
   visitLiteralDouble(LiteralDouble node) {
+    world.registerInstantiatedClass(compiler.doubleClass);
   }
 
   visitLiteralBool(LiteralBool node) {

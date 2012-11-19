@@ -123,5 +123,11 @@ class JSString implements String {
     return stringContainsUnchecked(this, other, startIndex);
   }
 
-  bool get isEmpty => length == 0;  
+  bool get isEmpty => length == 0;
+
+  int compareTo(String other) {
+    if (other is !String) throw new ArgumentError(other);
+    return this == other ? 0
+      : JS('bool', r'# < #', this, other) ? -1 : 1;
+  }
 }
