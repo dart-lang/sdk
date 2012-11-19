@@ -11,6 +11,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/log.h"
 #include "bin/socket.h"
 #include "platform/thread.h"
 
@@ -143,7 +144,7 @@ bool Handle::CreateCompletionPort(HANDLE completion_port) {
                                             reinterpret_cast<ULONG_PTR>(this),
                                             0);
   if (completion_port_ == NULL) {
-    fprintf(stderr, "Error CreateIoCompletionPort: %d\n", GetLastError());
+    Log::PrintErr("Error CreateIoCompletionPort: %d\n", GetLastError());
     return false;
   }
   return true;
@@ -224,7 +225,7 @@ void Handle::ReadSyncCompleteAsync() {
                      NULL);
   if (!ok) {
     if (GetLastError() != ERROR_BROKEN_PIPE) {
-      fprintf(stderr, "ReadFile failed %d\n", GetLastError());
+      Log::PrintErr("ReadFile failed %d\n", GetLastError());
     }
     bytes_read = 0;
   }
@@ -259,7 +260,7 @@ bool Handle::IssueRead() {
     }
 
     if (GetLastError() != ERROR_BROKEN_PIPE) {
-      fprintf(stderr, "ReadFile failed: %d\n", GetLastError());
+      Log::PrintErr("ReadFile failed: %d\n", GetLastError());
     }
     event_handler_->HandleClosed(this);
     IOBuffer::DisposeBuffer(buffer);
@@ -298,7 +299,7 @@ bool Handle::IssueWrite() {
   }
 
   if (GetLastError() != ERROR_BROKEN_PIPE) {
-    fprintf(stderr, "WriteFile failed: %d\n", GetLastError());
+    Log::PrintErr("WriteFile failed: %d\n", GetLastError());
   }
   event_handler_->HandleClosed(this);
   IOBuffer::DisposeBuffer(buffer);
@@ -344,7 +345,7 @@ bool ListenSocket::LoadAcceptEx() {
                         NULL,
                         NULL);
   if (status == SOCKET_ERROR) {
-    fprintf(stderr, "Error WSAIoctl failed: %d\n", WSAGetLastError());
+    Log::PrintErr("Error WSAIoctl failed: %d\n", WSAGetLastError());
     return false;
   }
   return true;
@@ -376,7 +377,7 @@ bool ListenSocket::IssueAccept() {
                  buffer->GetCleanOverlapped());
   if (!ok) {
     if (WSAGetLastError() != WSA_IO_PENDING) {
-      fprintf(stderr, "AcceptEx failed: %d\n", WSAGetLastError());
+      Log::PrintErr("AcceptEx failed: %d\n", WSAGetLastError());
       closesocket(buffer->client());
       IOBuffer::DisposeBuffer(buffer);
       return false;
@@ -422,7 +423,7 @@ void ListenSocket::AcceptComplete(IOBuffer* buffer, HANDLE completion_port) {
         accepted_tail_ = client_socket;
       }
     } else {
-      fprintf(stderr, "setsockopt failed: %d\n", WSAGetLastError());
+      Log::PrintErr("setsockopt failed: %d\n", WSAGetLastError());
       closesocket(buffer->client());
     }
   }
@@ -514,7 +515,7 @@ int Handle::Write(const void* buffer, int num_bytes) {
                         NULL);
     if (!ok) {
       if (GetLastError() != ERROR_BROKEN_PIPE) {
-        fprintf(stderr, "WriteFile failed: %d\n", GetLastError());
+        Log::PrintErr("WriteFile failed: %d\n", GetLastError());
       }
       event_handler_->HandleClosed(this);
     }
@@ -526,7 +527,7 @@ int Handle::Write(const void* buffer, int num_bytes) {
 void ClientSocket::Shutdown(int how) {
   int rc = shutdown(socket(), how);
   if (rc == SOCKET_ERROR) {
-    fprintf(stderr, "shutdown failed: %d %d\n", socket(), WSAGetLastError());
+    Log::PrintErr("shutdown failed: %d %d\n", socket(), WSAGetLastError());
   }
   if (how == SD_RECEIVE) MarkClosedRead();
   if (how == SD_SEND) MarkClosedWrite();
@@ -559,7 +560,7 @@ bool ClientSocket::IssueRead() {
   }
 
   if (WSAGetLastError() != WSAECONNRESET) {
-    fprintf(stderr, "WSARecv failed: %d\n", WSAGetLastError());
+    Log::PrintErr("WSARecv failed: %d\n", WSAGetLastError());
   }
   event_handler_->HandleClosed(this);
   IOBuffer::DisposeBuffer(buffer);
@@ -584,7 +585,7 @@ bool ClientSocket::IssueWrite() {
     return true;
   }
 
-  fprintf(stderr, "WSASend failed: %d\n", WSAGetLastError());
+  Log::PrintErr("WSASend failed: %d\n", WSAGetLastError());
   IOBuffer::DisposeBuffer(pending_write_);
   pending_write_ = NULL;
   return false;
@@ -876,7 +877,7 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
     if (!ok && overlapped == NULL) {
       if (GetLastError() == ERROR_ABANDONED_WAIT_0) {
         // The completion port should never be closed.
-        printf("Completion port closed\n");
+        Log::Print("Completion port closed\n");
         UNREACHABLE();
       } else {
         // Timeout is signalled by false result and NULL in overlapped.

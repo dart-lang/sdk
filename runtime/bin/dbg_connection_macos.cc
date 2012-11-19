@@ -12,6 +12,7 @@
 #include "bin/dartutils.h"
 #include "bin/dbg_connection.h"
 #include "bin/fdutils.h"
+#include "bin/log.h"
 #include "bin/socket.h"
 #include "platform/thread.h"
 #include "platform/utils.h"
@@ -87,10 +88,10 @@ void DebuggerConnectionImpl::HandleEvent(struct kevent* event) {
   } else if (ident == wakeup_fds_[0]) {
     Message msg;
     if (ReceiveMessage(&msg)) {
-      printf("Received sync message id %d.\n", msg.msg_id);
+      Log::Print("Received sync message id %d.\n", msg.msg_id);
     }
   } else {
-    printf("unexpected: receiving debugger connection event.\n");
+    Log::Print("unexpected: receiving debugger connection event.\n");
     UNIMPLEMENTED();
   }
 }
@@ -113,7 +114,7 @@ void DebuggerConnectionImpl::Handler(uword args) {
       }
     }
   }
-  printf("shutting down debugger thread\n");
+  Log::Print("shutting down debugger thread\n");
 }
 
 

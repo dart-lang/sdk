@@ -17,6 +17,7 @@
 #include "bin/extensions.h"
 #include "bin/file.h"
 #include "bin/isolate_data.h"
+#include "bin/log.h"
 #include "bin/platform.h"
 #include "bin/process.h"
 #include "platform/globals.h"
@@ -142,7 +143,7 @@ static bool ProcessDebugOption(const char* port) {
     }
   }
   if (debug_port == 0) {
-    fprintf(stderr, "unrecognized --debug option syntax. "
+    Log::PrintErr("unrecognized --debug option syntax. "
                     "Use --debug[:<port number>]\n");
     return false;
   }
@@ -516,25 +517,25 @@ static bool CreateIsolateAndSetup(const char* script_uri,
 
 
 static void PrintVersion() {
-  fprintf(stderr, "Dart VM version: %s\n", Dart_VersionString());
+  Log::PrintErr("Dart VM version: %s\n", Dart_VersionString());
 }
 
 
 static void PrintUsage() {
-  fprintf(stderr,
+  Log::PrintErr(
       "Usage: dart [<vm-flags>] <dart-script-file> [<dart-options>]\n"
       "\n"
       "Executes the Dart script passed as <dart-script-file>.\n"
       "\n");
   if (!has_verbose_option) {
-    fprintf(stderr,
+    Log::PrintErr(
 "Common options:\n"
 "--checked Insert runtime type checks and enable assertions (checked mode).\n"
 "--version Print the VM version.\n"
 "--help    Display this message (add --verbose for information about all\n"
 "          VM options).\n");
   } else {
-    fprintf(stderr,
+    Log::PrintErr(
 "Supported options:\n"
 "--checked\n"
 "  Insert runtime type checks and enable assertions (checked mode).\n"
@@ -626,7 +627,7 @@ static const int kErrorExitCode = 255;  // Indicates we encountered an error.
 static int ErrorExit(const char* format, ...) {
   va_list arguments;
   va_start(arguments, format);
-  vfprintf(stderr, format, arguments);
+  Log::VPrintErr(format, arguments);
   va_end(arguments);
 
   Dart_ExitScope();
@@ -653,7 +654,7 @@ int main(int argc, char** argv) {
 
   // Perform platform specific initialization.
   if (!Platform::Initialize()) {
-    fprintf(stderr, "Initialization failed\n");
+    Log::PrintErr("Initialization failed\n");
   }
 
   // On Windows, the argv strings are code page encoded and not
@@ -710,7 +711,7 @@ int main(int argc, char** argv) {
                                    "main",
                                    new IsolateData(),
                                    &error)) {
-    fprintf(stderr, "%s\n", error);
+    Log::PrintErr("%s\n", error);
     free(error);
     delete [] isolate_name;
     return kErrorExitCode;  // Indicates we encountered an error.

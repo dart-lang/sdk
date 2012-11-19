@@ -14,12 +14,14 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/file.h"
+#include "bin/log.h"
+
 #include "platform/globals.h"
 
 #define CHECK_RESULT(result)                                                   \
   if (Dart_IsError(result)) {                                                  \
     free(snapshot_buffer);                                                     \
-    fprintf(stderr, "Error: %s", Dart_GetError(result));                       \
+    Log::PrintErr("Error: %s", Dart_GetError(result));                    \
     Dart_ExitScope();                                                          \
     Dart_ShutdownIsolate();                                                    \
     exit(255);                                                                 \
@@ -205,16 +207,14 @@ static Dart_Handle LoadGenericSnapshotCreationScript(
 
 
 static void PrintUsage() {
-  fprintf(stderr,
-          "dart [<vm-flags>] "
-          "[<dart-script-file>]\n");
+  Log::PrintErr("dart [<vm-flags>] [<dart-script-file>]\n");
 }
 
 
 static void VerifyLoaded(Dart_Handle library) {
   if (Dart_IsError(library)) {
     const char* err_msg = Dart_GetError(library);
-    fprintf(stderr, "Errors encountered while loading: %s\n", err_msg);
+    Log::PrintErr("Errors encountered while loading: %s\n", err_msg);
     Dart_ExitScope();
     Dart_ShutdownIsolate();
     exit(255);
@@ -251,7 +251,7 @@ static void SetupForGenericSnapshotCreation() {
   // Set up the library tag handler for this isolate.
   Dart_Handle result = Dart_SetLibraryTagHandler(DartUtils::LibraryTagHandler);
   if (Dart_IsError(result)) {
-    fprintf(stderr, "%s", Dart_GetError(result));
+    Log::PrintErr("%s", Dart_GetError(result));
     Dart_ExitScope();
     Dart_ShutdownIsolate();
     exit(255);
@@ -290,7 +290,7 @@ int main(int argc, char** argv) {
   }
 
   if (snapshot_filename == NULL) {
-    fprintf(stderr, "No snapshot output file specified\n");
+    Log::PrintErr("No snapshot output file specified\n");
     return 255;
   }
 
@@ -302,14 +302,14 @@ int main(int argc, char** argv) {
   // Note: We don't expect isolates to be created from dart code during
   // snapshot generation.
   if (!Dart_Initialize(NULL, NULL, NULL)) {
-    fprintf(stderr, "VM initialization failed\n");
+    Log::PrintErr("VM initialization failed\n");
     return 255;
   }
 
   char* error;
   Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL, NULL, NULL, &error);
   if (isolate == NULL) {
-    fprintf(stderr, "Error: %s", error);
+    Log::PrintErr("Error: %s", error);
     free(error);
     exit(255);
   }
@@ -360,7 +360,7 @@ int main(int argc, char** argv) {
                                                 NULL,
                                                 &error);
       if (isolate == NULL) {
-        fprintf(stderr, "%s", error);
+        Log::PrintErr("%s", error);
         free(error);
         free(snapshot_buffer);
         exit(255);

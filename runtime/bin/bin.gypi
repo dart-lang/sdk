@@ -268,6 +268,10 @@
         'builtin_natives.cc',
         'builtin.h',
         'io_natives.h',
+        'log_android.cc',
+        'log_linux.cc',
+        'log_macos.cc',
+        'log_win.cc',
       ],
       'includes': [
         'builtin_impl_sources.gypi',
@@ -391,7 +395,13 @@
           'link_settings': {
             'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],
           },
-       }]],
+       }],
+        ['OS=="android"', {
+          'link_settings': {
+            'libraries': [ '-llog' ],
+          },
+       }]
+      ],
     },
     {
       # Generate snapshot bin file.

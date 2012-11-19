@@ -7,8 +7,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-#include "bin/platform.h"
-
+#include "bin/log.h"
 
 static int SetOsErrorMessage(char* os_error_message,
                              int os_error_message_len) {
@@ -23,7 +22,7 @@ static int SetOsErrorMessage(char* os_error_message,
                     NULL);
   if (message_size == 0) {
     if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-      fprintf(stderr, "FormatMessage failed %d\n", GetLastError());
+      Log::PrintErr("FormatMessage failed %d\n", GetLastError());
     }
     snprintf(os_error_message, os_error_message_len, "OS Error %d", error_code);
   }

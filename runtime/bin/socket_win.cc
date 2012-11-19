@@ -4,6 +4,7 @@
 
 #include "bin/builtin.h"
 #include "bin/eventhandler.h"
+#include "bin/log.h"
 #include "bin/socket.h"
 
 bool Socket::Initialize() {
@@ -12,7 +13,7 @@ bool Socket::Initialize() {
   WORD version_requested = MAKEWORD(1, 0);
   err = WSAStartup(version_requested, &winsock_data);
   if (err != 0) {
-    fprintf(stderr, "Unable to initialize Winsock: %d\n", WSAGetLastError());
+    Log::PrintErr("Unable to initialize Winsock: %d\n", WSAGetLastError());
   }
   return err == 0;
 }
@@ -43,7 +44,7 @@ intptr_t Socket::GetPort(intptr_t fd) {
   if (getsockname(socket_handle->socket(),
                   reinterpret_cast<struct sockaddr *>(&socket_address),
                   &size)) {
-    fprintf(stderr, "Error getsockname: %s\n", strerror(errno));
+    Log::PrintErr("Error getsockname: %s\n", strerror(errno));
     return 0;
   }
   return ntohs(socket_address.sin_port);
@@ -58,7 +59,7 @@ bool Socket::GetRemotePeer(intptr_t fd, char *host, intptr_t *port) {
   if (getpeername(socket_handle->socket(),
                   reinterpret_cast<struct sockaddr *>(&socket_address),
                   &size)) {
-    fprintf(stderr, "Error getpeername: %s\n", strerror(errno));
+    Log::PrintErr("Error getpeername: %s\n", strerror(errno));
     return false;
   }
   *port = ntohs(socket_address.sin_port);
@@ -72,7 +73,7 @@ bool Socket::GetRemotePeer(intptr_t fd, char *host, intptr_t *port) {
                                host,
                                &len);
   if (err != 0) {
-    fprintf(stderr, "Error WSAAddressToString: %d\n", WSAGetLastError());
+    Log::PrintErr("Error WSAAddressToString: %d\n", WSAGetLastError());
     return false;
   }
   return true;

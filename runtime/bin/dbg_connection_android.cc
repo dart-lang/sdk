@@ -9,6 +9,7 @@
 
 #include "bin/dbg_connection.h"
 #include "bin/fdutils.h"
+#include "bin/log.h"
 #include "bin/socket.h"
 
 int DebuggerConnectionImpl::epoll_fd_ = -1;
@@ -32,7 +33,7 @@ void DebuggerConnectionImpl::HandleEvent(struct epoll_event* event) {
     // Sync message. Not yet implemented.
     UNIMPLEMENTED();
   } else {
-    printf("unexpected: receiving debugger connection event.\n");
+    Log::Print("unexpected: receiving debugger connection event.\n");
     UNIMPLEMENTED();
   }
 }

@@ -15,6 +15,7 @@
 #include <unistd.h>
 
 #include "bin/fdutils.h"
+#include "bin/log.h"
 #include "bin/thread.h"
 
 extern char **environ;
@@ -327,7 +328,7 @@ int Process::Start(const char* path,
   bool initialized = ExitCodeHandler::EnsureInitialized();
   if (!initialized) {
     SetChildOsErrorMessage(os_error_message, os_error_message_len);
-    fprintf(stderr,
+    Log::PrintErr(
             "Error initializing exit code handler: %s\n",
             os_error_message);
     return errno;
@@ -336,7 +337,7 @@ int Process::Start(const char* path,
   result = TEMP_FAILURE_RETRY(pipe(read_in));
   if (result < 0) {
     SetChildOsErrorMessage(os_error_message, os_error_message_len);
-    fprintf(stderr, "Error pipe creation failed: %s\n", os_error_message);
+    Log::PrintErr("Error pipe creation failed: %s\n", os_error_message);
     return errno;
   }
 
@@ -345,7 +346,7 @@ int Process::Start(const char* path,
     SetChildOsErrorMessage(os_error_message, os_error_message_len);
     TEMP_FAILURE_RETRY(close(read_in[0]));
     TEMP_FAILURE_RETRY(close(read_in[1]));
-    fprintf(stderr, "Error pipe creation failed: %s\n", os_error_message);
+    Log::PrintErr("Error pipe creation failed: %s\n", os_error_message);
     return errno;
   }
 
@@ -356,7 +357,7 @@ int Process::Start(const char* path,
     TEMP_FAILURE_RETRY(close(read_in[1]));
     TEMP_FAILURE_RETRY(close(read_err[0]));
     TEMP_FAILURE_RETRY(close(read_err[1]));
-    fprintf(stderr, "Error pipe creation failed: %s\n", os_error_message);
+    Log::PrintErr("Error pipe creation failed: %s\n", os_error_message);
     return errno;
   }
 
@@ -369,7 +370,7 @@ int Process::Start(const char* path,
     TEMP_FAILURE_RETRY(close(read_err[1]));
     TEMP_FAILURE_RETRY(close(write_out[0]));
     TEMP_FAILURE_RETRY(close(write_out[1]));
-    fprintf(stderr, "Error pipe creation failed: %s\n", os_error_message);
+    Log::PrintErr("Error pipe creation failed: %s\n", os_error_message);
     return errno;
   }
 
@@ -388,7 +389,7 @@ int Process::Start(const char* path,
     TEMP_FAILURE_RETRY(close(write_out[1]));
     TEMP_FAILURE_RETRY(close(exec_control[0]));
     TEMP_FAILURE_RETRY(close(exec_control[1]));
-    fprintf(stderr, "fcntl failed: %s\n", os_error_message);
+    Log::PrintErr("fcntl failed: %s\n", os_error_message);
     return errno;
   }
 
@@ -487,7 +488,7 @@ int Process::Start(const char* path,
     TEMP_FAILURE_RETRY(close(read_err[1]));
     TEMP_FAILURE_RETRY(close(write_out[0]));
     TEMP_FAILURE_RETRY(close(write_out[1]));
-    fprintf(stderr, "Error pipe creation failed: %s\n", os_error_message);
+    Log::PrintErr("Error pipe creation failed: %s\n", os_error_message);
     return errno;
   }
 

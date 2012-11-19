@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include "bin/fdutils.h"
+#include "bin/log.h"
 #include "bin/socket.h"
 
 
@@ -25,7 +26,7 @@ intptr_t Socket::CreateConnect(const char* host, const intptr_t port) {
 
   fd = TEMP_FAILURE_RETRY(socket(AF_INET, SOCK_STREAM, 0));
   if (fd < 0) {
-    fprintf(stderr, "Error CreateConnect: %s\n", strerror(errno));
+    Log::PrintErr("Error CreateConnect: %s\n", strerror(errno));
     return -1;
   }
 
@@ -39,7 +40,7 @@ intptr_t Socket::CreateConnect(const char* host, const intptr_t port) {
   if (gethostbyname_r(
           host, &server, temp_buf, kTempBufSize, &unused, &err) != 0) {
     TEMP_FAILURE_RETRY(close(fd));
-    fprintf(stderr, "Error CreateConnect: %s\n", strerror(errno));
+    Log::PrintErr("Error CreateConnect: %s\n", strerror(errno));
     return -1;
   }
 
@@ -97,7 +98,7 @@ intptr_t Socket::GetPort(intptr_t fd) {
           getsockname(fd,
                       reinterpret_cast<struct sockaddr *>(&socket_address),
                       &size))) {
-    fprintf(stderr, "Error getsockname: %s\n", strerror(errno));
+    Log::PrintErr("Error getsockname: %s\n", strerror(errno));
     return 0;
   }
   return ntohs(socket_address.sin_port);
@@ -112,14 +113,14 @@ bool Socket::GetRemotePeer(intptr_t fd, char *host, intptr_t *port) {
           getpeername(fd,
                       reinterpret_cast<struct sockaddr *>(&socket_address),
                       &size))) {
-    fprintf(stderr, "Error getpeername: %s\n", strerror(errno));
+    Log::PrintErr("Error getpeername: %s\n", strerror(errno));
     return false;
   }
   if (inet_ntop(socket_address.sin_family,
                 reinterpret_cast<const void *>(&socket_address.sin_addr),
                 host,
                 INET_ADDRSTRLEN) == NULL) {
-    fprintf(stderr, "Error inet_ntop: %s\n", strerror(errno));
+    Log::PrintErr("Error inet_ntop: %s\n", strerror(errno));
     return false;
   }
   *port = ntohs(socket_address.sin_port);
@@ -188,7 +189,7 @@ intptr_t ServerSocket::CreateBindListen(const char* host,
 
   fd = TEMP_FAILURE_RETRY(socket(AF_INET, SOCK_STREAM, 0));
   if (fd < 0) {
-    fprintf(stderr, "Error CreateBind: %s\n", strerror(errno));
+    Log::PrintErr("Error CreateBind: %s\n", strerror(errno));
     return -1;
   }
 
@@ -208,12 +209,12 @@ intptr_t ServerSocket::CreateBindListen(const char* host,
                reinterpret_cast<struct sockaddr *>(&server_address),
                sizeof(server_address))) < 0) {
     TEMP_FAILURE_RETRY(close(fd));
-    fprintf(stderr, "Error Bind: %s\n", strerror(errno));
+    Log::PrintErr("Error Bind: %s\n", strerror(errno));
     return -1;
   }
 
   if (TEMP_FAILURE_RETRY(listen(fd, backlog)) != 0) {
-    fprintf(stderr, "Error Listen: %s\n", strerror(errno));
+    Log::PrintErr("Error Listen: %s\n", strerror(errno));
     return -1;
   }
 
