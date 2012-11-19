@@ -22,22 +22,22 @@ main() {
     test('htmlelement', () {
       var el = new DivElement();
       el.addHtml('<span></span>');
-      expect(el.elements.length, equals(1));
-      var span = el.elements[0];
+      expect(el.children.length, equals(1));
+      var span = el.children[0];
       expect(span, isSpanElement);
 
       el.addHtml('<div></div>');
-      expect(el.elements.length, equals(2));
+      expect(el.children.length, equals(2));
       // Validate that the first item is still first.
-      expect(el.elements[0], equals(span));
-      expect(el.elements[1], isDivElement);
+      expect(el.children[0], equals(span));
+      expect(el.children[1], isDivElement);
     });
 
     test('documentFragment', () {
       var fragment = new DocumentFragment();
       fragment.addHtml('<span>something</span>');
-      expect(fragment.elements.length, equals(1));
-      expect(fragment.elements[0], isSpanElement);
+      expect(fragment.children.length, equals(1));
+      expect(fragment.children[0], isSpanElement);
     });
   });
 
@@ -45,8 +45,8 @@ main() {
     test('htmlelement', () {
       var el = new DivElement();
       el.addText('foo');
-      // No elements were created.
-      expect(el.elements.length, equals(0));
+      // No children were created.
+      expect(el.children.length, equals(0));
       // One text node was added.
       expect(el.nodes.length, equals(1));
     });
@@ -54,8 +54,8 @@ main() {
     test('documentFragment', () {
       var fragment = new DocumentFragment();
       fragment.addText('foo');
-      // No elements were created.
-      expect(fragment.elements.length, equals(0));
+      // No children were created.
+      expect(fragment.children.length, equals(0));
       // One text node was added.
       expect(fragment.nodes.length, equals(1));
     });
@@ -66,48 +66,48 @@ main() {
       var parent = new DivElement();
       var child = new DivElement();
       var newChild = new SpanElement();
-      parent.elements.add(child);
+      parent.children.add(child);
 
       child.insertAdjacentElement('beforebegin', newChild);
 
-      expect(parent.elements.length, 2);
-      expect(parent.elements[0], isSpanElement);
+      expect(parent.children.length, 2);
+      expect(parent.children[0], isSpanElement);
     });
 
     test('afterend', () {
       var parent = new DivElement();
       var child = new DivElement();
       var newChild = new SpanElement();
-      parent.elements.add(child);
+      parent.children.add(child);
 
       child.insertAdjacentElement('afterend', newChild);
 
-      expect(parent.elements.length, 2);
-      expect(parent.elements[1], isSpanElement);
+      expect(parent.children.length, 2);
+      expect(parent.children[1], isSpanElement);
     });
 
     test('afterbegin', () {
       var parent = new DivElement();
       var child = new DivElement();
       var newChild = new SpanElement();
-      parent.elements.add(child);
+      parent.children.add(child);
 
       parent.insertAdjacentElement('afterbegin', newChild);
 
-      expect(parent.elements.length, 2);
-      expect(parent.elements[0], isSpanElement);
+      expect(parent.children.length, 2);
+      expect(parent.children[0], isSpanElement);
     });
 
     test('beforeend', () {
       var parent = new DivElement();
       var child = new DivElement();
       var newChild = new SpanElement();
-      parent.elements.add(child);
+      parent.children.add(child);
 
       parent.insertAdjacentElement('beforeend', newChild);
 
-      expect(parent.elements.length, 2);
-      expect(parent.elements[1], isSpanElement);
+      expect(parent.children.length, 2);
+      expect(parent.children[1], isSpanElement);
     });
   });
 
@@ -115,45 +115,45 @@ main() {
     test('beforebegin', () {
       var parent = new DivElement();
       var child = new DivElement();
-      parent.elements.add(child);
+      parent.children.add(child);
 
       child.insertAdjacentHTML('beforebegin', '<span></span>');
 
-      expect(parent.elements.length, 2);
-      expect(parent.elements[0], isSpanElement);
+      expect(parent.children.length, 2);
+      expect(parent.children[0], isSpanElement);
     });
 
     test('afterend', () {
       var parent = new DivElement();
       var child = new DivElement();
-      parent.elements.add(child);
+      parent.children.add(child);
 
       child.insertAdjacentHTML('afterend', '<span></span>');
 
-      expect(parent.elements.length, 2);
-      expect(parent.elements[1], isSpanElement);
+      expect(parent.children.length, 2);
+      expect(parent.children[1], isSpanElement);
     });
 
     test('afterbegin', () {
       var parent = new DivElement();
       var child = new DivElement();
-      parent.elements.add(child);
+      parent.children.add(child);
 
       parent.insertAdjacentHTML('afterbegin', '<span></span>');
 
-      expect(parent.elements.length, 2);
-      expect(parent.elements[0], isSpanElement);
+      expect(parent.children.length, 2);
+      expect(parent.children[0], isSpanElement);
     });
 
     test('beforeend', () {
       var parent = new DivElement();
       var child = new DivElement();
-      parent.elements.add(child);
+      parent.children.add(child);
 
       parent.insertAdjacentHTML('beforeend', '<span></span>');
 
-      expect(parent.elements.length, 2);
-      expect(parent.elements[1], isSpanElement);
+      expect(parent.children.length, 2);
+      expect(parent.children[1], isSpanElement);
     });
   });
 
@@ -161,7 +161,7 @@ main() {
     test('beforebegin', () {
       var parent = new DivElement();
       var child = new DivElement();
-      parent.elements.add(child);
+      parent.children.add(child);
 
       child.insertAdjacentText('beforebegin', 'test');
 
@@ -172,7 +172,7 @@ main() {
     test('afterend', () {
       var parent = new DivElement();
       var child = new DivElement();
-      parent.elements.add(child);
+      parent.children.add(child);
 
       child.insertAdjacentText('afterend', 'test');
 
@@ -183,7 +183,7 @@ main() {
     test('afterbegin', () {
       var parent = new DivElement();
       var child = new DivElement();
-      parent.elements.add(child);
+      parent.children.add(child);
 
       parent.insertAdjacentText('afterbegin', 'test');
 
@@ -194,7 +194,7 @@ main() {
     test('beforeend', () {
       var parent = new DivElement();
       var child = new DivElement();
-      parent.elements.add(child);
+      parent.children.add(child);
 
       parent.insertAdjacentText('beforeend', 'test');
 

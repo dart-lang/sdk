@@ -28,22 +28,30 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   factory $CLASSNAME.svg(String svgContent) =>
       _$(CLASSNAME)FactoryProvider.createDocumentFragment_svg(svgContent);
 
-  List<Element> _elements;
-
-  List<Element> get elements {
-    if (_elements == null) {
-      _elements = new FilteredElementList(this);
-    }
-    return _elements;
-  }
+  List<Element> get elements => this.children;
 
   // TODO: The type of value should be Collection<Element>. See http://b/5392897
   void set elements(value) {
+    this.children = value;
+  }
+
+  // Native field is used only by Dart code so does not lead to instantiation
+  // of native classes
+  @Creates('Null')
+  List<Element> _children;
+  List<Element> get children {
+    if (_children == null) {
+      _children = new FilteredElementList(this);
+    }
+    return _children;
+  }
+
+  void set children(Collection<Element> value) {
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
-    final elements = this.elements;
-    elements.clear();
-    elements.addAll(copy);
+    var children = this.children;
+    children.clear();
+    children.addAll(copy);
   }
 
   Element query(String selectors) => $dom_querySelector(selectors);

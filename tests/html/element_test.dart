@@ -90,8 +90,8 @@ main() {
     final element = new Element.tag("div");
     element.style.width = '200px';
     element.style.height = '200px';
-    container.elements.add(element);
-    document.body.elements.add(container);
+    container.children.add(element);
+    document.body.children.add(container);
 
     expect(element.clientWidth, greaterThan(100));
     expect(element.clientHeight, greaterThan(100));
@@ -149,7 +149,7 @@ main() {
         '<thead><tr><td>foo</td></tr></thead>', 'foo',
         (element) => element is TableSectionElement));
   });
-    
+
   group('constructors', () {
     test('error', () {
       expect(() => new Element.html('<br/><br/>'), throwsArgumentError);
@@ -283,7 +283,7 @@ main() {
     //     '<someunknown>foo</someunknown>', 'foo',
     //     (element) => element is UnknownElement));
   });
-  
+
   group('eventListening', () {
     test('eventListeners', () {
       final element = new Element.tag('div');
@@ -466,47 +466,47 @@ main() {
       });
   });
 
-  group('elements', () {
+  group('children', () {
     test('is a subset of nodes', () {
       var el = new Element.html("<div>Foo<br/><img/></div>");
       expect(el.nodes.length, 3);
-      expect(el.elements.length, 2);
-      expect(el.nodes[1], el.elements[0]);
-      expect(el.nodes[2], el.elements[1]);
+      expect(el.children.length, 2);
+      expect(el.nodes[1], el.children[0]);
+      expect(el.nodes[2], el.children[1]);
     });
 
     test('changes when an element is added to nodes', () {
       var el = new Element.html("<div>Foo<br/><img/></div>");
       el.nodes.add(new Element.tag('hr'));
-      expect(el.elements.length, 3);
-      expect(el.elements[2], isHRElement);
-      expect(el.nodes[3], el.elements[2]);
+      expect(el.children.length, 3);
+      expect(el.children[2], isHRElement);
+      expect(el.nodes[3], el.children[2]);
     });
 
     test('changes nodes when an element is added', () {
       var el = new Element.html("<div>Foo<br/><img/></div>");
-      el.elements.add(new Element.tag('hr'));
+      el.children.add(new Element.tag('hr'));
       expect(el.nodes.length, 4);
       expect(el.nodes[3], isHRElement);
-      expect(el.elements[2], el.nodes[3]);
+      expect(el.children[2], el.nodes[3]);
     });
 
     test('last', () {
       var el = makeElementWithChildren();
-      expect(el.elements.last, isInputElement);
+      expect(el.children.last, isInputElement);
     });
 
     test('forEach', () {
       var els = [];
       var el = makeElementWithChildren();
-      el.elements.forEach((n) => els.add(n));
+      el.children.forEach((n) => els.add(n));
       expect(els[0], isBRElement);
       expect(els[1], isImageElement);
       expect(els[2], isInputElement);
     });
 
     test('filter', () {
-      var filtered = makeElementWithChildren().elements.
+      var filtered = makeElementWithChildren().children.
         filter((n) => n is ImageElement);
       expect(1, filtered.length);
       expect(filtered[0], isImageElement);
@@ -515,57 +515,57 @@ main() {
 
     test('every', () {
       var el = makeElementWithChildren();
-      expect(el.elements.every((n) => n is Element), isTrue);
-      expect(el.elements.every((n) => n is InputElement), isFalse);
+      expect(el.children.every((n) => n is Element), isTrue);
+      expect(el.children.every((n) => n is InputElement), isFalse);
     });
 
     test('some', () {
       var el = makeElementWithChildren();
-      expect(el.elements.some((n) => n is InputElement), isTrue);
-      expect(el.elements.some((n) => n is svg.SvgElement), isFalse);
+      expect(el.children.some((n) => n is InputElement), isTrue);
+      expect(el.children.some((n) => n is svg.SvgElement), isFalse);
     });
 
     test('isEmpty', () {
-      expect(makeElement().elements.isEmpty, isTrue);
-      expect(makeElementWithChildren().elements.isEmpty, isFalse);
+      expect(makeElement().children.isEmpty, isTrue);
+      expect(makeElementWithChildren().children.isEmpty, isFalse);
     });
 
     test('length', () {
-      expect(makeElement().elements.length, 0);
-      expect(makeElementWithChildren().elements.length, 3);
+      expect(makeElement().children.length, 0);
+      expect(makeElementWithChildren().children.length, 3);
     });
 
     test('[]', () {
       var el = makeElementWithChildren();
-      expect(el.elements[0], isBRElement);
-      expect(el.elements[1], isImageElement);
-      expect(el.elements[2], isInputElement);
+      expect(el.children[0], isBRElement);
+      expect(el.children[1], isImageElement);
+      expect(el.children[2], isInputElement);
     });
 
     test('[]=', () {
       var el = makeElementWithChildren();
-      el.elements[1] = new Element.tag('hr');
-      expect(el.elements[0], isBRElement);
-      expect(el.elements[1], isHRElement);
-      expect(el.elements[2], isInputElement);
+      el.children[1] = new Element.tag('hr');
+      expect(el.children[0], isBRElement);
+      expect(el.children[1], isHRElement);
+      expect(el.children[2], isInputElement);
     });
 
     test('add', () {
       var el = makeElement();
-      el.elements.add(new Element.tag('hr'));
-      expect(el.elements.last, isHRElement);
+      el.children.add(new Element.tag('hr'));
+      expect(el.children.last, isHRElement);
     });
 
     test('addLast', () {
       var el = makeElement();
-      el.elements.addLast(new Element.tag('hr'));
-      expect(el.elements.last, isHRElement);
+      el.children.addLast(new Element.tag('hr'));
+      expect(el.children.last, isHRElement);
     });
 
     test('iterator', () {
       var els = [];
       var el = makeElementWithChildren();
-      for (var subel in el.elements) {
+      for (var subel in el.children) {
         els.add(subel);
       }
       expect(els[0], isBRElement);
@@ -575,36 +575,36 @@ main() {
 
     test('addAll', () {
       var el = makeElementWithChildren();
-      el.elements.addAll([
+      el.children.addAll([
         new Element.tag('span'),
         new Element.tag('a'),
         new Element.tag('h1')
       ]);
-      expect(el.elements[0], isBRElement);
-      expect(el.elements[1], isImageElement);
-      expect(el.elements[2], isInputElement);
-      expect(el.elements[3], isSpanElement);
-      expect(el.elements[4], isAnchorElement);
-      expect(el.elements[5], isHeadingElement);
+      expect(el.children[0], isBRElement);
+      expect(el.children[1], isImageElement);
+      expect(el.children[2], isInputElement);
+      expect(el.children[3], isSpanElement);
+      expect(el.children[4], isAnchorElement);
+      expect(el.children[5], isHeadingElement);
     });
 
     test('clear', () {
       var el = makeElementWithChildren();
-      el.elements.clear();
-      expect(el.elements, equals([]));
+      el.children.clear();
+      expect(el.children, equals([]));
     });
 
     test('removeLast', () {
       var el = makeElementWithChildren();
-      expect(el.elements.removeLast(), isInputElement);
-      expect(el.elements.length, 2);
-      expect(el.elements.removeLast(), isImageElement);
-      expect(el.elements.length, 1);
+      expect(el.children.removeLast(), isInputElement);
+      expect(el.children.length, 2);
+      expect(el.children.removeLast(), isImageElement);
+      expect(el.children.length, 1);
     });
 
     test('getRange', () {
       var el = makeElementWithChildren();
-      expect(el.elements.getRange(1, 1), isElementList);
+      expect(el.children.getRange(1, 1), isElementList);
     });
   });
 
@@ -725,7 +725,7 @@ main() {
   });
 
   group('_ElementList', () {
-    List<Element> makeElList() => makeElementWithChildren().elements;
+    List<Element> makeElList() => makeElementWithChildren().children;
 
     test('filter', () {
       var filtered = makeElList().filter((n) => n is ImageElement);

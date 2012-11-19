@@ -152,8 +152,8 @@ main() {
   group('outerHTML', () {
     test('outerHTML', () {
       final el = new svg.SvgSvgElement();
-      el.elements.add(new svg.CircleElement());
-      el.elements.add(new svg.PathElement());
+      el.children.add(new svg.CircleElement());
+      el.children.add(new svg.PathElement());
       expect(el.outerHTML,
           '<svg version="1.1"><circle></circle><path></path></svg>');
     });
@@ -162,17 +162,17 @@ main() {
   group('innerHTML', () {
     test('get', () {
       final el = new svg.SvgSvgElement();
-      el.elements.add(new svg.CircleElement());
-      el.elements.add(new svg.PathElement());
+      el.children.add(new svg.CircleElement());
+      el.children.add(new svg.PathElement());
       expect(el.innerHTML, '<circle></circle><path></path>');
     });
 
     test('set', () {
       final el = new svg.SvgSvgElement();
-      el.elements.add(new svg.CircleElement());
-      el.elements.add(new svg.PathElement());
+      el.children.add(new svg.CircleElement());
+      el.children.add(new svg.PathElement());
       el.innerHTML = '<rect></rect><a></a>';
-      expect(_nodeStrings(el.elements), ["rect", "a"]);
+      expect(_nodeStrings(el.children), ["rect", "a"]);
     });
   });
 
@@ -184,14 +184,14 @@ main() {
   <path></path>
   text
 </svg>""");
-      expect(_nodeStrings(el.elements), ["circle", "path"]);
+      expect(_nodeStrings(el.children), ["circle", "path"]);
     });
   });
 
   group('elementset', () {
     test('set', () {
       final el = new svg.SvgSvgElement();
-      el.elements = [new svg.SvgElement.tag("circle"), new svg.SvgElement.tag("path")];
+      el.children = [new svg.SvgElement.tag("circle"), new svg.SvgElement.tag("path")];
       expect(el.innerHTML, '<circle></circle><path></path>');
     });
   });

@@ -6640,17 +6640,25 @@ class SvgElement extends Element {
     elements.addAll(value);
   }
 
+  List<Element> get children => new FilteredElementList(this);
+
+  void set children(Collection<Element> value) {
+    final children = this.children;
+    children.clear();
+    children.addAll(value);
+  }
+
   String get outerHTML {
     final container = new Element.tag("div");
     final SvgElement cloned = this.clone(true);
-    container.elements.add(cloned);
+    container.children.add(cloned);
     return container.innerHTML;
   }
 
   String get innerHTML {
     final container = new Element.tag("div");
     final SvgElement cloned = this.clone(true);
-    container.elements.addAll(cloned.elements);
+    container.children.addAll(cloned.children);
     return container.innerHTML;
   }
 
@@ -6659,7 +6667,7 @@ class SvgElement extends Element {
     // Wrap the SVG string in <svg> so that SvgElements are created, rather than
     // HTMLElements.
     container.innerHTML = '<svg version="1.1">$svg</svg>';
-    this.elements = container.elements[0].elements;
+    this.children = container.children[0].children;
   }
 
   SvgElement.internal(): super.internal();

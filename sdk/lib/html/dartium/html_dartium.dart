@@ -8777,22 +8777,30 @@ class DocumentFragment extends Node {
   factory DocumentFragment.svg(String svgContent) =>
       _DocumentFragmentFactoryProvider.createDocumentFragment_svg(svgContent);
 
-  List<Element> _elements;
-
-  List<Element> get elements {
-    if (_elements == null) {
-      _elements = new FilteredElementList(this);
-    }
-    return _elements;
-  }
+  List<Element> get elements => this.children;
 
   // TODO: The type of value should be Collection<Element>. See http://b/5392897
   void set elements(value) {
+    this.children = value;
+  }
+
+  // Native field is used only by Dart code so does not lead to instantiation
+  // of native classes
+  @Creates('Null')
+  List<Element> _children;
+  List<Element> get children {
+    if (_children == null) {
+      _children = new FilteredElementList(this);
+    }
+    return _children;
+  }
+
+  void set children(Collection<Element> value) {
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
-    final elements = this.elements;
-    elements.clear();
-    elements.addAll(copy);
+    var children = this.children;
+    children.clear();
+    children.addAll(copy);
   }
 
   Element query(String selectors) => $dom_querySelector(selectors);
@@ -9641,16 +9649,27 @@ abstract class Element extends Node implements ElementTraversal {
   }
 
   void set elements(Collection<Element> value) {
-    final elements = this.elements;
-    elements.clear();
-    elements.addAll(value);
+    this.children = value;
   }
+
+  /**
+   * Deprecated, use [children] instead.
+   */
+  List<Element> get elements => this.children;
 
   /**
    * @domName childElementCount, firstElementChild, lastElementChild,
    *   children, Node.nodes.add
    */
-  List<Element> get elements => new _ChildrenElementList._wrap(this);
+  List<Element> get children => new _ChildrenElementList._wrap(this);
+
+  void set children(Collection<Element> value) {
+    // Copy list first since we don't want liveness during iteration.
+    List copy = new List.from(value);
+    var children = this.children;
+    children.clear();
+    children.addAll(copy);
+  }
 
   Element query(String selectors) => $dom_querySelector(selectors);
 
@@ -10035,15 +10054,15 @@ class _ElementFactoryProvider {
     temp.innerHTML = html;
 
     Element element;
-    if (temp.elements.length == 1) {
-      element = temp.elements[0];
-    } else if (parentTag == 'html' && temp.elements.length == 2) {
+    if (temp.children.length == 1) {
+      element = temp.children[0];
+    } else if (parentTag == 'html' && temp.children.length == 2) {
       // Work around for edge case in WebKit and possibly other browsers where
       // both body and head elements are created even though the inner html
       // only contains a head or body element.
-      element = temp.elements[tag == 'head' ? 0 : 1];
+      element = temp.children[tag == 'head' ? 0 : 1];
     } else {
-      throw new ArgumentError('HTML had ${temp.elements.length} '
+      throw new ArgumentError('HTML had ${temp.children.length} '
           'top level elements but 1 expected');
     }
     element.remove();

@@ -21,7 +21,7 @@ main() {
       new OptionElement('data', 'two', false, true),
       new OptionElement(),
     ];
-    element.elements.addAll(options);
+    element.children.addAll(options);
     expect(element.selectedOptions.length, 1);
     expect(element.selectedOptions[0], equals(options[4]));
   });
@@ -37,7 +37,7 @@ main() {
       new OptionElement('data', 'two', false, true),
       new OptionElement(),
     ];
-    element.elements.addAll(options);
+    element.children.addAll(options);
     expect(element.selectedOptions.length, 2);
     expect(element.selectedOptions[0], equals(options[2]));
     expect(element.selectedOptions[1], equals(options[4]));
@@ -51,7 +51,7 @@ main() {
       new OptionElement('data', 'two', false, true),
       new OptionElement(),
     ];
-    element.elements.addAll(options);
+    element.children.addAll(options);
     // Use last to make sure that the list was correctly wrapped.
     expect(element.options.last, equals(options[3]));
   });

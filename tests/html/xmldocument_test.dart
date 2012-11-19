@@ -19,8 +19,8 @@ main() {
     test('with a well-formed document', () {
       final doc = makeDocument();
       expect(doc, isXMLDocument);
-      expect(doc.elements[0].tagName, 'foo');
-      expect(doc.elements[1].tagName, 'bar');
+      expect(doc.children[0].tagName, 'foo');
+      expect(doc.children[1].tagName, 'bar');
     });
 
     // TODO(nweiz): re-enable this when Document#query matches the root-level
@@ -33,20 +33,20 @@ main() {
 
     test('with a PARSERERROR tag', () {
       final doc = new XMLDocument.xml("<xml><parsererror /></xml>");
-      expect(doc.elements[0].tagName, 'parsererror');
+      expect(doc.children[0].tagName, 'parsererror');
     });
   });
 
   // FilteredElementList is tested more thoroughly in DocumentFragmentTests.
-  group('elements', () {
+  group('children', () {
     test('filters out non-element nodes', () {
       final doc = new XMLDocument.xml("<xml>1<a/><b/>2<c/>3<d/></xml>");
-      expect(doc.elements.map((e) => e.tagName), ["a", "b", "c", "d"]);
+      expect(doc.children.map((e) => e.tagName), ["a", "b", "c", "d"]);
     });
 
     test('overwrites nodes when set', () {
       final doc = new XMLDocument.xml("<xml>1<a/><b/>2<c/>3<d/></xml>");
-      doc.elements = [new XMLElement.tag('x'), new XMLElement.tag('y')];
+      doc.children = [new XMLElement.tag('x'), new XMLElement.tag('y')];
       expect(doc.outerHTML, "<xml><x></x><y></y></xml>");
     });
   });

@@ -531,16 +531,27 @@ abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   }
 
   void set elements(Collection<Element> value) {
-    final elements = this.elements;
-    elements.clear();
-    elements.addAll(value);
+    this.children = value;
   }
+
+  /**
+   * Deprecated, use [children] instead.
+   */
+  List<Element> get elements => this.children;
 
   /**
    * @domName childElementCount, firstElementChild, lastElementChild,
    *   children, Node.nodes.add
    */
-  List<Element> get elements => new _ChildrenElementList._wrap(this);
+  List<Element> get children => new _ChildrenElementList._wrap(this);
+
+  void set children(Collection<Element> value) {
+    // Copy list first since we don't want liveness during iteration.
+    List copy = new List.from(value);
+    var children = this.children;
+    children.clear();
+    children.addAll(copy);
+  }
 
   Element query(String selectors) => $dom_querySelector(selectors);
 
@@ -730,15 +741,15 @@ class _ElementFactoryProvider {
     temp.innerHTML = html;
 
     Element element;
-    if (temp.elements.length == 1) {
-      element = temp.elements[0];
-    } else if (parentTag == 'html' && temp.elements.length == 2) {
+    if (temp.children.length == 1) {
+      element = temp.children[0];
+    } else if (parentTag == 'html' && temp.children.length == 2) {
       // Work around for edge case in WebKit and possibly other browsers where
       // both body and head elements are created even though the inner html
       // only contains a head or body element.
-      element = temp.elements[tag == 'head' ? 0 : 1];
+      element = temp.children[tag == 'head' ? 0 : 1];
     } else {
-      throw new ArgumentError('HTML had ${temp.elements.length} '
+      throw new ArgumentError('HTML had ${temp.children.length} '
           'top level elements but 1 expected');
     }
     element.remove();

@@ -10,7 +10,7 @@ main() {
   useHtmlConfiguration();
 
   test('test1', () {
-    document.body.elements.add(new Element.html(r'''
+    document.body.children.add(new Element.html(r'''
 <div id='div1'>
 Hello World!
 </div>'''));

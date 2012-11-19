@@ -49,7 +49,7 @@ main() {
   test('CSS property empty getters and setters', () {
     var style = createTestStyle();
     expect(style.border, equals(""));
-    
+
     style.border = "1px solid blue";
     style.border = "";
     expect(style.border, equals(""));
@@ -70,7 +70,7 @@ main() {
   test('Browser prefixes', () {
     var element = new DivElement();
     element.style.transform = 'translateX(10px)';
-    document.body.elements.add(element);
+    document.body.children.add(element);
 
     element.getComputedStyle('').then(expectAsync1(
       (CSSStyleDeclaration style) {
@@ -84,7 +84,7 @@ main() {
   // IE9 requires an extra poke for some properties to get applied.
   test('IE9 Invalidation', () {
     var element = new DivElement();
-    document.body.elements.add(element);
+    document.body.children.add(element);
 
     // Need to wait one tick after the element has been added to the page.
     window.setTimeout(expectAsync0(() {
