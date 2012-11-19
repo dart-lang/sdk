@@ -11,6 +11,7 @@
         {
           'action_name': 'make_pkg_packages',
           'inputs': [
+            '../tools/make_links.py',
             'args/lib',
             'fixnum/lib',
             'htmlescape/lib',
