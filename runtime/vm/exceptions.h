@@ -56,8 +56,9 @@ class Exceptions : AllStatic {
     kStackOverflow,
     kOutOfMemory,
     kInternalError,
-    kNullThrown,
+    kNullPointer,
     kIllegalJSRegExp,
+    kArgumentError,
     kIsolateSpawn
   };
 

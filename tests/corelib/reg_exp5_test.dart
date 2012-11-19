@@ -7,9 +7,9 @@ main() {
   String str = "";
   try {
     RegExp ex = new RegExp(str);
-  } catch (e) {
-    if (!(e is ArgumentError)) {
-      Expect.fail("Expected: ArgumentError got: ${e}");
+  } on Exception catch (e) {
+    if (!(e is NullPointerException)) {
+      Expect.fail("Expected: NullPointerException got: ${e}");
     }
   }
   Expect.isFalse(new RegExp(r"^\w+$").hasMatch(str));

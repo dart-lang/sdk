@@ -145,26 +145,26 @@ void testComparisons() {
 
   try {
     new int64.fromInt(17) < null;
-    Expect.fail("x < null should throw ArgumentError");
-  } on ArgumentError catch (e) {
+    Expect.fail("x < null should throw NullPointerException");
+  } on NullPointerException catch (e) {
   }
 
   try {
     new int64.fromInt(17) <= null;
-    Expect.fail("x <= null should throw ArgumentError");
-  } on ArgumentError catch (e) {
+    Expect.fail("x <= null should throw NullPointerException");
+  } on NullPointerException catch (e) {
   }
 
   try {
     new int64.fromInt(17) > null;
-    Expect.fail("x > null should throw ArgumentError");
-  } on ArgumentError catch (e) {
+    Expect.fail("x > null should throw NullPointerException");
+  } on NullPointerException catch (e) {
   }
 
   try {
     new int64.fromInt(17) < null;
-    Expect.fail("x >= null should throw ArgumentError");
-  } on ArgumentError catch (e) {
+    Expect.fail("x >= null should throw NullPointerException");
+  } on NullPointerException catch (e) {
   }
 
   Expect.isFalse(new int64.fromInt(17) == null);

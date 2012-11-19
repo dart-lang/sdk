@@ -8,7 +8,8 @@ import 'dart:uri';
 import 'implementation/apiimpl.dart';
 
 // Unless explicitly allowed, passing [:null:] for any argument to the
-// methods of library will result in an Error being thrown.
+// methods of library will result in a NullPointerException being
+// thrown.
 
 /**
  * Returns a future that completes to the source corresponding to

@@ -62,7 +62,7 @@ leB(var a, var b) => (a is num && b is num)
     : identical(le$slow(a, b), true);
 
 index(var a, var index) {
-  // The type test may cause a NoSuchMethodError to be thrown but
+  // The type test may cause a NullPointerException to be thrown but
   // that matches the specification of what the indexing operator is
   // supposed to do.
   bool isJsArrayOrString = JS('bool',
@@ -78,7 +78,7 @@ index(var a, var index) {
 }
 
 indexSet(var a, var index, var value) {
-  // The type test may cause a NoSuchMethodError to be thrown but
+  // The type test may cause a NullPointerException to be thrown but
   // that matches the specification of what the indexing operator is
   // supposed to do.
   bool isMutableJsArray = JS('bool',
@@ -105,6 +105,7 @@ bool checkNumbers(var a, var b) {
     if (b is num) {
       return true;
     } else {
+      checkNull(b);
       throw new ArgumentError(b);
     }
   }
@@ -658,6 +659,7 @@ class Primitives {
   }
 
   static valueFromDateString(str) {
+    checkNull(str);
     if (str is !String) throw new ArgumentError(str);
     var value = JS('num', r'Date.parse(#)', str);
     if (value.isNaN) throw new ArgumentError(str);
@@ -665,14 +667,16 @@ class Primitives {
   }
 
   static getProperty(object, key) {
-    if (object == null || object is bool || object is num || object is String) {
+    checkNull(object);
+    if (object is bool || object is num || object is String) {
       throw new ArgumentError(object);
     }
     return JS('var', '#[#]', object, key);
   }
 
   static void setProperty(object, key, value) {
-    if (object == null || object is bool || object is num || object is String) {
+    checkNull(object);
+    if (object is bool || object is num || object is String) {
       throw new ArgumentError(object);
     }
     JS('void', '#[#] = #', object, key, value);
@@ -746,6 +750,8 @@ listInsertRange(receiver, start, length, initialValue) {
   if (length == 0) {
     return;
   }
+  checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
+  checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
   if (length is !int) throw new ArgumentError(length);
   if (length < 0) throw new ArgumentError(length);
   if (start is !int) throw new ArgumentError(start);
@@ -773,12 +779,13 @@ stringLastIndexOfUnchecked(receiver, element, start)
 
 
 checkNull(object) {
-  if (object == null) throw new ArgumentError(null);
+  if (object == null) throw new NullPointerException();
   return object;
 }
 
 checkNum(value) {
   if (value is !num) {
+    checkNull(value);
     throw new ArgumentError(value);
   }
   return value;
@@ -786,6 +793,7 @@ checkNum(value) {
 
 checkInt(value) {
   if (value is !int) {
+    checkNull(value);
     throw new ArgumentError(value);
   }
   return value;
@@ -793,6 +801,7 @@ checkInt(value) {
 
 checkBool(value) {
   if (value is !bool) {
+    checkNull(value);
     throw new ArgumentError(value);
   }
   return value;
@@ -800,6 +809,7 @@ checkBool(value) {
 
 checkString(value) {
   if (value is !String) {
+    checkNull(value);
     throw new ArgumentError(value);
   }
   return value;
@@ -884,7 +894,7 @@ class MathNatives {
  * object out of the wrapper again.
  */
 $throw(ex) {
-  if (ex == null) ex = const NullThrownError();
+  if (ex == null) ex = const NullPointerException();
   var jsError = JS('var', r'new Error()');
   JS('void', r'#.name = #', jsError, ex);
   JS('void', r'#.description = #', jsError, ex);
@@ -948,7 +958,7 @@ unwrapException(ex) {
         type == 'called_non_callable' ||
         type == 'non_object_property_call' ||
         type == 'non_object_property_load') {
-      return new NoSuchMethodError(null, name, [], {});
+      return new NullPointerException();
     } else if (type == 'undefined_method') {
       return new NoSuchMethodError('', name, [], {});
     }
@@ -962,7 +972,7 @@ unwrapException(ex) {
       if (message.endsWith('is null') ||
           message.endsWith('is undefined') ||
           message.endsWith('is null or undefined')) {
-        return new NoSuchMethodError(null, '<unknown>', [], {});
+        return new NullPointerException();
       } else if (message.contains(' is not a function') ||
                  (ieErrorCode == 438 && ieFacilityNumber == 10)) {
         // Examples:

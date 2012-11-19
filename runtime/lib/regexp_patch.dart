@@ -77,7 +77,6 @@ class _JSSyntaxRegExp implements RegExp {
   }
 
   Iterable<Match> allMatches(String str) {
-    if (str is! String) throw new ArgumentError(str);
     List<Match> result = new List<Match>();
     int length = str.length;
     int startIndex = 0;

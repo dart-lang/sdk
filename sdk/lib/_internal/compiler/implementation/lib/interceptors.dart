@@ -38,6 +38,7 @@ get$length(var receiver) {
 
 set$length(receiver, newLength) {
   if (isJsArray(receiver)) {
+    checkNull(newLength); // TODO(ahe): This is not specified but co19 tests it.
     if (newLength is !int) throw new ArgumentError(newLength);
     if (newLength < 0) throw new RangeError.value(newLength);
     checkGrowable(receiver, 'set length');
@@ -117,6 +118,7 @@ indexOf$1(receiver, element) {
     var length = JS('num', r'#.length', receiver);
     return Arrays.indexOf(receiver, element, 0, length);
   } else if (receiver is String) {
+    checkNull(element);
     if (element is !String) throw new ArgumentError(element);
     return JS('int', r'#.indexOf(#)', receiver, element);
   }
@@ -129,6 +131,7 @@ indexOf$2(receiver, element, start) {
     var length = JS('num', r'#.length', receiver);
     return Arrays.indexOf(receiver, element, start, length);
   } else if (receiver is String) {
+    checkNull(element);
     if (start is !int) throw new ArgumentError(start);
     if (element is !String) throw new ArgumentError(element);
     if (start < 0) return -1; // TODO(ahe): Is this correct?
@@ -170,6 +173,7 @@ lastIndexOf$1(receiver, element) {
     var start = JS('num', r'#.length', receiver);
     return Arrays.lastIndexOf(receiver, element, start);
   } else if (receiver is String) {
+    checkNull(element);
     if (element is !String) throw new ArgumentError(element);
     return JS('int', r'#.lastIndexOf(#)', receiver, element);
   }
@@ -180,6 +184,7 @@ lastIndexOf$2(receiver, element, start) {
   if (isJsArray(receiver)) {
     return Arrays.lastIndexOf(receiver, element, start);
   } else if (receiver is String) {
+    checkNull(element);
     if (element is !String) throw new ArgumentError(element);
     if (start != null) {
       if (start is !num) throw new ArgumentError(start);
@@ -202,6 +207,8 @@ removeRange(receiver, start, length) {
   if (length == 0) {
     return;
   }
+  checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
+  checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
   if (start is !int) throw new ArgumentError(start);
   if (length is !int) throw new ArgumentError(length);
   if (length < 0) throw new ArgumentError(length);
@@ -234,7 +241,10 @@ setRange$4(receiver, start, length, from, startFrom) {
 
   checkMutable(receiver, 'indexed set');
   if (length == 0) return;
+  checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
+  checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
   checkNull(from); // TODO(ahe): This is not specified but co19 tests it.
+  checkNull(startFrom); // TODO(ahe): This is not specified but co19 tests it.
   if (start is !int) throw new ArgumentError(start);
   if (length is !int) throw new ArgumentError(length);
   if (startFrom is !int) throw new ArgumentError(startFrom);
@@ -409,7 +419,7 @@ toRadixString(receiver, radix) {
 
 contains$1(receiver, other) {
   if (receiver is String) {
-    return stringContainsUnchecked(receiver, other, 0);
+    return contains$2(receiver, other, 0);
   } else if (isJsArray(receiver)) {
     for (int i = 0; i < receiver.length; i++) {
       if (other == receiver[i]) return true;

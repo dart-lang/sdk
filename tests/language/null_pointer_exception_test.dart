@@ -2,48 +2,48 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class NullAccessTest {
+class NullPointerExceptionTest {
 
-  static void testNullVariable() {
+  static void testNullPointerExceptionVariable() {
     int variable;
     bool exceptionCaught = false;
     bool wrongExceptionCaught = false;
     try {
       variable++;
-    } on NoSuchMethodError catch (ex) {
+    } on NullPointerException catch (ex) {
       exceptionCaught = true;
-    } catch (ex) {
+    } on Exception catch (ex) {
       wrongExceptionCaught = true;
     }
-    Expect.isTrue(exceptionCaught);
-    Expect.isFalse(wrongExceptionCaught);
+    Expect.equals(true, exceptionCaught);
+    Expect.equals(true, !wrongExceptionCaught);
   }
 
   static int helperFunction(int parameter) {
     return parameter++;
   }
 
-  static void testNullFunctionCall() {
+  static void testNullPointerExceptionFunctionCall() {
     int variable;
     bool exceptionCaught = false;
     bool wrongExceptionCaught = false;
     try {
       variable = helperFunction(variable);
-    } on NoSuchMethodError catch (ex) {
+    } on NullPointerException catch (ex) {
       exceptionCaught = true;
-    } catch (ex) {
+    } on Exception catch (ex) {
       wrongExceptionCaught = true;
     }
-    Expect.isTrue(exceptionCaught);
-    Expect.isFalse(wrongExceptionCaught);
+    Expect.equals(true, exceptionCaught);
+    Expect.equals(true, !wrongExceptionCaught);
   }
 
   static void testMain() {
-    testNullVariable();
-    testNullFunctionCall();
+    testNullPointerExceptionVariable();
+    testNullPointerExceptionFunctionCall();
   }
 }
 
 main() {
-  NullAccessTest.testMain();
+  NullPointerExceptionTest.testMain();
 }

@@ -751,7 +751,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     return !instruction.hasSideEffects(types)
            && instruction.usedBy.isEmpty
            // A dynamic getter that has no side effect can still throw
-           // a NoSuchMethodError.
+           // a NoSuchMethodError or a NullPointerException.
            && instruction is !HInvokeDynamicGetter
            && instruction is !HCheck
            && instruction is !HTypeGuard

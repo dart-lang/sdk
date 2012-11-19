@@ -32,6 +32,8 @@ native_method_rename1_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_method_rename2_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_method_rename3_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_method_with_keyword_name_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_missing_method1_test: Fail # TODO(ahe): Convert to metadata syntax.
+native_missing_method2_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_named_constructors2_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_named_constructors3_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_no_such_method_exception2_test: Fail # TODO(ahe): Convert to metadata syntax.

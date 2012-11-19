@@ -25,21 +25,13 @@ class CastError implements Error {
 }
 
 /**
- * Error thrown when attempting to throw [:null:].
- */
-class NullThrownError implements Error {
-  const NullThrownError();
-  String toString() => "Throw of null.";
-}
-
-/**
  * Error thrown when a function is passed an unacceptable argument.
  */
 class ArgumentError implements Error {
   final message;
 
   /** The [message] describes the erroneous argument. */
-  ArgumentError([this.message]);
+  const ArgumentError([this.message]);
 
   String toString() {
     if (message != null) {

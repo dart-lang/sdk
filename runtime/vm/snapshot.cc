@@ -818,7 +818,7 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
   if (class_id >= kNumPredefinedCids) {
     if (Class::IsSignatureClass(cls)) {
       // We do not allow closure objects in an isolate message.
-      set_exception_type(Exceptions::kArgument);
+      set_exception_type(Exceptions::kArgumentError);
       // TODO(6726): Allocate these constant strings once in the VM isolate.
       set_exception_msg("Illegal argument in isolate message"
                         " : (object is a closure)");
@@ -1073,7 +1073,7 @@ void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
   if (class_id >= kNumPredefinedCids) {
     if (Class::IsSignatureClass(cls)) {
       // We do not allow closure objects in an isolate message.
-      set_exception_type(Exceptions::kArgument);
+      set_exception_type(Exceptions::kArgumentError);
       // TODO(6726): Allocate these constant strings once in the VM isolate.
       set_exception_msg("Illegal argument in isolate message"
                         " : (object is a closure)");
@@ -1081,7 +1081,7 @@ void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
     }
     if (cls->ptr()->num_native_fields_ != 0) {
       // We do not allow objects with native fields in an isolate message.
-      set_exception_type(Exceptions::kArgument);
+      set_exception_type(Exceptions::kArgumentError);
       // TODO(6726): Allocate these constant strings once in the VM isolate.
       set_exception_msg("Illegal argument in isolate message"
                         " : (object extends NativeWrapper)");

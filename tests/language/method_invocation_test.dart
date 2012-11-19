@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Testing method invocation.
-// Currently testing only NoSuchMethodError.
+// Currently testing only NullPointerException.
 
 class A {
   A() {}
@@ -20,7 +20,7 @@ class MethodInvocationTest {
     bool exceptionCaught = false;
     try {
       a.foo();
-    } on NoSuchMethodError catch (e) {
+    } on NullPointerException catch (e) {
       exceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);

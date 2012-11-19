@@ -7,6 +7,7 @@ unicode_test: Fail        # Bug 5163868
 *dartc_test: Skip
 compare_to2_test: Fail    # Bug 4018
 null_test: Fail           # Bug 5511
+null_nosuchmethod_test: Fail # Bug 5518
 apply_test: Fail # Bug 5670
 apply2_test: Fail # Bug 5670
 
@@ -39,11 +40,11 @@ reg_exp_all_matches_test: Fail, OK # NoSuchMethodError : method not found: 'forE
 
 reg_exp4_test: Fail, OK # Expects exception from const constructor.
 
-null_nosuchmethod_test: Fail # Fails to read noSuchMethod from null.
-
 big_integer_vm_test: Fail, OK # VM specific test.
 compare_to2_test: Fail, OK    # Requires bigint support.
 string_base_vm_test: Fail, OK # VM specific test.
+
+null_nosuchmethod_test: Fail # Bug 5513
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
@@ -60,6 +61,7 @@ string_base_vm_test: Fail # BUG(3304): Maybe this doesn't time out?
 apply_test: Fail # inherited from VM
 apply2_test: Fail # inherited from VM
 compare_to2_test: Fail # inherited from VM
+null_nosuchmethod_test: Fail # inherited from VM
 null_test: Fail # inherited from VM
 unicode_test: Fail # inherited from VM
 

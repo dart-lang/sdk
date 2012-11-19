@@ -114,9 +114,7 @@ class _Double implements double {
     if (exponent == 0) {
       return 1.0;  // ECMA-262 15.8.2.13
     }
-    if (exponent is! num) {
-      throw new ArgumentError(null);
-    }
+    // Throw NullPointerException if exponent is null.
     double doubleExponent = exponent.toDouble();
     if (isNaN || exponent.isNaN) {
       return double.NAN;

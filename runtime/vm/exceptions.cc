@@ -144,7 +144,7 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
   Instance& exception = Instance::Handle(incoming_exception.raw());
   if (exception.IsNull()) {
     GrowableArray<const Object*> arguments;
-    exception ^= Exceptions::Create(Exceptions::kNullThrown, arguments);
+    exception ^= Exceptions::Create(Exceptions::kNullPointer, arguments);
   }
   uword handler_pc = 0;
   uword handler_sp = 0;
@@ -427,13 +427,17 @@ RawObject* Exceptions::Create(
       library = Library::CoreLibrary();
       class_name = Symbols::New("InternalError");
       break;
-    case kNullThrown:
+    case kNullPointer:
       library = Library::CoreLibrary();
-      class_name = Symbols::New("NullThrownError");
+      class_name = Symbols::New("NullPointerException");
       break;
     case kIllegalJSRegExp:
       library = Library::CoreLibrary();
       class_name = Symbols::New("IllegalJSRegExpException");
+      break;
+    case kArgumentError:
+      library = Library::CoreLibrary();
+      class_name = Symbols::New("ArgumentError");
       break;
     case kIsolateSpawn:
       library = Library::IsolateLibrary();

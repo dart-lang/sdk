@@ -15,8 +15,8 @@ main() {
   a = null;
   try {
     s = "Hello Mr. ${a.name}";
-  } on NoSuchMethodError catch (e) {
+  } on NullPointerException catch (e) {
     return;
   }
-  Expect.fail("NoSuchMethodError not thrown");
+  Expect.fail("NullPointerException not thrown");
 }

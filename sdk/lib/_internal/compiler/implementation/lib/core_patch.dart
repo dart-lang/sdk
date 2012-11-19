@@ -169,6 +169,7 @@ patch class _ListImpl<E> {
 
 patch class String {
   patch factory String.fromCharCodes(List<int> charCodes) {
+    checkNull(charCodes);
     if (!isJsArray(charCodes)) {
       if (charCodes is !List) throw new ArgumentError(charCodes);
       charCodes = new List.from(charCodes);
@@ -181,6 +182,7 @@ patch class String {
 patch class Strings {
   patch static String join(List<String> strings, String separator) {
     checkNull(strings);
+    checkNull(separator);
     if (separator is !String) throw new ArgumentError(separator);
     return stringJoinUnchecked(_toJsStringArray(strings), separator);
   }
@@ -197,12 +199,14 @@ patch class Strings {
       array = strings;
       for (int i = 0; i < length; i++) {
         final string = strings[i];
+        checkNull(string);
         if (string is !String) throw new ArgumentError(string);
       }
     } else {
       array = new List(length);
       for (int i = 0; i < length; i++) {
         final string = strings[i];
+        checkNull(string);
         if (string is !String) throw new ArgumentError(string);
         array[i] = string;
       }
