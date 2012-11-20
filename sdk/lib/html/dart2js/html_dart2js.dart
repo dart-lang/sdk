@@ -9832,11 +9832,13 @@ class HtmlElement extends Element implements Element native "*HTMLHtmlElement" {
 
 
 class HttpRequest extends EventTarget native "*XMLHttpRequest" {
-  factory HttpRequest.get(String url, onSuccess(HttpRequest request)) =>
-      _HttpRequestFactoryProvider.createHttpRequest_get(url, onSuccess);
+  factory HttpRequest.get(String url, onComplete(HttpRequest request)) =>
+      _HttpRequestFactoryProvider.createHttpRequest_get(url, onComplete);
 
-  factory HttpRequest.getWithCredentials(String url, onSuccess(HttpRequest request)) =>
-      _HttpRequestFactoryProvider.createHttpRequest_getWithCredentials(url, onSuccess);
+  factory HttpRequest.getWithCredentials(String url,
+      onComplete(HttpRequest request)) =>
+      _HttpRequestFactoryProvider.createHttpRequest_getWithCredentials(url,
+      onComplete);
 
 
   factory HttpRequest() => _HttpRequestFactoryProvider.createHttpRequest();
@@ -21302,12 +21304,12 @@ class _HttpRequestFactoryProvider {
       JS('HttpRequest', 'new XMLHttpRequest()');
 
   static HttpRequest createHttpRequest_get(String url,
-      onSuccess(HttpRequest request)) =>
-      _HttpRequestUtils.get(url, onSuccess, false);
+      onComplete(HttpRequest request)) =>
+      _HttpRequestUtils.get(url, onComplete, false);
 
   static HttpRequest createHttpRequest_getWithCredentials(String url,
-      onSuccess(HttpRequest request)) =>
-      _HttpRequestUtils.get(url, onSuccess, true);
+      onComplete(HttpRequest request)) =>
+      _HttpRequestUtils.get(url, onComplete, true);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

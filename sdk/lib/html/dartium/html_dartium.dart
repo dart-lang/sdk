@@ -12446,11 +12446,13 @@ class HtmlElement extends _Element_Merged {
 
 
 class HttpRequest extends EventTarget {
-  factory HttpRequest.get(String url, onSuccess(HttpRequest request)) =>
-      _HttpRequestFactoryProvider.createHttpRequest_get(url, onSuccess);
+  factory HttpRequest.get(String url, onComplete(HttpRequest request)) =>
+      _HttpRequestFactoryProvider.createHttpRequest_get(url, onComplete);
 
-  factory HttpRequest.getWithCredentials(String url, onSuccess(HttpRequest request)) =>
-      _HttpRequestFactoryProvider.createHttpRequest_getWithCredentials(url, onSuccess);
+  factory HttpRequest.getWithCredentials(String url,
+      onComplete(HttpRequest request)) =>
+      _HttpRequestFactoryProvider.createHttpRequest_getWithCredentials(url,
+      onComplete);
 
 
   factory HttpRequest() => _HttpRequestFactoryProvider.createHttpRequest();
