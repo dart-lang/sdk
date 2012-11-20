@@ -28597,12 +28597,67 @@ class _XSLTProcessorFactoryProvider {
  */
 abstract class Window {
   // Fields.
+
+  /**
+   * The current location of this window.
+   *
+   *     Location currentLocation = window.location;
+   *     print(currentLocation.href); // 'http://www.example.com:80/'
+   */
   Location get location;
   History get history;
 
+  /**
+   * Indicates whether this window is closed.
+   *
+   *     print(window.closed); // 'false'
+   *     window.close();
+   *     print(window.closed); // 'true'
+   */
   bool get closed;
+
+  /**
+   * A reference to the window that opened this one.
+   *
+   *     Window thisWindow = window;
+   *     Window otherWindow = thisWindow.open('http://www.example.com/', 'foo');
+   *     print(otherWindow.opener == thisWindow); // 'true'
+   */
   Window get opener;
+
+  /**
+   * A reference to the parent of this window.
+   *
+   * If this [Window] has no parent, [parent] will return a reference to
+   * the [Window] itself.
+   *
+   *     IFrameElement myIFrame = new IFrameElement();
+   *     window.document.body.elements.add(myIFrame);
+   *     print(myIframe.contentWindow.parent == window) // 'true'
+   *
+   *     print(window.parent == window) // 'true'
+   */
   Window get parent;
+
+  /**
+   * A reference to the topmost window in the window hierarchy.
+   *
+   * If this [Window] is the topmost [Window], [top] will return a reference to
+   * the [Window] itself.
+   *
+   *     // Add an IFrame to the current window.
+   *     IFrameElement myIFrame = new IFrameElement();
+   *     window.document.body.elements.add(myIFrame);
+   *
+   *     // Add an IFrame inside of the other IFrame.
+   *     IFrameElement innerIFrame = new IFrameElement();
+   *     myIFrame.elements.add(innerIFrame);
+   *
+   *     print(myIframe.contentWindow.top == window) // 'true'
+   *     print(innerIFrame.contentWindow.top == window) // 'true'
+   *
+   *     print(window.top == window) // 'true'
+   */
   Window get top;
 
   // Methods.
