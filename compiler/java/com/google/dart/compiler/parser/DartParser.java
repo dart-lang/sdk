@@ -337,8 +337,7 @@ public class DartParser extends CompletionHooksParserBase {
           // TODO(scheglov) remove after http://code.google.com/p/dart/issues/detail?id=6318 
           if (!Elements.isCoreLibrarySource(source)
               && !Elements.isLibrarySource(source, "/isolate/isolate.dart")
-              && !Elements.isLibrarySource(source, "crypto/crypto.dart")
-              && !Elements.isDart2JsLibrarySource(source)) {
+              && !Elements.isLibrarySource(source, "crypto/crypto.dart")) {
             reportError(position(), ParserErrorCode.DEPRECATED_INTERFACE);
           }
           node = done(parseClass());
@@ -1327,8 +1326,7 @@ public class DartParser extends CompletionHooksParserBase {
           && !Elements.isLibrarySource(source, "/math/math.dart")
           && !Elements.isLibrarySource(source, "/io/io_runtime.dart")
           && !Elements.isLibrarySource(source, "/crypto/crypto.dart")
-          && !Elements.isLibrarySource(source, "/utf/utf.dart")
-          && !Elements.isDart2JsLibrarySource(source)) {
+          && !Elements.isLibrarySource(source, "/utf/utf.dart")) {
         reportError(position(), ParserErrorCode.DEPRECATED_ABSTRACT_METHOD);
       }
     }
