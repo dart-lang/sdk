@@ -615,7 +615,8 @@ class StandardTestSuite extends TestSuite {
 
     Set<String> expectations = testExpectations.expectations(testName);
     if (info.hasCompileError &&
-        TestUtils.isBrowserRuntime(configuration['runtime'])) {
+        TestUtils.isBrowserRuntime(configuration['runtime']) &&
+        configuration['report']) {
       SummaryReport.addCompileErrorSkipTest();
       return;
     }
