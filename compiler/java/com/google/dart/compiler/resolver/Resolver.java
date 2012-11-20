@@ -1301,6 +1301,7 @@ public class Resolver {
       // If we we haven't resolved the identifier, it will be normalized to
       // this.<identifier>.
 
+      checkDeprecated(x, element);
       return recordElement(x, element);
     }
 

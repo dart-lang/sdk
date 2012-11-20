@@ -3707,6 +3707,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "const deprecated = 0;",
         "@deprecated",
         "ttt() {}",
+        "@deprecated",
+        "get topLevelGet => 42;",
         "class A {",
         "  var @deprecated fff;",
         "  @deprecated",
@@ -3716,6 +3718,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "method() {",
         "  ttt();",
+        "  print(topLevelGet);",
         "  A a = new A();",
         "  a.fff = 0;",
         "  a.mmmm();",
@@ -3724,10 +3727,11 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 13, 3, 3),
-        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 15, 5, 3),
-        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 16, 5, 4),
-        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 17, 5, 1));
+        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 16, 9, 11),
+        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 15, 3, 3),
+        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 18, 5, 3),
+        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 19, 5, 4),
+        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 20, 5, 1));
   }
 
   public void test_metadataComment_deprecated_2() throws Exception {

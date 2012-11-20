@@ -385,6 +385,14 @@ public class DartParser extends CompletionHooksParserBase {
    * @param metadata the metadata to be associated with the node
    */
   private void setMetadata(DartNodeWithMetadata node, List<DartAnnotation> annotations) {
+    if (node instanceof DartFieldDefinition) {
+      DartFieldDefinition fieldDefinition = (DartFieldDefinition) node;
+      List<DartField> fields = fieldDefinition.getFields();
+      for (DartField field : fields) {
+        setMetadata(field, annotations);
+      }
+      return;
+    }
     if (annotations != null && !annotations.isEmpty()) {
       node.setMetadata(annotations);
       if (node instanceof DartDeclaration<?>) {
@@ -3750,9 +3758,8 @@ public class DartParser extends CompletionHooksParserBase {
           constructor = doneWithoutConsuming(toPrefixedType(parts));
         } else {
           // Named constructor.
-          DartIdentifier identifier = (DartIdentifier)part2.getIdentifier();
-          constructor = doneWithoutConsuming(new DartPropertyAccess(doneWithoutConsuming(part1),
-                                                                    identifier));
+          DartIdentifier identifier = (DartIdentifier) part2.getIdentifier();
+          constructor = doneWithoutConsuming(new DartPropertyAccess(part1, identifier));
         }
         break;
       }
