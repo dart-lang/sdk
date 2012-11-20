@@ -86,8 +86,6 @@ abstract class Window {
   Window get top;
 
   // Methods.
-  void focus();
-  void blur();
   void close();
   void postMessage(var message, String targetOrigin, [List messagePorts = null]);
 }

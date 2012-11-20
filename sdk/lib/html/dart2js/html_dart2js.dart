@@ -12175,9 +12175,6 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   /** @domName Window.atob */
   String atob(String string) native;
 
-  /** @domName Window.blur */
-  void blur() native;
-
   /** @domName Window.btoa */
   String btoa(String string) native;
 
@@ -12201,9 +12198,6 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   /** @domName Window.find */
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native;
-
-  /** @domName Window.focus */
-  void focus() native;
 
   /** @domName Window.getComputedStyle */
   CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native "getComputedStyle";
@@ -22264,8 +22258,6 @@ abstract class Window {
   Window get top;
 
   // Methods.
-  void focus();
-  void blur();
   void close();
   void postMessage(var message, String targetOrigin, [List messagePorts = null]);
 }
@@ -24608,10 +24600,6 @@ class _DOMWindowCrossFrame implements Window {
   Window get top => _createSafe(JS('Window', '#.top', _window));
 
   // Methods.
-  void focus() => JS('void', '#.focus()', _window);
-
-  void blur() => JS('void', '#.blur()', _window);
-
   void close() => JS('void', '#.close()', _window);
 
   void postMessage(var message, String targetOrigin, [List messagePorts = null]) {
