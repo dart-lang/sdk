@@ -11,16 +11,18 @@ class _CloseQueue {
 
   void add(_HttpConnectionBase connection) {
     void closeIfDone() {
-      // We only check for write closed here. This means that we are
-      // not waiting for the client to half-close the socket before
-      // fully closing the socket.
-      if (!connection._isWriteClosed) return;
-      _q.remove(connection);
-      connection._socket.close();
-      if (connection.onClosed != null) connection.onClosed();
+      // When either the client has closed or all data has been
+      // written to the client we close the underlying socket
+      // completely.
+      if (connection._isWriteClosed || connection._isReadClosed) {
+        _q.remove(connection);
+        connection._socket.close();
+        if (connection.onClosed != null) connection.onClosed();
+      }
     }
 
-    // If the connection is already fully closed don't insert it into the queue.
+    // If the connection is already fully closed don't insert it into
+    // the queue.
     if (connection._isFullyClosed) {
       connection._socket.close();
       if (connection.onClosed != null) connection.onClosed();
@@ -46,10 +48,6 @@ class _CloseQueue {
     if (!connection._isReadClosed) {
       connection._socket.onClosed = () {
         connection._state |= _HttpConnectionBase.READ_CLOSED;
-        // This is a nop, as we are not using the read closed
-        // information for anything. For both server and client
-        // connections the inbound message have been read to
-        // completion when the socket enters the close queue.
         closeIfDone();
       };
     } else {
@@ -61,6 +59,7 @@ class _CloseQueue {
 
     // If an error occurs immediately close the socket.
     connection._socket.onError = (e) {
+      connection._state |= _HttpConnectionBase.READ_CLOSED;
       connection._state |= _HttpConnectionBase.WRITE_CLOSED;
       closeIfDone();
     };
@@ -876,24 +875,24 @@ class _HttpConnection extends _HttpConnectionBase {
   }
 
   void _checkDone() {
-    if (_isAllDone) {
-      // If we are done writing the response, and either the client
-      // has closed or the connection is not persistent, we must
-      // close. Also if using HTTP 1.0 and the content length was not
-      // known we must close to indicate end of body.
+    if (_isReadClosed) {
+      // If the client closes the conversation is ended.
+      _server._closeQueue.add(this);
+    } else if (_isAllDone) {
+      // If we are done writing the response, and the connection is
+      // not persistent, we must close. Also if using HTTP 1.0 and the
+      // content length was not known we must close to indicate end of
+      // body.
       bool close =
           !_response.persistentConnection ||
           (_response._protocolVersion == "1.0" && _response._contentLength < 0);
       _request = null;
       _response = null;
-      if (_isReadClosed || close) {
+      if (close) {
         _server._closeQueue.add(this);
       } else {
         _state = _HttpConnectionBase.IDLE;
       }
-    } else if (_state == _HttpConnectionBase.READ_CLOSED) {
-      // If entering READ_CLOSED state while idle close the connection.
-      _server._closeQueue.add(this);
     }
   }
 
