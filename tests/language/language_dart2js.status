@@ -151,7 +151,6 @@ function_type_alias6_test: Crash, Fail
 const_var_test: Fail # Map literals take 2 type arguments.
 map_literal3_test: Fail # Map literals take 2 type arguments.
 ct_const_test: Fail # We don't take the generic type into account yet.
-char_escape_test: Fail # Unhandled non-BMP character: U+10000
 default_factory_library_test: Fail # lib is not a type
 dynamic_test: Fail # cannot resolve type F1
 constructor_redirect2_test/03: Fail # redirecting ctor with initializing formal

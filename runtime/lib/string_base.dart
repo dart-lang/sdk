@@ -16,29 +16,29 @@ class _StringBase {
   int get hashCode native "String_getHashCode";
 
   /**
-   *  Create the most efficient string representation for specified
-   *  [codePoints].
+   * Create the most efficient string representation for the specified UTF-16
+   * [codeUnits].
    */
-  static String createFromCharCodes(List<int> charCodes) {
+  static String createFromUtf16(List<int> codeUnits) {
     _ObjectArray objectArray;
-    if (charCodes is _ObjectArray) {
-      objectArray = charCodes;
+    if (codeUnits is _ObjectArray) {
+      objectArray = codeUnits;
     } else {
-      int len = charCodes.length;
+      int len = codeUnits.length;
       objectArray = new _ObjectArray(len);
       for (int i = 0; i < len; i++) {
-        objectArray[i] = charCodes[i];
+        objectArray[i] = codeUnits[i];
       }
     }
-    return _createFromCodePoints(objectArray);
+    return _createFromUtf16(objectArray);
   }
 
-  static String _createFromCodePoints(List<int> codePoints)
-      native "StringBase_createFromCodePoints";
+  static String _createFromUtf16(List<int> codeUnits)
+      native "StringBase_createFromUtf16";
 
   String operator [](int index) native "String_charAt";
 
-  int charCodeAt(int index) native "String_charCodeAt";
+  int codeUnitAt(int index) native "String_codeUnitAt";
 
   int get length native "String_getLength";
 
@@ -69,12 +69,12 @@ class _StringBase {
     int otherLength = other.length;
     int len = (thisLength < otherLength) ? thisLength : otherLength;
     for (int i = 0; i < len; i++) {
-      int thisCodePoint = this.charCodeAt(i);
-      int otherCodePoint = other.charCodeAt(i);
-      if (thisCodePoint < otherCodePoint) {
+      int thisCodeUnit = this.codeUnitAt(i);
+      int otherCodeUnit = other.codeUnitAt(i);
+      if (thisCodeUnit < otherCodeUnit) {
         return -1;
       }
-      if (thisCodePoint > otherCodePoint) {
+      if (thisCodeUnit > otherCodeUnit) {
         return 1;
       }
     }
@@ -93,7 +93,7 @@ class _StringBase {
       return false;
     }
     for (int i = 0; i < len; i++) {
-      if (this.charCodeAt(i + start) != other.charCodeAt(i)) {
+      if (this.codeUnitAt(i + start) != other.codeUnitAt(i)) {
         return false;
       }
     }
@@ -162,7 +162,9 @@ class _StringBase {
     final int len = this.length;
     int first = 0;
     for (; first < len; first++) {
-      if (!_isWhitespace(this.charCodeAt(first))) {
+      // There are no whitespace characters that are outside the BMP so we
+      // can use code units here for efficiency.
+      if (!_isWhitespace(this.codeUnitAt(first))) {
         break;
       }
     }
@@ -172,7 +174,7 @@ class _StringBase {
     }
     int last = len - 1;
     for (; last >= first; last--) {
-      if (!_isWhitespace(this.charCodeAt(last))) {
+      if (!_isWhitespace(this.codeUnitAt(last))) {
         break;
       }
     }
@@ -293,20 +295,35 @@ class _StringBase {
     return result;
   }
 
+  // TODO(erikcorry): Fix this to use the new code point iterator when it is
+  // available.
   List<String> splitChars() {
     int len = this.length;
     final result = new List<String>(len);
-    for (int i = 0; i < len; i++) {
-      result[i] = this[i];
+    bool supplementaryCharacterSeen = false;
+    int i, j;
+    for (i = j = 0; i < len; i++, j++) {
+      int c = charCodeAt(i);
+      // Check for non-basic plane character encoded as a UTF-16 surrogate pair.
+      if (c >= String.SUPPLEMENTARY_CODE_POINT_BASE) {
+        i++;
+        supplementaryCharacterSeen = true;
+      }
+      result[j] = new String.fromCharCodes([c]);
     }
-    return result;
+    if (!supplementaryCharacterSeen) return result;
+    // If we saw some non-basic plane characters, then we have to return a
+    // slightly smaller array than expected (we can't trim the original one
+    // because it is non-extendable).  This rarely happens so this is preferable
+    // to having a separate pass over the string to count the code points.
+    return result.getRange(0, j);
   }
 
-  List<int> get charCodes {
+  List<int> get codeUnits {
     int len = this.length;
     final result = new List<int>(len);
     for (int i = 0; i < len; i++) {
-      result[i] = this.charCodeAt(i);
+      result[i] = this.codeUnitAt(i);
     }
     return result;
   }
@@ -360,48 +377,91 @@ class _OneByteString extends _StringBase implements String {
         "_OneByteString can only be allocated by the VM");
   }
 
-  // Checks for one-byte whitespaces only.
-  // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
-  // whitespaces for one byte strings.
   bool _isWhitespace(int codePoint) {
     return
-      (codePoint == 32) || // Space.
+      (codePoint == 32) ||  // Space.
+      (codePoint == 0xa0) ||  // No-break space.
       ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
   }
 
+  int charCodeAt(int index) => codeUnitAt(index);
+
+  List<int> get charCodes => codeUnits;
 }
 
 
-class _TwoByteString extends _StringBase implements String {
+class _TwoByteStringBase extends _StringBase {
+  factory _TwoByteStringBase._uninstantiable() {
+    throw new UnsupportedError(
+        "_TwoByteStringBase can't be instaniated");
+  }
+
+  // Works for both code points and code units since all spaces are in the BMP.
+  bool _isWhitespace(int codePoint) {
+    return
+      (codePoint == 32) ||  // Space.
+      (codePoint == 0xa0) ||  // No-break space.
+      ((9 <= codePoint) && (codePoint <= 13)) ||  // CR, LF, TAB, etc.
+      (codePoint >= 0x1680 &&  // Optimization.
+       (codePoint == 0x1680 ||  // Ogham space mark.
+        codePoint == 0x180e ||  // Mongolian vowel separator.
+        (codePoint >= 0x2000 && codePoint <= 0x200a) ||  // Wide/narrow spaces.
+        codePoint == 0x2028 ||  // Line separator.
+        codePoint == 0x2029 ||  // Paragraph separator.
+        codePoint == 0x202f ||  // Narrow no-break space.
+        codePoint == 0x205f ||  // Medium mathematical space.
+        codePoint == 0x3000 ||  // Ideographic space.
+        codePoint == 0xfeff));  // BOM code.
+  }
+
+  int charCodeAt(int index) {
+    const int LEAD_SURROGATE_BASE = 0xd800;
+    const int LEAD_SURROGATE_END = 0xdbff;
+    const int TRAIL_SURROGATE_BASE = 0xdc00;
+    const int TRAIL_SURROGATE_END = 0xdfff;
+    const int MASK = 0x3ff;
+    int code = codeUnitAt(index);
+    if (code < LEAD_SURROGATE_BASE || code > LEAD_SURROGATE_END) return code;
+    if (index + 1 >= length) return code;
+    int trail = codeUnitAt(index + 1);
+    if (trail < TRAIL_SURROGATE_BASE || trail > TRAIL_SURROGATE_END) {
+      return code;
+    }
+    return String.SUPPLEMENTARY_CODE_POINT_BASE +
+        ((code & MASK) << 10) + (trail & MASK);
+  }
+
+  // TODO(erikcorry): Fix this to use the new code point iterator when it is
+  // available.
+  List<int> get charCodes {
+    int len = this.length;
+    final result = new List<int>(len);
+    bool supplementaryCharacterSeen = false;
+    int i, j;
+    for (i = j = 0; i < len; i++, j++) {
+      int c = this.charCodeAt(i);
+      // Check for supplementary plane character encoded as a UTF-16 surrogate
+      // pair.
+      if (c >= String.SUPPLEMENTARY_CODE_POINT_BASE) {
+        i++;
+        supplementaryCharacterSeen = true;
+      }
+      result[j] = c;
+    }
+    if (!supplementaryCharacterSeen) return result;
+    // If we saw some non-basic plane characters, then we have to return a
+    // slightly smaller array than expected (we can't trim the original one
+    // because it is non-extendable).  This rarely happens so this is preferable
+    // to having a separate pass over the string to count the code points.
+    return result.getRange(0, j);
+  }
+}
+
+
+class _TwoByteString extends _TwoByteStringBase implements String {
   factory _TwoByteString._uninstantiable() {
     throw new UnsupportedError(
         "_TwoByteString can only be allocated by the VM");
-  }
-
-  // Checks for one-byte whitespaces only.
-  // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
-  // whitespaces. Add checking for multi-byte whitespace codepoints.
-  bool _isWhitespace(int codePoint) {
-    return
-      (codePoint == 32) || // Space.
-      ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
-  }
-}
-
-
-class _FourByteString extends _StringBase implements String {
-  factory _FourByteString._uninstantiable() {
-    throw new UnsupportedError(
-        "_FourByteString can only be allocated by the VM");
-  }
-
-  // Checks for one-byte whitespaces only.
-  // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
-  // whitespaces. Add checking for multi-byte whitespace codepoints.
-  bool _isWhitespace(int codePoint) {
-    return
-      (codePoint == 32) || // Space.
-      ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
   }
 }
 
@@ -412,47 +472,23 @@ class _ExternalOneByteString extends _StringBase implements String {
         "_ExternalOneByteString can only be allocated by the VM");
   }
 
-  // Checks for one-byte whitespaces only.
-  // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
-  // whitespaces for one byte strings.
   bool _isWhitespace(int codePoint) {
     return
-      (codePoint == 32) || // Space.
+      (codePoint == 32) ||  // Space.
+      (codePoint == 0xa0) ||  // No-break space.
       ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
   }
+
+  int charCodeAt(int index) => codeUnitAt(index);
+
+  List<int> get charCodes => codeUnits;
 }
 
 
-class _ExternalTwoByteString extends _StringBase implements String {
+class _ExternalTwoByteString extends _TwoByteStringBase implements String {
   factory _ExternalTwoByteString._uninstantiable() {
     throw new UnsupportedError(
         "_ExternalTwoByteString can only be allocated by the VM");
-  }
-
-  // Checks for one-byte whitespaces only.
-  // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
-  // whitespaces. Add checking for multi-byte whitespace codepoints.
-  bool _isWhitespace(int codePoint) {
-    return
-      (codePoint == 32) || // Space.
-      ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
-  }
-}
-
-
-class _ExternalFourByteString extends _StringBase implements String {
-  factory _ExternalFourByteString._uninstantiable() {
-    throw new UnsupportedError(
-        "ExternalFourByteString can only be allocated by the VM");
-  }
-
-  // Checks for one-byte whitespaces only.
-  // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
-  // whitespaces. Add checking for multi-byte whitespace codepoints.
-  bool _isWhitespace(int codePoint) {
-    return
-      (codePoint == 32) || // Space.
-      ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
   }
 }
 

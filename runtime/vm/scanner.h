@@ -46,7 +46,7 @@ class Scanner : ValueObject {
   static const intptr_t kDummyTokenIndex = 0;
 
   // Character used to indicate a private identifier.
-  static const char kPrivateIdentifierStart  = '_';
+  static const unsigned char kPrivateIdentifierStart  = '_';
 
   // Character used to separate the private identifier from the key.
   static const char kPrivateKeySeparator = '@';

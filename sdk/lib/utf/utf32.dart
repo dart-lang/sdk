@@ -96,7 +96,7 @@ List<int> encodeUtf32(String str) =>
  * UTF-32BE bytes with no BOM.
  */
 List<int> encodeUtf32be(String str, [bool writeBOM = false]) {
-  List<int> utf32CodeUnits = stringToCodepoints(str);
+  List<int> utf32CodeUnits = str.charCodes();
   List<int> encoding = new List<int>(4 * utf32CodeUnits.length +
       (writeBOM ? 4 : 0));
   int i = 0;
@@ -120,7 +120,7 @@ List<int> encodeUtf32be(String str, [bool writeBOM = false]) {
  * UTF-32BE bytes with no BOM.
  */
 List<int> encodeUtf32le(String str, [bool writeBOM = false]) {
-  List<int> utf32CodeUnits = stringToCodepoints(str);
+  List<int> utf32CodeUnits = str.charCodes();
   List<int> encoding = new List<int>(4 * utf32CodeUnits.length +
       (writeBOM ? 4 : 0));
   int i = 0;

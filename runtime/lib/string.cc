@@ -11,7 +11,7 @@
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
+DEFINE_NATIVE_ENTRY(StringBase_createFromUtf16, 1) {
   GET_NATIVE_ARGUMENT(Array, a, arguments->NativeArgAt(0));
   // TODO(srdjan): Check that parameterized type is an int.
   Zone* zone = isolate->current_zone();
@@ -19,8 +19,7 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
 
   // Unbox the array and determine the maximum element width.
   bool is_one_byte_string = true;
-  intptr_t utf16_len = array_len;
-  uint32_t* utf32_array = zone->Alloc<uint32_t>(array_len);
+  int32_t* utf32_array = zone->Alloc<int32_t>(array_len);
   Object& index_object = Object::Handle(isolate);
   for (intptr_t i = 0; i < array_len; i++) {
     index_object = a.At(i);
@@ -30,15 +29,12 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
       Exceptions::ThrowByType(Exceptions::kArgument, args);
     }
     intptr_t value = Smi::Cast(index_object).Value();
-    if (value < 0) {
+    if (value > Utf16::kMaxCodeUnit) {
       GrowableArray<const Object*> args;
       Exceptions::ThrowByType(Exceptions::kArgument, args);
     } else {
       if (value > 0x7F) {
         is_one_byte_string = false;
-      }
-      if (value > 0xFFFF) {
-        utf16_len += 1;
       }
     }
     utf32_array[i] = value;
@@ -46,7 +42,7 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
   if (is_one_byte_string) {
     return OneByteString::New(utf32_array, array_len, Heap::kNew);
   }
-  return TwoByteString::New(utf16_len, utf32_array, array_len, Heap::kNew);
+  return TwoByteString::New(array_len, utf32_array, array_len, Heap::kNew);
 }
 
 
@@ -76,7 +72,7 @@ DEFINE_NATIVE_ENTRY(String_getLength, 1) {
 }
 
 
-static int32_t StringValueAt(const String& str, const Integer& index) {
+static int32_t StringCodeUnitAt(const String& str, const Integer& index) {
   if (index.IsSmi()) {
     Smi& smi = Smi::Handle();
     smi ^= index.raw();
@@ -100,18 +96,23 @@ static int32_t StringValueAt(const String& str, const Integer& index) {
 DEFINE_NATIVE_ENTRY(String_charAt, 2) {
   const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
   GET_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
-  uint32_t value = StringValueAt(receiver, index);
-  ASSERT(value <= 0x10FFFF);
-  return Symbols::FromCharCode(value);
+  uint16_t value = StringCodeUnitAt(receiver, index);
+  // The VM does not GC interned strings, so we only create them for a
+  // restricted range.
+  const int32_t kFrequentCharacterLimit = 0xFF;
+  if (value <= kFrequentCharacterLimit) {
+    return Symbols::FromCharCode(value);
+  } else {
+    return String::New(&value, 1);
+  }
 }
 
-DEFINE_NATIVE_ENTRY(String_charCodeAt, 2) {
+
+DEFINE_NATIVE_ENTRY(String_codeUnitAt, 2) {
   const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
   GET_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
-
-  int32_t value = StringValueAt(receiver, index);
-  ASSERT(value >= 0);
-  ASSERT(value <= 0x10FFFF);
+  int32_t value = StringCodeUnitAt(receiver, index);
+  ASSERT(value <= Utf16::kMaxCodeUnit);
   return Smi::New(value);
 }
 

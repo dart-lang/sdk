@@ -529,7 +529,7 @@ void Scanner::ScanEscapedCodePoint(uint32_t* code_point) {
 
 
 void Scanner::ScanLiteralStringChars(bool is_raw) {
-  GrowableArray<uint32_t> string_chars(64);
+  GrowableArray<uint16_t> string_chars(64);
 
   ASSERT(IsScanningString());
   // We are at the first character of a string literal piece. A string literal
@@ -565,7 +565,15 @@ void Scanner::ScanLiteralStringChars(bool is_raw) {
           break;
         case 'u':
         case 'x': {
-          ScanEscapedCodePoint(&escape_char);
+          uint32_t ch;
+          ScanEscapedCodePoint(&ch);
+          int32_t code_point = ch;
+          if (code_point > Utf16::kMaxCodeUnit) {
+            string_chars.Add(Utf16::LeadFromCodePoint(code_point));
+            escape_char = Utf16::TrailFromCodePoint(code_point);
+          } else {
+            escape_char = code_point;
+          }
           break;
         }
         default:

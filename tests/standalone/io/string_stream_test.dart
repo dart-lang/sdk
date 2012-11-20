@@ -29,8 +29,8 @@ void testUtf8() {
     Expect.equals(new String.fromCharCodes([0xffff]), s[5]);
 
     // Surrogate pair for U+1D11E.
-    Expect.equals(new String.fromCharCodes([0xd834]), s[6]);
-    Expect.equals(new String.fromCharCodes([0xdd1e]), s[7]);
+    Expect.equals(new String.fromCodeUnits([0xd834, 0xdd1e]),
+                  s.substring(6, 8));
   }
   stream.onData = stringData;
 }

@@ -168,6 +168,8 @@ class StringValidator {
           code = value;
         }
       }
+      // TODO(erikcorry): Use the string code point iterator when available.
+      if (code >= String.SUPPLEMENTARY_CODE_POINT_BASE) ++length;;
       // This handles both unescaped characters and the value of unicode
       // escapes.
       if (!isUnicodeScalarValue(code)) {

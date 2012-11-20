@@ -446,9 +446,11 @@ LibTest/core/Stopwatch/start_A01_t01: Fail, OK # co19 issue 297
 LibTest/core/Stopwatch/start_A01_t02: Fail, OK # co19 issue 297
 LibTest/core/Stopwatch/start_A01_t03: Fail, OK # co19 issue 297
 LibTest/core/Stopwatch/stop_A01_t01: Fail, OK # co19 issue 297
-LibTest/core/String/String_class_A02_t01: Fail, OK # co19 issue 284
-LibTest/core/String/charCodeAt_A01_t01: Fail, OK # co19 issue 284
-LibTest/core/String/charCodes_A01_t01: Fail, OK # co19 issue 284
+LibTest/core/String/String_class_A02_t01: Fail, OK # Fixed in co19 version 443
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A06_t01: Fail, OK # Fixed in co19 version 443
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A02_t01: Fail, OK # Fixed in co19 version 443
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A01_t01: Fail, OK # Fixed in co19 version 443
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A05_t01: Fail, OK # Fixed in co19 version 443
 LibTest/core/String/contains_A01_t02: Fail # inherited from VM
 LibTest/core/double/toRadixString_A01_t01: Fail # inherited from VM
 LibTest/core/int/operator_left_shift_A01_t02: Fail, OK # co19 issue 129

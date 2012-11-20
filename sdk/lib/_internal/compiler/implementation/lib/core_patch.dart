@@ -168,12 +168,12 @@ patch class _ListImpl<E> {
 
 
 patch class String {
-  patch factory String.fromCharCodes(List<int> charCodes) {
-    if (!isJsArray(charCodes)) {
-      if (charCodes is !List) throw new ArgumentError(charCodes);
-      charCodes = new List.from(charCodes);
+  patch factory String.fromCodeUnits(List<int> codeUnits) {
+    if (!isJsArray(codeUnits)) {
+      if (codeUnits is !List) throw new ArgumentError(codeUnits);
+      codeUnits = new List.from(codeUnits);
     }
-    return Primitives.stringFromCharCodes(charCodes);
+    return Primitives.stringFromCodeUnits(codeUnits);
   }
 }
 

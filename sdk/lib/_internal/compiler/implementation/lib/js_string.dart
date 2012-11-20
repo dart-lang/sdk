@@ -13,7 +13,7 @@ part of _interceptors;
 class JSString implements String {
   const JSString();
 
-  int charCodeAt(index) {
+  int codeUnitAt(index) {
     if (index is !num) throw new ArgumentError(index);
     if (index < 0) throw new RangeError.value(index);
     if (index >= length) throw new RangeError.value(index);
@@ -86,10 +86,32 @@ class JSString implements String {
     return JS('String', r'#.trim()', this);
   }
 
-  List<int> get charCodes  {
+  int charCodeAt(int index) {
+    if (index is !num) throw new ArgumentError(index);
+    if (index < 0) throw new RangeError.value(index);
+    if (index >= length) throw new RangeError.value(index);
+    int codeUnit = JS('int', r'#.charCodeAt(#)', this, index);
+    if (codeUnit < 0xd800 || codeUnit >= 0xe000) return codeUnit;
+    if (index + 1 == length) return codeUnit;
+    int codeUnit2 = JS('int', r'#.charCodeAt(#)', this, index + 1);
+    return 0x10000 + ((codeUnit & 0x3ff) << 10) + (codeUnit2 & 0x3ff);
+  }
+
+  List<int> get codeUnits  {
     List<int> result = new List<int>(length);
     for (int i = 0; i < length; i++) {
-      result[i] = charCodeAt(i);
+      result[i] = JS('int', '#.charCodeAt(#)', this, i);
+    }
+    return result;
+  }
+
+  List<int> get charCodes {
+    int len = length;
+    List<int> result = <int>[];
+    for (int i = 0, j = 0; i < len; i++, j++) {
+      int code = charCodeAt(i);
+      if (code >= 0x10000) i++;
+      result.add(code);
     }
     return result;
   }

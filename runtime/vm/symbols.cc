@@ -55,7 +55,7 @@ void Symbols::InitOnce(Isolate* isolate) {
   }
   Object::RegisterSingletonClassNames();
 
-  for (uint32_t c = 0; c <= kMaxOneCharCodeSymbol; c++) {
+  for (uint16_t c = 0; c <= kMaxOneCharCodeSymbol; c++) {
     ASSERT(kMaxPredefinedId + c < kMaxId);
     predefined_[kMaxPredefinedId + c] = New(&c, 1);
   }
@@ -102,7 +102,7 @@ RawString* Symbols::New(const char* str) {
   Utf8::Type type;
   intptr_t str_len = strlen(str);
   const uint8_t* utf8_array = reinterpret_cast<const uint8_t*>(str);
-  intptr_t len = Utf8::CodePointCount(utf8_array, str_len, &type);
+  intptr_t len = Utf8::CodeUnitCount(utf8_array, str_len, &type);
   Zone* zone = Isolate::Current()->current_zone();
   if (len == 0) {
     return Symbols::New(reinterpret_cast<uint8_t*>(NULL), 0);
@@ -152,7 +152,6 @@ RawString* Symbols::New(const T* characters, intptr_t len) {
 
 template RawString* Symbols::New(const uint8_t* characters, intptr_t len);
 template RawString* Symbols::New(const uint16_t* characters, intptr_t len);
-template RawString* Symbols::New(const uint32_t* characters, intptr_t len);
 
 
 RawString* Symbols::New(const String& str) {
@@ -204,9 +203,16 @@ RawString* Symbols::New(const String& str, intptr_t begin_index, intptr_t len) {
 }
 
 
-RawString* Symbols::FromCharCode(uint32_t char_code) {
+RawString* Symbols::FromCharCode(int32_t char_code) {
   if (char_code > kMaxOneCharCodeSymbol) {
-    return New(&char_code, 1);
+    if (char_code > Utf16::kMaxBmpCodepoint) {
+      uint16_t code_units[2];
+      Utf16::Encode(char_code, &code_units[0]);
+      return New(&code_units[0], 2);
+    } else {
+      uint16_t code_unit = char_code;
+      return New(&code_unit, 1);
+    }
   }
   return predefined_[kNullCharId + char_code];
 }
@@ -288,11 +294,6 @@ template intptr_t Symbols::FindIndex(const Array& symbol_table,
                                      const uint16_t* characters,
                                      intptr_t len,
                                      intptr_t hash);
-template intptr_t Symbols::FindIndex(const Array& symbol_table,
-                                     const uint32_t* characters,
-                                     intptr_t len,
-                                     intptr_t hash);
-
 
 intptr_t Symbols::FindIndex(const Array& symbol_table,
                             const String& str,
