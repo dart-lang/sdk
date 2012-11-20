@@ -40,6 +40,7 @@ import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartGotoStatement;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartIfStatement;
+import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartInitializer;
 import com.google.dart.compiler.ast.DartIntegerLiteral;
 import com.google.dart.compiler.ast.DartInvocation;
@@ -76,6 +77,8 @@ import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
+import com.google.dart.compiler.ast.LibraryImport;
+import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.common.SourceInfo;
@@ -230,11 +233,33 @@ public class Resolver {
 
     @Override
     public Element visitUnit(DartUnit unit) {
+      List<DartImportDirective> importDirectives = Lists.newArrayList();
       for (DartDirective directive : unit.getDirectives()) {
+        if (directive instanceof DartImportDirective) {
+          importDirectives.add((DartImportDirective) directive);
+        }
         if (directive instanceof DartPartOfDirective) {
           directive.accept(this);
         }
       }
+      // set LibraryElement for "import" directives
+      {
+        LibraryUnit library = unit.getLibrary();
+        if (library != null) {
+          Iterator<LibraryImport> importIterator = library.getImports().iterator();
+          Iterator<DartImportDirective> directiveIterator = importDirectives.iterator();
+          while (importIterator.hasNext() && directiveIterator.hasNext()) {
+            LibraryImport imp = importIterator.next();
+            DartImportDirective dir = directiveIterator.next();
+            DartStringLiteral uri = dir.getLibraryUri();
+            LibraryUnit impLibrary = imp.getLibrary();
+            if (uri != null && impLibrary != null) {
+              uri.setElement(impLibrary.getElement());
+            }
+          }
+        }
+      }
+      // visit top-level nodes
       for (DartNode node : unit.getTopLevelNodes()) {
         node.accept(this);
       }

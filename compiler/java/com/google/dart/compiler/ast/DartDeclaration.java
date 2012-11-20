@@ -10,7 +10,8 @@ package com.google.dart.compiler.ast;
  * considered a part of the declaration, not an independent node. So the name is not visited when
  * traversing the AST.
  */
-public abstract class DartDeclaration<N extends DartExpression> extends DartNodeWithMetadata {
+public abstract class DartDeclaration<N extends DartExpression> extends DartNodeWithMetadata
+    implements HasObsoleteMetadata {
 
   private N name; // Not visited.
   private DartComment dartDoc;

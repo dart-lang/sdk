@@ -96,6 +96,7 @@ import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
+import com.google.dart.compiler.ast.HasObsoleteMetadata;
 import com.google.dart.compiler.ast.ImportCombinator;
 import com.google.dart.compiler.ast.ImportHideCombinator;
 import com.google.dart.compiler.ast.ImportShowCombinator;
@@ -395,17 +396,16 @@ public class DartParser extends CompletionHooksParserBase {
     }
     if (annotations != null && !annotations.isEmpty()) {
       node.setMetadata(annotations);
-      if (node instanceof DartDeclaration<?>) {
+      if (node instanceof HasObsoleteMetadata) {
+        HasObsoleteMetadata declaration = (HasObsoleteMetadata) node;
         for (int i = 0, size = annotations.size(); i < size; i++) {
           DartAnnotation annotation = annotations.get(i);
           DartExpression nameNode = annotation.getName();
           if (nameNode instanceof DartIdentifier) {
             String name = ((DartIdentifier) nameNode).getName();
             if (name.equals("deprecated")) {
-              DartDeclaration<?> declaration = (DartDeclaration<?>) node;
               declaration.setObsoleteMetadata(declaration.getObsoleteMetadata().makeDeprecated());
             } else if (name.equals("override")) {
-              DartDeclaration<?> declaration = (DartDeclaration<?>) node;
               declaration.setObsoleteMetadata(declaration.getObsoleteMetadata().makeOverride());
             }
           }

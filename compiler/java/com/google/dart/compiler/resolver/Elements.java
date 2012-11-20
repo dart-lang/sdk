@@ -87,6 +87,10 @@ public class Elements {
     return new LibraryElementImplementation(libraryUnit);
   }
   
+  public static void setLibraryMetadata(LibraryElement element, DartObsoleteMetadata metadata) {
+    ((LibraryElementImplementation) element).setMetadata(metadata);
+  }
+  
   public static void addExportedElement(LibraryElement libraryElement, Element element) {
     ((LibraryElementImplementation) libraryElement).addExportedElements(element);
   }
