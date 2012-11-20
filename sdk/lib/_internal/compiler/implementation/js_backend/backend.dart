@@ -698,6 +698,8 @@ class JavaScriptBackend extends Backend {
     return <CompilerTask>[builder, optimizer, generator, emitter];
   }
 
+  final RuntimeTypeInformation rti;
+
   JavaScriptBackend(Compiler compiler, bool generateSourceMap, bool disableEval)
       : namer = determineNamer(compiler),
         returnInfo = new Map<Element, ReturnInfo>(),
@@ -705,6 +707,7 @@ class JavaScriptBackend extends Backend {
         interceptors = new Interceptors(compiler),
         usedInterceptors = new Set<Selector>(),
         interceptedElements = new Map<SourceString, List<Element>>(),
+        rti = new RuntimeTypeInformation(compiler),
         super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM) {
     emitter = disableEval
         ? new CodeEmitterNoEvalTask(compiler, namer, generateSourceMap)

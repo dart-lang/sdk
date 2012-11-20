@@ -28,7 +28,6 @@ class ConstantHandler extends CompilerTask {
   /** Caches the statics where the initial value cannot be eagerly compiled. */
   final Set<VariableElement> lazyStatics;
 
-
   ConstantHandler(Compiler compiler, this.constantSystem)
       : initialVariableValues = new Map<VariableElement, dynamic>(),
         compiledConstants = new Set<Constant>(),
@@ -248,6 +247,7 @@ class CompileTimeConstantEvaluator extends Visitor {
   final ConstantSystem constantSystem;
   final TreeElements elements;
   final Compiler compiler;
+  bool enabledRuntimeTypeSupport = false;
 
   CompileTimeConstantEvaluator(this.constantSystem,
                                this.elements,
@@ -400,6 +400,25 @@ class CompileTimeConstantEvaluator extends Visitor {
     return constantSystem.createString(accumulator, node);
   }
 
+  Constant makeTypeConstant(Element element) {
+    // If we use a type literal in a constant, the compile time constant
+    // emitter will generate a call to the runtime type cache helper, so we
+    // resolve it and put it into the codegen work list.
+    if (!enabledRuntimeTypeSupport) {
+      SourceString helperName = const SourceString('createRuntimeType');
+      Element helper = compiler.findHelper(helperName);
+      compiler.enqueuer.resolution.addToWorkList(helper);
+      compiler.enqueuer.codegen.addToWorkList(helper);
+      enabledRuntimeTypeSupport = true;
+    }
+
+    DartType elementType = element.computeType(compiler).asRaw();
+    DartType constantType = compiler.typeClass.computeType(compiler);
+    Constant constant = new TypeConstant(elementType, constantType);
+    compiler.constantHandler.registerCompileTimeConstant(constant);
+    return constant;
+  }
+
   // TODO(floitsch): provide better error-messages.
   Constant visitSend(Send send) {
     Element element = elements[send];
@@ -418,6 +437,8 @@ class CompileTimeConstantEvaluator extends Visitor {
           result = compiler.compileVariable(element);
         }
         if (result != null) return result;
+      } else if (Elements.isClass(element) || Elements.isTypedef(element)) {
+        return makeTypeConstant(element);
       }
       return signalNotCompileTimeConstant(send);
     } else if (send.isCall) {
@@ -427,6 +448,8 @@ class CompileTimeConstantEvaluator extends Visitor {
         Constant right = evaluate(send.argumentsNode.nodes.tail.head);
         Constant result = constantSystem.identity.fold(left, right);
         if (result != null) return result;
+      } else if (Elements.isClass(element) || Elements.isTypedef(element)) {
+        return makeTypeConstant(element);
       }
       return signalNotCompileTimeConstant(send);
     } else if (send.isPrefix) {

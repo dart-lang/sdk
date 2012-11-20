@@ -60,7 +60,7 @@ abstract class ResolvedVisitor<R> extends Visitor<R> {
   R visitDynamicSend(Send node);
   R visitForeignSend(Send node);
   R visitStaticSend(Send node);
-  abstract R visitTypeReferenceSend(Send node);
+  R visitTypeReferenceSend(Send node);
 
   void internalError(String reason, {Node node});
 

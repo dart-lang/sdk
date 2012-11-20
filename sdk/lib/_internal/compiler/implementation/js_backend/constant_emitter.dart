@@ -196,6 +196,28 @@ class ConstantEmitter implements ConstantVisitor {
     }
   }
 
+  void visitType(TypeConstant constant) {
+    if (shouldEmitCanonicalVersion) {
+      emitCanonicalVersion(constant);
+    } else {
+      SourceString helperSourceName =
+          const SourceString('createRuntimeType');
+      Element helper = compiler.findHelper(helperSourceName);
+      JavaScriptBackend backend = compiler.backend;
+      String helperName = backend.namer.getName(helper);
+      DartType type = constant.representedType;
+      Element element = type.element;
+      String typeName;
+      if (type.kind == TypeKind.INTERFACE) {
+        typeName = backend.rti.generateRuntimeTypeString(element, 0);
+      } else {
+        assert(type.kind == TypeKind.TYPEDEF);
+        typeName = element.name.slowToString();
+      }
+      buffer.add("${namer.CURRENT_ISOLATE}.$helperName('$typeName')");
+    }
+  }
+
   void visitConstructed(ConstructedConstant constant) {
     if (shouldEmitCanonicalVersion) {
       emitCanonicalVersion(constant);

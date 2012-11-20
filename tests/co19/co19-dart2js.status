@@ -772,8 +772,6 @@ Language/13_Libraries_and_Scripts/4_Scripts_A03_t03: Fail # http://dartbug.com/5
 
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t02: Fail # http://dartbug.com/5713
 
-Language/07_Classes/07_Classes_A01_t20: Fail # http://dartbug.com/6687
-Language/07_Classes/07_Classes_A02_t34: Fail # http://dartbug.com/6687
 Language/07_Classes/07_Classes_A03_t10: Fail # http://dartbug.com/6687
 
 

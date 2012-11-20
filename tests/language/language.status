@@ -20,6 +20,7 @@ part_test: Fail
 part2_test: Fail
 gc_test: Pass, Fail # Issue 1487
 pseudo_kw_illegal_test/14: Fail  # Issue 356
+first_class_types_constants_test: Fail # Issue 6282
 
 # These bugs refer currently ongoing language discussions.
 constructor5_test: Fail           # (Discussion ongoing)
@@ -80,6 +81,7 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dartc ]
+first_class_types_constants_test: Fail # Issue 6283
 redirecting_factory_infinite_steps_test/01: Fail # http://dartbug.com/6560
 implicit_this_test/none: Fail # should not warn about allocating SubAbstract2
 metadata_test: Fail
@@ -393,6 +395,8 @@ bad_override_test/02: Fail
 illegal_invocation_test/01: Fail, OK # Typedef literals are expressions now.
 illegal_invocation_test/04: Fail, OK # Class literals are expressions now.
 illegal_invocation_test/05: Fail, OK # Type variables are expressions now.
+
+first_class_types_constants_test: Fail # Issue 6282
 
 # Renaming type from platform library:
 dynamic_test: Fail

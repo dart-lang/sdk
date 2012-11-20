@@ -977,7 +977,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       parameters = new Map<Element, HInstruction>(),
       sourceElementStack = <Element>[work.element],
       inliningStack = <InliningState>[],
-      rti = builder.compiler.codegenWorld.rti,
+      rti = builder.backend.rti,
       super(work.resolutionTree) {
     localsHandler = new LocalsHandler(this);
   }
@@ -2646,7 +2646,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
       DartType type = elements.getType(typeAnnotation);
       HInstruction typeInfo = null;
-      if (compiler.codegenWorld.rti.hasTypeArguments(type)) {
+      if (rti.hasTypeArguments(type)) {
         pushInvokeHelper1(interceptors.getGetRuntimeTypeInfo(), expression);
         typeInfo = pop();
       }
@@ -3381,22 +3381,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   visitTypeReferenceSend(Send node) {
     Element element = elements[node];
-    HInstruction name;
-    Element helper =
-        compiler.findHelper(const SourceString('createRuntimeType'));
-    if (element.isClass()) {
-      String string = rti.generateRuntimeTypeString(element, 0);
-      name = addConstantString(node.selector, string);
-    } else if (element.isTypedef()) {
-      // TODO(karlklose): implement support for type variables in typedefs.
-      name = addConstantString(node.selector, rti.getName(element));
+    if (element.isClass() || element.isTypedef()) {
+      // TODO(karlklose): add type representation
+      ConstantHandler handler = compiler.constantHandler;
+      Constant constant = handler.compileNodeWithDefinitions(node, elements);
+      stack.add(graph.addConstant(constant));
     } else if (element.isTypeVariable()) {
       // TODO(6248): implement support for type variables.
       compiler.unimplemented('first class type for type variable', node: node);
     } else {
-      internalError('unexpected element $element', node: node);
+      internalError('unexpected element kind $element', node: node);
     }
-    pushInvokeHelper1(helper, name);
     if (node.isCall) {
       // This send is of the form 'e(...)', where e is resolved to a type
       // reference. We create a regular closure call on the result of the type

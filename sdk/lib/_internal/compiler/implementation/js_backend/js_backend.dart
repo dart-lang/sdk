@@ -9,6 +9,7 @@ import '../../compiler.dart' as api;
 import '../elements/elements.dart';
 import '../dart2jslib.dart' hide Selector;
 import '../native_handler.dart' as native;
+import 'runtime_types.dart';
 import '../source_file.dart';
 import '../source_map_builder.dart';
 import '../ssa/ssa.dart';

@@ -1727,6 +1727,11 @@ class Elements {
   static bool isUnresolved(Element e) => e == null || e.isErroneous();
   static bool isErroneousElement(Element e) => e != null && e.isErroneous();
 
+  static bool isClass(Element e) => e != null && e.kind == ElementKind.CLASS;
+  static bool isTypedef(Element e) {
+    return e != null && e.kind == ElementKind.TYPEDEF;
+  }
+
   static bool isLocal(Element element) {
     return !Elements.isUnresolved(element)
             && !element.isInstanceMember()

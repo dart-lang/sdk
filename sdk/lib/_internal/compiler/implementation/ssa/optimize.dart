@@ -555,7 +555,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // TODO(karlklose): remove the hasTypeArguments check.
     } else if (expressionType.isUseful()
                && !expressionType.canBeNull()
-               && !compiler.codegenWorld.rti.hasTypeArguments(type)) {
+               && !backend.rti.hasTypeArguments(type)) {
       DartType receiverType = expressionType.computeType(compiler);
       if (receiverType != null) {
         if (compiler.types.isSubtype(receiverType, type)) {

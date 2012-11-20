@@ -16,6 +16,7 @@ abstract class ConstantVisitor<R> {
   R visitList(ListConstant constant);
   R visitMap(MapConstant constant);
   R visitConstructed(ConstructedConstant constant);
+  R visitType(TypeConstant constant);
 }
 
 abstract class Constant {
@@ -37,6 +38,7 @@ abstract class Constant {
   bool isPrimitive() => false;
   /** Returns true if the constant is a list, a map or a constructed object. */
   bool isObject() => false;
+  bool isType() => false;
   bool isSentinel() => false;
 
   bool isNaN() => false;
@@ -46,7 +48,7 @@ abstract class Constant {
 
   List<Constant> getDependencies();
 
-  accept(ConstantVisitor);
+  accept(ConstantVisitor visitor);
 }
 
 class SentinelConstant extends Constant {
@@ -315,10 +317,25 @@ abstract class ObjectConstant extends Constant {
   bool isObject() => true;
 
   DartType computeType(Compiler compiler) => type;
+}
 
-  // TODO(1603): The class should be marked as abstract, but the VM doesn't
-  // currently allow this.
-  int get hashCode;
+class TypeConstant extends ObjectConstant {
+  /// The user type that this constant represents.
+  final DartType representedType;
+
+  TypeConstant(this.representedType, type) : super(type);
+
+  bool isType() => true;
+
+  bool operator ==(other) {
+    return other is TypeConstant && representedType == other.representedType;
+  }
+
+  int get hashCode => representedType.hashCode * 13;
+
+  List<Constant> getDependencies() => const <Constant>[];
+
+  accept(ConstantVisitor visitor) => visitor.visitType(this);
 }
 
 class ListConstant extends ObjectConstant {
