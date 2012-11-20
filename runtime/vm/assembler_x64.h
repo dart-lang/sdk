@@ -678,7 +678,18 @@ class Assembler : public ValueObject {
   inline void EmitXmmRegisterOperand(int rm, XmmRegister reg);
   inline void EmitFixup(AssemblerFixup* fixup);
   inline void EmitOperandSizeOverride();
-
+  inline void EmitREX_RB(XmmRegister reg,
+                         XmmRegister base,
+                         uint8_t rex = REX_NONE);
+  inline void EmitREX_RB(XmmRegister reg,
+                         const Operand& operand,
+                         uint8_t rex = REX_NONE);
+  inline void EmitREX_RB(XmmRegister reg,
+                         Register base,
+                         uint8_t rex = REX_NONE);
+  inline void EmitREX_RB(Register reg,
+                         XmmRegister base,
+                         uint8_t rex = REX_NONE);
   void EmitOperand(int rm, const Operand& operand);
   void EmitImmediate(const Immediate& imm);
   void EmitComplex(int rm, const Operand& operand, const Immediate& immediate);
@@ -722,6 +733,42 @@ inline void Assembler::EmitOperandREX(int rm,
                                       const Operand& operand,
                                       uint8_t rex) {
   rex |= (rm > 7 ? REX_R : REX_NONE) | operand.rex();
+  if (rex != REX_NONE) EmitUint8(REX_PREFIX | rex);
+}
+
+
+inline void Assembler::EmitREX_RB(XmmRegister reg,
+                                  XmmRegister base,
+                                  uint8_t rex) {
+  if (reg > 7) rex |= REX_R;
+  if (base > 7) rex |= REX_B;
+  if (rex != REX_NONE) EmitUint8(REX_PREFIX | rex);
+}
+
+
+inline void Assembler::EmitREX_RB(XmmRegister reg,
+                                  const Operand& operand,
+                                  uint8_t rex) {
+  if (reg > 7) rex |= REX_R;
+  rex |= operand.rex();
+  if (rex != REX_NONE) EmitUint8(REX_PREFIX | rex);
+}
+
+
+inline void Assembler::EmitREX_RB(XmmRegister reg,
+                                  Register base,
+                                  uint8_t rex) {
+  if (reg > 7) rex |= REX_R;
+  if (base > 7) rex |= REX_B;
+  if (rex != REX_NONE) EmitUint8(REX_PREFIX | rex);
+}
+
+
+inline void Assembler::EmitREX_RB(Register reg,
+                                  XmmRegister base,
+                                  uint8_t rex) {
+  if (reg > 7) rex |= REX_R;
+  if (base > 7) rex |= REX_B;
   if (rex != REX_NONE) EmitUint8(REX_PREFIX | rex);
 }
 

@@ -395,11 +395,10 @@ void Assembler::leaq(Register dst, const Address& src) {
 
 
 void Assembler::movss(XmmRegister dst, const Address& src) {
-  // TODO(srdjan): implement and test XMM8 - XMM15.
-  ASSERT(dst <= XMM7);
+  ASSERT(dst <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF3);
-  EmitOperandREX(0, src, REX_NONE);
+  EmitREX_RB(dst, src);
   EmitUint8(0x0F);
   EmitUint8(0x10);
   EmitOperand(dst & 7, src);
@@ -407,11 +406,10 @@ void Assembler::movss(XmmRegister dst, const Address& src) {
 
 
 void Assembler::movss(const Address& dst, XmmRegister src) {
-  // TODO(srdjan): implement and test XMM8 - XMM15.
-  ASSERT(src <= XMM7);
+  ASSERT(src <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF3);
-  EmitOperandREX(0, dst, REX_NONE);
+  EmitREX_RB(src, dst);
   EmitUint8(0x0F);
   EmitUint8(0x11);
   EmitOperand(src & 7, dst);
@@ -419,11 +417,11 @@ void Assembler::movss(const Address& dst, XmmRegister src) {
 
 
 void Assembler::movss(XmmRegister dst, XmmRegister src) {
-  // TODO(srdjan): implement and test XMM8 - XMM15.
-  ASSERT(src <= XMM7);
-  ASSERT(dst <= XMM7);
+  ASSERT(src <= XMM15);
+  ASSERT(dst <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF3);
+  EmitREX_RB(src, dst);
   EmitUint8(0x0F);
   EmitUint8(0x11);
   EmitXmmRegisterOperand(src & 7, dst);
@@ -431,9 +429,10 @@ void Assembler::movss(XmmRegister dst, XmmRegister src) {
 
 
 void Assembler::movd(XmmRegister dst, Register src) {
-  ASSERT(dst <= XMM7);
+  ASSERT(dst <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x66);
+  EmitREX_RB(dst, src);
   EmitUint8(0x0F);
   EmitUint8(0x6E);
   EmitOperand(dst & 7, Operand(src));
@@ -441,9 +440,10 @@ void Assembler::movd(XmmRegister dst, Register src) {
 
 
 void Assembler::movd(Register dst, XmmRegister src) {
-  ASSERT(src <= XMM7);
+  ASSERT(src <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x66);
+  EmitREX_RB(src, dst);
   EmitUint8(0x0F);
   EmitUint8(0x7E);
   EmitOperand(src & 7, Operand(dst));
@@ -451,59 +451,58 @@ void Assembler::movd(Register dst, XmmRegister src) {
 
 
 void Assembler::addss(XmmRegister dst, XmmRegister src) {
-  // TODO(srdjan): implement and test XMM8 - XMM15.
-  ASSERT(src <= XMM7);
-  ASSERT(dst <= XMM7);
+  ASSERT(src <= XMM15);
+  ASSERT(dst <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF3);
+  EmitREX_RB(dst, src);
   EmitUint8(0x0F);
   EmitUint8(0x58);
-  EmitXmmRegisterOperand(dst, src);
+  EmitXmmRegisterOperand(dst & 7, src);
 }
 
 
 void Assembler::subss(XmmRegister dst, XmmRegister src) {
-  // TODO(srdjan): implement and test XMM8 - XMM15.
-  ASSERT(src <= XMM7);
-  ASSERT(dst <= XMM7);
+  ASSERT(src <= XMM15);
+  ASSERT(dst <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF3);
+  EmitREX_RB(dst, src);
   EmitUint8(0x0F);
   EmitUint8(0x5C);
-  EmitXmmRegisterOperand(dst, src);
+  EmitXmmRegisterOperand(dst & 7, src);
 }
 
 
 void Assembler::mulss(XmmRegister dst, XmmRegister src) {
-  // TODO(srdjan): implement and test XMM8 - XMM15.
-  ASSERT(src <= XMM7);
-  ASSERT(dst <= XMM7);
+  ASSERT(src <= XMM15);
+  ASSERT(dst <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF3);
+  EmitREX_RB(dst, src);
   EmitUint8(0x0F);
   EmitUint8(0x59);
-  EmitXmmRegisterOperand(dst, src);
+  EmitXmmRegisterOperand(dst & 7, src);
 }
 
 
 void Assembler::divss(XmmRegister dst, XmmRegister src) {
-  // TODO(srdjan): implement and test XMM8 - XMM15.
-  ASSERT(src <= XMM7);
-  ASSERT(dst <= XMM7);
+  ASSERT(src <= XMM15);
+  ASSERT(dst <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF3);
+  EmitREX_RB(dst, src);
   EmitUint8(0x0F);
   EmitUint8(0x5E);
-  EmitXmmRegisterOperand(dst, src);
+  EmitXmmRegisterOperand(dst & 7, src);
 }
 
 
 void Assembler::movsd(XmmRegister dst, const Address& src) {
-  // TODO(srdjan): implement and test XMM8 - XMM15.
-  ASSERT(dst <= XMM7);
+  ASSERT(dst <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF2);
-  EmitOperandREX(0, src, REX_NONE);
+  EmitREX_RB(dst, src);
   EmitUint8(0x0F);
   EmitUint8(0x10);
   EmitOperand(dst & 7, src);
@@ -511,11 +510,10 @@ void Assembler::movsd(XmmRegister dst, const Address& src) {
 
 
 void Assembler::movsd(const Address& dst, XmmRegister src) {
-  // TODO(srdjan): implement and test XMM8 - XMM15.
-  ASSERT(src <= XMM7);
+  ASSERT(src <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF2);
-  EmitOperandREX(0, dst, REX_NONE);
+  EmitREX_RB(src, dst);
   EmitUint8(0x0F);
   EmitUint8(0x11);
   EmitOperand(src & 7, dst);
@@ -523,11 +521,11 @@ void Assembler::movsd(const Address& dst, XmmRegister src) {
 
 
 void Assembler::movsd(XmmRegister dst, XmmRegister src) {
-  // TODO(srdjan): implement and test XMM8 - XMM15.
-  ASSERT(src <= XMM7);
-  ASSERT(dst <= XMM7);
+  ASSERT(src <= XMM15);
+  ASSERT(dst <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF2);
+  EmitREX_RB(src, dst);
   EmitUint8(0x0F);
   EmitUint8(0x11);
   EmitXmmRegisterOperand(src & 7, dst);
@@ -535,10 +533,10 @@ void Assembler::movsd(XmmRegister dst, XmmRegister src) {
 
 
 void Assembler::movaps(XmmRegister dst, XmmRegister src) {
-  // TODO(vegorov): implement and test XMM8 - XMM15.
-  ASSERT(src <= XMM7);
-  ASSERT(dst <= XMM7);
+  ASSERT(src <= XMM15);
+  ASSERT(dst <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitREX_RB(dst, src);
   EmitUint8(0x0F);
   EmitUint8(0x28);
   EmitXmmRegisterOperand(dst & 7, src);
@@ -546,90 +544,93 @@ void Assembler::movaps(XmmRegister dst, XmmRegister src) {
 
 
 void Assembler::addsd(XmmRegister dst, XmmRegister src) {
-  // TODO(srdjan): implement and test XMM8 - XMM15.
-  ASSERT(src <= XMM7);
-  ASSERT(dst <= XMM7);
+  ASSERT(src <= XMM15);
+  ASSERT(dst <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF2);
+  EmitREX_RB(dst, src);
   EmitUint8(0x0F);
   EmitUint8(0x58);
-  EmitXmmRegisterOperand(dst, src);
+  EmitXmmRegisterOperand(dst & 7, src);
 }
 
 
 void Assembler::subsd(XmmRegister dst, XmmRegister src) {
-  // TODO(srdjan): implement and test XMM8 - XMM15.
-  ASSERT(src <= XMM7);
-  ASSERT(dst <= XMM7);
+  ASSERT(src <= XMM15);
+  ASSERT(dst <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF2);
+  EmitREX_RB(dst, src);
   EmitUint8(0x0F);
   EmitUint8(0x5C);
-  EmitXmmRegisterOperand(dst, src);
+  EmitXmmRegisterOperand(dst & 7, src);
 }
 
 
 void Assembler::mulsd(XmmRegister dst, XmmRegister src) {
-  // TODO(srdjan): implement and test XMM8 - XMM15.
-  ASSERT(src <= XMM7);
-  ASSERT(dst <= XMM7);
+  ASSERT(src <= XMM15);
+  ASSERT(dst <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF2);
+  EmitREX_RB(dst, src);
   EmitUint8(0x0F);
   EmitUint8(0x59);
-  EmitXmmRegisterOperand(dst, src);
+  EmitXmmRegisterOperand(dst & 7, src);
 }
 
 
 void Assembler::divsd(XmmRegister dst, XmmRegister src) {
-  // TODO(srdjan): implement and test XMM8 - XMM15.
-  ASSERT(src <= XMM7);
-  ASSERT(dst <= XMM7);
+  ASSERT(src <= XMM15);
+  ASSERT(dst <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF2);
+  EmitREX_RB(dst, src);
   EmitUint8(0x0F);
   EmitUint8(0x5E);
-  EmitXmmRegisterOperand(dst, src);
+  EmitXmmRegisterOperand(dst & 7, src);
 }
 
 
 void Assembler::comisd(XmmRegister a, XmmRegister b) {
-  ASSERT(a <= XMM7);
-  ASSERT(b <= XMM7);
+  ASSERT(a <= XMM15);
+  ASSERT(b <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x66);
+  EmitREX_RB(a, b);
   EmitUint8(0x0F);
   EmitUint8(0x2F);
-  EmitXmmRegisterOperand(a, b);
+  EmitXmmRegisterOperand(a & 7, b);
 }
 
 
 void Assembler::movmskpd(Register dst, XmmRegister src) {
-  ASSERT(src <= XMM7);
+  ASSERT(src <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x66);
+  EmitREX_RB(dst, src);
   EmitUint8(0x0F);
   EmitUint8(0x50);
-  EmitXmmRegisterOperand(dst, src);
+  EmitXmmRegisterOperand(dst & 7, src);
 }
 
 
 void Assembler::sqrtsd(XmmRegister dst, XmmRegister src) {
-  ASSERT(dst <= XMM7);
-  ASSERT(src <= XMM7);
+  ASSERT(dst <= XMM15);
+  ASSERT(src <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF2);
+  EmitREX_RB(dst, src);
   EmitUint8(0x0F);
   EmitUint8(0x51);
-  EmitXmmRegisterOperand(dst, src);
+  EmitXmmRegisterOperand(dst & 7, src);
 }
 
 
 void Assembler::xorpd(XmmRegister dst, const Address& src) {
-  ASSERT(dst <= XMM7);
+  ASSERT(dst <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x66);
-  EmitOperandREX(0, src, REX_NONE);
+  EmitOperandREX(dst, src, REX_NONE);
   EmitUint8(0x0F);
   EmitUint8(0x57);
   EmitOperand(dst & 7, src);
@@ -637,59 +638,62 @@ void Assembler::xorpd(XmmRegister dst, const Address& src) {
 
 
 void Assembler::xorpd(XmmRegister dst, XmmRegister src) {
-  ASSERT(dst <= XMM7);
-  ASSERT(src <= XMM7);
+  ASSERT(dst <= XMM15);
+  ASSERT(src <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x66);
+  EmitREX_RB(dst, src);
   EmitUint8(0x0F);
   EmitUint8(0x57);
-  EmitXmmRegisterOperand(dst, src);
+  EmitXmmRegisterOperand(dst & 7, src);
 }
 
 
 void Assembler::cvtsi2sd(XmmRegister dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  ASSERT(dst <= XMM7);
+  ASSERT(dst <= XMM15);
   Operand operand(src);
   EmitUint8(0xF2);
-  EmitOperandREX(0, operand, REX_W);
+  EmitOperandREX(dst, operand, REX_W);
   EmitUint8(0x0F);
   EmitUint8(0x2A);
-  EmitOperand(dst, operand);
+  EmitOperand(dst & 7, operand);
 }
 
 
 void Assembler::cvttsd2siq(Register dst, XmmRegister src) {
-  ASSERT(src <= XMM7);
+  ASSERT(src <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF2);
   Operand operand(dst);
-  EmitOperandREX(0, operand, REX_W);
+  EmitREX_RB(dst, src, REX_W);
   EmitUint8(0x0F);
   EmitUint8(0x2C);
-  EmitXmmRegisterOperand(dst, src);
+  EmitXmmRegisterOperand(dst & 7, src);
 }
 
 
 void Assembler::cvtss2sd(XmmRegister dst, XmmRegister src) {
-  ASSERT(src <= XMM7);
-  ASSERT(dst <= XMM7);
+  ASSERT(src <= XMM15);
+  ASSERT(dst <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF3);
+  EmitREX_RB(dst, src);
   EmitUint8(0x0F);
   EmitUint8(0x5A);
-  EmitXmmRegisterOperand(dst, src);
+  EmitXmmRegisterOperand(dst & 7, src);
 }
 
 
 void Assembler::cvtsd2ss(XmmRegister dst, XmmRegister src) {
-  ASSERT(src <= XMM7);
-  ASSERT(dst <= XMM7);
+  ASSERT(src <= XMM15);
+  ASSERT(dst <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF2);
+  EmitREX_RB(dst, src);
   EmitUint8(0x0F);
   EmitUint8(0x5A);
-  EmitXmmRegisterOperand(dst, src);
+  EmitXmmRegisterOperand(dst & 7, src);
 }
 
 
@@ -2107,7 +2111,8 @@ const char* Assembler::RegisterName(Register reg) {
 
 
 static const char* xmm_reg_names[kNumberOfXmmRegisters] = {
-  "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7"
+  "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7",
+  "xmm8", "xmm9", "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15"
 };
 
 
