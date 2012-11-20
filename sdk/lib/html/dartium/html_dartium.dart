@@ -70,9 +70,7 @@ _callPortSync(num id, var message) {
 class AbstractWorker extends EventTarget {
   AbstractWorker.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   AbstractWorkerEvents get on =>
     new AbstractWorkerEvents(this);
 
@@ -861,9 +859,7 @@ class AudioContext extends EventTarget {
   factory AudioContext() => _AudioContextFactoryProvider.createAudioContext();
   AudioContext.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   AudioContextEvents get on =>
     new AudioContextEvents(this);
 
@@ -1381,9 +1377,7 @@ class BaseFontElement extends _Element_Merged {
 class BatteryManager extends EventTarget {
   BatteryManager.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   BatteryManagerEvents get on =>
     new BatteryManagerEvents(this);
 
@@ -1568,9 +1562,7 @@ class BodyElement extends _Element_Merged {
   factory BodyElement() => document.$dom_createElement("body");
   BodyElement.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   BodyElementEvents get on =>
     new BodyElementEvents(this);
 
@@ -7034,9 +7026,7 @@ class DListElement extends _Element_Merged {
 class DOMApplicationCache extends EventTarget {
   DOMApplicationCache.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   DOMApplicationCacheEvents get on =>
     new DOMApplicationCacheEvents(this);
 
@@ -8159,9 +8149,7 @@ class DatabaseSync extends NativeFieldWrapperClass1 {
 class DedicatedWorkerContext extends WorkerContext {
   DedicatedWorkerContext.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   DedicatedWorkerContextEvents get on =>
     new DedicatedWorkerContextEvents(this);
 
@@ -8394,9 +8382,7 @@ class Document extends Node
 
   Document.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   DocumentEvents get on =>
     new DocumentEvents(this);
 
@@ -9008,9 +8994,7 @@ class DocumentFragment extends Node {
 
   DocumentFragment.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ElementEvents get on =>
     new ElementEvents(this);
 
@@ -9753,67 +9737,65 @@ abstract class Element extends Node implements ElementTraversal {
 
   Element.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ElementEvents get on =>
     new ElementEvents(this);
 
-  /** @domName HTMLElement.children; @docsEditable true */
+  /// @domName HTMLElement.children; @docsEditable true
   HTMLCollection get $dom_children;
 
-  /** @domName HTMLElement.contentEditable; @docsEditable true */
+  /// @domName HTMLElement.contentEditable; @docsEditable true
   String contentEditable;
 
-  /** @domName HTMLElement.dir; @docsEditable true */
+  /// @domName HTMLElement.dir; @docsEditable true
   String dir;
 
-  /** @domName HTMLElement.draggable; @docsEditable true */
+  /// @domName HTMLElement.draggable; @docsEditable true
   bool draggable;
 
-  /** @domName HTMLElement.hidden; @docsEditable true */
+  /// @domName HTMLElement.hidden; @docsEditable true
   bool hidden;
 
-  /** @domName HTMLElement.id; @docsEditable true */
+  /// @domName HTMLElement.id; @docsEditable true
   String id;
 
-  /** @domName HTMLElement.innerHTML; @docsEditable true */
+  /// @domName HTMLElement.innerHTML; @docsEditable true
   String innerHTML;
 
-  /** @domName HTMLElement.isContentEditable; @docsEditable true */
+  /// @domName HTMLElement.isContentEditable; @docsEditable true
   bool get isContentEditable;
 
-  /** @domName HTMLElement.lang; @docsEditable true */
+  /// @domName HTMLElement.lang; @docsEditable true
   String lang;
 
-  /** @domName HTMLElement.outerHTML; @docsEditable true */
+  /// @domName HTMLElement.outerHTML; @docsEditable true
   String get outerHTML;
 
-  /** @domName HTMLElement.spellcheck; @docsEditable true */
+  /// @domName HTMLElement.spellcheck; @docsEditable true
   bool spellcheck;
 
-  /** @domName HTMLElement.tabIndex; @docsEditable true */
+  /// @domName HTMLElement.tabIndex; @docsEditable true
   int tabIndex;
 
-  /** @domName HTMLElement.title; @docsEditable true */
+  /// @domName HTMLElement.title; @docsEditable true
   String title;
 
-  /** @domName HTMLElement.translate; @docsEditable true */
+  /// @domName HTMLElement.translate; @docsEditable true
   bool translate;
 
-  /** @domName HTMLElement.webkitdropzone; @docsEditable true */
+  /// @domName HTMLElement.webkitdropzone; @docsEditable true
   String webkitdropzone;
 
-  /** @domName HTMLElement.click; @docsEditable true */
+  /// @domName HTMLElement.click; @docsEditable true
   void click();
 
-  /** @domName HTMLElement.insertAdjacentElement; @docsEditable true */
+  /// @domName HTMLElement.insertAdjacentElement; @docsEditable true
   Element insertAdjacentElement(String where, Element element);
 
-  /** @domName HTMLElement.insertAdjacentHTML; @docsEditable true */
+  /// @domName HTMLElement.insertAdjacentHTML; @docsEditable true
   void insertAdjacentHTML(String where, String html);
 
-  /** @domName HTMLElement.insertAdjacentText; @docsEditable true */
+  /// @domName HTMLElement.insertAdjacentText; @docsEditable true
   void insertAdjacentText(String where, String text);
 
   static const int ALLOW_KEYBOARD_INPUT = 1;
@@ -10661,9 +10643,7 @@ class EventSource extends EventTarget {
   factory EventSource(String scriptUrl) => _EventSourceFactoryProvider.createEventSource(scriptUrl);
   EventSource.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   EventSourceEvents get on =>
     new EventSourceEvents(this);
 
@@ -11021,9 +11001,7 @@ class FileReader extends EventTarget {
   factory FileReader() => _FileReaderFactoryProvider.createFileReader();
   FileReader.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FileReaderEvents get on =>
     new FileReaderEvents(this);
 
@@ -11166,9 +11144,7 @@ typedef void FileSystemCallback(DOMFileSystem fileSystem);
 class FileWriter extends EventTarget {
   FileWriter.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FileWriterEvents get on =>
     new FileWriterEvents(this);
 
@@ -11813,9 +11789,7 @@ class FrameElement extends _Element_Merged {
 class FrameSetElement extends _Element_Merged {
   FrameSetElement.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FrameSetElementEvents get on =>
     new FrameSetElementEvents(this);
 
@@ -12458,9 +12432,7 @@ class HttpRequest extends EventTarget {
   factory HttpRequest() => _HttpRequestFactoryProvider.createHttpRequest();
   HttpRequest.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   HttpRequestEvents get on =>
     new HttpRequestEvents(this);
 
@@ -12640,9 +12612,7 @@ class HttpRequestProgressEvent extends ProgressEvent {
 class HttpRequestUpload extends EventTarget {
   HttpRequestUpload.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   HttpRequestUploadEvents get on =>
     new HttpRequestUploadEvents(this);
 
@@ -12778,9 +12748,7 @@ class IDBCursorWithValue extends IDBCursor {
 class IDBDatabase extends EventTarget {
   IDBDatabase.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   IDBDatabaseEvents get on =>
     new IDBDatabaseEvents(this);
 
@@ -13434,9 +13402,7 @@ class IDBObjectStore extends NativeFieldWrapperClass1 {
 class IDBOpenDBRequest extends IDBRequest implements EventTarget {
   IDBOpenDBRequest.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   IDBOpenDBRequestEvents get on =>
     new IDBOpenDBRequestEvents(this);
 
@@ -13460,9 +13426,7 @@ class IDBOpenDBRequestEvents extends IDBRequestEvents {
 class IDBRequest extends EventTarget {
   IDBRequest.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   IDBRequestEvents get on =>
     new IDBRequestEvents(this);
 
@@ -13526,9 +13490,7 @@ class IDBRequestEvents extends Events {
 class IDBTransaction extends EventTarget {
   IDBTransaction.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   IDBTransactionEvents get on =>
     new IDBTransactionEvents(this);
 
@@ -13628,9 +13590,7 @@ class IDBVersionChangeEvent extends Event {
 class IDBVersionChangeRequest extends IDBRequest implements EventTarget {
   IDBVersionChangeRequest.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   IDBVersionChangeRequestEvents get on =>
     new IDBVersionChangeRequestEvents(this);
 
@@ -13978,9 +13938,7 @@ class InputElement extends _Element_Merged {
   }
   InputElement.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   InputElementEvents get on =>
     new InputElementEvents(this);
 
@@ -15403,9 +15361,7 @@ class LocalWindow extends EventTarget implements Window {
 
   LocalWindow.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   LocalWindowEvents get on =>
     new LocalWindowEvents(this);
 
@@ -16175,9 +16131,7 @@ class MediaController extends EventTarget {
 class MediaElement extends _Element_Merged {
   MediaElement.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaElementEvents get on =>
     new MediaElementEvents(this);
 
@@ -16777,9 +16731,7 @@ class MediaStream extends EventTarget {
   factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => _MediaStreamFactoryProvider.createMediaStream(audioTracks, videoTracks);
   MediaStream.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaStreamEvents get on =>
     new MediaStreamEvents(this);
 
@@ -16865,9 +16817,7 @@ class MediaStreamEvent extends Event {
 class MediaStreamTrack extends EventTarget {
   MediaStreamTrack.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaStreamTrackEvents get on =>
     new MediaStreamTrackEvents(this);
 
@@ -16947,9 +16897,7 @@ class MediaStreamTrackEvent extends Event {
 class MediaStreamTrackList extends EventTarget {
   MediaStreamTrackList.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaStreamTrackListEvents get on =>
     new MediaStreamTrackListEvents(this);
 
@@ -17109,9 +17057,7 @@ class MessageEvent extends Event {
 class MessagePort extends EventTarget {
   MessagePort.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MessagePortEvents get on =>
     new MessagePortEvents(this);
 
@@ -18257,9 +18203,7 @@ class Notification extends EventTarget {
   }
   Notification.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   NotificationEvents get on =>
     new NotificationEvents(this);
 
@@ -19167,9 +19111,7 @@ class PeerConnection00 extends EventTarget {
   factory PeerConnection00(String serverConfiguration, IceCallback iceCallback) => _PeerConnection00FactoryProvider.createPeerConnection00(serverConfiguration, iceCallback);
   PeerConnection00.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   PeerConnection00Events get on =>
     new PeerConnection00Events(this);
 
@@ -19701,9 +19643,7 @@ class RGBColor extends NativeFieldWrapperClass1 {
 class RTCDataChannel extends EventTarget {
   RTCDataChannel.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   RTCDataChannelEvents get on =>
     new RTCDataChannelEvents(this);
 
@@ -19880,9 +19820,7 @@ class RTCPeerConnection extends EventTarget {
   }
   RTCPeerConnection.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   RTCPeerConnectionEvents get on =>
     new RTCPeerConnectionEvents(this);
 
@@ -20733,9 +20671,7 @@ class ScriptElement extends _Element_Merged {
 class ScriptProcessorNode extends AudioNode implements EventTarget {
   ScriptProcessorNode.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ScriptProcessorNodeEvents get on =>
     new ScriptProcessorNodeEvents(this);
 
@@ -21094,9 +21030,7 @@ class SharedWorker extends AbstractWorker {
 class SharedWorkerContext extends WorkerContext {
   SharedWorkerContext.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   SharedWorkerContextEvents get on =>
     new SharedWorkerContextEvents(this);
 
@@ -21530,9 +21464,7 @@ class SpeechRecognition extends EventTarget {
   factory SpeechRecognition() => _SpeechRecognitionFactoryProvider.createSpeechRecognition();
   SpeechRecognition.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   SpeechRecognitionEvents get on =>
     new SpeechRecognitionEvents(this);
 
@@ -22810,9 +22742,7 @@ class TextMetrics extends NativeFieldWrapperClass1 {
 class TextTrack extends EventTarget {
   TextTrack.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TextTrackEvents get on =>
     new TextTrackEvents(this);
 
@@ -22884,9 +22814,7 @@ class TextTrackCue extends EventTarget {
   factory TextTrackCue(num startTime, num endTime, String text) => _TextTrackCueFactoryProvider.createTextTrackCue(startTime, endTime, text);
   TextTrackCue.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TextTrackCueEvents get on =>
     new TextTrackCueEvents(this);
 
@@ -23127,9 +23055,7 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
 class TextTrackList extends EventTarget implements List<TextTrack> {
   TextTrackList.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TextTrackListEvents get on =>
     new TextTrackListEvents(this);
 
@@ -26105,9 +26031,7 @@ class WebSocket extends EventTarget {
   factory WebSocket(String url) => _WebSocketFactoryProvider.createWebSocket(url);
   WebSocket.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WebSocketEvents get on =>
     new WebSocketEvents(this);
 
@@ -26250,9 +26174,7 @@ class Worker extends AbstractWorker {
   factory Worker(String scriptUrl) => _WorkerFactoryProvider.createWorker(scriptUrl);
   Worker.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WorkerEvents get on =>
     new WorkerEvents(this);
 
@@ -26282,9 +26204,7 @@ class WorkerEvents extends AbstractWorkerEvents {
 class WorkerContext extends EventTarget {
   WorkerContext.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WorkerContextEvents get on =>
     new WorkerContextEvents(this);
 

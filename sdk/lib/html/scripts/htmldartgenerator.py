@@ -32,26 +32,24 @@ class HtmlDartGenerator(object):
     """ Emits the MDN dartdoc comment for an attribute.
     """
     dom_name = DartDomNameOfAttribute(attribute)
-    self._members_emitter.Emit('\n  /** @domName $DOMINTERFACE.$DOMNAME;'
-                               ' @docsEditable true */',
+    self._members_emitter.Emit('\n  /// @domName $DOMINTERFACE.$DOMNAME;'
+                               ' @docsEditable true',
         DOMINTERFACE=attribute.doc_js_interface_name,
         DOMNAME=dom_name)
 
   def EmitOperationDocumentation(self, operation):
     """ Emits the MDN dartdoc comment for an operation.
     """
-    self._members_emitter.Emit('\n  /** @domName $DOMINTERFACE.$DOMNAME;'
-                               ' @docsEditable true */',
+    self._members_emitter.Emit('\n  /// @domName $DOMINTERFACE.$DOMNAME;'
+                               ' @docsEditable true',
         DOMINTERFACE=operation.overloads[0].doc_js_interface_name,
         DOMNAME=operation.name)
 
   def EmitEventGetter(self, events_class_name):
     self._members_emitter.Emit(
-        '\n  /**'
-        '\n   * @domName EventTarget.addEventListener, '
+        '\n  /// @domName EventTarget.addEventListener, '
         'EventTarget.removeEventListener, EventTarget.dispatchEvent;'
         ' @docsEditable true'
-        '\n   */'
         '\n  $TYPE get on =>\n    new $TYPE(this);\n',
         TYPE=events_class_name)
 

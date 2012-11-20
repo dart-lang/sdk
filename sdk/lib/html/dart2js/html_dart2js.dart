@@ -51,19 +51,17 @@ spawnDomFunction(f) => spawnFunction(f);
 /// @domName AbstractWorker; @docsEditable true
 class AbstractWorker extends EventTarget native "*AbstractWorker" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   AbstractWorkerEvents get on =>
     new AbstractWorkerEvents(this);
 
-  /** @domName AbstractWorker.addEventListener; @docsEditable true */
+  /// @domName AbstractWorker.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName AbstractWorker.dispatchEvent; @docsEditable true */
+  /// @domName AbstractWorker.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName AbstractWorker.removeEventListener; @docsEditable true */
+  /// @domName AbstractWorker.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -80,28 +78,28 @@ class AbstractWorkerEvents extends Events {
 /// @domName AnalyserNode; @docsEditable true
 class AnalyserNode extends AudioNode native "*AnalyserNode" {
 
-  /** @domName AnalyserNode.fftSize; @docsEditable true */
+  /// @domName AnalyserNode.fftSize; @docsEditable true
   int fftSize;
 
-  /** @domName AnalyserNode.frequencyBinCount; @docsEditable true */
+  /// @domName AnalyserNode.frequencyBinCount; @docsEditable true
   final int frequencyBinCount;
 
-  /** @domName AnalyserNode.maxDecibels; @docsEditable true */
+  /// @domName AnalyserNode.maxDecibels; @docsEditable true
   num maxDecibels;
 
-  /** @domName AnalyserNode.minDecibels; @docsEditable true */
+  /// @domName AnalyserNode.minDecibels; @docsEditable true
   num minDecibels;
 
-  /** @domName AnalyserNode.smoothingTimeConstant; @docsEditable true */
+  /// @domName AnalyserNode.smoothingTimeConstant; @docsEditable true
   num smoothingTimeConstant;
 
-  /** @domName AnalyserNode.getByteFrequencyData; @docsEditable true */
+  /// @domName AnalyserNode.getByteFrequencyData; @docsEditable true
   void getByteFrequencyData(Uint8Array array) native;
 
-  /** @domName AnalyserNode.getByteTimeDomainData; @docsEditable true */
+  /// @domName AnalyserNode.getByteTimeDomainData; @docsEditable true
   void getByteTimeDomainData(Uint8Array array) native;
 
-  /** @domName AnalyserNode.getFloatFrequencyData; @docsEditable true */
+  /// @domName AnalyserNode.getFloatFrequencyData; @docsEditable true
   void getFloatFrequencyData(Float32Array array) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -118,67 +116,67 @@ class AnchorElement extends Element implements Element native "*HTMLAnchorElemen
     return e;
   }
 
-  /** @domName HTMLAnchorElement.charset; @docsEditable true */
+  /// @domName HTMLAnchorElement.charset; @docsEditable true
   String charset;
 
-  /** @domName HTMLAnchorElement.coords; @docsEditable true */
+  /// @domName HTMLAnchorElement.coords; @docsEditable true
   String coords;
 
-  /** @domName HTMLAnchorElement.download; @docsEditable true */
+  /// @domName HTMLAnchorElement.download; @docsEditable true
   String download;
 
-  /** @domName HTMLAnchorElement.hash; @docsEditable true */
+  /// @domName HTMLAnchorElement.hash; @docsEditable true
   String hash;
 
-  /** @domName HTMLAnchorElement.host; @docsEditable true */
+  /// @domName HTMLAnchorElement.host; @docsEditable true
   String host;
 
-  /** @domName HTMLAnchorElement.hostname; @docsEditable true */
+  /// @domName HTMLAnchorElement.hostname; @docsEditable true
   String hostname;
 
-  /** @domName HTMLAnchorElement.href; @docsEditable true */
+  /// @domName HTMLAnchorElement.href; @docsEditable true
   String href;
 
-  /** @domName HTMLAnchorElement.hreflang; @docsEditable true */
+  /// @domName HTMLAnchorElement.hreflang; @docsEditable true
   String hreflang;
 
-  /** @domName HTMLAnchorElement.name; @docsEditable true */
+  /// @domName HTMLAnchorElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLAnchorElement.origin; @docsEditable true */
+  /// @domName HTMLAnchorElement.origin; @docsEditable true
   final String origin;
 
-  /** @domName HTMLAnchorElement.pathname; @docsEditable true */
+  /// @domName HTMLAnchorElement.pathname; @docsEditable true
   String pathname;
 
-  /** @domName HTMLAnchorElement.ping; @docsEditable true */
+  /// @domName HTMLAnchorElement.ping; @docsEditable true
   String ping;
 
-  /** @domName HTMLAnchorElement.port; @docsEditable true */
+  /// @domName HTMLAnchorElement.port; @docsEditable true
   String port;
 
-  /** @domName HTMLAnchorElement.protocol; @docsEditable true */
+  /// @domName HTMLAnchorElement.protocol; @docsEditable true
   String protocol;
 
-  /** @domName HTMLAnchorElement.rel; @docsEditable true */
+  /// @domName HTMLAnchorElement.rel; @docsEditable true
   String rel;
 
-  /** @domName HTMLAnchorElement.rev; @docsEditable true */
+  /// @domName HTMLAnchorElement.rev; @docsEditable true
   String rev;
 
-  /** @domName HTMLAnchorElement.search; @docsEditable true */
+  /// @domName HTMLAnchorElement.search; @docsEditable true
   String search;
 
-  /** @domName HTMLAnchorElement.shape; @docsEditable true */
+  /// @domName HTMLAnchorElement.shape; @docsEditable true
   String shape;
 
-  /** @domName HTMLAnchorElement.target; @docsEditable true */
+  /// @domName HTMLAnchorElement.target; @docsEditable true
   String target;
 
-  /** @domName HTMLAnchorElement.type; @docsEditable true */
+  /// @domName HTMLAnchorElement.type; @docsEditable true
   String type;
 
-  /** @domName HTMLAnchorElement.toString; @docsEditable true */
+  /// @domName HTMLAnchorElement.toString; @docsEditable true
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -201,37 +199,37 @@ class Animation native "*WebKitAnimation" {
 
   static const int FILL_NONE = 0;
 
-  /** @domName WebKitAnimation.delay; @docsEditable true */
+  /// @domName WebKitAnimation.delay; @docsEditable true
   final num delay;
 
-  /** @domName WebKitAnimation.direction; @docsEditable true */
+  /// @domName WebKitAnimation.direction; @docsEditable true
   final int direction;
 
-  /** @domName WebKitAnimation.duration; @docsEditable true */
+  /// @domName WebKitAnimation.duration; @docsEditable true
   final num duration;
 
-  /** @domName WebKitAnimation.elapsedTime; @docsEditable true */
+  /// @domName WebKitAnimation.elapsedTime; @docsEditable true
   num elapsedTime;
 
-  /** @domName WebKitAnimation.ended; @docsEditable true */
+  /// @domName WebKitAnimation.ended; @docsEditable true
   final bool ended;
 
-  /** @domName WebKitAnimation.fillMode; @docsEditable true */
+  /// @domName WebKitAnimation.fillMode; @docsEditable true
   final int fillMode;
 
-  /** @domName WebKitAnimation.iterationCount; @docsEditable true */
+  /// @domName WebKitAnimation.iterationCount; @docsEditable true
   final int iterationCount;
 
-  /** @domName WebKitAnimation.name; @docsEditable true */
+  /// @domName WebKitAnimation.name; @docsEditable true
   final String name;
 
-  /** @domName WebKitAnimation.paused; @docsEditable true */
+  /// @domName WebKitAnimation.paused; @docsEditable true
   final bool paused;
 
-  /** @domName WebKitAnimation.pause; @docsEditable true */
+  /// @domName WebKitAnimation.pause; @docsEditable true
   void pause() native;
 
-  /** @domName WebKitAnimation.play; @docsEditable true */
+  /// @domName WebKitAnimation.play; @docsEditable true
   void play() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -242,10 +240,10 @@ class Animation native "*WebKitAnimation" {
 /// @domName WebKitAnimationEvent; @docsEditable true
 class AnimationEvent extends Event native "*WebKitAnimationEvent" {
 
-  /** @domName WebKitAnimationEvent.animationName; @docsEditable true */
+  /// @domName WebKitAnimationEvent.animationName; @docsEditable true
   final String animationName;
 
-  /** @domName WebKitAnimationEvent.elapsedTime; @docsEditable true */
+  /// @domName WebKitAnimationEvent.elapsedTime; @docsEditable true
   final num elapsedTime;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -256,37 +254,37 @@ class AnimationEvent extends Event native "*WebKitAnimationEvent" {
 /// @domName HTMLAppletElement; @docsEditable true
 class AppletElement extends Element implements Element native "*HTMLAppletElement" {
 
-  /** @domName HTMLAppletElement.align; @docsEditable true */
+  /// @domName HTMLAppletElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLAppletElement.alt; @docsEditable true */
+  /// @domName HTMLAppletElement.alt; @docsEditable true
   String alt;
 
-  /** @domName HTMLAppletElement.archive; @docsEditable true */
+  /// @domName HTMLAppletElement.archive; @docsEditable true
   String archive;
 
-  /** @domName HTMLAppletElement.code; @docsEditable true */
+  /// @domName HTMLAppletElement.code; @docsEditable true
   String code;
 
-  /** @domName HTMLAppletElement.codeBase; @docsEditable true */
+  /// @domName HTMLAppletElement.codeBase; @docsEditable true
   String codeBase;
 
-  /** @domName HTMLAppletElement.height; @docsEditable true */
+  /// @domName HTMLAppletElement.height; @docsEditable true
   String height;
 
-  /** @domName HTMLAppletElement.hspace; @docsEditable true */
+  /// @domName HTMLAppletElement.hspace; @docsEditable true
   String hspace;
 
-  /** @domName HTMLAppletElement.name; @docsEditable true */
+  /// @domName HTMLAppletElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLAppletElement.object; @docsEditable true */
+  /// @domName HTMLAppletElement.object; @docsEditable true
   String object;
 
-  /** @domName HTMLAppletElement.vspace; @docsEditable true */
+  /// @domName HTMLAppletElement.vspace; @docsEditable true
   String vspace;
 
-  /** @domName HTMLAppletElement.width; @docsEditable true */
+  /// @domName HTMLAppletElement.width; @docsEditable true
   String width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -299,46 +297,46 @@ class AreaElement extends Element implements Element native "*HTMLAreaElement" {
 
   factory AreaElement() => document.$dom_createElement("area");
 
-  /** @domName HTMLAreaElement.alt; @docsEditable true */
+  /// @domName HTMLAreaElement.alt; @docsEditable true
   String alt;
 
-  /** @domName HTMLAreaElement.coords; @docsEditable true */
+  /// @domName HTMLAreaElement.coords; @docsEditable true
   String coords;
 
-  /** @domName HTMLAreaElement.hash; @docsEditable true */
+  /// @domName HTMLAreaElement.hash; @docsEditable true
   final String hash;
 
-  /** @domName HTMLAreaElement.host; @docsEditable true */
+  /// @domName HTMLAreaElement.host; @docsEditable true
   final String host;
 
-  /** @domName HTMLAreaElement.hostname; @docsEditable true */
+  /// @domName HTMLAreaElement.hostname; @docsEditable true
   final String hostname;
 
-  /** @domName HTMLAreaElement.href; @docsEditable true */
+  /// @domName HTMLAreaElement.href; @docsEditable true
   String href;
 
-  /** @domName HTMLAreaElement.noHref; @docsEditable true */
+  /// @domName HTMLAreaElement.noHref; @docsEditable true
   bool noHref;
 
-  /** @domName HTMLAreaElement.pathname; @docsEditable true */
+  /// @domName HTMLAreaElement.pathname; @docsEditable true
   final String pathname;
 
-  /** @domName HTMLAreaElement.ping; @docsEditable true */
+  /// @domName HTMLAreaElement.ping; @docsEditable true
   String ping;
 
-  /** @domName HTMLAreaElement.port; @docsEditable true */
+  /// @domName HTMLAreaElement.port; @docsEditable true
   final String port;
 
-  /** @domName HTMLAreaElement.protocol; @docsEditable true */
+  /// @domName HTMLAreaElement.protocol; @docsEditable true
   final String protocol;
 
-  /** @domName HTMLAreaElement.search; @docsEditable true */
+  /// @domName HTMLAreaElement.search; @docsEditable true
   final String search;
 
-  /** @domName HTMLAreaElement.shape; @docsEditable true */
+  /// @domName HTMLAreaElement.shape; @docsEditable true
   String shape;
 
-  /** @domName HTMLAreaElement.target; @docsEditable true */
+  /// @domName HTMLAreaElement.target; @docsEditable true
   String target;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -351,10 +349,10 @@ class ArrayBuffer native "*ArrayBuffer" {
 
   factory ArrayBuffer(int length) => _ArrayBufferFactoryProvider.createArrayBuffer(length);
 
-  /** @domName ArrayBuffer.byteLength; @docsEditable true */
+  /// @domName ArrayBuffer.byteLength; @docsEditable true
   final int byteLength;
 
-  /** @domName ArrayBuffer.slice; @docsEditable true */
+  /// @domName ArrayBuffer.slice; @docsEditable true
   ArrayBuffer slice(int begin, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -365,13 +363,13 @@ class ArrayBuffer native "*ArrayBuffer" {
 /// @domName ArrayBufferView; @docsEditable true
 class ArrayBufferView native "*ArrayBufferView" {
 
-  /** @domName ArrayBufferView.buffer; @docsEditable true */
+  /// @domName ArrayBufferView.buffer; @docsEditable true
   final ArrayBuffer buffer;
 
-  /** @domName ArrayBufferView.byteLength; @docsEditable true */
+  /// @domName ArrayBufferView.byteLength; @docsEditable true
   final int byteLength;
 
-  /** @domName ArrayBufferView.byteOffset; @docsEditable true */
+  /// @domName ArrayBufferView.byteOffset; @docsEditable true
   final int byteOffset;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -382,19 +380,19 @@ class ArrayBufferView native "*ArrayBufferView" {
 /// @domName Attr; @docsEditable true
 class Attr extends Node native "*Attr" {
 
-  /** @domName Attr.isId; @docsEditable true */
+  /// @domName Attr.isId; @docsEditable true
   final bool isId;
 
-  /** @domName Attr.name; @docsEditable true */
+  /// @domName Attr.name; @docsEditable true
   final String name;
 
-  /** @domName Attr.ownerElement; @docsEditable true */
+  /// @domName Attr.ownerElement; @docsEditable true
   final Element ownerElement;
 
-  /** @domName Attr.specified; @docsEditable true */
+  /// @domName Attr.specified; @docsEditable true
   final bool specified;
 
-  /** @domName Attr.value; @docsEditable true */
+  /// @domName Attr.value; @docsEditable true
   String value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -405,22 +403,22 @@ class Attr extends Node native "*Attr" {
 /// @domName AudioBuffer; @docsEditable true
 class AudioBuffer native "*AudioBuffer" {
 
-  /** @domName AudioBuffer.duration; @docsEditable true */
+  /// @domName AudioBuffer.duration; @docsEditable true
   final num duration;
 
-  /** @domName AudioBuffer.gain; @docsEditable true */
+  /// @domName AudioBuffer.gain; @docsEditable true
   num gain;
 
-  /** @domName AudioBuffer.length; @docsEditable true */
+  /// @domName AudioBuffer.length; @docsEditable true
   final int length;
 
-  /** @domName AudioBuffer.numberOfChannels; @docsEditable true */
+  /// @domName AudioBuffer.numberOfChannels; @docsEditable true
   final int numberOfChannels;
 
-  /** @domName AudioBuffer.sampleRate; @docsEditable true */
+  /// @domName AudioBuffer.sampleRate; @docsEditable true
   final num sampleRate;
 
-  /** @domName AudioBuffer.getChannelData; @docsEditable true */
+  /// @domName AudioBuffer.getChannelData; @docsEditable true
   Float32Array getChannelData(int channelIndex) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -476,25 +474,25 @@ class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNo
 
   static const int UNSCHEDULED_STATE = 0;
 
-  /** @domName AudioBufferSourceNode.buffer; @docsEditable true */
+  /// @domName AudioBufferSourceNode.buffer; @docsEditable true
   AudioBuffer buffer;
 
-  /** @domName AudioBufferSourceNode.gain; @docsEditable true */
+  /// @domName AudioBufferSourceNode.gain; @docsEditable true
   final AudioGain gain;
 
-  /** @domName AudioBufferSourceNode.loop; @docsEditable true */
+  /// @domName AudioBufferSourceNode.loop; @docsEditable true
   bool loop;
 
-  /** @domName AudioBufferSourceNode.loopEnd; @docsEditable true */
+  /// @domName AudioBufferSourceNode.loopEnd; @docsEditable true
   num loopEnd;
 
-  /** @domName AudioBufferSourceNode.loopStart; @docsEditable true */
+  /// @domName AudioBufferSourceNode.loopStart; @docsEditable true
   num loopStart;
 
-  /** @domName AudioBufferSourceNode.playbackRate; @docsEditable true */
+  /// @domName AudioBufferSourceNode.playbackRate; @docsEditable true
   final AudioParam playbackRate;
 
-  /** @domName AudioBufferSourceNode.playbackState; @docsEditable true */
+  /// @domName AudioBufferSourceNode.playbackState; @docsEditable true
   final int playbackState;
 
 }
@@ -506,76 +504,74 @@ class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNo
 class AudioContext extends EventTarget native "*AudioContext" {
   factory AudioContext() => _AudioContextFactoryProvider.createAudioContext();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   AudioContextEvents get on =>
     new AudioContextEvents(this);
 
-  /** @domName AudioContext.activeSourceCount; @docsEditable true */
+  /// @domName AudioContext.activeSourceCount; @docsEditable true
   final int activeSourceCount;
 
-  /** @domName AudioContext.currentTime; @docsEditable true */
+  /// @domName AudioContext.currentTime; @docsEditable true
   final num currentTime;
 
-  /** @domName AudioContext.destination; @docsEditable true */
+  /// @domName AudioContext.destination; @docsEditable true
   final AudioDestinationNode destination;
 
-  /** @domName AudioContext.listener; @docsEditable true */
+  /// @domName AudioContext.listener; @docsEditable true
   final AudioListener listener;
 
-  /** @domName AudioContext.sampleRate; @docsEditable true */
+  /// @domName AudioContext.sampleRate; @docsEditable true
   final num sampleRate;
 
-  /** @domName AudioContext.createAnalyser; @docsEditable true */
+  /// @domName AudioContext.createAnalyser; @docsEditable true
   AnalyserNode createAnalyser() native;
 
-  /** @domName AudioContext.createBiquadFilter; @docsEditable true */
+  /// @domName AudioContext.createBiquadFilter; @docsEditable true
   BiquadFilterNode createBiquadFilter() native;
 
-  /** @domName AudioContext.createBuffer; @docsEditable true */
+  /// @domName AudioContext.createBuffer; @docsEditable true
   AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [num sampleRate]) native;
 
-  /** @domName AudioContext.createBufferSource; @docsEditable true */
+  /// @domName AudioContext.createBufferSource; @docsEditable true
   AudioBufferSourceNode createBufferSource() native;
 
-  /** @domName AudioContext.createChannelMerger; @docsEditable true */
+  /// @domName AudioContext.createChannelMerger; @docsEditable true
   ChannelMergerNode createChannelMerger([int numberOfInputs]) native;
 
-  /** @domName AudioContext.createChannelSplitter; @docsEditable true */
+  /// @domName AudioContext.createChannelSplitter; @docsEditable true
   ChannelSplitterNode createChannelSplitter([int numberOfOutputs]) native;
 
-  /** @domName AudioContext.createConvolver; @docsEditable true */
+  /// @domName AudioContext.createConvolver; @docsEditable true
   ConvolverNode createConvolver() native;
 
-  /** @domName AudioContext.createDelay; @docsEditable true */
+  /// @domName AudioContext.createDelay; @docsEditable true
   DelayNode createDelay([num maxDelayTime]) native;
 
-  /** @domName AudioContext.createDynamicsCompressor; @docsEditable true */
+  /// @domName AudioContext.createDynamicsCompressor; @docsEditable true
   DynamicsCompressorNode createDynamicsCompressor() native;
 
-  /** @domName AudioContext.createMediaElementSource; @docsEditable true */
+  /// @domName AudioContext.createMediaElementSource; @docsEditable true
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement) native;
 
-  /** @domName AudioContext.createMediaStreamSource; @docsEditable true */
+  /// @domName AudioContext.createMediaStreamSource; @docsEditable true
   MediaStreamAudioSourceNode createMediaStreamSource(MediaStream mediaStream) native;
 
-  /** @domName AudioContext.createOscillator; @docsEditable true */
+  /// @domName AudioContext.createOscillator; @docsEditable true
   OscillatorNode createOscillator() native;
 
-  /** @domName AudioContext.createPanner; @docsEditable true */
+  /// @domName AudioContext.createPanner; @docsEditable true
   PannerNode createPanner() native;
 
-  /** @domName AudioContext.createWaveShaper; @docsEditable true */
+  /// @domName AudioContext.createWaveShaper; @docsEditable true
   WaveShaperNode createWaveShaper() native;
 
-  /** @domName AudioContext.createWaveTable; @docsEditable true */
+  /// @domName AudioContext.createWaveTable; @docsEditable true
   WaveTable createWaveTable(Float32Array real, Float32Array imag) native;
 
-  /** @domName AudioContext.decodeAudioData; @docsEditable true */
+  /// @domName AudioContext.decodeAudioData; @docsEditable true
   void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native;
 
-  /** @domName AudioContext.startRendering; @docsEditable true */
+  /// @domName AudioContext.startRendering; @docsEditable true
   void startRendering() native;
 
   GainNode createGain() {
@@ -616,7 +612,7 @@ class AudioContextEvents extends Events {
 /// @domName AudioDestinationNode; @docsEditable true
 class AudioDestinationNode extends AudioNode native "*AudioDestinationNode" {
 
-  /** @domName AudioDestinationNode.numberOfChannels; @docsEditable true */
+  /// @domName AudioDestinationNode.numberOfChannels; @docsEditable true
   final int numberOfChannels;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -650,19 +646,19 @@ class AudioGain extends AudioParam native "*AudioGain" {
 /// @domName AudioListener; @docsEditable true
 class AudioListener native "*AudioListener" {
 
-  /** @domName AudioListener.dopplerFactor; @docsEditable true */
+  /// @domName AudioListener.dopplerFactor; @docsEditable true
   num dopplerFactor;
 
-  /** @domName AudioListener.speedOfSound; @docsEditable true */
+  /// @domName AudioListener.speedOfSound; @docsEditable true
   num speedOfSound;
 
-  /** @domName AudioListener.setOrientation; @docsEditable true */
+  /// @domName AudioListener.setOrientation; @docsEditable true
   void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp) native;
 
-  /** @domName AudioListener.setPosition; @docsEditable true */
+  /// @domName AudioListener.setPosition; @docsEditable true
   void setPosition(num x, num y, num z) native;
 
-  /** @domName AudioListener.setVelocity; @docsEditable true */
+  /// @domName AudioListener.setVelocity; @docsEditable true
   void setVelocity(num x, num y, num z) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -673,19 +669,19 @@ class AudioListener native "*AudioListener" {
 /// @domName AudioNode; @docsEditable true
 class AudioNode native "*AudioNode" {
 
-  /** @domName AudioNode.context; @docsEditable true */
+  /// @domName AudioNode.context; @docsEditable true
   final AudioContext context;
 
-  /** @domName AudioNode.numberOfInputs; @docsEditable true */
+  /// @domName AudioNode.numberOfInputs; @docsEditable true
   final int numberOfInputs;
 
-  /** @domName AudioNode.numberOfOutputs; @docsEditable true */
+  /// @domName AudioNode.numberOfOutputs; @docsEditable true
   final int numberOfOutputs;
 
-  /** @domName AudioNode.connect; @docsEditable true */
+  /// @domName AudioNode.connect; @docsEditable true
   void connect(destination, int output, [int input]) native;
 
-  /** @domName AudioNode.disconnect; @docsEditable true */
+  /// @domName AudioNode.disconnect; @docsEditable true
   void disconnect(int output) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -696,40 +692,40 @@ class AudioNode native "*AudioNode" {
 /// @domName AudioParam; @docsEditable true
 class AudioParam native "*AudioParam" {
 
-  /** @domName AudioParam.defaultValue; @docsEditable true */
+  /// @domName AudioParam.defaultValue; @docsEditable true
   final num defaultValue;
 
-  /** @domName AudioParam.maxValue; @docsEditable true */
+  /// @domName AudioParam.maxValue; @docsEditable true
   final num maxValue;
 
-  /** @domName AudioParam.minValue; @docsEditable true */
+  /// @domName AudioParam.minValue; @docsEditable true
   final num minValue;
 
-  /** @domName AudioParam.name; @docsEditable true */
+  /// @domName AudioParam.name; @docsEditable true
   final String name;
 
-  /** @domName AudioParam.units; @docsEditable true */
+  /// @domName AudioParam.units; @docsEditable true
   final int units;
 
-  /** @domName AudioParam.value; @docsEditable true */
+  /// @domName AudioParam.value; @docsEditable true
   num value;
 
-  /** @domName AudioParam.cancelScheduledValues; @docsEditable true */
+  /// @domName AudioParam.cancelScheduledValues; @docsEditable true
   void cancelScheduledValues(num startTime) native;
 
-  /** @domName AudioParam.exponentialRampToValueAtTime; @docsEditable true */
+  /// @domName AudioParam.exponentialRampToValueAtTime; @docsEditable true
   void exponentialRampToValueAtTime(num value, num time) native;
 
-  /** @domName AudioParam.linearRampToValueAtTime; @docsEditable true */
+  /// @domName AudioParam.linearRampToValueAtTime; @docsEditable true
   void linearRampToValueAtTime(num value, num time) native;
 
-  /** @domName AudioParam.setTargetAtTime; @docsEditable true */
+  /// @domName AudioParam.setTargetAtTime; @docsEditable true
   void setTargetAtTime(num target, num time, num timeConstant) native;
 
-  /** @domName AudioParam.setValueAtTime; @docsEditable true */
+  /// @domName AudioParam.setValueAtTime; @docsEditable true
   void setValueAtTime(num value, num time) native;
 
-  /** @domName AudioParam.setValueCurveAtTime; @docsEditable true */
+  /// @domName AudioParam.setValueCurveAtTime; @docsEditable true
   void setValueCurveAtTime(Float32Array values, num time, num duration) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -740,10 +736,10 @@ class AudioParam native "*AudioParam" {
 /// @domName AudioProcessingEvent; @docsEditable true
 class AudioProcessingEvent extends Event native "*AudioProcessingEvent" {
 
-  /** @domName AudioProcessingEvent.inputBuffer; @docsEditable true */
+  /// @domName AudioProcessingEvent.inputBuffer; @docsEditable true
   final AudioBuffer inputBuffer;
 
-  /** @domName AudioProcessingEvent.outputBuffer; @docsEditable true */
+  /// @domName AudioProcessingEvent.outputBuffer; @docsEditable true
   final AudioBuffer outputBuffer;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -764,7 +760,7 @@ class BRElement extends Element implements Element native "*HTMLBRElement" {
 
   factory BRElement() => document.$dom_createElement("br");
 
-  /** @domName HTMLBRElement.clear; @docsEditable true */
+  /// @domName HTMLBRElement.clear; @docsEditable true
   String clear;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -775,7 +771,7 @@ class BRElement extends Element implements Element native "*HTMLBRElement" {
 /// @domName BarInfo; @docsEditable true
 class BarInfo native "*BarInfo" {
 
-  /** @domName BarInfo.visible; @docsEditable true */
+  /// @domName BarInfo.visible; @docsEditable true
   final bool visible;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -788,10 +784,10 @@ class BaseElement extends Element implements Element native "*HTMLBaseElement" {
 
   factory BaseElement() => document.$dom_createElement("base");
 
-  /** @domName HTMLBaseElement.href; @docsEditable true */
+  /// @domName HTMLBaseElement.href; @docsEditable true
   String href;
 
-  /** @domName HTMLBaseElement.target; @docsEditable true */
+  /// @domName HTMLBaseElement.target; @docsEditable true
   String target;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -802,13 +798,13 @@ class BaseElement extends Element implements Element native "*HTMLBaseElement" {
 /// @domName HTMLBaseFontElement; @docsEditable true
 class BaseFontElement extends Element implements Element native "*HTMLBaseFontElement" {
 
-  /** @domName HTMLBaseFontElement.color; @docsEditable true */
+  /// @domName HTMLBaseFontElement.color; @docsEditable true
   String color;
 
-  /** @domName HTMLBaseFontElement.face; @docsEditable true */
+  /// @domName HTMLBaseFontElement.face; @docsEditable true
   String face;
 
-  /** @domName HTMLBaseFontElement.size; @docsEditable true */
+  /// @domName HTMLBaseFontElement.size; @docsEditable true
   int size;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -819,31 +815,29 @@ class BaseFontElement extends Element implements Element native "*HTMLBaseFontEl
 /// @domName BatteryManager; @docsEditable true
 class BatteryManager extends EventTarget native "*BatteryManager" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   BatteryManagerEvents get on =>
     new BatteryManagerEvents(this);
 
-  /** @domName BatteryManager.charging; @docsEditable true */
+  /// @domName BatteryManager.charging; @docsEditable true
   final bool charging;
 
-  /** @domName BatteryManager.chargingTime; @docsEditable true */
+  /// @domName BatteryManager.chargingTime; @docsEditable true
   final num chargingTime;
 
-  /** @domName BatteryManager.dischargingTime; @docsEditable true */
+  /// @domName BatteryManager.dischargingTime; @docsEditable true
   final num dischargingTime;
 
-  /** @domName BatteryManager.level; @docsEditable true */
+  /// @domName BatteryManager.level; @docsEditable true
   final num level;
 
-  /** @domName BatteryManager.addEventListener; @docsEditable true */
+  /// @domName BatteryManager.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName BatteryManager.dispatchEvent; @docsEditable true */
+  /// @domName BatteryManager.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
-  /** @domName BatteryManager.removeEventListener; @docsEditable true */
+  /// @domName BatteryManager.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -866,7 +860,7 @@ class BatteryManagerEvents extends Events {
 /// @domName BeforeLoadEvent; @docsEditable true
 class BeforeLoadEvent extends Event native "*BeforeLoadEvent" {
 
-  /** @domName BeforeLoadEvent.url; @docsEditable true */
+  /// @domName BeforeLoadEvent.url; @docsEditable true
   final String url;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -893,19 +887,19 @@ class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
 
   static const int PEAKING = 5;
 
-  /** @domName BiquadFilterNode.Q; @docsEditable true */
+  /// @domName BiquadFilterNode.Q; @docsEditable true
   final AudioParam Q;
 
-  /** @domName BiquadFilterNode.frequency; @docsEditable true */
+  /// @domName BiquadFilterNode.frequency; @docsEditable true
   final AudioParam frequency;
 
-  /** @domName BiquadFilterNode.gain; @docsEditable true */
+  /// @domName BiquadFilterNode.gain; @docsEditable true
   final AudioParam gain;
 
-  /** @domName BiquadFilterNode.type; @docsEditable true */
+  /// @domName BiquadFilterNode.type; @docsEditable true
   int type;
 
-  /** @domName BiquadFilterNode.getFrequencyResponse; @docsEditable true */
+  /// @domName BiquadFilterNode.getFrequencyResponse; @docsEditable true
   void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -926,13 +920,13 @@ class Blob native "*Blob" {
     return _BlobFactoryProvider.createBlob(blobParts, type, endings);
   }
 
-  /** @domName Blob.size; @docsEditable true */
+  /// @domName Blob.size; @docsEditable true
   final int size;
 
-  /** @domName Blob.type; @docsEditable true */
+  /// @domName Blob.type; @docsEditable true
   final String type;
 
-  /** @domName Blob.slice; @docsEditable true */
+  /// @domName Blob.slice; @docsEditable true
   Blob slice([int start, int end, String contentType]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -945,25 +939,23 @@ class BodyElement extends Element implements Element native "*HTMLBodyElement" {
 
   factory BodyElement() => document.$dom_createElement("body");
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   BodyElementEvents get on =>
     new BodyElementEvents(this);
 
-  /** @domName HTMLBodyElement.aLink; @docsEditable true */
+  /// @domName HTMLBodyElement.aLink; @docsEditable true
   String aLink;
 
-  /** @domName HTMLBodyElement.background; @docsEditable true */
+  /// @domName HTMLBodyElement.background; @docsEditable true
   String background;
 
-  /** @domName HTMLBodyElement.bgColor; @docsEditable true */
+  /// @domName HTMLBodyElement.bgColor; @docsEditable true
   String bgColor;
 
-  /** @domName HTMLBodyElement.link; @docsEditable true */
+  /// @domName HTMLBodyElement.link; @docsEditable true
   String link;
 
-  /** @domName HTMLBodyElement.vLink; @docsEditable true */
+  /// @domName HTMLBodyElement.vLink; @docsEditable true
   String vLink;
 }
 
@@ -1006,56 +998,56 @@ class ButtonElement extends Element implements Element native "*HTMLButtonElemen
 
   factory ButtonElement() => document.$dom_createElement("button");
 
-  /** @domName HTMLButtonElement.autofocus; @docsEditable true */
+  /// @domName HTMLButtonElement.autofocus; @docsEditable true
   bool autofocus;
 
-  /** @domName HTMLButtonElement.disabled; @docsEditable true */
+  /// @domName HTMLButtonElement.disabled; @docsEditable true
   bool disabled;
 
-  /** @domName HTMLButtonElement.form; @docsEditable true */
+  /// @domName HTMLButtonElement.form; @docsEditable true
   final FormElement form;
 
-  /** @domName HTMLButtonElement.formAction; @docsEditable true */
+  /// @domName HTMLButtonElement.formAction; @docsEditable true
   String formAction;
 
-  /** @domName HTMLButtonElement.formEnctype; @docsEditable true */
+  /// @domName HTMLButtonElement.formEnctype; @docsEditable true
   String formEnctype;
 
-  /** @domName HTMLButtonElement.formMethod; @docsEditable true */
+  /// @domName HTMLButtonElement.formMethod; @docsEditable true
   String formMethod;
 
-  /** @domName HTMLButtonElement.formNoValidate; @docsEditable true */
+  /// @domName HTMLButtonElement.formNoValidate; @docsEditable true
   bool formNoValidate;
 
-  /** @domName HTMLButtonElement.formTarget; @docsEditable true */
+  /// @domName HTMLButtonElement.formTarget; @docsEditable true
   String formTarget;
 
-  /** @domName HTMLButtonElement.labels; @docsEditable true */
+  /// @domName HTMLButtonElement.labels; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> labels;
 
-  /** @domName HTMLButtonElement.name; @docsEditable true */
+  /// @domName HTMLButtonElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLButtonElement.type; @docsEditable true */
+  /// @domName HTMLButtonElement.type; @docsEditable true
   String type;
 
-  /** @domName HTMLButtonElement.validationMessage; @docsEditable true */
+  /// @domName HTMLButtonElement.validationMessage; @docsEditable true
   final String validationMessage;
 
-  /** @domName HTMLButtonElement.validity; @docsEditable true */
+  /// @domName HTMLButtonElement.validity; @docsEditable true
   final ValidityState validity;
 
-  /** @domName HTMLButtonElement.value; @docsEditable true */
+  /// @domName HTMLButtonElement.value; @docsEditable true
   String value;
 
-  /** @domName HTMLButtonElement.willValidate; @docsEditable true */
+  /// @domName HTMLButtonElement.willValidate; @docsEditable true
   final bool willValidate;
 
-  /** @domName HTMLButtonElement.checkValidity; @docsEditable true */
+  /// @domName HTMLButtonElement.checkValidity; @docsEditable true
   bool checkValidity() native;
 
-  /** @domName HTMLButtonElement.setCustomValidity; @docsEditable true */
+  /// @domName HTMLButtonElement.setCustomValidity; @docsEditable true
   void setCustomValidity(String error) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1074,7 +1066,7 @@ class CDATASection extends Text native "*CDATASection" {
 /// @domName CSSCharsetRule; @docsEditable true
 class CSSCharsetRule extends CSSRule native "*CSSCharsetRule" {
 
-  /** @domName CSSCharsetRule.encoding; @docsEditable true */
+  /// @domName CSSCharsetRule.encoding; @docsEditable true
   String encoding;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1085,7 +1077,7 @@ class CSSCharsetRule extends CSSRule native "*CSSCharsetRule" {
 /// @domName CSSFontFaceRule; @docsEditable true
 class CSSFontFaceRule extends CSSRule native "*CSSFontFaceRule" {
 
-  /** @domName CSSFontFaceRule.style; @docsEditable true */
+  /// @domName CSSFontFaceRule.style; @docsEditable true
   final CSSStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1096,13 +1088,13 @@ class CSSFontFaceRule extends CSSRule native "*CSSFontFaceRule" {
 /// @domName CSSImportRule; @docsEditable true
 class CSSImportRule extends CSSRule native "*CSSImportRule" {
 
-  /** @domName CSSImportRule.href; @docsEditable true */
+  /// @domName CSSImportRule.href; @docsEditable true
   final String href;
 
-  /** @domName CSSImportRule.media; @docsEditable true */
+  /// @domName CSSImportRule.media; @docsEditable true
   final MediaList media;
 
-  /** @domName CSSImportRule.styleSheet; @docsEditable true */
+  /// @domName CSSImportRule.styleSheet; @docsEditable true
   final CSSStyleSheet styleSheet;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1113,10 +1105,10 @@ class CSSImportRule extends CSSRule native "*CSSImportRule" {
 /// @domName WebKitCSSKeyframeRule; @docsEditable true
 class CSSKeyframeRule extends CSSRule native "*WebKitCSSKeyframeRule" {
 
-  /** @domName WebKitCSSKeyframeRule.keyText; @docsEditable true */
+  /// @domName WebKitCSSKeyframeRule.keyText; @docsEditable true
   String keyText;
 
-  /** @domName WebKitCSSKeyframeRule.style; @docsEditable true */
+  /// @domName WebKitCSSKeyframeRule.style; @docsEditable true
   final CSSStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1127,20 +1119,20 @@ class CSSKeyframeRule extends CSSRule native "*WebKitCSSKeyframeRule" {
 /// @domName WebKitCSSKeyframesRule; @docsEditable true
 class CSSKeyframesRule extends CSSRule native "*WebKitCSSKeyframesRule" {
 
-  /** @domName WebKitCSSKeyframesRule.cssRules; @docsEditable true */
+  /// @domName WebKitCSSKeyframesRule.cssRules; @docsEditable true
   @Returns('_CSSRuleList') @Creates('_CSSRuleList')
   final List<CSSRule> cssRules;
 
-  /** @domName WebKitCSSKeyframesRule.name; @docsEditable true */
+  /// @domName WebKitCSSKeyframesRule.name; @docsEditable true
   String name;
 
-  /** @domName WebKitCSSKeyframesRule.deleteRule; @docsEditable true */
+  /// @domName WebKitCSSKeyframesRule.deleteRule; @docsEditable true
   void deleteRule(String key) native;
 
-  /** @domName WebKitCSSKeyframesRule.findRule; @docsEditable true */
+  /// @domName WebKitCSSKeyframesRule.findRule; @docsEditable true
   CSSKeyframeRule findRule(String key) native;
 
-  /** @domName WebKitCSSKeyframesRule.insertRule; @docsEditable true */
+  /// @domName WebKitCSSKeyframesRule.insertRule; @docsEditable true
   void insertRule(String rule) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1158,100 +1150,100 @@ class CSSMatrix native "*WebKitCSSMatrix" {
     return _CSSMatrixFactoryProvider.createCSSMatrix(cssValue);
   }
 
-  /** @domName WebKitCSSMatrix.a; @docsEditable true */
+  /// @domName WebKitCSSMatrix.a; @docsEditable true
   num a;
 
-  /** @domName WebKitCSSMatrix.b; @docsEditable true */
+  /// @domName WebKitCSSMatrix.b; @docsEditable true
   num b;
 
-  /** @domName WebKitCSSMatrix.c; @docsEditable true */
+  /// @domName WebKitCSSMatrix.c; @docsEditable true
   num c;
 
-  /** @domName WebKitCSSMatrix.d; @docsEditable true */
+  /// @domName WebKitCSSMatrix.d; @docsEditable true
   num d;
 
-  /** @domName WebKitCSSMatrix.e; @docsEditable true */
+  /// @domName WebKitCSSMatrix.e; @docsEditable true
   num e;
 
-  /** @domName WebKitCSSMatrix.f; @docsEditable true */
+  /// @domName WebKitCSSMatrix.f; @docsEditable true
   num f;
 
-  /** @domName WebKitCSSMatrix.m11; @docsEditable true */
+  /// @domName WebKitCSSMatrix.m11; @docsEditable true
   num m11;
 
-  /** @domName WebKitCSSMatrix.m12; @docsEditable true */
+  /// @domName WebKitCSSMatrix.m12; @docsEditable true
   num m12;
 
-  /** @domName WebKitCSSMatrix.m13; @docsEditable true */
+  /// @domName WebKitCSSMatrix.m13; @docsEditable true
   num m13;
 
-  /** @domName WebKitCSSMatrix.m14; @docsEditable true */
+  /// @domName WebKitCSSMatrix.m14; @docsEditable true
   num m14;
 
-  /** @domName WebKitCSSMatrix.m21; @docsEditable true */
+  /// @domName WebKitCSSMatrix.m21; @docsEditable true
   num m21;
 
-  /** @domName WebKitCSSMatrix.m22; @docsEditable true */
+  /// @domName WebKitCSSMatrix.m22; @docsEditable true
   num m22;
 
-  /** @domName WebKitCSSMatrix.m23; @docsEditable true */
+  /// @domName WebKitCSSMatrix.m23; @docsEditable true
   num m23;
 
-  /** @domName WebKitCSSMatrix.m24; @docsEditable true */
+  /// @domName WebKitCSSMatrix.m24; @docsEditable true
   num m24;
 
-  /** @domName WebKitCSSMatrix.m31; @docsEditable true */
+  /// @domName WebKitCSSMatrix.m31; @docsEditable true
   num m31;
 
-  /** @domName WebKitCSSMatrix.m32; @docsEditable true */
+  /// @domName WebKitCSSMatrix.m32; @docsEditable true
   num m32;
 
-  /** @domName WebKitCSSMatrix.m33; @docsEditable true */
+  /// @domName WebKitCSSMatrix.m33; @docsEditable true
   num m33;
 
-  /** @domName WebKitCSSMatrix.m34; @docsEditable true */
+  /// @domName WebKitCSSMatrix.m34; @docsEditable true
   num m34;
 
-  /** @domName WebKitCSSMatrix.m41; @docsEditable true */
+  /// @domName WebKitCSSMatrix.m41; @docsEditable true
   num m41;
 
-  /** @domName WebKitCSSMatrix.m42; @docsEditable true */
+  /// @domName WebKitCSSMatrix.m42; @docsEditable true
   num m42;
 
-  /** @domName WebKitCSSMatrix.m43; @docsEditable true */
+  /// @domName WebKitCSSMatrix.m43; @docsEditable true
   num m43;
 
-  /** @domName WebKitCSSMatrix.m44; @docsEditable true */
+  /// @domName WebKitCSSMatrix.m44; @docsEditable true
   num m44;
 
-  /** @domName WebKitCSSMatrix.inverse; @docsEditable true */
+  /// @domName WebKitCSSMatrix.inverse; @docsEditable true
   CSSMatrix inverse() native;
 
-  /** @domName WebKitCSSMatrix.multiply; @docsEditable true */
+  /// @domName WebKitCSSMatrix.multiply; @docsEditable true
   CSSMatrix multiply(CSSMatrix secondMatrix) native;
 
-  /** @domName WebKitCSSMatrix.rotate; @docsEditable true */
+  /// @domName WebKitCSSMatrix.rotate; @docsEditable true
   CSSMatrix rotate(num rotX, num rotY, num rotZ) native;
 
-  /** @domName WebKitCSSMatrix.rotateAxisAngle; @docsEditable true */
+  /// @domName WebKitCSSMatrix.rotateAxisAngle; @docsEditable true
   CSSMatrix rotateAxisAngle(num x, num y, num z, num angle) native;
 
-  /** @domName WebKitCSSMatrix.scale; @docsEditable true */
+  /// @domName WebKitCSSMatrix.scale; @docsEditable true
   CSSMatrix scale(num scaleX, num scaleY, num scaleZ) native;
 
-  /** @domName WebKitCSSMatrix.setMatrixValue; @docsEditable true */
+  /// @domName WebKitCSSMatrix.setMatrixValue; @docsEditable true
   void setMatrixValue(String string) native;
 
-  /** @domName WebKitCSSMatrix.skewX; @docsEditable true */
+  /// @domName WebKitCSSMatrix.skewX; @docsEditable true
   CSSMatrix skewX(num angle) native;
 
-  /** @domName WebKitCSSMatrix.skewY; @docsEditable true */
+  /// @domName WebKitCSSMatrix.skewY; @docsEditable true
   CSSMatrix skewY(num angle) native;
 
-  /** @domName WebKitCSSMatrix.toString; @docsEditable true */
+  /// @domName WebKitCSSMatrix.toString; @docsEditable true
   String toString() native;
 
-  /** @domName WebKitCSSMatrix.translate; @docsEditable true */
+  /// @domName WebKitCSSMatrix.translate; @docsEditable true
   CSSMatrix translate(num x, num y, num z) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1262,17 +1254,17 @@ class CSSMatrix native "*WebKitCSSMatrix" {
 /// @domName CSSMediaRule; @docsEditable true
 class CSSMediaRule extends CSSRule native "*CSSMediaRule" {
 
-  /** @domName CSSMediaRule.cssRules; @docsEditable true */
+  /// @domName CSSMediaRule.cssRules; @docsEditable true
   @Returns('_CSSRuleList') @Creates('_CSSRuleList')
   final List<CSSRule> cssRules;
 
-  /** @domName CSSMediaRule.media; @docsEditable true */
+  /// @domName CSSMediaRule.media; @docsEditable true
   final MediaList media;
 
-  /** @domName CSSMediaRule.deleteRule; @docsEditable true */
+  /// @domName CSSMediaRule.deleteRule; @docsEditable true
   void deleteRule(int index) native;
 
-  /** @domName CSSMediaRule.insertRule; @docsEditable true */
+  /// @domName CSSMediaRule.insertRule; @docsEditable true
   int insertRule(String rule, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1283,10 +1275,10 @@ class CSSMediaRule extends CSSRule native "*CSSMediaRule" {
 /// @domName CSSPageRule; @docsEditable true
 class CSSPageRule extends CSSRule native "*CSSPageRule" {
 
-  /** @domName CSSPageRule.selectorText; @docsEditable true */
+  /// @domName CSSPageRule.selectorText; @docsEditable true
   String selectorText;
 
-  /** @domName CSSPageRule.style; @docsEditable true */
+  /// @domName CSSPageRule.style; @docsEditable true
   final CSSStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1355,28 +1347,28 @@ class CSSPrimitiveValue extends CSSValue native "*CSSPrimitiveValue" {
 
   static const int CSS_VW = 26;
 
-  /** @domName CSSPrimitiveValue.primitiveType; @docsEditable true */
+  /// @domName CSSPrimitiveValue.primitiveType; @docsEditable true
   final int primitiveType;
 
-  /** @domName CSSPrimitiveValue.getCounterValue; @docsEditable true */
+  /// @domName CSSPrimitiveValue.getCounterValue; @docsEditable true
   Counter getCounterValue() native;
 
-  /** @domName CSSPrimitiveValue.getFloatValue; @docsEditable true */
+  /// @domName CSSPrimitiveValue.getFloatValue; @docsEditable true
   num getFloatValue(int unitType) native;
 
-  /** @domName CSSPrimitiveValue.getRGBColorValue; @docsEditable true */
+  /// @domName CSSPrimitiveValue.getRGBColorValue; @docsEditable true
   RGBColor getRGBColorValue() native;
 
-  /** @domName CSSPrimitiveValue.getRectValue; @docsEditable true */
+  /// @domName CSSPrimitiveValue.getRectValue; @docsEditable true
   Rect getRectValue() native;
 
-  /** @domName CSSPrimitiveValue.getStringValue; @docsEditable true */
+  /// @domName CSSPrimitiveValue.getStringValue; @docsEditable true
   String getStringValue() native;
 
-  /** @domName CSSPrimitiveValue.setFloatValue; @docsEditable true */
+  /// @domName CSSPrimitiveValue.setFloatValue; @docsEditable true
   void setFloatValue(int unitType, num floatValue) native;
 
-  /** @domName CSSPrimitiveValue.setStringValue; @docsEditable true */
+  /// @domName CSSPrimitiveValue.setStringValue; @docsEditable true
   void setStringValue(int stringType, String stringValue) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1405,16 +1397,16 @@ class CSSRule native "*CSSRule" {
 
   static const int WEBKIT_KEYFRAME_RULE = 8;
 
-  /** @domName CSSRule.cssText; @docsEditable true */
+  /// @domName CSSRule.cssText; @docsEditable true
   String cssText;
 
-  /** @domName CSSRule.parentRule; @docsEditable true */
+  /// @domName CSSRule.parentRule; @docsEditable true
   final CSSRule parentRule;
 
-  /** @domName CSSRule.parentStyleSheet; @docsEditable true */
+  /// @domName CSSRule.parentStyleSheet; @docsEditable true
   final CSSStyleSheet parentStyleSheet;
 
-  /** @domName CSSRule.type; @docsEditable true */
+  /// @domName CSSRule.type; @docsEditable true
   final int type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1445,34 +1437,34 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
       _CSSStyleDeclarationFactoryProvider.createCSSStyleDeclaration_css(css);
 
 
-  /** @domName CSSStyleDeclaration.cssText; @docsEditable true */
+  /// @domName CSSStyleDeclaration.cssText; @docsEditable true
   String cssText;
 
-  /** @domName CSSStyleDeclaration.length; @docsEditable true */
+  /// @domName CSSStyleDeclaration.length; @docsEditable true
   final int length;
 
-  /** @domName CSSStyleDeclaration.parentRule; @docsEditable true */
+  /// @domName CSSStyleDeclaration.parentRule; @docsEditable true
   final CSSRule parentRule;
 
-  /** @domName CSSStyleDeclaration.getPropertyCSSValue; @docsEditable true */
+  /// @domName CSSStyleDeclaration.getPropertyCSSValue; @docsEditable true
   CSSValue getPropertyCSSValue(String propertyName) native;
 
-  /** @domName CSSStyleDeclaration.getPropertyPriority; @docsEditable true */
+  /// @domName CSSStyleDeclaration.getPropertyPriority; @docsEditable true
   String getPropertyPriority(String propertyName) native;
 
-  /** @domName CSSStyleDeclaration.getPropertyShorthand; @docsEditable true */
+  /// @domName CSSStyleDeclaration.getPropertyShorthand; @docsEditable true
   String getPropertyShorthand(String propertyName) native;
 
-  /** @domName CSSStyleDeclaration._getPropertyValue; @docsEditable true */
+  /// @domName CSSStyleDeclaration._getPropertyValue; @docsEditable true
   String _getPropertyValue(String propertyName) native "getPropertyValue";
 
-  /** @domName CSSStyleDeclaration.isPropertyImplicit; @docsEditable true */
+  /// @domName CSSStyleDeclaration.isPropertyImplicit; @docsEditable true
   bool isPropertyImplicit(String propertyName) native;
 
-  /** @domName CSSStyleDeclaration.item; @docsEditable true */
+  /// @domName CSSStyleDeclaration.item; @docsEditable true
   String item(int index) native;
 
-  /** @domName CSSStyleDeclaration.removeProperty; @docsEditable true */
+  /// @domName CSSStyleDeclaration.removeProperty; @docsEditable true
   String removeProperty(String propertyName) native;
 
 
@@ -4648,10 +4640,10 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
 /// @domName CSSStyleRule; @docsEditable true
 class CSSStyleRule extends CSSRule native "*CSSStyleRule" {
 
-  /** @domName CSSStyleRule.selectorText; @docsEditable true */
+  /// @domName CSSStyleRule.selectorText; @docsEditable true
   String selectorText;
 
-  /** @domName CSSStyleRule.style; @docsEditable true */
+  /// @domName CSSStyleRule.style; @docsEditable true
   final CSSStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4662,27 +4654,27 @@ class CSSStyleRule extends CSSRule native "*CSSStyleRule" {
 /// @domName CSSStyleSheet; @docsEditable true
 class CSSStyleSheet extends StyleSheet native "*CSSStyleSheet" {
 
-  /** @domName CSSStyleSheet.cssRules; @docsEditable true */
+  /// @domName CSSStyleSheet.cssRules; @docsEditable true
   @Returns('_CSSRuleList') @Creates('_CSSRuleList')
   final List<CSSRule> cssRules;
 
-  /** @domName CSSStyleSheet.ownerRule; @docsEditable true */
+  /// @domName CSSStyleSheet.ownerRule; @docsEditable true
   final CSSRule ownerRule;
 
-  /** @domName CSSStyleSheet.rules; @docsEditable true */
+  /// @domName CSSStyleSheet.rules; @docsEditable true
   @Returns('_CSSRuleList') @Creates('_CSSRuleList')
   final List<CSSRule> rules;
 
-  /** @domName CSSStyleSheet.addRule; @docsEditable true */
+  /// @domName CSSStyleSheet.addRule; @docsEditable true
   int addRule(String selector, String style, [int index]) native;
 
-  /** @domName CSSStyleSheet.deleteRule; @docsEditable true */
+  /// @domName CSSStyleSheet.deleteRule; @docsEditable true
   void deleteRule(int index) native;
 
-  /** @domName CSSStyleSheet.insertRule; @docsEditable true */
+  /// @domName CSSStyleSheet.insertRule; @docsEditable true
   int insertRule(String rule, int index) native;
 
-  /** @domName CSSStyleSheet.removeRule; @docsEditable true */
+  /// @domName CSSStyleSheet.removeRule; @docsEditable true
   void removeRule(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4735,7 +4727,7 @@ class CSSTransformValue extends _CSSValueList native "*WebKitCSSTransformValue" 
 
   static const int CSS_TRANSLATEZ = 12;
 
-  /** @domName WebKitCSSTransformValue.operationType; @docsEditable true */
+  /// @domName WebKitCSSTransformValue.operationType; @docsEditable true
   final int operationType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4762,10 +4754,10 @@ class CSSValue native "*CSSValue" {
 
   static const int CSS_VALUE_LIST = 2;
 
-  /** @domName CSSValue.cssText; @docsEditable true */
+  /// @domName CSSValue.cssText; @docsEditable true
   String cssText;
 
-  /** @domName CSSValue.cssValueType; @docsEditable true */
+  /// @domName CSSValue.cssValueType; @docsEditable true
   final int cssValueType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4782,13 +4774,13 @@ class CanvasElement extends Element implements Element native "*HTMLCanvasElemen
     return e;
   }
 
-  /** @domName HTMLCanvasElement.height; @docsEditable true */
+  /// @domName HTMLCanvasElement.height; @docsEditable true
   int height;
 
-  /** @domName HTMLCanvasElement.width; @docsEditable true */
+  /// @domName HTMLCanvasElement.width; @docsEditable true
   int width;
 
-  /** @domName HTMLCanvasElement.toDataURL; @docsEditable true */
+  /// @domName HTMLCanvasElement.toDataURL; @docsEditable true
   String toDataURL(String type, [num quality]) native;
 
 
@@ -4803,7 +4795,7 @@ class CanvasElement extends Element implements Element native "*HTMLCanvasElemen
 /// @domName CanvasGradient; @docsEditable true
 class CanvasGradient native "*CanvasGradient" {
 
-  /** @domName CanvasGradient.addColorStop; @docsEditable true */
+  /// @domName CanvasGradient.addColorStop; @docsEditable true
   void addColorStop(num offset, String color) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4822,7 +4814,7 @@ class CanvasPattern native "*CanvasPattern" {
 /// @domName CanvasRenderingContext; @docsEditable true
 class CanvasRenderingContext native "*CanvasRenderingContext" {
 
-  /** @domName CanvasRenderingContext.canvas; @docsEditable true */
+  /// @domName CanvasRenderingContext.canvas; @docsEditable true
   final CanvasElement canvas;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4832,91 +4824,91 @@ class CanvasRenderingContext native "*CanvasRenderingContext" {
 
 class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRenderingContext2D" {
 
-  /** @domName CanvasRenderingContext2D.fillStyle; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.fillStyle; @docsEditable true
   dynamic fillStyle;
 
-  /** @domName CanvasRenderingContext2D.font; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.font; @docsEditable true
   String font;
 
-  /** @domName CanvasRenderingContext2D.globalAlpha; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.globalAlpha; @docsEditable true
   num globalAlpha;
 
-  /** @domName CanvasRenderingContext2D.globalCompositeOperation; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.globalCompositeOperation; @docsEditable true
   String globalCompositeOperation;
 
-  /** @domName CanvasRenderingContext2D.lineCap; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.lineCap; @docsEditable true
   String lineCap;
 
-  /** @domName CanvasRenderingContext2D.lineDashOffset; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.lineDashOffset; @docsEditable true
   num lineDashOffset;
 
-  /** @domName CanvasRenderingContext2D.lineJoin; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.lineJoin; @docsEditable true
   String lineJoin;
 
-  /** @domName CanvasRenderingContext2D.lineWidth; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.lineWidth; @docsEditable true
   num lineWidth;
 
-  /** @domName CanvasRenderingContext2D.miterLimit; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.miterLimit; @docsEditable true
   num miterLimit;
 
-  /** @domName CanvasRenderingContext2D.shadowBlur; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.shadowBlur; @docsEditable true
   num shadowBlur;
 
-  /** @domName CanvasRenderingContext2D.shadowColor; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.shadowColor; @docsEditable true
   String shadowColor;
 
-  /** @domName CanvasRenderingContext2D.shadowOffsetX; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.shadowOffsetX; @docsEditable true
   num shadowOffsetX;
 
-  /** @domName CanvasRenderingContext2D.shadowOffsetY; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.shadowOffsetY; @docsEditable true
   num shadowOffsetY;
 
-  /** @domName CanvasRenderingContext2D.strokeStyle; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.strokeStyle; @docsEditable true
   dynamic strokeStyle;
 
-  /** @domName CanvasRenderingContext2D.textAlign; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.textAlign; @docsEditable true
   String textAlign;
 
-  /** @domName CanvasRenderingContext2D.textBaseline; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.textBaseline; @docsEditable true
   String textBaseline;
 
-  /** @domName CanvasRenderingContext2D.webkitBackingStorePixelRatio; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.webkitBackingStorePixelRatio; @docsEditable true
   final num webkitBackingStorePixelRatio;
 
-  /** @domName CanvasRenderingContext2D.webkitImageSmoothingEnabled; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.webkitImageSmoothingEnabled; @docsEditable true
   bool webkitImageSmoothingEnabled;
 
-  /** @domName CanvasRenderingContext2D.webkitLineDash; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.webkitLineDash; @docsEditable true
   List webkitLineDash;
 
-  /** @domName CanvasRenderingContext2D.webkitLineDashOffset; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.webkitLineDashOffset; @docsEditable true
   num webkitLineDashOffset;
 
-  /** @domName CanvasRenderingContext2D.arc; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.arc; @docsEditable true
   void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native;
 
-  /** @domName CanvasRenderingContext2D.arcTo; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.arcTo; @docsEditable true
   void arcTo(num x1, num y1, num x2, num y2, num radius) native;
 
-  /** @domName CanvasRenderingContext2D.beginPath; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.beginPath; @docsEditable true
   void beginPath() native;
 
-  /** @domName CanvasRenderingContext2D.bezierCurveTo; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.bezierCurveTo; @docsEditable true
   void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) native;
 
-  /** @domName CanvasRenderingContext2D.clearRect; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.clearRect; @docsEditable true
   void clearRect(num x, num y, num width, num height) native;
 
-  /** @domName CanvasRenderingContext2D.clearShadow; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.clearShadow; @docsEditable true
   void clearShadow() native;
 
-  /** @domName CanvasRenderingContext2D.clip; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.clip; @docsEditable true
   void clip() native;
 
-  /** @domName CanvasRenderingContext2D.closePath; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.closePath; @docsEditable true
   void closePath() native;
 
-  /** @domName CanvasRenderingContext2D.createImageData; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.createImageData; @docsEditable true
   ImageData createImageData(imagedata_OR_sw, [num sh]) {
     if ((?imagedata_OR_sw && (imagedata_OR_sw is ImageData || imagedata_OR_sw == null)) &&
         !?sh) {
@@ -4933,53 +4925,53 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   @Creates('ImageData|=Object')
   _createImageData_2(num sw, sh) native "createImageData";
 
-  /** @domName CanvasRenderingContext2D.createLinearGradient; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.createLinearGradient; @docsEditable true
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
 
-  /** @domName CanvasRenderingContext2D.createPattern; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.createPattern; @docsEditable true
   CanvasPattern createPattern(canvas_OR_image, String repetitionType) native;
 
-  /** @domName CanvasRenderingContext2D.createRadialGradient; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.createRadialGradient; @docsEditable true
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native;
 
-  /** @domName CanvasRenderingContext2D.drawImage; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.drawImage; @docsEditable true
   void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) native;
 
-  /** @domName CanvasRenderingContext2D.drawImageFromRect; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.drawImageFromRect; @docsEditable true
   void drawImageFromRect(ImageElement image, [num sx, num sy, num sw, num sh, num dx, num dy, num dw, num dh, String compositeOperation]) native;
 
-  /** @domName CanvasRenderingContext2D.fill; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.fill; @docsEditable true
   void fill() native;
 
-  /** @domName CanvasRenderingContext2D.fillRect; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.fillRect; @docsEditable true
   void fillRect(num x, num y, num width, num height) native;
 
-  /** @domName CanvasRenderingContext2D.fillText; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.fillText; @docsEditable true
   void fillText(String text, num x, num y, [num maxWidth]) native;
 
-  /** @domName CanvasRenderingContext2D.getImageData; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.getImageData; @docsEditable true
   ImageData getImageData(num sx, num sy, num sw, num sh) {
     return _convertNativeToDart_ImageData(_getImageData_1(sx, sy, sw, sh));
   }
   @Creates('ImageData|=Object')
   _getImageData_1(sx, sy, sw, sh) native "getImageData";
 
-  /** @domName CanvasRenderingContext2D.getLineDash; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.getLineDash; @docsEditable true
   List<num> getLineDash() native;
 
-  /** @domName CanvasRenderingContext2D.isPointInPath; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.isPointInPath; @docsEditable true
   bool isPointInPath(num x, num y) native;
 
-  /** @domName CanvasRenderingContext2D.lineTo; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.lineTo; @docsEditable true
   void lineTo(num x, num y) native;
 
-  /** @domName CanvasRenderingContext2D.measureText; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.measureText; @docsEditable true
   TextMetrics measureText(String text) native;
 
-  /** @domName CanvasRenderingContext2D.moveTo; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.moveTo; @docsEditable true
   void moveTo(num x, num y) native;
 
-  /** @domName CanvasRenderingContext2D.putImageData; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.putImageData; @docsEditable true
   void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if (!?dirtyX &&
         !?dirtyY &&
@@ -4997,74 +4989,74 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   void _putImageData_1(imagedata, dx, dy) native "putImageData";
   void _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "putImageData";
 
-  /** @domName CanvasRenderingContext2D.quadraticCurveTo; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.quadraticCurveTo; @docsEditable true
   void quadraticCurveTo(num cpx, num cpy, num x, num y) native;
 
-  /** @domName CanvasRenderingContext2D.rect; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.rect; @docsEditable true
   void rect(num x, num y, num width, num height) native;
 
-  /** @domName CanvasRenderingContext2D.restore; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.restore; @docsEditable true
   void restore() native;
 
-  /** @domName CanvasRenderingContext2D.rotate; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.rotate; @docsEditable true
   void rotate(num angle) native;
 
-  /** @domName CanvasRenderingContext2D.save; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.save; @docsEditable true
   void save() native;
 
-  /** @domName CanvasRenderingContext2D.scale; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.scale; @docsEditable true
   void scale(num sx, num sy) native;
 
-  /** @domName CanvasRenderingContext2D.setAlpha; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.setAlpha; @docsEditable true
   void setAlpha(num alpha) native;
 
-  /** @domName CanvasRenderingContext2D.setCompositeOperation; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.setCompositeOperation; @docsEditable true
   void setCompositeOperation(String compositeOperation) native;
 
-  /** @domName CanvasRenderingContext2D.setLineCap; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.setLineCap; @docsEditable true
   void setLineCap(String cap) native;
 
-  /** @domName CanvasRenderingContext2D.setLineDash; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.setLineDash; @docsEditable true
   void setLineDash(List<num> dash) native;
 
-  /** @domName CanvasRenderingContext2D.setLineJoin; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.setLineJoin; @docsEditable true
   void setLineJoin(String join) native;
 
-  /** @domName CanvasRenderingContext2D.setLineWidth; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.setLineWidth; @docsEditable true
   void setLineWidth(num width) native;
 
-  /** @domName CanvasRenderingContext2D.setMiterLimit; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.setMiterLimit; @docsEditable true
   void setMiterLimit(num limit) native;
 
-  /** @domName CanvasRenderingContext2D.setShadow; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.setShadow; @docsEditable true
   void setShadow(num width, num height, num blur, [c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]) native;
 
-  /** @domName CanvasRenderingContext2D.setTransform; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.setTransform; @docsEditable true
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) native;
 
-  /** @domName CanvasRenderingContext2D.stroke; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.stroke; @docsEditable true
   void stroke() native;
 
-  /** @domName CanvasRenderingContext2D.strokeRect; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.strokeRect; @docsEditable true
   void strokeRect(num x, num y, num width, num height, [num lineWidth]) native;
 
-  /** @domName CanvasRenderingContext2D.strokeText; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.strokeText; @docsEditable true
   void strokeText(String text, num x, num y, [num maxWidth]) native;
 
-  /** @domName CanvasRenderingContext2D.transform; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.transform; @docsEditable true
   void transform(num m11, num m12, num m21, num m22, num dx, num dy) native;
 
-  /** @domName CanvasRenderingContext2D.translate; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.translate; @docsEditable true
   void translate(num tx, num ty) native;
 
-  /** @domName CanvasRenderingContext2D.webkitGetImageDataHD; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.webkitGetImageDataHD; @docsEditable true
   ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) {
     return _convertNativeToDart_ImageData(_webkitGetImageDataHD_1(sx, sy, sw, sh));
   }
   @Creates('ImageData|=Object')
   _webkitGetImageDataHD_1(sx, sy, sw, sh) native "webkitGetImageDataHD";
 
-  /** @domName CanvasRenderingContext2D.webkitPutImageDataHD; @docsEditable true */
+  /// @domName CanvasRenderingContext2D.webkitPutImageDataHD; @docsEditable true
   void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if (!?dirtyX &&
         !?dirtyY &&
@@ -5143,28 +5135,28 @@ class ChannelSplitterNode extends AudioNode native "*ChannelSplitterNode" {
 /// @domName CharacterData; @docsEditable true
 class CharacterData extends Node native "*CharacterData" {
 
-  /** @domName CharacterData.data; @docsEditable true */
+  /// @domName CharacterData.data; @docsEditable true
   String data;
 
-  /** @domName CharacterData.length; @docsEditable true */
+  /// @domName CharacterData.length; @docsEditable true
   final int length;
 
-  /** @domName CharacterData.appendData; @docsEditable true */
+  /// @domName CharacterData.appendData; @docsEditable true
   void appendData(String data) native;
 
-  /** @domName CharacterData.deleteData; @docsEditable true */
+  /// @domName CharacterData.deleteData; @docsEditable true
   void deleteData(int offset, int length) native;
 
-  /** @domName CharacterData.insertData; @docsEditable true */
+  /// @domName CharacterData.insertData; @docsEditable true
   void insertData(int offset, String data) native;
 
-  /** @domName CharacterData.remove; @docsEditable true */
+  /// @domName CharacterData.remove; @docsEditable true
   void remove() native;
 
-  /** @domName CharacterData.replaceData; @docsEditable true */
+  /// @domName CharacterData.replaceData; @docsEditable true
   void replaceData(int offset, int length, String data) native;
 
-  /** @domName CharacterData.substringData; @docsEditable true */
+  /// @domName CharacterData.substringData; @docsEditable true
   String substringData(int offset, int length) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5175,22 +5167,22 @@ class CharacterData extends Node native "*CharacterData" {
 /// @domName ClientRect; @docsEditable true
 class ClientRect native "*ClientRect" {
 
-  /** @domName ClientRect.bottom; @docsEditable true */
+  /// @domName ClientRect.bottom; @docsEditable true
   final num bottom;
 
-  /** @domName ClientRect.height; @docsEditable true */
+  /// @domName ClientRect.height; @docsEditable true
   final num height;
 
-  /** @domName ClientRect.left; @docsEditable true */
+  /// @domName ClientRect.left; @docsEditable true
   final num left;
 
-  /** @domName ClientRect.right; @docsEditable true */
+  /// @domName ClientRect.right; @docsEditable true
   final num right;
 
-  /** @domName ClientRect.top; @docsEditable true */
+  /// @domName ClientRect.top; @docsEditable true
   final num top;
 
-  /** @domName ClientRect.width; @docsEditable true */
+  /// @domName ClientRect.width; @docsEditable true
   final num width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5201,32 +5193,32 @@ class ClientRect native "*ClientRect" {
 /// @domName Clipboard; @docsEditable true
 class Clipboard native "*Clipboard" {
 
-  /** @domName Clipboard.dropEffect; @docsEditable true */
+  /// @domName Clipboard.dropEffect; @docsEditable true
   String dropEffect;
 
-  /** @domName Clipboard.effectAllowed; @docsEditable true */
+  /// @domName Clipboard.effectAllowed; @docsEditable true
   String effectAllowed;
 
-  /** @domName Clipboard.files; @docsEditable true */
+  /// @domName Clipboard.files; @docsEditable true
   @Returns('_FileList') @Creates('_FileList')
   final List<File> files;
 
-  /** @domName Clipboard.items; @docsEditable true */
+  /// @domName Clipboard.items; @docsEditable true
   final DataTransferItemList items;
 
-  /** @domName Clipboard.types; @docsEditable true */
+  /// @domName Clipboard.types; @docsEditable true
   final List types;
 
-  /** @domName Clipboard.clearData; @docsEditable true */
+  /// @domName Clipboard.clearData; @docsEditable true
   void clearData([String type]) native;
 
-  /** @domName Clipboard.getData; @docsEditable true */
+  /// @domName Clipboard.getData; @docsEditable true
   String getData(String type) native;
 
-  /** @domName Clipboard.setData; @docsEditable true */
+  /// @domName Clipboard.setData; @docsEditable true
   bool setData(String type, String data) native;
 
-  /** @domName Clipboard.setDragImage; @docsEditable true */
+  /// @domName Clipboard.setDragImage; @docsEditable true
   void setDragImage(ImageElement image, int x, int y) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5237,13 +5229,13 @@ class Clipboard native "*Clipboard" {
 /// @domName CloseEvent; @docsEditable true
 class CloseEvent extends Event native "*CloseEvent" {
 
-  /** @domName CloseEvent.code; @docsEditable true */
+  /// @domName CloseEvent.code; @docsEditable true
   final int code;
 
-  /** @domName CloseEvent.reason; @docsEditable true */
+  /// @domName CloseEvent.reason; @docsEditable true
   final String reason;
 
-  /** @domName CloseEvent.wasClean; @docsEditable true */
+  /// @domName CloseEvent.wasClean; @docsEditable true
   final bool wasClean;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5262,10 +5254,10 @@ class Comment extends CharacterData native "*Comment" {
 /// @domName CompositionEvent; @docsEditable true
 class CompositionEvent extends UIEvent native "*CompositionEvent" {
 
-  /** @domName CompositionEvent.data; @docsEditable true */
+  /// @domName CompositionEvent.data; @docsEditable true
   final String data;
 
-  /** @domName CompositionEvent.initCompositionEvent; @docsEditable true */
+  /// @domName CompositionEvent.initCompositionEvent; @docsEditable true
   void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5277,67 +5269,67 @@ class Console
     // Console is sometimes a singleton bag-of-properties without a prototype.
     native "=(typeof console == 'undefined' ? {} : console)" {
 
-  /** @domName Console.memory; @docsEditable true */
+  /// @domName Console.memory; @docsEditable true
   final MemoryInfo memory;
 
-  /** @domName Console.profiles; @docsEditable true */
+  /// @domName Console.profiles; @docsEditable true
   final List<ScriptProfile> profiles;
 
-  /** @domName Console.assertCondition; @docsEditable true */
+  /// @domName Console.assertCondition; @docsEditable true
   void assertCondition(bool condition, Object arg) native;
 
-  /** @domName Console.count; @docsEditable true */
+  /// @domName Console.count; @docsEditable true
   void count(Object arg) native;
 
-  /** @domName Console.debug; @docsEditable true */
+  /// @domName Console.debug; @docsEditable true
   void debug(Object arg) native;
 
-  /** @domName Console.dir; @docsEditable true */
+  /// @domName Console.dir; @docsEditable true
   void dir(Object arg) native;
 
-  /** @domName Console.dirxml; @docsEditable true */
+  /// @domName Console.dirxml; @docsEditable true
   void dirxml(Object arg) native;
 
-  /** @domName Console.error; @docsEditable true */
+  /// @domName Console.error; @docsEditable true
   void error(Object arg) native;
 
-  /** @domName Console.group; @docsEditable true */
+  /// @domName Console.group; @docsEditable true
   void group(Object arg) native;
 
-  /** @domName Console.groupCollapsed; @docsEditable true */
+  /// @domName Console.groupCollapsed; @docsEditable true
   void groupCollapsed(Object arg) native;
 
-  /** @domName Console.groupEnd; @docsEditable true */
+  /// @domName Console.groupEnd; @docsEditable true
   void groupEnd() native;
 
-  /** @domName Console.info; @docsEditable true */
+  /// @domName Console.info; @docsEditable true
   void info(Object arg) native;
 
-  /** @domName Console.log; @docsEditable true */
+  /// @domName Console.log; @docsEditable true
   void log(Object arg) native;
 
-  /** @domName Console.markTimeline; @docsEditable true */
+  /// @domName Console.markTimeline; @docsEditable true
   void markTimeline(Object arg) native;
 
-  /** @domName Console.profile; @docsEditable true */
+  /// @domName Console.profile; @docsEditable true
   void profile(String title) native;
 
-  /** @domName Console.profileEnd; @docsEditable true */
+  /// @domName Console.profileEnd; @docsEditable true
   void profileEnd(String title) native;
 
-  /** @domName Console.time; @docsEditable true */
+  /// @domName Console.time; @docsEditable true
   void time(String title) native;
 
-  /** @domName Console.timeEnd; @docsEditable true */
+  /// @domName Console.timeEnd; @docsEditable true
   void timeEnd(String title, Object arg) native;
 
-  /** @domName Console.timeStamp; @docsEditable true */
+  /// @domName Console.timeStamp; @docsEditable true
   void timeStamp(Object arg) native;
 
-  /** @domName Console.trace; @docsEditable true */
+  /// @domName Console.trace; @docsEditable true
   void trace(Object arg) native;
 
-  /** @domName Console.warn; @docsEditable true */
+  /// @domName Console.warn; @docsEditable true
   void warn(Object arg) native;
 
 }
@@ -5351,13 +5343,13 @@ class ContentElement extends Element implements Element native "*HTMLContentElem
 
   factory ContentElement() => document.$dom_createElement("content");
 
-  /** @domName HTMLContentElement.resetStyleInheritance; @docsEditable true */
+  /// @domName HTMLContentElement.resetStyleInheritance; @docsEditable true
   bool resetStyleInheritance;
 
-  /** @domName HTMLContentElement.select; @docsEditable true */
+  /// @domName HTMLContentElement.select; @docsEditable true
   String select;
 
-  /** @domName HTMLContentElement.getDistributedNodes; @docsEditable true */
+  /// @domName HTMLContentElement.getDistributedNodes; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   List<Node> getDistributedNodes() native;
 }
@@ -5369,10 +5361,10 @@ class ContentElement extends Element implements Element native "*HTMLContentElem
 /// @domName ConvolverNode; @docsEditable true
 class ConvolverNode extends AudioNode native "*ConvolverNode" {
 
-  /** @domName ConvolverNode.buffer; @docsEditable true */
+  /// @domName ConvolverNode.buffer; @docsEditable true
   AudioBuffer buffer;
 
-  /** @domName ConvolverNode.normalize; @docsEditable true */
+  /// @domName ConvolverNode.normalize; @docsEditable true
   bool normalize;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5383,25 +5375,25 @@ class ConvolverNode extends AudioNode native "*ConvolverNode" {
 /// @domName Coordinates; @docsEditable true
 class Coordinates native "*Coordinates" {
 
-  /** @domName Coordinates.accuracy; @docsEditable true */
+  /// @domName Coordinates.accuracy; @docsEditable true
   final num accuracy;
 
-  /** @domName Coordinates.altitude; @docsEditable true */
+  /// @domName Coordinates.altitude; @docsEditable true
   final num altitude;
 
-  /** @domName Coordinates.altitudeAccuracy; @docsEditable true */
+  /// @domName Coordinates.altitudeAccuracy; @docsEditable true
   final num altitudeAccuracy;
 
-  /** @domName Coordinates.heading; @docsEditable true */
+  /// @domName Coordinates.heading; @docsEditable true
   final num heading;
 
-  /** @domName Coordinates.latitude; @docsEditable true */
+  /// @domName Coordinates.latitude; @docsEditable true
   final num latitude;
 
-  /** @domName Coordinates.longitude; @docsEditable true */
+  /// @domName Coordinates.longitude; @docsEditable true
   final num longitude;
 
-  /** @domName Coordinates.speed; @docsEditable true */
+  /// @domName Coordinates.speed; @docsEditable true
   final num speed;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5412,13 +5404,13 @@ class Coordinates native "*Coordinates" {
 /// @domName Counter; @docsEditable true
 class Counter native "*Counter" {
 
-  /** @domName Counter.identifier; @docsEditable true */
+  /// @domName Counter.identifier; @docsEditable true
   final String identifier;
 
-  /** @domName Counter.listStyle; @docsEditable true */
+  /// @domName Counter.listStyle; @docsEditable true
   final String listStyle;
 
-  /** @domName Counter.separator; @docsEditable true */
+  /// @domName Counter.separator; @docsEditable true
   final String separator;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5429,7 +5421,7 @@ class Counter native "*Counter" {
 /// @domName Crypto; @docsEditable true
 class Crypto native "*Crypto" {
 
-  /** @domName Crypto.getRandomValues; @docsEditable true */
+  /// @domName Crypto.getRandomValues; @docsEditable true
   void getRandomValues(ArrayBufferView array) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5444,10 +5436,10 @@ class CustomEvent extends Event native "*CustomEvent" {
       Object detail]) => _CustomEventFactoryProvider.createCustomEvent(
       type, canBubble, cancelable, detail);
 
-  /** @domName CustomEvent.detail; @docsEditable true */
+  /// @domName CustomEvent.detail; @docsEditable true
   final Object detail;
 
-  /** @domName CustomEvent.initCustomEvent; @docsEditable true */
+  /// @domName CustomEvent.initCustomEvent; @docsEditable true
   void $dom_initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native "initCustomEvent";
 
 }
@@ -5461,7 +5453,7 @@ class DListElement extends Element implements Element native "*HTMLDListElement"
 
   factory DListElement() => document.$dom_createElement("dl");
 
-  /** @domName HTMLDListElement.compact; @docsEditable true */
+  /// @domName HTMLDListElement.compact; @docsEditable true
   bool compact;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5472,9 +5464,7 @@ class DListElement extends Element implements Element native "*HTMLDListElement"
 /// @domName DOMApplicationCache; @docsEditable true
 class DOMApplicationCache extends EventTarget native "*DOMApplicationCache" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   DOMApplicationCacheEvents get on =>
     new DOMApplicationCacheEvents(this);
 
@@ -5490,25 +5480,25 @@ class DOMApplicationCache extends EventTarget native "*DOMApplicationCache" {
 
   static const int UPDATEREADY = 4;
 
-  /** @domName DOMApplicationCache.status; @docsEditable true */
+  /// @domName DOMApplicationCache.status; @docsEditable true
   final int status;
 
-  /** @domName DOMApplicationCache.abort; @docsEditable true */
+  /// @domName DOMApplicationCache.abort; @docsEditable true
   void abort() native;
 
-  /** @domName DOMApplicationCache.addEventListener; @docsEditable true */
+  /// @domName DOMApplicationCache.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName DOMApplicationCache.dispatchEvent; @docsEditable true */
+  /// @domName DOMApplicationCache.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName DOMApplicationCache.removeEventListener; @docsEditable true */
+  /// @domName DOMApplicationCache.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName DOMApplicationCache.swapCache; @docsEditable true */
+  /// @domName DOMApplicationCache.swapCache; @docsEditable true
   void swapCache() native;
 
-  /** @domName DOMApplicationCache.update; @docsEditable true */
+  /// @domName DOMApplicationCache.update; @docsEditable true
   void update() native;
 }
 
@@ -5539,7 +5529,7 @@ class DOMApplicationCacheEvents extends Events {
 /// @domName DOMError; @docsEditable true
 class DOMError native "*DOMError" {
 
-  /** @domName DOMError.name; @docsEditable true */
+  /// @domName DOMError.name; @docsEditable true
   final String name;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5600,16 +5590,16 @@ class DOMException native "*DOMException" {
 
   static const int WRONG_DOCUMENT_ERR = 4;
 
-  /** @domName DOMException.code; @docsEditable true */
+  /// @domName DOMException.code; @docsEditable true
   final int code;
 
-  /** @domName DOMException.message; @docsEditable true */
+  /// @domName DOMException.message; @docsEditable true
   final String message;
 
-  /** @domName DOMException.name; @docsEditable true */
+  /// @domName DOMException.name; @docsEditable true
   final String name;
 
-  /** @domName DOMException.toString; @docsEditable true */
+  /// @domName DOMException.toString; @docsEditable true
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5620,10 +5610,10 @@ class DOMException native "*DOMException" {
 /// @domName DOMFileSystem; @docsEditable true
 class DOMFileSystem native "*DOMFileSystem" {
 
-  /** @domName DOMFileSystem.name; @docsEditable true */
+  /// @domName DOMFileSystem.name; @docsEditable true
   final String name;
 
-  /** @domName DOMFileSystem.root; @docsEditable true */
+  /// @domName DOMFileSystem.root; @docsEditable true
   final DirectoryEntry root;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5634,10 +5624,10 @@ class DOMFileSystem native "*DOMFileSystem" {
 /// @domName DOMFileSystemSync; @docsEditable true
 class DOMFileSystemSync native "*DOMFileSystemSync" {
 
-  /** @domName DOMFileSystemSync.name; @docsEditable true */
+  /// @domName DOMFileSystemSync.name; @docsEditable true
   final String name;
 
-  /** @domName DOMFileSystemSync.root; @docsEditable true */
+  /// @domName DOMFileSystemSync.root; @docsEditable true
   final DirectoryEntrySync root;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5648,19 +5638,19 @@ class DOMFileSystemSync native "*DOMFileSystemSync" {
 /// @domName DOMImplementation; @docsEditable true
 class DOMImplementation native "*DOMImplementation" {
 
-  /** @domName DOMImplementation.createCSSStyleSheet; @docsEditable true */
+  /// @domName DOMImplementation.createCSSStyleSheet; @docsEditable true
   CSSStyleSheet createCSSStyleSheet(String title, String media) native;
 
-  /** @domName DOMImplementation.createDocument; @docsEditable true */
+  /// @domName DOMImplementation.createDocument; @docsEditable true
   Document createDocument(String namespaceURI, String qualifiedName, DocumentType doctype) native;
 
-  /** @domName DOMImplementation.createDocumentType; @docsEditable true */
+  /// @domName DOMImplementation.createDocumentType; @docsEditable true
   DocumentType createDocumentType(String qualifiedName, String publicId, String systemId) native;
 
-  /** @domName DOMImplementation.createHTMLDocument; @docsEditable true */
+  /// @domName DOMImplementation.createHTMLDocument; @docsEditable true
   HtmlDocument createHTMLDocument(String title) native;
 
-  /** @domName DOMImplementation.hasFeature; @docsEditable true */
+  /// @domName DOMImplementation.hasFeature; @docsEditable true
   bool hasFeature(String feature, String version) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5671,16 +5661,16 @@ class DOMImplementation native "*DOMImplementation" {
 /// @domName MimeType; @docsEditable true
 class DOMMimeType native "*MimeType" {
 
-  /** @domName MimeType.description; @docsEditable true */
+  /// @domName MimeType.description; @docsEditable true
   final String description;
 
-  /** @domName MimeType.enabledPlugin; @docsEditable true */
+  /// @domName MimeType.enabledPlugin; @docsEditable true
   final DOMPlugin enabledPlugin;
 
-  /** @domName MimeType.suffixes; @docsEditable true */
+  /// @domName MimeType.suffixes; @docsEditable true
   final String suffixes;
 
-  /** @domName MimeType.type; @docsEditable true */
+  /// @domName MimeType.type; @docsEditable true
   final String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5691,7 +5681,7 @@ class DOMMimeType native "*MimeType" {
 /// @domName MimeTypeArray; @docsEditable true
 class DOMMimeTypeArray implements JavaScriptIndexingBehavior, List<DOMMimeType> native "*MimeTypeArray" {
 
-  /** @domName MimeTypeArray.length; @docsEditable true */
+  /// @domName MimeTypeArray.length; @docsEditable true
   final int length;
 
   DOMMimeType operator[](int index) => JS("DOMMimeType", "#[#]", this, index);
@@ -5779,10 +5769,10 @@ class DOMMimeTypeArray implements JavaScriptIndexingBehavior, List<DOMMimeType> 
 
   // -- end List<DOMMimeType> mixins.
 
-  /** @domName MimeTypeArray.item; @docsEditable true */
+  /// @domName MimeTypeArray.item; @docsEditable true
   DOMMimeType item(int index) native;
 
-  /** @domName MimeTypeArray.namedItem; @docsEditable true */
+  /// @domName MimeTypeArray.namedItem; @docsEditable true
   DOMMimeType namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5795,7 +5785,7 @@ class DOMParser native "*DOMParser" {
 
   factory DOMParser() => _DOMParserFactoryProvider.createDOMParser();
 
-  /** @domName DOMParser.parseFromString; @docsEditable true */
+  /// @domName DOMParser.parseFromString; @docsEditable true
   Document parseFromString(String str, String contentType) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5806,22 +5796,22 @@ class DOMParser native "*DOMParser" {
 /// @domName Plugin; @docsEditable true
 class DOMPlugin native "*Plugin" {
 
-  /** @domName Plugin.description; @docsEditable true */
+  /// @domName Plugin.description; @docsEditable true
   final String description;
 
-  /** @domName Plugin.filename; @docsEditable true */
+  /// @domName Plugin.filename; @docsEditable true
   final String filename;
 
-  /** @domName Plugin.length; @docsEditable true */
+  /// @domName Plugin.length; @docsEditable true
   final int length;
 
-  /** @domName Plugin.name; @docsEditable true */
+  /// @domName Plugin.name; @docsEditable true
   final String name;
 
-  /** @domName Plugin.item; @docsEditable true */
+  /// @domName Plugin.item; @docsEditable true
   DOMMimeType item(int index) native;
 
-  /** @domName Plugin.namedItem; @docsEditable true */
+  /// @domName Plugin.namedItem; @docsEditable true
   DOMMimeType namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5832,7 +5822,7 @@ class DOMPlugin native "*Plugin" {
 /// @domName PluginArray; @docsEditable true
 class DOMPluginArray implements JavaScriptIndexingBehavior, List<DOMPlugin> native "*PluginArray" {
 
-  /** @domName PluginArray.length; @docsEditable true */
+  /// @domName PluginArray.length; @docsEditable true
   final int length;
 
   DOMPlugin operator[](int index) => JS("DOMPlugin", "#[#]", this, index);
@@ -5920,13 +5910,13 @@ class DOMPluginArray implements JavaScriptIndexingBehavior, List<DOMPlugin> nati
 
   // -- end List<DOMPlugin> mixins.
 
-  /** @domName PluginArray.item; @docsEditable true */
+  /// @domName PluginArray.item; @docsEditable true
   DOMPlugin item(int index) native;
 
-  /** @domName PluginArray.namedItem; @docsEditable true */
+  /// @domName PluginArray.namedItem; @docsEditable true
   DOMPlugin namedItem(String name) native;
 
-  /** @domName PluginArray.refresh; @docsEditable true */
+  /// @domName PluginArray.refresh; @docsEditable true
   void refresh(bool reload) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5937,82 +5927,82 @@ class DOMPluginArray implements JavaScriptIndexingBehavior, List<DOMPlugin> nati
 /// @domName Selection; @docsEditable true
 class DOMSelection native "*Selection" {
 
-  /** @domName Selection.anchorNode; @docsEditable true */
+  /// @domName Selection.anchorNode; @docsEditable true
   final Node anchorNode;
 
-  /** @domName Selection.anchorOffset; @docsEditable true */
+  /// @domName Selection.anchorOffset; @docsEditable true
   final int anchorOffset;
 
-  /** @domName Selection.baseNode; @docsEditable true */
+  /// @domName Selection.baseNode; @docsEditable true
   final Node baseNode;
 
-  /** @domName Selection.baseOffset; @docsEditable true */
+  /// @domName Selection.baseOffset; @docsEditable true
   final int baseOffset;
 
-  /** @domName Selection.extentNode; @docsEditable true */
+  /// @domName Selection.extentNode; @docsEditable true
   final Node extentNode;
 
-  /** @domName Selection.extentOffset; @docsEditable true */
+  /// @domName Selection.extentOffset; @docsEditable true
   final int extentOffset;
 
-  /** @domName Selection.focusNode; @docsEditable true */
+  /// @domName Selection.focusNode; @docsEditable true
   final Node focusNode;
 
-  /** @domName Selection.focusOffset; @docsEditable true */
+  /// @domName Selection.focusOffset; @docsEditable true
   final int focusOffset;
 
-  /** @domName Selection.isCollapsed; @docsEditable true */
+  /// @domName Selection.isCollapsed; @docsEditable true
   final bool isCollapsed;
 
-  /** @domName Selection.rangeCount; @docsEditable true */
+  /// @domName Selection.rangeCount; @docsEditable true
   final int rangeCount;
 
-  /** @domName Selection.type; @docsEditable true */
+  /// @domName Selection.type; @docsEditable true
   final String type;
 
-  /** @domName Selection.addRange; @docsEditable true */
+  /// @domName Selection.addRange; @docsEditable true
   void addRange(Range range) native;
 
-  /** @domName Selection.collapse; @docsEditable true */
+  /// @domName Selection.collapse; @docsEditable true
   void collapse(Node node, int index) native;
 
-  /** @domName Selection.collapseToEnd; @docsEditable true */
+  /// @domName Selection.collapseToEnd; @docsEditable true
   void collapseToEnd() native;
 
-  /** @domName Selection.collapseToStart; @docsEditable true */
+  /// @domName Selection.collapseToStart; @docsEditable true
   void collapseToStart() native;
 
-  /** @domName Selection.containsNode; @docsEditable true */
+  /// @domName Selection.containsNode; @docsEditable true
   bool containsNode(Node node, bool allowPartial) native;
 
-  /** @domName Selection.deleteFromDocument; @docsEditable true */
+  /// @domName Selection.deleteFromDocument; @docsEditable true
   void deleteFromDocument() native;
 
-  /** @domName Selection.empty; @docsEditable true */
+  /// @domName Selection.empty; @docsEditable true
   void empty() native;
 
-  /** @domName Selection.extend; @docsEditable true */
+  /// @domName Selection.extend; @docsEditable true
   void extend(Node node, int offset) native;
 
-  /** @domName Selection.getRangeAt; @docsEditable true */
+  /// @domName Selection.getRangeAt; @docsEditable true
   Range getRangeAt(int index) native;
 
-  /** @domName Selection.modify; @docsEditable true */
+  /// @domName Selection.modify; @docsEditable true
   void modify(String alter, String direction, String granularity) native;
 
-  /** @domName Selection.removeAllRanges; @docsEditable true */
+  /// @domName Selection.removeAllRanges; @docsEditable true
   void removeAllRanges() native;
 
-  /** @domName Selection.selectAllChildren; @docsEditable true */
+  /// @domName Selection.selectAllChildren; @docsEditable true
   void selectAllChildren(Node node) native;
 
-  /** @domName Selection.setBaseAndExtent; @docsEditable true */
+  /// @domName Selection.setBaseAndExtent; @docsEditable true
   void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) native;
 
-  /** @domName Selection.setPosition; @docsEditable true */
+  /// @domName Selection.setPosition; @docsEditable true
   void setPosition(Node node, int offset) native;
 
-  /** @domName Selection.toString; @docsEditable true */
+  /// @domName Selection.toString; @docsEditable true
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6023,7 +6013,7 @@ class DOMSelection native "*Selection" {
 /// @domName DOMSettableTokenList; @docsEditable true
 class DOMSettableTokenList extends DOMTokenList native "*DOMSettableTokenList" {
 
-  /** @domName DOMSettableTokenList.value; @docsEditable true */
+  /// @domName DOMSettableTokenList.value; @docsEditable true
   String value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6042,19 +6032,19 @@ abstract class DOMStringMap {
 /// @domName DOMTokenList; @docsEditable true
 class DOMTokenList native "*DOMTokenList" {
 
-  /** @domName DOMTokenList.length; @docsEditable true */
+  /// @domName DOMTokenList.length; @docsEditable true
   final int length;
 
-  /** @domName DOMTokenList.contains; @docsEditable true */
+  /// @domName DOMTokenList.contains; @docsEditable true
   bool contains(String token) native;
 
-  /** @domName DOMTokenList.item; @docsEditable true */
+  /// @domName DOMTokenList.item; @docsEditable true
   String item(int index) native;
 
-  /** @domName DOMTokenList.toString; @docsEditable true */
+  /// @domName DOMTokenList.toString; @docsEditable true
   String toString() native;
 
-  /** @domName DOMTokenList.toggle; @docsEditable true */
+  /// @domName DOMTokenList.toggle; @docsEditable true
   bool toggle(String token, [bool force]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6067,7 +6057,7 @@ class DataListElement extends Element implements Element native "*HTMLDataListEl
 
   factory DataListElement() => document.$dom_createElement("datalist");
 
-  /** @domName HTMLDataListElement.options; @docsEditable true */
+  /// @domName HTMLDataListElement.options; @docsEditable true
   final HTMLCollection options;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6078,19 +6068,19 @@ class DataListElement extends Element implements Element native "*HTMLDataListEl
 /// @domName DataTransferItem; @docsEditable true
 class DataTransferItem native "*DataTransferItem" {
 
-  /** @domName DataTransferItem.kind; @docsEditable true */
+  /// @domName DataTransferItem.kind; @docsEditable true
   final String kind;
 
-  /** @domName DataTransferItem.type; @docsEditable true */
+  /// @domName DataTransferItem.type; @docsEditable true
   final String type;
 
-  /** @domName DataTransferItem.getAsFile; @docsEditable true */
+  /// @domName DataTransferItem.getAsFile; @docsEditable true
   Blob getAsFile() native;
 
-  /** @domName DataTransferItem.getAsString; @docsEditable true */
+  /// @domName DataTransferItem.getAsString; @docsEditable true
   void getAsString([StringCallback callback]) native;
 
-  /** @domName DataTransferItem.webkitGetAsEntry; @docsEditable true */
+  /// @domName DataTransferItem.webkitGetAsEntry; @docsEditable true
   Entry webkitGetAsEntry() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6101,16 +6091,16 @@ class DataTransferItem native "*DataTransferItem" {
 /// @domName DataTransferItemList; @docsEditable true
 class DataTransferItemList native "*DataTransferItemList" {
 
-  /** @domName DataTransferItemList.length; @docsEditable true */
+  /// @domName DataTransferItemList.length; @docsEditable true
   final int length;
 
-  /** @domName DataTransferItemList.add; @docsEditable true */
+  /// @domName DataTransferItemList.add; @docsEditable true
   void add(data_OR_file, [String type]) native;
 
-  /** @domName DataTransferItemList.clear; @docsEditable true */
+  /// @domName DataTransferItemList.clear; @docsEditable true
   void clear() native;
 
-  /** @domName DataTransferItemList.item; @docsEditable true */
+  /// @domName DataTransferItemList.item; @docsEditable true
   DataTransferItem item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6131,52 +6121,52 @@ class DataView extends ArrayBufferView native "*DataView" {
     return _DataViewFactoryProvider.createDataView(buffer, byteOffset, byteLength);
   }
 
-  /** @domName DataView.getFloat32; @docsEditable true */
+  /// @domName DataView.getFloat32; @docsEditable true
   num getFloat32(int byteOffset, {bool littleEndian}) native;
 
-  /** @domName DataView.getFloat64; @docsEditable true */
+  /// @domName DataView.getFloat64; @docsEditable true
   num getFloat64(int byteOffset, {bool littleEndian}) native;
 
-  /** @domName DataView.getInt16; @docsEditable true */
+  /// @domName DataView.getInt16; @docsEditable true
   int getInt16(int byteOffset, {bool littleEndian}) native;
 
-  /** @domName DataView.getInt32; @docsEditable true */
+  /// @domName DataView.getInt32; @docsEditable true
   int getInt32(int byteOffset, {bool littleEndian}) native;
 
-  /** @domName DataView.getInt8; @docsEditable true */
+  /// @domName DataView.getInt8; @docsEditable true
   int getInt8(int byteOffset) native;
 
-  /** @domName DataView.getUint16; @docsEditable true */
+  /// @domName DataView.getUint16; @docsEditable true
   int getUint16(int byteOffset, {bool littleEndian}) native;
 
-  /** @domName DataView.getUint32; @docsEditable true */
+  /// @domName DataView.getUint32; @docsEditable true
   int getUint32(int byteOffset, {bool littleEndian}) native;
 
-  /** @domName DataView.getUint8; @docsEditable true */
+  /// @domName DataView.getUint8; @docsEditable true
   int getUint8(int byteOffset) native;
 
-  /** @domName DataView.setFloat32; @docsEditable true */
+  /// @domName DataView.setFloat32; @docsEditable true
   void setFloat32(int byteOffset, num value, {bool littleEndian}) native;
 
-  /** @domName DataView.setFloat64; @docsEditable true */
+  /// @domName DataView.setFloat64; @docsEditable true
   void setFloat64(int byteOffset, num value, {bool littleEndian}) native;
 
-  /** @domName DataView.setInt16; @docsEditable true */
+  /// @domName DataView.setInt16; @docsEditable true
   void setInt16(int byteOffset, int value, {bool littleEndian}) native;
 
-  /** @domName DataView.setInt32; @docsEditable true */
+  /// @domName DataView.setInt32; @docsEditable true
   void setInt32(int byteOffset, int value, {bool littleEndian}) native;
 
-  /** @domName DataView.setInt8; @docsEditable true */
+  /// @domName DataView.setInt8; @docsEditable true
   void setInt8(int byteOffset, int value) native;
 
-  /** @domName DataView.setUint16; @docsEditable true */
+  /// @domName DataView.setUint16; @docsEditable true
   void setUint16(int byteOffset, int value, {bool littleEndian}) native;
 
-  /** @domName DataView.setUint32; @docsEditable true */
+  /// @domName DataView.setUint32; @docsEditable true
   void setUint32(int byteOffset, int value, {bool littleEndian}) native;
 
-  /** @domName DataView.setUint8; @docsEditable true */
+  /// @domName DataView.setUint8; @docsEditable true
   void setUint8(int byteOffset, int value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6187,16 +6177,16 @@ class DataView extends ArrayBufferView native "*DataView" {
 /// @domName Database; @docsEditable true
 class Database native "*Database" {
 
-  /** @domName Database.version; @docsEditable true */
+  /// @domName Database.version; @docsEditable true
   final String version;
 
-  /** @domName Database.changeVersion; @docsEditable true */
+  /// @domName Database.changeVersion; @docsEditable true
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback, SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 
-  /** @domName Database.readTransaction; @docsEditable true */
+  /// @domName Database.readTransaction; @docsEditable true
   void readTransaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 
-  /** @domName Database.transaction; @docsEditable true */
+  /// @domName Database.transaction; @docsEditable true
   void transaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6215,19 +6205,19 @@ typedef void DatabaseCallback(database);
 /// @domName DatabaseSync; @docsEditable true
 class DatabaseSync native "*DatabaseSync" {
 
-  /** @domName DatabaseSync.lastErrorMessage; @docsEditable true */
+  /// @domName DatabaseSync.lastErrorMessage; @docsEditable true
   final String lastErrorMessage;
 
-  /** @domName DatabaseSync.version; @docsEditable true */
+  /// @domName DatabaseSync.version; @docsEditable true
   final String version;
 
-  /** @domName DatabaseSync.changeVersion; @docsEditable true */
+  /// @domName DatabaseSync.changeVersion; @docsEditable true
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback]) native;
 
-  /** @domName DatabaseSync.readTransaction; @docsEditable true */
+  /// @domName DatabaseSync.readTransaction; @docsEditable true
   void readTransaction(SQLTransactionSyncCallback callback) native;
 
-  /** @domName DatabaseSync.transaction; @docsEditable true */
+  /// @domName DatabaseSync.transaction; @docsEditable true
   void transaction(SQLTransactionSyncCallback callback) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6238,13 +6228,11 @@ class DatabaseSync native "*DatabaseSync" {
 /// @domName DedicatedWorkerContext; @docsEditable true
 class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerContext" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   DedicatedWorkerContextEvents get on =>
     new DedicatedWorkerContextEvents(this);
 
-  /** @domName DedicatedWorkerContext.postMessage; @docsEditable true */
+  /// @domName DedicatedWorkerContext.postMessage; @docsEditable true
   void postMessage(/*any*/ message, [List messagePorts]) {
     if (?messagePorts) {
       var message_1 = _convertDartToNative_SerializedScriptValue(message);
@@ -6272,7 +6260,7 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 /// @domName DelayNode; @docsEditable true
 class DelayNode extends AudioNode native "*DelayNode" {
 
-  /** @domName DelayNode.delayTime; @docsEditable true */
+  /// @domName DelayNode.delayTime; @docsEditable true
   final AudioParam delayTime;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6285,7 +6273,7 @@ class DetailsElement extends Element implements Element native "*HTMLDetailsElem
 
   factory DetailsElement() => document.$dom_createElement("details");
 
-  /** @domName HTMLDetailsElement.open; @docsEditable true */
+  /// @domName HTMLDetailsElement.open; @docsEditable true
   bool open;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6296,7 +6284,7 @@ class DetailsElement extends Element implements Element native "*HTMLDetailsElem
 /// @domName DeviceMotionEvent; @docsEditable true
 class DeviceMotionEvent extends Event native "*DeviceMotionEvent" {
 
-  /** @domName DeviceMotionEvent.interval; @docsEditable true */
+  /// @domName DeviceMotionEvent.interval; @docsEditable true
   final num interval;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6307,19 +6295,19 @@ class DeviceMotionEvent extends Event native "*DeviceMotionEvent" {
 /// @domName DeviceOrientationEvent; @docsEditable true
 class DeviceOrientationEvent extends Event native "*DeviceOrientationEvent" {
 
-  /** @domName DeviceOrientationEvent.absolute; @docsEditable true */
+  /// @domName DeviceOrientationEvent.absolute; @docsEditable true
   final bool absolute;
 
-  /** @domName DeviceOrientationEvent.alpha; @docsEditable true */
+  /// @domName DeviceOrientationEvent.alpha; @docsEditable true
   final num alpha;
 
-  /** @domName DeviceOrientationEvent.beta; @docsEditable true */
+  /// @domName DeviceOrientationEvent.beta; @docsEditable true
   final num beta;
 
-  /** @domName DeviceOrientationEvent.gamma; @docsEditable true */
+  /// @domName DeviceOrientationEvent.gamma; @docsEditable true
   final num gamma;
 
-  /** @domName DeviceOrientationEvent.initDeviceOrientationEvent; @docsEditable true */
+  /// @domName DeviceOrientationEvent.initDeviceOrientationEvent; @docsEditable true
   void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6330,7 +6318,7 @@ class DeviceOrientationEvent extends Event native "*DeviceOrientationEvent" {
 /// @domName HTMLDirectoryElement; @docsEditable true
 class DirectoryElement extends Element implements Element native "*HTMLDirectoryElement" {
 
-  /** @domName HTMLDirectoryElement.compact; @docsEditable true */
+  /// @domName HTMLDirectoryElement.compact; @docsEditable true
   bool compact;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6341,10 +6329,10 @@ class DirectoryElement extends Element implements Element native "*HTMLDirectory
 /// @domName DirectoryEntry; @docsEditable true
 class DirectoryEntry extends Entry native "*DirectoryEntry" {
 
-  /** @domName DirectoryEntry.createReader; @docsEditable true */
+  /// @domName DirectoryEntry.createReader; @docsEditable true
   DirectoryReader createReader() native;
 
-  /** @domName DirectoryEntry.getDirectory; @docsEditable true */
+  /// @domName DirectoryEntry.getDirectory; @docsEditable true
   void getDirectory(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) {
     if (?errorCallback) {
       var options_1 = _convertDartToNative_Dictionary(options);
@@ -6369,7 +6357,7 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
   void _getDirectory_3(path, options) native "getDirectory";
   void _getDirectory_4(path) native "getDirectory";
 
-  /** @domName DirectoryEntry.getFile; @docsEditable true */
+  /// @domName DirectoryEntry.getFile; @docsEditable true
   void getFile(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) {
     if (?errorCallback) {
       var options_1 = _convertDartToNative_Dictionary(options);
@@ -6394,7 +6382,7 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
   void _getFile_3(path, options) native "getFile";
   void _getFile_4(path) native "getFile";
 
-  /** @domName DirectoryEntry.removeRecursively; @docsEditable true */
+  /// @domName DirectoryEntry.removeRecursively; @docsEditable true
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6405,24 +6393,24 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
 /// @domName DirectoryEntrySync; @docsEditable true
 class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
 
-  /** @domName DirectoryEntrySync.createReader; @docsEditable true */
+  /// @domName DirectoryEntrySync.createReader; @docsEditable true
   DirectoryReaderSync createReader() native;
 
-  /** @domName DirectoryEntrySync.getDirectory; @docsEditable true */
+  /// @domName DirectoryEntrySync.getDirectory; @docsEditable true
   DirectoryEntrySync getDirectory(String path, Map flags) {
     var flags_1 = _convertDartToNative_Dictionary(flags);
     return _getDirectory_1(path, flags_1);
   }
   DirectoryEntrySync _getDirectory_1(path, flags) native "getDirectory";
 
-  /** @domName DirectoryEntrySync.getFile; @docsEditable true */
+  /// @domName DirectoryEntrySync.getFile; @docsEditable true
   FileEntrySync getFile(String path, Map flags) {
     var flags_1 = _convertDartToNative_Dictionary(flags);
     return _getFile_1(path, flags_1);
   }
   FileEntrySync _getFile_1(path, flags) native "getFile";
 
-  /** @domName DirectoryEntrySync.removeRecursively; @docsEditable true */
+  /// @domName DirectoryEntrySync.removeRecursively; @docsEditable true
   void removeRecursively() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6433,7 +6421,7 @@ class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
 /// @domName DirectoryReader; @docsEditable true
 class DirectoryReader native "*DirectoryReader" {
 
-  /** @domName DirectoryReader.readEntries; @docsEditable true */
+  /// @domName DirectoryReader.readEntries; @docsEditable true
   void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6444,7 +6432,7 @@ class DirectoryReader native "*DirectoryReader" {
 /// @domName DirectoryReaderSync; @docsEditable true
 class DirectoryReaderSync native "*DirectoryReaderSync" {
 
-  /** @domName DirectoryReaderSync.readEntries; @docsEditable true */
+  /// @domName DirectoryReaderSync.readEntries; @docsEditable true
   @Returns('_EntryArraySync') @Creates('_EntryArraySync')
   List<EntrySync> readEntries() native;
 }
@@ -6467,173 +6455,171 @@ class Document extends Node  native "*Document"
 {
 
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   DocumentEvents get on =>
     new DocumentEvents(this);
 
-  /** @domName Document.body; @docsEditable true */
+  /// @domName Document.body; @docsEditable true
   Element get $dom_body => JS("Element", "#.body", this);
 
-  /** @domName Document.body; @docsEditable true */
+  /// @domName Document.body; @docsEditable true
   void set $dom_body(Element value) {
     JS("void", "#.body = #", this, value);
   }
 
-  /** @domName Document.charset; @docsEditable true */
+  /// @domName Document.charset; @docsEditable true
   String charset;
 
-  /** @domName Document.cookie; @docsEditable true */
+  /// @domName Document.cookie; @docsEditable true
   String cookie;
 
-  /** @domName Document.defaultView; @docsEditable true */
+  /// @domName Document.defaultView; @docsEditable true
   Window get window => _convertNativeToDart_Window(this._window);
   dynamic get _window => JS("dynamic", "#.defaultView", this);
 
-  /** @domName Document.documentElement; @docsEditable true */
+  /// @domName Document.documentElement; @docsEditable true
   final Element documentElement;
 
-  /** @domName Document.domain; @docsEditable true */
+  /// @domName Document.domain; @docsEditable true
   final String domain;
 
-  /** @domName Document.head; @docsEditable true */
+  /// @domName Document.head; @docsEditable true
   HeadElement get $dom_head => JS("HeadElement", "#.head", this);
 
-  /** @domName Document.implementation; @docsEditable true */
+  /// @domName Document.implementation; @docsEditable true
   final DOMImplementation implementation;
 
-  /** @domName Document.lastModified; @docsEditable true */
+  /// @domName Document.lastModified; @docsEditable true
   String get $dom_lastModified => JS("String", "#.lastModified", this);
 
-  /** @domName Document.preferredStylesheetSet; @docsEditable true */
+  /// @domName Document.preferredStylesheetSet; @docsEditable true
   final String preferredStylesheetSet;
 
-  /** @domName Document.readyState; @docsEditable true */
+  /// @domName Document.readyState; @docsEditable true
   final String readyState;
 
-  /** @domName Document.referrer; @docsEditable true */
+  /// @domName Document.referrer; @docsEditable true
   String get $dom_referrer => JS("String", "#.referrer", this);
 
-  /** @domName Document.selectedStylesheetSet; @docsEditable true */
+  /// @domName Document.selectedStylesheetSet; @docsEditable true
   String selectedStylesheetSet;
 
-  /** @domName Document.styleSheets; @docsEditable true */
+  /// @domName Document.styleSheets; @docsEditable true
   List<StyleSheet> get $dom_styleSheets => JS("_StyleSheetList", "#.styleSheets", this);
 
-  /** @domName Document.title; @docsEditable true */
+  /// @domName Document.title; @docsEditable true
   String get $dom_title => JS("String", "#.title", this);
 
-  /** @domName Document.title; @docsEditable true */
+  /// @domName Document.title; @docsEditable true
   void set $dom_title(String value) {
     JS("void", "#.title = #", this, value);
   }
 
-  /** @domName Document.webkitFullscreenElement; @docsEditable true */
+  /// @domName Document.webkitFullscreenElement; @docsEditable true
   Element get $dom_webkitFullscreenElement => JS("Element", "#.webkitFullscreenElement", this);
 
-  /** @domName Document.webkitFullscreenEnabled; @docsEditable true */
+  /// @domName Document.webkitFullscreenEnabled; @docsEditable true
   bool get $dom_webkitFullscreenEnabled => JS("bool", "#.webkitFullscreenEnabled", this);
 
-  /** @domName Document.webkitHidden; @docsEditable true */
+  /// @domName Document.webkitHidden; @docsEditable true
   bool get $dom_webkitHidden => JS("bool", "#.webkitHidden", this);
 
-  /** @domName Document.webkitIsFullScreen; @docsEditable true */
+  /// @domName Document.webkitIsFullScreen; @docsEditable true
   bool get $dom_webkitIsFullScreen => JS("bool", "#.webkitIsFullScreen", this);
 
-  /** @domName Document.webkitPointerLockElement; @docsEditable true */
+  /// @domName Document.webkitPointerLockElement; @docsEditable true
   Element get $dom_webkitPointerLockElement => JS("Element", "#.webkitPointerLockElement", this);
 
-  /** @domName Document.webkitVisibilityState; @docsEditable true */
+  /// @domName Document.webkitVisibilityState; @docsEditable true
   String get $dom_webkitVisibilityState => JS("String", "#.webkitVisibilityState", this);
 
-  /** @domName Document.caretRangeFromPoint; @docsEditable true */
+  /// @domName Document.caretRangeFromPoint; @docsEditable true
   Range $dom_caretRangeFromPoint(int x, int y) native "caretRangeFromPoint";
 
-  /** @domName Document.createCDATASection; @docsEditable true */
+  /// @domName Document.createCDATASection; @docsEditable true
   CDATASection createCDATASection(String data) native;
 
-  /** @domName Document.createDocumentFragment; @docsEditable true */
+  /// @domName Document.createDocumentFragment; @docsEditable true
   DocumentFragment createDocumentFragment() native;
 
-  /** @domName Document.createElement; @docsEditable true */
+  /// @domName Document.createElement; @docsEditable true
   Element $dom_createElement(String tagName) native "createElement";
 
-  /** @domName Document.createElementNS; @docsEditable true */
+  /// @domName Document.createElementNS; @docsEditable true
   Element $dom_createElementNS(String namespaceURI, String qualifiedName) native "createElementNS";
 
-  /** @domName Document.createEvent; @docsEditable true */
+  /// @domName Document.createEvent; @docsEditable true
   Event $dom_createEvent(String eventType) native "createEvent";
 
-  /** @domName Document.createRange; @docsEditable true */
+  /// @domName Document.createRange; @docsEditable true
   Range createRange() native;
 
-  /** @domName Document.createTextNode; @docsEditable true */
+  /// @domName Document.createTextNode; @docsEditable true
   Text $dom_createTextNode(String data) native "createTextNode";
 
-  /** @domName Document.createTouch; @docsEditable true */
+  /// @domName Document.createTouch; @docsEditable true
   Touch createTouch(LocalWindow window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) {
     var target_1 = _convertDartToNative_EventTarget(target);
     return _createTouch_1(window, target_1, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
   }
   Touch _createTouch_1(LocalWindow window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native "createTouch";
 
-  /** @domName Document.createTouchList; @docsEditable true */
+  /// @domName Document.createTouchList; @docsEditable true
   TouchList $dom_createTouchList() native "createTouchList";
 
-  /** @domName Document.elementFromPoint; @docsEditable true */
+  /// @domName Document.elementFromPoint; @docsEditable true
   Element $dom_elementFromPoint(int x, int y) native "elementFromPoint";
 
-  /** @domName Document.execCommand; @docsEditable true */
+  /// @domName Document.execCommand; @docsEditable true
   bool execCommand(String command, bool userInterface, String value) native;
 
-  /** @domName Document.getCSSCanvasContext; @docsEditable true */
+  /// @domName Document.getCSSCanvasContext; @docsEditable true
   CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height) native;
 
-  /** @domName Document.getElementById; @docsEditable true */
+  /// @domName Document.getElementById; @docsEditable true
   Element $dom_getElementById(String elementId) native "getElementById";
 
-  /** @domName Document.getElementsByClassName; @docsEditable true */
+  /// @domName Document.getElementsByClassName; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_getElementsByClassName(String tagname) native "getElementsByClassName";
 
-  /** @domName Document.getElementsByName; @docsEditable true */
+  /// @domName Document.getElementsByName; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_getElementsByName(String elementName) native "getElementsByName";
 
-  /** @domName Document.getElementsByTagName; @docsEditable true */
+  /// @domName Document.getElementsByTagName; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_getElementsByTagName(String tagname) native "getElementsByTagName";
 
-  /** @domName Document.queryCommandEnabled; @docsEditable true */
+  /// @domName Document.queryCommandEnabled; @docsEditable true
   bool queryCommandEnabled(String command) native;
 
-  /** @domName Document.queryCommandIndeterm; @docsEditable true */
+  /// @domName Document.queryCommandIndeterm; @docsEditable true
   bool queryCommandIndeterm(String command) native;
 
-  /** @domName Document.queryCommandState; @docsEditable true */
+  /// @domName Document.queryCommandState; @docsEditable true
   bool queryCommandState(String command) native;
 
-  /** @domName Document.queryCommandSupported; @docsEditable true */
+  /// @domName Document.queryCommandSupported; @docsEditable true
   bool queryCommandSupported(String command) native;
 
-  /** @domName Document.queryCommandValue; @docsEditable true */
+  /// @domName Document.queryCommandValue; @docsEditable true
   String queryCommandValue(String command) native;
 
-  /** @domName Document.querySelector; @docsEditable true */
+  /// @domName Document.querySelector; @docsEditable true
   Element $dom_querySelector(String selectors) native "querySelector";
 
-  /** @domName Document.querySelectorAll; @docsEditable true */
+  /// @domName Document.querySelectorAll; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_querySelectorAll(String selectors) native "querySelectorAll";
 
-  /** @domName Document.webkitCancelFullScreen; @docsEditable true */
+  /// @domName Document.webkitCancelFullScreen; @docsEditable true
   void $dom_webkitCancelFullScreen() native "webkitCancelFullScreen";
 
-  /** @domName Document.webkitExitFullscreen; @docsEditable true */
+  /// @domName Document.webkitExitFullscreen; @docsEditable true
   void $dom_webkitExitFullscreen() native "webkitExitFullscreen";
 
-  /** @domName Document.webkitExitPointerLock; @docsEditable true */
+  /// @domName Document.webkitExitPointerLock; @docsEditable true
   void $dom_webkitExitPointerLock() native "webkitExitPointerLock";
 
   // TODO(jacobr): implement all Element methods not on Document.
@@ -7034,16 +7020,14 @@ class DocumentFragment extends Node native "*DocumentFragment" {
   }
 
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ElementEvents get on =>
     new ElementEvents(this);
 
-  /** @domName DocumentFragment.querySelector; @docsEditable true */
+  /// @domName DocumentFragment.querySelector; @docsEditable true
   Element $dom_querySelector(String selectors) native "querySelector";
 
-  /** @domName DocumentFragment.querySelectorAll; @docsEditable true */
+  /// @domName DocumentFragment.querySelectorAll; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_querySelectorAll(String selectors) native "querySelectorAll";
 
@@ -7056,25 +7040,25 @@ class DocumentFragment extends Node native "*DocumentFragment" {
 /// @domName DocumentType; @docsEditable true
 class DocumentType extends Node native "*DocumentType" {
 
-  /** @domName DocumentType.entities; @docsEditable true */
+  /// @domName DocumentType.entities; @docsEditable true
   final NamedNodeMap entities;
 
-  /** @domName DocumentType.internalSubset; @docsEditable true */
+  /// @domName DocumentType.internalSubset; @docsEditable true
   final String internalSubset;
 
-  /** @domName DocumentType.name; @docsEditable true */
+  /// @domName DocumentType.name; @docsEditable true
   final String name;
 
-  /** @domName DocumentType.notations; @docsEditable true */
+  /// @domName DocumentType.notations; @docsEditable true
   final NamedNodeMap notations;
 
-  /** @domName DocumentType.publicId; @docsEditable true */
+  /// @domName DocumentType.publicId; @docsEditable true
   final String publicId;
 
-  /** @domName DocumentType.systemId; @docsEditable true */
+  /// @domName DocumentType.systemId; @docsEditable true
   final String systemId;
 
-  /** @domName DocumentType.remove; @docsEditable true */
+  /// @domName DocumentType.remove; @docsEditable true
   void remove() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7085,22 +7069,22 @@ class DocumentType extends Node native "*DocumentType" {
 /// @domName DynamicsCompressorNode; @docsEditable true
 class DynamicsCompressorNode extends AudioNode native "*DynamicsCompressorNode" {
 
-  /** @domName DynamicsCompressorNode.attack; @docsEditable true */
+  /// @domName DynamicsCompressorNode.attack; @docsEditable true
   final AudioParam attack;
 
-  /** @domName DynamicsCompressorNode.knee; @docsEditable true */
+  /// @domName DynamicsCompressorNode.knee; @docsEditable true
   final AudioParam knee;
 
-  /** @domName DynamicsCompressorNode.ratio; @docsEditable true */
+  /// @domName DynamicsCompressorNode.ratio; @docsEditable true
   final AudioParam ratio;
 
-  /** @domName DynamicsCompressorNode.reduction; @docsEditable true */
+  /// @domName DynamicsCompressorNode.reduction; @docsEditable true
   final AudioParam reduction;
 
-  /** @domName DynamicsCompressorNode.release; @docsEditable true */
+  /// @domName DynamicsCompressorNode.release; @docsEditable true
   final AudioParam release;
 
-  /** @domName DynamicsCompressorNode.threshold; @docsEditable true */
+  /// @domName DynamicsCompressorNode.threshold; @docsEditable true
   final AudioParam threshold;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7796,192 +7780,190 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   }
 
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ElementEvents get on =>
     new ElementEvents(this);
 
-  /** @domName HTMLElement.children; @docsEditable true */
+  /// @domName HTMLElement.children; @docsEditable true
   HTMLCollection get $dom_children => JS("HTMLCollection", "#.children", this);
 
-  /** @domName HTMLElement.contentEditable; @docsEditable true */
+  /// @domName HTMLElement.contentEditable; @docsEditable true
   String contentEditable;
 
-  /** @domName HTMLElement.dir; @docsEditable true */
+  /// @domName HTMLElement.dir; @docsEditable true
   String dir;
 
-  /** @domName HTMLElement.draggable; @docsEditable true */
+  /// @domName HTMLElement.draggable; @docsEditable true
   bool draggable;
 
-  /** @domName HTMLElement.hidden; @docsEditable true */
+  /// @domName HTMLElement.hidden; @docsEditable true
   bool hidden;
 
-  /** @domName HTMLElement.id; @docsEditable true */
+  /// @domName HTMLElement.id; @docsEditable true
   String id;
 
-  /** @domName HTMLElement.innerHTML; @docsEditable true */
+  /// @domName HTMLElement.innerHTML; @docsEditable true
   String innerHTML;
 
-  /** @domName HTMLElement.isContentEditable; @docsEditable true */
+  /// @domName HTMLElement.isContentEditable; @docsEditable true
   final bool isContentEditable;
 
-  /** @domName HTMLElement.lang; @docsEditable true */
+  /// @domName HTMLElement.lang; @docsEditable true
   String lang;
 
-  /** @domName HTMLElement.outerHTML; @docsEditable true */
+  /// @domName HTMLElement.outerHTML; @docsEditable true
   final String outerHTML;
 
-  /** @domName HTMLElement.spellcheck; @docsEditable true */
+  /// @domName HTMLElement.spellcheck; @docsEditable true
   bool spellcheck;
 
-  /** @domName HTMLElement.tabIndex; @docsEditable true */
+  /// @domName HTMLElement.tabIndex; @docsEditable true
   int tabIndex;
 
-  /** @domName HTMLElement.title; @docsEditable true */
+  /// @domName HTMLElement.title; @docsEditable true
   String title;
 
-  /** @domName HTMLElement.translate; @docsEditable true */
+  /// @domName HTMLElement.translate; @docsEditable true
   bool translate;
 
-  /** @domName HTMLElement.webkitdropzone; @docsEditable true */
+  /// @domName HTMLElement.webkitdropzone; @docsEditable true
   String webkitdropzone;
 
-  /** @domName HTMLElement.click; @docsEditable true */
+  /// @domName HTMLElement.click; @docsEditable true
   void click() native;
 
   static const int ALLOW_KEYBOARD_INPUT = 1;
 
-  /** @domName Element.childElementCount; @docsEditable true */
+  /// @domName Element.childElementCount; @docsEditable true
   int get $dom_childElementCount => JS("int", "#.childElementCount", this);
 
-  /** @domName Element.className; @docsEditable true */
+  /// @domName Element.className; @docsEditable true
   String get $dom_className => JS("String", "#.className", this);
 
-  /** @domName Element.className; @docsEditable true */
+  /// @domName Element.className; @docsEditable true
   void set $dom_className(String value) {
     JS("void", "#.className = #", this, value);
   }
 
-  /** @domName Element.clientHeight; @docsEditable true */
+  /// @domName Element.clientHeight; @docsEditable true
   final int clientHeight;
 
-  /** @domName Element.clientLeft; @docsEditable true */
+  /// @domName Element.clientLeft; @docsEditable true
   final int clientLeft;
 
-  /** @domName Element.clientTop; @docsEditable true */
+  /// @domName Element.clientTop; @docsEditable true
   final int clientTop;
 
-  /** @domName Element.clientWidth; @docsEditable true */
+  /// @domName Element.clientWidth; @docsEditable true
   final int clientWidth;
 
-  /** @domName Element.dataset; @docsEditable true */
+  /// @domName Element.dataset; @docsEditable true
   final Map<String, String> dataset;
 
-  /** @domName Element.firstElementChild; @docsEditable true */
+  /// @domName Element.firstElementChild; @docsEditable true
   Element get $dom_firstElementChild => JS("Element", "#.firstElementChild", this);
 
-  /** @domName Element.lastElementChild; @docsEditable true */
+  /// @domName Element.lastElementChild; @docsEditable true
   Element get $dom_lastElementChild => JS("Element", "#.lastElementChild", this);
 
-  /** @domName Element.nextElementSibling; @docsEditable true */
+  /// @domName Element.nextElementSibling; @docsEditable true
   final Element nextElementSibling;
 
-  /** @domName Element.offsetHeight; @docsEditable true */
+  /// @domName Element.offsetHeight; @docsEditable true
   final int offsetHeight;
 
-  /** @domName Element.offsetLeft; @docsEditable true */
+  /// @domName Element.offsetLeft; @docsEditable true
   final int offsetLeft;
 
-  /** @domName Element.offsetParent; @docsEditable true */
+  /// @domName Element.offsetParent; @docsEditable true
   final Element offsetParent;
 
-  /** @domName Element.offsetTop; @docsEditable true */
+  /// @domName Element.offsetTop; @docsEditable true
   final int offsetTop;
 
-  /** @domName Element.offsetWidth; @docsEditable true */
+  /// @domName Element.offsetWidth; @docsEditable true
   final int offsetWidth;
 
-  /** @domName Element.previousElementSibling; @docsEditable true */
+  /// @domName Element.previousElementSibling; @docsEditable true
   final Element previousElementSibling;
 
-  /** @domName Element.scrollHeight; @docsEditable true */
+  /// @domName Element.scrollHeight; @docsEditable true
   final int scrollHeight;
 
-  /** @domName Element.scrollLeft; @docsEditable true */
+  /// @domName Element.scrollLeft; @docsEditable true
   int scrollLeft;
 
-  /** @domName Element.scrollTop; @docsEditable true */
+  /// @domName Element.scrollTop; @docsEditable true
   int scrollTop;
 
-  /** @domName Element.scrollWidth; @docsEditable true */
+  /// @domName Element.scrollWidth; @docsEditable true
   final int scrollWidth;
 
-  /** @domName Element.style; @docsEditable true */
+  /// @domName Element.style; @docsEditable true
   final CSSStyleDeclaration style;
 
-  /** @domName Element.tagName; @docsEditable true */
+  /// @domName Element.tagName; @docsEditable true
   final String tagName;
 
-  /** @domName Element.blur; @docsEditable true */
+  /// @domName Element.blur; @docsEditable true
   void blur() native;
 
-  /** @domName Element.focus; @docsEditable true */
+  /// @domName Element.focus; @docsEditable true
   void focus() native;
 
-  /** @domName Element.getAttribute; @docsEditable true */
+  /// @domName Element.getAttribute; @docsEditable true
   String $dom_getAttribute(String name) native "getAttribute";
 
-  /** @domName Element.getBoundingClientRect; @docsEditable true */
+  /// @domName Element.getBoundingClientRect; @docsEditable true
   ClientRect getBoundingClientRect() native;
 
-  /** @domName Element.getClientRects; @docsEditable true */
+  /// @domName Element.getClientRects; @docsEditable true
   @Returns('_ClientRectList') @Creates('_ClientRectList')
   List<ClientRect> getClientRects() native;
 
-  /** @domName Element.getElementsByClassName; @docsEditable true */
+  /// @domName Element.getElementsByClassName; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_getElementsByClassName(String name) native "getElementsByClassName";
 
-  /** @domName Element.getElementsByTagName; @docsEditable true */
+  /// @domName Element.getElementsByTagName; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_getElementsByTagName(String name) native "getElementsByTagName";
 
-  /** @domName Element.hasAttribute; @docsEditable true */
+  /// @domName Element.hasAttribute; @docsEditable true
   bool $dom_hasAttribute(String name) native "hasAttribute";
 
-  /** @domName Element.querySelector; @docsEditable true */
+  /// @domName Element.querySelector; @docsEditable true
   Element $dom_querySelector(String selectors) native "querySelector";
 
-  /** @domName Element.querySelectorAll; @docsEditable true */
+  /// @domName Element.querySelectorAll; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_querySelectorAll(String selectors) native "querySelectorAll";
 
-  /** @domName Element.removeAttribute; @docsEditable true */
+  /// @domName Element.removeAttribute; @docsEditable true
   void $dom_removeAttribute(String name) native "removeAttribute";
 
-  /** @domName Element.scrollByLines; @docsEditable true */
+  /// @domName Element.scrollByLines; @docsEditable true
   void scrollByLines(int lines) native;
 
-  /** @domName Element.scrollByPages; @docsEditable true */
+  /// @domName Element.scrollByPages; @docsEditable true
   void scrollByPages(int pages) native;
 
-  /** @domName Element.scrollIntoViewIfNeeded; @docsEditable true */
+  /// @domName Element.scrollIntoViewIfNeeded; @docsEditable true
   void scrollIntoView([bool centerIfNeeded]) native "scrollIntoViewIfNeeded";
 
-  /** @domName Element.setAttribute; @docsEditable true */
+  /// @domName Element.setAttribute; @docsEditable true
   void $dom_setAttribute(String name, String value) native "setAttribute";
 
-  /** @domName Element.webkitMatchesSelector; @docsEditable true */
+  /// @domName Element.webkitMatchesSelector; @docsEditable true
   bool matchesSelector(String selectors) native "webkitMatchesSelector";
 
-  /** @domName Element.webkitRequestFullScreen; @docsEditable true */
+  /// @domName Element.webkitRequestFullScreen; @docsEditable true
   void webkitRequestFullScreen(int flags) native;
 
-  /** @domName Element.webkitRequestFullscreen; @docsEditable true */
+  /// @domName Element.webkitRequestFullscreen; @docsEditable true
   void webkitRequestFullscreen() native;
 
-  /** @domName Element.webkitRequestPointerLock; @docsEditable true */
+  /// @domName Element.webkitRequestPointerLock; @docsEditable true
   void webkitRequestPointerLock() native;
 
 }
@@ -8170,16 +8152,16 @@ class ElementEvents extends Events {
 /// @domName ElementTimeControl
 abstract class ElementTimeControl {
 
-  /** @domName ElementTimeControl.beginElement; @docsEditable true */
+  /// @domName ElementTimeControl.beginElement; @docsEditable true
   void beginElement();
 
-  /** @domName ElementTimeControl.beginElementAt; @docsEditable true */
+  /// @domName ElementTimeControl.beginElementAt; @docsEditable true
   void beginElementAt(num offset);
 
-  /** @domName ElementTimeControl.endElement; @docsEditable true */
+  /// @domName ElementTimeControl.endElement; @docsEditable true
   void endElement();
 
-  /** @domName ElementTimeControl.endElementAt; @docsEditable true */
+  /// @domName ElementTimeControl.endElementAt; @docsEditable true
   void endElementAt(num offset);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8210,22 +8192,22 @@ class EmbedElement extends Element implements Element native "*HTMLEmbedElement"
 
   factory EmbedElement() => document.$dom_createElement("embed");
 
-  /** @domName HTMLEmbedElement.align; @docsEditable true */
+  /// @domName HTMLEmbedElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLEmbedElement.height; @docsEditable true */
+  /// @domName HTMLEmbedElement.height; @docsEditable true
   String height;
 
-  /** @domName HTMLEmbedElement.name; @docsEditable true */
+  /// @domName HTMLEmbedElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLEmbedElement.src; @docsEditable true */
+  /// @domName HTMLEmbedElement.src; @docsEditable true
   String src;
 
-  /** @domName HTMLEmbedElement.type; @docsEditable true */
+  /// @domName HTMLEmbedElement.type; @docsEditable true
   String type;
 
-  /** @domName HTMLEmbedElement.width; @docsEditable true */
+  /// @domName HTMLEmbedElement.width; @docsEditable true
   String width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8252,37 +8234,37 @@ typedef void EntriesCallback(List<Entry> entries);
 /// @domName Entry; @docsEditable true
 class Entry native "*Entry" {
 
-  /** @domName Entry.filesystem; @docsEditable true */
+  /// @domName Entry.filesystem; @docsEditable true
   final DOMFileSystem filesystem;
 
-  /** @domName Entry.fullPath; @docsEditable true */
+  /// @domName Entry.fullPath; @docsEditable true
   final String fullPath;
 
-  /** @domName Entry.isDirectory; @docsEditable true */
+  /// @domName Entry.isDirectory; @docsEditable true
   final bool isDirectory;
 
-  /** @domName Entry.isFile; @docsEditable true */
+  /// @domName Entry.isFile; @docsEditable true
   final bool isFile;
 
-  /** @domName Entry.name; @docsEditable true */
+  /// @domName Entry.name; @docsEditable true
   final String name;
 
-  /** @domName Entry.copyTo; @docsEditable true */
+  /// @domName Entry.copyTo; @docsEditable true
   void copyTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  /** @domName Entry.getMetadata; @docsEditable true */
+  /// @domName Entry.getMetadata; @docsEditable true
   void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  /** @domName Entry.getParent; @docsEditable true */
+  /// @domName Entry.getParent; @docsEditable true
   void getParent([EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  /** @domName Entry.moveTo; @docsEditable true */
+  /// @domName Entry.moveTo; @docsEditable true
   void moveTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  /** @domName Entry.remove; @docsEditable true */
+  /// @domName Entry.remove; @docsEditable true
   void remove(VoidCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  /** @domName Entry.toURL; @docsEditable true */
+  /// @domName Entry.toURL; @docsEditable true
   String toURL() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8301,37 +8283,37 @@ typedef void EntryCallback(Entry entry);
 /// @domName EntrySync; @docsEditable true
 class EntrySync native "*EntrySync" {
 
-  /** @domName EntrySync.filesystem; @docsEditable true */
+  /// @domName EntrySync.filesystem; @docsEditable true
   final DOMFileSystemSync filesystem;
 
-  /** @domName EntrySync.fullPath; @docsEditable true */
+  /// @domName EntrySync.fullPath; @docsEditable true
   final String fullPath;
 
-  /** @domName EntrySync.isDirectory; @docsEditable true */
+  /// @domName EntrySync.isDirectory; @docsEditable true
   final bool isDirectory;
 
-  /** @domName EntrySync.isFile; @docsEditable true */
+  /// @domName EntrySync.isFile; @docsEditable true
   final bool isFile;
 
-  /** @domName EntrySync.name; @docsEditable true */
+  /// @domName EntrySync.name; @docsEditable true
   final String name;
 
-  /** @domName EntrySync.copyTo; @docsEditable true */
+  /// @domName EntrySync.copyTo; @docsEditable true
   EntrySync copyTo(DirectoryEntrySync parent, String name) native;
 
-  /** @domName EntrySync.getMetadata; @docsEditable true */
+  /// @domName EntrySync.getMetadata; @docsEditable true
   Metadata getMetadata() native;
 
-  /** @domName EntrySync.getParent; @docsEditable true */
+  /// @domName EntrySync.getParent; @docsEditable true
   EntrySync getParent() native;
 
-  /** @domName EntrySync.moveTo; @docsEditable true */
+  /// @domName EntrySync.moveTo; @docsEditable true
   EntrySync moveTo(DirectoryEntrySync parent, String name) native;
 
-  /** @domName EntrySync.remove; @docsEditable true */
+  /// @domName EntrySync.remove; @docsEditable true
   void remove() native;
 
-  /** @domName EntrySync.toURL; @docsEditable true */
+  /// @domName EntrySync.toURL; @docsEditable true
   String toURL() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8350,13 +8332,13 @@ typedef void ErrorCallback(FileError error);
 /// @domName ErrorEvent; @docsEditable true
 class ErrorEvent extends Event native "*ErrorEvent" {
 
-  /** @domName ErrorEvent.filename; @docsEditable true */
+  /// @domName ErrorEvent.filename; @docsEditable true
   final String filename;
 
-  /** @domName ErrorEvent.lineno; @docsEditable true */
+  /// @domName ErrorEvent.lineno; @docsEditable true
   final int lineno;
 
-  /** @domName ErrorEvent.message; @docsEditable true */
+  /// @domName ErrorEvent.message; @docsEditable true
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8416,51 +8398,51 @@ class Event native "*Event" {
 
   static const int SELECT = 16384;
 
-  /** @domName Event.bubbles; @docsEditable true */
+  /// @domName Event.bubbles; @docsEditable true
   final bool bubbles;
 
-  /** @domName Event.cancelBubble; @docsEditable true */
+  /// @domName Event.cancelBubble; @docsEditable true
   bool cancelBubble;
 
-  /** @domName Event.cancelable; @docsEditable true */
+  /// @domName Event.cancelable; @docsEditable true
   final bool cancelable;
 
-  /** @domName Event.clipboardData; @docsEditable true */
+  /// @domName Event.clipboardData; @docsEditable true
   final Clipboard clipboardData;
 
-  /** @domName Event.currentTarget; @docsEditable true */
+  /// @domName Event.currentTarget; @docsEditable true
   EventTarget get currentTarget => _convertNativeToDart_EventTarget(this._currentTarget);
   dynamic get _currentTarget => JS("dynamic", "#.currentTarget", this);
 
-  /** @domName Event.defaultPrevented; @docsEditable true */
+  /// @domName Event.defaultPrevented; @docsEditable true
   final bool defaultPrevented;
 
-  /** @domName Event.eventPhase; @docsEditable true */
+  /// @domName Event.eventPhase; @docsEditable true
   final int eventPhase;
 
-  /** @domName Event.returnValue; @docsEditable true */
+  /// @domName Event.returnValue; @docsEditable true
   bool returnValue;
 
-  /** @domName Event.target; @docsEditable true */
+  /// @domName Event.target; @docsEditable true
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
   dynamic get _target => JS("dynamic", "#.target", this);
 
-  /** @domName Event.timeStamp; @docsEditable true */
+  /// @domName Event.timeStamp; @docsEditable true
   final int timeStamp;
 
-  /** @domName Event.type; @docsEditable true */
+  /// @domName Event.type; @docsEditable true
   final String type;
 
-  /** @domName Event.initEvent; @docsEditable true */
+  /// @domName Event.initEvent; @docsEditable true
   void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) native "initEvent";
 
-  /** @domName Event.preventDefault; @docsEditable true */
+  /// @domName Event.preventDefault; @docsEditable true
   void preventDefault() native;
 
-  /** @domName Event.stopImmediatePropagation; @docsEditable true */
+  /// @domName Event.stopImmediatePropagation; @docsEditable true
   void stopImmediatePropagation() native;
 
-  /** @domName Event.stopPropagation; @docsEditable true */
+  /// @domName Event.stopPropagation; @docsEditable true
   void stopPropagation() native;
 
 }
@@ -8476,16 +8458,16 @@ class EventException native "*EventException" {
 
   static const int UNSPECIFIED_EVENT_TYPE_ERR = 0;
 
-  /** @domName EventException.code; @docsEditable true */
+  /// @domName EventException.code; @docsEditable true
   final int code;
 
-  /** @domName EventException.message; @docsEditable true */
+  /// @domName EventException.message; @docsEditable true
   final String message;
 
-  /** @domName EventException.name; @docsEditable true */
+  /// @domName EventException.name; @docsEditable true
   final String name;
 
-  /** @domName EventException.toString; @docsEditable true */
+  /// @domName EventException.toString; @docsEditable true
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8498,9 +8480,7 @@ class EventSource extends EventTarget native "*EventSource" {
 
   factory EventSource(String scriptUrl) => _EventSourceFactoryProvider.createEventSource(scriptUrl);
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   EventSourceEvents get on =>
     new EventSourceEvents(this);
 
@@ -8510,25 +8490,25 @@ class EventSource extends EventTarget native "*EventSource" {
 
   static const int OPEN = 1;
 
-  /** @domName EventSource.URL; @docsEditable true */
+  /// @domName EventSource.URL; @docsEditable true
   final String URL;
 
-  /** @domName EventSource.readyState; @docsEditable true */
+  /// @domName EventSource.readyState; @docsEditable true
   final int readyState;
 
-  /** @domName EventSource.url; @docsEditable true */
+  /// @domName EventSource.url; @docsEditable true
   final String url;
 
-  /** @domName EventSource.addEventListener; @docsEditable true */
+  /// @domName EventSource.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName EventSource.close; @docsEditable true */
+  /// @domName EventSource.close; @docsEditable true
   void close() native;
 
-  /** @domName EventSource.dispatchEvent; @docsEditable true */
+  /// @domName EventSource.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName EventSource.removeEventListener; @docsEditable true */
+  /// @domName EventSource.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -8597,13 +8577,13 @@ class EventTarget native "*EventTarget" {
   /** @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent */
   Events get on => new Events(this);
 
-  /** @domName EventTarget.addEventListener; @docsEditable true */
+  /// @domName EventTarget.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName EventTarget.dispatchEvent; @docsEditable true */
+  /// @domName EventTarget.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
-  /** @domName EventTarget.removeEventListener; @docsEditable true */
+  /// @domName EventTarget.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
 }
@@ -8617,34 +8597,34 @@ class FieldSetElement extends Element implements Element native "*HTMLFieldSetEl
 
   factory FieldSetElement() => document.$dom_createElement("fieldset");
 
-  /** @domName HTMLFieldSetElement.disabled; @docsEditable true */
+  /// @domName HTMLFieldSetElement.disabled; @docsEditable true
   bool disabled;
 
-  /** @domName HTMLFieldSetElement.elements; @docsEditable true */
+  /// @domName HTMLFieldSetElement.elements; @docsEditable true
   final HTMLCollection elements;
 
-  /** @domName HTMLFieldSetElement.form; @docsEditable true */
+  /// @domName HTMLFieldSetElement.form; @docsEditable true
   final FormElement form;
 
-  /** @domName HTMLFieldSetElement.name; @docsEditable true */
+  /// @domName HTMLFieldSetElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLFieldSetElement.type; @docsEditable true */
+  /// @domName HTMLFieldSetElement.type; @docsEditable true
   final String type;
 
-  /** @domName HTMLFieldSetElement.validationMessage; @docsEditable true */
+  /// @domName HTMLFieldSetElement.validationMessage; @docsEditable true
   final String validationMessage;
 
-  /** @domName HTMLFieldSetElement.validity; @docsEditable true */
+  /// @domName HTMLFieldSetElement.validity; @docsEditable true
   final ValidityState validity;
 
-  /** @domName HTMLFieldSetElement.willValidate; @docsEditable true */
+  /// @domName HTMLFieldSetElement.willValidate; @docsEditable true
   final bool willValidate;
 
-  /** @domName HTMLFieldSetElement.checkValidity; @docsEditable true */
+  /// @domName HTMLFieldSetElement.checkValidity; @docsEditable true
   bool checkValidity() native;
 
-  /** @domName HTMLFieldSetElement.setCustomValidity; @docsEditable true */
+  /// @domName HTMLFieldSetElement.setCustomValidity; @docsEditable true
   void setCustomValidity(String error) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8655,13 +8635,13 @@ class FieldSetElement extends Element implements Element native "*HTMLFieldSetEl
 /// @domName File; @docsEditable true
 class File extends Blob native "*File" {
 
-  /** @domName File.lastModifiedDate; @docsEditable true */
+  /// @domName File.lastModifiedDate; @docsEditable true
   final Date lastModifiedDate;
 
-  /** @domName File.name; @docsEditable true */
+  /// @domName File.name; @docsEditable true
   final String name;
 
-  /** @domName File.webkitRelativePath; @docsEditable true */
+  /// @domName File.webkitRelativePath; @docsEditable true
   final String webkitRelativePath;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8680,10 +8660,10 @@ typedef void FileCallback(File file);
 /// @domName FileEntry; @docsEditable true
 class FileEntry extends Entry native "*FileEntry" {
 
-  /** @domName FileEntry.createWriter; @docsEditable true */
+  /// @domName FileEntry.createWriter; @docsEditable true
   void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  /** @domName FileEntry.file; @docsEditable true */
+  /// @domName FileEntry.file; @docsEditable true
   void file(FileCallback successCallback, [ErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8694,10 +8674,10 @@ class FileEntry extends Entry native "*FileEntry" {
 /// @domName FileEntrySync; @docsEditable true
 class FileEntrySync extends EntrySync native "*FileEntrySync" {
 
-  /** @domName FileEntrySync.createWriter; @docsEditable true */
+  /// @domName FileEntrySync.createWriter; @docsEditable true
   FileWriterSync createWriter() native;
 
-  /** @domName FileEntrySync.file; @docsEditable true */
+  /// @domName FileEntrySync.file; @docsEditable true
   File file() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8732,7 +8712,7 @@ class FileError native "*FileError" {
 
   static const int TYPE_MISMATCH_ERR = 11;
 
-  /** @domName FileError.code; @docsEditable true */
+  /// @domName FileError.code; @docsEditable true
   final int code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8767,16 +8747,16 @@ class FileException native "*FileException" {
 
   static const int TYPE_MISMATCH_ERR = 11;
 
-  /** @domName FileException.code; @docsEditable true */
+  /// @domName FileException.code; @docsEditable true
   final int code;
 
-  /** @domName FileException.message; @docsEditable true */
+  /// @domName FileException.message; @docsEditable true
   final String message;
 
-  /** @domName FileException.name; @docsEditable true */
+  /// @domName FileException.name; @docsEditable true
   final String name;
 
-  /** @domName FileException.toString; @docsEditable true */
+  /// @domName FileException.toString; @docsEditable true
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8789,9 +8769,7 @@ class FileReader extends EventTarget native "*FileReader" {
 
   factory FileReader() => _FileReaderFactoryProvider.createFileReader();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FileReaderEvents get on =>
     new FileReaderEvents(this);
 
@@ -8801,38 +8779,38 @@ class FileReader extends EventTarget native "*FileReader" {
 
   static const int LOADING = 1;
 
-  /** @domName FileReader.error; @docsEditable true */
+  /// @domName FileReader.error; @docsEditable true
   final FileError error;
 
-  /** @domName FileReader.readyState; @docsEditable true */
+  /// @domName FileReader.readyState; @docsEditable true
   final int readyState;
 
-  /** @domName FileReader.result; @docsEditable true */
+  /// @domName FileReader.result; @docsEditable true
   @Creates('String|ArrayBuffer|Null')
   final Object result;
 
-  /** @domName FileReader.abort; @docsEditable true */
+  /// @domName FileReader.abort; @docsEditable true
   void abort() native;
 
-  /** @domName FileReader.addEventListener; @docsEditable true */
+  /// @domName FileReader.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName FileReader.dispatchEvent; @docsEditable true */
+  /// @domName FileReader.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName FileReader.readAsArrayBuffer; @docsEditable true */
+  /// @domName FileReader.readAsArrayBuffer; @docsEditable true
   void readAsArrayBuffer(Blob blob) native;
 
-  /** @domName FileReader.readAsBinaryString; @docsEditable true */
+  /// @domName FileReader.readAsBinaryString; @docsEditable true
   void readAsBinaryString(Blob blob) native;
 
-  /** @domName FileReader.readAsDataURL; @docsEditable true */
+  /// @domName FileReader.readAsDataURL; @docsEditable true
   void readAsDataURL(Blob blob) native;
 
-  /** @domName FileReader.readAsText; @docsEditable true */
+  /// @domName FileReader.readAsText; @docsEditable true
   void readAsText(Blob blob, [String encoding]) native;
 
-  /** @domName FileReader.removeEventListener; @docsEditable true */
+  /// @domName FileReader.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -8861,16 +8839,16 @@ class FileReaderSync native "*FileReaderSync" {
 
   factory FileReaderSync() => _FileReaderSyncFactoryProvider.createFileReaderSync();
 
-  /** @domName FileReaderSync.readAsArrayBuffer; @docsEditable true */
+  /// @domName FileReaderSync.readAsArrayBuffer; @docsEditable true
   ArrayBuffer readAsArrayBuffer(Blob blob) native;
 
-  /** @domName FileReaderSync.readAsBinaryString; @docsEditable true */
+  /// @domName FileReaderSync.readAsBinaryString; @docsEditable true
   String readAsBinaryString(Blob blob) native;
 
-  /** @domName FileReaderSync.readAsDataURL; @docsEditable true */
+  /// @domName FileReaderSync.readAsDataURL; @docsEditable true
   String readAsDataURL(Blob blob) native;
 
-  /** @domName FileReaderSync.readAsText; @docsEditable true */
+  /// @domName FileReaderSync.readAsText; @docsEditable true
   String readAsText(Blob blob, [String encoding]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8889,9 +8867,7 @@ typedef void FileSystemCallback(DOMFileSystem fileSystem);
 /// @domName FileWriter; @docsEditable true
 class FileWriter extends EventTarget native "*FileWriter" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FileWriterEvents get on =>
     new FileWriterEvents(this);
 
@@ -8901,37 +8877,37 @@ class FileWriter extends EventTarget native "*FileWriter" {
 
   static const int WRITING = 1;
 
-  /** @domName FileWriter.error; @docsEditable true */
+  /// @domName FileWriter.error; @docsEditable true
   final FileError error;
 
-  /** @domName FileWriter.length; @docsEditable true */
+  /// @domName FileWriter.length; @docsEditable true
   final int length;
 
-  /** @domName FileWriter.position; @docsEditable true */
+  /// @domName FileWriter.position; @docsEditable true
   final int position;
 
-  /** @domName FileWriter.readyState; @docsEditable true */
+  /// @domName FileWriter.readyState; @docsEditable true
   final int readyState;
 
-  /** @domName FileWriter.abort; @docsEditable true */
+  /// @domName FileWriter.abort; @docsEditable true
   void abort() native;
 
-  /** @domName FileWriter.addEventListener; @docsEditable true */
+  /// @domName FileWriter.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName FileWriter.dispatchEvent; @docsEditable true */
+  /// @domName FileWriter.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName FileWriter.removeEventListener; @docsEditable true */
+  /// @domName FileWriter.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName FileWriter.seek; @docsEditable true */
+  /// @domName FileWriter.seek; @docsEditable true
   void seek(int position) native;
 
-  /** @domName FileWriter.truncate; @docsEditable true */
+  /// @domName FileWriter.truncate; @docsEditable true
   void truncate(int size) native;
 
-  /** @domName FileWriter.write; @docsEditable true */
+  /// @domName FileWriter.write; @docsEditable true
   void write(Blob data) native;
 }
 
@@ -8966,19 +8942,19 @@ typedef void FileWriterCallback(FileWriter fileWriter);
 /// @domName FileWriterSync; @docsEditable true
 class FileWriterSync native "*FileWriterSync" {
 
-  /** @domName FileWriterSync.length; @docsEditable true */
+  /// @domName FileWriterSync.length; @docsEditable true
   final int length;
 
-  /** @domName FileWriterSync.position; @docsEditable true */
+  /// @domName FileWriterSync.position; @docsEditable true
   final int position;
 
-  /** @domName FileWriterSync.seek; @docsEditable true */
+  /// @domName FileWriterSync.seek; @docsEditable true
   void seek(int position) native;
 
-  /** @domName FileWriterSync.truncate; @docsEditable true */
+  /// @domName FileWriterSync.truncate; @docsEditable true
   void truncate(int size) native;
 
-  /** @domName FileWriterSync.write; @docsEditable true */
+  /// @domName FileWriterSync.write; @docsEditable true
   void write(Blob data) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9000,7 +8976,7 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   static const int BYTES_PER_ELEMENT = 4;
 
-  /** @domName Float32Array.length; @docsEditable true */
+  /// @domName Float32Array.length; @docsEditable true
   final int length;
 
   num operator[](int index) => JS("num", "#[#]", this, index);
@@ -9085,10 +9061,10 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   // -- end List<num> mixins.
 
-  /** @domName Float32Array.setElements; @docsEditable true */
+  /// @domName Float32Array.setElements; @docsEditable true
   void setElements(Object array, [int offset]) native "set";
 
-  /** @domName Float32Array.subarray; @docsEditable true */
+  /// @domName Float32Array.subarray; @docsEditable true
   Float32Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9110,7 +9086,7 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   static const int BYTES_PER_ELEMENT = 8;
 
-  /** @domName Float64Array.length; @docsEditable true */
+  /// @domName Float64Array.length; @docsEditable true
   final int length;
 
   num operator[](int index) => JS("num", "#[#]", this, index);
@@ -9195,10 +9171,10 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   // -- end List<num> mixins.
 
-  /** @domName Float64Array.setElements; @docsEditable true */
+  /// @domName Float64Array.setElements; @docsEditable true
   void setElements(Object array, [int offset]) native "set";
 
-  /** @domName Float64Array.subarray; @docsEditable true */
+  /// @domName Float64Array.subarray; @docsEditable true
   Float64Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9209,13 +9185,13 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 /// @domName HTMLFontElement; @docsEditable true
 class FontElement extends Element implements Element native "*HTMLFontElement" {
 
-  /** @domName HTMLFontElement.color; @docsEditable true */
+  /// @domName HTMLFontElement.color; @docsEditable true
   String color;
 
-  /** @domName HTMLFontElement.face; @docsEditable true */
+  /// @domName HTMLFontElement.face; @docsEditable true
   String face;
 
-  /** @domName HTMLFontElement.size; @docsEditable true */
+  /// @domName HTMLFontElement.size; @docsEditable true
   String size;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9233,7 +9209,7 @@ class FormData native "*FormData" {
     return _FormDataFactoryProvider.createFormData(form);
   }
 
-  /** @domName FormData.append; @docsEditable true */
+  /// @domName FormData.append; @docsEditable true
   void append(String name, String value, String filename) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9246,43 +9222,43 @@ class FormElement extends Element implements Element native "*HTMLFormElement" {
 
   factory FormElement() => document.$dom_createElement("form");
 
-  /** @domName HTMLFormElement.acceptCharset; @docsEditable true */
+  /// @domName HTMLFormElement.acceptCharset; @docsEditable true
   String acceptCharset;
 
-  /** @domName HTMLFormElement.action; @docsEditable true */
+  /// @domName HTMLFormElement.action; @docsEditable true
   String action;
 
-  /** @domName HTMLFormElement.autocomplete; @docsEditable true */
+  /// @domName HTMLFormElement.autocomplete; @docsEditable true
   String autocomplete;
 
-  /** @domName HTMLFormElement.encoding; @docsEditable true */
+  /// @domName HTMLFormElement.encoding; @docsEditable true
   String encoding;
 
-  /** @domName HTMLFormElement.enctype; @docsEditable true */
+  /// @domName HTMLFormElement.enctype; @docsEditable true
   String enctype;
 
-  /** @domName HTMLFormElement.length; @docsEditable true */
+  /// @domName HTMLFormElement.length; @docsEditable true
   final int length;
 
-  /** @domName HTMLFormElement.method; @docsEditable true */
+  /// @domName HTMLFormElement.method; @docsEditable true
   String method;
 
-  /** @domName HTMLFormElement.name; @docsEditable true */
+  /// @domName HTMLFormElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLFormElement.noValidate; @docsEditable true */
+  /// @domName HTMLFormElement.noValidate; @docsEditable true
   bool noValidate;
 
-  /** @domName HTMLFormElement.target; @docsEditable true */
+  /// @domName HTMLFormElement.target; @docsEditable true
   String target;
 
-  /** @domName HTMLFormElement.checkValidity; @docsEditable true */
+  /// @domName HTMLFormElement.checkValidity; @docsEditable true
   bool checkValidity() native;
 
-  /** @domName HTMLFormElement.reset; @docsEditable true */
+  /// @domName HTMLFormElement.reset; @docsEditable true
   void reset() native;
 
-  /** @domName HTMLFormElement.submit; @docsEditable true */
+  /// @domName HTMLFormElement.submit; @docsEditable true
   void submit() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9293,41 +9269,41 @@ class FormElement extends Element implements Element native "*HTMLFormElement" {
 /// @domName HTMLFrameElement; @docsEditable true
 class FrameElement extends Element implements Element native "*HTMLFrameElement" {
 
-  /** @domName HTMLFrameElement.contentWindow; @docsEditable true */
+  /// @domName HTMLFrameElement.contentWindow; @docsEditable true
   Window get contentWindow => _convertNativeToDart_Window(this._contentWindow);
   dynamic get _contentWindow => JS("dynamic", "#.contentWindow", this);
 
-  /** @domName HTMLFrameElement.frameBorder; @docsEditable true */
+  /// @domName HTMLFrameElement.frameBorder; @docsEditable true
   String frameBorder;
 
-  /** @domName HTMLFrameElement.height; @docsEditable true */
+  /// @domName HTMLFrameElement.height; @docsEditable true
   final int height;
 
-  /** @domName HTMLFrameElement.location; @docsEditable true */
+  /// @domName HTMLFrameElement.location; @docsEditable true
   String location;
 
-  /** @domName HTMLFrameElement.longDesc; @docsEditable true */
+  /// @domName HTMLFrameElement.longDesc; @docsEditable true
   String longDesc;
 
-  /** @domName HTMLFrameElement.marginHeight; @docsEditable true */
+  /// @domName HTMLFrameElement.marginHeight; @docsEditable true
   String marginHeight;
 
-  /** @domName HTMLFrameElement.marginWidth; @docsEditable true */
+  /// @domName HTMLFrameElement.marginWidth; @docsEditable true
   String marginWidth;
 
-  /** @domName HTMLFrameElement.name; @docsEditable true */
+  /// @domName HTMLFrameElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLFrameElement.noResize; @docsEditable true */
+  /// @domName HTMLFrameElement.noResize; @docsEditable true
   bool noResize;
 
-  /** @domName HTMLFrameElement.scrolling; @docsEditable true */
+  /// @domName HTMLFrameElement.scrolling; @docsEditable true
   String scrolling;
 
-  /** @domName HTMLFrameElement.src; @docsEditable true */
+  /// @domName HTMLFrameElement.src; @docsEditable true
   String src;
 
-  /** @domName HTMLFrameElement.width; @docsEditable true */
+  /// @domName HTMLFrameElement.width; @docsEditable true
   final int width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9338,16 +9314,14 @@ class FrameElement extends Element implements Element native "*HTMLFrameElement"
 /// @domName HTMLFrameSetElement; @docsEditable true
 class FrameSetElement extends Element implements Element native "*HTMLFrameSetElement" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FrameSetElementEvents get on =>
     new FrameSetElementEvents(this);
 
-  /** @domName HTMLFrameSetElement.cols; @docsEditable true */
+  /// @domName HTMLFrameSetElement.cols; @docsEditable true
   String cols;
 
-  /** @domName HTMLFrameSetElement.rows; @docsEditable true */
+  /// @domName HTMLFrameSetElement.rows; @docsEditable true
   String rows;
 }
 
@@ -9388,7 +9362,7 @@ class FrameSetElementEvents extends ElementEvents {
 /// @domName GainNode; @docsEditable true
 class GainNode extends AudioNode native "*GainNode" {
 
-  /** @domName GainNode.gain; @docsEditable true */
+  /// @domName GainNode.gain; @docsEditable true
   final AudioGain gain;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9399,19 +9373,19 @@ class GainNode extends AudioNode native "*GainNode" {
 /// @domName Gamepad; @docsEditable true
 class Gamepad native "*Gamepad" {
 
-  /** @domName Gamepad.axes; @docsEditable true */
+  /// @domName Gamepad.axes; @docsEditable true
   final List<num> axes;
 
-  /** @domName Gamepad.buttons; @docsEditable true */
+  /// @domName Gamepad.buttons; @docsEditable true
   final List<num> buttons;
 
-  /** @domName Gamepad.id; @docsEditable true */
+  /// @domName Gamepad.id; @docsEditable true
   final String id;
 
-  /** @domName Gamepad.index; @docsEditable true */
+  /// @domName Gamepad.index; @docsEditable true
   final int index;
 
-  /** @domName Gamepad.timestamp; @docsEditable true */
+  /// @domName Gamepad.timestamp; @docsEditable true
   final int timestamp;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9422,13 +9396,13 @@ class Gamepad native "*Gamepad" {
 /// @domName Geolocation; @docsEditable true
 class Geolocation native "*Geolocation" {
 
-  /** @domName Geolocation.clearWatch; @docsEditable true */
+  /// @domName Geolocation.clearWatch; @docsEditable true
   void clearWatch(int watchId) native;
 
-  /** @domName Geolocation.getCurrentPosition; @docsEditable true */
+  /// @domName Geolocation.getCurrentPosition; @docsEditable true
   void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native;
 
-  /** @domName Geolocation.watchPosition; @docsEditable true */
+  /// @domName Geolocation.watchPosition; @docsEditable true
   int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9439,10 +9413,10 @@ class Geolocation native "*Geolocation" {
 /// @domName Geoposition; @docsEditable true
 class Geoposition native "*Geoposition" {
 
-  /** @domName Geoposition.coords; @docsEditable true */
+  /// @domName Geoposition.coords; @docsEditable true
   final Coordinates coords;
 
-  /** @domName Geoposition.timestamp; @docsEditable true */
+  /// @domName Geoposition.timestamp; @docsEditable true
   final int timestamp;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9455,16 +9429,16 @@ class HRElement extends Element implements Element native "*HTMLHRElement" {
 
   factory HRElement() => document.$dom_createElement("hr");
 
-  /** @domName HTMLHRElement.align; @docsEditable true */
+  /// @domName HTMLHRElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLHRElement.noShade; @docsEditable true */
+  /// @domName HTMLHRElement.noShade; @docsEditable true
   bool noShade;
 
-  /** @domName HTMLHRElement.size; @docsEditable true */
+  /// @domName HTMLHRElement.size; @docsEditable true
   String size;
 
-  /** @domName HTMLHRElement.width; @docsEditable true */
+  /// @domName HTMLHRElement.width; @docsEditable true
   String width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9475,7 +9449,7 @@ class HRElement extends Element implements Element native "*HTMLHRElement" {
 /// @domName HTMLAllCollection; @docsEditable true
 class HTMLAllCollection implements JavaScriptIndexingBehavior, List<Node> native "*HTMLAllCollection" {
 
-  /** @domName HTMLAllCollection.length; @docsEditable true */
+  /// @domName HTMLAllCollection.length; @docsEditable true
   final int length;
 
   Node operator[](int index) => JS("Node", "#[#]", this, index);
@@ -9563,13 +9537,13 @@ class HTMLAllCollection implements JavaScriptIndexingBehavior, List<Node> native
 
   // -- end List<Node> mixins.
 
-  /** @domName HTMLAllCollection.item; @docsEditable true */
+  /// @domName HTMLAllCollection.item; @docsEditable true
   Node item(int index) native;
 
-  /** @domName HTMLAllCollection.namedItem; @docsEditable true */
+  /// @domName HTMLAllCollection.namedItem; @docsEditable true
   Node namedItem(String name) native;
 
-  /** @domName HTMLAllCollection.tags; @docsEditable true */
+  /// @domName HTMLAllCollection.tags; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   List<Node> tags(String name) native;
 }
@@ -9581,7 +9555,7 @@ class HTMLAllCollection implements JavaScriptIndexingBehavior, List<Node> native
 /// @domName HTMLCollection; @docsEditable true
 class HTMLCollection implements JavaScriptIndexingBehavior, List<Node> native "*HTMLCollection" {
 
-  /** @domName HTMLCollection.length; @docsEditable true */
+  /// @domName HTMLCollection.length; @docsEditable true
   final int length;
 
   Node operator[](int index) => JS("Node", "#[#]", this, index);
@@ -9669,10 +9643,10 @@ class HTMLCollection implements JavaScriptIndexingBehavior, List<Node> native "*
 
   // -- end List<Node> mixins.
 
-  /** @domName HTMLCollection.item; @docsEditable true */
+  /// @domName HTMLCollection.item; @docsEditable true
   Node item(int index) native;
 
-  /** @domName HTMLCollection.namedItem; @docsEditable true */
+  /// @domName HTMLCollection.namedItem; @docsEditable true
   Node namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9684,18 +9658,18 @@ class HTMLCollection implements JavaScriptIndexingBehavior, List<Node> native "*
 class HTMLOptionsCollection extends HTMLCollection native "*HTMLOptionsCollection" {
 
   // Shadowing definition.
-  /** @domName HTMLOptionsCollection.length; @docsEditable true */
+  /// @domName HTMLOptionsCollection.length; @docsEditable true
   int get length => JS("int", "#.length", this);
 
-  /** @domName HTMLOptionsCollection.length; @docsEditable true */
+  /// @domName HTMLOptionsCollection.length; @docsEditable true
   void set length(int value) {
     JS("void", "#.length = #", this, value);
   }
 
-  /** @domName HTMLOptionsCollection.selectedIndex; @docsEditable true */
+  /// @domName HTMLOptionsCollection.selectedIndex; @docsEditable true
   int selectedIndex;
 
-  /** @domName HTMLOptionsCollection.remove; @docsEditable true */
+  /// @domName HTMLOptionsCollection.remove; @docsEditable true
   void remove(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9706,13 +9680,13 @@ class HTMLOptionsCollection extends HTMLCollection native "*HTMLOptionsCollectio
 /// @domName HashChangeEvent; @docsEditable true
 class HashChangeEvent extends Event native "*HashChangeEvent" {
 
-  /** @domName HashChangeEvent.newURL; @docsEditable true */
+  /// @domName HashChangeEvent.newURL; @docsEditable true
   final String newURL;
 
-  /** @domName HashChangeEvent.oldURL; @docsEditable true */
+  /// @domName HashChangeEvent.oldURL; @docsEditable true
   final String oldURL;
 
-  /** @domName HashChangeEvent.initHashChangeEvent; @docsEditable true */
+  /// @domName HashChangeEvent.initHashChangeEvent; @docsEditable true
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9725,7 +9699,7 @@ class HeadElement extends Element implements Element native "*HTMLHeadElement" {
 
   factory HeadElement() => document.$dom_createElement("head");
 
-  /** @domName HTMLHeadElement.profile; @docsEditable true */
+  /// @domName HTMLHeadElement.profile; @docsEditable true
   String profile;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9748,7 +9722,7 @@ class HeadingElement extends Element implements Element native "*HTMLHeadingElem
 
   factory HeadingElement.h6() => document.$dom_createElement("h6");
 
-  /** @domName HTMLHeadingElement.align; @docsEditable true */
+  /// @domName HTMLHeadingElement.align; @docsEditable true
   String align;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9760,7 +9734,7 @@ class HeadingElement extends Element implements Element native "*HTMLHeadingElem
 
 class HtmlDocument extends Document native "*HTMLDocument" {
 
-  /** @domName HTMLDocument.activeElement; @docsEditable true */
+  /// @domName HTMLDocument.activeElement; @docsEditable true
   final Element activeElement;
 
   /** @domName Document.body */
@@ -9862,9 +9836,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
   factory HttpRequest() => _HttpRequestFactoryProvider.createHttpRequest();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   HttpRequestEvents get on =>
     new HttpRequestEvents(this);
 
@@ -9878,62 +9850,62 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
   static const int UNSENT = 0;
 
-  /** @domName XMLHttpRequest.readyState; @docsEditable true */
+  /// @domName XMLHttpRequest.readyState; @docsEditable true
   final int readyState;
 
-  /** @domName XMLHttpRequest.response; @docsEditable true */
+  /// @domName XMLHttpRequest.response; @docsEditable true
   @Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')
   final Object response;
 
-  /** @domName XMLHttpRequest.responseText; @docsEditable true */
+  /// @domName XMLHttpRequest.responseText; @docsEditable true
   final String responseText;
 
-  /** @domName XMLHttpRequest.responseType; @docsEditable true */
+  /// @domName XMLHttpRequest.responseType; @docsEditable true
   String responseType;
 
-  /** @domName XMLHttpRequest.responseXML; @docsEditable true */
+  /// @domName XMLHttpRequest.responseXML; @docsEditable true
   final Document responseXML;
 
-  /** @domName XMLHttpRequest.status; @docsEditable true */
+  /// @domName XMLHttpRequest.status; @docsEditable true
   final int status;
 
-  /** @domName XMLHttpRequest.statusText; @docsEditable true */
+  /// @domName XMLHttpRequest.statusText; @docsEditable true
   final String statusText;
 
-  /** @domName XMLHttpRequest.upload; @docsEditable true */
+  /// @domName XMLHttpRequest.upload; @docsEditable true
   final HttpRequestUpload upload;
 
-  /** @domName XMLHttpRequest.withCredentials; @docsEditable true */
+  /// @domName XMLHttpRequest.withCredentials; @docsEditable true
   bool withCredentials;
 
-  /** @domName XMLHttpRequest.abort; @docsEditable true */
+  /// @domName XMLHttpRequest.abort; @docsEditable true
   void abort() native;
 
-  /** @domName XMLHttpRequest.addEventListener; @docsEditable true */
+  /// @domName XMLHttpRequest.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName XMLHttpRequest.dispatchEvent; @docsEditable true */
+  /// @domName XMLHttpRequest.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName XMLHttpRequest.getAllResponseHeaders; @docsEditable true */
+  /// @domName XMLHttpRequest.getAllResponseHeaders; @docsEditable true
   String getAllResponseHeaders() native;
 
-  /** @domName XMLHttpRequest.getResponseHeader; @docsEditable true */
+  /// @domName XMLHttpRequest.getResponseHeader; @docsEditable true
   String getResponseHeader(String header) native;
 
-  /** @domName XMLHttpRequest.open; @docsEditable true */
+  /// @domName XMLHttpRequest.open; @docsEditable true
   void open(String method, String url, [bool async, String user, String password]) native;
 
-  /** @domName XMLHttpRequest.overrideMimeType; @docsEditable true */
+  /// @domName XMLHttpRequest.overrideMimeType; @docsEditable true
   void overrideMimeType(String override) native;
 
-  /** @domName XMLHttpRequest.removeEventListener; @docsEditable true */
+  /// @domName XMLHttpRequest.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName XMLHttpRequest.send; @docsEditable true */
+  /// @domName XMLHttpRequest.send; @docsEditable true
   void send([data]) native;
 
-  /** @domName XMLHttpRequest.setRequestHeader; @docsEditable true */
+  /// @domName XMLHttpRequest.setRequestHeader; @docsEditable true
   void setRequestHeader(String header, String value) native;
 
 }
@@ -9967,16 +9939,16 @@ class HttpRequestException native "*XMLHttpRequestException" {
 
   static const int NETWORK_ERR = 101;
 
-  /** @domName XMLHttpRequestException.code; @docsEditable true */
+  /// @domName XMLHttpRequestException.code; @docsEditable true
   final int code;
 
-  /** @domName XMLHttpRequestException.message; @docsEditable true */
+  /// @domName XMLHttpRequestException.message; @docsEditable true
   final String message;
 
-  /** @domName XMLHttpRequestException.name; @docsEditable true */
+  /// @domName XMLHttpRequestException.name; @docsEditable true
   final String name;
 
-  /** @domName XMLHttpRequestException.toString; @docsEditable true */
+  /// @domName XMLHttpRequestException.toString; @docsEditable true
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9987,10 +9959,10 @@ class HttpRequestException native "*XMLHttpRequestException" {
 /// @domName XMLHttpRequestProgressEvent; @docsEditable true
 class HttpRequestProgressEvent extends ProgressEvent native "*XMLHttpRequestProgressEvent" {
 
-  /** @domName XMLHttpRequestProgressEvent.position; @docsEditable true */
+  /// @domName XMLHttpRequestProgressEvent.position; @docsEditable true
   final int position;
 
-  /** @domName XMLHttpRequestProgressEvent.totalSize; @docsEditable true */
+  /// @domName XMLHttpRequestProgressEvent.totalSize; @docsEditable true
   final int totalSize;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10001,19 +9973,17 @@ class HttpRequestProgressEvent extends ProgressEvent native "*XMLHttpRequestProg
 /// @domName XMLHttpRequestUpload; @docsEditable true
 class HttpRequestUpload extends EventTarget native "*XMLHttpRequestUpload" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   HttpRequestUploadEvents get on =>
     new HttpRequestUploadEvents(this);
 
-  /** @domName XMLHttpRequestUpload.addEventListener; @docsEditable true */
+  /// @domName XMLHttpRequestUpload.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName XMLHttpRequestUpload.dispatchEvent; @docsEditable true */
+  /// @domName XMLHttpRequestUpload.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName XMLHttpRequestUpload.removeEventListener; @docsEditable true */
+  /// @domName XMLHttpRequestUpload.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -10056,23 +10026,23 @@ class IDBCursor native "*IDBCursor" {
 
   static const int PREV_NO_DUPLICATE = 3;
 
-  /** @domName IDBCursor.direction; @docsEditable true */
+  /// @domName IDBCursor.direction; @docsEditable true
   final String direction;
 
-  /** @domName IDBCursor.key; @docsEditable true */
+  /// @domName IDBCursor.key; @docsEditable true
   @_annotation_Creates_IDBKey @_annotation_Returns_IDBKey
   final Object key;
 
-  /** @domName IDBCursor.primaryKey; @docsEditable true */
+  /// @domName IDBCursor.primaryKey; @docsEditable true
   final Object primaryKey;
 
-  /** @domName IDBCursor.source; @docsEditable true */
+  /// @domName IDBCursor.source; @docsEditable true
   final dynamic source;
 
-  /** @domName IDBCursor.advance; @docsEditable true */
+  /// @domName IDBCursor.advance; @docsEditable true
   void advance(int count) native;
 
-  /** @domName IDBCursor.continueFunction; @docsEditable true */
+  /// @domName IDBCursor.continueFunction; @docsEditable true
   void continueFunction([/*IDBKey*/ key]) {
     if (?key) {
       var key_1 = _convertDartToNative_IDBKey(key);
@@ -10085,10 +10055,10 @@ class IDBCursor native "*IDBCursor" {
   void _continueFunction_1(key) native "continue";
   void _continueFunction_2() native "continue";
 
-  /** @domName IDBCursor.delete; @docsEditable true */
+  /// @domName IDBCursor.delete; @docsEditable true
   IDBRequest delete() native;
 
-  /** @domName IDBCursor.update; @docsEditable true */
+  /// @domName IDBCursor.update; @docsEditable true
   IDBRequest update(/*any*/ value) {
     var value_1 = _convertDartToNative_SerializedScriptValue(value);
     return _update_1(value_1);
@@ -10103,7 +10073,7 @@ class IDBCursor native "*IDBCursor" {
 /// @domName IDBCursorWithValue; @docsEditable true
 class IDBCursorWithValue extends IDBCursor native "*IDBCursorWithValue" {
 
-  /** @domName IDBCursorWithValue.value; @docsEditable true */
+  /// @domName IDBCursorWithValue.value; @docsEditable true
   @_annotation_Creates_SerializedScriptValue @_annotation_Returns_SerializedScriptValue
   final Object value;
 }
@@ -10156,29 +10126,27 @@ class IDBDatabase extends EventTarget native "*IDBDatabase" {
       JS('bool', 'typeof(#.mode) === "number"', txn);
 
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   IDBDatabaseEvents get on =>
     new IDBDatabaseEvents(this);
 
-  /** @domName IDBDatabase.name; @docsEditable true */
+  /// @domName IDBDatabase.name; @docsEditable true
   final String name;
 
-  /** @domName IDBDatabase.objectStoreNames; @docsEditable true */
+  /// @domName IDBDatabase.objectStoreNames; @docsEditable true
   @Returns('_DOMStringList') @Creates('_DOMStringList')
   final List<String> objectStoreNames;
 
-  /** @domName IDBDatabase.version; @docsEditable true */
+  /// @domName IDBDatabase.version; @docsEditable true
   final dynamic version;
 
-  /** @domName IDBDatabase.addEventListener; @docsEditable true */
+  /// @domName IDBDatabase.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName IDBDatabase.close; @docsEditable true */
+  /// @domName IDBDatabase.close; @docsEditable true
   void close() native;
 
-  /** @domName IDBDatabase.createObjectStore; @docsEditable true */
+  /// @domName IDBDatabase.createObjectStore; @docsEditable true
   IDBObjectStore createObjectStore(String name, [Map options]) {
     if (?options) {
       var options_1 = _convertDartToNative_Dictionary(options);
@@ -10189,16 +10157,16 @@ class IDBDatabase extends EventTarget native "*IDBDatabase" {
   IDBObjectStore _createObjectStore_1(name, options) native "createObjectStore";
   IDBObjectStore _createObjectStore_2(name) native "createObjectStore";
 
-  /** @domName IDBDatabase.deleteObjectStore; @docsEditable true */
+  /// @domName IDBDatabase.deleteObjectStore; @docsEditable true
   void deleteObjectStore(String name) native;
 
-  /** @domName IDBDatabase.dispatchEvent; @docsEditable true */
+  /// @domName IDBDatabase.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName IDBDatabase.removeEventListener; @docsEditable true */
+  /// @domName IDBDatabase.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName IDBDatabase.setVersion; @docsEditable true */
+  /// @domName IDBDatabase.setVersion; @docsEditable true
   IDBVersionChangeRequest setVersion(String version) native;
 }
 
@@ -10249,16 +10217,16 @@ class IDBDatabaseException native "*IDBDatabaseException" {
 
   static const int VER_ERR = 12;
 
-  /** @domName IDBDatabaseException.code; @docsEditable true */
+  /// @domName IDBDatabaseException.code; @docsEditable true
   final int code;
 
-  /** @domName IDBDatabaseException.message; @docsEditable true */
+  /// @domName IDBDatabaseException.message; @docsEditable true
   final String message;
 
-  /** @domName IDBDatabaseException.name; @docsEditable true */
+  /// @domName IDBDatabaseException.name; @docsEditable true
   final String name;
 
-  /** @domName IDBDatabaseException.toString; @docsEditable true */
+  /// @domName IDBDatabaseException.toString; @docsEditable true
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10269,7 +10237,7 @@ class IDBDatabaseException native "*IDBDatabaseException" {
 /// @domName IDBFactory; @docsEditable true
 class IDBFactory native "*IDBFactory" {
 
-  /** @domName IDBFactory.cmp; @docsEditable true */
+  /// @domName IDBFactory.cmp; @docsEditable true
   int cmp(/*IDBKey*/ first, /*IDBKey*/ second) {
     var first_1 = _convertDartToNative_IDBKey(first);
     var second_2 = _convertDartToNative_IDBKey(second);
@@ -10277,14 +10245,14 @@ class IDBFactory native "*IDBFactory" {
   }
   int _cmp_1(first, second) native "cmp";
 
-  /** @domName IDBFactory.deleteDatabase; @docsEditable true */
+  /// @domName IDBFactory.deleteDatabase; @docsEditable true
   IDBVersionChangeRequest deleteDatabase(String name) native;
 
-  /** @domName IDBFactory.open; @docsEditable true */
+  /// @domName IDBFactory.open; @docsEditable true
   @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBDatabase')
   IDBOpenDBRequest open(String name, [int version]) native;
 
-  /** @domName IDBFactory.webkitGetDatabaseNames; @docsEditable true */
+  /// @domName IDBFactory.webkitGetDatabaseNames; @docsEditable true
   IDBRequest webkitGetDatabaseNames() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10295,22 +10263,22 @@ class IDBFactory native "*IDBFactory" {
 /// @domName IDBIndex; @docsEditable true
 class IDBIndex native "*IDBIndex" {
 
-  /** @domName IDBIndex.keyPath; @docsEditable true */
+  /// @domName IDBIndex.keyPath; @docsEditable true
   final dynamic keyPath;
 
-  /** @domName IDBIndex.multiEntry; @docsEditable true */
+  /// @domName IDBIndex.multiEntry; @docsEditable true
   final bool multiEntry;
 
-  /** @domName IDBIndex.name; @docsEditable true */
+  /// @domName IDBIndex.name; @docsEditable true
   final String name;
 
-  /** @domName IDBIndex.objectStore; @docsEditable true */
+  /// @domName IDBIndex.objectStore; @docsEditable true
   final IDBObjectStore objectStore;
 
-  /** @domName IDBIndex.unique; @docsEditable true */
+  /// @domName IDBIndex.unique; @docsEditable true
   final bool unique;
 
-  /** @domName IDBIndex.count; @docsEditable true */
+  /// @domName IDBIndex.count; @docsEditable true
   IDBRequest count([key_OR_range]) {
     if (!?key_OR_range) {
       return _count_1();
@@ -10328,7 +10296,7 @@ class IDBIndex native "*IDBIndex" {
   IDBRequest _count_2(IDBKeyRange range) native "count";
   IDBRequest _count_3(key) native "count";
 
-  /** @domName IDBIndex.get; @docsEditable true */
+  /// @domName IDBIndex.get; @docsEditable true
   IDBRequest get(key) {
     if ((?key && (key is IDBKeyRange || key == null))) {
       return _get_1(key);
@@ -10344,7 +10312,7 @@ class IDBIndex native "*IDBIndex" {
   @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue
   IDBRequest _get_2(key) native "get";
 
-  /** @domName IDBIndex.getKey; @docsEditable true */
+  /// @domName IDBIndex.getKey; @docsEditable true
   IDBRequest getKey(key) {
     if ((?key && (key is IDBKeyRange || key == null))) {
       return _getKey_1(key);
@@ -10360,7 +10328,7 @@ class IDBIndex native "*IDBIndex" {
   @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue @Creates('IDBObjectStore')
   IDBRequest _getKey_2(key) native "getKey";
 
-  /** @domName IDBIndex.openCursor; @docsEditable true */
+  /// @domName IDBIndex.openCursor; @docsEditable true
   IDBRequest openCursor([key_OR_range, String direction]) {
     if (!?key_OR_range &&
         !?direction) {
@@ -10395,7 +10363,7 @@ class IDBIndex native "*IDBIndex" {
   @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openCursor_5(key, direction) native "openCursor";
 
-  /** @domName IDBIndex.openKeyCursor; @docsEditable true */
+  /// @domName IDBIndex.openKeyCursor; @docsEditable true
   IDBRequest openKeyCursor([key_OR_range, String direction]) {
     if (!?key_OR_range &&
         !?direction) {
@@ -10471,21 +10439,21 @@ class IDBKeyRange native "*IDBKeyRange" {
           lower, upper, lowerOpen, upperOpen);
 
 
-  /** @domName IDBKeyRange.lower; @docsEditable true */
+  /// @domName IDBKeyRange.lower; @docsEditable true
   dynamic get lower => _convertNativeToDart_IDBKey(this._lower);
   dynamic get _lower => JS("dynamic", "#.lower", this);
 
-  /** @domName IDBKeyRange.lowerOpen; @docsEditable true */
+  /// @domName IDBKeyRange.lowerOpen; @docsEditable true
   final bool lowerOpen;
 
-  /** @domName IDBKeyRange.upper; @docsEditable true */
+  /// @domName IDBKeyRange.upper; @docsEditable true
   dynamic get upper => _convertNativeToDart_IDBKey(this._upper);
   dynamic get _upper => JS("dynamic", "#.upper", this);
 
-  /** @domName IDBKeyRange.upperOpen; @docsEditable true */
+  /// @domName IDBKeyRange.upperOpen; @docsEditable true
   final bool upperOpen;
 
-  /** @domName IDBKeyRange.bound_; @docsEditable true */
+  /// @domName IDBKeyRange.bound_; @docsEditable true
   static IDBKeyRange bound_(/*IDBKey*/ lower, /*IDBKey*/ upper, [bool lowerOpen, bool upperOpen]) {
     if (?upperOpen) {
       var lower_1 = _convertDartToNative_IDBKey(lower);
@@ -10505,7 +10473,7 @@ class IDBKeyRange native "*IDBKeyRange" {
   static IDBKeyRange _bound__2(lower, upper, lowerOpen) native "bound";
   static IDBKeyRange _bound__3(lower, upper) native "bound";
 
-  /** @domName IDBKeyRange.lowerBound_; @docsEditable true */
+  /// @domName IDBKeyRange.lowerBound_; @docsEditable true
   static IDBKeyRange lowerBound_(/*IDBKey*/ bound, [bool open]) {
     if (?open) {
       var bound_1 = _convertDartToNative_IDBKey(bound);
@@ -10517,14 +10485,14 @@ class IDBKeyRange native "*IDBKeyRange" {
   static IDBKeyRange _lowerBound__1(bound, open) native "lowerBound";
   static IDBKeyRange _lowerBound__2(bound) native "lowerBound";
 
-  /** @domName IDBKeyRange.only_; @docsEditable true */
+  /// @domName IDBKeyRange.only_; @docsEditable true
   static IDBKeyRange only_(/*IDBKey*/ value) {
     var value_1 = _convertDartToNative_IDBKey(value);
     return _only__1(value_1);
   }
   static IDBKeyRange _only__1(value) native "only";
 
-  /** @domName IDBKeyRange.upperBound_; @docsEditable true */
+  /// @domName IDBKeyRange.upperBound_; @docsEditable true
   static IDBKeyRange upperBound_(/*IDBKey*/ bound, [bool open]) {
     if (?open) {
       var bound_1 = _convertDartToNative_IDBKey(bound);
@@ -10545,23 +10513,23 @@ class IDBKeyRange native "*IDBKeyRange" {
 /// @domName IDBObjectStore; @docsEditable true
 class IDBObjectStore native "*IDBObjectStore" {
 
-  /** @domName IDBObjectStore.autoIncrement; @docsEditable true */
+  /// @domName IDBObjectStore.autoIncrement; @docsEditable true
   final bool autoIncrement;
 
-  /** @domName IDBObjectStore.indexNames; @docsEditable true */
+  /// @domName IDBObjectStore.indexNames; @docsEditable true
   @Returns('_DOMStringList') @Creates('_DOMStringList')
   final List<String> indexNames;
 
-  /** @domName IDBObjectStore.keyPath; @docsEditable true */
+  /// @domName IDBObjectStore.keyPath; @docsEditable true
   final dynamic keyPath;
 
-  /** @domName IDBObjectStore.name; @docsEditable true */
+  /// @domName IDBObjectStore.name; @docsEditable true
   final String name;
 
-  /** @domName IDBObjectStore.transaction; @docsEditable true */
+  /// @domName IDBObjectStore.transaction; @docsEditable true
   final IDBTransaction transaction;
 
-  /** @domName IDBObjectStore.add; @docsEditable true */
+  /// @domName IDBObjectStore.add; @docsEditable true
   IDBRequest add(/*any*/ value, [/*IDBKey*/ key]) {
     if (?key) {
       var value_1 = _convertDartToNative_SerializedScriptValue(value);
@@ -10576,10 +10544,10 @@ class IDBObjectStore native "*IDBObjectStore" {
   @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_IDBKey
   IDBRequest _add_2(value) native "add";
 
-  /** @domName IDBObjectStore.clear; @docsEditable true */
+  /// @domName IDBObjectStore.clear; @docsEditable true
   IDBRequest clear() native;
 
-  /** @domName IDBObjectStore.count; @docsEditable true */
+  /// @domName IDBObjectStore.count; @docsEditable true
   IDBRequest count([key_OR_range]) {
     if (!?key_OR_range) {
       return _count_1();
@@ -10597,7 +10565,7 @@ class IDBObjectStore native "*IDBObjectStore" {
   IDBRequest _count_2(IDBKeyRange range) native "count";
   IDBRequest _count_3(key) native "count";
 
-  /** @domName IDBObjectStore.createIndex; @docsEditable true */
+  /// @domName IDBObjectStore.createIndex; @docsEditable true
   IDBIndex createIndex(String name, keyPath, [Map options]) {
     if ((?keyPath && (keyPath is List<String> || keyPath == null)) &&
         !?options) {
@@ -10624,7 +10592,7 @@ class IDBObjectStore native "*IDBObjectStore" {
   IDBIndex _createIndex_3(name, String keyPath) native "createIndex";
   IDBIndex _createIndex_4(name, String keyPath, options) native "createIndex";
 
-  /** @domName IDBObjectStore.delete; @docsEditable true */
+  /// @domName IDBObjectStore.delete; @docsEditable true
   IDBRequest delete(key_OR_keyRange) {
     if ((?key_OR_keyRange && (key_OR_keyRange is IDBKeyRange || key_OR_keyRange == null))) {
       return _delete_1(key_OR_keyRange);
@@ -10638,10 +10606,10 @@ class IDBObjectStore native "*IDBObjectStore" {
   IDBRequest _delete_1(IDBKeyRange keyRange) native "delete";
   IDBRequest _delete_2(key) native "delete";
 
-  /** @domName IDBObjectStore.deleteIndex; @docsEditable true */
+  /// @domName IDBObjectStore.deleteIndex; @docsEditable true
   void deleteIndex(String name) native;
 
-  /** @domName IDBObjectStore.getObject; @docsEditable true */
+  /// @domName IDBObjectStore.getObject; @docsEditable true
   IDBRequest getObject(key) {
     if ((?key && (key is IDBKeyRange || key == null))) {
       return _getObject_1(key);
@@ -10657,10 +10625,10 @@ class IDBObjectStore native "*IDBObjectStore" {
   @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue
   IDBRequest _getObject_2(key) native "get";
 
-  /** @domName IDBObjectStore.index; @docsEditable true */
+  /// @domName IDBObjectStore.index; @docsEditable true
   IDBIndex index(String name) native;
 
-  /** @domName IDBObjectStore.openCursor; @docsEditable true */
+  /// @domName IDBObjectStore.openCursor; @docsEditable true
   IDBRequest openCursor([key_OR_range, String direction]) {
     if (!?key_OR_range &&
         !?direction) {
@@ -10695,7 +10663,7 @@ class IDBObjectStore native "*IDBObjectStore" {
   @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openCursor_5(key, direction) native "openCursor";
 
-  /** @domName IDBObjectStore.put; @docsEditable true */
+  /// @domName IDBObjectStore.put; @docsEditable true
   IDBRequest put(/*any*/ value, [/*IDBKey*/ key]) {
     if (?key) {
       var value_1 = _convertDartToNative_SerializedScriptValue(value);
@@ -10718,9 +10686,7 @@ class IDBObjectStore native "*IDBObjectStore" {
 /// @domName IDBOpenDBRequest; @docsEditable true
 class IDBOpenDBRequest extends IDBRequest implements EventTarget native "*IDBOpenDBRequest" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   IDBOpenDBRequestEvents get on =>
     new IDBOpenDBRequestEvents(this);
 }
@@ -10740,42 +10706,40 @@ class IDBOpenDBRequestEvents extends IDBRequestEvents {
 /// @domName IDBRequest; @docsEditable true
 class IDBRequest extends EventTarget native "*IDBRequest" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   IDBRequestEvents get on =>
     new IDBRequestEvents(this);
 
-  /** @domName IDBRequest.error; @docsEditable true */
+  /// @domName IDBRequest.error; @docsEditable true
   final DOMError error;
 
-  /** @domName IDBRequest.errorCode; @docsEditable true */
+  /// @domName IDBRequest.errorCode; @docsEditable true
   final int errorCode;
 
-  /** @domName IDBRequest.readyState; @docsEditable true */
+  /// @domName IDBRequest.readyState; @docsEditable true
   final String readyState;
 
-  /** @domName IDBRequest.result; @docsEditable true */
+  /// @domName IDBRequest.result; @docsEditable true
   dynamic get result => _convertNativeToDart_IDBAny(this._result);
   dynamic get _result => JS("dynamic", "#.result", this);
 
-  /** @domName IDBRequest.source; @docsEditable true */
+  /// @domName IDBRequest.source; @docsEditable true
   @Creates('Null')
   final dynamic source;
 
-  /** @domName IDBRequest.transaction; @docsEditable true */
+  /// @domName IDBRequest.transaction; @docsEditable true
   final IDBTransaction transaction;
 
-  /** @domName IDBRequest.webkitErrorMessage; @docsEditable true */
+  /// @domName IDBRequest.webkitErrorMessage; @docsEditable true
   final String webkitErrorMessage;
 
-  /** @domName IDBRequest.addEventListener; @docsEditable true */
+  /// @domName IDBRequest.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName IDBRequest.dispatchEvent; @docsEditable true */
+  /// @domName IDBRequest.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName IDBRequest.removeEventListener; @docsEditable true */
+  /// @domName IDBRequest.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -10794,9 +10758,7 @@ class IDBRequestEvents extends Events {
 /// @domName IDBTransaction; @docsEditable true
 class IDBTransaction extends EventTarget native "*IDBTransaction" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   IDBTransactionEvents get on =>
     new IDBTransactionEvents(this);
 
@@ -10806,28 +10768,28 @@ class IDBTransaction extends EventTarget native "*IDBTransaction" {
 
   static const int VERSION_CHANGE = 2;
 
-  /** @domName IDBTransaction.db; @docsEditable true */
+  /// @domName IDBTransaction.db; @docsEditable true
   final IDBDatabase db;
 
-  /** @domName IDBTransaction.error; @docsEditable true */
+  /// @domName IDBTransaction.error; @docsEditable true
   final DOMError error;
 
-  /** @domName IDBTransaction.mode; @docsEditable true */
+  /// @domName IDBTransaction.mode; @docsEditable true
   final String mode;
 
-  /** @domName IDBTransaction.abort; @docsEditable true */
+  /// @domName IDBTransaction.abort; @docsEditable true
   void abort() native;
 
-  /** @domName IDBTransaction.addEventListener; @docsEditable true */
+  /// @domName IDBTransaction.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName IDBTransaction.dispatchEvent; @docsEditable true */
+  /// @domName IDBTransaction.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName IDBTransaction.objectStore; @docsEditable true */
+  /// @domName IDBTransaction.objectStore; @docsEditable true
   IDBObjectStore objectStore(String name) native;
 
-  /** @domName IDBTransaction.removeEventListener; @docsEditable true */
+  /// @domName IDBTransaction.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -10848,10 +10810,10 @@ class IDBTransactionEvents extends Events {
 /// @domName IDBVersionChangeEvent; @docsEditable true
 class IDBUpgradeNeededEvent extends Event native "*IDBVersionChangeEvent" {
 
-  /** @domName IDBVersionChangeEvent.newVersion; @docsEditable true */
+  /// @domName IDBVersionChangeEvent.newVersion; @docsEditable true
   final int newVersion;
 
-  /** @domName IDBVersionChangeEvent.oldVersion; @docsEditable true */
+  /// @domName IDBVersionChangeEvent.oldVersion; @docsEditable true
   final int oldVersion;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10862,7 +10824,7 @@ class IDBUpgradeNeededEvent extends Event native "*IDBVersionChangeEvent" {
 /// @domName IDBVersionChangeEvent; @docsEditable true
 class IDBVersionChangeEvent extends Event native "*IDBVersionChangeEvent" {
 
-  /** @domName IDBVersionChangeEvent.version; @docsEditable true */
+  /// @domName IDBVersionChangeEvent.version; @docsEditable true
   final String version;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10873,9 +10835,7 @@ class IDBVersionChangeEvent extends Event native "*IDBVersionChangeEvent" {
 /// @domName IDBVersionChangeRequest; @docsEditable true
 class IDBVersionChangeRequest extends IDBRequest implements EventTarget native "*IDBVersionChangeRequest" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   IDBVersionChangeRequestEvents get on =>
     new IDBVersionChangeRequestEvents(this);
 }
@@ -10895,44 +10855,44 @@ class IFrameElement extends Element implements Element native "*HTMLIFrameElemen
 
   factory IFrameElement() => document.$dom_createElement("iframe");
 
-  /** @domName HTMLIFrameElement.align; @docsEditable true */
+  /// @domName HTMLIFrameElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLIFrameElement.contentWindow; @docsEditable true */
+  /// @domName HTMLIFrameElement.contentWindow; @docsEditable true
   Window get contentWindow => _convertNativeToDart_Window(this._contentWindow);
   dynamic get _contentWindow => JS("dynamic", "#.contentWindow", this);
 
-  /** @domName HTMLIFrameElement.frameBorder; @docsEditable true */
+  /// @domName HTMLIFrameElement.frameBorder; @docsEditable true
   String frameBorder;
 
-  /** @domName HTMLIFrameElement.height; @docsEditable true */
+  /// @domName HTMLIFrameElement.height; @docsEditable true
   String height;
 
-  /** @domName HTMLIFrameElement.longDesc; @docsEditable true */
+  /// @domName HTMLIFrameElement.longDesc; @docsEditable true
   String longDesc;
 
-  /** @domName HTMLIFrameElement.marginHeight; @docsEditable true */
+  /// @domName HTMLIFrameElement.marginHeight; @docsEditable true
   String marginHeight;
 
-  /** @domName HTMLIFrameElement.marginWidth; @docsEditable true */
+  /// @domName HTMLIFrameElement.marginWidth; @docsEditable true
   String marginWidth;
 
-  /** @domName HTMLIFrameElement.name; @docsEditable true */
+  /// @domName HTMLIFrameElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLIFrameElement.sandbox; @docsEditable true */
+  /// @domName HTMLIFrameElement.sandbox; @docsEditable true
   String sandbox;
 
-  /** @domName HTMLIFrameElement.scrolling; @docsEditable true */
+  /// @domName HTMLIFrameElement.scrolling; @docsEditable true
   String scrolling;
 
-  /** @domName HTMLIFrameElement.src; @docsEditable true */
+  /// @domName HTMLIFrameElement.src; @docsEditable true
   String src;
 
-  /** @domName HTMLIFrameElement.srcdoc; @docsEditable true */
+  /// @domName HTMLIFrameElement.srcdoc; @docsEditable true
   String srcdoc;
 
-  /** @domName HTMLIFrameElement.width; @docsEditable true */
+  /// @domName HTMLIFrameElement.width; @docsEditable true
   String width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10953,10 +10913,10 @@ class IceCandidate native "*IceCandidate" {
 
   factory IceCandidate(String label, String candidateLine) => _IceCandidateFactoryProvider.createIceCandidate(label, candidateLine);
 
-  /** @domName IceCandidate.label; @docsEditable true */
+  /// @domName IceCandidate.label; @docsEditable true
   final String label;
 
-  /** @domName IceCandidate.toSdp; @docsEditable true */
+  /// @domName IceCandidate.toSdp; @docsEditable true
   String toSdp() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10967,13 +10927,13 @@ class IceCandidate native "*IceCandidate" {
 /// @domName ImageData; @docsEditable true
 class ImageData native "*ImageData" {
 
-  /** @domName ImageData.data; @docsEditable true */
+  /// @domName ImageData.data; @docsEditable true
   final Uint8ClampedArray data;
 
-  /** @domName ImageData.height; @docsEditable true */
+  /// @domName ImageData.height; @docsEditable true
   final int height;
 
-  /** @domName ImageData.width; @docsEditable true */
+  /// @domName ImageData.width; @docsEditable true
   final int width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10992,61 +10952,61 @@ class ImageElement extends Element implements Element native "*HTMLImageElement"
     return e;
   }
 
-  /** @domName HTMLImageElement.align; @docsEditable true */
+  /// @domName HTMLImageElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLImageElement.alt; @docsEditable true */
+  /// @domName HTMLImageElement.alt; @docsEditable true
   String alt;
 
-  /** @domName HTMLImageElement.border; @docsEditable true */
+  /// @domName HTMLImageElement.border; @docsEditable true
   String border;
 
-  /** @domName HTMLImageElement.complete; @docsEditable true */
+  /// @domName HTMLImageElement.complete; @docsEditable true
   final bool complete;
 
-  /** @domName HTMLImageElement.crossOrigin; @docsEditable true */
+  /// @domName HTMLImageElement.crossOrigin; @docsEditable true
   String crossOrigin;
 
-  /** @domName HTMLImageElement.height; @docsEditable true */
+  /// @domName HTMLImageElement.height; @docsEditable true
   int height;
 
-  /** @domName HTMLImageElement.hspace; @docsEditable true */
+  /// @domName HTMLImageElement.hspace; @docsEditable true
   int hspace;
 
-  /** @domName HTMLImageElement.isMap; @docsEditable true */
+  /// @domName HTMLImageElement.isMap; @docsEditable true
   bool isMap;
 
-  /** @domName HTMLImageElement.longDesc; @docsEditable true */
+  /// @domName HTMLImageElement.longDesc; @docsEditable true
   String longDesc;
 
-  /** @domName HTMLImageElement.lowsrc; @docsEditable true */
+  /// @domName HTMLImageElement.lowsrc; @docsEditable true
   String lowsrc;
 
-  /** @domName HTMLImageElement.name; @docsEditable true */
+  /// @domName HTMLImageElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLImageElement.naturalHeight; @docsEditable true */
+  /// @domName HTMLImageElement.naturalHeight; @docsEditable true
   final int naturalHeight;
 
-  /** @domName HTMLImageElement.naturalWidth; @docsEditable true */
+  /// @domName HTMLImageElement.naturalWidth; @docsEditable true
   final int naturalWidth;
 
-  /** @domName HTMLImageElement.src; @docsEditable true */
+  /// @domName HTMLImageElement.src; @docsEditable true
   String src;
 
-  /** @domName HTMLImageElement.useMap; @docsEditable true */
+  /// @domName HTMLImageElement.useMap; @docsEditable true
   String useMap;
 
-  /** @domName HTMLImageElement.vspace; @docsEditable true */
+  /// @domName HTMLImageElement.vspace; @docsEditable true
   int vspace;
 
-  /** @domName HTMLImageElement.width; @docsEditable true */
+  /// @domName HTMLImageElement.width; @docsEditable true
   int width;
 
-  /** @domName HTMLImageElement.x; @docsEditable true */
+  /// @domName HTMLImageElement.x; @docsEditable true
   final int x;
 
-  /** @domName HTMLImageElement.y; @docsEditable true */
+  /// @domName HTMLImageElement.y; @docsEditable true
   final int y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11063,184 +11023,182 @@ class InputElement extends Element implements Element native "*HTMLInputElement"
     return e;
   }
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   InputElementEvents get on =>
     new InputElementEvents(this);
 
-  /** @domName HTMLInputElement.accept; @docsEditable true */
+  /// @domName HTMLInputElement.accept; @docsEditable true
   String accept;
 
-  /** @domName HTMLInputElement.align; @docsEditable true */
+  /// @domName HTMLInputElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLInputElement.alt; @docsEditable true */
+  /// @domName HTMLInputElement.alt; @docsEditable true
   String alt;
 
-  /** @domName HTMLInputElement.autocomplete; @docsEditable true */
+  /// @domName HTMLInputElement.autocomplete; @docsEditable true
   String autocomplete;
 
-  /** @domName HTMLInputElement.autofocus; @docsEditable true */
+  /// @domName HTMLInputElement.autofocus; @docsEditable true
   bool autofocus;
 
-  /** @domName HTMLInputElement.checked; @docsEditable true */
+  /// @domName HTMLInputElement.checked; @docsEditable true
   bool checked;
 
-  /** @domName HTMLInputElement.defaultChecked; @docsEditable true */
+  /// @domName HTMLInputElement.defaultChecked; @docsEditable true
   bool defaultChecked;
 
-  /** @domName HTMLInputElement.defaultValue; @docsEditable true */
+  /// @domName HTMLInputElement.defaultValue; @docsEditable true
   String defaultValue;
 
-  /** @domName HTMLInputElement.dirName; @docsEditable true */
+  /// @domName HTMLInputElement.dirName; @docsEditable true
   String dirName;
 
-  /** @domName HTMLInputElement.disabled; @docsEditable true */
+  /// @domName HTMLInputElement.disabled; @docsEditable true
   bool disabled;
 
-  /** @domName HTMLInputElement.files; @docsEditable true */
+  /// @domName HTMLInputElement.files; @docsEditable true
   @Returns('_FileList') @Creates('_FileList')
   List<File> files;
 
-  /** @domName HTMLInputElement.form; @docsEditable true */
+  /// @domName HTMLInputElement.form; @docsEditable true
   final FormElement form;
 
-  /** @domName HTMLInputElement.formAction; @docsEditable true */
+  /// @domName HTMLInputElement.formAction; @docsEditable true
   String formAction;
 
-  /** @domName HTMLInputElement.formEnctype; @docsEditable true */
+  /// @domName HTMLInputElement.formEnctype; @docsEditable true
   String formEnctype;
 
-  /** @domName HTMLInputElement.formMethod; @docsEditable true */
+  /// @domName HTMLInputElement.formMethod; @docsEditable true
   String formMethod;
 
-  /** @domName HTMLInputElement.formNoValidate; @docsEditable true */
+  /// @domName HTMLInputElement.formNoValidate; @docsEditable true
   bool formNoValidate;
 
-  /** @domName HTMLInputElement.formTarget; @docsEditable true */
+  /// @domName HTMLInputElement.formTarget; @docsEditable true
   String formTarget;
 
-  /** @domName HTMLInputElement.height; @docsEditable true */
+  /// @domName HTMLInputElement.height; @docsEditable true
   int height;
 
-  /** @domName HTMLInputElement.incremental; @docsEditable true */
+  /// @domName HTMLInputElement.incremental; @docsEditable true
   bool incremental;
 
-  /** @domName HTMLInputElement.indeterminate; @docsEditable true */
+  /// @domName HTMLInputElement.indeterminate; @docsEditable true
   bool indeterminate;
 
-  /** @domName HTMLInputElement.labels; @docsEditable true */
+  /// @domName HTMLInputElement.labels; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> labels;
 
-  /** @domName HTMLInputElement.list; @docsEditable true */
+  /// @domName HTMLInputElement.list; @docsEditable true
   final Element list;
 
-  /** @domName HTMLInputElement.max; @docsEditable true */
+  /// @domName HTMLInputElement.max; @docsEditable true
   String max;
 
-  /** @domName HTMLInputElement.maxLength; @docsEditable true */
+  /// @domName HTMLInputElement.maxLength; @docsEditable true
   int maxLength;
 
-  /** @domName HTMLInputElement.min; @docsEditable true */
+  /// @domName HTMLInputElement.min; @docsEditable true
   String min;
 
-  /** @domName HTMLInputElement.multiple; @docsEditable true */
+  /// @domName HTMLInputElement.multiple; @docsEditable true
   bool multiple;
 
-  /** @domName HTMLInputElement.name; @docsEditable true */
+  /// @domName HTMLInputElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLInputElement.pattern; @docsEditable true */
+  /// @domName HTMLInputElement.pattern; @docsEditable true
   String pattern;
 
-  /** @domName HTMLInputElement.placeholder; @docsEditable true */
+  /// @domName HTMLInputElement.placeholder; @docsEditable true
   String placeholder;
 
-  /** @domName HTMLInputElement.readOnly; @docsEditable true */
+  /// @domName HTMLInputElement.readOnly; @docsEditable true
   bool readOnly;
 
-  /** @domName HTMLInputElement.required; @docsEditable true */
+  /// @domName HTMLInputElement.required; @docsEditable true
   bool required;
 
-  /** @domName HTMLInputElement.selectionDirection; @docsEditable true */
+  /// @domName HTMLInputElement.selectionDirection; @docsEditable true
   String selectionDirection;
 
-  /** @domName HTMLInputElement.selectionEnd; @docsEditable true */
+  /// @domName HTMLInputElement.selectionEnd; @docsEditable true
   int selectionEnd;
 
-  /** @domName HTMLInputElement.selectionStart; @docsEditable true */
+  /// @domName HTMLInputElement.selectionStart; @docsEditable true
   int selectionStart;
 
-  /** @domName HTMLInputElement.size; @docsEditable true */
+  /// @domName HTMLInputElement.size; @docsEditable true
   int size;
 
-  /** @domName HTMLInputElement.src; @docsEditable true */
+  /// @domName HTMLInputElement.src; @docsEditable true
   String src;
 
-  /** @domName HTMLInputElement.step; @docsEditable true */
+  /// @domName HTMLInputElement.step; @docsEditable true
   String step;
 
-  /** @domName HTMLInputElement.type; @docsEditable true */
+  /// @domName HTMLInputElement.type; @docsEditable true
   String type;
 
-  /** @domName HTMLInputElement.useMap; @docsEditable true */
+  /// @domName HTMLInputElement.useMap; @docsEditable true
   String useMap;
 
-  /** @domName HTMLInputElement.validationMessage; @docsEditable true */
+  /// @domName HTMLInputElement.validationMessage; @docsEditable true
   final String validationMessage;
 
-  /** @domName HTMLInputElement.validity; @docsEditable true */
+  /// @domName HTMLInputElement.validity; @docsEditable true
   final ValidityState validity;
 
-  /** @domName HTMLInputElement.value; @docsEditable true */
+  /// @domName HTMLInputElement.value; @docsEditable true
   String value;
 
-  /** @domName HTMLInputElement.valueAsDate; @docsEditable true */
+  /// @domName HTMLInputElement.valueAsDate; @docsEditable true
   Date valueAsDate;
 
-  /** @domName HTMLInputElement.valueAsNumber; @docsEditable true */
+  /// @domName HTMLInputElement.valueAsNumber; @docsEditable true
   num valueAsNumber;
 
-  /** @domName HTMLInputElement.webkitEntries; @docsEditable true */
+  /// @domName HTMLInputElement.webkitEntries; @docsEditable true
   @Returns('_EntryArray') @Creates('_EntryArray')
   final List<Entry> webkitEntries;
 
-  /** @domName HTMLInputElement.webkitGrammar; @docsEditable true */
+  /// @domName HTMLInputElement.webkitGrammar; @docsEditable true
   bool webkitGrammar;
 
-  /** @domName HTMLInputElement.webkitSpeech; @docsEditable true */
+  /// @domName HTMLInputElement.webkitSpeech; @docsEditable true
   bool webkitSpeech;
 
-  /** @domName HTMLInputElement.webkitdirectory; @docsEditable true */
+  /// @domName HTMLInputElement.webkitdirectory; @docsEditable true
   bool webkitdirectory;
 
-  /** @domName HTMLInputElement.width; @docsEditable true */
+  /// @domName HTMLInputElement.width; @docsEditable true
   int width;
 
-  /** @domName HTMLInputElement.willValidate; @docsEditable true */
+  /// @domName HTMLInputElement.willValidate; @docsEditable true
   final bool willValidate;
 
-  /** @domName HTMLInputElement.checkValidity; @docsEditable true */
+  /// @domName HTMLInputElement.checkValidity; @docsEditable true
   bool checkValidity() native;
 
-  /** @domName HTMLInputElement.select; @docsEditable true */
+  /// @domName HTMLInputElement.select; @docsEditable true
   void select() native;
 
-  /** @domName HTMLInputElement.setCustomValidity; @docsEditable true */
+  /// @domName HTMLInputElement.setCustomValidity; @docsEditable true
   void setCustomValidity(String error) native;
 
-  /** @domName HTMLInputElement.setRangeText; @docsEditable true */
+  /// @domName HTMLInputElement.setRangeText; @docsEditable true
   void setRangeText(String replacement, [int start, int end, String selectionMode]) native;
 
-  /** @domName HTMLInputElement.setSelectionRange; @docsEditable true */
+  /// @domName HTMLInputElement.setSelectionRange; @docsEditable true
   void setSelectionRange(int start, int end, [String direction]) native;
 
-  /** @domName HTMLInputElement.stepDown; @docsEditable true */
+  /// @domName HTMLInputElement.stepDown; @docsEditable true
   void stepDown([int n]) native;
 
-  /** @domName HTMLInputElement.stepUp; @docsEditable true */
+  /// @domName HTMLInputElement.stepUp; @docsEditable true
   void stepUp([int n]) native;
 }
 
@@ -11268,7 +11226,7 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   static const int BYTES_PER_ELEMENT = 2;
 
-  /** @domName Int16Array.length; @docsEditable true */
+  /// @domName Int16Array.length; @docsEditable true
   final int length;
 
   int operator[](int index) => JS("int", "#[#]", this, index);
@@ -11353,10 +11311,10 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   // -- end List<int> mixins.
 
-  /** @domName Int16Array.setElements; @docsEditable true */
+  /// @domName Int16Array.setElements; @docsEditable true
   void setElements(Object array, [int offset]) native "set";
 
-  /** @domName Int16Array.subarray; @docsEditable true */
+  /// @domName Int16Array.subarray; @docsEditable true
   Int16Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11378,7 +11336,7 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   static const int BYTES_PER_ELEMENT = 4;
 
-  /** @domName Int32Array.length; @docsEditable true */
+  /// @domName Int32Array.length; @docsEditable true
   final int length;
 
   int operator[](int index) => JS("int", "#[#]", this, index);
@@ -11463,10 +11421,10 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   // -- end List<int> mixins.
 
-  /** @domName Int32Array.setElements; @docsEditable true */
+  /// @domName Int32Array.setElements; @docsEditable true
   void setElements(Object array, [int offset]) native "set";
 
-  /** @domName Int32Array.subarray; @docsEditable true */
+  /// @domName Int32Array.subarray; @docsEditable true
   Int32Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11488,7 +11446,7 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
 
   static const int BYTES_PER_ELEMENT = 1;
 
-  /** @domName Int8Array.length; @docsEditable true */
+  /// @domName Int8Array.length; @docsEditable true
   final int length;
 
   int operator[](int index) => JS("int", "#[#]", this, index);
@@ -11573,10 +11531,10 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
 
   // -- end List<int> mixins.
 
-  /** @domName Int8Array.setElements; @docsEditable true */
+  /// @domName Int8Array.setElements; @docsEditable true
   void setElements(Object array, [int offset]) native "set";
 
-  /** @domName Int8Array.subarray; @docsEditable true */
+  /// @domName Int8Array.subarray; @docsEditable true
   Int8Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11597,37 +11555,37 @@ class JavaScriptCallFrame native "*JavaScriptCallFrame" {
 
   static const int WITH_SCOPE = 2;
 
-  /** @domName JavaScriptCallFrame.caller; @docsEditable true */
+  /// @domName JavaScriptCallFrame.caller; @docsEditable true
   final JavaScriptCallFrame caller;
 
-  /** @domName JavaScriptCallFrame.column; @docsEditable true */
+  /// @domName JavaScriptCallFrame.column; @docsEditable true
   final int column;
 
-  /** @domName JavaScriptCallFrame.functionName; @docsEditable true */
+  /// @domName JavaScriptCallFrame.functionName; @docsEditable true
   final String functionName;
 
-  /** @domName JavaScriptCallFrame.line; @docsEditable true */
+  /// @domName JavaScriptCallFrame.line; @docsEditable true
   final int line;
 
-  /** @domName JavaScriptCallFrame.scopeChain; @docsEditable true */
+  /// @domName JavaScriptCallFrame.scopeChain; @docsEditable true
   final List scopeChain;
 
-  /** @domName JavaScriptCallFrame.sourceID; @docsEditable true */
+  /// @domName JavaScriptCallFrame.sourceID; @docsEditable true
   final int sourceID;
 
-  /** @domName JavaScriptCallFrame.thisObject; @docsEditable true */
+  /// @domName JavaScriptCallFrame.thisObject; @docsEditable true
   final Object thisObject;
 
-  /** @domName JavaScriptCallFrame.type; @docsEditable true */
+  /// @domName JavaScriptCallFrame.type; @docsEditable true
   final String type;
 
-  /** @domName JavaScriptCallFrame.evaluate; @docsEditable true */
+  /// @domName JavaScriptCallFrame.evaluate; @docsEditable true
   void evaluate(String script) native;
 
-  /** @domName JavaScriptCallFrame.restart; @docsEditable true */
+  /// @domName JavaScriptCallFrame.restart; @docsEditable true
   Object restart() native;
 
-  /** @domName JavaScriptCallFrame.scopeType; @docsEditable true */
+  /// @domName JavaScriptCallFrame.scopeType; @docsEditable true
   int scopeType(int scopeIndex) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11638,28 +11596,28 @@ class JavaScriptCallFrame native "*JavaScriptCallFrame" {
 /// @domName KeyboardEvent; @docsEditable true
 class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 
-  /** @domName KeyboardEvent.altGraphKey; @docsEditable true */
+  /// @domName KeyboardEvent.altGraphKey; @docsEditable true
   final bool altGraphKey;
 
-  /** @domName KeyboardEvent.altKey; @docsEditable true */
+  /// @domName KeyboardEvent.altKey; @docsEditable true
   final bool altKey;
 
-  /** @domName KeyboardEvent.ctrlKey; @docsEditable true */
+  /// @domName KeyboardEvent.ctrlKey; @docsEditable true
   final bool ctrlKey;
 
-  /** @domName KeyboardEvent.keyIdentifier; @docsEditable true */
+  /// @domName KeyboardEvent.keyIdentifier; @docsEditable true
   final String keyIdentifier;
 
-  /** @domName KeyboardEvent.keyLocation; @docsEditable true */
+  /// @domName KeyboardEvent.keyLocation; @docsEditable true
   final int keyLocation;
 
-  /** @domName KeyboardEvent.metaKey; @docsEditable true */
+  /// @domName KeyboardEvent.metaKey; @docsEditable true
   final bool metaKey;
 
-  /** @domName KeyboardEvent.shiftKey; @docsEditable true */
+  /// @domName KeyboardEvent.shiftKey; @docsEditable true
   final bool shiftKey;
 
-  /** @domName KeyboardEvent.initKeyboardEvent; @docsEditable true */
+  /// @domName KeyboardEvent.initKeyboardEvent; @docsEditable true
   void initKeyboardEvent(String type, bool canBubble, bool cancelable, LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11672,44 +11630,44 @@ class KeygenElement extends Element implements Element native "*HTMLKeygenElemen
 
   factory KeygenElement() => document.$dom_createElement("keygen");
 
-  /** @domName HTMLKeygenElement.autofocus; @docsEditable true */
+  /// @domName HTMLKeygenElement.autofocus; @docsEditable true
   bool autofocus;
 
-  /** @domName HTMLKeygenElement.challenge; @docsEditable true */
+  /// @domName HTMLKeygenElement.challenge; @docsEditable true
   String challenge;
 
-  /** @domName HTMLKeygenElement.disabled; @docsEditable true */
+  /// @domName HTMLKeygenElement.disabled; @docsEditable true
   bool disabled;
 
-  /** @domName HTMLKeygenElement.form; @docsEditable true */
+  /// @domName HTMLKeygenElement.form; @docsEditable true
   final FormElement form;
 
-  /** @domName HTMLKeygenElement.keytype; @docsEditable true */
+  /// @domName HTMLKeygenElement.keytype; @docsEditable true
   String keytype;
 
-  /** @domName HTMLKeygenElement.labels; @docsEditable true */
+  /// @domName HTMLKeygenElement.labels; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> labels;
 
-  /** @domName HTMLKeygenElement.name; @docsEditable true */
+  /// @domName HTMLKeygenElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLKeygenElement.type; @docsEditable true */
+  /// @domName HTMLKeygenElement.type; @docsEditable true
   final String type;
 
-  /** @domName HTMLKeygenElement.validationMessage; @docsEditable true */
+  /// @domName HTMLKeygenElement.validationMessage; @docsEditable true
   final String validationMessage;
 
-  /** @domName HTMLKeygenElement.validity; @docsEditable true */
+  /// @domName HTMLKeygenElement.validity; @docsEditable true
   final ValidityState validity;
 
-  /** @domName HTMLKeygenElement.willValidate; @docsEditable true */
+  /// @domName HTMLKeygenElement.willValidate; @docsEditable true
   final bool willValidate;
 
-  /** @domName HTMLKeygenElement.checkValidity; @docsEditable true */
+  /// @domName HTMLKeygenElement.checkValidity; @docsEditable true
   bool checkValidity() native;
 
-  /** @domName HTMLKeygenElement.setCustomValidity; @docsEditable true */
+  /// @domName HTMLKeygenElement.setCustomValidity; @docsEditable true
   void setCustomValidity(String error) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11722,10 +11680,10 @@ class LIElement extends Element implements Element native "*HTMLLIElement" {
 
   factory LIElement() => document.$dom_createElement("li");
 
-  /** @domName HTMLLIElement.type; @docsEditable true */
+  /// @domName HTMLLIElement.type; @docsEditable true
   String type;
 
-  /** @domName HTMLLIElement.value; @docsEditable true */
+  /// @domName HTMLLIElement.value; @docsEditable true
   int value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11738,13 +11696,13 @@ class LabelElement extends Element implements Element native "*HTMLLabelElement"
 
   factory LabelElement() => document.$dom_createElement("label");
 
-  /** @domName HTMLLabelElement.control; @docsEditable true */
+  /// @domName HTMLLabelElement.control; @docsEditable true
   final Element control;
 
-  /** @domName HTMLLabelElement.form; @docsEditable true */
+  /// @domName HTMLLabelElement.form; @docsEditable true
   final FormElement form;
 
-  /** @domName HTMLLabelElement.htmlFor; @docsEditable true */
+  /// @domName HTMLLabelElement.htmlFor; @docsEditable true
   String htmlFor;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11757,10 +11715,10 @@ class LegendElement extends Element implements Element native "*HTMLLegendElemen
 
   factory LegendElement() => document.$dom_createElement("legend");
 
-  /** @domName HTMLLegendElement.align; @docsEditable true */
+  /// @domName HTMLLegendElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLLegendElement.form; @docsEditable true */
+  /// @domName HTMLLegendElement.form; @docsEditable true
   final FormElement form;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11773,37 +11731,37 @@ class LinkElement extends Element implements Element native "*HTMLLinkElement" {
 
   factory LinkElement() => document.$dom_createElement("link");
 
-  /** @domName HTMLLinkElement.charset; @docsEditable true */
+  /// @domName HTMLLinkElement.charset; @docsEditable true
   String charset;
 
-  /** @domName HTMLLinkElement.disabled; @docsEditable true */
+  /// @domName HTMLLinkElement.disabled; @docsEditable true
   bool disabled;
 
-  /** @domName HTMLLinkElement.href; @docsEditable true */
+  /// @domName HTMLLinkElement.href; @docsEditable true
   String href;
 
-  /** @domName HTMLLinkElement.hreflang; @docsEditable true */
+  /// @domName HTMLLinkElement.hreflang; @docsEditable true
   String hreflang;
 
-  /** @domName HTMLLinkElement.media; @docsEditable true */
+  /// @domName HTMLLinkElement.media; @docsEditable true
   String media;
 
-  /** @domName HTMLLinkElement.rel; @docsEditable true */
+  /// @domName HTMLLinkElement.rel; @docsEditable true
   String rel;
 
-  /** @domName HTMLLinkElement.rev; @docsEditable true */
+  /// @domName HTMLLinkElement.rev; @docsEditable true
   String rev;
 
-  /** @domName HTMLLinkElement.sheet; @docsEditable true */
+  /// @domName HTMLLinkElement.sheet; @docsEditable true
   final StyleSheet sheet;
 
-  /** @domName HTMLLinkElement.sizes; @docsEditable true */
+  /// @domName HTMLLinkElement.sizes; @docsEditable true
   DOMSettableTokenList sizes;
 
-  /** @domName HTMLLinkElement.target; @docsEditable true */
+  /// @domName HTMLLinkElement.target; @docsEditable true
   String target;
 
-  /** @domName HTMLLinkElement.type; @docsEditable true */
+  /// @domName HTMLLinkElement.type; @docsEditable true
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11814,25 +11772,25 @@ class LinkElement extends Element implements Element native "*HTMLLinkElement" {
 /// @domName History; @docsEditable true
 class LocalHistory implements History native "*History" {
 
-  /** @domName History.length; @docsEditable true */
+  /// @domName History.length; @docsEditable true
   final int length;
 
-  /** @domName History.state; @docsEditable true */
+  /// @domName History.state; @docsEditable true
   final dynamic state;
 
-  /** @domName History.back; @docsEditable true */
+  /// @domName History.back; @docsEditable true
   void back() native;
 
-  /** @domName History.forward; @docsEditable true */
+  /// @domName History.forward; @docsEditable true
   void forward() native;
 
-  /** @domName History.go; @docsEditable true */
+  /// @domName History.go; @docsEditable true
   void go(int distance) native;
 
-  /** @domName History.pushState; @docsEditable true */
+  /// @domName History.pushState; @docsEditable true
   void pushState(Object data, String title, [String url]) native;
 
-  /** @domName History.replaceState; @docsEditable true */
+  /// @domName History.replaceState; @docsEditable true
   void replaceState(Object data, String title, [String url]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11843,47 +11801,47 @@ class LocalHistory implements History native "*History" {
 /// @domName Location; @docsEditable true
 class LocalLocation implements Location native "*Location" {
 
-  /** @domName Location.ancestorOrigins; @docsEditable true */
+  /// @domName Location.ancestorOrigins; @docsEditable true
   @Returns('_DOMStringList') @Creates('_DOMStringList')
   final List<String> ancestorOrigins;
 
-  /** @domName Location.hash; @docsEditable true */
+  /// @domName Location.hash; @docsEditable true
   String hash;
 
-  /** @domName Location.host; @docsEditable true */
+  /// @domName Location.host; @docsEditable true
   String host;
 
-  /** @domName Location.hostname; @docsEditable true */
+  /// @domName Location.hostname; @docsEditable true
   String hostname;
 
-  /** @domName Location.href; @docsEditable true */
+  /// @domName Location.href; @docsEditable true
   String href;
 
-  /** @domName Location.origin; @docsEditable true */
+  /// @domName Location.origin; @docsEditable true
   final String origin;
 
-  /** @domName Location.pathname; @docsEditable true */
+  /// @domName Location.pathname; @docsEditable true
   String pathname;
 
-  /** @domName Location.port; @docsEditable true */
+  /// @domName Location.port; @docsEditable true
   String port;
 
-  /** @domName Location.protocol; @docsEditable true */
+  /// @domName Location.protocol; @docsEditable true
   String protocol;
 
-  /** @domName Location.search; @docsEditable true */
+  /// @domName Location.search; @docsEditable true
   String search;
 
-  /** @domName Location.assign; @docsEditable true */
+  /// @domName Location.assign; @docsEditable true
   void assign(String url) native;
 
-  /** @domName Location.reload; @docsEditable true */
+  /// @domName Location.reload; @docsEditable true
   void reload() native;
 
-  /** @domName Location.replace; @docsEditable true */
+  /// @domName Location.replace; @docsEditable true
   void replace(String url) native;
 
-  /** @domName Location.toString; @docsEditable true */
+  /// @domName Location.toString; @docsEditable true
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11894,7 +11852,7 @@ class LocalLocation implements Location native "*Location" {
 /// @domName LocalMediaStream; @docsEditable true
 class LocalMediaStream extends MediaStream implements EventTarget native "*LocalMediaStream" {
 
-  /** @domName LocalMediaStream.stop; @docsEditable true */
+  /// @domName LocalMediaStream.stop; @docsEditable true
   void stop() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12044,9 +12002,7 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   }
 
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   LocalWindowEvents get on =>
     new LocalWindowEvents(this);
 
@@ -12054,203 +12010,203 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   static const int TEMPORARY = 0;
 
-  /** @domName Window.applicationCache; @docsEditable true */
+  /// @domName Window.applicationCache; @docsEditable true
   final DOMApplicationCache applicationCache;
 
-  /** @domName Window.closed; @docsEditable true */
+  /// @domName Window.closed; @docsEditable true
   final bool closed;
 
-  /** @domName Window.console; @docsEditable true */
+  /// @domName Window.console; @docsEditable true
   final Console console;
 
-  /** @domName Window.crypto; @docsEditable true */
+  /// @domName Window.crypto; @docsEditable true
   final Crypto crypto;
 
-  /** @domName Window.defaultStatus; @docsEditable true */
+  /// @domName Window.defaultStatus; @docsEditable true
   String defaultStatus;
 
-  /** @domName Window.defaultstatus; @docsEditable true */
+  /// @domName Window.defaultstatus; @docsEditable true
   String defaultstatus;
 
-  /** @domName Window.devicePixelRatio; @docsEditable true */
+  /// @domName Window.devicePixelRatio; @docsEditable true
   final num devicePixelRatio;
 
-  /** @domName Window.event; @docsEditable true */
+  /// @domName Window.event; @docsEditable true
   final Event event;
 
-  /** @domName Window.history; @docsEditable true */
+  /// @domName Window.history; @docsEditable true
   final LocalHistory history;
 
-  /** @domName Window.innerHeight; @docsEditable true */
+  /// @domName Window.innerHeight; @docsEditable true
   final int innerHeight;
 
-  /** @domName Window.innerWidth; @docsEditable true */
+  /// @domName Window.innerWidth; @docsEditable true
   final int innerWidth;
 
-  /** @domName Window.localStorage; @docsEditable true */
+  /// @domName Window.localStorage; @docsEditable true
   final Storage localStorage;
 
-  /** @domName Window.locationbar; @docsEditable true */
+  /// @domName Window.locationbar; @docsEditable true
   final BarInfo locationbar;
 
-  /** @domName Window.menubar; @docsEditable true */
+  /// @domName Window.menubar; @docsEditable true
   final BarInfo menubar;
 
-  /** @domName Window.name; @docsEditable true */
+  /// @domName Window.name; @docsEditable true
   String name;
 
-  /** @domName Window.navigator; @docsEditable true */
+  /// @domName Window.navigator; @docsEditable true
   final Navigator navigator;
 
-  /** @domName Window.offscreenBuffering; @docsEditable true */
+  /// @domName Window.offscreenBuffering; @docsEditable true
   final bool offscreenBuffering;
 
-  /** @domName Window.opener; @docsEditable true */
+  /// @domName Window.opener; @docsEditable true
   Window get opener => _convertNativeToDart_Window(this._opener);
   dynamic get _opener => JS("dynamic", "#.opener", this);
 
-  /** @domName Window.outerHeight; @docsEditable true */
+  /// @domName Window.outerHeight; @docsEditable true
   final int outerHeight;
 
-  /** @domName Window.outerWidth; @docsEditable true */
+  /// @domName Window.outerWidth; @docsEditable true
   final int outerWidth;
 
-  /** @domName DOMWindow.pagePopupController; @docsEditable true */
+  /// @domName DOMWindow.pagePopupController; @docsEditable true
   final PagePopupController pagePopupController;
 
-  /** @domName Window.pageXOffset; @docsEditable true */
+  /// @domName Window.pageXOffset; @docsEditable true
   final int pageXOffset;
 
-  /** @domName Window.pageYOffset; @docsEditable true */
+  /// @domName Window.pageYOffset; @docsEditable true
   final int pageYOffset;
 
-  /** @domName Window.parent; @docsEditable true */
+  /// @domName Window.parent; @docsEditable true
   Window get parent => _convertNativeToDart_Window(this._parent);
   dynamic get _parent => JS("dynamic", "#.parent", this);
 
-  /** @domName Window.performance; @docsEditable true */
+  /// @domName Window.performance; @docsEditable true
   final Performance performance;
 
-  /** @domName Window.personalbar; @docsEditable true */
+  /// @domName Window.personalbar; @docsEditable true
   final BarInfo personalbar;
 
-  /** @domName Window.screen; @docsEditable true */
+  /// @domName Window.screen; @docsEditable true
   final Screen screen;
 
-  /** @domName Window.screenLeft; @docsEditable true */
+  /// @domName Window.screenLeft; @docsEditable true
   final int screenLeft;
 
-  /** @domName Window.screenTop; @docsEditable true */
+  /// @domName Window.screenTop; @docsEditable true
   final int screenTop;
 
-  /** @domName Window.screenX; @docsEditable true */
+  /// @domName Window.screenX; @docsEditable true
   final int screenX;
 
-  /** @domName Window.screenY; @docsEditable true */
+  /// @domName Window.screenY; @docsEditable true
   final int screenY;
 
-  /** @domName Window.scrollX; @docsEditable true */
+  /// @domName Window.scrollX; @docsEditable true
   final int scrollX;
 
-  /** @domName Window.scrollY; @docsEditable true */
+  /// @domName Window.scrollY; @docsEditable true
   final int scrollY;
 
-  /** @domName Window.scrollbars; @docsEditable true */
+  /// @domName Window.scrollbars; @docsEditable true
   final BarInfo scrollbars;
 
-  /** @domName Window.self; @docsEditable true */
+  /// @domName Window.self; @docsEditable true
   Window get self => _convertNativeToDart_Window(this._self);
   dynamic get _self => JS("dynamic", "#.self", this);
 
-  /** @domName Window.sessionStorage; @docsEditable true */
+  /// @domName Window.sessionStorage; @docsEditable true
   final Storage sessionStorage;
 
-  /** @domName Window.status; @docsEditable true */
+  /// @domName Window.status; @docsEditable true
   String status;
 
-  /** @domName Window.statusbar; @docsEditable true */
+  /// @domName Window.statusbar; @docsEditable true
   final BarInfo statusbar;
 
-  /** @domName Window.styleMedia; @docsEditable true */
+  /// @domName Window.styleMedia; @docsEditable true
   final StyleMedia styleMedia;
 
-  /** @domName Window.toolbar; @docsEditable true */
+  /// @domName Window.toolbar; @docsEditable true
   final BarInfo toolbar;
 
-  /** @domName Window.top; @docsEditable true */
+  /// @domName Window.top; @docsEditable true
   Window get top => _convertNativeToDart_Window(this._top);
   dynamic get _top => JS("dynamic", "#.top", this);
 
-  /** @domName DOMWindow.webkitIndexedDB; @docsEditable true */
+  /// @domName DOMWindow.webkitIndexedDB; @docsEditable true
   final IDBFactory webkitIndexedDB;
 
-  /** @domName DOMWindow.webkitNotifications; @docsEditable true */
+  /// @domName DOMWindow.webkitNotifications; @docsEditable true
   final NotificationCenter webkitNotifications;
 
-  /** @domName DOMWindow.webkitStorageInfo; @docsEditable true */
+  /// @domName DOMWindow.webkitStorageInfo; @docsEditable true
   final StorageInfo webkitStorageInfo;
 
-  /** @domName Window.window; @docsEditable true */
+  /// @domName Window.window; @docsEditable true
   Window get window => _convertNativeToDart_Window(this._window);
   dynamic get _window => JS("dynamic", "#.window", this);
 
-  /** @domName Window.addEventListener; @docsEditable true */
+  /// @domName Window.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName Window.alert; @docsEditable true */
+  /// @domName Window.alert; @docsEditable true
   void alert(String message) native;
 
-  /** @domName Window.atob; @docsEditable true */
+  /// @domName Window.atob; @docsEditable true
   String atob(String string) native;
 
-  /** @domName Window.btoa; @docsEditable true */
+  /// @domName Window.btoa; @docsEditable true
   String btoa(String string) native;
 
-  /** @domName Window.captureEvents; @docsEditable true */
+  /// @domName Window.captureEvents; @docsEditable true
   void captureEvents() native;
 
-  /** @domName Window.clearInterval; @docsEditable true */
+  /// @domName Window.clearInterval; @docsEditable true
   void clearInterval(int handle) native;
 
-  /** @domName Window.clearTimeout; @docsEditable true */
+  /// @domName Window.clearTimeout; @docsEditable true
   void clearTimeout(int handle) native;
 
-  /** @domName Window.close; @docsEditable true */
+  /// @domName Window.close; @docsEditable true
   void close() native;
 
-  /** @domName Window.confirm; @docsEditable true */
+  /// @domName Window.confirm; @docsEditable true
   bool confirm(String message) native;
 
-  /** @domName Window.dispatchEvent; @docsEditable true */
+  /// @domName Window.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName Window.find; @docsEditable true */
+  /// @domName Window.find; @docsEditable true
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native;
 
-  /** @domName Window.getComputedStyle; @docsEditable true */
+  /// @domName Window.getComputedStyle; @docsEditable true
   CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native "getComputedStyle";
 
-  /** @domName Window.getMatchedCSSRules; @docsEditable true */
+  /// @domName Window.getMatchedCSSRules; @docsEditable true
   @Returns('_CSSRuleList') @Creates('_CSSRuleList')
   List<CSSRule> getMatchedCSSRules(Element element, String pseudoElement) native;
 
-  /** @domName Window.getSelection; @docsEditable true */
+  /// @domName Window.getSelection; @docsEditable true
   DOMSelection getSelection() native;
 
-  /** @domName Window.matchMedia; @docsEditable true */
+  /// @domName Window.matchMedia; @docsEditable true
   MediaQueryList matchMedia(String query) native;
 
-  /** @domName Window.moveBy; @docsEditable true */
+  /// @domName Window.moveBy; @docsEditable true
   void moveBy(num x, num y) native;
 
-  /** @domName Window.moveTo; @docsEditable true */
+  /// @domName Window.moveTo; @docsEditable true
   void moveTo(num x, num y) native;
 
-  /** @domName DOMWindow.openDatabase; @docsEditable true */
+  /// @domName DOMWindow.openDatabase; @docsEditable true
   @Creates('Database') @Creates('DatabaseSync')
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
-  /** @domName Window.postMessage; @docsEditable true */
+  /// @domName Window.postMessage; @docsEditable true
   void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) {
     if (?message &&
         !?messagePorts) {
@@ -12268,52 +12224,52 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   void _postMessage_1(message, targetOrigin) native "postMessage";
   void _postMessage_2(message, targetOrigin, List messagePorts) native "postMessage";
 
-  /** @domName Window.print; @docsEditable true */
+  /// @domName Window.print; @docsEditable true
   void print() native;
 
-  /** @domName Window.releaseEvents; @docsEditable true */
+  /// @domName Window.releaseEvents; @docsEditable true
   void releaseEvents() native;
 
-  /** @domName Window.removeEventListener; @docsEditable true */
+  /// @domName Window.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName Window.resizeBy; @docsEditable true */
+  /// @domName Window.resizeBy; @docsEditable true
   void resizeBy(num x, num y) native;
 
-  /** @domName Window.resizeTo; @docsEditable true */
+  /// @domName Window.resizeTo; @docsEditable true
   void resizeTo(num width, num height) native;
 
-  /** @domName Window.scroll; @docsEditable true */
+  /// @domName Window.scroll; @docsEditable true
   void scroll(int x, int y) native;
 
-  /** @domName Window.scrollBy; @docsEditable true */
+  /// @domName Window.scrollBy; @docsEditable true
   void scrollBy(int x, int y) native;
 
-  /** @domName Window.scrollTo; @docsEditable true */
+  /// @domName Window.scrollTo; @docsEditable true
   void scrollTo(int x, int y) native;
 
-  /** @domName Window.setInterval; @docsEditable true */
+  /// @domName Window.setInterval; @docsEditable true
   int setInterval(TimeoutHandler handler, int timeout) native;
 
-  /** @domName Window.setTimeout; @docsEditable true */
+  /// @domName Window.setTimeout; @docsEditable true
   int setTimeout(TimeoutHandler handler, int timeout) native;
 
-  /** @domName Window.showModalDialog; @docsEditable true */
+  /// @domName Window.showModalDialog; @docsEditable true
   Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) native;
 
-  /** @domName Window.stop; @docsEditable true */
+  /// @domName Window.stop; @docsEditable true
   void stop() native;
 
-  /** @domName Window.webkitConvertPointFromNodeToPage; @docsEditable true */
+  /// @domName Window.webkitConvertPointFromNodeToPage; @docsEditable true
   Point webkitConvertPointFromNodeToPage(Node node, Point p) native;
 
-  /** @domName Window.webkitConvertPointFromPageToNode; @docsEditable true */
+  /// @domName Window.webkitConvertPointFromPageToNode; @docsEditable true
   Point webkitConvertPointFromPageToNode(Node node, Point p) native;
 
-  /** @domName DOMWindow.webkitRequestFileSystem; @docsEditable true */
+  /// @domName DOMWindow.webkitRequestFileSystem; @docsEditable true
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  /** @domName DOMWindow.webkitResolveLocalFileSystemURL; @docsEditable true */
+  /// @domName DOMWindow.webkitResolveLocalFileSystemURL; @docsEditable true
   void webkitResolveLocalFileSystemURL(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
 
 }
@@ -12477,10 +12433,10 @@ class MapElement extends Element implements Element native "*HTMLMapElement" {
 
   factory MapElement() => document.$dom_createElement("map");
 
-  /** @domName HTMLMapElement.areas; @docsEditable true */
+  /// @domName HTMLMapElement.areas; @docsEditable true
   final HTMLCollection areas;
 
-  /** @domName HTMLMapElement.name; @docsEditable true */
+  /// @domName HTMLMapElement.name; @docsEditable true
   String name;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12491,43 +12447,43 @@ class MapElement extends Element implements Element native "*HTMLMapElement" {
 /// @domName HTMLMarqueeElement; @docsEditable true
 class MarqueeElement extends Element implements Element native "*HTMLMarqueeElement" {
 
-  /** @domName HTMLMarqueeElement.behavior; @docsEditable true */
+  /// @domName HTMLMarqueeElement.behavior; @docsEditable true
   String behavior;
 
-  /** @domName HTMLMarqueeElement.bgColor; @docsEditable true */
+  /// @domName HTMLMarqueeElement.bgColor; @docsEditable true
   String bgColor;
 
-  /** @domName HTMLMarqueeElement.direction; @docsEditable true */
+  /// @domName HTMLMarqueeElement.direction; @docsEditable true
   String direction;
 
-  /** @domName HTMLMarqueeElement.height; @docsEditable true */
+  /// @domName HTMLMarqueeElement.height; @docsEditable true
   String height;
 
-  /** @domName HTMLMarqueeElement.hspace; @docsEditable true */
+  /// @domName HTMLMarqueeElement.hspace; @docsEditable true
   int hspace;
 
-  /** @domName HTMLMarqueeElement.loop; @docsEditable true */
+  /// @domName HTMLMarqueeElement.loop; @docsEditable true
   int loop;
 
-  /** @domName HTMLMarqueeElement.scrollAmount; @docsEditable true */
+  /// @domName HTMLMarqueeElement.scrollAmount; @docsEditable true
   int scrollAmount;
 
-  /** @domName HTMLMarqueeElement.scrollDelay; @docsEditable true */
+  /// @domName HTMLMarqueeElement.scrollDelay; @docsEditable true
   int scrollDelay;
 
-  /** @domName HTMLMarqueeElement.trueSpeed; @docsEditable true */
+  /// @domName HTMLMarqueeElement.trueSpeed; @docsEditable true
   bool trueSpeed;
 
-  /** @domName HTMLMarqueeElement.vspace; @docsEditable true */
+  /// @domName HTMLMarqueeElement.vspace; @docsEditable true
   int vspace;
 
-  /** @domName HTMLMarqueeElement.width; @docsEditable true */
+  /// @domName HTMLMarqueeElement.width; @docsEditable true
   String width;
 
-  /** @domName HTMLMarqueeElement.start; @docsEditable true */
+  /// @domName HTMLMarqueeElement.start; @docsEditable true
   void start() native;
 
-  /** @domName HTMLMarqueeElement.stop; @docsEditable true */
+  /// @domName HTMLMarqueeElement.stop; @docsEditable true
   void stop() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12540,49 +12496,49 @@ class MediaController extends EventTarget native "*MediaController" {
 
   factory MediaController() => _MediaControllerFactoryProvider.createMediaController();
 
-  /** @domName MediaController.buffered; @docsEditable true */
+  /// @domName MediaController.buffered; @docsEditable true
   final TimeRanges buffered;
 
-  /** @domName MediaController.currentTime; @docsEditable true */
+  /// @domName MediaController.currentTime; @docsEditable true
   num currentTime;
 
-  /** @domName MediaController.defaultPlaybackRate; @docsEditable true */
+  /// @domName MediaController.defaultPlaybackRate; @docsEditable true
   num defaultPlaybackRate;
 
-  /** @domName MediaController.duration; @docsEditable true */
+  /// @domName MediaController.duration; @docsEditable true
   final num duration;
 
-  /** @domName MediaController.muted; @docsEditable true */
+  /// @domName MediaController.muted; @docsEditable true
   bool muted;
 
-  /** @domName MediaController.paused; @docsEditable true */
+  /// @domName MediaController.paused; @docsEditable true
   final bool paused;
 
-  /** @domName MediaController.playbackRate; @docsEditable true */
+  /// @domName MediaController.playbackRate; @docsEditable true
   num playbackRate;
 
-  /** @domName MediaController.played; @docsEditable true */
+  /// @domName MediaController.played; @docsEditable true
   final TimeRanges played;
 
-  /** @domName MediaController.seekable; @docsEditable true */
+  /// @domName MediaController.seekable; @docsEditable true
   final TimeRanges seekable;
 
-  /** @domName MediaController.volume; @docsEditable true */
+  /// @domName MediaController.volume; @docsEditable true
   num volume;
 
-  /** @domName MediaController.addEventListener; @docsEditable true */
+  /// @domName MediaController.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName MediaController.dispatchEvent; @docsEditable true */
+  /// @domName MediaController.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName MediaController.pause; @docsEditable true */
+  /// @domName MediaController.pause; @docsEditable true
   void pause() native;
 
-  /** @domName MediaController.play; @docsEditable true */
+  /// @domName MediaController.play; @docsEditable true
   void play() native;
 
-  /** @domName MediaController.removeEventListener; @docsEditable true */
+  /// @domName MediaController.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12593,9 +12549,7 @@ class MediaController extends EventTarget native "*MediaController" {
 /// @domName HTMLMediaElement; @docsEditable true
 class MediaElement extends Element implements Element native "*HTMLMediaElement" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaElementEvents get on =>
     new MediaElementEvents(this);
 
@@ -12617,124 +12571,124 @@ class MediaElement extends Element implements Element native "*HTMLMediaElement"
 
   static const int NETWORK_NO_SOURCE = 3;
 
-  /** @domName HTMLMediaElement.autoplay; @docsEditable true */
+  /// @domName HTMLMediaElement.autoplay; @docsEditable true
   bool autoplay;
 
-  /** @domName HTMLMediaElement.buffered; @docsEditable true */
+  /// @domName HTMLMediaElement.buffered; @docsEditable true
   final TimeRanges buffered;
 
-  /** @domName HTMLMediaElement.controller; @docsEditable true */
+  /// @domName HTMLMediaElement.controller; @docsEditable true
   MediaController controller;
 
-  /** @domName HTMLMediaElement.controls; @docsEditable true */
+  /// @domName HTMLMediaElement.controls; @docsEditable true
   bool controls;
 
-  /** @domName HTMLMediaElement.currentSrc; @docsEditable true */
+  /// @domName HTMLMediaElement.currentSrc; @docsEditable true
   final String currentSrc;
 
-  /** @domName HTMLMediaElement.currentTime; @docsEditable true */
+  /// @domName HTMLMediaElement.currentTime; @docsEditable true
   num currentTime;
 
-  /** @domName HTMLMediaElement.defaultMuted; @docsEditable true */
+  /// @domName HTMLMediaElement.defaultMuted; @docsEditable true
   bool defaultMuted;
 
-  /** @domName HTMLMediaElement.defaultPlaybackRate; @docsEditable true */
+  /// @domName HTMLMediaElement.defaultPlaybackRate; @docsEditable true
   num defaultPlaybackRate;
 
-  /** @domName HTMLMediaElement.duration; @docsEditable true */
+  /// @domName HTMLMediaElement.duration; @docsEditable true
   final num duration;
 
-  /** @domName HTMLMediaElement.ended; @docsEditable true */
+  /// @domName HTMLMediaElement.ended; @docsEditable true
   final bool ended;
 
-  /** @domName HTMLMediaElement.error; @docsEditable true */
+  /// @domName HTMLMediaElement.error; @docsEditable true
   final MediaError error;
 
-  /** @domName HTMLMediaElement.initialTime; @docsEditable true */
+  /// @domName HTMLMediaElement.initialTime; @docsEditable true
   final num initialTime;
 
-  /** @domName HTMLMediaElement.loop; @docsEditable true */
+  /// @domName HTMLMediaElement.loop; @docsEditable true
   bool loop;
 
-  /** @domName HTMLMediaElement.mediaGroup; @docsEditable true */
+  /// @domName HTMLMediaElement.mediaGroup; @docsEditable true
   String mediaGroup;
 
-  /** @domName HTMLMediaElement.muted; @docsEditable true */
+  /// @domName HTMLMediaElement.muted; @docsEditable true
   bool muted;
 
-  /** @domName HTMLMediaElement.networkState; @docsEditable true */
+  /// @domName HTMLMediaElement.networkState; @docsEditable true
   final int networkState;
 
-  /** @domName HTMLMediaElement.paused; @docsEditable true */
+  /// @domName HTMLMediaElement.paused; @docsEditable true
   final bool paused;
 
-  /** @domName HTMLMediaElement.playbackRate; @docsEditable true */
+  /// @domName HTMLMediaElement.playbackRate; @docsEditable true
   num playbackRate;
 
-  /** @domName HTMLMediaElement.played; @docsEditable true */
+  /// @domName HTMLMediaElement.played; @docsEditable true
   final TimeRanges played;
 
-  /** @domName HTMLMediaElement.preload; @docsEditable true */
+  /// @domName HTMLMediaElement.preload; @docsEditable true
   String preload;
 
-  /** @domName HTMLMediaElement.readyState; @docsEditable true */
+  /// @domName HTMLMediaElement.readyState; @docsEditable true
   final int readyState;
 
-  /** @domName HTMLMediaElement.seekable; @docsEditable true */
+  /// @domName HTMLMediaElement.seekable; @docsEditable true
   final TimeRanges seekable;
 
-  /** @domName HTMLMediaElement.seeking; @docsEditable true */
+  /// @domName HTMLMediaElement.seeking; @docsEditable true
   final bool seeking;
 
-  /** @domName HTMLMediaElement.src; @docsEditable true */
+  /// @domName HTMLMediaElement.src; @docsEditable true
   String src;
 
-  /** @domName HTMLMediaElement.startTime; @docsEditable true */
+  /// @domName HTMLMediaElement.startTime; @docsEditable true
   final num startTime;
 
-  /** @domName HTMLMediaElement.textTracks; @docsEditable true */
+  /// @domName HTMLMediaElement.textTracks; @docsEditable true
   final TextTrackList textTracks;
 
-  /** @domName HTMLMediaElement.volume; @docsEditable true */
+  /// @domName HTMLMediaElement.volume; @docsEditable true
   num volume;
 
-  /** @domName HTMLMediaElement.webkitAudioDecodedByteCount; @docsEditable true */
+  /// @domName HTMLMediaElement.webkitAudioDecodedByteCount; @docsEditable true
   final int webkitAudioDecodedByteCount;
 
-  /** @domName HTMLMediaElement.webkitClosedCaptionsVisible; @docsEditable true */
+  /// @domName HTMLMediaElement.webkitClosedCaptionsVisible; @docsEditable true
   bool webkitClosedCaptionsVisible;
 
-  /** @domName HTMLMediaElement.webkitHasClosedCaptions; @docsEditable true */
+  /// @domName HTMLMediaElement.webkitHasClosedCaptions; @docsEditable true
   final bool webkitHasClosedCaptions;
 
-  /** @domName HTMLMediaElement.webkitPreservesPitch; @docsEditable true */
+  /// @domName HTMLMediaElement.webkitPreservesPitch; @docsEditable true
   bool webkitPreservesPitch;
 
-  /** @domName HTMLMediaElement.webkitVideoDecodedByteCount; @docsEditable true */
+  /// @domName HTMLMediaElement.webkitVideoDecodedByteCount; @docsEditable true
   final int webkitVideoDecodedByteCount;
 
-  /** @domName HTMLMediaElement.addTextTrack; @docsEditable true */
+  /// @domName HTMLMediaElement.addTextTrack; @docsEditable true
   TextTrack addTextTrack(String kind, [String label, String language]) native;
 
-  /** @domName HTMLMediaElement.canPlayType; @docsEditable true */
+  /// @domName HTMLMediaElement.canPlayType; @docsEditable true
   String canPlayType(String type, String keySystem) native;
 
-  /** @domName HTMLMediaElement.load; @docsEditable true */
+  /// @domName HTMLMediaElement.load; @docsEditable true
   void load() native;
 
-  /** @domName HTMLMediaElement.pause; @docsEditable true */
+  /// @domName HTMLMediaElement.pause; @docsEditable true
   void pause() native;
 
-  /** @domName HTMLMediaElement.play; @docsEditable true */
+  /// @domName HTMLMediaElement.play; @docsEditable true
   void play() native;
 
-  /** @domName HTMLMediaElement.webkitAddKey; @docsEditable true */
+  /// @domName HTMLMediaElement.webkitAddKey; @docsEditable true
   void webkitAddKey(String keySystem, Uint8Array key, [Uint8Array initData, String sessionId]) native;
 
-  /** @domName HTMLMediaElement.webkitCancelKeyRequest; @docsEditable true */
+  /// @domName HTMLMediaElement.webkitCancelKeyRequest; @docsEditable true
   void webkitCancelKeyRequest(String keySystem, String sessionId) native;
 
-  /** @domName HTMLMediaElement.webkitGenerateKeyRequest; @docsEditable true */
+  /// @domName HTMLMediaElement.webkitGenerateKeyRequest; @docsEditable true
   void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]) native;
 }
 
@@ -12799,7 +12753,7 @@ class MediaElementEvents extends ElementEvents {
 /// @domName MediaElementAudioSourceNode; @docsEditable true
 class MediaElementAudioSourceNode extends AudioSourceNode native "*MediaElementAudioSourceNode" {
 
-  /** @domName MediaElementAudioSourceNode.mediaElement; @docsEditable true */
+  /// @domName MediaElementAudioSourceNode.mediaElement; @docsEditable true
   final MediaElement mediaElement;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12820,7 +12774,7 @@ class MediaError native "*MediaError" {
 
   static const int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
-  /** @domName MediaError.code; @docsEditable true */
+  /// @domName MediaError.code; @docsEditable true
   final int code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12843,7 +12797,7 @@ class MediaKeyError native "*MediaKeyError" {
 
   static const int MEDIA_KEYERR_UNKNOWN = 1;
 
-  /** @domName MediaKeyError.code; @docsEditable true */
+  /// @domName MediaKeyError.code; @docsEditable true
   final int code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12854,25 +12808,25 @@ class MediaKeyError native "*MediaKeyError" {
 /// @domName MediaKeyEvent; @docsEditable true
 class MediaKeyEvent extends Event native "*MediaKeyEvent" {
 
-  /** @domName MediaKeyEvent.defaultURL; @docsEditable true */
+  /// @domName MediaKeyEvent.defaultURL; @docsEditable true
   final String defaultURL;
 
-  /** @domName MediaKeyEvent.errorCode; @docsEditable true */
+  /// @domName MediaKeyEvent.errorCode; @docsEditable true
   final MediaKeyError errorCode;
 
-  /** @domName MediaKeyEvent.initData; @docsEditable true */
+  /// @domName MediaKeyEvent.initData; @docsEditable true
   final Uint8Array initData;
 
-  /** @domName MediaKeyEvent.keySystem; @docsEditable true */
+  /// @domName MediaKeyEvent.keySystem; @docsEditable true
   final String keySystem;
 
-  /** @domName MediaKeyEvent.message; @docsEditable true */
+  /// @domName MediaKeyEvent.message; @docsEditable true
   final Uint8Array message;
 
-  /** @domName MediaKeyEvent.sessionId; @docsEditable true */
+  /// @domName MediaKeyEvent.sessionId; @docsEditable true
   final String sessionId;
 
-  /** @domName MediaKeyEvent.systemCode; @docsEditable true */
+  /// @domName MediaKeyEvent.systemCode; @docsEditable true
   final int systemCode;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12883,19 +12837,19 @@ class MediaKeyEvent extends Event native "*MediaKeyEvent" {
 /// @domName MediaList; @docsEditable true
 class MediaList native "*MediaList" {
 
-  /** @domName MediaList.length; @docsEditable true */
+  /// @domName MediaList.length; @docsEditable true
   final int length;
 
-  /** @domName MediaList.mediaText; @docsEditable true */
+  /// @domName MediaList.mediaText; @docsEditable true
   String mediaText;
 
-  /** @domName MediaList.appendMedium; @docsEditable true */
+  /// @domName MediaList.appendMedium; @docsEditable true
   void appendMedium(String newMedium) native;
 
-  /** @domName MediaList.deleteMedium; @docsEditable true */
+  /// @domName MediaList.deleteMedium; @docsEditable true
   void deleteMedium(String oldMedium) native;
 
-  /** @domName MediaList.item; @docsEditable true */
+  /// @domName MediaList.item; @docsEditable true
   String item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12906,16 +12860,16 @@ class MediaList native "*MediaList" {
 /// @domName MediaQueryList; @docsEditable true
 class MediaQueryList native "*MediaQueryList" {
 
-  /** @domName MediaQueryList.matches; @docsEditable true */
+  /// @domName MediaQueryList.matches; @docsEditable true
   final bool matches;
 
-  /** @domName MediaQueryList.media; @docsEditable true */
+  /// @domName MediaQueryList.media; @docsEditable true
   final String media;
 
-  /** @domName MediaQueryList.addListener; @docsEditable true */
+  /// @domName MediaQueryList.addListener; @docsEditable true
   void addListener(MediaQueryListListener listener) native;
 
-  /** @domName MediaQueryList.removeListener; @docsEditable true */
+  /// @domName MediaQueryList.removeListener; @docsEditable true
   void removeListener(MediaQueryListListener listener) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12926,7 +12880,7 @@ class MediaQueryList native "*MediaQueryList" {
 /// @domName MediaQueryListListener
 abstract class MediaQueryListListener {
 
-  /** @domName MediaQueryListListener.queryChanged; @docsEditable true */
+  /// @domName MediaQueryListListener.queryChanged; @docsEditable true
   void queryChanged(MediaQueryList list);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12939,34 +12893,34 @@ class MediaSource extends EventTarget native "*MediaSource" {
 
   factory MediaSource() => _MediaSourceFactoryProvider.createMediaSource();
 
-  /** @domName MediaSource.activeSourceBuffers; @docsEditable true */
+  /// @domName MediaSource.activeSourceBuffers; @docsEditable true
   final SourceBufferList activeSourceBuffers;
 
-  /** @domName MediaSource.duration; @docsEditable true */
+  /// @domName MediaSource.duration; @docsEditable true
   num duration;
 
-  /** @domName MediaSource.readyState; @docsEditable true */
+  /// @domName MediaSource.readyState; @docsEditable true
   final String readyState;
 
-  /** @domName MediaSource.sourceBuffers; @docsEditable true */
+  /// @domName MediaSource.sourceBuffers; @docsEditable true
   final SourceBufferList sourceBuffers;
 
-  /** @domName MediaSource.addEventListener; @docsEditable true */
+  /// @domName MediaSource.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName MediaSource.addSourceBuffer; @docsEditable true */
+  /// @domName MediaSource.addSourceBuffer; @docsEditable true
   SourceBuffer addSourceBuffer(String type) native;
 
-  /** @domName MediaSource.dispatchEvent; @docsEditable true */
+  /// @domName MediaSource.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
-  /** @domName MediaSource.endOfStream; @docsEditable true */
+  /// @domName MediaSource.endOfStream; @docsEditable true
   void endOfStream(String error) native;
 
-  /** @domName MediaSource.removeEventListener; @docsEditable true */
+  /// @domName MediaSource.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName MediaSource.removeSourceBuffer; @docsEditable true */
+  /// @domName MediaSource.removeSourceBuffer; @docsEditable true
   void removeSourceBuffer(SourceBuffer buffer) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12979,9 +12933,7 @@ class MediaStream extends EventTarget native "*MediaStream" {
 
   factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => _MediaStreamFactoryProvider.createMediaStream(audioTracks, videoTracks);
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaStreamEvents get on =>
     new MediaStreamEvents(this);
 
@@ -12989,25 +12941,25 @@ class MediaStream extends EventTarget native "*MediaStream" {
 
   static const int LIVE = 1;
 
-  /** @domName MediaStream.audioTracks; @docsEditable true */
+  /// @domName MediaStream.audioTracks; @docsEditable true
   final MediaStreamTrackList audioTracks;
 
-  /** @domName MediaStream.label; @docsEditable true */
+  /// @domName MediaStream.label; @docsEditable true
   final String label;
 
-  /** @domName MediaStream.readyState; @docsEditable true */
+  /// @domName MediaStream.readyState; @docsEditable true
   final int readyState;
 
-  /** @domName MediaStream.videoTracks; @docsEditable true */
+  /// @domName MediaStream.videoTracks; @docsEditable true
   final MediaStreamTrackList videoTracks;
 
-  /** @domName MediaStream.addEventListener; @docsEditable true */
+  /// @domName MediaStream.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName MediaStream.dispatchEvent; @docsEditable true */
+  /// @domName MediaStream.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
-  /** @domName MediaStream.removeEventListener; @docsEditable true */
+  /// @domName MediaStream.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -13024,7 +12976,7 @@ class MediaStreamEvents extends Events {
 /// @domName MediaStreamAudioSourceNode; @docsEditable true
 class MediaStreamAudioSourceNode extends AudioSourceNode native "*MediaStreamAudioSourceNode" {
 
-  /** @domName MediaStreamAudioSourceNode.mediaStream; @docsEditable true */
+  /// @domName MediaStreamAudioSourceNode.mediaStream; @docsEditable true
   final MediaStream mediaStream;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13035,7 +12987,7 @@ class MediaStreamAudioSourceNode extends AudioSourceNode native "*MediaStreamAud
 /// @domName MediaStreamEvent; @docsEditable true
 class MediaStreamEvent extends Event native "*MediaStreamEvent" {
 
-  /** @domName MediaStreamEvent.stream; @docsEditable true */
+  /// @domName MediaStreamEvent.stream; @docsEditable true
   final MediaStream stream;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13046,9 +12998,7 @@ class MediaStreamEvent extends Event native "*MediaStreamEvent" {
 /// @domName MediaStreamTrack; @docsEditable true
 class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaStreamTrackEvents get on =>
     new MediaStreamTrackEvents(this);
 
@@ -13058,25 +13008,25 @@ class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
 
   static const int MUTED = 1;
 
-  /** @domName MediaStreamTrack.enabled; @docsEditable true */
+  /// @domName MediaStreamTrack.enabled; @docsEditable true
   bool enabled;
 
-  /** @domName MediaStreamTrack.kind; @docsEditable true */
+  /// @domName MediaStreamTrack.kind; @docsEditable true
   final String kind;
 
-  /** @domName MediaStreamTrack.label; @docsEditable true */
+  /// @domName MediaStreamTrack.label; @docsEditable true
   final String label;
 
-  /** @domName MediaStreamTrack.readyState; @docsEditable true */
+  /// @domName MediaStreamTrack.readyState; @docsEditable true
   final int readyState;
 
-  /** @domName MediaStreamTrack.addEventListener; @docsEditable true */
+  /// @domName MediaStreamTrack.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName MediaStreamTrack.dispatchEvent; @docsEditable true */
+  /// @domName MediaStreamTrack.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
-  /** @domName MediaStreamTrack.removeEventListener; @docsEditable true */
+  /// @domName MediaStreamTrack.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -13097,7 +13047,7 @@ class MediaStreamTrackEvents extends Events {
 /// @domName MediaStreamTrackEvent; @docsEditable true
 class MediaStreamTrackEvent extends Event native "*MediaStreamTrackEvent" {
 
-  /** @domName MediaStreamTrackEvent.track; @docsEditable true */
+  /// @domName MediaStreamTrackEvent.track; @docsEditable true
   final MediaStreamTrack track;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13108,31 +13058,29 @@ class MediaStreamTrackEvent extends Event native "*MediaStreamTrackEvent" {
 /// @domName MediaStreamTrackList; @docsEditable true
 class MediaStreamTrackList extends EventTarget native "*MediaStreamTrackList" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaStreamTrackListEvents get on =>
     new MediaStreamTrackListEvents(this);
 
-  /** @domName MediaStreamTrackList.length; @docsEditable true */
+  /// @domName MediaStreamTrackList.length; @docsEditable true
   final int length;
 
-  /** @domName MediaStreamTrackList.add; @docsEditable true */
+  /// @domName MediaStreamTrackList.add; @docsEditable true
   void add(MediaStreamTrack track) native;
 
-  /** @domName MediaStreamTrackList.addEventListener; @docsEditable true */
+  /// @domName MediaStreamTrackList.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName MediaStreamTrackList.dispatchEvent; @docsEditable true */
+  /// @domName MediaStreamTrackList.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
-  /** @domName MediaStreamTrackList.item; @docsEditable true */
+  /// @domName MediaStreamTrackList.item; @docsEditable true
   MediaStreamTrack item(int index) native;
 
-  /** @domName MediaStreamTrackList.remove; @docsEditable true */
+  /// @domName MediaStreamTrackList.remove; @docsEditable true
   void remove(MediaStreamTrack track) native;
 
-  /** @domName MediaStreamTrackList.removeEventListener; @docsEditable true */
+  /// @domName MediaStreamTrackList.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -13151,13 +13099,13 @@ class MediaStreamTrackListEvents extends Events {
 /// @domName MemoryInfo; @docsEditable true
 class MemoryInfo native "*MemoryInfo" {
 
-  /** @domName MemoryInfo.jsHeapSizeLimit; @docsEditable true */
+  /// @domName MemoryInfo.jsHeapSizeLimit; @docsEditable true
   final int jsHeapSizeLimit;
 
-  /** @domName MemoryInfo.totalJSHeapSize; @docsEditable true */
+  /// @domName MemoryInfo.totalJSHeapSize; @docsEditable true
   final int totalJSHeapSize;
 
-  /** @domName MemoryInfo.usedJSHeapSize; @docsEditable true */
+  /// @domName MemoryInfo.usedJSHeapSize; @docsEditable true
   final int usedJSHeapSize;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13170,7 +13118,7 @@ class MenuElement extends Element implements Element native "*HTMLMenuElement" {
 
   factory MenuElement() => document.$dom_createElement("menu");
 
-  /** @domName HTMLMenuElement.compact; @docsEditable true */
+  /// @domName HTMLMenuElement.compact; @docsEditable true
   bool compact;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13183,10 +13131,10 @@ class MessageChannel native "*MessageChannel" {
 
   factory MessageChannel() => _MessageChannelFactoryProvider.createMessageChannel();
 
-  /** @domName MessageChannel.port1; @docsEditable true */
+  /// @domName MessageChannel.port1; @docsEditable true
   final MessagePort port1;
 
-  /** @domName MessageChannel.port2; @docsEditable true */
+  /// @domName MessageChannel.port2; @docsEditable true
   final MessagePort port2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13197,28 +13145,28 @@ class MessageChannel native "*MessageChannel" {
 /// @domName MessageEvent; @docsEditable true
 class MessageEvent extends Event native "*MessageEvent" {
 
-  /** @domName MessageEvent.data; @docsEditable true */
+  /// @domName MessageEvent.data; @docsEditable true
   dynamic get data => _convertNativeToDart_SerializedScriptValue(this._data);
   dynamic get _data => JS("dynamic", "#.data", this);
 
-  /** @domName MessageEvent.lastEventId; @docsEditable true */
+  /// @domName MessageEvent.lastEventId; @docsEditable true
   final String lastEventId;
 
-  /** @domName MessageEvent.origin; @docsEditable true */
+  /// @domName MessageEvent.origin; @docsEditable true
   final String origin;
 
-  /** @domName MessageEvent.ports; @docsEditable true */
+  /// @domName MessageEvent.ports; @docsEditable true
   @Creates('=List')
   final List ports;
 
-  /** @domName MessageEvent.source; @docsEditable true */
+  /// @domName MessageEvent.source; @docsEditable true
   Window get source => _convertNativeToDart_Window(this._source);
   dynamic get _source => JS("dynamic", "#.source", this);
 
-  /** @domName MessageEvent.initMessageEvent; @docsEditable true */
+  /// @domName MessageEvent.initMessageEvent; @docsEditable true
   void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, LocalWindow sourceArg, List messagePorts) native;
 
-  /** @domName MessageEvent.webkitInitMessageEvent; @docsEditable true */
+  /// @domName MessageEvent.webkitInitMessageEvent; @docsEditable true
   void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, LocalWindow sourceArg, List transferables) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13229,22 +13177,20 @@ class MessageEvent extends Event native "*MessageEvent" {
 /// @domName MessagePort; @docsEditable true
 class MessagePort extends EventTarget native "*MessagePort" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MessagePortEvents get on =>
     new MessagePortEvents(this);
 
-  /** @domName MessagePort.addEventListener; @docsEditable true */
+  /// @domName MessagePort.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName MessagePort.close; @docsEditable true */
+  /// @domName MessagePort.close; @docsEditable true
   void close() native;
 
-  /** @domName MessagePort.dispatchEvent; @docsEditable true */
+  /// @domName MessagePort.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName MessagePort.postMessage; @docsEditable true */
+  /// @domName MessagePort.postMessage; @docsEditable true
   void postMessage(/*any*/ message, [List messagePorts]) {
     if (?messagePorts) {
       var message_1 = _convertDartToNative_SerializedScriptValue(message);
@@ -13258,10 +13204,10 @@ class MessagePort extends EventTarget native "*MessagePort" {
   void _postMessage_1(message, List messagePorts) native "postMessage";
   void _postMessage_2(message) native "postMessage";
 
-  /** @domName MessagePort.removeEventListener; @docsEditable true */
+  /// @domName MessagePort.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName MessagePort.start; @docsEditable true */
+  /// @domName MessagePort.start; @docsEditable true
   void start() native;
 }
 
@@ -13278,16 +13224,16 @@ class MessagePortEvents extends Events {
 /// @domName HTMLMetaElement; @docsEditable true
 class MetaElement extends Element implements Element native "*HTMLMetaElement" {
 
-  /** @domName HTMLMetaElement.content; @docsEditable true */
+  /// @domName HTMLMetaElement.content; @docsEditable true
   String content;
 
-  /** @domName HTMLMetaElement.httpEquiv; @docsEditable true */
+  /// @domName HTMLMetaElement.httpEquiv; @docsEditable true
   String httpEquiv;
 
-  /** @domName HTMLMetaElement.name; @docsEditable true */
+  /// @domName HTMLMetaElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLMetaElement.scheme; @docsEditable true */
+  /// @domName HTMLMetaElement.scheme; @docsEditable true
   String scheme;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13298,10 +13244,10 @@ class MetaElement extends Element implements Element native "*HTMLMetaElement" {
 /// @domName Metadata; @docsEditable true
 class Metadata native "*Metadata" {
 
-  /** @domName Metadata.modificationTime; @docsEditable true */
+  /// @domName Metadata.modificationTime; @docsEditable true
   final Date modificationTime;
 
-  /** @domName Metadata.size; @docsEditable true */
+  /// @domName Metadata.size; @docsEditable true
   final int size;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13322,26 +13268,26 @@ class MeterElement extends Element implements Element native "*HTMLMeterElement"
 
   factory MeterElement() => document.$dom_createElement("meter");
 
-  /** @domName HTMLMeterElement.high; @docsEditable true */
+  /// @domName HTMLMeterElement.high; @docsEditable true
   num high;
 
-  /** @domName HTMLMeterElement.labels; @docsEditable true */
+  /// @domName HTMLMeterElement.labels; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> labels;
 
-  /** @domName HTMLMeterElement.low; @docsEditable true */
+  /// @domName HTMLMeterElement.low; @docsEditable true
   num low;
 
-  /** @domName HTMLMeterElement.max; @docsEditable true */
+  /// @domName HTMLMeterElement.max; @docsEditable true
   num max;
 
-  /** @domName HTMLMeterElement.min; @docsEditable true */
+  /// @domName HTMLMeterElement.min; @docsEditable true
   num min;
 
-  /** @domName HTMLMeterElement.optimum; @docsEditable true */
+  /// @domName HTMLMeterElement.optimum; @docsEditable true
   num optimum;
 
-  /** @domName HTMLMeterElement.value; @docsEditable true */
+  /// @domName HTMLMeterElement.value; @docsEditable true
   num value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13352,10 +13298,10 @@ class MeterElement extends Element implements Element native "*HTMLMeterElement"
 /// @domName HTMLModElement; @docsEditable true
 class ModElement extends Element implements Element native "*HTMLModElement" {
 
-  /** @domName HTMLModElement.cite; @docsEditable true */
+  /// @domName HTMLModElement.cite; @docsEditable true
   String cite;
 
-  /** @domName HTMLModElement.dateTime; @docsEditable true */
+  /// @domName HTMLModElement.dateTime; @docsEditable true
   String dateTime;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13375,59 +13321,59 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
           ctrlKey, altKey, shiftKey, metaKey,
           relatedTarget);
 
-  /** @domName MouseEvent.altKey; @docsEditable true */
+  /// @domName MouseEvent.altKey; @docsEditable true
   final bool altKey;
 
-  /** @domName MouseEvent.button; @docsEditable true */
+  /// @domName MouseEvent.button; @docsEditable true
   final int button;
 
-  /** @domName MouseEvent.clientX; @docsEditable true */
+  /// @domName MouseEvent.clientX; @docsEditable true
   final int clientX;
 
-  /** @domName MouseEvent.clientY; @docsEditable true */
+  /// @domName MouseEvent.clientY; @docsEditable true
   final int clientY;
 
-  /** @domName MouseEvent.ctrlKey; @docsEditable true */
+  /// @domName MouseEvent.ctrlKey; @docsEditable true
   final bool ctrlKey;
 
-  /** @domName MouseEvent.dataTransfer; @docsEditable true */
+  /// @domName MouseEvent.dataTransfer; @docsEditable true
   final Clipboard dataTransfer;
 
-  /** @domName MouseEvent.fromElement; @docsEditable true */
+  /// @domName MouseEvent.fromElement; @docsEditable true
   final Node fromElement;
 
-  /** @domName MouseEvent.metaKey; @docsEditable true */
+  /// @domName MouseEvent.metaKey; @docsEditable true
   final bool metaKey;
 
-  /** @domName MouseEvent.relatedTarget; @docsEditable true */
+  /// @domName MouseEvent.relatedTarget; @docsEditable true
   EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._relatedTarget);
   dynamic get _relatedTarget => JS("dynamic", "#.relatedTarget", this);
 
-  /** @domName MouseEvent.screenX; @docsEditable true */
+  /// @domName MouseEvent.screenX; @docsEditable true
   final int screenX;
 
-  /** @domName MouseEvent.screenY; @docsEditable true */
+  /// @domName MouseEvent.screenY; @docsEditable true
   final int screenY;
 
-  /** @domName MouseEvent.shiftKey; @docsEditable true */
+  /// @domName MouseEvent.shiftKey; @docsEditable true
   final bool shiftKey;
 
-  /** @domName MouseEvent.toElement; @docsEditable true */
+  /// @domName MouseEvent.toElement; @docsEditable true
   final Node toElement;
 
-  /** @domName MouseEvent.webkitMovementX; @docsEditable true */
+  /// @domName MouseEvent.webkitMovementX; @docsEditable true
   final int webkitMovementX;
 
-  /** @domName MouseEvent.webkitMovementY; @docsEditable true */
+  /// @domName MouseEvent.webkitMovementY; @docsEditable true
   final int webkitMovementY;
 
-  /** @domName MouseEvent.x; @docsEditable true */
+  /// @domName MouseEvent.x; @docsEditable true
   final int x;
 
-  /** @domName MouseEvent.y; @docsEditable true */
+  /// @domName MouseEvent.y; @docsEditable true
   final int y;
 
-  /** @domName MouseEvent.initMouseEvent; @docsEditable true */
+  /// @domName MouseEvent.initMouseEvent; @docsEditable true
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) {
     var relatedTarget_1 = _convertDartToNative_EventTarget(relatedTarget);
     _$dom_initMouseEvent_1(type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget_1);
@@ -13486,22 +13432,22 @@ class MutationEvent extends Event native "*MutationEvent" {
 
   static const int REMOVAL = 3;
 
-  /** @domName MutationEvent.attrChange; @docsEditable true */
+  /// @domName MutationEvent.attrChange; @docsEditable true
   final int attrChange;
 
-  /** @domName MutationEvent.attrName; @docsEditable true */
+  /// @domName MutationEvent.attrName; @docsEditable true
   final String attrName;
 
-  /** @domName MutationEvent.newValue; @docsEditable true */
+  /// @domName MutationEvent.newValue; @docsEditable true
   final String newValue;
 
-  /** @domName MutationEvent.prevValue; @docsEditable true */
+  /// @domName MutationEvent.prevValue; @docsEditable true
   final String prevValue;
 
-  /** @domName MutationEvent.relatedNode; @docsEditable true */
+  /// @domName MutationEvent.relatedNode; @docsEditable true
   final Node relatedNode;
 
-  /** @domName MutationEvent.initMutationEvent; @docsEditable true */
+  /// @domName MutationEvent.initMutationEvent; @docsEditable true
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13513,10 +13459,10 @@ class MutationObserver native "*MutationObserver" {
 
   factory MutationObserver(MutationCallback callback) => _MutationObserverFactoryProvider.createMutationObserver(callback);
 
-  /** @domName MutationObserver.disconnect; @docsEditable true */
+  /// @domName MutationObserver.disconnect; @docsEditable true
   void disconnect() native;
 
-  /** @domName MutationObserver._observe; @docsEditable true */
+  /// @domName MutationObserver._observe; @docsEditable true
   void _observe(Node target, Map options) {
     var options_1 = _convertDartToNative_Dictionary(options);
     __observe_1(target, options_1);
@@ -13524,7 +13470,7 @@ class MutationObserver native "*MutationObserver" {
   }
   void __observe_1(Node target, options) native "observe";
 
-  /** @domName MutationObserver.takeRecords; @docsEditable true */
+  /// @domName MutationObserver.takeRecords; @docsEditable true
   List<MutationRecord> takeRecords() native;
 
   void observe(Node target,
@@ -13596,33 +13542,33 @@ class MutationObserver native "*MutationObserver" {
 /// @domName MutationRecord; @docsEditable true
 class MutationRecord native "*MutationRecord" {
 
-  /** @domName MutationRecord.addedNodes; @docsEditable true */
+  /// @domName MutationRecord.addedNodes; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> addedNodes;
 
-  /** @domName MutationRecord.attributeName; @docsEditable true */
+  /// @domName MutationRecord.attributeName; @docsEditable true
   final String attributeName;
 
-  /** @domName MutationRecord.attributeNamespace; @docsEditable true */
+  /// @domName MutationRecord.attributeNamespace; @docsEditable true
   final String attributeNamespace;
 
-  /** @domName MutationRecord.nextSibling; @docsEditable true */
+  /// @domName MutationRecord.nextSibling; @docsEditable true
   final Node nextSibling;
 
-  /** @domName MutationRecord.oldValue; @docsEditable true */
+  /// @domName MutationRecord.oldValue; @docsEditable true
   final String oldValue;
 
-  /** @domName MutationRecord.previousSibling; @docsEditable true */
+  /// @domName MutationRecord.previousSibling; @docsEditable true
   final Node previousSibling;
 
-  /** @domName MutationRecord.removedNodes; @docsEditable true */
+  /// @domName MutationRecord.removedNodes; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> removedNodes;
 
-  /** @domName MutationRecord.target; @docsEditable true */
+  /// @domName MutationRecord.target; @docsEditable true
   final Node target;
 
-  /** @domName MutationRecord.type; @docsEditable true */
+  /// @domName MutationRecord.type; @docsEditable true
   final String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13633,7 +13579,7 @@ class MutationRecord native "*MutationRecord" {
 /// @domName NamedNodeMap; @docsEditable true
 class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*NamedNodeMap" {
 
-  /** @domName NamedNodeMap.length; @docsEditable true */
+  /// @domName NamedNodeMap.length; @docsEditable true
   final int length;
 
   Node operator[](int index) => JS("Node", "#[#]", this, index);
@@ -13721,25 +13667,25 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
 
   // -- end List<Node> mixins.
 
-  /** @domName NamedNodeMap.getNamedItem; @docsEditable true */
+  /// @domName NamedNodeMap.getNamedItem; @docsEditable true
   Node getNamedItem(String name) native;
 
-  /** @domName NamedNodeMap.getNamedItemNS; @docsEditable true */
+  /// @domName NamedNodeMap.getNamedItemNS; @docsEditable true
   Node getNamedItemNS(String namespaceURI, String localName) native;
 
-  /** @domName NamedNodeMap.item; @docsEditable true */
+  /// @domName NamedNodeMap.item; @docsEditable true
   Node item(int index) native;
 
-  /** @domName NamedNodeMap.removeNamedItem; @docsEditable true */
+  /// @domName NamedNodeMap.removeNamedItem; @docsEditable true
   Node removeNamedItem(String name) native;
 
-  /** @domName NamedNodeMap.removeNamedItemNS; @docsEditable true */
+  /// @domName NamedNodeMap.removeNamedItemNS; @docsEditable true
   Node removeNamedItemNS(String namespaceURI, String localName) native;
 
-  /** @domName NamedNodeMap.setNamedItem; @docsEditable true */
+  /// @domName NamedNodeMap.setNamedItem; @docsEditable true
   Node setNamedItem(Node node) native;
 
-  /** @domName NamedNodeMap.setNamedItemNS; @docsEditable true */
+  /// @domName NamedNodeMap.setNamedItemNS; @docsEditable true
   Node setNamedItemNS(Node node) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13750,65 +13696,65 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
 /// @domName Navigator; @docsEditable true
 class Navigator native "*Navigator" {
 
-  /** @domName Navigator.appCodeName; @docsEditable true */
+  /// @domName Navigator.appCodeName; @docsEditable true
   final String appCodeName;
 
-  /** @domName Navigator.appName; @docsEditable true */
+  /// @domName Navigator.appName; @docsEditable true
   final String appName;
 
-  /** @domName Navigator.appVersion; @docsEditable true */
+  /// @domName Navigator.appVersion; @docsEditable true
   final String appVersion;
 
-  /** @domName Navigator.cookieEnabled; @docsEditable true */
+  /// @domName Navigator.cookieEnabled; @docsEditable true
   final bool cookieEnabled;
 
-  /** @domName Navigator.geolocation; @docsEditable true */
+  /// @domName Navigator.geolocation; @docsEditable true
   final Geolocation geolocation;
 
-  /** @domName Navigator.language; @docsEditable true */
+  /// @domName Navigator.language; @docsEditable true
   final String language;
 
-  /** @domName Navigator.mimeTypes; @docsEditable true */
+  /// @domName Navigator.mimeTypes; @docsEditable true
   final DOMMimeTypeArray mimeTypes;
 
-  /** @domName Navigator.onLine; @docsEditable true */
+  /// @domName Navigator.onLine; @docsEditable true
   final bool onLine;
 
-  /** @domName Navigator.platform; @docsEditable true */
+  /// @domName Navigator.platform; @docsEditable true
   final String platform;
 
-  /** @domName Navigator.plugins; @docsEditable true */
+  /// @domName Navigator.plugins; @docsEditable true
   final DOMPluginArray plugins;
 
-  /** @domName Navigator.product; @docsEditable true */
+  /// @domName Navigator.product; @docsEditable true
   final String product;
 
-  /** @domName Navigator.productSub; @docsEditable true */
+  /// @domName Navigator.productSub; @docsEditable true
   final String productSub;
 
-  /** @domName Navigator.userAgent; @docsEditable true */
+  /// @domName Navigator.userAgent; @docsEditable true
   final String userAgent;
 
-  /** @domName Navigator.vendor; @docsEditable true */
+  /// @domName Navigator.vendor; @docsEditable true
   final String vendor;
 
-  /** @domName Navigator.vendorSub; @docsEditable true */
+  /// @domName Navigator.vendorSub; @docsEditable true
   final String vendorSub;
 
-  /** @domName Navigator.webkitBattery; @docsEditable true */
+  /// @domName Navigator.webkitBattery; @docsEditable true
   final BatteryManager webkitBattery;
 
-  /** @domName Navigator.getStorageUpdates; @docsEditable true */
+  /// @domName Navigator.getStorageUpdates; @docsEditable true
   void getStorageUpdates() native;
 
-  /** @domName Navigator.javaEnabled; @docsEditable true */
+  /// @domName Navigator.javaEnabled; @docsEditable true
   bool javaEnabled() native;
 
-  /** @domName Navigator.webkitGetGamepads; @docsEditable true */
+  /// @domName Navigator.webkitGetGamepads; @docsEditable true
   @Returns('_GamepadList') @Creates('_GamepadList')
   List<Gamepad> webkitGetGamepads() native;
 
-  /** @domName Navigator.webkitGetUserMedia; @docsEditable true */
+  /// @domName Navigator.webkitGetUserMedia; @docsEditable true
   void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]) {
     if (?errorCallback) {
       var options_1 = _convertDartToNative_Dictionary(options);
@@ -13832,7 +13778,7 @@ class NavigatorUserMediaError native "*NavigatorUserMediaError" {
 
   static const int PERMISSION_DENIED = 1;
 
-  /** @domName NavigatorUserMediaError.code; @docsEditable true */
+  /// @domName NavigatorUserMediaError.code; @docsEditable true
   final int code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14038,69 +13984,69 @@ class Node extends EventTarget native "*Node" {
 
   static const int TEXT_NODE = 3;
 
-  /** @domName Node.attributes; @docsEditable true */
+  /// @domName Node.attributes; @docsEditable true
   NamedNodeMap get $dom_attributes => JS("NamedNodeMap", "#.attributes", this);
 
-  /** @domName Node.childNodes; @docsEditable true */
+  /// @domName Node.childNodes; @docsEditable true
   List<Node> get $dom_childNodes => JS("_NodeList", "#.childNodes", this);
 
-  /** @domName Node.firstChild; @docsEditable true */
+  /// @domName Node.firstChild; @docsEditable true
   Node get $dom_firstChild => JS("Node", "#.firstChild", this);
 
-  /** @domName Node.lastChild; @docsEditable true */
+  /// @domName Node.lastChild; @docsEditable true
   Node get $dom_lastChild => JS("Node", "#.lastChild", this);
 
-  /** @domName Node.nextSibling; @docsEditable true */
+  /// @domName Node.nextSibling; @docsEditable true
   Node get nextNode => JS("Node", "#.nextSibling", this);
 
-  /** @domName Node.nodeType; @docsEditable true */
+  /// @domName Node.nodeType; @docsEditable true
   final int nodeType;
 
-  /** @domName Node.ownerDocument; @docsEditable true */
+  /// @domName Node.ownerDocument; @docsEditable true
   Document get document => JS("Document", "#.ownerDocument", this);
 
-  /** @domName Node.parentNode; @docsEditable true */
+  /// @domName Node.parentNode; @docsEditable true
   Node get parent => JS("Node", "#.parentNode", this);
 
-  /** @domName Node.previousSibling; @docsEditable true */
+  /// @domName Node.previousSibling; @docsEditable true
   Node get previousNode => JS("Node", "#.previousSibling", this);
 
-  /** @domName Node.textContent; @docsEditable true */
+  /// @domName Node.textContent; @docsEditable true
   String get text => JS("String", "#.textContent", this);
 
-  /** @domName Node.textContent; @docsEditable true */
+  /// @domName Node.textContent; @docsEditable true
   void set text(String value) {
     JS("void", "#.textContent = #", this, value);
   }
 
-  /** @domName Node.addEventListener; @docsEditable true */
+  /// @domName Node.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName Node.appendChild; @docsEditable true */
+  /// @domName Node.appendChild; @docsEditable true
   Node $dom_appendChild(Node newChild) native "appendChild";
 
-  /** @domName Node.cloneNode; @docsEditable true */
+  /// @domName Node.cloneNode; @docsEditable true
   Node clone(bool deep) native "cloneNode";
 
-  /** @domName Node.contains; @docsEditable true */
+  /// @domName Node.contains; @docsEditable true
   bool contains(Node other) native;
 
-  /** @domName Node.dispatchEvent; @docsEditable true */
+  /// @domName Node.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
-  /** @domName Node.hasChildNodes; @docsEditable true */
+  /// @domName Node.hasChildNodes; @docsEditable true
   bool hasChildNodes() native;
 
-  /** @domName Node.insertBefore; @docsEditable true */
+  /// @domName Node.insertBefore; @docsEditable true
   Node insertBefore(Node newChild, Node refChild) native;
 
-  /** @domName Node.removeChild; @docsEditable true */
+  /// @domName Node.removeChild; @docsEditable true
   Node $dom_removeChild(Node oldChild) native "removeChild";
 
-  /** @domName Node.removeEventListener; @docsEditable true */
+  /// @domName Node.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName Node.replaceChild; @docsEditable true */
+  /// @domName Node.replaceChild; @docsEditable true
   Node $dom_replaceChild(Node newChild, Node oldChild) native "replaceChild";
 
 }
@@ -14144,7 +14090,7 @@ class NodeFilter native "*NodeFilter" {
 
   static const int SHOW_TEXT = 0x00000004;
 
-  /** @domName NodeFilter.acceptNode; @docsEditable true */
+  /// @domName NodeFilter.acceptNode; @docsEditable true
   int acceptNode(Node n) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14155,31 +14101,31 @@ class NodeFilter native "*NodeFilter" {
 /// @domName NodeIterator; @docsEditable true
 class NodeIterator native "*NodeIterator" {
 
-  /** @domName NodeIterator.expandEntityReferences; @docsEditable true */
+  /// @domName NodeIterator.expandEntityReferences; @docsEditable true
   final bool expandEntityReferences;
 
-  /** @domName NodeIterator.filter; @docsEditable true */
+  /// @domName NodeIterator.filter; @docsEditable true
   final NodeFilter filter;
 
-  /** @domName NodeIterator.pointerBeforeReferenceNode; @docsEditable true */
+  /// @domName NodeIterator.pointerBeforeReferenceNode; @docsEditable true
   final bool pointerBeforeReferenceNode;
 
-  /** @domName NodeIterator.referenceNode; @docsEditable true */
+  /// @domName NodeIterator.referenceNode; @docsEditable true
   final Node referenceNode;
 
-  /** @domName NodeIterator.root; @docsEditable true */
+  /// @domName NodeIterator.root; @docsEditable true
   final Node root;
 
-  /** @domName NodeIterator.whatToShow; @docsEditable true */
+  /// @domName NodeIterator.whatToShow; @docsEditable true
   final int whatToShow;
 
-  /** @domName NodeIterator.detach; @docsEditable true */
+  /// @domName NodeIterator.detach; @docsEditable true
   void detach() native;
 
-  /** @domName NodeIterator.nextNode; @docsEditable true */
+  /// @domName NodeIterator.nextNode; @docsEditable true
   Node nextNode() native;
 
-  /** @domName NodeIterator.previousNode; @docsEditable true */
+  /// @domName NodeIterator.previousNode; @docsEditable true
   Node previousNode() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14190,10 +14136,10 @@ class NodeIterator native "*NodeIterator" {
 /// @domName Notation; @docsEditable true
 class Notation extends Node native "*Notation" {
 
-  /** @domName Notation.publicId; @docsEditable true */
+  /// @domName Notation.publicId; @docsEditable true
   final String publicId;
 
-  /** @domName Notation.systemId; @docsEditable true */
+  /// @domName Notation.systemId; @docsEditable true
   final String systemId;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14211,43 +14157,41 @@ class Notification extends EventTarget native "*Notification" {
     return _NotificationFactoryProvider.createNotification(title, options);
   }
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   NotificationEvents get on =>
     new NotificationEvents(this);
 
-  /** @domName Notification.dir; @docsEditable true */
+  /// @domName Notification.dir; @docsEditable true
   String dir;
 
-  /** @domName Notification.permission; @docsEditable true */
+  /// @domName Notification.permission; @docsEditable true
   final String permission;
 
-  /** @domName Notification.replaceId; @docsEditable true */
+  /// @domName Notification.replaceId; @docsEditable true
   String replaceId;
 
-  /** @domName Notification.tag; @docsEditable true */
+  /// @domName Notification.tag; @docsEditable true
   String tag;
 
-  /** @domName Notification.addEventListener; @docsEditable true */
+  /// @domName Notification.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName Notification.cancel; @docsEditable true */
+  /// @domName Notification.cancel; @docsEditable true
   void cancel() native;
 
-  /** @domName Notification.close; @docsEditable true */
+  /// @domName Notification.close; @docsEditable true
   void close() native;
 
-  /** @domName Notification.dispatchEvent; @docsEditable true */
+  /// @domName Notification.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName Notification.removeEventListener; @docsEditable true */
+  /// @domName Notification.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName Notification.requestPermission; @docsEditable true */
+  /// @domName Notification.requestPermission; @docsEditable true
   static void requestPermission(NotificationPermissionCallback callback) native;
 
-  /** @domName Notification.show; @docsEditable true */
+  /// @domName Notification.show; @docsEditable true
   void show() native;
 }
 
@@ -14272,16 +14216,16 @@ class NotificationEvents extends Events {
 /// @domName NotificationCenter; @docsEditable true
 class NotificationCenter native "*NotificationCenter" {
 
-  /** @domName NotificationCenter.checkPermission; @docsEditable true */
+  /// @domName NotificationCenter.checkPermission; @docsEditable true
   int checkPermission() native;
 
-  /** @domName NotificationCenter.createHTMLNotification; @docsEditable true */
+  /// @domName NotificationCenter.createHTMLNotification; @docsEditable true
   Notification createHTMLNotification(String url) native;
 
-  /** @domName NotificationCenter.createNotification; @docsEditable true */
+  /// @domName NotificationCenter.createNotification; @docsEditable true
   Notification createNotification(String iconUrl, String title, String body) native;
 
-  /** @domName NotificationCenter.requestPermission; @docsEditable true */
+  /// @domName NotificationCenter.requestPermission; @docsEditable true
   void requestPermission(VoidCallback callback) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14328,16 +14272,16 @@ class OESVertexArrayObject native "*OESVertexArrayObject" {
 
   static const int VERTEX_ARRAY_BINDING_OES = 0x85B5;
 
-  /** @domName OESVertexArrayObject.bindVertexArrayOES; @docsEditable true */
+  /// @domName OESVertexArrayObject.bindVertexArrayOES; @docsEditable true
   void bindVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) native;
 
-  /** @domName OESVertexArrayObject.createVertexArrayOES; @docsEditable true */
+  /// @domName OESVertexArrayObject.createVertexArrayOES; @docsEditable true
   WebGLVertexArrayObjectOES createVertexArrayOES() native;
 
-  /** @domName OESVertexArrayObject.deleteVertexArrayOES; @docsEditable true */
+  /// @domName OESVertexArrayObject.deleteVertexArrayOES; @docsEditable true
   void deleteVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) native;
 
-  /** @domName OESVertexArrayObject.isVertexArrayOES; @docsEditable true */
+  /// @domName OESVertexArrayObject.isVertexArrayOES; @docsEditable true
   bool isVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14350,16 +14294,16 @@ class OListElement extends Element implements Element native "*HTMLOListElement"
 
   factory OListElement() => document.$dom_createElement("ol");
 
-  /** @domName HTMLOListElement.compact; @docsEditable true */
+  /// @domName HTMLOListElement.compact; @docsEditable true
   bool compact;
 
-  /** @domName HTMLOListElement.reversed; @docsEditable true */
+  /// @domName HTMLOListElement.reversed; @docsEditable true
   bool reversed;
 
-  /** @domName HTMLOListElement.start; @docsEditable true */
+  /// @domName HTMLOListElement.start; @docsEditable true
   int start;
 
-  /** @domName HTMLOListElement.type; @docsEditable true */
+  /// @domName HTMLOListElement.type; @docsEditable true
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14372,70 +14316,70 @@ class ObjectElement extends Element implements Element native "*HTMLObjectElemen
 
   factory ObjectElement() => document.$dom_createElement("object");
 
-  /** @domName HTMLObjectElement.align; @docsEditable true */
+  /// @domName HTMLObjectElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLObjectElement.archive; @docsEditable true */
+  /// @domName HTMLObjectElement.archive; @docsEditable true
   String archive;
 
-  /** @domName HTMLObjectElement.border; @docsEditable true */
+  /// @domName HTMLObjectElement.border; @docsEditable true
   String border;
 
-  /** @domName HTMLObjectElement.code; @docsEditable true */
+  /// @domName HTMLObjectElement.code; @docsEditable true
   String code;
 
-  /** @domName HTMLObjectElement.codeBase; @docsEditable true */
+  /// @domName HTMLObjectElement.codeBase; @docsEditable true
   String codeBase;
 
-  /** @domName HTMLObjectElement.codeType; @docsEditable true */
+  /// @domName HTMLObjectElement.codeType; @docsEditable true
   String codeType;
 
-  /** @domName HTMLObjectElement.data; @docsEditable true */
+  /// @domName HTMLObjectElement.data; @docsEditable true
   String data;
 
-  /** @domName HTMLObjectElement.declare; @docsEditable true */
+  /// @domName HTMLObjectElement.declare; @docsEditable true
   bool declare;
 
-  /** @domName HTMLObjectElement.form; @docsEditable true */
+  /// @domName HTMLObjectElement.form; @docsEditable true
   final FormElement form;
 
-  /** @domName HTMLObjectElement.height; @docsEditable true */
+  /// @domName HTMLObjectElement.height; @docsEditable true
   String height;
 
-  /** @domName HTMLObjectElement.hspace; @docsEditable true */
+  /// @domName HTMLObjectElement.hspace; @docsEditable true
   int hspace;
 
-  /** @domName HTMLObjectElement.name; @docsEditable true */
+  /// @domName HTMLObjectElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLObjectElement.standby; @docsEditable true */
+  /// @domName HTMLObjectElement.standby; @docsEditable true
   String standby;
 
-  /** @domName HTMLObjectElement.type; @docsEditable true */
+  /// @domName HTMLObjectElement.type; @docsEditable true
   String type;
 
-  /** @domName HTMLObjectElement.useMap; @docsEditable true */
+  /// @domName HTMLObjectElement.useMap; @docsEditable true
   String useMap;
 
-  /** @domName HTMLObjectElement.validationMessage; @docsEditable true */
+  /// @domName HTMLObjectElement.validationMessage; @docsEditable true
   final String validationMessage;
 
-  /** @domName HTMLObjectElement.validity; @docsEditable true */
+  /// @domName HTMLObjectElement.validity; @docsEditable true
   final ValidityState validity;
 
-  /** @domName HTMLObjectElement.vspace; @docsEditable true */
+  /// @domName HTMLObjectElement.vspace; @docsEditable true
   int vspace;
 
-  /** @domName HTMLObjectElement.width; @docsEditable true */
+  /// @domName HTMLObjectElement.width; @docsEditable true
   String width;
 
-  /** @domName HTMLObjectElement.willValidate; @docsEditable true */
+  /// @domName HTMLObjectElement.willValidate; @docsEditable true
   final bool willValidate;
 
-  /** @domName HTMLObjectElement.checkValidity; @docsEditable true */
+  /// @domName HTMLObjectElement.checkValidity; @docsEditable true
   bool checkValidity() native;
 
-  /** @domName HTMLObjectElement.setCustomValidity; @docsEditable true */
+  /// @domName HTMLObjectElement.setCustomValidity; @docsEditable true
   void setCustomValidity(String error) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14446,7 +14390,7 @@ class ObjectElement extends Element implements Element native "*HTMLObjectElemen
 /// @domName OfflineAudioCompletionEvent; @docsEditable true
 class OfflineAudioCompletionEvent extends Event native "*OfflineAudioCompletionEvent" {
 
-  /** @domName OfflineAudioCompletionEvent.renderedBuffer; @docsEditable true */
+  /// @domName OfflineAudioCompletionEvent.renderedBuffer; @docsEditable true
   final AudioBuffer renderedBuffer;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14459,10 +14403,10 @@ class OptGroupElement extends Element implements Element native "*HTMLOptGroupEl
 
   factory OptGroupElement() => document.$dom_createElement("optgroup");
 
-  /** @domName HTMLOptGroupElement.disabled; @docsEditable true */
+  /// @domName HTMLOptGroupElement.disabled; @docsEditable true
   bool disabled;
 
-  /** @domName HTMLOptGroupElement.label; @docsEditable true */
+  /// @domName HTMLOptGroupElement.label; @docsEditable true
   String label;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14489,25 +14433,25 @@ class OptionElement extends Element implements Element native "*HTMLOptionElemen
     return _OptionElementFactoryProvider.createOptionElement(data, value, defaultSelected, selected);
   }
 
-  /** @domName HTMLOptionElement.defaultSelected; @docsEditable true */
+  /// @domName HTMLOptionElement.defaultSelected; @docsEditable true
   bool defaultSelected;
 
-  /** @domName HTMLOptionElement.disabled; @docsEditable true */
+  /// @domName HTMLOptionElement.disabled; @docsEditable true
   bool disabled;
 
-  /** @domName HTMLOptionElement.form; @docsEditable true */
+  /// @domName HTMLOptionElement.form; @docsEditable true
   final FormElement form;
 
-  /** @domName HTMLOptionElement.index; @docsEditable true */
+  /// @domName HTMLOptionElement.index; @docsEditable true
   final int index;
 
-  /** @domName HTMLOptionElement.label; @docsEditable true */
+  /// @domName HTMLOptionElement.label; @docsEditable true
   String label;
 
-  /** @domName HTMLOptionElement.selected; @docsEditable true */
+  /// @domName HTMLOptionElement.selected; @docsEditable true
   bool selected;
 
-  /** @domName HTMLOptionElement.value; @docsEditable true */
+  /// @domName HTMLOptionElement.value; @docsEditable true
   String value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14536,25 +14480,25 @@ class OscillatorNode extends AudioSourceNode native "*OscillatorNode" {
 
   static const int UNSCHEDULED_STATE = 0;
 
-  /** @domName OscillatorNode.detune; @docsEditable true */
+  /// @domName OscillatorNode.detune; @docsEditable true
   final AudioParam detune;
 
-  /** @domName OscillatorNode.frequency; @docsEditable true */
+  /// @domName OscillatorNode.frequency; @docsEditable true
   final AudioParam frequency;
 
-  /** @domName OscillatorNode.playbackState; @docsEditable true */
+  /// @domName OscillatorNode.playbackState; @docsEditable true
   final int playbackState;
 
-  /** @domName OscillatorNode.type; @docsEditable true */
+  /// @domName OscillatorNode.type; @docsEditable true
   int type;
 
-  /** @domName OscillatorNode.setWaveTable; @docsEditable true */
+  /// @domName OscillatorNode.setWaveTable; @docsEditable true
   void setWaveTable(WaveTable waveTable) native;
 
-  /** @domName OscillatorNode.start; @docsEditable true */
+  /// @domName OscillatorNode.start; @docsEditable true
   void start(num when) native;
 
-  /** @domName OscillatorNode.stop; @docsEditable true */
+  /// @domName OscillatorNode.stop; @docsEditable true
   void stop(num when) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14567,41 +14511,41 @@ class OutputElement extends Element implements Element native "*HTMLOutputElemen
 
   factory OutputElement() => document.$dom_createElement("output");
 
-  /** @domName HTMLOutputElement.defaultValue; @docsEditable true */
+  /// @domName HTMLOutputElement.defaultValue; @docsEditable true
   String defaultValue;
 
-  /** @domName HTMLOutputElement.form; @docsEditable true */
+  /// @domName HTMLOutputElement.form; @docsEditable true
   final FormElement form;
 
-  /** @domName HTMLOutputElement.htmlFor; @docsEditable true */
+  /// @domName HTMLOutputElement.htmlFor; @docsEditable true
   DOMSettableTokenList htmlFor;
 
-  /** @domName HTMLOutputElement.labels; @docsEditable true */
+  /// @domName HTMLOutputElement.labels; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> labels;
 
-  /** @domName HTMLOutputElement.name; @docsEditable true */
+  /// @domName HTMLOutputElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLOutputElement.type; @docsEditable true */
+  /// @domName HTMLOutputElement.type; @docsEditable true
   final String type;
 
-  /** @domName HTMLOutputElement.validationMessage; @docsEditable true */
+  /// @domName HTMLOutputElement.validationMessage; @docsEditable true
   final String validationMessage;
 
-  /** @domName HTMLOutputElement.validity; @docsEditable true */
+  /// @domName HTMLOutputElement.validity; @docsEditable true
   final ValidityState validity;
 
-  /** @domName HTMLOutputElement.value; @docsEditable true */
+  /// @domName HTMLOutputElement.value; @docsEditable true
   String value;
 
-  /** @domName HTMLOutputElement.willValidate; @docsEditable true */
+  /// @domName HTMLOutputElement.willValidate; @docsEditable true
   final bool willValidate;
 
-  /** @domName HTMLOutputElement.checkValidity; @docsEditable true */
+  /// @domName HTMLOutputElement.checkValidity; @docsEditable true
   bool checkValidity() native;
 
-  /** @domName HTMLOutputElement.setCustomValidity; @docsEditable true */
+  /// @domName HTMLOutputElement.setCustomValidity; @docsEditable true
   void setCustomValidity(String error) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14618,13 +14562,13 @@ class OverflowEvent extends Event native "*OverflowEvent" {
 
   static const int VERTICAL = 1;
 
-  /** @domName OverflowEvent.horizontalOverflow; @docsEditable true */
+  /// @domName OverflowEvent.horizontalOverflow; @docsEditable true
   final bool horizontalOverflow;
 
-  /** @domName OverflowEvent.orient; @docsEditable true */
+  /// @domName OverflowEvent.orient; @docsEditable true
   final int orient;
 
-  /** @domName OverflowEvent.verticalOverflow; @docsEditable true */
+  /// @domName OverflowEvent.verticalOverflow; @docsEditable true
   final bool verticalOverflow;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14635,10 +14579,10 @@ class OverflowEvent extends Event native "*OverflowEvent" {
 /// @domName PagePopupController; @docsEditable true
 class PagePopupController native "*PagePopupController" {
 
-  /** @domName PagePopupController.localizeNumberString; @docsEditable true */
+  /// @domName PagePopupController.localizeNumberString; @docsEditable true
   String localizeNumberString(String numberString) native;
 
-  /** @domName PagePopupController.setValueAndClosePopup; @docsEditable true */
+  /// @domName PagePopupController.setValueAndClosePopup; @docsEditable true
   void setValueAndClosePopup(int numberValue, String stringValue) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14649,7 +14593,7 @@ class PagePopupController native "*PagePopupController" {
 /// @domName PageTransitionEvent; @docsEditable true
 class PageTransitionEvent extends Event native "*PageTransitionEvent" {
 
-  /** @domName PageTransitionEvent.persisted; @docsEditable true */
+  /// @domName PageTransitionEvent.persisted; @docsEditable true
   final bool persisted;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14672,43 +14616,43 @@ class PannerNode extends AudioNode native "*PannerNode" {
 
   static const int SOUNDFIELD = 2;
 
-  /** @domName PannerNode.coneGain; @docsEditable true */
+  /// @domName PannerNode.coneGain; @docsEditable true
   final AudioGain coneGain;
 
-  /** @domName PannerNode.coneInnerAngle; @docsEditable true */
+  /// @domName PannerNode.coneInnerAngle; @docsEditable true
   num coneInnerAngle;
 
-  /** @domName PannerNode.coneOuterAngle; @docsEditable true */
+  /// @domName PannerNode.coneOuterAngle; @docsEditable true
   num coneOuterAngle;
 
-  /** @domName PannerNode.coneOuterGain; @docsEditable true */
+  /// @domName PannerNode.coneOuterGain; @docsEditable true
   num coneOuterGain;
 
-  /** @domName PannerNode.distanceGain; @docsEditable true */
+  /// @domName PannerNode.distanceGain; @docsEditable true
   final AudioGain distanceGain;
 
-  /** @domName PannerNode.distanceModel; @docsEditable true */
+  /// @domName PannerNode.distanceModel; @docsEditable true
   int distanceModel;
 
-  /** @domName PannerNode.maxDistance; @docsEditable true */
+  /// @domName PannerNode.maxDistance; @docsEditable true
   num maxDistance;
 
-  /** @domName PannerNode.panningModel; @docsEditable true */
+  /// @domName PannerNode.panningModel; @docsEditable true
   int panningModel;
 
-  /** @domName PannerNode.refDistance; @docsEditable true */
+  /// @domName PannerNode.refDistance; @docsEditable true
   num refDistance;
 
-  /** @domName PannerNode.rolloffFactor; @docsEditable true */
+  /// @domName PannerNode.rolloffFactor; @docsEditable true
   num rolloffFactor;
 
-  /** @domName PannerNode.setOrientation; @docsEditable true */
+  /// @domName PannerNode.setOrientation; @docsEditable true
   void setOrientation(num x, num y, num z) native;
 
-  /** @domName PannerNode.setPosition; @docsEditable true */
+  /// @domName PannerNode.setPosition; @docsEditable true
   void setPosition(num x, num y, num z) native;
 
-  /** @domName PannerNode.setVelocity; @docsEditable true */
+  /// @domName PannerNode.setVelocity; @docsEditable true
   void setVelocity(num x, num y, num z) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14721,7 +14665,7 @@ class ParagraphElement extends Element implements Element native "*HTMLParagraph
 
   factory ParagraphElement() => document.$dom_createElement("p");
 
-  /** @domName HTMLParagraphElement.align; @docsEditable true */
+  /// @domName HTMLParagraphElement.align; @docsEditable true
   String align;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14734,16 +14678,16 @@ class ParamElement extends Element implements Element native "*HTMLParamElement"
 
   factory ParamElement() => document.$dom_createElement("param");
 
-  /** @domName HTMLParamElement.name; @docsEditable true */
+  /// @domName HTMLParamElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLParamElement.type; @docsEditable true */
+  /// @domName HTMLParamElement.type; @docsEditable true
   String type;
 
-  /** @domName HTMLParamElement.value; @docsEditable true */
+  /// @domName HTMLParamElement.value; @docsEditable true
   String value;
 
-  /** @domName HTMLParamElement.valueType; @docsEditable true */
+  /// @domName HTMLParamElement.valueType; @docsEditable true
   String valueType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14756,9 +14700,7 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
 
   factory PeerConnection00(String serverConfiguration, IceCallback iceCallback) => _PeerConnection00FactoryProvider.createPeerConnection00(serverConfiguration, iceCallback);
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   PeerConnection00Events get on =>
     new PeerConnection00Events(this);
 
@@ -14790,30 +14732,30 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
 
   static const int SDP_PRANSWER = 0x200;
 
-  /** @domName PeerConnection00.iceState; @docsEditable true */
+  /// @domName PeerConnection00.iceState; @docsEditable true
   final int iceState;
 
-  /** @domName PeerConnection00.localDescription; @docsEditable true */
+  /// @domName PeerConnection00.localDescription; @docsEditable true
   final SessionDescription localDescription;
 
-  /** @domName PeerConnection00.localStreams; @docsEditable true */
+  /// @domName PeerConnection00.localStreams; @docsEditable true
   @Returns('_MediaStreamList') @Creates('_MediaStreamList')
   final List<MediaStream> localStreams;
 
-  /** @domName PeerConnection00.readyState; @docsEditable true */
+  /// @domName PeerConnection00.readyState; @docsEditable true
   final int readyState;
 
-  /** @domName PeerConnection00.remoteDescription; @docsEditable true */
+  /// @domName PeerConnection00.remoteDescription; @docsEditable true
   final SessionDescription remoteDescription;
 
-  /** @domName PeerConnection00.remoteStreams; @docsEditable true */
+  /// @domName PeerConnection00.remoteStreams; @docsEditable true
   @Returns('_MediaStreamList') @Creates('_MediaStreamList')
   final List<MediaStream> remoteStreams;
 
-  /** @domName PeerConnection00.addEventListener; @docsEditable true */
+  /// @domName PeerConnection00.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName PeerConnection00.addStream; @docsEditable true */
+  /// @domName PeerConnection00.addStream; @docsEditable true
   void addStream(MediaStream stream, [Map mediaStreamHints]) {
     if (?mediaStreamHints) {
       var mediaStreamHints_1 = _convertDartToNative_Dictionary(mediaStreamHints);
@@ -14826,10 +14768,10 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   void _addStream_1(MediaStream stream, mediaStreamHints) native "addStream";
   void _addStream_2(MediaStream stream) native "addStream";
 
-  /** @domName PeerConnection00.close; @docsEditable true */
+  /// @domName PeerConnection00.close; @docsEditable true
   void close() native;
 
-  /** @domName PeerConnection00.createAnswer; @docsEditable true */
+  /// @domName PeerConnection00.createAnswer; @docsEditable true
   SessionDescription createAnswer(String offer, [Map mediaHints]) {
     if (?mediaHints) {
       var mediaHints_1 = _convertDartToNative_Dictionary(mediaHints);
@@ -14840,7 +14782,7 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   SessionDescription _createAnswer_1(offer, mediaHints) native "createAnswer";
   SessionDescription _createAnswer_2(offer) native "createAnswer";
 
-  /** @domName PeerConnection00.createOffer; @docsEditable true */
+  /// @domName PeerConnection00.createOffer; @docsEditable true
   SessionDescription createOffer([Map mediaHints]) {
     if (?mediaHints) {
       var mediaHints_1 = _convertDartToNative_Dictionary(mediaHints);
@@ -14851,25 +14793,25 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   SessionDescription _createOffer_1(mediaHints) native "createOffer";
   SessionDescription _createOffer_2() native "createOffer";
 
-  /** @domName PeerConnection00.dispatchEvent; @docsEditable true */
+  /// @domName PeerConnection00.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
-  /** @domName PeerConnection00.processIceMessage; @docsEditable true */
+  /// @domName PeerConnection00.processIceMessage; @docsEditable true
   void processIceMessage(IceCandidate candidate) native;
 
-  /** @domName PeerConnection00.removeEventListener; @docsEditable true */
+  /// @domName PeerConnection00.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName PeerConnection00.removeStream; @docsEditable true */
+  /// @domName PeerConnection00.removeStream; @docsEditable true
   void removeStream(MediaStream stream) native;
 
-  /** @domName PeerConnection00.setLocalDescription; @docsEditable true */
+  /// @domName PeerConnection00.setLocalDescription; @docsEditable true
   void setLocalDescription(int action, SessionDescription desc) native;
 
-  /** @domName PeerConnection00.setRemoteDescription; @docsEditable true */
+  /// @domName PeerConnection00.setRemoteDescription; @docsEditable true
   void setRemoteDescription(int action, SessionDescription desc) native;
 
-  /** @domName PeerConnection00.startIce; @docsEditable true */
+  /// @domName PeerConnection00.startIce; @docsEditable true
   void startIce([Map iceOptions]) {
     if (?iceOptions) {
       var iceOptions_1 = _convertDartToNative_Dictionary(iceOptions);
@@ -14904,16 +14846,16 @@ class PeerConnection00Events extends Events {
 /// @domName Performance; @docsEditable true
 class Performance extends EventTarget native "*Performance" {
 
-  /** @domName Performance.memory; @docsEditable true */
+  /// @domName Performance.memory; @docsEditable true
   final MemoryInfo memory;
 
-  /** @domName Performance.navigation; @docsEditable true */
+  /// @domName Performance.navigation; @docsEditable true
   final PerformanceNavigation navigation;
 
-  /** @domName Performance.timing; @docsEditable true */
+  /// @domName Performance.timing; @docsEditable true
   final PerformanceTiming timing;
 
-  /** @domName Performance.now; @docsEditable true */
+  /// @domName Performance.now; @docsEditable true
   num now() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14932,10 +14874,10 @@ class PerformanceNavigation native "*PerformanceNavigation" {
 
   static const int TYPE_RESERVED = 255;
 
-  /** @domName PerformanceNavigation.redirectCount; @docsEditable true */
+  /// @domName PerformanceNavigation.redirectCount; @docsEditable true
   final int redirectCount;
 
-  /** @domName PerformanceNavigation.type; @docsEditable true */
+  /// @domName PerformanceNavigation.type; @docsEditable true
   final int type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14946,67 +14888,67 @@ class PerformanceNavigation native "*PerformanceNavigation" {
 /// @domName PerformanceTiming; @docsEditable true
 class PerformanceTiming native "*PerformanceTiming" {
 
-  /** @domName PerformanceTiming.connectEnd; @docsEditable true */
+  /// @domName PerformanceTiming.connectEnd; @docsEditable true
   final int connectEnd;
 
-  /** @domName PerformanceTiming.connectStart; @docsEditable true */
+  /// @domName PerformanceTiming.connectStart; @docsEditable true
   final int connectStart;
 
-  /** @domName PerformanceTiming.domComplete; @docsEditable true */
+  /// @domName PerformanceTiming.domComplete; @docsEditable true
   final int domComplete;
 
-  /** @domName PerformanceTiming.domContentLoadedEventEnd; @docsEditable true */
+  /// @domName PerformanceTiming.domContentLoadedEventEnd; @docsEditable true
   final int domContentLoadedEventEnd;
 
-  /** @domName PerformanceTiming.domContentLoadedEventStart; @docsEditable true */
+  /// @domName PerformanceTiming.domContentLoadedEventStart; @docsEditable true
   final int domContentLoadedEventStart;
 
-  /** @domName PerformanceTiming.domInteractive; @docsEditable true */
+  /// @domName PerformanceTiming.domInteractive; @docsEditable true
   final int domInteractive;
 
-  /** @domName PerformanceTiming.domLoading; @docsEditable true */
+  /// @domName PerformanceTiming.domLoading; @docsEditable true
   final int domLoading;
 
-  /** @domName PerformanceTiming.domainLookupEnd; @docsEditable true */
+  /// @domName PerformanceTiming.domainLookupEnd; @docsEditable true
   final int domainLookupEnd;
 
-  /** @domName PerformanceTiming.domainLookupStart; @docsEditable true */
+  /// @domName PerformanceTiming.domainLookupStart; @docsEditable true
   final int domainLookupStart;
 
-  /** @domName PerformanceTiming.fetchStart; @docsEditable true */
+  /// @domName PerformanceTiming.fetchStart; @docsEditable true
   final int fetchStart;
 
-  /** @domName PerformanceTiming.loadEventEnd; @docsEditable true */
+  /// @domName PerformanceTiming.loadEventEnd; @docsEditable true
   final int loadEventEnd;
 
-  /** @domName PerformanceTiming.loadEventStart; @docsEditable true */
+  /// @domName PerformanceTiming.loadEventStart; @docsEditable true
   final int loadEventStart;
 
-  /** @domName PerformanceTiming.navigationStart; @docsEditable true */
+  /// @domName PerformanceTiming.navigationStart; @docsEditable true
   final int navigationStart;
 
-  /** @domName PerformanceTiming.redirectEnd; @docsEditable true */
+  /// @domName PerformanceTiming.redirectEnd; @docsEditable true
   final int redirectEnd;
 
-  /** @domName PerformanceTiming.redirectStart; @docsEditable true */
+  /// @domName PerformanceTiming.redirectStart; @docsEditable true
   final int redirectStart;
 
-  /** @domName PerformanceTiming.requestStart; @docsEditable true */
+  /// @domName PerformanceTiming.requestStart; @docsEditable true
   final int requestStart;
 
-  /** @domName PerformanceTiming.responseEnd; @docsEditable true */
+  /// @domName PerformanceTiming.responseEnd; @docsEditable true
   final int responseEnd;
 
-  /** @domName PerformanceTiming.responseStart; @docsEditable true */
+  /// @domName PerformanceTiming.responseStart; @docsEditable true
   final int responseStart;
 
-  /** @domName PerformanceTiming.secureConnectionStart; @docsEditable true */
+  /// @domName PerformanceTiming.secureConnectionStart; @docsEditable true
   final int secureConnectionStart;
 
-  /** @domName PerformanceTiming.unloadEventEnd; @docsEditable true */
+  /// @domName PerformanceTiming.unloadEventEnd; @docsEditable true
   final int unloadEventEnd;
 
-  /** @domName PerformanceTiming.unloadEventStart; @docsEditable true */
+  /// @domName PerformanceTiming.unloadEventStart; @docsEditable true
   final int unloadEventStart;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15019,10 +14961,10 @@ class PerformanceTiming native "*PerformanceTiming" {
 class Point native "*WebKitPoint" {
   factory Point(num x, num y) => _PointFactoryProvider.createPoint(x, y);
 
-  /** @domName WebKitPoint.x; @docsEditable true */
+  /// @domName WebKitPoint.x; @docsEditable true
   num x;
 
-  /** @domName WebKitPoint.y; @docsEditable true */
+  /// @domName WebKitPoint.y; @docsEditable true
   num y;
 
 }
@@ -15034,7 +14976,7 @@ class Point native "*WebKitPoint" {
 /// @domName PopStateEvent; @docsEditable true
 class PopStateEvent extends Event native "*PopStateEvent" {
 
-  /** @domName PopStateEvent.state; @docsEditable true */
+  /// @domName PopStateEvent.state; @docsEditable true
   dynamic get state => _convertNativeToDart_SerializedScriptValue(this._state);
   dynamic get _state => JS("dynamic", "#.state", this);
 }
@@ -15060,10 +15002,10 @@ class PositionError native "*PositionError" {
 
   static const int TIMEOUT = 3;
 
-  /** @domName PositionError.code; @docsEditable true */
+  /// @domName PositionError.code; @docsEditable true
   final int code;
 
-  /** @domName PositionError.message; @docsEditable true */
+  /// @domName PositionError.message; @docsEditable true
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15084,10 +15026,10 @@ class PreElement extends Element implements Element native "*HTMLPreElement" {
 
   factory PreElement() => document.$dom_createElement("pre");
 
-  /** @domName HTMLPreElement.width; @docsEditable true */
+  /// @domName HTMLPreElement.width; @docsEditable true
   int width;
 
-  /** @domName HTMLPreElement.wrap; @docsEditable true */
+  /// @domName HTMLPreElement.wrap; @docsEditable true
   bool wrap;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15098,13 +15040,13 @@ class PreElement extends Element implements Element native "*HTMLPreElement" {
 /// @domName ProcessingInstruction; @docsEditable true
 class ProcessingInstruction extends Node native "*ProcessingInstruction" {
 
-  /** @domName ProcessingInstruction.data; @docsEditable true */
+  /// @domName ProcessingInstruction.data; @docsEditable true
   String data;
 
-  /** @domName ProcessingInstruction.sheet; @docsEditable true */
+  /// @domName ProcessingInstruction.sheet; @docsEditable true
   final StyleSheet sheet;
 
-  /** @domName ProcessingInstruction.target; @docsEditable true */
+  /// @domName ProcessingInstruction.target; @docsEditable true
   final String target;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15117,17 +15059,17 @@ class ProgressElement extends Element implements Element native "*HTMLProgressEl
 
   factory ProgressElement() => document.$dom_createElement("progress");
 
-  /** @domName HTMLProgressElement.labels; @docsEditable true */
+  /// @domName HTMLProgressElement.labels; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> labels;
 
-  /** @domName HTMLProgressElement.max; @docsEditable true */
+  /// @domName HTMLProgressElement.max; @docsEditable true
   num max;
 
-  /** @domName HTMLProgressElement.position; @docsEditable true */
+  /// @domName HTMLProgressElement.position; @docsEditable true
   final num position;
 
-  /** @domName HTMLProgressElement.value; @docsEditable true */
+  /// @domName HTMLProgressElement.value; @docsEditable true
   num value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15138,13 +15080,13 @@ class ProgressElement extends Element implements Element native "*HTMLProgressEl
 /// @domName ProgressEvent; @docsEditable true
 class ProgressEvent extends Event native "*ProgressEvent" {
 
-  /** @domName ProgressEvent.lengthComputable; @docsEditable true */
+  /// @domName ProgressEvent.lengthComputable; @docsEditable true
   final bool lengthComputable;
 
-  /** @domName ProgressEvent.loaded; @docsEditable true */
+  /// @domName ProgressEvent.loaded; @docsEditable true
   final int loaded;
 
-  /** @domName ProgressEvent.total; @docsEditable true */
+  /// @domName ProgressEvent.total; @docsEditable true
   final int total;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15155,7 +15097,7 @@ class ProgressEvent extends Event native "*ProgressEvent" {
 /// @domName HTMLQuoteElement; @docsEditable true
 class QuoteElement extends Element implements Element native "*HTMLQuoteElement" {
 
-  /** @domName HTMLQuoteElement.cite; @docsEditable true */
+  /// @domName HTMLQuoteElement.cite; @docsEditable true
   String cite;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15166,13 +15108,13 @@ class QuoteElement extends Element implements Element native "*HTMLQuoteElement"
 /// @domName RGBColor; @docsEditable true
 class RGBColor native "*RGBColor" {
 
-  /** @domName RGBColor.blue; @docsEditable true */
+  /// @domName RGBColor.blue; @docsEditable true
   final CSSPrimitiveValue blue;
 
-  /** @domName RGBColor.green; @docsEditable true */
+  /// @domName RGBColor.green; @docsEditable true
   final CSSPrimitiveValue green;
 
-  /** @domName RGBColor.red; @docsEditable true */
+  /// @domName RGBColor.red; @docsEditable true
   final CSSPrimitiveValue red;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15183,40 +15125,38 @@ class RGBColor native "*RGBColor" {
 /// @domName RTCDataChannel; @docsEditable true
 class RTCDataChannel extends EventTarget native "*RTCDataChannel" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   RTCDataChannelEvents get on =>
     new RTCDataChannelEvents(this);
 
-  /** @domName RTCDataChannel.binaryType; @docsEditable true */
+  /// @domName RTCDataChannel.binaryType; @docsEditable true
   String binaryType;
 
-  /** @domName RTCDataChannel.bufferedAmount; @docsEditable true */
+  /// @domName RTCDataChannel.bufferedAmount; @docsEditable true
   final int bufferedAmount;
 
-  /** @domName RTCDataChannel.label; @docsEditable true */
+  /// @domName RTCDataChannel.label; @docsEditable true
   final String label;
 
-  /** @domName RTCDataChannel.readyState; @docsEditable true */
+  /// @domName RTCDataChannel.readyState; @docsEditable true
   final String readyState;
 
-  /** @domName RTCDataChannel.reliable; @docsEditable true */
+  /// @domName RTCDataChannel.reliable; @docsEditable true
   final bool reliable;
 
-  /** @domName RTCDataChannel.addEventListener; @docsEditable true */
+  /// @domName RTCDataChannel.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName RTCDataChannel.close; @docsEditable true */
+  /// @domName RTCDataChannel.close; @docsEditable true
   void close() native;
 
-  /** @domName RTCDataChannel.dispatchEvent; @docsEditable true */
+  /// @domName RTCDataChannel.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
-  /** @domName RTCDataChannel.removeEventListener; @docsEditable true */
+  /// @domName RTCDataChannel.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName RTCDataChannel.send; @docsEditable true */
+  /// @domName RTCDataChannel.send; @docsEditable true
   void send(data) native;
 }
 
@@ -15239,7 +15179,7 @@ class RTCDataChannelEvents extends Events {
 /// @domName RTCDataChannelEvent; @docsEditable true
 class RTCDataChannelEvent extends Event native "*RTCDataChannelEvent" {
 
-  /** @domName RTCDataChannelEvent.channel; @docsEditable true */
+  /// @domName RTCDataChannelEvent.channel; @docsEditable true
   final RTCDataChannel channel;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15260,13 +15200,13 @@ class RTCIceCandidate native "*RTCIceCandidate" {
 
   factory RTCIceCandidate(Map dictionary) => _RTCIceCandidateFactoryProvider.createRTCIceCandidate(dictionary);
 
-  /** @domName RTCIceCandidate.candidate; @docsEditable true */
+  /// @domName RTCIceCandidate.candidate; @docsEditable true
   final String candidate;
 
-  /** @domName RTCIceCandidate.sdpMLineIndex; @docsEditable true */
+  /// @domName RTCIceCandidate.sdpMLineIndex; @docsEditable true
   final int sdpMLineIndex;
 
-  /** @domName RTCIceCandidate.sdpMid; @docsEditable true */
+  /// @domName RTCIceCandidate.sdpMid; @docsEditable true
   final String sdpMid;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15277,7 +15217,7 @@ class RTCIceCandidate native "*RTCIceCandidate" {
 /// @domName RTCIceCandidateEvent; @docsEditable true
 class RTCIceCandidateEvent extends Event native "*RTCIceCandidateEvent" {
 
-  /** @domName RTCIceCandidateEvent.candidate; @docsEditable true */
+  /// @domName RTCIceCandidateEvent.candidate; @docsEditable true
   final RTCIceCandidate candidate;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15295,39 +15235,37 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
     return _RTCPeerConnectionFactoryProvider.createRTCPeerConnection(rtcIceServers, mediaConstraints);
   }
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   RTCPeerConnectionEvents get on =>
     new RTCPeerConnectionEvents(this);
 
-  /** @domName RTCPeerConnection.iceState; @docsEditable true */
+  /// @domName RTCPeerConnection.iceState; @docsEditable true
   final String iceState;
 
-  /** @domName RTCPeerConnection.localDescription; @docsEditable true */
+  /// @domName RTCPeerConnection.localDescription; @docsEditable true
   final RTCSessionDescription localDescription;
 
-  /** @domName RTCPeerConnection.localStreams; @docsEditable true */
+  /// @domName RTCPeerConnection.localStreams; @docsEditable true
   @Returns('_MediaStreamList') @Creates('_MediaStreamList')
   final List<MediaStream> localStreams;
 
-  /** @domName RTCPeerConnection.readyState; @docsEditable true */
+  /// @domName RTCPeerConnection.readyState; @docsEditable true
   final String readyState;
 
-  /** @domName RTCPeerConnection.remoteDescription; @docsEditable true */
+  /// @domName RTCPeerConnection.remoteDescription; @docsEditable true
   final RTCSessionDescription remoteDescription;
 
-  /** @domName RTCPeerConnection.remoteStreams; @docsEditable true */
+  /// @domName RTCPeerConnection.remoteStreams; @docsEditable true
   @Returns('_MediaStreamList') @Creates('_MediaStreamList')
   final List<MediaStream> remoteStreams;
 
-  /** @domName RTCPeerConnection.addEventListener; @docsEditable true */
+  /// @domName RTCPeerConnection.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName RTCPeerConnection.addIceCandidate; @docsEditable true */
+  /// @domName RTCPeerConnection.addIceCandidate; @docsEditable true
   void addIceCandidate(RTCIceCandidate candidate) native;
 
-  /** @domName RTCPeerConnection.addStream; @docsEditable true */
+  /// @domName RTCPeerConnection.addStream; @docsEditable true
   void addStream(MediaStream stream, [Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
@@ -15340,10 +15278,10 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   void _addStream_1(MediaStream stream, mediaConstraints) native "addStream";
   void _addStream_2(MediaStream stream) native "addStream";
 
-  /** @domName RTCPeerConnection.close; @docsEditable true */
+  /// @domName RTCPeerConnection.close; @docsEditable true
   void close() native;
 
-  /** @domName RTCPeerConnection.createAnswer; @docsEditable true */
+  /// @domName RTCPeerConnection.createAnswer; @docsEditable true
   void createAnswer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
@@ -15356,7 +15294,7 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   void _createAnswer_1(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback, mediaConstraints) native "createAnswer";
   void _createAnswer_2(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback) native "createAnswer";
 
-  /** @domName RTCPeerConnection.createDataChannel; @docsEditable true */
+  /// @domName RTCPeerConnection.createDataChannel; @docsEditable true
   RTCDataChannel createDataChannel(String label, [Map options]) {
     if (?options) {
       var options_1 = _convertDartToNative_Dictionary(options);
@@ -15367,7 +15305,7 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   RTCDataChannel _createDataChannel_1(label, options) native "createDataChannel";
   RTCDataChannel _createDataChannel_2(label) native "createDataChannel";
 
-  /** @domName RTCPeerConnection.createOffer; @docsEditable true */
+  /// @domName RTCPeerConnection.createOffer; @docsEditable true
   void createOffer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
@@ -15380,25 +15318,25 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   void _createOffer_1(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback, mediaConstraints) native "createOffer";
   void _createOffer_2(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback) native "createOffer";
 
-  /** @domName RTCPeerConnection.dispatchEvent; @docsEditable true */
+  /// @domName RTCPeerConnection.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
-  /** @domName RTCPeerConnection.getStats; @docsEditable true */
+  /// @domName RTCPeerConnection.getStats; @docsEditable true
   void getStats(RTCStatsCallback successCallback, MediaStreamTrack selector) native;
 
-  /** @domName RTCPeerConnection.removeEventListener; @docsEditable true */
+  /// @domName RTCPeerConnection.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName RTCPeerConnection.removeStream; @docsEditable true */
+  /// @domName RTCPeerConnection.removeStream; @docsEditable true
   void removeStream(MediaStream stream) native;
 
-  /** @domName RTCPeerConnection.setLocalDescription; @docsEditable true */
+  /// @domName RTCPeerConnection.setLocalDescription; @docsEditable true
   void setLocalDescription(RTCSessionDescription description, [VoidCallback successCallback, RTCErrorCallback failureCallback]) native;
 
-  /** @domName RTCPeerConnection.setRemoteDescription; @docsEditable true */
+  /// @domName RTCPeerConnection.setRemoteDescription; @docsEditable true
   void setRemoteDescription(RTCSessionDescription description, [VoidCallback successCallback, RTCErrorCallback failureCallback]) native;
 
-  /** @domName RTCPeerConnection.updateIce; @docsEditable true */
+  /// @domName RTCPeerConnection.updateIce; @docsEditable true
   void updateIce([Map configuration, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var configuration_1 = _convertDartToNative_Dictionary(configuration);
@@ -15446,10 +15384,10 @@ class RTCSessionDescription native "*RTCSessionDescription" {
 
   factory RTCSessionDescription(Map dictionary) => _RTCSessionDescriptionFactoryProvider.createRTCSessionDescription(dictionary);
 
-  /** @domName RTCSessionDescription.sdp; @docsEditable true */
+  /// @domName RTCSessionDescription.sdp; @docsEditable true
   String sdp;
 
-  /** @domName RTCSessionDescription.type; @docsEditable true */
+  /// @domName RTCSessionDescription.type; @docsEditable true
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15476,10 +15414,10 @@ typedef void RTCStatsCallback(RTCStatsResponse response);
 /// @domName RTCStatsElement; @docsEditable true
 class RTCStatsElement native "*RTCStatsElement" {
 
-  /** @domName RTCStatsElement.timestamp; @docsEditable true */
+  /// @domName RTCStatsElement.timestamp; @docsEditable true
   final Date timestamp;
 
-  /** @domName RTCStatsElement.stat; @docsEditable true */
+  /// @domName RTCStatsElement.stat; @docsEditable true
   String stat(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15490,10 +15428,10 @@ class RTCStatsElement native "*RTCStatsElement" {
 /// @domName RTCStatsReport; @docsEditable true
 class RTCStatsReport native "*RTCStatsReport" {
 
-  /** @domName RTCStatsReport.local; @docsEditable true */
+  /// @domName RTCStatsReport.local; @docsEditable true
   final RTCStatsElement local;
 
-  /** @domName RTCStatsReport.remote; @docsEditable true */
+  /// @domName RTCStatsReport.remote; @docsEditable true
   final RTCStatsElement remote;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15504,7 +15442,7 @@ class RTCStatsReport native "*RTCStatsReport" {
 /// @domName RTCStatsResponse; @docsEditable true
 class RTCStatsResponse native "*RTCStatsResponse" {
 
-  /** @domName RTCStatsResponse.result; @docsEditable true */
+  /// @domName RTCStatsResponse.result; @docsEditable true
   List<RTCStatsReport> result() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15515,7 +15453,7 @@ class RTCStatsResponse native "*RTCStatsResponse" {
 /// @domName RadioNodeList; @docsEditable true
 class RadioNodeList extends _NodeList native "*RadioNodeList" {
 
-  /** @domName RadioNodeList.value; @docsEditable true */
+  /// @domName RadioNodeList.value; @docsEditable true
   String value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15542,98 +15480,98 @@ class Range native "*Range" {
 
   static const int START_TO_START = 0;
 
-  /** @domName Range.collapsed; @docsEditable true */
+  /// @domName Range.collapsed; @docsEditable true
   final bool collapsed;
 
-  /** @domName Range.commonAncestorContainer; @docsEditable true */
+  /// @domName Range.commonAncestorContainer; @docsEditable true
   final Node commonAncestorContainer;
 
-  /** @domName Range.endContainer; @docsEditable true */
+  /// @domName Range.endContainer; @docsEditable true
   final Node endContainer;
 
-  /** @domName Range.endOffset; @docsEditable true */
+  /// @domName Range.endOffset; @docsEditable true
   final int endOffset;
 
-  /** @domName Range.startContainer; @docsEditable true */
+  /// @domName Range.startContainer; @docsEditable true
   final Node startContainer;
 
-  /** @domName Range.startOffset; @docsEditable true */
+  /// @domName Range.startOffset; @docsEditable true
   final int startOffset;
 
-  /** @domName Range.cloneContents; @docsEditable true */
+  /// @domName Range.cloneContents; @docsEditable true
   DocumentFragment cloneContents() native;
 
-  /** @domName Range.cloneRange; @docsEditable true */
+  /// @domName Range.cloneRange; @docsEditable true
   Range cloneRange() native;
 
-  /** @domName Range.collapse; @docsEditable true */
+  /// @domName Range.collapse; @docsEditable true
   void collapse(bool toStart) native;
 
-  /** @domName Range.compareNode; @docsEditable true */
+  /// @domName Range.compareNode; @docsEditable true
   int compareNode(Node refNode) native;
 
-  /** @domName Range.comparePoint; @docsEditable true */
+  /// @domName Range.comparePoint; @docsEditable true
   int comparePoint(Node refNode, int offset) native;
 
-  /** @domName Range.createContextualFragment; @docsEditable true */
+  /// @domName Range.createContextualFragment; @docsEditable true
   DocumentFragment createContextualFragment(String html) native;
 
-  /** @domName Range.deleteContents; @docsEditable true */
+  /// @domName Range.deleteContents; @docsEditable true
   void deleteContents() native;
 
-  /** @domName Range.detach; @docsEditable true */
+  /// @domName Range.detach; @docsEditable true
   void detach() native;
 
-  /** @domName Range.expand; @docsEditable true */
+  /// @domName Range.expand; @docsEditable true
   void expand(String unit) native;
 
-  /** @domName Range.extractContents; @docsEditable true */
+  /// @domName Range.extractContents; @docsEditable true
   DocumentFragment extractContents() native;
 
-  /** @domName Range.getBoundingClientRect; @docsEditable true */
+  /// @domName Range.getBoundingClientRect; @docsEditable true
   ClientRect getBoundingClientRect() native;
 
-  /** @domName Range.getClientRects; @docsEditable true */
+  /// @domName Range.getClientRects; @docsEditable true
   @Returns('_ClientRectList') @Creates('_ClientRectList')
   List<ClientRect> getClientRects() native;
 
-  /** @domName Range.insertNode; @docsEditable true */
+  /// @domName Range.insertNode; @docsEditable true
   void insertNode(Node newNode) native;
 
-  /** @domName Range.intersectsNode; @docsEditable true */
+  /// @domName Range.intersectsNode; @docsEditable true
   bool intersectsNode(Node refNode) native;
 
-  /** @domName Range.isPointInRange; @docsEditable true */
+  /// @domName Range.isPointInRange; @docsEditable true
   bool isPointInRange(Node refNode, int offset) native;
 
-  /** @domName Range.selectNode; @docsEditable true */
+  /// @domName Range.selectNode; @docsEditable true
   void selectNode(Node refNode) native;
 
-  /** @domName Range.selectNodeContents; @docsEditable true */
+  /// @domName Range.selectNodeContents; @docsEditable true
   void selectNodeContents(Node refNode) native;
 
-  /** @domName Range.setEnd; @docsEditable true */
+  /// @domName Range.setEnd; @docsEditable true
   void setEnd(Node refNode, int offset) native;
 
-  /** @domName Range.setEndAfter; @docsEditable true */
+  /// @domName Range.setEndAfter; @docsEditable true
   void setEndAfter(Node refNode) native;
 
-  /** @domName Range.setEndBefore; @docsEditable true */
+  /// @domName Range.setEndBefore; @docsEditable true
   void setEndBefore(Node refNode) native;
 
-  /** @domName Range.setStart; @docsEditable true */
+  /// @domName Range.setStart; @docsEditable true
   void setStart(Node refNode, int offset) native;
 
-  /** @domName Range.setStartAfter; @docsEditable true */
+  /// @domName Range.setStartAfter; @docsEditable true
   void setStartAfter(Node refNode) native;
 
-  /** @domName Range.setStartBefore; @docsEditable true */
+  /// @domName Range.setStartBefore; @docsEditable true
   void setStartBefore(Node refNode) native;
 
-  /** @domName Range.surroundContents; @docsEditable true */
+  /// @domName Range.surroundContents; @docsEditable true
   void surroundContents(Node newParent) native;
 
-  /** @domName Range.toString; @docsEditable true */
+  /// @domName Range.toString; @docsEditable true
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15648,16 +15586,16 @@ class RangeException native "*RangeException" {
 
   static const int INVALID_NODE_TYPE_ERR = 2;
 
-  /** @domName RangeException.code; @docsEditable true */
+  /// @domName RangeException.code; @docsEditable true
   final int code;
 
-  /** @domName RangeException.message; @docsEditable true */
+  /// @domName RangeException.message; @docsEditable true
   final String message;
 
-  /** @domName RangeException.name; @docsEditable true */
+  /// @domName RangeException.name; @docsEditable true
   final String name;
 
-  /** @domName RangeException.toString; @docsEditable true */
+  /// @domName RangeException.toString; @docsEditable true
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15668,16 +15606,16 @@ class RangeException native "*RangeException" {
 /// @domName Rect; @docsEditable true
 class Rect native "*Rect" {
 
-  /** @domName Rect.bottom; @docsEditable true */
+  /// @domName Rect.bottom; @docsEditable true
   final CSSPrimitiveValue bottom;
 
-  /** @domName Rect.left; @docsEditable true */
+  /// @domName Rect.left; @docsEditable true
   final CSSPrimitiveValue left;
 
-  /** @domName Rect.right; @docsEditable true */
+  /// @domName Rect.right; @docsEditable true
   final CSSPrimitiveValue right;
 
-  /** @domName Rect.top; @docsEditable true */
+  /// @domName Rect.top; @docsEditable true
   final CSSPrimitiveValue top;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15712,10 +15650,10 @@ class SQLError native "*SQLError" {
 
   static const int VERSION_ERR = 2;
 
-  /** @domName SQLError.code; @docsEditable true */
+  /// @domName SQLError.code; @docsEditable true
   final int code;
 
-  /** @domName SQLError.message; @docsEditable true */
+  /// @domName SQLError.message; @docsEditable true
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15742,10 +15680,10 @@ class SQLException native "*SQLException" {
 
   static const int VERSION_ERR = 2;
 
-  /** @domName SQLException.code; @docsEditable true */
+  /// @domName SQLException.code; @docsEditable true
   final int code;
 
-  /** @domName SQLException.message; @docsEditable true */
+  /// @domName SQLException.message; @docsEditable true
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15756,13 +15694,13 @@ class SQLException native "*SQLException" {
 /// @domName SQLResultSet; @docsEditable true
 class SQLResultSet native "*SQLResultSet" {
 
-  /** @domName SQLResultSet.insertId; @docsEditable true */
+  /// @domName SQLResultSet.insertId; @docsEditable true
   final int insertId;
 
-  /** @domName SQLResultSet.rows; @docsEditable true */
+  /// @domName SQLResultSet.rows; @docsEditable true
   final SQLResultSetRowList rows;
 
-  /** @domName SQLResultSet.rowsAffected; @docsEditable true */
+  /// @domName SQLResultSet.rowsAffected; @docsEditable true
   final int rowsAffected;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15773,7 +15711,7 @@ class SQLResultSet native "*SQLResultSet" {
 /// @domName SQLResultSetRowList; @docsEditable true
 class SQLResultSetRowList implements JavaScriptIndexingBehavior, List<Map> native "*SQLResultSetRowList" {
 
-  /** @domName SQLResultSetRowList.length; @docsEditable true */
+  /// @domName SQLResultSetRowList.length; @docsEditable true
   final int length;
 
   Map operator[](int index) => JS("Map", "#[#]", this, index);
@@ -15861,7 +15799,7 @@ class SQLResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
 
   // -- end List<Map> mixins.
 
-  /** @domName SQLResultSetRowList.item; @docsEditable true */
+  /// @domName SQLResultSetRowList.item; @docsEditable true
   Map item(int index) {
     return _convertNativeToDart_Dictionary(_item_1(index));
   }
@@ -15892,7 +15830,7 @@ typedef void SQLStatementErrorCallback(SQLTransaction transaction, SQLError erro
 /// @domName SQLTransaction; @docsEditable true
 class SQLTransaction native "*SQLTransaction" {
 
-  /** @domName SQLTransaction.executeSql; @docsEditable true */
+  /// @domName SQLTransaction.executeSql; @docsEditable true
   void executeSql(String sqlStatement, List arguments, [SQLStatementCallback callback, SQLStatementErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15919,7 +15857,7 @@ typedef void SQLTransactionErrorCallback(SQLError error);
 /// @domName SQLTransactionSync; @docsEditable true
 class SQLTransactionSync native "*SQLTransactionSync" {
 
-  /** @domName SQLTransactionSync.executeSql; @docsEditable true */
+  /// @domName SQLTransactionSync.executeSql; @docsEditable true
   SQLResultSet executeSql(String sqlStatement, List arguments) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15938,28 +15876,28 @@ typedef void SQLTransactionSyncCallback(SQLTransactionSync transaction);
 /// @domName Screen; @docsEditable true
 class Screen native "*Screen" {
 
-  /** @domName Screen.availHeight; @docsEditable true */
+  /// @domName Screen.availHeight; @docsEditable true
   final int availHeight;
 
-  /** @domName Screen.availLeft; @docsEditable true */
+  /// @domName Screen.availLeft; @docsEditable true
   final int availLeft;
 
-  /** @domName Screen.availTop; @docsEditable true */
+  /// @domName Screen.availTop; @docsEditable true
   final int availTop;
 
-  /** @domName Screen.availWidth; @docsEditable true */
+  /// @domName Screen.availWidth; @docsEditable true
   final int availWidth;
 
-  /** @domName Screen.colorDepth; @docsEditable true */
+  /// @domName Screen.colorDepth; @docsEditable true
   final int colorDepth;
 
-  /** @domName Screen.height; @docsEditable true */
+  /// @domName Screen.height; @docsEditable true
   final int height;
 
-  /** @domName Screen.pixelDepth; @docsEditable true */
+  /// @domName Screen.pixelDepth; @docsEditable true
   final int pixelDepth;
 
-  /** @domName Screen.width; @docsEditable true */
+  /// @domName Screen.width; @docsEditable true
   final int width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15972,28 +15910,28 @@ class ScriptElement extends Element implements Element native "*HTMLScriptElemen
 
   factory ScriptElement() => document.$dom_createElement("script");
 
-  /** @domName HTMLScriptElement.async; @docsEditable true */
+  /// @domName HTMLScriptElement.async; @docsEditable true
   bool async;
 
-  /** @domName HTMLScriptElement.charset; @docsEditable true */
+  /// @domName HTMLScriptElement.charset; @docsEditable true
   String charset;
 
-  /** @domName HTMLScriptElement.crossOrigin; @docsEditable true */
+  /// @domName HTMLScriptElement.crossOrigin; @docsEditable true
   String crossOrigin;
 
-  /** @domName HTMLScriptElement.defer; @docsEditable true */
+  /// @domName HTMLScriptElement.defer; @docsEditable true
   bool defer;
 
-  /** @domName HTMLScriptElement.event; @docsEditable true */
+  /// @domName HTMLScriptElement.event; @docsEditable true
   String event;
 
-  /** @domName HTMLScriptElement.htmlFor; @docsEditable true */
+  /// @domName HTMLScriptElement.htmlFor; @docsEditable true
   String htmlFor;
 
-  /** @domName HTMLScriptElement.src; @docsEditable true */
+  /// @domName HTMLScriptElement.src; @docsEditable true
   String src;
 
-  /** @domName HTMLScriptElement.type; @docsEditable true */
+  /// @domName HTMLScriptElement.type; @docsEditable true
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16004,13 +15942,11 @@ class ScriptElement extends Element implements Element native "*HTMLScriptElemen
 /// @domName ScriptProcessorNode; @docsEditable true
 class ScriptProcessorNode extends AudioNode implements EventTarget native "*ScriptProcessorNode" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ScriptProcessorNodeEvents get on =>
     new ScriptProcessorNodeEvents(this);
 
-  /** @domName ScriptProcessorNode.bufferSize; @docsEditable true */
+  /// @domName ScriptProcessorNode.bufferSize; @docsEditable true
   final int bufferSize;
 }
 
@@ -16027,13 +15963,13 @@ class ScriptProcessorNodeEvents extends Events {
 /// @domName ScriptProfile; @docsEditable true
 class ScriptProfile native "*ScriptProfile" {
 
-  /** @domName ScriptProfile.head; @docsEditable true */
+  /// @domName ScriptProfile.head; @docsEditable true
   final ScriptProfileNode head;
 
-  /** @domName ScriptProfile.title; @docsEditable true */
+  /// @domName ScriptProfile.title; @docsEditable true
   final String title;
 
-  /** @domName ScriptProfile.uid; @docsEditable true */
+  /// @domName ScriptProfile.uid; @docsEditable true
   final int uid;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16044,31 +15980,31 @@ class ScriptProfile native "*ScriptProfile" {
 /// @domName ScriptProfileNode; @docsEditable true
 class ScriptProfileNode native "*ScriptProfileNode" {
 
-  /** @domName ScriptProfileNode.callUID; @docsEditable true */
+  /// @domName ScriptProfileNode.callUID; @docsEditable true
   final int callUID;
 
-  /** @domName ScriptProfileNode.functionName; @docsEditable true */
+  /// @domName ScriptProfileNode.functionName; @docsEditable true
   final String functionName;
 
-  /** @domName ScriptProfileNode.lineNumber; @docsEditable true */
+  /// @domName ScriptProfileNode.lineNumber; @docsEditable true
   final int lineNumber;
 
-  /** @domName ScriptProfileNode.numberOfCalls; @docsEditable true */
+  /// @domName ScriptProfileNode.numberOfCalls; @docsEditable true
   final int numberOfCalls;
 
-  /** @domName ScriptProfileNode.selfTime; @docsEditable true */
+  /// @domName ScriptProfileNode.selfTime; @docsEditable true
   final num selfTime;
 
-  /** @domName ScriptProfileNode.totalTime; @docsEditable true */
+  /// @domName ScriptProfileNode.totalTime; @docsEditable true
   final num totalTime;
 
-  /** @domName ScriptProfileNode.url; @docsEditable true */
+  /// @domName ScriptProfileNode.url; @docsEditable true
   final String url;
 
-  /** @domName ScriptProfileNode.visible; @docsEditable true */
+  /// @domName ScriptProfileNode.visible; @docsEditable true
   final bool visible;
 
-  /** @domName ScriptProfileNode.children; @docsEditable true */
+  /// @domName ScriptProfileNode.children; @docsEditable true
   List<ScriptProfileNode> children() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16080,62 +16016,62 @@ class SelectElement extends Element implements Element native "*HTMLSelectElemen
 
   factory SelectElement() => document.$dom_createElement("select");
 
-  /** @domName HTMLSelectElement.autofocus; @docsEditable true */
+  /// @domName HTMLSelectElement.autofocus; @docsEditable true
   bool autofocus;
 
-  /** @domName HTMLSelectElement.disabled; @docsEditable true */
+  /// @domName HTMLSelectElement.disabled; @docsEditable true
   bool disabled;
 
-  /** @domName HTMLSelectElement.form; @docsEditable true */
+  /// @domName HTMLSelectElement.form; @docsEditable true
   final FormElement form;
 
-  /** @domName HTMLSelectElement.labels; @docsEditable true */
+  /// @domName HTMLSelectElement.labels; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> labels;
 
-  /** @domName HTMLSelectElement.length; @docsEditable true */
+  /// @domName HTMLSelectElement.length; @docsEditable true
   int length;
 
-  /** @domName HTMLSelectElement.multiple; @docsEditable true */
+  /// @domName HTMLSelectElement.multiple; @docsEditable true
   bool multiple;
 
-  /** @domName HTMLSelectElement.name; @docsEditable true */
+  /// @domName HTMLSelectElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLSelectElement.required; @docsEditable true */
+  /// @domName HTMLSelectElement.required; @docsEditable true
   bool required;
 
-  /** @domName HTMLSelectElement.selectedIndex; @docsEditable true */
+  /// @domName HTMLSelectElement.selectedIndex; @docsEditable true
   int selectedIndex;
 
-  /** @domName HTMLSelectElement.size; @docsEditable true */
+  /// @domName HTMLSelectElement.size; @docsEditable true
   int size;
 
-  /** @domName HTMLSelectElement.type; @docsEditable true */
+  /// @domName HTMLSelectElement.type; @docsEditable true
   final String type;
 
-  /** @domName HTMLSelectElement.validationMessage; @docsEditable true */
+  /// @domName HTMLSelectElement.validationMessage; @docsEditable true
   final String validationMessage;
 
-  /** @domName HTMLSelectElement.validity; @docsEditable true */
+  /// @domName HTMLSelectElement.validity; @docsEditable true
   final ValidityState validity;
 
-  /** @domName HTMLSelectElement.value; @docsEditable true */
+  /// @domName HTMLSelectElement.value; @docsEditable true
   String value;
 
-  /** @domName HTMLSelectElement.willValidate; @docsEditable true */
+  /// @domName HTMLSelectElement.willValidate; @docsEditable true
   final bool willValidate;
 
-  /** @domName HTMLSelectElement.checkValidity; @docsEditable true */
+  /// @domName HTMLSelectElement.checkValidity; @docsEditable true
   bool checkValidity() native;
 
-  /** @domName HTMLSelectElement.item; @docsEditable true */
+  /// @domName HTMLSelectElement.item; @docsEditable true
   Node item(int index) native;
 
-  /** @domName HTMLSelectElement.namedItem; @docsEditable true */
+  /// @domName HTMLSelectElement.namedItem; @docsEditable true
   Node namedItem(String name) native;
 
-  /** @domName HTMLSelectElement.setCustomValidity; @docsEditable true */
+  /// @domName HTMLSelectElement.setCustomValidity; @docsEditable true
   void setCustomValidity(String error) native;
 
 
@@ -16164,10 +16100,10 @@ class SessionDescription native "*SessionDescription" {
 
   factory SessionDescription(String sdp) => _SessionDescriptionFactoryProvider.createSessionDescription(sdp);
 
-  /** @domName SessionDescription.addCandidate; @docsEditable true */
+  /// @domName SessionDescription.addCandidate; @docsEditable true
   void addCandidate(IceCandidate candidate) native;
 
-  /** @domName SessionDescription.toSdp; @docsEditable true */
+  /// @domName SessionDescription.toSdp; @docsEditable true
   String toSdp() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16178,7 +16114,7 @@ class SessionDescription native "*SessionDescription" {
 /// @domName HTMLShadowElement; @docsEditable true
 class ShadowElement extends Element implements Element native "*HTMLShadowElement" {
 
-  /** @domName HTMLShadowElement.resetStyleInheritance; @docsEditable true */
+  /// @domName HTMLShadowElement.resetStyleInheritance; @docsEditable true
   bool resetStyleInheritance;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16192,33 +16128,33 @@ class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
 
   factory ShadowRoot(Element host) => _ShadowRootFactoryProvider.createShadowRoot(host);
 
-  /** @domName ShadowRoot.activeElement; @docsEditable true */
+  /// @domName ShadowRoot.activeElement; @docsEditable true
   final Element activeElement;
 
-  /** @domName ShadowRoot.applyAuthorStyles; @docsEditable true */
+  /// @domName ShadowRoot.applyAuthorStyles; @docsEditable true
   bool applyAuthorStyles;
 
-  /** @domName ShadowRoot.innerHTML; @docsEditable true */
+  /// @domName ShadowRoot.innerHTML; @docsEditable true
   String innerHTML;
 
-  /** @domName ShadowRoot.resetStyleInheritance; @docsEditable true */
+  /// @domName ShadowRoot.resetStyleInheritance; @docsEditable true
   bool resetStyleInheritance;
 
-  /** @domName ShadowRoot.cloneNode; @docsEditable true */
+  /// @domName ShadowRoot.cloneNode; @docsEditable true
   Node clone(bool deep) native "cloneNode";
 
-  /** @domName ShadowRoot.getElementById; @docsEditable true */
+  /// @domName ShadowRoot.getElementById; @docsEditable true
   Element $dom_getElementById(String elementId) native "getElementById";
 
-  /** @domName ShadowRoot.getElementsByClassName; @docsEditable true */
+  /// @domName ShadowRoot.getElementsByClassName; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_getElementsByClassName(String className) native "getElementsByClassName";
 
-  /** @domName ShadowRoot.getElementsByTagName; @docsEditable true */
+  /// @domName ShadowRoot.getElementsByTagName; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_getElementsByTagName(String tagName) native "getElementsByTagName";
 
-  /** @domName ShadowRoot.getSelection; @docsEditable true */
+  /// @domName ShadowRoot.getSelection; @docsEditable true
   DOMSelection getSelection() native;
 
   static bool get supported =>
@@ -16239,7 +16175,7 @@ class SharedWorker extends AbstractWorker native "*SharedWorker" {
     return _SharedWorkerFactoryProvider.createSharedWorker(scriptURL, name);
   }
 
-  /** @domName SharedWorker.port; @docsEditable true */
+  /// @domName SharedWorker.port; @docsEditable true
   final MessagePort port;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16250,13 +16186,11 @@ class SharedWorker extends AbstractWorker native "*SharedWorker" {
 /// @domName SharedWorkerContext; @docsEditable true
 class SharedWorkerContext extends WorkerContext native "*SharedWorkerContext" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   SharedWorkerContextEvents get on =>
     new SharedWorkerContextEvents(this);
 
-  /** @domName SharedWorkerContext.name; @docsEditable true */
+  /// @domName SharedWorkerContext.name; @docsEditable true
   final String name;
 }
 
@@ -16273,16 +16207,16 @@ class SharedWorkerContextEvents extends WorkerContextEvents {
 /// @domName SourceBuffer; @docsEditable true
 class SourceBuffer native "*SourceBuffer" {
 
-  /** @domName SourceBuffer.buffered; @docsEditable true */
+  /// @domName SourceBuffer.buffered; @docsEditable true
   final TimeRanges buffered;
 
-  /** @domName SourceBuffer.timestampOffset; @docsEditable true */
+  /// @domName SourceBuffer.timestampOffset; @docsEditable true
   num timestampOffset;
 
-  /** @domName SourceBuffer.abort; @docsEditable true */
+  /// @domName SourceBuffer.abort; @docsEditable true
   void abort() native;
 
-  /** @domName SourceBuffer.append; @docsEditable true */
+  /// @domName SourceBuffer.append; @docsEditable true
   void append(Uint8Array data) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16293,7 +16227,7 @@ class SourceBuffer native "*SourceBuffer" {
 /// @domName SourceBufferList; @docsEditable true
 class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior, List<SourceBuffer> native "*SourceBufferList" {
 
-  /** @domName SourceBufferList.length; @docsEditable true */
+  /// @domName SourceBufferList.length; @docsEditable true
   final int length;
 
   SourceBuffer operator[](int index) => JS("SourceBuffer", "#[#]", this, index);
@@ -16381,16 +16315,16 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
 
   // -- end List<SourceBuffer> mixins.
 
-  /** @domName SourceBufferList.addEventListener; @docsEditable true */
+  /// @domName SourceBufferList.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName SourceBufferList.dispatchEvent; @docsEditable true */
+  /// @domName SourceBufferList.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
-  /** @domName SourceBufferList.item; @docsEditable true */
+  /// @domName SourceBufferList.item; @docsEditable true
   SourceBuffer item(int index) native;
 
-  /** @domName SourceBufferList.removeEventListener; @docsEditable true */
+  /// @domName SourceBufferList.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16403,13 +16337,13 @@ class SourceElement extends Element implements Element native "*HTMLSourceElemen
 
   factory SourceElement() => document.$dom_createElement("source");
 
-  /** @domName HTMLSourceElement.media; @docsEditable true */
+  /// @domName HTMLSourceElement.media; @docsEditable true
   String media;
 
-  /** @domName HTMLSourceElement.src; @docsEditable true */
+  /// @domName HTMLSourceElement.src; @docsEditable true
   String src;
 
-  /** @domName HTMLSourceElement.type; @docsEditable true */
+  /// @domName HTMLSourceElement.type; @docsEditable true
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16432,10 +16366,10 @@ class SpeechGrammar native "*SpeechGrammar" {
 
   factory SpeechGrammar() => _SpeechGrammarFactoryProvider.createSpeechGrammar();
 
-  /** @domName SpeechGrammar.src; @docsEditable true */
+  /// @domName SpeechGrammar.src; @docsEditable true
   String src;
 
-  /** @domName SpeechGrammar.weight; @docsEditable true */
+  /// @domName SpeechGrammar.weight; @docsEditable true
   num weight;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16448,7 +16382,7 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
 
   factory SpeechGrammarList() => _SpeechGrammarListFactoryProvider.createSpeechGrammarList();
 
-  /** @domName SpeechGrammarList.length; @docsEditable true */
+  /// @domName SpeechGrammarList.length; @docsEditable true
   final int length;
 
   SpeechGrammar operator[](int index) => JS("SpeechGrammar", "#[#]", this, index);
@@ -16536,13 +16470,13 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
 
   // -- end List<SpeechGrammar> mixins.
 
-  /** @domName SpeechGrammarList.addFromString; @docsEditable true */
+  /// @domName SpeechGrammarList.addFromString; @docsEditable true
   void addFromString(String string, [num weight]) native;
 
-  /** @domName SpeechGrammarList.addFromUri; @docsEditable true */
+  /// @domName SpeechGrammarList.addFromUri; @docsEditable true
   void addFromUri(String src, [num weight]) native;
 
-  /** @domName SpeechGrammarList.item; @docsEditable true */
+  /// @domName SpeechGrammarList.item; @docsEditable true
   SpeechGrammar item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16553,7 +16487,7 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
 /// @domName SpeechInputEvent; @docsEditable true
 class SpeechInputEvent extends Event native "*SpeechInputEvent" {
 
-  /** @domName SpeechInputEvent.results; @docsEditable true */
+  /// @domName SpeechInputEvent.results; @docsEditable true
   @Returns('_SpeechInputResultList') @Creates('_SpeechInputResultList')
   final List<SpeechInputResult> results;
 }
@@ -16565,10 +16499,10 @@ class SpeechInputEvent extends Event native "*SpeechInputEvent" {
 /// @domName SpeechInputResult; @docsEditable true
 class SpeechInputResult native "*SpeechInputResult" {
 
-  /** @domName SpeechInputResult.confidence; @docsEditable true */
+  /// @domName SpeechInputResult.confidence; @docsEditable true
   final num confidence;
 
-  /** @domName SpeechInputResult.utterance; @docsEditable true */
+  /// @domName SpeechInputResult.utterance; @docsEditable true
   final String utterance;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16581,43 +16515,41 @@ class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
 
   factory SpeechRecognition() => _SpeechRecognitionFactoryProvider.createSpeechRecognition();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   SpeechRecognitionEvents get on =>
     new SpeechRecognitionEvents(this);
 
-  /** @domName SpeechRecognition.continuous; @docsEditable true */
+  /// @domName SpeechRecognition.continuous; @docsEditable true
   bool continuous;
 
-  /** @domName SpeechRecognition.grammars; @docsEditable true */
+  /// @domName SpeechRecognition.grammars; @docsEditable true
   SpeechGrammarList grammars;
 
-  /** @domName SpeechRecognition.interimResults; @docsEditable true */
+  /// @domName SpeechRecognition.interimResults; @docsEditable true
   bool interimResults;
 
-  /** @domName SpeechRecognition.lang; @docsEditable true */
+  /// @domName SpeechRecognition.lang; @docsEditable true
   String lang;
 
-  /** @domName SpeechRecognition.maxAlternatives; @docsEditable true */
+  /// @domName SpeechRecognition.maxAlternatives; @docsEditable true
   int maxAlternatives;
 
-  /** @domName SpeechRecognition.abort; @docsEditable true */
+  /// @domName SpeechRecognition.abort; @docsEditable true
   void abort() native;
 
-  /** @domName SpeechRecognition.addEventListener; @docsEditable true */
+  /// @domName SpeechRecognition.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName SpeechRecognition.dispatchEvent; @docsEditable true */
+  /// @domName SpeechRecognition.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName SpeechRecognition.removeEventListener; @docsEditable true */
+  /// @domName SpeechRecognition.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName SpeechRecognition.start; @docsEditable true */
+  /// @domName SpeechRecognition.start; @docsEditable true
   void start() native;
 
-  /** @domName SpeechRecognition.stop; @docsEditable true */
+  /// @domName SpeechRecognition.stop; @docsEditable true
   void stop() native;
 }
 
@@ -16654,10 +16586,10 @@ class SpeechRecognitionEvents extends Events {
 /// @domName SpeechRecognitionAlternative; @docsEditable true
 class SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
 
-  /** @domName SpeechRecognitionAlternative.confidence; @docsEditable true */
+  /// @domName SpeechRecognitionAlternative.confidence; @docsEditable true
   final num confidence;
 
-  /** @domName SpeechRecognitionAlternative.transcript; @docsEditable true */
+  /// @domName SpeechRecognitionAlternative.transcript; @docsEditable true
   final String transcript;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16686,10 +16618,10 @@ class SpeechRecognitionError extends Event native "*SpeechRecognitionError" {
 
   static const int SERVICE_NOT_ALLOWED = 6;
 
-  /** @domName SpeechRecognitionError.code; @docsEditable true */
+  /// @domName SpeechRecognitionError.code; @docsEditable true
   final int code;
 
-  /** @domName SpeechRecognitionError.message; @docsEditable true */
+  /// @domName SpeechRecognitionError.message; @docsEditable true
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16700,14 +16632,14 @@ class SpeechRecognitionError extends Event native "*SpeechRecognitionError" {
 /// @domName SpeechRecognitionEvent; @docsEditable true
 class SpeechRecognitionEvent extends Event native "*SpeechRecognitionEvent" {
 
-  /** @domName SpeechRecognitionEvent.result; @docsEditable true */
+  /// @domName SpeechRecognitionEvent.result; @docsEditable true
   final SpeechRecognitionResult result;
 
-  /** @domName SpeechRecognitionEvent.resultHistory; @docsEditable true */
+  /// @domName SpeechRecognitionEvent.resultHistory; @docsEditable true
   @Returns('_SpeechRecognitionResultList') @Creates('_SpeechRecognitionResultList')
   final List<SpeechRecognitionResult> resultHistory;
 
-  /** @domName SpeechRecognitionEvent.resultIndex; @docsEditable true */
+  /// @domName SpeechRecognitionEvent.resultIndex; @docsEditable true
   final int resultIndex;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16718,16 +16650,16 @@ class SpeechRecognitionEvent extends Event native "*SpeechRecognitionEvent" {
 /// @domName SpeechRecognitionResult; @docsEditable true
 class SpeechRecognitionResult native "*SpeechRecognitionResult" {
 
-  /** @domName SpeechRecognitionResult.emma; @docsEditable true */
+  /// @domName SpeechRecognitionResult.emma; @docsEditable true
   final Document emma;
 
-  /** @domName SpeechRecognitionResult.finalValue; @docsEditable true */
+  /// @domName SpeechRecognitionResult.finalValue; @docsEditable true
   bool get finalValue => JS("bool", "#.final", this);
 
-  /** @domName SpeechRecognitionResult.length; @docsEditable true */
+  /// @domName SpeechRecognitionResult.length; @docsEditable true
   final int length;
 
-  /** @domName SpeechRecognitionResult.item; @docsEditable true */
+  /// @domName SpeechRecognitionResult.item; @docsEditable true
   SpeechRecognitionAlternative item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16784,22 +16716,22 @@ class Storage implements Map<String, String>  native "*Storage" {
 
   bool get isEmpty => $dom_key(0) == null;
 
-  /** @domName Storage.length; @docsEditable true */
+  /// @domName Storage.length; @docsEditable true
   int get $dom_length => JS("int", "#.length", this);
 
-  /** @domName Storage.clear; @docsEditable true */
+  /// @domName Storage.clear; @docsEditable true
   void $dom_clear() native "clear";
 
-  /** @domName Storage.getItem; @docsEditable true */
+  /// @domName Storage.getItem; @docsEditable true
   String $dom_getItem(String key) native "getItem";
 
-  /** @domName Storage.key; @docsEditable true */
+  /// @domName Storage.key; @docsEditable true
   String $dom_key(int index) native "key";
 
-  /** @domName Storage.removeItem; @docsEditable true */
+  /// @domName Storage.removeItem; @docsEditable true
   void $dom_removeItem(String key) native "removeItem";
 
-  /** @domName Storage.setItem; @docsEditable true */
+  /// @domName Storage.setItem; @docsEditable true
   void $dom_setItem(String key, String data) native "setItem";
 
 }
@@ -16811,22 +16743,22 @@ class Storage implements Map<String, String>  native "*Storage" {
 /// @domName StorageEvent; @docsEditable true
 class StorageEvent extends Event native "*StorageEvent" {
 
-  /** @domName StorageEvent.key; @docsEditable true */
+  /// @domName StorageEvent.key; @docsEditable true
   final String key;
 
-  /** @domName StorageEvent.newValue; @docsEditable true */
+  /// @domName StorageEvent.newValue; @docsEditable true
   final String newValue;
 
-  /** @domName StorageEvent.oldValue; @docsEditable true */
+  /// @domName StorageEvent.oldValue; @docsEditable true
   final String oldValue;
 
-  /** @domName StorageEvent.storageArea; @docsEditable true */
+  /// @domName StorageEvent.storageArea; @docsEditable true
   final Storage storageArea;
 
-  /** @domName StorageEvent.url; @docsEditable true */
+  /// @domName StorageEvent.url; @docsEditable true
   final String url;
 
-  /** @domName StorageEvent.initStorageEvent; @docsEditable true */
+  /// @domName StorageEvent.initStorageEvent; @docsEditable true
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16841,10 +16773,10 @@ class StorageInfo native "*StorageInfo" {
 
   static const int TEMPORARY = 0;
 
-  /** @domName StorageInfo.queryUsageAndQuota; @docsEditable true */
+  /// @domName StorageInfo.queryUsageAndQuota; @docsEditable true
   void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]) native;
 
-  /** @domName StorageInfo.requestQuota; @docsEditable true */
+  /// @domName StorageInfo.requestQuota; @docsEditable true
   void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16889,19 +16821,19 @@ class StyleElement extends Element implements Element native "*HTMLStyleElement"
 
   factory StyleElement() => document.$dom_createElement("style");
 
-  /** @domName HTMLStyleElement.disabled; @docsEditable true */
+  /// @domName HTMLStyleElement.disabled; @docsEditable true
   bool disabled;
 
-  /** @domName HTMLStyleElement.media; @docsEditable true */
+  /// @domName HTMLStyleElement.media; @docsEditable true
   String media;
 
-  /** @domName HTMLStyleElement.scoped; @docsEditable true */
+  /// @domName HTMLStyleElement.scoped; @docsEditable true
   bool scoped;
 
-  /** @domName HTMLStyleElement.sheet; @docsEditable true */
+  /// @domName HTMLStyleElement.sheet; @docsEditable true
   final StyleSheet sheet;
 
-  /** @domName HTMLStyleElement.type; @docsEditable true */
+  /// @domName HTMLStyleElement.type; @docsEditable true
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16912,10 +16844,10 @@ class StyleElement extends Element implements Element native "*HTMLStyleElement"
 /// @domName StyleMedia; @docsEditable true
 class StyleMedia native "*StyleMedia" {
 
-  /** @domName StyleMedia.type; @docsEditable true */
+  /// @domName StyleMedia.type; @docsEditable true
   final String type;
 
-  /** @domName StyleMedia.matchMedium; @docsEditable true */
+  /// @domName StyleMedia.matchMedium; @docsEditable true
   bool matchMedium(String mediaquery) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16926,25 +16858,25 @@ class StyleMedia native "*StyleMedia" {
 /// @domName StyleSheet; @docsEditable true
 class StyleSheet native "*StyleSheet" {
 
-  /** @domName StyleSheet.disabled; @docsEditable true */
+  /// @domName StyleSheet.disabled; @docsEditable true
   bool disabled;
 
-  /** @domName StyleSheet.href; @docsEditable true */
+  /// @domName StyleSheet.href; @docsEditable true
   final String href;
 
-  /** @domName StyleSheet.media; @docsEditable true */
+  /// @domName StyleSheet.media; @docsEditable true
   final MediaList media;
 
-  /** @domName StyleSheet.ownerNode; @docsEditable true */
+  /// @domName StyleSheet.ownerNode; @docsEditable true
   final Node ownerNode;
 
-  /** @domName StyleSheet.parentStyleSheet; @docsEditable true */
+  /// @domName StyleSheet.parentStyleSheet; @docsEditable true
   final StyleSheet parentStyleSheet;
 
-  /** @domName StyleSheet.title; @docsEditable true */
+  /// @domName StyleSheet.title; @docsEditable true
   final String title;
 
-  /** @domName StyleSheet.type; @docsEditable true */
+  /// @domName StyleSheet.type; @docsEditable true
   final String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16957,7 +16889,7 @@ class TableCaptionElement extends Element implements Element native "*HTMLTableC
 
   factory TableCaptionElement() => document.$dom_createElement("caption");
 
-  /** @domName HTMLTableCaptionElement.align; @docsEditable true */
+  /// @domName HTMLTableCaptionElement.align; @docsEditable true
   String align;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16970,49 +16902,49 @@ class TableCellElement extends Element implements Element native "*HTMLTableCell
 
   factory TableCellElement() => document.$dom_createElement("td");
 
-  /** @domName HTMLTableCellElement.abbr; @docsEditable true */
+  /// @domName HTMLTableCellElement.abbr; @docsEditable true
   String abbr;
 
-  /** @domName HTMLTableCellElement.align; @docsEditable true */
+  /// @domName HTMLTableCellElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLTableCellElement.axis; @docsEditable true */
+  /// @domName HTMLTableCellElement.axis; @docsEditable true
   String axis;
 
-  /** @domName HTMLTableCellElement.bgColor; @docsEditable true */
+  /// @domName HTMLTableCellElement.bgColor; @docsEditable true
   String bgColor;
 
-  /** @domName HTMLTableCellElement.cellIndex; @docsEditable true */
+  /// @domName HTMLTableCellElement.cellIndex; @docsEditable true
   final int cellIndex;
 
-  /** @domName HTMLTableCellElement.ch; @docsEditable true */
+  /// @domName HTMLTableCellElement.ch; @docsEditable true
   String ch;
 
-  /** @domName HTMLTableCellElement.chOff; @docsEditable true */
+  /// @domName HTMLTableCellElement.chOff; @docsEditable true
   String chOff;
 
-  /** @domName HTMLTableCellElement.colSpan; @docsEditable true */
+  /// @domName HTMLTableCellElement.colSpan; @docsEditable true
   int colSpan;
 
-  /** @domName HTMLTableCellElement.headers; @docsEditable true */
+  /// @domName HTMLTableCellElement.headers; @docsEditable true
   String headers;
 
-  /** @domName HTMLTableCellElement.height; @docsEditable true */
+  /// @domName HTMLTableCellElement.height; @docsEditable true
   String height;
 
-  /** @domName HTMLTableCellElement.noWrap; @docsEditable true */
+  /// @domName HTMLTableCellElement.noWrap; @docsEditable true
   bool noWrap;
 
-  /** @domName HTMLTableCellElement.rowSpan; @docsEditable true */
+  /// @domName HTMLTableCellElement.rowSpan; @docsEditable true
   int rowSpan;
 
-  /** @domName HTMLTableCellElement.scope; @docsEditable true */
+  /// @domName HTMLTableCellElement.scope; @docsEditable true
   String scope;
 
-  /** @domName HTMLTableCellElement.vAlign; @docsEditable true */
+  /// @domName HTMLTableCellElement.vAlign; @docsEditable true
   String vAlign;
 
-  /** @domName HTMLTableCellElement.width; @docsEditable true */
+  /// @domName HTMLTableCellElement.width; @docsEditable true
   String width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17025,22 +16957,22 @@ class TableColElement extends Element implements Element native "*HTMLTableColEl
 
   factory TableColElement() => document.$dom_createElement("col");
 
-  /** @domName HTMLTableColElement.align; @docsEditable true */
+  /// @domName HTMLTableColElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLTableColElement.ch; @docsEditable true */
+  /// @domName HTMLTableColElement.ch; @docsEditable true
   String ch;
 
-  /** @domName HTMLTableColElement.chOff; @docsEditable true */
+  /// @domName HTMLTableColElement.chOff; @docsEditable true
   String chOff;
 
-  /** @domName HTMLTableColElement.span; @docsEditable true */
+  /// @domName HTMLTableColElement.span; @docsEditable true
   int span;
 
-  /** @domName HTMLTableColElement.vAlign; @docsEditable true */
+  /// @domName HTMLTableColElement.vAlign; @docsEditable true
   String vAlign;
 
-  /** @domName HTMLTableColElement.width; @docsEditable true */
+  /// @domName HTMLTableColElement.width; @docsEditable true
   String width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17052,70 +16984,70 @@ class TableElement extends Element implements Element native "*HTMLTableElement"
 
   factory TableElement() => document.$dom_createElement("table");
 
-  /** @domName HTMLTableElement.align; @docsEditable true */
+  /// @domName HTMLTableElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLTableElement.bgColor; @docsEditable true */
+  /// @domName HTMLTableElement.bgColor; @docsEditable true
   String bgColor;
 
-  /** @domName HTMLTableElement.border; @docsEditable true */
+  /// @domName HTMLTableElement.border; @docsEditable true
   String border;
 
-  /** @domName HTMLTableElement.caption; @docsEditable true */
+  /// @domName HTMLTableElement.caption; @docsEditable true
   TableCaptionElement caption;
 
-  /** @domName HTMLTableElement.cellPadding; @docsEditable true */
+  /// @domName HTMLTableElement.cellPadding; @docsEditable true
   String cellPadding;
 
-  /** @domName HTMLTableElement.cellSpacing; @docsEditable true */
+  /// @domName HTMLTableElement.cellSpacing; @docsEditable true
   String cellSpacing;
 
-  /** @domName HTMLTableElement.frame; @docsEditable true */
+  /// @domName HTMLTableElement.frame; @docsEditable true
   String frame;
 
-  /** @domName HTMLTableElement.rows; @docsEditable true */
+  /// @domName HTMLTableElement.rows; @docsEditable true
   final HTMLCollection rows;
 
-  /** @domName HTMLTableElement.rules; @docsEditable true */
+  /// @domName HTMLTableElement.rules; @docsEditable true
   String rules;
 
-  /** @domName HTMLTableElement.summary; @docsEditable true */
+  /// @domName HTMLTableElement.summary; @docsEditable true
   String summary;
 
-  /** @domName HTMLTableElement.tBodies; @docsEditable true */
+  /// @domName HTMLTableElement.tBodies; @docsEditable true
   final HTMLCollection tBodies;
 
-  /** @domName HTMLTableElement.tFoot; @docsEditable true */
+  /// @domName HTMLTableElement.tFoot; @docsEditable true
   TableSectionElement tFoot;
 
-  /** @domName HTMLTableElement.tHead; @docsEditable true */
+  /// @domName HTMLTableElement.tHead; @docsEditable true
   TableSectionElement tHead;
 
-  /** @domName HTMLTableElement.width; @docsEditable true */
+  /// @domName HTMLTableElement.width; @docsEditable true
   String width;
 
-  /** @domName HTMLTableElement.createCaption; @docsEditable true */
+  /// @domName HTMLTableElement.createCaption; @docsEditable true
   Element createCaption() native;
 
-  /** @domName HTMLTableElement.createTFoot; @docsEditable true */
+  /// @domName HTMLTableElement.createTFoot; @docsEditable true
   Element createTFoot() native;
 
-  /** @domName HTMLTableElement.createTHead; @docsEditable true */
+  /// @domName HTMLTableElement.createTHead; @docsEditable true
   Element createTHead() native;
 
-  /** @domName HTMLTableElement.deleteCaption; @docsEditable true */
+  /// @domName HTMLTableElement.deleteCaption; @docsEditable true
   void deleteCaption() native;
 
-  /** @domName HTMLTableElement.deleteRow; @docsEditable true */
+  /// @domName HTMLTableElement.deleteRow; @docsEditable true
   void deleteRow(int index) native;
 
-  /** @domName HTMLTableElement.deleteTFoot; @docsEditable true */
+  /// @domName HTMLTableElement.deleteTFoot; @docsEditable true
   void deleteTFoot() native;
 
-  /** @domName HTMLTableElement.deleteTHead; @docsEditable true */
+  /// @domName HTMLTableElement.deleteTHead; @docsEditable true
   void deleteTHead() native;
 
-  /** @domName HTMLTableElement.insertRow; @docsEditable true */
+  /// @domName HTMLTableElement.insertRow; @docsEditable true
   Element insertRow(int index) native;
 
 
@@ -17140,34 +17072,34 @@ class TableRowElement extends Element implements Element native "*HTMLTableRowEl
 
   factory TableRowElement() => document.$dom_createElement("tr");
 
-  /** @domName HTMLTableRowElement.align; @docsEditable true */
+  /// @domName HTMLTableRowElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLTableRowElement.bgColor; @docsEditable true */
+  /// @domName HTMLTableRowElement.bgColor; @docsEditable true
   String bgColor;
 
-  /** @domName HTMLTableRowElement.cells; @docsEditable true */
+  /// @domName HTMLTableRowElement.cells; @docsEditable true
   final HTMLCollection cells;
 
-  /** @domName HTMLTableRowElement.ch; @docsEditable true */
+  /// @domName HTMLTableRowElement.ch; @docsEditable true
   String ch;
 
-  /** @domName HTMLTableRowElement.chOff; @docsEditable true */
+  /// @domName HTMLTableRowElement.chOff; @docsEditable true
   String chOff;
 
-  /** @domName HTMLTableRowElement.rowIndex; @docsEditable true */
+  /// @domName HTMLTableRowElement.rowIndex; @docsEditable true
   final int rowIndex;
 
-  /** @domName HTMLTableRowElement.sectionRowIndex; @docsEditable true */
+  /// @domName HTMLTableRowElement.sectionRowIndex; @docsEditable true
   final int sectionRowIndex;
 
-  /** @domName HTMLTableRowElement.vAlign; @docsEditable true */
+  /// @domName HTMLTableRowElement.vAlign; @docsEditable true
   String vAlign;
 
-  /** @domName HTMLTableRowElement.deleteCell; @docsEditable true */
+  /// @domName HTMLTableRowElement.deleteCell; @docsEditable true
   void deleteCell(int index) native;
 
-  /** @domName HTMLTableRowElement.insertCell; @docsEditable true */
+  /// @domName HTMLTableRowElement.insertCell; @docsEditable true
   Element insertCell(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17178,25 +17110,25 @@ class TableRowElement extends Element implements Element native "*HTMLTableRowEl
 /// @domName HTMLTableSectionElement; @docsEditable true
 class TableSectionElement extends Element implements Element native "*HTMLTableSectionElement" {
 
-  /** @domName HTMLTableSectionElement.align; @docsEditable true */
+  /// @domName HTMLTableSectionElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLTableSectionElement.ch; @docsEditable true */
+  /// @domName HTMLTableSectionElement.ch; @docsEditable true
   String ch;
 
-  /** @domName HTMLTableSectionElement.chOff; @docsEditable true */
+  /// @domName HTMLTableSectionElement.chOff; @docsEditable true
   String chOff;
 
-  /** @domName HTMLTableSectionElement.rows; @docsEditable true */
+  /// @domName HTMLTableSectionElement.rows; @docsEditable true
   final HTMLCollection rows;
 
-  /** @domName HTMLTableSectionElement.vAlign; @docsEditable true */
+  /// @domName HTMLTableSectionElement.vAlign; @docsEditable true
   String vAlign;
 
-  /** @domName HTMLTableSectionElement.deleteRow; @docsEditable true */
+  /// @domName HTMLTableSectionElement.deleteRow; @docsEditable true
   void deleteRow(int index) native;
 
-  /** @domName HTMLTableSectionElement.insertRow; @docsEditable true */
+  /// @domName HTMLTableSectionElement.insertRow; @docsEditable true
   Element insertRow(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17209,13 +17141,13 @@ class TableSectionElement extends Element implements Element native "*HTMLTableS
 class Text extends CharacterData native "*Text" {
   factory Text(String data) => _TextFactoryProvider.createText(data);
 
-  /** @domName Text.wholeText; @docsEditable true */
+  /// @domName Text.wholeText; @docsEditable true
   final String wholeText;
 
-  /** @domName Text.replaceWholeText; @docsEditable true */
+  /// @domName Text.replaceWholeText; @docsEditable true
   Text replaceWholeText(String content) native;
 
-  /** @domName Text.splitText; @docsEditable true */
+  /// @domName Text.splitText; @docsEditable true
   Text splitText(int offset) native;
 
 }
@@ -17229,89 +17161,89 @@ class TextAreaElement extends Element implements Element native "*HTMLTextAreaEl
 
   factory TextAreaElement() => document.$dom_createElement("textarea");
 
-  /** @domName HTMLTextAreaElement.autofocus; @docsEditable true */
+  /// @domName HTMLTextAreaElement.autofocus; @docsEditable true
   bool autofocus;
 
-  /** @domName HTMLTextAreaElement.cols; @docsEditable true */
+  /// @domName HTMLTextAreaElement.cols; @docsEditable true
   int cols;
 
-  /** @domName HTMLTextAreaElement.defaultValue; @docsEditable true */
+  /// @domName HTMLTextAreaElement.defaultValue; @docsEditable true
   String defaultValue;
 
-  /** @domName HTMLTextAreaElement.dirName; @docsEditable true */
+  /// @domName HTMLTextAreaElement.dirName; @docsEditable true
   String dirName;
 
-  /** @domName HTMLTextAreaElement.disabled; @docsEditable true */
+  /// @domName HTMLTextAreaElement.disabled; @docsEditable true
   bool disabled;
 
-  /** @domName HTMLTextAreaElement.form; @docsEditable true */
+  /// @domName HTMLTextAreaElement.form; @docsEditable true
   final FormElement form;
 
-  /** @domName HTMLTextAreaElement.labels; @docsEditable true */
+  /// @domName HTMLTextAreaElement.labels; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> labels;
 
-  /** @domName HTMLTextAreaElement.maxLength; @docsEditable true */
+  /// @domName HTMLTextAreaElement.maxLength; @docsEditable true
   int maxLength;
 
-  /** @domName HTMLTextAreaElement.name; @docsEditable true */
+  /// @domName HTMLTextAreaElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLTextAreaElement.placeholder; @docsEditable true */
+  /// @domName HTMLTextAreaElement.placeholder; @docsEditable true
   String placeholder;
 
-  /** @domName HTMLTextAreaElement.readOnly; @docsEditable true */
+  /// @domName HTMLTextAreaElement.readOnly; @docsEditable true
   bool readOnly;
 
-  /** @domName HTMLTextAreaElement.required; @docsEditable true */
+  /// @domName HTMLTextAreaElement.required; @docsEditable true
   bool required;
 
-  /** @domName HTMLTextAreaElement.rows; @docsEditable true */
+  /// @domName HTMLTextAreaElement.rows; @docsEditable true
   int rows;
 
-  /** @domName HTMLTextAreaElement.selectionDirection; @docsEditable true */
+  /// @domName HTMLTextAreaElement.selectionDirection; @docsEditable true
   String selectionDirection;
 
-  /** @domName HTMLTextAreaElement.selectionEnd; @docsEditable true */
+  /// @domName HTMLTextAreaElement.selectionEnd; @docsEditable true
   int selectionEnd;
 
-  /** @domName HTMLTextAreaElement.selectionStart; @docsEditable true */
+  /// @domName HTMLTextAreaElement.selectionStart; @docsEditable true
   int selectionStart;
 
-  /** @domName HTMLTextAreaElement.textLength; @docsEditable true */
+  /// @domName HTMLTextAreaElement.textLength; @docsEditable true
   final int textLength;
 
-  /** @domName HTMLTextAreaElement.type; @docsEditable true */
+  /// @domName HTMLTextAreaElement.type; @docsEditable true
   final String type;
 
-  /** @domName HTMLTextAreaElement.validationMessage; @docsEditable true */
+  /// @domName HTMLTextAreaElement.validationMessage; @docsEditable true
   final String validationMessage;
 
-  /** @domName HTMLTextAreaElement.validity; @docsEditable true */
+  /// @domName HTMLTextAreaElement.validity; @docsEditable true
   final ValidityState validity;
 
-  /** @domName HTMLTextAreaElement.value; @docsEditable true */
+  /// @domName HTMLTextAreaElement.value; @docsEditable true
   String value;
 
-  /** @domName HTMLTextAreaElement.willValidate; @docsEditable true */
+  /// @domName HTMLTextAreaElement.willValidate; @docsEditable true
   final bool willValidate;
 
-  /** @domName HTMLTextAreaElement.wrap; @docsEditable true */
+  /// @domName HTMLTextAreaElement.wrap; @docsEditable true
   String wrap;
 
-  /** @domName HTMLTextAreaElement.checkValidity; @docsEditable true */
+  /// @domName HTMLTextAreaElement.checkValidity; @docsEditable true
   bool checkValidity() native;
 
-  /** @domName HTMLTextAreaElement.select; @docsEditable true */
+  /// @domName HTMLTextAreaElement.select; @docsEditable true
   void select() native;
 
-  /** @domName HTMLTextAreaElement.setCustomValidity; @docsEditable true */
+  /// @domName HTMLTextAreaElement.setCustomValidity; @docsEditable true
   void setCustomValidity(String error) native;
 
-  /** @domName HTMLTextAreaElement.setRangeText; @docsEditable true */
+  /// @domName HTMLTextAreaElement.setRangeText; @docsEditable true
   void setRangeText(String replacement, [int start, int end, String selectionMode]) native;
 
-  /** @domName HTMLTextAreaElement.setSelectionRange; @docsEditable true */
+  /// @domName HTMLTextAreaElement.setSelectionRange; @docsEditable true
   void setSelectionRange(int start, int end, [String direction]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17322,10 +17254,10 @@ class TextAreaElement extends Element implements Element native "*HTMLTextAreaEl
 /// @domName TextEvent; @docsEditable true
 class TextEvent extends UIEvent native "*TextEvent" {
 
-  /** @domName TextEvent.data; @docsEditable true */
+  /// @domName TextEvent.data; @docsEditable true
   final String data;
 
-  /** @domName TextEvent.initTextEvent; @docsEditable true */
+  /// @domName TextEvent.initTextEvent; @docsEditable true
   void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17336,7 +17268,7 @@ class TextEvent extends UIEvent native "*TextEvent" {
 /// @domName TextMetrics; @docsEditable true
 class TextMetrics native "*TextMetrics" {
 
-  /** @domName TextMetrics.width; @docsEditable true */
+  /// @domName TextMetrics.width; @docsEditable true
   final num width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17347,43 +17279,41 @@ class TextMetrics native "*TextMetrics" {
 /// @domName TextTrack; @docsEditable true
 class TextTrack extends EventTarget native "*TextTrack" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TextTrackEvents get on =>
     new TextTrackEvents(this);
 
-  /** @domName TextTrack.activeCues; @docsEditable true */
+  /// @domName TextTrack.activeCues; @docsEditable true
   final TextTrackCueList activeCues;
 
-  /** @domName TextTrack.cues; @docsEditable true */
+  /// @domName TextTrack.cues; @docsEditable true
   final TextTrackCueList cues;
 
-  /** @domName TextTrack.kind; @docsEditable true */
+  /// @domName TextTrack.kind; @docsEditable true
   final String kind;
 
-  /** @domName TextTrack.label; @docsEditable true */
+  /// @domName TextTrack.label; @docsEditable true
   final String label;
 
-  /** @domName TextTrack.language; @docsEditable true */
+  /// @domName TextTrack.language; @docsEditable true
   final String language;
 
-  /** @domName TextTrack.mode; @docsEditable true */
+  /// @domName TextTrack.mode; @docsEditable true
   String mode;
 
-  /** @domName TextTrack.addCue; @docsEditable true */
+  /// @domName TextTrack.addCue; @docsEditable true
   void addCue(TextTrackCue cue) native;
 
-  /** @domName TextTrack.addEventListener; @docsEditable true */
+  /// @domName TextTrack.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName TextTrack.dispatchEvent; @docsEditable true */
+  /// @domName TextTrack.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName TextTrack.removeCue; @docsEditable true */
+  /// @domName TextTrack.removeCue; @docsEditable true
   void removeCue(TextTrackCue cue) native;
 
-  /** @domName TextTrack.removeEventListener; @docsEditable true */
+  /// @domName TextTrack.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -17402,58 +17332,56 @@ class TextTrackCue extends EventTarget native "*TextTrackCue" {
 
   factory TextTrackCue(num startTime, num endTime, String text) => _TextTrackCueFactoryProvider.createTextTrackCue(startTime, endTime, text);
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TextTrackCueEvents get on =>
     new TextTrackCueEvents(this);
 
-  /** @domName TextTrackCue.align; @docsEditable true */
+  /// @domName TextTrackCue.align; @docsEditable true
   String align;
 
-  /** @domName TextTrackCue.endTime; @docsEditable true */
+  /// @domName TextTrackCue.endTime; @docsEditable true
   num endTime;
 
-  /** @domName TextTrackCue.id; @docsEditable true */
+  /// @domName TextTrackCue.id; @docsEditable true
   String id;
 
-  /** @domName TextTrackCue.line; @docsEditable true */
+  /// @domName TextTrackCue.line; @docsEditable true
   int line;
 
-  /** @domName TextTrackCue.pauseOnExit; @docsEditable true */
+  /// @domName TextTrackCue.pauseOnExit; @docsEditable true
   bool pauseOnExit;
 
-  /** @domName TextTrackCue.position; @docsEditable true */
+  /// @domName TextTrackCue.position; @docsEditable true
   int position;
 
-  /** @domName TextTrackCue.size; @docsEditable true */
+  /// @domName TextTrackCue.size; @docsEditable true
   int size;
 
-  /** @domName TextTrackCue.snapToLines; @docsEditable true */
+  /// @domName TextTrackCue.snapToLines; @docsEditable true
   bool snapToLines;
 
-  /** @domName TextTrackCue.startTime; @docsEditable true */
+  /// @domName TextTrackCue.startTime; @docsEditable true
   num startTime;
 
-  /** @domName TextTrackCue.text; @docsEditable true */
+  /// @domName TextTrackCue.text; @docsEditable true
   String text;
 
-  /** @domName TextTrackCue.track; @docsEditable true */
+  /// @domName TextTrackCue.track; @docsEditable true
   final TextTrack track;
 
-  /** @domName TextTrackCue.vertical; @docsEditable true */
+  /// @domName TextTrackCue.vertical; @docsEditable true
   String vertical;
 
-  /** @domName TextTrackCue.addEventListener; @docsEditable true */
+  /// @domName TextTrackCue.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName TextTrackCue.dispatchEvent; @docsEditable true */
+  /// @domName TextTrackCue.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName TextTrackCue.getCueAsHTML; @docsEditable true */
+  /// @domName TextTrackCue.getCueAsHTML; @docsEditable true
   DocumentFragment getCueAsHTML() native;
 
-  /** @domName TextTrackCue.removeEventListener; @docsEditable true */
+  /// @domName TextTrackCue.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -17472,7 +17400,7 @@ class TextTrackCueEvents extends Events {
 /// @domName TextTrackCueList; @docsEditable true
 class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior native "*TextTrackCueList" {
 
-  /** @domName TextTrackCueList.length; @docsEditable true */
+  /// @domName TextTrackCueList.length; @docsEditable true
   final int length;
 
   TextTrackCue operator[](int index) => JS("TextTrackCue", "#[#]", this, index);
@@ -17560,10 +17488,10 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
 
   // -- end List<TextTrackCue> mixins.
 
-  /** @domName TextTrackCueList.getCueById; @docsEditable true */
+  /// @domName TextTrackCueList.getCueById; @docsEditable true
   TextTrackCue getCueById(String id) native;
 
-  /** @domName TextTrackCueList.item; @docsEditable true */
+  /// @domName TextTrackCueList.item; @docsEditable true
   TextTrackCue item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17574,13 +17502,11 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
 /// @domName TextTrackList; @docsEditable true
 class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, List<TextTrack> native "*TextTrackList" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TextTrackListEvents get on =>
     new TextTrackListEvents(this);
 
-  /** @domName TextTrackList.length; @docsEditable true */
+  /// @domName TextTrackList.length; @docsEditable true
   final int length;
 
   TextTrack operator[](int index) => JS("TextTrack", "#[#]", this, index);
@@ -17668,16 +17594,16 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
 
   // -- end List<TextTrack> mixins.
 
-  /** @domName TextTrackList.addEventListener; @docsEditable true */
+  /// @domName TextTrackList.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName TextTrackList.dispatchEvent; @docsEditable true */
+  /// @domName TextTrackList.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName TextTrackList.item; @docsEditable true */
+  /// @domName TextTrackList.item; @docsEditable true
   TextTrack item(int index) native;
 
-  /** @domName TextTrackList.removeEventListener; @docsEditable true */
+  /// @domName TextTrackList.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -17694,13 +17620,13 @@ class TextTrackListEvents extends Events {
 /// @domName TimeRanges; @docsEditable true
 class TimeRanges native "*TimeRanges" {
 
-  /** @domName TimeRanges.length; @docsEditable true */
+  /// @domName TimeRanges.length; @docsEditable true
   final int length;
 
-  /** @domName TimeRanges.end; @docsEditable true */
+  /// @domName TimeRanges.end; @docsEditable true
   num end(int index) native;
 
-  /** @domName TimeRanges.start; @docsEditable true */
+  /// @domName TimeRanges.start; @docsEditable true
   num start(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17729,41 +17655,41 @@ class TitleElement extends Element implements Element native "*HTMLTitleElement"
 /// @domName Touch; @docsEditable true
 class Touch native "*Touch" {
 
-  /** @domName Touch.clientX; @docsEditable true */
+  /// @domName Touch.clientX; @docsEditable true
   final int clientX;
 
-  /** @domName Touch.clientY; @docsEditable true */
+  /// @domName Touch.clientY; @docsEditable true
   final int clientY;
 
-  /** @domName Touch.identifier; @docsEditable true */
+  /// @domName Touch.identifier; @docsEditable true
   final int identifier;
 
-  /** @domName Touch.pageX; @docsEditable true */
+  /// @domName Touch.pageX; @docsEditable true
   final int pageX;
 
-  /** @domName Touch.pageY; @docsEditable true */
+  /// @domName Touch.pageY; @docsEditable true
   final int pageY;
 
-  /** @domName Touch.screenX; @docsEditable true */
+  /// @domName Touch.screenX; @docsEditable true
   final int screenX;
 
-  /** @domName Touch.screenY; @docsEditable true */
+  /// @domName Touch.screenY; @docsEditable true
   final int screenY;
 
-  /** @domName Touch.target; @docsEditable true */
+  /// @domName Touch.target; @docsEditable true
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
   dynamic get _target => JS("dynamic", "#.target", this);
 
-  /** @domName Touch.webkitForce; @docsEditable true */
+  /// @domName Touch.webkitForce; @docsEditable true
   final num webkitForce;
 
-  /** @domName Touch.webkitRadiusX; @docsEditable true */
+  /// @domName Touch.webkitRadiusX; @docsEditable true
   final int webkitRadiusX;
 
-  /** @domName Touch.webkitRadiusY; @docsEditable true */
+  /// @domName Touch.webkitRadiusY; @docsEditable true
   final int webkitRadiusY;
 
-  /** @domName Touch.webkitRotationAngle; @docsEditable true */
+  /// @domName Touch.webkitRotationAngle; @docsEditable true
   final num webkitRotationAngle;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17774,28 +17700,28 @@ class Touch native "*Touch" {
 /// @domName TouchEvent; @docsEditable true
 class TouchEvent extends UIEvent native "*TouchEvent" {
 
-  /** @domName TouchEvent.altKey; @docsEditable true */
+  /// @domName TouchEvent.altKey; @docsEditable true
   final bool altKey;
 
-  /** @domName TouchEvent.changedTouches; @docsEditable true */
+  /// @domName TouchEvent.changedTouches; @docsEditable true
   final TouchList changedTouches;
 
-  /** @domName TouchEvent.ctrlKey; @docsEditable true */
+  /// @domName TouchEvent.ctrlKey; @docsEditable true
   final bool ctrlKey;
 
-  /** @domName TouchEvent.metaKey; @docsEditable true */
+  /// @domName TouchEvent.metaKey; @docsEditable true
   final bool metaKey;
 
-  /** @domName TouchEvent.shiftKey; @docsEditable true */
+  /// @domName TouchEvent.shiftKey; @docsEditable true
   final bool shiftKey;
 
-  /** @domName TouchEvent.targetTouches; @docsEditable true */
+  /// @domName TouchEvent.targetTouches; @docsEditable true
   final TouchList targetTouches;
 
-  /** @domName TouchEvent.touches; @docsEditable true */
+  /// @domName TouchEvent.touches; @docsEditable true
   final TouchList touches;
 
-  /** @domName TouchEvent.initTouchEvent; @docsEditable true */
+  /// @domName TouchEvent.initTouchEvent; @docsEditable true
   void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, LocalWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17806,7 +17732,7 @@ class TouchEvent extends UIEvent native "*TouchEvent" {
 /// @domName TouchList; @docsEditable true
 class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*TouchList" {
 
-  /** @domName TouchList.length; @docsEditable true */
+  /// @domName TouchList.length; @docsEditable true
   final int length;
 
   Touch operator[](int index) => JS("Touch", "#[#]", this, index);
@@ -17894,7 +17820,7 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
 
   // -- end List<Touch> mixins.
 
-  /** @domName TouchList.item; @docsEditable true */
+  /// @domName TouchList.item; @docsEditable true
   Touch item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17915,30 +17841,30 @@ class TrackElement extends Element implements Element native "*HTMLTrackElement"
 
   static const int NONE = 0;
 
-  /** @domName HTMLTrackElement.defaultValue; @docsEditable true */
+  /// @domName HTMLTrackElement.defaultValue; @docsEditable true
   bool get defaultValue => JS("bool", "#.default", this);
 
-  /** @domName HTMLTrackElement.defaultValue; @docsEditable true */
+  /// @domName HTMLTrackElement.defaultValue; @docsEditable true
   void set defaultValue(bool value) {
     JS("void", "#.default = #", this, value);
   }
 
-  /** @domName HTMLTrackElement.kind; @docsEditable true */
+  /// @domName HTMLTrackElement.kind; @docsEditable true
   String kind;
 
-  /** @domName HTMLTrackElement.label; @docsEditable true */
+  /// @domName HTMLTrackElement.label; @docsEditable true
   String label;
 
-  /** @domName HTMLTrackElement.readyState; @docsEditable true */
+  /// @domName HTMLTrackElement.readyState; @docsEditable true
   final int readyState;
 
-  /** @domName HTMLTrackElement.src; @docsEditable true */
+  /// @domName HTMLTrackElement.src; @docsEditable true
   String src;
 
-  /** @domName HTMLTrackElement.srclang; @docsEditable true */
+  /// @domName HTMLTrackElement.srclang; @docsEditable true
   String srclang;
 
-  /** @domName HTMLTrackElement.track; @docsEditable true */
+  /// @domName HTMLTrackElement.track; @docsEditable true
   final TextTrack track;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17949,7 +17875,7 @@ class TrackElement extends Element implements Element native "*HTMLTrackElement"
 /// @domName TrackEvent; @docsEditable true
 class TrackEvent extends Event native "*TrackEvent" {
 
-  /** @domName TrackEvent.track; @docsEditable true */
+  /// @domName TrackEvent.track; @docsEditable true
   final Object track;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17960,10 +17886,10 @@ class TrackEvent extends Event native "*TrackEvent" {
 /// @domName WebKitTransitionEvent; @docsEditable true
 class TransitionEvent extends Event native "*WebKitTransitionEvent" {
 
-  /** @domName WebKitTransitionEvent.elapsedTime; @docsEditable true */
+  /// @domName WebKitTransitionEvent.elapsedTime; @docsEditable true
   final num elapsedTime;
 
-  /** @domName WebKitTransitionEvent.propertyName; @docsEditable true */
+  /// @domName WebKitTransitionEvent.propertyName; @docsEditable true
   final String propertyName;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17974,40 +17900,40 @@ class TransitionEvent extends Event native "*WebKitTransitionEvent" {
 /// @domName TreeWalker; @docsEditable true
 class TreeWalker native "*TreeWalker" {
 
-  /** @domName TreeWalker.currentNode; @docsEditable true */
+  /// @domName TreeWalker.currentNode; @docsEditable true
   Node currentNode;
 
-  /** @domName TreeWalker.expandEntityReferences; @docsEditable true */
+  /// @domName TreeWalker.expandEntityReferences; @docsEditable true
   final bool expandEntityReferences;
 
-  /** @domName TreeWalker.filter; @docsEditable true */
+  /// @domName TreeWalker.filter; @docsEditable true
   final NodeFilter filter;
 
-  /** @domName TreeWalker.root; @docsEditable true */
+  /// @domName TreeWalker.root; @docsEditable true
   final Node root;
 
-  /** @domName TreeWalker.whatToShow; @docsEditable true */
+  /// @domName TreeWalker.whatToShow; @docsEditable true
   final int whatToShow;
 
-  /** @domName TreeWalker.firstChild; @docsEditable true */
+  /// @domName TreeWalker.firstChild; @docsEditable true
   Node firstChild() native;
 
-  /** @domName TreeWalker.lastChild; @docsEditable true */
+  /// @domName TreeWalker.lastChild; @docsEditable true
   Node lastChild() native;
 
-  /** @domName TreeWalker.nextNode; @docsEditable true */
+  /// @domName TreeWalker.nextNode; @docsEditable true
   Node nextNode() native;
 
-  /** @domName TreeWalker.nextSibling; @docsEditable true */
+  /// @domName TreeWalker.nextSibling; @docsEditable true
   Node nextSibling() native;
 
-  /** @domName TreeWalker.parentNode; @docsEditable true */
+  /// @domName TreeWalker.parentNode; @docsEditable true
   Node parentNode() native;
 
-  /** @domName TreeWalker.previousNode; @docsEditable true */
+  /// @domName TreeWalker.previousNode; @docsEditable true
   Node previousNode() native;
 
-  /** @domName TreeWalker.previousSibling; @docsEditable true */
+  /// @domName TreeWalker.previousSibling; @docsEditable true
   Node previousSibling() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18018,35 +17944,35 @@ class TreeWalker native "*TreeWalker" {
 /// @domName UIEvent; @docsEditable true
 class UIEvent extends Event native "*UIEvent" {
 
-  /** @domName UIEvent.charCode; @docsEditable true */
+  /// @domName UIEvent.charCode; @docsEditable true
   final int charCode;
 
-  /** @domName UIEvent.detail; @docsEditable true */
+  /// @domName UIEvent.detail; @docsEditable true
   final int detail;
 
-  /** @domName UIEvent.keyCode; @docsEditable true */
+  /// @domName UIEvent.keyCode; @docsEditable true
   final int keyCode;
 
-  /** @domName UIEvent.layerX; @docsEditable true */
+  /// @domName UIEvent.layerX; @docsEditable true
   final int layerX;
 
-  /** @domName UIEvent.layerY; @docsEditable true */
+  /// @domName UIEvent.layerY; @docsEditable true
   final int layerY;
 
-  /** @domName UIEvent.pageX; @docsEditable true */
+  /// @domName UIEvent.pageX; @docsEditable true
   final int pageX;
 
-  /** @domName UIEvent.pageY; @docsEditable true */
+  /// @domName UIEvent.pageY; @docsEditable true
   final int pageY;
 
-  /** @domName UIEvent.view; @docsEditable true */
+  /// @domName UIEvent.view; @docsEditable true
   Window get view => _convertNativeToDart_Window(this._view);
   dynamic get _view => JS("dynamic", "#.view", this);
 
-  /** @domName UIEvent.which; @docsEditable true */
+  /// @domName UIEvent.which; @docsEditable true
   final int which;
 
-  /** @domName UIEvent.initUIEvent; @docsEditable true */
+  /// @domName UIEvent.initUIEvent; @docsEditable true
   void initUIEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18059,10 +17985,10 @@ class UListElement extends Element implements Element native "*HTMLUListElement"
 
   factory UListElement() => document.$dom_createElement("ul");
 
-  /** @domName HTMLUListElement.compact; @docsEditable true */
+  /// @domName HTMLUListElement.compact; @docsEditable true
   bool compact;
 
-  /** @domName HTMLUListElement.type; @docsEditable true */
+  /// @domName HTMLUListElement.type; @docsEditable true
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18084,7 +18010,7 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   static const int BYTES_PER_ELEMENT = 2;
 
-  /** @domName Uint16Array.length; @docsEditable true */
+  /// @domName Uint16Array.length; @docsEditable true
   final int length;
 
   int operator[](int index) => JS("int", "#[#]", this, index);
@@ -18169,10 +18095,10 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   // -- end List<int> mixins.
 
-  /** @domName Uint16Array.setElements; @docsEditable true */
+  /// @domName Uint16Array.setElements; @docsEditable true
   void setElements(Object array, [int offset]) native "set";
 
-  /** @domName Uint16Array.subarray; @docsEditable true */
+  /// @domName Uint16Array.subarray; @docsEditable true
   Uint16Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18194,7 +18120,7 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   static const int BYTES_PER_ELEMENT = 4;
 
-  /** @domName Uint32Array.length; @docsEditable true */
+  /// @domName Uint32Array.length; @docsEditable true
   final int length;
 
   int operator[](int index) => JS("int", "#[#]", this, index);
@@ -18279,10 +18205,10 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   // -- end List<int> mixins.
 
-  /** @domName Uint32Array.setElements; @docsEditable true */
+  /// @domName Uint32Array.setElements; @docsEditable true
   void setElements(Object array, [int offset]) native "set";
 
-  /** @domName Uint32Array.subarray; @docsEditable true */
+  /// @domName Uint32Array.subarray; @docsEditable true
   Uint32Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18304,7 +18230,7 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   static const int BYTES_PER_ELEMENT = 1;
 
-  /** @domName Uint8Array.length; @docsEditable true */
+  /// @domName Uint8Array.length; @docsEditable true
   final int length;
 
   int operator[](int index) => JS("int", "#[#]", this, index);
@@ -18389,10 +18315,10 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   // -- end List<int> mixins.
 
-  /** @domName Uint8Array.setElements; @docsEditable true */
+  /// @domName Uint8Array.setElements; @docsEditable true
   void setElements(Object array, [int offset]) native "set";
 
-  /** @domName Uint8Array.subarray; @docsEditable true */
+  /// @domName Uint8Array.subarray; @docsEditable true
   Uint8Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18415,10 +18341,10 @@ class Uint8ClampedArray extends Uint8Array native "*Uint8ClampedArray" {
   // Use implementation from Uint8Array.
   // final int length;
 
-  /** @domName Uint8ClampedArray.setElements; @docsEditable true */
+  /// @domName Uint8ClampedArray.setElements; @docsEditable true
   void setElements(Object array, [int offset]) native "set";
 
-  /** @domName Uint8ClampedArray.subarray; @docsEditable true */
+  /// @domName Uint8ClampedArray.subarray; @docsEditable true
   Uint8ClampedArray subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18454,31 +18380,31 @@ class Url native "*URL" {
 /// @domName ValidityState; @docsEditable true
 class ValidityState native "*ValidityState" {
 
-  /** @domName ValidityState.customError; @docsEditable true */
+  /// @domName ValidityState.customError; @docsEditable true
   final bool customError;
 
-  /** @domName ValidityState.patternMismatch; @docsEditable true */
+  /// @domName ValidityState.patternMismatch; @docsEditable true
   final bool patternMismatch;
 
-  /** @domName ValidityState.rangeOverflow; @docsEditable true */
+  /// @domName ValidityState.rangeOverflow; @docsEditable true
   final bool rangeOverflow;
 
-  /** @domName ValidityState.rangeUnderflow; @docsEditable true */
+  /// @domName ValidityState.rangeUnderflow; @docsEditable true
   final bool rangeUnderflow;
 
-  /** @domName ValidityState.stepMismatch; @docsEditable true */
+  /// @domName ValidityState.stepMismatch; @docsEditable true
   final bool stepMismatch;
 
-  /** @domName ValidityState.tooLong; @docsEditable true */
+  /// @domName ValidityState.tooLong; @docsEditable true
   final bool tooLong;
 
-  /** @domName ValidityState.typeMismatch; @docsEditable true */
+  /// @domName ValidityState.typeMismatch; @docsEditable true
   final bool typeMismatch;
 
-  /** @domName ValidityState.valid; @docsEditable true */
+  /// @domName ValidityState.valid; @docsEditable true
   final bool valid;
 
-  /** @domName ValidityState.valueMissing; @docsEditable true */
+  /// @domName ValidityState.valueMissing; @docsEditable true
   final bool valueMissing;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18491,43 +18417,43 @@ class VideoElement extends MediaElement native "*HTMLVideoElement" {
 
   factory VideoElement() => document.$dom_createElement("video");
 
-  /** @domName HTMLVideoElement.height; @docsEditable true */
+  /// @domName HTMLVideoElement.height; @docsEditable true
   int height;
 
-  /** @domName HTMLVideoElement.poster; @docsEditable true */
+  /// @domName HTMLVideoElement.poster; @docsEditable true
   String poster;
 
-  /** @domName HTMLVideoElement.videoHeight; @docsEditable true */
+  /// @domName HTMLVideoElement.videoHeight; @docsEditable true
   final int videoHeight;
 
-  /** @domName HTMLVideoElement.videoWidth; @docsEditable true */
+  /// @domName HTMLVideoElement.videoWidth; @docsEditable true
   final int videoWidth;
 
-  /** @domName HTMLVideoElement.webkitDecodedFrameCount; @docsEditable true */
+  /// @domName HTMLVideoElement.webkitDecodedFrameCount; @docsEditable true
   final int webkitDecodedFrameCount;
 
-  /** @domName HTMLVideoElement.webkitDisplayingFullscreen; @docsEditable true */
+  /// @domName HTMLVideoElement.webkitDisplayingFullscreen; @docsEditable true
   final bool webkitDisplayingFullscreen;
 
-  /** @domName HTMLVideoElement.webkitDroppedFrameCount; @docsEditable true */
+  /// @domName HTMLVideoElement.webkitDroppedFrameCount; @docsEditable true
   final int webkitDroppedFrameCount;
 
-  /** @domName HTMLVideoElement.webkitSupportsFullscreen; @docsEditable true */
+  /// @domName HTMLVideoElement.webkitSupportsFullscreen; @docsEditable true
   final bool webkitSupportsFullscreen;
 
-  /** @domName HTMLVideoElement.width; @docsEditable true */
+  /// @domName HTMLVideoElement.width; @docsEditable true
   int width;
 
-  /** @domName HTMLVideoElement.webkitEnterFullScreen; @docsEditable true */
+  /// @domName HTMLVideoElement.webkitEnterFullScreen; @docsEditable true
   void webkitEnterFullScreen() native;
 
-  /** @domName HTMLVideoElement.webkitEnterFullscreen; @docsEditable true */
+  /// @domName HTMLVideoElement.webkitEnterFullscreen; @docsEditable true
   void webkitEnterFullscreen() native;
 
-  /** @domName HTMLVideoElement.webkitExitFullScreen; @docsEditable true */
+  /// @domName HTMLVideoElement.webkitExitFullScreen; @docsEditable true
   void webkitExitFullScreen() native;
 
-  /** @domName HTMLVideoElement.webkitExitFullscreen; @docsEditable true */
+  /// @domName HTMLVideoElement.webkitExitFullscreen; @docsEditable true
   void webkitExitFullscreen() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18546,7 +18472,7 @@ typedef void VoidCallback();
 /// @domName WaveShaperNode; @docsEditable true
 class WaveShaperNode extends AudioNode native "*WaveShaperNode" {
 
-  /** @domName WaveShaperNode.curve; @docsEditable true */
+  /// @domName WaveShaperNode.curve; @docsEditable true
   Float32Array curve;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18565,13 +18491,13 @@ class WaveTable native "*WaveTable" {
 /// @domName WebGLActiveInfo; @docsEditable true
 class WebGLActiveInfo native "*WebGLActiveInfo" {
 
-  /** @domName WebGLActiveInfo.name; @docsEditable true */
+  /// @domName WebGLActiveInfo.name; @docsEditable true
   final String name;
 
-  /** @domName WebGLActiveInfo.size; @docsEditable true */
+  /// @domName WebGLActiveInfo.size; @docsEditable true
   final int size;
 
-  /** @domName WebGLActiveInfo.type; @docsEditable true */
+  /// @domName WebGLActiveInfo.type; @docsEditable true
   final int type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18606,22 +18532,22 @@ class WebGLCompressedTextureS3TC native "*WebGLCompressedTextureS3TC" {
 /// @domName WebGLContextAttributes; @docsEditable true
 class WebGLContextAttributes native "*WebGLContextAttributes" {
 
-  /** @domName WebGLContextAttributes.alpha; @docsEditable true */
+  /// @domName WebGLContextAttributes.alpha; @docsEditable true
   bool alpha;
 
-  /** @domName WebGLContextAttributes.antialias; @docsEditable true */
+  /// @domName WebGLContextAttributes.antialias; @docsEditable true
   bool antialias;
 
-  /** @domName WebGLContextAttributes.depth; @docsEditable true */
+  /// @domName WebGLContextAttributes.depth; @docsEditable true
   bool depth;
 
-  /** @domName WebGLContextAttributes.premultipliedAlpha; @docsEditable true */
+  /// @domName WebGLContextAttributes.premultipliedAlpha; @docsEditable true
   bool premultipliedAlpha;
 
-  /** @domName WebGLContextAttributes.preserveDrawingBuffer; @docsEditable true */
+  /// @domName WebGLContextAttributes.preserveDrawingBuffer; @docsEditable true
   bool preserveDrawingBuffer;
 
-  /** @domName WebGLContextAttributes.stencil; @docsEditable true */
+  /// @domName WebGLContextAttributes.stencil; @docsEditable true
   bool stencil;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18632,7 +18558,7 @@ class WebGLContextAttributes native "*WebGLContextAttributes" {
 /// @domName WebGLContextEvent; @docsEditable true
 class WebGLContextEvent extends Event native "*WebGLContextEvent" {
 
-  /** @domName WebGLContextEvent.statusMessage; @docsEditable true */
+  /// @domName WebGLContextEvent.statusMessage; @docsEditable true
   final String statusMessage;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18655,7 +18581,7 @@ class WebGLDebugRendererInfo native "*WebGLDebugRendererInfo" {
 /// @domName WebGLDebugShaders; @docsEditable true
 class WebGLDebugShaders native "*WebGLDebugShaders" {
 
-  /** @domName WebGLDebugShaders.getTranslatedShaderSource; @docsEditable true */
+  /// @domName WebGLDebugShaders.getTranslatedShaderSource; @docsEditable true
   String getTranslatedShaderSource(WebGLShader shader) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18684,10 +18610,10 @@ class WebGLFramebuffer native "*WebGLFramebuffer" {
 /// @domName WebGLLoseContext; @docsEditable true
 class WebGLLoseContext native "*WebGLLoseContext" {
 
-  /** @domName WebGLLoseContext.loseContext; @docsEditable true */
+  /// @domName WebGLLoseContext.loseContext; @docsEditable true
   void loseContext() native;
 
-  /** @domName WebGLLoseContext.restoreContext; @docsEditable true */
+  /// @domName WebGLLoseContext.restoreContext; @docsEditable true
   void restoreContext() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19304,319 +19230,319 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
 
   static const int ZERO = 0;
 
-  /** @domName WebGLRenderingContext.drawingBufferHeight; @docsEditable true */
+  /// @domName WebGLRenderingContext.drawingBufferHeight; @docsEditable true
   final int drawingBufferHeight;
 
-  /** @domName WebGLRenderingContext.drawingBufferWidth; @docsEditable true */
+  /// @domName WebGLRenderingContext.drawingBufferWidth; @docsEditable true
   final int drawingBufferWidth;
 
-  /** @domName WebGLRenderingContext.activeTexture; @docsEditable true */
+  /// @domName WebGLRenderingContext.activeTexture; @docsEditable true
   void activeTexture(int texture) native;
 
-  /** @domName WebGLRenderingContext.attachShader; @docsEditable true */
+  /// @domName WebGLRenderingContext.attachShader; @docsEditable true
   void attachShader(WebGLProgram program, WebGLShader shader) native;
 
-  /** @domName WebGLRenderingContext.bindAttribLocation; @docsEditable true */
+  /// @domName WebGLRenderingContext.bindAttribLocation; @docsEditable true
   void bindAttribLocation(WebGLProgram program, int index, String name) native;
 
-  /** @domName WebGLRenderingContext.bindBuffer; @docsEditable true */
+  /// @domName WebGLRenderingContext.bindBuffer; @docsEditable true
   void bindBuffer(int target, WebGLBuffer buffer) native;
 
-  /** @domName WebGLRenderingContext.bindFramebuffer; @docsEditable true */
+  /// @domName WebGLRenderingContext.bindFramebuffer; @docsEditable true
   void bindFramebuffer(int target, WebGLFramebuffer framebuffer) native;
 
-  /** @domName WebGLRenderingContext.bindRenderbuffer; @docsEditable true */
+  /// @domName WebGLRenderingContext.bindRenderbuffer; @docsEditable true
   void bindRenderbuffer(int target, WebGLRenderbuffer renderbuffer) native;
 
-  /** @domName WebGLRenderingContext.bindTexture; @docsEditable true */
+  /// @domName WebGLRenderingContext.bindTexture; @docsEditable true
   void bindTexture(int target, WebGLTexture texture) native;
 
-  /** @domName WebGLRenderingContext.blendColor; @docsEditable true */
+  /// @domName WebGLRenderingContext.blendColor; @docsEditable true
   void blendColor(num red, num green, num blue, num alpha) native;
 
-  /** @domName WebGLRenderingContext.blendEquation; @docsEditable true */
+  /// @domName WebGLRenderingContext.blendEquation; @docsEditable true
   void blendEquation(int mode) native;
 
-  /** @domName WebGLRenderingContext.blendEquationSeparate; @docsEditable true */
+  /// @domName WebGLRenderingContext.blendEquationSeparate; @docsEditable true
   void blendEquationSeparate(int modeRGB, int modeAlpha) native;
 
-  /** @domName WebGLRenderingContext.blendFunc; @docsEditable true */
+  /// @domName WebGLRenderingContext.blendFunc; @docsEditable true
   void blendFunc(int sfactor, int dfactor) native;
 
-  /** @domName WebGLRenderingContext.blendFuncSeparate; @docsEditable true */
+  /// @domName WebGLRenderingContext.blendFuncSeparate; @docsEditable true
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) native;
 
-  /** @domName WebGLRenderingContext.bufferData; @docsEditable true */
+  /// @domName WebGLRenderingContext.bufferData; @docsEditable true
   void bufferData(int target, data_OR_size, int usage) native;
 
-  /** @domName WebGLRenderingContext.bufferSubData; @docsEditable true */
+  /// @domName WebGLRenderingContext.bufferSubData; @docsEditable true
   void bufferSubData(int target, int offset, data) native;
 
-  /** @domName WebGLRenderingContext.checkFramebufferStatus; @docsEditable true */
+  /// @domName WebGLRenderingContext.checkFramebufferStatus; @docsEditable true
   int checkFramebufferStatus(int target) native;
 
-  /** @domName WebGLRenderingContext.clear; @docsEditable true */
+  /// @domName WebGLRenderingContext.clear; @docsEditable true
   void clear(int mask) native;
 
-  /** @domName WebGLRenderingContext.clearColor; @docsEditable true */
+  /// @domName WebGLRenderingContext.clearColor; @docsEditable true
   void clearColor(num red, num green, num blue, num alpha) native;
 
-  /** @domName WebGLRenderingContext.clearDepth; @docsEditable true */
+  /// @domName WebGLRenderingContext.clearDepth; @docsEditable true
   void clearDepth(num depth) native;
 
-  /** @domName WebGLRenderingContext.clearStencil; @docsEditable true */
+  /// @domName WebGLRenderingContext.clearStencil; @docsEditable true
   void clearStencil(int s) native;
 
-  /** @domName WebGLRenderingContext.colorMask; @docsEditable true */
+  /// @domName WebGLRenderingContext.colorMask; @docsEditable true
   void colorMask(bool red, bool green, bool blue, bool alpha) native;
 
-  /** @domName WebGLRenderingContext.compileShader; @docsEditable true */
+  /// @domName WebGLRenderingContext.compileShader; @docsEditable true
   void compileShader(WebGLShader shader) native;
 
-  /** @domName WebGLRenderingContext.compressedTexImage2D; @docsEditable true */
+  /// @domName WebGLRenderingContext.compressedTexImage2D; @docsEditable true
   void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, ArrayBufferView data) native;
 
-  /** @domName WebGLRenderingContext.compressedTexSubImage2D; @docsEditable true */
+  /// @domName WebGLRenderingContext.compressedTexSubImage2D; @docsEditable true
   void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, ArrayBufferView data) native;
 
-  /** @domName WebGLRenderingContext.copyTexImage2D; @docsEditable true */
+  /// @domName WebGLRenderingContext.copyTexImage2D; @docsEditable true
   void copyTexImage2D(int target, int level, int internalformat, int x, int y, int width, int height, int border) native;
 
-  /** @domName WebGLRenderingContext.copyTexSubImage2D; @docsEditable true */
+  /// @domName WebGLRenderingContext.copyTexSubImage2D; @docsEditable true
   void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height) native;
 
-  /** @domName WebGLRenderingContext.createBuffer; @docsEditable true */
+  /// @domName WebGLRenderingContext.createBuffer; @docsEditable true
   WebGLBuffer createBuffer() native;
 
-  /** @domName WebGLRenderingContext.createFramebuffer; @docsEditable true */
+  /// @domName WebGLRenderingContext.createFramebuffer; @docsEditable true
   WebGLFramebuffer createFramebuffer() native;
 
-  /** @domName WebGLRenderingContext.createProgram; @docsEditable true */
+  /// @domName WebGLRenderingContext.createProgram; @docsEditable true
   WebGLProgram createProgram() native;
 
-  /** @domName WebGLRenderingContext.createRenderbuffer; @docsEditable true */
+  /// @domName WebGLRenderingContext.createRenderbuffer; @docsEditable true
   WebGLRenderbuffer createRenderbuffer() native;
 
-  /** @domName WebGLRenderingContext.createShader; @docsEditable true */
+  /// @domName WebGLRenderingContext.createShader; @docsEditable true
   WebGLShader createShader(int type) native;
 
-  /** @domName WebGLRenderingContext.createTexture; @docsEditable true */
+  /// @domName WebGLRenderingContext.createTexture; @docsEditable true
   WebGLTexture createTexture() native;
 
-  /** @domName WebGLRenderingContext.cullFace; @docsEditable true */
+  /// @domName WebGLRenderingContext.cullFace; @docsEditable true
   void cullFace(int mode) native;
 
-  /** @domName WebGLRenderingContext.deleteBuffer; @docsEditable true */
+  /// @domName WebGLRenderingContext.deleteBuffer; @docsEditable true
   void deleteBuffer(WebGLBuffer buffer) native;
 
-  /** @domName WebGLRenderingContext.deleteFramebuffer; @docsEditable true */
+  /// @domName WebGLRenderingContext.deleteFramebuffer; @docsEditable true
   void deleteFramebuffer(WebGLFramebuffer framebuffer) native;
 
-  /** @domName WebGLRenderingContext.deleteProgram; @docsEditable true */
+  /// @domName WebGLRenderingContext.deleteProgram; @docsEditable true
   void deleteProgram(WebGLProgram program) native;
 
-  /** @domName WebGLRenderingContext.deleteRenderbuffer; @docsEditable true */
+  /// @domName WebGLRenderingContext.deleteRenderbuffer; @docsEditable true
   void deleteRenderbuffer(WebGLRenderbuffer renderbuffer) native;
 
-  /** @domName WebGLRenderingContext.deleteShader; @docsEditable true */
+  /// @domName WebGLRenderingContext.deleteShader; @docsEditable true
   void deleteShader(WebGLShader shader) native;
 
-  /** @domName WebGLRenderingContext.deleteTexture; @docsEditable true */
+  /// @domName WebGLRenderingContext.deleteTexture; @docsEditable true
   void deleteTexture(WebGLTexture texture) native;
 
-  /** @domName WebGLRenderingContext.depthFunc; @docsEditable true */
+  /// @domName WebGLRenderingContext.depthFunc; @docsEditable true
   void depthFunc(int func) native;
 
-  /** @domName WebGLRenderingContext.depthMask; @docsEditable true */
+  /// @domName WebGLRenderingContext.depthMask; @docsEditable true
   void depthMask(bool flag) native;
 
-  /** @domName WebGLRenderingContext.depthRange; @docsEditable true */
+  /// @domName WebGLRenderingContext.depthRange; @docsEditable true
   void depthRange(num zNear, num zFar) native;
 
-  /** @domName WebGLRenderingContext.detachShader; @docsEditable true */
+  /// @domName WebGLRenderingContext.detachShader; @docsEditable true
   void detachShader(WebGLProgram program, WebGLShader shader) native;
 
-  /** @domName WebGLRenderingContext.disable; @docsEditable true */
+  /// @domName WebGLRenderingContext.disable; @docsEditable true
   void disable(int cap) native;
 
-  /** @domName WebGLRenderingContext.disableVertexAttribArray; @docsEditable true */
+  /// @domName WebGLRenderingContext.disableVertexAttribArray; @docsEditable true
   void disableVertexAttribArray(int index) native;
 
-  /** @domName WebGLRenderingContext.drawArrays; @docsEditable true */
+  /// @domName WebGLRenderingContext.drawArrays; @docsEditable true
   void drawArrays(int mode, int first, int count) native;
 
-  /** @domName WebGLRenderingContext.drawElements; @docsEditable true */
+  /// @domName WebGLRenderingContext.drawElements; @docsEditable true
   void drawElements(int mode, int count, int type, int offset) native;
 
-  /** @domName WebGLRenderingContext.enable; @docsEditable true */
+  /// @domName WebGLRenderingContext.enable; @docsEditable true
   void enable(int cap) native;
 
-  /** @domName WebGLRenderingContext.enableVertexAttribArray; @docsEditable true */
+  /// @domName WebGLRenderingContext.enableVertexAttribArray; @docsEditable true
   void enableVertexAttribArray(int index) native;
 
-  /** @domName WebGLRenderingContext.finish; @docsEditable true */
+  /// @domName WebGLRenderingContext.finish; @docsEditable true
   void finish() native;
 
-  /** @domName WebGLRenderingContext.flush; @docsEditable true */
+  /// @domName WebGLRenderingContext.flush; @docsEditable true
   void flush() native;
 
-  /** @domName WebGLRenderingContext.framebufferRenderbuffer; @docsEditable true */
+  /// @domName WebGLRenderingContext.framebufferRenderbuffer; @docsEditable true
   void framebufferRenderbuffer(int target, int attachment, int renderbuffertarget, WebGLRenderbuffer renderbuffer) native;
 
-  /** @domName WebGLRenderingContext.framebufferTexture2D; @docsEditable true */
+  /// @domName WebGLRenderingContext.framebufferTexture2D; @docsEditable true
   void framebufferTexture2D(int target, int attachment, int textarget, WebGLTexture texture, int level) native;
 
-  /** @domName WebGLRenderingContext.frontFace; @docsEditable true */
+  /// @domName WebGLRenderingContext.frontFace; @docsEditable true
   void frontFace(int mode) native;
 
-  /** @domName WebGLRenderingContext.generateMipmap; @docsEditable true */
+  /// @domName WebGLRenderingContext.generateMipmap; @docsEditable true
   void generateMipmap(int target) native;
 
-  /** @domName WebGLRenderingContext.getActiveAttrib; @docsEditable true */
+  /// @domName WebGLRenderingContext.getActiveAttrib; @docsEditable true
   WebGLActiveInfo getActiveAttrib(WebGLProgram program, int index) native;
 
-  /** @domName WebGLRenderingContext.getActiveUniform; @docsEditable true */
+  /// @domName WebGLRenderingContext.getActiveUniform; @docsEditable true
   WebGLActiveInfo getActiveUniform(WebGLProgram program, int index) native;
 
-  /** @domName WebGLRenderingContext.getAttachedShaders; @docsEditable true */
+  /// @domName WebGLRenderingContext.getAttachedShaders; @docsEditable true
   void getAttachedShaders(WebGLProgram program) native;
 
-  /** @domName WebGLRenderingContext.getAttribLocation; @docsEditable true */
+  /// @domName WebGLRenderingContext.getAttribLocation; @docsEditable true
   int getAttribLocation(WebGLProgram program, String name) native;
 
-  /** @domName WebGLRenderingContext.getBufferParameter; @docsEditable true */
+  /// @domName WebGLRenderingContext.getBufferParameter; @docsEditable true
   Object getBufferParameter(int target, int pname) native;
 
-  /** @domName WebGLRenderingContext.getContextAttributes; @docsEditable true */
+  /// @domName WebGLRenderingContext.getContextAttributes; @docsEditable true
   WebGLContextAttributes getContextAttributes() native;
 
-  /** @domName WebGLRenderingContext.getError; @docsEditable true */
+  /// @domName WebGLRenderingContext.getError; @docsEditable true
   int getError() native;
 
-  /** @domName WebGLRenderingContext.getExtension; @docsEditable true */
+  /// @domName WebGLRenderingContext.getExtension; @docsEditable true
   Object getExtension(String name) native;
 
-  /** @domName WebGLRenderingContext.getFramebufferAttachmentParameter; @docsEditable true */
+  /// @domName WebGLRenderingContext.getFramebufferAttachmentParameter; @docsEditable true
   Object getFramebufferAttachmentParameter(int target, int attachment, int pname) native;
 
-  /** @domName WebGLRenderingContext.getParameter; @docsEditable true */
+  /// @domName WebGLRenderingContext.getParameter; @docsEditable true
   Object getParameter(int pname) native;
 
-  /** @domName WebGLRenderingContext.getProgramInfoLog; @docsEditable true */
+  /// @domName WebGLRenderingContext.getProgramInfoLog; @docsEditable true
   String getProgramInfoLog(WebGLProgram program) native;
 
-  /** @domName WebGLRenderingContext.getProgramParameter; @docsEditable true */
+  /// @domName WebGLRenderingContext.getProgramParameter; @docsEditable true
   Object getProgramParameter(WebGLProgram program, int pname) native;
 
-  /** @domName WebGLRenderingContext.getRenderbufferParameter; @docsEditable true */
+  /// @domName WebGLRenderingContext.getRenderbufferParameter; @docsEditable true
   Object getRenderbufferParameter(int target, int pname) native;
 
-  /** @domName WebGLRenderingContext.getShaderInfoLog; @docsEditable true */
+  /// @domName WebGLRenderingContext.getShaderInfoLog; @docsEditable true
   String getShaderInfoLog(WebGLShader shader) native;
 
-  /** @domName WebGLRenderingContext.getShaderParameter; @docsEditable true */
+  /// @domName WebGLRenderingContext.getShaderParameter; @docsEditable true
   Object getShaderParameter(WebGLShader shader, int pname) native;
 
-  /** @domName WebGLRenderingContext.getShaderPrecisionFormat; @docsEditable true */
+  /// @domName WebGLRenderingContext.getShaderPrecisionFormat; @docsEditable true
   WebGLShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype) native;
 
-  /** @domName WebGLRenderingContext.getShaderSource; @docsEditable true */
+  /// @domName WebGLRenderingContext.getShaderSource; @docsEditable true
   String getShaderSource(WebGLShader shader) native;
 
-  /** @domName WebGLRenderingContext.getSupportedExtensions; @docsEditable true */
+  /// @domName WebGLRenderingContext.getSupportedExtensions; @docsEditable true
   List<String> getSupportedExtensions() native;
 
-  /** @domName WebGLRenderingContext.getTexParameter; @docsEditable true */
+  /// @domName WebGLRenderingContext.getTexParameter; @docsEditable true
   Object getTexParameter(int target, int pname) native;
 
-  /** @domName WebGLRenderingContext.getUniform; @docsEditable true */
+  /// @domName WebGLRenderingContext.getUniform; @docsEditable true
   Object getUniform(WebGLProgram program, WebGLUniformLocation location) native;
 
-  /** @domName WebGLRenderingContext.getUniformLocation; @docsEditable true */
+  /// @domName WebGLRenderingContext.getUniformLocation; @docsEditable true
   WebGLUniformLocation getUniformLocation(WebGLProgram program, String name) native;
 
-  /** @domName WebGLRenderingContext.getVertexAttrib; @docsEditable true */
+  /// @domName WebGLRenderingContext.getVertexAttrib; @docsEditable true
   Object getVertexAttrib(int index, int pname) native;
 
-  /** @domName WebGLRenderingContext.getVertexAttribOffset; @docsEditable true */
+  /// @domName WebGLRenderingContext.getVertexAttribOffset; @docsEditable true
   int getVertexAttribOffset(int index, int pname) native;
 
-  /** @domName WebGLRenderingContext.hint; @docsEditable true */
+  /// @domName WebGLRenderingContext.hint; @docsEditable true
   void hint(int target, int mode) native;
 
-  /** @domName WebGLRenderingContext.isBuffer; @docsEditable true */
+  /// @domName WebGLRenderingContext.isBuffer; @docsEditable true
   bool isBuffer(WebGLBuffer buffer) native;
 
-  /** @domName WebGLRenderingContext.isContextLost; @docsEditable true */
+  /// @domName WebGLRenderingContext.isContextLost; @docsEditable true
   bool isContextLost() native;
 
-  /** @domName WebGLRenderingContext.isEnabled; @docsEditable true */
+  /// @domName WebGLRenderingContext.isEnabled; @docsEditable true
   bool isEnabled(int cap) native;
 
-  /** @domName WebGLRenderingContext.isFramebuffer; @docsEditable true */
+  /// @domName WebGLRenderingContext.isFramebuffer; @docsEditable true
   bool isFramebuffer(WebGLFramebuffer framebuffer) native;
 
-  /** @domName WebGLRenderingContext.isProgram; @docsEditable true */
+  /// @domName WebGLRenderingContext.isProgram; @docsEditable true
   bool isProgram(WebGLProgram program) native;
 
-  /** @domName WebGLRenderingContext.isRenderbuffer; @docsEditable true */
+  /// @domName WebGLRenderingContext.isRenderbuffer; @docsEditable true
   bool isRenderbuffer(WebGLRenderbuffer renderbuffer) native;
 
-  /** @domName WebGLRenderingContext.isShader; @docsEditable true */
+  /// @domName WebGLRenderingContext.isShader; @docsEditable true
   bool isShader(WebGLShader shader) native;
 
-  /** @domName WebGLRenderingContext.isTexture; @docsEditable true */
+  /// @domName WebGLRenderingContext.isTexture; @docsEditable true
   bool isTexture(WebGLTexture texture) native;
 
-  /** @domName WebGLRenderingContext.lineWidth; @docsEditable true */
+  /// @domName WebGLRenderingContext.lineWidth; @docsEditable true
   void lineWidth(num width) native;
 
-  /** @domName WebGLRenderingContext.linkProgram; @docsEditable true */
+  /// @domName WebGLRenderingContext.linkProgram; @docsEditable true
   void linkProgram(WebGLProgram program) native;
 
-  /** @domName WebGLRenderingContext.pixelStorei; @docsEditable true */
+  /// @domName WebGLRenderingContext.pixelStorei; @docsEditable true
   void pixelStorei(int pname, int param) native;
 
-  /** @domName WebGLRenderingContext.polygonOffset; @docsEditable true */
+  /// @domName WebGLRenderingContext.polygonOffset; @docsEditable true
   void polygonOffset(num factor, num units) native;
 
-  /** @domName WebGLRenderingContext.readPixels; @docsEditable true */
+  /// @domName WebGLRenderingContext.readPixels; @docsEditable true
   void readPixels(int x, int y, int width, int height, int format, int type, ArrayBufferView pixels) native;
 
-  /** @domName WebGLRenderingContext.releaseShaderCompiler; @docsEditable true */
+  /// @domName WebGLRenderingContext.releaseShaderCompiler; @docsEditable true
   void releaseShaderCompiler() native;
 
-  /** @domName WebGLRenderingContext.renderbufferStorage; @docsEditable true */
+  /// @domName WebGLRenderingContext.renderbufferStorage; @docsEditable true
   void renderbufferStorage(int target, int internalformat, int width, int height) native;
 
-  /** @domName WebGLRenderingContext.sampleCoverage; @docsEditable true */
+  /// @domName WebGLRenderingContext.sampleCoverage; @docsEditable true
   void sampleCoverage(num value, bool invert) native;
 
-  /** @domName WebGLRenderingContext.scissor; @docsEditable true */
+  /// @domName WebGLRenderingContext.scissor; @docsEditable true
   void scissor(int x, int y, int width, int height) native;
 
-  /** @domName WebGLRenderingContext.shaderSource; @docsEditable true */
+  /// @domName WebGLRenderingContext.shaderSource; @docsEditable true
   void shaderSource(WebGLShader shader, String string) native;
 
-  /** @domName WebGLRenderingContext.stencilFunc; @docsEditable true */
+  /// @domName WebGLRenderingContext.stencilFunc; @docsEditable true
   void stencilFunc(int func, int ref, int mask) native;
 
-  /** @domName WebGLRenderingContext.stencilFuncSeparate; @docsEditable true */
+  /// @domName WebGLRenderingContext.stencilFuncSeparate; @docsEditable true
   void stencilFuncSeparate(int face, int func, int ref, int mask) native;
 
-  /** @domName WebGLRenderingContext.stencilMask; @docsEditable true */
+  /// @domName WebGLRenderingContext.stencilMask; @docsEditable true
   void stencilMask(int mask) native;
 
-  /** @domName WebGLRenderingContext.stencilMaskSeparate; @docsEditable true */
+  /// @domName WebGLRenderingContext.stencilMaskSeparate; @docsEditable true
   void stencilMaskSeparate(int face, int mask) native;
 
-  /** @domName WebGLRenderingContext.stencilOp; @docsEditable true */
+  /// @domName WebGLRenderingContext.stencilOp; @docsEditable true
   void stencilOp(int fail, int zfail, int zpass) native;
 
-  /** @domName WebGLRenderingContext.stencilOpSeparate; @docsEditable true */
+  /// @domName WebGLRenderingContext.stencilOpSeparate; @docsEditable true
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
-  /** @domName WebGLRenderingContext.texImage2D; @docsEditable true */
+  /// @domName WebGLRenderingContext.texImage2D; @docsEditable true
   void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, ArrayBufferView pixels]) {
     if ((?border_OR_canvas_OR_image_OR_pixels_OR_video && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null))) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
@@ -19659,13 +19585,13 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
   void _texImage2D_4(target, level, internalformat, format, type, CanvasElement canvas) native "texImage2D";
   void _texImage2D_5(target, level, internalformat, format, type, VideoElement video) native "texImage2D";
 
-  /** @domName WebGLRenderingContext.texParameterf; @docsEditable true */
+  /// @domName WebGLRenderingContext.texParameterf; @docsEditable true
   void texParameterf(int target, int pname, num param) native;
 
-  /** @domName WebGLRenderingContext.texParameteri; @docsEditable true */
+  /// @domName WebGLRenderingContext.texParameteri; @docsEditable true
   void texParameteri(int target, int pname, int param) native;
 
-  /** @domName WebGLRenderingContext.texSubImage2D; @docsEditable true */
+  /// @domName WebGLRenderingContext.texSubImage2D; @docsEditable true
   void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, ArrayBufferView pixels]) {
     if ((?canvas_OR_format_OR_image_OR_pixels_OR_video && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null))) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
@@ -19704,97 +19630,97 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
   void _texSubImage2D_4(target, level, xoffset, yoffset, format, type, CanvasElement canvas) native "texSubImage2D";
   void _texSubImage2D_5(target, level, xoffset, yoffset, format, type, VideoElement video) native "texSubImage2D";
 
-  /** @domName WebGLRenderingContext.uniform1f; @docsEditable true */
+  /// @domName WebGLRenderingContext.uniform1f; @docsEditable true
   void uniform1f(WebGLUniformLocation location, num x) native;
 
-  /** @domName WebGLRenderingContext.uniform1fv; @docsEditable true */
+  /// @domName WebGLRenderingContext.uniform1fv; @docsEditable true
   void uniform1fv(WebGLUniformLocation location, Float32Array v) native;
 
-  /** @domName WebGLRenderingContext.uniform1i; @docsEditable true */
+  /// @domName WebGLRenderingContext.uniform1i; @docsEditable true
   void uniform1i(WebGLUniformLocation location, int x) native;
 
-  /** @domName WebGLRenderingContext.uniform1iv; @docsEditable true */
+  /// @domName WebGLRenderingContext.uniform1iv; @docsEditable true
   void uniform1iv(WebGLUniformLocation location, Int32Array v) native;
 
-  /** @domName WebGLRenderingContext.uniform2f; @docsEditable true */
+  /// @domName WebGLRenderingContext.uniform2f; @docsEditable true
   void uniform2f(WebGLUniformLocation location, num x, num y) native;
 
-  /** @domName WebGLRenderingContext.uniform2fv; @docsEditable true */
+  /// @domName WebGLRenderingContext.uniform2fv; @docsEditable true
   void uniform2fv(WebGLUniformLocation location, Float32Array v) native;
 
-  /** @domName WebGLRenderingContext.uniform2i; @docsEditable true */
+  /// @domName WebGLRenderingContext.uniform2i; @docsEditable true
   void uniform2i(WebGLUniformLocation location, int x, int y) native;
 
-  /** @domName WebGLRenderingContext.uniform2iv; @docsEditable true */
+  /// @domName WebGLRenderingContext.uniform2iv; @docsEditable true
   void uniform2iv(WebGLUniformLocation location, Int32Array v) native;
 
-  /** @domName WebGLRenderingContext.uniform3f; @docsEditable true */
+  /// @domName WebGLRenderingContext.uniform3f; @docsEditable true
   void uniform3f(WebGLUniformLocation location, num x, num y, num z) native;
 
-  /** @domName WebGLRenderingContext.uniform3fv; @docsEditable true */
+  /// @domName WebGLRenderingContext.uniform3fv; @docsEditable true
   void uniform3fv(WebGLUniformLocation location, Float32Array v) native;
 
-  /** @domName WebGLRenderingContext.uniform3i; @docsEditable true */
+  /// @domName WebGLRenderingContext.uniform3i; @docsEditable true
   void uniform3i(WebGLUniformLocation location, int x, int y, int z) native;
 
-  /** @domName WebGLRenderingContext.uniform3iv; @docsEditable true */
+  /// @domName WebGLRenderingContext.uniform3iv; @docsEditable true
   void uniform3iv(WebGLUniformLocation location, Int32Array v) native;
 
-  /** @domName WebGLRenderingContext.uniform4f; @docsEditable true */
+  /// @domName WebGLRenderingContext.uniform4f; @docsEditable true
   void uniform4f(WebGLUniformLocation location, num x, num y, num z, num w) native;
 
-  /** @domName WebGLRenderingContext.uniform4fv; @docsEditable true */
+  /// @domName WebGLRenderingContext.uniform4fv; @docsEditable true
   void uniform4fv(WebGLUniformLocation location, Float32Array v) native;
 
-  /** @domName WebGLRenderingContext.uniform4i; @docsEditable true */
+  /// @domName WebGLRenderingContext.uniform4i; @docsEditable true
   void uniform4i(WebGLUniformLocation location, int x, int y, int z, int w) native;
 
-  /** @domName WebGLRenderingContext.uniform4iv; @docsEditable true */
+  /// @domName WebGLRenderingContext.uniform4iv; @docsEditable true
   void uniform4iv(WebGLUniformLocation location, Int32Array v) native;
 
-  /** @domName WebGLRenderingContext.uniformMatrix2fv; @docsEditable true */
+  /// @domName WebGLRenderingContext.uniformMatrix2fv; @docsEditable true
   void uniformMatrix2fv(WebGLUniformLocation location, bool transpose, Float32Array array) native;
 
-  /** @domName WebGLRenderingContext.uniformMatrix3fv; @docsEditable true */
+  /// @domName WebGLRenderingContext.uniformMatrix3fv; @docsEditable true
   void uniformMatrix3fv(WebGLUniformLocation location, bool transpose, Float32Array array) native;
 
-  /** @domName WebGLRenderingContext.uniformMatrix4fv; @docsEditable true */
+  /// @domName WebGLRenderingContext.uniformMatrix4fv; @docsEditable true
   void uniformMatrix4fv(WebGLUniformLocation location, bool transpose, Float32Array array) native;
 
-  /** @domName WebGLRenderingContext.useProgram; @docsEditable true */
+  /// @domName WebGLRenderingContext.useProgram; @docsEditable true
   void useProgram(WebGLProgram program) native;
 
-  /** @domName WebGLRenderingContext.validateProgram; @docsEditable true */
+  /// @domName WebGLRenderingContext.validateProgram; @docsEditable true
   void validateProgram(WebGLProgram program) native;
 
-  /** @domName WebGLRenderingContext.vertexAttrib1f; @docsEditable true */
+  /// @domName WebGLRenderingContext.vertexAttrib1f; @docsEditable true
   void vertexAttrib1f(int indx, num x) native;
 
-  /** @domName WebGLRenderingContext.vertexAttrib1fv; @docsEditable true */
+  /// @domName WebGLRenderingContext.vertexAttrib1fv; @docsEditable true
   void vertexAttrib1fv(int indx, Float32Array values) native;
 
-  /** @domName WebGLRenderingContext.vertexAttrib2f; @docsEditable true */
+  /// @domName WebGLRenderingContext.vertexAttrib2f; @docsEditable true
   void vertexAttrib2f(int indx, num x, num y) native;
 
-  /** @domName WebGLRenderingContext.vertexAttrib2fv; @docsEditable true */
+  /// @domName WebGLRenderingContext.vertexAttrib2fv; @docsEditable true
   void vertexAttrib2fv(int indx, Float32Array values) native;
 
-  /** @domName WebGLRenderingContext.vertexAttrib3f; @docsEditable true */
+  /// @domName WebGLRenderingContext.vertexAttrib3f; @docsEditable true
   void vertexAttrib3f(int indx, num x, num y, num z) native;
 
-  /** @domName WebGLRenderingContext.vertexAttrib3fv; @docsEditable true */
+  /// @domName WebGLRenderingContext.vertexAttrib3fv; @docsEditable true
   void vertexAttrib3fv(int indx, Float32Array values) native;
 
-  /** @domName WebGLRenderingContext.vertexAttrib4f; @docsEditable true */
+  /// @domName WebGLRenderingContext.vertexAttrib4f; @docsEditable true
   void vertexAttrib4f(int indx, num x, num y, num z, num w) native;
 
-  /** @domName WebGLRenderingContext.vertexAttrib4fv; @docsEditable true */
+  /// @domName WebGLRenderingContext.vertexAttrib4fv; @docsEditable true
   void vertexAttrib4fv(int indx, Float32Array values) native;
 
-  /** @domName WebGLRenderingContext.vertexAttribPointer; @docsEditable true */
+  /// @domName WebGLRenderingContext.vertexAttribPointer; @docsEditable true
   void vertexAttribPointer(int indx, int size, int type, bool normalized, int stride, int offset) native;
 
-  /** @domName WebGLRenderingContext.viewport; @docsEditable true */
+  /// @domName WebGLRenderingContext.viewport; @docsEditable true
   void viewport(int x, int y, int width, int height) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19813,13 +19739,13 @@ class WebGLShader native "*WebGLShader" {
 /// @domName WebGLShaderPrecisionFormat; @docsEditable true
 class WebGLShaderPrecisionFormat native "*WebGLShaderPrecisionFormat" {
 
-  /** @domName WebGLShaderPrecisionFormat.precision; @docsEditable true */
+  /// @domName WebGLShaderPrecisionFormat.precision; @docsEditable true
   final int precision;
 
-  /** @domName WebGLShaderPrecisionFormat.rangeMax; @docsEditable true */
+  /// @domName WebGLShaderPrecisionFormat.rangeMax; @docsEditable true
   final int rangeMax;
 
-  /** @domName WebGLShaderPrecisionFormat.rangeMin; @docsEditable true */
+  /// @domName WebGLShaderPrecisionFormat.rangeMin; @docsEditable true
   final int rangeMin;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19878,7 +19804,7 @@ class WebKitCSSFilterValue extends _CSSValueList native "*WebKitCSSFilterValue" 
 
   static const int CSS_FILTER_SEPIA = 3;
 
-  /** @domName WebKitCSSFilterValue.operationType; @docsEditable true */
+  /// @domName WebKitCSSFilterValue.operationType; @docsEditable true
   final int operationType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19889,34 +19815,34 @@ class WebKitCSSFilterValue extends _CSSValueList native "*WebKitCSSFilterValue" 
 /// @domName WebKitNamedFlow; @docsEditable true
 class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
 
-  /** @domName WebKitNamedFlow.firstEmptyRegionIndex; @docsEditable true */
+  /// @domName WebKitNamedFlow.firstEmptyRegionIndex; @docsEditable true
   final int firstEmptyRegionIndex;
 
-  /** @domName WebKitNamedFlow.name; @docsEditable true */
+  /// @domName WebKitNamedFlow.name; @docsEditable true
   final String name;
 
-  /** @domName WebKitNamedFlow.overset; @docsEditable true */
+  /// @domName WebKitNamedFlow.overset; @docsEditable true
   final bool overset;
 
-  /** @domName WebKitNamedFlow.addEventListener; @docsEditable true */
+  /// @domName WebKitNamedFlow.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName WebKitNamedFlow.dispatchEvent; @docsEditable true */
+  /// @domName WebKitNamedFlow.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
-  /** @domName WebKitNamedFlow.getContent; @docsEditable true */
+  /// @domName WebKitNamedFlow.getContent; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   List<Node> getContent() native;
 
-  /** @domName WebKitNamedFlow.getRegions; @docsEditable true */
+  /// @domName WebKitNamedFlow.getRegions; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   List<Node> getRegions() native;
 
-  /** @domName WebKitNamedFlow.getRegionsByContent; @docsEditable true */
+  /// @domName WebKitNamedFlow.getRegionsByContent; @docsEditable true
   @Returns('_NodeList') @Creates('_NodeList')
   List<Node> getRegionsByContent(Node contentNode) native;
 
-  /** @domName WebKitNamedFlow.removeEventListener; @docsEditable true */
+  /// @domName WebKitNamedFlow.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19929,9 +19855,7 @@ class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
 class WebSocket extends EventTarget native "*WebSocket" {
   factory WebSocket(String url) => _WebSocketFactoryProvider.createWebSocket(url);
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WebSocketEvents get on =>
     new WebSocketEvents(this);
 
@@ -19943,40 +19867,40 @@ class WebSocket extends EventTarget native "*WebSocket" {
 
   static const int OPEN = 1;
 
-  /** @domName WebSocket.URL; @docsEditable true */
+  /// @domName WebSocket.URL; @docsEditable true
   final String URL;
 
-  /** @domName WebSocket.binaryType; @docsEditable true */
+  /// @domName WebSocket.binaryType; @docsEditable true
   String binaryType;
 
-  /** @domName WebSocket.bufferedAmount; @docsEditable true */
+  /// @domName WebSocket.bufferedAmount; @docsEditable true
   final int bufferedAmount;
 
-  /** @domName WebSocket.extensions; @docsEditable true */
+  /// @domName WebSocket.extensions; @docsEditable true
   final String extensions;
 
-  /** @domName WebSocket.protocol; @docsEditable true */
+  /// @domName WebSocket.protocol; @docsEditable true
   final String protocol;
 
-  /** @domName WebSocket.readyState; @docsEditable true */
+  /// @domName WebSocket.readyState; @docsEditable true
   final int readyState;
 
-  /** @domName WebSocket.url; @docsEditable true */
+  /// @domName WebSocket.url; @docsEditable true
   final String url;
 
-  /** @domName WebSocket.addEventListener; @docsEditable true */
+  /// @domName WebSocket.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName WebSocket.close; @docsEditable true */
+  /// @domName WebSocket.close; @docsEditable true
   void close([int code, String reason]) native;
 
-  /** @domName WebSocket.dispatchEvent; @docsEditable true */
+  /// @domName WebSocket.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName WebSocket.removeEventListener; @docsEditable true */
+  /// @domName WebSocket.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName WebSocket.send; @docsEditable true */
+  /// @domName WebSocket.send; @docsEditable true
   void send(data) native;
 
 }
@@ -19999,10 +19923,10 @@ class WebSocketEvents extends Events {
 
 class WheelEvent extends MouseEvent native "*WheelEvent" {
 
-  /** @domName WheelEvent.webkitDirectionInvertedFromDevice; @docsEditable true */
+  /// @domName WheelEvent.webkitDirectionInvertedFromDevice; @docsEditable true
   final bool webkitDirectionInvertedFromDevice;
 
-  /** @domName WheelEvent.initWebKitWheelEvent; @docsEditable true */
+  /// @domName WheelEvent.initWebKitWheelEvent; @docsEditable true
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, LocalWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 
 
@@ -20089,13 +20013,11 @@ class Worker extends AbstractWorker native "*Worker" {
 
   factory Worker(String scriptUrl) => _WorkerFactoryProvider.createWorker(scriptUrl);
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WorkerEvents get on =>
     new WorkerEvents(this);
 
-  /** @domName Worker.postMessage; @docsEditable true */
+  /// @domName Worker.postMessage; @docsEditable true
   void postMessage(/*SerializedScriptValue*/ message, [List messagePorts]) {
     if (?messagePorts) {
       var message_1 = _convertDartToNative_SerializedScriptValue(message);
@@ -20109,7 +20031,7 @@ class Worker extends AbstractWorker native "*Worker" {
   void _postMessage_1(message, List messagePorts) native "postMessage";
   void _postMessage_2(message) native "postMessage";
 
-  /** @domName Worker.terminate; @docsEditable true */
+  /// @domName Worker.terminate; @docsEditable true
   void terminate() native;
 }
 
@@ -20126,9 +20048,7 @@ class WorkerEvents extends AbstractWorkerEvents {
 /// @domName WorkerContext; @docsEditable true
 class WorkerContext extends EventTarget native "*WorkerContext" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WorkerContextEvents get on =>
     new WorkerContextEvents(this);
 
@@ -20136,67 +20056,67 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
 
   static const int TEMPORARY = 0;
 
-  /** @domName WorkerContext.indexedDB; @docsEditable true */
+  /// @domName WorkerContext.indexedDB; @docsEditable true
   final IDBFactory indexedDB;
 
-  /** @domName WorkerContext.location; @docsEditable true */
+  /// @domName WorkerContext.location; @docsEditable true
   final WorkerLocation location;
 
-  /** @domName WorkerContext.navigator; @docsEditable true */
+  /// @domName WorkerContext.navigator; @docsEditable true
   final WorkerNavigator navigator;
 
-  /** @domName WorkerContext.self; @docsEditable true */
+  /// @domName WorkerContext.self; @docsEditable true
   final WorkerContext self;
 
-  /** @domName WorkerContext.webkitIndexedDB; @docsEditable true */
+  /// @domName WorkerContext.webkitIndexedDB; @docsEditable true
   final IDBFactory webkitIndexedDB;
 
-  /** @domName WorkerContext.webkitNotifications; @docsEditable true */
+  /// @domName WorkerContext.webkitNotifications; @docsEditable true
   final NotificationCenter webkitNotifications;
 
-  /** @domName WorkerContext.addEventListener; @docsEditable true */
+  /// @domName WorkerContext.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName WorkerContext.clearInterval; @docsEditable true */
+  /// @domName WorkerContext.clearInterval; @docsEditable true
   void clearInterval(int handle) native;
 
-  /** @domName WorkerContext.clearTimeout; @docsEditable true */
+  /// @domName WorkerContext.clearTimeout; @docsEditable true
   void clearTimeout(int handle) native;
 
-  /** @domName WorkerContext.close; @docsEditable true */
+  /// @domName WorkerContext.close; @docsEditable true
   void close() native;
 
-  /** @domName WorkerContext.dispatchEvent; @docsEditable true */
+  /// @domName WorkerContext.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName WorkerContext.importScripts; @docsEditable true */
+  /// @domName WorkerContext.importScripts; @docsEditable true
   void importScripts() native;
 
-  /** @domName WorkerContext.openDatabase; @docsEditable true */
+  /// @domName WorkerContext.openDatabase; @docsEditable true
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
-  /** @domName WorkerContext.openDatabaseSync; @docsEditable true */
+  /// @domName WorkerContext.openDatabaseSync; @docsEditable true
   DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
-  /** @domName WorkerContext.removeEventListener; @docsEditable true */
+  /// @domName WorkerContext.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName WorkerContext.setInterval; @docsEditable true */
+  /// @domName WorkerContext.setInterval; @docsEditable true
   int setInterval(TimeoutHandler handler, int timeout) native;
 
-  /** @domName WorkerContext.setTimeout; @docsEditable true */
+  /// @domName WorkerContext.setTimeout; @docsEditable true
   int setTimeout(TimeoutHandler handler, int timeout) native;
 
-  /** @domName WorkerContext.webkitRequestFileSystem; @docsEditable true */
+  /// @domName WorkerContext.webkitRequestFileSystem; @docsEditable true
   void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]) native;
 
-  /** @domName WorkerContext.webkitRequestFileSystemSync; @docsEditable true */
+  /// @domName WorkerContext.webkitRequestFileSystemSync; @docsEditable true
   DOMFileSystemSync webkitRequestFileSystemSync(int type, int size) native;
 
-  /** @domName WorkerContext.webkitResolveLocalFileSystemSyncURL; @docsEditable true */
+  /// @domName WorkerContext.webkitResolveLocalFileSystemSyncURL; @docsEditable true
   EntrySync webkitResolveLocalFileSystemSyncURL(String url) native;
 
-  /** @domName WorkerContext.webkitResolveLocalFileSystemURL; @docsEditable true */
+  /// @domName WorkerContext.webkitResolveLocalFileSystemURL; @docsEditable true
   void webkitResolveLocalFileSystemURL(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
 }
 
@@ -20213,31 +20133,31 @@ class WorkerContextEvents extends Events {
 /// @domName WorkerLocation; @docsEditable true
 class WorkerLocation native "*WorkerLocation" {
 
-  /** @domName WorkerLocation.hash; @docsEditable true */
+  /// @domName WorkerLocation.hash; @docsEditable true
   final String hash;
 
-  /** @domName WorkerLocation.host; @docsEditable true */
+  /// @domName WorkerLocation.host; @docsEditable true
   final String host;
 
-  /** @domName WorkerLocation.hostname; @docsEditable true */
+  /// @domName WorkerLocation.hostname; @docsEditable true
   final String hostname;
 
-  /** @domName WorkerLocation.href; @docsEditable true */
+  /// @domName WorkerLocation.href; @docsEditable true
   final String href;
 
-  /** @domName WorkerLocation.pathname; @docsEditable true */
+  /// @domName WorkerLocation.pathname; @docsEditable true
   final String pathname;
 
-  /** @domName WorkerLocation.port; @docsEditable true */
+  /// @domName WorkerLocation.port; @docsEditable true
   final String port;
 
-  /** @domName WorkerLocation.protocol; @docsEditable true */
+  /// @domName WorkerLocation.protocol; @docsEditable true
   final String protocol;
 
-  /** @domName WorkerLocation.search; @docsEditable true */
+  /// @domName WorkerLocation.search; @docsEditable true
   final String search;
 
-  /** @domName WorkerLocation.toString; @docsEditable true */
+  /// @domName WorkerLocation.toString; @docsEditable true
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20248,19 +20168,19 @@ class WorkerLocation native "*WorkerLocation" {
 /// @domName WorkerNavigator; @docsEditable true
 class WorkerNavigator native "*WorkerNavigator" {
 
-  /** @domName WorkerNavigator.appName; @docsEditable true */
+  /// @domName WorkerNavigator.appName; @docsEditable true
   final String appName;
 
-  /** @domName WorkerNavigator.appVersion; @docsEditable true */
+  /// @domName WorkerNavigator.appVersion; @docsEditable true
   final String appVersion;
 
-  /** @domName WorkerNavigator.onLine; @docsEditable true */
+  /// @domName WorkerNavigator.onLine; @docsEditable true
   final bool onLine;
 
-  /** @domName WorkerNavigator.platform; @docsEditable true */
+  /// @domName WorkerNavigator.platform; @docsEditable true
   final String platform;
 
-  /** @domName WorkerNavigator.userAgent; @docsEditable true */
+  /// @domName WorkerNavigator.userAgent; @docsEditable true
   final String userAgent;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20273,7 +20193,7 @@ class XMLSerializer native "*XMLSerializer" {
 
   factory XMLSerializer() => _XMLSerializerFactoryProvider.createXMLSerializer();
 
-  /** @domName XMLSerializer.serializeToString; @docsEditable true */
+  /// @domName XMLSerializer.serializeToString; @docsEditable true
   String serializeToString(Node node) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20286,13 +20206,13 @@ class XPathEvaluator native "*XPathEvaluator" {
 
   factory XPathEvaluator() => _XPathEvaluatorFactoryProvider.createXPathEvaluator();
 
-  /** @domName XPathEvaluator.createExpression; @docsEditable true */
+  /// @domName XPathEvaluator.createExpression; @docsEditable true
   XPathExpression createExpression(String expression, XPathNSResolver resolver) native;
 
-  /** @domName XPathEvaluator.createNSResolver; @docsEditable true */
+  /// @domName XPathEvaluator.createNSResolver; @docsEditable true
   XPathNSResolver createNSResolver(Node nodeResolver) native;
 
-  /** @domName XPathEvaluator.evaluate; @docsEditable true */
+  /// @domName XPathEvaluator.evaluate; @docsEditable true
   XPathResult evaluate(String expression, Node contextNode, XPathNSResolver resolver, int type, XPathResult inResult) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20307,16 +20227,16 @@ class XPathException native "*XPathException" {
 
   static const int TYPE_ERR = 52;
 
-  /** @domName XPathException.code; @docsEditable true */
+  /// @domName XPathException.code; @docsEditable true
   final int code;
 
-  /** @domName XPathException.message; @docsEditable true */
+  /// @domName XPathException.message; @docsEditable true
   final String message;
 
-  /** @domName XPathException.name; @docsEditable true */
+  /// @domName XPathException.name; @docsEditable true
   final String name;
 
-  /** @domName XPathException.toString; @docsEditable true */
+  /// @domName XPathException.toString; @docsEditable true
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20327,7 +20247,7 @@ class XPathException native "*XPathException" {
 /// @domName XPathExpression; @docsEditable true
 class XPathExpression native "*XPathExpression" {
 
-  /** @domName XPathExpression.evaluate; @docsEditable true */
+  /// @domName XPathExpression.evaluate; @docsEditable true
   XPathResult evaluate(Node contextNode, int type, XPathResult inResult) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20338,7 +20258,7 @@ class XPathExpression native "*XPathExpression" {
 /// @domName XPathNSResolver; @docsEditable true
 class XPathNSResolver native "*XPathNSResolver" {
 
-  /** @domName XPathNSResolver.lookupNamespaceURI; @docsEditable true */
+  /// @domName XPathNSResolver.lookupNamespaceURI; @docsEditable true
   String lookupNamespaceURI(String prefix) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20369,31 +20289,31 @@ class XPathResult native "*XPathResult" {
 
   static const int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
 
-  /** @domName XPathResult.booleanValue; @docsEditable true */
+  /// @domName XPathResult.booleanValue; @docsEditable true
   final bool booleanValue;
 
-  /** @domName XPathResult.invalidIteratorState; @docsEditable true */
+  /// @domName XPathResult.invalidIteratorState; @docsEditable true
   final bool invalidIteratorState;
 
-  /** @domName XPathResult.numberValue; @docsEditable true */
+  /// @domName XPathResult.numberValue; @docsEditable true
   final num numberValue;
 
-  /** @domName XPathResult.resultType; @docsEditable true */
+  /// @domName XPathResult.resultType; @docsEditable true
   final int resultType;
 
-  /** @domName XPathResult.singleNodeValue; @docsEditable true */
+  /// @domName XPathResult.singleNodeValue; @docsEditable true
   final Node singleNodeValue;
 
-  /** @domName XPathResult.snapshotLength; @docsEditable true */
+  /// @domName XPathResult.snapshotLength; @docsEditable true
   final int snapshotLength;
 
-  /** @domName XPathResult.stringValue; @docsEditable true */
+  /// @domName XPathResult.stringValue; @docsEditable true
   final String stringValue;
 
-  /** @domName XPathResult.iterateNext; @docsEditable true */
+  /// @domName XPathResult.iterateNext; @docsEditable true
   Node iterateNext() native;
 
-  /** @domName XPathResult.snapshotItem; @docsEditable true */
+  /// @domName XPathResult.snapshotItem; @docsEditable true
   Node snapshotItem(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20406,28 +20326,28 @@ class XSLTProcessor native "*XSLTProcessor" {
 
   factory XSLTProcessor() => _XSLTProcessorFactoryProvider.createXSLTProcessor();
 
-  /** @domName XSLTProcessor.clearParameters; @docsEditable true */
+  /// @domName XSLTProcessor.clearParameters; @docsEditable true
   void clearParameters() native;
 
-  /** @domName XSLTProcessor.getParameter; @docsEditable true */
+  /// @domName XSLTProcessor.getParameter; @docsEditable true
   String getParameter(String namespaceURI, String localName) native;
 
-  /** @domName XSLTProcessor.importStylesheet; @docsEditable true */
+  /// @domName XSLTProcessor.importStylesheet; @docsEditable true
   void importStylesheet(Node stylesheet) native;
 
-  /** @domName XSLTProcessor.removeParameter; @docsEditable true */
+  /// @domName XSLTProcessor.removeParameter; @docsEditable true
   void removeParameter(String namespaceURI, String localName) native;
 
-  /** @domName XSLTProcessor.reset; @docsEditable true */
+  /// @domName XSLTProcessor.reset; @docsEditable true
   void reset() native;
 
-  /** @domName XSLTProcessor.setParameter; @docsEditable true */
+  /// @domName XSLTProcessor.setParameter; @docsEditable true
   void setParameter(String namespaceURI, String localName, String value) native;
 
-  /** @domName XSLTProcessor.transformToDocument; @docsEditable true */
+  /// @domName XSLTProcessor.transformToDocument; @docsEditable true
   Document transformToDocument(Node source) native;
 
-  /** @domName XSLTProcessor.transformToFragment; @docsEditable true */
+  /// @domName XSLTProcessor.transformToFragment; @docsEditable true
   DocumentFragment transformToFragment(Node source, Document docVal) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20492,7 +20412,7 @@ class _CSSMatrixFactoryProvider {
 /// @domName CSSRuleList; @docsEditable true
 class _CSSRuleList implements JavaScriptIndexingBehavior, List<CSSRule> native "*CSSRuleList" {
 
-  /** @domName CSSRuleList.length; @docsEditable true */
+  /// @domName CSSRuleList.length; @docsEditable true
   final int length;
 
   CSSRule operator[](int index) => JS("CSSRule", "#[#]", this, index);
@@ -20580,7 +20500,7 @@ class _CSSRuleList implements JavaScriptIndexingBehavior, List<CSSRule> native "
 
   // -- end List<CSSRule> mixins.
 
-  /** @domName CSSRuleList.item; @docsEditable true */
+  /// @domName CSSRuleList.item; @docsEditable true
   CSSRule item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20591,7 +20511,7 @@ class _CSSRuleList implements JavaScriptIndexingBehavior, List<CSSRule> native "
 /// @domName CSSValueList; @docsEditable true
 class _CSSValueList extends CSSValue implements List<CSSValue>, JavaScriptIndexingBehavior native "*CSSValueList" {
 
-  /** @domName CSSValueList.length; @docsEditable true */
+  /// @domName CSSValueList.length; @docsEditable true
   final int length;
 
   CSSValue operator[](int index) => JS("CSSValue", "#[#]", this, index);
@@ -20679,7 +20599,7 @@ class _CSSValueList extends CSSValue implements List<CSSValue>, JavaScriptIndexi
 
   // -- end List<CSSValue> mixins.
 
-  /** @domName CSSValueList.item; @docsEditable true */
+  /// @domName CSSValueList.item; @docsEditable true
   CSSValue item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20690,7 +20610,7 @@ class _CSSValueList extends CSSValue implements List<CSSValue>, JavaScriptIndexi
 /// @domName ClientRectList; @docsEditable true
 class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> native "*ClientRectList" {
 
-  /** @domName ClientRectList.length; @docsEditable true */
+  /// @domName ClientRectList.length; @docsEditable true
   final int length;
 
   ClientRect operator[](int index) => JS("ClientRect", "#[#]", this, index);
@@ -20778,7 +20698,7 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
 
   // -- end List<ClientRect> mixins.
 
-  /** @domName ClientRectList.item; @docsEditable true */
+  /// @domName ClientRectList.item; @docsEditable true
   ClientRect item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20798,7 +20718,7 @@ class _DOMParserFactoryProvider {
 /// @domName DOMStringList; @docsEditable true
 class _DOMStringList implements JavaScriptIndexingBehavior, List<String> native "*DOMStringList" {
 
-  /** @domName DOMStringList.length; @docsEditable true */
+  /// @domName DOMStringList.length; @docsEditable true
   final int length;
 
   String operator[](int index) => JS("String", "#[#]", this, index);
@@ -20886,10 +20806,10 @@ class _DOMStringList implements JavaScriptIndexingBehavior, List<String> native 
 
   // -- end List<String> mixins.
 
-  /** @domName DOMStringList.contains; @docsEditable true */
+  /// @domName DOMStringList.contains; @docsEditable true
   bool contains(String string) native;
 
-  /** @domName DOMStringList.item; @docsEditable true */
+  /// @domName DOMStringList.item; @docsEditable true
   String item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20917,7 +20837,7 @@ class _DataViewFactoryProvider {
 /// @domName EntryArray; @docsEditable true
 class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*EntryArray" {
 
-  /** @domName EntryArray.length; @docsEditable true */
+  /// @domName EntryArray.length; @docsEditable true
   final int length;
 
   Entry operator[](int index) => JS("Entry", "#[#]", this, index);
@@ -21005,7 +20925,7 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
 
   // -- end List<Entry> mixins.
 
-  /** @domName EntryArray.item; @docsEditable true */
+  /// @domName EntryArray.item; @docsEditable true
   Entry item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21016,7 +20936,7 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
 /// @domName EntryArraySync; @docsEditable true
 class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> native "*EntryArraySync" {
 
-  /** @domName EntryArraySync.length; @docsEditable true */
+  /// @domName EntryArraySync.length; @docsEditable true
   final int length;
 
   EntrySync operator[](int index) => JS("EntrySync", "#[#]", this, index);
@@ -21104,7 +21024,7 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
 
   // -- end List<EntrySync> mixins.
 
-  /** @domName EntryArraySync.item; @docsEditable true */
+  /// @domName EntryArraySync.item; @docsEditable true
   EntrySync item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21124,7 +21044,7 @@ class _EventSourceFactoryProvider {
 /// @domName FileList; @docsEditable true
 class _FileList implements JavaScriptIndexingBehavior, List<File> native "*FileList" {
 
-  /** @domName FileList.length; @docsEditable true */
+  /// @domName FileList.length; @docsEditable true
   final int length;
 
   File operator[](int index) => JS("File", "#[#]", this, index);
@@ -21212,7 +21132,7 @@ class _FileList implements JavaScriptIndexingBehavior, List<File> native "*FileL
 
   // -- end List<File> mixins.
 
-  /** @domName FileList.item; @docsEditable true */
+  /// @domName FileList.item; @docsEditable true
   File item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21252,7 +21172,7 @@ class _FormDataFactoryProvider {
 /// @domName GamepadList; @docsEditable true
 class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "*GamepadList" {
 
-  /** @domName GamepadList.length; @docsEditable true */
+  /// @domName GamepadList.length; @docsEditable true
   final int length;
 
   Gamepad operator[](int index) => JS("Gamepad", "#[#]", this, index);
@@ -21340,7 +21260,7 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
 
   // -- end List<Gamepad> mixins.
 
-  /** @domName GamepadList.item; @docsEditable true */
+  /// @domName GamepadList.item; @docsEditable true
   Gamepad item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21404,7 +21324,7 @@ class _MediaStreamFactoryProvider {
 /// @domName MediaStreamList; @docsEditable true
 class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> native "*MediaStreamList" {
 
-  /** @domName MediaStreamList.length; @docsEditable true */
+  /// @domName MediaStreamList.length; @docsEditable true
   final int length;
 
   MediaStream operator[](int index) => JS("MediaStream", "#[#]", this, index);
@@ -21492,7 +21412,7 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
 
   // -- end List<MediaStream> mixins.
 
-  /** @domName MediaStreamList.item; @docsEditable true */
+  /// @domName MediaStreamList.item; @docsEditable true
   MediaStream item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21538,7 +21458,7 @@ class _MutationObserverFactoryProvider {
 /// @domName NodeList; @docsEditable true
 class _NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeList" {
 
-  /** @domName NodeList.length; @docsEditable true */
+  /// @domName NodeList.length; @docsEditable true
   final int length;
 
   Node operator[](int index) => JS("Node", "#[#]", this, index);
@@ -21626,7 +21546,7 @@ class _NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeL
 
   // -- end List<Node> mixins.
 
-  /** @domName NodeList.item; @docsEditable true */
+  /// @domName NodeList.item; @docsEditable true
   Node _item(int index) native "item";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21755,7 +21675,7 @@ class _SpeechGrammarListFactoryProvider {
 /// @domName SpeechInputResultList; @docsEditable true
 class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechInputResult> native "*SpeechInputResultList" {
 
-  /** @domName SpeechInputResultList.length; @docsEditable true */
+  /// @domName SpeechInputResultList.length; @docsEditable true
   final int length;
 
   SpeechInputResult operator[](int index) => JS("SpeechInputResult", "#[#]", this, index);
@@ -21843,7 +21763,7 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
 
   // -- end List<SpeechInputResult> mixins.
 
-  /** @domName SpeechInputResultList.item; @docsEditable true */
+  /// @domName SpeechInputResultList.item; @docsEditable true
   SpeechInputResult item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21863,7 +21783,7 @@ class _SpeechRecognitionFactoryProvider {
 /// @domName SpeechRecognitionResultList; @docsEditable true
 class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<SpeechRecognitionResult> native "*SpeechRecognitionResultList" {
 
-  /** @domName SpeechRecognitionResultList.length; @docsEditable true */
+  /// @domName SpeechRecognitionResultList.length; @docsEditable true
   final int length;
 
   SpeechRecognitionResult operator[](int index) => JS("SpeechRecognitionResult", "#[#]", this, index);
@@ -21951,7 +21871,7 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
 
   // -- end List<SpeechRecognitionResult> mixins.
 
-  /** @domName SpeechRecognitionResultList.item; @docsEditable true */
+  /// @domName SpeechRecognitionResultList.item; @docsEditable true
   SpeechRecognitionResult item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21962,7 +21882,7 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
 /// @domName StyleSheetList; @docsEditable true
 class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> native "*StyleSheetList" {
 
-  /** @domName StyleSheetList.length; @docsEditable true */
+  /// @domName StyleSheetList.length; @docsEditable true
   final int length;
 
   StyleSheet operator[](int index) => JS("StyleSheet", "#[#]", this, index);
@@ -22050,7 +21970,7 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
 
   // -- end List<StyleSheet> mixins.
 
-  /** @domName StyleSheetList.item; @docsEditable true */
+  /// @domName StyleSheetList.item; @docsEditable true
   StyleSheet item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22085,7 +22005,7 @@ class _TextTrackCueFactoryProvider {
 /// @domName WebKitAnimationList; @docsEditable true
 class _WebKitAnimationList implements JavaScriptIndexingBehavior, List<Animation> native "*WebKitAnimationList" {
 
-  /** @domName WebKitAnimationList.length; @docsEditable true */
+  /// @domName WebKitAnimationList.length; @docsEditable true
   final int length;
 
   Animation operator[](int index) => JS("Animation", "#[#]", this, index);
@@ -22173,7 +22093,7 @@ class _WebKitAnimationList implements JavaScriptIndexingBehavior, List<Animation
 
   // -- end List<Animation> mixins.
 
-  /** @domName WebKitAnimationList.item; @docsEditable true */
+  /// @domName WebKitAnimationList.item; @docsEditable true
   Animation item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

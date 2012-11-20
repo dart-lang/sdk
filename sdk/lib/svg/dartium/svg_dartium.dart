@@ -1375,9 +1375,7 @@ class DescElement extends SvgElement implements Stylable, LangSpace {
 class ElementInstance extends EventTarget {
   ElementInstance.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ElementInstanceEvents get on =>
     new ElementInstanceEvents(this);
 
