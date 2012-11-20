@@ -77,8 +77,6 @@ indexeddb_4_test: Fail
 inner_frame_test: Skip
 isolates_test: Skip
 js_interop_2_test: Fail
-js_interop_3_test: Fail
-js_interop_4_test: Fail
 localstorage_test: Fail
 measurement_test: Fail, Pass
 messageevent_test: Fail
@@ -137,8 +135,6 @@ indexeddb_2_test: Fail
 indexeddb_3_test: Fail
 indexeddb_4_test: Fail
 js_interop_2_test: Fail
-js_interop_3_test: Fail
-js_interop_4_test: Fail
 messageevent_test: Fail
 mutationobserver_test: Fail
 postmessage_structured_test: Skip   # BUG(5685): times out.
