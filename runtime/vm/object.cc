@@ -2043,6 +2043,11 @@ void Class::set_allocation_stub(const Code& value) const {
 }
 
 
+bool Class::IsListClass() const {
+  return raw() == Isolate::Current()->object_store()->list_class();
+}
+
+
 bool Class::IsCanonicalSignatureClass() const {
   const Function& function = Function::Handle(signature_function());
   return (!function.IsNull() && (function.signature_class() == raw()));

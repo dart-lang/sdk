@@ -8697,7 +8697,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
   }
   ASSERT(type_arguments.IsNull() || (type_arguments.Length() == 1));
   const Class& array_class = Class::Handle(
-      Type::Handle(Type::ArrayType()).type_class());
+      Isolate::Current()->object_store()->array_class());
   Type& type = Type::ZoneHandle(
       Type::New(array_class, type_arguments, type_pos));
   type ^= ClassFinalizer::FinalizeType(

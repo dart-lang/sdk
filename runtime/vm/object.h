@@ -605,6 +605,9 @@ class Class : public Object {
   // Check if this class represents the 'Object' class.
   bool IsObjectClass() const { return id() == kInstanceCid; }
 
+  // Check if this class represents the 'List' class.
+  bool IsListClass() const;
+
   // Check if this class represents a signature class.
   bool IsSignatureClass() const {
     return signature_function() != Object::null();
