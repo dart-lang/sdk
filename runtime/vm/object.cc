@@ -4195,6 +4195,30 @@ RawString* Function::QualifiedUserVisibleName() const {
 }
 
 
+// Construct fingerprint from token stream. The token stream contains also
+// arguments.
+intptr_t Function::SourceFingerprint() const {
+  intptr_t result = String::Handle(Signature()).Hash();
+  TokenStream::Iterator tokens_iterator(TokenStream::Handle(
+      Script::Handle(script()).tokens()), token_pos());
+  Object& obj = Object::Handle();
+  String& literal = String::Handle();
+  while (tokens_iterator.CurrentPosition() < end_token_pos()) {
+    intptr_t val = 0;
+    obj = tokens_iterator.CurrentToken();
+    if (obj.IsSmi()) {
+      val = Smi::Cast(obj).Value();
+    } else {
+      literal = tokens_iterator.MakeLiteralToken(obj);
+      val = literal.Hash();
+    }
+    result = 31 * result + val;
+    tokens_iterator.Advance();
+  }
+  return result;
+}
+
+
 const char* Function::ToCString() const {
   const char* static_str = is_static() ? " static" : "";
   const char* abstract_str = is_abstract() ? " abstract" : "";

@@ -5,6 +5,7 @@
 #include "platform/assert.h"
 #include "vm/assembler.h"
 #include "vm/bigint_operations.h"
+#include "vm/class_finalizer.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -3089,6 +3090,64 @@ TEST_CASE(WeakProperty_ClearTwoShared_OldSpace) {
   EXPECT(weak1.value() == Object::null());
   EXPECT(weak2.key() == Object::null());
   EXPECT(weak2.value() == Object::null());
+}
+
+
+static RawFunction* GetFunction(const Class& cls, const char* name) {
+  const Function& result = Function::Handle(cls.LookupDynamicFunction(
+      String::Handle(String::New(name))));
+  ASSERT(!result.IsNull());
+  return result.raw();
+}
+
+
+TEST_CASE(FunctionSourceFingerprint) {
+  const char* kScriptChars =
+      "class A {\n"
+      "  void test1(int a) {\n"
+      "    return a > 1 ? a + 1 : a;\n"
+      "  }\n"
+      "  void test2(int a) {\n"
+      "    return a > 1 ? a + 1 : a;\n"
+      "  }\n"
+      "  void test3(a) {\n"
+      "    return a > 1 ? a + 1 : a;\n"
+      "  }\n"
+      "  void test4(b) {\n"
+      "    return b > 1 ? b + 1 : b;\n"
+      "  }\n"
+      "  void test5(b) {\n"
+      "    return b > 1 ? b - 1 : b;\n"
+      "  }\n"
+      "  void test6(b) {\n"
+      "    return b > 1 ? b - 2 : b;\n"
+      "  }\n"
+      "  void test7(b) {\n"
+      "    return b > 1 ?\n"
+      "        b - 2 : b;\n"
+      "  }\n"
+      "}";
+  TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT(ClassFinalizer::FinalizePendingClasses());
+  const String& name = String::Handle(String::New(TestCase::url()));
+  const Library& lib = Library::Handle(Library::LookupLibrary(name));
+  EXPECT(!lib.IsNull());
+
+  const Class& class_a = Class::Handle(
+      lib.LookupClass(String::Handle(Symbols::New("A"))));
+  const Function& test1 = Function::Handle(GetFunction(class_a, "test1"));
+  const Function& test2 = Function::Handle(GetFunction(class_a, "test2"));
+  const Function& test3 = Function::Handle(GetFunction(class_a, "test3"));
+  const Function& test4 = Function::Handle(GetFunction(class_a, "test4"));
+  const Function& test5 = Function::Handle(GetFunction(class_a, "test5"));
+  const Function& test6 = Function::Handle(GetFunction(class_a, "test6"));
+  const Function& test7 = Function::Handle(GetFunction(class_a, "test7"));
+  EXPECT_EQ(test1.SourceFingerprint(), test2.SourceFingerprint());
+  EXPECT_NE(test1.SourceFingerprint(), test3.SourceFingerprint());
+  EXPECT_NE(test3.SourceFingerprint(), test4.SourceFingerprint());
+  EXPECT_NE(test4.SourceFingerprint(), test5.SourceFingerprint());
+  EXPECT_NE(test5.SourceFingerprint(), test6.SourceFingerprint());
+  EXPECT_EQ(test6.SourceFingerprint(), test7.SourceFingerprint());
 }
 
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).

@@ -1436,6 +1436,10 @@ class Function : public Object {
                                          const Function& parent,
                                          intptr_t token_pos);
 
+  // Slow function, use in asserts to track changes in important library
+  // functions.
+  intptr_t SourceFingerprint() const;
+
   static const int kCtorPhaseInit = 1 << 0;
   static const int kCtorPhaseBody = 1 << 1;
   static const int kCtorPhaseAll = (kCtorPhaseInit | kCtorPhaseBody);
