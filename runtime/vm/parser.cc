@@ -6740,9 +6740,7 @@ String* Parser::ExpectIdentifier(const char* msg) {
 
 
 bool Parser::IsLiteral(const char* literal) {
-  const uint8_t* characters = reinterpret_cast<const uint8_t*>(literal);
-  intptr_t len = strlen(literal);
-  return IsIdentifier() && CurrentLiteral()->Equals(characters, len);
+  return IsIdentifier() && CurrentLiteral()->Equals(literal);
 }
 
 
