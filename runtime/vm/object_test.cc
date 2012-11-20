@@ -1312,7 +1312,8 @@ TEST_CASE(StringFromUtf8Literal) {
     }
   }
 
-  // Create a SMP 2-byte string from a UTF-8 string literal.
+  // Create a 2-byte string with supplementary characters from a UTF-8
+  // string literal.
   {
     const char* src =
         "\xF0\x9D\x91\xA0\xF0\x9D\x91\xA1"

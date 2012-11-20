@@ -10168,7 +10168,7 @@ RawString* String::New(const uint8_t* utf8_array,
     }
     return strobj.raw();
   }
-  ASSERT((type == Utf8::kBMP) || (type == Utf8::kSMP));
+  ASSERT((type == Utf8::kBMP) || (type == Utf8::kSupplementary));
   const String& strobj = String::Handle(TwoByteString::New(len, space));
   NoGCScope no_gc;
   Utf8::DecodeToUTF16(utf8_array, array_len,

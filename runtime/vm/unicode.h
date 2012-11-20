@@ -15,9 +15,9 @@ class String;
 class Utf8 : AllStatic {
  public:
   enum Type {
-    kLatin1 = 0,  // Latin-1 character set.
-    kBMP,  // Basic Multilingual Plane.
-    kSMP,  // Supplementary Multilingual Plane.
+    kLatin1 = 0,  // Latin-1 code point [U+0000, U+00FF].
+    kBMP,  // Basic Multilingual Plane code point [U+0000, U+FFFF].
+    kSupplementary,  // Supplementary code point [U+010000, U+10FFFF].
   };
 
   static const intptr_t kMaxOneByteChar   = 0x7F;

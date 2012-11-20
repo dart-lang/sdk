@@ -112,7 +112,7 @@ RawString* Symbols::New(const char* str) {
     Utf8::DecodeToLatin1(utf8_array, str_len, characters, len);
     return New(characters, len);
   }
-  ASSERT((type == Utf8::kBMP) || (type == Utf8::kSMP));
+  ASSERT((type == Utf8::kBMP) || (type == Utf8::kSupplementary));
   uint16_t* characters = zone->Alloc<uint16_t>(len);
   Utf8::DecodeToUTF16(utf8_array, str_len, characters, len);
   return New(characters, len);

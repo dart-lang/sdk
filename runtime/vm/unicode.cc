@@ -64,7 +64,7 @@ static bool IsLatin1SequenceStart(uint8_t code_unit) {
 }
 
 
-static bool IsSmpSequenceStart(uint8_t code_unit) {
+static bool IsSupplementarySequenceStart(uint8_t code_unit) {
   // Check is codepoint is >= U+10000.
   return (code_unit >= 0xF0);
 }
@@ -94,8 +94,8 @@ intptr_t Utf8::CodePointCount(const uint8_t* utf8_array,
       ++len;
     }
     if (!IsLatin1SequenceStart(code_unit)) {  // > U+00FF
-      if (IsSmpSequenceStart(code_unit)) {  // >= U+10000
-        char_type = kSMP;
+      if (IsSupplementarySequenceStart(code_unit)) {  // >= U+10000
+        char_type = kSupplementary;
         ++len;
       } else if (char_type == kLatin1) {
         char_type = kBMP;
@@ -272,12 +272,12 @@ bool Utf8::DecodeToUTF16(const uint8_t* utf8_array,
   intptr_t num_bytes;
   for (; (i < array_len) && (j < len); i += num_bytes, ++j) {
     int32_t ch;
-    bool is_smp = IsSmpSequenceStart(utf8_array[i]);
+    bool is_supplementary = IsSupplementarySequenceStart(utf8_array[i]);
     num_bytes = Utf8::Decode(&utf8_array[i], (array_len - i), &ch);
     if (ch == -1) {
       return false;  // invalid input
     }
-    if (is_smp) {
+    if (is_supplementary) {
       Utf16::Encode(ch, &dst[j]);
       j = j + 1;
     } else {
