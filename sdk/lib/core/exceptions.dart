@@ -52,25 +52,6 @@ class FormatException implements Exception {
 }
 
 
-class NullPointerException implements Exception {
-  const NullPointerException([this.functionName, this.arguments = const []]);
-  String toString() {
-    if (functionName == null) {
-      return exceptionName;
-    } else {
-      return "$exceptionName : method: '$functionName'\n"
-          "Receiver: null\n"
-          "Arguments: $arguments";
-    }
-  }
-
-  String get exceptionName => "NullPointerException";
-
-  final String functionName;
-  final List arguments;
-}
-
-
 class IllegalJSRegExpException implements Exception {
   const IllegalJSRegExpException(String this._pattern, String this._errmsg);
   String toString() => "IllegalJSRegExpException: '$_pattern' '$_errmsg'";

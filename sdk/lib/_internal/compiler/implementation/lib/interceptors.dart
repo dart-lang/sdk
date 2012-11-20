@@ -41,7 +41,6 @@ get$length(var receiver) {
 
 set$length(receiver, newLength) {
   if (isJsArray(receiver)) {
-    checkNull(newLength); // TODO(ahe): This is not specified but co19 tests it.
     if (newLength is !int) throw new ArgumentError(newLength);
     if (newLength < 0) throw new RangeError.value(newLength);
     checkGrowable(receiver, 'set length');

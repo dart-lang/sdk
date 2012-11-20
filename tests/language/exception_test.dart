@@ -21,11 +21,11 @@ class ExceptionTest {
 
     bool correctCatch = false;
     try {
-      // This throws NullPointerException.
+      // This throws NullThrownError
       throw null;
     } on String catch (s) {
       correctCatch = false;
-    } on NullPointerException catch (e) {
+    } on NullThrownError catch (e) {
       correctCatch = true;
     } catch (x) {
       correctCatch = false;

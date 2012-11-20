@@ -6,42 +6,42 @@
 main() {
   try {
     RegExp ex = new RegExp(null);
-    Expect.fail("Expected: NullPointerException got: no exception");
-  } on Exception catch (ex) {
-    if (!(ex is NullPointerException)) {
-      Expect.fail("Expected: NullPointerException got: ${ex}");
+    Expect.fail("Expected: ArgumentError got: no exception");
+  } catch (ex) {
+    if (!(ex is ArgumentError)) {
+      Expect.fail("Expected: ArgumentError got: ${ex}");
     }
   }
   try {
     new RegExp(r"^\w+$").hasMatch(null);
-    Expect.fail("Expected: NullPointerException got: no exception");
-  } on Exception catch (ex) {
-    if (!(ex is NullPointerException)) {
-      Expect.fail("Expected: NullPointerException got: ${ex}");
+    Expect.fail("Expected: ArgumentError got: no exception");
+  } catch (ex) {
+    if (!(ex is ArgumentError)) {
+      Expect.fail("Expected: ArgumentError got: ${ex}");
     }
   }
   try {
     new RegExp(r"^\w+$").firstMatch(null);
-    Expect.fail("Expected: NullPointerException got: no exception");
-  } on Exception catch (ex) {
-    if (!(ex is NullPointerException)) {
-      Expect.fail("Expected: NullPointerException got: ${ex}");
+    Expect.fail("Expected: ArgumentError got: no exception");
+  } catch (ex) {
+    if (!(ex is ArgumentError)) {
+      Expect.fail("Expected: ArgumentError got: ${ex}");
     }
   }
   try {
     new RegExp(r"^\w+$").allMatches(null);
-    Expect.fail("Expected: NullPointerException got: no exception");
-  } on Exception catch (ex) {
-    if (!(ex is NullPointerException)) {
-      Expect.fail("Expected: NullPointerException got: ${ex}");
+    Expect.fail("Expected: ArgumentError got: no exception");
+  } catch (ex) {
+    if (!(ex is ArgumentError)) {
+      Expect.fail("Expected: ArgumentError got: ${ex}");
     }
   }
   try {
     new RegExp(r"^\w+$").stringMatch(null);
-    Expect.fail("Expected: NullPointerException got: no exception");
-  } on Exception catch (ex) {
-    if (!(ex is NullPointerException)) {
-      Expect.fail("Expected: NullPointerException got: ${ex}");
+    Expect.fail("Expected: ArgumentError got: no exception");
+  } catch (ex) {
+    if (!(ex is ArgumentError)) {
+      Expect.fail("Expected: ArgumentError got: ${ex}");
     }
   }
 }

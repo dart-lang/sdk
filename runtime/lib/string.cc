@@ -144,10 +144,6 @@ DEFINE_NATIVE_ENTRY(Strings_concatAll, 1) {
   Instance& elem = Instance::Handle();
   for (intptr_t i = 0; i < strings.Length(); i++) {
     elem ^= strings.At(i);
-    if (elem.IsNull()) {
-      GrowableArray<const Object*> args;
-      Exceptions::ThrowByType(Exceptions::kNullPointer, args);
-    }
     if (!elem.IsString()) {
       GrowableArray<const Object*> args;
       args.Add(&elem);

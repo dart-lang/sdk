@@ -1347,12 +1347,6 @@ DEFINE_RUNTIME_ENTRY(ReportObjectNotClosure, 2) {
   const Array& function_args = Array::CheckedHandle(arguments.ArgAt(1));
   const String& function_name = String::Handle(Symbols::Call());
   GrowableArray<const Object*> dart_arguments(5);
-  if (instance.IsNull()) {
-    dart_arguments.Add(&function_name);
-    dart_arguments.Add(&function_args);
-    Exceptions::ThrowByType(Exceptions::kNullPointer, dart_arguments);
-    UNREACHABLE();
-  }
 
   // TODO(regis): Resolve and invoke "call" method, if existing.
 

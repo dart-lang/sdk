@@ -62,7 +62,7 @@ class ExpandoTest {
   static testIllegal() {
     Expando<int> expando = new Expando<int>();
     Expect.throws(() => expando[null], (exception)
-                  => exception is NullPointerException);
+                  => exception is ArgumentError);
     Expect.throws(() => expando['string'], (exception)
                   => exception is ArgumentError);
     Expect.throws(() => expando['string'], (exception)

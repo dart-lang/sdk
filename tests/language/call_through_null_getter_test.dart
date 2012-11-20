@@ -19,57 +19,39 @@ class CallThroughNullGetterTest {
 
   static void testTopLevel() {
     topLevel = null;
-    expectThrowsNullPointerException(() { topLevel(); });
-    expectThrowsNullPointerException(() { (topLevel)(); });
-    expectThrowsNullPointerException(() { TOP_LEVEL_NULL(); });
-    expectThrowsNullPointerException(() { (TOP_LEVEL_NULL)(); });
+    expectThrowsNoSuchMethodError(() { topLevel(); });
+    expectThrowsNoSuchMethodError(() { (topLevel)(); });
+    expectThrowsNoSuchMethodError(() { TOP_LEVEL_NULL(); });
+    expectThrowsNoSuchMethodError(() { (TOP_LEVEL_NULL)(); });
   }
 
   static void testField() {
     A a = new A();
 
     a.field = null;
-    expectThrowsNullPointerException(() { a.field(); });
-    expectThrowsNullPointerException(() { (a.field)(); });
+    expectThrowsNoSuchMethodError(() { a.field(); });
+    expectThrowsNoSuchMethodError(() { (a.field)(); });
   }
 
   static void testGetter() {
     A a = new A();
 
     a.field = null;
-    expectThrowsNullPointerException(() { a.getter(); });
-    expectThrowsNullPointerException(() { (a.getter)(); });
+    expectThrowsNoSuchMethodError(() { a.getter(); });
+    expectThrowsNoSuchMethodError(() { (a.getter)(); });
   }
 
   static void testMethod() {
     A a = new A();
 
     a.field = null;
-    expectThrowsNullPointerException(() { a.method()(); });
+    expectThrowsNoSuchMethodError(() { a.method()(); });
   }
 
-  static void expectThrowsNullPointerException(fn) {
-    var exception = catchException(fn);
-    if (exception is! NullPointerException) {
-      Expect.fail("Wrong exception.  Expected: NullPointerException"
-          " got: ${exception}");
-    }
+  static void expectThrowsNoSuchMethodError(fn) {
+    Expect.throws(fn, (e) => e is NoSuchMethodError,
+                  "Should throw NoSuchMethodError");
   }
-
-  static catchException(fn) {
-    bool caught = false;
-    var result = null;
-    try {
-      fn();
-      Expect.equals(true, false);  // Shouldn't reach this.
-    } catch (e) {
-      caught = true;
-      result = e;
-    }
-    Expect.equals(true, caught);
-    return result;
-  }
-
 }
 
 

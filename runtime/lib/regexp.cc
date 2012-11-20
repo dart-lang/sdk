@@ -12,19 +12,9 @@
 
 namespace dart {
 
-static void CheckAndThrowExceptionIfNull(const Instance& obj) {
-  if (obj.IsNull()) {
-    GrowableArray<const Object*> args;
-    Exceptions::ThrowByType(Exceptions::kNullPointer, args);
-  }
-}
-
-
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_factory, 4) {
   ASSERT(AbstractTypeArguments::CheckedHandle(
       arguments->NativeArgAt(0)).IsNull());
-  const Instance& arg1 = Instance::CheckedHandle(arguments->NativeArgAt(1));
-  CheckAndThrowExceptionIfNull(arg1);
   GET_NATIVE_ARGUMENT(String, pattern, arguments->NativeArgAt(1));
   GET_NATIVE_ARGUMENT(Instance, handle_multi_line, arguments->NativeArgAt(2));
   GET_NATIVE_ARGUMENT(Instance, handle_ignore_case, arguments->NativeArgAt(3));
@@ -75,8 +65,6 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_getGroupCount, 1) {
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_ExecuteMatch, 3) {
   const JSRegExp& regexp = JSRegExp::CheckedHandle(arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
-  const Instance& arg1 = Instance::CheckedHandle(arguments->NativeArgAt(1));
-  CheckAndThrowExceptionIfNull(arg1);
   GET_NATIVE_ARGUMENT(String, str, arguments->NativeArgAt(1));
   GET_NATIVE_ARGUMENT(Smi, start_index, arguments->NativeArgAt(2));
   return Jscre::Execute(regexp, str, start_index.Value());
