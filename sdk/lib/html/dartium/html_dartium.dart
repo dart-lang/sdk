@@ -15636,6 +15636,10 @@ class LocalWindow extends EventTarget implements Window {
   String atob(String string) native "DOMWindow_atob_Callback";
 
 
+  /** @domName DOMWindow.blur */
+  void blur() native "DOMWindow_blur_Callback";
+
+
   /** @domName DOMWindow.btoa */
   String btoa(String string) native "DOMWindow_btoa_Callback";
 
@@ -15670,6 +15674,10 @@ class LocalWindow extends EventTarget implements Window {
 
   /** @domName DOMWindow.find */
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native "DOMWindow_find_Callback";
+
+
+  /** @domName DOMWindow.focus */
+  void focus() native "DOMWindow_focus_Callback";
 
 
   /** @domName DOMWindow.getComputedStyle */
@@ -28661,6 +28669,8 @@ abstract class Window {
   Window get top;
 
   // Methods.
+  void focus();
+  void blur();
   void close();
   void postMessage(var message, String targetOrigin, [List messagePorts = null]);
 }
