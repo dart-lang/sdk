@@ -117,6 +117,8 @@ class JSNumber {
       return JS('String', r'String(#)', this);
     }
   }
+
+  int get hashCode => this & 0x1FFFFFFF;
 }
 
 class JSInt extends JSNumber {
@@ -125,8 +127,11 @@ class JSInt extends JSNumber {
   bool get isEven => (this & 1) == 0;
 
   bool get isOdd => (this & 1) == 1;
+
+  Type get runtimeType => createRuntimeType('int');
 }
 
 class JSDouble extends JSNumber {
   const JSDouble();
+  Type get runtimeType => createRuntimeType('double');
 }

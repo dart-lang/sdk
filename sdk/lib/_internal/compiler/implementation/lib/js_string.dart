@@ -132,4 +132,26 @@ class JSString implements String {
   }
 
   String toString() => this;
+
+  /**
+   * This is the [Jenkins hash function][1] but using masking to keep
+   * values in SMI range.
+   *
+   * [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
+   */
+  int get hashCode {
+    // TODO(ahe): This method shouldn't have to use JS. Update when our
+    // optimizations are smarter.
+    int hash = 0;
+    for (int i = 0; i < length; i++) {
+      hash = 0x1fffffff & (hash + JS('int', r'#.charCodeAt(#)', this, i));
+      hash = 0x1fffffff & (hash + (0x0007ffff & hash) << 10);
+      hash = JS('int', '# ^ (# >> 6)', hash, hash);
+    }
+    hash = 0x1fffffff & (hash + (0x03ffffff & hash) <<  3);
+    hash = JS('int', '# ^ (# >> 11)', hash, hash);
+    return 0x1fffffff & (hash + (0x00003fff & hash) << 15);
+  }
+
+  Type get runtimeType => createRuntimeType('String');
 }

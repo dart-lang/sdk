@@ -78,6 +78,8 @@ class JSFunction implements Function {
 class JSBool implements bool {
   const JSBool();
   String toString() => JS('String', r'String(#)', this);
+  int get hashCode => this ? 0x40377024 : 0xc18c0076;
+  Type get runtimeType => createRuntimeType('bool');
 }
 
 /**
@@ -86,48 +88,6 @@ class JSBool implements bool {
 class JSNull implements Null {
   const JSNull();
   String toString() => 'null';
-}
-
-/**
- * This is the [Jenkins hash function][1] but using masking to keep
- * values in SMI range.
- *
- * [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
- */
-get$hashCode(receiver) {
-  // TODO(ahe): This method shouldn't have to use JS. Update when our
-  // optimizations are smarter.
-  if (receiver == null) return 0;
-  if (receiver is num) return receiver & 0x1FFFFFFF;
-  if (receiver is bool) return receiver ? 0x40377024 : 0xc18c0076;
-  if (isJsArray(receiver)) return Primitives.objectHashCode(receiver);
-  if (receiver is !String) return UNINTERCEPTED(receiver.hashCode);
-  int hash = 0;
-  int length = receiver.length;
-  for (int i = 0; i < length; i++) {
-    hash = 0x1fffffff & (hash + JS('int', r'#.charCodeAt(#)', receiver, i));
-    hash = 0x1fffffff & (hash + (0x0007ffff & hash) << 10);
-    hash = JS('int', '# ^ (# >> 6)', hash, hash);
-  }
-  hash = 0x1fffffff & (hash + (0x03ffffff & hash) <<  3);
-  hash = JS('int', '# ^ (# >> 11)', hash, hash);
-  return 0x1fffffff & (hash + (0x00003fff & hash) << 15);
-}
-
-get$runtimeType(receiver) {
-  if (receiver is int) {
-    return createRuntimeType('int');
-  } else if (receiver is String) {
-    return createRuntimeType('String');
-  } else if (receiver is double) {
-    return createRuntimeType('double');
-  } else if (receiver is bool) {
-    return createRuntimeType('bool');
-  } else if (receiver == null) {
-    return createRuntimeType('Null');
-  } else if (isJsArray(receiver)) {
-    return createRuntimeType('List');
-  } else {
-    return UNINTERCEPTED(receiver.runtimeType);
-  }
+  int get hashCode => 0;
+  Type get runtimeType => createRuntimeType('Null');
 }

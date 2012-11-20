@@ -4,6 +4,21 @@
 
 part of ssa;
 
+/**
+ * A special element for the extra parameter taken by intercepted
+ * methods. We need to override [Element.computeType] because our
+ * optimizers may look at its declared type.
+ */
+class InterceptedElement extends Element {
+  final HType ssaType;
+  InterceptedElement(this.ssaType, Element enclosing)
+      : super(const SourceString('receiver'),
+              ElementKind.PARAMETER,
+              enclosing);
+
+  DartType computeType(Compiler compiler) => ssaType.computeType(compiler);
+}
+
 class Interceptors {
   Compiler compiler;
   Interceptors(Compiler this.compiler);
@@ -424,14 +439,10 @@ class LocalsHandler {
       directLocals[closureData.thisElement] = builder.thisInstruction;
     }
 
+    // If this method is an intercepted method, add the extra
+    // parameter to it, that is the actual receiver.
     ClassElement cls = element.getEnclosingClass();
     if (builder.backend.isInterceptorClass(cls)) {
-      Element parameter = new Element(
-          const SourceString('receiver'), ElementKind.VARIABLE, element);
-      HParameterValue value = new HParameterValue(parameter);
-      builder.graph.entry.addAfter(
-          directLocals[closureData.thisElement], value);
-      directLocals[closureData.thisElement] = value;
       HType type = HType.UNKNOWN;
       if (cls == builder.backend.jsArrayClass) {
         type = HType.READABLE_ARRAY;
@@ -448,6 +459,11 @@ class LocalsHandler {
       } else if (cls == builder.backend.jsBoolClass) {
         type = HType.BOOLEAN;
       }
+      Element parameter = new InterceptedElement(type, element);
+      HParameterValue value = new HParameterValue(parameter);
+      builder.graph.entry.addAfter(
+          directLocals[closureData.thisElement], value);
+      directLocals[closureData.thisElement] = value;
       value.guaranteedType = type;
     }
   }

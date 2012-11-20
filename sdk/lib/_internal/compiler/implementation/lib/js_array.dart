@@ -162,4 +162,8 @@ class JSArray<E> implements List<E> {
   bool get isEmpty => length == 0;
 
   String toString() => Collections.collectionToString(this);
+
+  int get hashCode => Primitives.objectHashCode(receiver);
+
+  Type get runtimeType => createRuntimeType('List');
 }
