@@ -168,7 +168,8 @@ patch class Socket {
 }
 
 patch class TlsSocket {
-  patch static void setCertificateDatabase(String pkcertDirectory) {
+  patch static void setCertificateDatabase(String certificateDatabase,
+                                           [String password]) {
     throw new UnsupportedError("TlsSocket.setCertificateDatabase");
   }
 }
