@@ -184,7 +184,7 @@ abstract class _ByteArrayBase {
   }
 
   void sort([Comparator compare = Comparable.compare]) {
-    _Sort.sort(this, compare);
+    coreSort(this, compare);
   }
 
   int indexOf(element, [int start = 0]) {
@@ -1666,7 +1666,7 @@ class _ByteArrayViewBase {
   }
 
   void sort([Comparator compare = Comparable.compare]) {
-    _Sort.sort(this, compare);
+    coreSort(this, compare);
   }
 
   int indexOf(element, [int start = 0]) {
