@@ -16,12 +16,12 @@ class BailoutInfo {
  */
 class Environment {
   final Set<HInstruction> lives;
-  final Set<HBasicBlock> loopMarkers;
+  final List<HBasicBlock> loopMarkers;
   Environment() : lives = new Set<HInstruction>(),
-                  loopMarkers = new Set<HBasicBlock>();
+                  loopMarkers = new List<HBasicBlock>();
   Environment.from(Environment other)
     : lives = new Set<HInstruction>.from(other.lives),
-      loopMarkers = new Set<HBasicBlock>.from(other.loopMarkers);
+      loopMarkers = new List<HBasicBlock>.from(other.loopMarkers);
 
   void remove(HInstruction instruction) {
     lives.remove(instruction);
@@ -48,17 +48,8 @@ class Environment {
     }
   }
 
-  void addLoopMarker(HBasicBlock block) {
-    loopMarkers.add(block);
-  }
-
-  void removeLoopMarker(HBasicBlock block) {
-    loopMarkers.remove(block);
-  }
-
   void addAll(Environment other) {
     lives.addAll(other.lives);
-    loopMarkers.addAll(other.loopMarkers);
   }
 
   bool get isEmpty => lives.isEmpty && loopMarkers.isEmpty;
@@ -257,10 +248,15 @@ class SsaEnvironmentBuilder extends HBaseVisitor implements OptimizationPhase {
   final Map<HBailoutTarget, Environment> capturedEnvironments;
   final Map<HBasicBlock, Environment> liveInstructions;
   Environment environment;
+  /**
+   * The set of current loop headers that dominate the current block.
+   */
+  Set<HBasicBlock> loopMarkers;
 
   SsaEnvironmentBuilder(Compiler this.compiler)
     : capturedEnvironments = new Map<HBailoutTarget, Environment>(),
-      liveInstructions = new Map<HBasicBlock, Environment>();
+      liveInstructions = new Map<HBasicBlock, Environment>(),
+      loopMarkers = new Set<HBasicBlock>();
 
 
   void visitGraph(HGraph graph) {
@@ -290,9 +286,9 @@ class SsaEnvironmentBuilder extends HBaseVisitor implements OptimizationPhase {
     // in this case {x}.
     capturedEnvironments.forEach((ignoredInstruction, env) {
       env.loopMarkers.forEach((HBasicBlock header) {
-        env.removeLoopMarker(header);
         env.addAll(liveInstructions[header]);
       });
+      env.loopMarkers.clear();
     });
   }
 
@@ -310,7 +306,8 @@ class SsaEnvironmentBuilder extends HBaseVisitor implements OptimizationPhase {
         // If we haven't computed the liveInstructions of that successor, we
         // know it must be a loop header.
         assert(successor.isLoopHeader());
-        environment.addLoopMarker(successor);
+        assert(!block.isLoopHeader());
+        loopMarkers.add(successor);
       }
 
       int index = successor.predecessors.indexOf(block);
@@ -318,6 +315,15 @@ class SsaEnvironmentBuilder extends HBaseVisitor implements OptimizationPhase {
         environment.add(phi.inputs[index]);
       }
     }
+
+    if (block.isLoopHeader()) {
+      loopMarkers.remove(block);
+    }
+
+    // If the block is a loop header, we're adding all [loopMarkers]
+    // after removing it from the list of [loopMarkers], because
+    // it will just recompute the loop phis.
+    environment.loopMarkers.addAll(loopMarkers);
 
     // Iterate over all instructions to remove an instruction from the
     // environment and add its inputs.
@@ -331,12 +337,6 @@ class SsaEnvironmentBuilder extends HBaseVisitor implements OptimizationPhase {
     // phis will be put in the environment of the predecessors.
     for (HPhi phi = block.phis.first; phi != null; phi = phi.next) {
       environment.remove(phi);
-    }
-
-    // If the block is a loop header, we can remove the loop marker,
-    // because it will just recompute the loop phis.
-    if (block.isLoopHeader()) {
-      environment.removeLoopMarker(block);
     }
 
     // Finally save the liveInstructions of that block.
