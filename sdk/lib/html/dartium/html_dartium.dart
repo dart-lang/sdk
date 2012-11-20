@@ -15385,7 +15385,7 @@ class LocalWindow extends EventTarget implements Window {
    * registered under [name].
    */
   lookupPort(String name) {
-    var port = JSON.parse(localStorage['dart-port:$name']);
+    var port = JSON.parse(document.documentElement.attributes['dart-port:$name']);
     return _deserialize(port);
   }
 
@@ -15396,7 +15396,7 @@ class LocalWindow extends EventTarget implements Window {
    */
   registerPort(String name, var port) {
     var serialized = _serialize(port);
-    localStorage['dart-port:$name'] = JSON.stringify(serialized);
+    document.documentElement.attributes['dart-port:$name'] = JSON.stringify(serialized);
   }
 
   LocalWindow.internal(): super.internal();
