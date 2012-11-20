@@ -177,14 +177,10 @@ def main():
   revisions = parse_args()
   git_user = runs_git()
   if has_new_code(git_user):
-    if git_user:
-      maybe_fail('Your tree has local modifications! Move to a clean tree and '
-          'try running this script again.')
-    else:
-      maybe_fail('WARNING: This checkout has local modifications!! This could '
-           'result in a CL that is not just a revert and/or you could lose your'
-           ' local changes! Are you **SURE** you want to continue? ',
-         user_input=True)
+    maybe_fail('WARNING: This checkout has local modifications!! This could '
+         'result in a CL that is not just a revert and/or you could lose your'
+         ' local changes! Are you **SURE** you want to continue? ',
+       user_input=True)
   if git_user:
     run_cmd(['git', 'cl', 'rebase'])
   run_cmd(['gclient', 'sync'])
