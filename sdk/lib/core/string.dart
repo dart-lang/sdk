@@ -4,103 +4,34 @@
 
 /**
  * The String class represents character strings. Strings are
- * immutable. A string is represented by a list of 16-bit UTF-16
- * code units accessible through the [codeUnitAt] or the [codeUnits]
- * methods.  The corresponding Unicode code points are available with
- * [charCodeAt] or the [charCodes] method.
+ * immutable. A string is represented by a list of 32-bit Unicode
+ * scalar character codes accessible through the [charCodeAt] or the
+ * [charCodes] method.
  */
 abstract class String implements Comparable, Pattern, Sequence<String> {
-  // Unicode does not allow for code points above this limit.
-  static const int MAX_CODE_POINT = 0x10ffff;
-  // A Dart string is represented by UTF-16 code units which must be <= 0xffff.
-  static const int MAX_CODE_UNIT = 0xffff;
-  // Unicode does not allow for code points in this range.
-  static const int UNICODE_RESERVED_AREA_START = 0xd800;
-  static const int UNICODE_RESERVED_AREA_END = 0xdfff;
-  // Unicode code points above this limit are coded as two code units in Dart's
-  // UTF-16 string.
-  static const int SUPPLEMENTARY_CODE_POINT_BASE = 0x10000;
-
   /**
-   * Allocates a new String for the specified 21 bit Unicode [codePoints].
-   * Throws an ArgumentError if any of the codePoints are not ints between 0 and
-   * MAX_CODE_POINT.  Also throws an ArgumentError if any of the code points
-   * are in the area reserved for UTF-16 surrogate pairs.
+   * Allocates a new String for the specified [charCodes].
    */
-  factory String.fromCharCodes(List<int> charCodes) {
-    int pairs = 0;
-    // There is some duplication of constants here relative to the ones in
-    // lib/utf/utf16.dart because we don't want core to depend on the utf
-    // library.
-    const int MASK = 0x3ff;
-    const int LEAD_SURROGATE_BASE = UNICODE_RESERVED_AREA_START;
-    const int TRAIL_SURROGATE_BASE = 0xdc00;
-    for (var code in charCodes) {
-      if (code is !int || code < 0) throw new ArgumentError(charCodes);
-      if (code >= UNICODE_RESERVED_AREA_START) {
-        if (code > MAX_CODE_UNIT) {
-          pairs++;
-        }
-        if (code <= UNICODE_RESERVED_AREA_END || code > MAX_CODE_POINT) {
-          // No surrogates or out-of-range code points allowed in the input.
-          throw new ArgumentError(charCodes);
-        }
-      }
-    }
-    // Fast case - there are no surrogate pairs.
-    if (pairs == 0) return new String.fromCodeUnits(charCodes);
-    var codeUnits = new List<int>(pairs + charCodes.length);
-    int j = 0;
-    for (int code in charCodes) {
-      if (code >= SUPPLEMENTARY_CODE_POINT_BASE) {
-        codeUnits[j++] = LEAD_SURROGATE_BASE +
-            (((code - SUPPLEMENTARY_CODE_POINT_BASE) >> 10) & MASK);
-        codeUnits[j++] = TRAIL_SURROGATE_BASE + (code & MASK);
-      } else {
-        codeUnits[j++] = code;
-      }
-    }
-    return new String.fromCodeUnits(codeUnits);
-  }
+  external factory String.fromCharCodes(List<int> charCodes);
 
   /**
-   * Allocates a new String for the specified 16 bit UTF-16 [codeUnits].
-   */
-  external factory String.fromCodeUnits(List<int> codeUnits);
-
-  /**
-   * Gets the Unicode character (as [String]) at the given [index].  This
-   * routine can return a single combining character (accent) that would
-   * normally be displayed together with the character it is modifying.
-   * If the index corresponds to a surrogate code unit then a one-code-unit
-   * string is returned containing that unpaired surrogate code unit.
+   * Gets the character (as [String]) at the given [index].
    */
   String operator [](int index);
 
   /**
-   * Gets the 21 bit Unicode code point at the given [index].  If the code units
-   * at index and index + 1 form a valid surrogate pair then this function
-   * returns the non-basic plane code point that they represent.  If the code
-   * unit at index is a trailing surrogate or a leading surrogate that is not
-   * followed by a trailing surrogate then the raw code unit is returned.
+   * Gets the scalar character code at the given [index].
    */
   int charCodeAt(int index);
 
   /**
-   * Gets the 16 bit UTF-16 code unit at the given index.
-   */
-  int codeUnitAt(int index);
-
-
-  /**
-   * The length of the string, measured in UTF-16 code units.
+   * The length of the string.
    */
   int get length;
 
   /**
    * Returns whether the two strings are equal. This method compares
-   * each individual UTF-16 code unit.  No Unicode normalization is
-   * performed (accent composition/decomposition).
+   * each individual scalar character codes of the strings.
    */
   bool operator ==(String other);
 
@@ -145,13 +76,10 @@ abstract class String implements Comparable, Pattern, Sequence<String> {
   String substring(int startIndex, [int endIndex]);
 
   /**
-   * Removes leading and trailing whitespace from a string. If the string
-   * contains leading or trailing whitespace a new string with no leading and
-   * no trailing whitespace is returned. Otherwise, the string itself is
-   * returned.  Whitespace is defined as every Unicode character in the Zs, Zl
-   * and Zp categories (this includes no-break space), the spacing control
-   * characters from 9 to 13 (tab, lf, vtab, ff and cr), and 0xfeff the BOM
-   * character.
+   * Removes leading and trailing whitespace from a string. If the
+   * string contains leading or trailing whitespace a new string with
+   * no leading and no trailing whitespace is returned. Otherwise, the
+   * string itself is returned.
    */
   String trim();
 
@@ -180,21 +108,14 @@ abstract class String implements Comparable, Pattern, Sequence<String> {
   List<String> split(Pattern pattern);
 
   /**
-   * Returns a list of the characters of this string.  No string normalization
-   * is performed so unprecomposed combining characters (accents) may be found
-   * in the list.  Valid surrogate pairs are returned as one string.
+   * Returns a list of the characters of this string.
    */
   List<String> splitChars();
 
   /**
-   * Returns a list of the 21 bit Unicode code points of this string.
+   * Returns a list of the scalar character codes of this string.
    */
   List<int> get charCodes;
-
-  /**
-   * Returns a list of the 16 bit UTF-16 code units of this string.
-   */
-  List<int> get codeUnits;
 
   /**
    * If this string is not already all lower case, returns a new string

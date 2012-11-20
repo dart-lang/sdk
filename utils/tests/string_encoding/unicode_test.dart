@@ -24,24 +24,24 @@ class UnicodeTests extends TestClass {
 
   void registerTests(TestSuite suite) {
     register("testCodepointsToString", testCodepointsToString, suite);
-    register("testStringCharCodes", testStringCharCodes, suite);
-    register("testEmptyStringFromCharCodes", testEmptyStringFromCharCodes, suite);
-    register("testEmptyStringCharCodes", testEmptyStringCharCodes, suite);
+    register("testStringToCodepoints", testStringToCodepoints, suite);
+    register("testEmptyCodepointsToString", testEmptyCodepointsToString, suite);
+    register("testEmptyStringToCodepoints", testEmptyStringToCodepoints, suite);
   }
 
-  void testStringCharCodes() {
-    Expect.listEquals(testCodepoints, testPhrase.charCodes());
+  void testStringToCodepoints() {
+    Expect.listEquals(testCodepoints, stringToCodepoints(testPhrase));
   }
 
   void testCodepointsToString() {
-    Expect.stringEquals(testPhrase, new String.fromCharCodes(testCodepoints));
+    Expect.stringEquals(testPhrase, codepointsToString(testCodepoints));
   }
 
-  void testEmptyStringFromCharCodes() {
-    Expect.stringEquals("", new String.fromCharCodes(<int>[]));
+  void testEmptyCodepointsToString() {
+    Expect.stringEquals("", codepointsToString(<int>[]));
   }
 
-  void testEmptyStringCharCodes() {
-    Expect.listEquals([], "".charCodes());
+  void testEmptyStringToCodepoints() {
+    Expect.listEquals([], stringToCodepoints(""));
   }
 }

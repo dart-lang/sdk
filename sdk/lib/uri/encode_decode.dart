@@ -77,13 +77,22 @@ String _uriEncode(String canonical, String text) {
   final String hex = '0123456789ABCDEF';
   var byteToHex = (int v) => '%${hex[v >> 4]}${hex[v&0xf]}';
   StringBuffer result = new StringBuffer();
-  // TODO(erikcorry): Use the new character iterator.
   for (int i = 0; i < text.length; i++) {
     if (canonical.indexOf(text[i]) >= 0) {
       result.add(text[i]);
     } else {
       int ch = text.charCodeAt(i);
-      if (ch >= 0x10000) i++;
+      if (ch >= 0xD800 && ch < 0xDC00) {
+        // Low surrogate. We expect a next char high surrogate.
+        ++i;
+        int nextCh = text.length == i ? 0 : text.charCodeAt(i);
+        if (nextCh >= 0xDC00 && nextCh < 0xE000) {
+          // convert the pair to a U+10000 codepoint
+          ch = 0x10000 + ((ch-0xD800) << 10) + (nextCh - 0xDC00);
+        } else {
+          throw new ArgumentError('Malformed URI');
+        }
+      }
       for (int codepoint in codepointsToUtf8([ch])) {
         result.add(byteToHex(codepoint));
       }

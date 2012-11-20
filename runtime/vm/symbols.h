@@ -188,7 +188,7 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_ACCESSOR)
   // Returns char* of predefined symbol.
   static const char* Name(SymbolId symbol);
 
-  static RawString* FromCharCode(int32_t char_code);
+  static RawString* FromCharCode(uint32_t char_code);
 
  private:
   enum {

@@ -2240,7 +2240,7 @@ static bool MatchesAccessorName(const String& name,
     return false;
   }
   for (intptr_t i = 0; i < prefix_length; i++) {
-    if (name.CharAt(i) != static_cast<int32_t>(prefix[i])) {
+    if (name.CharAt(i) != prefix[i]) {
       return false;
     }
   }
@@ -9208,7 +9208,8 @@ const char* Integer::ToCString() const {
 
 
 RawInteger* Integer::New(const String& str, Heap::Space space) {
-  // We are not supposed to have integers represented as two byte strings.
+  // We are not supposed to have integers represented as two byte or
+  // four byte strings.
   ASSERT(str.IsOneByteString());
   int64_t value;
   if (!OS::StringToInt64(str.ToCString(), &value)) {
@@ -9971,7 +9972,7 @@ intptr_t String::Hash(const uint16_t* characters, intptr_t len) {
 }
 
 
-intptr_t String::Hash(const int32_t* characters, intptr_t len) {
+intptr_t String::Hash(const uint32_t* characters, intptr_t len) {
   return HashImpl(characters, len);
 }
 
@@ -10047,13 +10048,8 @@ bool String::Equals(const char* utf8_array) const {
         reinterpret_cast<const uint8_t*>(utf8_array),
         len,
         &ch);
-    if (consumed == 0) return false;
-
-    if (ch <= Utf16::kMaxCodeUnit) {
-      if (this->CharAt(i) != ch) return false;
-    } else {
-      if (Utf16::CodePointAt(*this, i) != ch) return false;
-      i++;
+    if (consumed == 0 || this->CharAt(i) != ch) {
+      return false;
     }
     utf8_array += consumed;
     len -= consumed;
@@ -10092,19 +10088,33 @@ bool String::Equals(const uint16_t* utf16_array, intptr_t len) const {
 }
 
 
+bool String::Equals(const uint32_t* utf32_array, intptr_t len) const {
+  CodePointIterator it(*this);
+  intptr_t i = 0;
+  while (it.Next()) {
+    if (it.Current() != static_cast<int32_t>(utf32_array[i])) {
+      return false;
+    }
+    ++i;
+  }
+  if (i != len) {
+    return false;
+  }
+  return true;
+}
+
+
 intptr_t String::CompareTo(const String& other) const {
   const intptr_t this_len = this->Length();
   const intptr_t other_len = other.IsNull() ? 0 : other.Length();
   const intptr_t len = (this_len < other_len) ? this_len : other_len;
-  // UTF-16 has the high surrogate before the low surrogate so we can compare
-  // one code unit at a time for efficiency and still get the right ordering.
   for (intptr_t i = 0; i < len; i++) {
-    int32_t this_code_unit = this->CharAt(i);
-    int32_t other_code_unit = other.CharAt(i);
-    if (this_code_unit < other_code_unit) {
+    int32_t this_code_point = this->CharAt(i);
+    int32_t other_code_point = other.CharAt(i);
+    if (this_code_point < other_code_point) {
       return -1;
     }
-    if (this_code_unit > other_code_unit) {
+    if (this_code_point > other_code_point) {
       return 1;
     }
   }
@@ -10148,7 +10158,7 @@ RawString* String::New(const uint8_t* utf8_array,
                        intptr_t array_len,
                        Heap::Space space) {
   Utf8::Type type;
-  intptr_t len = Utf8::CodeUnitCount(utf8_array, array_len, &type);
+  intptr_t len = Utf8::CodePointCount(utf8_array, array_len, &type);
   if (type == Utf8::kLatin1) {
     const String& strobj = String::Handle(OneByteString::New(len, space));
     if (len > 0) {
@@ -10184,7 +10194,7 @@ RawString* String::New(const uint16_t* utf16_array,
 }
 
 
-RawString* String::New(const int32_t* utf32_array,
+RawString* String::New(const uint32_t* utf32_array,
                        intptr_t array_len,
                        Heap::Space space) {
   bool is_one_byte_string = true;
@@ -10549,7 +10559,6 @@ RawString* String::Transform(int32_t (*mapping)(int32_t ch),
   ASSERT(!str.IsNull());
   bool has_mapping = false;
   int32_t dst_max = 0;
-  intptr_t out_len = 0;
   CodePointIterator it(str);
   while (it.Next()) {
     int32_t src = it.Current();
@@ -10558,16 +10567,15 @@ RawString* String::Transform(int32_t (*mapping)(int32_t ch),
       has_mapping = true;
     }
     dst_max = Utils::Maximum(dst_max, dst);
-    out_len += dst > Utf16::kMaxBmpCodepoint ? 2 : 1;
   }
   if (!has_mapping) {
     return str.raw();
   }
   if (dst_max <= 0xFF) {
-    return OneByteString::Transform(mapping, str, out_len, space);
+    return OneByteString::Transform(mapping, str, space);
   }
   ASSERT(dst_max > 0xFF);
-  return TwoByteString::Transform(mapping, str, out_len, space);
+  return TwoByteString::Transform(mapping, str, space);
 }
 
 
@@ -10740,7 +10748,7 @@ RawOneByteString* OneByteString::New(const uint16_t* characters,
 }
 
 
-RawOneByteString* OneByteString::New(const int32_t* characters,
+RawOneByteString* OneByteString::New(const uint32_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
   const String& result = String::Handle(OneByteString::New(len, space));
@@ -10793,18 +10801,14 @@ RawOneByteString* OneByteString::ConcatAll(const Array& strings,
 
 RawOneByteString* OneByteString::Transform(int32_t (*mapping)(int32_t ch),
                                            const String& str,
-                                           intptr_t out_length,
                                            Heap::Space space) {
   ASSERT(!str.IsNull());
   intptr_t len = str.Length();
-  const String& result =
-      String::Handle(OneByteString::New(out_length, space));
-  for (intptr_t i = 0, j = 0; i < len; ++i, j++) {
-    int32_t old_ch = str.CharAt(i);
-    if (old_ch > Utf16::kMaxCodeUnit) i++;
-    int32_t ch = mapping(old_ch);
-    ASSERT(ch <= 0xFF);
-    *CharAddr(result, j) = ch;
+  const String& result = String::Handle(OneByteString::New(len, space));
+  for (intptr_t i = 0; i < len; ++i) {
+    int32_t ch = mapping(str.CharAt(i));
+    ASSERT(ch >= 0 && ch <= 0xFF);
+    *CharAddr(result, i) = ch;
   }
   return OneByteString::raw(result);
 }
@@ -10879,7 +10883,7 @@ RawTwoByteString* TwoByteString::New(const uint16_t* utf16_array,
 
 
 RawTwoByteString* TwoByteString::New(intptr_t utf16_len,
-                                     const int32_t* utf32_array,
+                                     const uint32_t* utf32_array,
                                      intptr_t array_len,
                                      Heap::Space space) {
   ASSERT((array_len > 0) && (utf16_len >= array_len));
@@ -10888,8 +10892,7 @@ RawTwoByteString* TwoByteString::New(intptr_t utf16_len,
     NoGCScope no_gc;
     intptr_t j = 0;
     for (intptr_t i = 0; i < array_len; ++i) {
-      int32_t code_point = utf32_array[i];
-      if (code_point > Utf16::kMaxCodeUnit) {
+      if (utf32_array[i] > 0xffff) {
         ASSERT(j < (utf16_len - 1));
         Utf16::Encode(utf32_array[i], CharAddr(result, j));
         j += 2;
@@ -10945,7 +10948,6 @@ RawTwoByteString* TwoByteString::ConcatAll(const Array& strings,
 
 RawTwoByteString* TwoByteString::Transform(int32_t (*mapping)(int32_t ch),
                                            const String& str,
-                                           intptr_t out_length,
                                            Heap::Space space) {
   ASSERT(!str.IsNull());
   intptr_t len = str.Length();

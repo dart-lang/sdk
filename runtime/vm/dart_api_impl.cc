@@ -1579,9 +1579,7 @@ DART_EXPORT Dart_Handle Dart_NewStringFromUTF32(const uint32_t* utf32_array,
     RETURN_NULL_ERROR(utf32_array);
   }
   CHECK_LENGTH(length, String::kMaxElements);
-  return Api::NewHandle(
-      isolate,
-      String::New(reinterpret_cast<const int32_t*>(utf32_array), length));
+  return Api::NewHandle(isolate, String::New(utf32_array, length));
 }
 
 

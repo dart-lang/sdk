@@ -191,6 +191,10 @@ LibTest/math/sin_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 
 LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
 
+LibTest/core/String/String_class_A02_t01: Fail, OK # co19 issue 284
+LibTest/core/String/charCodeAt_A01_t01: Fail, OK # co19 issue 284
+LibTest/core/String/charCodes_A01_t01: Fail, OK # co19 issue 284
+
 Language/06_Functions/1_Function_Declaration_A02_t03: Fail # issue 6058
 Language/06_Functions/1_Function_Declaration_A03_t03: Fail # issue 6058
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t01: Fail # issue 6085
@@ -276,12 +280,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail
-
-LibTest/core/String/String_class_A02_t01: Fail, OK # Fixed in co19 version 443
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A06_t01: Fail, OK # Fixed in co19 version 443
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A02_t01: Fail, OK # Fixed in co19 version 443
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A01_t01: Fail, OK # Fixed in co19 version 443
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A05_t01: Fail, OK # Fixed in co19 version 443
 
 # New failures
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail

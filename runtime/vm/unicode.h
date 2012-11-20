@@ -12,7 +12,6 @@ namespace dart {
 
 class String;
 
-
 class Utf8 : AllStatic {
  public:
   enum Type {
@@ -26,11 +25,9 @@ class Utf8 : AllStatic {
   static const intptr_t kMaxThreeByteChar = 0xFFFF;
   static const intptr_t kMaxFourByteChar  = 0x10FFFF;
 
-  static const int32_t kInvalidCodePoint = -1;
-
-  static intptr_t CodeUnitCount(const uint8_t* utf8_array,
-                                intptr_t array_len,
-                                Type* type);
+  static intptr_t CodePointCount(const uint8_t* utf8_array,
+                                 intptr_t array_len,
+                                 Type* type);
 
   // Returns true if 'utf8_array' is a valid UTF-8 string.
   static bool IsValid(const uint8_t* utf8_array, intptr_t array_len);
@@ -55,10 +52,10 @@ class Utf8 : AllStatic {
                             intptr_t len);
   static bool DecodeToUTF32(const uint8_t* utf8_array,
                             intptr_t array_len,
-                            int32_t* dst,
+                            uint32_t* dst,
                             intptr_t len);
   static bool DecodeCStringToUTF32(const char* str,
-                                   int32_t* dst,
+                                   uint32_t* dst,
                                    intptr_t len) {
     ASSERT(str != NULL);
     intptr_t array_len = strlen(str);
@@ -71,10 +68,10 @@ class Utf8 : AllStatic {
 class Utf16 : AllStatic {
  public:
   static const int32_t kMaxBmpCodepoint  = 0xFFFF;
-  static const int32_t kMaxCodeUnit = 0xFFFF;
-  static const int32_t kMaxCodePoint = 0x10FFFF;
 
-  static const int32_t kSurrogateEncodingBase = 0x10000;
+  static const int32_t kLeadSurrogateOffset = (0xD800 - (0x10000 >> 10));
+
+  static const int32_t kSurrogateOffset = (0x10000 - (0xD800 << 10) - 0xDC00);
 
   // Returns the length of the code point in UTF-16 code units.
   static intptr_t Length(int32_t ch) {
@@ -98,36 +95,11 @@ class Utf16 : AllStatic {
 
   // Decodes a surrogate pair into a supplementary code point.
   static int32_t Decode(int32_t lead, int32_t trail) {
-    ASSERT(IsLeadSurrogate(lead));
-    ASSERT(IsTrailSurrogate(trail));
-    return kSurrogateEncodingBase +
-        ((lead & kSurrogateMask) << 10) + (trail & kSurrogateMask);
-  }
-
-  static int32_t LeadFromCodePoint(int32_t code_point) {
-    ASSERT(code_point >= kSurrogateEncodingBase);
-    return kLeadBase +
-           (((code_point - kSurrogateEncodingBase) >> 10) & kSurrogateMask);
-  }
-
-  static int32_t TrailFromCodePoint(int32_t code_point) {
-    ASSERT(code_point >= kSurrogateEncodingBase);
-    return kTrailBase + (code_point & kSurrogateMask);
+    return 0x10000 + ((lead & 0x3FF) << 10) + (trail & 0x3FF);
   }
 
   // Encodes a single code point.
   static void Encode(int32_t codepoint, uint16_t* dst);
-
-  // Gets the 21 bit Unicode code point at the given index in a string.  If the
-  // returned value is greater than kMaxCodePoint then the next position of the
-  // string encodes a trail surrogate and should be skipped on iteration.  May
-  // return individual surrogate values if they are not part of a pair.
-  static int32_t CodePointAt(const String& str, int index);
-
- private:
-  static const int32_t kLeadBase = 0xD800;
-  static const int32_t kTrailBase = 0xDC00;
-  static const int32_t kSurrogateMask = 0x3FF;
 };
 
 

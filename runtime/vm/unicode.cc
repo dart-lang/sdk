@@ -48,8 +48,8 @@ static const uint32_t kOverlongMinimum[7] = {
   0x80,
   0x800,
   0x10000,
-  0xFFFFFFFF,  // We never allow 5 byte sequences.
-  0xFFFFFFFF   // We never allow 6 byte sequences.
+  0xFFFFFFFF,
+  0xFFFFFFFF
 };
 
 
@@ -65,15 +65,14 @@ static bool IsLatin1SequenceStart(uint8_t code_unit) {
 
 
 static bool IsSupplementarySequenceStart(uint8_t code_unit) {
-  // Check the UTF-8 code unit to determine if it is a sequence start for a
-  // code point >= U+10000.
+  // Check is codepoint is >= U+10000.
   return (code_unit >= 0xF0);
 }
 
 
 // Returns true if the code point value is above Plane 17.
-static bool IsOutOfRange(int32_t code_point) {
-  return (code_point > Utf16::kMaxCodePoint);
+static bool IsOutOfRange(uint32_t code_point) {
+  return (code_point > 0x10FFFF);
 }
 
 
@@ -83,12 +82,10 @@ static bool IsNonShortestForm(uint32_t code_point, size_t num_bytes) {
 }
 
 
-// Returns a count of the number of UTF-16 code units represented by this UTF-8
-// array.  Type is kASCII for 7-bit-only.  If there are surrogate pairs then
-// the type is kSupplementary.  Otherwise it is kBMP.
-intptr_t Utf8::CodeUnitCount(const uint8_t* utf8_array,
-                             intptr_t array_len,
-                             Type* type) {
+// Returns a count of the number of UTF-8 trail bytes.
+intptr_t Utf8::CodePointCount(const uint8_t* utf8_array,
+                              intptr_t array_len,
+                              Type* type) {
   intptr_t len = 0;
   Type char_type = kLatin1;
   for (intptr_t i = 0; i < array_len; i++) {
@@ -99,7 +96,7 @@ intptr_t Utf8::CodeUnitCount(const uint8_t* utf8_array,
     if (!IsLatin1SequenceStart(code_unit)) {  // > U+00FF
       if (IsSupplementarySequenceStart(code_unit)) {  // >= U+10000
         char_type = kSupplementary;
-        ++len;  // Surrogate pair in the UTF-16 encoding.
+        ++len;
       } else if (char_type == kLatin1) {
         char_type = kBMP;
       }
@@ -110,7 +107,7 @@ intptr_t Utf8::CodeUnitCount(const uint8_t* utf8_array,
 }
 
 
-// Returns true if str is a valid UTF-8 string.
+// Returns true if str is a valid NUL-terminated UTF-8 string.
 bool Utf8::IsValid(const uint8_t* utf8_array, intptr_t array_len) {
   intptr_t i = 0;
   while (i < array_len) {
@@ -212,7 +209,7 @@ intptr_t Utf8::Encode(const String& src, char* dst, intptr_t len) {
 intptr_t Utf8::Decode(const uint8_t* utf8_array,
                       intptr_t array_len,
                       int32_t* dst) {
-  int32_t ch = utf8_array[0] & 0xFF;
+  uint32_t ch = utf8_array[0] & 0xFF;
   intptr_t i = 1;
   if (ch >= 0x80) {
     intptr_t num_trail_bytes = kTrailBytes[ch];
@@ -223,7 +220,7 @@ intptr_t Utf8::Decode(const uint8_t* utf8_array,
         is_malformed |= !IsTrailByte(code_unit);
         ch = (ch << 6) + code_unit;
       } else {
-        *dst = kInvalidCodePoint;
+        *dst = -1;
         return 0;
       }
     }
@@ -233,7 +230,7 @@ intptr_t Utf8::Decode(const uint8_t* utf8_array,
           !IsOutOfRange(ch) &&
           !IsNonShortestForm(ch, i) &&
           !Utf16::IsSurrogate(ch))) {
-      *dst = kInvalidCodePoint;
+      *dst = -1;
       return 0;
     }
   }
@@ -277,7 +274,7 @@ bool Utf8::DecodeToUTF16(const uint8_t* utf8_array,
     int32_t ch;
     bool is_supplementary = IsSupplementarySequenceStart(utf8_array[i]);
     num_bytes = Utf8::Decode(&utf8_array[i], (array_len - i), &ch);
-    if (ch == kInvalidCodePoint) {
+    if (ch == -1) {
       return false;  // invalid input
     }
     if (is_supplementary) {
@@ -296,7 +293,7 @@ bool Utf8::DecodeToUTF16(const uint8_t* utf8_array,
 
 bool Utf8::DecodeToUTF32(const uint8_t* utf8_array,
                          intptr_t array_len,
-                         int32_t* dst,
+                         uint32_t* dst,
                          intptr_t len) {
   intptr_t i = 0;
   intptr_t j = 0;
@@ -304,7 +301,7 @@ bool Utf8::DecodeToUTF32(const uint8_t* utf8_array,
   for (; (i < array_len) && (j < len); i += num_bytes, ++j) {
     int32_t ch;
     num_bytes = Utf8::Decode(&utf8_array[i], (array_len - i), &ch);
-    if (ch == kInvalidCodePoint) {
+    if (ch == -1) {
       return false;  // invalid input
     }
     dst[j] = ch;
@@ -316,21 +313,11 @@ bool Utf8::DecodeToUTF32(const uint8_t* utf8_array,
 }
 
 
-int32_t Utf16::CodePointAt(const String& str, int index) {
-  int32_t code = str.CharAt(index);
-  if (!IsLeadSurrogate(code)) return code;
-  if (index + 1 == str.Length()) return code;
-  int32_t trail = str.CharAt(index + 1);
-  if (!IsTrailSurrogate(trail)) return code;
-  return Decode(code, trail);
-}
-
-
-void Utf16::Encode(int32_t codePoint, uint16_t* dst) {
-  ASSERT(codePoint > kMaxBmpCodepoint);
+void Utf16::Encode(int32_t codepoint, uint16_t* dst) {
+  ASSERT(codepoint > kMaxBmpCodepoint);
   ASSERT(dst != NULL);
-  dst[0] = LeadFromCodePoint(codePoint);
-  dst[1] = TrailFromCodePoint(codePoint);
+  dst[0] = (Utf16::kLeadSurrogateOffset + (codepoint >> 10));
+  dst[1] = (0xDC00 + (codepoint & 0x3FF));
 }
 
 }  // namespace dart

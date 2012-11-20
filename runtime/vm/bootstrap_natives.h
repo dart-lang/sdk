@@ -72,12 +72,12 @@ namespace dart {
   V(ObjectArray_setIndexed, 3)                                                 \
   V(ObjectArray_getLength, 1)                                                  \
   V(ObjectArray_copyFromObjectArray, 5)                                        \
-  V(StringBase_createFromUtf16, 1)                                             \
+  V(StringBase_createFromCodePoints, 1)                                        \
   V(StringBase_substringUnchecked, 3)                                          \
   V(String_getHashCode, 1)                                                     \
   V(String_getLength, 1)                                                       \
   V(String_charAt, 2)                                                          \
-  V(String_codeUnitAt, 2)                                                      \
+  V(String_charCodeAt, 2)                                                      \
   V(String_concat, 2)                                                          \
   V(String_toLowerCase, 1)                                                     \
   V(String_toUpperCase, 1)                                                     \

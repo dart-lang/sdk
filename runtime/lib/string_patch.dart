@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 patch class String {
-  /* patch */ factory String.fromCodeUnits(List<int> codeUnits) {
-    return _StringBase.createFromUtf16(codeUnits);
+  /* patch */ factory String.fromCharCodes(List<int> charCodes) {
+    return _StringBase.createFromCharCodes(charCodes);
   }
 }
 

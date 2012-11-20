@@ -17,7 +17,6 @@
 #include "vm/os.h"
 #include "vm/raw_object.h"
 #include "vm/scanner.h"
-#include "vm/unicode.h"
 
 namespace dart {
 
@@ -3752,14 +3751,8 @@ class String : public Instance {
   static intptr_t Hash(const String& str, intptr_t begin_index, intptr_t len);
   static intptr_t Hash(const uint8_t* characters, intptr_t len);
   static intptr_t Hash(const uint16_t* characters, intptr_t len);
-  static intptr_t Hash(const int32_t* characters, intptr_t len);
+  static intptr_t Hash(const uint32_t* characters, intptr_t len);
 
-  // Despite the name, this does not return the character.  It returns the
-  // UTF-16 code unit at an index.  UTF-16 is a superset of ASCII (and Latin1)
-  // so you can always use this if you are looking for ASCII.  If you need to
-  // support arbitrary Unicode characters then you should perhaps be using
-  // Utf16::CharCodeAt(string, index), which returns the full 21 bit code
-  // point.
   int32_t CharAt(intptr_t index) const;
 
   intptr_t CharSize() const;
@@ -3771,6 +3764,7 @@ class String : public Instance {
   bool Equals(const char* str) const;
   bool Equals(const uint8_t* characters, intptr_t len) const;
   bool Equals(const uint16_t* characters, intptr_t len) const;
+  bool Equals(const uint32_t* characters, intptr_t len) const;
 
   virtual bool Equals(const Instance& other) const;
 
@@ -3832,7 +3826,7 @@ class String : public Instance {
                         Heap::Space space = Heap::kNew);
 
   // Creates a new String object from an array of UTF-32 encoded characters.
-  static RawString* New(const int32_t* utf32_array,
+  static RawString* New(const uint32_t* utf32_array,
                         intptr_t array_len,
                         Heap::Space space = Heap::kNew);
 
@@ -3978,7 +3972,7 @@ class OneByteString : public AllStatic {
   static RawOneByteString* New(const uint16_t* characters,
                                intptr_t len,
                                Heap::Space space);
-  static RawOneByteString* New(const int32_t* characters,
+  static RawOneByteString* New(const uint32_t* characters,
                                intptr_t len,
                                Heap::Space space);
   static RawOneByteString* New(const String& str,
@@ -3993,7 +3987,6 @@ class OneByteString : public AllStatic {
 
   static RawOneByteString* Transform(int32_t (*mapping)(int32_t ch),
                                      const String& str,
-                                     intptr_t out_length,
                                      Heap::Space space);
 
   static const ClassId kClassId = kOneByteStringCid;
@@ -4062,7 +4055,7 @@ class TwoByteString : public AllStatic {
                                intptr_t len,
                                Heap::Space space);
   static RawTwoByteString* New(intptr_t utf16_len,
-                               const int32_t* characters,
+                               const uint32_t* characters,
                                intptr_t len,
                                Heap::Space space);
   static RawTwoByteString* New(const String& str,
@@ -4077,7 +4070,6 @@ class TwoByteString : public AllStatic {
 
   static RawTwoByteString* Transform(int32_t (*mapping)(int32_t ch),
                                      const String& str,
-                                     intptr_t out_length,
                                      Heap::Space space);
 
   static RawTwoByteString* null() {

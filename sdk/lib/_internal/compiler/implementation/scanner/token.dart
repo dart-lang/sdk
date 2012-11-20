@@ -231,9 +231,6 @@ class StringWrapper implements SourceString {
   bool isPrivate() => !isEmpty && identical(stringValue.charCodeAt(0), $_);
 }
 
-
-// TODO(erikcorry): Use the new code point iterator on String when it is
-// available.
 class StringCodeIterator implements Iterator<int> {
   final String string;
   int index;
@@ -249,12 +246,7 @@ class StringCodeIterator implements Iterator<int> {
   }
 
   bool get hasNext => index < end;
-  int next() {
-    int charCode = string.charCodeAt(index++);
-    // Skip trail surrogate.
-    if (charCode >= String.SUPPLEMENTARY_CODE_POINT_BASE) index++;
-    return charCode;
-  }
+  int next() => string.charCodeAt(index++);
 }
 
 class BeginGroupToken extends StringToken {

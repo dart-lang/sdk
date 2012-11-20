@@ -270,7 +270,6 @@ class _UTF8Encoder implements _StringEncoder {
   static int _encodeString(String string, List<int> buffer) {
     int pos = 0;
     int length = string.length;
-    // TODO(erikcorry): Use new iterator over charcodes.
     for (int i = 0; i < length; i++) {
       int additionalBytes;
       int charCode = string.charCodeAt(i);
@@ -286,7 +285,6 @@ class _UTF8Encoder implements _StringEncoder {
         if (buffer != null) buffer[pos] = ((charCode >> 12) & 0x0F)| 0xE0;
         additionalBytes = 2;
       } else {
-        i++; // Skip surrogate pair.
         // 11110xxx (xxx is top 3 bits)
         if (buffer != null) buffer[pos] = ((charCode >> 18) & 0x07) | 0xF0;
         additionalBytes = 3;

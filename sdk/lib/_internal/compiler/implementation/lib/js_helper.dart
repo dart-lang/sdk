@@ -535,12 +535,11 @@ class Primitives {
 
   static num dateNow() => JS('num', r'Date.now()');
 
-  static String stringFromCodeUnits(codeUnits) {
-    for (var i in codeUnits) {
+  static String stringFromCharCodes(charCodes) {
+    for (var i in charCodes) {
       if (i is !int) throw new ArgumentError(i);
-      if (i > String.MAX_CODE_UNIT) throw new ArgumentError(i);
     }
-    return JS('String', r'String.fromCharCode.apply(#, #)', null, codeUnits);
+    return JS('String', r'String.fromCharCode.apply(#, #)', null, charCodes);
   }
 
   static String getTimeZoneName(receiver) {
