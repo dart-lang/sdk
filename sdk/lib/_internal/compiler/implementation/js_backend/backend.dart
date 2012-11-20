@@ -651,6 +651,9 @@ class JavaScriptBackend extends Backend {
   ClassElement jsNumberClass;
   ClassElement jsIntClass;
   ClassElement jsDoubleClass;
+  ClassElement jsFunctionClass;
+  ClassElement jsNullClass;
+  ClassElement jsBoolClass;
   ClassElement objectInterceptorClass;
   Element getInterceptorMethod;
   bool _interceptorsAreInitialized = false;
@@ -725,6 +728,9 @@ class JavaScriptBackend extends Backend {
         || element == jsArrayClass
         || element == jsIntClass
         || element == jsDoubleClass
+        || element == jsNullClass
+        || element == jsFunctionClass
+        || element == jsBoolClass
         || element == jsNumberClass;
   }
 
@@ -756,6 +762,12 @@ class JavaScriptBackend extends Backend {
         compiler.findInterceptor(const SourceString('JSInt'));
     jsDoubleClass =
         compiler.findInterceptor(const SourceString('JSDouble'));
+    jsNullClass =
+        compiler.findInterceptor(const SourceString('JSNull'));
+    jsFunctionClass =
+        compiler.findInterceptor(const SourceString('JSFunction'));
+    jsBoolClass =
+        compiler.findInterceptor(const SourceString('JSBool'));
   }
 
   void addInterceptors(ClassElement cls) {
@@ -774,6 +786,18 @@ class JavaScriptBackend extends Backend {
     if (!_interceptorsAreInitialized) {
       initializeInterceptorElements();
       _interceptorsAreInitialized = true;
+      // The null interceptor and the function interceptor are
+      // currently always instantiated if a new class is instantiated.
+      // TODO(ngeoffray): do this elsewhere for the function
+      // interceptor?
+      if (jsNullClass != null) {
+        addInterceptors(jsNullClass);
+        enqueuer.registerInstantiatedClass(jsNullClass);
+      }
+      if (jsFunctionClass != null) {
+        addInterceptors(jsFunctionClass);
+        enqueuer.registerInstantiatedClass(jsFunctionClass);
+      }
     }
     if (cls == compiler.stringClass) {
       result = jsStringClass;
@@ -783,6 +807,10 @@ class JavaScriptBackend extends Backend {
       result = jsIntClass;
     } else if (cls == compiler.doubleClass) {
       result = jsDoubleClass;
+    } else if (cls == compiler.functionClass) {
+      result = jsFunctionClass;
+    } else if (cls == compiler.boolClass) {
+      result = jsBoolClass;
     }
 
     if (result == null) return;

@@ -160,4 +160,6 @@ class JSArray<E> implements List<E> {
   }
 
   bool get isEmpty => length == 0;
+
+  String toString() => Collections.collectionToString(this);
 }

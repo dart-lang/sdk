@@ -1182,21 +1182,20 @@ $classesCollector.$mangledName = {'':
 
     Map<int, String> cache;
     String extraArg;
-    String extraArgWithThis;
     String extraArgWithoutComma;
+    bool hasExtraArgument = false;
     // Methods on foreign classes take an extra parameter, which is
     // the actual receiver of the call.
     JavaScriptBackend backend = compiler.backend;
     if (backend.isInterceptorClass(member.getEnclosingClass())) {
+      hasExtraArgument = true;
       cache = interceptorClosureCache;
       extraArg = 'receiver, ';
-      extraArgWithThis = 'this.receiver, ';
       extraArgWithoutComma = 'receiver';
     } else {
       cache = boundClosureCache;
       extraArg = '';
       extraArgWithoutComma = '';
-      extraArgWithThis = '';
     }
 
     String closureClass =
@@ -1230,8 +1229,12 @@ $classesCollector.$mangledName = {'':
       String joinedArgs = Strings.join(arguments, ", ");
       boundClosureBuffer.add(
           "$invocationName: function($joinedArgs) {");
-      boundClosureBuffer.add(
-          " return this.self[this.target]($extraArgWithThis$joinedArgs);");
+      String callArgs = hasExtraArgument
+          ? joinedArgs.isEmpty
+              ? 'this.$extraArgWithoutComma'
+              : 'this.$extraArg$joinedArgs'
+          : joinedArgs;
+      boundClosureBuffer.add(" return this.self[this.target]($callArgs);");
       boundClosureBuffer.add(" }");
       addParameterStubs(callElement, (String stubName, CodeBuffer memberValue) {
         boundClosureBuffer.add(',\n $stubName: $memberValue');

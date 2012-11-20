@@ -944,7 +944,8 @@ unwrapException(ex) {
     // exception occurred.
     var type = JS('var', r'#.type', ex);
     var name = JS('var', r'#.arguments ? #.arguments[0] : ""', ex, ex);
-    if (type == 'property_not_function' ||
+    if (message.contains('JSNull') ||
+        type == 'property_not_function' ||
         type == 'called_non_callable' ||
         type == 'non_object_property_call' ||
         type == 'non_object_property_load') {

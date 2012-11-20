@@ -443,6 +443,10 @@ class LocalsHandler {
         type = HType.INTEGER;
       } else if (cls == builder.backend.jsDoubleClass) {
         type = HType.DOUBLE;
+      } else if (cls == builder.backend.jsNullClass) {
+        type = HType.NULL;
+      } else if (cls == builder.backend.jsBoolClass) {
+        type = HType.BOOLEAN;
       }
       value.guaranteedType = type;
     }

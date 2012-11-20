@@ -130,4 +130,6 @@ class JSString implements String {
     return this == other ? 0
       : JS('bool', r'# < #', this, other) ? -1 : 1;
   }
+
+  String toString() => this;
 }

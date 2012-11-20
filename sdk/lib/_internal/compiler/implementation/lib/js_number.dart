@@ -109,6 +109,14 @@ class JSNumber {
     if (radix < 2 || radix > 36) throw new ArgumentError(radix);
     return JS('String', r'#.toString(#)', this, radix);
   }
+
+  String toString() {
+    if (this == 0 && JS('bool', '(1 / #) < 0', this)) {
+      return '-0.0';
+    } else {
+      return JS('String', r'String(#)', this);
+    }
+  }
 }
 
 class JSInt extends JSNumber {

@@ -28,6 +28,9 @@ getInterceptor(object) {
   if (isJsArray(object)) return const JSArray();
   if (object is int) return const JSInt();
   if (object is double) return const JSDouble();
+  if (object is bool) return const JSBool();
+  if (object == null) return const JSNull();
+  if (JS('String', 'typeof #', object) == 'function') return const JSFunction();
   return const ObjectInterceptor();
 }
 
@@ -58,22 +61,31 @@ iterator(receiver) {
   return UNINTERCEPTED(receiver.iterator());
 }
 
-toString(var value) {
-  if (JS('bool', r'typeof # == "object" && # != null', value, value)) {
-    if (isJsArray(value)) {
-      return Collections.collectionToString(value);
-    } else {
-      return UNINTERCEPTED(value.toString());
-    }
-  }
-  if (JS('bool', r'# === 0 && (1 / #) < 0', value, value)) {
-    return '-0.0';
-  }
-  if (value == null) return 'null';
-  if (JS('bool', r'typeof # == "function"', value)) {
-    return 'Closure';
-  }
-  return JS('String', r'String(#)', value);
+/**
+ * The interceptor class for tear-off static methods. Unlike
+ * tear-off instance methods, tear-off static methods are just the JS
+ * function, and methods inherited from Object must therefore be
+ * intercepted.
+ */
+class JSFunction implements Function {
+  const JSFunction();
+  String toString() => 'Closure';
+}
+
+/**
+ * The interceptor class for [bool].
+ */
+class JSBool implements bool {
+  const JSBool();
+  String toString() => JS('String', r'String(#)', this);
+}
+
+/**
+ * The interceptor class for [Null].
+ */
+class JSNull implements Null {
+  const JSNull();
+  String toString() => 'null';
 }
 
 /**
@@ -119,7 +131,3 @@ get$runtimeType(receiver) {
     return UNINTERCEPTED(receiver.runtimeType);
   }
 }
-
-// TODO(lrn): These getters should be generated automatically for all
-// intercepted methods.
-get$toString(receiver) => () => toString(receiver);
