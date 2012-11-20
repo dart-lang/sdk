@@ -11,9 +11,9 @@ class B<T> {}
 
 main() {
   Map<Type, String> map = new Map<Type, String>();
-  A a = new A().runtimeType;
-  B b1 = new B<int>().runtimeType;
-  B b2 = new B<String>().runtimeType;
+  Type a = new A().runtimeType;
+  Type b1 = new B<int>().runtimeType;
+  Type b2 = new B<String>().runtimeType;
   map[a] = 'A';
   map[b1] = 'B<int>';
   map[b2] = 'B<String>';
