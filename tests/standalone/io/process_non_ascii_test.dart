@@ -12,8 +12,7 @@ main() {
   var nonAsciiDir = new Directory('${tempDir.path}/æøå');
   nonAsciiDir.createSync();
   var nonAsciiFile = new File('${nonAsciiDir.path}/æøå.dart');
-  var opened = nonAsciiFile.openSync(FileMode.WRITE);
-  opened.writeStringSync(
+  nonAsciiFile.writeAsStringSync(
 """
 import 'dart:io';
 
@@ -21,11 +20,8 @@ main() {
   Expect.equals('æøå', new File('æøå.txt').readAsStringSync());
 }
 """);
-  opened.closeSync();
   var nonAsciiTxtFile = new File('${nonAsciiDir.path}/æøå.txt');
-  opened = nonAsciiTxtFile.openSync(FileMode.WRITE);
-  opened.writeStringSync('æøå');
-  opened.closeSync();
+  nonAsciiTxtFile.writeAsStringSync('æøå');
   var options = new ProcessOptions();
   options.workingDirectory = nonAsciiDir.path;
   var script = nonAsciiFile.name;

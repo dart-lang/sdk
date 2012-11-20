@@ -660,6 +660,52 @@ class _File extends _FileBase implements File {
     return _getDecodedLines(decoder);
   }
 
+  Future<File> writeAsBytes(List<int> bytes,
+                            [FileMode mode = FileMode.WRITE]) {
+    Completer<File> completer = new Completer<File>();
+    try {
+      var stream = openOutputStream(mode);
+      stream.write(bytes);
+      stream.close();
+      stream.onClosed = () {
+        completer.complete(this);
+      };
+      stream.onError = (e) {
+        completer.completeException(e);
+      };
+    } catch (e) {
+      new Timer(0, (t) => completer.completeException(e));
+      return completer.future;
+    }
+    return completer.future;
+  }
+
+  void writeAsBytesSync(List<int> bytes, [FileMode mode = FileMode.WRITE]) {
+    RandomAccessFile opened = openSync(mode);
+    opened.writeListSync(bytes, 0, bytes.length);
+    opened.closeSync();
+  }
+
+  Future<File> writeAsString(String contents,
+                             [FileMode mode = FileMode.WRITE,
+                              Encoding encoding = Encoding.UTF_8]) {
+    try {
+      var data = _StringEncoders.encoder(encoding).encodeString(contents);
+      return writeAsBytes(data, mode);
+    } catch (e) {
+      var completer = new Completer();
+      new Timer(0, (t) => completer.completeException(e));
+      return completer.future;
+    }
+  }
+
+  void writeAsStringSync(String contents,
+                         [FileMode mode = FileMode.WRITE,
+                          Encoding encoding = Encoding.UTF_8]) {
+    var data = _StringEncoders.encoder(encoding).encodeString(contents);
+    writeAsBytesSync(data, mode);
+  }
+
   String get name => _name;
 
   void _ensureFileService() {

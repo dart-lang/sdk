@@ -19,28 +19,24 @@ main() {
         nonAsciiDir.exists().then((result) {
           Expect.isTrue(result);
           File nonAsciiFile = new File('${nonAsciiDir.path}/æøå.txt');
-          nonAsciiFile.open(FileMode.WRITE).then((opened) {
-            opened.writeString('æøå').then((_) {
-              opened.close().then((_) {
-                nonAsciiFile.exists().then((result) {
-                  Expect.isTrue(result);
-                  nonAsciiFile.readAsString().then((contents) {
-                    // The contents of the file is precomposed utf8.
-                    Expect.equals(precomposed, contents);
-                    nonAsciiFile.create().then((_) {
-                      nonAsciiFile.directory().then((d) {
-                      Expect.isTrue(d.path.endsWith(precomposed) ||
-                                    d.path.endsWith(decomposed));
-                      nonAsciiFile.length().then((length) {
-                        Expect.equals(6, length);
-                        nonAsciiFile.lastModified().then((_) {
-                          nonAsciiFile.fullPath().then((path) {
-                            Expect.isTrue(path.endsWith('${precomposed}.txt') ||
-                                          path.endsWith('${decomposed}.txt'));
-                            tempDir.delete(recursive: true).then((_) {
-                              port.close();
-                            });
-                          });
+          nonAsciiFile.writeAsString('æøå').then((_) {
+            nonAsciiFile.exists().then((result) {
+              Expect.isTrue(result);
+              nonAsciiFile.readAsString().then((contents) {
+                // The contents of the file is precomposed utf8.
+                Expect.equals(precomposed, contents);
+                nonAsciiFile.create().then((_) {
+                  nonAsciiFile.directory().then((d) {
+                  Expect.isTrue(d.path.endsWith(precomposed) ||
+                                d.path.endsWith(decomposed));
+                  nonAsciiFile.length().then((length) {
+                    Expect.equals(6, length);
+                    nonAsciiFile.lastModified().then((_) {
+                      nonAsciiFile.fullPath().then((path) {
+                        Expect.isTrue(path.endsWith('${precomposed}.txt') ||
+                                      path.endsWith('${decomposed}.txt'));
+                        tempDir.delete(recursive: true).then((_) {
+                          port.close();
                         });
                       });
                     });

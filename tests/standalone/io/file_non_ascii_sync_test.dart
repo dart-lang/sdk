@@ -10,9 +10,7 @@ main() {
   nonAsciiDir.createSync();
   Expect.isTrue(nonAsciiDir.existsSync());
   File nonAsciiFile = new File('${nonAsciiDir.path}/æøå.txt');
-  RandomAccessFile opened = nonAsciiFile.openSync(FileMode.WRITE);
-  opened.writeStringSync('æøå');
-  opened.closeSync();
+  nonAsciiFile.writeAsStringSync('æøå');
   Expect.isTrue(nonAsciiFile.existsSync());
   // On MacOS you get the decomposed utf8 form of file and directory
   // names from the system. Therefore, we have to check for both here.
