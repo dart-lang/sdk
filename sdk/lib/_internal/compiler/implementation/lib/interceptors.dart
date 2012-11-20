@@ -54,13 +54,6 @@ set$length(receiver, newLength) {
   return newLength;
 }
 
-iterator(receiver) {
-  if (isJsArray(receiver)) {
-    return new ListIterator(receiver);
-  }
-  return UNINTERCEPTED(receiver.iterator());
-}
-
 /**
  * The interceptor class for tear-off static methods. Unlike
  * tear-off instance methods, tear-off static methods are just the JS

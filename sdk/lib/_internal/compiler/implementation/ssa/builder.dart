@@ -3873,11 +3873,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       SourceString iteratorName = const SourceString("iterator");
       Selector selector =
           new Selector.call(iteratorName, work.element.getLibrary(), 0);
-      Element interceptor = interceptors.getStaticInterceptor(selector);
-      assert(interceptor != null);
+      Element element = interceptors.getStaticInterceptor(selector);
       visit(node.expression);
-      pushInvokeHelper1(interceptor, pop());
-      iterator = pop();
+      HInstruction receiver = pop();
+      pushInvokeHelper1(element, receiver);
+      HInstruction interceptor = pop();
+      iterator = new HInvokeDynamicMethod(
+          selector, <HInstruction>[interceptor, receiver]);
+      add(iterator);
     }
     HInstruction buildCondition() {
       SourceString name = const SourceString('hasNext');

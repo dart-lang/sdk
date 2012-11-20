@@ -163,6 +163,8 @@ class JSArray<E> implements List<E> {
 
   String toString() => Collections.collectionToString(this);
 
+  ListIterator iterator() => new ListIterator(this);
+
   int get hashCode => Primitives.objectHashCode(receiver);
 
   Type get runtimeType => createRuntimeType('List');
