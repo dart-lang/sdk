@@ -16,7 +16,7 @@ class TlsTestServer {
       var data = connection.read();
       var received = new String.fromCharCodes(data);
       Expect.isTrue(received.contains("Hello from client "));
-      string name = received.substring(received.indexOf("client ") + 7);
+      String name = received.substring(received.indexOf("client ") + 7);
       var reply_bytes = "Welcome, client $name".charCodes;
       connection.writeList(reply_bytes, 0, reply_bytes.length);
     };
