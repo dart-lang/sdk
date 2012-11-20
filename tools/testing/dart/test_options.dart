@@ -227,12 +227,6 @@ is 'dart file.dart' and you specify special command
               false,
               'bool'),
           new _TestOptionSpecification(
-              'additional-compiler-flags',
-              'Additional flags to control test compilation',
-              ['--additional-compiler-flags'],
-              [],
-              ''),
-          new _TestOptionSpecification(
               'dart',
               'Path to dart executable',
               ['--dart'],
