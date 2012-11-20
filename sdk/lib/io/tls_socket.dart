@@ -9,19 +9,28 @@
  */
 abstract class TlsSocket implements Socket {
   /**
-   * Constructs a new secure socket and connect it to the given
+   * Constructs a new secure client socket and connect it to the given
    * host on the given port. The returned socket is not yet connected
    * but ready for registration of callbacks.
    */
   factory TlsSocket(String host, int port) => new _TlsSocket(host, port);
 
-  /**
+   /**
    * Initializes the TLS library with the path to a certificate database
    * containing root certificates for verifying certificate paths on
    * client connections, and server certificates to provide on server
-   * connections.
+   * connections.  The password argument should be used when creating
+   * secure server sockets, to allow the private key of the server
+   * certificate to be fetched.
+   *
+   * The database should be an NSS certificate database directory
+   * containing a cert9.db file, not a cert8.db file.  This version of
+   * the database can be created using the NSS certutil tool with "sql:" in
+   * front of the absolute path of the database directory, or setting the
+   * environment variable NSS_DEFAULT_DB_TYPE to "sql".
    */
-  external static void setCertificateDatabase(String pkcertDirectory);
+  external static void setCertificateDatabase(String certificateDatabase,
+                                              [String password]);
 }
 
 
@@ -42,11 +51,30 @@ class _TlsSocket implements TlsSocket {
 
   int _count = 0;
   // Constructs a new secure client socket.
-  _TlsSocket(String host, int port)
+  factory _TlsSocket(String host, int port) =>
+      new _TlsSocket.internal(host, port, false);
+
+  // Constructs a new secure server socket, with the named server certificate.
+  factory _TlsSocket.server(String host,
+                            int port,
+                            Socket socket,
+                            String certificateName) =>
+      new _TlsSocket.internal(host, port, true, socket, certificateName);
+
+  _TlsSocket.internal(String host,
+                      int port,
+                      bool is_server,
+                      [Socket socket,
+                       String certificateName])
       : _host = host,
         _port = port,
-        _socket = new Socket(host, port),
+        _socket = socket,
+        _certificateName = certificateName,
+        _is_server = is_server,
         _tlsFilter = new _TlsFilter() {
+    if (_socket == null) {
+      _socket = new Socket(host, port);
+    }
     _socket.onConnect = _tlsConnectHandler;
     _socket.onData = _tlsDataHandler;
     _socket.onClosed = _tlsCloseHandler;
@@ -158,7 +186,7 @@ class _TlsSocket implements TlsSocket {
 
   void _tlsConnectHandler() {
     _connectPending = true;
-    _tlsFilter.connect(_host, _port);
+    _tlsFilter.connect(_host, _port, _is_server, _certificateName);
     _status = HANDSHAKE;
     _tlsHandshake();
   }
@@ -324,6 +352,8 @@ class _TlsSocket implements TlsSocket {
   Socket _socket;
   String _host;
   int _port;
+  bool _is_server;
+  String _certificateName;
 
   var _status = NOT_CONNECTED;
   bool _socketClosed = false;
@@ -364,10 +394,15 @@ class _TlsExternalBuffer {
 abstract class _TlsFilter {
   external factory _TlsFilter();
 
-  void connect(String hostName, int port);
+  void connect(String hostName,
+               int port,
+               bool is_server,
+               String certificateName);
   void destroy();
   void handshake();
   void init();
   int processBuffer(int bufferIndex);
   void registerHandshakeCompleteCallback(Function handshakeCompleteHandler);
+
+  List<_TlsExternalBuffer> get buffers;
 }

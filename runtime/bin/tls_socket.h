@@ -66,21 +66,25 @@ class TlsFilter {
         string_length_(NULL),
         handshake_complete_(NULL),
         in_handshake_(false),
-        memio_(NULL) { }
+        filter_(NULL) { }
 
   void Init(Dart_Handle dart_this);
-  void Connect(const char* host, int port);
+  void Connect(const char* host,
+               int port,
+               bool is_server,
+               const char* certificate_name);
   void Destroy();
-  void DestroyPlatformIndependent();
   void Handshake();
   void RegisterHandshakeCompleteCallback(Dart_Handle handshake_complete);
-  static void InitializeLibrary(const char* pkcert_directory);
+  static void InitializeLibrary(const char* certificate_database,
+                                const char* password);
 
   intptr_t ProcessBuffer(int bufferIndex);
 
  private:
   static const int kMemioBufferSize = 20 * KB;
   static bool library_initialized_;
+  static const char* password_;
   static dart::Mutex mutex_;  // To protect library initialization.
 
   uint8_t* buffers_[kNumBuffers];
@@ -90,7 +94,8 @@ class TlsFilter {
   Dart_Handle dart_buffer_objects_[kNumBuffers];
   Dart_Handle handshake_complete_;
   bool in_handshake_;
-  PRFileDesc* memio_;
+  bool is_server_;
+  PRFileDesc* filter_;
 
   void InitializeBuffers(Dart_Handle dart_this);
   void InitializePlatformData();

@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 patch class TlsSocket {
-  /* patch */ static void setCertificateDatabase(String pkcertDirectory)
+  /* patch */ static void setCertificateDatabase(String certificateDatabase,
+                                                 [String password])
       native "TlsSocket_SetCertificateDatabase";
 }
 
@@ -30,7 +31,10 @@ class _TlsFilterImpl extends NativeFieldWrapperClass1 implements _TlsFilter {
     }
   }
 
-  void connect(String hostName, int port) native "TlsSocket_Connect";
+  void connect(String hostName,
+               int port,
+               bool is_server,
+               String certificate_name) native "TlsSocket_Connect";
 
   void destroy() {
     buffers = null;
