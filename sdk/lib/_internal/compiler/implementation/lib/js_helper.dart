@@ -1476,6 +1476,7 @@ class TypeImpl implements Type {
   final String typeName;
   TypeImpl(this.typeName);
   toString() => typeName;
+  int get hashCode => typeName.hashCode;
   bool operator ==(other) {
     if (other is !TypeImpl) return false;
     return typeName == other.typeName;
