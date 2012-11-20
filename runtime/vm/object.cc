@@ -10064,26 +10064,26 @@ bool String::Equals(const Instance& other) const {
 }
 
 
-bool String::Equals(const char* utf8_array) const {
-  ASSERT(utf8_array != NULL);
-  intptr_t len = strlen(utf8_array);
-  for (intptr_t i = 0; i < this->Length(); ++i) {
-    if (*utf8_array == '\0') {
+bool String::Equals(const char* cstr) const {
+  ASSERT(cstr != NULL);
+  CodePointIterator it(*this);
+  intptr_t len = strlen(cstr);
+  while (it.Next()) {
+    if (*cstr == '\0') {
       // Lengths don't match.
       return false;
     }
     int32_t ch;
-    intptr_t consumed = Utf8::Decode(
-        reinterpret_cast<const uint8_t*>(utf8_array),
-        len,
-        &ch);
-    if (consumed == 0 || this->CharAt(i) != ch) {
+    intptr_t consumed = Utf8::Decode(reinterpret_cast<const uint8_t*>(cstr),
+                                     len,
+                                     &ch);
+    if (consumed == 0 || it.Current() != ch) {
       return false;
     }
-    utf8_array += consumed;
+    cstr += consumed;
     len -= consumed;
   }
-  return *utf8_array == '\0';
+  return *cstr == '\0';
 }
 
 

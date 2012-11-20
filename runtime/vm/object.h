@@ -3768,9 +3768,17 @@ class String : public Instance {
   inline bool Equals(const String& str,
                      intptr_t begin_index,  // begin index on 'str'.
                      intptr_t len) const;  // len on 'str'.
-  bool Equals(const char* str) const;
+
+  // Compares to a '\0' terminated array of UTF-8 encoded characters.
+  bool Equals(const char* cstr) const;
+
+  // Compares to an array of UTF-8 encoded characters.
   bool Equals(const uint8_t* characters, intptr_t len) const;
+
+  // Compares to an array of UTF-16 encoded characters.
   bool Equals(const uint16_t* characters, intptr_t len) const;
+
+  // Compares to an array of UTF-32 encoded characters.
   bool Equals(const uint32_t* characters, intptr_t len) const;
 
   virtual bool Equals(const Instance& other) const;

@@ -1387,6 +1387,37 @@ TEST_CASE(StringFromUtf8Literal) {
 }
 
 
+TEST_CASE(StringEqualsUtf8) {
+  const char* onesrc = "abc";
+  const String& onestr = String::Handle(String::New(onesrc));
+  EXPECT(onestr.IsOneByteString());
+  EXPECT(!onestr.Equals(""));
+  EXPECT(!onestr.Equals("a"));
+  EXPECT(!onestr.Equals("ab"));
+  EXPECT(onestr.Equals("abc"));
+  EXPECT(!onestr.Equals("abcd"));
+
+  const char* twosrc = "\xD7\x90\xD7\x91\xD7\x92";
+  const String& twostr = String::Handle(String::New(twosrc));
+  EXPECT(twostr.IsTwoByteString());
+  EXPECT(!twostr.Equals(""));
+  EXPECT(!twostr.Equals("\xD7\x90"));
+  EXPECT(!twostr.Equals("\xD7\x90\xD7\x91"));
+  EXPECT(twostr.Equals("\xD7\x90\xD7\x91\xD7\x92"));
+  EXPECT(!twostr.Equals("\xD7\x90\xD7\x91\xD7\x92\xD7\x93"));
+
+  const char* foursrc = "\xF0\x90\x8E\xA0\xF0\x90\x8E\xA1\xF0\x90\x8E\xA2";
+  const String& fourstr = String::Handle(String::New(foursrc));
+  EXPECT(fourstr.IsTwoByteString());
+  EXPECT(!fourstr.Equals(""));
+  EXPECT(!fourstr.Equals("\xF0\x90\x8E\xA0"));
+  EXPECT(!fourstr.Equals("\xF0\x90\x8E\xA0\xF0\x90\x8E\xA1"));
+  EXPECT(fourstr.Equals("\xF0\x90\x8E\xA0\xF0\x90\x8E\xA1\xF0\x90\x8E\xA2"));
+  EXPECT(!fourstr.Equals("\xF0\x90\x8E\xA0\xF0\x90\x8E\xA1"
+                         "\xF0\x90\x8E\xA2\xF0\x90\x8E\xA3"));
+}
+
+
 TEST_CASE(ExternalOneByteString) {
   uint8_t characters[] = { 0xF6, 0xF1, 0xE9 };
   intptr_t len = ARRAY_SIZE(characters);
