@@ -10,7 +10,6 @@
 namespace dart {
 
 void CodePatcher::GetStaticCallAt(uword return_address,
-                                  Function* function,
                                   uword* target) {
   UNIMPLEMENTED();
 }

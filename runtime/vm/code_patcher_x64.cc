@@ -14,7 +14,7 @@
 
 namespace dart {
 
-// The pattern of a Dart call is:
+// The pattern of a Dart instance call is:
 //  00: 48 bb imm64  mov RBX, immediate 1
 //  10: 49 ba imm64  mov R10, immediate 2
 //  20: 49 bb imm64  mov R11, target_address
@@ -87,24 +87,13 @@ class DartCallPattern : public ValueObject {
 };
 
 
-// A Dart static call passes the function object in RBX.
-class StaticCall : public DartCallPattern {
- public:
-  explicit StaticCall(uword return_address)
-      : DartCallPattern(return_address) {}
-
-  RawFunction* function() const {
-    Function& f = Function::Handle();
-    f ^= reinterpret_cast<RawObject*>(immediate_one());
-    return f.raw();
-  }
-
- private:
-  DISALLOW_IMPLICIT_CONSTRUCTORS(StaticCall);
-};
-
-
 // A Dart instance call passes the ic-data in RBX.
+// The expected pattern of a dart instance call:
+//  mov RBX, ic-data
+//  mov R10, argument_descriptor_array
+//  mov R11, target_address
+//  call R11
+//  <- return address
 class InstanceCall : public DartCallPattern {
  public:
   explicit InstanceCall(uword return_address)
@@ -118,6 +107,47 @@ class InstanceCall : public DartCallPattern {
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(InstanceCall);
+};
+
+
+// The expected pattern of a dart static call:
+//  mov R10, argument_descriptor_array (10 bytes)
+//  mov R11, target_address (10 bytes)
+//  call R11  (3 bytes)
+//  <- return address
+class StaticCall : public ValueObject {
+ public:
+  explicit StaticCall(uword return_address)
+      : start_(return_address - kCallPatternSize) {
+    ASSERT(IsValid(return_address));
+    ASSERT((kCallPatternSize - 10) == Assembler::kCallExternalLabelSize);
+  }
+
+  static const int kCallPatternSize = 23;
+
+  static bool IsValid(uword return_address) {
+    uint8_t* code_bytes =
+        reinterpret_cast<uint8_t*>(return_address - kCallPatternSize);
+    return (code_bytes[00] == 0x49) && (code_bytes[01] == 0xBA) &&
+           (code_bytes[10] == 0x49) && (code_bytes[11] == 0xBB) &&
+           (code_bytes[20] == 0x41) && (code_bytes[21] == 0xFF) &&
+           (code_bytes[22] == 0xD3);
+  }
+
+  uword target() const {
+    return *reinterpret_cast<uword*>(start_ + 10 + 2);
+  }
+
+  void set_target(uword target) const {
+    uword* target_addr = reinterpret_cast<uword*>(start_ + 10 + 2);
+    *target_addr = target;
+    CPU::FlushICache(start_ + 10, 2 + 8);
+  }
+
+ private:
+  uword start_;
+
+  DISALLOW_IMPLICIT_CONSTRUCTORS(StaticCall);
 };
 
 

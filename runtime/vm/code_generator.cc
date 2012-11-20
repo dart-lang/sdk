@@ -801,6 +801,7 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
         target_function.ToFullyQualifiedCString(),
         target_code.EntryPoint());
   }
+  arguments.SetReturn(target_code);
 }
 
 
@@ -868,8 +869,7 @@ DEFINE_RUNTIME_ENTRY(ResolveCompileInstanceFunction, 1) {
 
 
 // Gets called from debug stub when code reaches a breakpoint.
-//   Arg0: function object of the static function that was about to be called.
-DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 1) {
+DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 0) {
   ASSERT(arguments.ArgCount() ==
       kBreakpointStaticHandlerRuntimeEntry.argument_count());
   ASSERT(isolate->debugger() != NULL);
@@ -877,13 +877,20 @@ DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 1) {
   // Make sure the static function that is about to be called is
   // compiled. The stub will jump to the entry point without any
   // further tests.
-  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
+  DartFrameIterator iterator;
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame != NULL);
+  const Code& code = Code::Handle(caller_frame->LookupDartCode());
+  const Function& function =
+      Function::Handle(code.GetStaticCallTargetFunctionAt(caller_frame->pc()));
+
   if (!function.HasCode()) {
     const Error& error = Error::Handle(Compiler::CompileFunction(function));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
     }
   }
+  arguments.SetReturn(Code::ZoneHandle(function.CurrentCode()));
 }
 
 
@@ -1530,12 +1537,9 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 
 // The caller must be a static call in a Dart frame, or an entry frame.
 // Patch static call to point to valid code's entry point.
-DEFINE_RUNTIME_ENTRY(FixCallersTarget, 1) {
+DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   ASSERT(arguments.ArgCount() ==
       kFixCallersTargetRuntimeEntry.argument_count());
-  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
-  ASSERT(!function.IsNull());
-  ASSERT(function.HasCode());
 
   StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames);
   StackFrame* frame = iterator.NextFrame();
@@ -1543,22 +1547,25 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 1) {
     frame = iterator.NextFrame();
   }
   ASSERT(frame != NULL);
-  if (!frame->IsEntryFrame()) {
-    ASSERT(frame->IsDartFrame());
-    uword target = CodePatcher::GetStaticCallTargetAt(frame->pc());
-    const Code& target_code = Code::Handle(function.CurrentCode());
-    const uword new_entry_point = target_code.EntryPoint();
-    ASSERT(target != new_entry_point);  // Why patch otherwise.
-    CodePatcher::PatchStaticCallAt(frame->pc(), new_entry_point);
-    const Code& code = Code::Handle(frame->LookupDartCode());
-    code.SetStaticCallTargetCodeAt(frame->pc(), target_code);
-    if (FLAG_trace_patching) {
-      OS::Print("FixCallersTarget: patching from %#"Px" to '%s' %#"Px"\n",
-          frame->pc(),
-          Function::Handle(target_code.function()).ToFullyQualifiedCString(),
-          new_entry_point);
-    }
+  if (frame->IsEntryFrame()) {
+    // Since function's current code is always unpatched, the entry frame always
+    // calls to unpatched code.
+    UNREACHABLE();
   }
+  ASSERT(frame->IsDartFrame());
+  const Code& caller_code = Code::Handle(frame->LookupDartCode());
+  const Function& target_function = Function::Handle(
+      caller_code.GetStaticCallTargetFunctionAt(frame->pc()));
+  const Code& target_code = Code::Handle(target_function.CurrentCode());
+  CodePatcher::PatchStaticCallAt(frame->pc(), target_code.EntryPoint());
+  caller_code.SetStaticCallTargetCodeAt(frame->pc(), target_code);
+  if (FLAG_trace_patching) {
+    OS::Print("FixCallersTarget: patching from %#"Px" to '%s' %#"Px"\n",
+        frame->pc(),
+        Function::Handle(target_code.function()).ToFullyQualifiedCString(),
+        target_code.EntryPoint());
+  }
+  arguments.SetReturn(target_code);
 }
 
 

@@ -14,7 +14,7 @@
 
 namespace dart {
 
-// The pattern of a Dart call is:
+// The pattern of a Dart instance call is:
 //  1: mov ECX, immediate 1
 //  2: mov EDX, immediate 2
 //  3: call target_address
@@ -97,27 +97,6 @@ class DartCallPattern : public ValueObject {
 };
 
 
-// The expected pattern of a dart static call:
-//  mov ECX, function_object
-//  mov EDX, argument_descriptor_array
-//  call target_address
-//  <- return address
-class StaticCall : public DartCallPattern {
- public:
-  explicit StaticCall(uword return_address)
-      : DartCallPattern(return_address) {}
-
-  RawFunction* function() const {
-    Function& f = Function::Handle();
-    f ^= reinterpret_cast<RawObject*>(immediate_one());
-    return f.raw();
-  }
-
- private:
-  DISALLOW_IMPLICIT_CONSTRUCTORS(StaticCall);
-};
-
-
 // The expected pattern of a dart instance call:
 //  mov ECX, ic-data
 //  mov EDX, argument_descriptor_array
@@ -136,6 +115,56 @@ class InstanceCall : public DartCallPattern {
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(InstanceCall);
+};
+
+
+// The expected pattern of a dart static call:
+//  mov EDX, argument_descriptor_array
+//  call target_address
+//  <- return address
+class StaticCall : public ValueObject {
+ public:
+  explicit StaticCall(uword return_address)
+      : start_(return_address - (kNumInstructions * kInstructionSize)) {
+    ASSERT(IsValid(return_address));
+    ASSERT(kInstructionSize == Assembler::kCallExternalLabelSize);
+  }
+
+  static bool IsValid(uword return_address) {
+    uint8_t* code_bytes =
+        reinterpret_cast<uint8_t*>(
+            return_address - (kNumInstructions * kInstructionSize));
+    return (code_bytes[0] == 0xBA) &&
+           (code_bytes[1 * kInstructionSize] == 0xE8);
+  }
+
+  uword target() const {
+    const uword offset = *reinterpret_cast<uword*>(call_address() + 1);
+    return return_address() + offset;
+  }
+
+  void set_target(uword target) const {
+    uword* target_addr = reinterpret_cast<uword*>(call_address() + 1);
+    uword offset = target - return_address();
+    *target_addr = offset;
+    CPU::FlushICache(call_address(), kInstructionSize);
+  }
+
+  static const int kNumInstructions = 2;
+  static const int kInstructionSize = 5;  // All instructions have same length.
+
+ private:
+  uword return_address() const {
+    return start_ + kNumInstructions * kInstructionSize;
+  }
+
+  uword call_address() const {
+    return start_ + 1 * kInstructionSize;
+  }
+
+  uword start_;
+
+  DISALLOW_IMPLICIT_CONSTRUCTORS(StaticCall);
 };
 
 
