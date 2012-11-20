@@ -823,8 +823,7 @@ public class ResolverTest extends ResolverTestCase {
         "  try {",
         "    0.25 - f;",
         "  } catch(e) {}",
-        "}"),
-        ResolverErrorCode.CANNOT_USE_TYPE);
+        "}"));
   }
 
   public void test_classUsedAsExpression() {
@@ -841,11 +840,11 @@ public class ResolverTest extends ResolverTestCase {
         "class A<B> {",
         "  var field = B;",
         "  f() {",
-        "    0.25 - B;",
+        "    process(x);",
         "  }",
-        "}"),
-        ResolverErrorCode.TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER,
-    ResolverErrorCode.TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER);
+        "}",
+        "process(x) {}",
+        ""));
   }
 
   public void test_shadowType_withVariable() throws Exception {

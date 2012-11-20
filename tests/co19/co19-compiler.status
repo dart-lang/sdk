@@ -30,7 +30,6 @@ Language/09_Generics/09_Generics_A05_t02: Fail # TODO(analyzer-team): Please tri
 Language/11_Expressions/01_Constants_A03_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/01_Constants_A05_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/01_Constants_A14_t01: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t06: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t07: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t13: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/08_Throw_A05_t01: Fail # TODO(analyzer-team): Please triage this failure.
@@ -39,40 +38,7 @@ Language/11_Expressions/11_Instance_Creation/1_New_A06_t06: Fail # TODO(analyzer
 Language/11_Expressions/11_Instance_Creation/2_Const_A10_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation_A02_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/18_Assignment_A05_t05: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/19_Conditional_A01_t14: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/19_Conditional_A01_t15: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t14: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/21_Bitwise_Expressions_A01_t16: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/21_Bitwise_Expressions_A01_t17: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/22_Equality_A01_t23: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/22_Equality_A01_t24: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/23_Relational_Expressions_A01_t22: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/23_Relational_Expressions_A01_t23: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/24_Shift_A01_t13: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/24_Shift_A01_t14: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/25_Additive_Expressions_A01_t11: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/25_Additive_Expressions_A01_t12: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/25_Additive_Expressions_A01_t13: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/25_Additive_Expressions_A01_t14: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/26_Multiplicative_Expressions_A01_t14: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/26_Multiplicative_Expressions_A01_t15: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/26_Multiplicative_Expressions_A01_t16: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/26_Multiplicative_Expressions_A01_t17: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/27_Unary_Expressions_A01_t04: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/27_Unary_Expressions_A01_t05: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/27_Unary_Expressions_A01_t17: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/27_Unary_Expressions_A01_t18: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/27_Unary_Expressions_A01_t19: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/27_Unary_Expressions_A01_t20: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/27_Unary_Expressions_A01_t21: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/27_Unary_Expressions_A01_t22: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/28_Postfix_Expressions_A01_t02: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/28_Postfix_Expressions_A01_t05: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/29_Assignable_Expressions_A01_t08: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/29_Assignable_Expressions_A01_t09: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/30_Identifier_Reference_A05_t04: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/30_Identifier_Reference_A06_t02: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/30_Identifier_Reference_A07_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/30_Identifier_Reference_A13_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/31_Type_Test_A01_t02: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/31_Type_Test_A01_t04: Fail # TODO(analyzer-team): Please triage this failure.
@@ -363,6 +329,10 @@ LibTest/core/TypeError/srcType_A01_t01: Fail, OK
 LibTest/core/TypeError/toString_A01_t01: Fail, OK
 LibTest/core/TypeError/url_A01_t01: Fail, OK
 
+# co19 issue 318
+Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t15: Fail, OK
+
+
 Language/07_Classes/6_Constructors/2_Factories_A03_t01: Fail, OK # co19 issue 307
 
 LibTest/core/RegExp/RegExp_A01_t04: Fail, OK # co19 issue 314
@@ -395,21 +365,10 @@ Language/11_Expressions/01_Constants_A16_t01: Fail # Issue 1473
 Language/11_Expressions/01_Constants_A16_t02: Fail # Issue 1473
 Language/11_Expressions/01_Constants_A16_t03: Fail # Issue 1473
 Language/11_Expressions/01_Constants_A17_t03: Fail # Issue 1473
-Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t05: Fail # language change 3368
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail # Issue 3524
-Language/11_Expressions/19_Conditional_A01_t12: Fail # language change 3368
-Language/11_Expressions/19_Conditional_A01_t13: Fail # language change 3368
-Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t12: Fail # language change 3368
-Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t13: Fail # language change 3368
-Language/11_Expressions/21_Bitwise_Expressions_A01_t14: Fail # language change 3368
-Language/11_Expressions/21_Bitwise_Expressions_A01_t15: Fail # language change 3368
 Language/11_Expressions/22_Equality_A01_t19: Fail # language change 3368
 Language/11_Expressions/22_Equality_A01_t20: Fail # language change 3368
 Language/11_Expressions/22_Equality_A02_t03: Fail, OK # co19 issue 169
-Language/11_Expressions/23_Relational_Expressions_A01_t20: Fail # language change 3368
-Language/11_Expressions/23_Relational_Expressions_A01_t21: Fail # language change 3368
-Language/11_Expressions/24_Shift_A01_t11: Fail # language change 3368
-Language/11_Expressions/24_Shift_A01_t12: Fail # language change 3368
 
 # The following tests use hashCode() (function) instead of hashCode (getter).
 # co19 issue 273
@@ -439,23 +398,14 @@ Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A06_t02: Fail, O
 Language/11_Expressions/15_Method_Invocation/2_Cascaded_Invocation_A02_t02: Fail, OK
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t03: Fail, OK
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: Fail, OK
-Language/11_Expressions/21_Bitwise_Expressions_A01_t15: Fail, OK
-Language/11_Expressions/19_Conditional_A01_t13: Fail, OK
-Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t12: Fail, OK
-Language/11_Expressions/21_Bitwise_Expressions_A01_t14: Fail, OK
-Language/11_Expressions/23_Relational_Expressions_A01_t21: Fail, OK
 Language/11_Expressions/22_Equality_A01_t19: Fail, OK
 Language/11_Expressions/01_Constants_A17_t03: Fail, OK
 Language/11_Expressions/05_Strings/1_String_Interpolation_A04_t02: Fail, OK
 Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail, OK
-Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t05: Fail, OK
-Language/11_Expressions/24_Shift_A01_t11: Fail, OK
-Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t13: Fail, OK
 Language/11_Expressions/22_Equality_A01_t20: Fail, OK
 Language/11_Expressions/30_Identifier_Reference_A04_t07: Fail, OK
 Language/11_Expressions/30_Identifier_Reference_A04_t05: Fail, OK
 Language/11_Expressions/01_Constants_A16_t02: Fail, OK
-Language/11_Expressions/23_Relational_Expressions_A01_t20: Fail, OK
 Language/11_Expressions/30_Identifier_Reference_A05_t06: Fail, OK
 Language/11_Expressions/01_Constants_A15_t16: Fail, OK
 Language/11_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t04: Fail, OK
@@ -464,10 +414,8 @@ Language/11_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t03:
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Fail, OK
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A02_t01: Fail, OK
 Language/11_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t05: Fail, OK
-Language/11_Expressions/19_Conditional_A01_t12: Fail, OK
 Language/11_Expressions/01_Constants_A16_t03: Fail, OK
 Language/11_Expressions/01_Constants_A16_t01: Fail, OK
-Language/11_Expressions/24_Shift_A01_t12: Fail, OK
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: Fail, OK
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: Fail, OK
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail, OK

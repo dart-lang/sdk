@@ -1368,19 +1368,9 @@ public class Resolver {
             return typeProvider.getTypeType().getElement();
           }
           break;
+        case FUNCTION_TYPE_ALIAS:
         case TYPE_VARIABLE:
-          // Type variables are not legal in identifier expressions, but the type variable
-          // may be hiding a class element.
-          LibraryElement libraryElement = scope.getLibrary();
-          Scope libraryScope = libraryElement.getScope();
-          // dip again at the library level.
-          element = libraryScope.findElement(libraryElement, name);
-          if (element == null) {
-            onError(x, ResolverErrorCode.TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER);
-          } else {
-            return checkResolvedIdentifier(x, isQualifier, libraryScope, name, element);
-          }
-          break;
+          return typeProvider.getTypeType().getElement();
         default:
           break;
       }
