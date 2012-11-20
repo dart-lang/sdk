@@ -617,6 +617,9 @@ abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    * [wc]: http://dvcs.w3.org/hg/webcomponents/raw-file/tip/explainer/index.html
    * [x-tags]: http://x-tags.org/
    */
+$if DART2JS
+  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
+$endif
   var xtag;
 
 $if DARTIUM

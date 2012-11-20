@@ -1031,6 +1031,7 @@ class ButtonElement extends Element implements Element native "*HTMLButtonElemen
   String formTarget;
 
   /** @domName HTMLButtonElement.labels; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> labels;
 
   /** @domName HTMLButtonElement.name; @docsEditable true */
@@ -1127,6 +1128,7 @@ class CSSKeyframeRule extends CSSRule native "*WebKitCSSKeyframeRule" {
 class CSSKeyframesRule extends CSSRule native "*WebKitCSSKeyframesRule" {
 
   /** @domName WebKitCSSKeyframesRule.cssRules; @docsEditable true */
+  @Returns('_CSSRuleList') @Creates('_CSSRuleList')
   final List<CSSRule> cssRules;
 
   /** @domName WebKitCSSKeyframesRule.name; @docsEditable true */
@@ -1261,6 +1263,7 @@ class CSSMatrix native "*WebKitCSSMatrix" {
 class CSSMediaRule extends CSSRule native "*CSSMediaRule" {
 
   /** @domName CSSMediaRule.cssRules; @docsEditable true */
+  @Returns('_CSSRuleList') @Creates('_CSSRuleList')
   final List<CSSRule> cssRules;
 
   /** @domName CSSMediaRule.media; @docsEditable true */
@@ -4660,12 +4663,14 @@ class CSSStyleRule extends CSSRule native "*CSSStyleRule" {
 class CSSStyleSheet extends StyleSheet native "*CSSStyleSheet" {
 
   /** @domName CSSStyleSheet.cssRules; @docsEditable true */
+  @Returns('_CSSRuleList') @Creates('_CSSRuleList')
   final List<CSSRule> cssRules;
 
   /** @domName CSSStyleSheet.ownerRule; @docsEditable true */
   final CSSRule ownerRule;
 
   /** @domName CSSStyleSheet.rules; @docsEditable true */
+  @Returns('_CSSRuleList') @Creates('_CSSRuleList')
   final List<CSSRule> rules;
 
   /** @domName CSSStyleSheet.addRule; @docsEditable true */
@@ -5203,6 +5208,7 @@ class Clipboard native "*Clipboard" {
   String effectAllowed;
 
   /** @domName Clipboard.files; @docsEditable true */
+  @Returns('_FileList') @Creates('_FileList')
   final List<File> files;
 
   /** @domName Clipboard.items; @docsEditable true */
@@ -5352,6 +5358,7 @@ class ContentElement extends Element implements Element native "*HTMLContentElem
   String select;
 
   /** @domName HTMLContentElement.getDistributedNodes; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> getDistributedNodes() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6438,6 +6445,7 @@ class DirectoryReader native "*DirectoryReader" {
 class DirectoryReaderSync native "*DirectoryReaderSync" {
 
   /** @domName DirectoryReaderSync.readEntries; @docsEditable true */
+  @Returns('_EntryArraySync') @Creates('_EntryArraySync')
   List<EntrySync> readEntries() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6511,7 +6519,7 @@ class Document extends Node  native "*Document"
   String selectedStylesheetSet;
 
   /** @domName Document.styleSheets; @docsEditable true */
-  List<StyleSheet> get $dom_styleSheets => JS("List<StyleSheet>", "#.styleSheets", this);
+  List<StyleSheet> get $dom_styleSheets => JS("_StyleSheetList", "#.styleSheets", this);
 
   /** @domName Document.title; @docsEditable true */
   String get $dom_title => JS("String", "#.title", this);
@@ -6586,12 +6594,15 @@ class Document extends Node  native "*Document"
   Element $dom_getElementById(String elementId) native "getElementById";
 
   /** @domName Document.getElementsByClassName; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_getElementsByClassName(String tagname) native "getElementsByClassName";
 
   /** @domName Document.getElementsByName; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_getElementsByName(String elementName) native "getElementsByName";
 
   /** @domName Document.getElementsByTagName; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_getElementsByTagName(String tagname) native "getElementsByTagName";
 
   /** @domName Document.queryCommandEnabled; @docsEditable true */
@@ -6613,6 +6624,7 @@ class Document extends Node  native "*Document"
   Element $dom_querySelector(String selectors) native "querySelector";
 
   /** @domName Document.querySelectorAll; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_querySelectorAll(String selectors) native "querySelectorAll";
 
   /** @domName Document.webkitCancelFullScreen; @docsEditable true */
@@ -7032,6 +7044,7 @@ class DocumentFragment extends Node native "*DocumentFragment" {
   Element $dom_querySelector(String selectors) native "querySelector";
 
   /** @domName DocumentFragment.querySelectorAll; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_querySelectorAll(String selectors) native "querySelectorAll";
 
 }
@@ -7720,6 +7733,7 @@ abstract class Element extends Node implements ElementTraversal native "*Element
    * [wc]: http://dvcs.w3.org/hg/webcomponents/raw-file/tip/explainer/index.html
    * [x-tags]: http://x-tags.org/
    */
+  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
   var xtag;
 
   // TODO(vsm): Implement noSuchMethod or similar for dart2js.
@@ -7922,12 +7936,15 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   ClientRect getBoundingClientRect() native;
 
   /** @domName Element.getClientRects; @docsEditable true */
+  @Returns('_ClientRectList') @Creates('_ClientRectList')
   List<ClientRect> getClientRects() native;
 
   /** @domName Element.getElementsByClassName; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_getElementsByClassName(String name) native "getElementsByClassName";
 
   /** @domName Element.getElementsByTagName; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_getElementsByTagName(String name) native "getElementsByTagName";
 
   /** @domName Element.hasAttribute; @docsEditable true */
@@ -7937,6 +7954,7 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   Element $dom_querySelector(String selectors) native "querySelector";
 
   /** @domName Element.querySelectorAll; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_querySelectorAll(String selectors) native "querySelectorAll";
 
   /** @domName Element.removeAttribute; @docsEditable true */
@@ -9552,6 +9570,7 @@ class HTMLAllCollection implements JavaScriptIndexingBehavior, List<Node> native
   Node namedItem(String name) native;
 
   /** @domName HTMLAllCollection.tags; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> tags(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10147,6 +10166,7 @@ class IDBDatabase extends EventTarget native "*IDBDatabase" {
   final String name;
 
   /** @domName IDBDatabase.objectStoreNames; @docsEditable true */
+  @Returns('_DOMStringList') @Creates('_DOMStringList')
   final List<String> objectStoreNames;
 
   /** @domName IDBDatabase.version; @docsEditable true */
@@ -10529,6 +10549,7 @@ class IDBObjectStore native "*IDBObjectStore" {
   final bool autoIncrement;
 
   /** @domName IDBObjectStore.indexNames; @docsEditable true */
+  @Returns('_DOMStringList') @Creates('_DOMStringList')
   final List<String> indexNames;
 
   /** @domName IDBObjectStore.keyPath; @docsEditable true */
@@ -11079,6 +11100,7 @@ class InputElement extends Element implements Element native "*HTMLInputElement"
   bool disabled;
 
   /** @domName HTMLInputElement.files; @docsEditable true */
+  @Returns('_FileList') @Creates('_FileList')
   List<File> files;
 
   /** @domName HTMLInputElement.form; @docsEditable true */
@@ -11109,6 +11131,7 @@ class InputElement extends Element implements Element native "*HTMLInputElement"
   bool indeterminate;
 
   /** @domName HTMLInputElement.labels; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> labels;
 
   /** @domName HTMLInputElement.list; @docsEditable true */
@@ -11181,6 +11204,7 @@ class InputElement extends Element implements Element native "*HTMLInputElement"
   num valueAsNumber;
 
   /** @domName HTMLInputElement.webkitEntries; @docsEditable true */
+  @Returns('_EntryArray') @Creates('_EntryArray')
   final List<Entry> webkitEntries;
 
   /** @domName HTMLInputElement.webkitGrammar; @docsEditable true */
@@ -11664,6 +11688,7 @@ class KeygenElement extends Element implements Element native "*HTMLKeygenElemen
   String keytype;
 
   /** @domName HTMLKeygenElement.labels; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> labels;
 
   /** @domName HTMLKeygenElement.name; @docsEditable true */
@@ -11819,6 +11844,7 @@ class LocalHistory implements History native "*History" {
 class LocalLocation implements Location native "*Location" {
 
   /** @domName Location.ancestorOrigins; @docsEditable true */
+  @Returns('_DOMStringList') @Creates('_DOMStringList')
   final List<String> ancestorOrigins;
 
   /** @domName Location.hash; @docsEditable true */
@@ -12205,6 +12231,7 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native "getComputedStyle";
 
   /** @domName Window.getMatchedCSSRules; @docsEditable true */
+  @Returns('_CSSRuleList') @Creates('_CSSRuleList')
   List<CSSRule> getMatchedCSSRules(Element element, String pseudoElement) native;
 
   /** @domName Window.getSelection; @docsEditable true */
@@ -12220,6 +12247,7 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   void moveTo(num x, num y) native;
 
   /** @domName DOMWindow.openDatabase; @docsEditable true */
+  @Creates('Database') @Creates('DatabaseSync')
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
   /** @domName Window.postMessage; @docsEditable true */
@@ -13180,6 +13208,7 @@ class MessageEvent extends Event native "*MessageEvent" {
   final String origin;
 
   /** @domName MessageEvent.ports; @docsEditable true */
+  @Creates('=List')
   final List ports;
 
   /** @domName MessageEvent.source; @docsEditable true */
@@ -13297,6 +13326,7 @@ class MeterElement extends Element implements Element native "*HTMLMeterElement"
   num high;
 
   /** @domName HTMLMeterElement.labels; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> labels;
 
   /** @domName HTMLMeterElement.low; @docsEditable true */
@@ -13567,6 +13597,7 @@ class MutationObserver native "*MutationObserver" {
 class MutationRecord native "*MutationRecord" {
 
   /** @domName MutationRecord.addedNodes; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> addedNodes;
 
   /** @domName MutationRecord.attributeName; @docsEditable true */
@@ -13585,6 +13616,7 @@ class MutationRecord native "*MutationRecord" {
   final Node previousSibling;
 
   /** @domName MutationRecord.removedNodes; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> removedNodes;
 
   /** @domName MutationRecord.target; @docsEditable true */
@@ -13773,6 +13805,7 @@ class Navigator native "*Navigator" {
   bool javaEnabled() native;
 
   /** @domName Navigator.webkitGetGamepads; @docsEditable true */
+  @Returns('_GamepadList') @Creates('_GamepadList')
   List<Gamepad> webkitGetGamepads() native;
 
   /** @domName Navigator.webkitGetUserMedia; @docsEditable true */
@@ -14009,7 +14042,7 @@ class Node extends EventTarget native "*Node" {
   NamedNodeMap get $dom_attributes => JS("NamedNodeMap", "#.attributes", this);
 
   /** @domName Node.childNodes; @docsEditable true */
-  List<Node> get $dom_childNodes => JS("List<Node>", "#.childNodes", this);
+  List<Node> get $dom_childNodes => JS("_NodeList", "#.childNodes", this);
 
   /** @domName Node.firstChild; @docsEditable true */
   Node get $dom_firstChild => JS("Node", "#.firstChild", this);
@@ -14544,6 +14577,7 @@ class OutputElement extends Element implements Element native "*HTMLOutputElemen
   DOMSettableTokenList htmlFor;
 
   /** @domName HTMLOutputElement.labels; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> labels;
 
   /** @domName HTMLOutputElement.name; @docsEditable true */
@@ -14763,6 +14797,7 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   final SessionDescription localDescription;
 
   /** @domName PeerConnection00.localStreams; @docsEditable true */
+  @Returns('_MediaStreamList') @Creates('_MediaStreamList')
   final List<MediaStream> localStreams;
 
   /** @domName PeerConnection00.readyState; @docsEditable true */
@@ -14772,6 +14807,7 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   final SessionDescription remoteDescription;
 
   /** @domName PeerConnection00.remoteStreams; @docsEditable true */
+  @Returns('_MediaStreamList') @Creates('_MediaStreamList')
   final List<MediaStream> remoteStreams;
 
   /** @domName PeerConnection00.addEventListener; @docsEditable true */
@@ -15082,6 +15118,7 @@ class ProgressElement extends Element implements Element native "*HTMLProgressEl
   factory ProgressElement() => document.$dom_createElement("progress");
 
   /** @domName HTMLProgressElement.labels; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> labels;
 
   /** @domName HTMLProgressElement.max; @docsEditable true */
@@ -15271,6 +15308,7 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   final RTCSessionDescription localDescription;
 
   /** @domName RTCPeerConnection.localStreams; @docsEditable true */
+  @Returns('_MediaStreamList') @Creates('_MediaStreamList')
   final List<MediaStream> localStreams;
 
   /** @domName RTCPeerConnection.readyState; @docsEditable true */
@@ -15280,6 +15318,7 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   final RTCSessionDescription remoteDescription;
 
   /** @domName RTCPeerConnection.remoteStreams; @docsEditable true */
+  @Returns('_MediaStreamList') @Creates('_MediaStreamList')
   final List<MediaStream> remoteStreams;
 
   /** @domName RTCPeerConnection.addEventListener; @docsEditable true */
@@ -15555,6 +15594,7 @@ class Range native "*Range" {
   ClientRect getBoundingClientRect() native;
 
   /** @domName Range.getClientRects; @docsEditable true */
+  @Returns('_ClientRectList') @Creates('_ClientRectList')
   List<ClientRect> getClientRects() native;
 
   /** @domName Range.insertNode; @docsEditable true */
@@ -16050,6 +16090,7 @@ class SelectElement extends Element implements Element native "*HTMLSelectElemen
   final FormElement form;
 
   /** @domName HTMLSelectElement.labels; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> labels;
 
   /** @domName HTMLSelectElement.length; @docsEditable true */
@@ -16170,9 +16211,11 @@ class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
   Element $dom_getElementById(String elementId) native "getElementById";
 
   /** @domName ShadowRoot.getElementsByClassName; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_getElementsByClassName(String className) native "getElementsByClassName";
 
   /** @domName ShadowRoot.getElementsByTagName; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_getElementsByTagName(String tagName) native "getElementsByTagName";
 
   /** @domName ShadowRoot.getSelection; @docsEditable true */
@@ -16511,6 +16554,7 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
 class SpeechInputEvent extends Event native "*SpeechInputEvent" {
 
   /** @domName SpeechInputEvent.results; @docsEditable true */
+  @Returns('_SpeechInputResultList') @Creates('_SpeechInputResultList')
   final List<SpeechInputResult> results;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16660,6 +16704,7 @@ class SpeechRecognitionEvent extends Event native "*SpeechRecognitionEvent" {
   final SpeechRecognitionResult result;
 
   /** @domName SpeechRecognitionEvent.resultHistory; @docsEditable true */
+  @Returns('_SpeechRecognitionResultList') @Creates('_SpeechRecognitionResultList')
   final List<SpeechRecognitionResult> resultHistory;
 
   /** @domName SpeechRecognitionEvent.resultIndex; @docsEditable true */
@@ -17203,6 +17248,7 @@ class TextAreaElement extends Element implements Element native "*HTMLTextAreaEl
   final FormElement form;
 
   /** @domName HTMLTextAreaElement.labels; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> labels;
 
   /** @domName HTMLTextAreaElement.maxLength; @docsEditable true */
@@ -19859,12 +19905,15 @@ class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
   /** @domName WebKitNamedFlow.getContent; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> getContent() native;
 
   /** @domName WebKitNamedFlow.getRegions; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> getRegions() native;
 
   /** @domName WebKitNamedFlow.getRegionsByContent; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> getRegionsByContent(Node contentNode) native;
 
   /** @domName WebKitNamedFlow.removeEventListener; @docsEditable true */
@@ -21461,20 +21510,10 @@ class _MessageChannelFactoryProvider {
 
 
 class _MutationObserverFactoryProvider {
-  static MutationObserver createMutationObserver(MutationCallback callback) {
 
-    // This is a hack to cause MutationRecord to appear to be instantiated.
-    //
-    // MutationCallback has a parameter type List<MutationRecord>.  From this we
-    // infer a list is created in the browser, but not the element type, because
-    // other native fields and methods return plain List which is too general
-    // and would imply creating anything.  This statement is a work-around.
-    JS('MutationRecord','0');
-
-    return _createMutationObserver(callback);
-  }
-
-  static MutationObserver _createMutationObserver(MutationCallback callback) native '''
+  @Creates('MutationObserver')
+  @Creates('MutationRecord')
+  static MutationObserver createMutationObserver(MutationCallback callback) native '''
     var constructor =
         window.MutationObserver || window.WebKitMutationObserver ||
         window.MozMutationObserver;

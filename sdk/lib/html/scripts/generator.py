@@ -593,6 +593,19 @@ def FindConversion(idl_type, direction, interface, member):
 
 dart2js_annotations = {
 
+    'CanvasRenderingContext2D.createImageData':
+      "@Creates('ImageData|=Object')",
+
+    'CanvasRenderingContext2D.getImageData':
+      "@Creates('ImageData|=Object')",
+
+    'CanvasRenderingContext2D.webkitGetImageDataHD':
+      "@Creates('ImageData|=Object')",
+
+    'DOMWindow.openDatabase': "@Creates('Database') @Creates('DatabaseSync')",
+
+    'FileReader.result': "@Creates('String|ArrayBuffer|Null')",
+
     # Rather than have the result of an IDBRequest as a union over all possible
     # results, we mark the result as instantiating any classes, and mark
     # each operation with the classes that it could cause to be asynchronously
@@ -630,21 +643,12 @@ dart2js_annotations = {
     '+IDBVersionChangeRequest': "@Returns('IDBRequest') @Creates('IDBRequest')",
 
 
-    'FileReader.result': "@Creates('String|ArrayBuffer|Null')",
+    'MessageEvent.ports': "@Creates('=List')",
 
-    'CanvasRenderingContext2D.createImageData':
-      "@Creates('ImageData|=Object')",
-
-    'CanvasRenderingContext2D.getImageData':
-      "@Creates('ImageData|=Object')",
-
-    'CanvasRenderingContext2D.webkitGetImageDataHD':
-      "@Creates('ImageData|=Object')",
+    'SQLResultSetRowList.item': "@Creates('=Object')",
 
     'XMLHttpRequest.response':
       "@Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')",
-
-    'SQLResultSetRowList.item': "@Creates('=Object')",
 }
 
 def FindAnnotations(idl_type, interface_name, member_name):
@@ -791,7 +795,7 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
 
   def narrow_dart_type(self):
     if self.list_item_type():
-      return self.idl_type()
+      return self.implementation_name()
     # TODO(podivilov): only primitive and collection types should override
     # dart_type.
     if self._data.dart_type != None:

@@ -584,13 +584,15 @@ class Dart2JSBackend(HtmlDartGenerator):
     if conversion:
       return self._AddConvertingGetter(attr, html_name, conversion)
     return_type = self.SecureOutputType(attr.type.id)
+    native_type = self._NarrowToImplementationType(attr.type.id)
     self._members_emitter.Emit(
         # TODO(sra): Use metadata to provide native name.
-        '\n  $TYPE get $HTML_NAME => JS("$TYPE", "#.$NAME", this);'
+        '\n  $TYPE get $HTML_NAME => JS("$NATIVE_TYPE", "#.$NAME", this);'
         '\n',
         HTML_NAME=html_name,
         NAME=attr.id,
-        TYPE=return_type)
+        TYPE=return_type,
+        NATIVE_TYPE=native_type)
 
   def _AddRenamingSetter(self, attr, html_name):
     self.EmitAttributeDocumentation(attr)
@@ -873,6 +875,10 @@ class Dart2JSBackend(HtmlDartGenerator):
     annotations = FindAnnotations(idl_type, self._interface.id, member_name)
     if annotations:
       return '%s\n  ' % annotations
+    return_type = self.SecureOutputType(idl_type)
+    native_type = self._NarrowToImplementationType(idl_type)
+    if native_type != return_type:
+      return "@Returns('%s') @Creates('%s')\n  " % (native_type, native_type)
     else:
       return ''
 

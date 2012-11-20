@@ -1105,6 +1105,42 @@ abstract class Dynamic_ {
 
 /**
  * A metadata annotation describing the types instantiated by a native element.
+ *
+ * The annotation is valid on a native method and a field of a native class.
+ *
+ * By default, a field of a native class is seen as an instantiation point for
+ * all native classes that are a subtype of the field's type, and a native
+ * method is seen as an instantiation point fo all native classes that are a
+ * subtype of the method's return type, or the argument types of the declared
+ * type of the method's callback parameter.
+ *
+ * An @[Creates] annotation overrides the default set of instantiated types.  If
+ * one or more @[Creates] annotations are present, the type of the native
+ * element is ignored, and the union of @[Creates] annotations is used instead.
+ * The names in the strings are resolved and the program will fail to compile
+ * with dart2js if they do not name types.
+ *
+ * The argument to [Creates] is a string.  The string is parsed as the names of
+ * one or more types, separated by vertical bars `|`.  There are some special
+ * names:
+ *
+ * * `=List`. This means 'exactly List', which is the JavaScript Array
+ *   implementation of [List] and no other implementation.
+ *
+ * * `=Object`. This means 'exactly Object', which is a plain JavaScript object
+ *   with properties and none of the subtypes of Object.
+ *
+ * Example: we may know that a method always returns a specific implementation:
+ *
+ *     @Creates('_NodeList')
+ *     List<Node> getElementsByTagName(String tag) native;
+ *
+ * Useful trick: A method can be marked as not instantiating any native classes
+ * with the annotation `@Creates('Null')`.  This is useful for fields on native
+ * classes that are used only in Dart code.
+ *
+ *     @Creates('Null')
+ *     var _cachedFoo;
  */
 class Creates {
   final String types;
@@ -1114,6 +1150,23 @@ class Creates {
 /**
  * A metadata annotation describing the types returned or yielded by a native
  * element.
+ *
+ * The annotation is valid on a native method and a field of a native class.
+ *
+ * By default, a native method or field is seen as returning or yielding all
+ * subtypes if the method return type or field type.  This annotation allows a
+ * more precise set of types to be specified.
+ *
+ * See [Creates] for the syntax of the argument.
+ *
+ * Example: IndexedDB keys are numbers, strings and JavaScript Arrays of keys.
+ *
+ *     @Returns('String|num|=List')
+ *     dynamic key;
+ *
+ *     // Equivalent:
+ *     @Returns('String') @Returns('num') @Returns('=List')
+ *     dynamic key;
  */
 class Returns {
   final String types;

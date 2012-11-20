@@ -78,7 +78,7 @@ class JSArray<E> implements List<E> {
       throw new RangeError.value(length);
     }
     if (length < 0) throw new ArgumentError(length);
-    return JS('List', r'#.slice(#, #)', this, start, end);
+    return JS('=List', r'#.slice(#, #)', this, start, end);
   }
 
   void insertRange(int start, int length, [E initialValue]) {

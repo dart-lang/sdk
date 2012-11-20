@@ -1105,6 +1105,7 @@ class ElementInstance extends EventTarget native "*SVGElementInstance" {
     new ElementInstanceEvents(this);
 
   /** @domName SVGElementInstance.childNodes; @docsEditable true */
+  @Returns('_ElementInstanceList') @Creates('_ElementInstanceList')
   final List<ElementInstance> childNodes;
 
   /** @domName SVGElementInstance.correspondingElement; @docsEditable true */
@@ -5168,9 +5169,11 @@ class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable,
   Element getElementById(String elementId) native;
 
   /** @domName SVGSVGElement.getEnclosureList; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> getEnclosureList(Rect rect, SvgElement referenceElement) native;
 
   /** @domName SVGSVGElement.getIntersectionList; @docsEditable true */
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> getIntersectionList(Rect rect, SvgElement referenceElement) native;
 
   /** @domName SVGSVGElement.pauseAnimations; @docsEditable true */
