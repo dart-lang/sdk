@@ -944,7 +944,7 @@ unwrapException(ex) {
     // exception occurred.
     var type = JS('var', r'#.type', ex);
     var name = JS('var', r'#.arguments ? #.arguments[0] : ""', ex, ex);
-    if (message.contains('JSNull') ||
+    if (contains(message, 'JSNull') ||
         type == 'property_not_function' ||
         type == 'called_non_callable' ||
         type == 'non_object_property_call' ||
@@ -964,7 +964,7 @@ unwrapException(ex) {
           message.endsWith('is undefined') ||
           message.endsWith('is null or undefined')) {
         return new NoSuchMethodError(null, '<unknown>', [], {});
-      } else if (message.contains(' is not a function') ||
+      } else if (contains(message, ' is not a function') ||
                  (ieErrorCode == 438 && ieFacilityNumber == 10)) {
         // Examples:
         //  x.foo is not a function
@@ -983,7 +983,7 @@ unwrapException(ex) {
   }
 
   if (JS('bool', r'# instanceof RangeError', ex)) {
-    if (message is String && message.contains('call stack')) {
+    if (message is String && contains(message, 'call stack')) {
       return new StackOverflowError();
     }
 
