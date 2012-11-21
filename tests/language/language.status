@@ -91,7 +91,7 @@ bad_override_test/01: Fail, OK # issue 6578, warning expected on "static" modifi
 bad_override_test/02: Fail, OK # issue 6578, warning expected on "static" modifier
 const_locals_test: Fail
 const_nested_test: Fail
-get_set_syntax_test/none: Fail # does not accept getter/setter with no method body
+get_set_syntax_test/none: Fail, OK # does not accept getter/setter with no method body
 application_negative_test: Fail # Runtime only test, rewrite as multitest
 assign_instance_method_negative_test: Fail # Runtime only test, rewrite as multitest
 body_less_constructor_wrong_arg_negative_test: Fail # Runtime only test, rewrite as multitest
@@ -192,8 +192,9 @@ type_variable_scope2_test: Fail, OK
 bad_constructor_test/05: Fail, OK
 
 # test issue 5529
-abstract_factory_constructor_test/none: Fail, OK
-abstract_syntax_test/none: Fail, OK
+abstract_factory_constructor_test/none: Pass, Fail, OK # wrong failure reason
+abstract_factory_constructor_test/00: Pass, Fail, OK # wrong failure reason
+abstract_syntax_test/none: Pass, Fail, OK # Wrong analyzer message
 interface_test/none: Fail, OK
 
 # test issue 6338
