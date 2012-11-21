@@ -1582,11 +1582,22 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // because that is where the type guards will also be inserted.
       // This way we ensure that a type guard will dominate the type
       // check.
-      signature.orderedForEachParameter((Element element) {
+      signature.orderedForEachParameter((Element parameterElement) {
+        if (element.isGenerativeConstructorBody()) {
+          ClosureScope scopeData =
+              localsHandler.closureData.capturingScopes[node];
+          if (scopeData != null
+              && scopeData.capturedVariableMapping.containsKey(
+                  parameterElement)) {
+            // The parameter will be a field in the box passed as the
+            // last parameter. So no need to have it.
+            return;
+          }
+        }
         HInstruction newParameter = potentiallyCheckType(
-            localsHandler.directLocals[element],
-            element.computeType(compiler));
-        localsHandler.directLocals[element] = newParameter;
+            localsHandler.directLocals[parameterElement],
+            parameterElement.computeType(compiler));
+        localsHandler.directLocals[parameterElement] = newParameter;
       });
 
       returnType = signature.returnType;
