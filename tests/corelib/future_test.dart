@@ -565,92 +565,6 @@ testTransformExceptionReturnsAFuture() {
   Expect.equals("transformed value", transformedFuture.value);
 }
 
-// Tests for branching exceptions
-
-testExceptionTravelsAlongBothBranches() {
-  var results = <int>[];
-
-  var completer = new Completer();
-  var branch1 = completer.future.transform((_) => null);
-  var branch2 = completer.future.transform((_) => null);
-
-  branch1.handleException((e) {
-    results.add(1);
-    return true;
-  });
-
-  branch2.handleException((e) {
-    results.add(2);
-    return true;
-  });
-
-  completer.completeException("error");
-  Expect.setEquals([1, 2], results);
-}
-
-testExceptionTravelsAlongBothBranchesAfterComplete() {
-  var results = <int>[];
-
-  var completer = new Completer();
-  completer.completeException("error");
-
-  var branch1 = completer.future.transform((_) => null);
-  var branch2 = completer.future.transform((_) => null);
-
-  branch1.handleException((e) {
-    results.add(1);
-    return true;
-  });
-
-  branch2.handleException((e) {
-    results.add(2);
-    return true;
-  });
-
-  Expect.setEquals([1, 2], results);
-}
-
-testExceptionIsHandledInBaseAndBranch() {
-  var results = <String>[];
-
-  var completer = new Completer();
-  var branch = completer.future.transform((_) => null);
-
-  completer.future.handleException((e) {
-    results.add("base");
-    return true;
-  });
-
-  branch.handleException((e) {
-    results.add("branch");
-    return true;
-  });
-
-  completer.completeException("error");
-  Expect.setEquals(["base", "branch"], results);
-}
-
-testExceptionIsHandledInBaseAndBranchAfterComplete() {
-  var results = <String>[];
-
-  var completer = new Completer();
-  completer.completeException("error");
-
-  var branch = completer.future.transform((_) => null);
-
-  completer.future.handleException((e) {
-    results.add("base");
-    return true;
-  });
-
-  branch.handleException((e) {
-    results.add("branch");
-    return true;
-  });
-
-  Expect.setEquals(["base", "branch"], results);
-}
-
 main() {
   testImmediate();
   testNeverComplete();
@@ -691,8 +605,4 @@ main() {
   testTransformExceptionThrows();
   testTransformExceptionReturns();
   testTransformExceptionReturnsAFuture();
-  testExceptionTravelsAlongBothBranches();
-  testExceptionTravelsAlongBothBranchesAfterComplete();
-  testExceptionIsHandledInBaseAndBranch();
-  testExceptionIsHandledInBaseAndBranchAfterComplete();
 }
