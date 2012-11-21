@@ -17,7 +17,7 @@ class SubAbstract1 extends Abstract { } /// 01: static type warning
 // This class is implicitly abstract as it declares an abstract getter
 // method.
 class SubAbstract2 extends Abstract {
-  abstract get x;
+  get x;  // Abstract.
 }
 
 // This class does not implement "x" either, but it is not marked

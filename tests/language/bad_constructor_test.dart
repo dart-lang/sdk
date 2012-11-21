@@ -10,12 +10,6 @@ class A {
   // Factory may not be static.
   static factory A() { return null; }  /// 01: compile-time error
 
-  // Constructor may not be abstract.
-  abstract A();  /// 02: compile-time error
-
-  // Factory may not be abstract
-  abstract factory A() { return null; }  /// 03: compile-time error
-
   // Named constructor may not conflict with names of methods and fields.
   var m;
   A.m() { m = 0; }  /// 04: compile-time error

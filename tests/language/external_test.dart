@@ -14,7 +14,6 @@ class Foo {
   external f12() => 1;  /// 12: compile-time error
   external static f13();  /// 13: runtime error
   static external f14();  /// 14: compile-time error
-  external abstract f15();  /// 15: compile-time error
   int external f16();  /// 16: compile-time error
 
   external Foo.n20();  /// 20: runtime error

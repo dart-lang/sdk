@@ -5,7 +5,7 @@
 // Test to ensure that an abstract getter is not mistaken for a field.
 
 class Foo {
-  abstract get i;
+  get i;  // Abstract.
 }
 
 class Bar {
