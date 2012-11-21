@@ -25,5 +25,5 @@ test(n) {
   Expect.equals(2, c[1]);
   // Test elimination of array length computation.
   var v = c[n];
-  Expet equals(v, c[n]);
+  Expect.equals(v, c[n]);
 }

@@ -27,6 +27,10 @@ class_literal_test/27: Fail # Class literals are expression now; delete this tes
 class_literal_test/28: Fail # Class literals are expression now; delete this test.
 class_literal_test/29: Fail # Class literals are expression now; delete this test.
 
+double_int_to_string_test: Fail # Issue 1533 (double/integer distinction)
+mint_arithmetic_test: Fail # Issue 1533 (big integer arithmetic).
+type_variable_shadows_class_test: Fail # Issue 643
+
 # VM specific tests that should not be run by dart2js.
 *vm_test: Skip
 *vm_negative_test: Skip

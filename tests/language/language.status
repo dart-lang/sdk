@@ -43,6 +43,8 @@ lazy_static3_test: Fail # Issue 3558
 
 type_error_test: Fail # http://dartbug.com/5280
 
+type_variable_shadows_class_test: Fail # Issue 643
+
 # DartC specific tests that should not be run by the VM
 *dartc_test: Skip
 *dartc_negative_test: Skip

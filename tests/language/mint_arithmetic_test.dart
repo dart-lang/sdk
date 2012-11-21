@@ -71,7 +71,6 @@ test_func(x, y) => (x & y) + 1.0;
 test_mint_double_op() {
   for (var i=0; i<10000; i++) test_func(4294967295, 1);
   Expect.equals(2.0, test_func(4294967295, 1));
-  Expect.equals(4294967296.0, test_func(4294967295, 1));
 }
 
 main() {
