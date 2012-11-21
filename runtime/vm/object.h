@@ -1440,6 +1440,9 @@ class Function : public Object {
   // functions.
   int32_t SourceFingerprint() const;
 
+  // Return false and report an error if the fingerprint does not match.
+  bool CheckSourceFingerprint(intptr_t fp) const;
+
   static const int kCtorPhaseInit = 1 << 0;
   static const int kCtorPhaseBody = 1 << 1;
   static const int kCtorPhaseAll = (kCtorPhaseInit | kCtorPhaseBody);

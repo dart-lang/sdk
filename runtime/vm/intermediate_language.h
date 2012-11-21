@@ -29,18 +29,20 @@ class Range;
 
 
 // TODO(srdjan): Add _ByteArrayBase, get:length.
-
+// TODO(srdjan): Unify with INTRINSIC_LIST.
+// (class-name, function-name, recognized enum, fingerprint).
+// See intrinsifier for fingerprint computation.
 #define RECOGNIZED_LIST(V)                                                     \
-  V(_ObjectArray, get:length, ObjectArrayLength)                               \
-  V(_ImmutableArray, get:length, ImmutableArrayLength)                         \
-  V(_GrowableObjectArray, get:length, GrowableArrayLength)                     \
-  V(_GrowableObjectArray, get:capacity, GrowableArrayCapacity)                 \
-  V(_StringBase, get:length, StringBaseLength)                                 \
-  V(_StringBase, get:isEmpty, StringBaseIsEmpty)                               \
-  V(_StringBase, charCodeAt, StringBaseCharCodeAt)                             \
-  V(_IntegerImplementation, toDouble, IntegerToDouble)                         \
-  V(_Double, toInt, DoubleToInteger)                                           \
-  V(::, sqrt, MathSqrt)                                                        \
+  V(_ObjectArray, get:length, ObjectArrayLength, 405297088)                    \
+  V(_ImmutableArray, get:length, ImmutableArrayLength, 433698233)              \
+  V(_GrowableObjectArray, get:length, GrowableArrayLength, 725548050)          \
+  V(_GrowableObjectArray, get:capacity, GrowableArrayCapacity, 725548050)      \
+  V(_StringBase, get:length, StringBaseLength, 320803993)                      \
+  V(_StringBase, get:isEmpty, StringBaseIsEmpty, 1065961093)                   \
+  V(_StringBase, charCodeAt, StringBaseCharCodeAt, 984449525)                  \
+  V(_IntegerImplementation, toDouble, IntegerToDouble, 1396338041)             \
+  V(_Double, toInt, DoubleToInteger, 362666636)                                \
+  V(::, sqrt, MathSqrt, 2232519)                                               \
 
 // Class that recognizes the name and owner of a function and returns the
 // corresponding enum. See RECOGNIZED_LIST above for list of recognizable
@@ -49,7 +51,7 @@ class MethodRecognizer : public AllStatic {
  public:
   enum Kind {
     kUnknown,
-#define DEFINE_ENUM_LIST(class_name, function_name, enum_name) k##enum_name,
+#define DEFINE_ENUM_LIST(class_name, function_name, enum_name, fp) k##enum_name,
 RECOGNIZED_LIST(DEFINE_ENUM_LIST)
 #undef DEFINE_ENUM_LIST
   };

@@ -94,19 +94,6 @@ INTRINSIC_LIST(FIND_INTRINSICS);
 }
 
 
-static bool CheckFingerprint(const Function& function, intptr_t fp) {
-  /*if (function.SourceFingerprint() != fp) {
-    OS::Print("FP mismatch while intrinsifying %s:"
-      " expecting %"Pd" found %d\n",
-      function.ToFullyQualifiedCString(),
-      fp,
-      function.SourceFingerprint());
-    return true;
-  } */
-  return true;
-}
-
-
 bool Intrinsifier::Intrinsify(const Function& function, Assembler* assembler) {
   if (!CanIntrinsify(function)) return false;
   const char* function_name = String::Handle(function.name()).ToCString();
@@ -116,7 +103,7 @@ bool Intrinsifier::Intrinsify(const Function& function, Assembler* assembler) {
   if (TestFunction(function,                                                   \
                    class_name, function_name,                                  \
                    #test_class_name, #test_function_name)) {                   \
-    ASSERT(CheckFingerprint(function, fp));                                    \
+    ASSERT(function.CheckSourceFingerprint(fp));                               \
     return destination(assembler);                                             \
   }                                                                            \
 
