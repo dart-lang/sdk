@@ -145,12 +145,12 @@ class JSString implements String {
     int hash = 0;
     for (int i = 0; i < length; i++) {
       hash = 0x1fffffff & (hash + JS('int', r'#.charCodeAt(#)', this, i));
-      hash = 0x1fffffff & (hash + (0x0007ffff & hash) << 10);
+      hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
       hash = JS('int', '# ^ (# >> 6)', hash, hash);
     }
-    hash = 0x1fffffff & (hash + (0x03ffffff & hash) <<  3);
+    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) <<  3));
     hash = JS('int', '# ^ (# >> 11)', hash, hash);
-    return 0x1fffffff & (hash + (0x00003fff & hash) << 15);
+    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
 
   Type get runtimeType => createRuntimeType('String');

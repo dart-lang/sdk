@@ -165,7 +165,7 @@ class JSArray<E> implements List<E> {
 
   ListIterator iterator() => new ListIterator(this);
 
-  int get hashCode => Primitives.objectHashCode(receiver);
+  int get hashCode => Primitives.objectHashCode(this);
 
   Type get runtimeType => createRuntimeType('List');
 

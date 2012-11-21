@@ -51,7 +51,11 @@ class JSFunction implements Function {
 class JSBool implements bool {
   const JSBool();
   String toString() => JS('String', r'String(#)', this);
-  int get hashCode => this ? 0x40377024 : 0xc18c0076;
+
+  // The values here are SMIs, co-prime and differ about half of the bit
+  // positions, including the low bit, so they are different mod 2^k.
+  int get hashCode => this ? (2 * 3 * 23 * 3761) : (269 * 811);
+
   Type get runtimeType => createRuntimeType('bool');
 }
 
