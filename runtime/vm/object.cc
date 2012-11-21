@@ -4215,7 +4215,7 @@ int32_t Function::SourceFingerprint() const {
     result = 31 * result + val;
     tokens_iterator.Advance();
   }
-  result = result & ((static_cast<intptr_t>(1) << 31) - 1);
+  result = result & ((static_cast<intptr_t>(1) << 30) - 1);
   ASSERT(result <= static_cast<uint32_t>(kMaxInt32));
   return result;
 }
