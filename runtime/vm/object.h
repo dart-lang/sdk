@@ -1438,7 +1438,7 @@ class Function : public Object {
 
   // Slow function, use in asserts to track changes in important library
   // functions.
-  intptr_t SourceFingerprint() const;
+  int32_t SourceFingerprint() const;
 
   static const int kCtorPhaseInit = 1 << 0;
   static const int kCtorPhaseBody = 1 << 1;

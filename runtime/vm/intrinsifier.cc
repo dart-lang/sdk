@@ -64,6 +64,8 @@ static bool TestFunction(const Function& function,
 bool Intrinsifier::CanIntrinsify(const Function& function) {
   if (!FLAG_intrinsify) return false;
   if (function.IsClosureFunction()) return false;
+  // Can occur because of compile-all flag.
+  if (function.is_external()) return false;
   // Intrinsic kind is set lazily below.
   if (function.intrinsic_kind() == Function::kIsIntrinsic) return true;
   if (function.intrinsic_kind() == Function::kIsNotIntrinsic) return false;
@@ -77,7 +79,7 @@ bool Intrinsifier::CanIntrinsify(const Function& function) {
     return false;
   }
   const char* class_name = String::Handle(function_class.Name()).ToCString();
-#define FIND_INTRINSICS(test_class_name, test_function_name, destination)      \
+#define FIND_INTRINSICS(test_class_name, test_function_name, destination, fp)  \
   if (TestFunction(function,                                                   \
                    class_name, function_name,                                  \
                    #test_class_name, #test_function_name)) {                   \
@@ -91,15 +93,30 @@ INTRINSIC_LIST(FIND_INTRINSICS);
   return false;
 }
 
+
+static bool CheckFingerprint(const Function& function, intptr_t fp) {
+  if (function.SourceFingerprint() != fp) {
+    OS::Print("FP mismatch while intrinsifying %s:"
+      " expecting %"Pd" found %d\n",
+      function.ToFullyQualifiedCString(),
+      fp,
+      function.SourceFingerprint());
+    return false;
+  }
+  return true;
+}
+
+
 bool Intrinsifier::Intrinsify(const Function& function, Assembler* assembler) {
   if (!CanIntrinsify(function)) return false;
   const char* function_name = String::Handle(function.name()).ToCString();
   const Class& function_class = Class::Handle(function.Owner());
   const char* class_name = String::Handle(function_class.Name()).ToCString();
-#define FIND_INTRINSICS(test_class_name, test_function_name, destination)      \
+#define FIND_INTRINSICS(test_class_name, test_function_name, destination, fp)  \
   if (TestFunction(function,                                                   \
                    class_name, function_name,                                  \
                    #test_class_name, #test_function_name)) {                   \
+    ASSERT(CheckFingerprint(function, fp));                                    \
     return destination(assembler);                                             \
   }                                                                            \
 

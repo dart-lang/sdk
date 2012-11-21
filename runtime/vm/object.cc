@@ -4197,14 +4197,14 @@ RawString* Function::QualifiedUserVisibleName() const {
 
 // Construct fingerprint from token stream. The token stream contains also
 // arguments.
-intptr_t Function::SourceFingerprint() const {
-  intptr_t result = String::Handle(Signature()).Hash();
+int32_t Function::SourceFingerprint() const {
+  uint32_t result = String::Handle(Signature()).Hash();
   TokenStream::Iterator tokens_iterator(TokenStream::Handle(
       Script::Handle(script()).tokens()), token_pos());
   Object& obj = Object::Handle();
   String& literal = String::Handle();
   while (tokens_iterator.CurrentPosition() < end_token_pos()) {
-    intptr_t val = 0;
+    uint32_t val = 0;
     obj = tokens_iterator.CurrentToken();
     if (obj.IsSmi()) {
       val = Smi::Cast(obj).Value();
@@ -4215,6 +4215,8 @@ intptr_t Function::SourceFingerprint() const {
     result = 31 * result + val;
     tokens_iterator.Advance();
   }
+  result = result & ((static_cast<intptr_t>(1) << 31) - 1);
+  ASSERT(result <= static_cast<uint32_t>(kMaxInt32));
   return result;
 }
 
@@ -9949,11 +9951,11 @@ class StringHasher : ValueObject {
     hash_ ^= hash_ >> 11;
     hash_ += hash_ << 15;
     hash_ = hash_ & ((static_cast<intptr_t>(1) << bits) - 1);
-    ASSERT(hash_ >= 0);
+    ASSERT(hash_ <= static_cast<uint32_t>(kMaxInt32));
     return hash_ == 0 ? 1 : hash_;
   }
  private:
-  intptr_t hash_;
+  uint32_t hash_;
 };
 
 
