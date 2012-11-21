@@ -528,13 +528,13 @@ static void TestString(const char* cstr) {
 TEST_CASE(SerializeString) {
   TestString("This string shall be serialized");
   TestString("æøå");  // This file is UTF-8 encoded.
-  char data[] = {0x01,
-                 0x7f,
-                 0xc2, 0x80,         // 0x80
-                 0xdf, 0xbf,         // 0x7ff
-                 0xe0, 0xa0, 0x80,   // 0x800
-                 0xef, 0xbf, 0xbf,   // 0xffff
-                 0x00};              // String termination.
+  const char* data = "\x01"
+                     "\x7F"
+                     "\xC2\x80"       // U+0080
+                     "\xDF\xBF"       // U+07FF
+                     "\xE0\xA0\x80"   // U+0800
+                     "\xEF\xBF\xBF";  // U+FFFF
+
   TestString(data);
   // TODO(sgjesse): Add tests with non-BMP characters.
 }
@@ -2107,7 +2107,7 @@ UNIT_TEST_CASE(PostCObject) {
   EXPECT(Dart_PostCObject(send_port_id, &object));
 
   // Try to post an invalid UTF-8 sequence (lead surrogate).
-  char data[] = {0xed, 0xa0, 0x80, 0};  // 0xd800
+  const char* data = "\xED\xA0\x80";  // U+D800
   object.type = Dart_CObject::kString;
   object.value.as_string = const_cast<char*>(data);
   EXPECT(!Dart_PostCObject(send_port_id, &object));
