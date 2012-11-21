@@ -541,7 +541,7 @@ TEST_CASE(IsString) {
   EXPECT(Dart_IsString(ext16));
   EXPECT(Dart_IsExternalString(ext16));
 
-  uint32_t data32[] = { 'f', 'o', 'u', 'r', 0x10FFFF };
+  int32_t data32[] = { 'f', 'o', 'u', 'r', 0x10FFFF };
 
   Dart_Handle str32 = Dart_NewStringFromUTF32(data32, ARRAY_SIZE(data32));
   EXPECT_VALID(str32);
@@ -6770,7 +6770,7 @@ TEST_CASE(NativeStaticFunctionClosure) {
 TEST_CASE(RangeLimits) {
   uint8_t chars8[1] = {'a'};
   uint16_t chars16[1] = {'a'};
-  uint32_t chars32[1] = {'a'};
+  int32_t chars32[1] = {'a'};
 
   EXPECT_ERROR(Dart_NewList(-1),
                "expects argument 'length' to be in the range");

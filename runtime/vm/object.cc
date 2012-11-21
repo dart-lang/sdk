@@ -10001,7 +10001,7 @@ intptr_t String::Hash(const uint16_t* characters, intptr_t len) {
 }
 
 
-intptr_t String::Hash(const uint32_t* characters, intptr_t len) {
+intptr_t String::Hash(const int32_t* characters, intptr_t len) {
   return HashImpl(characters, len);
 }
 
@@ -10117,7 +10117,7 @@ bool String::Equals(const uint16_t* utf16_array, intptr_t len) const {
 }
 
 
-bool String::Equals(const uint32_t* utf32_array, intptr_t len) const {
+bool String::Equals(const int32_t* utf32_array, intptr_t len) const {
   CodePointIterator it(*this);
   intptr_t i = 0;
   while (it.Next()) {
@@ -10223,7 +10223,7 @@ RawString* String::New(const uint16_t* utf16_array,
 }
 
 
-RawString* String::New(const uint32_t* utf32_array,
+RawString* String::New(const int32_t* utf32_array,
                        intptr_t array_len,
                        Heap::Space space) {
   bool is_one_byte_string = true;
@@ -10777,7 +10777,7 @@ RawOneByteString* OneByteString::New(const uint16_t* characters,
 }
 
 
-RawOneByteString* OneByteString::New(const uint32_t* characters,
+RawOneByteString* OneByteString::New(const int32_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
   const String& result = String::Handle(OneByteString::New(len, space));
@@ -10912,7 +10912,7 @@ RawTwoByteString* TwoByteString::New(const uint16_t* utf16_array,
 
 
 RawTwoByteString* TwoByteString::New(intptr_t utf16_len,
-                                     const uint32_t* utf32_array,
+                                     const int32_t* utf32_array,
                                      intptr_t array_len,
                                      Heap::Space space) {
   ASSERT((array_len > 0) && (utf16_len >= array_len));

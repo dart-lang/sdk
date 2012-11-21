@@ -178,13 +178,13 @@ class Scanner : ValueObject {
   void ScanLiteralStringChars(bool is_raw);
 
   // Reads a fixed number of hexadecimal digits.
-  bool ScanHexDigits(int digits, uint32_t* value);
+  bool ScanHexDigits(int digits, int32_t* value);
 
   // Reads a variable number of hexadecimal digits.
-  bool ScanHexDigits(int min_digits, int max_digits, uint32_t* value);
+  bool ScanHexDigits(int min_digits, int max_digits, int32_t* value);
 
   // Reads an escaped code point from within a string literal.
-  void ScanEscapedCodePoint(uint32_t* escaped_char);
+  void ScanEscapedCodePoint(int32_t* escaped_char);
 
   // Reads identifier.
   RawString* ConsumeIdentChars(bool allow_dollar);

@@ -52,10 +52,10 @@ class Utf8 : AllStatic {
                             intptr_t len);
   static bool DecodeToUTF32(const uint8_t* utf8_array,
                             intptr_t array_len,
-                            uint32_t* dst,
+                            int32_t* dst,
                             intptr_t len);
   static bool DecodeCStringToUTF32(const char* str,
-                                   uint32_t* dst,
+                                   int32_t* dst,
                                    intptr_t len) {
     ASSERT(str != NULL);
     intptr_t array_len = strlen(str);

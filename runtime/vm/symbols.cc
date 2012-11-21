@@ -55,7 +55,7 @@ void Symbols::InitOnce(Isolate* isolate) {
   }
   Object::RegisterSingletonClassNames();
 
-  for (uint32_t c = 0; c <= kMaxOneCharCodeSymbol; c++) {
+  for (int32_t c = 0; c <= kMaxOneCharCodeSymbol; c++) {
     ASSERT(kMaxPredefinedId + c < kMaxId);
     predefined_[kMaxPredefinedId + c] = New(&c, 1);
   }
@@ -152,7 +152,7 @@ RawString* Symbols::New(const T* characters, intptr_t len) {
 
 template RawString* Symbols::New(const uint8_t* characters, intptr_t len);
 template RawString* Symbols::New(const uint16_t* characters, intptr_t len);
-template RawString* Symbols::New(const uint32_t* characters, intptr_t len);
+template RawString* Symbols::New(const int32_t* characters, intptr_t len);
 
 
 RawString* Symbols::New(const String& str) {
@@ -204,7 +204,7 @@ RawString* Symbols::New(const String& str, intptr_t begin_index, intptr_t len) {
 }
 
 
-RawString* Symbols::FromCharCode(uint32_t char_code) {
+RawString* Symbols::FromCharCode(int32_t char_code) {
   if (char_code > kMaxOneCharCodeSymbol) {
     return New(&char_code, 1);
   }
@@ -289,7 +289,7 @@ template intptr_t Symbols::FindIndex(const Array& symbol_table,
                                      intptr_t len,
                                      intptr_t hash);
 template intptr_t Symbols::FindIndex(const Array& symbol_table,
-                                     const uint32_t* characters,
+                                     const int32_t* characters,
                                      intptr_t len,
                                      intptr_t hash);
 

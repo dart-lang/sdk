@@ -20,7 +20,7 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
   // Unbox the array and determine the maximum element width.
   bool is_one_byte_string = true;
   intptr_t utf16_len = array_len;
-  uint32_t* utf32_array = zone->Alloc<uint32_t>(array_len);
+  int32_t* utf32_array = zone->Alloc<int32_t>(array_len);
   Object& index_object = Object::Handle(isolate);
   for (intptr_t i = 0; i < array_len; i++) {
     index_object = a.At(i);

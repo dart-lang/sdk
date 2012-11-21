@@ -469,7 +469,7 @@ void Scanner::ScanLiteralString(bool is_raw) {
 }
 
 
-bool Scanner::ScanHexDigits(int digits, uint32_t* value) {
+bool Scanner::ScanHexDigits(int digits, int32_t* value) {
   *value = 0;
   for (int i = 0; i < digits; ++i) {
     ReadChar();
@@ -484,7 +484,7 @@ bool Scanner::ScanHexDigits(int digits, uint32_t* value) {
 }
 
 
-bool Scanner::ScanHexDigits(int min_digits, int max_digits, uint32_t* value) {
+bool Scanner::ScanHexDigits(int min_digits, int max_digits, int32_t* value) {
   *value = 0;
   ReadChar();
   for (int i = 0; i < max_digits; ++i) {
@@ -503,7 +503,7 @@ bool Scanner::ScanHexDigits(int min_digits, int max_digits, uint32_t* value) {
 }
 
 
-void Scanner::ScanEscapedCodePoint(uint32_t* code_point) {
+void Scanner::ScanEscapedCodePoint(int32_t* code_point) {
   ASSERT(c0_ == 'u' || c0_ == 'x');
   bool is_valid;
   if (c0_ == 'x') {
@@ -529,7 +529,7 @@ void Scanner::ScanEscapedCodePoint(uint32_t* code_point) {
 
 
 void Scanner::ScanLiteralStringChars(bool is_raw) {
-  GrowableArray<uint32_t> string_chars(64);
+  GrowableArray<int32_t> string_chars(64);
 
   ASSERT(IsScanningString());
   // We are at the first character of a string literal piece. A string literal
@@ -542,7 +542,7 @@ void Scanner::ScanLiteralStringChars(bool is_raw) {
     }
     if (c0_ == '\\' && !is_raw) {
       // Parse escape sequence.
-      uint32_t escape_char = '\0';
+      int32_t escape_char = '\0';
       ReadChar();
       switch (c0_) {
         case 'n':

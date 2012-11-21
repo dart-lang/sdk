@@ -293,7 +293,7 @@ bool Utf8::DecodeToUTF16(const uint8_t* utf8_array,
 
 bool Utf8::DecodeToUTF32(const uint8_t* utf8_array,
                          intptr_t array_len,
-                         uint32_t* dst,
+                         int32_t* dst,
                          intptr_t len) {
   intptr_t i = 0;
   intptr_t j = 0;

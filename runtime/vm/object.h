@@ -3758,7 +3758,7 @@ class String : public Instance {
   static intptr_t Hash(const String& str, intptr_t begin_index, intptr_t len);
   static intptr_t Hash(const uint8_t* characters, intptr_t len);
   static intptr_t Hash(const uint16_t* characters, intptr_t len);
-  static intptr_t Hash(const uint32_t* characters, intptr_t len);
+  static intptr_t Hash(const int32_t* characters, intptr_t len);
 
   int32_t CharAt(intptr_t index) const;
 
@@ -3779,7 +3779,7 @@ class String : public Instance {
   bool Equals(const uint16_t* characters, intptr_t len) const;
 
   // Compares to an array of UTF-32 encoded characters.
-  bool Equals(const uint32_t* characters, intptr_t len) const;
+  bool Equals(const int32_t* characters, intptr_t len) const;
 
   virtual bool Equals(const Instance& other) const;
 
@@ -3841,7 +3841,7 @@ class String : public Instance {
                         Heap::Space space = Heap::kNew);
 
   // Creates a new String object from an array of UTF-32 encoded characters.
-  static RawString* New(const uint32_t* utf32_array,
+  static RawString* New(const int32_t* utf32_array,
                         intptr_t array_len,
                         Heap::Space space = Heap::kNew);
 
@@ -3987,7 +3987,7 @@ class OneByteString : public AllStatic {
   static RawOneByteString* New(const uint16_t* characters,
                                intptr_t len,
                                Heap::Space space);
-  static RawOneByteString* New(const uint32_t* characters,
+  static RawOneByteString* New(const int32_t* characters,
                                intptr_t len,
                                Heap::Space space);
   static RawOneByteString* New(const String& str,
@@ -4070,7 +4070,7 @@ class TwoByteString : public AllStatic {
                                intptr_t len,
                                Heap::Space space);
   static RawTwoByteString* New(intptr_t utf16_len,
-                               const uint32_t* characters,
+                               const int32_t* characters,
                                intptr_t len,
                                Heap::Space space);
   static RawTwoByteString* New(const String& str,
