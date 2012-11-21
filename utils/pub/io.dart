@@ -690,8 +690,7 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
     if (tarFile == null) throw 'The gzip file did not contain a tar file.';
 
     // Untar the archive into the destination directory.
-    return runProcess(command, ['x', '-o"$destination"', tarFile],
-        workingDir: tempDir);
+    return runProcess(command, ['x', tarFile], workingDir: destination);
   }).chain((result) {
     if (result.exitCode != 0) {
       throw 'Could not un-tar (exit code ${result.exitCode}). Error:\n'
