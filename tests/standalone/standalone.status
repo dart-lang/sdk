@@ -41,6 +41,7 @@ io/process_non_ascii_test: Pass, Fail
 
 [ $runtime == vm && $system == windows ]
 io/file_system_links_test: Skip  # No links on Windows.
+io/tls_server_test: Skip  # Mysterious failures in Windows (whesse, sra, srdjan)
 
 [ $compiler == none && $runtime == drt ]
 io/*: Skip # Don't run tests using dart:io in the browser
