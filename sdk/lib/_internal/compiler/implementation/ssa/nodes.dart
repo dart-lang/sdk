@@ -36,7 +36,6 @@ abstract class HVisitor<R> {
   R visitInvokeDynamicGetter(HInvokeDynamicGetter node);
   R visitInvokeDynamicMethod(HInvokeDynamicMethod node);
   R visitInvokeDynamicSetter(HInvokeDynamicSetter node);
-  R visitInvokeInterceptor(HInvokeInterceptor node);
   R visitInvokeStatic(HInvokeStatic node);
   R visitInvokeSuper(HInvokeSuper node);
   R visitIs(HIs node);
@@ -300,8 +299,6 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
       => visitInvokeDynamicField(node);
   visitInvokeDynamicSetter(HInvokeDynamicSetter node)
       => visitInvokeDynamicField(node);
-  visitInvokeInterceptor(HInvokeInterceptor node)
-      => visitInvokeStatic(node);
   visitInvokeStatic(HInvokeStatic node) => visitInvoke(node);
   visitInvokeSuper(HInvokeSuper node) => visitInvoke(node);
   visitJump(HJump node) => visitControlFlow(node);
@@ -1321,8 +1318,14 @@ abstract class HInvokeDynamic extends HInvoke {
   toString() => 'invoke dynamic: $selector';
   HInstruction get receiver => inputs[0];
 
-  // TODO(floitsch): make class abstract instead of adding an abstract method.
   accept(HVisitor visitor);
+
+  bool get isInterceptorCall {
+    // We know it's a selector call if it follows the interceptor
+    // calling convention, which adds the actual receiver as a
+    // parameter to the call.
+    return inputs.length - 2 == selector.argumentCount;
+  }
 }
 
 class HInvokeClosure extends HInvokeDynamic {
@@ -1346,7 +1349,6 @@ abstract class HInvokeDynamicField extends HInvokeDynamic {
       : super(selector, element, inputs);
   toString() => 'invoke dynamic field: $selector';
 
-  // TODO(floitsch): make class abstract instead of adding an abstract method.
   accept(HVisitor visitor);
 }
 
@@ -1389,6 +1391,7 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
 }
 
 class HInvokeStatic extends HInvoke {
+  bool isSideEffectFree = false;
   /** The first input must be the target. */
   HInvokeStatic(inputs, [HType knownType = HType.UNKNOWN]) : super(inputs) {
     guaranteedType = knownType;
@@ -1413,6 +1416,13 @@ class HInvokeStatic extends HInvoke {
                                             Compiler compiler) {
     return HType.UNKNOWN;
   }
+
+  void prepareGvn(HTypeMap types) {
+    clearAllSideEffects();
+    if (!isSideEffectFree) {
+      setAllSideEffects();
+    }
+  }
 }
 
 class HInvokeSuper extends HInvokeStatic {
@@ -1426,83 +1436,6 @@ class HInvokeSuper extends HInvokeStatic {
     // Index 0: the element, index 1: 'this'.
     return inputs[2];
   }
-}
-
-class HInvokeInterceptor extends HInvokeStatic {
-  final Selector selector;
-  final bool isSideEffectFree;
-
-  HInvokeInterceptor(this.selector,
-                     List<HInstruction> inputs,
-                     [bool this.isSideEffectFree = false])
-      : super(inputs);
-
-  toString() => 'invoke interceptor: ${element.name}';
-  accept(HVisitor visitor) => visitor.visitInvokeInterceptor(this);
-
-  bool isLengthGetter() {
-    return selector.isGetter() &&
-        selector.name == const SourceString('length');
-  }
-
-  bool isPopCall(HTypeMap types) {
-    return selector.isCall()
-        && inputs[1].isExtendableArray(types)
-        && selector.name == const SourceString('removeLast')
-        && selector.argumentCount == 0;
-  }
-
-  bool isLengthGetterOnStringOrArray(HTypeMap types) {
-    return isLengthGetter() && inputs[1].isIndexablePrimitive(types);
-  }
-
-  HType computeLikelyType(HTypeMap types, Compiler compiler) {
-    // In general a length getter or method returns an int.
-    if (isLengthGetter()) return HType.INTEGER;
-    return HType.UNKNOWN;
-  }
-
-  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
-    if (isLengthGetterOnStringOrArray(types)) return HType.INTEGER;
-    return HType.UNKNOWN;
-  }
-
-  HType computeDesiredTypeForNonTargetInput(HInstruction input,
-                                            HTypeMap types,
-                                            Compiler compiler) {
-    // If the first argument is a string or an array and we invoke methods
-    // on it that mutate it, then we want to restrict the incoming type to be
-    // a mutable array.
-    if (input == inputs[1] && input.isIndexablePrimitive(types)) {
-      // TODO(kasperl): Should we check that the selector is a call selector?
-      if (selector.name == const SourceString('add')
-          || selector.name == const SourceString('removeLast')) {
-        return HType.MUTABLE_ARRAY;
-      }
-    }
-    return HType.UNKNOWN;
-  }
-
-  void prepareGvn(HTypeMap types) {
-    clearAllSideEffects();
-    if (isLengthGetterOnStringOrArray(types)) {
-      setUseGvn();
-      // If the input is a string or a fixed length array, we know
-      // the length cannot change.
-      if (!inputs[1].isString(types) && !inputs[1].isFixedArray(types)) {
-        setDependsOnInstancePropertyStore();
-      }
-    } else if (isSideEffectFree) {
-      setUseGvn();
-      setDependsOnSomething();
-    } else {
-      setAllSideEffects();
-    }
-  }
-
-  int typeCode() => HInstruction.INVOKE_INTERCEPTOR_TYPECODE;
-  bool typeEquals(other) => other is HInvokeInterceptor;
-  bool dataEquals(HInvokeInterceptor other) => selector == other.selector;
 }
 
 abstract class HFieldAccess extends HInstruction {

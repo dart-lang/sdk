@@ -34,26 +34,6 @@ getInterceptor(object) {
   return const ObjectInterceptor();
 }
 
-get$length(var receiver) {
-  if (receiver is String || isJsArray(receiver)) {
-    return JS('num', r'#.length', receiver);  // TODO(sra): Use 'int'?
-  } else {
-    return UNINTERCEPTED(receiver.length);
-  }
-}
-
-set$length(receiver, newLength) {
-  if (isJsArray(receiver)) {
-    if (newLength is !int) throw new ArgumentError(newLength);
-    if (newLength < 0) throw new RangeError.value(newLength);
-    checkGrowable(receiver, 'set length');
-    JS('void', r'#.length = #', receiver, newLength);
-  } else {
-    UNINTERCEPTED(receiver.length = newLength);
-  }
-  return newLength;
-}
-
 /**
  * The interceptor class for tear-off static methods. Unlike
  * tear-off instance methods, tear-off static methods are just the JS

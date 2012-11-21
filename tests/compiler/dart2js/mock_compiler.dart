@@ -48,13 +48,13 @@ const String DEFAULT_HELPERLIB = r'''
   assertHelper(a){}''';
 
 const String DEFAULT_INTERCEPTORSLIB = r'''
-  add$1(receiver, value) {}
-  get$length(receiver) {}
-  filter(receiver, predicate) {}
-  removeLast(receiver) {}
-  iterator(receiver) {}
-  next(receiver) {}
-  hasNext(receiver) {}''';
+  class JSArray {
+    var length;
+  }
+  class JSString {
+    var length;
+  }
+  getInterceptor(x) {}''';
 
 const String DEFAULT_CORELIB = r'''
   print(var obj) {}

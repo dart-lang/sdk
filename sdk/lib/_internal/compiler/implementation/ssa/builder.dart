@@ -2443,10 +2443,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           && send.receiver == null) {
         instruction = thisInstruction;
       } else {
-        HStatic target = new HStatic(interceptor);
-        add(target);
-        instruction = new HInvokeStatic(<HInstruction>[target, receiver]);
-        add(instruction);
+        pushInvokeInterceptor(interceptor, receiver);
+        instruction = pop();
       }
       instruction = new HInvokeDynamicGetter(
           selector, null, instruction, !hasGetter);
@@ -2454,13 +2452,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // interceptor.
       instruction.inputs.add(receiver);
       pushWithPosition(instruction, send);
-    } else if (elements[send] == null && interceptor != null) {
-      // Use the old, deprecated interceptor mechanism.
-      HStatic target = new HStatic(interceptor);
-      add(target);
-      List<HInstruction> inputs = <HInstruction>[target, receiver];
-      pushWithPosition(new HInvokeInterceptor(selector, inputs, !hasGetter),
-                       send);
     } else {
       pushWithPosition(
           new HInvokeDynamicGetter(selector, null, receiver, !hasGetter), send);
@@ -2516,13 +2507,23 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Element interceptor = getInterceptor(send, selector);
     bool hasSetter = compiler.world.hasAnyUserDefinedSetter(selector);
     if (interceptor != null && interceptor == backend.getInterceptorMethod) {
-      compiler.internalError(
-          'Unimplemented intercepted setter call with interceptor classes');
-    } else if (interceptor != null && elements[send] == null) {
-      HStatic target = new HStatic(interceptor);
-      add(target);
-      List<HInstruction> inputs = <HInstruction>[target, receiver, value];
-      addWithPosition(new HInvokeInterceptor(selector, inputs), send);
+      // If we're using an interceptor class, emit a call to the
+      // interceptor method and then the actual dynamic call on the
+      // interceptor object.
+      HInstruction instruction;
+      if (backend.isInterceptorClass(currentElement.getEnclosingClass())
+          && send.receiver == null) {
+        instruction = thisInstruction;
+      } else {
+        pushInvokeInterceptor(interceptor, receiver);
+        instruction = pop();
+      }
+      instruction = new HInvokeDynamicSetter(
+          selector, null, instruction, receiver, !hasSetter);
+      // Add the value as an argument to the setter call on the
+      // interceptor.
+      instruction.inputs.add(value);
+      addWithPosition(instruction, send);
     } else {
       addWithPosition(
           new HInvokeDynamicSetter(selector, null, receiver, value, !hasSetter),
@@ -2564,6 +2565,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
       localsHandler.updateLocal(element, checked);
     }
+  }
+
+  void pushInvokeInterceptor(Element element, HInstruction receiver) {
+    HInstruction interceptor = new HStatic(element);
+    add(interceptor);
+    List<HInstruction> inputs = <HInstruction>[interceptor, receiver];
+    HInstruction result = new HInvokeStatic(inputs);
+    result.isSideEffectFree = true;
+    push(result);
   }
 
   void pushInvokeHelper0(Element helper) {
@@ -2792,14 +2802,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           inputs.add(thisInstruction);
           inputs.add(localsHandler.readThis());
         } else {
-          HStatic target = new HStatic(interceptor);
-          add(target);
           visit(node.receiver);
           HInstruction receiver = pop();
-          HInstruction instruction =
-              new HInvokeStatic(<HInstruction>[target, receiver]);
-          add(instruction);
-          inputs.add(instruction);
+          pushInvokeInterceptor(interceptor, receiver);
+          inputs.add(pop());
           inputs.add(receiver);
         }
         addDynamicSendArgumentsToList(node, inputs);
@@ -2807,15 +2813,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // second is the receiver, and the others are the arguments.
         HInstruction instruction = new HInvokeDynamicMethod(selector, inputs);
         pushWithPosition(instruction, node);
-        return;
-      } else if (elements[node] == null) {
-        HStatic target = new HStatic(interceptor);
-        add(target);
-        inputs.add(target);
-        visit(node.receiver);
-        inputs.add(pop());
-        addGenericSendArgumentsToList(node.arguments, inputs);
-        pushWithPosition(new HInvokeInterceptor(selector, inputs), node);
         return;
       }
     }
@@ -3871,10 +3868,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       Element element = interceptors.getStaticInterceptor(selector);
       visit(node.expression);
       HInstruction receiver = pop();
-      pushInvokeHelper1(element, receiver);
-      HInstruction interceptor = pop();
-      iterator = new HInvokeDynamicMethod(
-          selector, <HInstruction>[interceptor, receiver]);
+      if (element == null) {
+        iterator = new HInvokeDynamicMethod(selector, <HInstruction>[receiver]);
+      } else {
+        pushInvokeInterceptor(element, receiver);
+        HInvokeStatic interceptor = pop();
+        iterator = new HInvokeDynamicMethod(
+            selector, <HInstruction>[interceptor, receiver]);
+      }
       add(iterator);
     }
     HInstruction buildCondition() {

@@ -628,12 +628,12 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     return info.newRange(value, value);
   }
 
-  Range visitInvokeInterceptor(HInvokeInterceptor interceptor) {
-    if (!interceptor.isInteger(types)) return info.newUnboundRange();
-    if (!interceptor.isLengthGetterOnStringOrArray(types)) {
-      return visitInstruction(interceptor);
+  Range visitFieldGet(HFieldGet fieldGet) {
+    if (!fieldGet.isInteger(types)) return info.newUnboundRange();
+    if (!fieldGet.receiver.isIndexablePrimitive(types)) {
+      return visitInstruction(fieldGet);
     }
-    LengthValue value = info.newLengthValue(interceptor);
+    LengthValue value = info.newLengthValue(fieldGet);
     // We know this range is above zero. To simplify the analysis, we
     // put the zero value as the lower bound of this range. This
     // allows to easily remove the second bound check in the following

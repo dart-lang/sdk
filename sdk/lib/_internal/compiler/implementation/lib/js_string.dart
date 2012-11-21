@@ -154,4 +154,6 @@ class JSString implements String {
   }
 
   Type get runtimeType => createRuntimeType('String');
+
+  int get length => JS('int', r'#.length', this);
 }

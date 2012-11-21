@@ -1529,16 +1529,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                        arguments);
   }
 
-  // TODO(ngeoffray): Once we remove the old interceptors, we can
-  // start using HInvokeInterceptor to represent interceptor calls on
-  // an Interceptor class. Currently we recognize if a call is a call
-  // on an interceptor by checking if the arguments in the inputs list
-  // is one more than the arguments in the selector. The extra
-  // argument in an interceptor call is the actual receiver.
-  bool isInterceptorCall(HInvokeDynamic node) {
-    return node.inputs.length - 1 != node.selector.argumentCount;
-  }
-
   visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
     use(node.receiver);
     js.Expression object = pop();
@@ -1565,7 +1555,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // receiver (the first is the interceptor), the backend gets
       // confused. We should pass a list of types instead of a node to
       // [registerDynamicInvocation].
-      if (!isInterceptorCall(node)) {
+      if (!node.isInterceptorCall) {
         backend.registerDynamicInvocation(node, selector, types);
       } else {
         backend.addInterceptedSelector(selector);
@@ -1600,7 +1590,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // TODO(4434): For private members we need to use the untyped selector.
     if (defaultSelector.name.isPrivate()) return defaultSelector;
     // TODO(ngeoffray): Type intercepted calls.
-    if (isInterceptorCall(node)) return defaultSelector;
+    if (node.isInterceptorCall) return defaultSelector;
     // If [JSInvocationMirror.invokeOn] has been called, we must not create a
     // typed selector based on the receiver type.
     if (node.element == null && // Invocation is not exact.
@@ -1623,7 +1613,14 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(jsPropertyCall(pop(), name, visitArguments(node.inputs)), node);
     Selector selector = getOptimizedSelectorFor(node, setter);
     world.registerDynamicSetter(setter.name, selector);
-    backend.addedDynamicSetter(selector, types[node.inputs[1]]);
+    HType valueType;
+    if (node.isInterceptorCall) {
+      valueType = types[node.inputs[2]];
+      backend.addInterceptedSelector(setter);
+    } else {
+      valueType = types[node.inputs[1]];
+    }
+    backend.addedDynamicSetter(selector, valueType);
   }
 
   visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
@@ -1633,7 +1630,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(jsPropertyCall(pop(), name, visitArguments(node.inputs)), node);
     world.registerDynamicGetter(
         getter.name, getOptimizedSelectorFor(node, getter));
-    if (isInterceptorCall(node)) {
+    if (node.isInterceptorCall) {
       backend.addInterceptedSelector(getter);
     }
   }
@@ -1715,14 +1712,19 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitFieldGet(HFieldGet node) {
-    String name = backend.namer.getName(node.element);
     use(node.receiver);
-    push(new js.PropertyAccess.field(pop(), name), node);
-    HType receiverHType = types[node.receiver];
-    DartType type = receiverHType.computeType(compiler);
-    if (type != null) {
-      world.registerFieldGetter(
-          node.element.name, node.element.getLibrary(), type);
+    if (node.element == backend.jsArrayLength
+        || node.element == backend.jsStringLength) {
+      push(new js.PropertyAccess.field(pop(), 'length'), node);
+    } else {
+      String name = backend.namer.getName(node.element);
+      push(new js.PropertyAccess.field(pop(), name), node);
+      HType receiverHType = types[node.receiver];
+      DartType type = receiverHType.computeType(compiler);
+      if (type != null) {
+        world.registerFieldGetter(
+            node.element.name, node.element.getLibrary(), type);
+      }
     }
   }
 
@@ -2195,64 +2197,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
            node);
     } else {
       visitInvokeStatic(node);
-    }
-  }
-
-  String builtinJsName(HInvokeInterceptor interceptor) {
-    // Don't count the target method or the receiver in the arity.
-    int arity = interceptor.inputs.length - 2;
-    HInstruction receiver = interceptor.inputs[1];
-    bool isCall = interceptor.selector.isCall();
-    SourceString name = interceptor.selector.name;
-
-    if (interceptor.isLengthGetterOnStringOrArray(types)) {
-      return 'length';
-    } else if (interceptor.isPopCall(types)) {
-      return 'pop';
-    } else if (receiver.isExtendableArray(types) && isCall) {
-      if (name == const SourceString('add') && arity == 1) {
-        return 'push';
-      }
-    } else if (receiver.isString(types) && isCall) {
-      if (name == const SourceString('concat') &&
-          arity == 1 &&
-          interceptor.inputs[2].isString(types)) {
-        return '+';
-      }
-      if (name == const SourceString('split') &&
-          arity == 1 &&
-          interceptor.inputs[2].isString(types)) {
-        return 'split';
-      }
-    }
-
-    return null;
-  }
-
-  void visitInvokeInterceptor(HInvokeInterceptor node) {
-    String builtin = builtinJsName(node);
-    if (builtin != null) {
-      if (builtin == '+') {
-        use(node.inputs[1]);
-        js.Expression left = pop();
-        use(node.inputs[2]);
-        push(new js.Binary("+", left, pop()), node);
-      } else {
-        use(node.inputs[1]);
-        js.PropertyAccess access = new js.PropertyAccess.field(pop(), builtin);
-        if (node.selector.isGetter()) {
-          push(access, node);
-          return;
-        }
-        List<js.Expression> arguments = <js.Expression>[];
-        for (int i = 2; i < node.inputs.length; i++) {
-          use(node.inputs[i]);
-          arguments.add(pop());
-        }
-        push(new js.Call(access, arguments), node);
-      }
-    } else {
-      return visitInvokeStatic(node);
     }
   }
 

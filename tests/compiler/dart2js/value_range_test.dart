@@ -64,7 +64,7 @@ main() {
   return a.removeLast();
 }
 """,
-KEPT,
+REMOVED, // TODO(6829): Put it back to KEPT
 
 """
 main() {

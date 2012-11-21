@@ -168,4 +168,13 @@ class JSArray<E> implements List<E> {
   int get hashCode => Primitives.objectHashCode(receiver);
 
   Type get runtimeType => createRuntimeType('List');
+
+  int get length => JS('int', r'#.length', this);
+  
+  void set length(int newLength) {
+    if (newLength is !int) throw new ArgumentError(newLength);
+    if (newLength < 0) throw new RangeError.value(newLength);
+    checkGrowable(this, 'set length');
+    JS('void', r'#.length = #', this, newLength);
+  }
 }
