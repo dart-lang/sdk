@@ -435,7 +435,8 @@ class TypedSelector extends Selector {
 
     // If [self] is a subclass of [other], it inherits the
     // implementation of [element].
-    if (self.isSubclassOf(other)) {
+    ClassElement cls = self;
+    if (cls.isSubclassOf(other)) {
       // Resolve an invocation of [element.name] on [self]. If it
       // is found, this selector is a candidate.
       return hasElementIn(self, element) && appliesUntyped(element, compiler);

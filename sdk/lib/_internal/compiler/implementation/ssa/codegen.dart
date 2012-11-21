@@ -951,7 +951,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           generateStatements(info.initializer);
         }
         js.Block oldContainer = currentContainer;
-        js.Statement body = new js.Block.empty();
+        js.Block body = new js.Block.empty();
         // If there are phi copies in the block that jumps to the
         // loop entry, we must emit the condition like this:
         // do {
@@ -964,7 +964,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         //   }
         // } while (true);
         HBasicBlock avoidEdge = info.end.successors[0];
-        js.Statement updateBody = new js.Block.empty();
+        js.Block updateBody = new js.Block.empty();
         currentContainer = updateBody;
         assignPhisOfSuccessors(avoidEdge);
         bool hasPhiUpdates = !updateBody.statements.isEmpty;

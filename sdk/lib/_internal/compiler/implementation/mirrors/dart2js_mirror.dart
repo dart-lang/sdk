@@ -195,6 +195,11 @@ class Dart2JsDiagnosticListener implements DiagnosticListener {
     // TODO(johnniwinther): implement this.
     throw 'unimplemented';
   }
+
+  void onDeprecatedFeature(Spannable span, String feature) {
+    // TODO(johnniwinther): implement this?
+    throw 'unimplemented';
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -380,7 +385,8 @@ class Dart2JsCompilation implements Compilation {
       librariesUri.add(cwd.resolve(library.toString()));
       // TODO(johnniwinther): Detect file not found
     }
-    _compiler.runList(librariesUri);
+    LibraryCompiler libraryCompiler = _compiler;
+    libraryCompiler.runList(librariesUri);
   }
 
   MirrorSystem get mirrors => new Dart2JsMirrorSystem(_compiler);

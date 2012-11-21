@@ -1996,7 +1996,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             wrapStatementGraph(elseGraph));
 
       conditionBlock.setBlockFlow(info, current);
-      conditionBlock.last.blockInformation = conditionBlock.blockFlow;
+      HIf ifBlock = conditionBlock.last;
+      ifBlock.blockInformation = conditionBlock.blockFlow;
 
       // If the body has any break, attach a synthesized label to the
       // if block.
@@ -3489,7 +3490,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   visitNewExpression(NewExpression node) {
     Element element = elements[node.send];
     if (!Elements.isErroneousElement(element)) {
-      element = element.redirectionTarget;
+      FunctionElement function = element;
+      element = function.redirectionTarget;
     }
     if (Elements.isErroneousElement(element)) {
       ErroneousElement error = element;

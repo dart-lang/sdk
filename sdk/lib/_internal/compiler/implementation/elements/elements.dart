@@ -1178,7 +1178,7 @@ class FunctionElement extends Element {
 
   FunctionElement get redirectionTarget {
     if (this == defaultImplementation) return this;
-    Element target = defaultImplementation;
+    var target = defaultImplementation;
     Set<Element> seen = new Set<Element>();
     seen.add(target);
     while (!target.isErroneous() && target != target.defaultImplementation) {
