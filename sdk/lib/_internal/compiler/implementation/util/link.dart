@@ -59,8 +59,8 @@ class Link<T> implements Iterable<T> {
   String toString() => "[]";
 }
 
-interface LinkBuilder<T> default LinkBuilderImplementation<T> {
-  LinkBuilder();
+abstract class LinkBuilder<T> {
+  factory LinkBuilder() = LinkBuilderImplementation;
 
   Link<T> toLink();
   void addLast(T t);
