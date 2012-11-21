@@ -92,6 +92,7 @@ namespace dart {
   V(_Float32Array, []=, Float32Array_setIndexed)                               \
   V(_Float64Array, [], Float64Array_getIndexed)                                \
   V(_Float64Array, []=, Float64Array_setIndexed)                               \
+  V(_ExternalUint8Array, [], ExternalUint8Array_getIndexed)                    \
 
 // Forward declarations.
 class Assembler;

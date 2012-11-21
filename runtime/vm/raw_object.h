@@ -1364,6 +1364,10 @@ class ExternalByteArrayData {
     return peer_;
   }
 
+  static intptr_t data_offset() {
+    return OFFSET_OF(ExternalByteArrayData<T>, data_);
+  }
+
  private:
   T* data_;
   void* peer_;

@@ -792,6 +792,20 @@ bool Intrinsifier::Float64Array_setIndexed(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::ExternalUint8Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ SmiUntag(EBX);
+  __ movl(EAX, FieldAddress(EAX, ExternalUint8Array::external_data_offset()));
+  __ movl(EAX, Address(EAX, ExternalByteArrayData<uint8_t>::data_offset()));
+  __ movzxb(EAX, Address(EAX, EBX, TIMES_1, 0));
+  __ SmiTag(EAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
 // Tests if two top most arguments are smis, jumps to label not_smi if not.
 // Topmost argument is in EAX.
 static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {

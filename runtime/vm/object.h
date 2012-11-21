@@ -4565,7 +4565,7 @@ class Int8Array : public ByteArray {
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t data_offset() {
-    return length_offset() + kWordSize;
+    return OFFSET_OF(RawInt8Array, data_);
   }
 
   static intptr_t InstanceSize() {
@@ -4617,7 +4617,7 @@ class Uint8Array : public ByteArray {
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t data_offset() {
-    return length_offset() + kWordSize;
+    return OFFSET_OF(RawUint8Array, data_);
   }
 
   static intptr_t InstanceSize() {
@@ -4669,7 +4669,7 @@ class Int16Array : public ByteArray {
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t data_offset() {
-    return length_offset() + kWordSize;
+    return OFFSET_OF(RawInt16Array, data_);
   }
 
   static intptr_t InstanceSize() {
@@ -4721,7 +4721,7 @@ class Uint16Array : public ByteArray {
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t data_offset() {
-    return length_offset() + kWordSize;
+    return OFFSET_OF(RawUint16Array, data_);
   }
 
   static intptr_t InstanceSize() {
@@ -4773,7 +4773,7 @@ class Int32Array : public ByteArray {
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t data_offset() {
-    return length_offset() + kWordSize;
+    return OFFSET_OF(RawInt32Array, data_);
   }
 
   static intptr_t InstanceSize() {
@@ -4825,7 +4825,7 @@ class Uint32Array : public ByteArray {
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t data_offset() {
-    return length_offset() + kWordSize;
+    return OFFSET_OF(RawUint32Array, data_);
   }
 
   static intptr_t InstanceSize() {
@@ -4877,7 +4877,7 @@ class Int64Array : public ByteArray {
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t data_offset() {
-    return length_offset() + kWordSize;
+    return OFFSET_OF(RawInt64Array, data_);
   }
 
   static intptr_t InstanceSize() {
@@ -4929,7 +4929,7 @@ class Uint64Array : public ByteArray {
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t data_offset() {
-    return length_offset() + kWordSize;
+    return OFFSET_OF(RawUint64Array, data_);
   }
 
   static intptr_t InstanceSize() {
@@ -4981,7 +4981,7 @@ class Float32Array : public ByteArray {
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t data_offset() {
-    return length_offset() + kWordSize;
+    return OFFSET_OF(RawFloat32Array, data_);
   }
 
   static intptr_t InstanceSize() {
@@ -5038,7 +5038,7 @@ class Float64Array : public ByteArray {
   }
 
   static intptr_t data_offset() {
-    return length_offset() + kWordSize;
+    return OFFSET_OF(RawFloat64Array, data_);
   }
 
   static intptr_t InstanceSize(intptr_t len) {
@@ -5155,6 +5155,10 @@ class ExternalUint8Array : public ByteArray {
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawExternalUint8Array));
+  }
+
+  static intptr_t external_data_offset() {
+    return OFFSET_OF(RawExternalUint8Array, external_data_);
   }
 
   static RawExternalUint8Array* New(uint8_t* data,
