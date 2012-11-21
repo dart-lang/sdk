@@ -35,6 +35,8 @@ DEFINE_FLAG(bool, warn_legacy_getters, false,
             "Warning on legacy getter syntax");
 DEFINE_FLAG(bool, strict_function_literals, false,
             "enforce new function literal rules");
+DEFINE_FLAG(bool, fail_legacy_abstract, false,
+            "error on explicit use of abstract on class members");
 
 static void CheckedModeHandler(bool value) {
   FLAG_enable_asserts = value;
@@ -2895,6 +2897,9 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
   current_member_ = &member;
   if ((CurrentToken() == Token::kABSTRACT) &&
       (LookaheadToken(1) != Token::kLPAREN)) {
+    if (FLAG_fail_legacy_abstract) {
+      ErrorMsg("illegal use of abstract");
+    }
     ConsumeToken();
     member.has_abstract = true;
   }

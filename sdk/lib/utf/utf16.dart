@@ -304,7 +304,7 @@ class Utf16BytesToCodeUnitsDecoder implements _ListRangeIterator {
     utf16EncodedBytesIterator.skip(2 * count);
   }
 
-  abstract int decode();
+  int decode();
 }
 
 /**

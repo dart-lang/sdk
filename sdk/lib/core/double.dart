@@ -22,22 +22,22 @@ abstract class double extends num {
   static const double MAX_FINITE = 1.7976931348623157e+308;
 
   /** Return the remainder from dividing this [double] by [other]. */
-  abstract double remainder(num other);
+  double remainder(num other);
 
   /** Addition operator. */
-  abstract double operator +(num other);
+  double operator +(num other);
 
   /** Subtraction operator. */
-  abstract double operator -(num other);
+  double operator -(num other);
 
   /** Multiplication operator. */
-  abstract double operator *(num other);
+  double operator *(num other);
 
   /** Euclidean modulo operator. */
-  abstract double operator %(num other);
+  double operator %(num other);
 
   /** Division operator. */
-  abstract double operator /(num other);
+  double operator /(num other);
 
   /**
    * Truncating division operator.
@@ -45,13 +45,13 @@ abstract class double extends num {
    * The result of the truncating division [:a ~/ b:] is equivalent to
    * [:(a / b).truncate():].
    */
-  abstract double operator ~/(num other);
+  double operator ~/(num other);
 
   /** Negate operator. */
-  abstract double operator -();
+  double operator -();
 
   /** Returns the absolute value of this [double]. */
-  abstract double abs();
+  double abs();
 
   /**
    * Returns the integer value closest to this [double].
@@ -59,19 +59,19 @@ abstract class double extends num {
    * Rounds away from zero when there is no closest integer:
    *  [:(3.5).round() == 4:] and [:(-3.5).round() == -4:].
    */
-  abstract double round();
+  double round();
 
   /** Returns the greatest integer value no greater than this [double]. */
-  abstract double floor();
+  double floor();
 
   /** Returns the least integer value that is no smaller than this [double]. */
-  abstract double ceil();
+  double ceil();
 
   /**
    * Returns the integer value obtained by discarding any fractional
    * digits from this [double].
    */
-  abstract double truncate();
+  double truncate();
 
   /**
    * Provide a representation of this [double] value.
@@ -86,7 +86,7 @@ abstract class double extends num {
    * It should always be the case that if [:d:] is a [double], then
    * [:d == double.parse(d.toString()):].
    */
-  abstract String toString();
+  String toString();
 
   /**
    * Parse [source] as an double literal and return its value.

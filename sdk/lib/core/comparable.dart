@@ -31,7 +31,7 @@ abstract class Comparable {
    * May throw an [ArgumentError] if [other] is of a type that
    * is not comparable to [:this:].
    */
-  abstract int compareTo(Comparable other);
+  int compareTo(Comparable other);
 
   /**
    * Compare one comparable to another.

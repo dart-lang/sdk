@@ -13,5 +13,5 @@
  */
 abstract class Hashable {
   // TODO(lrn): http://darbug.com/5522
-  abstract int get hashCode;
+  int get hashCode;
 }

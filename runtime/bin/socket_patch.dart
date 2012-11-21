@@ -239,8 +239,8 @@ class _SocketBase extends NativeFieldWrapperClass1 {
 
   bool _propagateError(Exception e) => false;
 
-  abstract bool _isListenSocket();
-  abstract bool _isPipe();
+  bool _isListenSocket();
+  bool _isPipe();
 
   // Is this socket closed.
   bool _closed;

@@ -115,11 +115,11 @@ patch class Float64List {
 
 
 abstract class _ByteArrayBase {
-  abstract int lengthInBytes();
+  int lengthInBytes();
 
-  abstract int bytesPerElement();
+  int bytesPerElement();
 
-  abstract operator[](int index);
+  operator[](int index);
 
   // Methods implementing the Collection interface.
 
@@ -1605,7 +1605,7 @@ class _ByteArrayView implements ByteArray {
 
 
 class _ByteArrayViewBase {
-  abstract num operator[](int index);
+  num operator[](int index);
 
   // Methods implementing the Collection interface.
 
@@ -1641,7 +1641,7 @@ class _ByteArrayViewBase {
     return this.length == 0;
   }
 
-  abstract int get length;
+  int get length;
 
   // Methods implementing the List interface.
 

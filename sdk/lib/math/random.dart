@@ -25,16 +25,16 @@ class Random {
    * Implementation note: The default implementation supports [max] values
    * between 1 and ((1<<32) - 1) inclusive.
    */
-  abstract int nextInt(int max);
+  int nextInt(int max);
 
   /**
    * Generates a positive random floating point value uniformly distributed on
    * the range from 0.0, inclusive, to 1.0, exclusive.
    */
-  abstract double nextDouble();
+  double nextDouble();
 
   /**
    * Generates a random boolean value.
    */
-  abstract bool nextBool();
+  bool nextBool();
 }
