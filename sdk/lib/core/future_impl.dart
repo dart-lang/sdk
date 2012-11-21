@@ -27,6 +27,11 @@ class _FutureImpl<T> implements Future<T> {
   bool _exceptionHandled = false;
 
   /**
+   * true if an exception in this future should be thrown to the top level.
+   */
+  bool _throwOnException = false;
+
+  /**
    * Listeners waiting to receive the value of this future.
    */
   final List<Function> _successListeners;
@@ -88,9 +93,18 @@ class _FutureImpl<T> implements Future<T> {
     if (hasValue) {
       onSuccess(value);
     } else if (!isComplete) {
+      _throwOnException = true;
       _successListeners.add(onSuccess);
     } else if (!_exceptionHandled) {
       throw new FutureUnhandledException(_exception, stackTrace);
+    }
+  }
+
+  void _handleSuccess(void onSuccess(T value)) {
+    if (hasValue) {
+      onSuccess(value);
+    } else if (!isComplete) {
+      _successListeners.add(onSuccess);
     }
   }
 
@@ -135,7 +149,7 @@ class _FutureImpl<T> implements Future<T> {
           listener(value);
         }
       } else {
-        if (!_exceptionHandled && _successListeners.length > 0) {
+        if (!_exceptionHandled && _throwOnException) {
           throw new FutureUnhandledException(_exception, stackTrace);
         }
       }
@@ -174,7 +188,7 @@ class _FutureImpl<T> implements Future<T> {
 
     _forwardException(this, completer);
 
-    then((v) {
+    _handleSuccess((v) {
       var transformed = null;
       try {
         transformed = transformation(v);
@@ -192,7 +206,7 @@ class _FutureImpl<T> implements Future<T> {
     final completer = new Completer();
 
     _forwardException(this, completer);
-    then((v) {
+    _handleSuccess((v) {
       var future = null;
       try {
         future = transformation(v);
@@ -223,10 +237,10 @@ class _FutureImpl<T> implements Future<T> {
       } catch (innerException, stackTrace) {
         completer.completeException(innerException, stackTrace);
       }
-      return true;
+      return false;
     });
 
-    then(completer.complete);
+    _handleSuccess(completer.complete);
 
     return completer.future;
   }
@@ -236,7 +250,7 @@ class _FutureImpl<T> implements Future<T> {
    */
   _forward(Future future, Completer completer) {
     _forwardException(future, completer);
-    future.then(completer.complete);
+    future._handleSuccess(completer.complete);
   }
 
   /**
@@ -245,7 +259,7 @@ class _FutureImpl<T> implements Future<T> {
   _forwardException(Future future, Completer completer) {
     future.handleException((e) {
       completer.completeException(e, future.stackTrace);
-      return true;
+      return false;
     });
   }
 }
