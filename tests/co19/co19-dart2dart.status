@@ -533,12 +533,14 @@ LibTest/core/Expect/approxEquals_A03_t01: Fail, OK # co19 issue 316
 LibTest/core/Expect/listEquals_A02_t01: Fail, OK # co19 issue 316
 LibTest/core/Expect/setEquals_A02_t01: Fail, OK # co19 issue 316
 LibTest/core/Expect/throws_A01_t03: Fail, OK # co19 issue 316
+LibTest/core/Future/chain_A03_t01: Fail, OK # co19 issue 328
 LibTest/core/Future/handleException_A01_t01: Fail, OK # co19 issue 316
 LibTest/core/Future/handleException_A01_t07: Fail, OK # co19 issue 316
 LibTest/core/Future/hasValue_A01_t01: Fail, OK # co19 issue 316
 LibTest/core/Future/isComplete_A01_t01: Fail, OK # co19 issue 316
 LibTest/core/Future/then_A01_t01: Fail, OK # co19 issue 316
 LibTest/core/Future/then_A01_t05: Fail, OK # co19 issue 316
+LibTest/core/Future/transform_A03_t01: Fail, OK # co19 issue 328
 LibTest/core/Future/value_A01_t03: Fail, OK # co19 issue 316
 LibTest/core/Futures/wait_A03_t01: Fail, OK # co19 issue 316
 LibTest/core/HashMap/HashMap.from_A02_t01: Fail, OK # co19 issue 316
