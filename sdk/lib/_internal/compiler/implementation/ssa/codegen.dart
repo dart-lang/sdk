@@ -1529,6 +1529,17 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                        arguments);
   }
 
+  void visitInterceptor(HInterceptor node) {
+    Element element = backend.getInterceptorMethod;
+    assert(element != null);
+    world.registerStaticUse(element);
+    js.VariableUse interceptor =
+        new js.VariableUse(backend.namer.isolateAccess(element));
+    use(node.receiver);
+    List<js.Expression> arguments = <js.Expression>[pop()];
+    push(new js.Call(interceptor, arguments), node);
+  }
+
   visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
     use(node.receiver);
     js.Expression object = pop();
@@ -1651,9 +1662,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitInvokeStatic(HInvokeStatic node) {
-    if (true &&
-        (node.typeCode() == HInstruction.INVOKE_STATIC_TYPECODE ||
-         node.typeCode() == HInstruction.INVOKE_INTERCEPTOR_TYPECODE)) {
+    if (node.typeCode() == HInstruction.INVOKE_STATIC_TYPECODE) {
       // Register this invocation to collect the types used at all call sites.
       backend.registerStaticInvocation(node, types);
     }

@@ -32,6 +32,7 @@ abstract class HVisitor<R> {
   R visitIndex(HIndex node);
   R visitIndexAssign(HIndexAssign node);
   R visitIntegerCheck(HIntegerCheck node);
+  R visitInterceptor(HInterceptor node);
   R visitInvokeClosure(HInvokeClosure node);
   R visitInvokeDynamicGetter(HInvokeDynamicGetter node);
   R visitInvokeDynamicMethod(HInvokeDynamicMethod node);
@@ -291,6 +292,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitIndex(HIndex node) => visitInvokeStatic(node);
   visitIndexAssign(HIndexAssign node) => visitInvokeStatic(node);
   visitIntegerCheck(HIntegerCheck node) => visitCheck(node);
+  visitInterceptor(HInterceptor node) => visitInstruction(node);
   visitInvokeClosure(HInvokeClosure node)
       => visitInvokeDynamic(node);
   visitInvokeDynamicMethod(HInvokeDynamicMethod node)
@@ -781,7 +783,7 @@ abstract class HInstruction implements Spannable {
   static const int TYPE_GUARD_TYPECODE = 1;
   static const int BOUNDS_CHECK_TYPECODE = 2;
   static const int INTEGER_CHECK_TYPECODE = 3;
-  static const int INVOKE_INTERCEPTOR_TYPECODE = 4;
+  static const int INTERCEPTOR_TYPECODE = 4;
   static const int ADD_TYPECODE = 5;
   static const int DIVIDE_TYPECODE = 6;
   static const int MODULO_TYPECODE = 7;
@@ -1391,7 +1393,6 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
 }
 
 class HInvokeStatic extends HInvoke {
-  bool isSideEffectFree = false;
   /** The first input must be the target. */
   HInvokeStatic(inputs, [HType knownType = HType.UNKNOWN]) : super(inputs) {
     guaranteedType = knownType;
@@ -1415,13 +1416,6 @@ class HInvokeStatic extends HInvoke {
                                             HTypeMap types,
                                             Compiler compiler) {
     return HType.UNKNOWN;
-  }
-
-  void prepareGvn(HTypeMap types) {
-    clearAllSideEffects();
-    if (!isSideEffectFree) {
-      setAllSideEffects();
-    }
   }
 }
 
@@ -2399,6 +2393,21 @@ class HStatic extends HInstruction {
   bool typeEquals(other) => other is HStatic;
   bool dataEquals(HStatic other) => element == other.element;
   bool isCodeMotionInvariant() => !element.isAssignable();
+}
+
+class HInterceptor extends HInstruction {
+  final Set<ClassElement> interceptedClasses;
+  HInterceptor(this.interceptedClasses, HInstruction receiver)
+      : super(<HInstruction>[receiver]);
+  String toString() => 'interceptor on $interceptedClasses';
+  accept(HVisitor visitor) => visitor.visitInterceptor(this);
+  HInstruction get receiver => inputs[0];
+
+  void prepareGvn(HTypeMap types) {
+    clearAllSideEffects();
+  }
+
+  int typeCode() => HInstruction.INTERCEPTOR_TYPECODE;
 }
 
 /** An [HLazyStatic] is a static that is initialized lazily at first read. */

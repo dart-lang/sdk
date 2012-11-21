@@ -1507,6 +1507,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
     scope = oldScope;
     enclosingElement = previousEnclosingElement;
+
+    world.registerInstantiatedClass(compiler.functionClass);
   }
 
   visitIf(If node) {
@@ -1881,12 +1883,6 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         // elements may be registered.
         world.registerStaticUse(target.declaration);
       }
-    }
-    if (target == null) {
-      // If we haven't found an element for this send, it might be a
-      // dynamic send on a primitive value. Register the selector with
-      // the world to add an interceptor, if necessary.
-      world.registerUsedSelector(selector);
     }
   }
 

@@ -695,7 +695,7 @@ class JavaScriptBackend extends Backend {
    * name to the list of members that have that name. This map is used
    * by the codegen to know whether a send must be intercepted or not.
    */
-  final Map<SourceString, List<Element>> interceptedElements;  
+  final Map<SourceString, Set<Element>> interceptedElements;  
 
   List<CompilerTask> get tasks {
     return <CompilerTask>[builder, optimizer, generator, emitter];
@@ -709,7 +709,7 @@ class JavaScriptBackend extends Backend {
         invalidateAfterCodegen = new List<Element>(),
         interceptors = new Interceptors(compiler),
         usedInterceptors = new Set<Selector>(),
-        interceptedElements = new Map<SourceString, List<Element>>(),
+        interceptedElements = new Map<SourceString, Set<Element>>(),
         rti = new RuntimeTypeInformation(compiler),
         super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM) {
     emitter = disableEval
@@ -744,13 +744,22 @@ class JavaScriptBackend extends Backend {
     usedInterceptors.add(selector);
   }
 
-  bool shouldInterceptSelector(Selector selector) {
-    List<Element> intercepted = interceptedElements[selector.name];
-    if (intercepted == null) return false;
+  /**
+   * Returns a set of interceptor classes that contain a member whose
+   * signature matches the given [selector]. Returns [:null:] if there
+   * is no class.
+   */
+  Set<ClassElement> getInterceptedClassesOn(Selector selector) {
+    Set<Element> intercepted = interceptedElements[selector.name];
+    if (intercepted == null) return null;
+    Set<ClassElement> result = new Set<ClassElement>();
     for (Element element in intercepted) {
-      if (selector.applies(element, compiler)) return true;
+      if (selector.applies(element, compiler)) {
+        result.add(element.getEnclosingClass());
+      }
     }
-    return false;
+    if (result.isEmpty) return null;
+    return result;
   }
 
   void initializeInterceptorElements() {
@@ -787,12 +796,11 @@ class JavaScriptBackend extends Backend {
   void addInterceptors(ClassElement cls) {
     cls.ensureResolved(compiler);
     cls.forEachMember((ClassElement classElement, Element member) {
-      // TODO(ngeoffray): Support interceptors on Object methods.
-      if (classElement == compiler.objectClass) return;
-      List<Element> list = interceptedElements.putIfAbsent(
-          member.name, () => new List<Element>());
-      list.add(member);
-    }, includeSuperMembers: true);
+        Set<Element> set = interceptedElements.putIfAbsent(
+            member.name, () => new Set<Element>());
+        set.add(member);
+      },
+      includeSuperMembers: true);
   }
 
   void registerInstantiatedClass(ClassElement cls, Enqueuer enqueuer) {
@@ -812,6 +820,7 @@ class JavaScriptBackend extends Backend {
         addInterceptors(jsFunctionClass);
         enqueuer.registerInstantiatedClass(jsFunctionClass);
       }
+      enqueuer.addToWorkList(getInterceptorMethod);
     }
     if (cls == compiler.stringClass) {
       result = jsStringClass;
@@ -838,10 +847,6 @@ class JavaScriptBackend extends Backend {
 
   JavaScriptItemCompilationContext createItemCompilationContext() {
     return new JavaScriptItemCompilationContext();
-  }
-
-  Element getInterceptor(Selector selector) {
-    return interceptors.getStaticInterceptor(selector);
   }
 
   void enqueueHelpers(Enqueuer world) {

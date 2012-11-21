@@ -314,6 +314,11 @@ class HInstructionStringifier implements HVisitor<String> {
     return "Integer check: $value";
   }
 
+  String visitInterceptor(HInterceptor node) {
+    String value = temporaryId(node.inputs[0]);
+    return "Intercept: $receiver";
+  }
+
   String visitInvokeClosure(HInvokeClosure node)
       => visitInvokeDynamic(node, "closure");
 

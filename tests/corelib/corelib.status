@@ -39,8 +39,6 @@ reg_exp_all_matches_test: Fail, OK # NoSuchMethodError : method not found: 'forE
 
 reg_exp4_test: Fail, OK # Expects exception from const constructor.
 
-null_nosuchmethod_test: Fail # Fails to read noSuchMethod from null.
-
 big_integer_vm_test: Fail, OK # VM specific test.
 compare_to2_test: Fail, OK    # Requires bigint support.
 string_base_vm_test: Fail, OK # VM specific test.

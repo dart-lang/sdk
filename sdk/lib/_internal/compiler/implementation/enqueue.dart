@@ -404,11 +404,4 @@ class Enqueuer {
         : 'Compiled ${universe.generatedCode.length} methods.');
     nativeEnqueuer.logSummary(log);
   }
-
-  registerUsedSelector(Selector selector) {
-    Element interceptor = compiler.backend.getInterceptor(selector);
-    if (interceptor != null) {
-      registerStaticUse(interceptor);
-    }
-  }
 }
