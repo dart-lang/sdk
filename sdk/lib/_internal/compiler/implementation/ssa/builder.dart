@@ -354,13 +354,16 @@ class LocalsHandler {
       scopeData.capturedVariableMapping.forEach((Element from, Element to) {
         // The [from] can only be a parameter for function-scopes and not
         // loop scopes.
-        if (from.isParameter()) {
-          // Store the captured parameter in the box. Get the current value
-          // before we put the redirection in place.
-          HInstruction instruction = readLocal(from);
-          redirectElement(from, to);
+        if (from.isParameter() && !element.isGenerativeConstructorBody()) {
           // Now that the redirection is set up, the update to the local will
           // write the parameter value into the box.
+          // Store the captured parameter in the box. Get the current value
+          // before we put the redirection in place.
+          // We don't need to update the local for a generative
+          // constructor body, because it receives a box that already
+          // contains the updates as the last parameter.
+          HInstruction instruction = readLocal(from);
+          redirectElement(from, to);
           updateLocal(from, instruction);
         } else {
           redirectElement(from, to);
@@ -404,6 +407,16 @@ class LocalsHandler {
       FunctionElement functionElement = element;
       FunctionSignature params = functionElement.computeSignature(compiler);
       params.orderedForEachParameter((Element parameterElement) {
+        if (element.isGenerativeConstructorBody()) {
+          ClosureScope scopeData = closureData.capturingScopes[node];
+          if (scopeData != null
+              && scopeData.capturedVariableMapping.containsKey(
+                  parameterElement)) {
+            // The parameter will be a field in the box passed as the
+            // last parameter. So no need to have it.
+            return;
+          }
+        }
         HInstruction parameter = builder.addParameter(parameterElement);
         builder.parameters[parameterElement] = parameter;
         directLocals[parameterElement] = parameter;
@@ -1465,12 +1478,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       FunctionSignature functionSignature = body.computeSignature(compiler);
       int arity = functionSignature.parameterCount;
       functionSignature.orderedForEachParameter((parameter) {
-        // TODO(ngeoffray): No need to pass the parameters that are
-        // captured and stored in a box. Because this information is
-        // not trivial to get in codegen.dart, we just pass the
-        // parameters anyway. We need to update both codegen.dart and
-        // builder.dart on how parameters are being passed.
-        bodyCallInputs.add(localsHandler.readLocal(parameter));
+        if (!localsHandler.isBoxed(parameter)) {
+          // The parameter will be a field in the box passed as the
+          // last parameter. So no need to pass it.
+          bodyCallInputs.add(localsHandler.readLocal(parameter));
+        }
       });
 
       // If parameters are checked, we pass the already computed
