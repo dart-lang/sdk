@@ -58,7 +58,7 @@ class SourceMapBuilder {
     for (String string in strings) {
       if (!first) buffer.add(',');
       buffer.add('"');
-      writeJsonEscapedCharsOn(string.charCodes.iterator(), buffer, null);
+      writeJsonEscapedCharsOn(string, buffer);
       buffer.add('"');
       first = false;
     }

@@ -8,8 +8,7 @@
  */
 List<int> stringToCodepoints(String str) {
   // Note: str.charCodes gives us 16-bit code units on all Dart implementations.
-  // So we need to convert. The same is not true of "new String.fromCharCodes",
-  // which accepts code points on the VM but not dart2js (dartbug.com/1357).
+  // So we need to convert.
   return _utf16CodeUnitsToCodepoints(str.charCodes);
 }
 
@@ -17,31 +16,7 @@ List<int> stringToCodepoints(String str) {
  * Generate a string from the provided Unicode codepoints.
  */
 String codepointsToString(List<int> codepoints) {
-  // TODO _is16BitCodeUnit() is used to work around a bug with dart2js
-  // (http://code.google.com/p/dart/issues/detail?id=1357). Consider
-  // removing after this issue is resolved.
-  if (_is16BitCodeUnit()) {
-    return new String.fromCharCodes(
-        _codepointsToUtf16CodeUnits(codepoints));
-  } else {
-    return new String.fromCharCodes(codepoints);
-  }
-}
-
-/*
- * Test for presence of bug related to the use of UTF-16 code units for
- * Dart compiled to JS.
- */
-bool _test16BitCodeUnit = null;
-// TODO _is16BitCodeUnit() is used to work around a bug with dart2js
-// (http://code.google.com/p/dart/issues/detail?id=1357). Consider
-// removing after this issue is resolved.
-bool _is16BitCodeUnit() {
-  if (_test16BitCodeUnit == null) {
-    _test16BitCodeUnit = (new String.fromCharCodes([0x1D11E])) ==
-        (new String.fromCharCodes([0xD11E]));
-  }
-  return _test16BitCodeUnit;
+  return new String.fromCharCodes(codepoints);
 }
 
 /**

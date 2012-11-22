@@ -89,7 +89,7 @@ class JSString implements String {
   List<int> get charCodes  {
     List<int> result = new List<int>(length);
     for (int i = 0; i < length; i++) {
-      result[i] = charCodeAt(i);
+      result[i] = JS('int', '#.charCodeAt(#)', this, i);
     }
     return result;
   }

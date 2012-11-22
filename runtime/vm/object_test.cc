@@ -274,6 +274,48 @@ TEST_CASE(Smi) {
 }
 
 
+TEST_CASE(StringCompareTo) {
+  const String& abcd = String::Handle(String::New("abcd"));
+  const String& abce = String::Handle(String::New("abce"));
+  EXPECT_EQ(0, abcd.CompareTo(abcd));
+  EXPECT_EQ(0, abce.CompareTo(abce));
+  EXPECT(abcd.CompareTo(abce) < 0);
+  EXPECT(abce.CompareTo(abcd) > 0);
+
+  const int kMonkeyLen = 4;
+  const uint8_t monkey_utf8[kMonkeyLen] = { 0xf0, 0x9f, 0x90, 0xb5 };
+  const String& monkey_face =
+      String::Handle(String::New(monkey_utf8, kMonkeyLen));
+  const int kDogLen = 4;
+  // 0x1f436 DOG FACE.
+  const uint8_t dog_utf8[kDogLen] = { 0xf0, 0x9f, 0x90, 0xb6 };
+  const String& dog_face = String::Handle(String::New(dog_utf8, kDogLen));
+  EXPECT_EQ(0, monkey_face.CompareTo(monkey_face));
+  EXPECT_EQ(0, dog_face.CompareTo(dog_face));
+  EXPECT(monkey_face.CompareTo(dog_face) < 0);
+  EXPECT(dog_face.CompareTo(monkey_face) > 0);
+
+  const int kDominoLen = 4;
+  // 0x1f036 DOMINO TILE HORIZONTAL-00-05.
+  const uint8_t domino_utf8[kDominoLen] = { 0xf0, 0x9f, 0x80, 0xb6 };
+  const String& domino = String::Handle(String::New(domino_utf8, kDominoLen));
+  EXPECT_EQ(0, domino.CompareTo(domino));
+  EXPECT(domino.CompareTo(dog_face) < 0);
+  EXPECT(domino.CompareTo(monkey_face) < 0);
+  EXPECT(dog_face.CompareTo(domino) > 0);
+  EXPECT(monkey_face.CompareTo(domino) > 0);
+
+  EXPECT(abcd.CompareTo(monkey_face) < 0);
+  EXPECT(abce.CompareTo(monkey_face) < 0);
+  EXPECT(abcd.CompareTo(domino) < 0);
+  EXPECT(abce.CompareTo(domino) < 0);
+  EXPECT(domino.CompareTo(abcd) > 0);
+  EXPECT(domino.CompareTo(abcd) > 0);
+  EXPECT(monkey_face.CompareTo(abce) > 0);
+  EXPECT(monkey_face.CompareTo(abce) > 0);
+}
+
+
 TEST_CASE(Mint) {
 // On 64-bit architectures a Smi is stored in a 64 bit word. A Midint cannot
 // be allocated if it does fit into a Smi.
@@ -1534,10 +1576,36 @@ TEST_CASE(Symbol) {
   EXPECT_EQ(one.raw(), ein_symbol.raw());
   EXPECT(one.raw() != eins.raw());
 
+  uint16_t char16[] = { 'E', 'l', 'f' };
+  String& elf1 = String::Handle(Symbols::New(char16, 3));
   int32_t char32[] = { 'E', 'l', 'f' };
-  String& elf = String::Handle(Symbols::New(char32, 3));
-  EXPECT(elf.IsSymbol());
-  EXPECT_EQ(elf.raw(), Symbols::New("Elf"));
+  String& elf2 = String::Handle(Symbols::New(char32, 3));
+  EXPECT(elf1.IsSymbol());
+  EXPECT(elf2.IsSymbol());
+  EXPECT_EQ(elf1.raw(), Symbols::New("Elf"));
+  EXPECT_EQ(elf2.raw(), Symbols::New("Elf"));
+}
+
+
+TEST_CASE(SymbolUnicode) {
+  uint16_t monkey_utf16[] = { 0xd83d, 0xdc35 };  // Unicode Monkey Face.
+  String& monkey = String::Handle(Symbols::New(monkey_utf16, 2));
+  EXPECT(monkey.IsSymbol());
+  const char monkey_utf8[] = {0xf0, 0x9f, 0x90, 0xb5, 0};
+  EXPECT_EQ(monkey.raw(), Symbols::New(monkey_utf8));
+
+  int32_t kMonkeyFace = 0x1f435;
+  String& monkey2 = String::Handle(Symbols::FromCharCode(kMonkeyFace));
+  EXPECT_EQ(monkey.raw(), monkey2.raw());
+
+  // Unicode cat face with tears of joy.
+  int32_t kCatFaceWithTearsOfJoy = 0x1f639;
+  String& cat = String::Handle(Symbols::FromCharCode(kCatFaceWithTearsOfJoy));
+
+  uint16_t cat_utf16[] = { 0xd83d, 0xde39 };
+  String& cat2 = String::Handle(Symbols::New(cat_utf16, 2));
+  EXPECT(cat2.IsSymbol());
+  EXPECT_EQ(cat2.raw(), cat.raw());
 }
 
 

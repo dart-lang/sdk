@@ -385,7 +385,6 @@ Language/11_Expressions/32_Type_Cast_A01_t04: Fail, OK # co19 issue 241
 
 Language/11_Expressions/22_Equality_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
 Language/11_Expressions/28_Postfix_Expressions_A01_t01: Fail, OK # A map literal cannot start an expression statement.
-LibTest/core/String/String_class_A02_t01: Pass, Fail, OK # issue 6418 compiler cancelled: Unhandled non-BMP character: U+10000
 
 Language/06_Functions/1_Function_Declaration_A02_t03: Fail, OK # co19 issue 210
 Language/06_Functions/1_Function_Declaration_A03_t03: Fail, OK # co19 issue 210

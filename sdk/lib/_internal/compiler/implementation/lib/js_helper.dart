@@ -535,9 +535,27 @@ class Primitives {
 
   static num dateNow() => JS('num', r'Date.now()');
 
+  static stringFromCodePoints(codePoints) {
+    List<int> a = <int>[];
+    for (var i in codePoints) {
+      if (i is !int) throw new ArgumentError(i);
+      if (i <= 0xffff) {
+        a.add(i);
+      } else if (i <= 0x10ffff) {
+        a.add(0xd800 + ((((i - 0x10000) >> 10) & 0x3ff)));
+        a.add(0xdc00 + (i & 0x3ff));
+      } else {
+        throw new ArgumentError(i);
+      }
+    }
+    return JS('String', r'String.fromCharCode.apply(#, #)', null, a);
+  }
+
   static String stringFromCharCodes(charCodes) {
     for (var i in charCodes) {
       if (i is !int) throw new ArgumentError(i);
+      if (i < 0) throw new ArgumentError(i);
+      if (i > 0xffff) return stringFromCodePoints(charCodes);
     }
     return JS('String', r'String.fromCharCode.apply(#, #)', null, charCodes);
   }
