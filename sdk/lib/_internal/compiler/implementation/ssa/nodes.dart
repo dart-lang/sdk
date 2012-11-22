@@ -2405,9 +2405,11 @@ class HInterceptor extends HInstruction {
 
   void prepareGvn(HTypeMap types) {
     clearAllSideEffects();
+    setUseGvn();
   }
 
   int typeCode() => HInstruction.INTERCEPTOR_TYPECODE;
+  bool typeEquals(other) => other is HInterceptor;
 }
 
 /** An [HLazyStatic] is a static that is initialized lazily at first read. */

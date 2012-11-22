@@ -658,6 +658,14 @@ class JavaScriptBackend extends Backend {
   Element jsArrayLength;
   Element jsStringLength;
   Element getInterceptorMethod;
+  Element arrayInterceptor;
+  Element boolInterceptor;
+  Element doubleInterceptor;
+  Element functionInterceptor;
+  Element intInterceptor;
+  Element nullInterceptor;
+  Element numberInterceptor;
+  Element stringInterceptor;
   bool _interceptorsAreInitialized = false;
 
   final Namer namer;
@@ -788,6 +796,23 @@ class JavaScriptBackend extends Backend {
     jsStringClass.ensureResolved(compiler);
     jsStringLength =
         jsStringClass.lookupLocalMember(const SourceString('length'));
+
+    arrayInterceptor =
+        compiler.findInterceptor(const SourceString('arrayInterceptor'));
+    boolInterceptor =
+        compiler.findInterceptor(const SourceString('boolInterceptor'));
+    doubleInterceptor =
+        compiler.findInterceptor(const SourceString('doubleInterceptor'));
+    functionInterceptor =
+        compiler.findInterceptor(const SourceString('functionInterceptor'));
+    intInterceptor =
+        compiler.findInterceptor(const SourceString('intInterceptor'));
+    nullInterceptor =
+        compiler.findInterceptor(const SourceString('nullInterceptor'));
+    stringInterceptor =
+        compiler.findInterceptor(const SourceString('stringInterceptor'));
+    numberInterceptor =
+        compiler.findInterceptor(const SourceString('numberInterceptor'));
   }
 
   void addInterceptors(ClassElement cls) {
