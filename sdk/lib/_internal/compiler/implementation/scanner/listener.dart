@@ -641,7 +641,7 @@ class ElementListener extends Listener {
     return result;
   }
 
-  LiteralString popLiteralString() {
+  StringNode popLiteralString() {
     StringNode node = popNode();
     // TODO(lrn): Handle interpolations in script tags.
     if (node.isInterpolation) {
@@ -671,7 +671,7 @@ class ElementListener extends Listener {
     if (asKeyword != null) {
       prefix = popNode();
     }
-    LiteralString uri = popLiteralString();
+    StringNode uri = popLiteralString();
     addLibraryTag(new Import(importKeyword, uri, prefix, combinators));
   }
 
@@ -703,7 +703,7 @@ class ElementListener extends Listener {
   }
 
   void endPart(Token partKeyword, Token semicolon) {
-    LiteralString uri = popLiteralString();
+    StringNode uri = popLiteralString();
     addLibraryTag(new Part(partKeyword, uri));
   }
 

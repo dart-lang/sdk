@@ -16,6 +16,7 @@
 # 3) Update the language/src directory with the updated test.
 
 [ $compiler == none ]
+library_juxtaposition_test: Fail # Issue 6877
 part_test: Fail
 part2_test: Fail
 gc_test: Pass, Fail # Issue 1487
