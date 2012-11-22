@@ -1763,7 +1763,7 @@ static intptr_t GetResultCidOfConstructor(ConstructorCallNode* node) {
   }
 
   if (node->constructor().IsFactory()) {
-    if ((function_class.Name() == Symbols::ListImplementation()) &&
+    if ((function_class.Name() == Symbols::List()) &&
         (function.name() == Symbols::ListFactory())) {
       // If there are no arguments then the result is guaranteed to be a
       // GrowableObjectArray. However if there is an argument the result

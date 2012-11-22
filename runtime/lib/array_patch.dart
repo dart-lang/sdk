@@ -5,21 +5,13 @@
 // Note that the optimizing compiler depends on the algorithm which
 // returns a _GrowableObjectArray if length is null, otherwise returns
 // fixed size array.
-patch class _ListImpl<E> {
+patch class List<E> {
   /* patch */ factory List([int length = null]) {
     if (length == null) {
       return new _GrowableObjectArray<E>();
     } else {
       return new _ObjectArray<E>(length);
     }
-  }
-
-  /* patch */ factory List.from(Iterable<E> other) {
-    _GrowableObjectArray<E> list = new _GrowableObjectArray<E>();
-    for (final e in other) {
-      list.add(e);
-    }
-    return list;
   }
 
   // Factory constructing a mutable List from a parser generated List literal.

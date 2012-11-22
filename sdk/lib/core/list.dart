@@ -6,8 +6,7 @@
  * A [List] is an indexable collection with a length. It can be of
  * fixed size or extendable.
  */
-interface List<E> extends Collection<E>, Sequence<E>
-                  default _ListImpl<E> {
+abstract class List<E> implements Collection<E>, Sequence<E> {
   /**
    * Creates a list of the given [length].
    *
@@ -17,13 +16,19 @@ interface List<E> extends Collection<E>, Sequence<E>
    * If a [length] argument is supplied, a fixed size list of that
    * length is created.
    */
-  List([int length]);
+  external factory List([int length]);
 
   /**
    * Creates a list with the elements of [other]. The order in
    * the list will be the order provided by the iterator of [other].
    */
-  List.from(Iterable<E> other);
+  factory List.from(Iterable<E> other) {
+    var list = new List<E>();
+    for (var e in other) {
+      list.add(e);
+    }
+    return list;
+  }
 
   /**
    * Returns the element at the given [index] in the list or throws
@@ -179,21 +184,4 @@ interface List<E> extends Collection<E>, Sequence<E>
    * [start] is greater than the length of the list.
    */
   void insertRange(int start, int length, [E initialValue]);
-}
-
-class _ListImpl<E> {
-  /**
-   * Factory implementation of List().
-   *
-   * Creates a list of the given [length].
-   */
-  external factory List([int length]);
-
-  /**
-   * Factory implementation of List.from().
-   *
-   * Creates a list with the elements of [other]. The order in
-   * the list will be the order provided by the iterator of [other].
-   */
-  external factory List.from(Iterable<E> other);
 }

@@ -366,9 +366,6 @@ class Object {
  private:
   static void InitializeObject(uword address, intptr_t id, intptr_t size);
 
-  static RawClass* CreateAndRegisterInterface(const char* cname,
-                                              const Script& script,
-                                              const Library& lib);
   static void RegisterClass(const Class& cls,
                             const String& name,
                             const Library& lib);

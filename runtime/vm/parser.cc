@@ -8778,9 +8778,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     return new LiteralNode(literal_pos, const_list);
   } else {
     // Factory call at runtime.
-    // TODO(regis): Once _ListImpl is removed, use Symbols::List() instead of
-    // Symbols::ListImplementation() on the following line.
-    String& factory_class_name = String::Handle(Symbols::ListImplementation());
+    String& factory_class_name = String::Handle(Symbols::List());
     const Class& factory_class =
         Class::Handle(LookupCoreClass(factory_class_name));
     ASSERT(!factory_class.IsNull());

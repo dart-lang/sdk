@@ -518,17 +518,6 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
 }
 
 
-RawClass* Object::CreateAndRegisterInterface(const char* cname,
-                                             const Script& script,
-                                             const Library& lib) {
-  const String& name = String::Handle(Symbols::New(cname));
-  const Class& cls = Class::Handle(
-      Class::NewInterface(name, script, Scanner::kDummyTokenIndex));
-  lib.AddClass(cls);
-  return cls.raw();
-}
-
-
 void Object::RegisterClass(const Class& cls,
                            const String& name,
                            const Library& lib) {
@@ -891,7 +880,9 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_string_type(type);
 
-  cls = CreateAndRegisterInterface("List", script, core_lib);
+  name = Symbols::New("List");
+  cls = Class::New<Instance>(name, script, Scanner::kDummyTokenIndex);
+  RegisterClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
   object_store->set_list_class(cls);
 

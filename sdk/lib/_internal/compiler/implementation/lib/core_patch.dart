@@ -154,16 +154,8 @@ patch class _StopwatchImpl {
 
 
 // Patch for List implementation.
-patch class _ListImpl<E> {
+patch class List<E> {
   patch factory List([int length]) => Primitives.newList(length);
-
-  patch factory List.from(Iterable<E> other) {
-    var result = new List();
-    for (var element in other) {
-      result.add(element);
-    }
-    return result;
-  }
 }
 
 
