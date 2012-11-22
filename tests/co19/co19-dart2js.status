@@ -2,7 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-
 # Crashes first, please. Then untriaged bugs. There is a section below
 # for co19 bugs.
 [ $compiler == dart2js ]
@@ -35,6 +34,8 @@ Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # 
 Language/06_Functions/06_Functions_A01_t22: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/07_Classes_A03_t07: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/1_Instance_Methods_A06_t01: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/1_Instance_Methods_A06_t02: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/1_Instance_Methods_A07_t01: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A05_t02: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A05_t03: Fail # TODO(ahe): Please triage this failure.
@@ -42,10 +43,16 @@ Language/07_Classes/6_Constructors/2_Factories_A05_t04: Fail # TODO(ahe): Please
 Language/07_Classes/6_Constructors/2_Factories_A07_t01: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/6_Constructors_A01_t02: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/6_Constructors_A01_t03: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/6_Constructors_A01_t04: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/6_Constructors_A01_t05: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/6_Constructors_A01_t06: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail # TODO(ahe): Please triage this failure.
 Language/09_Generics/09_Generics_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/01_Constants_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/01_Constants_A13_t06: Fail # TODO(ahe): Please triage this failure.
+Language/11_Expressions/01_Constants_A20_t03: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t06: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/08_Throw_A01_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/08_Throw_A05_t01: Fail # TODO(ahe): Please triage this failure.
@@ -64,6 +71,7 @@ Language/11_Expressions/18_Assignment_A08_t04: Fail # TODO(ahe): Please triage t
 Language/11_Expressions/19_Conditional_A01_t14: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/19_Conditional_A01_t15: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t14: Fail # TODO(ahe): Please triage this failure.
+Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t15: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/21_Bitwise_Expressions_A01_t16: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/21_Bitwise_Expressions_A01_t17: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/22_Equality_A01_t23: Fail # TODO(ahe): Please triage this failure.
@@ -82,9 +90,7 @@ Language/11_Expressions/27_Unary_Expressions_A01_t21: Fail # TODO(ahe): Please t
 Language/11_Expressions/27_Unary_Expressions_A01_t22: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/30_Identifier_Reference_A04_t09: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/30_Identifier_Reference_A05_t01: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/30_Identifier_Reference_A05_t04: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/30_Identifier_Reference_A05_t12: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/30_Identifier_Reference_A06_t02: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/31_Type_Test_A01_t02: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/31_Type_Test_A01_t04: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/31_Type_Test_A04_t01: Fail # TODO(ahe): Please triage this failure.
@@ -117,34 +123,68 @@ Language/12_Statements/11_Return_A05_t03: Fail # TODO(ahe): Please triage this f
 Language/12_Statements/12_Labels_A03_t04: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/14_Continue_A02_t12: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/14_Continue_A02_t13: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t01: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t02: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A02_t14: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t16: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t17: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t18: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t19: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t27: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t28: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A03_t22: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A03_t42: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A03_t62: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A01_t07: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A01_t15: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A01_t16: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A04_t04: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A03_t31: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A03_t51: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A04_t05: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A04_t06: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/3_Parts_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/4_Scripts_A01_t21: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/4_Scripts_A01_t22: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/4_Scripts_A01_t23: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/5_URIs_A01_t01: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/5_URIs_A01_t04: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/5_URIs_A01_t05: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/5_URIs_A01_t11: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/5_URIs_A01_t14: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/5_URIs_A01_t15: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/5_URIs_A01_t21: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/5_URIs_A01_t24: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/5_URIs_A01_t25: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t05: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t06: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/3_Type_Declarations/1_Typedef_A07_t07: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A01_t04: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A01_t10: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A02_t02: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A02_t03: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A02_t04: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A02_t05: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A02_t06: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A02_t07: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A02_t08: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A02_t09: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A02_t10: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A03_t01: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A03_t02: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A03_t03: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A03_t04: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A03_t06: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A03_t07: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A03_t08: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A03_t09: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A03_t10: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A03_t11: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A03_t12: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A03_t13: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A06_t01: Fail # TODO(ahe): Please triage this failure.
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/Queue/Queue.from_A01_t02: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/Set/Set.from_A01_t02: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A01_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A02_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A06_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/double/parse_A01_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/isolate/ReceivePort/receive_A01_t02: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/Random/nextDouble_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/exp_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/math/parseDouble_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A11_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A13_t01: Fail # TODO(ahe): Please triage this failure.
@@ -155,24 +195,10 @@ LibTest/math/tan_A01_t01: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail
 
 
-LibTest/core/List/iterator_next_A02_t01: Fail, OK # co19 issue 288
-LibTest/core/Queue/iterator_next_A02_t01: Fail, OK # co19 issue 288
-LibTest/core/Queue/first_A02_t01: Fail, OK # co19 issue 288
-LibTest/core/Queue/removeLast_A02_t01: Fail, OK # co19 issue 288
-LibTest/core/Queue/last_A02_t01: Fail, OK # co19 issue 288
-LibTest/core/Queue/removeFirst_A02_t01: Fail, OK # co19 issue 288
-LibTest/core/NoMoreElementsException/NoMoreElementsException_A01_t01: Fail, OK # co19 issue 288
-LibTest/core/NoMoreElementsException/toString_A01_t01: Fail, OK # co19 issue 288
-LibTest/core/EmptyQueueException/EmptyQueueException_A01_t01: Fail, OK # co19 issue 288
-LibTest/core/EmptyQueueException/toString_A01_t01: Fail, OK # co19 issue 288
-
 [ $compiler == dart2js && $unchecked ]
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(ahe): Please triage this failure.
 
 [ $compiler == dart2js && $runtime == jsshell ]
-Language/06_Functions/3_Type_of_a_Function_A01_t01: Fail # TODO(ahe): Triage these tests.
-Language/07_Classes/8_Static_Variables_A02_t01: Fail # TODO(ahe): Triage these tests.
-LibTest/core/Map/putIfAbsent_A01_t08: Fail # TODO(ahe): Triage these tests.
 LibTest/core/double/round_A01_t01: Fail # TODO(ahe): Triage these tests.
 LibTest/core/double/toStringAsExponential_A01_t07: Fail # TODO(ahe): Triage these tests.
 LibTest/core/double/toStringAsFixed_A01_t05: Fail # TODO(ahe): Triage these tests.
@@ -192,11 +218,13 @@ Language/07_Classes/6_Constructors/2_Factories_A06_t04: Fail # TODO(ahe): Please
 Language/09_Generics/09_Generics_A03_t01: Fail # TODO(ahe): Please triage this failure.
 Language/09_Generics/09_Generics_A04_t06: Fail # TODO(ahe): Please triage this failure.
 Language/09_Generics/09_Generics_A05_t02: Fail # TODO(ahe): Please triage this failure.
+Language/11_Expressions/03_Numbers_A05_t02: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/06_Lists_A09_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/06_Lists_A09_t04: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/06_Lists_A09_t05: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/07_Maps_A10_t04: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/07_Maps_A10_t05: Fail # TODO(ahe): Please triage this failure.
+Language/11_Expressions/07_Maps_A11_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/09_Function_Expressions_A03_t03: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/09_Function_Expressions_A04_t03: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/09_Function_Expressions_A05_t02: Fail # TODO(ahe): Please triage this failure.
@@ -207,15 +235,20 @@ Language/11_Expressions/11_Instance_Creation/1_New_A07_t01: Fail # TODO(ahe): Pl
 Language/11_Expressions/11_Instance_Creation/1_New_A11_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/2_Const_A09_t02: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/2_Const_A09_t03: Fail # TODO(ahe): Please triage this failure.
+Language/11_Expressions/11_Instance_Creation_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation_A05_t02: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t04: Fail # TODO(ahe): Please triage this failure.
+Language/11_Expressions/19_Conditional_A04_t03: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/20_Logical_Boolean_Expressions_A03_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/27_Unary_Expressions_A02_t03: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/32_Type_Cast_A05_t03: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/32_Type_Cast_A05_t05: Fail # TODO(ahe): Please triage this failure.
-Language/12_Statements/05_If_A02_t01: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/06_For/1_For_Loop_A01_t08: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/09_Switch_A05_t01: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A03_t06: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A03_t26: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A03_t46: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A03_t66: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/4_Interface_Types_A08_t03: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/8_Parameterized_Types_A02_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/AssertionError/column_A01_t02: Fail # TODO(ahe): Please triage this failure.
@@ -225,9 +258,9 @@ LibTest/core/AssertionError/url_A01_t01: Fail # TODO(ahe): Please triage this fa
 LibTest/core/List/operator_subscript_A03_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/List/operator_subscripted_assignment_A03_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/Map/putIfAbsent_A01_t04: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/Map/putIfAbsent_A01_t07: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/Map/putIfAbsent_A01_t08: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/Queue/iterator_hasNext_A01_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/String/contains_A01_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/String/contains_A01_t03: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/TypeError/column_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/TypeError/dstName_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/TypeError/dstType_A01_t01: Fail # TODO(ahe): Please triage this failure.
@@ -244,12 +277,6 @@ Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t03: Fail # 
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t04: Fail # Checked mode failure for noSuchMethod type.
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A06_t01: Fail # Checked mode failure for noSuchMethod type.
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A06_t02: Fail # Checked mode failure for noSuchMethod type.
-
-# These tests return an object from a void function.
-Language/14_Types/7_Type_Void_A04_t02: Fail, OK
-Language/14_Types/7_Type_Void_A04_t03: Fail, OK
-Language/14_Types/7_Type_Void_A04_t04: Fail, OK
-Language/14_Types/7_Type_Void_A04_t05: Fail, OK
 
 Language/11_Expressions/11_Instance_Creation/1_New_A12_t02: Fail # http://dartbug.com/3970
 
@@ -271,21 +298,6 @@ LibTest/core/List/setRange_A05_t01: Fail, OK
 # These tests need to be updated for new optional parameter syntax and semantics, co19 issue 258:
 Language/07_Classes/1_Instance_Methods_A02_t05: Fail, OK
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A13_t01: Fail, OK
-Language/14_Types/5_Function_Types_A01_t21: Fail, OK
-
-LibTest/core/String/charCodes_A01_t01: Fail, OK # co19 issue 289
-
-LibTest/core/Stopwatch/Stopwatch_A01_t01: Fail, OK # co19 issue 297
-LibTest/core/Stopwatch/elapsed_A01_t03: Fail, OK # co19 issue 297
-LibTest/core/Stopwatch/elapsed_A01_t01: Fail, OK # co19 issue 297
-LibTest/core/Stopwatch/elapsed_A01_t02: Fail, OK # co19 issue 297
-LibTest/core/Stopwatch/elapsedInUs_A01_t01: Fail, OK # co19 issue 297
-LibTest/core/Stopwatch/elapsedInMs_A01_t01: Fail, OK # co19 issue 297
-LibTest/core/Stopwatch/start_A01_t01: Fail, OK # co19 issue 297
-LibTest/core/Stopwatch/start_A01_t02: Fail, OK # co19 issue 297
-LibTest/core/Stopwatch/start_A01_t03: Fail, OK # co19 issue 297
-LibTest/core/Stopwatch/stop_A01_t01: Fail, OK # co19 issue 297
-LibTest/core/Stopwatch/frequency_A01_t01: Fail, OK # co19 issue 297
 
 LibTest/isolate/SendPort/send_A02_t02: Fail, OK # co19 issue 293
 LibTest/isolate/SendPort/send_A02_t03: Fail, OK # co19 issue 293
@@ -311,8 +323,6 @@ Language/09_Generics/09_Generics_A05_t01: Fail # co19 issue 297
 LibTest/core/double/operator_remainder_A01_t04: Fail
 
 [ $compiler == dart2js ]
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t10: Fail # TODO(ahe): Enforce optional parameter semantics.
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t11: Fail # TODO(ahe): Enforce optional parameter semantics.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # TODO(ahe): Enforce optional parameter semantics.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t01: Fail # http://dartbug.com/5026
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t04: Fail # TODO(ahe): Enforce optional parameter semantics.
@@ -330,8 +340,6 @@ Language/11_Expressions/01_Constants_A18_t03: Fail # Compile-time error: unexpec
 Language/11_Expressions/22_Equality_A02_t03: Fail # Compile-time error: unexpected token 'equals'
 Language/11_Expressions/05_Strings_A20_t01: Fail # Runtime error: Expect.identical(expected: <abyr, abyr
 LibTest/isolate/isolate_api/spawnUri_A02_t01: Fail # Runtime error: Expect.throws() fails
-Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
-Language/11_Expressions/05_Strings/1_String_Interpolation_A04_t02: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
 LibTest/isolate/isolate_api/spawnUri_A01_t01: Fail # Runtime error: UnsupportedError: Currently spawnUri is not supported without web workers.
 LibTest/isolate/isolate_api/spawnUri_A01_t02: Fail # Runtime error: UnsupportedError: Currently spawnUri is not supported without web workers.
 LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail # Runtime error: UnsupportedError: Currently spawnUri is not supported without web workers.
@@ -378,8 +386,6 @@ Language/11_Expressions/32_Type_Cast_A01_t04: Fail, OK # co19 issue 241
 Language/11_Expressions/22_Equality_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
 Language/11_Expressions/28_Postfix_Expressions_A01_t01: Fail, OK # A map literal cannot start an expression statement.
 LibTest/core/String/String_class_A02_t01: Pass, Fail, OK # issue 6418 compiler cancelled: Unhandled non-BMP character: U+10000
-LibTest/core/String/charCodeAt_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
-LibTest/core/String/charCodes_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 
 Language/06_Functions/1_Function_Declaration_A02_t03: Fail, OK # co19 issue 210
 Language/06_Functions/1_Function_Declaration_A03_t03: Fail, OK # co19 issue 210
@@ -397,149 +403,10 @@ Language/03_Overview/2_Privacy_A01_t10: Fail, OK # co19 issue 198
 
 LibTest/core/int/hashCode_A01_t01: Fail, OK # co19 issue 308
 
-LibTest/core/NoSuchMethodError/NoSuchMethodError_A01_t01: Fail, OK # co19 issue 300
-LibTest/core/NoSuchMethodError/toString_A01_t01: Fail, OK # co19 issue 300
-
-LibTest/core/String/contains_A01_t01: Fail, OK # co19 issue 314
-LibTest/core/String/contains_A01_t03: Fail, OK # co19 issue 314
-
-LibTest/core/NotImplementedException/NotImplementedException_A01_t01: Fail, OK # co19 issue 315
-LibTest/core/NotImplementedException/toString_A01_t01: Fail, OK # co19 issue 315
-
-LibTest/core/IndexOutOfRangeException/IndexOutOfRangeException_A01_t01: Fail, OK # co19 issue 290
-LibTest/core/IndexOutOfRangeException/toString_A01_t01: Fail, OK # co19 issue 290
-LibTest/core/List/getRange_A04_t01: Fail, OK # co19 issue 290
-LibTest/core/List/insertRange_A06_t01: Fail, OK # co19 issue 290
-LibTest/core/List/last_A02_t01: Fail, OK # co19 issue 290
-LibTest/core/List/length_A05_t01: Fail, OK # co19 issue 290
-LibTest/core/List/List_A01_t01: Fail, OK # co19 issue 290
-LibTest/core/List/operator_subscript_A02_t01: Fail, OK # co19 issue 290
-LibTest/core/List/operator_subscripted_assignment_A02_t01: Fail, OK # co19 issue 290
-LibTest/core/List/removeLast_A01_t02: Fail, OK # co19 issue 290
-LibTest/core/List/removeRange_A05_t01: Fail, OK # co19 issue 290
-LibTest/core/List/setRange_A02_t01: Fail, OK # co19 issue 290
-LibTest/core/List/setRange_A02_t02: Fail, OK # co19 issue 290
-LibTest/core/List/setRange_A03_t01: Fail, OK # co19 issue 290
-LibTest/core/List/setRange_A03_t02: Fail, OK # co19 issue 290
-LibTest/core/Match/group_A02_t01: Fail, OK # co19 issue 290
-LibTest/core/Match/groups_A02_t01: Fail, OK # co19 issue 290
-LibTest/core/Match/operator_subscript_A02_t01: Fail, OK # co19 issue 290
-LibTest/core/String/charCodeAt_A02_t01: Fail, OK # co19 issue 290
-LibTest/core/String/operator_subscript_A02_t01: Fail, OK # co19 issue 290
-LibTest/core/String/substring_A02_t01: Fail, OK # co19 issue 290
-
 Language/03_Overview/2_Privacy_A01_t11: Pass, OK # co19 issue 316
-Language/05_Variables/05_Variables_A09_t01: Fail, OK # co19 issue 316
-Language/06_Functions/3_Type_of_a_Function_A01_t01: Fail, OK # co19 issue 316
-Language/07_Classes/2_Getters_A02_t01: Fail, OK # co19 issue 316
-Language/07_Classes/8_Static_Variables_A02_t01: Fail, OK # co19 issue 316
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A01_t01: Fail, OK # co19 issue 316
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t01: Fail, OK # co19 issue 316
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t02: Fail, OK # co19 issue 316
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t03: Fail, OK # co19 issue 316
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t04: Fail, OK # co19 issue 316
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t05: Fail, OK # co19 issue 316
-Language/11_Expressions/02_Null_A05_t02: Fail, OK # co19 issue 316
-Language/11_Expressions/08_Throw_A03_t04: Fail, OK # co19 issue 316
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Pass, OK # co19 issue 316
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A06_t01: Fail, OK # co19 issue 316
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A06_t02: Fail, OK # co19 issue 316
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A07_t01: Fail, OK # co19 issue 316
-Language/12_Statements/06_For/2_For_in_A01_t04: Fail, OK # co19 issue 316
-Language/14_Types/6_Type_Dynamic_A03_t01: Fail, OK # co19 issue 316
-Language/14_Types/6_Type_Dynamic_A04_t01: Fail, OK # co19 issue 316
-LibTest/core/Date/Date.fromString_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/Date/Date_A01_t02: Fail, OK # co19 issue 316
-LibTest/core/Date/add_A05_t01: Fail, OK # co19 issue 316
-LibTest/core/Date/compareTo_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/Date/difference_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/Date/subtract_A05_t01: Fail, OK # co19 issue 316
-LibTest/core/Duration/Duration_A03_t01: Fail, OK # co19 issue 316
-LibTest/core/Expect/approxEquals_A03_t01: Fail, OK # co19 issue 316
-LibTest/core/Expect/listEquals_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/Expect/setEquals_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/Expect/throws_A01_t03: Fail, OK # co19 issue 316
 LibTest/core/Future/chain_A03_t01: Fail, OK # co19 issue 328
-LibTest/core/Future/handleException_A01_t01: Fail, OK # co19 issue 316
-LibTest/core/Future/handleException_A01_t07: Fail, OK # co19 issue 316
-LibTest/core/Future/hasValue_A01_t01: Fail, OK # co19 issue 316
-LibTest/core/Future/isComplete_A01_t01: Fail, OK # co19 issue 316
-LibTest/core/Future/then_A01_t01: Fail, OK # co19 issue 316
-LibTest/core/Future/then_A01_t05: Fail, OK # co19 issue 316
 LibTest/core/Future/transform_A03_t01: Fail, OK # co19 issue 328
-LibTest/core/Future/value_A01_t03: Fail, OK # co19 issue 316
-LibTest/core/Futures/wait_A03_t01: Fail, OK # co19 issue 316
-LibTest/core/HashMap/HashMap.from_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/HashSet/HashSet.from_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/LinkedHashMap/LinkedHashMap.from_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/List/List.from_A03_t01: Fail, OK # co19 issue 316
-LibTest/core/List/addAll_A03_t01: Fail, OK # co19 issue 316
-LibTest/core/List/getRange_A05_t01: Fail, OK # co19 issue 316
-LibTest/core/List/insertRange_A07_t01: Fail, OK # co19 issue 316
-LibTest/core/List/length_A06_t01: Fail, OK # co19 issue 316
-LibTest/core/List/removeRange_A06_t01: Fail, OK # co19 issue 316
-LibTest/core/List/setRange_A06_t01: Fail, OK # co19 issue 316
-LibTest/core/Map/containsKey_A01_t02: Fail, OK # co19 issue 316
-LibTest/core/Map/forEach_A01_t04: Fail, OK # co19 issue 316
-LibTest/core/Map/operator_subscript_A01_t02: Fail, OK # co19 issue 316
-LibTest/core/Map/operator_subscripted_assignment_A01_t02: Fail, OK # co19 issue 316
-LibTest/core/Map/putIfAbsent_A01_t06: Fail, OK # co19 issue 316
-LibTest/core/Map/putIfAbsent_A01_t08: Fail, OK # co19 issue 316
-LibTest/core/Map/remove_A01_t02: Fail, OK # co19 issue 316
-LibTest/core/NullPointerException/NullPointerException_A01_t01: Fail, OK # co19 issue 316
-LibTest/core/NullPointerException/toString_A01_t01: Fail, OK # co19 issue 316
-LibTest/core/Queue/Queue.from_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/Queue/addAll_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/RegExp/allMatches_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/RegExp/firstMatch_A03_t01: Fail, OK # co19 issue 316
-LibTest/core/RegExp/hasMatch_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/RegExp/stringMatch_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/Set/Set.from_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/Set/addAll_A01_t02: Fail, OK # co19 issue 316
-LibTest/core/Set/add_A01_t02: Fail, OK # co19 issue 316
-LibTest/core/Set/containsAll_A01_t02: Fail, OK # co19 issue 316
-LibTest/core/Set/contains_A01_t02: Fail, OK # co19 issue 316
-LibTest/core/Set/intersection_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/Set/intersection_A03_t01: Fail, OK # co19 issue 316
-LibTest/core/Set/isSubsetOf_A01_t02: Fail, OK # co19 issue 316
-LibTest/core/Set/removeAll_A01_t02: Fail, OK # co19 issue 316
-LibTest/core/Set/remove_A01_t02: Fail, OK # co19 issue 316
-LibTest/core/String/String.fromCharCodes_A03_t01: Fail, OK # co19 issue 316
-LibTest/core/String/contains_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/String/endsWith_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/String/indexOf_A03_t01: Fail, OK # co19 issue 316
-LibTest/core/String/lastIndexOf_A03_t01: Fail, OK # co19 issue 316
-LibTest/core/String/split_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/String/startsWith_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/StringBuffer/addAll_A03_t01: Fail, OK # co19 issue 316
-LibTest/core/Strings/concatAll_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/Strings/concatAll_A03_t01: Fail, OK # co19 issue 316
-LibTest/core/Strings/join_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/Strings/join_A03_t01: Fail, OK # co19 issue 316
-LibTest/core/double/operator_GE_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/double/operator_GT_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/double/operator_LE_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/double/operator_LT_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/double/operator_addition_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/double/operator_division_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/double/operator_multiplication_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/double/operator_remainder_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/double/operator_subtraction_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/double/operator_truncating_division_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/double/remainder_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/double/toStringAsFixed_A02_t01: Fail, OK # co19 issue 316
-LibTest/core/double/toStringAsPrecision_A02_t01: Fail, OK # co19 issue 316
-LibTest/math/acos_A01_t04: Fail, OK # co19 issue 316
-LibTest/math/asin_A01_t04: Fail, OK # co19 issue 316
-LibTest/math/atan2_A01_t04: Fail, OK # co19 issue 316
-LibTest/math/atan_A01_t03: Fail, OK # co19 issue 316
-LibTest/math/cos_A01_t03: Fail, OK # co19 issue 316
-LibTest/math/exp_A01_t03: Fail, OK # co19 issue 316
-LibTest/math/log_A01_t04: Fail, OK # co19 issue 316
-LibTest/math/pow_A19_t01: Fail, OK # co19 issue 316
-LibTest/math/sin_A01_t03: Fail, OK # co19 issue 316
-LibTest/math/sqrt_A01_t04: Fail, OK # co19 issue 316
-LibTest/math/tan_A01_t03: Fail, OK # co19 issue 316
 
 [ $compiler == dart2js && $jscl ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail, Pass # issue 3333
@@ -575,7 +442,6 @@ LibTest/core/int/remainder_A01_t03: Fail, OK # Leg only has double.
 LibTest/core/int/toDouble_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toRadixString_A01_t01: Fail, OK # Bad test: uses Expect.fail, Expect.throws, assumes case of result, and uses unsupported radixes.
 LibTest/core/String/contains_A01_t02: Fail, OK # co19 issue 105.
-Language/07_Classes/1_Instance_Methods/2_Operators_A02_t01: Fail, OK # Expects negative result from bit-operation.
 
 
 [ $compiler == dart2js && $system == macos ]
@@ -595,11 +461,9 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A13_t01: Fail # com
 Language/03_Overview/1_Scoping_A02_t07: Fail # duplicate definition of f(var f){f();}
 Language/03_Overview/1_Scoping_A02_t12: Fail # duplicate definition of x=42
 Language/03_Overview/2_Privacy_A01_t06: Fail # cannot resolve type _inaccessibleFuncType
-Language/03_Overview/2_Privacy_A01_t14: Fail # duplicate definition of _(var _)=> _
 
 Language/11_Expressions/01_Constants_A12_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
 Language/11_Expressions/22_Equality_A05_t01: Fail # != cannot be called on super
-Language/11_Expressions/27_Unary_Expressions_A01_t01: Fail # ! cannot be called on super
 Language/11_Expressions/27_Unary_Expressions_A01_t10: Fail # cannot deal with super in complex assignments
 Language/11_Expressions/30_Identifier_Reference_A02_t01: Fail # Pseudo keyword "abstract".
 
@@ -671,7 +535,6 @@ Language/07_Classes/1_Instance_Methods/2_Operators_A07_t01: Fail # Checks that a
 Language/07_Classes/1_Instance_Methods/2_Operators_A07_t02: Fail # Checks that a compile-time error is produced if a user-defined operator [] specifies an optional named parameter in addition to the required one.
 Language/07_Classes/1_Instance_Methods/2_Operators_A07_t03: Fail # Checks that a compile-time error is produced if a user-defined operator []= specifies one optional named parameter.
 Language/07_Classes/1_Instance_Methods/2_Operators_A07_t04: Fail # Checks that a compile-time error is produced if a user-defined operator []= specifies one optional named parameter in addition to the two required ones
-Language/07_Classes/1_Instance_Methods_A02_t01: Fail # Checks that a compile-time error is produced if m1 has fewer named parameters than m2 (2 vs 3) and neither have any required parameters.
 Language/07_Classes/1_Instance_Methods_A02_t02: Fail # Checks that a compile-time error is produced if m1 has fewer named parameters than m2 (1 vs. 0) and neither have any required parameters.
 Language/07_Classes/1_Instance_Methods_A02_t05: Fail # Checks that a compile-time error is produced if m1 has almost the same set of named  parameters as m2 except for one of them having a different name.
 Language/07_Classes/2_Getters_A01_t03: Fail # Checks that a compile-time error is produced if empty formal parameter list is present.
@@ -714,9 +577,6 @@ Language/11_Expressions/23_Relational_Expressions_A01_t12: Fail # Checks that a 
 Language/11_Expressions/23_Relational_Expressions_A01_t13: Fail # Checks that a relational expression cannot be the operand of another relational expression.
 Language/11_Expressions/30_Identifier_Reference_A07_t01: Fail # Checks that it is a compile-time error when a built-in identifier "abstract" is used as a type annotation of a local variable.
 Language/12_Statements/03_Variable_Declaration_A04_t01: Fail # Checks that if the variable declaration is prefixed with the const modifier, then variable must be initialized to a constant expression.
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail # Checks that self-referencing typedef is not allowed (return value type annotation has the same name as a type alias).
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail # Checks that self-referencing typedef is not allowed (positional formal parameter type annotation has the same name as a type alias).
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # Checks that self-referencing typedef is not allowed (optional formal parameter type annotation has the same name as a type alias).
 Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # Checks that Unicode whitespaces other than WHITESPACE are not permitted in the source code. Checks symbol U+00a0.
 
 
@@ -739,7 +599,6 @@ Language/07_Classes/3_Setters_A04_t04: Fail # http://dartbug.com/5023
 Language/07_Classes/3_Setters_A04_t05: Fail # http://dartbug.com/5023
 Language/07_Classes/3_Setters_A04_t06: Fail # http://dartbug.com/5023
 Language/07_Classes/3_Setters_A04_t07: Fail # http://dartbug.com/5023
-Language/07_Classes/3_Setters_A04_t08: Fail # http://dartbug.com/5023
 
 Language/14_Types/3_Type_Declarations/1_Typedef_A02_t01: Fail # http://dartbug.com/5022
 Language/14_Types/3_Type_Declarations/1_Typedef_A02_t02: Fail # http://dartbug.com/5022
@@ -756,18 +615,6 @@ Language/14_Types/5_Function_Types_A01_t07: Fail # http://dartbug.com/5022
 Language/14_Types/5_Function_Types_A01_t08: Fail # http://dartbug.com/5022
 Language/14_Types/5_Function_Types_A01_t09: Fail # http://dartbug.com/5022
 Language/14_Types/5_Function_Types_A01_t11: Fail # http://dartbug.com/5022
-Language/14_Types/5_Function_Types_A01_t12: Fail # http://dartbug.com/5022
-Language/14_Types/5_Function_Types_A01_t13: Fail # http://dartbug.com/5022
-Language/14_Types/5_Function_Types_A01_t14: Fail # http://dartbug.com/5022
-Language/14_Types/5_Function_Types_A01_t15: Fail # http://dartbug.com/5022
-Language/14_Types/5_Function_Types_A01_t16: Fail # http://dartbug.com/5022
-Language/14_Types/5_Function_Types_A01_t17: Fail # http://dartbug.com/5022
-Language/14_Types/5_Function_Types_A01_t18: Fail # http://dartbug.com/5022
-Language/14_Types/5_Function_Types_A01_t19: Fail # http://dartbug.com/5022
-Language/14_Types/5_Function_Types_A01_t20: Fail # http://dartbug.com/5022
-Language/14_Types/5_Function_Types_A01_t21: Fail # http://dartbug.com/5022
-Language/14_Types/5_Function_Types_A01_t22: Fail # http://dartbug.com/5022
-Language/14_Types/5_Function_Types_A01_t23: Fail # http://dartbug.com/5022
 
 Language/13_Libraries_and_Scripts/4_Scripts_A03_t01: Fail # http://dartbug.com/5683
 Language/13_Libraries_and_Scripts/4_Scripts_A03_t03: Fail # http://dartbug.com/5683
