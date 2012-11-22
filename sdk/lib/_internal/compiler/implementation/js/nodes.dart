@@ -769,6 +769,9 @@ class ArrayInitializer extends Expression {
 
   ArrayInitializer(this.length, this.elements);
 
+  factory ArrayInitializer.from(List<Expression> expressions) =>
+      new ArrayInitializer(expressions.length, _convert(expressions));
+
   accept(NodeVisitor visitor) => visitor.visitArrayInitializer(this);
 
   void visitChildren(NodeVisitor visitor) {
@@ -776,6 +779,12 @@ class ArrayInitializer extends Expression {
   }
 
   int get precedenceLevel => PRIMARY;
+
+  static List<ArrayElement> _convert(List<Expression> expressions) {
+    int index = 0;
+    return expressions.map(
+        (expression) => new ArrayElement(index++, expression));
+  }
 }
 
 /**
