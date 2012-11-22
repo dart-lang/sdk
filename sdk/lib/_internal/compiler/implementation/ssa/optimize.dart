@@ -216,12 +216,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   bool isFixedSizeListConstructor(HInvokeStatic node) {
     Element element = node.target.element;
-    DartType defaultClass = compiler.listClass.defaultClass;
-    // TODO(ngeoffray): make sure that the only reason the List class is
-    // not resolved is because it's not being used.
-    return element.isConstructor()
-        && defaultClass != null
-        && element.enclosingElement.declaration == defaultClass.element
+    return element.getEnclosingClass() == compiler.listClass
         && node.inputs.length == 2
         && node.inputs[1].isInteger(types);
   }

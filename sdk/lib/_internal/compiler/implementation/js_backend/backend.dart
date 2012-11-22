@@ -655,7 +655,6 @@ class JavaScriptBackend extends Backend {
   ClassElement jsNullClass;
   ClassElement jsBoolClass;
   ClassElement objectInterceptorClass;
-  ClassElement listImplementation;
   Element jsArrayLength;
   Element jsStringLength;
   Element getInterceptorMethod;
@@ -789,8 +788,6 @@ class JavaScriptBackend extends Backend {
     jsStringClass.ensureResolved(compiler);
     jsStringLength =
         jsStringClass.lookupLocalMember(const SourceString('length'));
-    listImplementation =
-        compiler.coreLibrary.find(const SourceString('ListImplementation'));
   }
 
   void addInterceptors(ClassElement cls) {
@@ -824,7 +821,7 @@ class JavaScriptBackend extends Backend {
     }
     if (cls == compiler.stringClass) {
       result = jsStringClass;
-    } else if (cls == compiler.listClass || cls == listImplementation) {
+    } else if (cls == compiler.listClass) {
       result = jsArrayClass;
     } else if (cls == compiler.intClass) {
       result = jsIntClass;
