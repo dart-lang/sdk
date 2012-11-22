@@ -237,7 +237,9 @@ function(collectedClasses) {
   for (var cls in collectedClasses) {
     if (hasOwnProperty.call(collectedClasses, cls)) {
       var desc = collectedClasses[cls];
-      $isolatePropertiesName[cls] = $defineClassName(cls, desc[''], desc);
+'''/* If the class does not have any declared fields (in the ''
+      property of the description), then provide an empty list of fields. */'''
+      $isolatePropertiesName[cls] = $defineClassName(cls, desc[''] || [], desc);
       if (desc['super'] !== "") $pendingClassesName[cls] = desc['super'];
     }
   }
@@ -678,12 +680,11 @@ $lazyInitializerLogic
    */
   void emitInstanceMembers(ClassElement classElement,
                            CodeBuffer buffer,
-                           bool needsLeadingComma) {
+                           bool emitLeadingComma) {
     assert(invariant(classElement, classElement.isDeclaration));
-    bool needsComma = needsLeadingComma;
     void defineInstanceMember(String name, StringBuffer memberBuffer) {
-      if (needsComma) buffer.add(',');
-      needsComma = true;
+      if (emitLeadingComma) buffer.add(',');
+      emitLeadingComma = true;
       buffer.add('\n');
       buffer.add(' $name: ');
       buffer.add(memberBuffer);
@@ -853,8 +854,9 @@ $lazyInitializerLogic
     /* Do nothing. */
   }
 
-  void emitClassFields(ClassElement classElement, CodeBuffer buffer) {
-    buffer.add('"": [');
+  void emitClassFields(ClassElement classElement,
+                       CodeBuffer buffer,
+                       bool emitEndingComma) {
     bool isFirstField = true;
     visitClassFields(classElement, (Element member,
                                     String name,
@@ -863,6 +865,7 @@ $lazyInitializerLogic
                                     bool needsSetter,
                                     bool needsCheckedSetter) {
       if (isFirstField) {
+        buffer.add('"": [');
         isFirstField = false;
       } else {
         buffer.add(", ");
@@ -883,12 +886,19 @@ $lazyInitializerLogic
       }
       buffer.add('"');
     });
-    buffer.add(']');
+    if (!isFirstField) {
+      // There was at least one field.
+      buffer.add(']');
+      if (emitEndingComma) {
+        buffer.add(', ');
+      }
+    }
   }
 
   /** Each getter/setter must be prefixed with a ",\n ". */
-  void emitClassGettersSetters(ClassElement classElement, CodeBuffer buffer,
-                               {bool omitLeadingComma: false}) {
+  void emitClassGettersSetters(ClassElement classElement,
+                               CodeBuffer buffer,
+                               bool emitLeadingComma) {
     visitClassFields(classElement, (Element member,
                                     String name,
                                     String accessorName,
@@ -897,10 +907,10 @@ $lazyInitializerLogic
                                     bool needsCheckedSetter) {
       if (needsCheckedSetter) {
         assert(!needsSetter);
-        if (!omitLeadingComma) {
+        if (emitLeadingComma) {
           buffer.add(",\n ");
         } else {
-          omitLeadingComma = false;
+          emitLeadingComma = true;
         }
         generateCheckedSetter(member, name, accessorName, buffer);
       }
@@ -934,12 +944,12 @@ $lazyInitializerLogic
 
     buffer.add('$classesCollector.$className = {');
     emitClassConstructor(classElement, buffer);
-    emitClassFields(classElement, buffer);
+    emitClassFields(classElement, buffer, true);
     // TODO(floitsch): the emitInstanceMember should simply always emit a ',\n'.
     // That does currently not work because the native classes have a different
     // syntax.
-    buffer.add(',\n "super": "$superName"');
-    emitClassGettersSetters(classElement, buffer);
+    buffer.add('\n "super": "$superName"');
+    emitClassGettersSetters(classElement, buffer, true);
     emitInstanceMembers(classElement, buffer, true);
     buffer.add('\n};\n\n');
   }

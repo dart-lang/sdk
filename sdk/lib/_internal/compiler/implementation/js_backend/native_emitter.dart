@@ -166,12 +166,10 @@ function(cls, desc) {
 
     CodeBuffer fieldBuffer = new CodeBuffer();
     CodeBuffer getterSetterBuffer = new CodeBuffer();
-
-    emitter.emitClassFields(classElement, fieldBuffer);
-    emitter.emitClassGettersSetters(classElement, getterSetterBuffer,
-                                    omitLeadingComma: true);
-
     CodeBuffer methodBuffer = new CodeBuffer();
+
+    emitter.emitClassFields(classElement, fieldBuffer, false);
+    emitter.emitClassGettersSetters(classElement, getterSetterBuffer, false);
     emitter.emitInstanceMembers(classElement, methodBuffer, false);
 
     if (methodBuffer.isEmpty
