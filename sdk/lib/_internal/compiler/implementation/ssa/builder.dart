@@ -2653,7 +2653,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
       DartType type = elements.getType(typeAnnotation);
       HInstruction typeInfo = null;
-      if (rti.hasTypeArguments(type)) {
+      if (RuntimeTypeInformation.hasTypeArguments(type)) {
         pushInvokeHelper1(interceptors.getGetRuntimeTypeInfo(), expression);
         typeInfo = pop();
       }
@@ -3106,8 +3106,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                             localsHandler.readThis());
           typeInfo = pop();
         }
+        int index = RuntimeTypeInformation.getTypeVariableIndex(type);
         HInstruction foreign = new HForeign(
-            new LiteralDartString('#.${type.name.slowToString()}'),
+            new LiteralDartString('#[$index]'),
             new LiteralDartString('String'),
             <HInstruction>[typeInfo]);
         add(foreign);
@@ -3140,7 +3141,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         InterfaceType interfaceType = type;
         bool hasTypeArguments = !interfaceType.arguments.isEmpty;
         if (!isInQuotes) template.add("'");
-        template.add(rti.getName(type.element));
+        template.add(backend.namer.getName(type.element));
         if (hasTypeArguments) {
           template.add("<");
           for (DartType argument in interfaceType.arguments) {
@@ -3157,7 +3158,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       } else {
         assert(type is TypedefType);
         if (!isInQuotes) template.add("'");
-        template.add(rti.getName(argument.element));
+        template.add(backend.namer.getName(argument.element));
         if (!isInQuotes) template.add("'");
       }
     }
@@ -3185,49 +3186,19 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   void callSetRuntimeTypeInfo(ClassElement element,
                               List<HInstruction> rtiInputs,
                               HInstruction newObject) {
-    bool needsRti = compiler.world.needsRti(element) && !rtiInputs.isEmpty;
-    bool runtimeTypeIsUsed = compiler.enabledRuntimeType;
-    if (!needsRti && !runtimeTypeIsUsed) return;
-
-    HInstruction createForeign(String template,
-                               List<HInstruction> arguments,
-                               [String type = 'String']) {
-      return new HForeign(new LiteralDartString(template),
-                          new LiteralDartString(type),
-                          arguments);
+    if (!compiler.world.needsRti(element) || element.typeVariables.isEmpty) {
+      return;
     }
 
-    // Construct the runtime type information.
-    StringBuffer runtimeCode = new StringBuffer();
-    List<HInstruction> runtimeCodeInputs = <HInstruction>[];
-    if (runtimeTypeIsUsed) {
-      String runtimeTypeString =
-          rti.generateRuntimeTypeString(element, rtiInputs.length);
-      HInstruction runtimeType = createForeign(runtimeTypeString, rtiInputs);
-      add(runtimeType);
-      runtimeCodeInputs.add(runtimeType);
-      runtimeCode.add("runtimeType: '#'");
-    }
-    if (needsRti) {
-      if (runtimeTypeIsUsed) runtimeCode.add(', ');
-      String typeVariablesString =
-          RuntimeTypeInformation.generateTypeVariableString(element,
-                                                            rtiInputs.length);
-      HInstruction typeInfo = createForeign(typeVariablesString, rtiInputs);
-      add(typeInfo);
-      runtimeCodeInputs.add(typeInfo);
-      runtimeCode.add('#');
-    }
-    HInstruction runtimeInfo =
-        createForeign("{$runtimeCode}", runtimeCodeInputs, 'Object');
-    add(runtimeInfo);
+    HInstruction typeInfo = new HLiteralList(rtiInputs);
+    add(typeInfo);
 
     // Set the runtime type information on the object.
     Element typeInfoSetterElement = interceptors.getSetRuntimeTypeInfo();
     HInstruction typeInfoSetter = new HStatic(typeInfoSetterElement);
     add(typeInfoSetter);
     add(new HInvokeStatic(
-        <HInstruction>[typeInfoSetter, newObject, runtimeInfo]));
+        <HInstruction>[typeInfoSetter, newObject, typeInfo]));
   }
 
   visitNewSend(Send node, InterfaceType type) {
@@ -3282,18 +3253,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         type.arguments.forEach((DartType argument) {
           inputs.add(analyzeTypeArgument(argument, node));
         });
-      } else if (compiler.enabledRuntimeType) {
-        Link<DartType> variables =
-            constructor.getEnclosingClass().typeVariables;
-        if (!variables.isEmpty) {
-          // If the class has type variables but no type arguments have been
-          // provided, add [:dynamic:] as argument for all type variables.
-          DartString stringDynamic = new DartString.literal('dynamic');
-          HInstruction input = graph.addConstantString(stringDynamic,
-                                                       node,
-                                                       constantSystem);
-          variables.forEach((_) => inputs.add(input));
-        }
       }
     }
 

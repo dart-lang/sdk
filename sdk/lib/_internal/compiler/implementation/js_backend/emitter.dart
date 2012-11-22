@@ -192,6 +192,7 @@ function(cls, fields, prototype) {
     constructor = new Function(str)();
   }
   constructor.prototype = prototype;
+  constructor.builtin\$cls = cls;
   return constructor;
 }""";
   }

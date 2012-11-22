@@ -171,7 +171,6 @@ function_type_alias_test: Fail # cannot resolve type Fun
 function_type_parameter2_test: Fail # Internal Error: expected optional parameters
 function_type_parameter_test: Fail # Internal Error: expected optional parameters
 generic_instanceof_test: Fail # cannot resolve type T
-generic_instanceof2_test: Fail # fails an instance of test at run time
 generic_instanceof3_test: Fail # cannot handle generics.
 generic_test: Fail # cannot resolve type T
 get_set_syntax_test/00: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111

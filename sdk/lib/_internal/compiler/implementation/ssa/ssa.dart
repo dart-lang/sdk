@@ -12,7 +12,6 @@ import '../source_map_builder.dart';
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart';
 import '../native_handler.dart' as native;
-import '../js_backend/runtime_types.dart';
 import '../tree/tree.dart';
 import '../types/types.dart';
 import '../universe/universe.dart';

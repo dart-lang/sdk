@@ -1204,6 +1204,7 @@ class Null {
 }
 
 setRuntimeTypeInfo(target, typeInfo) {
+  assert(typeInfo == null || isJsArray(typeInfo));
   // We have to check for null because factories may return null.
   if (target != null) JS('var', r'#.builtin$typeInfo = #', target, typeInfo);
 }
@@ -1555,9 +1556,26 @@ class TypeImpl implements Type {
   }
 }
 
+String getClassName(var object) {
+  return JS('String', r'#.constructor.builtin$cls', object);
+}
+
 String getRuntimeTypeString(var object) {
+  String className = isJsArray(object) ? 'List' : getClassName(object);
   var typeInfo = JS('var', r'#.builtin$typeInfo', object);
-  return JS('String', r'#.runtimeType', typeInfo);
+  if (typeInfo == null) return className;
+  StringBuffer arguments = new StringBuffer();
+  for (var i = 0; i < typeInfo.length; i++) {
+    if (i > 0) {
+      arguments.add(', ');
+    }
+    var argument = typeInfo[i];
+    if (argument == null) {
+      argument = 'dynamic';
+    }
+    arguments.add(argument);
+  }
+  return '$className<$arguments>';
 }
 
 createRuntimeType(String name) => new TypeImpl(name);

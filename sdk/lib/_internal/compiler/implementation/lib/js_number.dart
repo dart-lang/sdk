@@ -128,10 +128,10 @@ class JSInt extends JSNumber {
 
   bool get isOdd => (this & 1) == 1;
 
-  Type get runtimeType => createRuntimeType('int');
+  Type get runtimeType => int;
 }
 
 class JSDouble extends JSNumber {
   const JSDouble();
-  Type get runtimeType => createRuntimeType('double');
+  Type get runtimeType => double;
 }

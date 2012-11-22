@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class C<T> {}
+class C<T, U, V> {}
 
 class D {}
 
@@ -23,6 +23,9 @@ main() {
 
   // Test that types from runtimeType and literals agree.
   Expect.equals(int, 1.runtimeType);
+  Expect.equals(String, 'hest'.runtimeType);
+  Expect.equals(double, (0.5).runtimeType);
+  Expect.equals(bool, true.runtimeType);
   Expect.equals(C, new C().runtimeType);
   Expect.equals(D, new D().runtimeType);
 

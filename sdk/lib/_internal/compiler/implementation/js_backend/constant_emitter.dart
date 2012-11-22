@@ -198,7 +198,8 @@ class ConstantEmitter implements ConstantVisitor {
       Element element = type.element;
       String typeName;
       if (type.kind == TypeKind.INTERFACE) {
-        typeName = backend.rti.generateRuntimeTypeString(element, 0);
+        typeName =
+            backend.rti.getStringRepresentation(type, expandRawType: true);
       } else {
         assert(type.kind == TypeKind.TYPEDEF);
         typeName = element.name.slowToString();

@@ -153,7 +153,7 @@ class JSString implements String {
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
 
-  Type get runtimeType => createRuntimeType('String');
+  Type get runtimeType => String;
 
   int get length => JS('int', r'#.length', this);
 }

@@ -313,7 +313,6 @@ class Namer {
     } else {
       name = element.name.slowToString();
     }
-    // Prefix the name with '$' if it is reserved.
     return name;
   }
 
@@ -363,7 +362,6 @@ class Namer {
     } else {
       // Use declaration element to ensure invariant on [globals].
       element = element.declaration;
-
       // Dealing with a top-level or static element.
       String cached = globals[element];
       if (cached != null) return cached;

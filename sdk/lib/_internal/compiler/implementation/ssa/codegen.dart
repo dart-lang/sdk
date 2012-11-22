@@ -2433,13 +2433,10 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Expression result = pop();
       for (TypeVariableType typeVariable in cls.typeVariables) {
         use(node.typeInfoCall);
-        // TODO(johnniwinther): Retrieve the type name properly and not through
-        // [toString]. Note: Two cases below [typeVariable] and
-        // [arguments.head].
-        js.PropertyAccess field =
-            new js.PropertyAccess.field(pop(), typeVariable.toString());
+        int index = RuntimeTypeInformation.getTypeVariableIndex(typeVariable);
+        js.PropertyAccess field = new js.PropertyAccess.indexed(pop(), index);
         RuntimeTypeInformation rti = backend.rti;
-        String typeName = rti.buildStringRepresentation(arguments.head);
+        String typeName = rti.getStringRepresentation(arguments.head);
         js.Expression genericName = new js.LiteralString("'$typeName'");
         js.Binary eqTest = new js.Binary('===', field, genericName);
         // Also test for 'undefined' in case the object does not have
@@ -2447,6 +2444,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         js.Prefix undefinedTest = new js.Prefix('!', field);
         result = new js.Binary(
             '&&', result, new js.Binary('||', undefinedTest, eqTest));
+        arguments = arguments.tail;
       }
       push(result, node);
     }
