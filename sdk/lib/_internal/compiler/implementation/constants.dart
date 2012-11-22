@@ -102,7 +102,7 @@ abstract class PrimitiveConstant extends Constant {
   bool operator ==(var other) {
     if (other is !PrimitiveConstant) return false;
     PrimitiveConstant otherPrimitive = other;
-    // We use == instead of === so that DartStrings compare correctly.
+    // We use == instead of 'identical' so that DartStrings compare correctly.
     return value == otherPrimitive.value;
   }
 

@@ -49,7 +49,7 @@ class StringValidator {
     bool raw = false;
     int quoteLength = 1;
     int quoteChar = source.next();
-    if (quoteChar === $r) {
+    if (identical(quoteChar, $r)) {
       raw = true;
       quoteChar = source.next();
     }

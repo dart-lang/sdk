@@ -1136,7 +1136,7 @@ class FunctionElement extends Element {
    * changed by the resolver to point to the redirection target.  If
    * this is an interface constructor, [defaultImplementation] will be
    * changed by the resolver to point to the default implementation.
-   * Otherwise, [:defaultImplementation === this:].
+   * Otherwise, [:identical(defaultImplementation, this):].
    */
   // TODO(ahe): Rename this field to redirectionTarget and remove
   // mention of interface constructors above.
@@ -1868,27 +1868,27 @@ class Elements {
 
   static SourceString constructOperatorName(SourceString op, bool isUnary) {
     String value = op.stringValue;
-    if ((value === '==') ||
-        (value === '~') ||
-        (value === '[]') ||
-        (value === '[]=') ||
-        (value === '*') ||
-        (value === '/') ||
-        (value === '%') ||
-        (value === '~/') ||
-        (value === '+') ||
-        (value === '<<') ||
-        (value === '>>>') ||
-        (value === '>>') ||
-        (value === '>=') ||
-        (value === '>') ||
-        (value === '<=') ||
-        (value === '<') ||
-        (value === '&') ||
-        (value === '^') ||
-        (value === '|')) {
+    if ((identical(value, '==')) ||
+        (identical(value, '~')) ||
+        (identical(value, '[]')) ||
+        (identical(value, '[]=')) ||
+        (identical(value, '*')) ||
+        (identical(value, '/')) ||
+        (identical(value, '%')) ||
+        (identical(value, '~/')) ||
+        (identical(value, '+')) ||
+        (identical(value, '<<')) ||
+        (identical(value, '>>>')) ||
+        (identical(value, '>>')) ||
+        (identical(value, '>=')) ||
+        (identical(value, '>')) ||
+        (identical(value, '<=')) ||
+        (identical(value, '<')) ||
+        (identical(value, '&')) ||
+        (identical(value, '^')) ||
+        (identical(value, '|'))) {
       return op;
-    } else if (value === '-') {
+    } else if (identical(value, '-')) {
       return isUnary ? const SourceString('unary-') : op;
     } else {
       throw 'Unhandled operator: ${op.slowToString()}';

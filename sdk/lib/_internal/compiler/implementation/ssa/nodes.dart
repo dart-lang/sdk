@@ -2240,7 +2240,7 @@ class HEquals extends HRelational {
   accept(HVisitor visitor) => visitor.visitEquals(this);
 
   bool isBuiltin(HTypeMap types) {
-    // All primitive types have === semantics.
+    // All primitive types have 'identical' semantics.
     // Note that this includes all constants except the user-constructed
     // objects.
     return types[left].isPrimitiveOrNull() || right.isConstantNull();
@@ -2256,7 +2256,7 @@ class HEquals extends HRelational {
                                             Compiler compiler) {
     HType propagatedType = types[this];
     if (input == left && types[right].isUseful()) {
-      // All our useful types have === semantics. But we don't want to
+      // All our useful types have 'identical' semantics. But we don't want to
       // speculatively test for all possible types. Therefore we try to match
       // the two types. That is, if we see x == 3, then we speculatively test
       // if x is a number and bailout if it isn't.
