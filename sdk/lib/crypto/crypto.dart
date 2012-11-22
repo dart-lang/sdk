@@ -44,7 +44,10 @@ abstract class Hash {
   Hash newInstance();
 
   /**
-   * Block size of the hash in bytes.
+   * Internal block size of the hash in bytes.
+   *
+   * This is exposed for use by the HMAC class which needs to know the
+   * block size for the [Hash] it is using.
    */
   int get blockSize;
 }
@@ -95,6 +98,18 @@ abstract class HMAC {
    * as a list of bytes.
    */
   List<int> digest();
+
+  /**
+   * Verify that the HMAC computed for the data so far matches the
+   * given message digest.
+   *
+   * This method should be used instead of memcmp-style comparisons
+   * to avoid leaking information via timing.
+   *
+   * Throws an exception if the given digest does not have the same
+   * size as the digest computed by this HMAC instance.
+   */
+  bool verify(List<int> digest);
 }
 
 /**
