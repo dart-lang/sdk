@@ -40,6 +40,7 @@ class Range;
   V(_StringBase, get:length, StringBaseLength, 320803993)                      \
   V(_StringBase, get:isEmpty, StringBaseIsEmpty, 1065961093)                   \
   V(_StringBase, charCodeAt, StringBaseCharCodeAt, 984449525)                  \
+  V(_StringBase, [], StringBaseCharAt, 1062366987)                             \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 1396338041)             \
   V(_Double, toInt, DoubleToInteger, 362666636)                                \
   V(::, sqrt, MathSqrt, 2232519)                                               \
@@ -266,7 +267,8 @@ class EmbeddedArray<T, 0> {
   M(UnaryMintOp)                                                               \
   M(CheckArrayBound)                                                           \
   M(Constraint)                                                                \
-  M(StringCharCodeAt)
+  M(StringCharCodeAt)                                                          \
+  M(StringFromCharCode)
 
 
 #define FORWARD_DECLARATION(type) class type##Instr;
@@ -2681,6 +2683,36 @@ class StringCharCodeAtInstr : public TemplateDefinition<2> {
   const intptr_t class_id_;
 
   DISALLOW_COPY_AND_ASSIGN(StringCharCodeAtInstr);
+};
+
+
+class StringFromCharCodeInstr : public TemplateDefinition<1> {
+ public:
+  explicit StringFromCharCodeInstr(Value* char_code) {
+    ASSERT(char_code != NULL);
+    ASSERT(char_code->definition()->IsStringCharCodeAt() &&
+           (char_code->definition()->AsStringCharCodeAt()->class_id() ==
+            kOneByteStringCid));
+    inputs_[0] = char_code;
+  }
+
+  DECLARE_INSTRUCTION(StringFromCharCode)
+  virtual RawAbstractType* CompileType() const;
+
+  Value* char_code() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const;
+
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(StringFromCharCodeInstr);
 };
 
 

@@ -1107,6 +1107,43 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
 }
 
 
+StringCharCodeAtInstr* FlowGraphOptimizer::BuildStringCharCodeAt(
+    InstanceCallInstr* call,
+    intptr_t cid) {
+  Value* str = call->ArgumentAt(0)->value();
+  Value* index = call->ArgumentAt(1)->value();
+  AddCheckClass(call, str->Copy());
+  InsertBefore(call,
+               new CheckSmiInstr(index->Copy(), call->deopt_id()),
+               call->env(),
+               Definition::kEffect);
+  // If both index and string are constants, then do a compile-time check.
+  // TODO(srdjan): Remove once constant propagation handles bounds checks.
+  bool skip_check = false;
+  if (str->BindsToConstant() && index->BindsToConstant()) {
+    ConstantInstr* string_def = str->definition()->AsConstant();
+    const String& constant_string =
+        String::Cast(string_def->value());
+    ConstantInstr* index_def = index->definition()->AsConstant();
+    if (index_def->value().IsSmi()) {
+      intptr_t constant_index = Smi::Cast(index_def->value()).Value();
+      skip_check = (constant_index < constant_string.Length());
+    }
+  }
+  if (!skip_check) {
+    // Insert bounds check.
+    InsertBefore(call,
+                 new CheckArrayBoundInstr(str->Copy(),
+                                          index->Copy(),
+                                          cid,
+                                          call),
+                 call->env(),
+                 Definition::kEffect);
+  }
+  return new StringCharCodeAtInstr(str, index, cid);
+}
+
+
 // Inline only simple, frequently called core library methods.
 bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
@@ -1124,39 +1161,21 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       (ic_data.NumberOfChecks() == 1) &&
       ((class_ids[0] == kOneByteStringCid) ||
        (class_ids[0] == kTwoByteStringCid))) {
-    Value* str= call->ArgumentAt(0)->value();
-    Value* index = call->ArgumentAt(1)->value();
-    AddCheckClass(call, str->Copy());
-    InsertBefore(call,
-                 new CheckSmiInstr(index->Copy(), call->deopt_id()),
-                 call->env(),
-                 Definition::kEffect);
-    // If both index and string are constants, then do a compile-time check.
-    // TODO(srdjan): Remove once constant propagation handles bounds checks.
-    bool skip_check = false;
-    if (str->BindsToConstant() && index->BindsToConstant()) {
-      ConstantInstr* string_def = str->definition()->AsConstant();
-      const String& constant_string =
-          String::Cast(string_def->value());
-      ConstantInstr* index_def = index->definition()->AsConstant();
-      if (index_def->value().IsSmi()) {
-        intptr_t constant_index = Smi::Cast(index_def->value()).Value();
-        skip_check = (constant_index < constant_string.Length());
-      }
-    }
-    if (!skip_check) {
-      // Insert bounds check.
-      InsertBefore(call,
-                   new CheckArrayBoundInstr(str->Copy(),
-                                            index->Copy(),
-                                            class_ids[0],
-                                            call),
-                   call->env(),
-                   Definition::kEffect);
-    }
-    StringCharCodeAtInstr* instr =
-        new StringCharCodeAtInstr(str, index, class_ids[0]);
+    StringCharCodeAtInstr* instr = BuildStringCharCodeAt(call, class_ids[0]);
     call->ReplaceWith(instr, current_iterator());
+    RemovePushArguments(call);
+    return true;
+  }
+  if ((recognized_kind == MethodRecognizer::kStringBaseCharAt) &&
+      (ic_data.NumberOfChecks() == 1) &&
+      (class_ids[0] == kOneByteStringCid)) {
+    // TODO(fschneider): Handle TwoByteString.
+    StringCharCodeAtInstr* load_char_code =
+        BuildStringCharCodeAt(call, class_ids[0]);
+    InsertBefore(call, load_char_code, NULL, Definition::kValue);
+    StringFromCharCodeInstr* char_at =
+        new StringFromCharCodeInstr(new Value(load_char_code));
+    call->ReplaceWith(char_at, current_iterator());
     RemovePushArguments(call);
     return true;
   }
@@ -3298,6 +3317,12 @@ void ConstantPropagator::VisitNativeCall(NativeCallInstr* instr) {
 
 
 void ConstantPropagator::VisitStringCharCodeAt(StringCharCodeAtInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitStringFromCharCode(
+    StringFromCharCodeInstr* instr) {
   SetValue(instr, non_constant_);
 }
 

@@ -190,6 +190,10 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_ACCESSOR)
 
   static RawString* FromCharCode(int32_t char_code);
 
+  static RawString** PredefinedAddress() {
+    return reinterpret_cast<RawString**>(&predefined_);
+  }
+
  private:
   enum {
     kInitialVMIsolateSymtabSize = ((kMaxId + 15) & -16),
