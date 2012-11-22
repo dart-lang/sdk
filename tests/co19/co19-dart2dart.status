@@ -18,6 +18,9 @@ Language/11_Expressions/11_Instance_Creation/1_New_A03_t01: Fail # TODO(dart2dar
 Language/11_Expressions/11_Instance_Creation/1_New_A03_t02: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/1_New_A04_t01: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/1_New_A04_t02: Fail # TODO(dart2dart-team): Please triage this failure.
+Language/11_Expressions/18_Assignment_A05_t04: Fail, Pass # TODO(dart2dart-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A02_t01: Fail, Pass # TODO(dart2dart-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A02_t02: Fail, Pass # TODO(dart2dart-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t14: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A03_t31: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A05_t01: Fail # TODO(dart2dart-team): Please triage this failure.
