@@ -629,6 +629,7 @@ static int ErrorExit(const char* format, ...) {
   va_start(arguments, format);
   Log::VPrintErr(format, arguments);
   va_end(arguments);
+  fflush(stderr);
 
   Dart_ExitScope();
   Dart_ShutdownIsolate();
@@ -692,7 +693,9 @@ int main(int argc, char** argv) {
   if (!Dart_Initialize(CreateIsolateAndSetup,
                        NULL,
                        ShutdownIsolate)) {
-    return ErrorExit("VM initialization failed\n");
+    fprintf(stderr, "%s", "VM initialization failed\n");
+    fflush(stderr);
+    return kErrorExitCode;
   }
 
   DartUtils::SetOriginalWorkingDirectory();
