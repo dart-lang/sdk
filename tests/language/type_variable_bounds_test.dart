@@ -60,7 +60,7 @@ main() {
   new Box<String>().makeFoo();
 
   // Fisk does not exist.
-  new Box<Fisk>(); /// 07: compile-time error
+  new Box<Fisk>(); /// 07: static type warning, dynamic type error
 
   // Too many type arguments.
   new Box<Object, Object>(); /// 08: compile-time error

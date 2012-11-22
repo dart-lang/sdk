@@ -838,16 +838,6 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
       type_argument = arguments.TypeAt(i);
       type_argument = FinalizeType(cls, type_argument, finalization);
       if (type_argument.IsMalformed()) {
-        // Malformed type arguments to a constructor of a generic type are
-        // reported as a compile-time error.
-        if (finalization >= kCanonicalizeForCreation) {
-          const Script& script = Script::Handle(cls.script());
-          const String& type_name =
-              String::Handle(parameterized_type.UserVisibleName());
-          ReportError(script, parameterized_type.token_pos(),
-                      "type '%s' has malformed type argument",
-                      type_name.ToCString());
-        }
         // In production mode, malformed type arguments are mapped to dynamic.
         // In checked mode, a type with malformed type arguments is malformed.
         if (FLAG_enable_type_checks || FLAG_error_on_malformed_type) {
@@ -877,7 +867,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   // However, type parameter bounds are checked below, even for a raw type.
   if (!arguments.IsNull() && (arguments.Length() != num_type_parameters)) {
     // Wrong number of type arguments. The type is malformed.
-    if (finalization >= kCanonicalizeForCreation) {
+    if (finalization >= kCanonicalizeExpression) {
       const Script& script = Script::Handle(cls.script());
       const String& type_name =
           String::Handle(parameterized_type.UserVisibleName());

@@ -3,31 +3,22 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # These tests either wrongly expect a compile-time error or wrongly reject a type error in production mode, co19 issue 282:
-[ $compiler == none && $runtime == vm ]
-Language/13_Libraries_and_Scripts/1_Imports_A03_t05: Fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t08: Fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t25: Fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t28: Fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t45: Fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t48: Fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t65: Fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t68: Fail, OK
 [ $compiler == none && $runtime == vm && $unchecked ]
+Language/11_Expressions/11_Instance_Creation_A02_t02: Fail, OK # Wrongly expects compile-time error in production mode.
+Language/11_Expressions/11_Instance_Creation/2_Const_A03_t01: Fail, OK # Wrongly expects compile-time error in production mode.
+Language/11_Expressions/11_Instance_Creation/2_Const_A03_t02: Fail, OK # Wrongly expects compile-time error in production mode.
+[ $compiler == none && $runtime == vm && $checked ]
+Language/13_Libraries_and_Scripts/1_Imports_A03_t06: Fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A03_t66: Fail, OK
+[ $compiler == none && $runtime == vm ]
+Language/13_Libraries_and_Scripts/1_Imports_A02_t21: Crash # TODO(vm-team): Please triage this crash.
+Language/13_Libraries_and_Scripts/1_Imports_A02_t22: Crash # TODO(vm-team): Please triage this crash.
 Language/13_Libraries_and_Scripts/1_Imports_A03_t02: Fail, OK
 Language/13_Libraries_and_Scripts/1_Imports_A03_t22: Fail, OK
 Language/13_Libraries_and_Scripts/1_Imports_A03_t42: Fail, OK
 Language/13_Libraries_and_Scripts/1_Imports_A03_t62: Fail, OK
-[ $compiler == none && $runtime == vm && $checked ]
-Language/13_Libraries_and_Scripts/1_Imports_A03_t06: Fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t66: Fail, OK
-
-
-[ $compiler == none && $runtime == vm ]
-Language/13_Libraries_and_Scripts/1_Imports_A02_t21: Crash # TODO(vm-team): Please triage this crash.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t22: Crash # TODO(vm-team): Please triage this crash.
 
 Language/11_Expressions/30_Identifier_Reference_A05_t04: Fail, OK # co19 issue 302
-
 
 Language/05_Variables/05_Variables_A05_t04: Fail # TODO(vm-team): Please triage this failure.
 Language/05_Variables/05_Variables_A05_t11: Fail # TODO(vm-team): Please triage this failure.
@@ -68,6 +59,7 @@ Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t05: Fail # TODO(v
 Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t06: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Expressions/05_Strings_A02_t46: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Expressions/05_Strings_A02_t48: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Expressions/11_Instance_Creation_A02_t01: Fail, OK # Wrongly expects compile-time error in production mode.
 Language/11_Expressions/11_Instance_Creation/1_New_A02_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/1_New_A02_t05: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/1_New_A09_t09: Fail # TODO(vm-team): Please triage this failure.
@@ -146,11 +138,6 @@ Language/11_Expressions/30_Identifier_Reference_A07_t01: Fail # TODO(vm-team): P
 Language/11_Expressions/30_Identifier_Reference_A08_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Expressions/31_Type_Test_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Expressions/31_Type_Test_A01_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Expressions/31_Type_Test_A05_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Expressions/31_Type_Test_A05_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Expressions/31_Type_Test_A05_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Expressions/32_Type_Cast_A04_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Expressions/32_Type_Cast_A04_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/12_Statements/04_Local_Function_Declaration_A02_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/12_Statements/06_For_A01_t11: Fail # TODO(vm-team): Please triage this failure.
 Language/12_Statements/09_Switch_A01_t02: Fail # TODO(vm-team): Please triage this failure.

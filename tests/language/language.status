@@ -83,6 +83,7 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dartc ]
+new_expression_type_args_test/0*: Fail # Wrongly reports compile-time error.
 type_variable_shadows_class_test: Fail # Issue 643
 redirecting_factory_infinite_steps_test/01: Fail # http://dartbug.com/6560
 implicit_this_test/none: Fail # should not warn about allocating SubAbstract2
@@ -402,9 +403,6 @@ illegal_invocation_test/05: Fail, OK # Type variables are expressions now.
 
 first_class_types_constants_test: Fail # Issue 6282
 
-# Renaming type from platform library:
-dynamic_test: Fail
-
 # Missing compile-time error when modifying final local variables
 final_variable_assignment_test/01: Fail
 final_variable_assignment_test/02: Fail
@@ -560,7 +558,9 @@ no_such_method_test: Pass, Fail, OK # Hard codes the name of invoked method ("fo
 
 named_parameters_aggregated_test/05: Fail # Compile-time error reported instead of static type warning.
 
-new_expression_type_args_test/02: Fail # Test does not conform with spec.
+type_variable_bounds_test/07: Fail # Wrongly reports compile-time error.
+new_expression_type_args_test/00: Fail # Wrongly reports compile-time error.
+new_expression_type_args_test/01: Fail # Wrongly reports compile-time error.
 
 get_set_syntax_test/00: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/01: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111

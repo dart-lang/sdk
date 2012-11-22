@@ -33,10 +33,13 @@ class ClassFinalizer : public AllStatic {
     kDoNotResolve,             // Type resolution is postponed.
     kTryResolve,               // Type resolution is attempted.
     kFinalize,                 // Type resolution and type finalization are
-                               // required; a malformed type is tolerated.
+                               // required; a malformed type is tolerated, since
+                               // the type may be used as a type annotation.
     kCanonicalize,             // Same as kFinalize, but with canonicalization.
-    kCanonicalizeForCreation,  // Same as kCanonicalize, but do not tolerate
-                               // wrong number of type arguments.
+    kCanonicalizeExpression,   // Same as kCanonicalize, but do not tolerate
+                               // wrong number of type arguments or ambiguous
+                               // type reference, since the type is not used as
+                               // a type annotation, but as a type expression.
     kCanonicalizeWellFormed    // Error-free resolution, finalization, and
                                // canonicalization are required; a malformed
                                // type is not tolerated.

@@ -16,10 +16,6 @@ Language/11_Expressions/11_Instance_Creation/1_New_A06_t04: Fail
 Language/11_Expressions/11_Instance_Creation/1_New_A06_t05: Fail
 Language/11_Expressions/11_Instance_Creation/1_New_A06_t06: Fail
 
-# Renaming type from platform library:
-Language/09_Generics/09_Generics_A02_t01: Fail # http://dartbug.com/6633
-Language/14_Types/4_Interface_Types_A10_t03: Fail # http://dartbug.com/6633
-
 Language/03_Overview/1_Scoping_A01_t39: Fail # http://dartbug.com/5519
 Language/03_Overview/1_Scoping_A01_t40: Fail # http://dartbug.com/5519
 Language/03_Overview/1_Scoping_A01_t41: Fail # http://dartbug.com/5519
