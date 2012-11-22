@@ -82,11 +82,6 @@ class _TlsSocket implements TlsSocket {
     _tlsFilter.registerHandshakeCompleteCallback(_tlsHandshakeCompleteHandler);
   }
 
-  InputStream get inputStream {
-    // TODO(6701): Implement stream interfaces on TlsSocket.
-    throw new UnimplementedError("TlsSocket.inputStream not implemented yet");
-  }
-
   int get port => _socket.port;
 
   String get remoteHost => _socket.remoteHost;
@@ -94,26 +89,79 @@ class _TlsSocket implements TlsSocket {
   int get remotePort => _socket.remotePort;
 
   void set onClosed(void callback()) {
+    if (_inputStream != null) {
+      throw new StreamException(
+           "Cannot set close handler when input stream is used");
+    }
+    _onClosed = callback;
+  }
+
+  void set _onClosed(void callback()) {
     _socketCloseHandler = callback;
   }
 
   void set onConnect(void callback()) {
+    if (_outputStream != null) {
+      throw new StreamException(
+          "Cannot set connect handler when output stream is used");
+    }
+    if (_status == CONNECTED || _status == CLOSED) {
+      throw new StreamException(
+          "Cannot set connect handler when already connected");
+    }
+    _onConnect = callback;
+  }
+
+  void set _onConnect(void callback()) {
     _socketConnectHandler = callback;
   }
 
   void set onData(void callback()) {
+    if (_outputStream != null) {
+      throw new StreamException(
+          "Cannot set data handler when input stream is used");
+    }
+    _onData = callback;
+  }
+
+  void set _onData(void callback()) {
     _socketDataHandler = callback;
   }
 
   void set onWrite(void callback()) {
+    if (_outputStream != null) {
+      throw new StreamException(
+          "Cannot set write handler when output stream is used");
+    }
+    _onWrite = callback;
+  }
+
+  void set _onWrite(void callback()) {
     _socketWriteHandler = callback;
     // Reset the one-shot onWrite handler.
     _socket.onWrite = _tlsWriteHandler;
   }
 
+  InputStream get inputStream {
+    if (_inputStream == null) {
+      if (_socketDataHandler != null || _socketCloseHandler != null) {
+        throw new StreamException(
+            "Cannot get input stream when socket handlers are used");
+      }
+      _inputStream = new _SocketInputStream(this);
+    }
+    return _inputStream;
+  }
+
   OutputStream get outputStream {
-    // TODO(6701): Implement stream interfaces on TlsSocket.
-    throw new UnimplementedError("TlsSocket.inputStream not implemented yet");
+    if (_outputStream == null) {
+      if (_socketConnectHandler != null || _socketWriteHandler != null) {
+        throw new StreamException(
+            "Cannot get output stream when socket handlers are used");
+      }
+      _outputStream = new _SocketOutputStream(this);
+    }
+    return _outputStream;
   }
 
   int available() {
@@ -143,9 +191,14 @@ class _TlsSocket implements TlsSocket {
     }
   }
 
+  void _closeWrite() => close(true);
+
   List<int> read([int len]) {
     if (_closedRead) {
       throw new SocketException("Reading from a closed socket");
+    }
+    if (_status != CONNECTED) {
+      return new List<int>(0);
     }
     var buffer = _tlsFilter.buffers[READ_PLAINTEXT];
     _readEncryptedData();
@@ -172,6 +225,9 @@ class _TlsSocket implements TlsSocket {
     if (offset < 0 || bytes < 0 || offset + bytes > data.length) {
       throw new ArgumentError(
           "Invalid offset or bytes in TlsSocket.readList");
+    }
+    if (_status != CONNECTED && _status != CLOSED) {
+      return 0;
     }
 
     int bytesRead = 0;
@@ -200,6 +256,7 @@ class _TlsSocket implements TlsSocket {
     if (_closedWrite) {
       throw new SocketException("Writing to a closed socket");
     }
+    if (_status != CONNECTED) return 0;
     var buffer = _tlsFilter.buffers[WRITE_PLAINTEXT];
     if (bytes > buffer.free) {
       bytes = buffer.free;
@@ -285,7 +342,14 @@ class _TlsSocket implements TlsSocket {
       _connectPending = false;
       _socketConnectHandler();
     }
+    if (_socketWriteHandler != null) {
+      _socket.onWrite = _tlsWriteHandler;
+    }
   }
+
+  // True if the underlying socket is closed, the filter has been emptied of
+  // all data, and the close event has been fired.
+  get _closed => _socketClosed && !_fireCloseEventPending;
 
   void _fireCloseEvent() {
     if (scheduledDataEvent != null) {
@@ -408,6 +472,8 @@ class _TlsSocket implements TlsSocket {
     }
   }
 
+  bool get _socketClosed => _closedRead;
+
   // _TlsSocket cannot extend _Socket and use _Socket's factory constructor.
   Socket _socket;
   String _host;
@@ -422,6 +488,8 @@ class _TlsSocket implements TlsSocket {
   bool _closedWrite = false;  // The secure socket has been closed for writing.
   bool _filterReadEmpty = true;  // There is no buffered data to read.
   bool _filterWriteEmpty = true;  // There is no buffered data to be written.
+  _SocketInputStream _inputStream;
+  _SocketOutputStream _outputStream;
   bool _connectPending = false;
   Function _socketConnectHandler;
   Function _socketWriteHandler;

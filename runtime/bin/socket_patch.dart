@@ -465,7 +465,7 @@ class _Socket extends _SocketBase implements Socket {
   }
 
   void set onConnect(void callback()) {
-    if (_seenFirstOutEvent || _outputStream != null) {
+    if (_seenFirstOutEvent) {
       throw new StreamException(
           "Cannot set connect handler when already connected");
     }
@@ -509,7 +509,7 @@ class _Socket extends _SocketBase implements Socket {
     if (_outputStream == null) {
       if (_handlerMap[_SocketBase._OUT_EVENT] != null) {
         throw new StreamException(
-            "Cannot get input stream when socket handlers are used");
+            "Cannot get output stream when socket handlers are used");
       }
       _outputStream = new _SocketOutputStream(this);
     }
