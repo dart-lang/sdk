@@ -322,14 +322,21 @@ function(collectedClasses) {
 
   String get lazyInitializerFunction {
     String isolate = namer.CURRENT_ISOLATE;
+    return """
+function(prototype, staticName, fieldName, getterName, lazyValue) {
+  var getter = new Function("{ return $isolate." + fieldName + ";}");
+$lazyInitializerLogic
+}""";
+  }
+
+  String get lazyInitializerLogic {
+    String isolate = namer.CURRENT_ISOLATE;
     JavaScriptBackend backend = compiler.backend;
     String cyclicThrow = namer.isolateAccess(backend.cyclicThrowHelper);
     return """
-function(prototype, staticName, fieldName, getterName, lazyValue) {
   var sentinelUndefined = {};
   var sentinelInProgress = {};
   prototype[fieldName] = sentinelUndefined;
-  var getter = new Function("{ return $isolate." + fieldName + ";}");
   prototype[getterName] = function() {
     var result = $isolate[fieldName];
     try {
@@ -350,8 +357,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     } finally {
       $isolate[getterName] = getter;
     }
-  };
-}""";
+  };""";
   }
 
   void addDefineClassAndFinishClassFunctionsIfNecessary(CodeBuffer buffer) {
@@ -1336,9 +1342,14 @@ $classesCollector.$mangledName = {'':
         buffer.add(namer.getLazyInitializerName(element));
         buffer.add("', ");
         buffer.add(code);
+        emitLazyInitializedGetter(element, buffer);
         buffer.add(");\n");
       }
     }
+  }
+
+  void emitLazyInitializedGetter(VariableElement element, CodeBuffer buffer) {
+    // Nothing to do, the 'lazy' function will create the getter.
   }
 
   void emitCompileTimeConstants(CodeBuffer buffer) {

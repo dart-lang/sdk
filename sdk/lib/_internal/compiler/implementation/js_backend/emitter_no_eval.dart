@@ -59,6 +59,18 @@ function(oldIsolate) {
 }""";
   }
 
+  String get lazyInitializerFunction {
+    return """
+function(prototype, staticName, fieldName, getterName, lazyValue, getter) {
+$lazyInitializerLogic
+}""";
+  }
+
+  void emitLazyInitializedGetter(VariableElement element, CodeBuffer buffer) {
+    String isolate = namer.CURRENT_ISOLATE;
+    buffer.add(', function() { return $isolate.${namer.getName(element)}; }');
+  }
+
   void emitBoundClosureClassHeader(String mangledName,
                                    String superName,
                                    String extraArgument,
