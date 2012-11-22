@@ -492,7 +492,14 @@
             },
           },
         }],
-       ],
+        ['OS=="linux"', {
+          # Have the linker add all symbols to the dynamic symbol table
+          # so that extensions can look them up dynamically in the binary.
+          'ldflags': [
+            '-rdynamic',
+          ],
+        }],
+      ],
     },
     {
       # dart binary without any snapshot built in.
@@ -531,7 +538,15 @@
               'AdditionalOptions': [ '/EXPORT:Dart_True' ],
             },
           },
-       }]],
+        }],
+        ['OS=="linux"', {
+          # Have the linker add all symbols to the dynamic symbol table
+          # so that extensions can look them up dynamically in the binary.
+          'ldflags': [
+            '-rdynamic',
+          ],
+        }],
+      ],
     },
     {
       'target_name': 'process_test',
