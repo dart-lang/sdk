@@ -78,9 +78,9 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
     Symbols::InitOnce(vm_isolate_);
     CPUFeatures::InitOnce();
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
-    // Dart VM requires at least SSE3.
-    if (!CPUFeatures::sse3_supported()) {
-      return "SSE3 is required.";
+    // Dart VM requires at least SSE2.
+    if (!CPUFeatures::sse2_supported()) {
+      return "SSE2 is required.";
     }
 #endif
     PremarkingVisitor premarker(vm_isolate_);

@@ -275,14 +275,13 @@ class Label : public ValueObject {
 class CPUFeatures : public AllStatic {
  public:
   static void InitOnce();
-  static bool sse3_supported();
+  // x64 always has at least SSE2.
+  static bool sse2_supported() { return true; }
   static bool sse4_1_supported();
 
  private:
-  static const uint64_t kSSE3BitMask = static_cast<uint64_t>(1) << 32;
   static const uint64_t kSSE4_1BitMask = static_cast<uint64_t>(1) << 51;
 
-  static bool sse3_supported_;
   static bool sse4_1_supported_;
 #ifdef DEBUG
   static bool initialized_;
