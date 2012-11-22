@@ -890,7 +890,7 @@ $lazyInitializerLogic
       // There was at least one field.
       buffer.add(']');
       if (emitEndingComma) {
-        buffer.add(', ');
+        buffer.add(',');
       }
     }
   }
