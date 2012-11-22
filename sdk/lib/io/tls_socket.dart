@@ -121,10 +121,32 @@ class _TlsSocket implements TlsSocket {
   }
 
   void close([bool halfClose]) {
-    _socket.close(halfClose);
+    if (halfClose) {
+      _closedWrite = true;
+      _writeEncryptedData();
+      if (_filterWriteEmpty) {
+        _socket.close(true);
+        _socketClosedWrite = true;
+      }
+    } else {
+      _closedWrite = true;
+      _closedRead = true;
+      _socket.close(false);
+      _socketClosedWrite = true;
+      _socketClosedRead = true;
+      _tlsFilter.destroy();
+      _tlsFilter = null;
+      if (scheduledDataEvent != null) {
+        scheduledDataEvent.cancel();
+      }
+      _status = CLOSED;
+    }
   }
 
   List<int> read([int len]) {
+    if (_closedRead) {
+      throw new SocketException("Reading from a closed socket");
+    }
     var buffer = _tlsFilter.buffers[READ_PLAINTEXT];
     _readEncryptedData();
     int toRead = buffer.length;
@@ -144,6 +166,9 @@ class _TlsSocket implements TlsSocket {
   }
 
   int readList(List<int> data, int offset, int bytes) {
+    if (_closedRead) {
+      throw new SocketException("Reading from a closed socket");
+    }
     if (offset < 0 || bytes < 0 || offset + bytes > data.length) {
       throw new ArgumentError(
           "Invalid offset or bytes in TlsSocket.readList");
@@ -172,6 +197,9 @@ class _TlsSocket implements TlsSocket {
   // until it would block.  If the write would block, _writeEncryptedData sets
   // up handlers to flush the pipeline when possible.
   int writeList(List<int> data, int offset, int bytes) {
+    if (_closedWrite) {
+      throw new SocketException("Writing to a closed socket");
+    }
     var buffer = _tlsFilter.buffers[WRITE_PLAINTEXT];
     if (bytes > buffer.free) {
       bytes = buffer.free;
@@ -192,12 +220,21 @@ class _TlsSocket implements TlsSocket {
   }
 
   void _tlsWriteHandler() {
+    _writeEncryptedData();
+    if (_filterWriteEmpty && _closedWrite && !_socketClosedWrite) {
+      _socket.close(true);
+      _sockedClosedWrite = true;
+    }
     if (_status == HANDSHAKE) {
       _tlsHandshake();
-    } else if (_status == CONNECTED) {
-      if (_socketWriteHandler != null) {
-        _socketWriteHandler();
-      }
+    } else if (_status == CONNECTED &&
+               _socketWriteHandler != null &&
+               _tlsFilter.buffers[WRITE_PLAINTEXT].free > 0) {
+      // We must be able to set onWrite from the onWrite callback.
+      var handler = _socketWriteHandler;
+      // Reset the one-shot handler.
+      _socketWriteHandler = null;
+      handler();
     }
   }
 
@@ -207,12 +244,8 @@ class _TlsSocket implements TlsSocket {
     } else {
       _writeEncryptedData();  // TODO(whesse): Removing this causes a failure.
       _readEncryptedData();
-      var buffer = _tlsFilter.buffers[READ_PLAINTEXT];
-      if (_filterEmpty) {
-        if (_fireCloseEventPending) {
-          _fireCloseEvent();
-        }
-      } else {  // Filter is not empty.
+      if (!_filterReadEmpty) {
+        // Call the onData event.
         if (scheduledDataEvent != null) {
           scheduledDataEvent.cancel();
           scheduledDataEvent = null;
@@ -225,23 +258,25 @@ class _TlsSocket implements TlsSocket {
   }
 
   void _tlsCloseHandler() {
-    _socketClosed = true;
-    _status = CLOSED;
-    _socket.close();
-    if (_filterEmpty) {
+    _socketClosedRead = true;
+    if (_filterReadEmpty) {
+      _closedRead = true;
       _fireCloseEvent();
-    } else {
-      _fireCloseEventPending = true;
+      if (_socketClosedWrite) {
+        _tlsFilter.destroy();
+        _tlsFilter = null;
+        _status = CLOSED;
+      }
     }
   }
 
   void _tlsHandshake() {
-      _readEncryptedData();
-      _tlsFilter.handshake();
-      _writeEncryptedData();
-      if (_tlsFilter.buffers[WRITE_ENCRYPTED].length > 0) {
-        _socket.onWrite = _tlsWriteHandler;
-      }
+    _readEncryptedData();
+    _tlsFilter.handshake();
+    _writeEncryptedData();
+    if (_tlsFilter.buffers[WRITE_ENCRYPTED].length > 0) {
+      _socket.onWrite = _tlsWriteHandler;
+    }
   }
 
   void _tlsHandshakeCompleteHandler() {
@@ -253,9 +288,6 @@ class _TlsSocket implements TlsSocket {
   }
 
   void _fireCloseEvent() {
-    _fireCloseEventPending = false;
-    _tlsFilter.destroy();
-    _tlsFilter = null;
     if (scheduledDataEvent != null) {
       scheduledDataEvent.cancel();
     }
@@ -273,7 +305,7 @@ class _TlsSocket implements TlsSocket {
     while (progress) {
       progress = false;
       // Do not try to read plaintext from the filter while handshaking.
-      if ((_status == CONNECTED || _status == CLOSED) && plaintext.free > 0) {
+      if ((_status == CONNECTED) && plaintext.free > 0) {
         int bytes = _tlsFilter.processBuffer(READ_PLAINTEXT);
         if (bytes > 0) {
           plaintext.length += bytes;
@@ -287,7 +319,7 @@ class _TlsSocket implements TlsSocket {
           progress = true;
         }
       }
-      if (!_socketClosed) {
+      if (!_socketClosedRead) {
         int bytes = _socket.readList(encrypted.data,
                                      encrypted.start + encrypted.length,
                                      encrypted.free);
@@ -297,25 +329,31 @@ class _TlsSocket implements TlsSocket {
         }
       }
     }
-    // TODO(whesse): This can be incorrect if there is a partial
-    // encrypted block stuck in the tlsFilter, and no other data.
-    // Fix this - we do need to know when the filter is empty.
-    _filterEmpty = (plaintext.length == 0);
+    // If there is any data in any stages of the filter, there should
+    // be data in the plaintext buffer after this process.
+    // TODO(whesse): Verify that this is true, and there can be no
+    // partial encrypted block stuck in the tlsFilter.
+    _filterReadEmpty = (plaintext.length == 0);
   }
 
   void _writeEncryptedData() {
-    // Write from the filter to the socket.
-    var buffer = _tlsFilter.buffers[WRITE_ENCRYPTED];
+    if (_socketClosedWrite) return;
+    var encrypted = _tlsFilter.buffers[WRITE_ENCRYPTED];
+    var plaintext = _tlsFilter.buffers[WRITE_PLAINTEXT];
     while (true) {
-      if (buffer.length > 0) {
-        int bytes = _socket.writeList(buffer.data, buffer.start, buffer.length);
+      if (encrypted.length > 0) {
+        // Write from the filter to the socket.
+        int bytes = _socket.writeList(encrypted.data,
+                                      encrypted.start,
+                                      encrypted.length);
         if (bytes == 0) {
           // The socket has blocked while we have data to write.
           // We must be notified when it becomes unblocked.
           _socket.onWrite = _tlsWriteHandler;
+          _filterWriteEmpty = false;
           break;
         }
-        buffer.advanceStart(bytes);
+        encrypted.advanceStart(bytes);
       } else {
         var plaintext = _tlsFilter.buffers[WRITE_PLAINTEXT];
         if (plaintext.length > 0) {
@@ -323,8 +361,16 @@ class _TlsSocket implements TlsSocket {
            plaintext.advanceStart(plaintext_bytes);
         }
         int bytes = _tlsFilter.processBuffer(WRITE_ENCRYPTED);
-        if (bytes <= 0) break;
-        buffer.length += bytes;
+        if (bytes <= 0) {
+          // We know the WRITE_ENCRYPTED buffer is empty, and the
+          // filter wrote zero bytes to it, so the filter must be empty.
+          // Also, the WRITE_PLAINTEXT buffer must have been empty, or
+          // it would have written to the filter.
+          // TODO(whesse): Verify that the filter works this way.
+          _filterWriteEmpty = true;
+          break;
+        }
+        encrypted.length += bytes;
       }
     }
   }
@@ -334,17 +380,31 @@ class _TlsSocket implements TlsSocket {
    */
   void _setHandlersAfterRead() {
     // If the filter is empty, then we are guaranteed an event when it
-    // becomes unblocked.
+    // becomes unblocked.  Cancel any _tlsDataHandler call.
     // Otherwise, schedule a _tlsDataHandler call since there may data
     // available, and this read call enables the data event.
-    if (!_filterEmpty && scheduledDataEvent == null) {
-      scheduledDataEvent = new Timer(0, (_) => _tlsDataHandler());
-    } else if (_filterEmpty && scheduledDataEvent != null) {
+    if (_filterReadEmpty) {
+      if (scheduledDataEvent != null) {
         scheduledDataEvent.cancel();
         scheduledDataEvent = null;
+      }
+    } else if (scheduledDataEvent == null) {
+      scheduledDataEvent = new Timer(0, (_) => _tlsDataHandler());
     }
-    if (_filterEmpty && _fireCloseEventPending) {
-        _fireCloseEvent();
+
+    if (_socketClosedRead) {  // An onClose event is pending.
+      // _closedRead is false, since we are in a read or readList call.
+      if (!_filterReadEmpty) {
+        // _filterReadEmpty may be out of date since read and readList empty
+        // the plaintext buffer after calling _readEncryptedData.
+        // TODO(whesse): Fix this as part of fixing read and readList.
+        _readEncryptedData();
+      }
+      if (_filterReadEmpty) {
+        // This can't be an else clause: the value of _filterReadEmpty changes.
+        // This must be asynchronous, because we are in a read or readList call.
+        new Timer(0, (_) => _fireCloseEvent());
+      }
     }
   }
 
@@ -356,10 +416,13 @@ class _TlsSocket implements TlsSocket {
   String _certificateName;
 
   var _status = NOT_CONNECTED;
-  bool _socketClosed = false;
-  bool _filterEmpty = false;
+  bool _socketClosedRead = false;  // The network socket is closed for reading.
+  bool _socketClosedWrite = false;  // The network socket is closed for writing.
+  bool _closedRead = false;  // The secure socket has fired an onClosed event.
+  bool _closedWrite = false;  // The secure socket has been closed for writing.
+  bool _filterReadEmpty = true;  // There is no buffered data to read.
+  bool _filterWriteEmpty = true;  // There is no buffered data to be written.
   bool _connectPending = false;
-  bool _fireCloseEventPending = false;
   Function _socketConnectHandler;
   Function _socketWriteHandler;
   Function _socketDataHandler;

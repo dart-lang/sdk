@@ -11,6 +11,20 @@
 #import("dart:isolate");
 #import("dart:io");
 
+void WriteAndClose(Socket socket, String message) {
+  var data = message.charCodes;
+  int written = 0;
+  void write() {
+    written += socket.writeList(data, written, data.length - written);
+    if (written < data.length) {
+      socket.onWrite = write;
+    } else {
+      socket.close(true);
+    }
+  }
+  write();
+}
+
 void main() {
   var testPkcertDatabase =
       new Path.fromNative(new Options().script).directoryPath.append('pkcert/');
@@ -22,10 +36,7 @@ void main() {
   var tls = new TlsSocket("www.google.dk", 443);
   List<String> chunks = <String>[];
   tls.onConnect = () {
-    var request_bytes =
-      "GET / HTTP/1.0\r\nHost: www.google.dk\r\n\r\n".charCodes;
-    tls.writeList(request_bytes, 0, 20);
-    tls.writeList(request_bytes, 20, request_bytes.length - 20);
+    WriteAndClose(tls, "GET / HTTP/1.0\r\nHost: www.google.dk\r\n\r\n");
   };
   var useReadList;  // Mutually recursive onData callbacks.
   void useRead() {
@@ -45,6 +56,5 @@ void main() {
   tls.onClosed = () {
     String fullPage = Strings.concatAll(chunks);
     Expect.isTrue(fullPage.contains('</body></html>'));
-    tls.close();
   };
 }

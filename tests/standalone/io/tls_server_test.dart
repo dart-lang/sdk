@@ -7,18 +7,33 @@ import "dart:io";
 const SERVER_ADDRESS = "127.0.0.1";
 const HOST_NAME = "localhost";
 
+void WriteAndClose(Socket socket, String message) {
+  var data = message.charCodes;
+  int written = 0;
+  void write() {
+    written += socket.writeList(data, written, data.length - written);
+    if (written < data.length) {
+      socket.onWrite = write;
+    } else {
+      socket.close(true);
+    }
+  }
+  write();
+}
+
 class TlsTestServer {
   void onConnection(Socket connection) {
     connection.onConnect = () {
       numConnections++;
     };
+    String received = "";
     connection.onData = () {
-      var data = connection.read();
-      var received = new String.fromCharCodes(data);
+      received = received.concat(new String.fromCharCodes(connection.read()));
+    };
+    connection.onClosed = () {
       Expect.isTrue(received.contains("Hello from client "));
       String name = received.substring(received.indexOf("client ") + 7);
-      var reply_bytes = "Welcome, client $name".charCodes;
-      connection.writeList(reply_bytes, 0, reply_bytes.length);
+      WriteAndClose(connection, "Welcome, client $name");
     };
   }
 
@@ -46,29 +61,20 @@ class TlsTestClient {
   TlsTestClient(int this.port, String this.name) {
     socket = new TlsSocket(HOST_NAME, port);
     socket.onConnect = this.onConnect;
-    socket.onData = this.onData;
+    socket.onData = () {
+      reply = reply.concat(new String.fromCharCodes(socket.read()));
+    };
+    socket.onClosed = done;
     reply = "";
   }
 
   void onConnect() {
     numRequests++;
-    var request_bytes =
-        "Hello from client $name".charCodes;
-    socket.writeList(request_bytes, 0, request_bytes.length);
-  }
-
-  void onData() {
-    var data = socket.read();
-    var received = new String.fromCharCodes(data);
-    reply = reply.concat(received);
-    if (reply.contains("Welcome") && reply.contains(name)) {
-      done();
-    }
+    WriteAndClose(socket, "Hello from client $name");
   }
 
   void done() {
     Expect.equals("Welcome, client $name", reply);
-    socket.close(true);
     numReplies++;
     if (numReplies == CLIENT_NAMES.length) {
       Expect.equals(numRequests, numReplies);
