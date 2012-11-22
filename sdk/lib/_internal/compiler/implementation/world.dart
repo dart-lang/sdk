@@ -126,10 +126,9 @@ class World {
 
   // Returns whether a subclass of [superclass] implements [type].
   bool hasAnySubclassThatImplements(ClassElement superclass, DartType type) {
-    Set<ClassElement> typesImplementedBySubclasses =
-          typesImplementedBySubclasses[superclass];
-    if (typesImplementedBySubclasses == null) return false;
-    return typesImplementedBySubclasses.contains(type.element);
+    Set<ClassElement> subclasses= typesImplementedBySubclasses[superclass];
+    if (subclasses == null) return false;
+    return subclasses.contains(type.element);
   }
 
   bool hasNoOverridingMember(Element element) {
