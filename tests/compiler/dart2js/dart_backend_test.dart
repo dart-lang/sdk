@@ -692,6 +692,22 @@ main() {
       continuation: (String result) { Expect.equals(expectedResult, result); });
 }
 
+testUnresolvedNamedConstructor() {
+  var src = '''
+class A {
+  A() {}
+}
+
+main() {
+  new A();
+  new A.named();
+}
+''';
+  var expectedResult = "class A{A(){}}main(){new A();new p_Unresolved();}";
+  testDart2Dart(src,
+      continuation: (String result) { Expect.equals(expectedResult, result); });
+}
+
 main() {
   testSimpleFileUnparse();
   testTopLevelField();
@@ -722,4 +738,5 @@ main() {
   testDeclarationTypePlaceholders();
   testPlatformLibraryMemberNamesAreFixed();
   testConflictsWithCoreLib();
+  testUnresolvedNamedConstructor();
 }

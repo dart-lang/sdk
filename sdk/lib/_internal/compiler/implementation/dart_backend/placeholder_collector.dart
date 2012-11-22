@@ -142,7 +142,7 @@ class PlaceholderCollector extends Visitor {
   final Set<String> fixedMemberNames; // member names which cannot be renamed.
   final Map<Element, ElementAst> elementAsts;
   final Set<Node> nullNodes;  // Nodes that should not be in output.
-  final Set<Identifier> unresolvedNodes;
+  final Set<Node> unresolvedNodes;
   final Map<Element, Set<Node>> elementNodes;
   final Map<FunctionElement, FunctionScope> functionScopes;
   final Map<LibraryElement, Set<Identifier>> privateNodes;
@@ -162,7 +162,7 @@ class PlaceholderCollector extends Visitor {
 
   PlaceholderCollector(this.compiler, this.fixedMemberNames, this.elementAsts) :
       nullNodes = new Set<Node>(),
-      unresolvedNodes = new Set<Identifier>(),
+      unresolvedNodes = new Set<Node>(),
       elementNodes = new Map<Element, Set<Node>>(),
       functionScopes = new Map<FunctionElement, FunctionScope>(),
       privateNodes = new Map<LibraryElement, Set<Identifier>>(),
