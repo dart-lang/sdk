@@ -319,12 +319,12 @@ function(cls, desc) {
     // Temporary variables for common substrings.
     List<String> varNames = <String>[];
     // var -> expression
-    Map<String, js.Expression> varDefns = <String, js.Expression>{};
+    Map<dynamic, js.Expression> varDefns = new Map<dynamic, js.Expression>();
     // tag -> expression (a string or a variable)
     Map<ClassElement, js.Expression> tagDefns =
         new Map<ClassElement, js.Expression>();
 
-    String makeExpression(ClassElement classElement) {
+    js.Expression makeExpression(ClassElement classElement) {
       // Expression fragments for this set of cls keys.
       List<js.Expression> expressions = <js.Expression>[];
       // TODO: Remove if cls is abstract.
@@ -332,7 +332,7 @@ function(cls, desc) {
       void walk(ClassElement cls) {
         for (final ClassElement subclass in getDirectSubclasses(cls)) {
           ClassElement tag = subclass;
-          String existing = tagDefns[tag];
+          var existing = tagDefns[tag];
           if (existing == null) {
             subtags.add(toNativeName(tag));
             walk(subclass);
@@ -374,7 +374,8 @@ function(cls, desc) {
     if (!tagDefns.isEmpty) {
       List<js.Statement> statements = <js.Statement>[];
 
-      List<js.Expression> initializations = <js.Expression>[];
+      List<js.VariableInitialization> initializations =
+          <js.VariableInitialization>[];
       for (final String varName in varNames) {
         initializations.add(
             new js.VariableInitialization(
