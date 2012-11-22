@@ -30,6 +30,7 @@ class ConstructorPlaceholder {
   final bool isRedirectingCall;
   ConstructorPlaceholder(this.node, this.type)
       : this.isRedirectingCall = false;
+  // Note: factory redirection is not redirecting call!
   ConstructorPlaceholder.redirectingCall(this.node)
       : this.type = null, this.isRedirectingCall = true;
 }
@@ -175,6 +176,15 @@ class PlaceholderCollector extends Visitor {
     if (element.isGenerativeConstructor() || element.isFactoryConstructor()) {
       DartType type = element.getEnclosingClass().type.asRaw();
       makeConstructorPlaceholder(node.name, element, type);
+      Return bodyAsReturn = node.body.asReturn();
+      if (bodyAsReturn != null && bodyAsReturn.isRedirectingFactoryBody) {
+        // Factory redirection.
+        FunctionElement redirectTarget = element.defaultImplementation;
+        assert(redirectTarget != null && redirectTarget != element);
+        type = redirectTarget.getEnclosingClass().type.asRaw();
+        makeConstructorPlaceholder(
+            bodyAsReturn.expression, redirectTarget, type);
+      }
     } else if (Elements.isStaticOrTopLevel(element)) {
       // Note: this code should only rename private identifiers for class'
       // fields/getters/setters/methods.  Top-level identifiers are renamed

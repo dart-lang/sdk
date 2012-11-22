@@ -42,11 +42,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A02_t01: F
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A06_t01: Fail # TODO(dart2dart-team): Please triage this failure.
 LibTest/core/double/parse_A02_t01: Fail # TODO(dart2dart-team): Please triage this failure.
 
-# Factory redirection:
-Language/07_Classes/07_Classes_A03_t01: Fail, Pass # http://dartbug.com/6634 Passes in conservative renaming mode.
-Language/11_Expressions/11_Instance_Creation/1_New_A12_t02: Fail, Pass # http://dartbug.com/6634 Passes in conservative renaming mode.
-Language/11_Expressions/11_Instance_Creation/1_New_A12_t01: Fail, Pass # http://dartbug.com/6634 Passes in conservative renaming mode.
-
 # Calling unresolved class constructor:
 Language/03_Overview/2_Privacy_A01_t19: Fail
 Language/03_Overview/2_Privacy_A01_t20: Fail
@@ -287,8 +282,6 @@ Language/11_Expressions/11_Instance_Creation/1_New_A02_t05: Fail # inherited fro
 Language/11_Expressions/11_Instance_Creation/1_New_A02_t06: Fail # inherited from dart2js
 Language/11_Expressions/11_Instance_Creation/1_New_A02_t07: Fail # inherited from dart2js
 Language/11_Expressions/11_Instance_Creation/1_New_A09_t09: Fail # inherited from VM
-Language/11_Expressions/11_Instance_Creation/1_New_A13_t04: Fail # Inherited from VM
-Language/11_Expressions/11_Instance_Creation/1_New_A14_t01: Fail # Inherited from dart2js
 Language/11_Expressions/11_Instance_Creation/2_Const_A01_t02: Fail # http://dartbug.com/5519
 Language/11_Expressions/11_Instance_Creation/2_Const_A06_t01: Fail # http://dartbug.com/5519
 Language/11_Expressions/11_Instance_Creation/2_Const_A06_t02: Fail # http://dartbug.com/5519
