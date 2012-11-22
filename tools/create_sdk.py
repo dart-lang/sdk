@@ -112,14 +112,12 @@ def CopyDartScripts(home, build_dir, sdk_root, version):
     CopyShellScript(os.path.join(home, 'sdk', 'bin', executable),
                     os.path.join(sdk_root, 'bin'))
 
-  if utils.GuessOS() != 'win32':
-    # TODO(ahe): Enable for Windows as well.
-    subprocess.call([os.path.join(build_dir, 'gen_snapshot'),
-                     '--script_snapshot=%s' %
-                     os.path.join(sdk_root, 'lib', '_internal', 'compiler',
-                                  'implementation', 'dart2js.dart.snapshot'),
-                     os.path.join(sdk_root, 'lib', '_internal', 'compiler',
-                                  'implementation', 'dart2js.dart')])
+  subprocess.call([os.path.join(build_dir, 'gen_snapshot'),
+                   '--script_snapshot=%s' %
+                   os.path.join(sdk_root, 'lib', '_internal', 'compiler',
+                                'implementation', 'dart2js.dart.snapshot'),
+                   os.path.join(sdk_root, 'lib', '_internal', 'compiler',
+                                'implementation', 'dart2js.dart')])
 
 
 
