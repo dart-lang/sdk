@@ -321,13 +321,14 @@ function(cls, desc) {
     // Temporary variables for common substrings.
     List<String> varNames = <String>[];
     // var -> expression
-    Map<String, String> varDefns = <String, String>{};
+    Map<String, js.Expression> varDefns = <String, js.Expression>{};
     // tag -> expression (a string or a variable)
-    Map<ClassElement, String> tagDefns = new Map<ClassElement, String>();
+    Map<ClassElement, js.Expression> tagDefns =
+        new Map<ClassElement, js.Expression>();
 
     String makeExpression(ClassElement classElement) {
       // Expression fragments for this set of cls keys.
-      List<String> expressions = <String>[];
+      List<js.Expression> expressions = <js.Expression>[];
       // TODO: Remove if cls is abstract.
       List<String> subtags = [toNativeName(classElement)];
       void walk(ClassElement cls) {
@@ -341,23 +342,28 @@ function(cls, desc) {
             if (varDefns.containsKey(existing)) {
               expressions.add(existing);
             } else {
-              String varName = 'v${varNames.length}/*${tag}*/';
+              String varName = 'v${varNames.length}_${tag.name.slowToString()}';
               varNames.add(varName);
               varDefns[varName] = existing;
-              tagDefns[tag] = varName;
-              expressions.add(varName);
+              tagDefns[tag] = new js.VariableUse(varName);
+              expressions.add(new js.VariableUse(varName));
             }
           }
         }
       }
       walk(classElement);
-      String constantPart = "'${Strings.join(subtags, '|')}'";
-      if (constantPart != "''") expressions.add(constantPart);
-      String expression;
+      if (!subtags.isEmpty) {
+        expressions.add(
+            new js.LiteralString("'${Strings.join(subtags, '|')}'"));
+      }
+      js.Expression expression;
       if (expressions.length == 1) {
         expression = expressions[0];
       } else {
-        expression = "[${Strings.join(expressions, ',')}].join('|')";
+        js.Expression array = new js.ArrayInitializer.from(expressions);
+        expression = new js.Call(
+            new js.PropertyAccess.field(array, 'join'),
+            [new js.LiteralString("'|'")]);
       }
       return expression;
     }
@@ -368,27 +374,43 @@ function(cls, desc) {
 
     // Write out a thunk that builds the metadata.
     if (!tagDefns.isEmpty) {
-      nativeBuffer.add('(function(){\n');
-
+      List<js.Statement> statements = <js.Statement>[];
+      List<js.Expression> initializations = <js.Expression>[];
       for (final String varName in varNames) {
-        nativeBuffer.add('  var ${varName} = ${varDefns[varName]};\n');
+        initializations.add(
+            new js.VariableInitialization(
+                new js.VariableDeclaration(varName),
+                varDefns[varName]));
       }
 
-      nativeBuffer.add('  var table = [\n');
+      statements.add(
+          new js.ExpressionStatement(
+              new js.VariableDeclarationList(initializations)));
+
+      // [table] is a list of lists, each inner list of the form:
+      //   [dynamic-dispatch-tag, tags-of-classes-implementing-dispatch-tag]
+      // E.g.
+      //   [['Node', 'Text|HTMLElement|HTMLDivElement|...'], ...]
+      js.Expression table =
+          new js.ArrayInitializer.from(
+              dispatchClasses.map((cls) =>
+                  new js.ArrayInitializer.from([
+                      new js.LiteralString("'${toNativeName(cls)}'"),
+                      tagDefns[cls]])));
+
+      //  $.dynamicSetMetadata(table);
+      statements.add(
+          new js.ExpressionStatement(
+              new js.Call(
+                  new js.VariableUse(dynamicSetMetadataName),
+                  [table])));
+
+      //  (function(){statements})();
       nativeBuffer.add(
-          '    // [dynamic-dispatch-tag, '
-          'tags of classes implementing dynamic-dispatch-tag]');
-      bool needsComma = false;
-      List<String> entries = <String>[];
-      for (final ClassElement cls in dispatchClasses) {
-        String clsName = toNativeName(cls);
-        entries.add("\n    ['$clsName', ${tagDefns[cls]}]");
-      }
-      nativeBuffer.add(Strings.join(entries, ','));
-      nativeBuffer.add('];\n');
-      nativeBuffer.add('$dynamicSetMetadataName(table);\n');
-
-      nativeBuffer.add('})();\n');
+          js.prettyPrint(
+              new js.ExpressionStatement(
+                  new js.Call(new js.Fun([], new js.Block(statements)), [])),
+              compiler));
     }
   }
 
