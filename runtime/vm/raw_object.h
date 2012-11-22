@@ -350,10 +350,9 @@ class RawObject {
   static bool IsByteArrayClassId(intptr_t index);
   static bool IsExternalByteArrayClassId(intptr_t index);
 
- protected:
+ private:
   uword tags_;  // Various object tags (bits).
 
- private:
   class FreeBit : public BitField<bool, kFreeBit, 1> {};
 
   class MarkBit : public BitField<bool, kMarkBit, 1> {};
