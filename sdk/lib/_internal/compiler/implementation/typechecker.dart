@@ -154,8 +154,10 @@ class InterfaceType extends DartType {
   final Element element;
   final Link<DartType> arguments;
 
-  const InterfaceType(this.element,
-                      [this.arguments = const Link<DartType>()]);
+  InterfaceType(this.element,
+                [this.arguments = const Link<DartType>()]) {
+    assert(invariant(element, element.isDeclaration));
+  }
 
   TypeKind get kind => TypeKind.INTERFACE;
 

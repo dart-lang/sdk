@@ -1121,7 +1121,7 @@ class TypeResolver {
           // Use the canonical type if it has no type parameters.
           type = cls.computeType(compiler);
         } else {
-          type = new InterfaceType(cls, arguments);
+          type = new InterfaceType(cls.declaration, arguments);
         }
       } else if (element.isTypedef()) {
         TypedefElement typdef = element;
