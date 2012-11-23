@@ -7,7 +7,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # This file is a modified copy of src/third_party/zlib/zlib.gyp from Chromium.
-# Revision 165464 (this should agree with "nss_rev" in DEPS).
+# Revision 169195 (this should agree with "nss_rev" in DEPS).
 {
   # Added by Dart. All Dart comments refer to the following block or line.
   'includes': [
@@ -33,7 +33,7 @@
   'conditions': [[ 'dart_io_support==1', {
   'targets': [
     {
-      'target_name': 'zlib_dart',
+      'target_name': 'zlib_dart',  # Added by Dart (the _dart postfix)
       'type': 'static_library',
       'conditions': [
         ['use_system_zlib==0', {
@@ -96,7 +96,7 @@
       ],
     },
     {
-      'target_name': 'minizip_dart',
+      'target_name': 'minizip_dart',  # Added by Dart (the _dart postfix)
       'type': 'static_library',
       'conditions': [
         ['use_system_minizip==0', {

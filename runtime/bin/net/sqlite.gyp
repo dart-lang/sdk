@@ -7,7 +7,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # This file is a modified copy of Chromium's src/third_party/sqlite/sqlite.gyp.
-# Revision 165464 (this should agree with "nss_rev" in DEPS).
+# Revision 169195 (this should agree with "nss_rev" in DEPS).
 {
   # Added by Dart. All Dart comments refer to the following block or line.
   'includes': [
@@ -38,7 +38,7 @@
   'conditions': [[ 'dart_io_support==1', {
   'targets': [
     {
-      'target_name': 'sqlite_dart',
+      'target_name': 'sqlite_dart',  # Added by Dart (the _dart postfix)
       'conditions': [
         [ 'chromeos==1' , {
             'defines': [
@@ -184,12 +184,12 @@
     ['os_posix == 1 and OS != "mac" and OS != "ios" and OS != "android" and not use_system_sqlite', {
       'targets': [
         {
-          'target_name': 'sqlite_shell_dart',
+          'target_name': 'sqlite_shell_dart',  # Added by Dart (the _dart postfix)
           'type': 'executable',
           'dependencies': [
             # Disabled by Dart.
             # '../icu/icu.gyp:icuuc',
-            'sqlite_dart',
+            'sqlite_dart',  # Added by Dart (the _dart postfix)
           ],
           'sources': [
             '<(sqlite_directory)/src/src/shell.c',

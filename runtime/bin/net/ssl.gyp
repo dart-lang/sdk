@@ -7,7 +7,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # This file is a modified copy of Chromium's src/net/third_party/nss/ssl.gyp.
-# Revision 165464 (this should agree with "nss_rev" in DEPS).
+# Revision 169195 (this should agree with "nss_rev" in DEPS).
 {
   # Conditions section for ssl-bodge (Compiling SSL on linux using system
   # NSS and NSPR libraries) removed:
@@ -30,15 +30,14 @@
   'conditions': [[ 'dart_io_support==1', {
   'targets': [
     {
-      'target_name': 'libssl_dart',
+      'target_name': 'libssl_dart',  # Added by Dart (the _dart postfix)
       'type': 'static_library',
       # Changed by Dart: '<(ssl_directory)/' added to all paths.
       'sources': [
         '<(ssl_directory)/ssl/authcert.c',
         '<(ssl_directory)/ssl/cmpcert.c',
         '<(ssl_directory)/ssl/derive.c',
-        '<(ssl_directory)/ssl/dtls1con.c',
-        '<(ssl_directory)/ssl/nsskea.c',
+        '<(ssl_directory)/ssl/dtlscon.c',
         '<(ssl_directory)/ssl/os2_err.c',
         '<(ssl_directory)/ssl/os2_err.h',
         '<(ssl_directory)/ssl/preenc.h',
@@ -77,7 +76,9 @@
         '<(ssl_directory)/ssl/unix_err.h',
         '<(ssl_directory)/ssl/win32err.c',
         '<(ssl_directory)/ssl/win32err.h',
+        # Changed by Dart: All files under '<(ssl_directory)/ssl/bodge' removed.
       ],
+      # Changed by Dart: '<(ssl_directory)/' added to all paths.
       'sources!': [
         '<(ssl_directory)/ssl/os2_err.c',
         '<(ssl_directory)/ssl/os2_err.h',
@@ -92,14 +93,15 @@
         'NO_NSPR_10_SUPPORT',
       ],
       'dependencies': [
-        'zlib.gyp:zlib_dart',
+        # Changed by Dart.
+        'zlib.gyp:zlib_dart',  # Added by Dart (the _dart postfix)
         # Dart: Start of copy of code from 'bodge' conditions section below.
-        'nss.gyp:nspr_dart',
-        'nss.gyp:nss_dart',
+        'nss.gyp:nspr_dart',  # Added by Dart (the _dart postfix)
+        'nss.gyp:nss_dart',  # Added by Dart (the _dart postfix)
       ],
       'export_dependent_settings': [
-        'nss.gyp:nspr_dart',
-        'nss.gyp:nss_dart',
+        'nss.gyp:nspr_dart',  # Added by Dart (the _dart postfix)
+        'nss.gyp:nss_dart',  # Added by Dart (the _dart postfix)
       ],
       'direct_dependent_settings': {
         'include_dirs': [

@@ -37,9 +37,6 @@
       '-Werror',
       '-Wall',
       '-ansi',
-      # This flag would let a certain assembly function be inlined,
-      # causing errors in mpcpucache.c.
-      '-fvisibility=hidden',
       # Not supported for C, only for C++.
       '-Wnon-virtual-dtor',
       '-Wno-conversion-null',
