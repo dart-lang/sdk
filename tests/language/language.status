@@ -385,6 +385,7 @@ string_escape1_negative_test: Skip
 *: Skip
 
 [ $compiler == dart2dart ]
+factory_redirection2_test/01: Fail # Inherited from dart2js.
 const_factory_redirection_test: Fail # TRIAGE
 redirecting_factory_infinite_steps_test/01: Fail, Pass # TRIAGE: fails in minified mode. http://dartbug.com/6603
 

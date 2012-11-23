@@ -94,6 +94,7 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dart2js ]
+factory_redirection2_test/01: Fail # http://dartbug.com/6791
 new_expression_type_args_test/00: Fail # Wrongly reports compile-time error.
 new_expression_type_args_test/01: Fail # Wrongly reports compile-time error.
 double_int_to_string_test: Fail # Issue 1533 (double/integer distinction)
@@ -381,3 +382,6 @@ stack_overflow_test: Fail
 string_interpolate_npe_test: Fail
 closure_call_wrong_argument_count_negative_test: Skip
 label_test: Skip
+
+[ $compiler == dart2js && $host_checked ]
+factory_redirection2_test/01: Crash # http://dartbug.com/6791
