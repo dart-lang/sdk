@@ -1169,7 +1169,7 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
   List<TypeMirror> get typeArguments {
     if (_typeArguments == null) {
       _typeArguments = <TypeMirror>[];
-      Link<DartType> type = _interfaceType.arguments;
+      Link<DartType> type = _interfaceType.typeArguments;
       while (type != null && type.head != null) {
         _typeArguments.add(_convertTypeToTypeMirror(mirrors, type.head,
             mirrors.compiler.types.dynamicType));

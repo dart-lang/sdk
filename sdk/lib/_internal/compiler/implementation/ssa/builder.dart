@@ -1965,7 +1965,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // } else {
       //   // We always create an empty else block to avoid critical edges.
       // }
-      // 
+      //
       // If there is any break in the body, we attach a synthetic
       // label to the if.
       HBasicBlock elseBlock = addNewBlock();
@@ -3119,12 +3119,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       } else if (type is InterfaceType) {
         bool isFirstVariable = true;
         InterfaceType interfaceType = type;
-        bool hasTypeArguments = !interfaceType.arguments.isEmpty;
+        bool hasTypeArguments = !interfaceType.typeArguments.isEmpty;
         if (!isInQuotes) template.add("'");
         template.add(backend.namer.getName(type.element));
         if (hasTypeArguments) {
           template.add("<");
-          for (DartType argument in interfaceType.arguments) {
+          for (DartType argument in interfaceType.typeArguments) {
             if (!isFirstVariable) {
               template.add(", ");
             } else {
@@ -3157,7 +3157,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                              HInstruction newObject) {
     if (!compiler.world.needsRti(type.element)) return;
     List<HInstruction> inputs = <HInstruction>[];
-    type.arguments.forEach((DartType argument) {
+    type.typeArguments.forEach((DartType argument) {
       inputs.add(analyzeTypeArgument(argument, currentNode));
     });
     callSetRuntimeTypeInfo(type.element, inputs, newObject);
@@ -3229,8 +3229,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return;
     }
     if (compiler.world.needsRti(constructor.enclosingElement)) {
-      if (!type.arguments.isEmpty) {
-        type.arguments.forEach((DartType argument) {
+      if (!type.typeArguments.isEmpty) {
+        type.typeArguments.forEach((DartType argument) {
           inputs.add(analyzeTypeArgument(argument, node));
         });
       }

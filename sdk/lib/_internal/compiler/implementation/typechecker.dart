@@ -60,6 +60,19 @@ abstract class DartType {
   Element get element;
 
   /**
+   * Performs the substitution [: [arguments[i]/parameters[i]]this :].
+   *
+   * The notation is known from this lambda calculus rule:
+   *
+   *     (lambda x.e0)e1 -> [e1/x]e0.
+   *
+   * See [TypeVariableType] for a motivation for this method.
+   *
+   * Invariant: There must be the same number of [arguments] and [parameters].
+   */
+  DartType subst(Link<DartType> arguments, Link<DartType> parameters);
+
+  /**
    * Returns the unaliased type of this type.
    *
    * The unaliased type of a typedef'd type is the unaliased type to which its
@@ -76,6 +89,28 @@ abstract class DartType {
   DartType asRaw() => this;
 }
 
+/**
+ * Represents a type variable, that is the type parameters of a class type.
+ *
+ * For example, in [: class Array<E> { ... } :], E is a type variable.
+ *
+ * Each class should have its own unique type variables, one for each type
+ * parameter. A class with type parameters is said to be parameterized or
+ * generic.
+ *
+ * Non-static members, constructors, and factories of generic
+ * class/interface can refer to type variables of the current class
+ * (not of supertypes).
+ *
+ * When using a generic type, also known as an application or
+ * instantiation of the type, the actual type arguments should be
+ * substituted for the type variables in the class declaration.
+ *
+ * For example, given a box, [: class Box<T> { T value; } :], the
+ * type of the expression [: new Box<String>().value :] is
+ * [: String :] because we must substitute [: String :] for the
+ * the type variable [: T :].
+ */
 class TypeVariableType extends DartType {
   final TypeVariableElement element;
 
@@ -84,6 +119,29 @@ class TypeVariableType extends DartType {
   TypeKind get kind => TypeKind.TYPE_VARIABLE;
 
   SourceString get name => element.name;
+
+  DartType subst(Link<DartType> arguments, Link<DartType> parameters) {
+    if (parameters.isEmpty) {
+      assert(arguments.isEmpty);
+      // Return fast on empty substitutions.
+      return this;
+    }
+    Link<DartType> parameterLink = parameters;
+    Link<DartType> argumentLink = arguments;
+    while (!argumentLink.isEmpty && !parameterLink.isEmpty) {
+      TypeVariableType parameter = parameterLink.head;
+      DartType argument = argumentLink.head;
+      if (parameter == this) {
+        assert(argumentLink.tail.isEmpty == parameterLink.tail.isEmpty);
+        return argument;
+      }
+      parameterLink = parameterLink.tail;
+      argumentLink = argumentLink.tail;
+    }
+    assert(argumentLink.isEmpty && parameterLink.isEmpty);
+    // The type variable was not substituted.
+    return this;
+  }
 
   DartType unalias(Compiler compiler) => this;
 
@@ -120,6 +178,11 @@ class StatementType extends DartType {
     return (identical(this, other)) ? this : MAYBE_RETURNING;
   }
 
+  DartType subst(Link<DartType> arguments, Link<DartType> parameters) {
+    // Statement types are not substitutable.
+    return this;
+  }
+
   DartType unalias(Compiler compiler) => this;
 
   int get hashCode => 17 * stringName.hashCode;
@@ -141,6 +204,11 @@ class VoidType extends DartType {
 
   final VoidElement element;
 
+  DartType subst(Link<DartType> arguments, Link<DartType> parameters) {
+    // Void cannot be substituted.
+    return this;
+  }
+
   DartType unalias(Compiler compiler) => this;
 
   int get hashCode => 1729;
@@ -150,12 +218,38 @@ class VoidType extends DartType {
   String toString() => name.slowToString();
 }
 
+/**
+ * Helper method for performing substitution of a linked list of types.
+ *
+ * If no types are changed by the substitution, the [types] is returned instead
+ * of a newly created linked list.
+ */
+Link<DartType> substTypes(Link<DartType> types,
+                          Link<DartType> arguments, Link<DartType> parameters) {
+  bool changed = false;
+  var builder = new LinkBuilder<DartType>();
+  Link<DartType> typeLink = types;
+  while (!typeLink.isEmpty) {
+    var argument = typeLink.head.subst(arguments, parameters);
+    if (!changed && !identical(argument, typeLink.head)) {
+      changed = true;
+    }
+    builder.addLast(argument);
+    typeLink = typeLink.tail;
+  }
+  if (changed) {
+    // Create a new link only if necessary.
+    return builder.toLink();
+  }
+  return types;
+}
+
 class InterfaceType extends DartType {
   final Element element;
-  final Link<DartType> arguments;
+  final Link<DartType> typeArguments;
 
   InterfaceType(this.element,
-                [this.arguments = const Link<DartType>()]) {
+                [this.typeArguments = const Link<DartType>()]) {
     assert(invariant(element, element.isDeclaration));
   }
 
@@ -163,14 +257,33 @@ class InterfaceType extends DartType {
 
   SourceString get name => element.name;
 
+  DartType subst(Link<DartType> arguments, Link<DartType> parameters) {
+    if (typeArguments.isEmpty) {
+      // Return fast on non-generic types.
+      return this;
+    }
+    if (parameters.isEmpty) {
+      assert(arguments.isEmpty);
+      // Return fast on empty substitutions.
+      return this;
+    }
+    Link<DartType> newTypeArguments =
+        substTypes(typeArguments, arguments, parameters);
+    if (!identical(typeArguments, newTypeArguments)) {
+      // Create a new type only if necessary.
+      return new InterfaceType(element, newTypeArguments);
+    }
+    return this;
+  }
+
   DartType unalias(Compiler compiler) => this;
 
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.add(name.slowToString());
-    if (!arguments.isEmpty) {
+    if (!typeArguments.isEmpty) {
       sb.add('<');
-      arguments.printOn(sb, ', ');
+      typeArguments.printOn(sb, ', ');
       sb.add('>');
     }
     return sb.toString();
@@ -178,7 +291,7 @@ class InterfaceType extends DartType {
 
   int get hashCode {
     int hash = element.hashCode;
-    for (Link<DartType> arguments = this.arguments;
+    for (Link<DartType> arguments = this.typeArguments;
          !arguments.isEmpty;
          arguments = arguments.tail) {
       int argumentHash = arguments.head != null ? arguments.head.hashCode : 0;
@@ -190,11 +303,11 @@ class InterfaceType extends DartType {
   bool operator ==(other) {
     if (other is !InterfaceType) return false;
     if (!identical(element, other.element)) return false;
-    return arguments == other.arguments;
+    return typeArguments == other.typeArguments;
   }
 
   InterfaceType asRaw() {
-    if (arguments.isEmpty) return this;
+    if (typeArguments.isEmpty) return this;
     return new InterfaceType(element);
   }
 }
@@ -210,6 +323,25 @@ class FunctionType extends DartType {
   }
 
   TypeKind get kind => TypeKind.FUNCTION;
+
+  DartType subst(Link<DartType> arguments, Link<DartType> parameters) {
+    if (parameters.isEmpty) {
+      assert(arguments.isEmpty);
+      // Return fast on empty substitutions.
+      return this;
+    }
+    var newReturnType = returnType.subst(arguments, parameters);
+    bool changed = !identical(newReturnType, returnType);
+    var newParameterTypes = substTypes(parameterTypes, arguments, parameters);
+    if (!changed && !identical(parameterTypes, newParameterTypes)) {
+      changed = true;
+    }
+    if (changed) {
+      // Create a new type only if necessary.
+      return new FunctionType(newReturnType, newParameterTypes, element);
+    }
+    return this;
+  }
 
   DartType unalias(Compiler compiler) => this;
 
@@ -259,15 +391,35 @@ class TypedefType extends DartType {
   final Link<DartType> typeArguments;
 
   const TypedefType(this.element,
-      [this.typeArguments = const Link<DartType>()]);
+                    [this.typeArguments = const Link<DartType>()]);
 
   TypeKind get kind => TypeKind.TYPEDEF;
 
   SourceString get name => element.name;
 
+  DartType subst(Link<DartType> arguments, Link<DartType> parameters) {
+    if (typeArguments.isEmpty) {
+      // Return fast on non-generic typedefs.
+      return this;
+    }
+    if (parameters.isEmpty) {
+      assert(arguments.isEmpty);
+      // Return fast on empty substitutions.
+      return this;
+    }
+    Link<DartType> newTypeArguments =
+        substTypes(typeArguments, arguments, parameters);
+    if (!identical(typeArguments, newTypeArguments)) {
+      // Create a new type only if necessary.
+      return new TypedefType(element, newTypeArguments);
+    }
+    return this;
+  }
+
   DartType unalias(Compiler compiler) {
     // TODO(ahe): This should be [ensureResolved].
     compiler.resolveTypedef(element);
+    // TODO(johnniwinther): Perform substitution on the unaliased type.
     return element.alias.unalias(compiler);
   }
 
@@ -291,21 +443,34 @@ class TypedefType extends DartType {
   }
 }
 
+/**
+ * Special type to hold the [dynamic] type. Used for correctly returning
+ * 'dynamic' on [toString].
+ */
+class DynamicType extends InterfaceType {
+  DynamicType(ClassElement element) : super(element);
+
+  String toString() => 'dynamic';
+}
+
+
 class Types {
   final Compiler compiler;
   // TODO(karlklose): should we have a class Void?
   final VoidType voidType;
   final InterfaceType dynamicType;
 
-  Types(Compiler compiler, Element dynamicElement)
+  Types(Compiler compiler, ClassElement dynamicElement)
     : this.with(compiler, dynamicElement,
                 new LibraryElement(new Script(null, null)));
 
   Types.with(Compiler this.compiler,
-             Element dynamicElement,
+             ClassElement dynamicElement,
              LibraryElement library)
     : voidType = new VoidType(new VoidElement(library)),
-      dynamicType = new InterfaceType(dynamicElement);
+      dynamicType = new DynamicType(dynamicElement) {
+    dynamicElement.type = dynamicType;
+  }
 
   /** Returns true if t is a subtype of s */
   bool isSubtype(DartType t, DartType s) {

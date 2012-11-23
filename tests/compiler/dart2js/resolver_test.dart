@@ -85,9 +85,9 @@ testTypeVariables() {
     visitor.visit(definition.type);
     InterfaceType type = visitor.mapping.getType(definition.type);
     Expect.equals(definition.type.typeArguments.length(),
-                  length(type.arguments));
+                  length(type.typeArguments));
     int index = 0;
-    Link<DartType> arguments = type.arguments;
+    Link<DartType> arguments = type.typeArguments;
     while (!arguments.isEmpty) {
       Expect.equals(true, index < expectedElements.length);
       Expect.equals(expectedElements[index], arguments.head.element);

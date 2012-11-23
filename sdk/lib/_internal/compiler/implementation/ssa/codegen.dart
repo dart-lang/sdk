@@ -2417,7 +2417,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.hasTypeInfo()) {
       InterfaceType interfaceType = type;
       ClassElement cls = type.element;
-      Link<DartType> arguments = interfaceType.arguments;
+      Link<DartType> arguments = interfaceType.typeArguments;
       js.Expression result = pop();
       for (TypeVariableType typeVariable in cls.typeVariables) {
         use(node.typeInfoCall);

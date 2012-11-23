@@ -1414,7 +1414,7 @@ abstract class ClassElement extends ScopeContainerElement
   bool isObject(Compiler compiler) =>
       identical(declaration, compiler.objectClass);
 
-  Link<DartType> get typeVariables => type.arguments;
+  Link<DartType> get typeVariables => type.typeArguments;
 
   ClassElement ensureResolved(Compiler compiler) {
     if (resolutionState == STATE_NOT_STARTED) {

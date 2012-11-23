@@ -1930,7 +1930,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   void handleRedirectingFactoryBody(Return node) {
     Element redirectionTarget = resolveRedirectingFactory(node);
     var type = mapping.getType(node.expression);
-    if (type is InterfaceType && !type.arguments.isEmpty) {
+    if (type is InterfaceType && !type.typeArguments.isEmpty) {
       unimplemented(node.expression, 'type arguments on redirecting factory');
     }
     useElement(node.expression, redirectionTarget);
@@ -2050,7 +2050,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
           argument.element.enclosingElement);
     } else if (argument is InterfaceType) {
       InterfaceType type = argument;
-      type.arguments.forEach((DartType argument) {
+      type.typeArguments.forEach((DartType argument) {
         analyzeTypeArgument(type, argument);
       });
     }
@@ -2079,7 +2079,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     if (typeRequired || inCheckContext) {
       if (type is InterfaceType) {
         InterfaceType itf = type;
-        itf.arguments.forEach((DartType argument) {
+        itf.typeArguments.forEach((DartType argument) {
           analyzeTypeArgument(type, argument);
         });
       }
