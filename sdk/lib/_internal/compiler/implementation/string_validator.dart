@@ -172,7 +172,6 @@ class StringValidator {
         }
       }
       if (code >= 0x10000) length++;
-      assert(code <= 0x10ffff);
       // This handles both unescaped characters and the value of unicode
       // escapes.
       if (previousWasLeadSurrogate) {
