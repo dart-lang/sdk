@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 
-abstract class TlsServerSocket implements ServerSocket {
+abstract class SecureServerSocket implements ServerSocket {
   /**
    * Constructs a new secure server socket, binds it to a given address
    * and port, and listens on it.  Incoming client connections are
@@ -12,19 +12,19 @@ abstract class TlsServerSocket implements ServerSocket {
    * not a host name.  The certificate name is the distinguished name (DN) of
    * the certificate, such as "CN=localhost" or "CN=myserver.mydomain.com".
    * The certificate is looked up in the NSS certificate database set by
-   * TlsSocket.setCertificateDatabase.
+   * SecureSocket.setCertificateDatabase.
    */
-  factory TlsServerSocket(String bindAddress,
+  factory SecureServerSocket(String bindAddress,
                           int port,
                           int backlog,
                           String certificate_name) =>
-      new _TlsServerSocket(bindAddress, port, backlog, certificate_name);
+      new _SecureServerSocket(bindAddress, port, backlog, certificate_name);
 }
 
 
-class _TlsServerSocket implements TlsServerSocket {
+class _SecureServerSocket implements SecureServerSocket {
 
-  _TlsServerSocket(String bindAddress,
+  _SecureServerSocket(String bindAddress,
                    int port,
                    int backlog,
                    String certificate_name) {
@@ -57,14 +57,14 @@ class _TlsServerSocket implements TlsServerSocket {
     if (_onConnectionCallback == null) {
       connection.close();
       throw new SocketIOException(
-          "TlsServerSocket with no onConnection callback connected to");
+          "SecureServerSocket with no onConnection callback connected to");
     }
     if (_certificate_name == null) {
       connection.close();
       throw new SocketIOException(
-          "TlsServerSocket with server certificate not set connected to");
+          "SecureServerSocket with server certificate not set connected to");
     }
-    var secure_connection = new _TlsSocket.server(connection.remoteHost,
+    var secure_connection = new _SecureSocket.server(connection.remoteHost,
                                                   connection.remotePort,
                                                   connection,
                                                   _certificate_name);

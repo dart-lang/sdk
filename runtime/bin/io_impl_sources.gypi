@@ -41,7 +41,7 @@
     'socket_linux.cc',
     'socket_macos.cc',
     'socket_win.cc',
-    'tls_socket.cc',
-    'tls_socket.h',
+    'secure_socket.cc',
+    'secure_socket.h',
   ],
 }

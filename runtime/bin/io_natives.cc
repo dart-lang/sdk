@@ -40,13 +40,13 @@
   V(Socket_GetError, 1)                                                        \
   V(Socket_GetStdioHandle, 2)                                                  \
   V(Socket_NewServicePort, 0)                                                  \
-  V(TlsSocket_Connect, 5)                                                      \
-  V(TlsSocket_Destroy, 1)                                                      \
-  V(TlsSocket_Handshake, 1)                                                    \
-  V(TlsSocket_Init, 1)                                                         \
-  V(TlsSocket_ProcessBuffer, 2)                                                \
-  V(TlsSocket_RegisterHandshakeCompleteCallback, 2)                            \
-  V(TlsSocket_SetCertificateDatabase, 2)
+  V(SecureSocket_Connect, 5)                                                   \
+  V(SecureSocket_Destroy, 1)                                                   \
+  V(SecureSocket_Handshake, 1)                                                 \
+  V(SecureSocket_Init, 1)                                                      \
+  V(SecureSocket_ProcessBuffer, 2)                                             \
+  V(SecureSocket_RegisterHandshakeCompleteCallback, 2)                         \
+  V(SecureSocket_SetCertificateDatabase, 2)
 
 IO_NATIVE_LIST(DECLARE_FUNCTION);
 

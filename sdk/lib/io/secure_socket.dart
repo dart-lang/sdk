@@ -3,20 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * TlsSocket provides a secure (SSL or TLS) client connection to a server.
+ * SecureSocket provides a secure (SSL or TLS) client connection to a server.
  * The certificate provided by the server is checked
  * using the certificate database provided in setCertificateDatabase.
  */
-abstract class TlsSocket implements Socket {
+abstract class SecureSocket implements Socket {
   /**
    * Constructs a new secure client socket and connect it to the given
    * host on the given port. The returned socket is not yet connected
    * but ready for registration of callbacks.
    */
-  factory TlsSocket(String host, int port) => new _TlsSocket(host, port);
+  factory SecureSocket(String host, int port) => new _SecureSocket(host, port);
 
    /**
-   * Initializes the TLS library with the path to a certificate database
+   * Initializes the NSS library with the path to a certificate database
    * containing root certificates for verifying certificate paths on
    * client connections, and server certificates to provide on server
    * connections.  The password argument should be used when creating
@@ -34,7 +34,7 @@ abstract class TlsSocket implements Socket {
 }
 
 
-class _TlsSocket implements TlsSocket {
+class _SecureSocket implements SecureSocket {
   // Status states
   static final int NOT_CONNECTED = 200;
   static final int HANDSHAKE = 201;
@@ -51,17 +51,17 @@ class _TlsSocket implements TlsSocket {
 
   int _count = 0;
   // Constructs a new secure client socket.
-  factory _TlsSocket(String host, int port) =>
-      new _TlsSocket.internal(host, port, false);
+  factory _SecureSocket(String host, int port) =>
+      new _SecureSocket.internal(host, port, false);
 
   // Constructs a new secure server socket, with the named server certificate.
-  factory _TlsSocket.server(String host,
+  factory _SecureSocket.server(String host,
                             int port,
                             Socket socket,
                             String certificateName) =>
-      new _TlsSocket.internal(host, port, true, socket, certificateName);
+      new _SecureSocket.internal(host, port, true, socket, certificateName);
 
-  _TlsSocket.internal(String host,
+  _SecureSocket.internal(String host,
                       int port,
                       bool is_server,
                       [Socket socket,
@@ -71,15 +71,15 @@ class _TlsSocket implements TlsSocket {
         _socket = socket,
         _certificateName = certificateName,
         _is_server = is_server,
-        _tlsFilter = new _TlsFilter() {
+        _secureFilter = new _SecureFilter() {
     if (_socket == null) {
       _socket = new Socket(host, port);
     }
-    _socket.onConnect = _tlsConnectHandler;
-    _socket.onData = _tlsDataHandler;
-    _socket.onClosed = _tlsCloseHandler;
-    _tlsFilter.init();
-    _tlsFilter.registerHandshakeCompleteCallback(_tlsHandshakeCompleteHandler);
+    _socket.onConnect = _secureConnectHandler;
+    _socket.onData = _secureDataHandler;
+    _socket.onClosed = _secureCloseHandler;
+    _secureFilter.init();
+    _secureFilter.registerHandshakeCompleteCallback(_secureHandshakeCompleteHandler);
   }
 
   int get port => _socket.port;
@@ -139,7 +139,7 @@ class _TlsSocket implements TlsSocket {
   void set _onWrite(void callback()) {
     _socketWriteHandler = callback;
     // Reset the one-shot onWrite handler.
-    _socket.onWrite = _tlsWriteHandler;
+    _socket.onWrite = _secureWriteHandler;
   }
 
   InputStream get inputStream {
@@ -165,7 +165,7 @@ class _TlsSocket implements TlsSocket {
   }
 
   int available() {
-    throw new UnimplementedError("TlsSocket.available not implemented yet");
+    throw new UnimplementedError("SecureSocket.available not implemented yet");
   }
 
   void close([bool halfClose]) {
@@ -182,8 +182,8 @@ class _TlsSocket implements TlsSocket {
       _socket.close(false);
       _socketClosedWrite = true;
       _socketClosedRead = true;
-      _tlsFilter.destroy();
-      _tlsFilter = null;
+      _secureFilter.destroy();
+      _secureFilter = null;
       if (scheduledDataEvent != null) {
         scheduledDataEvent.cancel();
       }
@@ -200,13 +200,13 @@ class _TlsSocket implements TlsSocket {
     if (_status != CONNECTED) {
       return new List<int>(0);
     }
-    var buffer = _tlsFilter.buffers[READ_PLAINTEXT];
+    var buffer = _secureFilter.buffers[READ_PLAINTEXT];
     _readEncryptedData();
     int toRead = buffer.length;
     if (len != null) {
       if (len is! int || len < 0) {
         throw new ArgumentError(
-            "Invalid len parameter in TlsSocket.read (len: $len)");
+            "Invalid len parameter in SecureSocket.read (len: $len)");
       }
       if (len < toRead) {
         toRead = len;
@@ -224,14 +224,14 @@ class _TlsSocket implements TlsSocket {
     }
     if (offset < 0 || bytes < 0 || offset + bytes > data.length) {
       throw new ArgumentError(
-          "Invalid offset or bytes in TlsSocket.readList");
+          "Invalid offset or bytes in SecureSocket.readList");
     }
     if (_status != CONNECTED && _status != CLOSED) {
       return 0;
     }
 
     int bytesRead = 0;
-    var buffer = _tlsFilter.buffers[READ_PLAINTEXT];
+    var buffer = _secureFilter.buffers[READ_PLAINTEXT];
     // TODO(whesse): Currently this fails if the if is turned into a while loop.
     // Fix it so that it can loop and read more than one buffer's worth of data.
     if (bytes > bytesRead) {
@@ -257,7 +257,7 @@ class _TlsSocket implements TlsSocket {
       throw new SocketException("Writing to a closed socket");
     }
     if (_status != CONNECTED) return 0;
-    var buffer = _tlsFilter.buffers[WRITE_PLAINTEXT];
+    var buffer = _secureFilter.buffers[WRITE_PLAINTEXT];
     if (bytes > buffer.free) {
       bytes = buffer.free;
     }
@@ -269,24 +269,24 @@ class _TlsSocket implements TlsSocket {
     return bytes;
   }
 
-  void _tlsConnectHandler() {
+  void _secureConnectHandler() {
     _connectPending = true;
-    _tlsFilter.connect(_host, _port, _is_server, _certificateName);
+    _secureFilter.connect(_host, _port, _is_server, _certificateName);
     _status = HANDSHAKE;
-    _tlsHandshake();
+    _secureHandshake();
   }
 
-  void _tlsWriteHandler() {
+  void _secureWriteHandler() {
     _writeEncryptedData();
     if (_filterWriteEmpty && _closedWrite && !_socketClosedWrite) {
       _socket.close(true);
       _sockedClosedWrite = true;
     }
     if (_status == HANDSHAKE) {
-      _tlsHandshake();
+      _secureHandshake();
     } else if (_status == CONNECTED &&
                _socketWriteHandler != null &&
-               _tlsFilter.buffers[WRITE_PLAINTEXT].free > 0) {
+               _secureFilter.buffers[WRITE_PLAINTEXT].free > 0) {
       // We must be able to set onWrite from the onWrite callback.
       var handler = _socketWriteHandler;
       // Reset the one-shot handler.
@@ -295,9 +295,9 @@ class _TlsSocket implements TlsSocket {
     }
   }
 
-  void _tlsDataHandler() {
+  void _secureDataHandler() {
     if (_status == HANDSHAKE) {
-      _tlsHandshake();
+      _secureHandshake();
     } else {
       _writeEncryptedData();  // TODO(whesse): Removing this causes a failure.
       _readEncryptedData();
@@ -314,36 +314,36 @@ class _TlsSocket implements TlsSocket {
     }
   }
 
-  void _tlsCloseHandler() {
+  void _secureCloseHandler() {
     _socketClosedRead = true;
     if (_filterReadEmpty) {
       _closedRead = true;
       _fireCloseEvent();
       if (_socketClosedWrite) {
-        _tlsFilter.destroy();
-        _tlsFilter = null;
+        _secureFilter.destroy();
+        _secureFilter = null;
         _status = CLOSED;
       }
     }
   }
 
-  void _tlsHandshake() {
+  void _secureHandshake() {
     _readEncryptedData();
-    _tlsFilter.handshake();
+    _secureFilter.handshake();
     _writeEncryptedData();
-    if (_tlsFilter.buffers[WRITE_ENCRYPTED].length > 0) {
-      _socket.onWrite = _tlsWriteHandler;
+    if (_secureFilter.buffers[WRITE_ENCRYPTED].length > 0) {
+      _socket.onWrite = _secureWriteHandler;
     }
   }
 
-  void _tlsHandshakeCompleteHandler() {
+  void _secureHandshakeCompleteHandler() {
     _status = CONNECTED;
     if (_connectPending && _socketConnectHandler != null) {
       _connectPending = false;
       _socketConnectHandler();
     }
     if (_socketWriteHandler != null) {
-      _socket.onWrite = _tlsWriteHandler;
+      _socket.onWrite = _secureWriteHandler;
     }
   }
 
@@ -363,21 +363,21 @@ class _TlsSocket implements TlsSocket {
   void _readEncryptedData() {
     // Read from the socket, and push it through the filter as far as
     // possible.
-    var encrypted = _tlsFilter.buffers[READ_ENCRYPTED];
-    var plaintext = _tlsFilter.buffers[READ_PLAINTEXT];
+    var encrypted = _secureFilter.buffers[READ_ENCRYPTED];
+    var plaintext = _secureFilter.buffers[READ_PLAINTEXT];
     bool progress = true;
     while (progress) {
       progress = false;
       // Do not try to read plaintext from the filter while handshaking.
       if ((_status == CONNECTED) && plaintext.free > 0) {
-        int bytes = _tlsFilter.processBuffer(READ_PLAINTEXT);
+        int bytes = _secureFilter.processBuffer(READ_PLAINTEXT);
         if (bytes > 0) {
           plaintext.length += bytes;
           progress = true;
         }
       }
       if (encrypted.length > 0) {
-        int bytes = _tlsFilter.processBuffer(READ_ENCRYPTED);
+        int bytes = _secureFilter.processBuffer(READ_ENCRYPTED);
         if (bytes > 0) {
           encrypted.advanceStart(bytes);
           progress = true;
@@ -396,14 +396,14 @@ class _TlsSocket implements TlsSocket {
     // If there is any data in any stages of the filter, there should
     // be data in the plaintext buffer after this process.
     // TODO(whesse): Verify that this is true, and there can be no
-    // partial encrypted block stuck in the tlsFilter.
+    // partial encrypted block stuck in the secureFilter.
     _filterReadEmpty = (plaintext.length == 0);
   }
 
   void _writeEncryptedData() {
     if (_socketClosedWrite) return;
-    var encrypted = _tlsFilter.buffers[WRITE_ENCRYPTED];
-    var plaintext = _tlsFilter.buffers[WRITE_PLAINTEXT];
+    var encrypted = _secureFilter.buffers[WRITE_ENCRYPTED];
+    var plaintext = _secureFilter.buffers[WRITE_PLAINTEXT];
     while (true) {
       if (encrypted.length > 0) {
         // Write from the filter to the socket.
@@ -413,18 +413,18 @@ class _TlsSocket implements TlsSocket {
         if (bytes == 0) {
           // The socket has blocked while we have data to write.
           // We must be notified when it becomes unblocked.
-          _socket.onWrite = _tlsWriteHandler;
+          _socket.onWrite = _secureWriteHandler;
           _filterWriteEmpty = false;
           break;
         }
         encrypted.advanceStart(bytes);
       } else {
-        var plaintext = _tlsFilter.buffers[WRITE_PLAINTEXT];
+        var plaintext = _secureFilter.buffers[WRITE_PLAINTEXT];
         if (plaintext.length > 0) {
-           int plaintext_bytes = _tlsFilter.processBuffer(WRITE_PLAINTEXT);
+           int plaintext_bytes = _secureFilter.processBuffer(WRITE_PLAINTEXT);
            plaintext.advanceStart(plaintext_bytes);
         }
-        int bytes = _tlsFilter.processBuffer(WRITE_ENCRYPTED);
+        int bytes = _secureFilter.processBuffer(WRITE_ENCRYPTED);
         if (bytes <= 0) {
           // We know the WRITE_ENCRYPTED buffer is empty, and the
           // filter wrote zero bytes to it, so the filter must be empty.
@@ -440,12 +440,12 @@ class _TlsSocket implements TlsSocket {
   }
 
   /* After a read, the onData handler is enabled to fire again.
-   * We may also have a close event waiting for the TlsFilter to empty.
+   * We may also have a close event waiting for the SecureFilter to empty.
    */
   void _setHandlersAfterRead() {
     // If the filter is empty, then we are guaranteed an event when it
-    // becomes unblocked.  Cancel any _tlsDataHandler call.
-    // Otherwise, schedule a _tlsDataHandler call since there may data
+    // becomes unblocked.  Cancel any _secureDataHandler call.
+    // Otherwise, schedule a _secureDataHandler call since there may data
     // available, and this read call enables the data event.
     if (_filterReadEmpty) {
       if (scheduledDataEvent != null) {
@@ -453,7 +453,7 @@ class _TlsSocket implements TlsSocket {
         scheduledDataEvent = null;
       }
     } else if (scheduledDataEvent == null) {
-      scheduledDataEvent = new Timer(0, (_) => _tlsDataHandler());
+      scheduledDataEvent = new Timer(0, (_) => _secureDataHandler());
     }
 
     if (_socketClosedRead) {  // An onClose event is pending.
@@ -474,7 +474,7 @@ class _TlsSocket implements TlsSocket {
 
   bool get _socketClosed => _closedRead;
 
-  // _TlsSocket cannot extend _Socket and use _Socket's factory constructor.
+  // _SecureSocket cannot extend _Socket and use _Socket's factory constructor.
   Socket _socket;
   String _host;
   int _port;
@@ -497,13 +497,13 @@ class _TlsSocket implements TlsSocket {
   Function _socketCloseHandler;
   Timer scheduledDataEvent;
 
-  _TlsFilter _tlsFilter;
+  _SecureFilter _secureFilter;
 }
 
 
-class _TlsExternalBuffer {
+class _ExternalBuffer {
   static final int SIZE = 8 * 1024;
-  _TlsExternalBuffer() : start = 0, length = 0;
+  _ExternalBuffer() : start = 0, length = 0;
 
   // TODO(whesse): Consider making this a circular buffer.  Only if it helps.
   void advanceStart(int numBytes) {
@@ -522,8 +522,8 @@ class _TlsExternalBuffer {
 }
 
 
-abstract class _TlsFilter {
-  external factory _TlsFilter();
+abstract class _SecureFilter {
+  external factory _SecureFilter();
 
   void connect(String hostName,
                int port,
@@ -535,5 +535,5 @@ abstract class _TlsFilter {
   int processBuffer(int bufferIndex);
   void registerHandshakeCompleteCallback(Function handshakeCompleteHandler);
 
-  List<_TlsExternalBuffer> get buffers;
+  List<_ExternalBuffer> get buffers;
 }

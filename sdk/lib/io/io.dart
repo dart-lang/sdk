@@ -49,7 +49,7 @@
 #source('stream_util.dart');
 #source('string_stream.dart');
 #source('timer_impl.dart');
-#source('tls_socket.dart');
-#source('tls_server_socket.dart');
+#source('secure_socket.dart');
+#source('secure_server_socket.dart');
 #source('websocket.dart');
 #source('websocket_impl.dart');

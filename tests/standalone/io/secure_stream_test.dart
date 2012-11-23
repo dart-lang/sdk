@@ -14,15 +14,15 @@
 void main() {
   var testPkcertDatabase =
       new Path.fromNative(new Options().script).directoryPath.append('pkcert/');
-  TlsSocket.setCertificateDatabase(testPkcertDatabase.toNativePath());
-  // TODO(3593): Use a Dart HTTPS server for this test using TLS server sockets.
+  SecureSocket.setCertificateDatabase(testPkcertDatabase.toNativePath());
+  // TODO(3593): Use a Dart HTTPS server for this test.
   // When we use a Dart HTTPS server, allow --short_socket_write. The flag
   // causes fragmentation of the client hello message, which doesn't seem to
   // work with www.google.dk.
-  var tls = new TlsSocket("www.google.dk", 443);
+  var secure = new SecureSocket("www.google.dk", 443);
   List<String> chunks = <String>[];
-  var input = tls.inputStream;
-  var output = tls.outputStream;
+  var input = secure.inputStream;
+  var output = secure.outputStream;
 
   output.write("GET / HTTP/1.0\r\nHost: www.google.dk\r\n\r\n".charCodes);
   output.close();

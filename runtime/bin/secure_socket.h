@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_TLS_SOCKET_H_
-#define BIN_TLS_SOCKET_H_
+#ifndef BIN_SECURE_SOCKET_H_
+#define BIN_SECURE_SOCKET_H_
 
 #include <stdlib.h>
 #include <string.h>
@@ -44,15 +44,15 @@ static void ThrowPRException(const char* message) {
 }
 
 /*
- * TlsFilter encapsulates the NSS SSL(TLS) code in a filter, that communicates
- * with the containing _TlsFilterImpl Dart object through four shared
+ * SSLFilter encapsulates the NSS SSL(TLS) code in a filter, that communicates
+ * with the containing _SecureFilterImpl Dart object through four shared
  * ExternalByteArray buffers, for reading and writing plaintext, and
  * reading and writing encrypted text.  The filter handles handshaking
  * and certificate verification.
  */
-class TlsFilter {
+class SSLFilter {
  public:
-  // These enums must agree with those in sdk/lib/io/tls_socket.dart.
+  // These enums must agree with those in sdk/lib/io/secure_socket.dart.
   enum BufferIndex {
     kReadPlaintext,
     kWritePlaintext,
@@ -61,7 +61,7 @@ class TlsFilter {
     kNumBuffers
   };
 
-  TlsFilter()
+  SSLFilter()
       : string_start_(NULL),
         string_length_(NULL),
         handshake_complete_(NULL),
@@ -100,7 +100,7 @@ class TlsFilter {
   void InitializeBuffers(Dart_Handle dart_this);
   void InitializePlatformData();
 
-  DISALLOW_COPY_AND_ASSIGN(TlsFilter);
+  DISALLOW_COPY_AND_ASSIGN(SSLFilter);
 };
 
-#endif  // BIN_TLS_SOCKET_H_
+#endif  // BIN_SECURE_SOCKET_H_

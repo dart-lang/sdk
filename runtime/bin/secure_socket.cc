@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "bin/tls_socket.h"
+#include "bin/secure_socket.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -27,47 +27,47 @@
 
 #include "include/dart_api.h"
 
-bool TlsFilter::library_initialized_ = false;
-dart::Mutex TlsFilter::mutex_;  // To protect library initialization.
+bool SSLFilter::library_initialized_ = false;
+dart::Mutex SSLFilter::mutex_;  // To protect library initialization.
 // The password is needed when creating secure server sockets.  It can
 // be null if only secure client sockets are used.
-const char* TlsFilter::password_ = NULL;
+const char* SSLFilter::password_ = NULL;
 
-static const int kTlsFilterNativeFieldIndex = 0;
+static const int kSSLFilterNativeFieldIndex = 0;
 
-static TlsFilter* GetTlsFilter(Dart_NativeArguments args) {
-  TlsFilter* filter;
+static SSLFilter* GetFilter(Dart_NativeArguments args) {
+  SSLFilter* filter;
   Dart_Handle dart_this = ThrowIfError(Dart_GetNativeArgument(args, 0));
   ASSERT(Dart_IsInstance(dart_this));
   ThrowIfError(Dart_GetNativeInstanceField(
       dart_this,
-      kTlsFilterNativeFieldIndex,
+      kSSLFilterNativeFieldIndex,
       reinterpret_cast<intptr_t*>(&filter)));
   return filter;
 }
 
 
-static void SetTlsFilter(Dart_NativeArguments args, TlsFilter* filter) {
+static void SetFilter(Dart_NativeArguments args, SSLFilter* filter) {
   Dart_Handle dart_this = ThrowIfError(Dart_GetNativeArgument(args, 0));
   ASSERT(Dart_IsInstance(dart_this));
   ThrowIfError(Dart_SetNativeInstanceField(
       dart_this,
-      kTlsFilterNativeFieldIndex,
+      kSSLFilterNativeFieldIndex,
       reinterpret_cast<intptr_t>(filter)));
 }
 
 
-void FUNCTION_NAME(TlsSocket_Init)(Dart_NativeArguments args) {
+void FUNCTION_NAME(SecureSocket_Init)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle dart_this = ThrowIfError(Dart_GetNativeArgument(args, 0));
-  TlsFilter* filter = new TlsFilter;
-  SetTlsFilter(args, filter);
+  SSLFilter* filter = new SSLFilter;
+  SetFilter(args, filter);
   filter->Init(dart_this);
   Dart_ExitScope();
 }
 
 
-void FUNCTION_NAME(TlsSocket_Connect)(Dart_NativeArguments args) {
+void FUNCTION_NAME(SecureSocket_Connect)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle host_name_object = ThrowIfError(Dart_GetNativeArgument(args, 1));
   Dart_Handle port_object = ThrowIfError(Dart_GetNativeArgument(args, 2));
@@ -83,12 +83,12 @@ void FUNCTION_NAME(TlsSocket_Connect)(Dart_NativeArguments args) {
   if (!DartUtils::GetInt64Value(port_object, &port) ||
       port < 0 || port > 65535) {
     Dart_ThrowException(DartUtils::NewDartArgumentError(
-      "Illegal port parameter in _TlsFilter.connect"));
+      "Illegal port parameter in _SSLFilter.connect"));
   }
 
   if (!Dart_IsBoolean(is_server_object)) {
     Dart_ThrowException(DartUtils::NewDartArgumentError(
-      "Illegal is_server parameter in _TlsFilter.connect"));
+      "Illegal is_server parameter in _SSLFilter.connect"));
   }
   bool is_server = DartUtils::GetBooleanValue(is_server_object);
 
@@ -98,13 +98,13 @@ void FUNCTION_NAME(TlsSocket_Connect)(Dart_NativeArguments args) {
   if (is_server) {
     if (!Dart_IsString(certificate_name_object)) {
       Dart_ThrowException(DartUtils::NewDartArgumentError(
-          "Non-String certificate parameter in _TlsFilter.connect"));
+          "Non-String certificate parameter in _SSLFilter.connect"));
     }
     ThrowIfError(Dart_StringToCString(certificate_name_object,
                                       &certificate_name));
   }
 
-  GetTlsFilter(args)->Connect(host_name,
+  GetFilter(args)->Connect(host_name,
                               static_cast<int>(port),
                               is_server,
                               certificate_name);
@@ -112,24 +112,24 @@ void FUNCTION_NAME(TlsSocket_Connect)(Dart_NativeArguments args) {
 }
 
 
-void FUNCTION_NAME(TlsSocket_Destroy)(Dart_NativeArguments args) {
+void FUNCTION_NAME(SecureSocket_Destroy)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  TlsFilter* filter = GetTlsFilter(args);
-  SetTlsFilter(args, NULL);
+  SSLFilter* filter = GetFilter(args);
+  SetFilter(args, NULL);
   filter->Destroy();
   delete filter;
   Dart_ExitScope();
 }
 
 
-void FUNCTION_NAME(TlsSocket_Handshake)(Dart_NativeArguments args) {
+void FUNCTION_NAME(SecureSocket_Handshake)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  GetTlsFilter(args)->Handshake();
+  GetFilter(args)->Handshake();
   Dart_ExitScope();
 }
 
 
-void FUNCTION_NAME(TlsSocket_RegisterHandshakeCompleteCallback)(
+void FUNCTION_NAME(SecureSocket_RegisterHandshakeCompleteCallback)(
     Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle handshake_complete =
@@ -138,28 +138,28 @@ void FUNCTION_NAME(TlsSocket_RegisterHandshakeCompleteCallback)(
     Dart_ThrowException(DartUtils::NewDartArgumentError(
         "Illegal argument to RegisterHandshakeCompleteCallback"));
   }
-  GetTlsFilter(args)->RegisterHandshakeCompleteCallback(handshake_complete);
+  GetFilter(args)->RegisterHandshakeCompleteCallback(handshake_complete);
   Dart_ExitScope();
 }
 
 
-void FUNCTION_NAME(TlsSocket_ProcessBuffer)(Dart_NativeArguments args) {
+void FUNCTION_NAME(SecureSocket_ProcessBuffer)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle buffer_id_object = ThrowIfError(Dart_GetNativeArgument(args, 1));
   int64_t buffer_id = DartUtils::GetIntegerValue(buffer_id_object);
-  if (buffer_id < 0 || buffer_id >= TlsFilter::kNumBuffers) {
+  if (buffer_id < 0 || buffer_id >= SSLFilter::kNumBuffers) {
     Dart_ThrowException(DartUtils::NewDartArgumentError(
         "Illegal argument to ProcessBuffer"));
   }
 
   intptr_t bytes_read =
-      GetTlsFilter(args)->ProcessBuffer(static_cast<int>(buffer_id));
+      GetFilter(args)->ProcessBuffer(static_cast<int>(buffer_id));
   Dart_SetReturnValue(args, Dart_NewInteger(bytes_read));
   Dart_ExitScope();
 }
 
 
-void FUNCTION_NAME(TlsSocket_SetCertificateDatabase)
+void FUNCTION_NAME(SecureSocket_SetCertificateDatabase)
     (Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle certificate_database_object =
@@ -188,12 +188,12 @@ void FUNCTION_NAME(TlsSocket_SetCertificateDatabase)
         "Password argument to SetCertificateDatabase is not a String or null"));
   }
 
-  TlsFilter::InitializeLibrary(certificate_database, password);
+  SSLFilter::InitializeLibrary(certificate_database, password);
   Dart_ExitScope();
 }
 
 
-void TlsFilter::Init(Dart_Handle dart_this) {
+void SSLFilter::Init(Dart_Handle dart_this) {
   string_start_ = ThrowIfError(
       Dart_NewPersistentHandle(DartUtils::NewString("start")));
   string_length_ = ThrowIfError(
@@ -204,20 +204,20 @@ void TlsFilter::Init(Dart_Handle dart_this) {
 }
 
 
-void TlsFilter::InitializeBuffers(Dart_Handle dart_this) {
-  // Create TlsFilter buffers as ExternalUint8Array objects.
+void SSLFilter::InitializeBuffers(Dart_Handle dart_this) {
+  // Create SSLFilter buffers as ExternalUint8Array objects.
   Dart_Handle dart_buffers_object = ThrowIfError(
       Dart_GetField(dart_this, DartUtils::NewString("buffers")));
   Dart_Handle dart_buffer_object =
       Dart_ListGetAt(dart_buffers_object, kReadPlaintext);
-  Dart_Handle tls_external_buffer_class =
+  Dart_Handle external_buffer_class =
       Dart_InstanceGetClass(dart_buffer_object);
   Dart_Handle dart_buffer_size = ThrowIfError(
-      Dart_GetField(tls_external_buffer_class, DartUtils::NewString("SIZE")));
+      Dart_GetField(external_buffer_class, DartUtils::NewString("SIZE")));
   buffer_size_ = DartUtils::GetIntegerValue(dart_buffer_size);
   if (buffer_size_ <= 0 || buffer_size_ > 1024 * 1024) {
     Dart_ThrowException(
-        DartUtils::NewString("Invalid buffer size in _TlsExternalBuffer"));
+        DartUtils::NewString("Invalid buffer size in _ExternalBuffer"));
   }
 
   Dart_Handle data_identifier = DartUtils::NewString("data");
@@ -234,13 +234,13 @@ void TlsFilter::InitializeBuffers(Dart_Handle dart_this) {
 }
 
 
-void TlsFilter::RegisterHandshakeCompleteCallback(Dart_Handle complete) {
+void SSLFilter::RegisterHandshakeCompleteCallback(Dart_Handle complete) {
   ASSERT(NULL == handshake_complete_);
   handshake_complete_ = ThrowIfError(Dart_NewPersistentHandle(complete));
 }
 
 
-void TlsFilter::InitializeLibrary(const char* certificate_database,
+void SSLFilter::InitializeLibrary(const char* certificate_database,
                                   const char* password) {
   MutexLocker locker(&mutex_);
   if (!library_initialized_) {
@@ -263,7 +263,7 @@ void TlsFilter::InitializeLibrary(const char* certificate_database,
       ThrowPRException("Unsuccessful SSL_OptionSetDefault enable TLS call.");
     }
   } else {
-    ThrowException("Called TlsFilter::InitializeLibrary more than once");
+    ThrowException("Called SSLFilter::InitializeLibrary more than once");
   }
 }
 
@@ -274,7 +274,7 @@ char* PasswordCallback(PK11SlotInfo* slot, PRBool retry, void* arg) {
   return NULL;
 }
 
-void TlsFilter::Connect(const char* host_name,
+void SSLFilter::Connect(const char* host_name,
                         int port,
                         bool is_server,
                         const char* certificate_name) {
@@ -348,7 +348,7 @@ void TlsFilter::Connect(const char* host_name,
 }
 
 
-void TlsFilter::Handshake() {
+void SSLFilter::Handshake() {
   SECStatus status = SSL_ForceHandshake(filter_);
   if (status == SECSuccess) {
     if (in_handshake_) {
@@ -372,7 +372,7 @@ void TlsFilter::Handshake() {
 }
 
 
-void TlsFilter::Destroy() {
+void SSLFilter::Destroy() {
   for (int i = 0; i < kNumBuffers; ++i) {
     Dart_DeletePersistentHandle(dart_buffer_objects_[i]);
     delete[] buffers_[i];
@@ -384,7 +384,7 @@ void TlsFilter::Destroy() {
 }
 
 
-intptr_t TlsFilter::ProcessBuffer(int buffer_index) {
+intptr_t SSLFilter::ProcessBuffer(int buffer_index) {
   Dart_Handle buffer_object = dart_buffer_objects_[buffer_index];
   Dart_Handle start_object = ThrowIfError(
       Dart_GetField(buffer_object, string_start_));
@@ -412,7 +412,7 @@ intptr_t TlsFilter::ProcessBuffer(int buffer_index) {
         // TODO(whesse): Handle unexpected errors here.
         PRErrorCode pr_error = PR_GetError();
         if (PR_WOULD_BLOCK_ERROR != pr_error) {
-          ThrowPRException("Error reading plaintext from TlsFilter");
+          ThrowPRException("Error reading plaintext from SSLFilter");
         }
         bytes_processed = 0;
       }
@@ -473,7 +473,7 @@ intptr_t TlsFilter::ProcessBuffer(int buffer_index) {
         // TODO(whesse): Handle unexpected errors here.
         PRErrorCode pr_error = PR_GetError();
         if (PR_WOULD_BLOCK_ERROR != pr_error) {
-          ThrowPRException("Error reading plaintext from TlsFilter");
+          ThrowPRException("Error reading plaintext from SSLFilter");
         }
         bytes_processed = 0;
       }

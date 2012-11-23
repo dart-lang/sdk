@@ -28,32 +28,32 @@ void WriteAndClose(Socket socket, String message) {
 void main() {
   var testPkcertDatabase =
       new Path.fromNative(new Options().script).directoryPath.append('pkcert/');
-  TlsSocket.setCertificateDatabase(testPkcertDatabase.toNativePath());
-  // TODO(3593): Use a Dart HTTPS server for this test using TLS server sockets.
+  SecureSocket.setCertificateDatabase(testPkcertDatabase.toNativePath());
+  // TODO(3593): Use a Dart HTTPS server for this test.
   // When we use a Dart HTTPS server, allow --short_socket_write. The flag
   // causes fragmentation of the client hello message, which doesn't seem to
   // work with www.google.dk.
-  var tls = new TlsSocket("www.google.dk", 443);
+  var secure = new SecureSocket("www.google.dk", 443);
   List<String> chunks = <String>[];
-  tls.onConnect = () {
-    WriteAndClose(tls, "GET / HTTP/1.0\r\nHost: www.google.dk\r\n\r\n");
+  secure.onConnect = () {
+    WriteAndClose(secure, "GET / HTTP/1.0\r\nHost: www.google.dk\r\n\r\n");
   };
   var useReadList;  // Mutually recursive onData callbacks.
   void useRead() {
-    var data = tls.read();
+    var data = secure.read();
     var received = new String.fromCharCodes(data);
     chunks.add(received);
-    tls.onData = useReadList;
+    secure.onData = useReadList;
   }
   useReadList = () {
     var buffer = new List(2000);
-    int len = tls.readList(buffer, 0, 2000);
+    int len = secure.readList(buffer, 0, 2000);
     var received = new String.fromCharCodes(buffer.getRange(0, len));
     chunks.add(received);
-    tls.onData = useRead;
+    secure.onData = useRead;
   };
-  tls.onData = useRead;
-  tls.onClosed = () {
+  secure.onData = useRead;
+  secure.onClosed = () {
     String fullPage = Strings.concatAll(chunks);
     Expect.isTrue(fullPage.contains('</body></html>'));
   };

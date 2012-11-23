@@ -14,6 +14,6 @@
     'process_patch.dart',
     'socket_patch.dart',
     'stdio_patch.dart',
-    'tls_socket_patch.dart',
+    'secure_socket_patch.dart',
   ],
 }

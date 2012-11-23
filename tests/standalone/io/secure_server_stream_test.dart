@@ -7,7 +7,7 @@ import "dart:io";
 const SERVER_ADDRESS = "127.0.0.1";
 const HOST_NAME = "localhost";
 
-class TlsTestServer {
+class SecureTestServer {
   void onConnection(Socket connection) {
     numConnections++;
     var input = connection.inputStream;
@@ -28,7 +28,7 @@ class TlsTestServer {
   }
 
   int start() {
-    server = new TlsServerSocket(SERVER_ADDRESS, 0, 10, "CN=$HOST_NAME");
+    server = new SecureServerSocket(SERVER_ADDRESS, 0, 10, "CN=$HOST_NAME");
     Expect.isNotNull(server);
     server.onConnection = onConnection;
     server.onError = errorHandlerServer;
@@ -40,12 +40,12 @@ class TlsTestServer {
   }
 
   int numConnections = 0;
-  TlsServerSocket server;
+  SecureServerSocket server;
 }
 
-class TlsTestClient {
-  TlsTestClient(int this.port, String this.name) {
-    socket = new TlsSocket(HOST_NAME, port);
+class SecureTestClient {
+  SecureTestClient(int this.port, String this.name) {
+    socket = new SecureSocket(HOST_NAME, port);
     numRequests++;
     socket.outputStream.write("Hello from client $name".charCodes);
     socket.outputStream.close();
@@ -70,7 +70,7 @@ class TlsTestClient {
 
   int port;
   String name;
-  TlsSocket socket;
+  SecureSocket socket;
   String reply;
 }
 
@@ -81,10 +81,10 @@ const CLIENT_NAMES = const ['able', 'baker', 'camera', 'donut', 'echo'];
 void main() {
   Path scriptDir = new Path.fromNative(new Options().script).directoryPath;
   Path certificateDatabase = scriptDir.append('pkcert');
-  TlsSocket.setCertificateDatabase(certificateDatabase.toNativePath(),
+  SecureSocket.setCertificateDatabase(certificateDatabase.toNativePath(),
                                    'dartdart');
 
-  var server = new TlsTestServer();
+  var server = new SecureTestServer();
   int port = server.start();
 
   EndTest = () {
@@ -93,6 +93,6 @@ void main() {
   };
 
   for (var x in CLIENT_NAMES) {
-    new TlsTestClient(port, x);
+    new SecureTestClient(port, x);
   }
 }

@@ -167,16 +167,16 @@ patch class Socket {
   patch factory Socket(String host, int port) => new _Socket(host, port);
 }
 
-patch class TlsSocket {
+patch class SecureSocket {
   patch static void setCertificateDatabase(String certificateDatabase,
                                            [String password]) {
-    throw new UnsupportedError("TlsSocket.setCertificateDatabase");
+    throw new UnsupportedError("SecureSocket.setCertificateDatabase");
   }
 }
 
-patch class _TlsFilter {
-  patch factory _TlsFilter() {
-    throw new UnsupportedError("_TlsFilter._TlsFilter");
+patch class _SecureFilter {
+  patch factory _SecureFilter() {
+    throw new UnsupportedError("_SecureFilter._SecureFilter");
   }
 }
 
