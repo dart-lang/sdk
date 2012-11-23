@@ -66,10 +66,11 @@ void testStreamResponse() {
     resp.inputStream.onData = () {
       bytes += resp.inputStream.read().length;
       if (bytes > 100) {
-        client.shutdown();
+        client.shutdown(force: true);
       }
     };
   };
+  connection.onError = (e) => Expect.isTrue(e is HttpException);
 }
 
 main() {

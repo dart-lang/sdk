@@ -64,11 +64,13 @@ void test(int totalConnections, bool clientPersistentConnection) {
       Expect.isFalse(response.persistentConnection);
       checkExpectedConnectionHeaders(response.headers,
                                      response.persistentConnection);
-      count++;
-      if (count == totalConnections) {
-        client.shutdown();
-        server.close();
-      }
+      response.inputStream.onClosed = () {
+        count++;
+        if (count == totalConnections) {
+          client.shutdown();
+          server.close();
+        }
+      };
     };
   }
 }

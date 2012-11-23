@@ -50,9 +50,6 @@ unittest/test/mock_regexp_negative_test: Fail
 unittest/test/mock_stepwise_negative_test: Fail
 args/test/args_test: Fail # http://dartbug.com/6790
 
-[ $system == windows ]
-http/test/request_test: Pass, Timeout # Issue 6594
-
 [ $compiler == dart2js || $compiler == dartc ]
 unittest/test/instance_test: Skip
 

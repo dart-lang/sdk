@@ -22,11 +22,13 @@ void test1(int totalConnections) {
       request.outputStream.close();
     };
     conn.onResponse = (HttpClientResponse response) {
-      count++;
-      if (count == totalConnections) {
-        client.shutdown();
-        server.close();
-      }
+      response.inputStream.onClosed = () {
+        count++;
+        if (count == totalConnections) {
+          client.shutdown();
+          server.close();
+        }
+      };
     };
   }
 }
@@ -51,11 +53,14 @@ void test2(int totalConnections) {
       request.outputStream.close();
     };
     conn.onResponse = (HttpClientResponse response) {
-      count++;
-      if (count == totalConnections) {
-        client.shutdown();
-        server.close();
-      }
+      response.inputStream.onData = response.inputStream.read;
+      response.inputStream.onClosed = () {
+        count++;
+        if (count == totalConnections) {
+          client.shutdown();
+          server.close();
+        }
+      };
     };
   }
 }
@@ -85,11 +90,14 @@ void test3(int totalConnections) {
       request.outputStream.close();
     };
     conn.onResponse = (HttpClientResponse response) {
-      count++;
-      if (count == totalConnections) {
-        client.shutdown();
-        server.close();
-      }
+      response.inputStream.onData = response.inputStream.read;
+      response.inputStream.onClosed = () {
+        count++;
+        if (count == totalConnections) {
+          client.shutdown();
+          server.close();
+        }
+      };
     };
   }
 }
@@ -113,6 +121,7 @@ void test4() {
   var client= new HttpClient();
   var conn = client.get("127.0.0.1", server.port, "/");
   conn.onResponse = (var response) {
+    response.inputStream.onData = response.inputStream.read;
     response.inputStream.onClosed = () {
       client.shutdown();
     };
@@ -137,13 +146,14 @@ void test5(int totalConnections) {
   for (int i = 0; i < totalConnections; i++) {
     var conn = client.post("127.0.0.1", server.port, "/");
     conn.onRequest = (req) { req.outputStream.write([0]); };
+    conn.onError = (e) => Expect.isTrue(e is HttpException);
   }
   bool clientClosed = false;
   new Timer.repeating(100, (timer) {
     if (!clientClosed) {
       if (server.connectionsInfo().total == totalConnections) {
         clientClosed = true;
-        client.shutdown();
+        client.shutdown(force: true);
       }
     } else {
       if (server.connectionsInfo().total == 0) {

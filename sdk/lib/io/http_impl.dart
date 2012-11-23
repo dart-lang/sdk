@@ -1463,7 +1463,9 @@ class _HttpClientConnection
   }
 
   void _onError(e) {
-    // Socket is closed either due to an error or due to normal socket close.
+    if (_socketConn != null) {
+      _client._closeSocketConnection(_socketConn);
+    }
     if (_onErrorCallback != null) {
       _onErrorCallback(e);
     } else {
@@ -1472,9 +1474,6 @@ class _HttpClientConnection
     // Propagate the error to the streams.
     if (_response != null && _response._streamErrorHandler != null) {
        _response._streamErrorHandler(e);
-    }
-    if (_socketConn != null) {
-      _client._closeSocketConnection(_socketConn);
     }
   }
 
@@ -1490,9 +1489,15 @@ class _HttpClientConnection
   }
 
   void _onDataEnd(bool close) {
-    _response._onDataEnd();
     _state |= _HttpConnectionBase.RESPONSE_DONE;
+    _response._onDataEnd();
     _checkSocketDone();
+  }
+
+  void _onClientShutdown() {
+    if (!_isResponseDone) {
+      _onError(new HttpException("Client shutdown"));
+    }
   }
 
   void set onRequest(void handler(HttpClientRequest request)) {
@@ -1548,13 +1553,8 @@ class _HttpClientConnection
     var redirect = new _RedirectInfo(_response.statusCode, method, url);
     // The actual redirect is postponed until both response and
     // request are done.
-    if (_isAllDone) {
-      _doRedirect(redirect);
-    } else {
-      // Prepare for redirect.
-      assert(_pendingRetry == null);
-      _pendingRedirect = redirect;
-    }
+    assert(_pendingRetry == null);
+    _pendingRedirect = redirect;
   }
 
   List<RedirectInfo> get redirects => _redirects;
@@ -1594,12 +1594,14 @@ class _SocketConnection {
     _socket.onClosed = null;
     _socket.onError = null;
     _returnTime = new Date.now();
+    _httpClientConnection = null;
   }
 
   void _close() {
     _socket.onData = null;
     _socket.onClosed = null;
     _socket.onError = null;
+    _httpClientConnection = null;
     _socket.close();
   }
 
@@ -1611,6 +1613,7 @@ class _SocketConnection {
   int _port;
   Socket _socket;
   Date _returnTime;
+  HttpClientConnection _httpClientConnection;
 }
 
 class _ProxyConfiguration {
@@ -1730,19 +1733,22 @@ class _HttpClient implements HttpClient {
 
   set findProxy(String f(Uri uri)) => _findProxy = f;
 
-  void shutdown() {
-    _closeQueue.shutdown();
+  void shutdown({bool force: false}) {
+    if (force) _closeQueue.shutdown();
     _openSockets.forEach((String key, Queue<_SocketConnection> connections) {
       while (!connections.isEmpty) {
         _SocketConnection socketConn = connections.removeFirst();
         socketConn._socket.close();
       }
     });
-    _activeSockets.forEach((_SocketConnection socketConn) {
-      socketConn._socket.close();
-    });
+    if (force) {
+      _activeSockets.forEach((_SocketConnection socketConn) {
+        socketConn._socket.close();
+        socketConn._httpClientConnection._onClientShutdown();
+      });
+    }
     if (_evictionTimer != null) _cancelEvictionTimer();
-     _shutdown = true;
+    _shutdown = true;
   }
 
   void _cancelEvictionTimer() {
@@ -1768,6 +1774,7 @@ class _HttpClient implements HttpClient {
       void _connectionOpened(_SocketConnection socketConn,
                              _HttpClientConnection connection,
                              bool usingProxy) {
+        socketConn._httpClientConnection = connection;
         connection._usingProxy = usingProxy;
         connection._connectionEstablished(socketConn);
         HttpClientRequest request = connection.open(method, url);
@@ -1882,14 +1889,14 @@ class _HttpClient implements HttpClient {
   }
 
   void _returnSocketConnection(_SocketConnection socketConn) {
-    // Mark socket as returned to unregister from the old connection.
-    socketConn._markReturned();
-
-    // If the HTTP client is beeing shutdown don't return the connection.
+    // If the HTTP client is being shutdown don't return the connection.
     if (_shutdown) {
-      socketConn._socket.close();
+      socketConn._close();
       return;
     };
+
+    // Mark socket as returned to unregister from the old connection.
+    socketConn._markReturned();
 
     String key = _connectionKey(socketConn._host, socketConn._port);
 

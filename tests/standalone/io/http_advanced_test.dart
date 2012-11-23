@@ -287,9 +287,12 @@ Future testHost() {
     };
     conn.onResponse = (HttpClientResponse response) {
       Expect.equals(HttpStatus.OK, response.statusCode);
-      httpClient.shutdown();
-      testServerMain.shutdown();
-      completer.complete(true);
+      response.inputStream.onData = response.inputStream.read;
+      response.inputStream.onClosed = () {
+        httpClient.shutdown();
+        testServerMain.shutdown();
+        completer.complete(true);
+      };
     };
   });
   testServerMain.start();
@@ -309,12 +312,15 @@ Future testExpires() {
                     response.headers["expires"][0]);
       Expect.equals(new Date.utc(1999, Date.JUN, 11, 18, 46, 53, 0),
                     response.headers.expires);
-      responses++;
-      if (responses == 2) {
-        httpClient.shutdown();
-        testServerMain.shutdown();
-        completer.complete(true);
-      }
+      response.inputStream.onData = response.inputStream.read;
+      response.inputStream.onClosed = () {
+        responses++;
+        if (responses == 2) {
+          httpClient.shutdown();
+          testServerMain.shutdown();
+          completer.complete(true);
+        }
+      };
     }
 
     HttpClientConnection conn1 = httpClient.get("127.0.0.1", port, "/expires1");
@@ -346,12 +352,15 @@ Future testContentType() {
       Expect.equals("html", response.headers.contentType.subType);
       Expect.equals("utf-8",
                     response.headers.contentType.parameters["charset"]);
-      responses++;
-      if (responses == 2) {
-        httpClient.shutdown();
-        testServerMain.shutdown();
-        completer.complete(true);
-      }
+      response.inputStream.onData = response.inputStream.read;
+      response.inputStream.onClosed = () {
+        responses++;
+        if (responses == 2) {
+          httpClient.shutdown();
+          testServerMain.shutdown();
+          completer.complete(true);
+        }
+      };
     }
 
     HttpClientConnection conn1 =
@@ -415,10 +424,13 @@ Future testCookies() {
         request.cookies.add(response.cookies[1]);
         request.outputStream.close();
       };
-      conn2.onResponse = (HttpClientResponse ignored) {
-        httpClient.shutdown();
-        testServerMain.shutdown();
-        completer.complete(true);
+      conn2.onResponse = (HttpClientResponse response) {
+        response.inputStream.onData = response.inputStream.read;
+        response.inputStream.onClosed = () {
+          httpClient.shutdown();
+          testServerMain.shutdown();
+          completer.complete(true);
+        };
       };
     };
   });
@@ -439,9 +451,12 @@ Future testFlush() {
     };
     conn.onResponse = (HttpClientResponse response) {
       Expect.equals(HttpStatus.OK, response.statusCode);
-      httpClient.shutdown();
-      testServerMain.shutdown();
-      completer.complete(true);
+      response.inputStream.onData = response.inputStream.read;
+      response.inputStream.onClosed = () {
+        httpClient.shutdown();
+        testServerMain.shutdown();
+        completer.complete(true);
+      };
     };
   });
   testServerMain.start();

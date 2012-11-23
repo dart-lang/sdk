@@ -830,9 +830,16 @@ abstract class HttpClient {
   set findProxy(String f(Uri url));
 
   /**
-   * Shutdown the HTTP client releasing all resources.
+   * Shutdown the HTTP client. If [force] is [:false:] (the default)
+   * the [:HttpClient:] will be kept alive until all active
+   * connections are done. If [force] is [:true:] any active
+   * connections will be closed to immediately release all
+   * resources. These closed connections will receive an [:onError:]
+   * callback to indicate that the client was shutdown. In both cases
+   * trying to establish a new connection after calling [shutdown]
+   * will throw an exception.
    */
-  void shutdown();
+  void shutdown({bool force: false});
 }
 
 
