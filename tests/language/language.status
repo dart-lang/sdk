@@ -386,13 +386,12 @@ string_escape1_negative_test: Skip
 
 [ $compiler == dart2dart ]
 factory_redirection2_test/01: Fail # Inherited from dart2js.
-const_factory_redirection_test: Fail # TRIAGE
-redirecting_factory_infinite_steps_test/01: Fail, Pass # TRIAGE: fails in minified mode. http://dartbug.com/6603
+const_factory_redirection_test: Fail # http://dartbug.com/6894
 
-many_overridden_no_such_method_test: Fail, Pass # TRIAGE: fails in minified mode
-overridden_no_such_method_test: Fail, Pass # TRIAGE: fails in minified mode
+many_overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
+overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
+
 # Calling unresolved class constructor:
-# call_constructor_on_unresolvable_class_test/07: Fail
 call_nonexistent_constructor_test: Fail
 
 bad_override_test/01: Fail
