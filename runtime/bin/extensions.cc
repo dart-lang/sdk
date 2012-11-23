@@ -15,17 +15,18 @@
 Dart_Handle Extensions::LoadExtension(const char* extension_url,
                                       Dart_Handle parent_library) {
   char* library_path = strdup(extension_url);
-  if (!library_path || !File::IsAbsolutePath(library_path)) {
-    free(library_path);
-    return Dart_Error("unexpected error in library path");
+
+  if (library_path == NULL) {
+    return Dart_Error("Out of memory in LoadExtension");
   }
+
   // Extract the path and the extension name from the url.
   char* last_path_separator = strrchr(library_path, '/');
   char* extension_name = last_path_separator + 1;
   *last_path_separator = '\0';  // Terminate library_path at last separator.
 
   void* library_handle = LoadExtensionLibrary(library_path, extension_name);
-  if (!library_handle) {
+  if (library_handle == NULL) {
     free(library_path);
     return Dart_Error("cannot find extension library");
   }
