@@ -120,6 +120,8 @@ class ElementKind {
       const ElementKind('ambiguous', ElementCategory.NONE);
   static const ElementKind ERROR =
       const ElementKind('error', ElementCategory.NONE);
+  static const ElementKind MALFORMED_TYPE =
+    const ElementKind('malformed', ElementCategory.NONE);
 
   toString() => id;
 }
@@ -199,6 +201,8 @@ class Element implements Spannable {
 
   /** See [AmbiguousElement] for documentation. */
   bool isAmbiguous() => false;
+
+  bool isMalformed() => false;
 
   /**
    * Is [:true:] if this element has a corresponding patch.
@@ -1319,6 +1323,23 @@ class VoidElement extends Element {
   bool impliesType() => true;
 }
 
+class MalformedTypeElement extends Element {
+  final TypeAnnotation typeNode;
+
+  MalformedTypeElement(this.typeNode, Element enclosing)
+      : super(const SourceString('malformed'),
+              ElementKind.MALFORMED_TYPE,
+              enclosing);
+
+  DartType computeType(compiler) => compiler.types.malformedType;
+
+  Node parseNode(_) => typeNode;
+
+  bool impliesType() => true;
+
+  bool isMalformed() => true;
+}
+
 /**
  * [TypeDeclarationElement] defines the common interface for class/interface
  * declarations and typedefs.
@@ -1724,8 +1745,11 @@ abstract class ClassElement extends ScopeContainerElement
 }
 
 class Elements {
-  static bool isUnresolved(Element e) => e == null || e.isErroneous();
+  static bool isUnresolved(Element e) {
+    return e == null || e.isErroneous() || e.isMalformed();
+  }
   static bool isErroneousElement(Element e) => e != null && e.isErroneous();
+  static bool isMalformedElement(Element e) => e != null && e.isMalformed();
 
   static bool isClass(Element e) => e != null && e.kind == ElementKind.CLASS;
   static bool isTypedef(Element e) {

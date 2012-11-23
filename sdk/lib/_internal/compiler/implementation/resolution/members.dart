@@ -1038,6 +1038,18 @@ class TypeResolver {
 
   TypeResolver(this.compiler);
 
+  bool anyMalformedTypesInThere(Link<DartType> list) {
+    for (Link<DartType> link = list;
+        !link.isEmpty;
+        link = link.tail) {
+      DartType dtype = link.head;
+      if (dtype is MalformedType) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   Element resolveTypeName(Scope scope, TypeAnnotation node) {
     Identifier typeName = node.typeName.asIdentifier();
     Send send = node.typeName.asSend();
@@ -1081,6 +1093,7 @@ class TypeResolver {
   DartType resolveTypeAnnotation(
       TypeAnnotation node,
       Scope scope,
+      bool inStaticContext,
       {onFailure(Node node, MessageKind kind, [List arguments]),
        whenResolved(Node node, DartType type)}) {
     if (onFailure == null) {
@@ -1092,11 +1105,12 @@ class TypeResolver {
     if (scope == null) {
       compiler.internalError('resolveTypeAnnotation: no scope specified');
     }
-    return resolveTypeAnnotationInContext(scope, node, onFailure,
-                                          whenResolved);
+    return resolveTypeAnnotationInContext(scope, node, inStaticContext,
+        onFailure, whenResolved);
   }
 
   DartType resolveTypeAnnotationInContext(Scope scope, TypeAnnotation node,
+                                          bool inStaticContext,
                                           onFailure, whenResolved) {
     Element element = resolveTypeName(scope, node);
     DartType type;
@@ -1115,13 +1129,21 @@ class TypeResolver {
         ClassElement cls = element;
         cls.ensureResolved(compiler);
         Link<DartType> arguments =
-            resolveTypeArguments(node, cls.typeVariables, scope,
+            resolveTypeArguments(node, cls.typeVariables,
+                                 inStaticContext, scope,
                                  onFailure, whenResolved);
         if (cls.typeVariables.isEmpty && arguments.isEmpty) {
           // Use the canonical type if it has no type parameters.
           type = cls.computeType(compiler);
         } else {
-          type = new InterfaceType(cls.declaration, arguments);
+          // In checked mode malformed-ness of the type argument bubbles up.
+          if (anyMalformedTypesInThere(arguments) &&
+              compiler.enableTypeAssertions) {
+            type = new MalformedType(
+                new MalformedTypeElement(node, element));
+          } else {
+            type = new InterfaceType(cls.declaration, arguments);
+          }
         }
       } else if (element.isTypedef()) {
         TypedefElement typdef = element;
@@ -1129,7 +1151,7 @@ class TypeResolver {
         compiler.resolveTypedef(typdef);
         typdef.computeType(compiler);
         Link<DartType> arguments = resolveTypeArguments(
-            node, typdef.typeVariables,
+            node, typdef.typeVariables, inStaticContext,
             scope, onFailure, whenResolved);
         if (typdef.typeVariables.isEmpty && arguments.isEmpty) {
           // Return the canonical type if it has no type parameters.
@@ -1138,7 +1160,14 @@ class TypeResolver {
           type = new TypedefType(typdef, arguments);
         }
       } else if (element.isTypeVariable()) {
-        type = element.computeType(compiler);
+        if (inStaticContext) {
+          compiler.reportWarning(node,
+              MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER.message(
+                  [element]));
+          type = new MalformedType(new MalformedTypeElement(node, element));
+        } else {
+          type = element.computeType(compiler);
+        }
       } else {
         compiler.cancel("unexpected element kind ${element.kind}",
                         node: node);
@@ -1150,6 +1179,7 @@ class TypeResolver {
 
   Link<DartType> resolveTypeArguments(TypeAnnotation node,
                                       Link<DartType> typeVariables,
+                                      bool inStaticContext,
                                       Scope scope, onFailure, whenResolved) {
     if (node.typeArguments == null) {
       return const Link<DartType>();
@@ -1163,6 +1193,7 @@ class TypeResolver {
       }
       DartType argType = resolveTypeAnnotationInContext(scope,
                                                     typeArguments.head,
+                                                    inStaticContext,
                                                     onFailure,
                                                     whenResolved);
       arguments.addLast(argType);
@@ -2057,21 +2088,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   DartType resolveTypeAnnotation(TypeAnnotation node) {
-    // TODO(johnniwinther): Remove this together with the named arguments
-    // on [TypeResolver.resolveTypeAnnotation].
-    void checkAndUseType(TypeAnnotation annotation, DartType type) {
-      useType(annotation, type);
-      if (type != null &&
-          identical(type.kind, TypeKind.TYPE_VARIABLE) &&
-          enclosingElement.isInStaticMember()) {
-        warning(annotation, MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
-                [type]);
-      }
-    }
-
     Function report = typeRequired ? error : warning;
     DartType type = typeResolver.resolveTypeAnnotation(
-        node, scope, onFailure: report, whenResolved: checkAndUseType);
+        node, scope, enclosingElement.isInStaticMember(),
+        onFailure: report, whenResolved: useType);
     if (type == null) return null;
     if (inCheckContext) {
       compiler.enqueuer.resolution.registerIsCheck(type);
@@ -2438,7 +2458,8 @@ class TypeDefinitionVisitor extends CommonResolverVisitor<DartType> {
       TypeVariableElement variableElement = typeVariable.element;
       if (typeNode.bound != null) {
         DartType boundType = typeResolver.resolveTypeAnnotation(
-            typeNode.bound, scope, onFailure: warning);
+            typeNode.bound, scope, element.isInStaticMember(),
+            onFailure: warning);
         if (boundType != null && boundType.element == variableElement) {
           // TODO(johnniwinther): Check for more general cycles, like
           // [: <A extends B, B extends C, C extends B> :].

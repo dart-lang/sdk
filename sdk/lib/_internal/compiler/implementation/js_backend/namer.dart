@@ -380,7 +380,8 @@ class Namer {
           kind == ElementKind.GETTER ||
           kind == ElementKind.SETTER ||
           kind == ElementKind.TYPEDEF ||
-          kind == ElementKind.LIBRARY) {
+          kind == ElementKind.LIBRARY ||
+          kind == ElementKind.MALFORMED_TYPE) {
         bool isNative = false;
         if (identical(kind, ElementKind.CLASS)) {
           ClassElement class_elt = element;

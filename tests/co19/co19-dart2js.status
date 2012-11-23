@@ -217,7 +217,6 @@ Language/07_Classes/6_Constructors/2_Factories_A06_t03: Fail # TODO(ahe): Please
 Language/07_Classes/6_Constructors/2_Factories_A06_t04: Fail # TODO(ahe): Please triage this failure.
 Language/09_Generics/09_Generics_A03_t01: Fail # TODO(ahe): Please triage this failure.
 Language/09_Generics/09_Generics_A04_t06: Fail # TODO(ahe): Please triage this failure.
-Language/09_Generics/09_Generics_A05_t02: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/03_Numbers_A05_t02: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/06_Lists_A09_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/06_Lists_A09_t04: Fail # TODO(ahe): Please triage this failure.

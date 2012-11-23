@@ -42,13 +42,6 @@ type_variable_bounds2_test/00: Fail
 type_variable_bounds2_test/03: Fail
 type_variable_bounds2_test/05: Fail
 type_variable_bounds2_test/06: Pass # For the wrong reasons.
-type_variable_scope_test/00: Fail
-type_variable_scope_test/01: Fail
-type_variable_scope_test/02: Fail
-type_variable_scope_test/03: Fail
-type_variable_scope_test/04: Fail
-type_variable_scope_test/05: Fail
-type_variable_scope2_test: Fail
 assign_top_method_negative_test: Pass # For the wrong reasons.
 f_bounded_quantification_test/01: Fail
 f_bounded_quantification_test/02: Fail
@@ -58,11 +51,6 @@ function_type_test: Fail # does not detect type error in checked mode.
 function_malformed_result_type_test: Fail # does not detect type error in checked mode.
 factory1_test/00: Fail
 factory1_test/01: Fail
-
-type_parameter_test/01: Fail # Issue 4932
-type_parameter_test/02: Fail # Issue 4932
-type_parameter_test/03: Fail # Issue 4932
-type_parameter_test/04: Fail # Issue 4932
 
 super_call4_test: Fail # Badly generated noSuchMethod call.
 

@@ -365,7 +365,8 @@ class PlaceholderCollector extends Visitor {
     Element constructor = treeElements[send];
     assert(constructor != null);
     assert(send.receiver == null);
-    if (constructor is !ErroneousElement) {
+    if (!Elements.isErroneousElement(constructor) &&
+        !Elements.isMalformedElement(constructor)) {
       makeConstructorPlaceholder(node.send.selector, constructor, type);
       // TODO(smok): Should this be in visitNamedArgument?
       // Field names can be exposed as names of optional arguments, e.g.

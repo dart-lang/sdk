@@ -36,6 +36,7 @@ class TypeKind {
   static const TypeKind STATEMENT = const TypeKind('statement');
   static const TypeKind TYPEDEF = const TypeKind('typedef');
   static const TypeKind TYPE_VARIABLE = const TypeKind('type variable');
+  static const TypeKind MALFORMED_TYPE = const TypeKind('malformed');
   static const TypeKind VOID = const TypeKind('void');
 
   String toString() => id;
@@ -242,6 +243,24 @@ Link<DartType> substTypes(Link<DartType> types,
     return builder.toLink();
   }
   return types;
+}
+
+class MalformedType extends DartType {
+  const MalformedType(this.element);
+
+  TypeKind get kind => TypeKind.MALFORMED_TYPE;
+
+  SourceString get name => element.name;
+
+  final MalformedTypeElement element;
+
+  DartType unalias(Compiler compiler) => this;
+
+  int get hashCode => 1733;
+
+  bool operator ==(other) => other is MalformedType;
+
+  String toString() => name.slowToString();
 }
 
 class InterfaceType extends DartType {
@@ -485,6 +504,8 @@ class Types {
     s = s.unalias(compiler);
 
     if (t is VoidType) {
+      return false;
+    } else if (t is MalformedType) {
       return false;
     } else if (t is InterfaceType) {
       if (s is !InterfaceType) return false;
