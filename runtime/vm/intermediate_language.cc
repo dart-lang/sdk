@@ -2668,6 +2668,7 @@ intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
   }
 }
 
+
 #undef __
 
 }  // namespace dart

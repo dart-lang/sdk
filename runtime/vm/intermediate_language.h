@@ -1166,7 +1166,8 @@ class PhiInstr : public Definition {
     : block_(block),
       inputs_(num_inputs),
       is_alive_(false),
-      representation_(kTagged) {
+      representation_(kTagged),
+      reaching_defs_(NULL) {
     for (intptr_t i = 0; i < num_inputs; ++i) {
       inputs_.Add(NULL);
     }
@@ -1227,6 +1228,14 @@ class PhiInstr : public Definition {
 
   virtual void InferRange();
 
+  BitVector* reaching_defs() const {
+    return reaching_defs_;
+  }
+
+  void set_reaching_defs(BitVector* reaching_defs) {
+    reaching_defs_ = reaching_defs;
+  }
+
  private:
   friend class ConstantPropagator;  // Direct access to inputs_.
 
@@ -1234,6 +1243,8 @@ class PhiInstr : public Definition {
   GrowableArray<Value*> inputs_;
   bool is_alive_;
   Representation representation_;
+
+  BitVector* reaching_defs_;
 
   DISALLOW_COPY_AND_ASSIGN(PhiInstr);
 };
