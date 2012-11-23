@@ -2438,14 +2438,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // If we're using an interceptor class, emit a call to the
       // interceptor method and then the actual dynamic call on the
       // interceptor object.
-      HInstruction instruction;
-      if (backend.isInterceptorClass(currentElement.getEnclosingClass())
-          && send.receiver == null) {
-        instruction = thisInstruction;
-      } else {
-        pushInvokeInterceptor(interceptedClasses, receiver);
-        instruction = pop();
-      }
+      HInstruction instruction =
+          invokeInterceptor(interceptedClasses, receiver, send);
       instruction = new HInvokeDynamicGetter(
           selector, null, instruction, !hasGetter);
       // Add the receiver as an argument to the getter call on the
@@ -2509,16 +2503,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         getInterceptedClassesOn(send, selector);
     if (interceptedClasses != null) {
       // If we're using an interceptor class, emit a call to the
-      // interceptor method and then the actual dynamic call on the
+      // getInterceptor method and then the actual dynamic call on the
       // interceptor object.
-      HInstruction instruction;
-      if (backend.isInterceptorClass(currentElement.getEnclosingClass())
-          && send.receiver == null) {
-        instruction = thisInstruction;
-      } else {
-        pushInvokeInterceptor(interceptedClasses, receiver);
-        instruction = pop();
-      }
+      HInstruction instruction =
+          invokeInterceptor(interceptedClasses, receiver, send);
       instruction = new HInvokeDynamicSetter(
           selector, null, instruction, receiver, !hasSetter);
       // Add the value as an argument to the setter call on the
@@ -2568,9 +2556,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
-  void pushInvokeInterceptor(Set<ClassElement> intercepted,
-                             HInstruction receiver) {
-    push(new HInterceptor(intercepted, receiver));
+  HInstruction invokeInterceptor(Set<ClassElement> intercepted,
+                                 HInstruction receiver,
+                                 Send send) {
+    if (send != null
+        && backend.isInterceptorClass(currentElement.getEnclosingClass())
+        && send.receiver == null) {
+      return thisInstruction;
+    }
+    HInterceptor interceptor = new HInterceptor(intercepted, receiver);
+    add(interceptor);
+    return interceptor;
   }
 
   void pushInvokeHelper0(Element helper) {
@@ -2774,7 +2770,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   visitDynamicSend(Send node) {
     Selector selector = elements.getSelector(node);
-    var inputs = <HInstruction>[];
 
     SourceString dartMethodName;
     bool isNotEquals = false;
@@ -2790,29 +2785,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       dartMethodName = node.selector.asIdentifier().source;
     }
 
-    Set<ClassElement> interceptedClasses =
-        getInterceptedClassesOn(node, selector);
-
-    if (interceptedClasses != null) {
-      if (backend.isInterceptorClass(currentElement.getEnclosingClass())
-          && node.receiver == null) {
-        inputs.add(thisInstruction);
-        inputs.add(localsHandler.readThis());
-      } else {
-        visit(node.receiver);
-        HInstruction receiver = pop();
-        pushInvokeInterceptor(interceptedClasses, receiver);
-        inputs.add(pop());
-        inputs.add(receiver);
-      }
-      addDynamicSendArgumentsToList(node, inputs);
-      // The first entry in the inputs list is the interceptor. The
-      // second is the receiver, and the others are the arguments.
-      HInstruction instruction = new HInvokeDynamicMethod(selector, inputs);
-      pushWithPosition(instruction, node);
-      return;
-    }
-
     Element element = elements[node];
     if (element != null && compiler.world.hasNoOverridingMember(element)) {
       if (tryInlineMethod(element, selector, node.arguments)) {
@@ -2820,16 +2792,24 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     }
 
+    HInstruction receiver;
     if (node.receiver == null) {
-      inputs.add(localsHandler.readThis());
+      receiver = localsHandler.readThis();
     } else {
       visit(node.receiver);
-      inputs.add(pop());
+      receiver = pop();
     }
+
+    List<HInstruction> inputs = <HInstruction>[];
+    Set<ClassElement> interceptedClasses =
+        interceptors.getInterceptedClassesOn(selector);
+    if (interceptedClasses != null) {
+      inputs.add(invokeInterceptor(interceptedClasses, receiver, node));
+    }
+    inputs.add(receiver);
 
     addDynamicSendArgumentsToList(node, inputs);
 
-    // The first entry in the inputs list is the receiver.
     pushWithPosition(new HInvokeDynamicMethod(selector, inputs), node);
 
     if (isNotEquals) {
@@ -3828,8 +3808,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (interceptedClasses == null) {
         iterator = new HInvokeDynamicMethod(selector, <HInstruction>[receiver]);
       } else {
-        pushInvokeInterceptor(interceptedClasses, receiver);
-        HInterceptor interceptor = pop();
+        HInterceptor interceptor =
+            invokeInterceptor(interceptedClasses, receiver, null);
         iterator = new HInvokeDynamicMethod(
             selector, <HInstruction>[interceptor, receiver]);
       }

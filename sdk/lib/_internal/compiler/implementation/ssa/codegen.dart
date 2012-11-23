@@ -1724,6 +1724,9 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(node.receiver);
     if (node.element == backend.jsArrayLength
         || node.element == backend.jsStringLength) {
+      // We're accessing a native JavaScript property called 'length'
+      // on a JS String or a JS array. Therefore, the name of that
+      // property should not be mangled.
       push(new js.PropertyAccess.field(pop(), 'length'), node);
     } else {
       String name = backend.namer.getName(node.element);
@@ -1735,21 +1738,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             node.element.name, node.element.getLibrary(), type);
       }
     }
-  }
-
-  // Determine if an instruction is a simple number computation
-  // involving only things with guaranteed number types and a given
-  // field.
-  bool isSimpleFieldNumberComputation(HInstruction value, HFieldSet node) {
-    if (value.guaranteedType.union(HType.NUMBER, compiler) == HType.NUMBER) {
-      return true;
-    }
-    if (value is HBinaryArithmetic) {
-      return (isSimpleFieldNumberComputation(value.left, node) &&
-              isSimpleFieldNumberComputation(value.right, node));
-    }
-    if (value is HFieldGet) return value.element == node.element;
-    return false;
   }
 
   visitFieldSet(HFieldSet node) {

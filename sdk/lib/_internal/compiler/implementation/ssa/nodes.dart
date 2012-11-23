@@ -503,18 +503,6 @@ class HBasicBlock extends HInstructionList {
     status = STATUS_CLOSED;
   }
 
-  // TODO(kasperl): I really don't want to pass the compiler into this
-  // method. Maybe we need a better logging framework.
-  void printToCompiler(Compiler compiler) {
-    HInstruction instruction = first;
-    while (instruction != null) {
-      int instructionId = instruction.id;
-      String inputsAsString = instruction.inputsToString();
-      compiler.log('$instructionId: $instruction $inputsAsString');
-      instruction = instruction.next;
-    }
-  }
-
   void addAtEntry(HInstruction instruction) {
     assert(instruction is !HPhi);
     super.addBefore(first, instruction);
@@ -1285,12 +1273,10 @@ abstract class HConditionalBranch extends HControlFlow {
   HInstruction get condition => inputs[0];
   HBasicBlock get trueBranch => block.successors[0];
   HBasicBlock get falseBranch => block.successors[1];
-  toString();
 }
 
 abstract class HControlFlow extends HInstruction {
   HControlFlow(inputs) : super(inputs);
-  toString();
   void prepareGvn(HTypeMap types) {
     // Control flow does not have side-effects.
   }
@@ -1306,9 +1292,6 @@ abstract class HInvoke extends HInstruction {
     */
   HInvoke(List<HInstruction> inputs) : super(inputs);
   static const int ARGUMENTS_OFFSET = 1;
-
-  // TODO(floitsch): make class abstract instead of adding an abstract method.
-  accept(HVisitor visitor);
 }
 
 abstract class HInvokeDynamic extends HInvoke {
@@ -1319,8 +1302,6 @@ abstract class HInvokeDynamic extends HInvoke {
     : super(inputs);
   toString() => 'invoke dynamic: $selector';
   HInstruction get receiver => inputs[0];
-
-  accept(HVisitor visitor);
 
   bool get isInterceptorCall {
     // We know it's a selector call if it follows the interceptor
@@ -1350,8 +1331,6 @@ abstract class HInvokeDynamicField extends HInvokeDynamic {
       this.isSideEffectFree)
       : super(selector, element, inputs);
   toString() => 'invoke dynamic field: $selector';
-
-  accept(HVisitor visitor);
 }
 
 class HInvokeDynamicGetter extends HInvokeDynamicField {
@@ -1756,9 +1735,6 @@ abstract class HBinaryBitOp extends HBinaryArithmetic {
     if (left.isTypeUnknown(types)) return HType.INTEGER;
     return HType.UNKNOWN;
   }
-
-  // TODO(floitsch): make class abstract instead of adding an abstract method.
-  accept(HVisitor visitor);
 }
 
 class HShiftLeft extends HBinaryBitOp {
@@ -2230,8 +2206,6 @@ abstract class HRelational extends HInvokeBinary {
 
   bool isBuiltin(HTypeMap types)
       => left.isNumber(types) && right.isNumber(types);
-  // TODO(1603): the class should be marked as abstract.
-  BinaryOperation operation(ConstantSystem constantSystem);
 }
 
 class HEquals extends HRelational {

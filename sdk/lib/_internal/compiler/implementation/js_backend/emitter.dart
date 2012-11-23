@@ -968,7 +968,7 @@ $lazyInitializerLogic
       } else if (selector.isSetter()) {
         name = backend.namer.setterName(selector.library, selector.name);
       } else {
-        assert(selector.isCall());
+        assert(selector.isCall() || selector.isOperator());
         name = backend.namer.instanceMethodInvocationName(
             selector.library, selector.name, selector);
         if (selector.argumentCount > 0) {
