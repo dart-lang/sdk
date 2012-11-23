@@ -6,7 +6,8 @@ out_of_memory_test: Skip # Issue 2345
 
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
-io/tls_socket_test: Pass, Timeout # Issue 6730.
+io/secure_socket_test: Pass, Timeout # Issue 6730.
+io/secure_stream_test: Pass, Timeout # Issue 6730.
 
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
@@ -41,8 +42,7 @@ io/process_non_ascii_test: Pass, Fail
 
 [ $runtime == vm && $system == windows ]
 io/file_system_links_test: Skip  # No links on Windows.
-io/tls_server_test: Pass, Crash  # Issue 6893
-io/secure_server_stream_test: Pass, Crash  # Issue 6893
+io/secure_server_stream_test: Pass, Crash, Timeout  # Issue 6893
 
 [ $compiler == none && $runtime == drt ]
 io/*: Skip # Don't run tests using dart:io in the browser
