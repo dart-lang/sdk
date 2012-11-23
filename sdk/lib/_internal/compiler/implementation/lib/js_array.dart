@@ -167,7 +167,10 @@ class JSArray<E> implements List<E> {
 
   int get hashCode => Primitives.objectHashCode(this);
 
-  Type get runtimeType => List;
+  Type get runtimeType {
+    // Call getRuntimeTypeString to get the name including type arguments.
+    return new TypeImpl(getRuntimeTypeString(this));
+  }
 
   int get length => JS('int', r'#.length', this);
   

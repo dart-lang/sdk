@@ -56,26 +56,7 @@ class JSBool implements bool {
   // positions, including the low bit, so they are different mod 2^k.
   int get hashCode => this ? (2 * 3 * 23 * 3761) : (269 * 811);
 
-  Type get runtimeType => createRuntimeType('bool');
-}
-
-get$runtimeType(receiver) {
-  if (receiver is int) {
-    return int;
-  } else if (receiver is String) {
-    return String;
-  } else if (receiver is double) {
-    return double;
-  } else if (receiver is bool) {
-    return bool;
-  } else if (receiver == null) {
-    return createRuntimeType('Null');
-  } else if (isJsArray(receiver)) {
-    // Call getRuntimeTypeString to get the name including type arguments.
-    return createRuntimeType(getRuntimeTypeString(receiver));
-  } else {
-    return UNINTERCEPTED(receiver.runtimeType);
-  }
+  Type get runtimeType => bool;
 }
 
 /**
