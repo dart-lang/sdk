@@ -1503,6 +1503,9 @@ class TestUtils {
    * [base] directory if that [relativePath] does not already exist.
    */
   static Directory mkdirRecursive(Path base, Path relativePath) {
+    if (relativePath.isAbsolute) {
+      base = new Path('/');
+    }
     Directory dir = new Directory.fromPath(base);
     Expect.isTrue(dir.existsSync(),
                   "Expected ${dir} to already exist");
@@ -1543,19 +1546,6 @@ class TestUtils {
     if (!configuration['list'] && !(new File(filename).existsSync())) {
       throw "Executable '$filename' does not exist";
     }
-  }
-
-  static String outputDir(Map configuration) {
-    var result = '';
-    var system = configuration['system'];
-    if (system == 'linux') {
-      result = 'out/';
-    } else if (system == 'macos') {
-      result = 'xcodebuild/';
-    } else if (system == 'windows') {
-      result = 'build/';
-    }
-    return result;
   }
 
   static Path dartDir() {
@@ -1608,9 +1598,21 @@ class TestUtils {
       const ['d8', 'jsshell'].contains(runtime);
 
   static String buildDir(Map configuration) {
+    if (configuration['build_directory'] != '') {
+      return configuration['build_directory'];
+    }
+    var outputDir = '';
+    var system = configuration['system'];
+    if (system == 'linux') {
+      outputDir = 'out/';
+    } else if (system == 'macos') {
+      outputDir = 'xcodebuild/';
+    } else if (system == 'windows') {
+      outputDir = 'build/';
+    }
     var mode = (configuration['mode'] == 'debug') ? 'Debug' : 'Release';
     var arch = configuration['arch'].toUpperCase();
-    return "${TestUtils.outputDir(configuration)}$mode$arch";
+    return "$outputDir$mode$arch";
   }
 }
 

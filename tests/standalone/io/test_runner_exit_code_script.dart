@@ -14,6 +14,9 @@ main() {
   var startTime = new Date.now();
   var progress =
     new ProgressIndicator.fromName(progressType, startTime, false);
+  if (progressType == 'buildbot') {
+    BuildbotProgressIndicator.stepName = 'myStepName';
+  }
   // Build a dummy test case.
   var configuration = new TestOptionsParser().parse(['--timeout', '2'])[0];
   var dummyCommand = new Command("noop", []);

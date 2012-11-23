@@ -156,7 +156,7 @@ is 'dart file.dart' and you specify special command
               'Step name for use by -pbuildbot',
               ['--step_name'],
               [],
-              'string'),
+              null),
           new _TestOptionSpecification(
               'report',
               'Print a summary report of the number of tests, by expectation',
@@ -256,6 +256,12 @@ Note: currently only implemented for dart2js.''',
               [],
               false,
               'bool'),
+          new _TestOptionSpecification(
+              'build_directory',
+              'The name of the build directory, where products are placed.',
+              ['--build-directory'],
+              [],
+              ''),
           new _TestOptionSpecification(
               'noBatch',
               'Do not run browser tests in batch mode',
