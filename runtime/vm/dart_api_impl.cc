@@ -739,7 +739,12 @@ DART_EXPORT const char* Dart_VersionString() {
 DART_EXPORT bool Dart_Initialize(Dart_IsolateCreateCallback create,
                                  Dart_IsolateInterruptCallback interrupt,
                                  Dart_IsolateShutdownCallback shutdown) {
-  return Dart::InitOnce(create, interrupt, shutdown);
+  const char* err_msg = Dart::InitOnce(create, interrupt, shutdown);
+  if (err_msg != NULL) {
+    OS::PrintErr("Dart_Initialize: %s\n", err_msg);
+    return false;
+  }
+  return true;
 }
 
 DART_EXPORT bool Dart_SetVMFlags(int argc, const char** argv) {
@@ -1571,7 +1576,7 @@ DART_EXPORT Dart_Handle Dart_NewStringFromUTF16(const uint16_t* utf16_array,
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewStringFromUTF32(const uint32_t* utf32_array,
+DART_EXPORT Dart_Handle Dart_NewStringFromUTF32(const int32_t* utf32_array,
                                                 intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);

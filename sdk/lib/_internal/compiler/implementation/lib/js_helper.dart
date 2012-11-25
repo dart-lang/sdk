@@ -62,7 +62,7 @@ leB(var a, var b) => (a is num && b is num)
     : identical(le$slow(a, b), true);
 
 index(var a, var index) {
-  // The type test may cause a NullPointerException to be thrown but
+  // The type test may cause a NoSuchMethodError to be thrown but
   // that matches the specification of what the indexing operator is
   // supposed to do.
   bool isJsArrayOrString = JS('bool',
@@ -78,7 +78,7 @@ index(var a, var index) {
 }
 
 indexSet(var a, var index, var value) {
-  // The type test may cause a NullPointerException to be thrown but
+  // The type test may cause a NoSuchMethodError to be thrown but
   // that matches the specification of what the indexing operator is
   // supposed to do.
   bool isMutableJsArray = JS('bool',
@@ -105,7 +105,6 @@ bool checkNumbers(var a, var b) {
     if (b is num) {
       return true;
     } else {
-      checkNull(b);
       throw new ArgumentError(b);
     }
   }
@@ -536,9 +535,27 @@ class Primitives {
 
   static num dateNow() => JS('num', r'Date.now()');
 
+  static stringFromCodePoints(codePoints) {
+    List<int> a = <int>[];
+    for (var i in codePoints) {
+      if (i is !int) throw new ArgumentError(i);
+      if (i <= 0xffff) {
+        a.add(i);
+      } else if (i <= 0x10ffff) {
+        a.add(0xd800 + ((((i - 0x10000) >> 10) & 0x3ff)));
+        a.add(0xdc00 + (i & 0x3ff));
+      } else {
+        throw new ArgumentError(i);
+      }
+    }
+    return JS('String', r'String.fromCharCode.apply(#, #)', null, a);
+  }
+
   static String stringFromCharCodes(charCodes) {
     for (var i in charCodes) {
       if (i is !int) throw new ArgumentError(i);
+      if (i < 0) throw new ArgumentError(i);
+      if (i > 0xffff) return stringFromCodePoints(charCodes);
     }
     return JS('String', r'String.fromCharCode.apply(#, #)', null, charCodes);
   }
@@ -659,7 +676,6 @@ class Primitives {
   }
 
   static valueFromDateString(str) {
-    checkNull(str);
     if (str is !String) throw new ArgumentError(str);
     var value = JS('num', r'Date.parse(#)', str);
     if (value.isNaN) throw new ArgumentError(str);
@@ -667,16 +683,14 @@ class Primitives {
   }
 
   static getProperty(object, key) {
-    checkNull(object);
-    if (object is bool || object is num || object is String) {
+    if (object == null || object is bool || object is num || object is String) {
       throw new ArgumentError(object);
     }
     return JS('var', '#[#]', object, key);
   }
 
   static void setProperty(object, key, value) {
-    checkNull(object);
-    if (object is bool || object is num || object is String) {
+    if (object == null || object is bool || object is num || object is String) {
       throw new ArgumentError(object);
     }
     JS('void', '#[#] = #', object, key, value);
@@ -750,8 +764,6 @@ listInsertRange(receiver, start, length, initialValue) {
   if (length == 0) {
     return;
   }
-  checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
-  checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
   if (length is !int) throw new ArgumentError(length);
   if (length < 0) throw new ArgumentError(length);
   if (start is !int) throw new ArgumentError(start);
@@ -779,13 +791,12 @@ stringLastIndexOfUnchecked(receiver, element, start)
 
 
 checkNull(object) {
-  if (object == null) throw new NullPointerException();
+  if (object == null) throw new ArgumentError(null);
   return object;
 }
 
 checkNum(value) {
   if (value is !num) {
-    checkNull(value);
     throw new ArgumentError(value);
   }
   return value;
@@ -793,7 +804,6 @@ checkNum(value) {
 
 checkInt(value) {
   if (value is !int) {
-    checkNull(value);
     throw new ArgumentError(value);
   }
   return value;
@@ -801,7 +811,6 @@ checkInt(value) {
 
 checkBool(value) {
   if (value is !bool) {
-    checkNull(value);
     throw new ArgumentError(value);
   }
   return value;
@@ -809,7 +818,6 @@ checkBool(value) {
 
 checkString(value) {
   if (value is !String) {
-    checkNull(value);
     throw new ArgumentError(value);
   }
   return value;
@@ -894,7 +902,7 @@ class MathNatives {
  * object out of the wrapper again.
  */
 $throw(ex) {
-  if (ex == null) ex = const NullPointerException();
+  if (ex == null) ex = const NullThrownError();
   var jsError = JS('var', r'new Error()');
   JS('void', r'#.name = #', jsError, ex);
   JS('void', r'#.description = #', jsError, ex);
@@ -954,11 +962,12 @@ unwrapException(ex) {
     // exception occurred.
     var type = JS('var', r'#.type', ex);
     var name = JS('var', r'#.arguments ? #.arguments[0] : ""', ex, ex);
-    if (type == 'property_not_function' ||
+    if (contains(message, 'JSNull') ||
+        type == 'property_not_function' ||
         type == 'called_non_callable' ||
         type == 'non_object_property_call' ||
         type == 'non_object_property_load') {
-      return new NullPointerException();
+      return new NoSuchMethodError(null, name, [], {});
     } else if (type == 'undefined_method') {
       return new NoSuchMethodError('', name, [], {});
     }
@@ -972,8 +981,8 @@ unwrapException(ex) {
       if (message.endsWith('is null') ||
           message.endsWith('is undefined') ||
           message.endsWith('is null or undefined')) {
-        return new NullPointerException();
-      } else if (message.contains(' is not a function') ||
+        return new NoSuchMethodError(null, '<unknown>', [], {});
+      } else if (contains(message, ' is not a function') ||
                  (ieErrorCode == 438 && ieFacilityNumber == 10)) {
         // Examples:
         //  x.foo is not a function
@@ -992,7 +1001,7 @@ unwrapException(ex) {
   }
 
   if (JS('bool', r'# instanceof RangeError', ex)) {
-    if (message is String && message.contains('call stack')) {
+    if (message is String && contains(message, 'call stack')) {
       return new StackOverflowError();
     }
 
@@ -1114,6 +1123,42 @@ abstract class Dynamic_ {
 
 /**
  * A metadata annotation describing the types instantiated by a native element.
+ *
+ * The annotation is valid on a native method and a field of a native class.
+ *
+ * By default, a field of a native class is seen as an instantiation point for
+ * all native classes that are a subtype of the field's type, and a native
+ * method is seen as an instantiation point fo all native classes that are a
+ * subtype of the method's return type, or the argument types of the declared
+ * type of the method's callback parameter.
+ *
+ * An @[Creates] annotation overrides the default set of instantiated types.  If
+ * one or more @[Creates] annotations are present, the type of the native
+ * element is ignored, and the union of @[Creates] annotations is used instead.
+ * The names in the strings are resolved and the program will fail to compile
+ * with dart2js if they do not name types.
+ *
+ * The argument to [Creates] is a string.  The string is parsed as the names of
+ * one or more types, separated by vertical bars `|`.  There are some special
+ * names:
+ *
+ * * `=List`. This means 'exactly List', which is the JavaScript Array
+ *   implementation of [List] and no other implementation.
+ *
+ * * `=Object`. This means 'exactly Object', which is a plain JavaScript object
+ *   with properties and none of the subtypes of Object.
+ *
+ * Example: we may know that a method always returns a specific implementation:
+ *
+ *     @Creates('_NodeList')
+ *     List<Node> getElementsByTagName(String tag) native;
+ *
+ * Useful trick: A method can be marked as not instantiating any native classes
+ * with the annotation `@Creates('Null')`.  This is useful for fields on native
+ * classes that are used only in Dart code.
+ *
+ *     @Creates('Null')
+ *     var _cachedFoo;
  */
 class Creates {
   final String types;
@@ -1123,6 +1168,23 @@ class Creates {
 /**
  * A metadata annotation describing the types returned or yielded by a native
  * element.
+ *
+ * The annotation is valid on a native method and a field of a native class.
+ *
+ * By default, a native method or field is seen as returning or yielding all
+ * subtypes if the method return type or field type.  This annotation allows a
+ * more precise set of types to be specified.
+ *
+ * See [Creates] for the syntax of the argument.
+ *
+ * Example: IndexedDB keys are numbers, strings and JavaScript Arrays of keys.
+ *
+ *     @Returns('String|num|=List')
+ *     dynamic key;
+ *
+ *     // Equivalent:
+ *     @Returns('String') @Returns('num') @Returns('=List')
+ *     dynamic key;
  */
 class Returns {
   final String types;
@@ -1142,6 +1204,7 @@ class Null {
 }
 
 setRuntimeTypeInfo(target, typeInfo) {
+  assert(typeInfo == null || isJsArray(typeInfo));
   // We have to check for null because factories may return null.
   if (target != null) JS('var', r'#.builtin$typeInfo = #', target, typeInfo);
 }
@@ -1486,15 +1549,33 @@ class TypeImpl implements Type {
   final String typeName;
   TypeImpl(this.typeName);
   toString() => typeName;
+  int get hashCode => typeName.hashCode;
   bool operator ==(other) {
     if (other is !TypeImpl) return false;
     return typeName == other.typeName;
   }
 }
 
+String getClassName(var object) {
+  return JS('String', r'#.constructor.builtin$cls', object);
+}
+
 String getRuntimeTypeString(var object) {
+  String className = isJsArray(object) ? 'List' : getClassName(object);
   var typeInfo = JS('var', r'#.builtin$typeInfo', object);
-  return JS('String', r'#.runtimeType', typeInfo);
+  if (typeInfo == null) return className;
+  StringBuffer arguments = new StringBuffer();
+  for (var i = 0; i < typeInfo.length; i++) {
+    if (i > 0) {
+      arguments.add(', ');
+    }
+    var argument = typeInfo[i];
+    if (argument == null) {
+      argument = 'dynamic';
+    }
+    arguments.add(argument);
+  }
+  return '$className<$arguments>';
 }
 
 createRuntimeType(String name) => new TypeImpl(name);

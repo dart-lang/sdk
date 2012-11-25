@@ -44,6 +44,7 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaRedundantPhiEliminator(),
           new SsaDeadPhiEliminator(),
           new SsaConstantFolder(constantSystem, backend, work, types),
+          new SsaTypePropagator(compiler, types),
           new SsaGlobalValueNumberer(compiler, types),
           new SsaCodeMotion(),
           new SsaValueRangeAnalyzer(constantSystem, types, work),
@@ -204,61 +205,18 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return node;
   }
 
-  HInstruction visitInvokeInterceptor(HInvokeInterceptor node) {
-    // Try to recognize the length interceptor with input [:new List(int):].
-    if (node.isLengthGetter() && node.inputs[1] is HInvokeStatic) {
-      HInvokeStatic call = node.inputs[1];
-      if (isFixedSizeListConstructor(call)) {
-        return call.inputs[1];
-      }
-    }
+  HInstruction handleInterceptorCall(HInvokeDynamic node) {
     HInstruction input = node.inputs[1];
-    if (node.isLengthGetter()) {
-      if (input.isConstantString()) {
-        HConstant constantInput = input;
-        StringConstant constant = constantInput.constant;
-        return graph.addConstantInt(constant.length, constantSystem);
-      } else if (input.isConstantList()) {
-        HConstant constantInput = input;
-        ListConstant constant = constantInput.constant;
-        return graph.addConstantInt(constant.length, constantSystem);
-      } else if (input.isConstantMap()) {
-        HConstant constantInput = input;
-        MapConstant constant = constantInput.constant;
-        return graph.addConstantInt(constant.length, constantSystem);
-      }
-    }
-
     if (input.isString(types)
         && node.selector.name == const SourceString('toString')) {
       return node.inputs[1];
     }
-
-    if (!input.canBePrimitive(types) && node.selector.isCall()) {
-      bool transformToDynamicInvocation = true;
-      if (input.canBeNull(types)) {
-        // Check if the method exists on Null. If yes we must not transform
-        // the static interceptor call to a dynamic invocation.
-        // TODO(floitsch): get a list of methods that exist on 'null' and only
-        // bail out on them.
-        transformToDynamicInvocation = false;
-      }
-      if (transformToDynamicInvocation) {
-        return fromInterceptorToDynamicInvocation(node, node.selector);
-      }
-    }
-
     return node;
   }
 
   bool isFixedSizeListConstructor(HInvokeStatic node) {
     Element element = node.target.element;
-    DartType defaultClass = compiler.listClass.defaultClass;
-    // TODO(ngeoffray): make sure that the only reason the List class is
-    // not resolved is because it's not being used.
-    return element.isConstructor()
-        && defaultClass != null
-        && element.enclosingElement.declaration == defaultClass.element
+    return element.getEnclosingClass() == compiler.listClass
         && node.inputs.length == 2
         && node.inputs[1].isInteger(types);
   }
@@ -271,6 +229,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitInvokeDynamic(HInvokeDynamic node) {
+    if (node.isInterceptorCall) return handleInterceptorCall(node);
     HType receiverType = types[node.receiver];
     if (receiverType.isExact()) {
       HBoundedType type = receiverType;
@@ -555,7 +514,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // TODO(karlklose): remove the hasTypeArguments check.
     } else if (expressionType.isUseful()
                && !expressionType.canBeNull()
-               && !compiler.codegenWorld.rti.hasTypeArguments(type)) {
+               && !RuntimeTypeInformation.hasTypeArguments(type)) {
       DartType receiverType = expressionType.computeType(compiler);
       if (receiverType != null) {
         if (compiler.types.isSubtype(receiverType, type)) {
@@ -592,7 +551,59 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return compiler.world.locateSingleField(type, selector);
   }
 
+  HInstruction visitFieldGet(HFieldGet node) {
+    if (node.element == backend.jsArrayLength) {
+      if (node.receiver is HInvokeStatic) {
+        // Try to recognize the length getter with input [:new List(int):].
+        HInvokeStatic call = node.receiver;
+        if (isFixedSizeListConstructor(call)) {
+          return call.inputs[1];
+        }
+      }
+    }
+    return node;
+  }
+
+  HInstruction optimizeLengthInterceptedCall(HInvokeDynamicGetter node) {
+    HInstruction actualReceiver = node.inputs[1];
+    if (actualReceiver.isIndexablePrimitive(types)) {
+      if (actualReceiver.isConstantString()) {
+        HConstant constantInput = actualReceiver;
+        StringConstant constant = constantInput.constant;
+        return graph.addConstantInt(constant.length, constantSystem);
+      } else if (actualReceiver.isConstantList()) {
+        HConstant constantInput = actualReceiver;
+        ListConstant constant = constantInput.constant;
+        return graph.addConstantInt(constant.length, constantSystem);
+      }
+      Element element;
+      bool isAssignable;
+      if (actualReceiver.isString(types)) {
+        element = backend.jsStringLength;
+        isAssignable = false;
+      } else {
+        element = backend.jsArrayLength;
+        isAssignable = !actualReceiver.isFixedArray(types);
+      }
+      HFieldGet result = new HFieldGet(
+          element, actualReceiver, isAssignable: isAssignable);
+      result.guaranteedType = HType.INTEGER;
+      types[result] = HType.INTEGER;
+      return result;
+    } else if (actualReceiver.isConstantMap()) {
+      HConstant constantInput = actualReceiver;
+      MapConstant constant = constantInput.constant;
+      return graph.addConstantInt(constant.length, constantSystem);
+    }
+    return node;
+  }
+
   HInstruction visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
+    if (node.selector.name == const SourceString('length')
+        && node.isInterceptorCall) {
+      return optimizeLengthInterceptedCall(node);
+    }
+
     Element field =
         findConcreteFieldForDynamicAccess(node.receiver, node.selector);
     if (field == null) return node;
@@ -655,18 +666,13 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   final String name = "SsaCheckInserter";
   HGraph graph;
   Element lengthInterceptor;
-  Selector lengthSelector;
 
   SsaCheckInserter(JavaScriptBackend backend,
                    this.work,
                    this.types,
                    this.boundsChecked)
       : constantSystem = backend.constantSystem {
-    SourceString lengthString = const SourceString('length');
-    lengthSelector =
-        new Selector.getter(lengthString, work.element.getLibrary());
-    lengthInterceptor =
-        backend.builder.interceptors.getStaticInterceptor(lengthSelector);
+    lengthInterceptor = backend.jsArrayLength;
   }
 
   void visitGraph(HGraph graph) {
@@ -686,10 +692,10 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   HBoundsCheck insertBoundsCheck(HInstruction node,
                                  HInstruction receiver,
                                  HInstruction index) {
-    HStatic interceptor = new HStatic(lengthInterceptor);
-    node.block.addBefore(node, interceptor);
-    HInvokeInterceptor length = new HInvokeInterceptor(
-        lengthSelector, <HInstruction>[interceptor, receiver], true);
+    bool isAssignable = !receiver.isFixedArray(types);
+    HFieldGet length =
+        new HFieldGet(lengthInterceptor, receiver, isAssignable: isAssignable);
+    length.guaranteedType = HType.INTEGER;
     types[length] = HType.INTEGER;
     node.block.addBefore(node, length);
 
@@ -732,13 +738,6 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     node.changeUse(node.index, index);
     assert(node.isBuiltin(types));
   }
-
-  void visitInvokeInterceptor(HInvokeInterceptor node) {
-    if (!node.isPopCall(types)) return;
-    if (boundsChecked.contains(node)) return;
-    HInstruction receiver = node.inputs[1];
-    insertBoundsCheck(node, receiver, graph.addConstantInt(0, constantSystem));
-  }
 }
 
 class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
@@ -751,7 +750,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     return !instruction.hasSideEffects(types)
            && instruction.usedBy.isEmpty
            // A dynamic getter that has no side effect can still throw
-           // a NoSuchMethodError or a NullPointerException.
+           // a NoSuchMethodError.
            && instruction is !HInvokeDynamicGetter
            && instruction is !HCheck
            && instruction is !HTypeGuard

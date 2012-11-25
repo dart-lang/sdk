@@ -648,8 +648,17 @@ class JavaScriptBackend extends Backend {
 
   ClassElement jsStringClass;
   ClassElement jsArrayClass;
+  ClassElement jsNumberClass;
+  ClassElement jsIntClass;
+  ClassElement jsDoubleClass;
+  ClassElement jsFunctionClass;
+  ClassElement jsNullClass;
+  ClassElement jsBoolClass;
   ClassElement objectInterceptorClass;
+  Element jsArrayLength;
+  Element jsStringLength;
   Element getInterceptorMethod;
+  bool _interceptorsAreInitialized = false;
 
   final Namer namer;
 
@@ -685,11 +694,13 @@ class JavaScriptBackend extends Backend {
    * name to the list of members that have that name. This map is used
    * by the codegen to know whether a send must be intercepted or not.
    */
-  final Map<SourceString, List<Element>> interceptedElements;  
+  final Map<SourceString, Set<Element>> interceptedElements;  
 
   List<CompilerTask> get tasks {
     return <CompilerTask>[builder, optimizer, generator, emitter];
   }
+
+  final RuntimeTypeInformation rti;
 
   JavaScriptBackend(Compiler compiler, bool generateSourceMap, bool disableEval)
       : namer = determineNamer(compiler),
@@ -697,7 +708,8 @@ class JavaScriptBackend extends Backend {
         invalidateAfterCodegen = new List<Element>(),
         interceptors = new Interceptors(compiler),
         usedInterceptors = new Set<Selector>(),
-        interceptedElements = new Map<SourceString, List<Element>>(),
+        interceptedElements = new Map<SourceString, Set<Element>>(),
+        rti = new RuntimeTypeInformation(compiler),
         super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM) {
     emitter = disableEval
         ? new CodeEmitterNoEvalTask(compiler, namer, generateSourceMap)
@@ -717,20 +729,36 @@ class JavaScriptBackend extends Backend {
 
   bool isInterceptorClass(Element element) {
     if (element == null) return false;
-    return element == jsStringClass || element == jsArrayClass;
+    return element == jsStringClass
+        || element == jsArrayClass
+        || element == jsIntClass
+        || element == jsDoubleClass
+        || element == jsNullClass
+        || element == jsFunctionClass
+        || element == jsBoolClass
+        || element == jsNumberClass;
   }
 
   void addInterceptedSelector(Selector selector) {
     usedInterceptors.add(selector);
   }
 
-  bool shouldInterceptSelector(Selector selector) {
-    List<Element> intercepted = interceptedElements[selector.name];
-    if (intercepted == null) return false;
+  /**
+   * Returns a set of interceptor classes that contain a member whose
+   * signature matches the given [selector]. Returns [:null:] if there
+   * is no class.
+   */
+  Set<ClassElement> getInterceptedClassesOn(Selector selector) {
+    Set<Element> intercepted = interceptedElements[selector.name];
+    if (intercepted == null) return null;
+    Set<ClassElement> result = new Set<ClassElement>();
     for (Element element in intercepted) {
-      if (selector.applies(element, compiler)) return true;
+      if (selector.applies(element, compiler)) {
+        result.add(element.getEnclosingClass());
+      }
     }
-    return false;
+    if (result.isEmpty) return null;
+    return result;
   }
 
   void initializeInterceptorElements() {
@@ -738,35 +766,75 @@ class JavaScriptBackend extends Backend {
         compiler.findInterceptor(const SourceString('ObjectInterceptor'));
     getInterceptorMethod =
         compiler.findInterceptor(const SourceString('getInterceptor'));
+    jsStringClass =
+        compiler.findInterceptor(const SourceString('JSString'));
+    jsArrayClass =
+        compiler.findInterceptor(const SourceString('JSArray'));
+    jsNumberClass =
+        compiler.findInterceptor(const SourceString('JSNumber'));
+    jsIntClass =
+        compiler.findInterceptor(const SourceString('JSInt'));
+    jsDoubleClass =
+        compiler.findInterceptor(const SourceString('JSDouble'));
+    jsNullClass =
+        compiler.findInterceptor(const SourceString('JSNull'));
+    jsFunctionClass =
+        compiler.findInterceptor(const SourceString('JSFunction'));
+    jsBoolClass =
+        compiler.findInterceptor(const SourceString('JSBool'));
+    jsArrayClass.ensureResolved(compiler);
+    jsArrayLength =
+        jsArrayClass.lookupLocalMember(const SourceString('length'));
+    jsStringClass.ensureResolved(compiler);
+    jsStringLength =
+        jsStringClass.lookupLocalMember(const SourceString('length'));
   }
 
+  void addInterceptors(ClassElement cls) {
+    cls.ensureResolved(compiler);
+    cls.forEachMember((ClassElement classElement, Element member) {
+        Set<Element> set = interceptedElements.putIfAbsent(
+            member.name, () => new Set<Element>());
+        set.add(member);
+      },
+      includeSuperMembers: true);
+  }
 
   void registerInstantiatedClass(ClassElement cls, Enqueuer enqueuer) {
     ClassElement result = null;
-    if (cls == compiler.stringClass) {
-      if (jsStringClass == null) {
-        jsStringClass =
-            compiler.findInterceptor(const SourceString('JSString'));
-        initializeInterceptorElements();
+    if (!_interceptorsAreInitialized) {
+      initializeInterceptorElements();
+      _interceptorsAreInitialized = true;
+      // The null interceptor and the function interceptor are
+      // currently always instantiated if a new class is instantiated.
+      // TODO(ngeoffray): do this elsewhere for the function
+      // interceptor?
+      if (jsNullClass != null) {
+        addInterceptors(jsNullClass);
+        enqueuer.registerInstantiatedClass(jsNullClass);
       }
+      if (jsFunctionClass != null) {
+        addInterceptors(jsFunctionClass);
+        enqueuer.registerInstantiatedClass(jsFunctionClass);
+      }
+      enqueuer.addToWorkList(getInterceptorMethod);
+    }
+    if (cls == compiler.stringClass) {
       result = jsStringClass;
     } else if (cls == compiler.listClass) {
-      if (jsArrayClass == null) {
-        jsArrayClass =
-            compiler.findInterceptor(const SourceString('JSArray'));
-        initializeInterceptorElements();
-      }
       result = jsArrayClass;
+    } else if (cls == compiler.intClass) {
+      result = jsIntClass;
+    } else if (cls == compiler.doubleClass) {
+      result = jsDoubleClass;
+    } else if (cls == compiler.functionClass) {
+      result = jsFunctionClass;
+    } else if (cls == compiler.boolClass) {
+      result = jsBoolClass;
     }
 
     if (result == null) return;
-
-    result.forEachMember((_, Element member) {
-      List<Element> list = interceptedElements.putIfAbsent(
-          member.name, () => new List<Element>());
-      list.add(member);
-    });
-
+    if (enqueuer.isResolutionQueue) addInterceptors(result);
     enqueuer.registerInstantiatedClass(result);
   }
 
@@ -776,10 +844,6 @@ class JavaScriptBackend extends Backend {
 
   JavaScriptItemCompilationContext createItemCompilationContext() {
     return new JavaScriptItemCompilationContext();
-  }
-
-  Element getInterceptor(Selector selector) {
-    return interceptors.getStaticInterceptor(selector);
   }
 
   void enqueueHelpers(Enqueuer world) {

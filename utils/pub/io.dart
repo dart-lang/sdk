@@ -365,6 +365,13 @@ String getFullPath(entry) {
       .toNativePath();
 }
 
+/// Resolves [path] relative to the location of pub.dart.
+String relativeToPub(String path) {
+  var scriptPath = new File(new Options().script).fullPathSync();
+  var scriptDir = new Path.fromNative(scriptPath).directoryPath;
+  return scriptDir.append(path).canonicalize().toNativePath();
+}
+
 // TODO(nweiz): make this configurable
 /**
  * The amount of time in milliseconds to allow HTTP requests before assuming
@@ -535,6 +542,19 @@ Future timeout(Future input, int milliseconds, String message) {
   return completer.future;
 }
 
+/// Creates a temporary directory and passes its path to [fn]. Once the [Future]
+/// returned by [fn] completes, the temporary directory and all its contents
+/// will be deleted.
+Future withTempDir(Future fn(String path)) {
+  var tempDir;
+  var future = new Directory('').createTemp().chain((dir) {
+    tempDir = dir;
+    return fn(tempDir.path);
+  });
+  future.onComplete((_) => tempDir.delete(recursive: true));
+  return future;
+}
+
 /// Tests whether or not the git command-line app is available for use.
 Future<bool> get isGitInstalled {
   if (_isGitInstalledCache != null) {
@@ -633,14 +653,10 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
   // read from stdin instead of a file. Consider resurrecting that version if
   // we can figure out why it fails.
 
-  // Find 7zip.
-  var scriptPath = new File(new Options().script).fullPathSync();
-  var scriptDir = new Path.fromNative(scriptPath).directoryPath;
-
   // Note: This line of code gets munged by create_sdk.py to be the correct
   // relative path to 7zip in the SDK.
   var pathTo7zip = '../../third_party/7zip/7za.exe';
-  var command = scriptDir.append(pathTo7zip).canonicalize().toNativePath();
+  var command = relativeToPub(pathTo7zip);
 
   var tempDir;
 
@@ -674,8 +690,7 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
     if (tarFile == null) throw 'The gzip file did not contain a tar file.';
 
     // Untar the archive into the destination directory.
-    return runProcess(command, ['x', '-o"$destination"', tarFile],
-        workingDir: tempDir);
+    return runProcess(command, ['x', tarFile], workingDir: destination);
   }).chain((result) {
     if (result.exitCode != 0) {
       throw 'Could not un-tar (exit code ${result.exitCode}). Error:\n'

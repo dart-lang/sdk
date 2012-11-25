@@ -15,6 +15,7 @@
 
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
+#include "bin/log.h"
 #include "platform/hashmap.h"
 #include "platform/thread.h"
 #include "platform/utils.h"
@@ -229,21 +230,21 @@ void EventHandlerImplementation::HandleInterruptFd() {
 
 #ifdef DEBUG_POLL
 static void PrintEventMask(intptr_t fd, intptr_t events) {
-  printf("%d ", fd);
-  if ((events & EPOLLIN) != 0) printf("EPOLLIN ");
-  if ((events & EPOLLPRI) != 0) printf("EPOLLPRI ");
-  if ((events & EPOLLOUT) != 0) printf("EPOLLOUT ");
-  if ((events & EPOLLERR) != 0) printf("EPOLLERR ");
-  if ((events & EPOLLHUP) != 0) printf("EPOLLHUP ");
-  if ((events & EPOLLRDHUP) != 0) printf("EPOLLRDHUP ");
+  Log::Print("%d ", fd);
+  if ((events & EPOLLIN) != 0) Log::Print("EPOLLIN ");
+  if ((events & EPOLLPRI) != 0) Log::Print("EPOLLPRI ");
+  if ((events & EPOLLOUT) != 0) Log::Print("EPOLLOUT ");
+  if ((events & EPOLLERR) != 0) Log::Print("EPOLLERR ");
+  if ((events & EPOLLHUP) != 0) Log::Print("EPOLLHUP ");
+  if ((events & EPOLLRDHUP) != 0) Log::Print("EPOLLRDHUP ");
   int all_events = EPOLLIN | EPOLLPRI | EPOLLOUT |
       EPOLLERR | EPOLLHUP | EPOLLRDHUP;
   if ((events & ~all_events) != 0) {
-    printf("(and %08x) ", events & ~all_events);
+    Log::Print("(and %08x) ", events & ~all_events);
   }
-  printf("(available %d) ", FDUtils::AvailableBytes(fd));
+  Log::Print("(available %d) ", FDUtils::AvailableBytes(fd));
 
-  printf("\n");
+  Log::Print("\n");
 }
 #endif
 
@@ -299,7 +300,7 @@ intptr_t EventHandlerImplementation::GetPollEvents(intptr_t events,
             event_mask = (1 << kCloseEvent);
             sd->MarkClosedRead();
           } else if (errno != EWOULDBLOCK) {
-            fprintf(stderr, "Error recv: %s\n", strerror(errno));
+            Log::PrintErr("Error recv: %s\n", strerror(errno));
           }
         }
       }

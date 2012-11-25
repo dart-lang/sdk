@@ -35,6 +35,10 @@ public interface InterfaceType extends Type {
   
   void registerSubClass(ClassElement subClass);
   void unregisterSubClass(ClassElement subClass);
+  /**
+   * @return the unique {@link Member} with given name, defined in one of the subtypes. May be
+   *         <code>null</code> if not found or not unique.
+   */
   Member lookupSubTypeMember(String name);
 
   interface Member {

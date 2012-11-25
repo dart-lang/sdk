@@ -261,7 +261,7 @@ class Utf32BytesDecoder implements _ListRangeIterator {
     utf32EncodedBytesIterator.skip(4 * count);
   }
 
-  abstract int decode();
+  int decode();
 }
 
 /**

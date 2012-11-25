@@ -129,3 +129,24 @@ Future sleep(int milliSeconds) {
   new Timer(milliSeconds, completer.complete);
   return completer.future;
 }
+
+/// Configures [future] so that its result (success or exception) is passed on
+/// to [completer].
+void chainToCompleter(Future future, Completer completer) {
+  future.handleException((e) {
+    completer.completeException(e);
+    return true;
+  });
+  future.then(completer.complete);
+}
+
+/// Like [String.split], but only splits on the first occurrence of the pattern.
+/// This will always return an array of two elements or fewer.
+List<String> split1(String toSplit, String pattern) {
+  if (toSplit.isEmpty) return <String>[];
+
+  var index = toSplit.indexOf(pattern);
+  if (index == -1) return [toSplit];
+  return [toSplit.substring(0, index),
+    toSplit.substring(index + pattern.length)];
+}

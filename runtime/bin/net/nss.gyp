@@ -7,7 +7,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # This file is a modified copy of Chromium's deps/third_party/nss/nss.gyp.
-# Revision 165464 (this should agree with "nss_rev" in DEPS).
+# Revision 169195 (this should agree with "nss_rev" in DEPS).
 {
   # Added by Dart. All Dart comments refer to the following block or line.
   'includes': [
@@ -88,7 +88,7 @@
   'conditions': [[ 'dart_io_support==1', {
   'targets': [
     {
-      'target_name': 'nspr_dart',
+      'target_name': 'nspr_dart',  # Added by Dart (the _dart postfix)
       'product_name': 'crnspr',
       'type': '<(component)',
       # Changed by Dart: '<(nss_directory)/' added to all paths.
@@ -455,14 +455,14 @@
       ],
     },
     {
-      'target_name': 'nss_dart',
+      'target_name': 'nss_dart',  # Added by Dart (the _dart postfix)
       'product_name': 'crnss',
       'type': '<(component)',
       'dependencies': [
-        'nss_static_dart',
+        'nss_static_dart',  # Added by Dart (the _dart postfix)
       ],
       'export_dependent_settings': [
-        'nss_static_dart',
+        'nss_static_dart',  # Added by Dart (the _dart postfix)
       ],
       'sources': [
         # Ensure at least one object file is produced, so that MSVC does not
@@ -473,10 +473,10 @@
       'conditions': [
         ['exclude_nss_root_certs==0', {
           'dependencies': [
-            'nssckbi_dart',
+            'nssckbi_dart',  # Added by Dart (the _dart postfix)
           ],
           'export_dependent_settings': [
-            'nssckbi_dart',
+            'nssckbi_dart',  # Added by Dart (the _dart postfix)
           ],
         }],
         ['OS == "mac" and component == "shared_library"', {
@@ -506,7 +506,7 @@
       #
       # TODO(rsleevi): http://crbug.com/128134 - Break the circular dependency
       # without requiring nssckbi to be built as a shared library.
-      'target_name': 'nssckbi_dart',
+      'target_name': 'nssckbi_dart',  # Added by Dart (the _dart postfix)
       'product_name': 'crnssckbi',
       'type': 'static_library',
       # This target is an implementation detail - the public dependencies
@@ -554,10 +554,10 @@
         '<(nss_directory)/mozilla/security/nss/lib/ckfw/wrap.c',
       ],
       'dependencies': [
-        'nss_static_dart',
+        'nss_static_dart',  # Added by Dart (the _dart postfix)
       ],
       'export_dependent_settings': [
-        'nss_static_dart',
+        'nss_static_dart',  # Added by Dart (the _dart postfix)
       ],
       'include_dirs': [
         '<(nss_directory)/mozilla/security/nss/lib/ckfw',
@@ -569,7 +569,7 @@
       },
     },
     {
-      'target_name': 'nss_static_dart',
+      'target_name': 'nss_static_dart',  # Added by Dart (the _dart postfix)
       'type': 'static_library',
       # This target is an implementation detail - the public dependencies
       # should be on 'nss'.
@@ -630,6 +630,7 @@
         '<(nss_directory)/mozilla/security/nss/lib/cryptohi/keyt.h',
         '<(nss_directory)/mozilla/security/nss/lib/cryptohi/keythi.h',
         '<(nss_directory)/mozilla/security/nss/lib/cryptohi/sechash.c',
+        '<(nss_directory)/mozilla/security/nss/lib/cryptohi/sechash.h',
         '<(nss_directory)/mozilla/security/nss/lib/cryptohi/seckey.c',
         '<(nss_directory)/mozilla/security/nss/lib/cryptohi/secsign.c',
         '<(nss_directory)/mozilla/security/nss/lib/cryptohi/secvfy.c',
@@ -678,7 +679,6 @@
         '<(nss_directory)/mozilla/security/nss/lib/freebl/ecl/ecp_jm.c',
         '<(nss_directory)/mozilla/security/nss/lib/freebl/ecl/ecp_mont.c',
         '<(nss_directory)/mozilla/security/nss/lib/freebl/ecl/ec_naf.c',
-        '<(nss_directory)/mozilla/security/nss/lib/freebl/hasht.h',
         '<(nss_directory)/mozilla/security/nss/lib/freebl/jpake.c',
         '<(nss_directory)/mozilla/security/nss/lib/freebl/md2.c',
         '<(nss_directory)/mozilla/security/nss/lib/freebl/md5.c',
@@ -700,12 +700,12 @@
         '<(nss_directory)/mozilla/security/nss/lib/freebl/mpi/mp_gf2m.h',
         '<(nss_directory)/mozilla/security/nss/lib/freebl/mpi/primes.c',
         '<(nss_directory)/mozilla/security/nss/lib/freebl/pqg.c',
+        '<(nss_directory)/mozilla/security/nss/lib/freebl/pqg.h',
         '<(nss_directory)/mozilla/security/nss/lib/freebl/rawhash.c',
         '<(nss_directory)/mozilla/security/nss/lib/freebl/rijndael.c',
         '<(nss_directory)/mozilla/security/nss/lib/freebl/rijndael.h',
         '<(nss_directory)/mozilla/security/nss/lib/freebl/rijndael32.tab',
         '<(nss_directory)/mozilla/security/nss/lib/freebl/rsa.c',
-        '<(nss_directory)/mozilla/security/nss/lib/freebl/sechash.h',
         '<(nss_directory)/mozilla/security/nss/lib/freebl/secmpi.h',
         '<(nss_directory)/mozilla/security/nss/lib/freebl/secrng.h',
         '<(nss_directory)/mozilla/security/nss/lib/freebl/seed.c',
@@ -920,6 +920,7 @@
         '<(nss_directory)/mozilla/security/nss/lib/pk11wrap/pk11util.c',
         '<(nss_directory)/mozilla/security/nss/lib/pk11wrap/secmod.h',
         '<(nss_directory)/mozilla/security/nss/lib/pk11wrap/secmodi.h',
+        '<(nss_directory)/mozilla/security/nss/lib/pk11wrap/secmodt.h',
         '<(nss_directory)/mozilla/security/nss/lib/pk11wrap/secmodti.h',
         '<(nss_directory)/mozilla/security/nss/lib/pk11wrap/secpkcs5.h',
         '<(nss_directory)/mozilla/security/nss/lib/pkcs7/certread.c',
@@ -969,8 +970,6 @@
         '<(nss_directory)/mozilla/security/nss/lib/softoken/lowpbe.c',
         '<(nss_directory)/mozilla/security/nss/lib/softoken/lowpbe.h',
         '<(nss_directory)/mozilla/security/nss/lib/softoken/padbuf.c',
-        '<(nss_directory)/mozilla/security/nss/lib/softoken/pk11init.h',
-        '<(nss_directory)/mozilla/security/nss/lib/softoken/pk11pars.h',
         '<(nss_directory)/mozilla/security/nss/lib/softoken/pkcs11.c',
         '<(nss_directory)/mozilla/security/nss/lib/softoken/pkcs11c.c',
         '<(nss_directory)/mozilla/security/nss/lib/softoken/pkcs11i.h',
@@ -979,12 +978,10 @@
         '<(nss_directory)/mozilla/security/nss/lib/softoken/rsawrapr.c',
         '<(nss_directory)/mozilla/security/nss/lib/softoken/sdb.c',
         '<(nss_directory)/mozilla/security/nss/lib/softoken/sdb.h',
-        '<(nss_directory)/mozilla/security/nss/lib/softoken/secmodt.h',
         '<(nss_directory)/mozilla/security/nss/lib/softoken/sftkdb.c',
         '<(nss_directory)/mozilla/security/nss/lib/softoken/sftkdb.h',
         '<(nss_directory)/mozilla/security/nss/lib/softoken/sftkdbt.h',
         '<(nss_directory)/mozilla/security/nss/lib/softoken/sftkdbti.h',
-        '<(nss_directory)/mozilla/security/nss/lib/softoken/sftkmod.c',
         '<(nss_directory)/mozilla/security/nss/lib/softoken/sftkpars.c',
         '<(nss_directory)/mozilla/security/nss/lib/softoken/sftkpars.h',
         '<(nss_directory)/mozilla/security/nss/lib/softoken/sftkpwd.c',
@@ -1002,6 +999,7 @@
         '<(nss_directory)/mozilla/security/nss/lib/util/dersubr.c',
         '<(nss_directory)/mozilla/security/nss/lib/util/dertime.c',
         '<(nss_directory)/mozilla/security/nss/lib/util/errstrs.c',
+        '<(nss_directory)/mozilla/security/nss/lib/util/hasht.h',
         '<(nss_directory)/mozilla/security/nss/lib/util/nssb64.h',
         '<(nss_directory)/mozilla/security/nss/lib/util/nssb64d.c',
         '<(nss_directory)/mozilla/security/nss/lib/util/nssb64e.c',
@@ -1047,6 +1045,11 @@
         '<(nss_directory)/mozilla/security/nss/lib/util/sectime.c',
         '<(nss_directory)/mozilla/security/nss/lib/util/templates.c',
         '<(nss_directory)/mozilla/security/nss/lib/util/utf8.c',
+        '<(nss_directory)/mozilla/security/nss/lib/util/utilmod.c',
+        '<(nss_directory)/mozilla/security/nss/lib/util/utilmodt.h',
+        '<(nss_directory)/mozilla/security/nss/lib/util/utilpars.c',
+        '<(nss_directory)/mozilla/security/nss/lib/util/utilpars.h',
+        '<(nss_directory)/mozilla/security/nss/lib/util/utilparst.h',
         '<(nss_directory)/mozilla/security/nss/lib/util/utilrename.h',
       ],
       'sources!': [
@@ -1059,11 +1062,11 @@
         '<(nss_directory)/mozilla/security/nss/lib/pk11wrap/debug_module.c',
       ],
       'dependencies': [
-        'nspr_dart',
-        'sqlite.gyp:sqlite_dart',
+        'nspr_dart',  # Added by Dart (the _dart postfix)
+        'sqlite.gyp:sqlite_dart',  # Changed by Dart prefix ../sqllite removed _dart postfix added.
       ],
       'export_dependent_settings': [
-        'nspr_dart',
+        'nspr_dart',  # Added by Dart (the _dart postfix)
       ],
       'defines': [
         'MP_API_COMPATIBLE',
@@ -1148,6 +1151,9 @@
           'defines': [
             'NSS_DISABLE_LIBPKIX',
           ],
+          # Changed by Dart:
+          # nss_directory contains .., which is bad in a regular expression.
+          # So we use the partial match by dropping '^' from '^mozilla/...
           'sources/': [
             ['exclude', 'mozilla/security/nss/lib/libpkix/'],
           ],
@@ -1155,6 +1161,9 @@
             '<(nss_directory)/mozilla/security/nss/lib/certhigh/certvfypkix.c',
             '<(nss_directory)/mozilla/security/nss/lib/certhigh/certvfypkixprint.c',
           ],
+          # Changed by Dart:
+          # nss_directory contains .., which is bad in a regular expression.
+          # So we use the partial match by dropping '^' from '^mozilla/...
           'include_dirs/': [
             ['exclude', 'mozilla/security/nss/lib/libpkix/'],
           ],
@@ -1164,7 +1173,6 @@
             ['exclude', 'amd64'],
           ],
         }],
-        # Added by Dart.
         ['OS=="linux"', {
           'defines': [
             'XP_UNIX',

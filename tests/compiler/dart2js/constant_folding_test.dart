@@ -46,6 +46,6 @@ main() {
   regexp = new RegExp(r'4 === c');
   Expect.isTrue(regexp.hasMatch(generated));
 
-  regexp = new RegExp("'foo' === d");
+  regexp = new RegExp('"foo" === d');
   Expect.isTrue(regexp.hasMatch(generated));
 }

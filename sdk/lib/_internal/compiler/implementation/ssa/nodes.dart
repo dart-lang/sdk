@@ -32,11 +32,11 @@ abstract class HVisitor<R> {
   R visitIndex(HIndex node);
   R visitIndexAssign(HIndexAssign node);
   R visitIntegerCheck(HIntegerCheck node);
+  R visitInterceptor(HInterceptor node);
   R visitInvokeClosure(HInvokeClosure node);
   R visitInvokeDynamicGetter(HInvokeDynamicGetter node);
   R visitInvokeDynamicMethod(HInvokeDynamicMethod node);
   R visitInvokeDynamicSetter(HInvokeDynamicSetter node);
-  R visitInvokeInterceptor(HInvokeInterceptor node);
   R visitInvokeStatic(HInvokeStatic node);
   R visitInvokeSuper(HInvokeSuper node);
   R visitIs(HIs node);
@@ -292,6 +292,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitIndex(HIndex node) => visitInvokeStatic(node);
   visitIndexAssign(HIndexAssign node) => visitInvokeStatic(node);
   visitIntegerCheck(HIntegerCheck node) => visitCheck(node);
+  visitInterceptor(HInterceptor node) => visitInstruction(node);
   visitInvokeClosure(HInvokeClosure node)
       => visitInvokeDynamic(node);
   visitInvokeDynamicMethod(HInvokeDynamicMethod node)
@@ -300,8 +301,6 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
       => visitInvokeDynamicField(node);
   visitInvokeDynamicSetter(HInvokeDynamicSetter node)
       => visitInvokeDynamicField(node);
-  visitInvokeInterceptor(HInvokeInterceptor node)
-      => visitInvokeStatic(node);
   visitInvokeStatic(HInvokeStatic node) => visitInvoke(node);
   visitInvokeSuper(HInvokeSuper node) => visitInvoke(node);
   visitJump(HJump node) => visitControlFlow(node);
@@ -502,18 +501,6 @@ class HBasicBlock extends HInstructionList {
     assert(isOpen());
     addAfter(last, end);
     status = STATUS_CLOSED;
-  }
-
-  // TODO(kasperl): I really don't want to pass the compiler into this
-  // method. Maybe we need a better logging framework.
-  void printToCompiler(Compiler compiler) {
-    HInstruction instruction = first;
-    while (instruction != null) {
-      int instructionId = instruction.id;
-      String inputsAsString = instruction.inputsToString();
-      compiler.log('$instructionId: $instruction $inputsAsString');
-      instruction = instruction.next;
-    }
   }
 
   void addAtEntry(HInstruction instruction) {
@@ -784,7 +771,7 @@ abstract class HInstruction implements Spannable {
   static const int TYPE_GUARD_TYPECODE = 1;
   static const int BOUNDS_CHECK_TYPECODE = 2;
   static const int INTEGER_CHECK_TYPECODE = 3;
-  static const int INVOKE_INTERCEPTOR_TYPECODE = 4;
+  static const int INTERCEPTOR_TYPECODE = 4;
   static const int ADD_TYPECODE = 5;
   static const int DIVIDE_TYPECODE = 6;
   static const int MODULO_TYPECODE = 7;
@@ -1118,11 +1105,13 @@ abstract class HInstruction implements Spannable {
   bool isJsStatement(HTypeMap types) => false;
 
   bool dominates(HInstruction other) {
+    // An instruction does not dominates itself.
+    if (this == other) return false;
     if (block != other.block) return block.dominates(other.block);
 
-    HInstruction current = this;
+    HInstruction current = this.next;
     while (current != null) {
-      if (identical(current, other)) return true;
+      if (current == other) return true;
       current = current.next;
     }
     return false;
@@ -1284,12 +1273,10 @@ abstract class HConditionalBranch extends HControlFlow {
   HInstruction get condition => inputs[0];
   HBasicBlock get trueBranch => block.successors[0];
   HBasicBlock get falseBranch => block.successors[1];
-  toString();
 }
 
 abstract class HControlFlow extends HInstruction {
   HControlFlow(inputs) : super(inputs);
-  toString();
   void prepareGvn(HTypeMap types) {
     // Control flow does not have side-effects.
   }
@@ -1305,9 +1292,6 @@ abstract class HInvoke extends HInstruction {
     */
   HInvoke(List<HInstruction> inputs) : super(inputs);
   static const int ARGUMENTS_OFFSET = 1;
-
-  // TODO(floitsch): make class abstract instead of adding an abstract method.
-  accept(HVisitor visitor);
 }
 
 abstract class HInvokeDynamic extends HInvoke {
@@ -1319,8 +1303,12 @@ abstract class HInvokeDynamic extends HInvoke {
   toString() => 'invoke dynamic: $selector';
   HInstruction get receiver => inputs[0];
 
-  // TODO(floitsch): make class abstract instead of adding an abstract method.
-  accept(HVisitor visitor);
+  bool get isInterceptorCall {
+    // We know it's a selector call if it follows the interceptor
+    // calling convention, which adds the actual receiver as a
+    // parameter to the call.
+    return inputs.length - 2 == selector.argumentCount;
+  }
 }
 
 class HInvokeClosure extends HInvokeDynamic {
@@ -1343,9 +1331,6 @@ abstract class HInvokeDynamicField extends HInvokeDynamic {
       this.isSideEffectFree)
       : super(selector, element, inputs);
   toString() => 'invoke dynamic field: $selector';
-
-  // TODO(floitsch): make class abstract instead of adding an abstract method.
-  accept(HVisitor visitor);
 }
 
 class HInvokeDynamicGetter extends HInvokeDynamicField {
@@ -1424,83 +1409,6 @@ class HInvokeSuper extends HInvokeStatic {
     // Index 0: the element, index 1: 'this'.
     return inputs[2];
   }
-}
-
-class HInvokeInterceptor extends HInvokeStatic {
-  final Selector selector;
-  final bool isSideEffectFree;
-
-  HInvokeInterceptor(this.selector,
-                     List<HInstruction> inputs,
-                     [bool this.isSideEffectFree = false])
-      : super(inputs);
-
-  toString() => 'invoke interceptor: ${element.name}';
-  accept(HVisitor visitor) => visitor.visitInvokeInterceptor(this);
-
-  bool isLengthGetter() {
-    return selector.isGetter() &&
-        selector.name == const SourceString('length');
-  }
-
-  bool isPopCall(HTypeMap types) {
-    return selector.isCall()
-        && inputs[1].isExtendableArray(types)
-        && selector.name == const SourceString('removeLast')
-        && selector.argumentCount == 0;
-  }
-
-  bool isLengthGetterOnStringOrArray(HTypeMap types) {
-    return isLengthGetter() && inputs[1].isIndexablePrimitive(types);
-  }
-
-  HType computeLikelyType(HTypeMap types, Compiler compiler) {
-    // In general a length getter or method returns an int.
-    if (isLengthGetter()) return HType.INTEGER;
-    return HType.UNKNOWN;
-  }
-
-  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
-    if (isLengthGetterOnStringOrArray(types)) return HType.INTEGER;
-    return HType.UNKNOWN;
-  }
-
-  HType computeDesiredTypeForNonTargetInput(HInstruction input,
-                                            HTypeMap types,
-                                            Compiler compiler) {
-    // If the first argument is a string or an array and we invoke methods
-    // on it that mutate it, then we want to restrict the incoming type to be
-    // a mutable array.
-    if (input == inputs[1] && input.isIndexablePrimitive(types)) {
-      // TODO(kasperl): Should we check that the selector is a call selector?
-      if (selector.name == const SourceString('add')
-          || selector.name == const SourceString('removeLast')) {
-        return HType.MUTABLE_ARRAY;
-      }
-    }
-    return HType.UNKNOWN;
-  }
-
-  void prepareGvn(HTypeMap types) {
-    clearAllSideEffects();
-    if (isLengthGetterOnStringOrArray(types)) {
-      setUseGvn();
-      // If the input is a string or a fixed length array, we know
-      // the length cannot change.
-      if (!inputs[1].isString(types) && !inputs[1].isFixedArray(types)) {
-        setDependsOnInstancePropertyStore();
-      }
-    } else if (isSideEffectFree) {
-      setUseGvn();
-      setDependsOnSomething();
-    } else {
-      setAllSideEffects();
-    }
-  }
-
-  int typeCode() => HInstruction.INVOKE_INTERCEPTOR_TYPECODE;
-  bool typeEquals(other) => other is HInvokeInterceptor;
-  bool dataEquals(HInvokeInterceptor other) => selector == other.selector;
 }
 
 abstract class HFieldAccess extends HInstruction {
@@ -1827,9 +1735,6 @@ abstract class HBinaryBitOp extends HBinaryArithmetic {
     if (left.isTypeUnknown(types)) return HType.INTEGER;
     return HType.UNKNOWN;
   }
-
-  // TODO(floitsch): make class abstract instead of adding an abstract method.
-  accept(HVisitor visitor);
 }
 
 class HShiftLeft extends HBinaryBitOp {
@@ -2301,8 +2206,6 @@ abstract class HRelational extends HInvokeBinary {
 
   bool isBuiltin(HTypeMap types)
       => left.isNumber(types) && right.isNumber(types);
-  // TODO(1603): the class should be marked as abstract.
-  BinaryOperation operation(ConstantSystem constantSystem);
 }
 
 class HEquals extends HRelational {
@@ -2311,7 +2214,7 @@ class HEquals extends HRelational {
   accept(HVisitor visitor) => visitor.visitEquals(this);
 
   bool isBuiltin(HTypeMap types) {
-    // All primitive types have === semantics.
+    // All primitive types have 'identical' semantics.
     // Note that this includes all constants except the user-constructed
     // objects.
     return types[left].isPrimitiveOrNull() || right.isConstantNull();
@@ -2327,7 +2230,7 @@ class HEquals extends HRelational {
                                             Compiler compiler) {
     HType propagatedType = types[this];
     if (input == left && types[right].isUseful()) {
-      // All our useful types have === semantics. But we don't want to
+      // All our useful types have 'identical' semantics. But we don't want to
       // speculatively test for all possible types. Therefore we try to match
       // the two types. That is, if we see x == 3, then we speculatively test
       // if x is a number and bailout if it isn't.
@@ -2464,6 +2367,21 @@ class HStatic extends HInstruction {
   bool typeEquals(other) => other is HStatic;
   bool dataEquals(HStatic other) => element == other.element;
   bool isCodeMotionInvariant() => !element.isAssignable();
+}
+
+class HInterceptor extends HInstruction {
+  final Set<ClassElement> interceptedClasses;
+  HInterceptor(this.interceptedClasses, HInstruction receiver)
+      : super(<HInstruction>[receiver]);
+  String toString() => 'interceptor on $interceptedClasses';
+  accept(HVisitor visitor) => visitor.visitInterceptor(this);
+  HInstruction get receiver => inputs[0];
+
+  void prepareGvn(HTypeMap types) {
+    clearAllSideEffects();
+  }
+
+  int typeCode() => HInstruction.INTERCEPTOR_TYPECODE;
 }
 
 /** An [HLazyStatic] is a static that is initialized lazily at first read. */

@@ -158,7 +158,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
       __ cmpl(kClassIdReg, Immediate(type_class.id()));
       __ j(EQUAL, is_instance_lbl);
     }
-    if (type_class.raw() == Isolate::Current()->object_store()->list_class()) {
+    if (type_class.IsListClass()) {
       GenerateListTypeCheck(kClassIdReg, is_instance_lbl);
     }
     return GenerateSubtype1TestCacheLookup(
@@ -1092,7 +1092,6 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
                                        intptr_t deopt_id,
                                        intptr_t token_pos,
                                        LocationSummary* locs) {
-  __ LoadObject(ECX, function);
   __ LoadObject(EDX, arguments_descriptor);
   // Do not use the code from the function, but let the code be patched so that
   // we can record the outgoing edges to other code.
@@ -1101,6 +1100,7 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
                    &StubCode::CallStaticFunctionLabel(),
                    PcDescriptors::kFuncCall,
                    locs);
+  AddStaticCallTarget(function);
   __ Drop(argument_count);
 }
 

@@ -16,6 +16,7 @@ import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartThisExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
+import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.type.FunctionType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.Types;
@@ -143,11 +144,15 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
     node.setType(type);
     Element element = type.getElement();
     recordElement(node.getIdentifier(), element);
+    checkDeprecated(node, element);
+    return type;
+  }
+
+  protected final void checkDeprecated(HasSourceInfo nameNode, Element element) {
     if (element != null && element.getMetadata().isDeprecated()) {
-      getContext().onError(node.getIdentifier(), TypeErrorCode.DEPRECATED_ELEMENT,
+      getContext().onError(nameNode, TypeErrorCode.DEPRECATED_ELEMENT,
          Elements.getDeprecatedElementTitle(element));
     }
-    return type;
   }
 
   protected <E extends Element> E recordElement(DartNode node, E element) {

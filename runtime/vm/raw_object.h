@@ -350,10 +350,9 @@ class RawObject {
   static bool IsByteArrayClassId(intptr_t index);
   static bool IsExternalByteArrayClassId(intptr_t index);
 
- protected:
+ private:
   uword tags_;  // Various object tags (bits).
 
- private:
   class FreeBit : public BitField<bool, kFreeBit, 1> {};
 
   class MarkBit : public BitField<bool, kMarkBit, 1> {};
@@ -745,9 +744,9 @@ class RawCode : public RawObject {
   RawPcDescriptors* pc_descriptors_;
   RawArray* deopt_info_array_;
   RawArray* object_table_;
+  RawArray* static_calls_target_table_;  // (code-offset, function, code).
   RawArray* stackmaps_;
   RawLocalVarDescriptors* var_descriptors_;
-  RawGrowableObjectArray* resolved_static_calls_;
   RawArray* comments_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->comments_);
@@ -1362,6 +1361,10 @@ class ExternalByteArrayData {
   }
   void* peer() {
     return peer_;
+  }
+
+  static intptr_t data_offset() {
+    return OFFSET_OF(ExternalByteArrayData<T>, data_);
   }
 
  private:

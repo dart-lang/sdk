@@ -78,7 +78,7 @@ class CommentMap {
           if (lastComment == null) {
             lastComment = line;
           } else {
-            lastComment = '$lastComment$line';
+            lastComment = '$lastComment\n$line';
           }
         }
       } else if (token.kind == dart2js.HASH_TOKEN) {

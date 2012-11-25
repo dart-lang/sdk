@@ -9,20 +9,18 @@
 # arithmetic natively, i.e., the VM.
 fixnum/test/int_64_vm_test: Skip
 
-# Skip the cURL tests until we have bundled binaries to run them on all
-# platforms.
-http/test/curl_client_test: Skip
-
 [$compiler == dart2dart]
 *: Skip
 
 # Don't compiile tests that use dart:io to JS
 [ $compiler == dart2js || $compiler == dart2dart || $compiler == dartc ]
 http/test/*: Skip
+oauth2/test/*: Skip
 
 # Skip tests that use local file access if we're running in any browser
 [ $runtime == opera || $runtime == ff || $runtime == ie9 || $runtime == dartium || $runtime == chrome || $runtime == safari || $runtime == drt ]
 http/test/*: Skip
+oauth2/test/*: Skip
 intl/test/date_time_format_file_even_test: Skip
 intl/test/date_time_format_file_odd_test: Skip
 intl/test/find_default_locale_standalone_test: Skip
@@ -50,13 +48,11 @@ intl/test/intl_message_basic_example_test: Skip
 [ $compiler == dartc ]
 unittest/test/mock_regexp_negative_test: Fail
 unittest/test/mock_stepwise_negative_test: Fail
-
-[ $system == windows ]
-http/test/request_test: Pass, Timeout # Issue 6594
+args/test/args_test: Fail # http://dartbug.com/6790
 
 [ $compiler == dart2js || $compiler == dartc ]
 unittest/test/instance_test: Skip
 
 [ $compiler == none && $runtime == drt ]
 dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
-
+args/test/args_test: Skip # http://dartbug.com/6744

@@ -38,10 +38,13 @@ void testNoBody(int totalConnections, bool explicitContentLength) {
       Expect.equals("0", response.headers.value('content-length'));
       Expect.equals(0, response.contentLength);
       count++;
-      if (count == totalConnections) {
-        client.shutdown();
-        server.close();
-      }
+      response.inputStream.onData = response.inputStream.read;
+      response.inputStream.onClosed = () {
+        if (count == totalConnections) {
+          client.shutdown();
+          server.close();
+        }
+      };
     };
   }
 }
@@ -82,10 +85,13 @@ void testBody(int totalConnections) {
       Expect.equals("2", response.headers.value('content-length'));
       Expect.equals(2, response.contentLength);
       count++;
-      if (count == totalConnections) {
-        client.shutdown();
-        server.close();
-      }
+      response.inputStream.onData = response.inputStream.read;
+      response.inputStream.onClosed = () {
+        if (count == totalConnections) {
+          client.shutdown();
+          server.close();
+        }
+      };
     };
   }
 }

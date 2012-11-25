@@ -6,20 +6,20 @@ part of svg;
 
 final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 
-class _SVGElementFactoryProvider {
-  static SVGElement createSVGElement_tag(String tag) {
+class _SvgElementFactoryProvider {
+  static SvgElement createSvgElement_tag(String tag) {
     final Element temp =
       document.$dom_createElementNS("http://www.w3.org/2000/svg", tag);
     return temp;
   }
 
-  static SVGElement createSVGElement_svg(String svg) {
+  static SvgElement createSvgElement_svg(String svg) {
     Element parentTag;
     final match = _START_TAG_REGEXP.firstMatch(svg);
     if (match != null && match.group(1).toLowerCase() == 'svg') {
       parentTag = new Element.tag('div');
     } else {
-      parentTag = new SVGSVGElement();
+      parentTag = new SvgSvgElement();
     }
 
     parentTag.innerHTML = svg;
@@ -31,9 +31,9 @@ class _SVGElementFactoryProvider {
   }
 }
 
-class _SVGSVGElementFactoryProvider {
-  static SVGSVGElement createSVGSVGElement() {
-    final el = new SVGElement.tag("svg");
+class _SvgSvgElementFactoryProvider {
+  static SvgSvgElement createSvgSvgElement() {
+    final el = new SvgElement.tag("svg");
     // The SVG spec requires the version attribute to match the spec version
     el.attributes['version'] = "1.1";
     return el;

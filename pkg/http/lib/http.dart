@@ -37,11 +37,11 @@
 /// This package is designed to be composable. This makes it easy for external
 /// libraries to work with one another to add behavior to it. Libraries wishing
 /// to add behavior should create a subclass of [BaseClient] that wraps another
-/// [BaseClient] and adds the desired behavior:
+/// [Client] and adds the desired behavior:
 ///
 ///     class UserAgentClient extends http.BaseClient {
 ///       final String userAgent;
-///       final HttpClient _inner;
+///       final http.Client _inner;
 ///
 ///       UserAgentClient(this.userAgent, this._inner);
 ///
@@ -50,9 +50,6 @@
 ///         return _inner.send(request);
 ///       }
 ///     }
-///
-/// In turn, libraries using [Client] should take a [BaseClient] so that the
-/// decorated clients can be used transparently.
 
 library http;
 
@@ -65,7 +62,6 @@ import 'src/response.dart';
 export 'src/base_client.dart';
 export 'src/base_request.dart';
 export 'src/base_response.dart';
-export 'src/curl_client.dart';
 export 'src/client.dart';
 export 'src/multipart_file.dart';
 export 'src/multipart_request.dart';

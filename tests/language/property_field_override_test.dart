@@ -4,7 +4,7 @@
 
 // Test overriding a getter property with a field.
 class A {
-  abstract int get v;
+  int get v;  // Abstract.
 
   int a() {
     return v - 1;

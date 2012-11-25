@@ -65,16 +65,6 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
   CodeBuffer generateMethod(WorkItem work, HGraph graph) {
     return measure(() {
-      JavaScriptItemCompilationContext context = work.compilationContext;
-      HTypeMap types = context.types;
-      graph.exit.predecessors.forEach((block) {
-        assert(block.last is HGoto || block.last is HReturn);
-        if (block.last is HReturn) {
-          backend.registerReturnType(work.element, types[block.last.inputs[0]]);
-        } else {
-          backend.registerReturnType(work.element, HType.NULL);
-        }
-      });
       compiler.tracer.traceGraph("codegen", graph);
       SsaOptimizedCodeGenerator codegen =
           new SsaOptimizedCodeGenerator(backend, work);
@@ -382,6 +372,20 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     allocator.visitGraph(graph);
     variableNames = allocator.names;
     shouldGroupVarDeclarations = allocator.names.numberOfVariables > 1;
+
+    // Don't register a return type for lazily initialized variables.
+    if (work.element is! FunctionElement) return;
+
+    // Register return types to the backend.
+    graph.exit.predecessors.forEach((HBasicBlock block) {
+      HInstruction last = block.last;
+      assert(last is HGoto || last is HReturn);
+      if (last is HReturn) {
+        backend.registerReturnType(work.element, types[last.inputs[0]]);
+      } else {
+        backend.registerReturnType(work.element, HType.NULL);
+      }
+    });
   }
 
   void handleDelayedVariableDeclarations() {
@@ -831,7 +835,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   bool visitLoopInfo(HLoopBlockInformation info) {
     HExpressionInformation condition = info.condition;
-    bool isConditionExpression = condition == null || isJSCondition(condition);
+    bool isConditionExpression = isJSCondition(condition);
 
     js.Loop loop;
 
@@ -943,18 +947,29 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         }
         break;
       case HLoopBlockInformation.DO_WHILE_LOOP:
-        // If there are phi copies after the condition, we cannot emit
-        // a pretty do/while loop, se we fallback to the generic
-        // emission of a loop.
-        CopyHandler handler = variableNames.getCopyHandler(info.end);
-        if (handler != null && !handler.isEmpty) return false;
         if (info.initializer != null) {
           generateStatements(info.initializer);
         }
         js.Block oldContainer = currentContainer;
-        js.Statement body = new js.Block.empty();
+        js.Block body = new js.Block.empty();
+        // If there are phi copies in the block that jumps to the
+        // loop entry, we must emit the condition like this:
+        // do {
+        //   body;
+        //   if (condition) {
+        //     phi updates;
+        //     continue;
+        //   } else {
+        //     break;
+        //   }
+        // } while (true);
+        HBasicBlock avoidEdge = info.end.successors[0];
+        js.Block updateBody = new js.Block.empty();
+        currentContainer = updateBody;
+        assignPhisOfSuccessors(avoidEdge);
+        bool hasPhiUpdates = !updateBody.statements.isEmpty;
         currentContainer = body;
-        if (!isConditionExpression || info.updates != null) {
+        if (hasPhiUpdates || !isConditionExpression || info.updates != null) {
           wrapLoopBodyForContinue(info);
         } else {
           visitBodyIgnoreLabels(info);
@@ -962,18 +977,21 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         if (info.updates != null) {
           generateStatements(info.updates);
         }
-        if (condition == null) {
-          push(newLiteralBool(false));
-        } else if (isConditionExpression) {
+        if (isConditionExpression) {
           push(generateExpression(condition));
         } else {
           generateStatements(condition);
           use(condition.conditionExpression);
         }
         js.Expression jsCondition = pop();
+        if (hasPhiUpdates) {
+          updateBody.statements.add(new js.Continue(null));
+          body.statements.add(
+              new js.If(jsCondition, updateBody, new js.Break(null)));
+          jsCondition = newLiteralBool(true);
+        }
+        loop = new js.Do(unwrapStatement(body), jsCondition);
         currentContainer = oldContainer;
-        body = unwrapStatement(body);
-        loop = new js.Do(body, jsCondition);
         break;
       default:
         compiler.internalError(
@@ -1244,16 +1262,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
       instruction = instruction.next;
     }
-    if (instruction is HLoopBranch) {
-      HLoopBranch branch = instruction;
-      // If the loop is a do/while loop, the phi updates must happen
-      // after the evaluation of the condition.
-      if (!branch.isDoWhile()) {
-        assignPhisOfSuccessors(node);
-      }
-    } else {
-      assignPhisOfSuccessors(node);
-    }
+    assignPhisOfSuccessors(node);
     visit(instruction);
   }
 
@@ -1520,14 +1529,15 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                        arguments);
   }
 
-  // TODO(ngeoffray): Once we remove the old interceptors, we can
-  // start using HInvokeInterceptor to represent interceptor calls on
-  // an Interceptor class. Currently we recognize if a call is a call
-  // on an interceptor by checking if the arguments in the inputs list
-  // is one more than the arguments in the selector. The extra
-  // argument in an interceptor call is the actual receiver.
-  bool isInterceptorCall(HInvokeDynamic node) {
-    return node.inputs.length - 1 != node.selector.argumentCount;
+  void visitInterceptor(HInterceptor node) {
+    Element element = backend.getInterceptorMethod;
+    assert(element != null);
+    world.registerStaticUse(element);
+    js.VariableUse interceptor =
+        new js.VariableUse(backend.namer.isolateAccess(element));
+    use(node.receiver);
+    List<js.Expression> arguments = <js.Expression>[pop()];
+    push(new js.Call(interceptor, arguments), node);
   }
 
   visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
@@ -1556,7 +1566,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // receiver (the first is the interceptor), the backend gets
       // confused. We should pass a list of types instead of a node to
       // [registerDynamicInvocation].
-      if (!isInterceptorCall(node)) {
+      if (!node.isInterceptorCall) {
         backend.registerDynamicInvocation(node, selector, types);
       } else {
         backend.addInterceptedSelector(selector);
@@ -1591,7 +1601,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // TODO(4434): For private members we need to use the untyped selector.
     if (defaultSelector.name.isPrivate()) return defaultSelector;
     // TODO(ngeoffray): Type intercepted calls.
-    if (isInterceptorCall(node)) return defaultSelector;
+    if (node.isInterceptorCall) return defaultSelector;
     // If [JSInvocationMirror.invokeOn] has been called, we must not create a
     // typed selector based on the receiver type.
     if (node.element == null && // Invocation is not exact.
@@ -1614,7 +1624,14 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(jsPropertyCall(pop(), name, visitArguments(node.inputs)), node);
     Selector selector = getOptimizedSelectorFor(node, setter);
     world.registerDynamicSetter(setter.name, selector);
-    backend.addedDynamicSetter(selector, types[node.inputs[1]]);
+    HType valueType;
+    if (node.isInterceptorCall) {
+      valueType = types[node.inputs[2]];
+      backend.addInterceptedSelector(setter);
+    } else {
+      valueType = types[node.inputs[1]];
+    }
+    backend.addedDynamicSetter(selector, valueType);
   }
 
   visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
@@ -1624,7 +1641,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(jsPropertyCall(pop(), name, visitArguments(node.inputs)), node);
     world.registerDynamicGetter(
         getter.name, getOptimizedSelectorFor(node, getter));
-    if (isInterceptorCall(node)) {
+    if (node.isInterceptorCall) {
       backend.addInterceptedSelector(getter);
     }
   }
@@ -1645,9 +1662,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitInvokeStatic(HInvokeStatic node) {
-    if (true &&
-        (node.typeCode() == HInstruction.INVOKE_STATIC_TYPECODE ||
-         node.typeCode() == HInstruction.INVOKE_INTERCEPTOR_TYPECODE)) {
+    if (node.typeCode() == HInstruction.INVOKE_STATIC_TYPECODE) {
       // Register this invocation to collect the types used at all call sites.
       backend.registerStaticInvocation(node, types);
     }
@@ -1706,30 +1721,23 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitFieldGet(HFieldGet node) {
-    String name = backend.namer.getName(node.element);
     use(node.receiver);
-    push(new js.PropertyAccess.field(pop(), name), node);
-    HType receiverHType = types[node.receiver];
-    DartType type = receiverHType.computeType(compiler);
-    if (type != null) {
-      world.registerFieldGetter(
-          node.element.name, node.element.getLibrary(), type);
+    if (node.element == backend.jsArrayLength
+        || node.element == backend.jsStringLength) {
+      // We're accessing a native JavaScript property called 'length'
+      // on a JS String or a JS array. Therefore, the name of that
+      // property should not be mangled.
+      push(new js.PropertyAccess.field(pop(), 'length'), node);
+    } else {
+      String name = backend.namer.getName(node.element);
+      push(new js.PropertyAccess.field(pop(), name), node);
+      HType receiverHType = types[node.receiver];
+      DartType type = receiverHType.computeType(compiler);
+      if (type != null) {
+        world.registerFieldGetter(
+            node.element.name, node.element.getLibrary(), type);
+      }
     }
-  }
-
-  // Determine if an instruction is a simple number computation
-  // involving only things with guaranteed number types and a given
-  // field.
-  bool isSimpleFieldNumberComputation(HInstruction value, HFieldSet node) {
-    if (value.guaranteedType.union(HType.NUMBER, compiler) == HType.NUMBER) {
-      return true;
-    }
-    if (value is HBinaryArithmetic) {
-      return (isSimpleFieldNumberComputation(value.left, node) &&
-              isSimpleFieldNumberComputation(value.right, node));
-    }
-    if (value is HFieldGet) return value.element == node.element;
-    return false;
   }
 
   visitFieldSet(HFieldSet node) {
@@ -1870,11 +1878,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     HBasicBlock branchBlock = currentBlock;
     handleLoopCondition(node);
     List<HBasicBlock> dominated = currentBlock.dominatedBlocks;
-    if (node.isDoWhile()) {
-      // Now that the condition has been evaluated, we can update the
-      // phis of a do/while loop.
-      assignPhisOfSuccessors(node.block);
-    } else {
+    if (!node.isDoWhile()) {
       // For a do while loop, the body has already been visited.
       visitBasicBlock(dominated[0]);
     }
@@ -2193,64 +2197,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  String builtinJsName(HInvokeInterceptor interceptor) {
-    // Don't count the target method or the receiver in the arity.
-    int arity = interceptor.inputs.length - 2;
-    HInstruction receiver = interceptor.inputs[1];
-    bool isCall = interceptor.selector.isCall();
-    SourceString name = interceptor.selector.name;
-
-    if (interceptor.isLengthGetterOnStringOrArray(types)) {
-      return 'length';
-    } else if (interceptor.isPopCall(types)) {
-      return 'pop';
-    } else if (receiver.isExtendableArray(types) && isCall) {
-      if (name == const SourceString('add') && arity == 1) {
-        return 'push';
-      }
-    } else if (receiver.isString(types) && isCall) {
-      if (name == const SourceString('concat') &&
-          arity == 1 &&
-          interceptor.inputs[2].isString(types)) {
-        return '+';
-      }
-      if (name == const SourceString('split') &&
-          arity == 1 &&
-          interceptor.inputs[2].isString(types)) {
-        return 'split';
-      }
-    }
-
-    return null;
-  }
-
-  void visitInvokeInterceptor(HInvokeInterceptor node) {
-    String builtin = builtinJsName(node);
-    if (builtin != null) {
-      if (builtin == '+') {
-        use(node.inputs[1]);
-        js.Expression left = pop();
-        use(node.inputs[2]);
-        push(new js.Binary("+", left, pop()), node);
-      } else {
-        use(node.inputs[1]);
-        js.PropertyAccess access = new js.PropertyAccess.field(pop(), builtin);
-        if (node.selector.isGetter()) {
-          push(access, node);
-          return;
-        }
-        List<js.Expression> arguments = <js.Expression>[];
-        for (int i = 2; i < node.inputs.length; i++) {
-          use(node.inputs[i]);
-          arguments.add(pop());
-        }
-        push(new js.Call(access, arguments), node);
-      }
-    } else {
-      return visitInvokeStatic(node);
-    }
-  }
-
   void checkInt(HInstruction input, String cmp) {
     use(input);
     js.Expression left = pop();
@@ -2471,22 +2417,22 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.hasTypeInfo()) {
       InterfaceType interfaceType = type;
       ClassElement cls = type.element;
-      Link<DartType> arguments = interfaceType.arguments;
+      Link<DartType> arguments = interfaceType.typeArguments;
       js.Expression result = pop();
       for (TypeVariableType typeVariable in cls.typeVariables) {
         use(node.typeInfoCall);
-        // TODO(johnniwinther): Retrieve the type name properly and not through
-        // [toString]. Note: Two cases below [typeVariable] and
-        // [arguments.head].
-        js.PropertyAccess field =
-            new js.PropertyAccess.field(pop(), typeVariable.toString());
-        js.Expression genericName = new js.LiteralString("'${arguments.head}'");
+        int index = RuntimeTypeInformation.getTypeVariableIndex(typeVariable);
+        js.PropertyAccess field = new js.PropertyAccess.indexed(pop(), index);
+        RuntimeTypeInformation rti = backend.rti;
+        String typeName = rti.getStringRepresentation(arguments.head);
+        js.Expression genericName = new js.LiteralString("'$typeName'");
         js.Binary eqTest = new js.Binary('===', field, genericName);
         // Also test for 'undefined' in case the object does not have
         // any type variable.
         js.Prefix undefinedTest = new js.Prefix('!', field);
         result = new js.Binary(
             '&&', result, new js.Binary('||', undefinedTest, eqTest));
+        arguments = arguments.tail;
       }
       push(result, node);
     }

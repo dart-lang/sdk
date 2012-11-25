@@ -54,10 +54,7 @@ patch class Expando<T> {
   }
 
   static _checkType(object) {
-    if (object == null) {
-      throw new NullPointerException();
-    }
-    if (object is bool || object is num || object is String) {
+    if (object == null || object is bool || object is num || object is String) {
       throw new ArgumentError(object);
     }
   }

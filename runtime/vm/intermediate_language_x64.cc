@@ -992,6 +992,30 @@ void StringCharCodeAtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* StringFromCharCodeInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  // TODO(fschneider): Allow immediate operands for the char code.
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_out(Location::RequiresRegister());
+  return locs;
+}
+
+
+void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register char_code = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+  __ movq(result,
+          Immediate(reinterpret_cast<uword>(Symbols::PredefinedAddress())));
+  __ movq(result, Address(result,
+                          char_code,
+                          TIMES_HALF_WORD_SIZE,  // Char code is a smi.
+                          Symbols::kNullCharId * kWordSize));
+}
+
+
 LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;

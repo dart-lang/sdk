@@ -8,40 +8,70 @@
 #
 # Expected invocation: python drt-trampoline.py <path to DRT> <DRT command line>
 
+import optparse
 import os
 import signal
 import subprocess
 import sys
 
-DART_FLAGS_PREFIX = '--dart-flags='
-OUT_EXPECTATION_PREFIX = '--out-expectation='
+def parse_options(argv):
+  parser = optparse.OptionParser()
+  parser.add_option('--dart-flags',
+                    metavar='FLAGS',
+                    dest='dart_flags')
+  parser.add_option('--out-expectation',
+                    metavar='FILE',
+                    dest='out_expected_file')
+  parser.add_option('--package-root',
+                    metavar='DIRECTORY',
+                    dest='dart_package_root')
+  parser.add_option('--no-timeout',
+                    action='store_true')
+  return parser.parse_args(args=argv)
+
 
 def main(argv):
   drt_path = argv[1]
-  command_line = argv[2:]
+  (options, arguments) = parse_options(argv[2:])
 
   cmd = [drt_path]
 
   env = None
   test_file = None
-  out_expected_file = None
+  dart_flags = options.dart_flags
+  out_expected_file = options.out_expected_file
+  dart_package_root = options.dart_package_root
   is_png = False
 
-  # parse arguments, filtering out flags, and selecting the input test file
-  for arg in command_line:
-    if arg.startswith(DART_FLAGS_PREFIX):
+  if dart_flags:
+    if not env:
       env = dict(os.environ.items())
-      env['DART_FLAGS'] = arg[len(DART_FLAGS_PREFIX):]
-    elif arg.startswith(OUT_EXPECTATION_PREFIX):
-      out_expected_file = arg[len(OUT_EXPECTATION_PREFIX):]
-      if out_expected_file.endswith('.png'):
-        cmd.append('--notree')
-        is_png = True
-      elif not out_expected_file.endswith('.txt'):
-        raise Exception(
-            'Bad file expectation (%s), ' % out_expected_file
-            + 'please specify either a .txt or a .png file')
-    elif '.html' in arg:
+    env['DART_FLAGS'] = dart_flags
+
+  if dart_package_root:
+    if not env:
+      env = dict(os.environ.items())
+    absolute_path = os.path.abspath(dart_package_root)
+    absolute_path = absolute_path.replace(os.path.sep, '/')
+    if not absolute_path.startswith('/'):
+      # Happens on Windows for C:\packages
+      absolute_path = '/%s' % absolute_path
+    env['DART_PACKAGE_ROOT'] = 'file://%s' % absolute_path
+
+  if out_expected_file:
+    if out_expected_file.endswith('.png'):
+      cmd.append('--notree')
+      is_png = True
+    elif not out_expected_file.endswith('.txt'):
+      raise Exception(
+        'Bad file expectation (%s) please specify either a .txt or a .png file'
+        % out_expected_file)
+
+  if options.no_timeout:
+    cmd.append('--no-timeout')
+
+  for arg in arguments:
+    if '.html' in arg:
       test_file = arg
     else:
       cmd.append(arg)

@@ -30,6 +30,7 @@ class ConstructorPlaceholder {
   final bool isRedirectingCall;
   ConstructorPlaceholder(this.node, this.type)
       : this.isRedirectingCall = false;
+  // Note: factory redirection is not redirecting call!
   ConstructorPlaceholder.redirectingCall(this.node)
       : this.type = null, this.isRedirectingCall = true;
 }
@@ -141,7 +142,7 @@ class PlaceholderCollector extends Visitor {
   final Set<String> fixedMemberNames; // member names which cannot be renamed.
   final Map<Element, ElementAst> elementAsts;
   final Set<Node> nullNodes;  // Nodes that should not be in output.
-  final Set<Identifier> unresolvedNodes;
+  final Set<Node> unresolvedNodes;
   final Map<Element, Set<Node>> elementNodes;
   final Map<FunctionElement, FunctionScope> functionScopes;
   final Map<LibraryElement, Set<Identifier>> privateNodes;
@@ -161,7 +162,7 @@ class PlaceholderCollector extends Visitor {
 
   PlaceholderCollector(this.compiler, this.fixedMemberNames, this.elementAsts) :
       nullNodes = new Set<Node>(),
-      unresolvedNodes = new Set<Identifier>(),
+      unresolvedNodes = new Set<Node>(),
       elementNodes = new Map<Element, Set<Node>>(),
       functionScopes = new Map<FunctionElement, FunctionScope>(),
       privateNodes = new Map<LibraryElement, Set<Identifier>>(),
@@ -175,6 +176,15 @@ class PlaceholderCollector extends Visitor {
     if (element.isGenerativeConstructor() || element.isFactoryConstructor()) {
       DartType type = element.getEnclosingClass().type.asRaw();
       makeConstructorPlaceholder(node.name, element, type);
+      Return bodyAsReturn = node.body.asReturn();
+      if (bodyAsReturn != null && bodyAsReturn.isRedirectingFactoryBody) {
+        // Factory redirection.
+        FunctionElement redirectTarget = element.defaultImplementation;
+        assert(redirectTarget != null && redirectTarget != element);
+        type = redirectTarget.getEnclosingClass().type.asRaw();
+        makeConstructorPlaceholder(
+            bodyAsReturn.expression, redirectTarget, type);
+      }
     } else if (Elements.isStaticOrTopLevel(element)) {
       // Note: this code should only rename private identifiers for class'
       // fields/getters/setters/methods.  Top-level identifiers are renamed
@@ -355,7 +365,8 @@ class PlaceholderCollector extends Visitor {
     Element constructor = treeElements[send];
     assert(constructor != null);
     assert(send.receiver == null);
-    if (constructor is !ErroneousElement) {
+    if (!Elements.isErroneousElement(constructor) &&
+        !Elements.isMalformedElement(constructor)) {
       makeConstructorPlaceholder(node.send.selector, constructor, type);
       // TODO(smok): Should this be in visitNamedArgument?
       // Field names can be exposed as names of optional arguments, e.g.

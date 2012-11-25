@@ -11,6 +11,7 @@
 #include "vm/symbols.h"
 #include "vm/thread.h"
 #include "vm/token.h"
+#include "vm/unicode.h"
 
 namespace dart {
 
@@ -171,6 +172,36 @@ bool Scanner::IsIdent(const String& str) {
     }
   }
   return true;
+}
+
+
+// This method is used when parsing integers and doubles in Dart code. We
+// are reusing the Scanner's handling of number literals in that situation.
+bool Scanner::IsValidLiteral(const Scanner::GrowableTokenStream& tokens,
+                             Token::Kind literal_kind,
+                             bool* is_positive,
+                             String** value) {
+  if ((tokens.length() == 2) &&
+      (tokens[0].kind == literal_kind) &&
+      (tokens[1].kind == Token::kEOS)) {
+    *is_positive = true;
+    *value = tokens[0].literal;
+    return true;
+  }
+  if ((tokens.length() == 3) &&
+      ((tokens[0].kind == Token::kTIGHTADD) ||
+       (tokens[0].kind == Token::kSUB)) &&
+      (tokens[1].kind == literal_kind) &&
+      (tokens[2].kind == Token::kEOS)) {
+    // Check there is no space between "+/-" and number.
+    if ((tokens[0].offset + 1) != tokens[1].offset) {
+      return false;
+    }
+    *is_positive = tokens[0].kind == Token::kTIGHTADD;
+    *value = tokens[1].literal;
+    return true;
+  }
+  return false;
 }
 
 
@@ -438,7 +469,7 @@ void Scanner::ScanLiteralString(bool is_raw) {
 }
 
 
-bool Scanner::ScanHexDigits(int digits, uint32_t* value) {
+bool Scanner::ScanHexDigits(int digits, int32_t* value) {
   *value = 0;
   for (int i = 0; i < digits; ++i) {
     ReadChar();
@@ -453,7 +484,7 @@ bool Scanner::ScanHexDigits(int digits, uint32_t* value) {
 }
 
 
-bool Scanner::ScanHexDigits(int min_digits, int max_digits, uint32_t* value) {
+bool Scanner::ScanHexDigits(int min_digits, int max_digits, int32_t* value) {
   *value = 0;
   ReadChar();
   for (int i = 0; i < max_digits; ++i) {
@@ -472,7 +503,7 @@ bool Scanner::ScanHexDigits(int min_digits, int max_digits, uint32_t* value) {
 }
 
 
-void Scanner::ScanEscapedCodePoint(uint32_t* code_point) {
+void Scanner::ScanEscapedCodePoint(int32_t* code_point) {
   ASSERT(c0_ == 'u' || c0_ == 'x');
   bool is_valid;
   if (c0_ == 'x') {
@@ -498,7 +529,7 @@ void Scanner::ScanEscapedCodePoint(uint32_t* code_point) {
 
 
 void Scanner::ScanLiteralStringChars(bool is_raw) {
-  GrowableArray<uint32_t> string_chars(64);
+  GrowableArray<int32_t> string_chars(64);
 
   ASSERT(IsScanningString());
   // We are at the first character of a string literal piece. A string literal
@@ -511,7 +542,7 @@ void Scanner::ScanLiteralStringChars(bool is_raw) {
     }
     if (c0_ == '\\' && !is_raw) {
       // Parse escape sequence.
-      uint32_t escape_char = '\0';
+      int32_t escape_char = '\0';
       ReadChar();
       switch (c0_) {
         case 'n':
@@ -852,8 +883,11 @@ void Scanner::Scan() {
           ScanNumber(false);
         } else {
           char msg[128];
+          char utf8_char[5];
+          int len = Utf8::Encode(c0_, utf8_char);
+          utf8_char[len] = '\0';
           OS::SNPrint(msg, sizeof(msg),
-                      "unexpected character: %c  (%02x)\n", c0_, c0_);
+                      "unexpected character: '%s' (U+%04X)\n", utf8_char, c0_);
           ErrorMsg(msg);
           ReadChar();
         }

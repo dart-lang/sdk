@@ -7,7 +7,6 @@ library universe;
 import '../closure.dart';
 import '../elements/elements.dart';
 import '../dart2jslib.dart';
-import '../runtime_types.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
 
@@ -49,7 +48,6 @@ class Universe {
   final Map<SourceString, Set<Selector>> fieldGetters;
   final Map<SourceString, Set<Selector>> fieldSetters;
   final Set<DartType> isChecks;
-  final RuntimeTypeInformation rti;
 
   Universe() : generatedCode = new Map<Element, CodeBuffer>(),
                generatedBailoutCode = new Map<Element, CodeBuffer>(),
@@ -60,8 +58,7 @@ class Universe {
                invokedSetters = new Map<SourceString, Set<Selector>>(),
                fieldGetters = new Map<SourceString, Set<Selector>>(),
                fieldSetters = new Map<SourceString, Set<Selector>>(),
-               isChecks = new Set<DartType>(),
-               rti = new RuntimeTypeInformation();
+               isChecks = new Set<DartType>();
 
   void addGeneratedCode(WorkItem work, CodeBuffer codeBuffer) {
     assert(invariant(work.element, work.element.isDeclaration));
@@ -438,7 +435,8 @@ class TypedSelector extends Selector {
 
     // If [self] is a subclass of [other], it inherits the
     // implementation of [element].
-    if (self.isSubclassOf(other)) {
+    ClassElement cls = self;
+    if (cls.isSubclassOf(other)) {
       // Resolve an invocation of [element.name] on [self]. If it
       // is found, this selector is a candidate.
       return hasElementIn(self, element) && appliesUntyped(element, compiler);

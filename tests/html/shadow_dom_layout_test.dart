@@ -11,7 +11,7 @@ import 'dart:html';
 // ordered blue, red, green down the page.
 main() {
   var div = new DivElement();
-  document.body.elements.add(div);
+  document.body.children.add(div);
 
   // build some DOM elements
   var bluebox = _colorBox('blue', 40, 20);

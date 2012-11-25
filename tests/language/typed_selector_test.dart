@@ -12,7 +12,7 @@ class A {
 }
 
 abstract class B {
-  abstract get document;
+  get document;  // Abstract.
 }
 
 class C extends A implements B {

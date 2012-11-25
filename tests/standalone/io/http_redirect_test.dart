@@ -91,7 +91,7 @@ void testManualRedirect() {
      client.getUrl(new Uri.fromString("http://127.0.0.1:${server.port}/1"));
   conn.followRedirects = false;
   conn.onResponse = (HttpClientResponse response) {
-    response.inputStream.onData = () => response.inputStream.read();
+    response.inputStream.onData = response.inputStream.read;
     response.inputStream.onClosed = () {
       redirectCount++;
       if (redirectCount < 10) {

@@ -277,6 +277,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       graph_compiler.FinalizeVarDescriptors(code);
       graph_compiler.FinalizeExceptionHandlers(code);
       graph_compiler.FinalizeComments(code);
+      graph_compiler.FinalizeStaticCallTargetsTable(code);
       if (optimized) {
         CodePatcher::PatchEntry(Code::Handle(function.CurrentCode()));
         function.SetCode(code);
@@ -416,6 +417,25 @@ static void DisassembleCode(const Function& function, bool optimized) {
   const ExceptionHandlers& handlers =
         ExceptionHandlers::Handle(code.exception_handlers());
   OS::Print("%s}\n", handlers.ToCString());
+
+  {
+    OS::Print("Static call target functions {\n");
+    const Array& table = Array::Handle(code.static_calls_target_table());
+    Smi& offset = Smi::Handle();
+    Function& function = Function::Handle();
+    Code& code = Code::Handle();
+    for (intptr_t i = 0; i < table.Length();
+        i += Code::kSCallTableEntryLength) {
+      offset ^= table.At(i + Code::kSCallTableOffsetEntry);
+      function ^= table.At(i + Code::kSCallTableFunctionEntry);
+      code ^= table.At(i + Code::kSCallTableCodeEntry);
+      OS::Print("  0x%"Px": %s, %p\n",
+          start + offset.Value(),
+          function.ToFullyQualifiedCString(),
+          code.raw());
+    }
+    OS::Print("}\n");
+  }
 }
 
 

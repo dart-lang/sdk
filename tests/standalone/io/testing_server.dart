@@ -8,7 +8,7 @@ class TestingServer {
   static const INIT = 0;
   static const SHUTDOWN = -1;
 
-  abstract void onConnection(Socket connection);
+  void onConnection(Socket connection);  // Abstract.
 
   void errorHandlerServer(Exception e) {
     Expect.fail("Server socket error $e");
@@ -38,7 +38,7 @@ class TestingServerTest {
     initialize();
   }
 
-  abstract void run();
+  void run();  // Abstract.
 
   void initialize() {
     _receivePort.receive((var message, SendPort replyTo) {

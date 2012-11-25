@@ -145,9 +145,6 @@ class Isolate : public BaseIsolate {
     return OFFSET_OF(Isolate, top_context_);
   }
 
-  int32_t random_seed() const { return random_seed_; }
-  void set_random_seed(int32_t value) { random_seed_ = value; }
-
   uword top_exit_frame_info() const { return top_exit_frame_info_; }
   void set_top_exit_frame_info(uword value) { top_exit_frame_info_ = value; }
   static intptr_t top_exit_frame_info_offset() {
@@ -326,7 +323,6 @@ class Isolate : public BaseIsolate {
   Heap* heap_;
   ObjectStore* object_store_;
   RawContext* top_context_;
-  int32_t random_seed_;
   uword top_exit_frame_info_;
   void* init_callback_data_;
   Dart_LibraryTagHandler library_tag_handler_;

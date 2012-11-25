@@ -19,15 +19,16 @@ DEFINE_FLAG(bool, code_comments, false,
 DEFINE_FLAG(bool, use_sse41, true, "Use SSE 4.1 if available");
 
 
-bool CPUFeatures::sse3_supported_ = false;
+bool CPUFeatures::sse2_supported_ = false;
 bool CPUFeatures::sse4_1_supported_ = false;
 #ifdef DEBUG
 bool CPUFeatures::initialized_ = false;
 #endif
 
-bool CPUFeatures::sse3_supported() {
+
+bool CPUFeatures::sse2_supported() {
   DEBUG_ASSERT(initialized_);
-  return sse3_supported_;
+  return sse2_supported_;
 }
 
 
@@ -60,7 +61,7 @@ void CPUFeatures::InitOnce() {
   typedef uint64_t (*DetectCPUFeatures)();
   uint64_t features =
       reinterpret_cast<DetectCPUFeatures>(instructions.EntryPoint())();
-  sse3_supported_ = (features & kSSE3BitMask) != 0;
+  sse2_supported_ = (features & kSSE2BitMask) != 0;
   sse4_1_supported_ = (features & kSSE4_1BitMask) != 0;
 #ifdef DEBUG
   initialized_ = true;

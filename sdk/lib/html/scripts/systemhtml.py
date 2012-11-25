@@ -58,9 +58,9 @@ _static_classes = set(['Url'])
 class ElementConstructorInfo(object):
   def __init__(self, name=None, tag=None,
                params=[], opt_params=[],
-               factory_provider_name='_Elements'):
+               factory_provider_name='document'):
     self.name = name          # The constructor name 'h1' in 'HeadingElement.h1'
-    self.tag = tag or name    # The HTML tag
+    self.tag = tag or name    # The HTML or SVG tag
     self.params = params
     self.opt_params = opt_params
     self.factory_provider_name = factory_provider_name
@@ -76,6 +76,7 @@ class ElementConstructorInfo(object):
     info.param_infos = map(lambda tXn: ParamInfo(tXn[1], tXn[0], True),
                            self.opt_params)
     info.requires_named_arguments = True
+    info.factory_parameters = ['"%s"' % self.tag]
     return info
 
 _html_element_constructors = {
@@ -148,39 +149,87 @@ _html_element_constructors = {
   'VideoElement': 'video'
 }
 
-def HtmlElementConstructorInfos(typename):
+_svg_element_constructors = {
+  'AElement': 'a',
+  'AnimateColorElement': 'animateColor',
+  'AnimateElement': 'animate',
+  'AnimateMotionElement': 'animateMotion',
+  'AnimateTransformElement': 'animateTransform',
+  'AnimationElement': 'animation',
+  'CircleElement': 'circle',
+  'ClipPathElement': 'clipPath',
+  'CursorElement': 'cursor',
+  'DefsElement': 'defs',
+  'DescElement': 'desc',
+  'EllipseElement': 'ellipse',
+  'FilterElement': 'filter',
+  'FontElement': 'font',
+  'FontFaceElement': 'font-face',
+  'FontFaceFormatElement': 'font-face-format',
+  'FontFaceNameElement': 'font-face-name',
+  'FontFaceSrcElement': 'font-face-src',
+  'FontFaceUriElement': 'font-face-uri',
+  'ForeignObjectElement': 'foreignObject',
+  'GlyphElement': 'glyph',
+  'GElement': 'g',
+  'HKernElement': 'hkern',
+  'ImageElement': 'image',
+  'LinearGradientElement': 'linearGradient',
+  'LineElement': 'line',
+  'MarkerElement': 'marker',
+  'MaskElement': 'mask',
+  'MPathElement': 'mpath',
+  'PathElement': 'path',
+  'PatternElement': 'pattern',
+  'PolygonElement': 'polygon',
+  'PolylineElement': 'polyline',
+  'RadialGradientElement': 'radialGradient',
+  'RectElement': 'rect',
+  'ScriptElement': 'script',
+  'SetElement': 'set',
+  'StopElement': 'stop',
+  'StyleElement': 'style',
+  'SwitchElement': 'switch',
+  'SymbolElement': 'symbol',
+  'TextElement': 'text',
+  'TitleElement': 'title',
+  'TRefElement': 'tref',
+  'TSpanElement': 'tspan',
+  'UseElement': 'use',
+  'ViewElement': 'view',
+  'VKernElement': 'vkern',
+}
+
+_element_constructors = {
+  'html': _html_element_constructors,
+  'svg': _svg_element_constructors
+}
+
+_factory_ctr_strings = {
+  'html': {
+      'provider_name': 'document',
+      'constructor_name': '$dom_createElement'
+  },
+  'svg': {
+    'provider_name': '_SvgElementFactoryProvider',
+    'constructor_name': 'createSvgElement_tag',
+  },
+}
+
+def ElementConstructorInfos(typename, element_constructors,
+                            factory_provider_name='_Elements'):
   """Returns list of ElementConstructorInfos about the convenience constructors
-  for an Element."""
+  for an Element or SvgElement."""
   # TODO(sra): Handle multiple and named constructors.
-  if typename not in _html_element_constructors:
+  if typename not in element_constructors:
     return []
-  infos = _html_element_constructors[typename]
+  infos = element_constructors[typename]
   if isinstance(infos, str):
-    infos = ElementConstructorInfo(tag=infos)
+    infos = ElementConstructorInfo(tag=infos,
+        factory_provider_name=factory_provider_name)
   if not isinstance(infos, list):
     infos = [infos]
   return infos
-
-def EmitHtmlElementFactoryConstructors(emitter, infos, typename, class_name,
-                                       rename_type):
-  for info in infos:
-    constructor_info = info.ConstructorInfo(typename)
-
-    inits = emitter.Emit(
-        '\n'
-        '  static $RETURN_TYPE $CONSTRUCTOR($PARAMS) {\n'
-        '    $CLASS _e = document.$dom_createElement("$TAG");\n'
-        '$!INITS'
-        '    return _e;\n'
-        '  }\n',
-        RETURN_TYPE=rename_type(constructor_info.type_name),
-        CONSTRUCTOR=constructor_info.ConstructorFactoryName(rename_type),
-        CLASS=class_name,
-        TAG=info.tag,
-        PARAMS=constructor_info.ParametersDeclaration(
-            rename_type, force_optional=True))
-    for param in constructor_info.param_infos:
-      inits.Emit('    if ($E != null) _e.$E = $E;\n', E=param.name)
 
 # ------------------------------------------------------------------------------
 
@@ -226,6 +275,7 @@ class HtmlDartInterfaceGenerator(object):
     factory_provider = None
     if interface_name in interface_factories:
       factory_provider = interface_factories[interface_name]
+    factory_constructor_name = None
 
     constructors = []
     if interface_name in _static_classes:
@@ -240,17 +290,14 @@ class HtmlDartInterfaceGenerator(object):
       self._backend.EmitFactoryProvider(
           constructor_info, factory_provider, factory_provider_emitter)
 
-    infos = HtmlElementConstructorInfos(interface_name)
+    # HTML Elements and SVG Elements have convenience constructors.
+    infos = ElementConstructorInfos(interface_name,
+        _element_constructors[self._library_name], factory_provider_name=
+        _factory_ctr_strings[self._library_name]['provider_name'])
+
     if infos:
-      template = self._template_loader.Load(
-          'factoryprovider_Elements.darttemplate')
-      EmitHtmlElementFactoryConstructors(
-          self._library_emitter.FileEmitter('_Elements', self._library_name,
-              template),
-          infos,
-          self._interface.id,
-          self._interface_type_info.implementation_name(),
-          self._DartType)
+      factory_constructor_name = _factory_ctr_strings[
+          self._library_name]['constructor_name']
 
     for info in infos:
       constructors.append(info.ConstructorInfo(self._interface.id))
@@ -302,7 +349,7 @@ class HtmlDartInterfaceGenerator(object):
 
     self._backend.AddConstructors(constructors, factory_provider,
         self._interface_type_info.implementation_name(),
-        base_class)
+        base_class, factory_constructor_name=factory_constructor_name)
 
     events_class_name = self._event_generator.ProcessInterface(
         self._interface, interface_name,
@@ -435,30 +482,25 @@ class Dart2JSBackend(HtmlDartGenerator):
     if 'CustomIndexedSetter' in self._interface.ext_attrs:
       self._members_emitter.Emit(
           '\n'
-          '  void operator[]=(int index, $TYPE value) =>'
-          ' JS("void", "#[#] = #", this, index, value);\n',
+          '  void operator[]=(int index, $TYPE value) {'
+          ' JS("void", "#[#] = #", this, index, value); }',
           TYPE=self._NarrowInputType(element_type))
     else:
-      # The HTML library implementation of NodeList has a custom indexed setter
-      # implementation that uses the parent node the NodeList is associated
-      # with if one is available.
-      if self._interface.id != 'NodeList':
-        self._members_emitter.Emit(
-            '\n'
-            '  void operator[]=(int index, $TYPE value) {\n'
-            '    throw new UnsupportedError("Cannot assign element of immutable List.");\n'
-            '  }\n',
-            TYPE=self._NarrowInputType(element_type))
+      self._members_emitter.Emit(
+          '\n'
+          '  void operator[]=(int index, $TYPE value) {\n'
+          '    throw new UnsupportedError("Cannot assign element of immutable List.");\n'
+          '  }\n',
+          TYPE=self._NarrowInputType(element_type))
 
     # TODO(sra): Use separate mixins for mutable implementations of List<T>.
     # TODO(sra): Use separate mixins for typed array implementations of List<T>.
-    if self._interface.id != 'NodeList':
-      template_file = 'immutable_list_mixin.darttemplate'
-      has_contains = any(op.id == 'contains' for op in self._interface.operations)
-      template = self._template_loader.Load(
-          template_file,
-          {'DEFINE_CONTAINS': not has_contains})
-      self._members_emitter.Emit(template, E=self._DartType(element_type))
+    template_file = 'immutable_list_mixin.darttemplate'
+    has_contains = any(op.id == 'contains' for op in self._interface.operations)
+    template = self._template_loader.Load(
+        template_file,
+        {'DEFINE_CONTAINS': not has_contains})
+    self._members_emitter.Emit(template, E=self._DartType(element_type))
 
   def EmitAttribute(self, attribute, html_name, read_only):
     if self._HasCustomImplementation(attribute.id):
@@ -506,17 +548,20 @@ class Dart2JSBackend(HtmlDartGenerator):
 
     output_type = self.SecureOutputType(attribute.type.id)
     input_type = self._NarrowInputType(attribute.type.id)
+    annotations = self._Annotations(attribute.type.id, attribute.id)
     self.EmitAttributeDocumentation(attribute)
     if not read_only:
       self._members_emitter.Emit(
-          '\n  $TYPE $NAME;'
+          '\n  $ANNOTATIONS$TYPE $NAME;'
           '\n',
+          ANNOTATIONS=annotations,
           NAME=DartDomNameOfAttribute(attribute),
           TYPE=output_type)
     else:
       self._members_emitter.Emit(
-          '\n  final $TYPE $NAME;'
+          '\n  $(ANNOTATIONS)final $TYPE $NAME;'
           '\n',
+          ANNOTATIONS=annotations,
           NAME=DartDomNameOfAttribute(attribute),
           TYPE=output_type)
 
@@ -539,13 +584,15 @@ class Dart2JSBackend(HtmlDartGenerator):
     if conversion:
       return self._AddConvertingGetter(attr, html_name, conversion)
     return_type = self.SecureOutputType(attr.type.id)
+    native_type = self._NarrowToImplementationType(attr.type.id)
     self._members_emitter.Emit(
         # TODO(sra): Use metadata to provide native name.
-        '\n  $TYPE get $HTML_NAME => JS("$TYPE", "#.$NAME", this);'
+        '\n  $TYPE get $HTML_NAME => JS("$NATIVE_TYPE", "#.$NAME", this);'
         '\n',
         HTML_NAME=html_name,
         NAME=attr.id,
-        TYPE=return_type)
+        TYPE=return_type,
+        NATIVE_TYPE=native_type)
 
   def _AddRenamingSetter(self, attr, html_name):
     self.EmitAttributeDocumentation(attr)
@@ -618,8 +665,10 @@ class Dart2JSBackend(HtmlDartGenerator):
     if html_name != info.declared_name:
       return_type = self.SecureOutputType(info.type_name)
 
-      operation_emitter = self._members_emitter.Emit('$!SCOPE',
+      operation_emitter = self._members_emitter.Emit(
+          '$!SCOPE',
           MODIFIERS='static ' if info.IsStatic() else '',
+          ANNOTATIONS=self._Annotations(info.type_name, info.declared_name),
           TYPE=return_type,
           HTML_NAME=html_name,
           NAME=info.declared_name,
@@ -627,13 +676,14 @@ class Dart2JSBackend(HtmlDartGenerator):
 
       operation_emitter.Emit(
           '\n'
-          #'  // @native("$NAME")\n;'
-          '  $MODIFIERS$TYPE $(HTML_NAME)($PARAMS) native "$NAME";\n')
+          '  $ANNOTATIONS'
+          '$MODIFIERS$TYPE $(HTML_NAME)($PARAMS) native "$NAME";\n')
     else:
       self._members_emitter.Emit(
           '\n'
-          '  $MODIFIERS$TYPE $NAME($PARAMS) native;\n',
+          '  $ANNOTATIONS$MODIFIERS$TYPE $NAME($PARAMS) native;\n',
           MODIFIERS='static ' if info.IsStatic() else '',
+          ANNOTATIONS=self._Annotations(info.type_name, info.declared_name),
           TYPE=self.SecureOutputType(info.type_name),
           NAME=info.name,
           PARAMS=info.ParametersDeclaration(self._NarrowInputType))
@@ -735,7 +785,9 @@ class Dart2JSBackend(HtmlDartGenerator):
         call_emitter.Emit('$(INDENT)return $CALL;\n', CALL=call)
 
       self._members_emitter.Emit(
-          '  $TYPE$TARGET($PARAMS) native "$NATIVE";\n',
+          '  $MODIFIERS$ANNOTATIONS$TYPE$TARGET($PARAMS) native "$NATIVE";\n',
+          MODIFIERS='static ' if info.IsStatic() else '',
+          ANNOTATIONS=self._Annotations(info.type_name, info.declared_name),
           TYPE=TypeOrNothing(native_return_type),
           TARGET=target,
           PARAMS=', '.join(target_parameters),
@@ -766,7 +818,7 @@ class Dart2JSBackend(HtmlDartGenerator):
             GenerateChecksAndCall(operation, position)
         GenerateChecksAndCall(operation, len(operation.arguments))
       body.Emit(
-          '    throw const Exception("Incorrect number or type of arguments");'
+          '    throw new ArgumentError("Incorrect number or type of arguments");'
           '\n');
     else:
       operation = operations[0]
@@ -818,6 +870,17 @@ class Dart2JSBackend(HtmlDartGenerator):
     member_name = '%s.%s' % (self._interface_type_info.interface_name(),
                              member_name)
     return member_name in _js_custom_members
+
+  def _Annotations(self, idl_type, member_name):
+    annotations = FindAnnotations(idl_type, self._interface.id, member_name)
+    if annotations:
+      return '%s\n  ' % annotations
+    return_type = self.SecureOutputType(idl_type)
+    native_type = self._NarrowToImplementationType(idl_type)
+    if native_type != return_type:
+      return "@Returns('%s') @Creates('%s')\n  " % (native_type, native_type)
+    else:
+      return ''
 
   def CustomJSMembers(self):
     return _js_custom_members
@@ -877,7 +940,8 @@ class DartLibraryEmitter():
     self._dart_libraries = dart_libraries
 
   def FileEmitter(self, basename, library_name, template=None):
-    path = os.path.join(self._dart_sources_dir, '%s.dart' % basename)
+    aux_dir = os.path.join(self._dart_sources_dir, library_name)
+    path = os.path.join(aux_dir, '%s.dart' % basename)
     if not path in self._path_to_emitter:
       emitter = self._multiemitter.FileEmitter(path)
       if not template is None:

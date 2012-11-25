@@ -49,6 +49,20 @@ class _HMAC implements HMAC {
     return _hash.update(padding).update(innerHash).digest();
   }
 
+  bool verify(List<int> digest) {
+    var computedDigest = this.digest();
+    if (digest.length != computedDigest.length) {
+      throw new ArgumentError(
+          'Invalid digest size: ${digest.length} in HMAC.verify. '
+          'Expected: ${_hash.blockSize}.');
+    }
+    int result = 0;
+    for (var i = 0; i < digest.length; i++) {
+      result |= digest[i] ^ computedDigest[i];
+    }
+    return result == 0;
+  }
+
   // HMAC internal state.
   Hash _hash;
   List<int> _key;

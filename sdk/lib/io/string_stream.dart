@@ -268,38 +268,13 @@ class _UTF8Encoder implements _StringEncoder {
   static int _encodingSize(String string) => _encodeString(string, null);
 
   static int _encodeString(String string, List<int> buffer) {
-    int pos = 0;
-    int length = string.length;
-    for (int i = 0; i < length; i++) {
-      int additionalBytes;
-      int charCode = string.charCodeAt(i);
-      if (charCode <= 0x007F) {
-        additionalBytes = 0;
-        if (buffer != null) buffer[pos] = charCode;
-      } else if (charCode <= 0x07FF) {
-        // 110xxxxx (xxxxx is top 5 bits).
-        if (buffer != null) buffer[pos] = ((charCode >> 6) & 0x1F) | 0xC0;
-        additionalBytes = 1;
-      } else if (charCode <= 0xFFFF) {
-        // 1110xxxx (xxxx is top 4 bits)
-        if (buffer != null) buffer[pos] = ((charCode >> 12) & 0x0F)| 0xE0;
-        additionalBytes = 2;
-      } else {
-        // 11110xxx (xxx is top 3 bits)
-        if (buffer != null) buffer[pos] = ((charCode >> 18) & 0x07) | 0xF0;
-        additionalBytes = 3;
-      }
-      pos++;
-      if (buffer != null) {
-        for (int i = additionalBytes; i > 0; i--) {
-          // 10xxxxxx (xxxxxx is next 6 bits from the top).
-          buffer[pos++] = ((charCode >> (6 * (i - 1))) & 0x3F) | 0x80;
-        }
-      } else {
-        pos += additionalBytes;
+    List<int> utf8CodeUnits = encodeUtf8(string);
+    if (buffer != null) {
+      for (int i = 0; i < utf8CodeUnits.length; i++) {
+        buffer[i] = utf8CodeUnits[i];
       }
     }
-    return pos;
+    return utf8CodeUnits.length;
   }
 }
 

@@ -42,12 +42,14 @@ String typeNameInOpera(obj) {
 String typeNameInFirefox(obj) {
   String name = JS('String', '#', constructorNameFallback(obj));
   if (name == 'Window') return 'DOMWindow';
-  if (name == 'XMLDocument') return 'Document';
-  if (name == 'WorkerMessageEvent') return 'MessageEvent';
-  if (name == 'DragEvent') return 'MouseEvent';
+  if (name == 'CSS2Properties') return 'CSSStyleDeclaration';
   if (name == 'DataTransfer') return 'Clipboard';
+  if (name == 'DragEvent') return 'MouseEvent';
+  if (name == 'GeoGeolocation') return 'Geolocation';
   if (name == 'MouseScrollEvent') return 'WheelEvent';
   if (name == 'OfflineResourceList') return 'DOMApplicationCache';
+  if (name == 'WorkerMessageEvent') return 'MessageEvent';
+  if (name == 'XMLDocument') return 'Document';
   return name;
 }
 
@@ -71,6 +73,7 @@ String typeNameInIE(obj) {
   if (name == 'HTMLPhraseElement') return 'HTMLElement';
   if (name == 'MSStyleCSSProperties') return 'CSSStyleDeclaration';
   if (name == 'MouseWheelEvent') return 'WheelEvent';
+  if (name == 'Position') return 'Geoposition';
   return name;
 }
 

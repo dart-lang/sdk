@@ -115,11 +115,11 @@ patch class Float64List {
 
 
 abstract class _ByteArrayBase {
-  abstract int lengthInBytes();
+  int lengthInBytes();
 
-  abstract int bytesPerElement();
+  int bytesPerElement();
 
-  abstract operator[](int index);
+  operator[](int index);
 
   // Methods implementing the Collection interface.
 
@@ -184,7 +184,7 @@ abstract class _ByteArrayBase {
   }
 
   void sort([Comparator compare = Comparable.compare]) {
-    _Sort.sort(this, compare);
+    coreSort(this, compare);
   }
 
   int indexOf(element, [int start = 0]) {
@@ -204,6 +204,10 @@ abstract class _ByteArrayBase {
   int removeLast() {
     throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
+  }
+
+  get first {
+    return this[0];
   }
 
   get last {
@@ -1601,7 +1605,7 @@ class _ByteArrayView implements ByteArray {
 
 
 class _ByteArrayViewBase {
-  abstract num operator[](int index);
+  num operator[](int index);
 
   // Methods implementing the Collection interface.
 
@@ -1637,7 +1641,7 @@ class _ByteArrayViewBase {
     return this.length == 0;
   }
 
-  abstract int get length;
+  int get length;
 
   // Methods implementing the List interface.
 
@@ -1662,7 +1666,7 @@ class _ByteArrayViewBase {
   }
 
   void sort([Comparator compare = Comparable.compare]) {
-    _Sort.sort(this, compare);
+    coreSort(this, compare);
   }
 
   int indexOf(element, [int start = 0]) {
@@ -1682,6 +1686,10 @@ class _ByteArrayViewBase {
   int removeLast() {
     throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
+  }
+
+  get first {
+    return this[0];
   }
 
   get last {

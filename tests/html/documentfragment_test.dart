@@ -60,23 +60,23 @@ main() {
   group('constructors', () {
     test('0-argument makes an empty fragment', () {
       final fragment = new DocumentFragment();
-      expect(fragment.elements, equals([]));
+      expect(fragment.children, equals([]));
     });
 
     test('.html parses input as HTML', () {
       final fragment = new DocumentFragment.html('<a>foo</a>');
-      expect(fragment.elements[0], isAnchorElement);
+      expect(fragment.children[0], isAnchorElement);
     });
 
     // test('.svg parses input as SVG', () {
     //   final fragment = new DocumentFragment.svg('<a>foo</a>');
-    //   expect(fragment.elements[0] is SVGAElement, isTrue);
+    //   expect(fragment.children[0] is SVGAElement, isTrue);
     // });
 
     // TODO(nweiz): enable this once XML is ported.
     // test('.xml parses input as XML', () {
     //   final fragment = new DocumentFragment.xml('<a>foo</a>');
-    //   expect(fragment.elements[0] is XMLElement, isTrue);
+    //   expect(fragment.children[0] is XMLElement, isTrue);
     // });
   });
 
@@ -104,13 +104,13 @@ main() {
     expectUnsupported(() => emptyFragment.webkitRegionOverflow = "foo");
   });
 
-  group('elements', () {
+  group('children', () {
     var fragment;
-    var elements;
+    var children;
 
     init() {
       fragment = new DocumentFragment();
-      elements = fragment.elements;
+      children = fragment.children;
       fragment.nodes.addAll(
         [new Text("1"), new Element.tag("A"), new Element.tag("B"),
          new Text("2"), new Element.tag("I"), new Text("3"),
@@ -118,66 +118,66 @@ main() {
     };
 
     test('is initially empty', () {
-      elements = new DocumentFragment().elements;
-      expect(elements, equals([]));
-      expect(elements.isEmpty, isTrue);
+      children = new DocumentFragment().children;
+      expect(children, equals([]));
+      expect(children.isEmpty, isTrue);
     });
 
     test('filters out non-element nodes', () {
       init();
       expect(_nodeStrings(fragment.nodes),
           orderedEquals(["1", "A", "B", "2", "I", "3", "U"]));
-      expect(_nodeStrings(elements),
+      expect(_nodeStrings(children),
           orderedEquals(["A", "B", "I", "U"]));
     });
 
-    test('only indexes elements, not other nodes', () {
+    test('only indexes children, not other nodes', () {
       init();
-      elements[1] = new Element.tag("BR");
+      children[1] = new Element.tag("BR");
       expect(_nodeStrings(fragment.nodes),
           orderedEquals(["1", "A", "BR", "2", "I", "3", "U"]));
-      expect(_nodeStrings(elements),
+      expect(_nodeStrings(children),
           orderedEquals(["A", "BR", "I", "U"]));
     });
 
-    test('adds to both elements and nodes', () {
+    test('adds to both children and nodes', () {
       init();
-      elements.add(new Element.tag("UL"));
+      children.add(new Element.tag("UL"));
       expect(_nodeStrings(fragment.nodes),
           orderedEquals(["1", "A", "B", "2", "I", "3", "U", "UL"]));
-      expect(_nodeStrings(elements),
+      expect(_nodeStrings(children),
           orderedEquals(["A", "B", "I", "U", "UL"]));
     });
 
-    test('removes only elements, from both elements and nodes', () {
+    test('removes only children, from both children and nodes', () {
       init();
-      expect(elements.removeLast().tagName, equals('U'));
+      expect(children.removeLast().tagName, equals('U'));
       expect(_nodeStrings(fragment.nodes),
           orderedEquals(["1", "A", "B", "2", "I", "3"]));
-      expect(_nodeStrings(elements),
+      expect(_nodeStrings(children),
           orderedEquals(["A", "B", "I"]));
 
-      expect(elements.removeLast().tagName, "I");
-      expect(_nodeStrings(fragment.nodes), 
+      expect(children.removeLast().tagName, "I");
+      expect(_nodeStrings(fragment.nodes),
           equals(["1", "A", "B", "2", "3"]));
-      expect(_nodeStrings(elements), equals(["A", "B"]));
+      expect(_nodeStrings(children), equals(["A", "B"]));
     });
 
     test('accessors are wrapped', () {
       init();
-      expect(elements[0].tagName, "A");
-      expect(_nodeStrings(elements.filter((e) => e.tagName == "I")), ["I"]);
-      expect(elements.every((e) => e is Element), isTrue);
-      expect(elements.some((e) => e.tagName == "U"), isTrue);
-      expect(elements.isEmpty, isFalse);
-      expect(elements.length, 4);
-      expect(elements[2].tagName, "I");
-      expect(elements.last.tagName, "U");
+      expect(children[0].tagName, "A");
+      expect(_nodeStrings(children.filter((e) => e.tagName == "I")), ["I"]);
+      expect(children.every((e) => e is Element), isTrue);
+      expect(children.some((e) => e.tagName == "U"), isTrue);
+      expect(children.isEmpty, isFalse);
+      expect(children.length, 4);
+      expect(children[2].tagName, "I");
+      expect(children.last.tagName, "U");
     });
 
-    test('setting elements overwrites nodes as well', () {
+    test('setting children overwrites nodes as well', () {
       init();
-      fragment.elements = [new Element.tag("DIV"), new Element.tag("HEAD")];
+      fragment.children = [new Element.tag("DIV"), new Element.tag("HEAD")];
       expect(_nodeStrings(fragment.nodes), equals(["DIV", "HEAD"]));
     });
   });

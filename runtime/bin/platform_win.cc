@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "bin/platform.h"
+#include "bin/log.h"
 #include "bin/socket.h"
 
 bool Platform::Initialize() {
@@ -73,7 +74,7 @@ char* Platform::StrError(int error_code) {
                     NULL);
   if (message_size == 0) {
     if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-      fprintf(stderr, "FormatMessage failed %d\n", GetLastError());
+      Log::PrintErr("FormatMessage failed %d\n", GetLastError());
     }
     snprintf(error, kBufferSize, "OS Error %d", error_code);
   }

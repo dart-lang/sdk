@@ -23,7 +23,7 @@ UNIT_TEST_CASE(IsolateCurrent) {
 // callback has been set by the embedder when an isolate is spawned.
 TEST_CASE(IsolateSpawn) {
   const char* kScriptChars =
-      "#import('dart:isolate');\n"
+      "import 'dart:isolate';\n"
       "void entry() {}\n"
       "int testMain() {\n"
       "  try {\n"

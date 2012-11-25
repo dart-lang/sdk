@@ -15,6 +15,8 @@ import '../../pkg/unittest/lib/unittest.dart';
 //    by giving 'beth' a send-port to 'tim'.
 
 bethIsolate() {
+  // TODO(sigmund): use expectAsync2 when it is OK to use it within an isolate
+  // (issue #6856)
   port.receive((msg, reply) => msg[1].send(
         '${msg[0]}\nBeth says: Tim are you coming? And Bob?', reply));
 }
@@ -30,7 +32,7 @@ bobIsolate() {
         '$msg\nBob says: we are all coming!'));
 }
 
-main() {
+baseTest({bool failForNegativeTest: false}) {
   test('Message chain with unresolved ports', () {
     ReceivePort port = new ReceivePort();
     port.receive(expectAsync2((msg, _) {
@@ -38,6 +40,7 @@ main() {
         '\nBeth says: Tim are you coming? And Bob?'
         '\nTim says: Can you tell "main" that we are all coming?'
         '\nBob says: we are all coming!'));
+      expect(failForNegativeTest, isFalse);
       port.close();
     }));
 
@@ -51,3 +54,5 @@ main() {
         port.toSendPort());
   });
 }
+
+main() => baseTest();

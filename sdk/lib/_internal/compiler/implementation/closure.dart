@@ -371,7 +371,7 @@ class ClosureTranslator extends Visitor {
         return true;
       } else if (type is InterfaceType) {
         InterfaceType ifcType = type;
-        for (DartType argument in ifcType.arguments) {
+        for (DartType argument in ifcType.typeArguments) {
           if (hasTypeVariable(argument)) {
             return true;
           }
@@ -385,7 +385,7 @@ class ClosureTranslator extends Visitor {
         useLocal(type.element);
       } else if (type is InterfaceType) {
         InterfaceType ifcType = type;
-        for (DartType argument in ifcType.arguments) {
+        for (DartType argument in ifcType.typeArguments) {
           analyzeTypeVariables(argument);
         }
       }

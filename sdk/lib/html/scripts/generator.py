@@ -305,7 +305,12 @@ class OperationInfo(object):
        is named, e.g. 'fromList' in  Int8Array.fromList(list).
     type_name: A string, the name of the return type of the operation.
     param_infos: A list of ParamInfo.
+    factory_parameters: A list of parameters used for custom designed Factory
+        calls.
   """
+  
+  def __init__(self):
+    self.factory_parameters = None
 
   def ParametersDeclaration(self, rename_type, force_optional=False):
     def FormatParam(param):
@@ -356,11 +361,18 @@ class OperationInfo(object):
   def ConstructorFactoryName(self, rename_type):
     return 'create' + self._ConstructorFullName(rename_type).replace('.', '_')
 
-  def GenerateFactoryInvocation(self, rename_type, emitter, factory_provider):
+  def GenerateFactoryInvocation(self, rename_type, emitter, factory_name,
+      factory_constructor_name=None, factory_parameters=None):
     has_optional = any(param_info.is_optional
         for param_info in self.param_infos)
 
-    factory_name = self.ConstructorFactoryName(rename_type)
+    if not factory_constructor_name:
+      factory_constructor_name = self.ConstructorFactoryName(rename_type)
+      factory_parameters = self.ParametersAsArgumentList()
+      has_factory_provider = True
+    else:
+      factory_parameters = ', '.join(factory_parameters)
+      has_factory_provider = False
     if not has_optional:
       emitter.Emit(
           '\n'
@@ -368,11 +380,19 @@ class OperationInfo(object):
           '$FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n',
           CTOR=self._ConstructorFullName(rename_type),
           PARAMS=self.ParametersDeclaration(rename_type),
-          FACTORY=factory_provider,
-          CTOR_FACTORY_NAME=factory_name,
-          FACTORY_PARAMS=self.ParametersAsArgumentList())
+          FACTORY=factory_name,
+          CTOR_FACTORY_NAME=factory_constructor_name,
+          FACTORY_PARAMS=factory_parameters)
       return
+    if has_factory_provider:
+      self._GenerateFactoryOptParams(rename_type, emitter, factory_name)
+    else:
+      self._GenerateFactoryOptParamsWithoutFactoryProvider(rename_type, emitter,
+          factory_name, factory_constructor_name, factory_parameters)
 
+  def _GenerateFactoryOptParams(self, rename_type, emitter, factory_provider):
+    """Helper method for creating generic factory constructors with optional
+    parameters that use factory providers."""
     dispatcher_emitter = emitter.Emit(
         '\n'
         '  factory $CTOR($PARAMS) {\n'
@@ -382,7 +402,7 @@ class OperationInfo(object):
         CTOR=self._ConstructorFullName(rename_type),
         PARAMS=self.ParametersDeclaration(rename_type),
         FACTORY=factory_provider,
-        CTOR_FACTORY_NAME=factory_name,
+        CTOR_FACTORY_NAME=self.ConstructorFactoryName(rename_type),
         FACTORY_PARAMS=self.ParametersAsArgumentList())
 
     # If we have optional parameters, check to see if they are set
@@ -394,12 +414,34 @@ class OperationInfo(object):
         '    }\n',
         OPT_PARAM_NAME=self.param_infos[index].name,
         FACTORY=factory_provider,
-        CTOR_FACTORY_NAME=factory_name,
+        CTOR_FACTORY_NAME=self.ConstructorFactoryName(rename_type),
         FACTORY_PARAMS=self.ParametersAsArgumentList(index))
 
     for index, param_info in enumerate(self.param_infos):
       if param_info.is_optional:
         EmitOptionalParameterInvocation(index)
+  
+  def _GenerateFactoryOptParamsWithoutFactoryProvider(self, rename_type,
+      emitter, factory_name, factory_constructor_name, factory_parameters): 
+    """Helper method for creating a factory constructor with optional
+    parameters that does not call a factory provider, it simply creates the
+    object itself. This is currently used for SVGElements and HTMLElements."""
+    inits = emitter.Emit(
+        '\n'
+        '  factory $CONSTRUCTOR($PARAMS) {\n'	
+        '    var e = $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
+        '$!INITS'
+        '    return e;\n'
+        '  }\n',
+        CONSTRUCTOR=self._ConstructorFullName(rename_type),
+        FACTORY=factory_name,
+        CTOR_FACTORY_NAME=factory_constructor_name,
+        PARAMS=self.ParametersDeclaration(rename_type),
+        FACTORY_PARAMS=factory_parameters)
+    for index, param_info in enumerate(self.param_infos):
+      if param_info.is_optional:
+        inits.Emit('    if ($E != null) e.$E = $E;\n',
+            E=self.param_infos[index].name)
 
 def ConstantOutputOrder(a, b):
   """Canonical output ordering for constants."""
@@ -541,6 +583,90 @@ def FindConversion(idl_type, direction, interface, member):
 
 # ------------------------------------------------------------------------------
 
+# Annotations to be placed on members.  The table is indexed by the IDL
+# interface and member name, and by IDL return or field type name.  Both are
+# used to assemble the annotations:
+#
+#   INTERFACE.MEMBER: annotations for member.
+#   +TYPE:            add annotations only if there are member annotations.
+#   TYPE:             add regardless of member annotations.
+
+dart2js_annotations = {
+
+    'CanvasRenderingContext2D.createImageData':
+      "@Creates('ImageData|=Object')",
+
+    'CanvasRenderingContext2D.getImageData':
+      "@Creates('ImageData|=Object')",
+
+    'CanvasRenderingContext2D.webkitGetImageDataHD':
+      "@Creates('ImageData|=Object')",
+
+    'DOMWindow.openDatabase': "@Creates('Database') @Creates('DatabaseSync')",
+
+    'FileReader.result': "@Creates('String|ArrayBuffer|Null')",
+
+    # Rather than have the result of an IDBRequest as a union over all possible
+    # results, we mark the result as instantiating any classes, and mark
+    # each operation with the classes that it could cause to be asynchronously
+    # instantiated.
+    'IDBRequest.result':  "@Creates('Null')",
+
+    # The source is usually a participant in the operation that generated the
+    # IDBRequest.
+    'IDBRequest.source':  "@Creates('Null')",
+
+    'IDBFactory.open': "@Creates('IDBDatabase')",
+
+    'IDBObjectStore.put': "@_annotation_Creates_IDBKey",
+    'IDBObjectStore.add': "@_annotation_Creates_IDBKey",
+    'IDBObjectStore.get': "@_annotation_Creates_SerializedScriptValue",
+    'IDBObjectStore.openCursor': "@Creates('IDBCursor')",
+
+    'IDBIndex.get': "@_annotation_Creates_SerializedScriptValue",
+    'IDBIndex.getKey':
+      "@_annotation_Creates_SerializedScriptValue "
+      # The source is the object store behind the index.
+      "@Creates('IDBObjectStore')",
+    'IDBIndex.openCursor': "@Creates('IDBCursor')",
+    'IDBIndex.openKeyCursor': "@Creates('IDBCursor')",
+
+    'IDBCursorWithValue.value':
+      '@_annotation_Creates_SerializedScriptValue '
+      '@_annotation_Returns_SerializedScriptValue',
+
+    'IDBCursor.key': "@_annotation_Creates_IDBKey @_annotation_Returns_IDBKey",
+
+    '+IDBRequest': "@Returns('IDBRequest') @Creates('IDBRequest')",
+
+    '+IDBOpenDBRequest': "@Returns('IDBRequest') @Creates('IDBRequest')",
+    '+IDBVersionChangeRequest': "@Returns('IDBRequest') @Creates('IDBRequest')",
+
+
+    'MessageEvent.ports': "@Creates('=List')",
+
+    'SQLResultSetRowList.item': "@Creates('=Object')",
+
+    'XMLHttpRequest.response':
+      "@Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')",
+}
+
+def FindAnnotations(idl_type, interface_name, member_name):
+  ann1 = dart2js_annotations.get("%s.%s" % (interface_name, member_name))
+  if ann1:
+    ann2 = dart2js_annotations.get('+' + idl_type)
+    if ann2:
+      return ann2 + ' ' + ann1
+    ann2 = dart2js_annotations.get(idl_type)
+    if ann2:
+      return ann2 + ' ' + ann1
+    return ann1
+
+  ann2 = dart2js_annotations.get(idl_type)
+  return ann2
+
+# ------------------------------------------------------------------------------
+
 class IDLTypeInfo(object):
   def __init__(self, idl_type, data):
     self._idl_type = idl_type
@@ -663,19 +789,13 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
     self._type_registry = type_registry
 
   def dart_type(self):
-    # TODO(podivilov): why NodeList is special?
-    if self.idl_type() == 'NodeList':
-      return 'List<Node>'
     if self.list_item_type() and not self.has_generated_interface():
       return 'List<%s>' % self._type_registry.TypeInfo(self._data.item_type).dart_type()
     return self._data.dart_type or self._dart_interface_name
 
   def narrow_dart_type(self):
-    # TODO(podivilov): why NodeList is special?
-    if self.idl_type() == 'NodeList':
-      return 'List<Node>'
     if self.list_item_type():
-      return self.idl_type()
+      return self.implementation_name()
     # TODO(podivilov): only primitive and collection types should override
     # dart_type.
     if self._data.dart_type != None:
@@ -685,15 +805,10 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
     return self.interface_name()
 
   def interface_name(self):
-    if self.list_item_type() and not self.has_generated_interface():
-      return self.dart_type()
     return self._dart_interface_name
 
   def implementation_name(self):
-    if self.list_item_type():
-      implementation_name = self.idl_type()
-    else:
-      implementation_name = self.interface_name()
+    implementation_name = self._dart_interface_name
     if self.merged_into():
       implementation_name = '_%s_Merged' % implementation_name
 
@@ -822,9 +937,9 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
 
 
 class SVGTearOffIDLTypeInfo(InterfaceIDLTypeInfo):
-  def __init__(self, idl_type, data, type_registry):
+  def __init__(self, idl_type, data, interface_name, type_registry):
     super(SVGTearOffIDLTypeInfo, self).__init__(
-        idl_type, data, idl_type, type_registry)
+        idl_type, data, interface_name, type_registry)
 
   def native_type(self):
     if self._data.native_type:
@@ -980,7 +1095,8 @@ _idl_type_registry = {
     'MediaStreamList': TypeData(clazz='Interface',
         item_type='MediaStream', suppress_interface=True),
     'NamedNodeMap': TypeData(clazz='Interface', item_type='Node'),
-    'NodeList': TypeData(clazz='Interface', item_type='Node'),
+    'NodeList': TypeData(clazz='Interface', item_type='Node',
+                         suppress_interface=True),
     'SVGAnimatedLengthList': TypeData(clazz='Interface',
         item_type='SVGAnimatedLength'),
     'SVGAnimatedNumberList': TypeData(clazz='Interface',
@@ -1080,12 +1196,15 @@ class TypeRegistry(object):
         dart_interface_name = self._renamer.RenameInterface(
             self._database.GetInterface(type_name))
       else:
-        dart_interface_name = type_name
+        dart_interface_name = self._renamer.DartifyTypeName(type_name)
       return InterfaceIDLTypeInfo(type_name, type_data, dart_interface_name,
                                   self)
 
     if type_data.clazz == 'SVGTearOff':
-      return SVGTearOffIDLTypeInfo(type_name, type_data, self)
+      dart_interface_name = self._renamer.RenameInterface(
+          self._database.GetInterface(type_name))
+      return SVGTearOffIDLTypeInfo(
+          type_name, type_data, dart_interface_name, self)
 
     class_name = '%sIDLTypeInfo' % type_data.clazz
     return globals()[class_name](type_name, type_data)

@@ -45,6 +45,7 @@
             '--mode=static',
             '--exclude-lib=dartdoc',
             '--exclude-lib=http',
+            '--exclude-lib=oauth2',
             '--exclude-lib=webdriver',
             '--include-lib=matcher',
             '--include-lib=mock',

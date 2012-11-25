@@ -82,7 +82,7 @@ patch class double {
   patch static double parse(String source) => Primitives.parseDouble(source);
 }
 
-patch class NoSuchMethodError {
+patch class Error {
   patch static String _objectToString(Object object) {
     return Primitives.objectToString(object);
   }
@@ -154,22 +154,13 @@ patch class _StopwatchImpl {
 
 
 // Patch for List implementation.
-patch class _ListImpl<E> {
+patch class List<E> {
   patch factory List([int length]) => Primitives.newList(length);
-
-  patch factory List.from(Iterable<E> other) {
-    var result = new List();
-    for (var element in other) {
-      result.add(element);
-    }
-    return result;
-  }
 }
 
 
 patch class String {
   patch factory String.fromCharCodes(List<int> charCodes) {
-    checkNull(charCodes);
     if (!isJsArray(charCodes)) {
       if (charCodes is !List) throw new ArgumentError(charCodes);
       charCodes = new List.from(charCodes);
@@ -182,7 +173,6 @@ patch class String {
 patch class Strings {
   patch static String join(List<String> strings, String separator) {
     checkNull(strings);
-    checkNull(separator);
     if (separator is !String) throw new ArgumentError(separator);
     return stringJoinUnchecked(_toJsStringArray(strings), separator);
   }
@@ -199,14 +189,12 @@ patch class Strings {
       array = strings;
       for (int i = 0; i < length; i++) {
         final string = strings[i];
-        checkNull(string);
         if (string is !String) throw new ArgumentError(string);
       }
     } else {
       array = new List(length);
       for (int i = 0; i < length; i++) {
         final string = strings[i];
-        checkNull(string);
         if (string is !String) throw new ArgumentError(string);
         array[i] = string;
       }

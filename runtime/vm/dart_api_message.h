@@ -109,6 +109,7 @@ class ApiMessageReader : public BaseReader {
   // function.
   ReAlloc alloc_;
   ApiGrowableArray<BackRefNode*> backward_references_;
+  Dart_CObject** vm_symbol_references_;
 
   Dart_CObject type_arguments_marker;
   Dart_CObject dynamic_type_marker;

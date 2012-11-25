@@ -17,6 +17,24 @@ class LiveRange;
 class UseInterval;
 class UsePosition;
 
+
+class ReachingDefs : public ValueObject {
+ public:
+  explicit ReachingDefs(const FlowGraph& flow_graph)
+      : flow_graph_(flow_graph),
+        phis_(10) { }
+
+  BitVector* Get(PhiInstr* phi);
+
+ private:
+  void AddPhi(PhiInstr* phi);
+  void Compute();
+
+  const FlowGraph& flow_graph_;
+  GrowableArray<PhiInstr*> phis_;
+};
+
+
 class FlowGraphAllocator : public ValueObject {
  public:
   // Number of stack slots needed for a double spill slot.
@@ -94,9 +112,12 @@ class FlowGraphAllocator : public ValueObject {
   // Visit instructions in the postorder and build live ranges for
   // all SSA values.
   void BuildLiveRanges();
-  Instruction* ConnectOutgoingPhiMoves(BlockEntryInstr* block);
+  Instruction* ConnectOutgoingPhiMoves(BlockEntryInstr* block,
+                                       BitVector* interference_set);
   void ProcessEnvironmentUses(BlockEntryInstr* block, Instruction* current);
-  void ProcessOneInstruction(BlockEntryInstr* block, Instruction* instr);
+  void ProcessOneInstruction(BlockEntryInstr* block,
+                             Instruction* instr,
+                             BitVector* interference_set);
   void ConnectIncomingPhiMoves(BlockEntryInstr* block);
   void BlockLocation(Location loc, intptr_t from, intptr_t to);
   void BlockRegisterLocation(Location loc,
@@ -214,6 +235,8 @@ class FlowGraphAllocator : public ValueObject {
 
   const FlowGraph& flow_graph_;
 
+  ReachingDefs reaching_defs_;
+
   // Set of SSA values that have unboxed mint representation. Indexed
   // by SSA temp index.
   BitVector* mint_values_;
@@ -299,13 +322,27 @@ class FlowGraphAllocator : public ValueObject {
 class BlockInfo : public ZoneAllocated {
  public:
   explicit BlockInfo(BlockEntryInstr* entry)
-    : entry_(entry), loop_(NULL), is_loop_header_(false) {
+    : entry_(entry),
+      loop_(NULL),
+      is_loop_header_(false),
+      backedge_interference_(NULL) {
   }
 
   BlockEntryInstr* entry() const { return entry_; }
 
   // Returns true is this node is a header of a structural loop.
   bool is_loop_header() const { return is_loop_header_; }
+
+  // Returns header of the innermost loop containing this block.
+  BlockInfo* loop_header() {
+    if (is_loop_header()) {
+      return this;
+    } else if (loop() != NULL) {
+      return loop();
+    } else {
+      return NULL;
+    }
+  }
 
   // Innermost reducible loop containing this node. Loop headers point to
   // outer loop not to themselves.
@@ -326,6 +363,14 @@ class BlockInfo : public ZoneAllocated {
   intptr_t loop_id() const { return loop_id_; }
   void set_loop_id(intptr_t loop_id) { loop_id_ = loop_id; }
 
+  BitVector* backedge_interference() const {
+    return backedge_interference_;
+  }
+
+  void set_backedge_interference(BitVector* backedge_interference) {
+    backedge_interference_ = backedge_interference;
+  }
+
  private:
   BlockEntryInstr* entry_;
   BlockInfo* loop_;
@@ -333,6 +378,8 @@ class BlockInfo : public ZoneAllocated {
 
   BlockEntryInstr* last_block_;
   intptr_t loop_id_;
+
+  BitVector* backedge_interference_;
 
   DISALLOW_COPY_AND_ASSIGN(BlockInfo);
 };

@@ -408,6 +408,8 @@ void Object::InitOnce() {
   isolate->object_store()->set_array_class(cls);
   cls = Class::NewStringClass(kOneByteStringCid);
   isolate->object_store()->set_one_byte_string_class(cls);
+  cls = Class::NewStringClass(kTwoByteStringCid);
+  isolate->object_store()->set_two_byte_string_class(cls);
 
   // Allocate and initialize the empty_array instance.
   {
@@ -516,17 +518,6 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
 }
 
 
-RawClass* Object::CreateAndRegisterInterface(const char* cname,
-                                             const Script& script,
-                                             const Library& lib) {
-  const String& name = String::Handle(Symbols::New(cname));
-  const Class& cls = Class::Handle(
-      Class::NewInterface(name, script, Scanner::kDummyTokenIndex));
-  lib.AddClass(cls);
-  return cls.raw();
-}
-
-
 void Object::RegisterClass(const Class& cls,
                            const String& name,
                            const Library& lib) {
@@ -590,6 +581,10 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::NewStringClass(kOneByteStringCid);
   object_store->set_one_byte_string_class(cls);
 
+  // Pre-allocate the TwoByteString class needed by the symbol table.
+  cls = Class::NewStringClass(kTwoByteStringCid);
+  object_store->set_two_byte_string_class(cls);
+
   // Setup the symbol table for the symbols created in the isolate.
   Symbols::SetupSymbolTable(isolate);
 
@@ -650,8 +645,7 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterPrivateClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
-  cls = Class::NewStringClass(kTwoByteStringCid);
-  object_store->set_two_byte_string_class(cls);
+  cls = object_store->two_byte_string_class();  // Was allocated above.
   name = Symbols::TwoByteString();
   RegisterPrivateClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
@@ -886,7 +880,9 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_string_type(type);
 
-  cls = CreateAndRegisterInterface("List", script, core_lib);
+  name = Symbols::New("List");
+  cls = Class::New<Instance>(name, script, Scanner::kDummyTokenIndex);
+  RegisterClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
   object_store->set_list_class(cls);
 
@@ -2038,6 +2034,11 @@ void Class::set_allocation_stub(const Code& value) const {
 }
 
 
+bool Class::IsListClass() const {
+  return raw() == Isolate::Current()->object_store()->list_class();
+}
+
+
 bool Class::IsCanonicalSignatureClass() const {
   const Function& function = Function::Handle(signature_function());
   return (!function.IsNull() && (function.signature_class() == raw()));
@@ -2476,7 +2477,12 @@ RawString* UnresolvedClass::Name() const {
 
 
 const char* UnresolvedClass::ToCString() const {
-  return "UnresolvedClass";
+  const char* format = "unresolved class '%s'";
+  const char* cname =  String::Handle(Name()).ToCString();
+  intptr_t len = OS::SNPrint(NULL, 0, format, cname) + 1;
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+  OS::SNPrint(chars, len, format, cname);
+  return chars;
 }
 
 
@@ -4177,6 +4183,45 @@ RawString* Function::QualifiedUserVisibleName() const {
   tmp = String::Concat(tmp, suffix);
   suffix = UserVisibleName();
   return String::Concat(tmp, suffix);
+}
+
+
+// Construct fingerprint from token stream. The token stream contains also
+// arguments.
+int32_t Function::SourceFingerprint() const {
+  uint32_t result = String::Handle(Signature()).Hash();
+  TokenStream::Iterator tokens_iterator(TokenStream::Handle(
+      Script::Handle(script()).tokens()), token_pos());
+  Object& obj = Object::Handle();
+  String& literal = String::Handle();
+  while (tokens_iterator.CurrentPosition() < end_token_pos()) {
+    uint32_t val = 0;
+    obj = tokens_iterator.CurrentToken();
+    if (obj.IsSmi()) {
+      val = Smi::Cast(obj).Value();
+    } else {
+      literal = tokens_iterator.MakeLiteralToken(obj);
+      val = literal.Hash();
+    }
+    result = 31 * result + val;
+    tokens_iterator.Advance();
+  }
+  result = result & ((static_cast<uint32_t>(1) << 31) - 1);
+  ASSERT(result <= static_cast<uint32_t>(kMaxInt32));
+  return result;
+}
+
+
+bool Function::CheckSourceFingerprint(intptr_t fp) const {
+  if (SourceFingerprint() != fp) {
+    OS::Print("FP mismatch while recogbnizing method %s:"
+      " expecting %"Pd" found %d\n",
+      ToFullyQualifiedCString(),
+      fp,
+      SourceFingerprint());
+    return false;
+  }
+  return true;
 }
 
 
@@ -7002,8 +7047,41 @@ void Code::set_object_table(const Array& array) const {
 }
 
 
-void Code::set_resolved_static_calls(const GrowableObjectArray& val) const {
-  StorePointer(&raw_ptr()->resolved_static_calls_, val.raw());
+void Code::set_static_calls_target_table(const Array& value) const {
+  StorePointer(&raw_ptr()->static_calls_target_table_, value.raw());
+}
+
+
+RawFunction* Code::GetStaticCallTargetFunctionAt(uword pc) const {
+  RawObject* raw_code_offset =
+      reinterpret_cast<RawObject*>(Smi::New(pc - EntryPoint()));
+  const Array& array =
+      Array::Handle(raw_ptr()->static_calls_target_table_);
+  for (intptr_t i = 0; i < array.Length(); i += kSCallTableEntryLength) {
+    if (array.At(i) == raw_code_offset) {
+      Function& function = Function::Handle();
+      function ^= array.At(i + kSCallTableFunctionEntry);
+      return function.raw();
+    }
+  }
+  return Function::null();
+}
+
+
+void Code::SetStaticCallTargetCodeAt(uword pc, const Code& code) const {
+  RawObject* raw_code_offset =
+      reinterpret_cast<RawObject*>(Smi::New(pc - EntryPoint()));
+  const Array& array =
+      Array::Handle(raw_ptr()->static_calls_target_table_);
+  for (intptr_t i = 0; i < array.Length(); i += kSCallTableEntryLength) {
+    if (array.At(i) == raw_code_offset) {
+      ASSERT(code.IsNull() ||
+             (code.function() == array.At(i + kSCallTableFunctionEntry)));
+      array.SetAt(i + kSCallTableCodeEntry, code);
+      return;
+    }
+  }
+  UNREACHABLE();
 }
 
 
@@ -7276,12 +7354,11 @@ void Code::ExtractUncalledStaticCallDeoptIds(
   deopt_ids->Clear();
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(this->pc_descriptors());
-  Function& function = Function::Handle();
   for (intptr_t i = 0; i < descriptors.Length(); i++) {
     if (descriptors.DescriptorKind(i) == PcDescriptors::kFuncCall) {
       // Static call.
-      uword target_addr;
-      CodePatcher::GetStaticCallAt(descriptors.PC(i), &function, &target_addr);
+      const uword target_addr =
+          CodePatcher::GetStaticCallTargetAt(descriptors.PC(i));
       if (target_addr == StubCode::CallStaticFunctionEntryPoint()) {
         deopt_ids->Add(descriptors.DeoptId(i));
       }
@@ -8977,18 +9054,21 @@ const char* Type::ToCString() const {
   if (IsResolved()) {
     const AbstractTypeArguments& type_arguments =
         AbstractTypeArguments::Handle(arguments());
+    const char* class_name;
+    if (HasResolvedTypeClass()) {
+      class_name = String::Handle(
+          Class::Handle(type_class()).Name()).ToCString();
+    } else {
+      class_name = UnresolvedClass::Handle(unresolved_class()).ToCString();
+    }
     if (type_arguments.IsNull()) {
       const char* format = "Type: class '%s'";
-      const char* class_name =
-          String::Handle(Class::Handle(type_class()).Name()).ToCString();
       intptr_t len = OS::SNPrint(NULL, 0, format, class_name) + 1;
       char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
       OS::SNPrint(chars, len, format, class_name);
       return chars;
     } else {
       const char* format = "Type: class '%s', args:[%s]";
-      const char* class_name =
-          String::Handle(Class::Handle(type_class()).Name()).ToCString();
       const char* args_cstr =
           AbstractTypeArguments::Handle(arguments()).ToCString();
       intptr_t len = OS::SNPrint(NULL, 0, format, class_name, args_cstr) + 1;
@@ -9875,11 +9955,11 @@ class StringHasher : ValueObject {
     hash_ ^= hash_ >> 11;
     hash_ += hash_ << 15;
     hash_ = hash_ & ((static_cast<intptr_t>(1) << bits) - 1);
-    ASSERT(hash_ >= 0);
+    ASSERT(hash_ <= static_cast<uint32_t>(kMaxInt32));
     return hash_ == 0 ? 1 : hash_;
   }
  private:
-  intptr_t hash_;
+  uint32_t hash_;
 };
 
 
@@ -9927,7 +10007,7 @@ intptr_t String::Hash(const uint16_t* characters, intptr_t len) {
 }
 
 
-intptr_t String::Hash(const uint32_t* characters, intptr_t len) {
+intptr_t String::Hash(const int32_t* characters, intptr_t len) {
   return HashImpl(characters, len);
 }
 
@@ -9990,36 +10070,37 @@ bool String::Equals(const Instance& other) const {
 }
 
 
-bool String::Equals(const char* str) const {
-  ASSERT(str != NULL);
-  intptr_t len = strlen(str);
-  for (intptr_t i = 0; i < this->Length(); ++i) {
-    if (*str == '\0') {
+bool String::Equals(const char* cstr) const {
+  ASSERT(cstr != NULL);
+  CodePointIterator it(*this);
+  intptr_t len = strlen(cstr);
+  while (it.Next()) {
+    if (*cstr == '\0') {
       // Lengths don't match.
       return false;
     }
     int32_t ch;
-    intptr_t consumed = Utf8::Decode(reinterpret_cast<const uint8_t*>(str),
+    intptr_t consumed = Utf8::Decode(reinterpret_cast<const uint8_t*>(cstr),
                                      len,
                                      &ch);
-    if (consumed == 0 || this->CharAt(i) != ch) {
+    if (consumed == 0 || it.Current() != ch) {
       return false;
     }
-    str += consumed;
+    cstr += consumed;
     len -= consumed;
   }
-  return *str == '\0';
+  return *cstr == '\0';
 }
 
 
-bool String::Equals(const uint8_t* characters, intptr_t len) const {
+bool String::Equals(const uint8_t* latin1_array, intptr_t len) const {
   if (len != this->Length()) {
     // Lengths don't match.
     return false;
   }
 
   for (intptr_t i = 0; i < len; i++) {
-    if (this->CharAt(i) != characters[i]) {
+    if (this->CharAt(i) != latin1_array[i]) {
       return false;
     }
   }
@@ -10027,14 +10108,14 @@ bool String::Equals(const uint8_t* characters, intptr_t len) const {
 }
 
 
-bool String::Equals(const uint16_t* characters, intptr_t len) const {
+bool String::Equals(const uint16_t* utf16_array, intptr_t len) const {
   if (len != this->Length()) {
     // Lengths don't match.
     return false;
   }
 
   for (intptr_t i = 0; i < len; i++) {
-    if (this->CharAt(i) != characters[i]) {
+    if (this->CharAt(i) != utf16_array[i]) {
       return false;
     }
   }
@@ -10042,16 +10123,17 @@ bool String::Equals(const uint16_t* characters, intptr_t len) const {
 }
 
 
-bool String::Equals(const uint32_t* characters, intptr_t len) const {
-  if (len != this->Length()) {
-    // Lengths don't match.
-    return false;
-  }
-
-  for (intptr_t i = 0; i < len; i++) {
-    if (this->CharAt(i) != static_cast<int32_t>(characters[i])) {
+bool String::Equals(const int32_t* utf32_array, intptr_t len) const {
+  CodePointIterator it(*this);
+  intptr_t i = 0;
+  while (it.Next()) {
+    if (it.Current() != static_cast<int32_t>(utf32_array[i])) {
       return false;
     }
+    ++i;
+  }
+  if (i != len) {
+    return false;
   }
   return true;
 }
@@ -10121,7 +10203,7 @@ RawString* String::New(const uint8_t* utf8_array,
     }
     return strobj.raw();
   }
-  ASSERT((type == Utf8::kBMP) || (type == Utf8::kSMP));
+  ASSERT((type == Utf8::kBMP) || (type == Utf8::kSupplementary));
   const String& strobj = String::Handle(TwoByteString::New(len, space));
   NoGCScope no_gc;
   Utf8::DecodeToUTF16(utf8_array, array_len,
@@ -10147,7 +10229,7 @@ RawString* String::New(const uint16_t* utf16_array,
 }
 
 
-RawString* String::New(const uint32_t* utf32_array,
+RawString* String::New(const int32_t* utf32_array,
                        intptr_t array_len,
                        Heap::Space space) {
   bool is_one_byte_string = true;
@@ -10512,10 +10594,9 @@ RawString* String::Transform(int32_t (*mapping)(int32_t ch),
   ASSERT(!str.IsNull());
   bool has_mapping = false;
   int32_t dst_max = 0;
-  intptr_t len = str.Length();
-  // TODO(cshapiro): assume a transform is required, rollback if not.
-  for (intptr_t i = 0; i < len; ++i) {
-    int32_t src = str.CharAt(i);
+  CodePointIterator it(str);
+  while (it.Next()) {
+    int32_t src = it.Current();
     int32_t dst = mapping(src);
     if (src != dst) {
       has_mapping = true;
@@ -10542,6 +10623,25 @@ RawString* String::ToUpperCase(const String& str, Heap::Space space) {
 RawString* String::ToLowerCase(const String& str, Heap::Space space) {
   // TODO(cshapiro): create a fast-path for OneByteString instances.
   return Transform(CaseMapping::ToLower, str, space);
+}
+
+
+bool String::CodePointIterator::Next() {
+  ASSERT(index_ >= -1);
+  ASSERT(index_ < str_.Length());
+  int d = Utf16::Length(ch_);
+  if (index_ == (str_.Length() - d)) {
+    return false;
+  }
+  index_ += d;
+  ch_ = str_.CharAt(index_);
+  if (Utf16::IsLeadSurrogate(ch_) && (index_ != (str_.Length() - 1))) {
+    int32_t ch2 = str_.CharAt(index_ + 1);
+    if (Utf16::IsTrailSurrogate(ch2)) {
+      ch_ = Utf16::Decode(ch_, ch2);
+    }
+  }
+  return true;
 }
 
 
@@ -10683,7 +10783,7 @@ RawOneByteString* OneByteString::New(const uint16_t* characters,
 }
 
 
-RawOneByteString* OneByteString::New(const uint32_t* characters,
+RawOneByteString* OneByteString::New(const int32_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
   const String& result = String::Handle(OneByteString::New(len, space));
@@ -10818,7 +10918,7 @@ RawTwoByteString* TwoByteString::New(const uint16_t* utf16_array,
 
 
 RawTwoByteString* TwoByteString::New(intptr_t utf16_len,
-                                     const uint32_t* utf32_array,
+                                     const int32_t* utf32_array,
                                      intptr_t array_len,
                                      Heap::Space space) {
   ASSERT((array_len > 0) && (utf16_len >= array_len));
@@ -10829,7 +10929,7 @@ RawTwoByteString* TwoByteString::New(intptr_t utf16_len,
     for (intptr_t i = 0; i < array_len; ++i) {
       if (utf32_array[i] > 0xffff) {
         ASSERT(j < (utf16_len - 1));
-        Utf8::ConvertUTF32ToUTF16(utf32_array[i], CharAddr(result, j));
+        Utf16::Encode(utf32_array[i], CharAddr(result, j));
         j += 2;
       } else {
         ASSERT(j < utf16_len);
@@ -10887,10 +10987,20 @@ RawTwoByteString* TwoByteString::Transform(int32_t (*mapping)(int32_t ch),
   ASSERT(!str.IsNull());
   intptr_t len = str.Length();
   const String& result = String::Handle(TwoByteString::New(len, space));
-  for (intptr_t i = 0; i < len; ++i) {
-    int32_t ch = mapping(str.CharAt(i));
-    ASSERT(ch >= 0 && ch <= 0xFFFF);
-    *CharAddr(result, i) = ch;
+  String::CodePointIterator it(str);
+  intptr_t i = 0;
+  while (it.Next()) {
+    int32_t src = it.Current();
+    int32_t dst = mapping(src);
+    ASSERT(dst >= 0 && dst <= 0x10FFFF);
+    intptr_t len = Utf16::Length(dst);
+    if (len == 1) {
+      *CharAddr(result, i) = dst;
+    } else {
+      ASSERT(len == 2);
+      Utf16::Encode(dst, CharAddr(result, i));
+    }
+    i += len;
   }
   return TwoByteString::raw(result);
 }

@@ -9,7 +9,7 @@ $!INCLUDES
 
 namespace WebCore {
 
-Dart_NativeFunction snapshotResolver(Dart_Handle name, int argumentCount)
+Dart_NativeFunction $(LIBRARY_NAME)SnapshotResolver(Dart_Handle name, int argumentCount)
 {
 $!RESOLVER_BODY
     return 0;

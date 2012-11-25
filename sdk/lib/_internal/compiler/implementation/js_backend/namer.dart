@@ -313,7 +313,6 @@ class Namer {
     } else {
       name = element.name.slowToString();
     }
-    // Prefix the name with '$' if it is reserved.
     return name;
   }
 
@@ -363,7 +362,6 @@ class Namer {
     } else {
       // Use declaration element to ensure invariant on [globals].
       element = element.declaration;
-
       // Dealing with a top-level or static element.
       String cached = globals[element];
       if (cached != null) return cached;
@@ -382,7 +380,8 @@ class Namer {
           kind == ElementKind.GETTER ||
           kind == ElementKind.SETTER ||
           kind == ElementKind.TYPEDEF ||
-          kind == ElementKind.LIBRARY) {
+          kind == ElementKind.LIBRARY ||
+          kind == ElementKind.MALFORMED_TYPE) {
         bool isNative = false;
         if (identical(kind, ElementKind.CLASS)) {
           ClassElement class_elt = element;

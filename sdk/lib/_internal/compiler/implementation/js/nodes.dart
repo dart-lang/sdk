@@ -713,6 +713,8 @@ class PropertyAccess extends Expression {
   PropertyAccess(this.receiver, this.selector);
   PropertyAccess.field(this.receiver, String fieldName)
       : selector = new LiteralString("'$fieldName'");
+  PropertyAccess.indexed(this.receiver, int index)
+      : selector = new LiteralNumber('$index');
 
   accept(NodeVisitor visitor) => visitor.visitAccess(this);
 
@@ -769,6 +771,9 @@ class ArrayInitializer extends Expression {
 
   ArrayInitializer(this.length, this.elements);
 
+  factory ArrayInitializer.from(List<Expression> expressions) =>
+      new ArrayInitializer(expressions.length, _convert(expressions));
+
   accept(NodeVisitor visitor) => visitor.visitArrayInitializer(this);
 
   void visitChildren(NodeVisitor visitor) {
@@ -776,6 +781,12 @@ class ArrayInitializer extends Expression {
   }
 
   int get precedenceLevel => PRIMARY;
+
+  static List<ArrayElement> _convert(List<Expression> expressions) {
+    int index = 0;
+    return expressions.map(
+        (expression) => new ArrayElement(index++, expression));
+  }
 }
 
 /**

@@ -19,7 +19,7 @@ testReadWrite(key, value, check,
 
   fail(e) {
     guardAsync(() {
-      throw const Exception('IndexedDB failure');
+      throw new Exception('IndexedDB failure');
     });
   }
 

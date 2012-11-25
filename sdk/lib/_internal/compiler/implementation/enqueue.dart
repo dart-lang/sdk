@@ -138,6 +138,7 @@ class Enqueuer {
   }
 
   void registerInstantiatedClass(ClassElement cls) {
+    if (universe.instantiatedClasses.contains(cls)) return;
     universe.instantiatedClasses.add(cls);
     onRegisterInstantiatedClass(cls);
     compiler.backend.registerInstantiatedClass(cls, this);
@@ -402,12 +403,5 @@ class Enqueuer {
         ? 'Resolved ${resolvedElements.length} elements.'
         : 'Compiled ${universe.generatedCode.length} methods.');
     nativeEnqueuer.logSummary(log);
-  }
-
-  registerUsedSelector(Selector selector) {
-    Element interceptor = compiler.backend.getInterceptor(selector);
-    if (interceptor != null) {
-      registerStaticUse(interceptor);
-    }
   }
 }

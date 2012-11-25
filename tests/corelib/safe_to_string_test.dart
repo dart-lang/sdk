@@ -3,19 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  Expect.stringEquals('1', NoSuchMethodError.safeToString(1));
-  Expect.stringEquals('0.5', NoSuchMethodError.safeToString(0.5));
-  Expect.stringEquals('"1"', NoSuchMethodError.safeToString("1"));
-  Expect.stringEquals('"\'"', NoSuchMethodError.safeToString("'"));
-  Expect.stringEquals('"\'\'"', NoSuchMethodError.safeToString("''"));
-  Expect.stringEquals(r'"\""', NoSuchMethodError.safeToString('"'));
-  Expect.stringEquals(r'"\"\""', NoSuchMethodError.safeToString('""'));
+  Expect.stringEquals('1', Error.safeToString(1));
+  Expect.stringEquals('0.5', Error.safeToString(0.5));
+  Expect.stringEquals('"1"', Error.safeToString("1"));
+  Expect.stringEquals('"\'"', Error.safeToString("'"));
+  Expect.stringEquals('"\'\'"', Error.safeToString("''"));
+  Expect.stringEquals(r'"\""', Error.safeToString('"'));
+  Expect.stringEquals(r'"\"\""', Error.safeToString('""'));
 
-  Expect.stringEquals(r'"\\\"\n\r"', NoSuchMethodError.safeToString('\\"\n\r'));
+  Expect.stringEquals(r'"\\\"\n\r"', Error.safeToString('\\"\n\r'));
 
-  Expect.stringEquals('null', NoSuchMethodError.safeToString(null));
-  Expect.stringEquals('true', NoSuchMethodError.safeToString(true));
-  Expect.stringEquals('false', NoSuchMethodError.safeToString(false));
+  Expect.stringEquals('null', Error.safeToString(null));
+  Expect.stringEquals('true', Error.safeToString(true));
+  Expect.stringEquals('false', Error.safeToString(false));
   Expect.stringEquals("Instance of 'Object'",
-                      NoSuchMethodError.safeToString(new Object()));
+                      Error.safeToString(new Object()));
 }

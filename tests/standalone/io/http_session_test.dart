@@ -30,8 +30,11 @@ Future<String> connectGetSession(int port, [String session]) {
     request.outputStream.close();
   };
   conn.onResponse = (response) {
-    client.shutdown();
-    c.complete(getSessionId(response.cookies));
+    response.inputStream.onData = response.inputStream.read;
+    response.inputStream.onClosed = () {
+      client.shutdown();
+      c.complete(getSessionId(response.cookies));
+    };
   };
   return c.future;
 }

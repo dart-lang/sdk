@@ -182,44 +182,18 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
 
 // Input parameters:
-//   RBX: function object.
 //   R10: arguments descriptor array (num_args is first Smi element).
 void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-
-  __ movq(RAX, FieldAddress(RBX, Function::code_offset()));
-  __ cmpq(RAX, raw_null);
-  Label function_compiled;
-  __ j(NOT_EQUAL, &function_compiled, Assembler::kNearJump);
-
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
   AssemblerMacros::EnterStubFrame(assembler);
-
   __ pushq(R10);  // Preserve arguments descriptor array.
-  __ pushq(RBX);
-  __ CallRuntime(kCompileFunctionRuntimeEntry);
-  __ popq(RBX);  // Restore read-only function object argument in RBX.
-  __ popq(R10);  // Restore arguments descriptor array.
-  // Restore RAX.
-  __ movq(RAX, FieldAddress(RBX, Function::code_offset()));
-
-  // Remove the stub frame as we are about to jump to the dart function.
-  __ LeaveFrame();
-
-  __ Bind(&function_compiled);
-  // Patch caller.
-  AssemblerMacros::EnterStubFrame(assembler);
-
-  __ pushq(R10);  // Preserve arguments descriptor array.
-  __ pushq(RBX);  // Preserve function object.
+  __ pushq(raw_null);  // Setup space on stack for return value.
   __ CallRuntime(kPatchStaticCallRuntimeEntry);
-  __ popq(RBX);  // Restore function object argument in RBX.
+  __ popq(RAX);  // Get Code object result.
   __ popq(R10);  // Restore arguments descriptor array.
   // Remove the stub frame as we are about to jump to the dart function.
   __ LeaveFrame();
-  __ movq(RAX, FieldAddress(RBX, Function::code_offset()));
 
   __ movq(RBX, FieldAddress(RAX, Code::instructions_offset()));
   __ addq(RBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
@@ -229,18 +203,16 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 
 // Called from a static call only when an invalid code has been entered
 // (invalid because its function was optimized or deoptimized).
-// RBX: function object.
 // R10: arguments descriptor array (num_args is first Smi element).
 void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
   AssemblerMacros::EnterStubFrame(assembler);
   __ pushq(R10);  // Preserve arguments descriptor array.
-  __ pushq(RBX);  // Preserve target function.
-  __ pushq(RBX);  // Target function.
+  __ pushq(raw_null);  // Setup space on stack for return value.
   __ CallRuntime(kFixCallersTargetRuntimeEntry);
-  __ popq(RAX);  // discard argument.
-  __ popq(RAX);  // Restore function.
+  __ popq(RAX);  // Get Code object.
   __ popq(R10);  // Restore arguments descriptor array.
-  __ movq(RAX, FieldAddress(RAX, Function::code_offset()));
   __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
   __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ LeaveFrame();
@@ -1787,21 +1759,21 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   GenerateNArgsCheckInlineCacheStub(assembler, 1);
 }
 
-//  RBX: Function object.
 //  R10: Arguments array.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
   AssemblerMacros::EnterStubFrame(assembler);
-  __ pushq(R10);
-  __ pushq(RBX);
+  __ pushq(R10);  // Preserve arguments descriptor.
+  __ pushq(raw_null);  // Room for result.
   __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry);
-  __ popq(RBX);
-  __ popq(R10);
+  __ popq(RAX);  // Code object.
+  __ popq(R10);  // Restore arguments descriptor.
   __ LeaveFrame();
 
   // Now call the static function. The breakpoint handler function
   // ensures that the call target is compiled.
-  __ movq(RAX, FieldAddress(RBX, Function::code_offset()));
   __ movq(RBX, FieldAddress(RAX, Code::instructions_offset()));
   __ addq(RBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(RBX);

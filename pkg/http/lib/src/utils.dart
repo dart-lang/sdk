@@ -185,26 +185,3 @@ Future forEachFuture(Iterable input, Future fn(element)) {
   }
   return nextElement(null);
 }
-
-/// Creates a temporary directory and passes its path to [fn]. Once the [Future]
-/// returned by [fn] completes, the temporary directory and all its contents
-/// will be deleted.
-Future withTempDir(Future fn(String path)) {
-  var tempDir;
-  var future = new Directory('').createTemp().chain((dir) {
-    tempDir = dir;
-    return fn(tempDir.path);
-  });
-  future.onComplete((_) => tempDir.delete(recursive: true));
-  return future;
-}
-
-/// Configures [future] so that its result (success or exception) is passed on
-/// to [completer].
-void chainToCompleter(Future future, Completer completer) {
-  future.handleException((e) {
-    completer.completeException(e);
-    return true;
-  });
-  future.then(completer.complete);
-}

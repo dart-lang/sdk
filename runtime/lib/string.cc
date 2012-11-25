@@ -20,7 +20,7 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
   // Unbox the array and determine the maximum element width.
   bool is_one_byte_string = true;
   intptr_t utf16_len = array_len;
-  uint32_t* utf32_array = zone->Alloc<uint32_t>(array_len);
+  int32_t* utf32_array = zone->Alloc<int32_t>(array_len);
   Object& index_object = Object::Handle(isolate);
   for (intptr_t i = 0; i < array_len; i++) {
     index_object = a.At(i);
@@ -102,7 +102,7 @@ DEFINE_NATIVE_ENTRY(String_charAt, 2) {
   GET_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
   uint32_t value = StringValueAt(receiver, index);
   ASSERT(value <= 0x10FFFF);
-  return Symbols::New(&value, 1);
+  return Symbols::FromCharCode(value);
 }
 
 DEFINE_NATIVE_ENTRY(String_charCodeAt, 2) {
@@ -144,10 +144,6 @@ DEFINE_NATIVE_ENTRY(Strings_concatAll, 1) {
   Instance& elem = Instance::Handle();
   for (intptr_t i = 0; i < strings.Length(); i++) {
     elem ^= strings.At(i);
-    if (elem.IsNull()) {
-      GrowableArray<const Object*> args;
-      Exceptions::ThrowByType(Exceptions::kNullPointer, args);
-    }
     if (!elem.IsString()) {
       GrowableArray<const Object*> args;
       args.Add(&elem);

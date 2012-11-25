@@ -60,8 +60,6 @@ class _DOMWindowCrossFrame extends NativeFieldWrapperClass1 implements Window {
   Window get top() native "DOMWindow_top_Getter";
 
   // Methods.
-  void focus() native "DOMWindow_focus_Callback";
-  void blur() native "DOMWindow_blur_Callback";
   void close() native "DOMWindow_close_Callback";
   void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) native "DOMWindow_postMessage_Callback";
 

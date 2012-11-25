@@ -241,9 +241,10 @@ MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
   const String& function_name = String::Handle(function.name());
   const String& class_name = String::Handle(function_class.Name());
 
-#define RECOGNIZE_FUNCTION(test_class_name, test_function_name, enum_name)     \
+#define RECOGNIZE_FUNCTION(test_class_name, test_function_name, enum_name, fp) \
   if (CompareNames(lib, #test_function_name, function_name) &&                 \
       CompareNames(lib, #test_class_name, class_name)) {                       \
+    ASSERT(function.CheckSourceFingerprint(fp));                               \
     return k##enum_name;                                                       \
   }
 RECOGNIZED_LIST(RECOGNIZE_FUNCTION)
@@ -253,7 +254,7 @@ RECOGNIZED_LIST(RECOGNIZE_FUNCTION)
 
 
 const char* MethodRecognizer::KindToCString(Kind kind) {
-#define KIND_TO_STRING(class_name, function_name, enum_name)                   \
+#define KIND_TO_STRING(class_name, function_name, enum_name, fp)               \
   if (kind == k##enum_name) return #enum_name;
 RECOGNIZED_LIST(KIND_TO_STRING)
 #undef KIND_TO_STRING
@@ -1125,6 +1126,16 @@ RawAbstractType* StringCharCodeAtInstr::CompileType() const {
 
 intptr_t StringCharCodeAtInstr::ResultCid() const {
   return kSmiCid;
+}
+
+
+RawAbstractType* StringFromCharCodeInstr::CompileType() const {
+  return Type::StringType();
+}
+
+
+intptr_t StringFromCharCodeInstr::ResultCid() const {
+  return kDynamicCid;
 }
 
 
@@ -2656,6 +2667,7 @@ intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
       return -1;
   }
 }
+
 
 #undef __
 

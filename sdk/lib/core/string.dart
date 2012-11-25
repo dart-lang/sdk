@@ -76,10 +76,13 @@ abstract class String implements Comparable, Pattern, Sequence<String> {
   String substring(int startIndex, [int endIndex]);
 
   /**
-   * Removes leading and trailing whitespace from a string. If the
-   * string contains leading or trailing whitespace a new string with
-   * no leading and no trailing whitespace is returned. Otherwise, the
-   * string itself is returned.
+   * Removes leading and trailing whitespace from a string. If the string
+   * contains leading or trailing whitespace a new string with no leading and
+   * no trailing whitespace is returned. Otherwise, the string itself is
+   * returned.  Whitespace is defined as every Unicode character in the Zs, Zl
+   * and Zp categories (this includes no-break space), the spacing control
+   * characters from 9 to 13 (tab, lf, vtab, ff and cr), and 0xfeff the BOM
+   * character.
    */
   String trim();
 

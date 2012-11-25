@@ -5,6 +5,7 @@
 #include "platform/assert.h"
 #include "vm/assembler.h"
 #include "vm/bigint_operations.h"
+#include "vm/class_finalizer.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -270,6 +271,48 @@ TEST_CASE(Smi) {
   EXPECT_EQ(1, a.CompareWith(big2));
   EXPECT_EQ(-1, c.CompareWith(big1));
   EXPECT_EQ(1, c.CompareWith(big2));
+}
+
+
+TEST_CASE(StringCompareTo) {
+  const String& abcd = String::Handle(String::New("abcd"));
+  const String& abce = String::Handle(String::New("abce"));
+  EXPECT_EQ(0, abcd.CompareTo(abcd));
+  EXPECT_EQ(0, abce.CompareTo(abce));
+  EXPECT(abcd.CompareTo(abce) < 0);
+  EXPECT(abce.CompareTo(abcd) > 0);
+
+  const int kMonkeyLen = 4;
+  const uint8_t monkey_utf8[kMonkeyLen] = { 0xf0, 0x9f, 0x90, 0xb5 };
+  const String& monkey_face =
+      String::Handle(String::New(monkey_utf8, kMonkeyLen));
+  const int kDogLen = 4;
+  // 0x1f436 DOG FACE.
+  const uint8_t dog_utf8[kDogLen] = { 0xf0, 0x9f, 0x90, 0xb6 };
+  const String& dog_face = String::Handle(String::New(dog_utf8, kDogLen));
+  EXPECT_EQ(0, monkey_face.CompareTo(monkey_face));
+  EXPECT_EQ(0, dog_face.CompareTo(dog_face));
+  EXPECT(monkey_face.CompareTo(dog_face) < 0);
+  EXPECT(dog_face.CompareTo(monkey_face) > 0);
+
+  const int kDominoLen = 4;
+  // 0x1f036 DOMINO TILE HORIZONTAL-00-05.
+  const uint8_t domino_utf8[kDominoLen] = { 0xf0, 0x9f, 0x80, 0xb6 };
+  const String& domino = String::Handle(String::New(domino_utf8, kDominoLen));
+  EXPECT_EQ(0, domino.CompareTo(domino));
+  EXPECT(domino.CompareTo(dog_face) < 0);
+  EXPECT(domino.CompareTo(monkey_face) < 0);
+  EXPECT(dog_face.CompareTo(domino) > 0);
+  EXPECT(monkey_face.CompareTo(domino) > 0);
+
+  EXPECT(abcd.CompareTo(monkey_face) < 0);
+  EXPECT(abce.CompareTo(monkey_face) < 0);
+  EXPECT(abcd.CompareTo(domino) < 0);
+  EXPECT(abce.CompareTo(domino) < 0);
+  EXPECT(domino.CompareTo(abcd) > 0);
+  EXPECT(domino.CompareTo(abcd) > 0);
+  EXPECT(monkey_face.CompareTo(abce) > 0);
+  EXPECT(monkey_face.CompareTo(abce) > 0);
 }
 
 
@@ -559,7 +602,7 @@ TEST_CASE(String) {
     EXPECT_EQ(false, str1.StartsWith(str3));
   }
 
-  const uint32_t four_chars[] = { 'C', 0xFF, 'h', 0xFFFF, 'a', 0x10FFFF, 'r' };
+  const int32_t four_chars[] = { 'C', 0xFF, 'h', 0xFFFF, 'a', 0x10FFFF, 'r' };
   const String& four_str = String::Handle(String::New(four_chars, 7));
   EXPECT_EQ(four_str.Hash(), four_str.Hash());
   EXPECT(four_str.IsTwoByteString());
@@ -587,7 +630,7 @@ TEST_CASE(String) {
 
   // Create a 1-byte string from an array of 4-byte elements.
   {
-    const uint32_t char32[] = { 0x00, 0x1F, 0x7F };
+    const int32_t char32[] = { 0x00, 0x1F, 0x7F };
     const String& str8 = String::Handle(String::New(char32, 3));
     EXPECT(str8.IsOneByteString());
     EXPECT(!str8.IsTwoByteString());
@@ -598,7 +641,7 @@ TEST_CASE(String) {
 
   // Create a 2-byte string from an array of 4-byte elements.
   {
-    const uint32_t char32[] = { 0, 0x7FFF, 0xFFFF };
+    const int32_t char32[] = { 0, 0x7FFF, 0xFFFF };
     const String& str16 = String::Handle(String::New(char32, 3));
     EXPECT(!str16.IsOneByteString());
     EXPECT(str16.IsTwoByteString());
@@ -943,7 +986,7 @@ TEST_CASE(StringConcat) {
     EXPECT(str1.IsOneByteString());
     EXPECT_EQ(0, str1.Length());
 
-    uint32_t four[] = { 0x1D4D5, 0x1D4DE, 0x1D4E4, 0x1D4E1 };
+    int32_t four[] = { 0x1D4D5, 0x1D4DE, 0x1D4E4, 0x1D4E1 };
     intptr_t four_len = sizeof(four) / sizeof(four[0]);
     intptr_t expected_len = (four_len * 2);
     const String& str2 = String::Handle(String::New(four, four_len));
@@ -988,8 +1031,8 @@ TEST_CASE(StringConcat) {
     array3.SetAt(2, str2);
     const String& str7 = String::Handle(String::ConcatAll(array3));
     EXPECT(str7.IsTwoByteString());
-    uint32_t fourfour[] = { 0x1D4D5, 0x1D4DE, 0x1D4E4, 0x1D4E1,
-                            0x1D4D5, 0x1D4DE, 0x1D4E4, 0x1D4E1 };
+    int32_t fourfour[] = { 0x1D4D5, 0x1D4DE, 0x1D4E4, 0x1D4E1,
+                           0x1D4D5, 0x1D4DE, 0x1D4E4, 0x1D4E1 };
     intptr_t fourfour_len = sizeof(fourfour) / sizeof(fourfour[0]);
     EXPECT_EQ((fourfour_len * 2), str7.Length());
     const String& fourfour_str =
@@ -999,13 +1042,13 @@ TEST_CASE(StringConcat) {
 
   // Concatenate non-empty strings built from 4-byte elements.
   {
-    const uint32_t one[] = { 0x105D0, 0x105D9, 0x105D9, 0x105DF };
+    const int32_t one[] = { 0x105D0, 0x105D9, 0x105D9, 0x105DF };
     intptr_t one_len = sizeof(one) / sizeof(one[0]);
     const String& onestr = String::Handle(String::New(one, one_len));
     EXPECT(onestr.IsTwoByteString());
     EXPECT_EQ((one_len *2), onestr.Length());
 
-    const uint32_t two[] = { 0x105E6, 0x105D5, 0x105D5, 0x105D9, 0x105D9 };
+    const int32_t two[] = { 0x105E6, 0x105D5, 0x105D5, 0x105D9, 0x105D9 };
     intptr_t two_len = sizeof(two) / sizeof(two[0]);
     const String& twostr = String::Handle(String::New(two, two_len));
     EXPECT(twostr.IsTwoByteString());
@@ -1015,8 +1058,8 @@ TEST_CASE(StringConcat) {
 
     const String& str1 = String::Handle(String::Concat(onestr, twostr));
     EXPECT(str1.IsTwoByteString());
-    const uint32_t one_two[] = { 0x105D0, 0x105D9, 0x105D9, 0x105DF,
-                                 0x105E6, 0x105D5, 0x105D5, 0x105D9, 0x105D9 };
+    const int32_t one_two[] = { 0x105D0, 0x105D9, 0x105D9, 0x105DF,
+                                0x105E6, 0x105D5, 0x105D5, 0x105D9, 0x105D9 };
     intptr_t one_two_len = sizeof(one_two) / sizeof(one_two[0]);
     EXPECT_EQ((one_two_len * 2), str1.Length());
     const String& one_two_str =
@@ -1025,8 +1068,8 @@ TEST_CASE(StringConcat) {
 
     const String& str2 = String::Handle(String::Concat(twostr, onestr));
     EXPECT(str2.IsTwoByteString());
-    const uint32_t two_one[] = { 0x105E6, 0x105D5, 0x105D5, 0x105D9, 0x105D9,
-                                 0x105D0, 0x105D9, 0x105D9, 0x105DF };
+    const int32_t two_one[] = { 0x105E6, 0x105D5, 0x105D5, 0x105D9, 0x105D9,
+                                0x105D0, 0x105D9, 0x105D9, 0x105DF };
     intptr_t two_one_len = sizeof(two_one) / sizeof(two_one[0]);
     EXPECT_EQ((two_one_len * 2), str2.Length());
     const String& two_one_str =
@@ -1060,10 +1103,10 @@ TEST_CASE(StringConcat) {
     array3.SetAt(2, onestr);
     const String& str5 = String::Handle(String::ConcatAll(array3));
     EXPECT(str5.IsTwoByteString());
-    const uint32_t one_two_one[] = { 0x105D0, 0x105D9, 0x105D9, 0x105DF,
-                                     0x105E6, 0x105D5, 0x105D5, 0x105D9,
-                                     0x105D9,
-                                     0x105D0, 0x105D9, 0x105D9, 0x105DF };
+    const int32_t one_two_one[] = { 0x105D0, 0x105D9, 0x105D9, 0x105DF,
+                                    0x105E6, 0x105D5, 0x105D5, 0x105D9,
+                                    0x105D9,
+                                    0x105D0, 0x105D9, 0x105D9, 0x105DF };
     intptr_t one_two_one_len = sizeof(one_two_one) / sizeof(one_two_one[0]);
     EXPECT_EQ((one_two_one_len * 2), str5.Length());
     const String& one_two_one_str =
@@ -1077,11 +1120,11 @@ TEST_CASE(StringConcat) {
     array4.SetAt(2, twostr);
     const String& str6 = String::Handle(String::ConcatAll(array4));
     EXPECT(str6.IsTwoByteString());
-    const uint32_t two_one_two[] = { 0x105E6, 0x105D5, 0x105D5, 0x105D9,
-                                     0x105D9,
-                                     0x105D0, 0x105D9, 0x105D9, 0x105DF,
-                                     0x105E6, 0x105D5, 0x105D5, 0x105D9,
-                                     0x105D9 };
+    const int32_t two_one_two[] = { 0x105E6, 0x105D5, 0x105D5, 0x105D9,
+                                    0x105D9,
+                                    0x105D0, 0x105D9, 0x105D9, 0x105DF,
+                                    0x105E6, 0x105D5, 0x105D5, 0x105D9,
+                                    0x105D9 };
     intptr_t two_one_two_len = sizeof(two_one_two) / sizeof(two_one_two[0]);
     EXPECT_EQ((two_one_two_len * 2), str6.Length());
     const String& two_one_two_str =
@@ -1312,7 +1355,8 @@ TEST_CASE(StringFromUtf8Literal) {
     }
   }
 
-  // Create a SMP 2-byte string from a UTF-8 string literal.
+  // Create a 2-byte string with supplementary characters from a UTF-8
+  // string literal.
   {
     const char* src =
         "\xF0\x9D\x91\xA0\xF0\x9D\x91\xA1"
@@ -1382,6 +1426,37 @@ TEST_CASE(StringFromUtf8Literal) {
       EXPECT_EQ(expected[i], str.CharAt(i));
     }
   }
+}
+
+
+TEST_CASE(StringEqualsUtf8) {
+  const char* onesrc = "abc";
+  const String& onestr = String::Handle(String::New(onesrc));
+  EXPECT(onestr.IsOneByteString());
+  EXPECT(!onestr.Equals(""));
+  EXPECT(!onestr.Equals("a"));
+  EXPECT(!onestr.Equals("ab"));
+  EXPECT(onestr.Equals("abc"));
+  EXPECT(!onestr.Equals("abcd"));
+
+  const char* twosrc = "\xD7\x90\xD7\x91\xD7\x92";
+  const String& twostr = String::Handle(String::New(twosrc));
+  EXPECT(twostr.IsTwoByteString());
+  EXPECT(!twostr.Equals(""));
+  EXPECT(!twostr.Equals("\xD7\x90"));
+  EXPECT(!twostr.Equals("\xD7\x90\xD7\x91"));
+  EXPECT(twostr.Equals("\xD7\x90\xD7\x91\xD7\x92"));
+  EXPECT(!twostr.Equals("\xD7\x90\xD7\x91\xD7\x92\xD7\x93"));
+
+  const char* foursrc = "\xF0\x90\x8E\xA0\xF0\x90\x8E\xA1\xF0\x90\x8E\xA2";
+  const String& fourstr = String::Handle(String::New(foursrc));
+  EXPECT(fourstr.IsTwoByteString());
+  EXPECT(!fourstr.Equals(""));
+  EXPECT(!fourstr.Equals("\xF0\x90\x8E\xA0"));
+  EXPECT(!fourstr.Equals("\xF0\x90\x8E\xA0\xF0\x90\x8E\xA1"));
+  EXPECT(fourstr.Equals("\xF0\x90\x8E\xA0\xF0\x90\x8E\xA1\xF0\x90\x8E\xA2"));
+  EXPECT(!fourstr.Equals("\xF0\x90\x8E\xA0\xF0\x90\x8E\xA1"
+                         "\xF0\x90\x8E\xA2\xF0\x90\x8E\xA3"));
 }
 
 
@@ -1501,10 +1576,36 @@ TEST_CASE(Symbol) {
   EXPECT_EQ(one.raw(), ein_symbol.raw());
   EXPECT(one.raw() != eins.raw());
 
-  uint32_t char32[] = { 'E', 'l', 'f' };
-  String& elf = String::Handle(Symbols::New(char32, 3));
-  EXPECT(elf.IsSymbol());
-  EXPECT_EQ(elf.raw(), Symbols::New("Elf"));
+  uint16_t char16[] = { 'E', 'l', 'f' };
+  String& elf1 = String::Handle(Symbols::New(char16, 3));
+  int32_t char32[] = { 'E', 'l', 'f' };
+  String& elf2 = String::Handle(Symbols::New(char32, 3));
+  EXPECT(elf1.IsSymbol());
+  EXPECT(elf2.IsSymbol());
+  EXPECT_EQ(elf1.raw(), Symbols::New("Elf"));
+  EXPECT_EQ(elf2.raw(), Symbols::New("Elf"));
+}
+
+
+TEST_CASE(SymbolUnicode) {
+  uint16_t monkey_utf16[] = { 0xd83d, 0xdc35 };  // Unicode Monkey Face.
+  String& monkey = String::Handle(Symbols::New(monkey_utf16, 2));
+  EXPECT(monkey.IsSymbol());
+  const char monkey_utf8[] = {0xf0, 0x9f, 0x90, 0xb5, 0};
+  EXPECT_EQ(monkey.raw(), Symbols::New(monkey_utf8));
+
+  int32_t kMonkeyFace = 0x1f435;
+  String& monkey2 = String::Handle(Symbols::FromCharCode(kMonkeyFace));
+  EXPECT_EQ(monkey.raw(), monkey2.raw());
+
+  // Unicode cat face with tears of joy.
+  int32_t kCatFaceWithTearsOfJoy = 0x1f639;
+  String& cat = String::Handle(Symbols::FromCharCode(kCatFaceWithTearsOfJoy));
+
+  uint16_t cat_utf16[] = { 0xd83d, 0xde39 };
+  String& cat2 = String::Handle(Symbols::New(cat_utf16, 2));
+  EXPECT(cat2.IsSymbol());
+  EXPECT_EQ(cat2.raw(), cat.raw());
 }
 
 
@@ -1549,6 +1650,61 @@ TEST_CASE(Array) {
   EXPECT(!array.Equals(other_array));
 
   EXPECT_EQ(0, Array::Handle(Object::empty_array()).Length());
+}
+
+
+TEST_CASE(StringCodePointIterator) {
+  const String& str0 = String::Handle(String::New(""));
+  String::CodePointIterator it0(str0);
+  EXPECT(!it0.Next());
+
+  const String& str1 = String::Handle(String::New(" \xc3\xa7 "));
+  String::CodePointIterator it1(str1);
+  EXPECT(it1.Next());
+  EXPECT_EQ(' ', it1.Current());
+  EXPECT(it1.Next());
+  EXPECT_EQ(0xE7, it1.Current());
+  EXPECT(it1.Next());
+  EXPECT_EQ(' ', it1.Current());
+  EXPECT(!it1.Next());
+
+  const String& str2 = String::Handle(String::New("\xD7\x92\xD7\x9C"
+                                                  "\xD7\xA2\xD7\x93"
+                                                  "\xD7\x91\xD7\xA8"
+                                                  "\xD7\x9B\xD7\x94"));
+  String::CodePointIterator it2(str2);
+  EXPECT(it2.Next());
+  EXPECT_EQ(0x5D2, it2.Current());
+  EXPECT(it2.Next());
+  EXPECT_EQ(0x5DC, it2.Current());
+  EXPECT(it2.Next());
+  EXPECT_EQ(0x5E2, it2.Current());
+  EXPECT(it2.Next());
+  EXPECT_EQ(0x5D3, it2.Current());
+  EXPECT(it2.Next());
+  EXPECT_EQ(0x5D1, it2.Current());
+  EXPECT(it2.Next());
+  EXPECT_EQ(0x5E8, it2.Current());
+  EXPECT(it2.Next());
+  EXPECT_EQ(0x5DB, it2.Current());
+  EXPECT(it2.Next());
+  EXPECT_EQ(0x5D4, it2.Current());
+  EXPECT(!it2.Next());
+
+  const String& str3 = String::Handle(String::New("\xF0\x9D\x91\xA0"
+                                                  "\xF0\x9D\x91\xA1"
+                                                  "\xF0\x9D\x91\xA2"
+                                                  "\xF0\x9D\x91\xA3"));
+  String::CodePointIterator it3(str3);
+  EXPECT(it3.Next());
+  EXPECT_EQ(0x1D460, it3.Current());
+  EXPECT(it3.Next());
+  EXPECT_EQ(0x1D461, it3.Current());
+  EXPECT(it3.Next());
+  EXPECT_EQ(0x1D462, it3.Current());
+  EXPECT(it3.Next());
+  EXPECT_EQ(0x1D463, it3.Current());
+  EXPECT(!it3.Next());
 }
 
 
@@ -3033,6 +3189,64 @@ TEST_CASE(WeakProperty_ClearTwoShared_OldSpace) {
   EXPECT(weak1.value() == Object::null());
   EXPECT(weak2.key() == Object::null());
   EXPECT(weak2.value() == Object::null());
+}
+
+
+static RawFunction* GetFunction(const Class& cls, const char* name) {
+  const Function& result = Function::Handle(cls.LookupDynamicFunction(
+      String::Handle(String::New(name))));
+  ASSERT(!result.IsNull());
+  return result.raw();
+}
+
+
+TEST_CASE(FunctionSourceFingerprint) {
+  const char* kScriptChars =
+      "class A {\n"
+      "  void test1(int a) {\n"
+      "    return a > 1 ? a + 1 : a;\n"
+      "  }\n"
+      "  void test2(int a) {\n"
+      "    return a > 1 ? a + 1 : a;\n"
+      "  }\n"
+      "  void test3(a) {\n"
+      "    return a > 1 ? a + 1 : a;\n"
+      "  }\n"
+      "  void test4(b) {\n"
+      "    return b > 1 ? b + 1 : b;\n"
+      "  }\n"
+      "  void test5(b) {\n"
+      "    return b > 1 ? b - 1 : b;\n"
+      "  }\n"
+      "  void test6(b) {\n"
+      "    return b > 1 ? b - 2 : b;\n"
+      "  }\n"
+      "  void test7(b) {\n"
+      "    return b > 1 ?\n"
+      "        b - 2 : b;\n"
+      "  }\n"
+      "}";
+  TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT(ClassFinalizer::FinalizePendingClasses());
+  const String& name = String::Handle(String::New(TestCase::url()));
+  const Library& lib = Library::Handle(Library::LookupLibrary(name));
+  EXPECT(!lib.IsNull());
+
+  const Class& class_a = Class::Handle(
+      lib.LookupClass(String::Handle(Symbols::New("A"))));
+  const Function& test1 = Function::Handle(GetFunction(class_a, "test1"));
+  const Function& test2 = Function::Handle(GetFunction(class_a, "test2"));
+  const Function& test3 = Function::Handle(GetFunction(class_a, "test3"));
+  const Function& test4 = Function::Handle(GetFunction(class_a, "test4"));
+  const Function& test5 = Function::Handle(GetFunction(class_a, "test5"));
+  const Function& test6 = Function::Handle(GetFunction(class_a, "test6"));
+  const Function& test7 = Function::Handle(GetFunction(class_a, "test7"));
+  EXPECT_EQ(test1.SourceFingerprint(), test2.SourceFingerprint());
+  EXPECT_NE(test1.SourceFingerprint(), test3.SourceFingerprint());
+  EXPECT_NE(test3.SourceFingerprint(), test4.SourceFingerprint());
+  EXPECT_NE(test4.SourceFingerprint(), test5.SourceFingerprint());
+  EXPECT_NE(test5.SourceFingerprint(), test6.SourceFingerprint());
+  EXPECT_EQ(test6.SourceFingerprint(), test7.SourceFingerprint());
 }
 
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).

@@ -89,8 +89,71 @@ class JSString implements String {
   List<int> get charCodes  {
     List<int> result = new List<int>(length);
     for (int i = 0; i < length; i++) {
-      result[i] = charCodeAt(i);
+      result[i] = JS('int', '#.charCodeAt(#)', this, i);
     }
     return result;
   }
+
+  int indexOf(String other, [int start = 0]) {
+    checkNull(other);
+    if (start is !int) throw new ArgumentError(start);
+    if (other is !String) throw new ArgumentError(other);
+    if (start < 0) return -1;
+    return JS('int', r'#.indexOf(#, #)', this, other, start);
+  }
+
+  int lastIndexOf(String other, [int start]) {
+    checkNull(other);
+    if (other is !String) throw new ArgumentError(other);
+    if (start != null) {
+      if (start is !num) throw new ArgumentError(start);
+      if (start < 0) return -1;
+      if (start >= length) {
+        if (other == "") return length;
+        start = length - 1;
+      }
+    } else {
+      start = length - 1;
+    }
+    return stringLastIndexOfUnchecked(this, other, start);
+  }
+
+  bool contains(String other, [int startIndex = 0]) {
+    checkNull(other);
+    return stringContainsUnchecked(this, other, startIndex);
+  }
+
+  bool get isEmpty => length == 0;
+
+  int compareTo(String other) {
+    if (other is !String) throw new ArgumentError(other);
+    return this == other ? 0
+      : JS('bool', r'# < #', this, other) ? -1 : 1;
+  }
+
+  String toString() => this;
+
+  /**
+   * This is the [Jenkins hash function][1] but using masking to keep
+   * values in SMI range.
+   *
+   * [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
+   */
+  int get hashCode {
+    // TODO(ahe): This method shouldn't have to use JS. Update when our
+    // optimizations are smarter.
+    int hash = 0;
+    for (int i = 0; i < length; i++) {
+      hash = 0x1fffffff & (hash + JS('int', r'#.charCodeAt(#)', this, i));
+      hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
+      hash = JS('int', '# ^ (# >> 6)', hash, hash);
+    }
+    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) <<  3));
+    hash = JS('int', '# ^ (# >> 11)', hash, hash);
+    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
+  }
+
+  Type get runtimeType => String;
+
+  int get length => JS('int', r'#.length', this);
 }

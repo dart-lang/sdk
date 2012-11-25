@@ -9,10 +9,10 @@ class $FACTORYPROVIDER {
       JS('HttpRequest', 'new XMLHttpRequest()');
 
   static HttpRequest createHttpRequest_get(String url,
-      onSuccess(HttpRequest request)) =>
-      _HttpRequestUtils.get(url, onSuccess, false);
+      onComplete(HttpRequest request)) =>
+      _HttpRequestUtils.get(url, onComplete, false);
 
   static HttpRequest createHttpRequest_getWithCredentials(String url,
-      onSuccess(HttpRequest request)) =>
-      _HttpRequestUtils.get(url, onSuccess, true);
+      onComplete(HttpRequest request)) =>
+      _HttpRequestUtils.get(url, onComplete, true);
 }

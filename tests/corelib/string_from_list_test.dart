@@ -9,11 +9,16 @@ class StringFromListTest {
     Expect.equals("", new String.fromCharCodes(const []));
     Expect.equals("AB", new String.fromCharCodes([65, 66]));
     Expect.equals("AB", new String.fromCharCodes(const [65, 66]));
+    Expect.equals("Ærø", new String.fromCharCodes(const [0xc6, 0x72, 0xf8]));
+    Expect.equals("\u{1234}", new String.fromCharCodes([0x1234]));
+    Expect.equals("\u{12345}*", new String.fromCharCodes([0x12345, 42]));
     Expect.equals("", new String.fromCharCodes(new List()));
-    var a = new List();
-    a.add(65);
-    a.add(66);
-    Expect.equals("AB", new String.fromCharCodes(a));
+    {
+      var a = new List();
+      a.add(65);
+      a.add(66);
+      Expect.equals("AB", new String.fromCharCodes(a));
+    }
   }
 }
 

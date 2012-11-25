@@ -242,7 +242,7 @@ class int64 implements intx {
 
   int64 _promote(other) {
     if (other == null) {
-      throw new NullPointerException();
+      throw new ArgumentError(null);
     } else if (other is intx) {
       other = other.toInt64();
     } else if (other is int) {

@@ -7,6 +7,7 @@
 #include "bin/builtin.h"
 #include "bin/process.h"
 #include "bin/eventhandler.h"
+#include "bin/log.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "platform/globals.h"
@@ -221,7 +222,7 @@ static bool CreateProcessPipe(HANDLE handles[2],
                         NULL);
 
     if (handles[kWriteHandle] == INVALID_HANDLE_VALUE) {
-      fprintf(stderr, "CreateNamedPipe failed %d\n", GetLastError());
+      Log::PrintErr("CreateNamedPipe failed %d\n", GetLastError());
       return false;
     }
 
@@ -234,7 +235,7 @@ static bool CreateProcessPipe(HANDLE handles[2],
                    FILE_READ_ATTRIBUTES | FILE_FLAG_OVERLAPPED,
                    NULL);
     if (handles[kReadHandle] == INVALID_HANDLE_VALUE) {
-      fprintf(stderr, "CreateFile failed %d\n", GetLastError());
+      Log::PrintErr("CreateFile failed %d\n", GetLastError());
       return false;
     }
   } else {
@@ -250,7 +251,7 @@ static bool CreateProcessPipe(HANDLE handles[2],
                         NULL);
 
     if (handles[kReadHandle] == INVALID_HANDLE_VALUE) {
-      fprintf(stderr, "CreateNamedPipe failed %d\n", GetLastError());
+      Log::PrintErr("CreateNamedPipe failed %d\n", GetLastError());
       return false;
     }
 
@@ -263,7 +264,7 @@ static bool CreateProcessPipe(HANDLE handles[2],
                    FILE_WRITE_ATTRIBUTES | FILE_FLAG_OVERLAPPED,
                    NULL);
     if (handles[kWriteHandle] == INVALID_HANDLE_VALUE) {
-      fprintf(stderr, "CreateFile failed %d\n", GetLastError());
+      Log::PrintErr("CreateFile failed %d\n", GetLastError());
       return false;
     }
   }
@@ -275,7 +276,7 @@ static void CloseProcessPipe(HANDLE handles[2]) {
   for (int i = kReadHandle; i < kWriteHandle; i++) {
     if (handles[i] != INVALID_HANDLE_VALUE) {
       if (!CloseHandle(handles[i])) {
-        fprintf(stderr, "CloseHandle failed %d\n", GetLastError());
+        Log::PrintErr("CloseHandle failed %d\n", GetLastError());
       }
       handles[i] = INVALID_HANDLE_VALUE;
     }
@@ -306,7 +307,7 @@ static int SetOsErrorMessage(char* os_error_message,
                     NULL);
   if (message_size == 0) {
     if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-      fprintf(stderr, "FormatMessage failed %d\n", GetLastError());
+      Log::PrintErr("FormatMessage failed %d\n", GetLastError());
     }
     snprintf(os_error_message, os_error_message_len, "OS Error %d", error_code);
   }
@@ -338,14 +339,14 @@ int Process::Start(const char* path,
   UUID uuid;
   RPC_STATUS status = UuidCreateSequential(&uuid);
   if (status != RPC_S_OK && status != RPC_S_UUID_LOCAL_ONLY) {
-    fprintf(stderr, "UuidCreateSequential failed %d\n", status);
+    Log::PrintErr("UuidCreateSequential failed %d\n", status);
     SetOsErrorMessage(os_error_message, os_error_message_len);
     return status;
   }
   RPC_CSTR uuid_string;
   status = UuidToString(&uuid, &uuid_string);
   if (status != RPC_S_OK) {
-    fprintf(stderr, "UuidToString failed %d\n", status);
+    Log::PrintErr("UuidToString failed %d\n", status);
     SetOsErrorMessage(os_error_message, os_error_message_len);
     return status;
   }
@@ -357,7 +358,7 @@ int Process::Start(const char* path,
   }
   status = RpcStringFree(&uuid_string);
   if (status != RPC_S_OK) {
-    fprintf(stderr, "RpcStringFree failed %d\n", status);
+    Log::PrintErr("RpcStringFree failed %d\n", status);
     SetOsErrorMessage(os_error_message, os_error_message_len);
     return status;
   }

@@ -5,6 +5,7 @@
 package com.google.dart.compiler.ast;
 
 import com.google.common.collect.ImmutableList;
+import com.google.dart.compiler.resolver.Element;
 
 import java.util.List;
 
@@ -12,6 +13,8 @@ import java.util.List;
  * Represents a Dart string literal value.
  */
 public class DartStringLiteral extends DartLiteral {
+  
+  private Element element;
 
   public static DartStringLiteral get(String x) {
     return new DartStringLiteral(x, null);
@@ -42,6 +45,16 @@ public class DartStringLiteral extends DartLiteral {
       return ImmutableList.of(this);
     }
     return parts;
+  }
+  
+  @Override
+  public void setElement(Element element) {
+    this.element = element;
+  }
+  
+  @Override
+  public Element getElement() {
+    return element;
   }
 
   @Override

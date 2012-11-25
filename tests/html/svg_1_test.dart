@@ -2,14 +2,14 @@ library SVG1Test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
-import 'dart:svg';
+import 'dart:svg' as svg;
 
 // Test that SVG is present in dart:html API
 
 main() {
   useHtmlConfiguration();
 
-  var isSVGElement = predicate((x) => x is SVGElement, 'is a SVGElement');
+  var isSvgElement = predicate((x) => x is svg.SvgElement, 'is a SvgElement');
 
   test('simpleRect', () {
       var div = new Element.tag('div');
@@ -24,7 +24,7 @@ main() {
     var e = document.query('#svg1');
     expect(e, isNotNull);
 
-    SVGRectElement r = document.query('#rect1');
+    svg.RectElement r = document.query('#rect1');
     expect(r.x.baseVal.value, 10);
     expect(r.y.baseVal.value, 20);
     expect(r.height.baseVal.value, 40);
@@ -34,13 +34,13 @@ main() {
 
   test('trailing newline', () {
     // Ensures that we handle SVG with trailing newlines.
-    var logo = new SVGElement.svg("""
+    var logo = new svg.SvgElement.svg("""
       <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
         <path/>
       </svg>
       """);
 
-  expect(logo, isSVGElement);
+  expect(logo, isSvgElement);
 
   });
 }

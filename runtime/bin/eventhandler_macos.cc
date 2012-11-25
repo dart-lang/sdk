@@ -14,6 +14,7 @@
 
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
+#include "bin/log.h"
 #include "platform/hashmap.h"
 #include "platform/thread.h"
 #include "platform/utils.h"
@@ -240,15 +241,16 @@ void EventHandlerImplementation::HandleInterruptFd() {
 
 #ifdef DEBUG_KQUEUE
 static void PrintEventMask(intptr_t fd, struct kevent* event) {
-  printf("%d ", static_cast<int>(fd));
-  if (event->filter == EVFILT_READ) printf("EVFILT_READ ");
-  if (event->filter == EVFILT_WRITE) printf("EVFILT_WRITE ");
-  printf("flags: %x: ", event->flags);
-  if ((event->flags & EV_EOF) != 0) printf("EV_EOF ");
-  if ((event->flags & EV_ERROR) != 0) printf("EV_ERROR ");
-  printf("- fflags: %d ", event->fflags);
-  printf("(available %d) ", static_cast<int>(FDUtils::AvailableBytes(fd)));
-  printf("\n");
+  Log::Print("%d ", static_cast<int>(fd));
+  if (event->filter == EVFILT_READ) Log::Print("EVFILT_READ ");
+  if (event->filter == EVFILT_WRITE) Log::Print("EVFILT_WRITE ");
+  Log::Print("flags: %x: ", event->flags);
+  if ((event->flags & EV_EOF) != 0) Log::Print("EV_EOF ");
+  if ((event->flags & EV_ERROR) != 0) Log::Print("EV_ERROR ");
+  Log::Print("- fflags: %d ", event->fflags);
+  Log::Print("(available %d) ",
+      static_cast<int>(FDUtils::AvailableBytes(fd)));
+  Log::Print("\n");
 }
 #endif
 

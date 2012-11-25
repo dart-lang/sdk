@@ -29,18 +29,21 @@ class Range;
 
 
 // TODO(srdjan): Add _ByteArrayBase, get:length.
-
+// TODO(srdjan): Unify with INTRINSIC_LIST.
+// (class-name, function-name, recognized enum, fingerprint).
+// See intrinsifier for fingerprint computation.
 #define RECOGNIZED_LIST(V)                                                     \
-  V(_ObjectArray, get:length, ObjectArrayLength)                               \
-  V(_ImmutableArray, get:length, ImmutableArrayLength)                         \
-  V(_GrowableObjectArray, get:length, GrowableArrayLength)                     \
-  V(_GrowableObjectArray, get:capacity, GrowableArrayCapacity)                 \
-  V(_StringBase, get:length, StringBaseLength)                                 \
-  V(_StringBase, get:isEmpty, StringBaseIsEmpty)                               \
-  V(_StringBase, charCodeAt, StringBaseCharCodeAt)                             \
-  V(_IntegerImplementation, toDouble, IntegerToDouble)                         \
-  V(_Double, toInt, DoubleToInteger)                                           \
-  V(::, sqrt, MathSqrt)                                                        \
+  V(_ObjectArray, get:length, ObjectArrayLength, 405297088)                    \
+  V(_ImmutableArray, get:length, ImmutableArrayLength, 433698233)              \
+  V(_GrowableObjectArray, get:length, GrowableArrayLength, 725548050)          \
+  V(_GrowableObjectArray, get:capacity, GrowableArrayCapacity, 725548050)      \
+  V(_StringBase, get:length, StringBaseLength, 320803993)                      \
+  V(_StringBase, get:isEmpty, StringBaseIsEmpty, 1065961093)                   \
+  V(_StringBase, charCodeAt, StringBaseCharCodeAt, 984449525)                  \
+  V(_StringBase, [], StringBaseCharAt, 1062366987)                             \
+  V(_IntegerImplementation, toDouble, IntegerToDouble, 1396338041)             \
+  V(_Double, toInt, DoubleToInteger, 362666636)                                \
+  V(::, sqrt, MathSqrt, 2232519)                                               \
 
 // Class that recognizes the name and owner of a function and returns the
 // corresponding enum. See RECOGNIZED_LIST above for list of recognizable
@@ -49,7 +52,7 @@ class MethodRecognizer : public AllStatic {
  public:
   enum Kind {
     kUnknown,
-#define DEFINE_ENUM_LIST(class_name, function_name, enum_name) k##enum_name,
+#define DEFINE_ENUM_LIST(class_name, function_name, enum_name, fp) k##enum_name,
 RECOGNIZED_LIST(DEFINE_ENUM_LIST)
 #undef DEFINE_ENUM_LIST
   };
@@ -264,7 +267,8 @@ class EmbeddedArray<T, 0> {
   M(UnaryMintOp)                                                               \
   M(CheckArrayBound)                                                           \
   M(Constraint)                                                                \
-  M(StringCharCodeAt)
+  M(StringCharCodeAt)                                                          \
+  M(StringFromCharCode)
 
 
 #define FORWARD_DECLARATION(type) class type##Instr;
@@ -1162,7 +1166,8 @@ class PhiInstr : public Definition {
     : block_(block),
       inputs_(num_inputs),
       is_alive_(false),
-      representation_(kTagged) {
+      representation_(kTagged),
+      reaching_defs_(NULL) {
     for (intptr_t i = 0; i < num_inputs; ++i) {
       inputs_.Add(NULL);
     }
@@ -1223,6 +1228,14 @@ class PhiInstr : public Definition {
 
   virtual void InferRange();
 
+  BitVector* reaching_defs() const {
+    return reaching_defs_;
+  }
+
+  void set_reaching_defs(BitVector* reaching_defs) {
+    reaching_defs_ = reaching_defs;
+  }
+
  private:
   friend class ConstantPropagator;  // Direct access to inputs_.
 
@@ -1230,6 +1243,8 @@ class PhiInstr : public Definition {
   GrowableArray<Value*> inputs_;
   bool is_alive_;
   Representation representation_;
+
+  BitVector* reaching_defs_;
 
   DISALLOW_COPY_AND_ASSIGN(PhiInstr);
 };
@@ -2679,6 +2694,36 @@ class StringCharCodeAtInstr : public TemplateDefinition<2> {
   const intptr_t class_id_;
 
   DISALLOW_COPY_AND_ASSIGN(StringCharCodeAtInstr);
+};
+
+
+class StringFromCharCodeInstr : public TemplateDefinition<1> {
+ public:
+  explicit StringFromCharCodeInstr(Value* char_code) {
+    ASSERT(char_code != NULL);
+    ASSERT(char_code->definition()->IsStringCharCodeAt() &&
+           (char_code->definition()->AsStringCharCodeAt()->class_id() ==
+            kOneByteStringCid));
+    inputs_[0] = char_code;
+  }
+
+  DECLARE_INSTRUCTION(StringFromCharCode)
+  virtual RawAbstractType* CompileType() const;
+
+  Value* char_code() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const;
+
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(StringFromCharCodeInstr);
 };
 
 

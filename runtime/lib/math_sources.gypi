@@ -4,6 +4,7 @@
 
 {
   'sources': [
+    'math.cc',
     'math_patch.dart',
   ],
 }

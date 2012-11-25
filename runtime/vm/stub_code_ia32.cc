@@ -183,48 +183,19 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
 
 // Input parameters:
-//   ECX: function object.
 //   EDX: arguments descriptor array (num_args is first Smi element).
 void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-
-  __ movl(EAX, FieldAddress(ECX, Function::code_offset()));
-  __ cmpl(EAX, raw_null);
-  Label function_compiled;
-  __ j(NOT_EQUAL, &function_compiled, Assembler::kNearJump);
-
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
   AssemblerMacros::EnterStubFrame(assembler);
-
   __ pushl(EDX);  // Preserve arguments descriptor array.
-  __ pushl(ECX);
-  __ CallRuntime(kCompileFunctionRuntimeEntry);
-  __ popl(ECX);  // Restore read-only function object argument in ECX.
-  __ popl(EDX);  // Restore arguments descriptor array.
-  // Restore EAX.
-  __ movl(EAX, FieldAddress(ECX, Function::code_offset()));
-
-  // Remove the stub frame as we are about to jump to the dart function.
-  __ LeaveFrame();
-
-  __ Bind(&function_compiled);
-  // Patch caller.
-
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
-  AssemblerMacros::EnterStubFrame(assembler);
-
-  __ pushl(EDX);  // Preserve arguments descriptor array.
-  __ pushl(ECX);  // Preserve function object.
+  __ pushl(raw_null);  // Setup space on stack for return value.
   __ CallRuntime(kPatchStaticCallRuntimeEntry);
-  __ popl(ECX);  // Restore function object argument in ECX.
+  __ popl(EAX);  // Get Code object result.
   __ popl(EDX);  // Restore arguments descriptor array.
   // Remove the stub frame as we are about to jump to the dart function.
   __ LeaveFrame();
 
-  __ movl(EAX, FieldAddress(ECX, Function::code_offset()));
   __ movl(ECX, FieldAddress(EAX, Code::instructions_offset()));
   __ addl(ECX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(ECX);
@@ -233,20 +204,18 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 
 // Called from a static call only when an invalid code has been entered
 // (invalid because its function was optimized or deoptimized).
-// ECX: function object.
 // EDX: arguments descriptor array (num_args is first Smi element).
 void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   AssemblerMacros::EnterStubFrame(assembler);
   __ pushl(EDX);  // Preserve arguments descriptor array.
-  __ pushl(ECX);  // Preserve target function.
-  __ pushl(ECX);  // Target function.
+  __ pushl(raw_null);  // Setup space on stack for return value.
   __ CallRuntime(kFixCallersTargetRuntimeEntry);
-  __ popl(EAX);  // discard argument.
-  __ popl(EAX);  // Restore function.
+  __ popl(EAX);  // Get Code object.
   __ popl(EDX);  // Restore arguments descriptor array.
-  __ movl(EAX, FieldAddress(EAX, Function::code_offset()));
   __ movl(EAX, FieldAddress(EAX, Code::instructions_offset()));
   __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ LeaveFrame();
@@ -1816,23 +1785,23 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
 }
 
 
-//  ECX: Function object.
 //  EDX: Arguments array.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   AssemblerMacros::EnterStubFrame(assembler);
-  __ pushl(EDX);
-  __ pushl(ECX);
+  __ pushl(EDX);  // Preserve arguments descriptor.
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ pushl(raw_null);  // Room for result.
   __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry);
-  __ popl(ECX);
-  __ popl(EDX);
+  __ popl(EAX);  // Code object.
+  __ popl(EDX);  // Restore arguments descriptor.
   __ LeaveFrame();
 
   // Now call the static function. The breakpoint handler function
   // ensures that the call target is compiled.
-  __ movl(EAX, FieldAddress(ECX, Function::code_offset()));
   __ movl(ECX, FieldAddress(EAX, Code::instructions_offset()));
   __ addl(ECX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(ECX);

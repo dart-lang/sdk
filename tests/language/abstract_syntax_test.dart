@@ -8,13 +8,11 @@ main() {
 }
 
 class A {
-  abstract foo();
-  abstract static bar(); /// 01: compile-time error
-  static abstract baz(); /// 02: compile-time error
+  /* abstract */ foo();
+  /* abstract */ static bar(); /// 01: compile-time error
 }
 
 class B extends A {
   foo() => 42;
   bar() => 87;
-  baz() => 99;
 }

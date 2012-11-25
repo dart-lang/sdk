@@ -144,6 +144,8 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
           is_optimizing ? new StackmapTableBuilder() : NULL),
       block_info_(block_order_.length()),
       deopt_infos_(),
+      static_calls_target_table_(GrowableObjectArray::ZoneHandle(
+          GrowableObjectArray::New())),
       is_optimizing_(is_optimizing),
       may_reoptimize_(false),
       bool_true_(Bool::ZoneHandle(Bool::True())),
@@ -282,6 +284,18 @@ void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptors::Kind kind,
 }
 
 
+void FlowGraphCompiler::AddStaticCallTarget(const Function& func) {
+  ASSERT(Code::kSCallTableEntryLength == 3);
+  ASSERT(Code::kSCallTableOffsetEntry == 0);
+  static_calls_target_table_.Add(
+      Smi::Handle(Smi::New(assembler()->CodeSize())));
+  ASSERT(Code::kSCallTableFunctionEntry == 1);
+  static_calls_target_table_.Add(func);
+  ASSERT(Code::kSCallTableCodeEntry == 2);
+  static_calls_target_table_.Add(Code::Handle());
+}
+
+
 void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
                                             intptr_t token_pos) {
   ASSERT(is_optimizing());
@@ -396,6 +410,7 @@ void FlowGraphCompiler::FinalizeDeoptInfo(const Code& code) {
   code.set_deopt_info_array(array);
   const Array& object_array =
       Array::Handle(Array::MakeArray(builder.object_table()));
+  ASSERT(code.object_table() == Array::null());
   code.set_object_table(object_array);
 }
 
@@ -423,6 +438,13 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
 
 void FlowGraphCompiler::FinalizeComments(const Code& code) {
   code.set_comments(assembler()->GetCodeComments());
+}
+
+
+void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
+  ASSERT(code.static_calls_target_table() == Array::null());
+  code.set_static_calls_target_table(
+      Array::Handle(Array::MakeArray(static_calls_target_table_)));
 }
 
 

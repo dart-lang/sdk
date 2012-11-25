@@ -233,21 +233,32 @@ class InterfaceTypeImplementation extends AbstractType implements InterfaceType 
   
   @Override
   public Member lookupSubTypeMember(String name) {
+    Member foundMember = null;
     for (ClassElement subClass : subClasses.keySet()) {
+      // find one or more members in subClass elements
       {
         Element element = subClass.lookupLocalElement(name);
         if (element != null) {
-          return new MemberImplementation(this, element);
+          if (foundMember != null) {
+            return null;
+          }
+          foundMember = new MemberImplementation(this, element);
+          continue;
         }
       }
+      // try to find deeper
       InterfaceType type = subClass.getType();
       if (type != null) {
         Member member = type.lookupSubTypeMember(name);
         if (member != null) {
-          return member;
+          if (foundMember != null) {
+            return null;
+          }
+          foundMember = member;
         }
       }
     }
-    return null;
+    // may be found
+    return foundMember;
   }
 }

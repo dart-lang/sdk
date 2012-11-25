@@ -48,12 +48,12 @@ class PremarkingVisitor : public ObjectVisitor {
 
 
 // TODO(turnidge): We should add a corresponding Dart::Cleanup.
-bool Dart::InitOnce(Dart_IsolateCreateCallback create,
+const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
                     Dart_IsolateInterruptCallback interrupt,
                     Dart_IsolateShutdownCallback shutdown) {
   // TODO(iposva): Fix race condition here.
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
-    return false;
+    return "VM already initialized.";
   }
   OS::InitOnce();
   VirtualMemory::InitOnce();
@@ -78,8 +78,10 @@ bool Dart::InitOnce(Dart_IsolateCreateCallback create,
     Symbols::InitOnce(vm_isolate_);
     CPUFeatures::InitOnce();
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
-    // Dart VM requires at least SSE3.
-    if (!CPUFeatures::sse3_supported()) return false;
+    // Dart VM requires at least SSE2.
+    if (!CPUFeatures::sse2_supported()) {
+      return "SSE2 is required.";
+    }
 #endif
     PremarkingVisitor premarker(vm_isolate_);
     vm_isolate_->heap()->IterateOldObjects(&premarker);
@@ -89,7 +91,7 @@ bool Dart::InitOnce(Dart_IsolateCreateCallback create,
   Isolate::SetCreateCallback(create);
   Isolate::SetInterruptCallback(interrupt);
   Isolate::SetShutdownCallback(shutdown);
-  return true;
+  return NULL;
 }
 
 

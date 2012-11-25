@@ -17,7 +17,7 @@ main() {
   makeElementWithParent() {
     final parent = new XMLElement.xml(
         "<parent><before/><xml><foo/><bar/></xml><after/></parent>");
-    return parent.elements[1];
+    return parent.children[1];
   }
 
   group('constructors', () {
@@ -25,8 +25,8 @@ main() {
       test('with a well-formed document', () {
         final el = makeElement();
         expect(el, isXMLElement);
-        expect(el.elements[0].tagName, 'foo');
-        expect(el.elements[1].tagName, 'bar');
+        expect(el.children[0].tagName, 'foo');
+        expect(el.children[1].tagName, 'bar');
       });
 
       test('with too many nodes', () {
@@ -39,7 +39,7 @@ main() {
 
       test('with a PARSERERROR tag', () {
         final el = new XMLElement.xml("<xml><parsererror /></xml>");
-        expect('parsererror', el.elements[0].tagName, 'parsererror');
+        expect('parsererror', el.children[0].tagName, 'parsererror');
       });
 
       test('has no parent', () =>
@@ -54,15 +54,15 @@ main() {
   });
 
   // FilteredElementList is tested more thoroughly in DocumentFragmentTests.
-  group('elements', () {
+  group('children', () {
     test('filters out non-element nodes', () {
       final el = new XMLElement.xml("<xml>1<a/><b/>2<c/>3<d/></xml>");
-      expect(el.elements.map((e) => e.tagName), ["a", "b", "c", "d"]);
+      expect(el.children.map((e) => e.tagName), ["a", "b", "c", "d"]);
     });
 
     test('overwrites nodes when set', () {
       final el = new XMLElement.xml("<xml>1<a/><b/>2<c/>3<d/></xml>");
-      el.elements = [new XMLElement.tag('x'), new XMLElement.tag('y')];
+      el.children = [new XMLElement.tag('x'), new XMLElement.tag('y')];
       expect(el.outerHTML, "<xml><x></x><y></y></xml>");
     });
   });
@@ -450,7 +450,7 @@ main() {
       final newEl = new XMLElement.tag("b");
       expect(el.insertAdjacentElement("beforeBegin", newEl), newEl);
       expect(el.innerHTML, "<foo></foo><bar></bar>");
-      expect(el.parent.innerHTML, 
+      expect(el.parent.innerHTML,
           "<before></before><b></b><xml><foo></foo><bar></bar>"
           "</xml><after></after>");
     });
@@ -460,7 +460,7 @@ main() {
       final newEl = new XMLElement.tag("b");
       expect(el.insertAdjacentElement("afterEnd", newEl), newEl);
       expect(el.innerHTML, "<foo></foo><bar></bar>");
-      expect(el.parent.innerHTML, 
+      expect(el.parent.innerHTML,
           "<before></before><xml><foo></foo><bar></bar></xml><b>"
           "</b><after></after>");
     });
@@ -497,7 +497,7 @@ main() {
       final el = makeElementWithParent();
       el.insertAdjacentText("beforeBegin", "foo");
       expect(el.innerHTML, "<foo></foo><bar></bar>");
-      expect(el.parent.innerHTML, 
+      expect(el.parent.innerHTML,
           "<before></before>foo<xml><foo></foo><bar></bar></xml>"
           "<after></after>");
     });
@@ -506,7 +506,7 @@ main() {
       final el = makeElementWithParent();
       el.insertAdjacentText("afterEnd", "foo");
       expect(el.innerHTML, "<foo></foo><bar></bar>");
-      expect(el.parent.innerHTML, 
+      expect(el.parent.innerHTML,
           "<before></before><xml><foo></foo><bar></bar></xml>foo"
           "<after></after>");
     });

@@ -3,17 +3,35 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // A VM patch of the dart:math library.
-patch num pow(num x, num exponent) => MathNatives.pow(x, exponent);
-patch double atan2(num a, num b) => MathNatives.atan2(a, b);
-patch double sin(num x) => MathNatives.sin(x);
-patch double cos(num x) => MathNatives.cos(x);
-patch double tan(num x) => MathNatives.tan(x);
-patch double acos(num x) => MathNatives.acos(x);
-patch double asin(num x) => MathNatives.asin(x);
-patch double atan(num x) => MathNatives.atan(x);
-patch double sqrt(num x) => MathNatives.sqrt(x);
-patch double exp(num x) => MathNatives.exp(x);
-patch double log(num x) => MathNatives.log(x);
+patch num pow(num x, num exponent) {
+  if (exponent is int) {
+    return x.pow(exponent);
+  }
+  // Double.pow will call exponent.toDouble().
+  return x.toDouble().pow(exponent);
+}
+
+patch double atan2(num a, num b) => _atan2(a.toDouble(), b.toDouble());
+patch double sin(num value) => _sin(value.toDouble());
+patch double cos(num value) => _cos(value.toDouble());
+patch double tan(num value) => _tan(value.toDouble());
+patch double acos(num value) => _acos(value.toDouble());
+patch double asin(num value) => _asin(value.toDouble());
+patch double atan(num value) => _atan(value.toDouble());
+patch double sqrt(num value) => _sqrt(value.toDouble());
+patch double exp(num value) => _exp(value.toDouble());
+patch double log(num value) => _log(value.toDouble());
+
+double _atan2(double a, double b) native "Math_atan2";
+double _sin(double x) native "Math_sin";
+double _cos(double x) native "Math_cos";
+double _tan(double x) native "Math_tan";
+double _acos(double x) native "Math_acos";
+double _asin(double x) native "Math_asin";
+double _atan(double x) native "Math_atan";
+double _sqrt(double x) native "Math_sqrt";
+double _exp(double x) native "Math_exp";
+double _log(double x) native "Math_log";
 
 
 // TODO(iposva): Handle patch methods within a patch class correctly.
@@ -33,20 +51,24 @@ patch class Random {
 
 class _Random implements Random {
   // Internal state of the random number generator.
-  var _state_lo;
-  var _state_hi;
+  var _state;
+  static const kSTATE_LO = 0;
+  static const kSTATE_HI = 1;
 
-  _Random._internal(state)
-      : _state_lo = (state & _MASK_32), _state_hi = (state >> 32);
+  _Random._internal(state) {
+    _state = new List(2);
+    _state[kSTATE_LO] = state & _MASK_32;
+    _state[kSTATE_HI] = state >> 32;
+  }
 
   // The algorithm used here is Multiply with Carry (MWC) with a Base b = 2^32.
   // http://en.wikipedia.org/wiki/Multiply-with-carry
   // The constant A is selected from "Numerical Recipes 3rd Edition" p.348 B1.
   int _nextInt32() {
-    var state = ((_A * (_state_lo)) + _state_hi) & _MASK_64;
-    _state_lo = state & _MASK_32;
-    _state_hi = state >> 32;
-    return _state_lo;
+    var state = ((_A * (_state[kSTATE_LO])) + _state[kSTATE_HI]) & _MASK_64;
+    _state[kSTATE_LO] = state & _MASK_32;
+    _state[kSTATE_HI] = state >> 32;
+    return _state[kSTATE_LO];
   }
 
   int nextInt(int max) {

@@ -7,5 +7,5 @@
 
 patch class double {
   /* patch */
-  static double parse(String string) native "MathNatives_parseDouble";
+  static double parse(String string) native "Double_parse";
 }

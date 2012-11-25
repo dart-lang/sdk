@@ -277,6 +277,12 @@ class Location : public ValueObject {
     return value_ == other.value_;
   }
 
+  // If current location is constant might return something that
+  // is not equal to any Kind.
+  Kind kind() const {
+    return KindField::decode(value_);
+  }
+
  private:
   explicit Location(uword value) : value_(value) { }
 
@@ -285,12 +291,6 @@ class Location : public ValueObject {
 
   uword payload() const {
     return PayloadField::decode(value_);
-  }
-
-  // If current location is constant might return something that
-  // is not equal to any Kind.
-  Kind kind() const {
-    return KindField::decode(value_);
   }
 
   typedef BitField<Kind, 0, kBitsForKind> KindField;

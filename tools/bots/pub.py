@@ -41,6 +41,12 @@ def PubSteps(build_info):
     print 'Generating API Docs: %s' % (' '.join(args))
     bot.RunProcess(args)
 
+  with bot.BuildStep('Build package-root'):
+    args = [sys.executable, './tools/build.py', '--mode=' + build_info.mode,
+            'packages']
+    print 'Building package-root: %s' % (' '.join(args))
+    bot.RunProcess(args)
+
   bot.RunTest('pub', build_info, ['pub', 'pkg'])
 
 

@@ -11,6 +11,7 @@
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -199,6 +200,61 @@ DEFINE_NATIVE_ENTRY(Double_toInt, 1) {
   } else {
     return BigintOperations::NewFromDouble(result);
   }
+}
+
+
+DEFINE_NATIVE_ENTRY(Double_parse, 1) {
+  GET_NATIVE_ARGUMENT(String, value, arguments->NativeArgAt(0));
+  const String& dummy_key = String::Handle(Symbols::Empty());
+  Scanner scanner(value, dummy_key);
+  const Scanner::GrowableTokenStream& tokens = scanner.GetStream();
+  String* number_string;
+  bool is_positive;
+  if (Scanner::IsValidLiteral(tokens,
+                              Token::kDOUBLE,
+                              &is_positive,
+                              &number_string)) {
+    const char* cstr = number_string->ToCString();
+    char* p_end = NULL;
+    double double_value = strtod(cstr, &p_end);
+    ASSERT(p_end != cstr);
+    if (!is_positive) {
+      double_value = -double_value;
+    }
+    return Double::New(double_value);
+  }
+
+  if (Scanner::IsValidLiteral(tokens,
+                              Token::kINTEGER,
+                              &is_positive,
+                              &number_string)) {
+    Integer& res = Integer::Handle(Integer::New(*number_string));
+    if (is_positive) {
+      return Double::New(res.AsDoubleValue());
+    }
+    return Double::New(-res.AsDoubleValue());
+  }
+
+  // Infinity and nan.
+  if (Scanner::IsValidLiteral(tokens,
+                              Token::kIDENT,
+                              &is_positive,
+                              &number_string)) {
+    if (number_string->Equals("NaN")) {
+      return Double::New(NAN);
+    }
+    if (number_string->Equals("Infinity")) {
+      if (is_positive) {
+        return Double::New(INFINITY);
+      }
+      return Double::New(-INFINITY);
+    }
+  }
+
+  GrowableArray<const Object*> args;
+  args.Add(&value);
+  Exceptions::ThrowByType(Exceptions::kFormat, args);
+  return Object::null();
 }
 
 

@@ -105,11 +105,7 @@ abstract class TestSuite {
   /**
    * The output directory for this suite's configuration.
    */
-  String get buildDir {
-    var mode = (configuration['mode'] == 'debug') ? 'Debug' : 'Release';
-    var arch = configuration['arch'].toUpperCase();
-    return "${TestUtils.outputDir(configuration)}$mode$arch";
-  }
+  String get buildDir => TestUtils.buildDir(configuration);
 
   /**
    * The path to the compiler for this suite's configuration. Returns `null` if
@@ -619,7 +615,8 @@ class StandardTestSuite extends TestSuite {
 
     Set<String> expectations = testExpectations.expectations(testName);
     if (info.hasCompileError &&
-        TestUtils.isBrowserRuntime(configuration['runtime'])) {
+        TestUtils.isBrowserRuntime(configuration['runtime']) &&
+        configuration['report']) {
       SummaryReport.addCompileErrorSkipTest();
       return;
     }
@@ -711,12 +708,6 @@ class StandardTestSuite extends TestSuite {
 
     case 'dart2dart':
       var compilerArguments = new List.from(args);
-      var additionalFlags =
-          configuration['additional-compiler-flags'].split(' ');
-      for (final flag in additionalFlags) {
-        if (flag.isEmpty) continue;
-        compilerArguments.add(flag);
-      }
       compilerArguments.add('--output-type=dart');
       String tempDir = createOutputDirectory(info.filePath, '');
       compilerArguments.add('--out=$tempDir/out.dart');
@@ -888,7 +879,7 @@ class StandardTestSuite extends TestSuite {
       if (compiler != 'none') {
         commands.add(_compileCommand(
             dartWrapperFilename, compiledDartWrapperFilename,
-            compiler, tempDir, vmOptions));
+            compiler, tempDir, vmOptions, optionsFromFile));
 
         // some tests require compiling multiple input scripts.
         List<String> otherScripts = optionsFromFile['otherScripts'];
@@ -899,7 +890,7 @@ class StandardTestSuite extends TestSuite {
           Path fromPath = filePath.directoryPath.join(namePath);
           commands.add(_compileCommand(
               fromPath.toNativePath(), '$tempDir/$baseName.js',
-              compiler, tempDir, vmOptions));
+              compiler, tempDir, vmOptions, optionsFromFile));
         }
       }
 
@@ -931,6 +922,13 @@ class StandardTestSuite extends TestSuite {
               dumpRenderTreeFilename,
               '--no-timeout'
           ];
+          if (compiler == 'none') {
+            String packageRoot =
+                packageRootArgument(optionsFromFile['packageRoot']);
+            if (packageRoot != null) {
+              args.add(packageRoot);
+            }
+          }
           if (runtime == 'drt' &&
               (compiler == 'none' || compiler == 'dart2dart')) {
             var dartFlags = ['--ignore-unrecognized-flags'];
@@ -981,12 +979,17 @@ class StandardTestSuite extends TestSuite {
 
   /** Helper to create a compilation command for a single input file. */
   Command _compileCommand(String inputFile, String outputFile,
-      String compiler, String dir, var vmOptions) {
+      String compiler, String dir, vmOptions, optionsFromFile) {
     String executable = compilerPath;
     List<String> args = TestUtils.standardOptions(configuration);
     switch (compiler) {
       case 'dart2js':
       case 'dart2dart':
+        String packageRoot =
+          packageRootArgument(optionsFromFile['packageRoot']);
+        if (packageRoot != null) {
+          args.add(packageRoot);
+        }
         if (compiler == 'dart2dart') args.add('--out=$outputFile');
         args.add('--out=$outputFile');
         args.add(inputFile);
@@ -1096,6 +1099,11 @@ class StandardTestSuite extends TestSuite {
 
   List<String> commonArgumentsFromFile(Path filePath, Map optionsFromFile) {
     List args = TestUtils.standardOptions(configuration);
+
+    String packageRoot = packageRootArgument(optionsFromFile['packageRoot']);
+    if (packageRoot != null) {
+      args.add(packageRoot);
+    }
     args.addAll(additionalOptions(filePath));
     if (configuration['compiler'] == 'dartc') {
       args.add('--error_format');
@@ -1121,6 +1129,15 @@ class StandardTestSuite extends TestSuite {
     }
 
     return args;
+  }
+
+  String packageRootArgument(String packageRootFromFile) {
+    if (packageRootFromFile == "none") return null;
+    String packageRoot = packageRootFromFile;
+    if (packageRootFromFile == null) {
+      packageRoot = "$buildDir/packages/";
+    }
+    return "--package-root=$packageRoot";
   }
 
   /**
@@ -1183,6 +1200,7 @@ class StandardTestSuite extends TestSuite {
     RegExp testOptionsRegExp = new RegExp(r"// VMOptions=(.*)");
     RegExp dartOptionsRegExp = new RegExp(r"// DartOptions=(.*)");
     RegExp otherScriptsRegExp = new RegExp(r"// OtherScripts=(.*)");
+    RegExp packageRootRegExp = new RegExp(r"// PackageRoot=(.*)");
     RegExp multiTestRegExp = new RegExp(r"/// [0-9][0-9]:(.*)");
     RegExp multiHtmlTestRegExp =
         new RegExp(r"useHtmlIndividualConfiguration()");
@@ -1217,6 +1235,7 @@ class StandardTestSuite extends TestSuite {
     // Find the options in the file.
     List<List> result = new List<List>();
     List<String> dartOptions;
+    String packageRoot;
     bool hasCompileError = contents.contains("@compile-error");
     bool hasRuntimeError = contents.contains("@runtime-error");
     bool isStaticClean = false;
@@ -1234,6 +1253,15 @@ class StandardTestSuite extends TestSuite {
             'More than one "// DartOptions=" line in test $filePath');
       }
       dartOptions = match[1].split(' ').filter((e) => e != '');
+    }
+
+    matches = packageRootRegExp.allMatches(contents);
+    for (var match in matches) {
+      if (packageRoot != null) {
+        throw new Exception(
+            'More than one "// PackageRoot=" line in test $filePath');
+      }
+      packageRoot = match[1];
     }
 
     matches = staticCleanRegExp.allMatches(contents);
@@ -1284,6 +1312,7 @@ class StandardTestSuite extends TestSuite {
 
     return { "vmOptions": result,
              "dartOptions": dartOptions,
+             "packageRoot": packageRoot,
              "hasCompileError": hasCompileError,
              "hasRuntimeError": hasRuntimeError,
              "isStaticClean" : isStaticClean,
@@ -1474,6 +1503,9 @@ class TestUtils {
    * [base] directory if that [relativePath] does not already exist.
    */
   static Directory mkdirRecursive(Path base, Path relativePath) {
+    if (relativePath.isAbsolute) {
+      base = new Path('/');
+    }
     Directory dir = new Directory.fromPath(base);
     Expect.isTrue(dir.existsSync(),
                   "Expected ${dir} to already exist");
@@ -1516,19 +1548,6 @@ class TestUtils {
     }
   }
 
-  static String outputDir(Map configuration) {
-    var result = '';
-    var system = configuration['system'];
-    if (system == 'linux') {
-      result = 'out/';
-    } else if (system == 'macos') {
-      result = 'xcodebuild/';
-    } else if (system == 'windows') {
-      result = 'build/';
-    }
-    return result;
-  }
-
   static Path dartDir() {
     File scriptFile = new File(testScriptPath);
     Path scriptPath = new Path.fromNative(scriptFile.fullPathSync());
@@ -1552,9 +1571,8 @@ class TestUtils {
         args.add("--allow-mock-compilation");
       }
     }
-    // TODO(riocw): Unify our minification calling convention between dart2js
-    // and dart2dart.
-    if (compiler == "dart2js" && configuration["minified"]) {
+    if ((compiler == "dart2js" || compiler == "dart2dart") &&
+        configuration["minified"]) {
       args.add("--minify");
     }
     return args;
@@ -1579,6 +1597,23 @@ class TestUtils {
   static bool isJsCommandLineRuntime(String runtime) =>
       const ['d8', 'jsshell'].contains(runtime);
 
+  static String buildDir(Map configuration) {
+    if (configuration['build_directory'] != '') {
+      return configuration['build_directory'];
+    }
+    var outputDir = '';
+    var system = configuration['system'];
+    if (system == 'linux') {
+      outputDir = 'out/';
+    } else if (system == 'macos') {
+      outputDir = 'xcodebuild/';
+    } else if (system == 'windows') {
+      outputDir = 'build/';
+    }
+    var mode = (configuration['mode'] == 'debug') ? 'Debug' : 'Release';
+    var arch = configuration['arch'].toUpperCase();
+    return "$outputDir$mode$arch";
+  }
 }
 
 class SummaryReport {

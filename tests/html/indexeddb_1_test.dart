@@ -15,7 +15,7 @@ testReadWrite(key, value, matcher,
 
   fail(e) {
     guardAsync(() {
-      throw const Exception('IndexedDB failure');
+      throw new Exception('IndexedDB failure');
     });
   }
 
@@ -91,7 +91,7 @@ testReadWriteTyped(key, value, matcher,
 
   fail(e) {
     guardAsync(() {
-      throw const Exception('IndexedDB failure');
+      throw new Exception('IndexedDB failure');
     });
   }
 

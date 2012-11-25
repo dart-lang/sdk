@@ -65,7 +65,7 @@ $endif
   Collection map(f(Node element)) => _Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
-     new _NodeListWrapper(_Collections.filter(this, <Node>[], f));
+     _Collections.filter(this, <Node>[], f);
 
   bool every(bool f(Node element)) => _Collections.every(this, f);
 
@@ -101,7 +101,7 @@ $endif
         "Cannot insertRange on immutable List.");
   }
   List<Node> getRange(int start, int rangeLength) =>
-    new _NodeListWrapper(_Lists.getRange(this, start, rangeLength, <Node>[]));
+      _Lists.getRange(this, start, rangeLength, <Node>[]);
 
   // -- end List<Node> mixins.
 

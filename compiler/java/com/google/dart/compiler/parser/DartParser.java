@@ -96,6 +96,7 @@ import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
+import com.google.dart.compiler.ast.HasObsoleteMetadata;
 import com.google.dart.compiler.ast.ImportCombinator;
 import com.google.dart.compiler.ast.ImportHideCombinator;
 import com.google.dart.compiler.ast.ImportShowCombinator;
@@ -336,8 +337,7 @@ public class DartParser extends CompletionHooksParserBase {
           // TODO(scheglov) remove after http://code.google.com/p/dart/issues/detail?id=6318 
           if (!Elements.isCoreLibrarySource(source)
               && !Elements.isLibrarySource(source, "/isolate/isolate.dart")
-              && !Elements.isLibrarySource(source, "crypto/crypto.dart")
-              && !Elements.isDart2JsLibrarySource(source)) {
+              && !Elements.isLibrarySource(source, "crypto/crypto.dart")) {
             reportError(position(), ParserErrorCode.DEPRECATED_INTERFACE);
           }
           node = done(parseClass());
@@ -385,19 +385,26 @@ public class DartParser extends CompletionHooksParserBase {
    * @param metadata the metadata to be associated with the node
    */
   private void setMetadata(DartNodeWithMetadata node, List<DartAnnotation> annotations) {
+    if (node instanceof DartFieldDefinition) {
+      DartFieldDefinition fieldDefinition = (DartFieldDefinition) node;
+      List<DartField> fields = fieldDefinition.getFields();
+      for (DartField field : fields) {
+        setMetadata(field, annotations);
+      }
+      return;
+    }
     if (annotations != null && !annotations.isEmpty()) {
       node.setMetadata(annotations);
-      if (node instanceof DartDeclaration<?>) {
+      if (node instanceof HasObsoleteMetadata) {
+        HasObsoleteMetadata declaration = (HasObsoleteMetadata) node;
         for (int i = 0, size = annotations.size(); i < size; i++) {
           DartAnnotation annotation = annotations.get(i);
           DartExpression nameNode = annotation.getName();
           if (nameNode instanceof DartIdentifier) {
             String name = ((DartIdentifier) nameNode).getName();
             if (name.equals("deprecated")) {
-              DartDeclaration<?> declaration = (DartDeclaration<?>) node;
               declaration.setObsoleteMetadata(declaration.getObsoleteMetadata().makeDeprecated());
             } else if (name.equals("override")) {
-              DartDeclaration<?> declaration = (DartDeclaration<?>) node;
               declaration.setObsoleteMetadata(declaration.getObsoleteMetadata().makeOverride());
             }
           }
@@ -1319,8 +1326,7 @@ public class DartParser extends CompletionHooksParserBase {
           && !Elements.isLibrarySource(source, "/math/math.dart")
           && !Elements.isLibrarySource(source, "/io/io_runtime.dart")
           && !Elements.isLibrarySource(source, "/crypto/crypto.dart")
-          && !Elements.isLibrarySource(source, "/utf/utf.dart")
-          && !Elements.isDart2JsLibrarySource(source)) {
+          && !Elements.isLibrarySource(source, "/utf/utf.dart")) {
         reportError(position(), ParserErrorCode.DEPRECATED_ABSTRACT_METHOD);
       }
     }
@@ -3750,9 +3756,8 @@ public class DartParser extends CompletionHooksParserBase {
           constructor = doneWithoutConsuming(toPrefixedType(parts));
         } else {
           // Named constructor.
-          DartIdentifier identifier = (DartIdentifier)part2.getIdentifier();
-          constructor = doneWithoutConsuming(new DartPropertyAccess(doneWithoutConsuming(part1),
-                                                                    identifier));
+          DartIdentifier identifier = (DartIdentifier) part2.getIdentifier();
+          constructor = doneWithoutConsuming(new DartPropertyAccess(part1, identifier));
         }
         break;
       }

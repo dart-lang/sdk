@@ -26,8 +26,8 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_LITERAL)
 };
 
 
-const char* Symbols::Name(intptr_t symbol) {
-  ASSERT((symbol > kIllegal) && (symbol < kMaxId));
+const char* Symbols::Name(SymbolId symbol) {
+  ASSERT((symbol > kIllegal) && (symbol < kMaxPredefinedId));
   return names[symbol];
 }
 
@@ -40,12 +40,12 @@ void Symbols::InitOnce(Isolate* isolate) {
   SetupSymbolTable(isolate);
 
   // Create all predefined symbols.
-  ASSERT((sizeof(names) / sizeof(const char*)) == Symbols::kMaxId);
+  ASSERT((sizeof(names) / sizeof(const char*)) == Symbols::kMaxPredefinedId);
   ObjectStore* object_store = isolate->object_store();
   Array& symbol_table = Array::Handle();
   dart::String& str = String::Handle();
 
-  for (intptr_t i = 1; i < Symbols::kMaxId; i++) {
+  for (intptr_t i = 1; i < Symbols::kMaxPredefinedId; i++) {
     // The symbol_table needs to be reloaded as it might have grown in the
     // previous iteration.
     symbol_table = object_store->symbol_table();
@@ -54,6 +54,11 @@ void Symbols::InitOnce(Isolate* isolate) {
     predefined_[i] = str.raw();
   }
   Object::RegisterSingletonClassNames();
+
+  for (int32_t c = 0; c <= kMaxOneCharCodeSymbol; c++) {
+    ASSERT(kMaxPredefinedId + c < kMaxId);
+    predefined_[kMaxPredefinedId + c] = New(&c, 1);
+  }
 }
 
 
@@ -107,7 +112,7 @@ RawString* Symbols::New(const char* str) {
     Utf8::DecodeToLatin1(utf8_array, str_len, characters, len);
     return New(characters, len);
   }
-  ASSERT((type == Utf8::kBMP) || (type == Utf8::kSMP));
+  ASSERT((type == Utf8::kBMP) || (type == Utf8::kSupplementary));
   uint16_t* characters = zone->Alloc<uint16_t>(len);
   Utf8::DecodeToUTF16(utf8_array, str_len, characters, len);
   return New(characters, len);
@@ -117,7 +122,6 @@ RawString* Symbols::New(const char* str) {
 template<typename T>
 RawString* Symbols::New(const T* characters, intptr_t len) {
   Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != Dart::vm_isolate());
   String& symbol = String::Handle(isolate, String::null());
   Array& symbol_table = Array::Handle(isolate, Array::null());
 
@@ -148,7 +152,7 @@ RawString* Symbols::New(const T* characters, intptr_t len) {
 
 template RawString* Symbols::New(const uint8_t* characters, intptr_t len);
 template RawString* Symbols::New(const uint16_t* characters, intptr_t len);
-template RawString* Symbols::New(const uint32_t* characters, intptr_t len);
+template RawString* Symbols::New(const int32_t* characters, intptr_t len);
 
 
 RawString* Symbols::New(const String& str) {
@@ -197,6 +201,14 @@ RawString* Symbols::New(const String& str, intptr_t begin_index, intptr_t len) {
   }
   ASSERT(symbol.IsSymbol());
   return symbol.raw();
+}
+
+
+RawString* Symbols::FromCharCode(int32_t char_code) {
+  if (char_code > kMaxOneCharCodeSymbol) {
+    return New(&char_code, 1);
+  }
+  return predefined_[kNullCharId + char_code];
 }
 
 
@@ -277,7 +289,7 @@ template intptr_t Symbols::FindIndex(const Array& symbol_table,
                                      intptr_t len,
                                      intptr_t hash);
 template intptr_t Symbols::FindIndex(const Array& symbol_table,
-                                     const uint32_t* characters,
+                                     const int32_t* characters,
                                      intptr_t len,
                                      intptr_t hash);
 

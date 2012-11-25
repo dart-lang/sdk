@@ -3707,6 +3707,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "const deprecated = 0;",
         "@deprecated",
         "ttt() {}",
+        "@deprecated",
+        "get topLevelGet => 42;",
         "class A {",
         "  var @deprecated fff;",
         "  @deprecated",
@@ -3716,6 +3718,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "method() {",
         "  ttt();",
+        "  print(topLevelGet);",
         "  A a = new A();",
         "  a.fff = 0;",
         "  a.mmmm();",
@@ -3724,10 +3727,11 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 13, 3, 3),
-        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 15, 5, 3),
-        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 16, 5, 4),
-        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 17, 5, 1));
+        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 16, 9, 11),
+        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 15, 3, 3),
+        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 18, 5, 3),
+        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 19, 5, 4),
+        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 20, 5, 1));
   }
 
   public void test_metadataComment_deprecated_2() throws Exception {
@@ -5351,6 +5355,32 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors(), errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 5, 5, 1));
   }
 
+  public void test_field_unqualifiedAccess_read() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  set f(x) {}",
+        "  run() {",
+        "    var v = f;",
+        "  }",
+        "}",
+        "");
+    assertErrors(result.getErrors(), errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_GETTER, 5, 13, 1));
+  }
+  
+  public void test_field_unqualifiedAccess_write() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  get f => 0;",
+        "  run() {",
+        "    f = 1;",
+        "  }",
+        "}",
+        "");
+    assertErrors(result.getErrors(), errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_SETTER, 5, 5, 1));
+  }
+
   public void test_typeVariableScope_staticField() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -5467,6 +5497,41 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertErrors(result.getErrors());
+  }
+  
+  /**
+   * We should resolve sub-type member only if there is only sub-type with such member.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6776
+   */
+  public void test_trySubTypeMember_moreThanOneMember() throws Exception {
+    compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
+      @Override
+      public boolean typeChecksForInferredTypes() {
+        return true;
+      }
+    });
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Event {}",
+        "class MouseEvent extends Event {",
+        "  int clientX;",
+        "}",
+        "class ScreenEvent extends Event {",
+        "  int clientX;",
+        "}",
+        "typedef Listener(Event event);",
+        "class Button {",
+        "  addListener(Listener listener) {}",
+        "}",
+        "main() {",
+        "  Button button = new Button();",
+        "  button.addListener((event) {",
+        "    event.clientX;",
+        "  });",
+        "}",
+        "");
+    assertErrors(result.getErrors(), errEx(TypeErrorCode.NOT_A_MEMBER_OF_INFERRED, 16, 11, 7));
   }
   
   /**
@@ -5624,5 +5689,21 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(result.getErrors(),
         errEx(ResolverErrorCode.NOT_GENERATIVE_SUPER_CONSTRUCTOR, 8, 9, 13));
+  }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6718
+   */
+  public void test_initializerInMethod() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var x;",
+        "  B() : x = (foo() { }) {}",
+        "}",
+        "");
+    assertErrors(result.getErrors(),
+        errEx(ResolverErrorCode.INITIALIZER_ONLY_IN_GENERATIVE_CONSTRUCTOR, 4, 9, 15));
   }
 }

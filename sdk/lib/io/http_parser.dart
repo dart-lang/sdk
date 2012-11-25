@@ -582,6 +582,8 @@ class _HttpParser {
   }
 
   void streamDone() {
+    String type() => _requestParser ? "request" : "response";
+
     // If the connection is idle the HTTP stream is closed.
     if (_state == _State.START) {
       if (_requestParser) {
@@ -589,7 +591,7 @@ class _HttpParser {
       } else {
         error(
             new HttpParserException(
-                "Connection closed before full header was received"));
+                "Connection closed before full ${type()} header was received"));
       }
       return;
     }
@@ -600,7 +602,7 @@ class _HttpParser {
       // throw the error.
       error(
           new HttpParserException(
-              "Connection closed before full header was received"));
+                "Connection closed before full ${type()} header was received"));
       return;
     }
 
@@ -614,7 +616,7 @@ class _HttpParser {
       // throw the error.
       error(
           new HttpParserException(
-              "Connection closed before full body was received"));
+                "Connection closed before full ${type()} body was received"));
     }
   }
 

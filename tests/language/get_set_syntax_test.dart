@@ -23,8 +23,6 @@ class C0 {
 class C1 {
   List get;
   List get a;
-  abstract List get a2;
-  abstract List get a3 => null;  /// 08: compile-time error
   List get b, c;      /// 09: compile-time error
 
   List set;
@@ -35,8 +33,6 @@ class C1 {
 class C2 {
   List<int> get;
   List<int> get a;
-  abstract List<int> get a2;
-  abstract List<int> get a3 => null;  /// 08: compile-time error
   List<int> get b, c; /// 13: compile-time error
 
   List<int> set;

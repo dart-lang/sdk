@@ -101,7 +101,7 @@ void testDefaultHandler() {
       conn.onResponse = (HttpClientResponse response) {
         Expect.equals(HttpStatus.NOT_FOUND, response.statusCode);
         Expect.equals("Non Trouvé", response.reasonPhrase);
-        done();
+        response.inputStream.onClosed = done;
       };
       conn.onError = error;
     };

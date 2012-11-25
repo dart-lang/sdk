@@ -770,73 +770,38 @@ DEFINE_RUNTIME_ENTRY(ReThrow, 2) {
 }
 
 
-static bool UpdateResolvedStaticCall(const Code& code,
-                              intptr_t offset,
-                              const Code& target_code) {
-  // PC offsets are mapped to the corresponding code object in the
-  // resolved_static_calls array. The array grows as static calls are being
-  // resolved.
-  const int kOffset = 0;
-  const int kCode = 1;
-  const int kEntrySize = 2;
-
-  GrowableObjectArray& resolved_static_calls =
-      GrowableObjectArray::Handle(code.resolved_static_calls());
-  intptr_t index = -1;
-  if (resolved_static_calls.IsNull()) {
-    resolved_static_calls = GrowableObjectArray::New(2, Heap::kOld);
-    code.set_resolved_static_calls(resolved_static_calls);
-  } else {
-    // Search for the offset in the resolved static calls.
-    const intptr_t len = resolved_static_calls.Length();
-    Object& off = Object::Handle();
-    for (intptr_t i = 0; i < len; i += kEntrySize) {
-      off = resolved_static_calls.At(i + kOffset);
-      if (Smi::Cast(off).Value() == offset) {
-        index = i;
-        break;
-      }
-    }
-  }
-  if (index == -1) {
-    // The static call with this offset is not yet present: Add it.
-    resolved_static_calls.Add(Smi::Handle(Smi::New(offset)));
-    resolved_static_calls.Add(target_code);
-  } else {
-    // Overwrite the currently recorded target.
-    resolved_static_calls.SetAt(index + kCode, target_code);
-  }
-  return index != -1;
-}
-
-
+// Patches static call with the target's entry point. Compiles target if
+// necessary.
 DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
-  // This function is called after successful resolving and compilation of
-  // the target method.
   ASSERT(arguments.ArgCount() == kPatchStaticCallRuntimeEntry.argument_count());
   DartFrameIterator iterator;
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
-  uword target = 0;
-  Function& target_function = Function::Handle();
-  CodePatcher::GetStaticCallAt(caller_frame->pc(), &target_function, &target);
-  ASSERT(target_function.HasCode());
+  const Code& caller_code = Code::Handle(caller_frame->LookupDartCode());
+  ASSERT(!caller_code.IsNull());
+  const Function& target_function = Function::Handle(
+      caller_code.GetStaticCallTargetFunctionAt(caller_frame->pc()));
+  if (!target_function.HasCode()) {
+    const Error& error =
+        Error::Handle(Compiler::CompileFunction(target_function));
+    if (!error.IsNull()) {
+      Exceptions::PropagateError(error);
+    }
+  }
   const Code& target_code = Code::Handle(target_function.CurrentCode());
-  uword new_target = target_code.EntryPoint();
-  // Verify that we are not patching repeatedly.
-  ASSERT(target != new_target);
-  CodePatcher::PatchStaticCallAt(caller_frame->pc(), new_target);
-  const Code& code = Code::Handle(caller_frame->LookupDartCode());
-  bool found = UpdateResolvedStaticCall(code,
-                                        caller_frame->pc() - code.EntryPoint(),
-                                        target_code);
-  ASSERT(!found);
+  // Before patching verify that we are not repeatedly patching to the same
+  // target.
+  ASSERT(target_code.EntryPoint() !=
+         CodePatcher::GetStaticCallTargetAt(caller_frame->pc()));
+  CodePatcher::PatchStaticCallAt(caller_frame->pc(), target_code.EntryPoint());
+  caller_code.SetStaticCallTargetCodeAt(caller_frame->pc(), target_code);
   if (FLAG_trace_patching) {
     OS::Print("PatchStaticCall: patching from %#"Px" to '%s' %#"Px"\n",
         caller_frame->pc(),
         target_function.ToFullyQualifiedCString(),
-        new_target);
+        target_code.EntryPoint());
   }
+  arguments.SetReturn(target_code);
 }
 
 
@@ -904,8 +869,7 @@ DEFINE_RUNTIME_ENTRY(ResolveCompileInstanceFunction, 1) {
 
 
 // Gets called from debug stub when code reaches a breakpoint.
-//   Arg0: function object of the static function that was about to be called.
-DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 1) {
+DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 0) {
   ASSERT(arguments.ArgCount() ==
       kBreakpointStaticHandlerRuntimeEntry.argument_count());
   ASSERT(isolate->debugger() != NULL);
@@ -913,13 +877,20 @@ DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 1) {
   // Make sure the static function that is about to be called is
   // compiled. The stub will jump to the entry point without any
   // further tests.
-  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
+  DartFrameIterator iterator;
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame != NULL);
+  const Code& code = Code::Handle(caller_frame->LookupDartCode());
+  const Function& function =
+      Function::Handle(code.GetStaticCallTargetFunctionAt(caller_frame->pc()));
+
   if (!function.HasCode()) {
     const Error& error = Error::Handle(Compiler::CompileFunction(function));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
     }
   }
+  arguments.SetReturn(Code::ZoneHandle(function.CurrentCode()));
 }
 
 
@@ -1376,12 +1347,6 @@ DEFINE_RUNTIME_ENTRY(ReportObjectNotClosure, 2) {
   const Array& function_args = Array::CheckedHandle(arguments.ArgAt(1));
   const String& function_name = String::Handle(Symbols::Call());
   GrowableArray<const Object*> dart_arguments(5);
-  if (instance.IsNull()) {
-    dart_arguments.Add(&function_name);
-    dart_arguments.Add(&function_args);
-    Exceptions::ThrowByType(Exceptions::kNullPointer, dart_arguments);
-    UNREACHABLE();
-  }
 
   // TODO(regis): Resolve and invoke "call" method, if existing.
 
@@ -1565,13 +1530,10 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 
 
 // The caller must be a static call in a Dart frame, or an entry frame.
-// Patch static call to point to 'new_entry_point'.
-DEFINE_RUNTIME_ENTRY(FixCallersTarget, 1) {
+// Patch static call to point to valid code's entry point.
+DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   ASSERT(arguments.ArgCount() ==
       kFixCallersTargetRuntimeEntry.argument_count());
-  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
-  ASSERT(!function.IsNull());
-  ASSERT(function.HasCode());
 
   StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames);
   StackFrame* frame = iterator.NextFrame();
@@ -1579,29 +1541,25 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 1) {
     frame = iterator.NextFrame();
   }
   ASSERT(frame != NULL);
-  if (!frame->IsEntryFrame()) {
-    ASSERT(frame->IsDartFrame());
-    uword target = 0;
-    Function& target_function = Function::Handle();
-    CodePatcher::GetStaticCallAt(frame->pc(), &target_function, &target);
-    ASSERT(target_function.HasCode());
-    ASSERT(target_function.raw() == function.raw());
-    const Code& target_code = Code::Handle(function.CurrentCode());
-    const uword new_entry_point = target_code.EntryPoint();
-    ASSERT(target != new_entry_point);  // Why patch otherwise.
-    CodePatcher::PatchStaticCallAt(frame->pc(), new_entry_point);
-    const Code& code = Code::Handle(frame->LookupDartCode());
-    bool found = UpdateResolvedStaticCall(code,
-                                          frame->pc() - code.EntryPoint(),
-                                          target_code);
-    ASSERT(found);
-    if (FLAG_trace_patching) {
-      OS::Print("FixCallersTarget: patching from %#"Px" to '%s' %#"Px"\n",
-          frame->pc(),
-          target_function.ToFullyQualifiedCString(),
-          new_entry_point);
-    }
+  if (frame->IsEntryFrame()) {
+    // Since function's current code is always unpatched, the entry frame always
+    // calls to unpatched code.
+    UNREACHABLE();
   }
+  ASSERT(frame->IsDartFrame());
+  const Code& caller_code = Code::Handle(frame->LookupDartCode());
+  const Function& target_function = Function::Handle(
+      caller_code.GetStaticCallTargetFunctionAt(frame->pc()));
+  const Code& target_code = Code::Handle(target_function.CurrentCode());
+  CodePatcher::PatchStaticCallAt(frame->pc(), target_code.EntryPoint());
+  caller_code.SetStaticCallTargetCodeAt(frame->pc(), target_code);
+  if (FLAG_trace_patching) {
+    OS::Print("FixCallersTarget: patching from %#"Px" to '%s' %#"Px"\n",
+        frame->pc(),
+        Function::Handle(target_code.function()).ToFullyQualifiedCString(),
+        target_code.EntryPoint());
+  }
+  arguments.SetReturn(target_code);
 }
 
 

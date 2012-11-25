@@ -24,7 +24,7 @@ static Dart_NativeFunction NativeLookup(Dart_Handle name, int argc);
 
 
 static const char* kCustomIsolateScriptChars =
-    "#import('dart:isolate');\n"
+    "import 'dart:isolate';\n"
     "\n"
     "ReceivePort mainPort;\n"
     "\n"

@@ -5,18 +5,20 @@
 import 'dart:io';
 
 main() {
-  Directory scriptDir = new File(new Options().script).directorySync();
-  var d = new Directory("${scriptDir.path}/æøå");
+  Directory tempDir = new Directory('').createTempSync();
+  var nonAsciiDir = new Directory("${tempDir.path}/æøå");
   // On MacOS you get the decomposed utf8 form of file and directory
   // names from the system. Therefore, we have to check for both here.
   var precomposed = 'æøå';
   var decomposed = new String.fromCharCodes([47, 230, 248, 97, 778]);
-  Expect.isTrue(d.existsSync());
-  d.createSync();
-  var temp = new Directory('').createTempSync();
-  var temp2 = new Directory("${temp.path}/æøå").createTempSync();
-  Expect.isTrue(temp2.path.contains(precomposed) ||
-                temp2.path.contains(decomposed));
-  temp2.deleteSync();
-  temp.deleteSync(recursive: true);
+  Expect.isFalse(nonAsciiDir.existsSync());
+  nonAsciiDir.createSync();
+  Expect.isTrue(nonAsciiDir.existsSync());
+  var temp = new Directory("${tempDir.path}/æøå").createTempSync();
+  Expect.isTrue(temp.path.contains(precomposed) ||
+                temp.path.contains(decomposed));
+  temp.deleteSync();
+  tempDir.deleteSync(recursive: true);
+  Expect.isFalse(nonAsciiDir.existsSync());
+  Expect.isFalse(temp.existsSync());
 }

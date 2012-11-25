@@ -17,7 +17,6 @@
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/port.h"
-#include "vm/random.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
@@ -150,7 +149,6 @@ Isolate::Isolate()
       heap_(NULL),
       object_store_(NULL),
       top_context_(Context::null()),
-      random_seed_(Random::kDefaultRandomSeed),
       top_exit_frame_info_(0),
       init_callback_data_(NULL),
       library_tag_handler_(NULL),

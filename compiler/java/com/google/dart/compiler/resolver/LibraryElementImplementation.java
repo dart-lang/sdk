@@ -5,6 +5,7 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.common.collect.Lists;
+import com.google.dart.compiler.ast.DartObsoleteMetadata;
 import com.google.dart.compiler.ast.LibraryUnit;
 
 import java.util.Collection;
@@ -17,6 +18,7 @@ class LibraryElementImplementation extends AbstractNodeElement implements Librar
   private final List<Element> exportedElements = Lists.newArrayList();
   private LibraryUnit libraryUnit;
   private MethodElement entryPoint;
+  private DartObsoleteMetadata metadata;
 
   public LibraryElementImplementation(LibraryUnit libraryUnit) {
     // TODO(ngeoffray): What should we pass the super? Should a LibraryUnit be a node?
@@ -84,5 +86,14 @@ class LibraryElementImplementation extends AbstractNodeElement implements Librar
 
   void addMethod(MethodElement method) {
     scope.declareElement(method.getName(), method);
+  }
+  
+  @Override
+  public DartObsoleteMetadata getMetadata() {
+    return metadata;
+  }
+
+  public void setMetadata(DartObsoleteMetadata metadata) {
+    this.metadata = metadata;
   }
 }

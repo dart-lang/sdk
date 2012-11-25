@@ -87,23 +87,12 @@ class ConstantEmitter implements ConstantVisitor {
   /**
    * Write the contents of the quoted string to a [CodeBuffer] in
    * a form that is valid as JavaScript string literal content.
-   * The string is assumed quoted by single quote characters.
+   * The string is assumed quoted by double quote characters.
    */
-  void writeEscapedString(DartString string,
-                          CodeBuffer buffer,
-                          Node diagnosticNode) {
-    void onError(code) {
-      compiler.reportError(
-          diagnosticNode,
-          'Unhandled non-BMP character: U+${code.toRadixString(16)}');
-    }
-    writeJsonEscapedCharsOn(string.iterator(), buffer, onError);
-  }
-
   void visitString(StringConstant constant) {
-    buffer.add("'");
-    writeEscapedString(constant.value, buffer, constant.node);
-    buffer.add("'");
+    buffer.add('"');
+    writeJsonEscapedCharsOn(constant.value.slowToString(), buffer);
+    buffer.add('"');
   }
 
   void emitCanonicalVersion(Constant constant) {
@@ -193,6 +182,29 @@ class ConstantEmitter implements ConstantVisitor {
         badFieldCountError();
       }
       buffer.add(")");
+    }
+  }
+
+  void visitType(TypeConstant constant) {
+    if (shouldEmitCanonicalVersion) {
+      emitCanonicalVersion(constant);
+    } else {
+      SourceString helperSourceName =
+          const SourceString('createRuntimeType');
+      Element helper = compiler.findHelper(helperSourceName);
+      JavaScriptBackend backend = compiler.backend;
+      String helperName = backend.namer.getName(helper);
+      DartType type = constant.representedType;
+      Element element = type.element;
+      String typeName;
+      if (type.kind == TypeKind.INTERFACE) {
+        typeName =
+            backend.rti.getStringRepresentation(type, expandRawType: true);
+      } else {
+        assert(type.kind == TypeKind.TYPEDEF);
+        typeName = element.name.slowToString();
+      }
+      buffer.add("${namer.CURRENT_ISOLATE}.$helperName('$typeName')");
     }
   }
 

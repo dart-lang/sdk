@@ -5,6 +5,7 @@
 #include "bin/dbg_connection.h"
 #include "bin/dbg_message.h"
 #include "bin/dartutils.h"
+#include "bin/log.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
@@ -198,7 +199,8 @@ void DebuggerConnectionHandler::HandleMessages() {
       FATAL("Illegal JSON message received");
     }
     if (!found) {
-      printf("'command' not found in JSON message: '%s'\n", msgbuf_->buf());
+      Log::Print("'command' not found in JSON message: '%s'\n",
+                      msgbuf_->buf());
       msgbuf_->PopMessage();
     }
 
@@ -242,7 +244,7 @@ void DebuggerConnectionHandler::HandleMessages() {
       }
 
       // This is an unrecognized command, report error and move on to next.
-      printf("unrecognized command received: '%s'\n", msgbuf_->buf());
+      Log::Print("unrecognized command received: '%s'\n", msgbuf_->buf());
       HandleUnknownMsg();
       msgbuf_->PopMessage();
     }

@@ -575,8 +575,7 @@ void CodeBreakpoint::PatchCode() {
       break;
     }
     case PcDescriptors::kFuncCall: {
-      Function& func = Function::Handle();
-      CodePatcher::GetStaticCallAt(pc_, &func, &saved_bytes_.target_address_);
+      saved_bytes_.target_address_ = CodePatcher::GetStaticCallTargetAt(pc_);
       CodePatcher::PatchStaticCallAt(pc_,
           StubCode::BreakpointStaticEntryPoint());
       break;
@@ -1403,9 +1402,10 @@ void Debugger::SignalBpReached() {
       }
     } else if (bpt->breakpoint_kind_ == PcDescriptors::kFuncCall) {
       func_to_instrument = bpt->function();
-      Function& callee = Function::Handle();
-      uword target;
-      CodePatcher::GetStaticCallAt(bpt->pc_, &callee, &target);
+      const Code& code = Code::Handle(func_to_instrument.CurrentCode());
+      const Function& callee =
+          Function::Handle(code.GetStaticCallTargetFunctionAt(bpt->pc_));
+      ASSERT(!callee.IsNull());
       if (IsDebuggable(callee)) {
         func_to_instrument = callee.raw();
       }

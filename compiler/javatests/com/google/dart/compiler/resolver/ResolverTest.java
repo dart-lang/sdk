@@ -823,8 +823,7 @@ public class ResolverTest extends ResolverTestCase {
         "  try {",
         "    0.25 - f;",
         "  } catch(e) {}",
-        "}"),
-        ResolverErrorCode.CANNOT_USE_TYPE);
+        "}"));
   }
 
   public void test_classUsedAsExpression() {
@@ -841,11 +840,11 @@ public class ResolverTest extends ResolverTestCase {
         "class A<B> {",
         "  var field = B;",
         "  f() {",
-        "    0.25 - B;",
+        "    process(x);",
         "  }",
-        "}"),
-        ResolverErrorCode.TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER,
-    ResolverErrorCode.TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER);
+        "}",
+        "process(x) {}",
+        ""));
   }
 
   public void test_shadowType_withVariable() throws Exception {
@@ -1057,6 +1056,8 @@ public class ResolverTest extends ResolverTestCase {
         "  result = instance.setter3;",
         "  instance.setter3 = 1;",
         "}"),
+        errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_SETTER, 13, 3, 7),
+        errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_GETTER, 14, 12, 7),
         errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_SETTER, 17, 5, 7),
         errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_GETTER, 18, 14, 7));
   }

@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 
 #include "bin/builtin.h"
+#include "bin/log.h"
 
 class FileHandle {
  public:
@@ -39,7 +40,7 @@ void File::Close() {
   ASSERT(handle_->fd() >= 0);
   int err = close(handle_->fd());
   if (err != 0) {
-    fprintf(stderr, "%s\n", strerror(errno));
+    Log::PrintErr("%s\n", strerror(errno));
   }
   handle_->set_fd(kClosedFd);
 }

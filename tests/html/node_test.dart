@@ -6,7 +6,7 @@ library NodeTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
-import 'dart:svg';
+import 'dart:svg' as svg;
 
 Node makeNode() => new Element.tag('div');
 Node makeNodeWithChildren() =>
@@ -95,7 +95,7 @@ main() {
     test('some', () {
       var node = makeNodeWithChildren();
       expect(node.nodes.some((n) => n is Comment), isTrue);
-      expect(node.nodes.some((n) => n is SVGElement), isFalse);
+      expect(node.nodes.some((n) => n is svg.SvgElement), isFalse);
     });
 
     test('isEmpty', () {

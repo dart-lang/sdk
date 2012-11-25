@@ -145,6 +145,11 @@ class _ChildrenElementList implements List {
     return result;
   }
 
+  Element get first {
+    return _element.$dom_firstElementChild;
+  }
+
+
   Element get last {
     return _element.$dom_lastElementChild;
   }
@@ -158,10 +163,6 @@ class _FrozenElementList implements List {
   final List<Node> _nodeList;
 
   _FrozenElementList._wrap(this._nodeList);
-
-  Element get first {
-    return _nodeList[0];
-  }
 
   bool contains(Element element) {
     for (Element el in this) {
@@ -271,6 +272,8 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
+  Element get first => _nodeList.first;
+
   Element get last => _nodeList.last;
 }
 
@@ -298,16 +301,7 @@ class _FrozenElementListIterator implements Iterator<Element> {
   bool get hasNext => _index < _list.length;
 }
 
-/**
- * All your attribute manipulation needs in one place.
- * Extends the regular Map interface by automatically coercing non-string
- * values to strings.
- */
-abstract class AttributeMap implements Map<String, String> {
-  void operator []=(String key, value);
-}
-
-class _ElementAttributeMap extends AttributeMap {
+class _ElementAttributeMap implements Map<String, String> {
 
   final Element _element;
 
@@ -402,7 +396,7 @@ class _ElementAttributeMap extends AttributeMap {
  * Provides a Map abstraction on top of data-* attributes, similar to the
  * dataSet in the old DOM.
  */
-class _DataAttributeMap extends AttributeMap {
+class _DataAttributeMap implements Map<String, String> {
 
   final Map<String, String> $dom_attributes;
 
@@ -515,7 +509,7 @@ class _SimpleClientRect implements ClientRect {
   String toString() => "($left, $top, $width, $height)";
 }
 
-class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   factory $CLASSNAME.html(String html) =>
       _$(CLASSNAME)FactoryProvider.createElement_html(html);
@@ -526,7 +520,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    * @domName Element.hasAttribute, Element.getAttribute, Element.setAttribute,
    *   Element.removeAttribute
    */
-  _ElementAttributeMap get attributes => new _ElementAttributeMap(this);
+  Map<String, String> get attributes => new _ElementAttributeMap(this);
 
   void set attributes(Map<String, String> value) {
     Map<String, String> attributes = this.attributes;
@@ -537,16 +531,27 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   }
 
   void set elements(Collection<Element> value) {
-    final elements = this.elements;
-    elements.clear();
-    elements.addAll(value);
+    this.children = value;
   }
+
+  /**
+   * Deprecated, use [children] instead.
+   */
+  List<Element> get elements => this.children;
 
   /**
    * @domName childElementCount, firstElementChild, lastElementChild,
    *   children, Node.nodes.add
    */
-  List<Element> get elements => new _ChildrenElementList._wrap(this);
+  List<Element> get children => new _ChildrenElementList._wrap(this);
+
+  void set children(Collection<Element> value) {
+    // Copy list first since we don't want liveness during iteration.
+    List copy = new List.from(value);
+    var children = this.children;
+    children.clear();
+    children.addAll(copy);
+  }
 
   Element query(String selectors) => $dom_querySelector(selectors);
 
@@ -612,6 +617,9 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    * [wc]: http://dvcs.w3.org/hg/webcomponents/raw-file/tip/explainer/index.html
    * [x-tags]: http://x-tags.org/
    */
+$if DART2JS
+  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
+$endif
   var xtag;
 
 $if DARTIUM
@@ -736,15 +744,15 @@ class _ElementFactoryProvider {
     temp.innerHTML = html;
 
     Element element;
-    if (temp.elements.length == 1) {
-      element = temp.elements[0];
-    } else if (parentTag == 'html' && temp.elements.length == 2) {
+    if (temp.children.length == 1) {
+      element = temp.children[0];
+    } else if (parentTag == 'html' && temp.children.length == 2) {
       // Work around for edge case in WebKit and possibly other browsers where
       // both body and head elements are created even though the inner html
       // only contains a head or body element.
-      element = temp.elements[tag == 'head' ? 0 : 1];
+      element = temp.children[tag == 'head' ? 0 : 1];
     } else {
-      throw new ArgumentError('HTML had ${temp.elements.length} '
+      throw new ArgumentError('HTML had ${temp.children.length} '
           'top level elements but 1 expected');
     }
     element.remove();

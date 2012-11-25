@@ -13,23 +13,16 @@ import 'utils.dart';
 
 void main() {
   test('.send', () {
-    print("This test is known to be flaky, please ignore "
-          "(debug prints below added by sgjesse@)");
-    print(".send test starting server...");
     startServer();
-    print(".send test server running");
 
     var request = new http.Request('POST', serverUrl);
     request.body = "hello";
     var future = request.send().chain((response) {
-      print(".send test response received");
       expect(response.statusCode, equals(200));
       return consumeInputStream(response.stream);
     }).transform((bytes) => new String.fromCharCodes(bytes));
     future.onComplete((_) {
-      print(".send test stopping server...");
       stopServer();
-      print(".send test server stopped");
     });
 
     expect(future, completion(parse(equals({
@@ -41,7 +34,6 @@ void main() {
       },
       'body': 'hello'
     }))));
-    print(".send test started");
   });
 
   group('#contentLength', () {

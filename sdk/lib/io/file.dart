@@ -214,6 +214,60 @@ abstract class File {
   List<String> readAsLinesSync([Encoding encoding = Encoding.UTF_8]);
 
   /**
+   * Write a list of bytes to a file.
+   *
+   * Opens the file, writes the list of bytes to it, and closes the file.
+   * Returns a [:Future<File>:] that completes with this [File] object once
+   * the entire operation has completed.
+   *
+   * By default [writeAsBytes] creates the file for writing and truncates the
+   * file if it already exists. In order to append the bytes to an existing
+   * file pass [:FileMode.APPEND:] as the optional mode parameter.
+   */
+  Future<File> writeAsBytes(List<int> bytes, [FileMode mode = FileMode.WRITE]);
+
+  /**
+   * Synchronously write a list of bytes to a file.
+   *
+   * Opens the file, writes the list of bytes to it and closses the file.
+   *
+   * By default [writeAsBytesSync] creates the file for writing and truncates
+   * the file if it already exists. In order to append the bytes to an existing
+   * file pass [:FileMode.APPEND:] as the optional mode parameter.
+   */
+  void writeAsBytesSync(List<int> bytes, [FileMode mode = FileMode.WRITE]);
+
+  /**
+   * Write a string to a file.
+   *
+   * Opens the file, writes the string in the given encoding, and closes the
+   * file. Returns a [:Future<File>:] that completes with this [File] object
+   * once the entire operation has completed.
+   *
+   * By default [writeAsString] creates the file for writing and truncates the
+   * file if it already exists. In order to append the bytes to an existing
+   * file pass [:FileMode.APPEND:] as the optional mode parameter.
+   */
+  Future<File> writeAsString(String contents,
+                             [Encoding encoding = Encoding.UTF_8,
+                              FileMode mode = FileMode.WRITE]);
+
+  /**
+   * Synchronously write a string to a file.
+   *
+   * Opens the file, writes the string in the given encoding, and closes the
+   * file.
+   *
+   * By default [writeAsStringSync] creates the file for writing and
+   * truncates the file if it already exists. In order to append the bytes
+   * to an existing file pass [:FileMode.APPEND:] as the optional mode
+   * parameter.
+   */
+  void writeAsStringSync(String contents,
+                         [Encoding encoding = Encoding.UTF_8,
+                          FileMode mode = FileMode.WRITE]);
+
+  /**
    * Get the name of the file.
    */
   String get name;

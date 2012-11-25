@@ -2,7 +2,7 @@ library SVG2Test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
-import 'dart:svg';
+import 'dart:svg' as svg;
 
 // Test that SVG elements explicitly implement the IDL interfaces (is-checks
 // only, see SVGTest3 for behavioural tests).
@@ -23,43 +23,44 @@ main() {
   useHtmlConfiguration();
 
   var isElement = predicate((x) => x is Element, 'is an Element');
-  var isSVGElement = predicate((x) => x is SVGElement, 'is a SVGElement');
-  var isSVGSVGElement =
-      predicate((x) => x is SVGSVGElement, 'is a SVGSVGElement');
+  var isSvgElement = predicate((x) => x is svg.SvgElement, 'is a SvgElement');
+  var isSvgSvgElement =
+      predicate((x) => x is svg.SvgSvgElement, 'is a SvgSvgElement');
   var isNode = predicate((x) => x is Node, 'is a Node');
-  var isSVGTests = predicate((x) => x is SVGTests, 'is a SVGTests');
-  var isSVGLangSpace = predicate((x) => x is SVGLangSpace, 'is a SVGLangSpace');
-  var isSVGExternalResourcesRequired =
-      predicate((x) => x is SVGExternalResourcesRequired,
-          'is a SVGExternalResourcesRequired');
-  var isSVGStylable = predicate((x) => x is SVGStylable, 'is a SVGStylable');
-  var isSVGTransformable =
-      predicate((x) => x is SVGTransformable, 'is a SVGTransformable');
-  var isSVGLocatable = predicate((x) => x is SVGLocatable, 'is a SVGLocatable');
-  var isSVGNumber = predicate((x) => x is SVGNumber, 'is a SVGNumber');
-  var isSVGRect = predicate((x) => x is SVGRect, 'is a SVGRect');
+  var isSvgTests = predicate((x) => x is svg.Tests, 'is a svg.Tests');
+  var isSvgLangSpace = predicate((x) => x is svg.LangSpace, 'is a svg.LangSpace');
+  var isSvgExternalResourcesRequired =
+      predicate((x) => x is svg.ExternalResourcesRequired,
+          'is a svg.ExternalResourcesRequired');
+  var isSvgStylable = predicate((x) => x is svg.Stylable, 'is a svg.Stylable');
+  var isSvgTransformable =
+      predicate((x) => x is svg.Transformable, 'is a svg.Transformable');
+  var isSvgLocatable =
+      predicate((x) => x is svg.Locatable, 'is a svg.Locatable');
+  var isSvgNumber = predicate((x) => x is svg.Number, 'is a svg.Number');
+  var isSvgRect = predicate((x) => x is svg.Rect, 'is a svg.Rect');
 
   test('rect_isChecks', () {
       var div = insertTestDiv();
       var r = document.query('#rect1');
 
       // Direct inheritance chain
-      expect(r, isSVGElement);
+      expect(r, isSvgElement);
       expect(r, isElement);
       expect(r, isNode);
 
       // Other implemented interfaces.
-      expect(r, isSVGTests);
-      expect(r, isSVGLangSpace);
-      expect(r, isSVGExternalResourcesRequired);
-      expect(r, isSVGStylable);
-      expect(r, isSVGTransformable);
-      expect(r, isSVGLocatable);
+      expect(r, isSvgTests);
+      expect(r, isSvgLangSpace);
+      expect(r, isSvgExternalResourcesRequired);
+      expect(r, isSvgStylable);
+      expect(r, isSvgTransformable);
+      expect(r, isSvgLocatable);
 
       // Interfaces not implemented.
-      expect(r, isNot(isSVGNumber));
-      expect(r, isNot(isSVGRect));
-      expect(r, isNot(isSVGSVGElement));
+      expect(r, isNot(isSvgNumber));
+      expect(r, isNot(isSvgRect));
+      expect(r, isNot(isSvgSvgElement));
 
       div.remove();
     });

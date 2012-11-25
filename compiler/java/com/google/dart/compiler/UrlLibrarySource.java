@@ -70,6 +70,12 @@ public class UrlLibrarySource extends UrlSource implements LibrarySource {
     try {
       // Force the creation of an escaped relative URI to deal with spaces, etc.
       URI uri = getUri().resolve(new URI(null, null, relPath, null, null)).normalize();
+      if (PackageLibraryManager.isPackageUri(uri)) {
+        URI fileUri = packageLibraryManager.resolveDartUri(uri);
+        if (fileUri != null) {
+          uri = fileUri;
+        }
+      }
       return createDartSource(uri, relPath, this, packageLibraryManager);
     } catch (Throwable e) {
       return null;

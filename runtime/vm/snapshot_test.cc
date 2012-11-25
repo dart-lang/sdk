@@ -528,13 +528,13 @@ static void TestString(const char* cstr) {
 TEST_CASE(SerializeString) {
   TestString("This string shall be serialized");
   TestString("æøå");  // This file is UTF-8 encoded.
-  char data[] = {0x01,
-                 0x7f,
-                 0xc2, 0x80,         // 0x80
-                 0xdf, 0xbf,         // 0x7ff
-                 0xe0, 0xa0, 0x80,   // 0x800
-                 0xef, 0xbf, 0xbf,   // 0xffff
-                 0x00};              // String termination.
+  const char* data = "\x01"
+                     "\x7F"
+                     "\xC2\x80"       // U+0080
+                     "\xDF\xBF"       // U+07FF
+                     "\xE0\xA0\x80"   // U+0800
+                     "\xEF\xBF\xBF";  // U+FFFF
+
   TestString(data);
   // TODO(sgjesse): Add tests with non-BMP characters.
 }
@@ -1030,7 +1030,7 @@ UNIT_TEST_CASE(FullSnapshot1) {
 
 UNIT_TEST_CASE(ScriptSnapshot) {
   const char* kLibScriptChars =
-      "#library('dart:import-lib');"
+      "library dart_import_lib;"
       "class LibFields  {"
       "  LibFields(int i, int j) : fld1 = i, fld2 = j {}"
       "  int fld1;"
@@ -1095,7 +1095,7 @@ UNIT_TEST_CASE(ScriptSnapshot) {
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
 
     // Load the library.
-    Dart_Handle import_lib = Dart_LoadLibrary(NewString("dart:import-lib"),
+    Dart_Handle import_lib = Dart_LoadLibrary(NewString("dart_import_lib"),
                                               NewString(kLibScriptChars));
     EXPECT_VALID(import_lib);
 
@@ -1701,7 +1701,7 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
 UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
   const int kArrayLength = 10;
   static const char* kScriptChars =
-      "#import('dart:scalarlist');\n"
+      "import 'dart:scalarlist';\n"
       "final int kArrayLength = 10;\n"
       "getStringList() {\n"
       "  var s = 'Hello, world!';\n"
@@ -1872,7 +1872,7 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
 UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
   const int kArrayLength = 10;
   static const char* kScriptChars =
-      "#import('dart:scalarlist');\n"
+      "import 'dart:scalarlist';\n"
       "final int kArrayLength = 10;\n"
       "getStringList() {\n"
       "  var s = 'Hello, world!';\n"
@@ -1911,7 +1911,7 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
       "getMixedList() {\n"
       "  var list = [];\n"
       "  for (var i = 0; i < kArrayLength; i++) {\n"
-      "    list.add(((i % 2) == 0) ? 'A' : 2.72);\n"
+      "    list.add(((i % 2) == 0) ? '.' : 2.72);\n"
       "  }\n"
       "  return list;\n"
       "}\n"
@@ -2017,7 +2017,7 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
         if ((i % 2) == 0) {
           EXPECT_EQ(root->value.as_array.values[0], element);
           EXPECT_EQ(Dart_CObject::kString, element->type);
-          EXPECT_STREQ("A", element->value.as_string);
+          EXPECT_STREQ(".", element->value.as_string);
         } else {
           EXPECT_EQ(root->value.as_array.values[1], element);
           EXPECT_EQ(Dart_CObject::kDouble, element->type);
@@ -2048,7 +2048,7 @@ UNIT_TEST_CASE(PostCObject) {
   // Create a native port for posting from C to Dart
   TestIsolateScope __test_isolate__;
   const char* kScriptChars =
-      "#import('dart:isolate');\n"
+      "import 'dart:isolate';\n"
       "main() {\n"
       "  var messageCount = 0;\n"
       "  var exception = '';\n"
@@ -2107,7 +2107,7 @@ UNIT_TEST_CASE(PostCObject) {
   EXPECT(Dart_PostCObject(send_port_id, &object));
 
   // Try to post an invalid UTF-8 sequence (lead surrogate).
-  char data[] = {0xed, 0xa0, 0x80, 0};  // 0xd800
+  const char* data = "\xED\xA0\x80";  // U+D800
   object.type = Dart_CObject::kString;
   object.value.as_string = const_cast<char*>(data);
   EXPECT(!Dart_PostCObject(send_port_id, &object));

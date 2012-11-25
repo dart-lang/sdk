@@ -24,12 +24,19 @@ main() {
   var i = 1;
   var s = 'string';
   var d = 3.14;
+  var b = true;
   sameType(2, i);
   sameType('hest', s);
   sameType(1.2, d);
+  sameType(false, b);
 
   var l = [1, 2, 3];
   var m = {'a': 1, 'b': 2};
   sameType([], l);
   sameType({}, m);
+
+  // Test parameterized lists.
+  sameType(new List<int>(), new List<int>());
+  differentType(new List<int>(), new List<num>());
+  differentType(new List<int>(), new List());
 }

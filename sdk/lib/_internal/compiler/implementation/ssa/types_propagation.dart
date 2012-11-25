@@ -68,17 +68,14 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
   visitBasicBlock(HBasicBlock block) {
     if (block.isLoopHeader()) {
       block.forEachPhi((HPhi phi) {
-        HType propagatedType = types[phi];
-        // Once the propagation has run once, the propagated type can already
-        // be set. In this case we use that one for the first iteration of the
-        // loop.
-        if (propagatedType.isUnknown()) {
-          // Set the initial type for the phi. In theory we would need to mark
-          // the type of all other incoming edges as "unitialized" and take this
-          // into account when doing the propagation inside the phis. Just
-          // setting the propagated type is however easier.
-          types[phi] = types[phi.inputs[0]];
-        }
+        // Set the initial type for the phi. We're not using the type
+        // the phi thinks it has because new optimizations may imply
+        // changing it.
+        // In theory we would need to mark
+        // the type of all other incoming edges as "unitialized" and take this
+        // into account when doing the propagation inside the phis. Just
+        // setting the propagated type is however easier.
+        types[phi] = types[phi.inputs[0]];
         addToWorkList(phi);
       });
     } else {

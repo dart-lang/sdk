@@ -58,14 +58,15 @@ void TestSmiSum(Dart_NativeArguments args) {
 // Test code patching.
 void TestStaticCallPatching(Dart_NativeArguments args) {
   Dart_EnterScope();
-  uword target_address = 0;
-  Function& target_function = Function::Handle();
   DartFrameIterator iterator;
   iterator.NextFrame();  // Skip native call.
   StackFrame* static_caller_frame = iterator.NextFrame();
-  CodePatcher::GetStaticCallAt(static_caller_frame->pc(),
-                               &target_function,
-                               &target_address);
+  uword target_address =
+      CodePatcher::GetStaticCallTargetAt(static_caller_frame->pc());
+  const Code& code = Code::Handle(static_caller_frame->LookupDartCode());
+  const Function& target_function =
+      Function::Handle(code.GetStaticCallTargetFunctionAt(
+          static_caller_frame->pc()));
   EXPECT(String::Handle(target_function.name()).
       Equals(String::Handle(String::New("NativePatchStaticCall"))));
   const uword function_entry_address =

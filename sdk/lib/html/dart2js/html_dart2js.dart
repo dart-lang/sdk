@@ -48,22 +48,20 @@ spawnDomFunction(f) => spawnFunction(f);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName AbstractWorker
+/// @domName AbstractWorker; @docsEditable true
 class AbstractWorker extends EventTarget native "*AbstractWorker" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   AbstractWorkerEvents get on =>
     new AbstractWorkerEvents(this);
 
-  /** @domName AbstractWorker.addEventListener */
+  /// @domName AbstractWorker.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName AbstractWorker.dispatchEvent */
+  /// @domName AbstractWorker.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName AbstractWorker.removeEventListener */
+  /// @domName AbstractWorker.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -77,31 +75,31 @@ class AbstractWorkerEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName AnalyserNode
+/// @domName AnalyserNode; @docsEditable true
 class AnalyserNode extends AudioNode native "*AnalyserNode" {
 
-  /** @domName AnalyserNode.fftSize */
+  /// @domName AnalyserNode.fftSize; @docsEditable true
   int fftSize;
 
-  /** @domName AnalyserNode.frequencyBinCount */
+  /// @domName AnalyserNode.frequencyBinCount; @docsEditable true
   final int frequencyBinCount;
 
-  /** @domName AnalyserNode.maxDecibels */
+  /// @domName AnalyserNode.maxDecibels; @docsEditable true
   num maxDecibels;
 
-  /** @domName AnalyserNode.minDecibels */
+  /// @domName AnalyserNode.minDecibels; @docsEditable true
   num minDecibels;
 
-  /** @domName AnalyserNode.smoothingTimeConstant */
+  /// @domName AnalyserNode.smoothingTimeConstant; @docsEditable true
   num smoothingTimeConstant;
 
-  /** @domName AnalyserNode.getByteFrequencyData */
+  /// @domName AnalyserNode.getByteFrequencyData; @docsEditable true
   void getByteFrequencyData(Uint8Array array) native;
 
-  /** @domName AnalyserNode.getByteTimeDomainData */
+  /// @domName AnalyserNode.getByteTimeDomainData; @docsEditable true
   void getByteTimeDomainData(Uint8Array array) native;
 
-  /** @domName AnalyserNode.getFloatFrequencyData */
+  /// @domName AnalyserNode.getFloatFrequencyData; @docsEditable true
   void getFloatFrequencyData(Float32Array array) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -109,77 +107,76 @@ class AnalyserNode extends AudioNode native "*AnalyserNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLAnchorElement
+/// @domName HTMLAnchorElement; @docsEditable true
 class AnchorElement extends Element implements Element native "*HTMLAnchorElement" {
 
   factory AnchorElement({String href}) {
-    if (!?href) {
-      return _Elements.createAnchorElement();
-    }
-    return _Elements.createAnchorElement(href);
+    var e = document.$dom_createElement("a");
+    if (href != null) e.href = href;
+    return e;
   }
 
-  /** @domName HTMLAnchorElement.charset */
+  /// @domName HTMLAnchorElement.charset; @docsEditable true
   String charset;
 
-  /** @domName HTMLAnchorElement.coords */
+  /// @domName HTMLAnchorElement.coords; @docsEditable true
   String coords;
 
-  /** @domName HTMLAnchorElement.download */
+  /// @domName HTMLAnchorElement.download; @docsEditable true
   String download;
 
-  /** @domName HTMLAnchorElement.hash */
+  /// @domName HTMLAnchorElement.hash; @docsEditable true
   String hash;
 
-  /** @domName HTMLAnchorElement.host */
+  /// @domName HTMLAnchorElement.host; @docsEditable true
   String host;
 
-  /** @domName HTMLAnchorElement.hostname */
+  /// @domName HTMLAnchorElement.hostname; @docsEditable true
   String hostname;
 
-  /** @domName HTMLAnchorElement.href */
+  /// @domName HTMLAnchorElement.href; @docsEditable true
   String href;
 
-  /** @domName HTMLAnchorElement.hreflang */
+  /// @domName HTMLAnchorElement.hreflang; @docsEditable true
   String hreflang;
 
-  /** @domName HTMLAnchorElement.name */
+  /// @domName HTMLAnchorElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLAnchorElement.origin */
+  /// @domName HTMLAnchorElement.origin; @docsEditable true
   final String origin;
 
-  /** @domName HTMLAnchorElement.pathname */
+  /// @domName HTMLAnchorElement.pathname; @docsEditable true
   String pathname;
 
-  /** @domName HTMLAnchorElement.ping */
+  /// @domName HTMLAnchorElement.ping; @docsEditable true
   String ping;
 
-  /** @domName HTMLAnchorElement.port */
+  /// @domName HTMLAnchorElement.port; @docsEditable true
   String port;
 
-  /** @domName HTMLAnchorElement.protocol */
+  /// @domName HTMLAnchorElement.protocol; @docsEditable true
   String protocol;
 
-  /** @domName HTMLAnchorElement.rel */
+  /// @domName HTMLAnchorElement.rel; @docsEditable true
   String rel;
 
-  /** @domName HTMLAnchorElement.rev */
+  /// @domName HTMLAnchorElement.rev; @docsEditable true
   String rev;
 
-  /** @domName HTMLAnchorElement.search */
+  /// @domName HTMLAnchorElement.search; @docsEditable true
   String search;
 
-  /** @domName HTMLAnchorElement.shape */
+  /// @domName HTMLAnchorElement.shape; @docsEditable true
   String shape;
 
-  /** @domName HTMLAnchorElement.target */
+  /// @domName HTMLAnchorElement.target; @docsEditable true
   String target;
 
-  /** @domName HTMLAnchorElement.type */
+  /// @domName HTMLAnchorElement.type; @docsEditable true
   String type;
 
-  /** @domName HTMLAnchorElement.toString */
+  /// @domName HTMLAnchorElement.toString; @docsEditable true
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -187,7 +184,7 @@ class AnchorElement extends Element implements Element native "*HTMLAnchorElemen
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebKitAnimation
+/// @domName WebKitAnimation; @docsEditable true
 class Animation native "*WebKitAnimation" {
 
   static const int DIRECTION_ALTERNATE = 1;
@@ -202,37 +199,37 @@ class Animation native "*WebKitAnimation" {
 
   static const int FILL_NONE = 0;
 
-  /** @domName WebKitAnimation.delay */
+  /// @domName WebKitAnimation.delay; @docsEditable true
   final num delay;
 
-  /** @domName WebKitAnimation.direction */
+  /// @domName WebKitAnimation.direction; @docsEditable true
   final int direction;
 
-  /** @domName WebKitAnimation.duration */
+  /// @domName WebKitAnimation.duration; @docsEditable true
   final num duration;
 
-  /** @domName WebKitAnimation.elapsedTime */
+  /// @domName WebKitAnimation.elapsedTime; @docsEditable true
   num elapsedTime;
 
-  /** @domName WebKitAnimation.ended */
+  /// @domName WebKitAnimation.ended; @docsEditable true
   final bool ended;
 
-  /** @domName WebKitAnimation.fillMode */
+  /// @domName WebKitAnimation.fillMode; @docsEditable true
   final int fillMode;
 
-  /** @domName WebKitAnimation.iterationCount */
+  /// @domName WebKitAnimation.iterationCount; @docsEditable true
   final int iterationCount;
 
-  /** @domName WebKitAnimation.name */
+  /// @domName WebKitAnimation.name; @docsEditable true
   final String name;
 
-  /** @domName WebKitAnimation.paused */
+  /// @domName WebKitAnimation.paused; @docsEditable true
   final bool paused;
 
-  /** @domName WebKitAnimation.pause */
+  /// @domName WebKitAnimation.pause; @docsEditable true
   void pause() native;
 
-  /** @domName WebKitAnimation.play */
+  /// @domName WebKitAnimation.play; @docsEditable true
   void play() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -240,13 +237,13 @@ class Animation native "*WebKitAnimation" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebKitAnimationEvent
+/// @domName WebKitAnimationEvent; @docsEditable true
 class AnimationEvent extends Event native "*WebKitAnimationEvent" {
 
-  /** @domName WebKitAnimationEvent.animationName */
+  /// @domName WebKitAnimationEvent.animationName; @docsEditable true
   final String animationName;
 
-  /** @domName WebKitAnimationEvent.elapsedTime */
+  /// @domName WebKitAnimationEvent.elapsedTime; @docsEditable true
   final num elapsedTime;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -254,40 +251,40 @@ class AnimationEvent extends Event native "*WebKitAnimationEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLAppletElement
+/// @domName HTMLAppletElement; @docsEditable true
 class AppletElement extends Element implements Element native "*HTMLAppletElement" {
 
-  /** @domName HTMLAppletElement.align */
+  /// @domName HTMLAppletElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLAppletElement.alt */
+  /// @domName HTMLAppletElement.alt; @docsEditable true
   String alt;
 
-  /** @domName HTMLAppletElement.archive */
+  /// @domName HTMLAppletElement.archive; @docsEditable true
   String archive;
 
-  /** @domName HTMLAppletElement.code */
+  /// @domName HTMLAppletElement.code; @docsEditable true
   String code;
 
-  /** @domName HTMLAppletElement.codeBase */
+  /// @domName HTMLAppletElement.codeBase; @docsEditable true
   String codeBase;
 
-  /** @domName HTMLAppletElement.height */
+  /// @domName HTMLAppletElement.height; @docsEditable true
   String height;
 
-  /** @domName HTMLAppletElement.hspace */
+  /// @domName HTMLAppletElement.hspace; @docsEditable true
   String hspace;
 
-  /** @domName HTMLAppletElement.name */
+  /// @domName HTMLAppletElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLAppletElement.object */
+  /// @domName HTMLAppletElement.object; @docsEditable true
   String object;
 
-  /** @domName HTMLAppletElement.vspace */
+  /// @domName HTMLAppletElement.vspace; @docsEditable true
   String vspace;
 
-  /** @domName HTMLAppletElement.width */
+  /// @domName HTMLAppletElement.width; @docsEditable true
   String width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -295,51 +292,51 @@ class AppletElement extends Element implements Element native "*HTMLAppletElemen
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLAreaElement
+/// @domName HTMLAreaElement; @docsEditable true
 class AreaElement extends Element implements Element native "*HTMLAreaElement" {
 
-  factory AreaElement() => _Elements.createAreaElement();
+  factory AreaElement() => document.$dom_createElement("area");
 
-  /** @domName HTMLAreaElement.alt */
+  /// @domName HTMLAreaElement.alt; @docsEditable true
   String alt;
 
-  /** @domName HTMLAreaElement.coords */
+  /// @domName HTMLAreaElement.coords; @docsEditable true
   String coords;
 
-  /** @domName HTMLAreaElement.hash */
+  /// @domName HTMLAreaElement.hash; @docsEditable true
   final String hash;
 
-  /** @domName HTMLAreaElement.host */
+  /// @domName HTMLAreaElement.host; @docsEditable true
   final String host;
 
-  /** @domName HTMLAreaElement.hostname */
+  /// @domName HTMLAreaElement.hostname; @docsEditable true
   final String hostname;
 
-  /** @domName HTMLAreaElement.href */
+  /// @domName HTMLAreaElement.href; @docsEditable true
   String href;
 
-  /** @domName HTMLAreaElement.noHref */
+  /// @domName HTMLAreaElement.noHref; @docsEditable true
   bool noHref;
 
-  /** @domName HTMLAreaElement.pathname */
+  /// @domName HTMLAreaElement.pathname; @docsEditable true
   final String pathname;
 
-  /** @domName HTMLAreaElement.ping */
+  /// @domName HTMLAreaElement.ping; @docsEditable true
   String ping;
 
-  /** @domName HTMLAreaElement.port */
+  /// @domName HTMLAreaElement.port; @docsEditable true
   final String port;
 
-  /** @domName HTMLAreaElement.protocol */
+  /// @domName HTMLAreaElement.protocol; @docsEditable true
   final String protocol;
 
-  /** @domName HTMLAreaElement.search */
+  /// @domName HTMLAreaElement.search; @docsEditable true
   final String search;
 
-  /** @domName HTMLAreaElement.shape */
+  /// @domName HTMLAreaElement.shape; @docsEditable true
   String shape;
 
-  /** @domName HTMLAreaElement.target */
+  /// @domName HTMLAreaElement.target; @docsEditable true
   String target;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -347,15 +344,15 @@ class AreaElement extends Element implements Element native "*HTMLAreaElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ArrayBuffer
+/// @domName ArrayBuffer; @docsEditable true
 class ArrayBuffer native "*ArrayBuffer" {
 
   factory ArrayBuffer(int length) => _ArrayBufferFactoryProvider.createArrayBuffer(length);
 
-  /** @domName ArrayBuffer.byteLength */
+  /// @domName ArrayBuffer.byteLength; @docsEditable true
   final int byteLength;
 
-  /** @domName ArrayBuffer.slice */
+  /// @domName ArrayBuffer.slice; @docsEditable true
   ArrayBuffer slice(int begin, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -363,16 +360,16 @@ class ArrayBuffer native "*ArrayBuffer" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ArrayBufferView
+/// @domName ArrayBufferView; @docsEditable true
 class ArrayBufferView native "*ArrayBufferView" {
 
-  /** @domName ArrayBufferView.buffer */
+  /// @domName ArrayBufferView.buffer; @docsEditable true
   final ArrayBuffer buffer;
 
-  /** @domName ArrayBufferView.byteLength */
+  /// @domName ArrayBufferView.byteLength; @docsEditable true
   final int byteLength;
 
-  /** @domName ArrayBufferView.byteOffset */
+  /// @domName ArrayBufferView.byteOffset; @docsEditable true
   final int byteOffset;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -380,22 +377,22 @@ class ArrayBufferView native "*ArrayBufferView" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Attr
+/// @domName Attr; @docsEditable true
 class Attr extends Node native "*Attr" {
 
-  /** @domName Attr.isId */
+  /// @domName Attr.isId; @docsEditable true
   final bool isId;
 
-  /** @domName Attr.name */
+  /// @domName Attr.name; @docsEditable true
   final String name;
 
-  /** @domName Attr.ownerElement */
+  /// @domName Attr.ownerElement; @docsEditable true
   final Element ownerElement;
 
-  /** @domName Attr.specified */
+  /// @domName Attr.specified; @docsEditable true
   final bool specified;
 
-  /** @domName Attr.value */
+  /// @domName Attr.value; @docsEditable true
   String value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -403,25 +400,25 @@ class Attr extends Node native "*Attr" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName AudioBuffer
+/// @domName AudioBuffer; @docsEditable true
 class AudioBuffer native "*AudioBuffer" {
 
-  /** @domName AudioBuffer.duration */
+  /// @domName AudioBuffer.duration; @docsEditable true
   final num duration;
 
-  /** @domName AudioBuffer.gain */
+  /// @domName AudioBuffer.gain; @docsEditable true
   num gain;
 
-  /** @domName AudioBuffer.length */
+  /// @domName AudioBuffer.length; @docsEditable true
   final int length;
 
-  /** @domName AudioBuffer.numberOfChannels */
+  /// @domName AudioBuffer.numberOfChannels; @docsEditable true
   final int numberOfChannels;
 
-  /** @domName AudioBuffer.sampleRate */
+  /// @domName AudioBuffer.sampleRate; @docsEditable true
   final num sampleRate;
 
-  /** @domName AudioBuffer.getChannelData */
+  /// @domName AudioBuffer.getChannelData; @docsEditable true
   Float32Array getChannelData(int channelIndex) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -477,25 +474,25 @@ class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNo
 
   static const int UNSCHEDULED_STATE = 0;
 
-  /** @domName AudioBufferSourceNode.buffer */
+  /// @domName AudioBufferSourceNode.buffer; @docsEditable true
   AudioBuffer buffer;
 
-  /** @domName AudioBufferSourceNode.gain */
+  /// @domName AudioBufferSourceNode.gain; @docsEditable true
   final AudioGain gain;
 
-  /** @domName AudioBufferSourceNode.loop */
+  /// @domName AudioBufferSourceNode.loop; @docsEditable true
   bool loop;
 
-  /** @domName AudioBufferSourceNode.loopEnd */
+  /// @domName AudioBufferSourceNode.loopEnd; @docsEditable true
   num loopEnd;
 
-  /** @domName AudioBufferSourceNode.loopStart */
+  /// @domName AudioBufferSourceNode.loopStart; @docsEditable true
   num loopStart;
 
-  /** @domName AudioBufferSourceNode.playbackRate */
+  /// @domName AudioBufferSourceNode.playbackRate; @docsEditable true
   final AudioParam playbackRate;
 
-  /** @domName AudioBufferSourceNode.playbackState */
+  /// @domName AudioBufferSourceNode.playbackState; @docsEditable true
   final int playbackState;
 
 }
@@ -507,76 +504,74 @@ class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNo
 class AudioContext extends EventTarget native "*AudioContext" {
   factory AudioContext() => _AudioContextFactoryProvider.createAudioContext();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   AudioContextEvents get on =>
     new AudioContextEvents(this);
 
-  /** @domName AudioContext.activeSourceCount */
+  /// @domName AudioContext.activeSourceCount; @docsEditable true
   final int activeSourceCount;
 
-  /** @domName AudioContext.currentTime */
+  /// @domName AudioContext.currentTime; @docsEditable true
   final num currentTime;
 
-  /** @domName AudioContext.destination */
+  /// @domName AudioContext.destination; @docsEditable true
   final AudioDestinationNode destination;
 
-  /** @domName AudioContext.listener */
+  /// @domName AudioContext.listener; @docsEditable true
   final AudioListener listener;
 
-  /** @domName AudioContext.sampleRate */
+  /// @domName AudioContext.sampleRate; @docsEditable true
   final num sampleRate;
 
-  /** @domName AudioContext.createAnalyser */
+  /// @domName AudioContext.createAnalyser; @docsEditable true
   AnalyserNode createAnalyser() native;
 
-  /** @domName AudioContext.createBiquadFilter */
+  /// @domName AudioContext.createBiquadFilter; @docsEditable true
   BiquadFilterNode createBiquadFilter() native;
 
-  /** @domName AudioContext.createBuffer */
+  /// @domName AudioContext.createBuffer; @docsEditable true
   AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [num sampleRate]) native;
 
-  /** @domName AudioContext.createBufferSource */
+  /// @domName AudioContext.createBufferSource; @docsEditable true
   AudioBufferSourceNode createBufferSource() native;
 
-  /** @domName AudioContext.createChannelMerger */
+  /// @domName AudioContext.createChannelMerger; @docsEditable true
   ChannelMergerNode createChannelMerger([int numberOfInputs]) native;
 
-  /** @domName AudioContext.createChannelSplitter */
+  /// @domName AudioContext.createChannelSplitter; @docsEditable true
   ChannelSplitterNode createChannelSplitter([int numberOfOutputs]) native;
 
-  /** @domName AudioContext.createConvolver */
+  /// @domName AudioContext.createConvolver; @docsEditable true
   ConvolverNode createConvolver() native;
 
-  /** @domName AudioContext.createDelay */
+  /// @domName AudioContext.createDelay; @docsEditable true
   DelayNode createDelay([num maxDelayTime]) native;
 
-  /** @domName AudioContext.createDynamicsCompressor */
+  /// @domName AudioContext.createDynamicsCompressor; @docsEditable true
   DynamicsCompressorNode createDynamicsCompressor() native;
 
-  /** @domName AudioContext.createMediaElementSource */
+  /// @domName AudioContext.createMediaElementSource; @docsEditable true
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement) native;
 
-  /** @domName AudioContext.createMediaStreamSource */
+  /// @domName AudioContext.createMediaStreamSource; @docsEditable true
   MediaStreamAudioSourceNode createMediaStreamSource(MediaStream mediaStream) native;
 
-  /** @domName AudioContext.createOscillator */
+  /// @domName AudioContext.createOscillator; @docsEditable true
   OscillatorNode createOscillator() native;
 
-  /** @domName AudioContext.createPanner */
+  /// @domName AudioContext.createPanner; @docsEditable true
   PannerNode createPanner() native;
 
-  /** @domName AudioContext.createWaveShaper */
+  /// @domName AudioContext.createWaveShaper; @docsEditable true
   WaveShaperNode createWaveShaper() native;
 
-  /** @domName AudioContext.createWaveTable */
+  /// @domName AudioContext.createWaveTable; @docsEditable true
   WaveTable createWaveTable(Float32Array real, Float32Array imag) native;
 
-  /** @domName AudioContext.decodeAudioData */
+  /// @domName AudioContext.decodeAudioData; @docsEditable true
   void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native;
 
-  /** @domName AudioContext.startRendering */
+  /// @domName AudioContext.startRendering; @docsEditable true
   void startRendering() native;
 
   GainNode createGain() {
@@ -614,10 +609,10 @@ class AudioContextEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName AudioDestinationNode
+/// @domName AudioDestinationNode; @docsEditable true
 class AudioDestinationNode extends AudioNode native "*AudioDestinationNode" {
 
-  /** @domName AudioDestinationNode.numberOfChannels */
+  /// @domName AudioDestinationNode.numberOfChannels; @docsEditable true
   final int numberOfChannels;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -625,7 +620,7 @@ class AudioDestinationNode extends AudioNode native "*AudioDestinationNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLAudioElement
+/// @domName HTMLAudioElement; @docsEditable true
 class AudioElement extends MediaElement native "*HTMLAudioElement" {
 
   factory AudioElement([String src]) {
@@ -640,7 +635,7 @@ class AudioElement extends MediaElement native "*HTMLAudioElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName AudioGain
+/// @domName AudioGain; @docsEditable true
 class AudioGain extends AudioParam native "*AudioGain" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -648,22 +643,22 @@ class AudioGain extends AudioParam native "*AudioGain" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName AudioListener
+/// @domName AudioListener; @docsEditable true
 class AudioListener native "*AudioListener" {
 
-  /** @domName AudioListener.dopplerFactor */
+  /// @domName AudioListener.dopplerFactor; @docsEditable true
   num dopplerFactor;
 
-  /** @domName AudioListener.speedOfSound */
+  /// @domName AudioListener.speedOfSound; @docsEditable true
   num speedOfSound;
 
-  /** @domName AudioListener.setOrientation */
+  /// @domName AudioListener.setOrientation; @docsEditable true
   void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp) native;
 
-  /** @domName AudioListener.setPosition */
+  /// @domName AudioListener.setPosition; @docsEditable true
   void setPosition(num x, num y, num z) native;
 
-  /** @domName AudioListener.setVelocity */
+  /// @domName AudioListener.setVelocity; @docsEditable true
   void setVelocity(num x, num y, num z) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -671,22 +666,22 @@ class AudioListener native "*AudioListener" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName AudioNode
+/// @domName AudioNode; @docsEditable true
 class AudioNode native "*AudioNode" {
 
-  /** @domName AudioNode.context */
+  /// @domName AudioNode.context; @docsEditable true
   final AudioContext context;
 
-  /** @domName AudioNode.numberOfInputs */
+  /// @domName AudioNode.numberOfInputs; @docsEditable true
   final int numberOfInputs;
 
-  /** @domName AudioNode.numberOfOutputs */
+  /// @domName AudioNode.numberOfOutputs; @docsEditable true
   final int numberOfOutputs;
 
-  /** @domName AudioNode.connect */
+  /// @domName AudioNode.connect; @docsEditable true
   void connect(destination, int output, [int input]) native;
 
-  /** @domName AudioNode.disconnect */
+  /// @domName AudioNode.disconnect; @docsEditable true
   void disconnect(int output) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -694,43 +689,43 @@ class AudioNode native "*AudioNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName AudioParam
+/// @domName AudioParam; @docsEditable true
 class AudioParam native "*AudioParam" {
 
-  /** @domName AudioParam.defaultValue */
+  /// @domName AudioParam.defaultValue; @docsEditable true
   final num defaultValue;
 
-  /** @domName AudioParam.maxValue */
+  /// @domName AudioParam.maxValue; @docsEditable true
   final num maxValue;
 
-  /** @domName AudioParam.minValue */
+  /// @domName AudioParam.minValue; @docsEditable true
   final num minValue;
 
-  /** @domName AudioParam.name */
+  /// @domName AudioParam.name; @docsEditable true
   final String name;
 
-  /** @domName AudioParam.units */
+  /// @domName AudioParam.units; @docsEditable true
   final int units;
 
-  /** @domName AudioParam.value */
+  /// @domName AudioParam.value; @docsEditable true
   num value;
 
-  /** @domName AudioParam.cancelScheduledValues */
+  /// @domName AudioParam.cancelScheduledValues; @docsEditable true
   void cancelScheduledValues(num startTime) native;
 
-  /** @domName AudioParam.exponentialRampToValueAtTime */
+  /// @domName AudioParam.exponentialRampToValueAtTime; @docsEditable true
   void exponentialRampToValueAtTime(num value, num time) native;
 
-  /** @domName AudioParam.linearRampToValueAtTime */
+  /// @domName AudioParam.linearRampToValueAtTime; @docsEditable true
   void linearRampToValueAtTime(num value, num time) native;
 
-  /** @domName AudioParam.setTargetAtTime */
+  /// @domName AudioParam.setTargetAtTime; @docsEditable true
   void setTargetAtTime(num target, num time, num timeConstant) native;
 
-  /** @domName AudioParam.setValueAtTime */
+  /// @domName AudioParam.setValueAtTime; @docsEditable true
   void setValueAtTime(num value, num time) native;
 
-  /** @domName AudioParam.setValueCurveAtTime */
+  /// @domName AudioParam.setValueCurveAtTime; @docsEditable true
   void setValueCurveAtTime(Float32Array values, num time, num duration) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -738,13 +733,13 @@ class AudioParam native "*AudioParam" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName AudioProcessingEvent
+/// @domName AudioProcessingEvent; @docsEditable true
 class AudioProcessingEvent extends Event native "*AudioProcessingEvent" {
 
-  /** @domName AudioProcessingEvent.inputBuffer */
+  /// @domName AudioProcessingEvent.inputBuffer; @docsEditable true
   final AudioBuffer inputBuffer;
 
-  /** @domName AudioProcessingEvent.outputBuffer */
+  /// @domName AudioProcessingEvent.outputBuffer; @docsEditable true
   final AudioBuffer outputBuffer;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -752,7 +747,7 @@ class AudioProcessingEvent extends Event native "*AudioProcessingEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName AudioSourceNode
+/// @domName AudioSourceNode; @docsEditable true
 class AudioSourceNode extends AudioNode native "*AudioSourceNode" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -760,12 +755,12 @@ class AudioSourceNode extends AudioNode native "*AudioSourceNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLBRElement
+/// @domName HTMLBRElement; @docsEditable true
 class BRElement extends Element implements Element native "*HTMLBRElement" {
 
-  factory BRElement() => _Elements.createBRElement();
+  factory BRElement() => document.$dom_createElement("br");
 
-  /** @domName HTMLBRElement.clear */
+  /// @domName HTMLBRElement.clear; @docsEditable true
   String clear;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -773,10 +768,10 @@ class BRElement extends Element implements Element native "*HTMLBRElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName BarInfo
+/// @domName BarInfo; @docsEditable true
 class BarInfo native "*BarInfo" {
 
-  /** @domName BarInfo.visible */
+  /// @domName BarInfo.visible; @docsEditable true
   final bool visible;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -784,15 +779,15 @@ class BarInfo native "*BarInfo" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLBaseElement
+/// @domName HTMLBaseElement; @docsEditable true
 class BaseElement extends Element implements Element native "*HTMLBaseElement" {
 
-  factory BaseElement() => _Elements.createBaseElement();
+  factory BaseElement() => document.$dom_createElement("base");
 
-  /** @domName HTMLBaseElement.href */
+  /// @domName HTMLBaseElement.href; @docsEditable true
   String href;
 
-  /** @domName HTMLBaseElement.target */
+  /// @domName HTMLBaseElement.target; @docsEditable true
   String target;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -800,16 +795,16 @@ class BaseElement extends Element implements Element native "*HTMLBaseElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLBaseFontElement
+/// @domName HTMLBaseFontElement; @docsEditable true
 class BaseFontElement extends Element implements Element native "*HTMLBaseFontElement" {
 
-  /** @domName HTMLBaseFontElement.color */
+  /// @domName HTMLBaseFontElement.color; @docsEditable true
   String color;
 
-  /** @domName HTMLBaseFontElement.face */
+  /// @domName HTMLBaseFontElement.face; @docsEditable true
   String face;
 
-  /** @domName HTMLBaseFontElement.size */
+  /// @domName HTMLBaseFontElement.size; @docsEditable true
   int size;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -817,34 +812,32 @@ class BaseFontElement extends Element implements Element native "*HTMLBaseFontEl
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName BatteryManager
+/// @domName BatteryManager; @docsEditable true
 class BatteryManager extends EventTarget native "*BatteryManager" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   BatteryManagerEvents get on =>
     new BatteryManagerEvents(this);
 
-  /** @domName BatteryManager.charging */
+  /// @domName BatteryManager.charging; @docsEditable true
   final bool charging;
 
-  /** @domName BatteryManager.chargingTime */
+  /// @domName BatteryManager.chargingTime; @docsEditable true
   final num chargingTime;
 
-  /** @domName BatteryManager.dischargingTime */
+  /// @domName BatteryManager.dischargingTime; @docsEditable true
   final num dischargingTime;
 
-  /** @domName BatteryManager.level */
+  /// @domName BatteryManager.level; @docsEditable true
   final num level;
 
-  /** @domName BatteryManager.addEventListener */
+  /// @domName BatteryManager.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName BatteryManager.dispatchEvent */
+  /// @domName BatteryManager.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
-  /** @domName BatteryManager.removeEventListener */
+  /// @domName BatteryManager.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -864,10 +857,10 @@ class BatteryManagerEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName BeforeLoadEvent
+/// @domName BeforeLoadEvent; @docsEditable true
 class BeforeLoadEvent extends Event native "*BeforeLoadEvent" {
 
-  /** @domName BeforeLoadEvent.url */
+  /// @domName BeforeLoadEvent.url; @docsEditable true
   final String url;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -875,7 +868,7 @@ class BeforeLoadEvent extends Event native "*BeforeLoadEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName BiquadFilterNode
+/// @domName BiquadFilterNode; @docsEditable true
 class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
 
   static const int ALLPASS = 7;
@@ -894,19 +887,19 @@ class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
 
   static const int PEAKING = 5;
 
-  /** @domName BiquadFilterNode.Q */
+  /// @domName BiquadFilterNode.Q; @docsEditable true
   final AudioParam Q;
 
-  /** @domName BiquadFilterNode.frequency */
+  /// @domName BiquadFilterNode.frequency; @docsEditable true
   final AudioParam frequency;
 
-  /** @domName BiquadFilterNode.gain */
+  /// @domName BiquadFilterNode.gain; @docsEditable true
   final AudioParam gain;
 
-  /** @domName BiquadFilterNode.type */
+  /// @domName BiquadFilterNode.type; @docsEditable true
   int type;
 
-  /** @domName BiquadFilterNode.getFrequencyResponse */
+  /// @domName BiquadFilterNode.getFrequencyResponse; @docsEditable true
   void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -914,7 +907,7 @@ class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Blob
+/// @domName Blob; @docsEditable true
 class Blob native "*Blob" {
 
   factory Blob(List blobParts, [String type, String endings]) {
@@ -927,13 +920,13 @@ class Blob native "*Blob" {
     return _BlobFactoryProvider.createBlob(blobParts, type, endings);
   }
 
-  /** @domName Blob.size */
+  /// @domName Blob.size; @docsEditable true
   final int size;
 
-  /** @domName Blob.type */
+  /// @domName Blob.type; @docsEditable true
   final String type;
 
-  /** @domName Blob.slice */
+  /// @domName Blob.slice; @docsEditable true
   Blob slice([int start, int end, String contentType]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -941,30 +934,28 @@ class Blob native "*Blob" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLBodyElement
+/// @domName HTMLBodyElement; @docsEditable true
 class BodyElement extends Element implements Element native "*HTMLBodyElement" {
 
-  factory BodyElement() => _Elements.createBodyElement();
+  factory BodyElement() => document.$dom_createElement("body");
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   BodyElementEvents get on =>
     new BodyElementEvents(this);
 
-  /** @domName HTMLBodyElement.aLink */
+  /// @domName HTMLBodyElement.aLink; @docsEditable true
   String aLink;
 
-  /** @domName HTMLBodyElement.background */
+  /// @domName HTMLBodyElement.background; @docsEditable true
   String background;
 
-  /** @domName HTMLBodyElement.bgColor */
+  /// @domName HTMLBodyElement.bgColor; @docsEditable true
   String bgColor;
 
-  /** @domName HTMLBodyElement.link */
+  /// @domName HTMLBodyElement.link; @docsEditable true
   String link;
 
-  /** @domName HTMLBodyElement.vLink */
+  /// @domName HTMLBodyElement.vLink; @docsEditable true
   String vLink;
 }
 
@@ -1002,60 +993,61 @@ class BodyElementEvents extends ElementEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLButtonElement
+/// @domName HTMLButtonElement; @docsEditable true
 class ButtonElement extends Element implements Element native "*HTMLButtonElement" {
 
-  factory ButtonElement() => _Elements.createButtonElement();
+  factory ButtonElement() => document.$dom_createElement("button");
 
-  /** @domName HTMLButtonElement.autofocus */
+  /// @domName HTMLButtonElement.autofocus; @docsEditable true
   bool autofocus;
 
-  /** @domName HTMLButtonElement.disabled */
+  /// @domName HTMLButtonElement.disabled; @docsEditable true
   bool disabled;
 
-  /** @domName HTMLButtonElement.form */
+  /// @domName HTMLButtonElement.form; @docsEditable true
   final FormElement form;
 
-  /** @domName HTMLButtonElement.formAction */
+  /// @domName HTMLButtonElement.formAction; @docsEditable true
   String formAction;
 
-  /** @domName HTMLButtonElement.formEnctype */
+  /// @domName HTMLButtonElement.formEnctype; @docsEditable true
   String formEnctype;
 
-  /** @domName HTMLButtonElement.formMethod */
+  /// @domName HTMLButtonElement.formMethod; @docsEditable true
   String formMethod;
 
-  /** @domName HTMLButtonElement.formNoValidate */
+  /// @domName HTMLButtonElement.formNoValidate; @docsEditable true
   bool formNoValidate;
 
-  /** @domName HTMLButtonElement.formTarget */
+  /// @domName HTMLButtonElement.formTarget; @docsEditable true
   String formTarget;
 
-  /** @domName HTMLButtonElement.labels */
+  /// @domName HTMLButtonElement.labels; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> labels;
 
-  /** @domName HTMLButtonElement.name */
+  /// @domName HTMLButtonElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLButtonElement.type */
+  /// @domName HTMLButtonElement.type; @docsEditable true
   String type;
 
-  /** @domName HTMLButtonElement.validationMessage */
+  /// @domName HTMLButtonElement.validationMessage; @docsEditable true
   final String validationMessage;
 
-  /** @domName HTMLButtonElement.validity */
+  /// @domName HTMLButtonElement.validity; @docsEditable true
   final ValidityState validity;
 
-  /** @domName HTMLButtonElement.value */
+  /// @domName HTMLButtonElement.value; @docsEditable true
   String value;
 
-  /** @domName HTMLButtonElement.willValidate */
+  /// @domName HTMLButtonElement.willValidate; @docsEditable true
   final bool willValidate;
 
-  /** @domName HTMLButtonElement.checkValidity */
+  /// @domName HTMLButtonElement.checkValidity; @docsEditable true
   bool checkValidity() native;
 
-  /** @domName HTMLButtonElement.setCustomValidity */
+  /// @domName HTMLButtonElement.setCustomValidity; @docsEditable true
   void setCustomValidity(String error) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1063,7 +1055,7 @@ class ButtonElement extends Element implements Element native "*HTMLButtonElemen
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CDATASection
+/// @domName CDATASection; @docsEditable true
 class CDATASection extends Text native "*CDATASection" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1071,10 +1063,10 @@ class CDATASection extends Text native "*CDATASection" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSCharsetRule
+/// @domName CSSCharsetRule; @docsEditable true
 class CSSCharsetRule extends CSSRule native "*CSSCharsetRule" {
 
-  /** @domName CSSCharsetRule.encoding */
+  /// @domName CSSCharsetRule.encoding; @docsEditable true
   String encoding;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1082,10 +1074,10 @@ class CSSCharsetRule extends CSSRule native "*CSSCharsetRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSFontFaceRule
+/// @domName CSSFontFaceRule; @docsEditable true
 class CSSFontFaceRule extends CSSRule native "*CSSFontFaceRule" {
 
-  /** @domName CSSFontFaceRule.style */
+  /// @domName CSSFontFaceRule.style; @docsEditable true
   final CSSStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1093,16 +1085,16 @@ class CSSFontFaceRule extends CSSRule native "*CSSFontFaceRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSImportRule
+/// @domName CSSImportRule; @docsEditable true
 class CSSImportRule extends CSSRule native "*CSSImportRule" {
 
-  /** @domName CSSImportRule.href */
+  /// @domName CSSImportRule.href; @docsEditable true
   final String href;
 
-  /** @domName CSSImportRule.media */
+  /// @domName CSSImportRule.media; @docsEditable true
   final MediaList media;
 
-  /** @domName CSSImportRule.styleSheet */
+  /// @domName CSSImportRule.styleSheet; @docsEditable true
   final CSSStyleSheet styleSheet;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1110,13 +1102,13 @@ class CSSImportRule extends CSSRule native "*CSSImportRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebKitCSSKeyframeRule
+/// @domName WebKitCSSKeyframeRule; @docsEditable true
 class CSSKeyframeRule extends CSSRule native "*WebKitCSSKeyframeRule" {
 
-  /** @domName WebKitCSSKeyframeRule.keyText */
+  /// @domName WebKitCSSKeyframeRule.keyText; @docsEditable true
   String keyText;
 
-  /** @domName WebKitCSSKeyframeRule.style */
+  /// @domName WebKitCSSKeyframeRule.style; @docsEditable true
   final CSSStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1124,22 +1116,23 @@ class CSSKeyframeRule extends CSSRule native "*WebKitCSSKeyframeRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebKitCSSKeyframesRule
+/// @domName WebKitCSSKeyframesRule; @docsEditable true
 class CSSKeyframesRule extends CSSRule native "*WebKitCSSKeyframesRule" {
 
-  /** @domName WebKitCSSKeyframesRule.cssRules */
+  /// @domName WebKitCSSKeyframesRule.cssRules; @docsEditable true
+  @Returns('_CSSRuleList') @Creates('_CSSRuleList')
   final List<CSSRule> cssRules;
 
-  /** @domName WebKitCSSKeyframesRule.name */
+  /// @domName WebKitCSSKeyframesRule.name; @docsEditable true
   String name;
 
-  /** @domName WebKitCSSKeyframesRule.deleteRule */
+  /// @domName WebKitCSSKeyframesRule.deleteRule; @docsEditable true
   void deleteRule(String key) native;
 
-  /** @domName WebKitCSSKeyframesRule.findRule */
+  /// @domName WebKitCSSKeyframesRule.findRule; @docsEditable true
   CSSKeyframeRule findRule(String key) native;
 
-  /** @domName WebKitCSSKeyframesRule.insertRule */
+  /// @domName WebKitCSSKeyframesRule.insertRule; @docsEditable true
   void insertRule(String rule) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1147,7 +1140,7 @@ class CSSKeyframesRule extends CSSRule native "*WebKitCSSKeyframesRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebKitCSSMatrix
+/// @domName WebKitCSSMatrix; @docsEditable true
 class CSSMatrix native "*WebKitCSSMatrix" {
 
   factory CSSMatrix([String cssValue]) {
@@ -1157,100 +1150,100 @@ class CSSMatrix native "*WebKitCSSMatrix" {
     return _CSSMatrixFactoryProvider.createCSSMatrix(cssValue);
   }
 
-  /** @domName WebKitCSSMatrix.a */
+  /// @domName WebKitCSSMatrix.a; @docsEditable true
   num a;
 
-  /** @domName WebKitCSSMatrix.b */
+  /// @domName WebKitCSSMatrix.b; @docsEditable true
   num b;
 
-  /** @domName WebKitCSSMatrix.c */
+  /// @domName WebKitCSSMatrix.c; @docsEditable true
   num c;
 
-  /** @domName WebKitCSSMatrix.d */
+  /// @domName WebKitCSSMatrix.d; @docsEditable true
   num d;
 
-  /** @domName WebKitCSSMatrix.e */
+  /// @domName WebKitCSSMatrix.e; @docsEditable true
   num e;
 
-  /** @domName WebKitCSSMatrix.f */
+  /// @domName WebKitCSSMatrix.f; @docsEditable true
   num f;
 
-  /** @domName WebKitCSSMatrix.m11 */
+  /// @domName WebKitCSSMatrix.m11; @docsEditable true
   num m11;
 
-  /** @domName WebKitCSSMatrix.m12 */
+  /// @domName WebKitCSSMatrix.m12; @docsEditable true
   num m12;
 
-  /** @domName WebKitCSSMatrix.m13 */
+  /// @domName WebKitCSSMatrix.m13; @docsEditable true
   num m13;
 
-  /** @domName WebKitCSSMatrix.m14 */
+  /// @domName WebKitCSSMatrix.m14; @docsEditable true
   num m14;
 
-  /** @domName WebKitCSSMatrix.m21 */
+  /// @domName WebKitCSSMatrix.m21; @docsEditable true
   num m21;
 
-  /** @domName WebKitCSSMatrix.m22 */
+  /// @domName WebKitCSSMatrix.m22; @docsEditable true
   num m22;
 
-  /** @domName WebKitCSSMatrix.m23 */
+  /// @domName WebKitCSSMatrix.m23; @docsEditable true
   num m23;
 
-  /** @domName WebKitCSSMatrix.m24 */
+  /// @domName WebKitCSSMatrix.m24; @docsEditable true
   num m24;
 
-  /** @domName WebKitCSSMatrix.m31 */
+  /// @domName WebKitCSSMatrix.m31; @docsEditable true
   num m31;
 
-  /** @domName WebKitCSSMatrix.m32 */
+  /// @domName WebKitCSSMatrix.m32; @docsEditable true
   num m32;
 
-  /** @domName WebKitCSSMatrix.m33 */
+  /// @domName WebKitCSSMatrix.m33; @docsEditable true
   num m33;
 
-  /** @domName WebKitCSSMatrix.m34 */
+  /// @domName WebKitCSSMatrix.m34; @docsEditable true
   num m34;
 
-  /** @domName WebKitCSSMatrix.m41 */
+  /// @domName WebKitCSSMatrix.m41; @docsEditable true
   num m41;
 
-  /** @domName WebKitCSSMatrix.m42 */
+  /// @domName WebKitCSSMatrix.m42; @docsEditable true
   num m42;
 
-  /** @domName WebKitCSSMatrix.m43 */
+  /// @domName WebKitCSSMatrix.m43; @docsEditable true
   num m43;
 
-  /** @domName WebKitCSSMatrix.m44 */
+  /// @domName WebKitCSSMatrix.m44; @docsEditable true
   num m44;
 
-  /** @domName WebKitCSSMatrix.inverse */
+  /// @domName WebKitCSSMatrix.inverse; @docsEditable true
   CSSMatrix inverse() native;
 
-  /** @domName WebKitCSSMatrix.multiply */
+  /// @domName WebKitCSSMatrix.multiply; @docsEditable true
   CSSMatrix multiply(CSSMatrix secondMatrix) native;
 
-  /** @domName WebKitCSSMatrix.rotate */
+  /// @domName WebKitCSSMatrix.rotate; @docsEditable true
   CSSMatrix rotate(num rotX, num rotY, num rotZ) native;
 
-  /** @domName WebKitCSSMatrix.rotateAxisAngle */
+  /// @domName WebKitCSSMatrix.rotateAxisAngle; @docsEditable true
   CSSMatrix rotateAxisAngle(num x, num y, num z, num angle) native;
 
-  /** @domName WebKitCSSMatrix.scale */
+  /// @domName WebKitCSSMatrix.scale; @docsEditable true
   CSSMatrix scale(num scaleX, num scaleY, num scaleZ) native;
 
-  /** @domName WebKitCSSMatrix.setMatrixValue */
+  /// @domName WebKitCSSMatrix.setMatrixValue; @docsEditable true
   void setMatrixValue(String string) native;
 
-  /** @domName WebKitCSSMatrix.skewX */
+  /// @domName WebKitCSSMatrix.skewX; @docsEditable true
   CSSMatrix skewX(num angle) native;
 
-  /** @domName WebKitCSSMatrix.skewY */
+  /// @domName WebKitCSSMatrix.skewY; @docsEditable true
   CSSMatrix skewY(num angle) native;
 
-  /** @domName WebKitCSSMatrix.toString */
+  /// @domName WebKitCSSMatrix.toString; @docsEditable true
   String toString() native;
 
-  /** @domName WebKitCSSMatrix.translate */
+  /// @domName WebKitCSSMatrix.translate; @docsEditable true
   CSSMatrix translate(num x, num y, num z) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1258,19 +1251,20 @@ class CSSMatrix native "*WebKitCSSMatrix" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSMediaRule
+/// @domName CSSMediaRule; @docsEditable true
 class CSSMediaRule extends CSSRule native "*CSSMediaRule" {
 
-  /** @domName CSSMediaRule.cssRules */
+  /// @domName CSSMediaRule.cssRules; @docsEditable true
+  @Returns('_CSSRuleList') @Creates('_CSSRuleList')
   final List<CSSRule> cssRules;
 
-  /** @domName CSSMediaRule.media */
+  /// @domName CSSMediaRule.media; @docsEditable true
   final MediaList media;
 
-  /** @domName CSSMediaRule.deleteRule */
+  /// @domName CSSMediaRule.deleteRule; @docsEditable true
   void deleteRule(int index) native;
 
-  /** @domName CSSMediaRule.insertRule */
+  /// @domName CSSMediaRule.insertRule; @docsEditable true
   int insertRule(String rule, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1278,13 +1272,13 @@ class CSSMediaRule extends CSSRule native "*CSSMediaRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSPageRule
+/// @domName CSSPageRule; @docsEditable true
 class CSSPageRule extends CSSRule native "*CSSPageRule" {
 
-  /** @domName CSSPageRule.selectorText */
+  /// @domName CSSPageRule.selectorText; @docsEditable true
   String selectorText;
 
-  /** @domName CSSPageRule.style */
+  /// @domName CSSPageRule.style; @docsEditable true
   final CSSStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1292,7 +1286,7 @@ class CSSPageRule extends CSSRule native "*CSSPageRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSPrimitiveValue
+/// @domName CSSPrimitiveValue; @docsEditable true
 class CSSPrimitiveValue extends CSSValue native "*CSSPrimitiveValue" {
 
   static const int CSS_ATTR = 22;
@@ -1353,28 +1347,28 @@ class CSSPrimitiveValue extends CSSValue native "*CSSPrimitiveValue" {
 
   static const int CSS_VW = 26;
 
-  /** @domName CSSPrimitiveValue.primitiveType */
+  /// @domName CSSPrimitiveValue.primitiveType; @docsEditable true
   final int primitiveType;
 
-  /** @domName CSSPrimitiveValue.getCounterValue */
+  /// @domName CSSPrimitiveValue.getCounterValue; @docsEditable true
   Counter getCounterValue() native;
 
-  /** @domName CSSPrimitiveValue.getFloatValue */
+  /// @domName CSSPrimitiveValue.getFloatValue; @docsEditable true
   num getFloatValue(int unitType) native;
 
-  /** @domName CSSPrimitiveValue.getRGBColorValue */
+  /// @domName CSSPrimitiveValue.getRGBColorValue; @docsEditable true
   RGBColor getRGBColorValue() native;
 
-  /** @domName CSSPrimitiveValue.getRectValue */
+  /// @domName CSSPrimitiveValue.getRectValue; @docsEditable true
   Rect getRectValue() native;
 
-  /** @domName CSSPrimitiveValue.getStringValue */
+  /// @domName CSSPrimitiveValue.getStringValue; @docsEditable true
   String getStringValue() native;
 
-  /** @domName CSSPrimitiveValue.setFloatValue */
+  /// @domName CSSPrimitiveValue.setFloatValue; @docsEditable true
   void setFloatValue(int unitType, num floatValue) native;
 
-  /** @domName CSSPrimitiveValue.setStringValue */
+  /// @domName CSSPrimitiveValue.setStringValue; @docsEditable true
   void setStringValue(int stringType, String stringValue) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1382,7 +1376,7 @@ class CSSPrimitiveValue extends CSSValue native "*CSSPrimitiveValue" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSRule
+/// @domName CSSRule; @docsEditable true
 class CSSRule native "*CSSRule" {
 
   static const int CHARSET_RULE = 2;
@@ -1403,16 +1397,16 @@ class CSSRule native "*CSSRule" {
 
   static const int WEBKIT_KEYFRAME_RULE = 8;
 
-  /** @domName CSSRule.cssText */
+  /// @domName CSSRule.cssText; @docsEditable true
   String cssText;
 
-  /** @domName CSSRule.parentRule */
+  /// @domName CSSRule.parentRule; @docsEditable true
   final CSSRule parentRule;
 
-  /** @domName CSSRule.parentStyleSheet */
+  /// @domName CSSRule.parentStyleSheet; @docsEditable true
   final CSSStyleSheet parentStyleSheet;
 
-  /** @domName CSSRule.type */
+  /// @domName CSSRule.type; @docsEditable true
   final int type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1443,34 +1437,34 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
       _CSSStyleDeclarationFactoryProvider.createCSSStyleDeclaration_css(css);
 
 
-  /** @domName CSSStyleDeclaration.cssText */
+  /// @domName CSSStyleDeclaration.cssText; @docsEditable true
   String cssText;
 
-  /** @domName CSSStyleDeclaration.length */
+  /// @domName CSSStyleDeclaration.length; @docsEditable true
   final int length;
 
-  /** @domName CSSStyleDeclaration.parentRule */
+  /// @domName CSSStyleDeclaration.parentRule; @docsEditable true
   final CSSRule parentRule;
 
-  /** @domName CSSStyleDeclaration.getPropertyCSSValue */
+  /// @domName CSSStyleDeclaration.getPropertyCSSValue; @docsEditable true
   CSSValue getPropertyCSSValue(String propertyName) native;
 
-  /** @domName CSSStyleDeclaration.getPropertyPriority */
+  /// @domName CSSStyleDeclaration.getPropertyPriority; @docsEditable true
   String getPropertyPriority(String propertyName) native;
 
-  /** @domName CSSStyleDeclaration.getPropertyShorthand */
+  /// @domName CSSStyleDeclaration.getPropertyShorthand; @docsEditable true
   String getPropertyShorthand(String propertyName) native;
 
-  /** @domName CSSStyleDeclaration._getPropertyValue */
+  /// @domName CSSStyleDeclaration._getPropertyValue; @docsEditable true
   String _getPropertyValue(String propertyName) native "getPropertyValue";
 
-  /** @domName CSSStyleDeclaration.isPropertyImplicit */
+  /// @domName CSSStyleDeclaration.isPropertyImplicit; @docsEditable true
   bool isPropertyImplicit(String propertyName) native;
 
-  /** @domName CSSStyleDeclaration.item */
+  /// @domName CSSStyleDeclaration.item; @docsEditable true
   String item(int index) native;
 
-  /** @domName CSSStyleDeclaration.removeProperty */
+  /// @domName CSSStyleDeclaration.removeProperty; @docsEditable true
   String removeProperty(String propertyName) native;
 
 
@@ -1488,12 +1482,39 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
   }
 
   // TODO(jacobr): generate this list of properties using the existing script.
-    /** Gets the value of "animation" */
+  /** Gets the value of "align-content" */
+  String get alignContent =>
+    getPropertyValue('${_browserPrefix}align-content');
+
+  /** Sets the value of "align-content" */
+  void set alignContent(String value) {
+    setProperty('${_browserPrefix}align-content', value, '');
+  }
+
+  /** Gets the value of "align-items" */
+  String get alignItems =>
+    getPropertyValue('${_browserPrefix}align-items');
+
+  /** Sets the value of "align-items" */
+  void set alignItems(String value) {
+    setProperty('${_browserPrefix}align-items', value, '');
+  }
+
+  /** Gets the value of "align-self" */
+  String get alignSelf =>
+    getPropertyValue('${_browserPrefix}align-self');
+
+  /** Sets the value of "align-self" */
+  void set alignSelf(String value) {
+    setProperty('${_browserPrefix}align-self', value, '');
+  }
+
+  /** Gets the value of "animation" */
   String get animation =>
     getPropertyValue('${_browserPrefix}animation');
 
   /** Sets the value of "animation" */
-  void set animation(var value) {
+  void set animation(String value) {
     setProperty('${_browserPrefix}animation', value, '');
   }
 
@@ -1502,7 +1523,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}animation-delay');
 
   /** Sets the value of "animation-delay" */
-  void set animationDelay(var value) {
+  void set animationDelay(String value) {
     setProperty('${_browserPrefix}animation-delay', value, '');
   }
 
@@ -1511,7 +1532,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}animation-direction');
 
   /** Sets the value of "animation-direction" */
-  void set animationDirection(var value) {
+  void set animationDirection(String value) {
     setProperty('${_browserPrefix}animation-direction', value, '');
   }
 
@@ -1520,7 +1541,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}animation-duration');
 
   /** Sets the value of "animation-duration" */
-  void set animationDuration(var value) {
+  void set animationDuration(String value) {
     setProperty('${_browserPrefix}animation-duration', value, '');
   }
 
@@ -1529,7 +1550,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}animation-fill-mode');
 
   /** Sets the value of "animation-fill-mode" */
-  void set animationFillMode(var value) {
+  void set animationFillMode(String value) {
     setProperty('${_browserPrefix}animation-fill-mode', value, '');
   }
 
@@ -1538,7 +1559,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}animation-iteration-count');
 
   /** Sets the value of "animation-iteration-count" */
-  void set animationIterationCount(var value) {
+  void set animationIterationCount(String value) {
     setProperty('${_browserPrefix}animation-iteration-count', value, '');
   }
 
@@ -1547,7 +1568,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}animation-name');
 
   /** Sets the value of "animation-name" */
-  void set animationName(var value) {
+  void set animationName(String value) {
     setProperty('${_browserPrefix}animation-name', value, '');
   }
 
@@ -1556,7 +1577,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}animation-play-state');
 
   /** Sets the value of "animation-play-state" */
-  void set animationPlayState(var value) {
+  void set animationPlayState(String value) {
     setProperty('${_browserPrefix}animation-play-state', value, '');
   }
 
@@ -1565,8 +1586,17 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}animation-timing-function');
 
   /** Sets the value of "animation-timing-function" */
-  void set animationTimingFunction(var value) {
+  void set animationTimingFunction(String value) {
     setProperty('${_browserPrefix}animation-timing-function', value, '');
+  }
+
+  /** Gets the value of "app-region" */
+  String get appRegion =>
+    getPropertyValue('${_browserPrefix}app-region');
+
+  /** Sets the value of "app-region" */
+  void set appRegion(String value) {
+    setProperty('${_browserPrefix}app-region', value, '');
   }
 
   /** Gets the value of "appearance" */
@@ -1574,8 +1604,17 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}appearance');
 
   /** Sets the value of "appearance" */
-  void set appearance(var value) {
+  void set appearance(String value) {
     setProperty('${_browserPrefix}appearance', value, '');
+  }
+
+  /** Gets the value of "aspect-ratio" */
+  String get aspectRatio =>
+    getPropertyValue('${_browserPrefix}aspect-ratio');
+
+  /** Sets the value of "aspect-ratio" */
+  void set aspectRatio(String value) {
+    setProperty('${_browserPrefix}aspect-ratio', value, '');
   }
 
   /** Gets the value of "backface-visibility" */
@@ -1583,7 +1622,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}backface-visibility');
 
   /** Sets the value of "backface-visibility" */
-  void set backfaceVisibility(var value) {
+  void set backfaceVisibility(String value) {
     setProperty('${_browserPrefix}backface-visibility', value, '');
   }
 
@@ -1592,7 +1631,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('background');
 
   /** Sets the value of "background" */
-  void set background(var value) {
+  void set background(String value) {
     setProperty('background', value, '');
   }
 
@@ -1601,7 +1640,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('background-attachment');
 
   /** Sets the value of "background-attachment" */
-  void set backgroundAttachment(var value) {
+  void set backgroundAttachment(String value) {
     setProperty('background-attachment', value, '');
   }
 
@@ -1610,7 +1649,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('background-clip');
 
   /** Sets the value of "background-clip" */
-  void set backgroundClip(var value) {
+  void set backgroundClip(String value) {
     setProperty('background-clip', value, '');
   }
 
@@ -1619,7 +1658,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('background-color');
 
   /** Sets the value of "background-color" */
-  void set backgroundColor(var value) {
+  void set backgroundColor(String value) {
     setProperty('background-color', value, '');
   }
 
@@ -1628,7 +1667,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}background-composite');
 
   /** Sets the value of "background-composite" */
-  void set backgroundComposite(var value) {
+  void set backgroundComposite(String value) {
     setProperty('${_browserPrefix}background-composite', value, '');
   }
 
@@ -1637,7 +1676,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('background-image');
 
   /** Sets the value of "background-image" */
-  void set backgroundImage(var value) {
+  void set backgroundImage(String value) {
     setProperty('background-image', value, '');
   }
 
@@ -1646,7 +1685,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('background-origin');
 
   /** Sets the value of "background-origin" */
-  void set backgroundOrigin(var value) {
+  void set backgroundOrigin(String value) {
     setProperty('background-origin', value, '');
   }
 
@@ -1655,7 +1694,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('background-position');
 
   /** Sets the value of "background-position" */
-  void set backgroundPosition(var value) {
+  void set backgroundPosition(String value) {
     setProperty('background-position', value, '');
   }
 
@@ -1664,7 +1703,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('background-position-x');
 
   /** Sets the value of "background-position-x" */
-  void set backgroundPositionX(var value) {
+  void set backgroundPositionX(String value) {
     setProperty('background-position-x', value, '');
   }
 
@@ -1673,7 +1712,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('background-position-y');
 
   /** Sets the value of "background-position-y" */
-  void set backgroundPositionY(var value) {
+  void set backgroundPositionY(String value) {
     setProperty('background-position-y', value, '');
   }
 
@@ -1682,7 +1721,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('background-repeat');
 
   /** Sets the value of "background-repeat" */
-  void set backgroundRepeat(var value) {
+  void set backgroundRepeat(String value) {
     setProperty('background-repeat', value, '');
   }
 
@@ -1691,7 +1730,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('background-repeat-x');
 
   /** Sets the value of "background-repeat-x" */
-  void set backgroundRepeatX(var value) {
+  void set backgroundRepeatX(String value) {
     setProperty('background-repeat-x', value, '');
   }
 
@@ -1700,7 +1739,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('background-repeat-y');
 
   /** Sets the value of "background-repeat-y" */
-  void set backgroundRepeatY(var value) {
+  void set backgroundRepeatY(String value) {
     setProperty('background-repeat-y', value, '');
   }
 
@@ -1709,8 +1748,17 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('background-size');
 
   /** Sets the value of "background-size" */
-  void set backgroundSize(var value) {
+  void set backgroundSize(String value) {
     setProperty('background-size', value, '');
+  }
+
+  /** Gets the value of "blend-mode" */
+  String get blendMode =>
+    getPropertyValue('${_browserPrefix}blend-mode');
+
+  /** Sets the value of "blend-mode" */
+  void set blendMode(String value) {
+    setProperty('${_browserPrefix}blend-mode', value, '');
   }
 
   /** Gets the value of "border" */
@@ -1718,7 +1766,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border');
 
   /** Sets the value of "border" */
-  void set border(var value) {
+  void set border(String value) {
     setProperty('border', value, '');
   }
 
@@ -1727,7 +1775,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}border-after');
 
   /** Sets the value of "border-after" */
-  void set borderAfter(var value) {
+  void set borderAfter(String value) {
     setProperty('${_browserPrefix}border-after', value, '');
   }
 
@@ -1736,7 +1784,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}border-after-color');
 
   /** Sets the value of "border-after-color" */
-  void set borderAfterColor(var value) {
+  void set borderAfterColor(String value) {
     setProperty('${_browserPrefix}border-after-color', value, '');
   }
 
@@ -1745,7 +1793,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}border-after-style');
 
   /** Sets the value of "border-after-style" */
-  void set borderAfterStyle(var value) {
+  void set borderAfterStyle(String value) {
     setProperty('${_browserPrefix}border-after-style', value, '');
   }
 
@@ -1754,7 +1802,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}border-after-width');
 
   /** Sets the value of "border-after-width" */
-  void set borderAfterWidth(var value) {
+  void set borderAfterWidth(String value) {
     setProperty('${_browserPrefix}border-after-width', value, '');
   }
 
@@ -1763,7 +1811,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}border-before');
 
   /** Sets the value of "border-before" */
-  void set borderBefore(var value) {
+  void set borderBefore(String value) {
     setProperty('${_browserPrefix}border-before', value, '');
   }
 
@@ -1772,7 +1820,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}border-before-color');
 
   /** Sets the value of "border-before-color" */
-  void set borderBeforeColor(var value) {
+  void set borderBeforeColor(String value) {
     setProperty('${_browserPrefix}border-before-color', value, '');
   }
 
@@ -1781,7 +1829,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}border-before-style');
 
   /** Sets the value of "border-before-style" */
-  void set borderBeforeStyle(var value) {
+  void set borderBeforeStyle(String value) {
     setProperty('${_browserPrefix}border-before-style', value, '');
   }
 
@@ -1790,7 +1838,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}border-before-width');
 
   /** Sets the value of "border-before-width" */
-  void set borderBeforeWidth(var value) {
+  void set borderBeforeWidth(String value) {
     setProperty('${_browserPrefix}border-before-width', value, '');
   }
 
@@ -1799,7 +1847,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-bottom');
 
   /** Sets the value of "border-bottom" */
-  void set borderBottom(var value) {
+  void set borderBottom(String value) {
     setProperty('border-bottom', value, '');
   }
 
@@ -1808,7 +1856,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-bottom-color');
 
   /** Sets the value of "border-bottom-color" */
-  void set borderBottomColor(var value) {
+  void set borderBottomColor(String value) {
     setProperty('border-bottom-color', value, '');
   }
 
@@ -1817,7 +1865,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-bottom-left-radius');
 
   /** Sets the value of "border-bottom-left-radius" */
-  void set borderBottomLeftRadius(var value) {
+  void set borderBottomLeftRadius(String value) {
     setProperty('border-bottom-left-radius', value, '');
   }
 
@@ -1826,7 +1874,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-bottom-right-radius');
 
   /** Sets the value of "border-bottom-right-radius" */
-  void set borderBottomRightRadius(var value) {
+  void set borderBottomRightRadius(String value) {
     setProperty('border-bottom-right-radius', value, '');
   }
 
@@ -1835,7 +1883,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-bottom-style');
 
   /** Sets the value of "border-bottom-style" */
-  void set borderBottomStyle(var value) {
+  void set borderBottomStyle(String value) {
     setProperty('border-bottom-style', value, '');
   }
 
@@ -1844,7 +1892,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-bottom-width');
 
   /** Sets the value of "border-bottom-width" */
-  void set borderBottomWidth(var value) {
+  void set borderBottomWidth(String value) {
     setProperty('border-bottom-width', value, '');
   }
 
@@ -1853,7 +1901,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-collapse');
 
   /** Sets the value of "border-collapse" */
-  void set borderCollapse(var value) {
+  void set borderCollapse(String value) {
     setProperty('border-collapse', value, '');
   }
 
@@ -1862,7 +1910,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-color');
 
   /** Sets the value of "border-color" */
-  void set borderColor(var value) {
+  void set borderColor(String value) {
     setProperty('border-color', value, '');
   }
 
@@ -1871,7 +1919,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}border-end');
 
   /** Sets the value of "border-end" */
-  void set borderEnd(var value) {
+  void set borderEnd(String value) {
     setProperty('${_browserPrefix}border-end', value, '');
   }
 
@@ -1880,7 +1928,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}border-end-color');
 
   /** Sets the value of "border-end-color" */
-  void set borderEndColor(var value) {
+  void set borderEndColor(String value) {
     setProperty('${_browserPrefix}border-end-color', value, '');
   }
 
@@ -1889,7 +1937,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}border-end-style');
 
   /** Sets the value of "border-end-style" */
-  void set borderEndStyle(var value) {
+  void set borderEndStyle(String value) {
     setProperty('${_browserPrefix}border-end-style', value, '');
   }
 
@@ -1898,7 +1946,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}border-end-width');
 
   /** Sets the value of "border-end-width" */
-  void set borderEndWidth(var value) {
+  void set borderEndWidth(String value) {
     setProperty('${_browserPrefix}border-end-width', value, '');
   }
 
@@ -1907,7 +1955,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}border-fit');
 
   /** Sets the value of "border-fit" */
-  void set borderFit(var value) {
+  void set borderFit(String value) {
     setProperty('${_browserPrefix}border-fit', value, '');
   }
 
@@ -1916,7 +1964,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}border-horizontal-spacing');
 
   /** Sets the value of "border-horizontal-spacing" */
-  void set borderHorizontalSpacing(var value) {
+  void set borderHorizontalSpacing(String value) {
     setProperty('${_browserPrefix}border-horizontal-spacing', value, '');
   }
 
@@ -1925,7 +1973,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-image');
 
   /** Sets the value of "border-image" */
-  void set borderImage(var value) {
+  void set borderImage(String value) {
     setProperty('border-image', value, '');
   }
 
@@ -1934,7 +1982,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-image-outset');
 
   /** Sets the value of "border-image-outset" */
-  void set borderImageOutset(var value) {
+  void set borderImageOutset(String value) {
     setProperty('border-image-outset', value, '');
   }
 
@@ -1943,7 +1991,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-image-repeat');
 
   /** Sets the value of "border-image-repeat" */
-  void set borderImageRepeat(var value) {
+  void set borderImageRepeat(String value) {
     setProperty('border-image-repeat', value, '');
   }
 
@@ -1952,7 +2000,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-image-slice');
 
   /** Sets the value of "border-image-slice" */
-  void set borderImageSlice(var value) {
+  void set borderImageSlice(String value) {
     setProperty('border-image-slice', value, '');
   }
 
@@ -1961,7 +2009,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-image-source');
 
   /** Sets the value of "border-image-source" */
-  void set borderImageSource(var value) {
+  void set borderImageSource(String value) {
     setProperty('border-image-source', value, '');
   }
 
@@ -1970,7 +2018,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-image-width');
 
   /** Sets the value of "border-image-width" */
-  void set borderImageWidth(var value) {
+  void set borderImageWidth(String value) {
     setProperty('border-image-width', value, '');
   }
 
@@ -1979,7 +2027,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-left');
 
   /** Sets the value of "border-left" */
-  void set borderLeft(var value) {
+  void set borderLeft(String value) {
     setProperty('border-left', value, '');
   }
 
@@ -1988,7 +2036,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-left-color');
 
   /** Sets the value of "border-left-color" */
-  void set borderLeftColor(var value) {
+  void set borderLeftColor(String value) {
     setProperty('border-left-color', value, '');
   }
 
@@ -1997,7 +2045,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-left-style');
 
   /** Sets the value of "border-left-style" */
-  void set borderLeftStyle(var value) {
+  void set borderLeftStyle(String value) {
     setProperty('border-left-style', value, '');
   }
 
@@ -2006,7 +2054,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-left-width');
 
   /** Sets the value of "border-left-width" */
-  void set borderLeftWidth(var value) {
+  void set borderLeftWidth(String value) {
     setProperty('border-left-width', value, '');
   }
 
@@ -2015,7 +2063,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-radius');
 
   /** Sets the value of "border-radius" */
-  void set borderRadius(var value) {
+  void set borderRadius(String value) {
     setProperty('border-radius', value, '');
   }
 
@@ -2024,7 +2072,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-right');
 
   /** Sets the value of "border-right" */
-  void set borderRight(var value) {
+  void set borderRight(String value) {
     setProperty('border-right', value, '');
   }
 
@@ -2033,7 +2081,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-right-color');
 
   /** Sets the value of "border-right-color" */
-  void set borderRightColor(var value) {
+  void set borderRightColor(String value) {
     setProperty('border-right-color', value, '');
   }
 
@@ -2042,7 +2090,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-right-style');
 
   /** Sets the value of "border-right-style" */
-  void set borderRightStyle(var value) {
+  void set borderRightStyle(String value) {
     setProperty('border-right-style', value, '');
   }
 
@@ -2051,7 +2099,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-right-width');
 
   /** Sets the value of "border-right-width" */
-  void set borderRightWidth(var value) {
+  void set borderRightWidth(String value) {
     setProperty('border-right-width', value, '');
   }
 
@@ -2060,7 +2108,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-spacing');
 
   /** Sets the value of "border-spacing" */
-  void set borderSpacing(var value) {
+  void set borderSpacing(String value) {
     setProperty('border-spacing', value, '');
   }
 
@@ -2069,7 +2117,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}border-start');
 
   /** Sets the value of "border-start" */
-  void set borderStart(var value) {
+  void set borderStart(String value) {
     setProperty('${_browserPrefix}border-start', value, '');
   }
 
@@ -2078,7 +2126,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}border-start-color');
 
   /** Sets the value of "border-start-color" */
-  void set borderStartColor(var value) {
+  void set borderStartColor(String value) {
     setProperty('${_browserPrefix}border-start-color', value, '');
   }
 
@@ -2087,7 +2135,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}border-start-style');
 
   /** Sets the value of "border-start-style" */
-  void set borderStartStyle(var value) {
+  void set borderStartStyle(String value) {
     setProperty('${_browserPrefix}border-start-style', value, '');
   }
 
@@ -2096,7 +2144,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}border-start-width');
 
   /** Sets the value of "border-start-width" */
-  void set borderStartWidth(var value) {
+  void set borderStartWidth(String value) {
     setProperty('${_browserPrefix}border-start-width', value, '');
   }
 
@@ -2105,7 +2153,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-style');
 
   /** Sets the value of "border-style" */
-  void set borderStyle(var value) {
+  void set borderStyle(String value) {
     setProperty('border-style', value, '');
   }
 
@@ -2114,7 +2162,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-top');
 
   /** Sets the value of "border-top" */
-  void set borderTop(var value) {
+  void set borderTop(String value) {
     setProperty('border-top', value, '');
   }
 
@@ -2123,7 +2171,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-top-color');
 
   /** Sets the value of "border-top-color" */
-  void set borderTopColor(var value) {
+  void set borderTopColor(String value) {
     setProperty('border-top-color', value, '');
   }
 
@@ -2132,7 +2180,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-top-left-radius');
 
   /** Sets the value of "border-top-left-radius" */
-  void set borderTopLeftRadius(var value) {
+  void set borderTopLeftRadius(String value) {
     setProperty('border-top-left-radius', value, '');
   }
 
@@ -2141,7 +2189,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-top-right-radius');
 
   /** Sets the value of "border-top-right-radius" */
-  void set borderTopRightRadius(var value) {
+  void set borderTopRightRadius(String value) {
     setProperty('border-top-right-radius', value, '');
   }
 
@@ -2150,7 +2198,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-top-style');
 
   /** Sets the value of "border-top-style" */
-  void set borderTopStyle(var value) {
+  void set borderTopStyle(String value) {
     setProperty('border-top-style', value, '');
   }
 
@@ -2159,7 +2207,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-top-width');
 
   /** Sets the value of "border-top-width" */
-  void set borderTopWidth(var value) {
+  void set borderTopWidth(String value) {
     setProperty('border-top-width', value, '');
   }
 
@@ -2168,7 +2216,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}border-vertical-spacing');
 
   /** Sets the value of "border-vertical-spacing" */
-  void set borderVerticalSpacing(var value) {
+  void set borderVerticalSpacing(String value) {
     setProperty('${_browserPrefix}border-vertical-spacing', value, '');
   }
 
@@ -2177,7 +2225,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('border-width');
 
   /** Sets the value of "border-width" */
-  void set borderWidth(var value) {
+  void set borderWidth(String value) {
     setProperty('border-width', value, '');
   }
 
@@ -2186,7 +2234,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('bottom');
 
   /** Sets the value of "bottom" */
-  void set bottom(var value) {
+  void set bottom(String value) {
     setProperty('bottom', value, '');
   }
 
@@ -2195,8 +2243,17 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}box-align');
 
   /** Sets the value of "box-align" */
-  void set boxAlign(var value) {
+  void set boxAlign(String value) {
     setProperty('${_browserPrefix}box-align', value, '');
+  }
+
+  /** Gets the value of "box-decoration-break" */
+  String get boxDecorationBreak =>
+    getPropertyValue('${_browserPrefix}box-decoration-break');
+
+  /** Sets the value of "box-decoration-break" */
+  void set boxDecorationBreak(String value) {
+    setProperty('${_browserPrefix}box-decoration-break', value, '');
   }
 
   /** Gets the value of "box-direction" */
@@ -2204,7 +2261,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}box-direction');
 
   /** Sets the value of "box-direction" */
-  void set boxDirection(var value) {
+  void set boxDirection(String value) {
     setProperty('${_browserPrefix}box-direction', value, '');
   }
 
@@ -2213,7 +2270,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}box-flex');
 
   /** Sets the value of "box-flex" */
-  void set boxFlex(var value) {
+  void set boxFlex(String value) {
     setProperty('${_browserPrefix}box-flex', value, '');
   }
 
@@ -2222,7 +2279,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}box-flex-group');
 
   /** Sets the value of "box-flex-group" */
-  void set boxFlexGroup(var value) {
+  void set boxFlexGroup(String value) {
     setProperty('${_browserPrefix}box-flex-group', value, '');
   }
 
@@ -2231,7 +2288,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}box-lines');
 
   /** Sets the value of "box-lines" */
-  void set boxLines(var value) {
+  void set boxLines(String value) {
     setProperty('${_browserPrefix}box-lines', value, '');
   }
 
@@ -2240,7 +2297,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}box-ordinal-group');
 
   /** Sets the value of "box-ordinal-group" */
-  void set boxOrdinalGroup(var value) {
+  void set boxOrdinalGroup(String value) {
     setProperty('${_browserPrefix}box-ordinal-group', value, '');
   }
 
@@ -2249,7 +2306,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}box-orient');
 
   /** Sets the value of "box-orient" */
-  void set boxOrient(var value) {
+  void set boxOrient(String value) {
     setProperty('${_browserPrefix}box-orient', value, '');
   }
 
@@ -2258,7 +2315,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}box-pack');
 
   /** Sets the value of "box-pack" */
-  void set boxPack(var value) {
+  void set boxPack(String value) {
     setProperty('${_browserPrefix}box-pack', value, '');
   }
 
@@ -2267,7 +2324,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}box-reflect');
 
   /** Sets the value of "box-reflect" */
-  void set boxReflect(var value) {
+  void set boxReflect(String value) {
     setProperty('${_browserPrefix}box-reflect', value, '');
   }
 
@@ -2276,7 +2333,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('box-shadow');
 
   /** Sets the value of "box-shadow" */
-  void set boxShadow(var value) {
+  void set boxShadow(String value) {
     setProperty('box-shadow', value, '');
   }
 
@@ -2285,7 +2342,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('box-sizing');
 
   /** Sets the value of "box-sizing" */
-  void set boxSizing(var value) {
+  void set boxSizing(String value) {
     setProperty('box-sizing', value, '');
   }
 
@@ -2294,7 +2351,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('caption-side');
 
   /** Sets the value of "caption-side" */
-  void set captionSide(var value) {
+  void set captionSide(String value) {
     setProperty('caption-side', value, '');
   }
 
@@ -2303,7 +2360,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('clear');
 
   /** Sets the value of "clear" */
-  void set clear(var value) {
+  void set clear(String value) {
     setProperty('clear', value, '');
   }
 
@@ -2312,8 +2369,17 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('clip');
 
   /** Sets the value of "clip" */
-  void set clip(var value) {
+  void set clip(String value) {
     setProperty('clip', value, '');
+  }
+
+  /** Gets the value of "clip-path" */
+  String get clipPath =>
+    getPropertyValue('${_browserPrefix}clip-path');
+
+  /** Sets the value of "clip-path" */
+  void set clipPath(String value) {
+    setProperty('${_browserPrefix}clip-path', value, '');
   }
 
   /** Gets the value of "color" */
@@ -2321,7 +2387,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('color');
 
   /** Sets the value of "color" */
-  void set color(var value) {
+  void set color(String value) {
     setProperty('color', value, '');
   }
 
@@ -2330,8 +2396,17 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}color-correction');
 
   /** Sets the value of "color-correction" */
-  void set colorCorrection(var value) {
+  void set colorCorrection(String value) {
     setProperty('${_browserPrefix}color-correction', value, '');
+  }
+
+  /** Gets the value of "column-axis" */
+  String get columnAxis =>
+    getPropertyValue('${_browserPrefix}column-axis');
+
+  /** Sets the value of "column-axis" */
+  void set columnAxis(String value) {
+    setProperty('${_browserPrefix}column-axis', value, '');
   }
 
   /** Gets the value of "column-break-after" */
@@ -2339,7 +2414,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}column-break-after');
 
   /** Sets the value of "column-break-after" */
-  void set columnBreakAfter(var value) {
+  void set columnBreakAfter(String value) {
     setProperty('${_browserPrefix}column-break-after', value, '');
   }
 
@@ -2348,7 +2423,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}column-break-before');
 
   /** Sets the value of "column-break-before" */
-  void set columnBreakBefore(var value) {
+  void set columnBreakBefore(String value) {
     setProperty('${_browserPrefix}column-break-before', value, '');
   }
 
@@ -2357,7 +2432,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}column-break-inside');
 
   /** Sets the value of "column-break-inside" */
-  void set columnBreakInside(var value) {
+  void set columnBreakInside(String value) {
     setProperty('${_browserPrefix}column-break-inside', value, '');
   }
 
@@ -2366,7 +2441,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}column-count');
 
   /** Sets the value of "column-count" */
-  void set columnCount(var value) {
+  void set columnCount(String value) {
     setProperty('${_browserPrefix}column-count', value, '');
   }
 
@@ -2375,8 +2450,17 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}column-gap');
 
   /** Sets the value of "column-gap" */
-  void set columnGap(var value) {
+  void set columnGap(String value) {
     setProperty('${_browserPrefix}column-gap', value, '');
+  }
+
+  /** Gets the value of "column-progression" */
+  String get columnProgression =>
+    getPropertyValue('${_browserPrefix}column-progression');
+
+  /** Sets the value of "column-progression" */
+  void set columnProgression(String value) {
+    setProperty('${_browserPrefix}column-progression', value, '');
   }
 
   /** Gets the value of "column-rule" */
@@ -2384,7 +2468,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}column-rule');
 
   /** Sets the value of "column-rule" */
-  void set columnRule(var value) {
+  void set columnRule(String value) {
     setProperty('${_browserPrefix}column-rule', value, '');
   }
 
@@ -2393,7 +2477,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}column-rule-color');
 
   /** Sets the value of "column-rule-color" */
-  void set columnRuleColor(var value) {
+  void set columnRuleColor(String value) {
     setProperty('${_browserPrefix}column-rule-color', value, '');
   }
 
@@ -2402,7 +2486,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}column-rule-style');
 
   /** Sets the value of "column-rule-style" */
-  void set columnRuleStyle(var value) {
+  void set columnRuleStyle(String value) {
     setProperty('${_browserPrefix}column-rule-style', value, '');
   }
 
@@ -2411,7 +2495,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}column-rule-width');
 
   /** Sets the value of "column-rule-width" */
-  void set columnRuleWidth(var value) {
+  void set columnRuleWidth(String value) {
     setProperty('${_browserPrefix}column-rule-width', value, '');
   }
 
@@ -2420,7 +2504,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}column-span');
 
   /** Sets the value of "column-span" */
-  void set columnSpan(var value) {
+  void set columnSpan(String value) {
     setProperty('${_browserPrefix}column-span', value, '');
   }
 
@@ -2429,7 +2513,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}column-width');
 
   /** Sets the value of "column-width" */
-  void set columnWidth(var value) {
+  void set columnWidth(String value) {
     setProperty('${_browserPrefix}column-width', value, '');
   }
 
@@ -2438,7 +2522,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}columns');
 
   /** Sets the value of "columns" */
-  void set columns(var value) {
+  void set columns(String value) {
     setProperty('${_browserPrefix}columns', value, '');
   }
 
@@ -2447,7 +2531,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('content');
 
   /** Sets the value of "content" */
-  void set content(var value) {
+  void set content(String value) {
     setProperty('content', value, '');
   }
 
@@ -2456,7 +2540,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('counter-increment');
 
   /** Sets the value of "counter-increment" */
-  void set counterIncrement(var value) {
+  void set counterIncrement(String value) {
     setProperty('counter-increment', value, '');
   }
 
@@ -2465,7 +2549,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('counter-reset');
 
   /** Sets the value of "counter-reset" */
-  void set counterReset(var value) {
+  void set counterReset(String value) {
     setProperty('counter-reset', value, '');
   }
 
@@ -2474,8 +2558,17 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('cursor');
 
   /** Sets the value of "cursor" */
-  void set cursor(var value) {
+  void set cursor(String value) {
     setProperty('cursor', value, '');
+  }
+
+  /** Gets the value of "dashboard-region" */
+  String get dashboardRegion =>
+    getPropertyValue('${_browserPrefix}dashboard-region');
+
+  /** Sets the value of "dashboard-region" */
+  void set dashboardRegion(String value) {
+    setProperty('${_browserPrefix}dashboard-region', value, '');
   }
 
   /** Gets the value of "direction" */
@@ -2483,7 +2576,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('direction');
 
   /** Sets the value of "direction" */
-  void set direction(var value) {
+  void set direction(String value) {
     setProperty('direction', value, '');
   }
 
@@ -2492,7 +2585,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('display');
 
   /** Sets the value of "display" */
-  void set display(var value) {
+  void set display(String value) {
     setProperty('display', value, '');
   }
 
@@ -2501,7 +2594,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('empty-cells');
 
   /** Sets the value of "empty-cells" */
-  void set emptyCells(var value) {
+  void set emptyCells(String value) {
     setProperty('empty-cells', value, '');
   }
 
@@ -2510,17 +2603,35 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}filter');
 
   /** Sets the value of "filter" */
-  void set filter(var value) {
+  void set filter(String value) {
     setProperty('${_browserPrefix}filter', value, '');
   }
 
-  /** Gets the value of "flex-align" */
-  String get flexAlign =>
-    getPropertyValue('${_browserPrefix}flex-align');
+  /** Gets the value of "flex" */
+  String get flex =>
+    getPropertyValue('${_browserPrefix}flex');
 
-  /** Sets the value of "flex-align" */
-  void set flexAlign(var value) {
-    setProperty('${_browserPrefix}flex-align', value, '');
+  /** Sets the value of "flex" */
+  void set flex(String value) {
+    setProperty('${_browserPrefix}flex', value, '');
+  }
+
+  /** Gets the value of "flex-basis" */
+  String get flexBasis =>
+    getPropertyValue('${_browserPrefix}flex-basis');
+
+  /** Sets the value of "flex-basis" */
+  void set flexBasis(String value) {
+    setProperty('${_browserPrefix}flex-basis', value, '');
+  }
+
+  /** Gets the value of "flex-direction" */
+  String get flexDirection =>
+    getPropertyValue('${_browserPrefix}flex-direction');
+
+  /** Sets the value of "flex-direction" */
+  void set flexDirection(String value) {
+    setProperty('${_browserPrefix}flex-direction', value, '');
   }
 
   /** Gets the value of "flex-flow" */
@@ -2528,26 +2639,35 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}flex-flow');
 
   /** Sets the value of "flex-flow" */
-  void set flexFlow(var value) {
+  void set flexFlow(String value) {
     setProperty('${_browserPrefix}flex-flow', value, '');
   }
 
-  /** Gets the value of "flex-order" */
-  String get flexOrder =>
-    getPropertyValue('${_browserPrefix}flex-order');
+  /** Gets the value of "flex-grow" */
+  String get flexGrow =>
+    getPropertyValue('${_browserPrefix}flex-grow');
 
-  /** Sets the value of "flex-order" */
-  void set flexOrder(var value) {
-    setProperty('${_browserPrefix}flex-order', value, '');
+  /** Sets the value of "flex-grow" */
+  void set flexGrow(String value) {
+    setProperty('${_browserPrefix}flex-grow', value, '');
   }
 
-  /** Gets the value of "flex-pack" */
-  String get flexPack =>
-    getPropertyValue('${_browserPrefix}flex-pack');
+  /** Gets the value of "flex-shrink" */
+  String get flexShrink =>
+    getPropertyValue('${_browserPrefix}flex-shrink');
 
-  /** Sets the value of "flex-pack" */
-  void set flexPack(var value) {
-    setProperty('${_browserPrefix}flex-pack', value, '');
+  /** Sets the value of "flex-shrink" */
+  void set flexShrink(String value) {
+    setProperty('${_browserPrefix}flex-shrink', value, '');
+  }
+
+  /** Gets the value of "flex-wrap" */
+  String get flexWrap =>
+    getPropertyValue('${_browserPrefix}flex-wrap');
+
+  /** Sets the value of "flex-wrap" */
+  void set flexWrap(String value) {
+    setProperty('${_browserPrefix}flex-wrap', value, '');
   }
 
   /** Gets the value of "float" */
@@ -2555,7 +2675,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('float');
 
   /** Sets the value of "float" */
-  void set float(var value) {
+  void set float(String value) {
     setProperty('float', value, '');
   }
 
@@ -2564,7 +2684,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}flow-from');
 
   /** Sets the value of "flow-from" */
-  void set flowFrom(var value) {
+  void set flowFrom(String value) {
     setProperty('${_browserPrefix}flow-from', value, '');
   }
 
@@ -2573,7 +2693,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}flow-into');
 
   /** Sets the value of "flow-into" */
-  void set flowInto(var value) {
+  void set flowInto(String value) {
     setProperty('${_browserPrefix}flow-into', value, '');
   }
 
@@ -2582,7 +2702,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('font');
 
   /** Sets the value of "font" */
-  void set font(var value) {
+  void set font(String value) {
     setProperty('font', value, '');
   }
 
@@ -2591,7 +2711,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('font-family');
 
   /** Sets the value of "font-family" */
-  void set fontFamily(var value) {
+  void set fontFamily(String value) {
     setProperty('font-family', value, '');
   }
 
@@ -2600,8 +2720,17 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}font-feature-settings');
 
   /** Sets the value of "font-feature-settings" */
-  void set fontFeatureSettings(var value) {
+  void set fontFeatureSettings(String value) {
     setProperty('${_browserPrefix}font-feature-settings', value, '');
+  }
+
+  /** Gets the value of "font-kerning" */
+  String get fontKerning =>
+    getPropertyValue('${_browserPrefix}font-kerning');
+
+  /** Sets the value of "font-kerning" */
+  void set fontKerning(String value) {
+    setProperty('${_browserPrefix}font-kerning', value, '');
   }
 
   /** Gets the value of "font-size" */
@@ -2609,7 +2738,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('font-size');
 
   /** Sets the value of "font-size" */
-  void set fontSize(var value) {
+  void set fontSize(String value) {
     setProperty('font-size', value, '');
   }
 
@@ -2618,7 +2747,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}font-size-delta');
 
   /** Sets the value of "font-size-delta" */
-  void set fontSizeDelta(var value) {
+  void set fontSizeDelta(String value) {
     setProperty('${_browserPrefix}font-size-delta', value, '');
   }
 
@@ -2627,7 +2756,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}font-smoothing');
 
   /** Sets the value of "font-smoothing" */
-  void set fontSmoothing(var value) {
+  void set fontSmoothing(String value) {
     setProperty('${_browserPrefix}font-smoothing', value, '');
   }
 
@@ -2636,7 +2765,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('font-stretch');
 
   /** Sets the value of "font-stretch" */
-  void set fontStretch(var value) {
+  void set fontStretch(String value) {
     setProperty('font-stretch', value, '');
   }
 
@@ -2645,7 +2774,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('font-style');
 
   /** Sets the value of "font-style" */
-  void set fontStyle(var value) {
+  void set fontStyle(String value) {
     setProperty('font-style', value, '');
   }
 
@@ -2654,8 +2783,17 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('font-variant');
 
   /** Sets the value of "font-variant" */
-  void set fontVariant(var value) {
+  void set fontVariant(String value) {
     setProperty('font-variant', value, '');
+  }
+
+  /** Gets the value of "font-variant-ligatures" */
+  String get fontVariantLigatures =>
+    getPropertyValue('${_browserPrefix}font-variant-ligatures');
+
+  /** Sets the value of "font-variant-ligatures" */
+  void set fontVariantLigatures(String value) {
+    setProperty('${_browserPrefix}font-variant-ligatures', value, '');
   }
 
   /** Gets the value of "font-weight" */
@@ -2663,8 +2801,44 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('font-weight');
 
   /** Sets the value of "font-weight" */
-  void set fontWeight(var value) {
+  void set fontWeight(String value) {
     setProperty('font-weight', value, '');
+  }
+
+  /** Gets the value of "grid-column" */
+  String get gridColumn =>
+    getPropertyValue('${_browserPrefix}grid-column');
+
+  /** Sets the value of "grid-column" */
+  void set gridColumn(String value) {
+    setProperty('${_browserPrefix}grid-column', value, '');
+  }
+
+  /** Gets the value of "grid-columns" */
+  String get gridColumns =>
+    getPropertyValue('${_browserPrefix}grid-columns');
+
+  /** Sets the value of "grid-columns" */
+  void set gridColumns(String value) {
+    setProperty('${_browserPrefix}grid-columns', value, '');
+  }
+
+  /** Gets the value of "grid-row" */
+  String get gridRow =>
+    getPropertyValue('${_browserPrefix}grid-row');
+
+  /** Sets the value of "grid-row" */
+  void set gridRow(String value) {
+    setProperty('${_browserPrefix}grid-row', value, '');
+  }
+
+  /** Gets the value of "grid-rows" */
+  String get gridRows =>
+    getPropertyValue('${_browserPrefix}grid-rows');
+
+  /** Sets the value of "grid-rows" */
+  void set gridRows(String value) {
+    setProperty('${_browserPrefix}grid-rows', value, '');
   }
 
   /** Gets the value of "height" */
@@ -2672,7 +2846,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('height');
 
   /** Sets the value of "height" */
-  void set height(var value) {
+  void set height(String value) {
     setProperty('height', value, '');
   }
 
@@ -2681,7 +2855,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}highlight');
 
   /** Sets the value of "highlight" */
-  void set highlight(var value) {
+  void set highlight(String value) {
     setProperty('${_browserPrefix}highlight', value, '');
   }
 
@@ -2690,7 +2864,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}hyphenate-character');
 
   /** Sets the value of "hyphenate-character" */
-  void set hyphenateCharacter(var value) {
+  void set hyphenateCharacter(String value) {
     setProperty('${_browserPrefix}hyphenate-character', value, '');
   }
 
@@ -2699,7 +2873,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}hyphenate-limit-after');
 
   /** Sets the value of "hyphenate-limit-after" */
-  void set hyphenateLimitAfter(var value) {
+  void set hyphenateLimitAfter(String value) {
     setProperty('${_browserPrefix}hyphenate-limit-after', value, '');
   }
 
@@ -2708,7 +2882,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}hyphenate-limit-before');
 
   /** Sets the value of "hyphenate-limit-before" */
-  void set hyphenateLimitBefore(var value) {
+  void set hyphenateLimitBefore(String value) {
     setProperty('${_browserPrefix}hyphenate-limit-before', value, '');
   }
 
@@ -2717,7 +2891,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}hyphenate-limit-lines');
 
   /** Sets the value of "hyphenate-limit-lines" */
-  void set hyphenateLimitLines(var value) {
+  void set hyphenateLimitLines(String value) {
     setProperty('${_browserPrefix}hyphenate-limit-lines', value, '');
   }
 
@@ -2726,8 +2900,17 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}hyphens');
 
   /** Sets the value of "hyphens" */
-  void set hyphens(var value) {
+  void set hyphens(String value) {
     setProperty('${_browserPrefix}hyphens', value, '');
+  }
+
+  /** Gets the value of "image-orientation" */
+  String get imageOrientation =>
+    getPropertyValue('image-orientation');
+
+  /** Sets the value of "image-orientation" */
+  void set imageOrientation(String value) {
+    setProperty('image-orientation', value, '');
   }
 
   /** Gets the value of "image-rendering" */
@@ -2735,8 +2918,26 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('image-rendering');
 
   /** Sets the value of "image-rendering" */
-  void set imageRendering(var value) {
+  void set imageRendering(String value) {
     setProperty('image-rendering', value, '');
+  }
+
+  /** Gets the value of "image-resolution" */
+  String get imageResolution =>
+    getPropertyValue('image-resolution');
+
+  /** Sets the value of "image-resolution" */
+  void set imageResolution(String value) {
+    setProperty('image-resolution', value, '');
+  }
+
+  /** Gets the value of "justify-content" */
+  String get justifyContent =>
+    getPropertyValue('${_browserPrefix}justify-content');
+
+  /** Sets the value of "justify-content" */
+  void set justifyContent(String value) {
+    setProperty('${_browserPrefix}justify-content', value, '');
   }
 
   /** Gets the value of "left" */
@@ -2744,7 +2945,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('left');
 
   /** Sets the value of "left" */
-  void set left(var value) {
+  void set left(String value) {
     setProperty('left', value, '');
   }
 
@@ -2753,8 +2954,17 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('letter-spacing');
 
   /** Sets the value of "letter-spacing" */
-  void set letterSpacing(var value) {
+  void set letterSpacing(String value) {
     setProperty('letter-spacing', value, '');
+  }
+
+  /** Gets the value of "line-align" */
+  String get lineAlign =>
+    getPropertyValue('${_browserPrefix}line-align');
+
+  /** Sets the value of "line-align" */
+  void set lineAlign(String value) {
+    setProperty('${_browserPrefix}line-align', value, '');
   }
 
   /** Gets the value of "line-box-contain" */
@@ -2762,7 +2972,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}line-box-contain');
 
   /** Sets the value of "line-box-contain" */
-  void set lineBoxContain(var value) {
+  void set lineBoxContain(String value) {
     setProperty('${_browserPrefix}line-box-contain', value, '');
   }
 
@@ -2771,7 +2981,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}line-break');
 
   /** Sets the value of "line-break" */
-  void set lineBreak(var value) {
+  void set lineBreak(String value) {
     setProperty('${_browserPrefix}line-break', value, '');
   }
 
@@ -2780,8 +2990,17 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}line-clamp');
 
   /** Sets the value of "line-clamp" */
-  void set lineClamp(var value) {
+  void set lineClamp(String value) {
     setProperty('${_browserPrefix}line-clamp', value, '');
+  }
+
+  /** Gets the value of "line-grid" */
+  String get lineGrid =>
+    getPropertyValue('${_browserPrefix}line-grid');
+
+  /** Sets the value of "line-grid" */
+  void set lineGrid(String value) {
+    setProperty('${_browserPrefix}line-grid', value, '');
   }
 
   /** Gets the value of "line-height" */
@@ -2789,8 +3008,17 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('line-height');
 
   /** Sets the value of "line-height" */
-  void set lineHeight(var value) {
+  void set lineHeight(String value) {
     setProperty('line-height', value, '');
+  }
+
+  /** Gets the value of "line-snap" */
+  String get lineSnap =>
+    getPropertyValue('${_browserPrefix}line-snap');
+
+  /** Sets the value of "line-snap" */
+  void set lineSnap(String value) {
+    setProperty('${_browserPrefix}line-snap', value, '');
   }
 
   /** Gets the value of "list-style" */
@@ -2798,7 +3026,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('list-style');
 
   /** Sets the value of "list-style" */
-  void set listStyle(var value) {
+  void set listStyle(String value) {
     setProperty('list-style', value, '');
   }
 
@@ -2807,7 +3035,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('list-style-image');
 
   /** Sets the value of "list-style-image" */
-  void set listStyleImage(var value) {
+  void set listStyleImage(String value) {
     setProperty('list-style-image', value, '');
   }
 
@@ -2816,7 +3044,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('list-style-position');
 
   /** Sets the value of "list-style-position" */
-  void set listStylePosition(var value) {
+  void set listStylePosition(String value) {
     setProperty('list-style-position', value, '');
   }
 
@@ -2825,7 +3053,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('list-style-type');
 
   /** Sets the value of "list-style-type" */
-  void set listStyleType(var value) {
+  void set listStyleType(String value) {
     setProperty('list-style-type', value, '');
   }
 
@@ -2834,7 +3062,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}locale');
 
   /** Sets the value of "locale" */
-  void set locale(var value) {
+  void set locale(String value) {
     setProperty('${_browserPrefix}locale', value, '');
   }
 
@@ -2843,7 +3071,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}logical-height');
 
   /** Sets the value of "logical-height" */
-  void set logicalHeight(var value) {
+  void set logicalHeight(String value) {
     setProperty('${_browserPrefix}logical-height', value, '');
   }
 
@@ -2852,7 +3080,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}logical-width');
 
   /** Sets the value of "logical-width" */
-  void set logicalWidth(var value) {
+  void set logicalWidth(String value) {
     setProperty('${_browserPrefix}logical-width', value, '');
   }
 
@@ -2861,7 +3089,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('margin');
 
   /** Sets the value of "margin" */
-  void set margin(var value) {
+  void set margin(String value) {
     setProperty('margin', value, '');
   }
 
@@ -2870,7 +3098,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}margin-after');
 
   /** Sets the value of "margin-after" */
-  void set marginAfter(var value) {
+  void set marginAfter(String value) {
     setProperty('${_browserPrefix}margin-after', value, '');
   }
 
@@ -2879,7 +3107,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}margin-after-collapse');
 
   /** Sets the value of "margin-after-collapse" */
-  void set marginAfterCollapse(var value) {
+  void set marginAfterCollapse(String value) {
     setProperty('${_browserPrefix}margin-after-collapse', value, '');
   }
 
@@ -2888,7 +3116,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}margin-before');
 
   /** Sets the value of "margin-before" */
-  void set marginBefore(var value) {
+  void set marginBefore(String value) {
     setProperty('${_browserPrefix}margin-before', value, '');
   }
 
@@ -2897,7 +3125,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}margin-before-collapse');
 
   /** Sets the value of "margin-before-collapse" */
-  void set marginBeforeCollapse(var value) {
+  void set marginBeforeCollapse(String value) {
     setProperty('${_browserPrefix}margin-before-collapse', value, '');
   }
 
@@ -2906,7 +3134,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('margin-bottom');
 
   /** Sets the value of "margin-bottom" */
-  void set marginBottom(var value) {
+  void set marginBottom(String value) {
     setProperty('margin-bottom', value, '');
   }
 
@@ -2915,7 +3143,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}margin-bottom-collapse');
 
   /** Sets the value of "margin-bottom-collapse" */
-  void set marginBottomCollapse(var value) {
+  void set marginBottomCollapse(String value) {
     setProperty('${_browserPrefix}margin-bottom-collapse', value, '');
   }
 
@@ -2924,7 +3152,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}margin-collapse');
 
   /** Sets the value of "margin-collapse" */
-  void set marginCollapse(var value) {
+  void set marginCollapse(String value) {
     setProperty('${_browserPrefix}margin-collapse', value, '');
   }
 
@@ -2933,7 +3161,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}margin-end');
 
   /** Sets the value of "margin-end" */
-  void set marginEnd(var value) {
+  void set marginEnd(String value) {
     setProperty('${_browserPrefix}margin-end', value, '');
   }
 
@@ -2942,7 +3170,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('margin-left');
 
   /** Sets the value of "margin-left" */
-  void set marginLeft(var value) {
+  void set marginLeft(String value) {
     setProperty('margin-left', value, '');
   }
 
@@ -2951,7 +3179,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('margin-right');
 
   /** Sets the value of "margin-right" */
-  void set marginRight(var value) {
+  void set marginRight(String value) {
     setProperty('margin-right', value, '');
   }
 
@@ -2960,7 +3188,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}margin-start');
 
   /** Sets the value of "margin-start" */
-  void set marginStart(var value) {
+  void set marginStart(String value) {
     setProperty('${_browserPrefix}margin-start', value, '');
   }
 
@@ -2969,7 +3197,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('margin-top');
 
   /** Sets the value of "margin-top" */
-  void set marginTop(var value) {
+  void set marginTop(String value) {
     setProperty('margin-top', value, '');
   }
 
@@ -2978,7 +3206,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}margin-top-collapse');
 
   /** Sets the value of "margin-top-collapse" */
-  void set marginTopCollapse(var value) {
+  void set marginTopCollapse(String value) {
     setProperty('${_browserPrefix}margin-top-collapse', value, '');
   }
 
@@ -2987,7 +3215,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}marquee');
 
   /** Sets the value of "marquee" */
-  void set marquee(var value) {
+  void set marquee(String value) {
     setProperty('${_browserPrefix}marquee', value, '');
   }
 
@@ -2996,7 +3224,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}marquee-direction');
 
   /** Sets the value of "marquee-direction" */
-  void set marqueeDirection(var value) {
+  void set marqueeDirection(String value) {
     setProperty('${_browserPrefix}marquee-direction', value, '');
   }
 
@@ -3005,7 +3233,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}marquee-increment');
 
   /** Sets the value of "marquee-increment" */
-  void set marqueeIncrement(var value) {
+  void set marqueeIncrement(String value) {
     setProperty('${_browserPrefix}marquee-increment', value, '');
   }
 
@@ -3014,7 +3242,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}marquee-repetition');
 
   /** Sets the value of "marquee-repetition" */
-  void set marqueeRepetition(var value) {
+  void set marqueeRepetition(String value) {
     setProperty('${_browserPrefix}marquee-repetition', value, '');
   }
 
@@ -3023,7 +3251,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}marquee-speed');
 
   /** Sets the value of "marquee-speed" */
-  void set marqueeSpeed(var value) {
+  void set marqueeSpeed(String value) {
     setProperty('${_browserPrefix}marquee-speed', value, '');
   }
 
@@ -3032,7 +3260,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}marquee-style');
 
   /** Sets the value of "marquee-style" */
-  void set marqueeStyle(var value) {
+  void set marqueeStyle(String value) {
     setProperty('${_browserPrefix}marquee-style', value, '');
   }
 
@@ -3041,7 +3269,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}mask');
 
   /** Sets the value of "mask" */
-  void set mask(var value) {
+  void set mask(String value) {
     setProperty('${_browserPrefix}mask', value, '');
   }
 
@@ -3050,7 +3278,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}mask-attachment');
 
   /** Sets the value of "mask-attachment" */
-  void set maskAttachment(var value) {
+  void set maskAttachment(String value) {
     setProperty('${_browserPrefix}mask-attachment', value, '');
   }
 
@@ -3059,7 +3287,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}mask-box-image');
 
   /** Sets the value of "mask-box-image" */
-  void set maskBoxImage(var value) {
+  void set maskBoxImage(String value) {
     setProperty('${_browserPrefix}mask-box-image', value, '');
   }
 
@@ -3068,7 +3296,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}mask-box-image-outset');
 
   /** Sets the value of "mask-box-image-outset" */
-  void set maskBoxImageOutset(var value) {
+  void set maskBoxImageOutset(String value) {
     setProperty('${_browserPrefix}mask-box-image-outset', value, '');
   }
 
@@ -3077,7 +3305,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}mask-box-image-repeat');
 
   /** Sets the value of "mask-box-image-repeat" */
-  void set maskBoxImageRepeat(var value) {
+  void set maskBoxImageRepeat(String value) {
     setProperty('${_browserPrefix}mask-box-image-repeat', value, '');
   }
 
@@ -3086,7 +3314,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}mask-box-image-slice');
 
   /** Sets the value of "mask-box-image-slice" */
-  void set maskBoxImageSlice(var value) {
+  void set maskBoxImageSlice(String value) {
     setProperty('${_browserPrefix}mask-box-image-slice', value, '');
   }
 
@@ -3095,7 +3323,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}mask-box-image-source');
 
   /** Sets the value of "mask-box-image-source" */
-  void set maskBoxImageSource(var value) {
+  void set maskBoxImageSource(String value) {
     setProperty('${_browserPrefix}mask-box-image-source', value, '');
   }
 
@@ -3104,7 +3332,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}mask-box-image-width');
 
   /** Sets the value of "mask-box-image-width" */
-  void set maskBoxImageWidth(var value) {
+  void set maskBoxImageWidth(String value) {
     setProperty('${_browserPrefix}mask-box-image-width', value, '');
   }
 
@@ -3113,7 +3341,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}mask-clip');
 
   /** Sets the value of "mask-clip" */
-  void set maskClip(var value) {
+  void set maskClip(String value) {
     setProperty('${_browserPrefix}mask-clip', value, '');
   }
 
@@ -3122,7 +3350,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}mask-composite');
 
   /** Sets the value of "mask-composite" */
-  void set maskComposite(var value) {
+  void set maskComposite(String value) {
     setProperty('${_browserPrefix}mask-composite', value, '');
   }
 
@@ -3131,7 +3359,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}mask-image');
 
   /** Sets the value of "mask-image" */
-  void set maskImage(var value) {
+  void set maskImage(String value) {
     setProperty('${_browserPrefix}mask-image', value, '');
   }
 
@@ -3140,7 +3368,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}mask-origin');
 
   /** Sets the value of "mask-origin" */
-  void set maskOrigin(var value) {
+  void set maskOrigin(String value) {
     setProperty('${_browserPrefix}mask-origin', value, '');
   }
 
@@ -3149,7 +3377,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}mask-position');
 
   /** Sets the value of "mask-position" */
-  void set maskPosition(var value) {
+  void set maskPosition(String value) {
     setProperty('${_browserPrefix}mask-position', value, '');
   }
 
@@ -3158,7 +3386,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}mask-position-x');
 
   /** Sets the value of "mask-position-x" */
-  void set maskPositionX(var value) {
+  void set maskPositionX(String value) {
     setProperty('${_browserPrefix}mask-position-x', value, '');
   }
 
@@ -3167,7 +3395,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}mask-position-y');
 
   /** Sets the value of "mask-position-y" */
-  void set maskPositionY(var value) {
+  void set maskPositionY(String value) {
     setProperty('${_browserPrefix}mask-position-y', value, '');
   }
 
@@ -3176,7 +3404,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}mask-repeat');
 
   /** Sets the value of "mask-repeat" */
-  void set maskRepeat(var value) {
+  void set maskRepeat(String value) {
     setProperty('${_browserPrefix}mask-repeat', value, '');
   }
 
@@ -3185,7 +3413,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}mask-repeat-x');
 
   /** Sets the value of "mask-repeat-x" */
-  void set maskRepeatX(var value) {
+  void set maskRepeatX(String value) {
     setProperty('${_browserPrefix}mask-repeat-x', value, '');
   }
 
@@ -3194,7 +3422,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}mask-repeat-y');
 
   /** Sets the value of "mask-repeat-y" */
-  void set maskRepeatY(var value) {
+  void set maskRepeatY(String value) {
     setProperty('${_browserPrefix}mask-repeat-y', value, '');
   }
 
@@ -3203,17 +3431,8 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}mask-size');
 
   /** Sets the value of "mask-size" */
-  void set maskSize(var value) {
+  void set maskSize(String value) {
     setProperty('${_browserPrefix}mask-size', value, '');
-  }
-
-  /** Gets the value of "match-nearest-mail-blockquote-color" */
-  String get matchNearestMailBlockquoteColor =>
-    getPropertyValue('${_browserPrefix}match-nearest-mail-blockquote-color');
-
-  /** Sets the value of "match-nearest-mail-blockquote-color" */
-  void set matchNearestMailBlockquoteColor(var value) {
-    setProperty('${_browserPrefix}match-nearest-mail-blockquote-color', value, '');
   }
 
   /** Gets the value of "max-height" */
@@ -3221,7 +3440,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('max-height');
 
   /** Sets the value of "max-height" */
-  void set maxHeight(var value) {
+  void set maxHeight(String value) {
     setProperty('max-height', value, '');
   }
 
@@ -3230,7 +3449,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}max-logical-height');
 
   /** Sets the value of "max-logical-height" */
-  void set maxLogicalHeight(var value) {
+  void set maxLogicalHeight(String value) {
     setProperty('${_browserPrefix}max-logical-height', value, '');
   }
 
@@ -3239,7 +3458,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}max-logical-width');
 
   /** Sets the value of "max-logical-width" */
-  void set maxLogicalWidth(var value) {
+  void set maxLogicalWidth(String value) {
     setProperty('${_browserPrefix}max-logical-width', value, '');
   }
 
@@ -3248,8 +3467,17 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('max-width');
 
   /** Sets the value of "max-width" */
-  void set maxWidth(var value) {
+  void set maxWidth(String value) {
     setProperty('max-width', value, '');
+  }
+
+  /** Gets the value of "max-zoom" */
+  String get maxZoom =>
+    getPropertyValue('max-zoom');
+
+  /** Sets the value of "max-zoom" */
+  void set maxZoom(String value) {
+    setProperty('max-zoom', value, '');
   }
 
   /** Gets the value of "min-height" */
@@ -3257,7 +3485,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('min-height');
 
   /** Sets the value of "min-height" */
-  void set minHeight(var value) {
+  void set minHeight(String value) {
     setProperty('min-height', value, '');
   }
 
@@ -3266,7 +3494,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}min-logical-height');
 
   /** Sets the value of "min-logical-height" */
-  void set minLogicalHeight(var value) {
+  void set minLogicalHeight(String value) {
     setProperty('${_browserPrefix}min-logical-height', value, '');
   }
 
@@ -3275,7 +3503,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}min-logical-width');
 
   /** Sets the value of "min-logical-width" */
-  void set minLogicalWidth(var value) {
+  void set minLogicalWidth(String value) {
     setProperty('${_browserPrefix}min-logical-width', value, '');
   }
 
@@ -3284,8 +3512,17 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('min-width');
 
   /** Sets the value of "min-width" */
-  void set minWidth(var value) {
+  void set minWidth(String value) {
     setProperty('min-width', value, '');
+  }
+
+  /** Gets the value of "min-zoom" */
+  String get minZoom =>
+    getPropertyValue('min-zoom');
+
+  /** Sets the value of "min-zoom" */
+  void set minZoom(String value) {
+    setProperty('min-zoom', value, '');
   }
 
   /** Gets the value of "nbsp-mode" */
@@ -3293,7 +3530,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}nbsp-mode');
 
   /** Sets the value of "nbsp-mode" */
-  void set nbspMode(var value) {
+  void set nbspMode(String value) {
     setProperty('${_browserPrefix}nbsp-mode', value, '');
   }
 
@@ -3302,8 +3539,26 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('opacity');
 
   /** Sets the value of "opacity" */
-  void set opacity(var value) {
+  void set opacity(String value) {
     setProperty('opacity', value, '');
+  }
+
+  /** Gets the value of "order" */
+  String get order =>
+    getPropertyValue('${_browserPrefix}order');
+
+  /** Sets the value of "order" */
+  void set order(String value) {
+    setProperty('${_browserPrefix}order', value, '');
+  }
+
+  /** Gets the value of "orientation" */
+  String get orientation =>
+    getPropertyValue('orientation');
+
+  /** Sets the value of "orientation" */
+  void set orientation(String value) {
+    setProperty('orientation', value, '');
   }
 
   /** Gets the value of "orphans" */
@@ -3311,7 +3566,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('orphans');
 
   /** Sets the value of "orphans" */
-  void set orphans(var value) {
+  void set orphans(String value) {
     setProperty('orphans', value, '');
   }
 
@@ -3320,7 +3575,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('outline');
 
   /** Sets the value of "outline" */
-  void set outline(var value) {
+  void set outline(String value) {
     setProperty('outline', value, '');
   }
 
@@ -3329,7 +3584,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('outline-color');
 
   /** Sets the value of "outline-color" */
-  void set outlineColor(var value) {
+  void set outlineColor(String value) {
     setProperty('outline-color', value, '');
   }
 
@@ -3338,7 +3593,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('outline-offset');
 
   /** Sets the value of "outline-offset" */
-  void set outlineOffset(var value) {
+  void set outlineOffset(String value) {
     setProperty('outline-offset', value, '');
   }
 
@@ -3347,7 +3602,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('outline-style');
 
   /** Sets the value of "outline-style" */
-  void set outlineStyle(var value) {
+  void set outlineStyle(String value) {
     setProperty('outline-style', value, '');
   }
 
@@ -3356,7 +3611,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('outline-width');
 
   /** Sets the value of "outline-width" */
-  void set outlineWidth(var value) {
+  void set outlineWidth(String value) {
     setProperty('outline-width', value, '');
   }
 
@@ -3365,8 +3620,26 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('overflow');
 
   /** Sets the value of "overflow" */
-  void set overflow(var value) {
+  void set overflow(String value) {
     setProperty('overflow', value, '');
+  }
+
+  /** Gets the value of "overflow-scrolling" */
+  String get overflowScrolling =>
+    getPropertyValue('${_browserPrefix}overflow-scrolling');
+
+  /** Sets the value of "overflow-scrolling" */
+  void set overflowScrolling(String value) {
+    setProperty('${_browserPrefix}overflow-scrolling', value, '');
+  }
+
+  /** Gets the value of "overflow-wrap" */
+  String get overflowWrap =>
+    getPropertyValue('overflow-wrap');
+
+  /** Sets the value of "overflow-wrap" */
+  void set overflowWrap(String value) {
+    setProperty('overflow-wrap', value, '');
   }
 
   /** Gets the value of "overflow-x" */
@@ -3374,7 +3647,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('overflow-x');
 
   /** Sets the value of "overflow-x" */
-  void set overflowX(var value) {
+  void set overflowX(String value) {
     setProperty('overflow-x', value, '');
   }
 
@@ -3383,7 +3656,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('overflow-y');
 
   /** Sets the value of "overflow-y" */
-  void set overflowY(var value) {
+  void set overflowY(String value) {
     setProperty('overflow-y', value, '');
   }
 
@@ -3392,7 +3665,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('padding');
 
   /** Sets the value of "padding" */
-  void set padding(var value) {
+  void set padding(String value) {
     setProperty('padding', value, '');
   }
 
@@ -3401,7 +3674,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}padding-after');
 
   /** Sets the value of "padding-after" */
-  void set paddingAfter(var value) {
+  void set paddingAfter(String value) {
     setProperty('${_browserPrefix}padding-after', value, '');
   }
 
@@ -3410,7 +3683,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}padding-before');
 
   /** Sets the value of "padding-before" */
-  void set paddingBefore(var value) {
+  void set paddingBefore(String value) {
     setProperty('${_browserPrefix}padding-before', value, '');
   }
 
@@ -3419,7 +3692,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('padding-bottom');
 
   /** Sets the value of "padding-bottom" */
-  void set paddingBottom(var value) {
+  void set paddingBottom(String value) {
     setProperty('padding-bottom', value, '');
   }
 
@@ -3428,7 +3701,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}padding-end');
 
   /** Sets the value of "padding-end" */
-  void set paddingEnd(var value) {
+  void set paddingEnd(String value) {
     setProperty('${_browserPrefix}padding-end', value, '');
   }
 
@@ -3437,7 +3710,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('padding-left');
 
   /** Sets the value of "padding-left" */
-  void set paddingLeft(var value) {
+  void set paddingLeft(String value) {
     setProperty('padding-left', value, '');
   }
 
@@ -3446,7 +3719,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('padding-right');
 
   /** Sets the value of "padding-right" */
-  void set paddingRight(var value) {
+  void set paddingRight(String value) {
     setProperty('padding-right', value, '');
   }
 
@@ -3455,7 +3728,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}padding-start');
 
   /** Sets the value of "padding-start" */
-  void set paddingStart(var value) {
+  void set paddingStart(String value) {
     setProperty('${_browserPrefix}padding-start', value, '');
   }
 
@@ -3464,7 +3737,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('padding-top');
 
   /** Sets the value of "padding-top" */
-  void set paddingTop(var value) {
+  void set paddingTop(String value) {
     setProperty('padding-top', value, '');
   }
 
@@ -3473,7 +3746,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('page');
 
   /** Sets the value of "page" */
-  void set page(var value) {
+  void set page(String value) {
     setProperty('page', value, '');
   }
 
@@ -3482,7 +3755,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('page-break-after');
 
   /** Sets the value of "page-break-after" */
-  void set pageBreakAfter(var value) {
+  void set pageBreakAfter(String value) {
     setProperty('page-break-after', value, '');
   }
 
@@ -3491,7 +3764,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('page-break-before');
 
   /** Sets the value of "page-break-before" */
-  void set pageBreakBefore(var value) {
+  void set pageBreakBefore(String value) {
     setProperty('page-break-before', value, '');
   }
 
@@ -3500,7 +3773,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('page-break-inside');
 
   /** Sets the value of "page-break-inside" */
-  void set pageBreakInside(var value) {
+  void set pageBreakInside(String value) {
     setProperty('page-break-inside', value, '');
   }
 
@@ -3509,7 +3782,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}perspective');
 
   /** Sets the value of "perspective" */
-  void set perspective(var value) {
+  void set perspective(String value) {
     setProperty('${_browserPrefix}perspective', value, '');
   }
 
@@ -3518,7 +3791,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}perspective-origin');
 
   /** Sets the value of "perspective-origin" */
-  void set perspectiveOrigin(var value) {
+  void set perspectiveOrigin(String value) {
     setProperty('${_browserPrefix}perspective-origin', value, '');
   }
 
@@ -3527,7 +3800,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}perspective-origin-x');
 
   /** Sets the value of "perspective-origin-x" */
-  void set perspectiveOriginX(var value) {
+  void set perspectiveOriginX(String value) {
     setProperty('${_browserPrefix}perspective-origin-x', value, '');
   }
 
@@ -3536,7 +3809,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}perspective-origin-y');
 
   /** Sets the value of "perspective-origin-y" */
-  void set perspectiveOriginY(var value) {
+  void set perspectiveOriginY(String value) {
     setProperty('${_browserPrefix}perspective-origin-y', value, '');
   }
 
@@ -3545,7 +3818,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('pointer-events');
 
   /** Sets the value of "pointer-events" */
-  void set pointerEvents(var value) {
+  void set pointerEvents(String value) {
     setProperty('pointer-events', value, '');
   }
 
@@ -3554,8 +3827,17 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('position');
 
   /** Sets the value of "position" */
-  void set position(var value) {
+  void set position(String value) {
     setProperty('position', value, '');
+  }
+
+  /** Gets the value of "print-color-adjust" */
+  String get printColorAdjust =>
+    getPropertyValue('${_browserPrefix}print-color-adjust');
+
+  /** Sets the value of "print-color-adjust" */
+  void set printColorAdjust(String value) {
+    setProperty('${_browserPrefix}print-color-adjust', value, '');
   }
 
   /** Gets the value of "quotes" */
@@ -3563,7 +3845,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('quotes');
 
   /** Sets the value of "quotes" */
-  void set quotes(var value) {
+  void set quotes(String value) {
     setProperty('quotes', value, '');
   }
 
@@ -3572,7 +3854,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}region-break-after');
 
   /** Sets the value of "region-break-after" */
-  void set regionBreakAfter(var value) {
+  void set regionBreakAfter(String value) {
     setProperty('${_browserPrefix}region-break-after', value, '');
   }
 
@@ -3581,7 +3863,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}region-break-before');
 
   /** Sets the value of "region-break-before" */
-  void set regionBreakBefore(var value) {
+  void set regionBreakBefore(String value) {
     setProperty('${_browserPrefix}region-break-before', value, '');
   }
 
@@ -3590,7 +3872,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}region-break-inside');
 
   /** Sets the value of "region-break-inside" */
-  void set regionBreakInside(var value) {
+  void set regionBreakInside(String value) {
     setProperty('${_browserPrefix}region-break-inside', value, '');
   }
 
@@ -3599,7 +3881,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}region-overflow');
 
   /** Sets the value of "region-overflow" */
-  void set regionOverflow(var value) {
+  void set regionOverflow(String value) {
     setProperty('${_browserPrefix}region-overflow', value, '');
   }
 
@@ -3608,7 +3890,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('resize');
 
   /** Sets the value of "resize" */
-  void set resize(var value) {
+  void set resize(String value) {
     setProperty('resize', value, '');
   }
 
@@ -3617,7 +3899,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('right');
 
   /** Sets the value of "right" */
-  void set right(var value) {
+  void set right(String value) {
     setProperty('right', value, '');
   }
 
@@ -3626,8 +3908,44 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}rtl-ordering');
 
   /** Sets the value of "rtl-ordering" */
-  void set rtlOrdering(var value) {
+  void set rtlOrdering(String value) {
     setProperty('${_browserPrefix}rtl-ordering', value, '');
+  }
+
+  /** Gets the value of "shape-inside" */
+  String get shapeInside =>
+    getPropertyValue('${_browserPrefix}shape-inside');
+
+  /** Sets the value of "shape-inside" */
+  void set shapeInside(String value) {
+    setProperty('${_browserPrefix}shape-inside', value, '');
+  }
+
+  /** Gets the value of "shape-margin" */
+  String get shapeMargin =>
+    getPropertyValue('${_browserPrefix}shape-margin');
+
+  /** Sets the value of "shape-margin" */
+  void set shapeMargin(String value) {
+    setProperty('${_browserPrefix}shape-margin', value, '');
+  }
+
+  /** Gets the value of "shape-outside" */
+  String get shapeOutside =>
+    getPropertyValue('${_browserPrefix}shape-outside');
+
+  /** Sets the value of "shape-outside" */
+  void set shapeOutside(String value) {
+    setProperty('${_browserPrefix}shape-outside', value, '');
+  }
+
+  /** Gets the value of "shape-padding" */
+  String get shapePadding =>
+    getPropertyValue('${_browserPrefix}shape-padding');
+
+  /** Sets the value of "shape-padding" */
+  void set shapePadding(String value) {
+    setProperty('${_browserPrefix}shape-padding', value, '');
   }
 
   /** Gets the value of "size" */
@@ -3635,7 +3953,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('size');
 
   /** Sets the value of "size" */
-  void set size(var value) {
+  void set size(String value) {
     setProperty('size', value, '');
   }
 
@@ -3644,7 +3962,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('speak');
 
   /** Sets the value of "speak" */
-  void set speak(var value) {
+  void set speak(String value) {
     setProperty('speak', value, '');
   }
 
@@ -3653,8 +3971,17 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('src');
 
   /** Sets the value of "src" */
-  void set src(var value) {
+  void set src(String value) {
     setProperty('src', value, '');
+  }
+
+  /** Gets the value of "tab-size" */
+  String get tabSize =>
+    getPropertyValue('tab-size');
+
+  /** Sets the value of "tab-size" */
+  void set tabSize(String value) {
+    setProperty('tab-size', value, '');
   }
 
   /** Gets the value of "table-layout" */
@@ -3662,7 +3989,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('table-layout');
 
   /** Sets the value of "table-layout" */
-  void set tableLayout(var value) {
+  void set tableLayout(String value) {
     setProperty('table-layout', value, '');
   }
 
@@ -3671,7 +3998,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}tap-highlight-color');
 
   /** Sets the value of "tap-highlight-color" */
-  void set tapHighlightColor(var value) {
+  void set tapHighlightColor(String value) {
     setProperty('${_browserPrefix}tap-highlight-color', value, '');
   }
 
@@ -3680,8 +4007,17 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('text-align');
 
   /** Sets the value of "text-align" */
-  void set textAlign(var value) {
+  void set textAlign(String value) {
     setProperty('text-align', value, '');
+  }
+
+  /** Gets the value of "text-align-last" */
+  String get textAlignLast =>
+    getPropertyValue('${_browserPrefix}text-align-last');
+
+  /** Sets the value of "text-align-last" */
+  void set textAlignLast(String value) {
+    setProperty('${_browserPrefix}text-align-last', value, '');
   }
 
   /** Gets the value of "text-combine" */
@@ -3689,7 +4025,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}text-combine');
 
   /** Sets the value of "text-combine" */
-  void set textCombine(var value) {
+  void set textCombine(String value) {
     setProperty('${_browserPrefix}text-combine', value, '');
   }
 
@@ -3698,8 +4034,26 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('text-decoration');
 
   /** Sets the value of "text-decoration" */
-  void set textDecoration(var value) {
+  void set textDecoration(String value) {
     setProperty('text-decoration', value, '');
+  }
+
+  /** Gets the value of "text-decoration-line" */
+  String get textDecorationLine =>
+    getPropertyValue('${_browserPrefix}text-decoration-line');
+
+  /** Sets the value of "text-decoration-line" */
+  void set textDecorationLine(String value) {
+    setProperty('${_browserPrefix}text-decoration-line', value, '');
+  }
+
+  /** Gets the value of "text-decoration-style" */
+  String get textDecorationStyle =>
+    getPropertyValue('${_browserPrefix}text-decoration-style');
+
+  /** Sets the value of "text-decoration-style" */
+  void set textDecorationStyle(String value) {
+    setProperty('${_browserPrefix}text-decoration-style', value, '');
   }
 
   /** Gets the value of "text-decorations-in-effect" */
@@ -3707,7 +4061,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}text-decorations-in-effect');
 
   /** Sets the value of "text-decorations-in-effect" */
-  void set textDecorationsInEffect(var value) {
+  void set textDecorationsInEffect(String value) {
     setProperty('${_browserPrefix}text-decorations-in-effect', value, '');
   }
 
@@ -3716,7 +4070,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}text-emphasis');
 
   /** Sets the value of "text-emphasis" */
-  void set textEmphasis(var value) {
+  void set textEmphasis(String value) {
     setProperty('${_browserPrefix}text-emphasis', value, '');
   }
 
@@ -3725,7 +4079,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}text-emphasis-color');
 
   /** Sets the value of "text-emphasis-color" */
-  void set textEmphasisColor(var value) {
+  void set textEmphasisColor(String value) {
     setProperty('${_browserPrefix}text-emphasis-color', value, '');
   }
 
@@ -3734,7 +4088,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}text-emphasis-position');
 
   /** Sets the value of "text-emphasis-position" */
-  void set textEmphasisPosition(var value) {
+  void set textEmphasisPosition(String value) {
     setProperty('${_browserPrefix}text-emphasis-position', value, '');
   }
 
@@ -3743,7 +4097,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}text-emphasis-style');
 
   /** Sets the value of "text-emphasis-style" */
-  void set textEmphasisStyle(var value) {
+  void set textEmphasisStyle(String value) {
     setProperty('${_browserPrefix}text-emphasis-style', value, '');
   }
 
@@ -3752,7 +4106,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}text-fill-color');
 
   /** Sets the value of "text-fill-color" */
-  void set textFillColor(var value) {
+  void set textFillColor(String value) {
     setProperty('${_browserPrefix}text-fill-color', value, '');
   }
 
@@ -3761,7 +4115,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('text-indent');
 
   /** Sets the value of "text-indent" */
-  void set textIndent(var value) {
+  void set textIndent(String value) {
     setProperty('text-indent', value, '');
   }
 
@@ -3770,7 +4124,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('text-line-through');
 
   /** Sets the value of "text-line-through" */
-  void set textLineThrough(var value) {
+  void set textLineThrough(String value) {
     setProperty('text-line-through', value, '');
   }
 
@@ -3779,7 +4133,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('text-line-through-color');
 
   /** Sets the value of "text-line-through-color" */
-  void set textLineThroughColor(var value) {
+  void set textLineThroughColor(String value) {
     setProperty('text-line-through-color', value, '');
   }
 
@@ -3788,7 +4142,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('text-line-through-mode');
 
   /** Sets the value of "text-line-through-mode" */
-  void set textLineThroughMode(var value) {
+  void set textLineThroughMode(String value) {
     setProperty('text-line-through-mode', value, '');
   }
 
@@ -3797,7 +4151,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('text-line-through-style');
 
   /** Sets the value of "text-line-through-style" */
-  void set textLineThroughStyle(var value) {
+  void set textLineThroughStyle(String value) {
     setProperty('text-line-through-style', value, '');
   }
 
@@ -3806,7 +4160,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('text-line-through-width');
 
   /** Sets the value of "text-line-through-width" */
-  void set textLineThroughWidth(var value) {
+  void set textLineThroughWidth(String value) {
     setProperty('text-line-through-width', value, '');
   }
 
@@ -3815,7 +4169,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}text-orientation');
 
   /** Sets the value of "text-orientation" */
-  void set textOrientation(var value) {
+  void set textOrientation(String value) {
     setProperty('${_browserPrefix}text-orientation', value, '');
   }
 
@@ -3824,7 +4178,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('text-overflow');
 
   /** Sets the value of "text-overflow" */
-  void set textOverflow(var value) {
+  void set textOverflow(String value) {
     setProperty('text-overflow', value, '');
   }
 
@@ -3833,7 +4187,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('text-overline');
 
   /** Sets the value of "text-overline" */
-  void set textOverline(var value) {
+  void set textOverline(String value) {
     setProperty('text-overline', value, '');
   }
 
@@ -3842,7 +4196,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('text-overline-color');
 
   /** Sets the value of "text-overline-color" */
-  void set textOverlineColor(var value) {
+  void set textOverlineColor(String value) {
     setProperty('text-overline-color', value, '');
   }
 
@@ -3851,7 +4205,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('text-overline-mode');
 
   /** Sets the value of "text-overline-mode" */
-  void set textOverlineMode(var value) {
+  void set textOverlineMode(String value) {
     setProperty('text-overline-mode', value, '');
   }
 
@@ -3860,7 +4214,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('text-overline-style');
 
   /** Sets the value of "text-overline-style" */
-  void set textOverlineStyle(var value) {
+  void set textOverlineStyle(String value) {
     setProperty('text-overline-style', value, '');
   }
 
@@ -3869,7 +4223,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('text-overline-width');
 
   /** Sets the value of "text-overline-width" */
-  void set textOverlineWidth(var value) {
+  void set textOverlineWidth(String value) {
     setProperty('text-overline-width', value, '');
   }
 
@@ -3878,7 +4232,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('text-rendering');
 
   /** Sets the value of "text-rendering" */
-  void set textRendering(var value) {
+  void set textRendering(String value) {
     setProperty('text-rendering', value, '');
   }
 
@@ -3887,7 +4241,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}text-security');
 
   /** Sets the value of "text-security" */
-  void set textSecurity(var value) {
+  void set textSecurity(String value) {
     setProperty('${_browserPrefix}text-security', value, '');
   }
 
@@ -3896,7 +4250,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('text-shadow');
 
   /** Sets the value of "text-shadow" */
-  void set textShadow(var value) {
+  void set textShadow(String value) {
     setProperty('text-shadow', value, '');
   }
 
@@ -3905,7 +4259,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}text-size-adjust');
 
   /** Sets the value of "text-size-adjust" */
-  void set textSizeAdjust(var value) {
+  void set textSizeAdjust(String value) {
     setProperty('${_browserPrefix}text-size-adjust', value, '');
   }
 
@@ -3914,7 +4268,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}text-stroke');
 
   /** Sets the value of "text-stroke" */
-  void set textStroke(var value) {
+  void set textStroke(String value) {
     setProperty('${_browserPrefix}text-stroke', value, '');
   }
 
@@ -3923,7 +4277,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}text-stroke-color');
 
   /** Sets the value of "text-stroke-color" */
-  void set textStrokeColor(var value) {
+  void set textStrokeColor(String value) {
     setProperty('${_browserPrefix}text-stroke-color', value, '');
   }
 
@@ -3932,7 +4286,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}text-stroke-width');
 
   /** Sets the value of "text-stroke-width" */
-  void set textStrokeWidth(var value) {
+  void set textStrokeWidth(String value) {
     setProperty('${_browserPrefix}text-stroke-width', value, '');
   }
 
@@ -3941,7 +4295,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('text-transform');
 
   /** Sets the value of "text-transform" */
-  void set textTransform(var value) {
+  void set textTransform(String value) {
     setProperty('text-transform', value, '');
   }
 
@@ -3950,7 +4304,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('text-underline');
 
   /** Sets the value of "text-underline" */
-  void set textUnderline(var value) {
+  void set textUnderline(String value) {
     setProperty('text-underline', value, '');
   }
 
@@ -3959,7 +4313,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('text-underline-color');
 
   /** Sets the value of "text-underline-color" */
-  void set textUnderlineColor(var value) {
+  void set textUnderlineColor(String value) {
     setProperty('text-underline-color', value, '');
   }
 
@@ -3968,7 +4322,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('text-underline-mode');
 
   /** Sets the value of "text-underline-mode" */
-  void set textUnderlineMode(var value) {
+  void set textUnderlineMode(String value) {
     setProperty('text-underline-mode', value, '');
   }
 
@@ -3977,7 +4331,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('text-underline-style');
 
   /** Sets the value of "text-underline-style" */
-  void set textUnderlineStyle(var value) {
+  void set textUnderlineStyle(String value) {
     setProperty('text-underline-style', value, '');
   }
 
@@ -3986,7 +4340,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('text-underline-width');
 
   /** Sets the value of "text-underline-width" */
-  void set textUnderlineWidth(var value) {
+  void set textUnderlineWidth(String value) {
     setProperty('text-underline-width', value, '');
   }
 
@@ -3995,7 +4349,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('top');
 
   /** Sets the value of "top" */
-  void set top(var value) {
+  void set top(String value) {
     setProperty('top', value, '');
   }
 
@@ -4004,7 +4358,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}transform');
 
   /** Sets the value of "transform" */
-  void set transform(var value) {
+  void set transform(String value) {
     setProperty('${_browserPrefix}transform', value, '');
   }
 
@@ -4013,7 +4367,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}transform-origin');
 
   /** Sets the value of "transform-origin" */
-  void set transformOrigin(var value) {
+  void set transformOrigin(String value) {
     setProperty('${_browserPrefix}transform-origin', value, '');
   }
 
@@ -4022,7 +4376,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}transform-origin-x');
 
   /** Sets the value of "transform-origin-x" */
-  void set transformOriginX(var value) {
+  void set transformOriginX(String value) {
     setProperty('${_browserPrefix}transform-origin-x', value, '');
   }
 
@@ -4031,7 +4385,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}transform-origin-y');
 
   /** Sets the value of "transform-origin-y" */
-  void set transformOriginY(var value) {
+  void set transformOriginY(String value) {
     setProperty('${_browserPrefix}transform-origin-y', value, '');
   }
 
@@ -4040,7 +4394,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}transform-origin-z');
 
   /** Sets the value of "transform-origin-z" */
-  void set transformOriginZ(var value) {
+  void set transformOriginZ(String value) {
     setProperty('${_browserPrefix}transform-origin-z', value, '');
   }
 
@@ -4049,7 +4403,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}transform-style');
 
   /** Sets the value of "transform-style" */
-  void set transformStyle(var value) {
+  void set transformStyle(String value) {
     setProperty('${_browserPrefix}transform-style', value, '');
   }
 
@@ -4058,7 +4412,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}transition');
 
   /** Sets the value of "transition" */
-  void set transition(var value) {
+  void set transition(String value) {
     setProperty('${_browserPrefix}transition', value, '');
   }
 
@@ -4067,7 +4421,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}transition-delay');
 
   /** Sets the value of "transition-delay" */
-  void set transitionDelay(var value) {
+  void set transitionDelay(String value) {
     setProperty('${_browserPrefix}transition-delay', value, '');
   }
 
@@ -4076,7 +4430,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}transition-duration');
 
   /** Sets the value of "transition-duration" */
-  void set transitionDuration(var value) {
+  void set transitionDuration(String value) {
     setProperty('${_browserPrefix}transition-duration', value, '');
   }
 
@@ -4085,7 +4439,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}transition-property');
 
   /** Sets the value of "transition-property" */
-  void set transitionProperty(var value) {
+  void set transitionProperty(String value) {
     setProperty('${_browserPrefix}transition-property', value, '');
   }
 
@@ -4094,7 +4448,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}transition-timing-function');
 
   /** Sets the value of "transition-timing-function" */
-  void set transitionTimingFunction(var value) {
+  void set transitionTimingFunction(String value) {
     setProperty('${_browserPrefix}transition-timing-function', value, '');
   }
 
@@ -4103,7 +4457,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('unicode-bidi');
 
   /** Sets the value of "unicode-bidi" */
-  void set unicodeBidi(var value) {
+  void set unicodeBidi(String value) {
     setProperty('unicode-bidi', value, '');
   }
 
@@ -4112,7 +4466,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('unicode-range');
 
   /** Sets the value of "unicode-range" */
-  void set unicodeRange(var value) {
+  void set unicodeRange(String value) {
     setProperty('unicode-range', value, '');
   }
 
@@ -4121,7 +4475,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}user-drag');
 
   /** Sets the value of "user-drag" */
-  void set userDrag(var value) {
+  void set userDrag(String value) {
     setProperty('${_browserPrefix}user-drag', value, '');
   }
 
@@ -4130,7 +4484,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}user-modify');
 
   /** Sets the value of "user-modify" */
-  void set userModify(var value) {
+  void set userModify(String value) {
     setProperty('${_browserPrefix}user-modify', value, '');
   }
 
@@ -4139,8 +4493,17 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}user-select');
 
   /** Sets the value of "user-select" */
-  void set userSelect(var value) {
+  void set userSelect(String value) {
     setProperty('${_browserPrefix}user-select', value, '');
+  }
+
+  /** Gets the value of "user-zoom" */
+  String get userZoom =>
+    getPropertyValue('user-zoom');
+
+  /** Sets the value of "user-zoom" */
+  void set userZoom(String value) {
+    setProperty('user-zoom', value, '');
   }
 
   /** Gets the value of "vertical-align" */
@@ -4148,7 +4511,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('vertical-align');
 
   /** Sets the value of "vertical-align" */
-  void set verticalAlign(var value) {
+  void set verticalAlign(String value) {
     setProperty('vertical-align', value, '');
   }
 
@@ -4157,7 +4520,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('visibility');
 
   /** Sets the value of "visibility" */
-  void set visibility(var value) {
+  void set visibility(String value) {
     setProperty('visibility', value, '');
   }
 
@@ -4166,7 +4529,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('white-space');
 
   /** Sets the value of "white-space" */
-  void set whiteSpace(var value) {
+  void set whiteSpace(String value) {
     setProperty('white-space', value, '');
   }
 
@@ -4175,7 +4538,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('widows');
 
   /** Sets the value of "widows" */
-  void set widows(var value) {
+  void set widows(String value) {
     setProperty('widows', value, '');
   }
 
@@ -4184,7 +4547,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('width');
 
   /** Sets the value of "width" */
-  void set width(var value) {
+  void set width(String value) {
     setProperty('width', value, '');
   }
 
@@ -4193,7 +4556,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('word-break');
 
   /** Sets the value of "word-break" */
-  void set wordBreak(var value) {
+  void set wordBreak(String value) {
     setProperty('word-break', value, '');
   }
 
@@ -4202,7 +4565,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('word-spacing');
 
   /** Sets the value of "word-spacing" */
-  void set wordSpacing(var value) {
+  void set wordSpacing(String value) {
     setProperty('word-spacing', value, '');
   }
 
@@ -4211,17 +4574,35 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('word-wrap');
 
   /** Sets the value of "word-wrap" */
-  void set wordWrap(var value) {
+  void set wordWrap(String value) {
     setProperty('word-wrap', value, '');
   }
 
-  /** Gets the value of "wrap-shape" */
-  String get wrapShape =>
-    getPropertyValue('${_browserPrefix}wrap-shape');
+  /** Gets the value of "wrap" */
+  String get wrap =>
+    getPropertyValue('${_browserPrefix}wrap');
 
-  /** Sets the value of "wrap-shape" */
-  void set wrapShape(var value) {
-    setProperty('${_browserPrefix}wrap-shape', value, '');
+  /** Sets the value of "wrap" */
+  void set wrap(String value) {
+    setProperty('${_browserPrefix}wrap', value, '');
+  }
+
+  /** Gets the value of "wrap-flow" */
+  String get wrapFlow =>
+    getPropertyValue('${_browserPrefix}wrap-flow');
+
+  /** Sets the value of "wrap-flow" */
+  void set wrapFlow(String value) {
+    setProperty('${_browserPrefix}wrap-flow', value, '');
+  }
+
+  /** Gets the value of "wrap-through" */
+  String get wrapThrough =>
+    getPropertyValue('${_browserPrefix}wrap-through');
+
+  /** Sets the value of "wrap-through" */
+  void set wrapThrough(String value) {
+    setProperty('${_browserPrefix}wrap-through', value, '');
   }
 
   /** Gets the value of "writing-mode" */
@@ -4229,7 +4610,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('${_browserPrefix}writing-mode');
 
   /** Sets the value of "writing-mode" */
-  void set writingMode(var value) {
+  void set writingMode(String value) {
     setProperty('${_browserPrefix}writing-mode', value, '');
   }
 
@@ -4238,7 +4619,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('z-index');
 
   /** Sets the value of "z-index" */
-  void set zIndex(var value) {
+  void set zIndex(String value) {
     setProperty('z-index', value, '');
   }
 
@@ -4247,7 +4628,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
     getPropertyValue('zoom');
 
   /** Sets the value of "zoom" */
-  void set zoom(var value) {
+  void set zoom(String value) {
     setProperty('zoom', value, '');
   }
 }
@@ -4256,13 +4637,13 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSStyleRule
+/// @domName CSSStyleRule; @docsEditable true
 class CSSStyleRule extends CSSRule native "*CSSStyleRule" {
 
-  /** @domName CSSStyleRule.selectorText */
+  /// @domName CSSStyleRule.selectorText; @docsEditable true
   String selectorText;
 
-  /** @domName CSSStyleRule.style */
+  /// @domName CSSStyleRule.style; @docsEditable true
   final CSSStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4270,28 +4651,30 @@ class CSSStyleRule extends CSSRule native "*CSSStyleRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSStyleSheet
+/// @domName CSSStyleSheet; @docsEditable true
 class CSSStyleSheet extends StyleSheet native "*CSSStyleSheet" {
 
-  /** @domName CSSStyleSheet.cssRules */
+  /// @domName CSSStyleSheet.cssRules; @docsEditable true
+  @Returns('_CSSRuleList') @Creates('_CSSRuleList')
   final List<CSSRule> cssRules;
 
-  /** @domName CSSStyleSheet.ownerRule */
+  /// @domName CSSStyleSheet.ownerRule; @docsEditable true
   final CSSRule ownerRule;
 
-  /** @domName CSSStyleSheet.rules */
+  /// @domName CSSStyleSheet.rules; @docsEditable true
+  @Returns('_CSSRuleList') @Creates('_CSSRuleList')
   final List<CSSRule> rules;
 
-  /** @domName CSSStyleSheet.addRule */
+  /// @domName CSSStyleSheet.addRule; @docsEditable true
   int addRule(String selector, String style, [int index]) native;
 
-  /** @domName CSSStyleSheet.deleteRule */
+  /// @domName CSSStyleSheet.deleteRule; @docsEditable true
   void deleteRule(int index) native;
 
-  /** @domName CSSStyleSheet.insertRule */
+  /// @domName CSSStyleSheet.insertRule; @docsEditable true
   int insertRule(String rule, int index) native;
 
-  /** @domName CSSStyleSheet.removeRule */
+  /// @domName CSSStyleSheet.removeRule; @docsEditable true
   void removeRule(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4299,7 +4682,7 @@ class CSSStyleSheet extends StyleSheet native "*CSSStyleSheet" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebKitCSSTransformValue
+/// @domName WebKitCSSTransformValue; @docsEditable true
 class CSSTransformValue extends _CSSValueList native "*WebKitCSSTransformValue" {
 
   static const int CSS_MATRIX = 11;
@@ -4344,7 +4727,7 @@ class CSSTransformValue extends _CSSValueList native "*WebKitCSSTransformValue" 
 
   static const int CSS_TRANSLATEZ = 12;
 
-  /** @domName WebKitCSSTransformValue.operationType */
+  /// @domName WebKitCSSTransformValue.operationType; @docsEditable true
   final int operationType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4352,7 +4735,7 @@ class CSSTransformValue extends _CSSValueList native "*WebKitCSSTransformValue" 
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSUnknownRule
+/// @domName CSSUnknownRule; @docsEditable true
 class CSSUnknownRule extends CSSRule native "*CSSUnknownRule" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4360,7 +4743,7 @@ class CSSUnknownRule extends CSSRule native "*CSSUnknownRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSValue
+/// @domName CSSValue; @docsEditable true
 class CSSValue native "*CSSValue" {
 
   static const int CSS_CUSTOM = 3;
@@ -4371,10 +4754,10 @@ class CSSValue native "*CSSValue" {
 
   static const int CSS_VALUE_LIST = 2;
 
-  /** @domName CSSValue.cssText */
+  /// @domName CSSValue.cssText; @docsEditable true
   String cssText;
 
-  /** @domName CSSValue.cssValueType */
+  /// @domName CSSValue.cssValueType; @docsEditable true
   final int cssValueType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4385,22 +4768,19 @@ class CSSValue native "*CSSValue" {
 class CanvasElement extends Element implements Element native "*HTMLCanvasElement" {
 
   factory CanvasElement({int width, int height}) {
-    if (!?width) {
-      return _Elements.createCanvasElement();
-    }
-    if (!?height) {
-      return _Elements.createCanvasElement(width);
-    }
-    return _Elements.createCanvasElement(width, height);
+    var e = document.$dom_createElement("canvas");
+    if (width != null) e.width = width;
+    if (height != null) e.height = height;
+    return e;
   }
 
-  /** @domName HTMLCanvasElement.height */
+  /// @domName HTMLCanvasElement.height; @docsEditable true
   int height;
 
-  /** @domName HTMLCanvasElement.width */
+  /// @domName HTMLCanvasElement.width; @docsEditable true
   int width;
 
-  /** @domName HTMLCanvasElement.toDataURL */
+  /// @domName HTMLCanvasElement.toDataURL; @docsEditable true
   String toDataURL(String type, [num quality]) native;
 
 
@@ -4412,10 +4792,10 @@ class CanvasElement extends Element implements Element native "*HTMLCanvasElemen
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CanvasGradient
+/// @domName CanvasGradient; @docsEditable true
 class CanvasGradient native "*CanvasGradient" {
 
-  /** @domName CanvasGradient.addColorStop */
+  /// @domName CanvasGradient.addColorStop; @docsEditable true
   void addColorStop(num offset, String color) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4423,7 +4803,7 @@ class CanvasGradient native "*CanvasGradient" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CanvasPattern
+/// @domName CanvasPattern; @docsEditable true
 class CanvasPattern native "*CanvasPattern" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4431,10 +4811,10 @@ class CanvasPattern native "*CanvasPattern" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CanvasRenderingContext
+/// @domName CanvasRenderingContext; @docsEditable true
 class CanvasRenderingContext native "*CanvasRenderingContext" {
 
-  /** @domName CanvasRenderingContext.canvas */
+  /// @domName CanvasRenderingContext.canvas; @docsEditable true
   final CanvasElement canvas;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4444,91 +4824,91 @@ class CanvasRenderingContext native "*CanvasRenderingContext" {
 
 class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRenderingContext2D" {
 
-  /** @domName CanvasRenderingContext2D.fillStyle */
+  /// @domName CanvasRenderingContext2D.fillStyle; @docsEditable true
   dynamic fillStyle;
 
-  /** @domName CanvasRenderingContext2D.font */
+  /// @domName CanvasRenderingContext2D.font; @docsEditable true
   String font;
 
-  /** @domName CanvasRenderingContext2D.globalAlpha */
+  /// @domName CanvasRenderingContext2D.globalAlpha; @docsEditable true
   num globalAlpha;
 
-  /** @domName CanvasRenderingContext2D.globalCompositeOperation */
+  /// @domName CanvasRenderingContext2D.globalCompositeOperation; @docsEditable true
   String globalCompositeOperation;
 
-  /** @domName CanvasRenderingContext2D.lineCap */
+  /// @domName CanvasRenderingContext2D.lineCap; @docsEditable true
   String lineCap;
 
-  /** @domName CanvasRenderingContext2D.lineDashOffset */
+  /// @domName CanvasRenderingContext2D.lineDashOffset; @docsEditable true
   num lineDashOffset;
 
-  /** @domName CanvasRenderingContext2D.lineJoin */
+  /// @domName CanvasRenderingContext2D.lineJoin; @docsEditable true
   String lineJoin;
 
-  /** @domName CanvasRenderingContext2D.lineWidth */
+  /// @domName CanvasRenderingContext2D.lineWidth; @docsEditable true
   num lineWidth;
 
-  /** @domName CanvasRenderingContext2D.miterLimit */
+  /// @domName CanvasRenderingContext2D.miterLimit; @docsEditable true
   num miterLimit;
 
-  /** @domName CanvasRenderingContext2D.shadowBlur */
+  /// @domName CanvasRenderingContext2D.shadowBlur; @docsEditable true
   num shadowBlur;
 
-  /** @domName CanvasRenderingContext2D.shadowColor */
+  /// @domName CanvasRenderingContext2D.shadowColor; @docsEditable true
   String shadowColor;
 
-  /** @domName CanvasRenderingContext2D.shadowOffsetX */
+  /// @domName CanvasRenderingContext2D.shadowOffsetX; @docsEditable true
   num shadowOffsetX;
 
-  /** @domName CanvasRenderingContext2D.shadowOffsetY */
+  /// @domName CanvasRenderingContext2D.shadowOffsetY; @docsEditable true
   num shadowOffsetY;
 
-  /** @domName CanvasRenderingContext2D.strokeStyle */
+  /// @domName CanvasRenderingContext2D.strokeStyle; @docsEditable true
   dynamic strokeStyle;
 
-  /** @domName CanvasRenderingContext2D.textAlign */
+  /// @domName CanvasRenderingContext2D.textAlign; @docsEditable true
   String textAlign;
 
-  /** @domName CanvasRenderingContext2D.textBaseline */
+  /// @domName CanvasRenderingContext2D.textBaseline; @docsEditable true
   String textBaseline;
 
-  /** @domName CanvasRenderingContext2D.webkitBackingStorePixelRatio */
+  /// @domName CanvasRenderingContext2D.webkitBackingStorePixelRatio; @docsEditable true
   final num webkitBackingStorePixelRatio;
 
-  /** @domName CanvasRenderingContext2D.webkitImageSmoothingEnabled */
+  /// @domName CanvasRenderingContext2D.webkitImageSmoothingEnabled; @docsEditable true
   bool webkitImageSmoothingEnabled;
 
-  /** @domName CanvasRenderingContext2D.webkitLineDash */
+  /// @domName CanvasRenderingContext2D.webkitLineDash; @docsEditable true
   List webkitLineDash;
 
-  /** @domName CanvasRenderingContext2D.webkitLineDashOffset */
+  /// @domName CanvasRenderingContext2D.webkitLineDashOffset; @docsEditable true
   num webkitLineDashOffset;
 
-  /** @domName CanvasRenderingContext2D.arc */
+  /// @domName CanvasRenderingContext2D.arc; @docsEditable true
   void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native;
 
-  /** @domName CanvasRenderingContext2D.arcTo */
+  /// @domName CanvasRenderingContext2D.arcTo; @docsEditable true
   void arcTo(num x1, num y1, num x2, num y2, num radius) native;
 
-  /** @domName CanvasRenderingContext2D.beginPath */
+  /// @domName CanvasRenderingContext2D.beginPath; @docsEditable true
   void beginPath() native;
 
-  /** @domName CanvasRenderingContext2D.bezierCurveTo */
+  /// @domName CanvasRenderingContext2D.bezierCurveTo; @docsEditable true
   void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) native;
 
-  /** @domName CanvasRenderingContext2D.clearRect */
+  /// @domName CanvasRenderingContext2D.clearRect; @docsEditable true
   void clearRect(num x, num y, num width, num height) native;
 
-  /** @domName CanvasRenderingContext2D.clearShadow */
+  /// @domName CanvasRenderingContext2D.clearShadow; @docsEditable true
   void clearShadow() native;
 
-  /** @domName CanvasRenderingContext2D.clip */
+  /// @domName CanvasRenderingContext2D.clip; @docsEditable true
   void clip() native;
 
-  /** @domName CanvasRenderingContext2D.closePath */
+  /// @domName CanvasRenderingContext2D.closePath; @docsEditable true
   void closePath() native;
 
-  /** @domName CanvasRenderingContext2D.createImageData */
+  /// @domName CanvasRenderingContext2D.createImageData; @docsEditable true
   ImageData createImageData(imagedata_OR_sw, [num sh]) {
     if ((?imagedata_OR_sw && (imagedata_OR_sw is ImageData || imagedata_OR_sw == null)) &&
         !?sh) {
@@ -4538,57 +4918,60 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
     if ((?imagedata_OR_sw && (imagedata_OR_sw is num || imagedata_OR_sw == null))) {
       return _convertNativeToDart_ImageData(_createImageData_2(imagedata_OR_sw, sh));
     }
-    throw const Exception("Incorrect number or type of arguments");
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
+  @Creates('ImageData|=Object')
   _createImageData_1(imagedata) native "createImageData";
+  @Creates('ImageData|=Object')
   _createImageData_2(num sw, sh) native "createImageData";
 
-  /** @domName CanvasRenderingContext2D.createLinearGradient */
+  /// @domName CanvasRenderingContext2D.createLinearGradient; @docsEditable true
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
 
-  /** @domName CanvasRenderingContext2D.createPattern */
+  /// @domName CanvasRenderingContext2D.createPattern; @docsEditable true
   CanvasPattern createPattern(canvas_OR_image, String repetitionType) native;
 
-  /** @domName CanvasRenderingContext2D.createRadialGradient */
+  /// @domName CanvasRenderingContext2D.createRadialGradient; @docsEditable true
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native;
 
-  /** @domName CanvasRenderingContext2D.drawImage */
+  /// @domName CanvasRenderingContext2D.drawImage; @docsEditable true
   void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) native;
 
-  /** @domName CanvasRenderingContext2D.drawImageFromRect */
+  /// @domName CanvasRenderingContext2D.drawImageFromRect; @docsEditable true
   void drawImageFromRect(ImageElement image, [num sx, num sy, num sw, num sh, num dx, num dy, num dw, num dh, String compositeOperation]) native;
 
-  /** @domName CanvasRenderingContext2D.fill */
+  /// @domName CanvasRenderingContext2D.fill; @docsEditable true
   void fill() native;
 
-  /** @domName CanvasRenderingContext2D.fillRect */
+  /// @domName CanvasRenderingContext2D.fillRect; @docsEditable true
   void fillRect(num x, num y, num width, num height) native;
 
-  /** @domName CanvasRenderingContext2D.fillText */
+  /// @domName CanvasRenderingContext2D.fillText; @docsEditable true
   void fillText(String text, num x, num y, [num maxWidth]) native;
 
-  /** @domName CanvasRenderingContext2D.getImageData */
+  /// @domName CanvasRenderingContext2D.getImageData; @docsEditable true
   ImageData getImageData(num sx, num sy, num sw, num sh) {
     return _convertNativeToDart_ImageData(_getImageData_1(sx, sy, sw, sh));
   }
+  @Creates('ImageData|=Object')
   _getImageData_1(sx, sy, sw, sh) native "getImageData";
 
-  /** @domName CanvasRenderingContext2D.getLineDash */
+  /// @domName CanvasRenderingContext2D.getLineDash; @docsEditable true
   List<num> getLineDash() native;
 
-  /** @domName CanvasRenderingContext2D.isPointInPath */
+  /// @domName CanvasRenderingContext2D.isPointInPath; @docsEditable true
   bool isPointInPath(num x, num y) native;
 
-  /** @domName CanvasRenderingContext2D.lineTo */
+  /// @domName CanvasRenderingContext2D.lineTo; @docsEditable true
   void lineTo(num x, num y) native;
 
-  /** @domName CanvasRenderingContext2D.measureText */
+  /// @domName CanvasRenderingContext2D.measureText; @docsEditable true
   TextMetrics measureText(String text) native;
 
-  /** @domName CanvasRenderingContext2D.moveTo */
+  /// @domName CanvasRenderingContext2D.moveTo; @docsEditable true
   void moveTo(num x, num y) native;
 
-  /** @domName CanvasRenderingContext2D.putImageData */
+  /// @domName CanvasRenderingContext2D.putImageData; @docsEditable true
   void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if (!?dirtyX &&
         !?dirtyY &&
@@ -4601,78 +4984,79 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
     var imagedata_2 = _convertDartToNative_ImageData(imagedata);
     _putImageData_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
     return;
-    throw const Exception("Incorrect number or type of arguments");
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
   void _putImageData_1(imagedata, dx, dy) native "putImageData";
   void _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "putImageData";
 
-  /** @domName CanvasRenderingContext2D.quadraticCurveTo */
+  /// @domName CanvasRenderingContext2D.quadraticCurveTo; @docsEditable true
   void quadraticCurveTo(num cpx, num cpy, num x, num y) native;
 
-  /** @domName CanvasRenderingContext2D.rect */
+  /// @domName CanvasRenderingContext2D.rect; @docsEditable true
   void rect(num x, num y, num width, num height) native;
 
-  /** @domName CanvasRenderingContext2D.restore */
+  /// @domName CanvasRenderingContext2D.restore; @docsEditable true
   void restore() native;
 
-  /** @domName CanvasRenderingContext2D.rotate */
+  /// @domName CanvasRenderingContext2D.rotate; @docsEditable true
   void rotate(num angle) native;
 
-  /** @domName CanvasRenderingContext2D.save */
+  /// @domName CanvasRenderingContext2D.save; @docsEditable true
   void save() native;
 
-  /** @domName CanvasRenderingContext2D.scale */
+  /// @domName CanvasRenderingContext2D.scale; @docsEditable true
   void scale(num sx, num sy) native;
 
-  /** @domName CanvasRenderingContext2D.setAlpha */
+  /// @domName CanvasRenderingContext2D.setAlpha; @docsEditable true
   void setAlpha(num alpha) native;
 
-  /** @domName CanvasRenderingContext2D.setCompositeOperation */
+  /// @domName CanvasRenderingContext2D.setCompositeOperation; @docsEditable true
   void setCompositeOperation(String compositeOperation) native;
 
-  /** @domName CanvasRenderingContext2D.setLineCap */
+  /// @domName CanvasRenderingContext2D.setLineCap; @docsEditable true
   void setLineCap(String cap) native;
 
-  /** @domName CanvasRenderingContext2D.setLineDash */
+  /// @domName CanvasRenderingContext2D.setLineDash; @docsEditable true
   void setLineDash(List<num> dash) native;
 
-  /** @domName CanvasRenderingContext2D.setLineJoin */
+  /// @domName CanvasRenderingContext2D.setLineJoin; @docsEditable true
   void setLineJoin(String join) native;
 
-  /** @domName CanvasRenderingContext2D.setLineWidth */
+  /// @domName CanvasRenderingContext2D.setLineWidth; @docsEditable true
   void setLineWidth(num width) native;
 
-  /** @domName CanvasRenderingContext2D.setMiterLimit */
+  /// @domName CanvasRenderingContext2D.setMiterLimit; @docsEditable true
   void setMiterLimit(num limit) native;
 
-  /** @domName CanvasRenderingContext2D.setShadow */
+  /// @domName CanvasRenderingContext2D.setShadow; @docsEditable true
   void setShadow(num width, num height, num blur, [c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]) native;
 
-  /** @domName CanvasRenderingContext2D.setTransform */
+  /// @domName CanvasRenderingContext2D.setTransform; @docsEditable true
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) native;
 
-  /** @domName CanvasRenderingContext2D.stroke */
+  /// @domName CanvasRenderingContext2D.stroke; @docsEditable true
   void stroke() native;
 
-  /** @domName CanvasRenderingContext2D.strokeRect */
+  /// @domName CanvasRenderingContext2D.strokeRect; @docsEditable true
   void strokeRect(num x, num y, num width, num height, [num lineWidth]) native;
 
-  /** @domName CanvasRenderingContext2D.strokeText */
+  /// @domName CanvasRenderingContext2D.strokeText; @docsEditable true
   void strokeText(String text, num x, num y, [num maxWidth]) native;
 
-  /** @domName CanvasRenderingContext2D.transform */
+  /// @domName CanvasRenderingContext2D.transform; @docsEditable true
   void transform(num m11, num m12, num m21, num m22, num dx, num dy) native;
 
-  /** @domName CanvasRenderingContext2D.translate */
+  /// @domName CanvasRenderingContext2D.translate; @docsEditable true
   void translate(num tx, num ty) native;
 
-  /** @domName CanvasRenderingContext2D.webkitGetImageDataHD */
+  /// @domName CanvasRenderingContext2D.webkitGetImageDataHD; @docsEditable true
   ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) {
     return _convertNativeToDart_ImageData(_webkitGetImageDataHD_1(sx, sy, sw, sh));
   }
+  @Creates('ImageData|=Object')
   _webkitGetImageDataHD_1(sx, sy, sw, sh) native "webkitGetImageDataHD";
 
-  /** @domName CanvasRenderingContext2D.webkitPutImageDataHD */
+  /// @domName CanvasRenderingContext2D.webkitPutImageDataHD; @docsEditable true
   void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if (!?dirtyX &&
         !?dirtyY &&
@@ -4685,7 +5069,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
     var imagedata_2 = _convertDartToNative_ImageData(imagedata);
     _webkitPutImageDataHD_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
     return;
-    throw const Exception("Incorrect number or type of arguments");
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
   void _webkitPutImageDataHD_1(imagedata, dx, dy) native "webkitPutImageDataHD";
   void _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "webkitPutImageDataHD";
@@ -4732,7 +5116,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ChannelMergerNode
+/// @domName ChannelMergerNode; @docsEditable true
 class ChannelMergerNode extends AudioNode native "*ChannelMergerNode" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4740,7 +5124,7 @@ class ChannelMergerNode extends AudioNode native "*ChannelMergerNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ChannelSplitterNode
+/// @domName ChannelSplitterNode; @docsEditable true
 class ChannelSplitterNode extends AudioNode native "*ChannelSplitterNode" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4748,31 +5132,31 @@ class ChannelSplitterNode extends AudioNode native "*ChannelSplitterNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CharacterData
+/// @domName CharacterData; @docsEditable true
 class CharacterData extends Node native "*CharacterData" {
 
-  /** @domName CharacterData.data */
+  /// @domName CharacterData.data; @docsEditable true
   String data;
 
-  /** @domName CharacterData.length */
+  /// @domName CharacterData.length; @docsEditable true
   final int length;
 
-  /** @domName CharacterData.appendData */
+  /// @domName CharacterData.appendData; @docsEditable true
   void appendData(String data) native;
 
-  /** @domName CharacterData.deleteData */
+  /// @domName CharacterData.deleteData; @docsEditable true
   void deleteData(int offset, int length) native;
 
-  /** @domName CharacterData.insertData */
+  /// @domName CharacterData.insertData; @docsEditable true
   void insertData(int offset, String data) native;
 
-  /** @domName CharacterData.remove */
+  /// @domName CharacterData.remove; @docsEditable true
   void remove() native;
 
-  /** @domName CharacterData.replaceData */
+  /// @domName CharacterData.replaceData; @docsEditable true
   void replaceData(int offset, int length, String data) native;
 
-  /** @domName CharacterData.substringData */
+  /// @domName CharacterData.substringData; @docsEditable true
   String substringData(int offset, int length) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4780,25 +5164,25 @@ class CharacterData extends Node native "*CharacterData" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ClientRect
+/// @domName ClientRect; @docsEditable true
 class ClientRect native "*ClientRect" {
 
-  /** @domName ClientRect.bottom */
+  /// @domName ClientRect.bottom; @docsEditable true
   final num bottom;
 
-  /** @domName ClientRect.height */
+  /// @domName ClientRect.height; @docsEditable true
   final num height;
 
-  /** @domName ClientRect.left */
+  /// @domName ClientRect.left; @docsEditable true
   final num left;
 
-  /** @domName ClientRect.right */
+  /// @domName ClientRect.right; @docsEditable true
   final num right;
 
-  /** @domName ClientRect.top */
+  /// @domName ClientRect.top; @docsEditable true
   final num top;
 
-  /** @domName ClientRect.width */
+  /// @domName ClientRect.width; @docsEditable true
   final num width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4806,34 +5190,35 @@ class ClientRect native "*ClientRect" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Clipboard
+/// @domName Clipboard; @docsEditable true
 class Clipboard native "*Clipboard" {
 
-  /** @domName Clipboard.dropEffect */
+  /// @domName Clipboard.dropEffect; @docsEditable true
   String dropEffect;
 
-  /** @domName Clipboard.effectAllowed */
+  /// @domName Clipboard.effectAllowed; @docsEditable true
   String effectAllowed;
 
-  /** @domName Clipboard.files */
+  /// @domName Clipboard.files; @docsEditable true
+  @Returns('_FileList') @Creates('_FileList')
   final List<File> files;
 
-  /** @domName Clipboard.items */
+  /// @domName Clipboard.items; @docsEditable true
   final DataTransferItemList items;
 
-  /** @domName Clipboard.types */
+  /// @domName Clipboard.types; @docsEditable true
   final List types;
 
-  /** @domName Clipboard.clearData */
+  /// @domName Clipboard.clearData; @docsEditable true
   void clearData([String type]) native;
 
-  /** @domName Clipboard.getData */
+  /// @domName Clipboard.getData; @docsEditable true
   String getData(String type) native;
 
-  /** @domName Clipboard.setData */
+  /// @domName Clipboard.setData; @docsEditable true
   bool setData(String type, String data) native;
 
-  /** @domName Clipboard.setDragImage */
+  /// @domName Clipboard.setDragImage; @docsEditable true
   void setDragImage(ImageElement image, int x, int y) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4841,16 +5226,16 @@ class Clipboard native "*Clipboard" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CloseEvent
+/// @domName CloseEvent; @docsEditable true
 class CloseEvent extends Event native "*CloseEvent" {
 
-  /** @domName CloseEvent.code */
+  /// @domName CloseEvent.code; @docsEditable true
   final int code;
 
-  /** @domName CloseEvent.reason */
+  /// @domName CloseEvent.reason; @docsEditable true
   final String reason;
 
-  /** @domName CloseEvent.wasClean */
+  /// @domName CloseEvent.wasClean; @docsEditable true
   final bool wasClean;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4858,7 +5243,7 @@ class CloseEvent extends Event native "*CloseEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Comment
+/// @domName Comment; @docsEditable true
 class Comment extends CharacterData native "*Comment" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4866,13 +5251,13 @@ class Comment extends CharacterData native "*Comment" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CompositionEvent
+/// @domName CompositionEvent; @docsEditable true
 class CompositionEvent extends UIEvent native "*CompositionEvent" {
 
-  /** @domName CompositionEvent.data */
+  /// @domName CompositionEvent.data; @docsEditable true
   final String data;
 
-  /** @domName CompositionEvent.initCompositionEvent */
+  /// @domName CompositionEvent.initCompositionEvent; @docsEditable true
   void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4884,67 +5269,67 @@ class Console
     // Console is sometimes a singleton bag-of-properties without a prototype.
     native "=(typeof console == 'undefined' ? {} : console)" {
 
-  /** @domName Console.memory */
+  /// @domName Console.memory; @docsEditable true
   final MemoryInfo memory;
 
-  /** @domName Console.profiles */
+  /// @domName Console.profiles; @docsEditable true
   final List<ScriptProfile> profiles;
 
-  /** @domName Console.assertCondition */
+  /// @domName Console.assertCondition; @docsEditable true
   void assertCondition(bool condition, Object arg) native;
 
-  /** @domName Console.count */
+  /// @domName Console.count; @docsEditable true
   void count(Object arg) native;
 
-  /** @domName Console.debug */
+  /// @domName Console.debug; @docsEditable true
   void debug(Object arg) native;
 
-  /** @domName Console.dir */
+  /// @domName Console.dir; @docsEditable true
   void dir(Object arg) native;
 
-  /** @domName Console.dirxml */
+  /// @domName Console.dirxml; @docsEditable true
   void dirxml(Object arg) native;
 
-  /** @domName Console.error */
+  /// @domName Console.error; @docsEditable true
   void error(Object arg) native;
 
-  /** @domName Console.group */
+  /// @domName Console.group; @docsEditable true
   void group(Object arg) native;
 
-  /** @domName Console.groupCollapsed */
+  /// @domName Console.groupCollapsed; @docsEditable true
   void groupCollapsed(Object arg) native;
 
-  /** @domName Console.groupEnd */
+  /// @domName Console.groupEnd; @docsEditable true
   void groupEnd() native;
 
-  /** @domName Console.info */
+  /// @domName Console.info; @docsEditable true
   void info(Object arg) native;
 
-  /** @domName Console.log */
+  /// @domName Console.log; @docsEditable true
   void log(Object arg) native;
 
-  /** @domName Console.markTimeline */
+  /// @domName Console.markTimeline; @docsEditable true
   void markTimeline(Object arg) native;
 
-  /** @domName Console.profile */
+  /// @domName Console.profile; @docsEditable true
   void profile(String title) native;
 
-  /** @domName Console.profileEnd */
+  /// @domName Console.profileEnd; @docsEditable true
   void profileEnd(String title) native;
 
-  /** @domName Console.time */
+  /// @domName Console.time; @docsEditable true
   void time(String title) native;
 
-  /** @domName Console.timeEnd */
+  /// @domName Console.timeEnd; @docsEditable true
   void timeEnd(String title, Object arg) native;
 
-  /** @domName Console.timeStamp */
+  /// @domName Console.timeStamp; @docsEditable true
   void timeStamp(Object arg) native;
 
-  /** @domName Console.trace */
+  /// @domName Console.trace; @docsEditable true
   void trace(Object arg) native;
 
-  /** @domName Console.warn */
+  /// @domName Console.warn; @docsEditable true
   void warn(Object arg) native;
 
 }
@@ -4953,18 +5338,19 @@ class Console
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLContentElement
+/// @domName HTMLContentElement; @docsEditable true
 class ContentElement extends Element implements Element native "*HTMLContentElement" {
 
-  factory ContentElement() => _Elements.createContentElement();
+  factory ContentElement() => document.$dom_createElement("content");
 
-  /** @domName HTMLContentElement.resetStyleInheritance */
+  /// @domName HTMLContentElement.resetStyleInheritance; @docsEditable true
   bool resetStyleInheritance;
 
-  /** @domName HTMLContentElement.select */
+  /// @domName HTMLContentElement.select; @docsEditable true
   String select;
 
-  /** @domName HTMLContentElement.getDistributedNodes */
+  /// @domName HTMLContentElement.getDistributedNodes; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> getDistributedNodes() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4972,13 +5358,13 @@ class ContentElement extends Element implements Element native "*HTMLContentElem
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ConvolverNode
+/// @domName ConvolverNode; @docsEditable true
 class ConvolverNode extends AudioNode native "*ConvolverNode" {
 
-  /** @domName ConvolverNode.buffer */
+  /// @domName ConvolverNode.buffer; @docsEditable true
   AudioBuffer buffer;
 
-  /** @domName ConvolverNode.normalize */
+  /// @domName ConvolverNode.normalize; @docsEditable true
   bool normalize;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4986,28 +5372,28 @@ class ConvolverNode extends AudioNode native "*ConvolverNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Coordinates
+/// @domName Coordinates; @docsEditable true
 class Coordinates native "*Coordinates" {
 
-  /** @domName Coordinates.accuracy */
+  /// @domName Coordinates.accuracy; @docsEditable true
   final num accuracy;
 
-  /** @domName Coordinates.altitude */
+  /// @domName Coordinates.altitude; @docsEditable true
   final num altitude;
 
-  /** @domName Coordinates.altitudeAccuracy */
+  /// @domName Coordinates.altitudeAccuracy; @docsEditable true
   final num altitudeAccuracy;
 
-  /** @domName Coordinates.heading */
+  /// @domName Coordinates.heading; @docsEditable true
   final num heading;
 
-  /** @domName Coordinates.latitude */
+  /// @domName Coordinates.latitude; @docsEditable true
   final num latitude;
 
-  /** @domName Coordinates.longitude */
+  /// @domName Coordinates.longitude; @docsEditable true
   final num longitude;
 
-  /** @domName Coordinates.speed */
+  /// @domName Coordinates.speed; @docsEditable true
   final num speed;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5015,16 +5401,16 @@ class Coordinates native "*Coordinates" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Counter
+/// @domName Counter; @docsEditable true
 class Counter native "*Counter" {
 
-  /** @domName Counter.identifier */
+  /// @domName Counter.identifier; @docsEditable true
   final String identifier;
 
-  /** @domName Counter.listStyle */
+  /// @domName Counter.listStyle; @docsEditable true
   final String listStyle;
 
-  /** @domName Counter.separator */
+  /// @domName Counter.separator; @docsEditable true
   final String separator;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5032,10 +5418,10 @@ class Counter native "*Counter" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Crypto
+/// @domName Crypto; @docsEditable true
 class Crypto native "*Crypto" {
 
-  /** @domName Crypto.getRandomValues */
+  /// @domName Crypto.getRandomValues; @docsEditable true
   void getRandomValues(ArrayBufferView array) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5050,10 +5436,10 @@ class CustomEvent extends Event native "*CustomEvent" {
       Object detail]) => _CustomEventFactoryProvider.createCustomEvent(
       type, canBubble, cancelable, detail);
 
-  /** @domName CustomEvent.detail */
+  /// @domName CustomEvent.detail; @docsEditable true
   final Object detail;
 
-  /** @domName CustomEvent.initCustomEvent */
+  /// @domName CustomEvent.initCustomEvent; @docsEditable true
   void $dom_initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native "initCustomEvent";
 
 }
@@ -5062,12 +5448,12 @@ class CustomEvent extends Event native "*CustomEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLDListElement
+/// @domName HTMLDListElement; @docsEditable true
 class DListElement extends Element implements Element native "*HTMLDListElement" {
 
-  factory DListElement() => _Elements.createDListElement();
+  factory DListElement() => document.$dom_createElement("dl");
 
-  /** @domName HTMLDListElement.compact */
+  /// @domName HTMLDListElement.compact; @docsEditable true
   bool compact;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5075,12 +5461,10 @@ class DListElement extends Element implements Element native "*HTMLDListElement"
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMApplicationCache
+/// @domName DOMApplicationCache; @docsEditable true
 class DOMApplicationCache extends EventTarget native "*DOMApplicationCache" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   DOMApplicationCacheEvents get on =>
     new DOMApplicationCacheEvents(this);
 
@@ -5096,25 +5480,25 @@ class DOMApplicationCache extends EventTarget native "*DOMApplicationCache" {
 
   static const int UPDATEREADY = 4;
 
-  /** @domName DOMApplicationCache.status */
+  /// @domName DOMApplicationCache.status; @docsEditable true
   final int status;
 
-  /** @domName DOMApplicationCache.abort */
+  /// @domName DOMApplicationCache.abort; @docsEditable true
   void abort() native;
 
-  /** @domName DOMApplicationCache.addEventListener */
+  /// @domName DOMApplicationCache.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName DOMApplicationCache.dispatchEvent */
+  /// @domName DOMApplicationCache.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName DOMApplicationCache.removeEventListener */
+  /// @domName DOMApplicationCache.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName DOMApplicationCache.swapCache */
+  /// @domName DOMApplicationCache.swapCache; @docsEditable true
   void swapCache() native;
 
-  /** @domName DOMApplicationCache.update */
+  /// @domName DOMApplicationCache.update; @docsEditable true
   void update() native;
 }
 
@@ -5142,10 +5526,10 @@ class DOMApplicationCacheEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMError
+/// @domName DOMError; @docsEditable true
 class DOMError native "*DOMError" {
 
-  /** @domName DOMError.name */
+  /// @domName DOMError.name; @docsEditable true
   final String name;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5153,7 +5537,7 @@ class DOMError native "*DOMError" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMException
+/// @domName DOMException; @docsEditable true
 class DOMException native "*DOMException" {
 
   static const int ABORT_ERR = 20;
@@ -5206,16 +5590,16 @@ class DOMException native "*DOMException" {
 
   static const int WRONG_DOCUMENT_ERR = 4;
 
-  /** @domName DOMException.code */
+  /// @domName DOMException.code; @docsEditable true
   final int code;
 
-  /** @domName DOMException.message */
+  /// @domName DOMException.message; @docsEditable true
   final String message;
 
-  /** @domName DOMException.name */
+  /// @domName DOMException.name; @docsEditable true
   final String name;
 
-  /** @domName DOMException.toString */
+  /// @domName DOMException.toString; @docsEditable true
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5223,13 +5607,13 @@ class DOMException native "*DOMException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMFileSystem
+/// @domName DOMFileSystem; @docsEditable true
 class DOMFileSystem native "*DOMFileSystem" {
 
-  /** @domName DOMFileSystem.name */
+  /// @domName DOMFileSystem.name; @docsEditable true
   final String name;
 
-  /** @domName DOMFileSystem.root */
+  /// @domName DOMFileSystem.root; @docsEditable true
   final DirectoryEntry root;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5237,13 +5621,13 @@ class DOMFileSystem native "*DOMFileSystem" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMFileSystemSync
+/// @domName DOMFileSystemSync; @docsEditable true
 class DOMFileSystemSync native "*DOMFileSystemSync" {
 
-  /** @domName DOMFileSystemSync.name */
+  /// @domName DOMFileSystemSync.name; @docsEditable true
   final String name;
 
-  /** @domName DOMFileSystemSync.root */
+  /// @domName DOMFileSystemSync.root; @docsEditable true
   final DirectoryEntrySync root;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5251,22 +5635,22 @@ class DOMFileSystemSync native "*DOMFileSystemSync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMImplementation
+/// @domName DOMImplementation; @docsEditable true
 class DOMImplementation native "*DOMImplementation" {
 
-  /** @domName DOMImplementation.createCSSStyleSheet */
+  /// @domName DOMImplementation.createCSSStyleSheet; @docsEditable true
   CSSStyleSheet createCSSStyleSheet(String title, String media) native;
 
-  /** @domName DOMImplementation.createDocument */
+  /// @domName DOMImplementation.createDocument; @docsEditable true
   Document createDocument(String namespaceURI, String qualifiedName, DocumentType doctype) native;
 
-  /** @domName DOMImplementation.createDocumentType */
+  /// @domName DOMImplementation.createDocumentType; @docsEditable true
   DocumentType createDocumentType(String qualifiedName, String publicId, String systemId) native;
 
-  /** @domName DOMImplementation.createHTMLDocument */
+  /// @domName DOMImplementation.createHTMLDocument; @docsEditable true
   HtmlDocument createHTMLDocument(String title) native;
 
-  /** @domName DOMImplementation.hasFeature */
+  /// @domName DOMImplementation.hasFeature; @docsEditable true
   bool hasFeature(String feature, String version) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5274,19 +5658,19 @@ class DOMImplementation native "*DOMImplementation" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MimeType
+/// @domName MimeType; @docsEditable true
 class DOMMimeType native "*MimeType" {
 
-  /** @domName MimeType.description */
+  /// @domName MimeType.description; @docsEditable true
   final String description;
 
-  /** @domName MimeType.enabledPlugin */
+  /// @domName MimeType.enabledPlugin; @docsEditable true
   final DOMPlugin enabledPlugin;
 
-  /** @domName MimeType.suffixes */
+  /// @domName MimeType.suffixes; @docsEditable true
   final String suffixes;
 
-  /** @domName MimeType.type */
+  /// @domName MimeType.type; @docsEditable true
   final String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5294,10 +5678,10 @@ class DOMMimeType native "*MimeType" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MimeTypeArray
+/// @domName MimeTypeArray; @docsEditable true
 class DOMMimeTypeArray implements JavaScriptIndexingBehavior, List<DOMMimeType> native "*MimeTypeArray" {
 
-  /** @domName MimeTypeArray.length */
+  /// @domName MimeTypeArray.length; @docsEditable true
   final int length;
 
   DOMMimeType operator[](int index) => JS("DOMMimeType", "#[#]", this, index);
@@ -5360,6 +5744,8 @@ class DOMMimeTypeArray implements JavaScriptIndexingBehavior, List<DOMMimeType> 
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  DOMMimeType get first => this[0];
+
   DOMMimeType get last => this[length - 1];
 
   DOMMimeType removeLast() {
@@ -5383,10 +5769,10 @@ class DOMMimeTypeArray implements JavaScriptIndexingBehavior, List<DOMMimeType> 
 
   // -- end List<DOMMimeType> mixins.
 
-  /** @domName MimeTypeArray.item */
+  /// @domName MimeTypeArray.item; @docsEditable true
   DOMMimeType item(int index) native;
 
-  /** @domName MimeTypeArray.namedItem */
+  /// @domName MimeTypeArray.namedItem; @docsEditable true
   DOMMimeType namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5394,12 +5780,12 @@ class DOMMimeTypeArray implements JavaScriptIndexingBehavior, List<DOMMimeType> 
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMParser
+/// @domName DOMParser; @docsEditable true
 class DOMParser native "*DOMParser" {
 
   factory DOMParser() => _DOMParserFactoryProvider.createDOMParser();
 
-  /** @domName DOMParser.parseFromString */
+  /// @domName DOMParser.parseFromString; @docsEditable true
   Document parseFromString(String str, String contentType) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5407,25 +5793,25 @@ class DOMParser native "*DOMParser" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Plugin
+/// @domName Plugin; @docsEditable true
 class DOMPlugin native "*Plugin" {
 
-  /** @domName Plugin.description */
+  /// @domName Plugin.description; @docsEditable true
   final String description;
 
-  /** @domName Plugin.filename */
+  /// @domName Plugin.filename; @docsEditable true
   final String filename;
 
-  /** @domName Plugin.length */
+  /// @domName Plugin.length; @docsEditable true
   final int length;
 
-  /** @domName Plugin.name */
+  /// @domName Plugin.name; @docsEditable true
   final String name;
 
-  /** @domName Plugin.item */
+  /// @domName Plugin.item; @docsEditable true
   DOMMimeType item(int index) native;
 
-  /** @domName Plugin.namedItem */
+  /// @domName Plugin.namedItem; @docsEditable true
   DOMMimeType namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5433,10 +5819,10 @@ class DOMPlugin native "*Plugin" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName PluginArray
+/// @domName PluginArray; @docsEditable true
 class DOMPluginArray implements JavaScriptIndexingBehavior, List<DOMPlugin> native "*PluginArray" {
 
-  /** @domName PluginArray.length */
+  /// @domName PluginArray.length; @docsEditable true
   final int length;
 
   DOMPlugin operator[](int index) => JS("DOMPlugin", "#[#]", this, index);
@@ -5499,6 +5885,8 @@ class DOMPluginArray implements JavaScriptIndexingBehavior, List<DOMPlugin> nati
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  DOMPlugin get first => this[0];
+
   DOMPlugin get last => this[length - 1];
 
   DOMPlugin removeLast() {
@@ -5522,13 +5910,13 @@ class DOMPluginArray implements JavaScriptIndexingBehavior, List<DOMPlugin> nati
 
   // -- end List<DOMPlugin> mixins.
 
-  /** @domName PluginArray.item */
+  /// @domName PluginArray.item; @docsEditable true
   DOMPlugin item(int index) native;
 
-  /** @domName PluginArray.namedItem */
+  /// @domName PluginArray.namedItem; @docsEditable true
   DOMPlugin namedItem(String name) native;
 
-  /** @domName PluginArray.refresh */
+  /// @domName PluginArray.refresh; @docsEditable true
   void refresh(bool reload) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5536,85 +5924,85 @@ class DOMPluginArray implements JavaScriptIndexingBehavior, List<DOMPlugin> nati
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Selection
+/// @domName Selection; @docsEditable true
 class DOMSelection native "*Selection" {
 
-  /** @domName Selection.anchorNode */
+  /// @domName Selection.anchorNode; @docsEditable true
   final Node anchorNode;
 
-  /** @domName Selection.anchorOffset */
+  /// @domName Selection.anchorOffset; @docsEditable true
   final int anchorOffset;
 
-  /** @domName Selection.baseNode */
+  /// @domName Selection.baseNode; @docsEditable true
   final Node baseNode;
 
-  /** @domName Selection.baseOffset */
+  /// @domName Selection.baseOffset; @docsEditable true
   final int baseOffset;
 
-  /** @domName Selection.extentNode */
+  /// @domName Selection.extentNode; @docsEditable true
   final Node extentNode;
 
-  /** @domName Selection.extentOffset */
+  /// @domName Selection.extentOffset; @docsEditable true
   final int extentOffset;
 
-  /** @domName Selection.focusNode */
+  /// @domName Selection.focusNode; @docsEditable true
   final Node focusNode;
 
-  /** @domName Selection.focusOffset */
+  /// @domName Selection.focusOffset; @docsEditable true
   final int focusOffset;
 
-  /** @domName Selection.isCollapsed */
+  /// @domName Selection.isCollapsed; @docsEditable true
   final bool isCollapsed;
 
-  /** @domName Selection.rangeCount */
+  /// @domName Selection.rangeCount; @docsEditable true
   final int rangeCount;
 
-  /** @domName Selection.type */
+  /// @domName Selection.type; @docsEditable true
   final String type;
 
-  /** @domName Selection.addRange */
+  /// @domName Selection.addRange; @docsEditable true
   void addRange(Range range) native;
 
-  /** @domName Selection.collapse */
+  /// @domName Selection.collapse; @docsEditable true
   void collapse(Node node, int index) native;
 
-  /** @domName Selection.collapseToEnd */
+  /// @domName Selection.collapseToEnd; @docsEditable true
   void collapseToEnd() native;
 
-  /** @domName Selection.collapseToStart */
+  /// @domName Selection.collapseToStart; @docsEditable true
   void collapseToStart() native;
 
-  /** @domName Selection.containsNode */
+  /// @domName Selection.containsNode; @docsEditable true
   bool containsNode(Node node, bool allowPartial) native;
 
-  /** @domName Selection.deleteFromDocument */
+  /// @domName Selection.deleteFromDocument; @docsEditable true
   void deleteFromDocument() native;
 
-  /** @domName Selection.empty */
+  /// @domName Selection.empty; @docsEditable true
   void empty() native;
 
-  /** @domName Selection.extend */
+  /// @domName Selection.extend; @docsEditable true
   void extend(Node node, int offset) native;
 
-  /** @domName Selection.getRangeAt */
+  /// @domName Selection.getRangeAt; @docsEditable true
   Range getRangeAt(int index) native;
 
-  /** @domName Selection.modify */
+  /// @domName Selection.modify; @docsEditable true
   void modify(String alter, String direction, String granularity) native;
 
-  /** @domName Selection.removeAllRanges */
+  /// @domName Selection.removeAllRanges; @docsEditable true
   void removeAllRanges() native;
 
-  /** @domName Selection.selectAllChildren */
+  /// @domName Selection.selectAllChildren; @docsEditable true
   void selectAllChildren(Node node) native;
 
-  /** @domName Selection.setBaseAndExtent */
+  /// @domName Selection.setBaseAndExtent; @docsEditable true
   void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) native;
 
-  /** @domName Selection.setPosition */
+  /// @domName Selection.setPosition; @docsEditable true
   void setPosition(Node node, int offset) native;
 
-  /** @domName Selection.toString */
+  /// @domName Selection.toString; @docsEditable true
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5622,10 +6010,10 @@ class DOMSelection native "*Selection" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMSettableTokenList
+/// @domName DOMSettableTokenList; @docsEditable true
 class DOMSettableTokenList extends DOMTokenList native "*DOMSettableTokenList" {
 
-  /** @domName DOMSettableTokenList.value */
+  /// @domName DOMSettableTokenList.value; @docsEditable true
   String value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5641,22 +6029,22 @@ abstract class DOMStringMap {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMTokenList
+/// @domName DOMTokenList; @docsEditable true
 class DOMTokenList native "*DOMTokenList" {
 
-  /** @domName DOMTokenList.length */
+  /// @domName DOMTokenList.length; @docsEditable true
   final int length;
 
-  /** @domName DOMTokenList.contains */
+  /// @domName DOMTokenList.contains; @docsEditable true
   bool contains(String token) native;
 
-  /** @domName DOMTokenList.item */
+  /// @domName DOMTokenList.item; @docsEditable true
   String item(int index) native;
 
-  /** @domName DOMTokenList.toString */
+  /// @domName DOMTokenList.toString; @docsEditable true
   String toString() native;
 
-  /** @domName DOMTokenList.toggle */
+  /// @domName DOMTokenList.toggle; @docsEditable true
   bool toggle(String token, [bool force]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5664,12 +6052,12 @@ class DOMTokenList native "*DOMTokenList" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLDataListElement
+/// @domName HTMLDataListElement; @docsEditable true
 class DataListElement extends Element implements Element native "*HTMLDataListElement" {
 
-  factory DataListElement() => _Elements.createDataListElement();
+  factory DataListElement() => document.$dom_createElement("datalist");
 
-  /** @domName HTMLDataListElement.options */
+  /// @domName HTMLDataListElement.options; @docsEditable true
   final HTMLCollection options;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5677,22 +6065,22 @@ class DataListElement extends Element implements Element native "*HTMLDataListEl
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DataTransferItem
+/// @domName DataTransferItem; @docsEditable true
 class DataTransferItem native "*DataTransferItem" {
 
-  /** @domName DataTransferItem.kind */
+  /// @domName DataTransferItem.kind; @docsEditable true
   final String kind;
 
-  /** @domName DataTransferItem.type */
+  /// @domName DataTransferItem.type; @docsEditable true
   final String type;
 
-  /** @domName DataTransferItem.getAsFile */
+  /// @domName DataTransferItem.getAsFile; @docsEditable true
   Blob getAsFile() native;
 
-  /** @domName DataTransferItem.getAsString */
+  /// @domName DataTransferItem.getAsString; @docsEditable true
   void getAsString([StringCallback callback]) native;
 
-  /** @domName DataTransferItem.webkitGetAsEntry */
+  /// @domName DataTransferItem.webkitGetAsEntry; @docsEditable true
   Entry webkitGetAsEntry() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5700,19 +6088,19 @@ class DataTransferItem native "*DataTransferItem" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DataTransferItemList
+/// @domName DataTransferItemList; @docsEditable true
 class DataTransferItemList native "*DataTransferItemList" {
 
-  /** @domName DataTransferItemList.length */
+  /// @domName DataTransferItemList.length; @docsEditable true
   final int length;
 
-  /** @domName DataTransferItemList.add */
+  /// @domName DataTransferItemList.add; @docsEditable true
   void add(data_OR_file, [String type]) native;
 
-  /** @domName DataTransferItemList.clear */
+  /// @domName DataTransferItemList.clear; @docsEditable true
   void clear() native;
 
-  /** @domName DataTransferItemList.item */
+  /// @domName DataTransferItemList.item; @docsEditable true
   DataTransferItem item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5720,7 +6108,7 @@ class DataTransferItemList native "*DataTransferItemList" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DataView
+/// @domName DataView; @docsEditable true
 class DataView extends ArrayBufferView native "*DataView" {
 
   factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) {
@@ -5733,52 +6121,52 @@ class DataView extends ArrayBufferView native "*DataView" {
     return _DataViewFactoryProvider.createDataView(buffer, byteOffset, byteLength);
   }
 
-  /** @domName DataView.getFloat32 */
+  /// @domName DataView.getFloat32; @docsEditable true
   num getFloat32(int byteOffset, {bool littleEndian}) native;
 
-  /** @domName DataView.getFloat64 */
+  /// @domName DataView.getFloat64; @docsEditable true
   num getFloat64(int byteOffset, {bool littleEndian}) native;
 
-  /** @domName DataView.getInt16 */
+  /// @domName DataView.getInt16; @docsEditable true
   int getInt16(int byteOffset, {bool littleEndian}) native;
 
-  /** @domName DataView.getInt32 */
+  /// @domName DataView.getInt32; @docsEditable true
   int getInt32(int byteOffset, {bool littleEndian}) native;
 
-  /** @domName DataView.getInt8 */
+  /// @domName DataView.getInt8; @docsEditable true
   int getInt8(int byteOffset) native;
 
-  /** @domName DataView.getUint16 */
+  /// @domName DataView.getUint16; @docsEditable true
   int getUint16(int byteOffset, {bool littleEndian}) native;
 
-  /** @domName DataView.getUint32 */
+  /// @domName DataView.getUint32; @docsEditable true
   int getUint32(int byteOffset, {bool littleEndian}) native;
 
-  /** @domName DataView.getUint8 */
+  /// @domName DataView.getUint8; @docsEditable true
   int getUint8(int byteOffset) native;
 
-  /** @domName DataView.setFloat32 */
+  /// @domName DataView.setFloat32; @docsEditable true
   void setFloat32(int byteOffset, num value, {bool littleEndian}) native;
 
-  /** @domName DataView.setFloat64 */
+  /// @domName DataView.setFloat64; @docsEditable true
   void setFloat64(int byteOffset, num value, {bool littleEndian}) native;
 
-  /** @domName DataView.setInt16 */
+  /// @domName DataView.setInt16; @docsEditable true
   void setInt16(int byteOffset, int value, {bool littleEndian}) native;
 
-  /** @domName DataView.setInt32 */
+  /// @domName DataView.setInt32; @docsEditable true
   void setInt32(int byteOffset, int value, {bool littleEndian}) native;
 
-  /** @domName DataView.setInt8 */
+  /// @domName DataView.setInt8; @docsEditable true
   void setInt8(int byteOffset, int value) native;
 
-  /** @domName DataView.setUint16 */
+  /// @domName DataView.setUint16; @docsEditable true
   void setUint16(int byteOffset, int value, {bool littleEndian}) native;
 
-  /** @domName DataView.setUint32 */
+  /// @domName DataView.setUint32; @docsEditable true
   void setUint32(int byteOffset, int value, {bool littleEndian}) native;
 
-  /** @domName DataView.setUint8 */
+  /// @domName DataView.setUint8; @docsEditable true
   void setUint8(int byteOffset, int value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5786,19 +6174,19 @@ class DataView extends ArrayBufferView native "*DataView" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Database
+/// @domName Database; @docsEditable true
 class Database native "*Database" {
 
-  /** @domName Database.version */
+  /// @domName Database.version; @docsEditable true
   final String version;
 
-  /** @domName Database.changeVersion */
+  /// @domName Database.changeVersion; @docsEditable true
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback, SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 
-  /** @domName Database.readTransaction */
+  /// @domName Database.readTransaction; @docsEditable true
   void readTransaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 
-  /** @domName Database.transaction */
+  /// @domName Database.transaction; @docsEditable true
   void transaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5814,22 +6202,22 @@ typedef void DatabaseCallback(database);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DatabaseSync
+/// @domName DatabaseSync; @docsEditable true
 class DatabaseSync native "*DatabaseSync" {
 
-  /** @domName DatabaseSync.lastErrorMessage */
+  /// @domName DatabaseSync.lastErrorMessage; @docsEditable true
   final String lastErrorMessage;
 
-  /** @domName DatabaseSync.version */
+  /// @domName DatabaseSync.version; @docsEditable true
   final String version;
 
-  /** @domName DatabaseSync.changeVersion */
+  /// @domName DatabaseSync.changeVersion; @docsEditable true
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback]) native;
 
-  /** @domName DatabaseSync.readTransaction */
+  /// @domName DatabaseSync.readTransaction; @docsEditable true
   void readTransaction(SQLTransactionSyncCallback callback) native;
 
-  /** @domName DatabaseSync.transaction */
+  /// @domName DatabaseSync.transaction; @docsEditable true
   void transaction(SQLTransactionSyncCallback callback) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5837,16 +6225,14 @@ class DatabaseSync native "*DatabaseSync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DedicatedWorkerContext
+/// @domName DedicatedWorkerContext; @docsEditable true
 class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerContext" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   DedicatedWorkerContextEvents get on =>
     new DedicatedWorkerContextEvents(this);
 
-  /** @domName DedicatedWorkerContext.postMessage */
+  /// @domName DedicatedWorkerContext.postMessage; @docsEditable true
   void postMessage(/*any*/ message, [List messagePorts]) {
     if (?messagePorts) {
       var message_1 = _convertDartToNative_SerializedScriptValue(message);
@@ -5871,10 +6257,10 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DelayNode
+/// @domName DelayNode; @docsEditable true
 class DelayNode extends AudioNode native "*DelayNode" {
 
-  /** @domName DelayNode.delayTime */
+  /// @domName DelayNode.delayTime; @docsEditable true
   final AudioParam delayTime;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5882,12 +6268,12 @@ class DelayNode extends AudioNode native "*DelayNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLDetailsElement
+/// @domName HTMLDetailsElement; @docsEditable true
 class DetailsElement extends Element implements Element native "*HTMLDetailsElement" {
 
-  factory DetailsElement() => _Elements.createDetailsElement();
+  factory DetailsElement() => document.$dom_createElement("details");
 
-  /** @domName HTMLDetailsElement.open */
+  /// @domName HTMLDetailsElement.open; @docsEditable true
   bool open;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5895,10 +6281,10 @@ class DetailsElement extends Element implements Element native "*HTMLDetailsElem
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DeviceMotionEvent
+/// @domName DeviceMotionEvent; @docsEditable true
 class DeviceMotionEvent extends Event native "*DeviceMotionEvent" {
 
-  /** @domName DeviceMotionEvent.interval */
+  /// @domName DeviceMotionEvent.interval; @docsEditable true
   final num interval;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5906,22 +6292,22 @@ class DeviceMotionEvent extends Event native "*DeviceMotionEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DeviceOrientationEvent
+/// @domName DeviceOrientationEvent; @docsEditable true
 class DeviceOrientationEvent extends Event native "*DeviceOrientationEvent" {
 
-  /** @domName DeviceOrientationEvent.absolute */
+  /// @domName DeviceOrientationEvent.absolute; @docsEditable true
   final bool absolute;
 
-  /** @domName DeviceOrientationEvent.alpha */
+  /// @domName DeviceOrientationEvent.alpha; @docsEditable true
   final num alpha;
 
-  /** @domName DeviceOrientationEvent.beta */
+  /// @domName DeviceOrientationEvent.beta; @docsEditable true
   final num beta;
 
-  /** @domName DeviceOrientationEvent.gamma */
+  /// @domName DeviceOrientationEvent.gamma; @docsEditable true
   final num gamma;
 
-  /** @domName DeviceOrientationEvent.initDeviceOrientationEvent */
+  /// @domName DeviceOrientationEvent.initDeviceOrientationEvent; @docsEditable true
   void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5929,10 +6315,10 @@ class DeviceOrientationEvent extends Event native "*DeviceOrientationEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLDirectoryElement
+/// @domName HTMLDirectoryElement; @docsEditable true
 class DirectoryElement extends Element implements Element native "*HTMLDirectoryElement" {
 
-  /** @domName HTMLDirectoryElement.compact */
+  /// @domName HTMLDirectoryElement.compact; @docsEditable true
   bool compact;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5940,13 +6326,13 @@ class DirectoryElement extends Element implements Element native "*HTMLDirectory
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DirectoryEntry
+/// @domName DirectoryEntry; @docsEditable true
 class DirectoryEntry extends Entry native "*DirectoryEntry" {
 
-  /** @domName DirectoryEntry.createReader */
+  /// @domName DirectoryEntry.createReader; @docsEditable true
   DirectoryReader createReader() native;
 
-  /** @domName DirectoryEntry.getDirectory */
+  /// @domName DirectoryEntry.getDirectory; @docsEditable true
   void getDirectory(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) {
     if (?errorCallback) {
       var options_1 = _convertDartToNative_Dictionary(options);
@@ -5971,7 +6357,7 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
   void _getDirectory_3(path, options) native "getDirectory";
   void _getDirectory_4(path) native "getDirectory";
 
-  /** @domName DirectoryEntry.getFile */
+  /// @domName DirectoryEntry.getFile; @docsEditable true
   void getFile(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) {
     if (?errorCallback) {
       var options_1 = _convertDartToNative_Dictionary(options);
@@ -5996,7 +6382,7 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
   void _getFile_3(path, options) native "getFile";
   void _getFile_4(path) native "getFile";
 
-  /** @domName DirectoryEntry.removeRecursively */
+  /// @domName DirectoryEntry.removeRecursively; @docsEditable true
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6004,27 +6390,27 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DirectoryEntrySync
+/// @domName DirectoryEntrySync; @docsEditable true
 class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
 
-  /** @domName DirectoryEntrySync.createReader */
+  /// @domName DirectoryEntrySync.createReader; @docsEditable true
   DirectoryReaderSync createReader() native;
 
-  /** @domName DirectoryEntrySync.getDirectory */
+  /// @domName DirectoryEntrySync.getDirectory; @docsEditable true
   DirectoryEntrySync getDirectory(String path, Map flags) {
     var flags_1 = _convertDartToNative_Dictionary(flags);
     return _getDirectory_1(path, flags_1);
   }
   DirectoryEntrySync _getDirectory_1(path, flags) native "getDirectory";
 
-  /** @domName DirectoryEntrySync.getFile */
+  /// @domName DirectoryEntrySync.getFile; @docsEditable true
   FileEntrySync getFile(String path, Map flags) {
     var flags_1 = _convertDartToNative_Dictionary(flags);
     return _getFile_1(path, flags_1);
   }
   FileEntrySync _getFile_1(path, flags) native "getFile";
 
-  /** @domName DirectoryEntrySync.removeRecursively */
+  /// @domName DirectoryEntrySync.removeRecursively; @docsEditable true
   void removeRecursively() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6032,10 +6418,10 @@ class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DirectoryReader
+/// @domName DirectoryReader; @docsEditable true
 class DirectoryReader native "*DirectoryReader" {
 
-  /** @domName DirectoryReader.readEntries */
+  /// @domName DirectoryReader.readEntries; @docsEditable true
   void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6043,10 +6429,11 @@ class DirectoryReader native "*DirectoryReader" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DirectoryReaderSync
+/// @domName DirectoryReaderSync; @docsEditable true
 class DirectoryReaderSync native "*DirectoryReaderSync" {
 
-  /** @domName DirectoryReaderSync.readEntries */
+  /// @domName DirectoryReaderSync.readEntries; @docsEditable true
+  @Returns('_EntryArraySync') @Creates('_EntryArraySync')
   List<EntrySync> readEntries() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6054,10 +6441,10 @@ class DirectoryReaderSync native "*DirectoryReaderSync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLDivElement
+/// @domName HTMLDivElement; @docsEditable true
 class DivElement extends Element implements Element native "*HTMLDivElement" {
 
-  factory DivElement() => _Elements.createDivElement();
+  factory DivElement() => document.$dom_createElement("div");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6068,169 +6455,171 @@ class Document extends Node  native "*Document"
 {
 
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   DocumentEvents get on =>
     new DocumentEvents(this);
 
-  /** @domName Document.body */
+  /// @domName Document.body; @docsEditable true
   Element get $dom_body => JS("Element", "#.body", this);
 
-  /** @domName Document.body */
+  /// @domName Document.body; @docsEditable true
   void set $dom_body(Element value) {
     JS("void", "#.body = #", this, value);
   }
 
-  /** @domName Document.charset */
+  /// @domName Document.charset; @docsEditable true
   String charset;
 
-  /** @domName Document.cookie */
+  /// @domName Document.cookie; @docsEditable true
   String cookie;
 
-  /** @domName Document.defaultView */
+  /// @domName Document.defaultView; @docsEditable true
   Window get window => _convertNativeToDart_Window(this._window);
   dynamic get _window => JS("dynamic", "#.defaultView", this);
 
-  /** @domName Document.documentElement */
+  /// @domName Document.documentElement; @docsEditable true
   final Element documentElement;
 
-  /** @domName Document.domain */
+  /// @domName Document.domain; @docsEditable true
   final String domain;
 
-  /** @domName Document.head */
+  /// @domName Document.head; @docsEditable true
   HeadElement get $dom_head => JS("HeadElement", "#.head", this);
 
-  /** @domName Document.implementation */
+  /// @domName Document.implementation; @docsEditable true
   final DOMImplementation implementation;
 
-  /** @domName Document.lastModified */
+  /// @domName Document.lastModified; @docsEditable true
   String get $dom_lastModified => JS("String", "#.lastModified", this);
 
-  /** @domName Document.preferredStylesheetSet */
+  /// @domName Document.preferredStylesheetSet; @docsEditable true
   final String preferredStylesheetSet;
 
-  /** @domName Document.readyState */
+  /// @domName Document.readyState; @docsEditable true
   final String readyState;
 
-  /** @domName Document.referrer */
+  /// @domName Document.referrer; @docsEditable true
   String get $dom_referrer => JS("String", "#.referrer", this);
 
-  /** @domName Document.selectedStylesheetSet */
+  /// @domName Document.selectedStylesheetSet; @docsEditable true
   String selectedStylesheetSet;
 
-  /** @domName Document.styleSheets */
-  List<StyleSheet> get $dom_styleSheets => JS("List<StyleSheet>", "#.styleSheets", this);
+  /// @domName Document.styleSheets; @docsEditable true
+  List<StyleSheet> get $dom_styleSheets => JS("_StyleSheetList", "#.styleSheets", this);
 
-  /** @domName Document.title */
+  /// @domName Document.title; @docsEditable true
   String get $dom_title => JS("String", "#.title", this);
 
-  /** @domName Document.title */
+  /// @domName Document.title; @docsEditable true
   void set $dom_title(String value) {
     JS("void", "#.title = #", this, value);
   }
 
-  /** @domName Document.webkitFullscreenElement */
+  /// @domName Document.webkitFullscreenElement; @docsEditable true
   Element get $dom_webkitFullscreenElement => JS("Element", "#.webkitFullscreenElement", this);
 
-  /** @domName Document.webkitFullscreenEnabled */
+  /// @domName Document.webkitFullscreenEnabled; @docsEditable true
   bool get $dom_webkitFullscreenEnabled => JS("bool", "#.webkitFullscreenEnabled", this);
 
-  /** @domName Document.webkitHidden */
+  /// @domName Document.webkitHidden; @docsEditable true
   bool get $dom_webkitHidden => JS("bool", "#.webkitHidden", this);
 
-  /** @domName Document.webkitIsFullScreen */
+  /// @domName Document.webkitIsFullScreen; @docsEditable true
   bool get $dom_webkitIsFullScreen => JS("bool", "#.webkitIsFullScreen", this);
 
-  /** @domName Document.webkitPointerLockElement */
+  /// @domName Document.webkitPointerLockElement; @docsEditable true
   Element get $dom_webkitPointerLockElement => JS("Element", "#.webkitPointerLockElement", this);
 
-  /** @domName Document.webkitVisibilityState */
+  /// @domName Document.webkitVisibilityState; @docsEditable true
   String get $dom_webkitVisibilityState => JS("String", "#.webkitVisibilityState", this);
 
-  /** @domName Document.caretRangeFromPoint */
+  /// @domName Document.caretRangeFromPoint; @docsEditable true
   Range $dom_caretRangeFromPoint(int x, int y) native "caretRangeFromPoint";
 
-  /** @domName Document.createCDATASection */
+  /// @domName Document.createCDATASection; @docsEditable true
   CDATASection createCDATASection(String data) native;
 
-  /** @domName Document.createDocumentFragment */
+  /// @domName Document.createDocumentFragment; @docsEditable true
   DocumentFragment createDocumentFragment() native;
 
-  /** @domName Document.createElement */
+  /// @domName Document.createElement; @docsEditable true
   Element $dom_createElement(String tagName) native "createElement";
 
-  /** @domName Document.createElementNS */
+  /// @domName Document.createElementNS; @docsEditable true
   Element $dom_createElementNS(String namespaceURI, String qualifiedName) native "createElementNS";
 
-  /** @domName Document.createEvent */
+  /// @domName Document.createEvent; @docsEditable true
   Event $dom_createEvent(String eventType) native "createEvent";
 
-  /** @domName Document.createRange */
+  /// @domName Document.createRange; @docsEditable true
   Range createRange() native;
 
-  /** @domName Document.createTextNode */
+  /// @domName Document.createTextNode; @docsEditable true
   Text $dom_createTextNode(String data) native "createTextNode";
 
-  /** @domName Document.createTouch */
+  /// @domName Document.createTouch; @docsEditable true
   Touch createTouch(LocalWindow window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) {
     var target_1 = _convertDartToNative_EventTarget(target);
     return _createTouch_1(window, target_1, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
   }
   Touch _createTouch_1(LocalWindow window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native "createTouch";
 
-  /** @domName Document.createTouchList */
+  /// @domName Document.createTouchList; @docsEditable true
   TouchList $dom_createTouchList() native "createTouchList";
 
-  /** @domName Document.elementFromPoint */
+  /// @domName Document.elementFromPoint; @docsEditable true
   Element $dom_elementFromPoint(int x, int y) native "elementFromPoint";
 
-  /** @domName Document.execCommand */
+  /// @domName Document.execCommand; @docsEditable true
   bool execCommand(String command, bool userInterface, String value) native;
 
-  /** @domName Document.getCSSCanvasContext */
+  /// @domName Document.getCSSCanvasContext; @docsEditable true
   CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height) native;
 
-  /** @domName Document.getElementById */
+  /// @domName Document.getElementById; @docsEditable true
   Element $dom_getElementById(String elementId) native "getElementById";
 
-  /** @domName Document.getElementsByClassName */
+  /// @domName Document.getElementsByClassName; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_getElementsByClassName(String tagname) native "getElementsByClassName";
 
-  /** @domName Document.getElementsByName */
+  /// @domName Document.getElementsByName; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_getElementsByName(String elementName) native "getElementsByName";
 
-  /** @domName Document.getElementsByTagName */
+  /// @domName Document.getElementsByTagName; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_getElementsByTagName(String tagname) native "getElementsByTagName";
 
-  /** @domName Document.queryCommandEnabled */
+  /// @domName Document.queryCommandEnabled; @docsEditable true
   bool queryCommandEnabled(String command) native;
 
-  /** @domName Document.queryCommandIndeterm */
+  /// @domName Document.queryCommandIndeterm; @docsEditable true
   bool queryCommandIndeterm(String command) native;
 
-  /** @domName Document.queryCommandState */
+  /// @domName Document.queryCommandState; @docsEditable true
   bool queryCommandState(String command) native;
 
-  /** @domName Document.queryCommandSupported */
+  /// @domName Document.queryCommandSupported; @docsEditable true
   bool queryCommandSupported(String command) native;
 
-  /** @domName Document.queryCommandValue */
+  /// @domName Document.queryCommandValue; @docsEditable true
   String queryCommandValue(String command) native;
 
-  /** @domName Document.querySelector */
+  /// @domName Document.querySelector; @docsEditable true
   Element $dom_querySelector(String selectors) native "querySelector";
 
-  /** @domName Document.querySelectorAll */
+  /// @domName Document.querySelectorAll; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_querySelectorAll(String selectors) native "querySelectorAll";
 
-  /** @domName Document.webkitCancelFullScreen */
+  /// @domName Document.webkitCancelFullScreen; @docsEditable true
   void $dom_webkitCancelFullScreen() native "webkitCancelFullScreen";
 
-  /** @domName Document.webkitExitFullscreen */
+  /// @domName Document.webkitExitFullscreen; @docsEditable true
   void $dom_webkitExitFullscreen() native "webkitExitFullscreen";
 
-  /** @domName Document.webkitExitPointerLock */
+  /// @domName Document.webkitExitPointerLock; @docsEditable true
   void $dom_webkitExitPointerLock() native "webkitExitPointerLock";
 
   // TODO(jacobr): implement all Element methods not on Document.
@@ -6396,24 +6785,33 @@ class DocumentFragment extends Node native "*DocumentFragment" {
       _DocumentFragmentFactoryProvider.createDocumentFragment_html(html);
 
   factory DocumentFragment.svg(String svgContent) =>
-      new _DocumentFragmentFactoryProvider.createDocumentFragment_svg(svgContent);
+      _DocumentFragmentFactoryProvider.createDocumentFragment_svg(svgContent);
 
-  List<Element> _elements;
-
-  List<Element> get elements {
-    if (_elements == null) {
-      _elements = new FilteredElementList(this);
-    }
-    return _elements;
-  }
+  List<Element> get elements => this.children;
 
   // TODO: The type of value should be Collection<Element>. See http://b/5392897
   void set elements(value) {
+    this.children = value;
+  }
+
+  // Native field is used only by Dart code so does not lead to instantiation
+  // of native classes
+  @Creates('Null')
+  List<Element> _children;
+
+  List<Element> get children {
+    if (_children == null) {
+      _children = new FilteredElementList(this);
+    }
+    return _children;
+  }
+
+  void set children(Collection<Element> value) {
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
-    final elements = this.elements;
-    elements.clear();
-    elements.addAll(copy);
+    var children = this.children;
+    children.clear();
+    children.addAll(copy);
   }
 
   Element query(String selectors) => $dom_querySelector(selectors);
@@ -6622,16 +7020,15 @@ class DocumentFragment extends Node native "*DocumentFragment" {
   }
 
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ElementEvents get on =>
     new ElementEvents(this);
 
-  /** @domName DocumentFragment.querySelector */
+  /// @domName DocumentFragment.querySelector; @docsEditable true
   Element $dom_querySelector(String selectors) native "querySelector";
 
-  /** @domName DocumentFragment.querySelectorAll */
+  /// @domName DocumentFragment.querySelectorAll; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_querySelectorAll(String selectors) native "querySelectorAll";
 
 }
@@ -6640,28 +7037,28 @@ class DocumentFragment extends Node native "*DocumentFragment" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DocumentType
+/// @domName DocumentType; @docsEditable true
 class DocumentType extends Node native "*DocumentType" {
 
-  /** @domName DocumentType.entities */
+  /// @domName DocumentType.entities; @docsEditable true
   final NamedNodeMap entities;
 
-  /** @domName DocumentType.internalSubset */
+  /// @domName DocumentType.internalSubset; @docsEditable true
   final String internalSubset;
 
-  /** @domName DocumentType.name */
+  /// @domName DocumentType.name; @docsEditable true
   final String name;
 
-  /** @domName DocumentType.notations */
+  /// @domName DocumentType.notations; @docsEditable true
   final NamedNodeMap notations;
 
-  /** @domName DocumentType.publicId */
+  /// @domName DocumentType.publicId; @docsEditable true
   final String publicId;
 
-  /** @domName DocumentType.systemId */
+  /// @domName DocumentType.systemId; @docsEditable true
   final String systemId;
 
-  /** @domName DocumentType.remove */
+  /// @domName DocumentType.remove; @docsEditable true
   void remove() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6669,25 +7066,25 @@ class DocumentType extends Node native "*DocumentType" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DynamicsCompressorNode
+/// @domName DynamicsCompressorNode; @docsEditable true
 class DynamicsCompressorNode extends AudioNode native "*DynamicsCompressorNode" {
 
-  /** @domName DynamicsCompressorNode.attack */
+  /// @domName DynamicsCompressorNode.attack; @docsEditable true
   final AudioParam attack;
 
-  /** @domName DynamicsCompressorNode.knee */
+  /// @domName DynamicsCompressorNode.knee; @docsEditable true
   final AudioParam knee;
 
-  /** @domName DynamicsCompressorNode.ratio */
+  /// @domName DynamicsCompressorNode.ratio; @docsEditable true
   final AudioParam ratio;
 
-  /** @domName DynamicsCompressorNode.reduction */
+  /// @domName DynamicsCompressorNode.reduction; @docsEditable true
   final AudioParam reduction;
 
-  /** @domName DynamicsCompressorNode.release */
+  /// @domName DynamicsCompressorNode.release; @docsEditable true
   final AudioParam release;
 
-  /** @domName DynamicsCompressorNode.threshold */
+  /// @domName DynamicsCompressorNode.threshold; @docsEditable true
   final AudioParam threshold;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6695,7 +7092,7 @@ class DynamicsCompressorNode extends AudioNode native "*DynamicsCompressorNode" 
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName EXTTextureFilterAnisotropic
+/// @domName EXTTextureFilterAnisotropic; @docsEditable true
 class EXTTextureFilterAnisotropic native "*EXTTextureFilterAnisotropic" {
 
   static const int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
@@ -6848,6 +7245,11 @@ class _ChildrenElementList implements List {
     return result;
   }
 
+  Element get first {
+    return _element.$dom_firstElementChild;
+  }
+
+
   Element get last {
     return _element.$dom_lastElementChild;
   }
@@ -6861,10 +7263,6 @@ class _FrozenElementList implements List {
   final List<Node> _nodeList;
 
   _FrozenElementList._wrap(this._nodeList);
-
-  Element get first {
-    return _nodeList[0];
-  }
 
   bool contains(Element element) {
     for (Element el in this) {
@@ -6974,6 +7372,8 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
+  Element get first => _nodeList.first;
+
   Element get last => _nodeList.last;
 }
 
@@ -7001,16 +7401,7 @@ class _FrozenElementListIterator implements Iterator<Element> {
   bool get hasNext => _index < _list.length;
 }
 
-/**
- * All your attribute manipulation needs in one place.
- * Extends the regular Map interface by automatically coercing non-string
- * values to strings.
- */
-abstract class AttributeMap implements Map<String, String> {
-  void operator []=(String key, value);
-}
-
-class _ElementAttributeMap extends AttributeMap {
+class _ElementAttributeMap implements Map<String, String> {
 
   final Element _element;
 
@@ -7105,7 +7496,7 @@ class _ElementAttributeMap extends AttributeMap {
  * Provides a Map abstraction on top of data-* attributes, similar to the
  * dataSet in the old DOM.
  */
-class _DataAttributeMap extends AttributeMap {
+class _DataAttributeMap implements Map<String, String> {
 
   final Map<String, String> $dom_attributes;
 
@@ -7218,7 +7609,7 @@ class _SimpleClientRect implements ClientRect {
   String toString() => "($left, $top, $width, $height)";
 }
 
-class Element extends Node implements ElementTraversal native "*Element" {
+abstract class Element extends Node implements ElementTraversal native "*Element" {
 
   factory Element.html(String html) =>
       _ElementFactoryProvider.createElement_html(html);
@@ -7229,7 +7620,7 @@ class Element extends Node implements ElementTraversal native "*Element" {
    * @domName Element.hasAttribute, Element.getAttribute, Element.setAttribute,
    *   Element.removeAttribute
    */
-  _ElementAttributeMap get attributes => new _ElementAttributeMap(this);
+  Map<String, String> get attributes => new _ElementAttributeMap(this);
 
   void set attributes(Map<String, String> value) {
     Map<String, String> attributes = this.attributes;
@@ -7240,16 +7631,27 @@ class Element extends Node implements ElementTraversal native "*Element" {
   }
 
   void set elements(Collection<Element> value) {
-    final elements = this.elements;
-    elements.clear();
-    elements.addAll(value);
+    this.children = value;
   }
+
+  /**
+   * Deprecated, use [children] instead.
+   */
+  List<Element> get elements => this.children;
 
   /**
    * @domName childElementCount, firstElementChild, lastElementChild,
    *   children, Node.nodes.add
    */
-  List<Element> get elements => new _ChildrenElementList._wrap(this);
+  List<Element> get children => new _ChildrenElementList._wrap(this);
+
+  void set children(Collection<Element> value) {
+    // Copy list first since we don't want liveness during iteration.
+    List copy = new List.from(value);
+    var children = this.children;
+    children.clear();
+    children.addAll(copy);
+  }
 
   Element query(String selectors) => $dom_querySelector(selectors);
 
@@ -7315,6 +7717,7 @@ class Element extends Node implements ElementTraversal native "*Element" {
    * [wc]: http://dvcs.w3.org/hg/webcomponents/raw-file/tip/explainer/index.html
    * [x-tags]: http://x-tags.org/
    */
+  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
   var xtag;
 
   // TODO(vsm): Implement noSuchMethod or similar for dart2js.
@@ -7377,188 +7780,190 @@ class Element extends Node implements ElementTraversal native "*Element" {
   }
 
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ElementEvents get on =>
     new ElementEvents(this);
 
-  /** @domName HTMLElement.children */
+  /// @domName HTMLElement.children; @docsEditable true
   HTMLCollection get $dom_children => JS("HTMLCollection", "#.children", this);
 
-  /** @domName HTMLElement.contentEditable */
+  /// @domName HTMLElement.contentEditable; @docsEditable true
   String contentEditable;
 
-  /** @domName HTMLElement.dir */
+  /// @domName HTMLElement.dir; @docsEditable true
   String dir;
 
-  /** @domName HTMLElement.draggable */
+  /// @domName HTMLElement.draggable; @docsEditable true
   bool draggable;
 
-  /** @domName HTMLElement.hidden */
+  /// @domName HTMLElement.hidden; @docsEditable true
   bool hidden;
 
-  /** @domName HTMLElement.id */
+  /// @domName HTMLElement.id; @docsEditable true
   String id;
 
-  /** @domName HTMLElement.innerHTML */
+  /// @domName HTMLElement.innerHTML; @docsEditable true
   String innerHTML;
 
-  /** @domName HTMLElement.isContentEditable */
+  /// @domName HTMLElement.isContentEditable; @docsEditable true
   final bool isContentEditable;
 
-  /** @domName HTMLElement.lang */
+  /// @domName HTMLElement.lang; @docsEditable true
   String lang;
 
-  /** @domName HTMLElement.outerHTML */
+  /// @domName HTMLElement.outerHTML; @docsEditable true
   final String outerHTML;
 
-  /** @domName HTMLElement.spellcheck */
+  /// @domName HTMLElement.spellcheck; @docsEditable true
   bool spellcheck;
 
-  /** @domName HTMLElement.tabIndex */
+  /// @domName HTMLElement.tabIndex; @docsEditable true
   int tabIndex;
 
-  /** @domName HTMLElement.title */
+  /// @domName HTMLElement.title; @docsEditable true
   String title;
 
-  /** @domName HTMLElement.translate */
+  /// @domName HTMLElement.translate; @docsEditable true
   bool translate;
 
-  /** @domName HTMLElement.webkitdropzone */
+  /// @domName HTMLElement.webkitdropzone; @docsEditable true
   String webkitdropzone;
 
-  /** @domName HTMLElement.click */
+  /// @domName HTMLElement.click; @docsEditable true
   void click() native;
 
   static const int ALLOW_KEYBOARD_INPUT = 1;
 
-  /** @domName Element.childElementCount */
+  /// @domName Element.childElementCount; @docsEditable true
   int get $dom_childElementCount => JS("int", "#.childElementCount", this);
 
-  /** @domName Element.className */
+  /// @domName Element.className; @docsEditable true
   String get $dom_className => JS("String", "#.className", this);
 
-  /** @domName Element.className */
+  /// @domName Element.className; @docsEditable true
   void set $dom_className(String value) {
     JS("void", "#.className = #", this, value);
   }
 
-  /** @domName Element.clientHeight */
+  /// @domName Element.clientHeight; @docsEditable true
   final int clientHeight;
 
-  /** @domName Element.clientLeft */
+  /// @domName Element.clientLeft; @docsEditable true
   final int clientLeft;
 
-  /** @domName Element.clientTop */
+  /// @domName Element.clientTop; @docsEditable true
   final int clientTop;
 
-  /** @domName Element.clientWidth */
+  /// @domName Element.clientWidth; @docsEditable true
   final int clientWidth;
 
-  /** @domName Element.dataset */
+  /// @domName Element.dataset; @docsEditable true
   final Map<String, String> dataset;
 
-  /** @domName Element.firstElementChild */
+  /// @domName Element.firstElementChild; @docsEditable true
   Element get $dom_firstElementChild => JS("Element", "#.firstElementChild", this);
 
-  /** @domName Element.lastElementChild */
+  /// @domName Element.lastElementChild; @docsEditable true
   Element get $dom_lastElementChild => JS("Element", "#.lastElementChild", this);
 
-  /** @domName Element.nextElementSibling */
+  /// @domName Element.nextElementSibling; @docsEditable true
   final Element nextElementSibling;
 
-  /** @domName Element.offsetHeight */
+  /// @domName Element.offsetHeight; @docsEditable true
   final int offsetHeight;
 
-  /** @domName Element.offsetLeft */
+  /// @domName Element.offsetLeft; @docsEditable true
   final int offsetLeft;
 
-  /** @domName Element.offsetParent */
+  /// @domName Element.offsetParent; @docsEditable true
   final Element offsetParent;
 
-  /** @domName Element.offsetTop */
+  /// @domName Element.offsetTop; @docsEditable true
   final int offsetTop;
 
-  /** @domName Element.offsetWidth */
+  /// @domName Element.offsetWidth; @docsEditable true
   final int offsetWidth;
 
-  /** @domName Element.previousElementSibling */
+  /// @domName Element.previousElementSibling; @docsEditable true
   final Element previousElementSibling;
 
-  /** @domName Element.scrollHeight */
+  /// @domName Element.scrollHeight; @docsEditable true
   final int scrollHeight;
 
-  /** @domName Element.scrollLeft */
+  /// @domName Element.scrollLeft; @docsEditable true
   int scrollLeft;
 
-  /** @domName Element.scrollTop */
+  /// @domName Element.scrollTop; @docsEditable true
   int scrollTop;
 
-  /** @domName Element.scrollWidth */
+  /// @domName Element.scrollWidth; @docsEditable true
   final int scrollWidth;
 
-  /** @domName Element.style */
+  /// @domName Element.style; @docsEditable true
   final CSSStyleDeclaration style;
 
-  /** @domName Element.tagName */
+  /// @domName Element.tagName; @docsEditable true
   final String tagName;
 
-  /** @domName Element.blur */
+  /// @domName Element.blur; @docsEditable true
   void blur() native;
 
-  /** @domName Element.focus */
+  /// @domName Element.focus; @docsEditable true
   void focus() native;
 
-  /** @domName Element.getAttribute */
+  /// @domName Element.getAttribute; @docsEditable true
   String $dom_getAttribute(String name) native "getAttribute";
 
-  /** @domName Element.getBoundingClientRect */
+  /// @domName Element.getBoundingClientRect; @docsEditable true
   ClientRect getBoundingClientRect() native;
 
-  /** @domName Element.getClientRects */
+  /// @domName Element.getClientRects; @docsEditable true
+  @Returns('_ClientRectList') @Creates('_ClientRectList')
   List<ClientRect> getClientRects() native;
 
-  /** @domName Element.getElementsByClassName */
+  /// @domName Element.getElementsByClassName; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_getElementsByClassName(String name) native "getElementsByClassName";
 
-  /** @domName Element.getElementsByTagName */
+  /// @domName Element.getElementsByTagName; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_getElementsByTagName(String name) native "getElementsByTagName";
 
-  /** @domName Element.hasAttribute */
+  /// @domName Element.hasAttribute; @docsEditable true
   bool $dom_hasAttribute(String name) native "hasAttribute";
 
-  /** @domName Element.querySelector */
+  /// @domName Element.querySelector; @docsEditable true
   Element $dom_querySelector(String selectors) native "querySelector";
 
-  /** @domName Element.querySelectorAll */
+  /// @domName Element.querySelectorAll; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_querySelectorAll(String selectors) native "querySelectorAll";
 
-  /** @domName Element.removeAttribute */
+  /// @domName Element.removeAttribute; @docsEditable true
   void $dom_removeAttribute(String name) native "removeAttribute";
 
-  /** @domName Element.scrollByLines */
+  /// @domName Element.scrollByLines; @docsEditable true
   void scrollByLines(int lines) native;
 
-  /** @domName Element.scrollByPages */
+  /// @domName Element.scrollByPages; @docsEditable true
   void scrollByPages(int pages) native;
 
-  /** @domName Element.scrollIntoViewIfNeeded */
+  /// @domName Element.scrollIntoViewIfNeeded; @docsEditable true
   void scrollIntoView([bool centerIfNeeded]) native "scrollIntoViewIfNeeded";
 
-  /** @domName Element.setAttribute */
+  /// @domName Element.setAttribute; @docsEditable true
   void $dom_setAttribute(String name, String value) native "setAttribute";
 
-  /** @domName Element.webkitMatchesSelector */
+  /// @domName Element.webkitMatchesSelector; @docsEditable true
   bool matchesSelector(String selectors) native "webkitMatchesSelector";
 
-  /** @domName Element.webkitRequestFullScreen */
+  /// @domName Element.webkitRequestFullScreen; @docsEditable true
   void webkitRequestFullScreen(int flags) native;
 
-  /** @domName Element.webkitRequestFullscreen */
+  /// @domName Element.webkitRequestFullscreen; @docsEditable true
   void webkitRequestFullscreen() native;
 
-  /** @domName Element.webkitRequestPointerLock */
+  /// @domName Element.webkitRequestPointerLock; @docsEditable true
   void webkitRequestPointerLock() native;
 
 }
@@ -7603,15 +8008,15 @@ class _ElementFactoryProvider {
     temp.innerHTML = html;
 
     Element element;
-    if (temp.elements.length == 1) {
-      element = temp.elements[0];
-    } else if (parentTag == 'html' && temp.elements.length == 2) {
+    if (temp.children.length == 1) {
+      element = temp.children[0];
+    } else if (parentTag == 'html' && temp.children.length == 2) {
       // Work around for edge case in WebKit and possibly other browsers where
       // both body and head elements are created even though the inner html
       // only contains a head or body element.
-      element = temp.elements[tag == 'head' ? 0 : 1];
+      element = temp.children[tag == 'head' ? 0 : 1];
     } else {
-      throw new ArgumentError('HTML had ${temp.elements.length} '
+      throw new ArgumentError('HTML had ${temp.children.length} '
           'top level elements but 1 expected');
     }
     element.remove();
@@ -7747,16 +8152,16 @@ class ElementEvents extends Events {
 /// @domName ElementTimeControl
 abstract class ElementTimeControl {
 
-  /** @domName ElementTimeControl.beginElement */
+  /// @domName ElementTimeControl.beginElement; @docsEditable true
   void beginElement();
 
-  /** @domName ElementTimeControl.beginElementAt */
+  /// @domName ElementTimeControl.beginElementAt; @docsEditable true
   void beginElementAt(num offset);
 
-  /** @domName ElementTimeControl.endElement */
+  /// @domName ElementTimeControl.endElement; @docsEditable true
   void endElement();
 
-  /** @domName ElementTimeControl.endElementAt */
+  /// @domName ElementTimeControl.endElementAt; @docsEditable true
   void endElementAt(num offset);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7782,27 +8187,27 @@ abstract class ElementTraversal {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLEmbedElement
+/// @domName HTMLEmbedElement; @docsEditable true
 class EmbedElement extends Element implements Element native "*HTMLEmbedElement" {
 
-  factory EmbedElement() => _Elements.createEmbedElement();
+  factory EmbedElement() => document.$dom_createElement("embed");
 
-  /** @domName HTMLEmbedElement.align */
+  /// @domName HTMLEmbedElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLEmbedElement.height */
+  /// @domName HTMLEmbedElement.height; @docsEditable true
   String height;
 
-  /** @domName HTMLEmbedElement.name */
+  /// @domName HTMLEmbedElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLEmbedElement.src */
+  /// @domName HTMLEmbedElement.src; @docsEditable true
   String src;
 
-  /** @domName HTMLEmbedElement.type */
+  /// @domName HTMLEmbedElement.type; @docsEditable true
   String type;
 
-  /** @domName HTMLEmbedElement.width */
+  /// @domName HTMLEmbedElement.width; @docsEditable true
   String width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7810,7 +8215,7 @@ class EmbedElement extends Element implements Element native "*HTMLEmbedElement"
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName EntityReference
+/// @domName EntityReference; @docsEditable true
 class EntityReference extends Node native "*EntityReference" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7826,40 +8231,40 @@ typedef void EntriesCallback(List<Entry> entries);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Entry
+/// @domName Entry; @docsEditable true
 class Entry native "*Entry" {
 
-  /** @domName Entry.filesystem */
+  /// @domName Entry.filesystem; @docsEditable true
   final DOMFileSystem filesystem;
 
-  /** @domName Entry.fullPath */
+  /// @domName Entry.fullPath; @docsEditable true
   final String fullPath;
 
-  /** @domName Entry.isDirectory */
+  /// @domName Entry.isDirectory; @docsEditable true
   final bool isDirectory;
 
-  /** @domName Entry.isFile */
+  /// @domName Entry.isFile; @docsEditable true
   final bool isFile;
 
-  /** @domName Entry.name */
+  /// @domName Entry.name; @docsEditable true
   final String name;
 
-  /** @domName Entry.copyTo */
+  /// @domName Entry.copyTo; @docsEditable true
   void copyTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  /** @domName Entry.getMetadata */
+  /// @domName Entry.getMetadata; @docsEditable true
   void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  /** @domName Entry.getParent */
+  /// @domName Entry.getParent; @docsEditable true
   void getParent([EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  /** @domName Entry.moveTo */
+  /// @domName Entry.moveTo; @docsEditable true
   void moveTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  /** @domName Entry.remove */
+  /// @domName Entry.remove; @docsEditable true
   void remove(VoidCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  /** @domName Entry.toURL */
+  /// @domName Entry.toURL; @docsEditable true
   String toURL() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7875,40 +8280,40 @@ typedef void EntryCallback(Entry entry);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName EntrySync
+/// @domName EntrySync; @docsEditable true
 class EntrySync native "*EntrySync" {
 
-  /** @domName EntrySync.filesystem */
+  /// @domName EntrySync.filesystem; @docsEditable true
   final DOMFileSystemSync filesystem;
 
-  /** @domName EntrySync.fullPath */
+  /// @domName EntrySync.fullPath; @docsEditable true
   final String fullPath;
 
-  /** @domName EntrySync.isDirectory */
+  /// @domName EntrySync.isDirectory; @docsEditable true
   final bool isDirectory;
 
-  /** @domName EntrySync.isFile */
+  /// @domName EntrySync.isFile; @docsEditable true
   final bool isFile;
 
-  /** @domName EntrySync.name */
+  /// @domName EntrySync.name; @docsEditable true
   final String name;
 
-  /** @domName EntrySync.copyTo */
+  /// @domName EntrySync.copyTo; @docsEditable true
   EntrySync copyTo(DirectoryEntrySync parent, String name) native;
 
-  /** @domName EntrySync.getMetadata */
+  /// @domName EntrySync.getMetadata; @docsEditable true
   Metadata getMetadata() native;
 
-  /** @domName EntrySync.getParent */
+  /// @domName EntrySync.getParent; @docsEditable true
   EntrySync getParent() native;
 
-  /** @domName EntrySync.moveTo */
+  /// @domName EntrySync.moveTo; @docsEditable true
   EntrySync moveTo(DirectoryEntrySync parent, String name) native;
 
-  /** @domName EntrySync.remove */
+  /// @domName EntrySync.remove; @docsEditable true
   void remove() native;
 
-  /** @domName EntrySync.toURL */
+  /// @domName EntrySync.toURL; @docsEditable true
   String toURL() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7924,16 +8329,16 @@ typedef void ErrorCallback(FileError error);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ErrorEvent
+/// @domName ErrorEvent; @docsEditable true
 class ErrorEvent extends Event native "*ErrorEvent" {
 
-  /** @domName ErrorEvent.filename */
+  /// @domName ErrorEvent.filename; @docsEditable true
   final String filename;
 
-  /** @domName ErrorEvent.lineno */
+  /// @domName ErrorEvent.lineno; @docsEditable true
   final int lineno;
 
-  /** @domName ErrorEvent.message */
+  /// @domName ErrorEvent.message; @docsEditable true
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7993,51 +8398,51 @@ class Event native "*Event" {
 
   static const int SELECT = 16384;
 
-  /** @domName Event.bubbles */
+  /// @domName Event.bubbles; @docsEditable true
   final bool bubbles;
 
-  /** @domName Event.cancelBubble */
+  /// @domName Event.cancelBubble; @docsEditable true
   bool cancelBubble;
 
-  /** @domName Event.cancelable */
+  /// @domName Event.cancelable; @docsEditable true
   final bool cancelable;
 
-  /** @domName Event.clipboardData */
+  /// @domName Event.clipboardData; @docsEditable true
   final Clipboard clipboardData;
 
-  /** @domName Event.currentTarget */
+  /// @domName Event.currentTarget; @docsEditable true
   EventTarget get currentTarget => _convertNativeToDart_EventTarget(this._currentTarget);
   dynamic get _currentTarget => JS("dynamic", "#.currentTarget", this);
 
-  /** @domName Event.defaultPrevented */
+  /// @domName Event.defaultPrevented; @docsEditable true
   final bool defaultPrevented;
 
-  /** @domName Event.eventPhase */
+  /// @domName Event.eventPhase; @docsEditable true
   final int eventPhase;
 
-  /** @domName Event.returnValue */
+  /// @domName Event.returnValue; @docsEditable true
   bool returnValue;
 
-  /** @domName Event.target */
+  /// @domName Event.target; @docsEditable true
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
   dynamic get _target => JS("dynamic", "#.target", this);
 
-  /** @domName Event.timeStamp */
+  /// @domName Event.timeStamp; @docsEditable true
   final int timeStamp;
 
-  /** @domName Event.type */
+  /// @domName Event.type; @docsEditable true
   final String type;
 
-  /** @domName Event.initEvent */
+  /// @domName Event.initEvent; @docsEditable true
   void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) native "initEvent";
 
-  /** @domName Event.preventDefault */
+  /// @domName Event.preventDefault; @docsEditable true
   void preventDefault() native;
 
-  /** @domName Event.stopImmediatePropagation */
+  /// @domName Event.stopImmediatePropagation; @docsEditable true
   void stopImmediatePropagation() native;
 
-  /** @domName Event.stopPropagation */
+  /// @domName Event.stopPropagation; @docsEditable true
   void stopPropagation() native;
 
 }
@@ -8046,23 +8451,23 @@ class Event native "*Event" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName EventException
+/// @domName EventException; @docsEditable true
 class EventException native "*EventException" {
 
   static const int DISPATCH_REQUEST_ERR = 1;
 
   static const int UNSPECIFIED_EVENT_TYPE_ERR = 0;
 
-  /** @domName EventException.code */
+  /// @domName EventException.code; @docsEditable true
   final int code;
 
-  /** @domName EventException.message */
+  /// @domName EventException.message; @docsEditable true
   final String message;
 
-  /** @domName EventException.name */
+  /// @domName EventException.name; @docsEditable true
   final String name;
 
-  /** @domName EventException.toString */
+  /// @domName EventException.toString; @docsEditable true
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8070,14 +8475,12 @@ class EventException native "*EventException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName EventSource
+/// @domName EventSource; @docsEditable true
 class EventSource extends EventTarget native "*EventSource" {
 
   factory EventSource(String scriptUrl) => _EventSourceFactoryProvider.createEventSource(scriptUrl);
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   EventSourceEvents get on =>
     new EventSourceEvents(this);
 
@@ -8087,25 +8490,25 @@ class EventSource extends EventTarget native "*EventSource" {
 
   static const int OPEN = 1;
 
-  /** @domName EventSource.URL */
+  /// @domName EventSource.URL; @docsEditable true
   final String URL;
 
-  /** @domName EventSource.readyState */
+  /// @domName EventSource.readyState; @docsEditable true
   final int readyState;
 
-  /** @domName EventSource.url */
+  /// @domName EventSource.url; @docsEditable true
   final String url;
 
-  /** @domName EventSource.addEventListener */
+  /// @domName EventSource.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName EventSource.close */
+  /// @domName EventSource.close; @docsEditable true
   void close() native;
 
-  /** @domName EventSource.dispatchEvent */
+  /// @domName EventSource.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName EventSource.removeEventListener */
+  /// @domName EventSource.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -8174,13 +8577,13 @@ class EventTarget native "*EventTarget" {
   /** @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent */
   Events get on => new Events(this);
 
-  /** @domName EventTarget.addEventListener */
+  /// @domName EventTarget.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName EventTarget.dispatchEvent */
+  /// @domName EventTarget.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
-  /** @domName EventTarget.removeEventListener */
+  /// @domName EventTarget.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
 }
@@ -8189,39 +8592,39 @@ class EventTarget native "*EventTarget" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLFieldSetElement
+/// @domName HTMLFieldSetElement; @docsEditable true
 class FieldSetElement extends Element implements Element native "*HTMLFieldSetElement" {
 
-  factory FieldSetElement() => _Elements.createFieldSetElement();
+  factory FieldSetElement() => document.$dom_createElement("fieldset");
 
-  /** @domName HTMLFieldSetElement.disabled */
+  /// @domName HTMLFieldSetElement.disabled; @docsEditable true
   bool disabled;
 
-  /** @domName HTMLFieldSetElement.elements */
+  /// @domName HTMLFieldSetElement.elements; @docsEditable true
   final HTMLCollection elements;
 
-  /** @domName HTMLFieldSetElement.form */
+  /// @domName HTMLFieldSetElement.form; @docsEditable true
   final FormElement form;
 
-  /** @domName HTMLFieldSetElement.name */
+  /// @domName HTMLFieldSetElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLFieldSetElement.type */
+  /// @domName HTMLFieldSetElement.type; @docsEditable true
   final String type;
 
-  /** @domName HTMLFieldSetElement.validationMessage */
+  /// @domName HTMLFieldSetElement.validationMessage; @docsEditable true
   final String validationMessage;
 
-  /** @domName HTMLFieldSetElement.validity */
+  /// @domName HTMLFieldSetElement.validity; @docsEditable true
   final ValidityState validity;
 
-  /** @domName HTMLFieldSetElement.willValidate */
+  /// @domName HTMLFieldSetElement.willValidate; @docsEditable true
   final bool willValidate;
 
-  /** @domName HTMLFieldSetElement.checkValidity */
+  /// @domName HTMLFieldSetElement.checkValidity; @docsEditable true
   bool checkValidity() native;
 
-  /** @domName HTMLFieldSetElement.setCustomValidity */
+  /// @domName HTMLFieldSetElement.setCustomValidity; @docsEditable true
   void setCustomValidity(String error) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8229,16 +8632,16 @@ class FieldSetElement extends Element implements Element native "*HTMLFieldSetEl
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName File
+/// @domName File; @docsEditable true
 class File extends Blob native "*File" {
 
-  /** @domName File.lastModifiedDate */
+  /// @domName File.lastModifiedDate; @docsEditable true
   final Date lastModifiedDate;
 
-  /** @domName File.name */
+  /// @domName File.name; @docsEditable true
   final String name;
 
-  /** @domName File.webkitRelativePath */
+  /// @domName File.webkitRelativePath; @docsEditable true
   final String webkitRelativePath;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8254,13 +8657,13 @@ typedef void FileCallback(File file);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName FileEntry
+/// @domName FileEntry; @docsEditable true
 class FileEntry extends Entry native "*FileEntry" {
 
-  /** @domName FileEntry.createWriter */
+  /// @domName FileEntry.createWriter; @docsEditable true
   void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  /** @domName FileEntry.file */
+  /// @domName FileEntry.file; @docsEditable true
   void file(FileCallback successCallback, [ErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8268,13 +8671,13 @@ class FileEntry extends Entry native "*FileEntry" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName FileEntrySync
+/// @domName FileEntrySync; @docsEditable true
 class FileEntrySync extends EntrySync native "*FileEntrySync" {
 
-  /** @domName FileEntrySync.createWriter */
+  /// @domName FileEntrySync.createWriter; @docsEditable true
   FileWriterSync createWriter() native;
 
-  /** @domName FileEntrySync.file */
+  /// @domName FileEntrySync.file; @docsEditable true
   File file() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8282,7 +8685,7 @@ class FileEntrySync extends EntrySync native "*FileEntrySync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName FileError
+/// @domName FileError; @docsEditable true
 class FileError native "*FileError" {
 
   static const int ABORT_ERR = 3;
@@ -8309,7 +8712,7 @@ class FileError native "*FileError" {
 
   static const int TYPE_MISMATCH_ERR = 11;
 
-  /** @domName FileError.code */
+  /// @domName FileError.code; @docsEditable true
   final int code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8317,7 +8720,7 @@ class FileError native "*FileError" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName FileException
+/// @domName FileException; @docsEditable true
 class FileException native "*FileException" {
 
   static const int ABORT_ERR = 3;
@@ -8344,16 +8747,16 @@ class FileException native "*FileException" {
 
   static const int TYPE_MISMATCH_ERR = 11;
 
-  /** @domName FileException.code */
+  /// @domName FileException.code; @docsEditable true
   final int code;
 
-  /** @domName FileException.message */
+  /// @domName FileException.message; @docsEditable true
   final String message;
 
-  /** @domName FileException.name */
+  /// @domName FileException.name; @docsEditable true
   final String name;
 
-  /** @domName FileException.toString */
+  /// @domName FileException.toString; @docsEditable true
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8361,14 +8764,12 @@ class FileException native "*FileException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName FileReader
+/// @domName FileReader; @docsEditable true
 class FileReader extends EventTarget native "*FileReader" {
 
   factory FileReader() => _FileReaderFactoryProvider.createFileReader();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FileReaderEvents get on =>
     new FileReaderEvents(this);
 
@@ -8378,37 +8779,38 @@ class FileReader extends EventTarget native "*FileReader" {
 
   static const int LOADING = 1;
 
-  /** @domName FileReader.error */
+  /// @domName FileReader.error; @docsEditable true
   final FileError error;
 
-  /** @domName FileReader.readyState */
+  /// @domName FileReader.readyState; @docsEditable true
   final int readyState;
 
-  /** @domName FileReader.result */
+  /// @domName FileReader.result; @docsEditable true
+  @Creates('String|ArrayBuffer|Null')
   final Object result;
 
-  /** @domName FileReader.abort */
+  /// @domName FileReader.abort; @docsEditable true
   void abort() native;
 
-  /** @domName FileReader.addEventListener */
+  /// @domName FileReader.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName FileReader.dispatchEvent */
+  /// @domName FileReader.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName FileReader.readAsArrayBuffer */
+  /// @domName FileReader.readAsArrayBuffer; @docsEditable true
   void readAsArrayBuffer(Blob blob) native;
 
-  /** @domName FileReader.readAsBinaryString */
+  /// @domName FileReader.readAsBinaryString; @docsEditable true
   void readAsBinaryString(Blob blob) native;
 
-  /** @domName FileReader.readAsDataURL */
+  /// @domName FileReader.readAsDataURL; @docsEditable true
   void readAsDataURL(Blob blob) native;
 
-  /** @domName FileReader.readAsText */
+  /// @domName FileReader.readAsText; @docsEditable true
   void readAsText(Blob blob, [String encoding]) native;
 
-  /** @domName FileReader.removeEventListener */
+  /// @domName FileReader.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -8432,21 +8834,21 @@ class FileReaderEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName FileReaderSync
+/// @domName FileReaderSync; @docsEditable true
 class FileReaderSync native "*FileReaderSync" {
 
   factory FileReaderSync() => _FileReaderSyncFactoryProvider.createFileReaderSync();
 
-  /** @domName FileReaderSync.readAsArrayBuffer */
+  /// @domName FileReaderSync.readAsArrayBuffer; @docsEditable true
   ArrayBuffer readAsArrayBuffer(Blob blob) native;
 
-  /** @domName FileReaderSync.readAsBinaryString */
+  /// @domName FileReaderSync.readAsBinaryString; @docsEditable true
   String readAsBinaryString(Blob blob) native;
 
-  /** @domName FileReaderSync.readAsDataURL */
+  /// @domName FileReaderSync.readAsDataURL; @docsEditable true
   String readAsDataURL(Blob blob) native;
 
-  /** @domName FileReaderSync.readAsText */
+  /// @domName FileReaderSync.readAsText; @docsEditable true
   String readAsText(Blob blob, [String encoding]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8462,12 +8864,10 @@ typedef void FileSystemCallback(DOMFileSystem fileSystem);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName FileWriter
+/// @domName FileWriter; @docsEditable true
 class FileWriter extends EventTarget native "*FileWriter" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FileWriterEvents get on =>
     new FileWriterEvents(this);
 
@@ -8477,37 +8877,37 @@ class FileWriter extends EventTarget native "*FileWriter" {
 
   static const int WRITING = 1;
 
-  /** @domName FileWriter.error */
+  /// @domName FileWriter.error; @docsEditable true
   final FileError error;
 
-  /** @domName FileWriter.length */
+  /// @domName FileWriter.length; @docsEditable true
   final int length;
 
-  /** @domName FileWriter.position */
+  /// @domName FileWriter.position; @docsEditable true
   final int position;
 
-  /** @domName FileWriter.readyState */
+  /// @domName FileWriter.readyState; @docsEditable true
   final int readyState;
 
-  /** @domName FileWriter.abort */
+  /// @domName FileWriter.abort; @docsEditable true
   void abort() native;
 
-  /** @domName FileWriter.addEventListener */
+  /// @domName FileWriter.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName FileWriter.dispatchEvent */
+  /// @domName FileWriter.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName FileWriter.removeEventListener */
+  /// @domName FileWriter.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName FileWriter.seek */
+  /// @domName FileWriter.seek; @docsEditable true
   void seek(int position) native;
 
-  /** @domName FileWriter.truncate */
+  /// @domName FileWriter.truncate; @docsEditable true
   void truncate(int size) native;
 
-  /** @domName FileWriter.write */
+  /// @domName FileWriter.write; @docsEditable true
   void write(Blob data) native;
 }
 
@@ -8539,22 +8939,22 @@ typedef void FileWriterCallback(FileWriter fileWriter);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName FileWriterSync
+/// @domName FileWriterSync; @docsEditable true
 class FileWriterSync native "*FileWriterSync" {
 
-  /** @domName FileWriterSync.length */
+  /// @domName FileWriterSync.length; @docsEditable true
   final int length;
 
-  /** @domName FileWriterSync.position */
+  /// @domName FileWriterSync.position; @docsEditable true
   final int position;
 
-  /** @domName FileWriterSync.seek */
+  /// @domName FileWriterSync.seek; @docsEditable true
   void seek(int position) native;
 
-  /** @domName FileWriterSync.truncate */
+  /// @domName FileWriterSync.truncate; @docsEditable true
   void truncate(int size) native;
 
-  /** @domName FileWriterSync.write */
+  /// @domName FileWriterSync.write; @docsEditable true
   void write(Blob data) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8562,7 +8962,7 @@ class FileWriterSync native "*FileWriterSync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Float32Array
+/// @domName Float32Array; @docsEditable true
 class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<num> native "*Float32Array" {
 
   factory Float32Array(int length) =>
@@ -8576,13 +8976,12 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   static const int BYTES_PER_ELEMENT = 4;
 
-  /** @domName Float32Array.length */
+  /// @domName Float32Array.length; @docsEditable true
   final int length;
 
   num operator[](int index) => JS("num", "#[#]", this, index);
 
-  void operator[]=(int index, num value) => JS("void", "#[#] = #", this, index, value);
-  // -- start List<num> mixins.
+  void operator[]=(int index, num value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<num> mixins.
   // num is the element type.
 
   // From Iterable<num>:
@@ -8637,6 +9036,8 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  num get first => this[0];
+
   num get last => this[length - 1];
 
   num removeLast() {
@@ -8660,10 +9061,10 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   // -- end List<num> mixins.
 
-  /** @domName Float32Array.setElements */
+  /// @domName Float32Array.setElements; @docsEditable true
   void setElements(Object array, [int offset]) native "set";
 
-  /** @domName Float32Array.subarray */
+  /// @domName Float32Array.subarray; @docsEditable true
   Float32Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8671,7 +9072,7 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Float64Array
+/// @domName Float64Array; @docsEditable true
 class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<num> native "*Float64Array" {
 
   factory Float64Array(int length) =>
@@ -8685,13 +9086,12 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   static const int BYTES_PER_ELEMENT = 8;
 
-  /** @domName Float64Array.length */
+  /// @domName Float64Array.length; @docsEditable true
   final int length;
 
   num operator[](int index) => JS("num", "#[#]", this, index);
 
-  void operator[]=(int index, num value) => JS("void", "#[#] = #", this, index, value);
-  // -- start List<num> mixins.
+  void operator[]=(int index, num value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<num> mixins.
   // num is the element type.
 
   // From Iterable<num>:
@@ -8746,6 +9146,8 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  num get first => this[0];
+
   num get last => this[length - 1];
 
   num removeLast() {
@@ -8769,10 +9171,10 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   // -- end List<num> mixins.
 
-  /** @domName Float64Array.setElements */
+  /// @domName Float64Array.setElements; @docsEditable true
   void setElements(Object array, [int offset]) native "set";
 
-  /** @domName Float64Array.subarray */
+  /// @domName Float64Array.subarray; @docsEditable true
   Float64Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8780,16 +9182,16 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLFontElement
+/// @domName HTMLFontElement; @docsEditable true
 class FontElement extends Element implements Element native "*HTMLFontElement" {
 
-  /** @domName HTMLFontElement.color */
+  /// @domName HTMLFontElement.color; @docsEditable true
   String color;
 
-  /** @domName HTMLFontElement.face */
+  /// @domName HTMLFontElement.face; @docsEditable true
   String face;
 
-  /** @domName HTMLFontElement.size */
+  /// @domName HTMLFontElement.size; @docsEditable true
   String size;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8797,7 +9199,7 @@ class FontElement extends Element implements Element native "*HTMLFontElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName FormData
+/// @domName FormData; @docsEditable true
 class FormData native "*FormData" {
 
   factory FormData([FormElement form]) {
@@ -8807,7 +9209,7 @@ class FormData native "*FormData" {
     return _FormDataFactoryProvider.createFormData(form);
   }
 
-  /** @domName FormData.append */
+  /// @domName FormData.append; @docsEditable true
   void append(String name, String value, String filename) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8815,48 +9217,48 @@ class FormData native "*FormData" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLFormElement
+/// @domName HTMLFormElement; @docsEditable true
 class FormElement extends Element implements Element native "*HTMLFormElement" {
 
-  factory FormElement() => _Elements.createFormElement();
+  factory FormElement() => document.$dom_createElement("form");
 
-  /** @domName HTMLFormElement.acceptCharset */
+  /// @domName HTMLFormElement.acceptCharset; @docsEditable true
   String acceptCharset;
 
-  /** @domName HTMLFormElement.action */
+  /// @domName HTMLFormElement.action; @docsEditable true
   String action;
 
-  /** @domName HTMLFormElement.autocomplete */
+  /// @domName HTMLFormElement.autocomplete; @docsEditable true
   String autocomplete;
 
-  /** @domName HTMLFormElement.encoding */
+  /// @domName HTMLFormElement.encoding; @docsEditable true
   String encoding;
 
-  /** @domName HTMLFormElement.enctype */
+  /// @domName HTMLFormElement.enctype; @docsEditable true
   String enctype;
 
-  /** @domName HTMLFormElement.length */
+  /// @domName HTMLFormElement.length; @docsEditable true
   final int length;
 
-  /** @domName HTMLFormElement.method */
+  /// @domName HTMLFormElement.method; @docsEditable true
   String method;
 
-  /** @domName HTMLFormElement.name */
+  /// @domName HTMLFormElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLFormElement.noValidate */
+  /// @domName HTMLFormElement.noValidate; @docsEditable true
   bool noValidate;
 
-  /** @domName HTMLFormElement.target */
+  /// @domName HTMLFormElement.target; @docsEditable true
   String target;
 
-  /** @domName HTMLFormElement.checkValidity */
+  /// @domName HTMLFormElement.checkValidity; @docsEditable true
   bool checkValidity() native;
 
-  /** @domName HTMLFormElement.reset */
+  /// @domName HTMLFormElement.reset; @docsEditable true
   void reset() native;
 
-  /** @domName HTMLFormElement.submit */
+  /// @domName HTMLFormElement.submit; @docsEditable true
   void submit() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8864,44 +9266,44 @@ class FormElement extends Element implements Element native "*HTMLFormElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLFrameElement
+/// @domName HTMLFrameElement; @docsEditable true
 class FrameElement extends Element implements Element native "*HTMLFrameElement" {
 
-  /** @domName HTMLFrameElement.contentWindow */
+  /// @domName HTMLFrameElement.contentWindow; @docsEditable true
   Window get contentWindow => _convertNativeToDart_Window(this._contentWindow);
   dynamic get _contentWindow => JS("dynamic", "#.contentWindow", this);
 
-  /** @domName HTMLFrameElement.frameBorder */
+  /// @domName HTMLFrameElement.frameBorder; @docsEditable true
   String frameBorder;
 
-  /** @domName HTMLFrameElement.height */
+  /// @domName HTMLFrameElement.height; @docsEditable true
   final int height;
 
-  /** @domName HTMLFrameElement.location */
+  /// @domName HTMLFrameElement.location; @docsEditable true
   String location;
 
-  /** @domName HTMLFrameElement.longDesc */
+  /// @domName HTMLFrameElement.longDesc; @docsEditable true
   String longDesc;
 
-  /** @domName HTMLFrameElement.marginHeight */
+  /// @domName HTMLFrameElement.marginHeight; @docsEditable true
   String marginHeight;
 
-  /** @domName HTMLFrameElement.marginWidth */
+  /// @domName HTMLFrameElement.marginWidth; @docsEditable true
   String marginWidth;
 
-  /** @domName HTMLFrameElement.name */
+  /// @domName HTMLFrameElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLFrameElement.noResize */
+  /// @domName HTMLFrameElement.noResize; @docsEditable true
   bool noResize;
 
-  /** @domName HTMLFrameElement.scrolling */
+  /// @domName HTMLFrameElement.scrolling; @docsEditable true
   String scrolling;
 
-  /** @domName HTMLFrameElement.src */
+  /// @domName HTMLFrameElement.src; @docsEditable true
   String src;
 
-  /** @domName HTMLFrameElement.width */
+  /// @domName HTMLFrameElement.width; @docsEditable true
   final int width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8909,19 +9311,17 @@ class FrameElement extends Element implements Element native "*HTMLFrameElement"
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLFrameSetElement
+/// @domName HTMLFrameSetElement; @docsEditable true
 class FrameSetElement extends Element implements Element native "*HTMLFrameSetElement" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FrameSetElementEvents get on =>
     new FrameSetElementEvents(this);
 
-  /** @domName HTMLFrameSetElement.cols */
+  /// @domName HTMLFrameSetElement.cols; @docsEditable true
   String cols;
 
-  /** @domName HTMLFrameSetElement.rows */
+  /// @domName HTMLFrameSetElement.rows; @docsEditable true
   String rows;
 }
 
@@ -8959,10 +9359,10 @@ class FrameSetElementEvents extends ElementEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName GainNode
+/// @domName GainNode; @docsEditable true
 class GainNode extends AudioNode native "*GainNode" {
 
-  /** @domName GainNode.gain */
+  /// @domName GainNode.gain; @docsEditable true
   final AudioGain gain;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8970,22 +9370,22 @@ class GainNode extends AudioNode native "*GainNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Gamepad
+/// @domName Gamepad; @docsEditable true
 class Gamepad native "*Gamepad" {
 
-  /** @domName Gamepad.axes */
+  /// @domName Gamepad.axes; @docsEditable true
   final List<num> axes;
 
-  /** @domName Gamepad.buttons */
+  /// @domName Gamepad.buttons; @docsEditable true
   final List<num> buttons;
 
-  /** @domName Gamepad.id */
+  /// @domName Gamepad.id; @docsEditable true
   final String id;
 
-  /** @domName Gamepad.index */
+  /// @domName Gamepad.index; @docsEditable true
   final int index;
 
-  /** @domName Gamepad.timestamp */
+  /// @domName Gamepad.timestamp; @docsEditable true
   final int timestamp;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8993,16 +9393,16 @@ class Gamepad native "*Gamepad" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Geolocation
+/// @domName Geolocation; @docsEditable true
 class Geolocation native "*Geolocation" {
 
-  /** @domName Geolocation.clearWatch */
+  /// @domName Geolocation.clearWatch; @docsEditable true
   void clearWatch(int watchId) native;
 
-  /** @domName Geolocation.getCurrentPosition */
+  /// @domName Geolocation.getCurrentPosition; @docsEditable true
   void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native;
 
-  /** @domName Geolocation.watchPosition */
+  /// @domName Geolocation.watchPosition; @docsEditable true
   int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9010,13 +9410,13 @@ class Geolocation native "*Geolocation" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Geoposition
+/// @domName Geoposition; @docsEditable true
 class Geoposition native "*Geoposition" {
 
-  /** @domName Geoposition.coords */
+  /// @domName Geoposition.coords; @docsEditable true
   final Coordinates coords;
 
-  /** @domName Geoposition.timestamp */
+  /// @domName Geoposition.timestamp; @docsEditable true
   final int timestamp;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9024,21 +9424,21 @@ class Geoposition native "*Geoposition" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLHRElement
+/// @domName HTMLHRElement; @docsEditable true
 class HRElement extends Element implements Element native "*HTMLHRElement" {
 
-  factory HRElement() => _Elements.createHRElement();
+  factory HRElement() => document.$dom_createElement("hr");
 
-  /** @domName HTMLHRElement.align */
+  /// @domName HTMLHRElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLHRElement.noShade */
+  /// @domName HTMLHRElement.noShade; @docsEditable true
   bool noShade;
 
-  /** @domName HTMLHRElement.size */
+  /// @domName HTMLHRElement.size; @docsEditable true
   String size;
 
-  /** @domName HTMLHRElement.width */
+  /// @domName HTMLHRElement.width; @docsEditable true
   String width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9046,10 +9446,10 @@ class HRElement extends Element implements Element native "*HTMLHRElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLAllCollection
+/// @domName HTMLAllCollection; @docsEditable true
 class HTMLAllCollection implements JavaScriptIndexingBehavior, List<Node> native "*HTMLAllCollection" {
 
-  /** @domName HTMLAllCollection.length */
+  /// @domName HTMLAllCollection.length; @docsEditable true
   final int length;
 
   Node operator[](int index) => JS("Node", "#[#]", this, index);
@@ -9112,6 +9512,8 @@ class HTMLAllCollection implements JavaScriptIndexingBehavior, List<Node> native
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  Node get first => this[0];
+
   Node get last => this[length - 1];
 
   Node removeLast() {
@@ -9135,13 +9537,14 @@ class HTMLAllCollection implements JavaScriptIndexingBehavior, List<Node> native
 
   // -- end List<Node> mixins.
 
-  /** @domName HTMLAllCollection.item */
+  /// @domName HTMLAllCollection.item; @docsEditable true
   Node item(int index) native;
 
-  /** @domName HTMLAllCollection.namedItem */
+  /// @domName HTMLAllCollection.namedItem; @docsEditable true
   Node namedItem(String name) native;
 
-  /** @domName HTMLAllCollection.tags */
+  /// @domName HTMLAllCollection.tags; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> tags(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9149,10 +9552,10 @@ class HTMLAllCollection implements JavaScriptIndexingBehavior, List<Node> native
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLCollection
+/// @domName HTMLCollection; @docsEditable true
 class HTMLCollection implements JavaScriptIndexingBehavior, List<Node> native "*HTMLCollection" {
 
-  /** @domName HTMLCollection.length */
+  /// @domName HTMLCollection.length; @docsEditable true
   final int length;
 
   Node operator[](int index) => JS("Node", "#[#]", this, index);
@@ -9215,6 +9618,8 @@ class HTMLCollection implements JavaScriptIndexingBehavior, List<Node> native "*
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  Node get first => this[0];
+
   Node get last => this[length - 1];
 
   Node removeLast() {
@@ -9238,10 +9643,10 @@ class HTMLCollection implements JavaScriptIndexingBehavior, List<Node> native "*
 
   // -- end List<Node> mixins.
 
-  /** @domName HTMLCollection.item */
+  /// @domName HTMLCollection.item; @docsEditable true
   Node item(int index) native;
 
-  /** @domName HTMLCollection.namedItem */
+  /// @domName HTMLCollection.namedItem; @docsEditable true
   Node namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9249,22 +9654,22 @@ class HTMLCollection implements JavaScriptIndexingBehavior, List<Node> native "*
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLOptionsCollection
+/// @domName HTMLOptionsCollection; @docsEditable true
 class HTMLOptionsCollection extends HTMLCollection native "*HTMLOptionsCollection" {
 
   // Shadowing definition.
-  /** @domName HTMLOptionsCollection.length */
+  /// @domName HTMLOptionsCollection.length; @docsEditable true
   int get length => JS("int", "#.length", this);
 
-  /** @domName HTMLOptionsCollection.length */
+  /// @domName HTMLOptionsCollection.length; @docsEditable true
   void set length(int value) {
     JS("void", "#.length = #", this, value);
   }
 
-  /** @domName HTMLOptionsCollection.selectedIndex */
+  /// @domName HTMLOptionsCollection.selectedIndex; @docsEditable true
   int selectedIndex;
 
-  /** @domName HTMLOptionsCollection.remove */
+  /// @domName HTMLOptionsCollection.remove; @docsEditable true
   void remove(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9272,16 +9677,16 @@ class HTMLOptionsCollection extends HTMLCollection native "*HTMLOptionsCollectio
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HashChangeEvent
+/// @domName HashChangeEvent; @docsEditable true
 class HashChangeEvent extends Event native "*HashChangeEvent" {
 
-  /** @domName HashChangeEvent.newURL */
+  /// @domName HashChangeEvent.newURL; @docsEditable true
   final String newURL;
 
-  /** @domName HashChangeEvent.oldURL */
+  /// @domName HashChangeEvent.oldURL; @docsEditable true
   final String oldURL;
 
-  /** @domName HashChangeEvent.initHashChangeEvent */
+  /// @domName HashChangeEvent.initHashChangeEvent; @docsEditable true
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9289,12 +9694,12 @@ class HashChangeEvent extends Event native "*HashChangeEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLHeadElement
+/// @domName HTMLHeadElement; @docsEditable true
 class HeadElement extends Element implements Element native "*HTMLHeadElement" {
 
-  factory HeadElement() => _Elements.createHeadElement();
+  factory HeadElement() => document.$dom_createElement("head");
 
-  /** @domName HTMLHeadElement.profile */
+  /// @domName HTMLHeadElement.profile; @docsEditable true
   String profile;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9302,22 +9707,22 @@ class HeadElement extends Element implements Element native "*HTMLHeadElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLHeadingElement
+/// @domName HTMLHeadingElement; @docsEditable true
 class HeadingElement extends Element implements Element native "*HTMLHeadingElement" {
 
-  factory HeadingElement.h1() => _Elements.createHeadingElement_h1();
+  factory HeadingElement.h1() => document.$dom_createElement("h1");
 
-  factory HeadingElement.h2() => _Elements.createHeadingElement_h2();
+  factory HeadingElement.h2() => document.$dom_createElement("h2");
 
-  factory HeadingElement.h3() => _Elements.createHeadingElement_h3();
+  factory HeadingElement.h3() => document.$dom_createElement("h3");
 
-  factory HeadingElement.h4() => _Elements.createHeadingElement_h4();
+  factory HeadingElement.h4() => document.$dom_createElement("h4");
 
-  factory HeadingElement.h5() => _Elements.createHeadingElement_h5();
+  factory HeadingElement.h5() => document.$dom_createElement("h5");
 
-  factory HeadingElement.h6() => _Elements.createHeadingElement_h6();
+  factory HeadingElement.h6() => document.$dom_createElement("h6");
 
-  /** @domName HTMLHeadingElement.align */
+  /// @domName HTMLHeadingElement.align; @docsEditable true
   String align;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9329,7 +9734,7 @@ class HeadingElement extends Element implements Element native "*HTMLHeadingElem
 
 class HtmlDocument extends Document native "*HTMLDocument" {
 
-  /** @domName HTMLDocument.activeElement */
+  /// @domName HTMLDocument.activeElement; @docsEditable true
   final Element activeElement;
 
   /** @domName Document.body */
@@ -9409,10 +9814,10 @@ class HtmlDocument extends Document native "*HTMLDocument" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLHtmlElement
+/// @domName HTMLHtmlElement; @docsEditable true
 class HtmlElement extends Element implements Element native "*HTMLHtmlElement" {
 
-  factory HtmlElement() => _Elements.createHtmlElement();
+  factory HtmlElement() => document.$dom_createElement("html");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9420,18 +9825,18 @@ class HtmlElement extends Element implements Element native "*HTMLHtmlElement" {
 
 
 class HttpRequest extends EventTarget native "*XMLHttpRequest" {
-  factory HttpRequest.get(String url, onSuccess(HttpRequest request)) =>
-      _HttpRequestFactoryProvider.createHttpRequest_get(url, onSuccess);
+  factory HttpRequest.get(String url, onComplete(HttpRequest request)) =>
+      _HttpRequestFactoryProvider.createHttpRequest_get(url, onComplete);
 
-  factory HttpRequest.getWithCredentials(String url, onSuccess(HttpRequest request)) =>
-      _HttpRequestFactoryProvider.createHttpRequestgetWithCredentials(url, onSuccess);
+  factory HttpRequest.getWithCredentials(String url,
+      onComplete(HttpRequest request)) =>
+      _HttpRequestFactoryProvider.createHttpRequest_getWithCredentials(url,
+      onComplete);
 
 
   factory HttpRequest() => _HttpRequestFactoryProvider.createHttpRequest();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   HttpRequestEvents get on =>
     new HttpRequestEvents(this);
 
@@ -9445,61 +9850,62 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
   static const int UNSENT = 0;
 
-  /** @domName XMLHttpRequest.readyState */
+  /// @domName XMLHttpRequest.readyState; @docsEditable true
   final int readyState;
 
-  /** @domName XMLHttpRequest.response */
+  /// @domName XMLHttpRequest.response; @docsEditable true
+  @Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')
   final Object response;
 
-  /** @domName XMLHttpRequest.responseText */
+  /// @domName XMLHttpRequest.responseText; @docsEditable true
   final String responseText;
 
-  /** @domName XMLHttpRequest.responseType */
+  /// @domName XMLHttpRequest.responseType; @docsEditable true
   String responseType;
 
-  /** @domName XMLHttpRequest.responseXML */
+  /// @domName XMLHttpRequest.responseXML; @docsEditable true
   final Document responseXML;
 
-  /** @domName XMLHttpRequest.status */
+  /// @domName XMLHttpRequest.status; @docsEditable true
   final int status;
 
-  /** @domName XMLHttpRequest.statusText */
+  /// @domName XMLHttpRequest.statusText; @docsEditable true
   final String statusText;
 
-  /** @domName XMLHttpRequest.upload */
+  /// @domName XMLHttpRequest.upload; @docsEditable true
   final HttpRequestUpload upload;
 
-  /** @domName XMLHttpRequest.withCredentials */
+  /// @domName XMLHttpRequest.withCredentials; @docsEditable true
   bool withCredentials;
 
-  /** @domName XMLHttpRequest.abort */
+  /// @domName XMLHttpRequest.abort; @docsEditable true
   void abort() native;
 
-  /** @domName XMLHttpRequest.addEventListener */
+  /// @domName XMLHttpRequest.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName XMLHttpRequest.dispatchEvent */
+  /// @domName XMLHttpRequest.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName XMLHttpRequest.getAllResponseHeaders */
+  /// @domName XMLHttpRequest.getAllResponseHeaders; @docsEditable true
   String getAllResponseHeaders() native;
 
-  /** @domName XMLHttpRequest.getResponseHeader */
+  /// @domName XMLHttpRequest.getResponseHeader; @docsEditable true
   String getResponseHeader(String header) native;
 
-  /** @domName XMLHttpRequest.open */
+  /// @domName XMLHttpRequest.open; @docsEditable true
   void open(String method, String url, [bool async, String user, String password]) native;
 
-  /** @domName XMLHttpRequest.overrideMimeType */
+  /// @domName XMLHttpRequest.overrideMimeType; @docsEditable true
   void overrideMimeType(String override) native;
 
-  /** @domName XMLHttpRequest.removeEventListener */
+  /// @domName XMLHttpRequest.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName XMLHttpRequest.send */
+  /// @domName XMLHttpRequest.send; @docsEditable true
   void send([data]) native;
 
-  /** @domName XMLHttpRequest.setRequestHeader */
+  /// @domName XMLHttpRequest.setRequestHeader; @docsEditable true
   void setRequestHeader(String header, String value) native;
 
 }
@@ -9526,23 +9932,23 @@ class HttpRequestEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName XMLHttpRequestException
+/// @domName XMLHttpRequestException; @docsEditable true
 class HttpRequestException native "*XMLHttpRequestException" {
 
   static const int ABORT_ERR = 102;
 
   static const int NETWORK_ERR = 101;
 
-  /** @domName XMLHttpRequestException.code */
+  /// @domName XMLHttpRequestException.code; @docsEditable true
   final int code;
 
-  /** @domName XMLHttpRequestException.message */
+  /// @domName XMLHttpRequestException.message; @docsEditable true
   final String message;
 
-  /** @domName XMLHttpRequestException.name */
+  /// @domName XMLHttpRequestException.name; @docsEditable true
   final String name;
 
-  /** @domName XMLHttpRequestException.toString */
+  /// @domName XMLHttpRequestException.toString; @docsEditable true
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9550,13 +9956,13 @@ class HttpRequestException native "*XMLHttpRequestException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName XMLHttpRequestProgressEvent
+/// @domName XMLHttpRequestProgressEvent; @docsEditable true
 class HttpRequestProgressEvent extends ProgressEvent native "*XMLHttpRequestProgressEvent" {
 
-  /** @domName XMLHttpRequestProgressEvent.position */
+  /// @domName XMLHttpRequestProgressEvent.position; @docsEditable true
   final int position;
 
-  /** @domName XMLHttpRequestProgressEvent.totalSize */
+  /// @domName XMLHttpRequestProgressEvent.totalSize; @docsEditable true
   final int totalSize;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9564,22 +9970,20 @@ class HttpRequestProgressEvent extends ProgressEvent native "*XMLHttpRequestProg
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName XMLHttpRequestUpload
+/// @domName XMLHttpRequestUpload; @docsEditable true
 class HttpRequestUpload extends EventTarget native "*XMLHttpRequestUpload" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   HttpRequestUploadEvents get on =>
     new HttpRequestUploadEvents(this);
 
-  /** @domName XMLHttpRequestUpload.addEventListener */
+  /// @domName XMLHttpRequestUpload.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName XMLHttpRequestUpload.dispatchEvent */
+  /// @domName XMLHttpRequestUpload.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName XMLHttpRequestUpload.removeEventListener */
+  /// @domName XMLHttpRequestUpload.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -9603,7 +10007,7 @@ class HttpRequestUploadEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBAny
+/// @domName IDBAny; @docsEditable true
 class IDBAny native "*IDBAny" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9611,7 +10015,7 @@ class IDBAny native "*IDBAny" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBCursor
+/// @domName IDBCursor; @docsEditable true
 class IDBCursor native "*IDBCursor" {
 
   static const int NEXT = 0;
@@ -9622,22 +10026,23 @@ class IDBCursor native "*IDBCursor" {
 
   static const int PREV_NO_DUPLICATE = 3;
 
-  /** @domName IDBCursor.direction */
+  /// @domName IDBCursor.direction; @docsEditable true
   final String direction;
 
-  /** @domName IDBCursor.key */
+  /// @domName IDBCursor.key; @docsEditable true
+  @_annotation_Creates_IDBKey @_annotation_Returns_IDBKey
   final Object key;
 
-  /** @domName IDBCursor.primaryKey */
+  /// @domName IDBCursor.primaryKey; @docsEditable true
   final Object primaryKey;
 
-  /** @domName IDBCursor.source */
+  /// @domName IDBCursor.source; @docsEditable true
   final dynamic source;
 
-  /** @domName IDBCursor.advance */
+  /// @domName IDBCursor.advance; @docsEditable true
   void advance(int count) native;
 
-  /** @domName IDBCursor.continueFunction */
+  /// @domName IDBCursor.continueFunction; @docsEditable true
   void continueFunction([/*IDBKey*/ key]) {
     if (?key) {
       var key_1 = _convertDartToNative_IDBKey(key);
@@ -9650,10 +10055,10 @@ class IDBCursor native "*IDBCursor" {
   void _continueFunction_1(key) native "continue";
   void _continueFunction_2() native "continue";
 
-  /** @domName IDBCursor.delete */
+  /// @domName IDBCursor.delete; @docsEditable true
   IDBRequest delete() native;
 
-  /** @domName IDBCursor.update */
+  /// @domName IDBCursor.update; @docsEditable true
   IDBRequest update(/*any*/ value) {
     var value_1 = _convertDartToNative_SerializedScriptValue(value);
     return _update_1(value_1);
@@ -9665,10 +10070,11 @@ class IDBCursor native "*IDBCursor" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBCursorWithValue
+/// @domName IDBCursorWithValue; @docsEditable true
 class IDBCursorWithValue extends IDBCursor native "*IDBCursorWithValue" {
 
-  /** @domName IDBCursorWithValue.value */
+  /// @domName IDBCursorWithValue.value; @docsEditable true
+  @_annotation_Creates_SerializedScriptValue @_annotation_Returns_SerializedScriptValue
   final Object value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9720,28 +10126,27 @@ class IDBDatabase extends EventTarget native "*IDBDatabase" {
       JS('bool', 'typeof(#.mode) === "number"', txn);
 
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   IDBDatabaseEvents get on =>
     new IDBDatabaseEvents(this);
 
-  /** @domName IDBDatabase.name */
+  /// @domName IDBDatabase.name; @docsEditable true
   final String name;
 
-  /** @domName IDBDatabase.objectStoreNames */
+  /// @domName IDBDatabase.objectStoreNames; @docsEditable true
+  @Returns('_DOMStringList') @Creates('_DOMStringList')
   final List<String> objectStoreNames;
 
-  /** @domName IDBDatabase.version */
+  /// @domName IDBDatabase.version; @docsEditable true
   final dynamic version;
 
-  /** @domName IDBDatabase.addEventListener */
+  /// @domName IDBDatabase.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName IDBDatabase.close */
+  /// @domName IDBDatabase.close; @docsEditable true
   void close() native;
 
-  /** @domName IDBDatabase.createObjectStore */
+  /// @domName IDBDatabase.createObjectStore; @docsEditable true
   IDBObjectStore createObjectStore(String name, [Map options]) {
     if (?options) {
       var options_1 = _convertDartToNative_Dictionary(options);
@@ -9752,16 +10157,16 @@ class IDBDatabase extends EventTarget native "*IDBDatabase" {
   IDBObjectStore _createObjectStore_1(name, options) native "createObjectStore";
   IDBObjectStore _createObjectStore_2(name) native "createObjectStore";
 
-  /** @domName IDBDatabase.deleteObjectStore */
+  /// @domName IDBDatabase.deleteObjectStore; @docsEditable true
   void deleteObjectStore(String name) native;
 
-  /** @domName IDBDatabase.dispatchEvent */
+  /// @domName IDBDatabase.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName IDBDatabase.removeEventListener */
+  /// @domName IDBDatabase.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName IDBDatabase.setVersion */
+  /// @domName IDBDatabase.setVersion; @docsEditable true
   IDBVersionChangeRequest setVersion(String version) native;
 }
 
@@ -9783,7 +10188,7 @@ class IDBDatabaseEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBDatabaseException
+/// @domName IDBDatabaseException; @docsEditable true
 class IDBDatabaseException native "*IDBDatabaseException" {
 
   static const int ABORT_ERR = 20;
@@ -9812,16 +10217,16 @@ class IDBDatabaseException native "*IDBDatabaseException" {
 
   static const int VER_ERR = 12;
 
-  /** @domName IDBDatabaseException.code */
+  /// @domName IDBDatabaseException.code; @docsEditable true
   final int code;
 
-  /** @domName IDBDatabaseException.message */
+  /// @domName IDBDatabaseException.message; @docsEditable true
   final String message;
 
-  /** @domName IDBDatabaseException.name */
+  /// @domName IDBDatabaseException.name; @docsEditable true
   final String name;
 
-  /** @domName IDBDatabaseException.toString */
+  /// @domName IDBDatabaseException.toString; @docsEditable true
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9829,10 +10234,10 @@ class IDBDatabaseException native "*IDBDatabaseException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBFactory
+/// @domName IDBFactory; @docsEditable true
 class IDBFactory native "*IDBFactory" {
 
-  /** @domName IDBFactory.cmp */
+  /// @domName IDBFactory.cmp; @docsEditable true
   int cmp(/*IDBKey*/ first, /*IDBKey*/ second) {
     var first_1 = _convertDartToNative_IDBKey(first);
     var second_2 = _convertDartToNative_IDBKey(second);
@@ -9840,13 +10245,14 @@ class IDBFactory native "*IDBFactory" {
   }
   int _cmp_1(first, second) native "cmp";
 
-  /** @domName IDBFactory.deleteDatabase */
+  /// @domName IDBFactory.deleteDatabase; @docsEditable true
   IDBVersionChangeRequest deleteDatabase(String name) native;
 
-  /** @domName IDBFactory.open */
+  /// @domName IDBFactory.open; @docsEditable true
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBDatabase')
   IDBOpenDBRequest open(String name, [int version]) native;
 
-  /** @domName IDBFactory.webkitGetDatabaseNames */
+  /// @domName IDBFactory.webkitGetDatabaseNames; @docsEditable true
   IDBRequest webkitGetDatabaseNames() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9854,25 +10260,25 @@ class IDBFactory native "*IDBFactory" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBIndex
+/// @domName IDBIndex; @docsEditable true
 class IDBIndex native "*IDBIndex" {
 
-  /** @domName IDBIndex.keyPath */
+  /// @domName IDBIndex.keyPath; @docsEditable true
   final dynamic keyPath;
 
-  /** @domName IDBIndex.multiEntry */
+  /// @domName IDBIndex.multiEntry; @docsEditable true
   final bool multiEntry;
 
-  /** @domName IDBIndex.name */
+  /// @domName IDBIndex.name; @docsEditable true
   final String name;
 
-  /** @domName IDBIndex.objectStore */
+  /// @domName IDBIndex.objectStore; @docsEditable true
   final IDBObjectStore objectStore;
 
-  /** @domName IDBIndex.unique */
+  /// @domName IDBIndex.unique; @docsEditable true
   final bool unique;
 
-  /** @domName IDBIndex.count */
+  /// @domName IDBIndex.count; @docsEditable true
   IDBRequest count([key_OR_range]) {
     if (!?key_OR_range) {
       return _count_1();
@@ -9884,13 +10290,13 @@ class IDBIndex native "*IDBIndex" {
       var key_1 = _convertDartToNative_IDBKey(key_OR_range);
       return _count_3(key_1);
     }
-    throw const Exception("Incorrect number or type of arguments");
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
   IDBRequest _count_1() native "count";
   IDBRequest _count_2(IDBKeyRange range) native "count";
   IDBRequest _count_3(key) native "count";
 
-  /** @domName IDBIndex.get */
+  /// @domName IDBIndex.get; @docsEditable true
   IDBRequest get(key) {
     if ((?key && (key is IDBKeyRange || key == null))) {
       return _get_1(key);
@@ -9899,12 +10305,14 @@ class IDBIndex native "*IDBIndex" {
       var key_1 = _convertDartToNative_IDBKey(key);
       return _get_2(key_1);
     }
-    throw const Exception("Incorrect number or type of arguments");
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
+  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue
   IDBRequest _get_1(IDBKeyRange key) native "get";
+  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue
   IDBRequest _get_2(key) native "get";
 
-  /** @domName IDBIndex.getKey */
+  /// @domName IDBIndex.getKey; @docsEditable true
   IDBRequest getKey(key) {
     if ((?key && (key is IDBKeyRange || key == null))) {
       return _getKey_1(key);
@@ -9913,12 +10321,14 @@ class IDBIndex native "*IDBIndex" {
       var key_1 = _convertDartToNative_IDBKey(key);
       return _getKey_2(key_1);
     }
-    throw const Exception("Incorrect number or type of arguments");
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
+  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue @Creates('IDBObjectStore')
   IDBRequest _getKey_1(IDBKeyRange key) native "getKey";
+  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue @Creates('IDBObjectStore')
   IDBRequest _getKey_2(key) native "getKey";
 
-  /** @domName IDBIndex.openCursor */
+  /// @domName IDBIndex.openCursor; @docsEditable true
   IDBRequest openCursor([key_OR_range, String direction]) {
     if (!?key_OR_range &&
         !?direction) {
@@ -9940,15 +10350,20 @@ class IDBIndex native "*IDBIndex" {
       var key_2 = _convertDartToNative_IDBKey(key_OR_range);
       return _openCursor_5(key_2, direction);
     }
-    throw const Exception("Incorrect number or type of arguments");
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openCursor_1() native "openCursor";
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openCursor_2(IDBKeyRange range) native "openCursor";
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openCursor_3(IDBKeyRange range, direction) native "openCursor";
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openCursor_4(key) native "openCursor";
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openCursor_5(key, direction) native "openCursor";
 
-  /** @domName IDBIndex.openKeyCursor */
+  /// @domName IDBIndex.openKeyCursor; @docsEditable true
   IDBRequest openKeyCursor([key_OR_range, String direction]) {
     if (!?key_OR_range &&
         !?direction) {
@@ -9970,12 +10385,17 @@ class IDBIndex native "*IDBIndex" {
       var key_2 = _convertDartToNative_IDBKey(key_OR_range);
       return _openKeyCursor_5(key_2, direction);
     }
-    throw const Exception("Incorrect number or type of arguments");
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openKeyCursor_1() native "openKeyCursor";
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openKeyCursor_2(IDBKeyRange range) native "openKeyCursor";
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openKeyCursor_3(IDBKeyRange range, direction) native "openKeyCursor";
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openKeyCursor_4(key) native "openKeyCursor";
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openKeyCursor_5(key, direction) native "openKeyCursor";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9983,7 +10403,7 @@ class IDBIndex native "*IDBIndex" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBKey
+/// @domName IDBKey; @docsEditable true
 class IDBKey native "*IDBKey" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10019,21 +10439,21 @@ class IDBKeyRange native "*IDBKeyRange" {
           lower, upper, lowerOpen, upperOpen);
 
 
-  /** @domName IDBKeyRange.lower */
+  /// @domName IDBKeyRange.lower; @docsEditable true
   dynamic get lower => _convertNativeToDart_IDBKey(this._lower);
   dynamic get _lower => JS("dynamic", "#.lower", this);
 
-  /** @domName IDBKeyRange.lowerOpen */
+  /// @domName IDBKeyRange.lowerOpen; @docsEditable true
   final bool lowerOpen;
 
-  /** @domName IDBKeyRange.upper */
+  /// @domName IDBKeyRange.upper; @docsEditable true
   dynamic get upper => _convertNativeToDart_IDBKey(this._upper);
   dynamic get _upper => JS("dynamic", "#.upper", this);
 
-  /** @domName IDBKeyRange.upperOpen */
+  /// @domName IDBKeyRange.upperOpen; @docsEditable true
   final bool upperOpen;
 
-  /** @domName IDBKeyRange.bound_ */
+  /// @domName IDBKeyRange.bound_; @docsEditable true
   static IDBKeyRange bound_(/*IDBKey*/ lower, /*IDBKey*/ upper, [bool lowerOpen, bool upperOpen]) {
     if (?upperOpen) {
       var lower_1 = _convertDartToNative_IDBKey(lower);
@@ -10049,11 +10469,11 @@ class IDBKeyRange native "*IDBKeyRange" {
     var upper_6 = _convertDartToNative_IDBKey(upper);
     return _bound__3(lower_5, upper_6);
   }
-  IDBKeyRange _bound__1(lower, upper, lowerOpen, upperOpen) native "bound";
-  IDBKeyRange _bound__2(lower, upper, lowerOpen) native "bound";
-  IDBKeyRange _bound__3(lower, upper) native "bound";
+  static IDBKeyRange _bound__1(lower, upper, lowerOpen, upperOpen) native "bound";
+  static IDBKeyRange _bound__2(lower, upper, lowerOpen) native "bound";
+  static IDBKeyRange _bound__3(lower, upper) native "bound";
 
-  /** @domName IDBKeyRange.lowerBound_ */
+  /// @domName IDBKeyRange.lowerBound_; @docsEditable true
   static IDBKeyRange lowerBound_(/*IDBKey*/ bound, [bool open]) {
     if (?open) {
       var bound_1 = _convertDartToNative_IDBKey(bound);
@@ -10062,17 +10482,17 @@ class IDBKeyRange native "*IDBKeyRange" {
     var bound_2 = _convertDartToNative_IDBKey(bound);
     return _lowerBound__2(bound_2);
   }
-  IDBKeyRange _lowerBound__1(bound, open) native "lowerBound";
-  IDBKeyRange _lowerBound__2(bound) native "lowerBound";
+  static IDBKeyRange _lowerBound__1(bound, open) native "lowerBound";
+  static IDBKeyRange _lowerBound__2(bound) native "lowerBound";
 
-  /** @domName IDBKeyRange.only_ */
+  /// @domName IDBKeyRange.only_; @docsEditable true
   static IDBKeyRange only_(/*IDBKey*/ value) {
     var value_1 = _convertDartToNative_IDBKey(value);
     return _only__1(value_1);
   }
-  IDBKeyRange _only__1(value) native "only";
+  static IDBKeyRange _only__1(value) native "only";
 
-  /** @domName IDBKeyRange.upperBound_ */
+  /// @domName IDBKeyRange.upperBound_; @docsEditable true
   static IDBKeyRange upperBound_(/*IDBKey*/ bound, [bool open]) {
     if (?open) {
       var bound_1 = _convertDartToNative_IDBKey(bound);
@@ -10081,8 +10501,8 @@ class IDBKeyRange native "*IDBKeyRange" {
     var bound_2 = _convertDartToNative_IDBKey(bound);
     return _upperBound__2(bound_2);
   }
-  IDBKeyRange _upperBound__1(bound, open) native "upperBound";
-  IDBKeyRange _upperBound__2(bound) native "upperBound";
+  static IDBKeyRange _upperBound__1(bound, open) native "upperBound";
+  static IDBKeyRange _upperBound__2(bound) native "upperBound";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10090,25 +10510,26 @@ class IDBKeyRange native "*IDBKeyRange" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBObjectStore
+/// @domName IDBObjectStore; @docsEditable true
 class IDBObjectStore native "*IDBObjectStore" {
 
-  /** @domName IDBObjectStore.autoIncrement */
+  /// @domName IDBObjectStore.autoIncrement; @docsEditable true
   final bool autoIncrement;
 
-  /** @domName IDBObjectStore.indexNames */
+  /// @domName IDBObjectStore.indexNames; @docsEditable true
+  @Returns('_DOMStringList') @Creates('_DOMStringList')
   final List<String> indexNames;
 
-  /** @domName IDBObjectStore.keyPath */
+  /// @domName IDBObjectStore.keyPath; @docsEditable true
   final dynamic keyPath;
 
-  /** @domName IDBObjectStore.name */
+  /// @domName IDBObjectStore.name; @docsEditable true
   final String name;
 
-  /** @domName IDBObjectStore.transaction */
+  /// @domName IDBObjectStore.transaction; @docsEditable true
   final IDBTransaction transaction;
 
-  /** @domName IDBObjectStore.add */
+  /// @domName IDBObjectStore.add; @docsEditable true
   IDBRequest add(/*any*/ value, [/*IDBKey*/ key]) {
     if (?key) {
       var value_1 = _convertDartToNative_SerializedScriptValue(value);
@@ -10118,13 +10539,15 @@ class IDBObjectStore native "*IDBObjectStore" {
     var value_3 = _convertDartToNative_SerializedScriptValue(value);
     return _add_2(value_3);
   }
+  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_IDBKey
   IDBRequest _add_1(value, key) native "add";
+  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_IDBKey
   IDBRequest _add_2(value) native "add";
 
-  /** @domName IDBObjectStore.clear */
+  /// @domName IDBObjectStore.clear; @docsEditable true
   IDBRequest clear() native;
 
-  /** @domName IDBObjectStore.count */
+  /// @domName IDBObjectStore.count; @docsEditable true
   IDBRequest count([key_OR_range]) {
     if (!?key_OR_range) {
       return _count_1();
@@ -10136,13 +10559,13 @@ class IDBObjectStore native "*IDBObjectStore" {
       var key_1 = _convertDartToNative_IDBKey(key_OR_range);
       return _count_3(key_1);
     }
-    throw const Exception("Incorrect number or type of arguments");
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
   IDBRequest _count_1() native "count";
   IDBRequest _count_2(IDBKeyRange range) native "count";
   IDBRequest _count_3(key) native "count";
 
-  /** @domName IDBObjectStore.createIndex */
+  /// @domName IDBObjectStore.createIndex; @docsEditable true
   IDBIndex createIndex(String name, keyPath, [Map options]) {
     if ((?keyPath && (keyPath is List<String> || keyPath == null)) &&
         !?options) {
@@ -10162,14 +10585,14 @@ class IDBObjectStore native "*IDBObjectStore" {
       var options_4 = _convertDartToNative_Dictionary(options);
       return _createIndex_4(name, keyPath, options_4);
     }
-    throw const Exception("Incorrect number or type of arguments");
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
   IDBIndex _createIndex_1(name, List keyPath) native "createIndex";
   IDBIndex _createIndex_2(name, List keyPath, options) native "createIndex";
   IDBIndex _createIndex_3(name, String keyPath) native "createIndex";
   IDBIndex _createIndex_4(name, String keyPath, options) native "createIndex";
 
-  /** @domName IDBObjectStore.delete */
+  /// @domName IDBObjectStore.delete; @docsEditable true
   IDBRequest delete(key_OR_keyRange) {
     if ((?key_OR_keyRange && (key_OR_keyRange is IDBKeyRange || key_OR_keyRange == null))) {
       return _delete_1(key_OR_keyRange);
@@ -10178,15 +10601,15 @@ class IDBObjectStore native "*IDBObjectStore" {
       var key_1 = _convertDartToNative_IDBKey(key_OR_keyRange);
       return _delete_2(key_1);
     }
-    throw const Exception("Incorrect number or type of arguments");
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
   IDBRequest _delete_1(IDBKeyRange keyRange) native "delete";
   IDBRequest _delete_2(key) native "delete";
 
-  /** @domName IDBObjectStore.deleteIndex */
+  /// @domName IDBObjectStore.deleteIndex; @docsEditable true
   void deleteIndex(String name) native;
 
-  /** @domName IDBObjectStore.getObject */
+  /// @domName IDBObjectStore.getObject; @docsEditable true
   IDBRequest getObject(key) {
     if ((?key && (key is IDBKeyRange || key == null))) {
       return _getObject_1(key);
@@ -10195,15 +10618,17 @@ class IDBObjectStore native "*IDBObjectStore" {
       var key_1 = _convertDartToNative_IDBKey(key);
       return _getObject_2(key_1);
     }
-    throw const Exception("Incorrect number or type of arguments");
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
+  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue
   IDBRequest _getObject_1(IDBKeyRange key) native "get";
+  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue
   IDBRequest _getObject_2(key) native "get";
 
-  /** @domName IDBObjectStore.index */
+  /// @domName IDBObjectStore.index; @docsEditable true
   IDBIndex index(String name) native;
 
-  /** @domName IDBObjectStore.openCursor */
+  /// @domName IDBObjectStore.openCursor; @docsEditable true
   IDBRequest openCursor([key_OR_range, String direction]) {
     if (!?key_OR_range &&
         !?direction) {
@@ -10225,15 +10650,20 @@ class IDBObjectStore native "*IDBObjectStore" {
       var key_2 = _convertDartToNative_IDBKey(key_OR_range);
       return _openCursor_5(key_2, direction);
     }
-    throw const Exception("Incorrect number or type of arguments");
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openCursor_1() native "openCursor";
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openCursor_2(IDBKeyRange range) native "openCursor";
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openCursor_3(IDBKeyRange range, direction) native "openCursor";
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openCursor_4(key) native "openCursor";
+  @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
   IDBRequest _openCursor_5(key, direction) native "openCursor";
 
-  /** @domName IDBObjectStore.put */
+  /// @domName IDBObjectStore.put; @docsEditable true
   IDBRequest put(/*any*/ value, [/*IDBKey*/ key]) {
     if (?key) {
       var value_1 = _convertDartToNative_SerializedScriptValue(value);
@@ -10243,7 +10673,9 @@ class IDBObjectStore native "*IDBObjectStore" {
     var value_3 = _convertDartToNative_SerializedScriptValue(value);
     return _put_2(value_3);
   }
+  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_IDBKey
   IDBRequest _put_1(value, key) native "put";
+  @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_IDBKey
   IDBRequest _put_2(value) native "put";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10251,12 +10683,10 @@ class IDBObjectStore native "*IDBObjectStore" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBOpenDBRequest
+/// @domName IDBOpenDBRequest; @docsEditable true
 class IDBOpenDBRequest extends IDBRequest implements EventTarget native "*IDBOpenDBRequest" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   IDBOpenDBRequestEvents get on =>
     new IDBOpenDBRequestEvents(this);
 }
@@ -10273,44 +10703,43 @@ class IDBOpenDBRequestEvents extends IDBRequestEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBRequest
+/// @domName IDBRequest; @docsEditable true
 class IDBRequest extends EventTarget native "*IDBRequest" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   IDBRequestEvents get on =>
     new IDBRequestEvents(this);
 
-  /** @domName IDBRequest.error */
+  /// @domName IDBRequest.error; @docsEditable true
   final DOMError error;
 
-  /** @domName IDBRequest.errorCode */
+  /// @domName IDBRequest.errorCode; @docsEditable true
   final int errorCode;
 
-  /** @domName IDBRequest.readyState */
+  /// @domName IDBRequest.readyState; @docsEditable true
   final String readyState;
 
-  /** @domName IDBRequest.result */
+  /// @domName IDBRequest.result; @docsEditable true
   dynamic get result => _convertNativeToDart_IDBAny(this._result);
   dynamic get _result => JS("dynamic", "#.result", this);
 
-  /** @domName IDBRequest.source */
+  /// @domName IDBRequest.source; @docsEditable true
+  @Creates('Null')
   final dynamic source;
 
-  /** @domName IDBRequest.transaction */
+  /// @domName IDBRequest.transaction; @docsEditable true
   final IDBTransaction transaction;
 
-  /** @domName IDBRequest.webkitErrorMessage */
+  /// @domName IDBRequest.webkitErrorMessage; @docsEditable true
   final String webkitErrorMessage;
 
-  /** @domName IDBRequest.addEventListener */
+  /// @domName IDBRequest.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName IDBRequest.dispatchEvent */
+  /// @domName IDBRequest.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName IDBRequest.removeEventListener */
+  /// @domName IDBRequest.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -10326,12 +10755,10 @@ class IDBRequestEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBTransaction
+/// @domName IDBTransaction; @docsEditable true
 class IDBTransaction extends EventTarget native "*IDBTransaction" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   IDBTransactionEvents get on =>
     new IDBTransactionEvents(this);
 
@@ -10341,28 +10768,28 @@ class IDBTransaction extends EventTarget native "*IDBTransaction" {
 
   static const int VERSION_CHANGE = 2;
 
-  /** @domName IDBTransaction.db */
+  /// @domName IDBTransaction.db; @docsEditable true
   final IDBDatabase db;
 
-  /** @domName IDBTransaction.error */
+  /// @domName IDBTransaction.error; @docsEditable true
   final DOMError error;
 
-  /** @domName IDBTransaction.mode */
+  /// @domName IDBTransaction.mode; @docsEditable true
   final String mode;
 
-  /** @domName IDBTransaction.abort */
+  /// @domName IDBTransaction.abort; @docsEditable true
   void abort() native;
 
-  /** @domName IDBTransaction.addEventListener */
+  /// @domName IDBTransaction.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName IDBTransaction.dispatchEvent */
+  /// @domName IDBTransaction.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName IDBTransaction.objectStore */
+  /// @domName IDBTransaction.objectStore; @docsEditable true
   IDBObjectStore objectStore(String name) native;
 
-  /** @domName IDBTransaction.removeEventListener */
+  /// @domName IDBTransaction.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -10380,13 +10807,13 @@ class IDBTransactionEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBVersionChangeEvent
+/// @domName IDBVersionChangeEvent; @docsEditable true
 class IDBUpgradeNeededEvent extends Event native "*IDBVersionChangeEvent" {
 
-  /** @domName IDBVersionChangeEvent.newVersion */
+  /// @domName IDBVersionChangeEvent.newVersion; @docsEditable true
   final int newVersion;
 
-  /** @domName IDBVersionChangeEvent.oldVersion */
+  /// @domName IDBVersionChangeEvent.oldVersion; @docsEditable true
   final int oldVersion;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10394,10 +10821,10 @@ class IDBUpgradeNeededEvent extends Event native "*IDBVersionChangeEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBVersionChangeEvent
+/// @domName IDBVersionChangeEvent; @docsEditable true
 class IDBVersionChangeEvent extends Event native "*IDBVersionChangeEvent" {
 
-  /** @domName IDBVersionChangeEvent.version */
+  /// @domName IDBVersionChangeEvent.version; @docsEditable true
   final String version;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10405,12 +10832,10 @@ class IDBVersionChangeEvent extends Event native "*IDBVersionChangeEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBVersionChangeRequest
+/// @domName IDBVersionChangeRequest; @docsEditable true
 class IDBVersionChangeRequest extends IDBRequest implements EventTarget native "*IDBVersionChangeRequest" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   IDBVersionChangeRequestEvents get on =>
     new IDBVersionChangeRequestEvents(this);
 }
@@ -10425,49 +10850,49 @@ class IDBVersionChangeRequestEvents extends IDBRequestEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLIFrameElement
+/// @domName HTMLIFrameElement; @docsEditable true
 class IFrameElement extends Element implements Element native "*HTMLIFrameElement" {
 
-  factory IFrameElement() => _Elements.createIFrameElement();
+  factory IFrameElement() => document.$dom_createElement("iframe");
 
-  /** @domName HTMLIFrameElement.align */
+  /// @domName HTMLIFrameElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLIFrameElement.contentWindow */
+  /// @domName HTMLIFrameElement.contentWindow; @docsEditable true
   Window get contentWindow => _convertNativeToDart_Window(this._contentWindow);
   dynamic get _contentWindow => JS("dynamic", "#.contentWindow", this);
 
-  /** @domName HTMLIFrameElement.frameBorder */
+  /// @domName HTMLIFrameElement.frameBorder; @docsEditable true
   String frameBorder;
 
-  /** @domName HTMLIFrameElement.height */
+  /// @domName HTMLIFrameElement.height; @docsEditable true
   String height;
 
-  /** @domName HTMLIFrameElement.longDesc */
+  /// @domName HTMLIFrameElement.longDesc; @docsEditable true
   String longDesc;
 
-  /** @domName HTMLIFrameElement.marginHeight */
+  /// @domName HTMLIFrameElement.marginHeight; @docsEditable true
   String marginHeight;
 
-  /** @domName HTMLIFrameElement.marginWidth */
+  /// @domName HTMLIFrameElement.marginWidth; @docsEditable true
   String marginWidth;
 
-  /** @domName HTMLIFrameElement.name */
+  /// @domName HTMLIFrameElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLIFrameElement.sandbox */
+  /// @domName HTMLIFrameElement.sandbox; @docsEditable true
   String sandbox;
 
-  /** @domName HTMLIFrameElement.scrolling */
+  /// @domName HTMLIFrameElement.scrolling; @docsEditable true
   String scrolling;
 
-  /** @domName HTMLIFrameElement.src */
+  /// @domName HTMLIFrameElement.src; @docsEditable true
   String src;
 
-  /** @domName HTMLIFrameElement.srcdoc */
+  /// @domName HTMLIFrameElement.srcdoc; @docsEditable true
   String srcdoc;
 
-  /** @domName HTMLIFrameElement.width */
+  /// @domName HTMLIFrameElement.width; @docsEditable true
   String width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10483,15 +10908,15 @@ typedef void IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnecti
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IceCandidate
+/// @domName IceCandidate; @docsEditable true
 class IceCandidate native "*IceCandidate" {
 
   factory IceCandidate(String label, String candidateLine) => _IceCandidateFactoryProvider.createIceCandidate(label, candidateLine);
 
-  /** @domName IceCandidate.label */
+  /// @domName IceCandidate.label; @docsEditable true
   final String label;
 
-  /** @domName IceCandidate.toSdp */
+  /// @domName IceCandidate.toSdp; @docsEditable true
   String toSdp() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10499,16 +10924,16 @@ class IceCandidate native "*IceCandidate" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ImageData
+/// @domName ImageData; @docsEditable true
 class ImageData native "*ImageData" {
 
-  /** @domName ImageData.data */
+  /// @domName ImageData.data; @docsEditable true
   final Uint8ClampedArray data;
 
-  /** @domName ImageData.height */
+  /// @domName ImageData.height; @docsEditable true
   final int height;
 
-  /** @domName ImageData.width */
+  /// @domName ImageData.width; @docsEditable true
   final int width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10516,77 +10941,72 @@ class ImageData native "*ImageData" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLImageElement
+/// @domName HTMLImageElement; @docsEditable true
 class ImageElement extends Element implements Element native "*HTMLImageElement" {
 
   factory ImageElement({String src, int width, int height}) {
-    if (!?src) {
-      return _Elements.createImageElement();
-    }
-    if (!?width) {
-      return _Elements.createImageElement(src);
-    }
-    if (!?height) {
-      return _Elements.createImageElement(src, width);
-    }
-    return _Elements.createImageElement(src, width, height);
+    var e = document.$dom_createElement("img");
+    if (src != null) e.src = src;
+    if (width != null) e.width = width;
+    if (height != null) e.height = height;
+    return e;
   }
 
-  /** @domName HTMLImageElement.align */
+  /// @domName HTMLImageElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLImageElement.alt */
+  /// @domName HTMLImageElement.alt; @docsEditable true
   String alt;
 
-  /** @domName HTMLImageElement.border */
+  /// @domName HTMLImageElement.border; @docsEditable true
   String border;
 
-  /** @domName HTMLImageElement.complete */
+  /// @domName HTMLImageElement.complete; @docsEditable true
   final bool complete;
 
-  /** @domName HTMLImageElement.crossOrigin */
+  /// @domName HTMLImageElement.crossOrigin; @docsEditable true
   String crossOrigin;
 
-  /** @domName HTMLImageElement.height */
+  /// @domName HTMLImageElement.height; @docsEditable true
   int height;
 
-  /** @domName HTMLImageElement.hspace */
+  /// @domName HTMLImageElement.hspace; @docsEditable true
   int hspace;
 
-  /** @domName HTMLImageElement.isMap */
+  /// @domName HTMLImageElement.isMap; @docsEditable true
   bool isMap;
 
-  /** @domName HTMLImageElement.longDesc */
+  /// @domName HTMLImageElement.longDesc; @docsEditable true
   String longDesc;
 
-  /** @domName HTMLImageElement.lowsrc */
+  /// @domName HTMLImageElement.lowsrc; @docsEditable true
   String lowsrc;
 
-  /** @domName HTMLImageElement.name */
+  /// @domName HTMLImageElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLImageElement.naturalHeight */
+  /// @domName HTMLImageElement.naturalHeight; @docsEditable true
   final int naturalHeight;
 
-  /** @domName HTMLImageElement.naturalWidth */
+  /// @domName HTMLImageElement.naturalWidth; @docsEditable true
   final int naturalWidth;
 
-  /** @domName HTMLImageElement.src */
+  /// @domName HTMLImageElement.src; @docsEditable true
   String src;
 
-  /** @domName HTMLImageElement.useMap */
+  /// @domName HTMLImageElement.useMap; @docsEditable true
   String useMap;
 
-  /** @domName HTMLImageElement.vspace */
+  /// @domName HTMLImageElement.vspace; @docsEditable true
   int vspace;
 
-  /** @domName HTMLImageElement.width */
+  /// @domName HTMLImageElement.width; @docsEditable true
   int width;
 
-  /** @domName HTMLImageElement.x */
+  /// @domName HTMLImageElement.x; @docsEditable true
   final int x;
 
-  /** @domName HTMLImageElement.y */
+  /// @domName HTMLImageElement.y; @docsEditable true
   final int y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10594,191 +11014,191 @@ class ImageElement extends Element implements Element native "*HTMLImageElement"
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLInputElement
+/// @domName HTMLInputElement; @docsEditable true
 class InputElement extends Element implements Element native "*HTMLInputElement" {
 
   factory InputElement({String type}) {
-    if (!?type) {
-      return _Elements.createInputElement();
-    }
-    return _Elements.createInputElement(type);
+    var e = document.$dom_createElement("input");
+    if (type != null) e.type = type;
+    return e;
   }
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   InputElementEvents get on =>
     new InputElementEvents(this);
 
-  /** @domName HTMLInputElement.accept */
+  /// @domName HTMLInputElement.accept; @docsEditable true
   String accept;
 
-  /** @domName HTMLInputElement.align */
+  /// @domName HTMLInputElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLInputElement.alt */
+  /// @domName HTMLInputElement.alt; @docsEditable true
   String alt;
 
-  /** @domName HTMLInputElement.autocomplete */
+  /// @domName HTMLInputElement.autocomplete; @docsEditable true
   String autocomplete;
 
-  /** @domName HTMLInputElement.autofocus */
+  /// @domName HTMLInputElement.autofocus; @docsEditable true
   bool autofocus;
 
-  /** @domName HTMLInputElement.checked */
+  /// @domName HTMLInputElement.checked; @docsEditable true
   bool checked;
 
-  /** @domName HTMLInputElement.defaultChecked */
+  /// @domName HTMLInputElement.defaultChecked; @docsEditable true
   bool defaultChecked;
 
-  /** @domName HTMLInputElement.defaultValue */
+  /// @domName HTMLInputElement.defaultValue; @docsEditable true
   String defaultValue;
 
-  /** @domName HTMLInputElement.dirName */
+  /// @domName HTMLInputElement.dirName; @docsEditable true
   String dirName;
 
-  /** @domName HTMLInputElement.disabled */
+  /// @domName HTMLInputElement.disabled; @docsEditable true
   bool disabled;
 
-  /** @domName HTMLInputElement.files */
+  /// @domName HTMLInputElement.files; @docsEditable true
+  @Returns('_FileList') @Creates('_FileList')
   List<File> files;
 
-  /** @domName HTMLInputElement.form */
+  /// @domName HTMLInputElement.form; @docsEditable true
   final FormElement form;
 
-  /** @domName HTMLInputElement.formAction */
+  /// @domName HTMLInputElement.formAction; @docsEditable true
   String formAction;
 
-  /** @domName HTMLInputElement.formEnctype */
+  /// @domName HTMLInputElement.formEnctype; @docsEditable true
   String formEnctype;
 
-  /** @domName HTMLInputElement.formMethod */
+  /// @domName HTMLInputElement.formMethod; @docsEditable true
   String formMethod;
 
-  /** @domName HTMLInputElement.formNoValidate */
+  /// @domName HTMLInputElement.formNoValidate; @docsEditable true
   bool formNoValidate;
 
-  /** @domName HTMLInputElement.formTarget */
+  /// @domName HTMLInputElement.formTarget; @docsEditable true
   String formTarget;
 
-  /** @domName HTMLInputElement.height */
+  /// @domName HTMLInputElement.height; @docsEditable true
   int height;
 
-  /** @domName HTMLInputElement.incremental */
+  /// @domName HTMLInputElement.incremental; @docsEditable true
   bool incremental;
 
-  /** @domName HTMLInputElement.indeterminate */
+  /// @domName HTMLInputElement.indeterminate; @docsEditable true
   bool indeterminate;
 
-  /** @domName HTMLInputElement.labels */
+  /// @domName HTMLInputElement.labels; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> labels;
 
-  /** @domName HTMLInputElement.list */
+  /// @domName HTMLInputElement.list; @docsEditable true
   final Element list;
 
-  /** @domName HTMLInputElement.max */
+  /// @domName HTMLInputElement.max; @docsEditable true
   String max;
 
-  /** @domName HTMLInputElement.maxLength */
+  /// @domName HTMLInputElement.maxLength; @docsEditable true
   int maxLength;
 
-  /** @domName HTMLInputElement.min */
+  /// @domName HTMLInputElement.min; @docsEditable true
   String min;
 
-  /** @domName HTMLInputElement.multiple */
+  /// @domName HTMLInputElement.multiple; @docsEditable true
   bool multiple;
 
-  /** @domName HTMLInputElement.name */
+  /// @domName HTMLInputElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLInputElement.pattern */
+  /// @domName HTMLInputElement.pattern; @docsEditable true
   String pattern;
 
-  /** @domName HTMLInputElement.placeholder */
+  /// @domName HTMLInputElement.placeholder; @docsEditable true
   String placeholder;
 
-  /** @domName HTMLInputElement.readOnly */
+  /// @domName HTMLInputElement.readOnly; @docsEditable true
   bool readOnly;
 
-  /** @domName HTMLInputElement.required */
+  /// @domName HTMLInputElement.required; @docsEditable true
   bool required;
 
-  /** @domName HTMLInputElement.selectionDirection */
+  /// @domName HTMLInputElement.selectionDirection; @docsEditable true
   String selectionDirection;
 
-  /** @domName HTMLInputElement.selectionEnd */
+  /// @domName HTMLInputElement.selectionEnd; @docsEditable true
   int selectionEnd;
 
-  /** @domName HTMLInputElement.selectionStart */
+  /// @domName HTMLInputElement.selectionStart; @docsEditable true
   int selectionStart;
 
-  /** @domName HTMLInputElement.size */
+  /// @domName HTMLInputElement.size; @docsEditable true
   int size;
 
-  /** @domName HTMLInputElement.src */
+  /// @domName HTMLInputElement.src; @docsEditable true
   String src;
 
-  /** @domName HTMLInputElement.step */
+  /// @domName HTMLInputElement.step; @docsEditable true
   String step;
 
-  /** @domName HTMLInputElement.type */
+  /// @domName HTMLInputElement.type; @docsEditable true
   String type;
 
-  /** @domName HTMLInputElement.useMap */
+  /// @domName HTMLInputElement.useMap; @docsEditable true
   String useMap;
 
-  /** @domName HTMLInputElement.validationMessage */
+  /// @domName HTMLInputElement.validationMessage; @docsEditable true
   final String validationMessage;
 
-  /** @domName HTMLInputElement.validity */
+  /// @domName HTMLInputElement.validity; @docsEditable true
   final ValidityState validity;
 
-  /** @domName HTMLInputElement.value */
+  /// @domName HTMLInputElement.value; @docsEditable true
   String value;
 
-  /** @domName HTMLInputElement.valueAsDate */
+  /// @domName HTMLInputElement.valueAsDate; @docsEditable true
   Date valueAsDate;
 
-  /** @domName HTMLInputElement.valueAsNumber */
+  /// @domName HTMLInputElement.valueAsNumber; @docsEditable true
   num valueAsNumber;
 
-  /** @domName HTMLInputElement.webkitEntries */
+  /// @domName HTMLInputElement.webkitEntries; @docsEditable true
+  @Returns('_EntryArray') @Creates('_EntryArray')
   final List<Entry> webkitEntries;
 
-  /** @domName HTMLInputElement.webkitGrammar */
+  /// @domName HTMLInputElement.webkitGrammar; @docsEditable true
   bool webkitGrammar;
 
-  /** @domName HTMLInputElement.webkitSpeech */
+  /// @domName HTMLInputElement.webkitSpeech; @docsEditable true
   bool webkitSpeech;
 
-  /** @domName HTMLInputElement.webkitdirectory */
+  /// @domName HTMLInputElement.webkitdirectory; @docsEditable true
   bool webkitdirectory;
 
-  /** @domName HTMLInputElement.width */
+  /// @domName HTMLInputElement.width; @docsEditable true
   int width;
 
-  /** @domName HTMLInputElement.willValidate */
+  /// @domName HTMLInputElement.willValidate; @docsEditable true
   final bool willValidate;
 
-  /** @domName HTMLInputElement.checkValidity */
+  /// @domName HTMLInputElement.checkValidity; @docsEditable true
   bool checkValidity() native;
 
-  /** @domName HTMLInputElement.select */
+  /// @domName HTMLInputElement.select; @docsEditable true
   void select() native;
 
-  /** @domName HTMLInputElement.setCustomValidity */
+  /// @domName HTMLInputElement.setCustomValidity; @docsEditable true
   void setCustomValidity(String error) native;
 
-  /** @domName HTMLInputElement.setRangeText */
+  /// @domName HTMLInputElement.setRangeText; @docsEditable true
   void setRangeText(String replacement, [int start, int end, String selectionMode]) native;
 
-  /** @domName HTMLInputElement.setSelectionRange */
+  /// @domName HTMLInputElement.setSelectionRange; @docsEditable true
   void setSelectionRange(int start, int end, [String direction]) native;
 
-  /** @domName HTMLInputElement.stepDown */
+  /// @domName HTMLInputElement.stepDown; @docsEditable true
   void stepDown([int n]) native;
 
-  /** @domName HTMLInputElement.stepUp */
+  /// @domName HTMLInputElement.stepUp; @docsEditable true
   void stepUp([int n]) native;
 }
 
@@ -10792,7 +11212,7 @@ class InputElementEvents extends ElementEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Int16Array
+/// @domName Int16Array; @docsEditable true
 class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Int16Array" {
 
   factory Int16Array(int length) =>
@@ -10806,13 +11226,12 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   static const int BYTES_PER_ELEMENT = 2;
 
-  /** @domName Int16Array.length */
+  /// @domName Int16Array.length; @docsEditable true
   final int length;
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) => JS("void", "#[#] = #", this, index, value);
-  // -- start List<int> mixins.
+  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
   // int is the element type.
 
   // From Iterable<int>:
@@ -10867,6 +11286,8 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  int get first => this[0];
+
   int get last => this[length - 1];
 
   int removeLast() {
@@ -10890,10 +11311,10 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   // -- end List<int> mixins.
 
-  /** @domName Int16Array.setElements */
+  /// @domName Int16Array.setElements; @docsEditable true
   void setElements(Object array, [int offset]) native "set";
 
-  /** @domName Int16Array.subarray */
+  /// @domName Int16Array.subarray; @docsEditable true
   Int16Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10901,7 +11322,7 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Int32Array
+/// @domName Int32Array; @docsEditable true
 class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Int32Array" {
 
   factory Int32Array(int length) =>
@@ -10915,13 +11336,12 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   static const int BYTES_PER_ELEMENT = 4;
 
-  /** @domName Int32Array.length */
+  /// @domName Int32Array.length; @docsEditable true
   final int length;
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) => JS("void", "#[#] = #", this, index, value);
-  // -- start List<int> mixins.
+  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
   // int is the element type.
 
   // From Iterable<int>:
@@ -10976,6 +11396,8 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  int get first => this[0];
+
   int get last => this[length - 1];
 
   int removeLast() {
@@ -10999,10 +11421,10 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   // -- end List<int> mixins.
 
-  /** @domName Int32Array.setElements */
+  /// @domName Int32Array.setElements; @docsEditable true
   void setElements(Object array, [int offset]) native "set";
 
-  /** @domName Int32Array.subarray */
+  /// @domName Int32Array.subarray; @docsEditable true
   Int32Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11010,7 +11432,7 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Int8Array
+/// @domName Int8Array; @docsEditable true
 class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Int8Array" {
 
   factory Int8Array(int length) =>
@@ -11024,13 +11446,12 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
 
   static const int BYTES_PER_ELEMENT = 1;
 
-  /** @domName Int8Array.length */
+  /// @domName Int8Array.length; @docsEditable true
   final int length;
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) => JS("void", "#[#] = #", this, index, value);
-  // -- start List<int> mixins.
+  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
   // int is the element type.
 
   // From Iterable<int>:
@@ -11085,6 +11506,8 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  int get first => this[0];
+
   int get last => this[length - 1];
 
   int removeLast() {
@@ -11108,10 +11531,10 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
 
   // -- end List<int> mixins.
 
-  /** @domName Int8Array.setElements */
+  /// @domName Int8Array.setElements; @docsEditable true
   void setElements(Object array, [int offset]) native "set";
 
-  /** @domName Int8Array.subarray */
+  /// @domName Int8Array.subarray; @docsEditable true
   Int8Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11119,7 +11542,7 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName JavaScriptCallFrame
+/// @domName JavaScriptCallFrame; @docsEditable true
 class JavaScriptCallFrame native "*JavaScriptCallFrame" {
 
   static const int CATCH_SCOPE = 4;
@@ -11132,37 +11555,37 @@ class JavaScriptCallFrame native "*JavaScriptCallFrame" {
 
   static const int WITH_SCOPE = 2;
 
-  /** @domName JavaScriptCallFrame.caller */
+  /// @domName JavaScriptCallFrame.caller; @docsEditable true
   final JavaScriptCallFrame caller;
 
-  /** @domName JavaScriptCallFrame.column */
+  /// @domName JavaScriptCallFrame.column; @docsEditable true
   final int column;
 
-  /** @domName JavaScriptCallFrame.functionName */
+  /// @domName JavaScriptCallFrame.functionName; @docsEditable true
   final String functionName;
 
-  /** @domName JavaScriptCallFrame.line */
+  /// @domName JavaScriptCallFrame.line; @docsEditable true
   final int line;
 
-  /** @domName JavaScriptCallFrame.scopeChain */
+  /// @domName JavaScriptCallFrame.scopeChain; @docsEditable true
   final List scopeChain;
 
-  /** @domName JavaScriptCallFrame.sourceID */
+  /// @domName JavaScriptCallFrame.sourceID; @docsEditable true
   final int sourceID;
 
-  /** @domName JavaScriptCallFrame.thisObject */
+  /// @domName JavaScriptCallFrame.thisObject; @docsEditable true
   final Object thisObject;
 
-  /** @domName JavaScriptCallFrame.type */
+  /// @domName JavaScriptCallFrame.type; @docsEditable true
   final String type;
 
-  /** @domName JavaScriptCallFrame.evaluate */
+  /// @domName JavaScriptCallFrame.evaluate; @docsEditable true
   void evaluate(String script) native;
 
-  /** @domName JavaScriptCallFrame.restart */
+  /// @domName JavaScriptCallFrame.restart; @docsEditable true
   Object restart() native;
 
-  /** @domName JavaScriptCallFrame.scopeType */
+  /// @domName JavaScriptCallFrame.scopeType; @docsEditable true
   int scopeType(int scopeIndex) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11170,31 +11593,31 @@ class JavaScriptCallFrame native "*JavaScriptCallFrame" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName KeyboardEvent
+/// @domName KeyboardEvent; @docsEditable true
 class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 
-  /** @domName KeyboardEvent.altGraphKey */
+  /// @domName KeyboardEvent.altGraphKey; @docsEditable true
   final bool altGraphKey;
 
-  /** @domName KeyboardEvent.altKey */
+  /// @domName KeyboardEvent.altKey; @docsEditable true
   final bool altKey;
 
-  /** @domName KeyboardEvent.ctrlKey */
+  /// @domName KeyboardEvent.ctrlKey; @docsEditable true
   final bool ctrlKey;
 
-  /** @domName KeyboardEvent.keyIdentifier */
+  /// @domName KeyboardEvent.keyIdentifier; @docsEditable true
   final String keyIdentifier;
 
-  /** @domName KeyboardEvent.keyLocation */
+  /// @domName KeyboardEvent.keyLocation; @docsEditable true
   final int keyLocation;
 
-  /** @domName KeyboardEvent.metaKey */
+  /// @domName KeyboardEvent.metaKey; @docsEditable true
   final bool metaKey;
 
-  /** @domName KeyboardEvent.shiftKey */
+  /// @domName KeyboardEvent.shiftKey; @docsEditable true
   final bool shiftKey;
 
-  /** @domName KeyboardEvent.initKeyboardEvent */
+  /// @domName KeyboardEvent.initKeyboardEvent; @docsEditable true
   void initKeyboardEvent(String type, bool canBubble, bool cancelable, LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11202,48 +11625,49 @@ class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLKeygenElement
+/// @domName HTMLKeygenElement; @docsEditable true
 class KeygenElement extends Element implements Element native "*HTMLKeygenElement" {
 
-  factory KeygenElement() => _Elements.createKeygenElement();
+  factory KeygenElement() => document.$dom_createElement("keygen");
 
-  /** @domName HTMLKeygenElement.autofocus */
+  /// @domName HTMLKeygenElement.autofocus; @docsEditable true
   bool autofocus;
 
-  /** @domName HTMLKeygenElement.challenge */
+  /// @domName HTMLKeygenElement.challenge; @docsEditable true
   String challenge;
 
-  /** @domName HTMLKeygenElement.disabled */
+  /// @domName HTMLKeygenElement.disabled; @docsEditable true
   bool disabled;
 
-  /** @domName HTMLKeygenElement.form */
+  /// @domName HTMLKeygenElement.form; @docsEditable true
   final FormElement form;
 
-  /** @domName HTMLKeygenElement.keytype */
+  /// @domName HTMLKeygenElement.keytype; @docsEditable true
   String keytype;
 
-  /** @domName HTMLKeygenElement.labels */
+  /// @domName HTMLKeygenElement.labels; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> labels;
 
-  /** @domName HTMLKeygenElement.name */
+  /// @domName HTMLKeygenElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLKeygenElement.type */
+  /// @domName HTMLKeygenElement.type; @docsEditable true
   final String type;
 
-  /** @domName HTMLKeygenElement.validationMessage */
+  /// @domName HTMLKeygenElement.validationMessage; @docsEditable true
   final String validationMessage;
 
-  /** @domName HTMLKeygenElement.validity */
+  /// @domName HTMLKeygenElement.validity; @docsEditable true
   final ValidityState validity;
 
-  /** @domName HTMLKeygenElement.willValidate */
+  /// @domName HTMLKeygenElement.willValidate; @docsEditable true
   final bool willValidate;
 
-  /** @domName HTMLKeygenElement.checkValidity */
+  /// @domName HTMLKeygenElement.checkValidity; @docsEditable true
   bool checkValidity() native;
 
-  /** @domName HTMLKeygenElement.setCustomValidity */
+  /// @domName HTMLKeygenElement.setCustomValidity; @docsEditable true
   void setCustomValidity(String error) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11251,15 +11675,15 @@ class KeygenElement extends Element implements Element native "*HTMLKeygenElemen
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLLIElement
+/// @domName HTMLLIElement; @docsEditable true
 class LIElement extends Element implements Element native "*HTMLLIElement" {
 
-  factory LIElement() => _Elements.createLIElement();
+  factory LIElement() => document.$dom_createElement("li");
 
-  /** @domName HTMLLIElement.type */
+  /// @domName HTMLLIElement.type; @docsEditable true
   String type;
 
-  /** @domName HTMLLIElement.value */
+  /// @domName HTMLLIElement.value; @docsEditable true
   int value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11267,18 +11691,18 @@ class LIElement extends Element implements Element native "*HTMLLIElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLLabelElement
+/// @domName HTMLLabelElement; @docsEditable true
 class LabelElement extends Element implements Element native "*HTMLLabelElement" {
 
-  factory LabelElement() => _Elements.createLabelElement();
+  factory LabelElement() => document.$dom_createElement("label");
 
-  /** @domName HTMLLabelElement.control */
+  /// @domName HTMLLabelElement.control; @docsEditable true
   final Element control;
 
-  /** @domName HTMLLabelElement.form */
+  /// @domName HTMLLabelElement.form; @docsEditable true
   final FormElement form;
 
-  /** @domName HTMLLabelElement.htmlFor */
+  /// @domName HTMLLabelElement.htmlFor; @docsEditable true
   String htmlFor;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11286,15 +11710,15 @@ class LabelElement extends Element implements Element native "*HTMLLabelElement"
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLLegendElement
+/// @domName HTMLLegendElement; @docsEditable true
 class LegendElement extends Element implements Element native "*HTMLLegendElement" {
 
-  factory LegendElement() => _Elements.createLegendElement();
+  factory LegendElement() => document.$dom_createElement("legend");
 
-  /** @domName HTMLLegendElement.align */
+  /// @domName HTMLLegendElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLLegendElement.form */
+  /// @domName HTMLLegendElement.form; @docsEditable true
   final FormElement form;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11302,42 +11726,42 @@ class LegendElement extends Element implements Element native "*HTMLLegendElemen
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLLinkElement
+/// @domName HTMLLinkElement; @docsEditable true
 class LinkElement extends Element implements Element native "*HTMLLinkElement" {
 
-  factory LinkElement() => _Elements.createLinkElement();
+  factory LinkElement() => document.$dom_createElement("link");
 
-  /** @domName HTMLLinkElement.charset */
+  /// @domName HTMLLinkElement.charset; @docsEditable true
   String charset;
 
-  /** @domName HTMLLinkElement.disabled */
+  /// @domName HTMLLinkElement.disabled; @docsEditable true
   bool disabled;
 
-  /** @domName HTMLLinkElement.href */
+  /// @domName HTMLLinkElement.href; @docsEditable true
   String href;
 
-  /** @domName HTMLLinkElement.hreflang */
+  /// @domName HTMLLinkElement.hreflang; @docsEditable true
   String hreflang;
 
-  /** @domName HTMLLinkElement.media */
+  /// @domName HTMLLinkElement.media; @docsEditable true
   String media;
 
-  /** @domName HTMLLinkElement.rel */
+  /// @domName HTMLLinkElement.rel; @docsEditable true
   String rel;
 
-  /** @domName HTMLLinkElement.rev */
+  /// @domName HTMLLinkElement.rev; @docsEditable true
   String rev;
 
-  /** @domName HTMLLinkElement.sheet */
+  /// @domName HTMLLinkElement.sheet; @docsEditable true
   final StyleSheet sheet;
 
-  /** @domName HTMLLinkElement.sizes */
+  /// @domName HTMLLinkElement.sizes; @docsEditable true
   DOMSettableTokenList sizes;
 
-  /** @domName HTMLLinkElement.target */
+  /// @domName HTMLLinkElement.target; @docsEditable true
   String target;
 
-  /** @domName HTMLLinkElement.type */
+  /// @domName HTMLLinkElement.type; @docsEditable true
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11345,28 +11769,28 @@ class LinkElement extends Element implements Element native "*HTMLLinkElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName History
+/// @domName History; @docsEditable true
 class LocalHistory implements History native "*History" {
 
-  /** @domName History.length */
+  /// @domName History.length; @docsEditable true
   final int length;
 
-  /** @domName History.state */
+  /// @domName History.state; @docsEditable true
   final dynamic state;
 
-  /** @domName History.back */
+  /// @domName History.back; @docsEditable true
   void back() native;
 
-  /** @domName History.forward */
+  /// @domName History.forward; @docsEditable true
   void forward() native;
 
-  /** @domName History.go */
+  /// @domName History.go; @docsEditable true
   void go(int distance) native;
 
-  /** @domName History.pushState */
+  /// @domName History.pushState; @docsEditable true
   void pushState(Object data, String title, [String url]) native;
 
-  /** @domName History.replaceState */
+  /// @domName History.replaceState; @docsEditable true
   void replaceState(Object data, String title, [String url]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11374,49 +11798,50 @@ class LocalHistory implements History native "*History" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Location
+/// @domName Location; @docsEditable true
 class LocalLocation implements Location native "*Location" {
 
-  /** @domName Location.ancestorOrigins */
+  /// @domName Location.ancestorOrigins; @docsEditable true
+  @Returns('_DOMStringList') @Creates('_DOMStringList')
   final List<String> ancestorOrigins;
 
-  /** @domName Location.hash */
+  /// @domName Location.hash; @docsEditable true
   String hash;
 
-  /** @domName Location.host */
+  /// @domName Location.host; @docsEditable true
   String host;
 
-  /** @domName Location.hostname */
+  /// @domName Location.hostname; @docsEditable true
   String hostname;
 
-  /** @domName Location.href */
+  /// @domName Location.href; @docsEditable true
   String href;
 
-  /** @domName Location.origin */
+  /// @domName Location.origin; @docsEditable true
   final String origin;
 
-  /** @domName Location.pathname */
+  /// @domName Location.pathname; @docsEditable true
   String pathname;
 
-  /** @domName Location.port */
+  /// @domName Location.port; @docsEditable true
   String port;
 
-  /** @domName Location.protocol */
+  /// @domName Location.protocol; @docsEditable true
   String protocol;
 
-  /** @domName Location.search */
+  /// @domName Location.search; @docsEditable true
   String search;
 
-  /** @domName Location.assign */
+  /// @domName Location.assign; @docsEditable true
   void assign(String url) native;
 
-  /** @domName Location.reload */
+  /// @domName Location.reload; @docsEditable true
   void reload() native;
 
-  /** @domName Location.replace */
+  /// @domName Location.replace; @docsEditable true
   void replace(String url) native;
 
-  /** @domName Location.toString */
+  /// @domName Location.toString; @docsEditable true
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11424,10 +11849,10 @@ class LocalLocation implements Location native "*Location" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName LocalMediaStream
+/// @domName LocalMediaStream; @docsEditable true
 class LocalMediaStream extends MediaStream implements EventTarget native "*LocalMediaStream" {
 
-  /** @domName LocalMediaStream.stop */
+  /// @domName LocalMediaStream.stop; @docsEditable true
   void stop() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11562,7 +11987,7 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
    * registered under [name].
    */
   SendPortSync lookupPort(String name) {
-    var port = JSON.parse(localStorage['dart-port:$name']);
+    var port = JSON.parse(document.documentElement.attributes['dart-port:$name']);
     return _deserialize(port);
   }
 
@@ -11573,13 +11998,11 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
    */
   void registerPort(String name, var port) {
     var serialized = _serialize(port);
-    localStorage['dart-port:$name'] = JSON.stringify(serialized);
+    document.documentElement.attributes['dart-port:$name'] = JSON.stringify(serialized);
   }
 
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   LocalWindowEvents get on =>
     new LocalWindowEvents(this);
 
@@ -11587,207 +12010,203 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   static const int TEMPORARY = 0;
 
-  /** @domName Window.applicationCache */
+  /// @domName Window.applicationCache; @docsEditable true
   final DOMApplicationCache applicationCache;
 
-  /** @domName Window.closed */
+  /// @domName Window.closed; @docsEditable true
   final bool closed;
 
-  /** @domName Window.console */
+  /// @domName Window.console; @docsEditable true
   final Console console;
 
-  /** @domName Window.crypto */
+  /// @domName Window.crypto; @docsEditable true
   final Crypto crypto;
 
-  /** @domName Window.defaultStatus */
+  /// @domName Window.defaultStatus; @docsEditable true
   String defaultStatus;
 
-  /** @domName Window.defaultstatus */
+  /// @domName Window.defaultstatus; @docsEditable true
   String defaultstatus;
 
-  /** @domName Window.devicePixelRatio */
+  /// @domName Window.devicePixelRatio; @docsEditable true
   final num devicePixelRatio;
 
-  /** @domName Window.event */
+  /// @domName Window.event; @docsEditable true
   final Event event;
 
-  /** @domName Window.history */
+  /// @domName Window.history; @docsEditable true
   final LocalHistory history;
 
-  /** @domName Window.innerHeight */
+  /// @domName Window.innerHeight; @docsEditable true
   final int innerHeight;
 
-  /** @domName Window.innerWidth */
+  /// @domName Window.innerWidth; @docsEditable true
   final int innerWidth;
 
-  /** @domName Window.localStorage */
+  /// @domName Window.localStorage; @docsEditable true
   final Storage localStorage;
 
-  /** @domName Window.locationbar */
+  /// @domName Window.locationbar; @docsEditable true
   final BarInfo locationbar;
 
-  /** @domName Window.menubar */
+  /// @domName Window.menubar; @docsEditable true
   final BarInfo menubar;
 
-  /** @domName Window.name */
+  /// @domName Window.name; @docsEditable true
   String name;
 
-  /** @domName Window.navigator */
+  /// @domName Window.navigator; @docsEditable true
   final Navigator navigator;
 
-  /** @domName Window.offscreenBuffering */
+  /// @domName Window.offscreenBuffering; @docsEditable true
   final bool offscreenBuffering;
 
-  /** @domName Window.opener */
+  /// @domName Window.opener; @docsEditable true
   Window get opener => _convertNativeToDart_Window(this._opener);
   dynamic get _opener => JS("dynamic", "#.opener", this);
 
-  /** @domName Window.outerHeight */
+  /// @domName Window.outerHeight; @docsEditable true
   final int outerHeight;
 
-  /** @domName Window.outerWidth */
+  /// @domName Window.outerWidth; @docsEditable true
   final int outerWidth;
 
-  /** @domName DOMWindow.pagePopupController */
+  /// @domName DOMWindow.pagePopupController; @docsEditable true
   final PagePopupController pagePopupController;
 
-  /** @domName Window.pageXOffset */
+  /// @domName Window.pageXOffset; @docsEditable true
   final int pageXOffset;
 
-  /** @domName Window.pageYOffset */
+  /// @domName Window.pageYOffset; @docsEditable true
   final int pageYOffset;
 
-  /** @domName Window.parent */
+  /// @domName Window.parent; @docsEditable true
   Window get parent => _convertNativeToDart_Window(this._parent);
   dynamic get _parent => JS("dynamic", "#.parent", this);
 
-  /** @domName Window.performance */
+  /// @domName Window.performance; @docsEditable true
   final Performance performance;
 
-  /** @domName Window.personalbar */
+  /// @domName Window.personalbar; @docsEditable true
   final BarInfo personalbar;
 
-  /** @domName Window.screen */
+  /// @domName Window.screen; @docsEditable true
   final Screen screen;
 
-  /** @domName Window.screenLeft */
+  /// @domName Window.screenLeft; @docsEditable true
   final int screenLeft;
 
-  /** @domName Window.screenTop */
+  /// @domName Window.screenTop; @docsEditable true
   final int screenTop;
 
-  /** @domName Window.screenX */
+  /// @domName Window.screenX; @docsEditable true
   final int screenX;
 
-  /** @domName Window.screenY */
+  /// @domName Window.screenY; @docsEditable true
   final int screenY;
 
-  /** @domName Window.scrollX */
+  /// @domName Window.scrollX; @docsEditable true
   final int scrollX;
 
-  /** @domName Window.scrollY */
+  /// @domName Window.scrollY; @docsEditable true
   final int scrollY;
 
-  /** @domName Window.scrollbars */
+  /// @domName Window.scrollbars; @docsEditable true
   final BarInfo scrollbars;
 
-  /** @domName Window.self */
+  /// @domName Window.self; @docsEditable true
   Window get self => _convertNativeToDart_Window(this._self);
   dynamic get _self => JS("dynamic", "#.self", this);
 
-  /** @domName Window.sessionStorage */
+  /// @domName Window.sessionStorage; @docsEditable true
   final Storage sessionStorage;
 
-  /** @domName Window.status */
+  /// @domName Window.status; @docsEditable true
   String status;
 
-  /** @domName Window.statusbar */
+  /// @domName Window.statusbar; @docsEditable true
   final BarInfo statusbar;
 
-  /** @domName Window.styleMedia */
+  /// @domName Window.styleMedia; @docsEditable true
   final StyleMedia styleMedia;
 
-  /** @domName Window.toolbar */
+  /// @domName Window.toolbar; @docsEditable true
   final BarInfo toolbar;
 
-  /** @domName Window.top */
+  /// @domName Window.top; @docsEditable true
   Window get top => _convertNativeToDart_Window(this._top);
   dynamic get _top => JS("dynamic", "#.top", this);
 
-  /** @domName DOMWindow.webkitIndexedDB */
+  /// @domName DOMWindow.webkitIndexedDB; @docsEditable true
   final IDBFactory webkitIndexedDB;
 
-  /** @domName DOMWindow.webkitNotifications */
+  /// @domName DOMWindow.webkitNotifications; @docsEditable true
   final NotificationCenter webkitNotifications;
 
-  /** @domName DOMWindow.webkitStorageInfo */
+  /// @domName DOMWindow.webkitStorageInfo; @docsEditable true
   final StorageInfo webkitStorageInfo;
 
-  /** @domName Window.window */
+  /// @domName Window.window; @docsEditable true
   Window get window => _convertNativeToDart_Window(this._window);
   dynamic get _window => JS("dynamic", "#.window", this);
 
-  /** @domName Window.addEventListener */
+  /// @domName Window.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName Window.alert */
+  /// @domName Window.alert; @docsEditable true
   void alert(String message) native;
 
-  /** @domName Window.atob */
+  /// @domName Window.atob; @docsEditable true
   String atob(String string) native;
 
-  /** @domName Window.blur */
-  void blur() native;
-
-  /** @domName Window.btoa */
+  /// @domName Window.btoa; @docsEditable true
   String btoa(String string) native;
 
-  /** @domName Window.captureEvents */
+  /// @domName Window.captureEvents; @docsEditable true
   void captureEvents() native;
 
-  /** @domName Window.clearInterval */
+  /// @domName Window.clearInterval; @docsEditable true
   void clearInterval(int handle) native;
 
-  /** @domName Window.clearTimeout */
+  /// @domName Window.clearTimeout; @docsEditable true
   void clearTimeout(int handle) native;
 
-  /** @domName Window.close */
+  /// @domName Window.close; @docsEditable true
   void close() native;
 
-  /** @domName Window.confirm */
+  /// @domName Window.confirm; @docsEditable true
   bool confirm(String message) native;
 
-  /** @domName Window.dispatchEvent */
+  /// @domName Window.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName Window.find */
+  /// @domName Window.find; @docsEditable true
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native;
 
-  /** @domName Window.focus */
-  void focus() native;
-
-  /** @domName Window.getComputedStyle */
+  /// @domName Window.getComputedStyle; @docsEditable true
   CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native "getComputedStyle";
 
-  /** @domName Window.getMatchedCSSRules */
+  /// @domName Window.getMatchedCSSRules; @docsEditable true
+  @Returns('_CSSRuleList') @Creates('_CSSRuleList')
   List<CSSRule> getMatchedCSSRules(Element element, String pseudoElement) native;
 
-  /** @domName Window.getSelection */
+  /// @domName Window.getSelection; @docsEditable true
   DOMSelection getSelection() native;
 
-  /** @domName Window.matchMedia */
+  /// @domName Window.matchMedia; @docsEditable true
   MediaQueryList matchMedia(String query) native;
 
-  /** @domName Window.moveBy */
+  /// @domName Window.moveBy; @docsEditable true
   void moveBy(num x, num y) native;
 
-  /** @domName Window.moveTo */
+  /// @domName Window.moveTo; @docsEditable true
   void moveTo(num x, num y) native;
 
-  /** @domName DOMWindow.openDatabase */
+  /// @domName DOMWindow.openDatabase; @docsEditable true
+  @Creates('Database') @Creates('DatabaseSync')
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
-  /** @domName Window.postMessage */
+  /// @domName Window.postMessage; @docsEditable true
   void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) {
     if (?message &&
         !?messagePorts) {
@@ -11800,57 +12219,57 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
       _postMessage_2(message_2, targetOrigin, messagePorts);
       return;
     }
-    throw const Exception("Incorrect number or type of arguments");
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
   void _postMessage_1(message, targetOrigin) native "postMessage";
   void _postMessage_2(message, targetOrigin, List messagePorts) native "postMessage";
 
-  /** @domName Window.print */
+  /// @domName Window.print; @docsEditable true
   void print() native;
 
-  /** @domName Window.releaseEvents */
+  /// @domName Window.releaseEvents; @docsEditable true
   void releaseEvents() native;
 
-  /** @domName Window.removeEventListener */
+  /// @domName Window.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName Window.resizeBy */
+  /// @domName Window.resizeBy; @docsEditable true
   void resizeBy(num x, num y) native;
 
-  /** @domName Window.resizeTo */
+  /// @domName Window.resizeTo; @docsEditable true
   void resizeTo(num width, num height) native;
 
-  /** @domName Window.scroll */
+  /// @domName Window.scroll; @docsEditable true
   void scroll(int x, int y) native;
 
-  /** @domName Window.scrollBy */
+  /// @domName Window.scrollBy; @docsEditable true
   void scrollBy(int x, int y) native;
 
-  /** @domName Window.scrollTo */
+  /// @domName Window.scrollTo; @docsEditable true
   void scrollTo(int x, int y) native;
 
-  /** @domName Window.setInterval */
+  /// @domName Window.setInterval; @docsEditable true
   int setInterval(TimeoutHandler handler, int timeout) native;
 
-  /** @domName Window.setTimeout */
+  /// @domName Window.setTimeout; @docsEditable true
   int setTimeout(TimeoutHandler handler, int timeout) native;
 
-  /** @domName Window.showModalDialog */
+  /// @domName Window.showModalDialog; @docsEditable true
   Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) native;
 
-  /** @domName Window.stop */
+  /// @domName Window.stop; @docsEditable true
   void stop() native;
 
-  /** @domName Window.webkitConvertPointFromNodeToPage */
+  /// @domName Window.webkitConvertPointFromNodeToPage; @docsEditable true
   Point webkitConvertPointFromNodeToPage(Node node, Point p) native;
 
-  /** @domName Window.webkitConvertPointFromPageToNode */
+  /// @domName Window.webkitConvertPointFromPageToNode; @docsEditable true
   Point webkitConvertPointFromPageToNode(Node node, Point p) native;
 
-  /** @domName DOMWindow.webkitRequestFileSystem */
+  /// @domName DOMWindow.webkitRequestFileSystem; @docsEditable true
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  /** @domName DOMWindow.webkitResolveLocalFileSystemURL */
+  /// @domName DOMWindow.webkitResolveLocalFileSystemURL; @docsEditable true
   void webkitResolveLocalFileSystemURL(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
 
 }
@@ -12009,15 +12428,15 @@ class LocalWindowEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLMapElement
+/// @domName HTMLMapElement; @docsEditable true
 class MapElement extends Element implements Element native "*HTMLMapElement" {
 
-  factory MapElement() => _Elements.createMapElement();
+  factory MapElement() => document.$dom_createElement("map");
 
-  /** @domName HTMLMapElement.areas */
+  /// @domName HTMLMapElement.areas; @docsEditable true
   final HTMLCollection areas;
 
-  /** @domName HTMLMapElement.name */
+  /// @domName HTMLMapElement.name; @docsEditable true
   String name;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12025,46 +12444,46 @@ class MapElement extends Element implements Element native "*HTMLMapElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLMarqueeElement
+/// @domName HTMLMarqueeElement; @docsEditable true
 class MarqueeElement extends Element implements Element native "*HTMLMarqueeElement" {
 
-  /** @domName HTMLMarqueeElement.behavior */
+  /// @domName HTMLMarqueeElement.behavior; @docsEditable true
   String behavior;
 
-  /** @domName HTMLMarqueeElement.bgColor */
+  /// @domName HTMLMarqueeElement.bgColor; @docsEditable true
   String bgColor;
 
-  /** @domName HTMLMarqueeElement.direction */
+  /// @domName HTMLMarqueeElement.direction; @docsEditable true
   String direction;
 
-  /** @domName HTMLMarqueeElement.height */
+  /// @domName HTMLMarqueeElement.height; @docsEditable true
   String height;
 
-  /** @domName HTMLMarqueeElement.hspace */
+  /// @domName HTMLMarqueeElement.hspace; @docsEditable true
   int hspace;
 
-  /** @domName HTMLMarqueeElement.loop */
+  /// @domName HTMLMarqueeElement.loop; @docsEditable true
   int loop;
 
-  /** @domName HTMLMarqueeElement.scrollAmount */
+  /// @domName HTMLMarqueeElement.scrollAmount; @docsEditable true
   int scrollAmount;
 
-  /** @domName HTMLMarqueeElement.scrollDelay */
+  /// @domName HTMLMarqueeElement.scrollDelay; @docsEditable true
   int scrollDelay;
 
-  /** @domName HTMLMarqueeElement.trueSpeed */
+  /// @domName HTMLMarqueeElement.trueSpeed; @docsEditable true
   bool trueSpeed;
 
-  /** @domName HTMLMarqueeElement.vspace */
+  /// @domName HTMLMarqueeElement.vspace; @docsEditable true
   int vspace;
 
-  /** @domName HTMLMarqueeElement.width */
+  /// @domName HTMLMarqueeElement.width; @docsEditable true
   String width;
 
-  /** @domName HTMLMarqueeElement.start */
+  /// @domName HTMLMarqueeElement.start; @docsEditable true
   void start() native;
 
-  /** @domName HTMLMarqueeElement.stop */
+  /// @domName HTMLMarqueeElement.stop; @docsEditable true
   void stop() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12072,54 +12491,54 @@ class MarqueeElement extends Element implements Element native "*HTMLMarqueeElem
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaController
+/// @domName MediaController; @docsEditable true
 class MediaController extends EventTarget native "*MediaController" {
 
   factory MediaController() => _MediaControllerFactoryProvider.createMediaController();
 
-  /** @domName MediaController.buffered */
+  /// @domName MediaController.buffered; @docsEditable true
   final TimeRanges buffered;
 
-  /** @domName MediaController.currentTime */
+  /// @domName MediaController.currentTime; @docsEditable true
   num currentTime;
 
-  /** @domName MediaController.defaultPlaybackRate */
+  /// @domName MediaController.defaultPlaybackRate; @docsEditable true
   num defaultPlaybackRate;
 
-  /** @domName MediaController.duration */
+  /// @domName MediaController.duration; @docsEditable true
   final num duration;
 
-  /** @domName MediaController.muted */
+  /// @domName MediaController.muted; @docsEditable true
   bool muted;
 
-  /** @domName MediaController.paused */
+  /// @domName MediaController.paused; @docsEditable true
   final bool paused;
 
-  /** @domName MediaController.playbackRate */
+  /// @domName MediaController.playbackRate; @docsEditable true
   num playbackRate;
 
-  /** @domName MediaController.played */
+  /// @domName MediaController.played; @docsEditable true
   final TimeRanges played;
 
-  /** @domName MediaController.seekable */
+  /// @domName MediaController.seekable; @docsEditable true
   final TimeRanges seekable;
 
-  /** @domName MediaController.volume */
+  /// @domName MediaController.volume; @docsEditable true
   num volume;
 
-  /** @domName MediaController.addEventListener */
+  /// @domName MediaController.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName MediaController.dispatchEvent */
+  /// @domName MediaController.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName MediaController.pause */
+  /// @domName MediaController.pause; @docsEditable true
   void pause() native;
 
-  /** @domName MediaController.play */
+  /// @domName MediaController.play; @docsEditable true
   void play() native;
 
-  /** @domName MediaController.removeEventListener */
+  /// @domName MediaController.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12127,12 +12546,10 @@ class MediaController extends EventTarget native "*MediaController" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLMediaElement
+/// @domName HTMLMediaElement; @docsEditable true
 class MediaElement extends Element implements Element native "*HTMLMediaElement" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaElementEvents get on =>
     new MediaElementEvents(this);
 
@@ -12154,124 +12571,124 @@ class MediaElement extends Element implements Element native "*HTMLMediaElement"
 
   static const int NETWORK_NO_SOURCE = 3;
 
-  /** @domName HTMLMediaElement.autoplay */
+  /// @domName HTMLMediaElement.autoplay; @docsEditable true
   bool autoplay;
 
-  /** @domName HTMLMediaElement.buffered */
+  /// @domName HTMLMediaElement.buffered; @docsEditable true
   final TimeRanges buffered;
 
-  /** @domName HTMLMediaElement.controller */
+  /// @domName HTMLMediaElement.controller; @docsEditable true
   MediaController controller;
 
-  /** @domName HTMLMediaElement.controls */
+  /// @domName HTMLMediaElement.controls; @docsEditable true
   bool controls;
 
-  /** @domName HTMLMediaElement.currentSrc */
+  /// @domName HTMLMediaElement.currentSrc; @docsEditable true
   final String currentSrc;
 
-  /** @domName HTMLMediaElement.currentTime */
+  /// @domName HTMLMediaElement.currentTime; @docsEditable true
   num currentTime;
 
-  /** @domName HTMLMediaElement.defaultMuted */
+  /// @domName HTMLMediaElement.defaultMuted; @docsEditable true
   bool defaultMuted;
 
-  /** @domName HTMLMediaElement.defaultPlaybackRate */
+  /// @domName HTMLMediaElement.defaultPlaybackRate; @docsEditable true
   num defaultPlaybackRate;
 
-  /** @domName HTMLMediaElement.duration */
+  /// @domName HTMLMediaElement.duration; @docsEditable true
   final num duration;
 
-  /** @domName HTMLMediaElement.ended */
+  /// @domName HTMLMediaElement.ended; @docsEditable true
   final bool ended;
 
-  /** @domName HTMLMediaElement.error */
+  /// @domName HTMLMediaElement.error; @docsEditable true
   final MediaError error;
 
-  /** @domName HTMLMediaElement.initialTime */
+  /// @domName HTMLMediaElement.initialTime; @docsEditable true
   final num initialTime;
 
-  /** @domName HTMLMediaElement.loop */
+  /// @domName HTMLMediaElement.loop; @docsEditable true
   bool loop;
 
-  /** @domName HTMLMediaElement.mediaGroup */
+  /// @domName HTMLMediaElement.mediaGroup; @docsEditable true
   String mediaGroup;
 
-  /** @domName HTMLMediaElement.muted */
+  /// @domName HTMLMediaElement.muted; @docsEditable true
   bool muted;
 
-  /** @domName HTMLMediaElement.networkState */
+  /// @domName HTMLMediaElement.networkState; @docsEditable true
   final int networkState;
 
-  /** @domName HTMLMediaElement.paused */
+  /// @domName HTMLMediaElement.paused; @docsEditable true
   final bool paused;
 
-  /** @domName HTMLMediaElement.playbackRate */
+  /// @domName HTMLMediaElement.playbackRate; @docsEditable true
   num playbackRate;
 
-  /** @domName HTMLMediaElement.played */
+  /// @domName HTMLMediaElement.played; @docsEditable true
   final TimeRanges played;
 
-  /** @domName HTMLMediaElement.preload */
+  /// @domName HTMLMediaElement.preload; @docsEditable true
   String preload;
 
-  /** @domName HTMLMediaElement.readyState */
+  /// @domName HTMLMediaElement.readyState; @docsEditable true
   final int readyState;
 
-  /** @domName HTMLMediaElement.seekable */
+  /// @domName HTMLMediaElement.seekable; @docsEditable true
   final TimeRanges seekable;
 
-  /** @domName HTMLMediaElement.seeking */
+  /// @domName HTMLMediaElement.seeking; @docsEditable true
   final bool seeking;
 
-  /** @domName HTMLMediaElement.src */
+  /// @domName HTMLMediaElement.src; @docsEditable true
   String src;
 
-  /** @domName HTMLMediaElement.startTime */
+  /// @domName HTMLMediaElement.startTime; @docsEditable true
   final num startTime;
 
-  /** @domName HTMLMediaElement.textTracks */
+  /// @domName HTMLMediaElement.textTracks; @docsEditable true
   final TextTrackList textTracks;
 
-  /** @domName HTMLMediaElement.volume */
+  /// @domName HTMLMediaElement.volume; @docsEditable true
   num volume;
 
-  /** @domName HTMLMediaElement.webkitAudioDecodedByteCount */
+  /// @domName HTMLMediaElement.webkitAudioDecodedByteCount; @docsEditable true
   final int webkitAudioDecodedByteCount;
 
-  /** @domName HTMLMediaElement.webkitClosedCaptionsVisible */
+  /// @domName HTMLMediaElement.webkitClosedCaptionsVisible; @docsEditable true
   bool webkitClosedCaptionsVisible;
 
-  /** @domName HTMLMediaElement.webkitHasClosedCaptions */
+  /// @domName HTMLMediaElement.webkitHasClosedCaptions; @docsEditable true
   final bool webkitHasClosedCaptions;
 
-  /** @domName HTMLMediaElement.webkitPreservesPitch */
+  /// @domName HTMLMediaElement.webkitPreservesPitch; @docsEditable true
   bool webkitPreservesPitch;
 
-  /** @domName HTMLMediaElement.webkitVideoDecodedByteCount */
+  /// @domName HTMLMediaElement.webkitVideoDecodedByteCount; @docsEditable true
   final int webkitVideoDecodedByteCount;
 
-  /** @domName HTMLMediaElement.addTextTrack */
+  /// @domName HTMLMediaElement.addTextTrack; @docsEditable true
   TextTrack addTextTrack(String kind, [String label, String language]) native;
 
-  /** @domName HTMLMediaElement.canPlayType */
+  /// @domName HTMLMediaElement.canPlayType; @docsEditable true
   String canPlayType(String type, String keySystem) native;
 
-  /** @domName HTMLMediaElement.load */
+  /// @domName HTMLMediaElement.load; @docsEditable true
   void load() native;
 
-  /** @domName HTMLMediaElement.pause */
+  /// @domName HTMLMediaElement.pause; @docsEditable true
   void pause() native;
 
-  /** @domName HTMLMediaElement.play */
+  /// @domName HTMLMediaElement.play; @docsEditable true
   void play() native;
 
-  /** @domName HTMLMediaElement.webkitAddKey */
+  /// @domName HTMLMediaElement.webkitAddKey; @docsEditable true
   void webkitAddKey(String keySystem, Uint8Array key, [Uint8Array initData, String sessionId]) native;
 
-  /** @domName HTMLMediaElement.webkitCancelKeyRequest */
+  /// @domName HTMLMediaElement.webkitCancelKeyRequest; @docsEditable true
   void webkitCancelKeyRequest(String keySystem, String sessionId) native;
 
-  /** @domName HTMLMediaElement.webkitGenerateKeyRequest */
+  /// @domName HTMLMediaElement.webkitGenerateKeyRequest; @docsEditable true
   void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]) native;
 }
 
@@ -12333,10 +12750,10 @@ class MediaElementEvents extends ElementEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaElementAudioSourceNode
+/// @domName MediaElementAudioSourceNode; @docsEditable true
 class MediaElementAudioSourceNode extends AudioSourceNode native "*MediaElementAudioSourceNode" {
 
-  /** @domName MediaElementAudioSourceNode.mediaElement */
+  /// @domName MediaElementAudioSourceNode.mediaElement; @docsEditable true
   final MediaElement mediaElement;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12344,7 +12761,7 @@ class MediaElementAudioSourceNode extends AudioSourceNode native "*MediaElementA
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaError
+/// @domName MediaError; @docsEditable true
 class MediaError native "*MediaError" {
 
   static const int MEDIA_ERR_ABORTED = 1;
@@ -12357,7 +12774,7 @@ class MediaError native "*MediaError" {
 
   static const int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
-  /** @domName MediaError.code */
+  /// @domName MediaError.code; @docsEditable true
   final int code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12365,7 +12782,7 @@ class MediaError native "*MediaError" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaKeyError
+/// @domName MediaKeyError; @docsEditable true
 class MediaKeyError native "*MediaKeyError" {
 
   static const int MEDIA_KEYERR_CLIENT = 2;
@@ -12380,7 +12797,7 @@ class MediaKeyError native "*MediaKeyError" {
 
   static const int MEDIA_KEYERR_UNKNOWN = 1;
 
-  /** @domName MediaKeyError.code */
+  /// @domName MediaKeyError.code; @docsEditable true
   final int code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12388,28 +12805,28 @@ class MediaKeyError native "*MediaKeyError" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaKeyEvent
+/// @domName MediaKeyEvent; @docsEditable true
 class MediaKeyEvent extends Event native "*MediaKeyEvent" {
 
-  /** @domName MediaKeyEvent.defaultURL */
+  /// @domName MediaKeyEvent.defaultURL; @docsEditable true
   final String defaultURL;
 
-  /** @domName MediaKeyEvent.errorCode */
+  /// @domName MediaKeyEvent.errorCode; @docsEditable true
   final MediaKeyError errorCode;
 
-  /** @domName MediaKeyEvent.initData */
+  /// @domName MediaKeyEvent.initData; @docsEditable true
   final Uint8Array initData;
 
-  /** @domName MediaKeyEvent.keySystem */
+  /// @domName MediaKeyEvent.keySystem; @docsEditable true
   final String keySystem;
 
-  /** @domName MediaKeyEvent.message */
+  /// @domName MediaKeyEvent.message; @docsEditable true
   final Uint8Array message;
 
-  /** @domName MediaKeyEvent.sessionId */
+  /// @domName MediaKeyEvent.sessionId; @docsEditable true
   final String sessionId;
 
-  /** @domName MediaKeyEvent.systemCode */
+  /// @domName MediaKeyEvent.systemCode; @docsEditable true
   final int systemCode;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12417,22 +12834,22 @@ class MediaKeyEvent extends Event native "*MediaKeyEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaList
+/// @domName MediaList; @docsEditable true
 class MediaList native "*MediaList" {
 
-  /** @domName MediaList.length */
+  /// @domName MediaList.length; @docsEditable true
   final int length;
 
-  /** @domName MediaList.mediaText */
+  /// @domName MediaList.mediaText; @docsEditable true
   String mediaText;
 
-  /** @domName MediaList.appendMedium */
+  /// @domName MediaList.appendMedium; @docsEditable true
   void appendMedium(String newMedium) native;
 
-  /** @domName MediaList.deleteMedium */
+  /// @domName MediaList.deleteMedium; @docsEditable true
   void deleteMedium(String oldMedium) native;
 
-  /** @domName MediaList.item */
+  /// @domName MediaList.item; @docsEditable true
   String item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12440,19 +12857,19 @@ class MediaList native "*MediaList" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaQueryList
+/// @domName MediaQueryList; @docsEditable true
 class MediaQueryList native "*MediaQueryList" {
 
-  /** @domName MediaQueryList.matches */
+  /// @domName MediaQueryList.matches; @docsEditable true
   final bool matches;
 
-  /** @domName MediaQueryList.media */
+  /// @domName MediaQueryList.media; @docsEditable true
   final String media;
 
-  /** @domName MediaQueryList.addListener */
+  /// @domName MediaQueryList.addListener; @docsEditable true
   void addListener(MediaQueryListListener listener) native;
 
-  /** @domName MediaQueryList.removeListener */
+  /// @domName MediaQueryList.removeListener; @docsEditable true
   void removeListener(MediaQueryListListener listener) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12463,7 +12880,7 @@ class MediaQueryList native "*MediaQueryList" {
 /// @domName MediaQueryListListener
 abstract class MediaQueryListListener {
 
-  /** @domName MediaQueryListListener.queryChanged */
+  /// @domName MediaQueryListListener.queryChanged; @docsEditable true
   void queryChanged(MediaQueryList list);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12471,39 +12888,39 @@ abstract class MediaQueryListListener {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaSource
+/// @domName MediaSource; @docsEditable true
 class MediaSource extends EventTarget native "*MediaSource" {
 
   factory MediaSource() => _MediaSourceFactoryProvider.createMediaSource();
 
-  /** @domName MediaSource.activeSourceBuffers */
+  /// @domName MediaSource.activeSourceBuffers; @docsEditable true
   final SourceBufferList activeSourceBuffers;
 
-  /** @domName MediaSource.duration */
+  /// @domName MediaSource.duration; @docsEditable true
   num duration;
 
-  /** @domName MediaSource.readyState */
+  /// @domName MediaSource.readyState; @docsEditable true
   final String readyState;
 
-  /** @domName MediaSource.sourceBuffers */
+  /// @domName MediaSource.sourceBuffers; @docsEditable true
   final SourceBufferList sourceBuffers;
 
-  /** @domName MediaSource.addEventListener */
+  /// @domName MediaSource.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName MediaSource.addSourceBuffer */
+  /// @domName MediaSource.addSourceBuffer; @docsEditable true
   SourceBuffer addSourceBuffer(String type) native;
 
-  /** @domName MediaSource.dispatchEvent */
+  /// @domName MediaSource.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
-  /** @domName MediaSource.endOfStream */
+  /// @domName MediaSource.endOfStream; @docsEditable true
   void endOfStream(String error) native;
 
-  /** @domName MediaSource.removeEventListener */
+  /// @domName MediaSource.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName MediaSource.removeSourceBuffer */
+  /// @domName MediaSource.removeSourceBuffer; @docsEditable true
   void removeSourceBuffer(SourceBuffer buffer) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12511,14 +12928,12 @@ class MediaSource extends EventTarget native "*MediaSource" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaStream
+/// @domName MediaStream; @docsEditable true
 class MediaStream extends EventTarget native "*MediaStream" {
 
   factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => _MediaStreamFactoryProvider.createMediaStream(audioTracks, videoTracks);
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaStreamEvents get on =>
     new MediaStreamEvents(this);
 
@@ -12526,25 +12941,25 @@ class MediaStream extends EventTarget native "*MediaStream" {
 
   static const int LIVE = 1;
 
-  /** @domName MediaStream.audioTracks */
+  /// @domName MediaStream.audioTracks; @docsEditable true
   final MediaStreamTrackList audioTracks;
 
-  /** @domName MediaStream.label */
+  /// @domName MediaStream.label; @docsEditable true
   final String label;
 
-  /** @domName MediaStream.readyState */
+  /// @domName MediaStream.readyState; @docsEditable true
   final int readyState;
 
-  /** @domName MediaStream.videoTracks */
+  /// @domName MediaStream.videoTracks; @docsEditable true
   final MediaStreamTrackList videoTracks;
 
-  /** @domName MediaStream.addEventListener */
+  /// @domName MediaStream.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName MediaStream.dispatchEvent */
+  /// @domName MediaStream.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
-  /** @domName MediaStream.removeEventListener */
+  /// @domName MediaStream.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -12558,10 +12973,10 @@ class MediaStreamEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaStreamAudioSourceNode
+/// @domName MediaStreamAudioSourceNode; @docsEditable true
 class MediaStreamAudioSourceNode extends AudioSourceNode native "*MediaStreamAudioSourceNode" {
 
-  /** @domName MediaStreamAudioSourceNode.mediaStream */
+  /// @domName MediaStreamAudioSourceNode.mediaStream; @docsEditable true
   final MediaStream mediaStream;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12569,10 +12984,10 @@ class MediaStreamAudioSourceNode extends AudioSourceNode native "*MediaStreamAud
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaStreamEvent
+/// @domName MediaStreamEvent; @docsEditable true
 class MediaStreamEvent extends Event native "*MediaStreamEvent" {
 
-  /** @domName MediaStreamEvent.stream */
+  /// @domName MediaStreamEvent.stream; @docsEditable true
   final MediaStream stream;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12580,12 +12995,10 @@ class MediaStreamEvent extends Event native "*MediaStreamEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaStreamTrack
+/// @domName MediaStreamTrack; @docsEditable true
 class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaStreamTrackEvents get on =>
     new MediaStreamTrackEvents(this);
 
@@ -12595,25 +13008,25 @@ class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
 
   static const int MUTED = 1;
 
-  /** @domName MediaStreamTrack.enabled */
+  /// @domName MediaStreamTrack.enabled; @docsEditable true
   bool enabled;
 
-  /** @domName MediaStreamTrack.kind */
+  /// @domName MediaStreamTrack.kind; @docsEditable true
   final String kind;
 
-  /** @domName MediaStreamTrack.label */
+  /// @domName MediaStreamTrack.label; @docsEditable true
   final String label;
 
-  /** @domName MediaStreamTrack.readyState */
+  /// @domName MediaStreamTrack.readyState; @docsEditable true
   final int readyState;
 
-  /** @domName MediaStreamTrack.addEventListener */
+  /// @domName MediaStreamTrack.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName MediaStreamTrack.dispatchEvent */
+  /// @domName MediaStreamTrack.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
-  /** @domName MediaStreamTrack.removeEventListener */
+  /// @domName MediaStreamTrack.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -12631,10 +13044,10 @@ class MediaStreamTrackEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaStreamTrackEvent
+/// @domName MediaStreamTrackEvent; @docsEditable true
 class MediaStreamTrackEvent extends Event native "*MediaStreamTrackEvent" {
 
-  /** @domName MediaStreamTrackEvent.track */
+  /// @domName MediaStreamTrackEvent.track; @docsEditable true
   final MediaStreamTrack track;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12642,34 +13055,32 @@ class MediaStreamTrackEvent extends Event native "*MediaStreamTrackEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaStreamTrackList
+/// @domName MediaStreamTrackList; @docsEditable true
 class MediaStreamTrackList extends EventTarget native "*MediaStreamTrackList" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaStreamTrackListEvents get on =>
     new MediaStreamTrackListEvents(this);
 
-  /** @domName MediaStreamTrackList.length */
+  /// @domName MediaStreamTrackList.length; @docsEditable true
   final int length;
 
-  /** @domName MediaStreamTrackList.add */
+  /// @domName MediaStreamTrackList.add; @docsEditable true
   void add(MediaStreamTrack track) native;
 
-  /** @domName MediaStreamTrackList.addEventListener */
+  /// @domName MediaStreamTrackList.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName MediaStreamTrackList.dispatchEvent */
+  /// @domName MediaStreamTrackList.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
-  /** @domName MediaStreamTrackList.item */
+  /// @domName MediaStreamTrackList.item; @docsEditable true
   MediaStreamTrack item(int index) native;
 
-  /** @domName MediaStreamTrackList.remove */
+  /// @domName MediaStreamTrackList.remove; @docsEditable true
   void remove(MediaStreamTrack track) native;
 
-  /** @domName MediaStreamTrackList.removeEventListener */
+  /// @domName MediaStreamTrackList.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -12685,16 +13096,16 @@ class MediaStreamTrackListEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MemoryInfo
+/// @domName MemoryInfo; @docsEditable true
 class MemoryInfo native "*MemoryInfo" {
 
-  /** @domName MemoryInfo.jsHeapSizeLimit */
+  /// @domName MemoryInfo.jsHeapSizeLimit; @docsEditable true
   final int jsHeapSizeLimit;
 
-  /** @domName MemoryInfo.totalJSHeapSize */
+  /// @domName MemoryInfo.totalJSHeapSize; @docsEditable true
   final int totalJSHeapSize;
 
-  /** @domName MemoryInfo.usedJSHeapSize */
+  /// @domName MemoryInfo.usedJSHeapSize; @docsEditable true
   final int usedJSHeapSize;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12702,12 +13113,12 @@ class MemoryInfo native "*MemoryInfo" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLMenuElement
+/// @domName HTMLMenuElement; @docsEditable true
 class MenuElement extends Element implements Element native "*HTMLMenuElement" {
 
-  factory MenuElement() => _Elements.createMenuElement();
+  factory MenuElement() => document.$dom_createElement("menu");
 
-  /** @domName HTMLMenuElement.compact */
+  /// @domName HTMLMenuElement.compact; @docsEditable true
   bool compact;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12715,15 +13126,15 @@ class MenuElement extends Element implements Element native "*HTMLMenuElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MessageChannel
+/// @domName MessageChannel; @docsEditable true
 class MessageChannel native "*MessageChannel" {
 
   factory MessageChannel() => _MessageChannelFactoryProvider.createMessageChannel();
 
-  /** @domName MessageChannel.port1 */
+  /// @domName MessageChannel.port1; @docsEditable true
   final MessagePort port1;
 
-  /** @domName MessageChannel.port2 */
+  /// @domName MessageChannel.port2; @docsEditable true
   final MessagePort port2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12731,30 +13142,31 @@ class MessageChannel native "*MessageChannel" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MessageEvent
+/// @domName MessageEvent; @docsEditable true
 class MessageEvent extends Event native "*MessageEvent" {
 
-  /** @domName MessageEvent.data */
+  /// @domName MessageEvent.data; @docsEditable true
   dynamic get data => _convertNativeToDart_SerializedScriptValue(this._data);
   dynamic get _data => JS("dynamic", "#.data", this);
 
-  /** @domName MessageEvent.lastEventId */
+  /// @domName MessageEvent.lastEventId; @docsEditable true
   final String lastEventId;
 
-  /** @domName MessageEvent.origin */
+  /// @domName MessageEvent.origin; @docsEditable true
   final String origin;
 
-  /** @domName MessageEvent.ports */
+  /// @domName MessageEvent.ports; @docsEditable true
+  @Creates('=List')
   final List ports;
 
-  /** @domName MessageEvent.source */
+  /// @domName MessageEvent.source; @docsEditable true
   Window get source => _convertNativeToDart_Window(this._source);
   dynamic get _source => JS("dynamic", "#.source", this);
 
-  /** @domName MessageEvent.initMessageEvent */
+  /// @domName MessageEvent.initMessageEvent; @docsEditable true
   void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, LocalWindow sourceArg, List messagePorts) native;
 
-  /** @domName MessageEvent.webkitInitMessageEvent */
+  /// @domName MessageEvent.webkitInitMessageEvent; @docsEditable true
   void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, LocalWindow sourceArg, List transferables) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12762,25 +13174,23 @@ class MessageEvent extends Event native "*MessageEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MessagePort
+/// @domName MessagePort; @docsEditable true
 class MessagePort extends EventTarget native "*MessagePort" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MessagePortEvents get on =>
     new MessagePortEvents(this);
 
-  /** @domName MessagePort.addEventListener */
+  /// @domName MessagePort.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName MessagePort.close */
+  /// @domName MessagePort.close; @docsEditable true
   void close() native;
 
-  /** @domName MessagePort.dispatchEvent */
+  /// @domName MessagePort.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName MessagePort.postMessage */
+  /// @domName MessagePort.postMessage; @docsEditable true
   void postMessage(/*any*/ message, [List messagePorts]) {
     if (?messagePorts) {
       var message_1 = _convertDartToNative_SerializedScriptValue(message);
@@ -12794,10 +13204,10 @@ class MessagePort extends EventTarget native "*MessagePort" {
   void _postMessage_1(message, List messagePorts) native "postMessage";
   void _postMessage_2(message) native "postMessage";
 
-  /** @domName MessagePort.removeEventListener */
+  /// @domName MessagePort.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName MessagePort.start */
+  /// @domName MessagePort.start; @docsEditable true
   void start() native;
 }
 
@@ -12811,19 +13221,19 @@ class MessagePortEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLMetaElement
+/// @domName HTMLMetaElement; @docsEditable true
 class MetaElement extends Element implements Element native "*HTMLMetaElement" {
 
-  /** @domName HTMLMetaElement.content */
+  /// @domName HTMLMetaElement.content; @docsEditable true
   String content;
 
-  /** @domName HTMLMetaElement.httpEquiv */
+  /// @domName HTMLMetaElement.httpEquiv; @docsEditable true
   String httpEquiv;
 
-  /** @domName HTMLMetaElement.name */
+  /// @domName HTMLMetaElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLMetaElement.scheme */
+  /// @domName HTMLMetaElement.scheme; @docsEditable true
   String scheme;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12831,13 +13241,13 @@ class MetaElement extends Element implements Element native "*HTMLMetaElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Metadata
+/// @domName Metadata; @docsEditable true
 class Metadata native "*Metadata" {
 
-  /** @domName Metadata.modificationTime */
+  /// @domName Metadata.modificationTime; @docsEditable true
   final Date modificationTime;
 
-  /** @domName Metadata.size */
+  /// @domName Metadata.size; @docsEditable true
   final int size;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12853,30 +13263,31 @@ typedef void MetadataCallback(Metadata metadata);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLMeterElement
+/// @domName HTMLMeterElement; @docsEditable true
 class MeterElement extends Element implements Element native "*HTMLMeterElement" {
 
-  factory MeterElement() => _Elements.createMeterElement();
+  factory MeterElement() => document.$dom_createElement("meter");
 
-  /** @domName HTMLMeterElement.high */
+  /// @domName HTMLMeterElement.high; @docsEditable true
   num high;
 
-  /** @domName HTMLMeterElement.labels */
+  /// @domName HTMLMeterElement.labels; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> labels;
 
-  /** @domName HTMLMeterElement.low */
+  /// @domName HTMLMeterElement.low; @docsEditable true
   num low;
 
-  /** @domName HTMLMeterElement.max */
+  /// @domName HTMLMeterElement.max; @docsEditable true
   num max;
 
-  /** @domName HTMLMeterElement.min */
+  /// @domName HTMLMeterElement.min; @docsEditable true
   num min;
 
-  /** @domName HTMLMeterElement.optimum */
+  /// @domName HTMLMeterElement.optimum; @docsEditable true
   num optimum;
 
-  /** @domName HTMLMeterElement.value */
+  /// @domName HTMLMeterElement.value; @docsEditable true
   num value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12884,13 +13295,13 @@ class MeterElement extends Element implements Element native "*HTMLMeterElement"
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLModElement
+/// @domName HTMLModElement; @docsEditable true
 class ModElement extends Element implements Element native "*HTMLModElement" {
 
-  /** @domName HTMLModElement.cite */
+  /// @domName HTMLModElement.cite; @docsEditable true
   String cite;
 
-  /** @domName HTMLModElement.dateTime */
+  /// @domName HTMLModElement.dateTime; @docsEditable true
   String dateTime;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12910,59 +13321,59 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
           ctrlKey, altKey, shiftKey, metaKey,
           relatedTarget);
 
-  /** @domName MouseEvent.altKey */
+  /// @domName MouseEvent.altKey; @docsEditable true
   final bool altKey;
 
-  /** @domName MouseEvent.button */
+  /// @domName MouseEvent.button; @docsEditable true
   final int button;
 
-  /** @domName MouseEvent.clientX */
+  /// @domName MouseEvent.clientX; @docsEditable true
   final int clientX;
 
-  /** @domName MouseEvent.clientY */
+  /// @domName MouseEvent.clientY; @docsEditable true
   final int clientY;
 
-  /** @domName MouseEvent.ctrlKey */
+  /// @domName MouseEvent.ctrlKey; @docsEditable true
   final bool ctrlKey;
 
-  /** @domName MouseEvent.dataTransfer */
+  /// @domName MouseEvent.dataTransfer; @docsEditable true
   final Clipboard dataTransfer;
 
-  /** @domName MouseEvent.fromElement */
+  /// @domName MouseEvent.fromElement; @docsEditable true
   final Node fromElement;
 
-  /** @domName MouseEvent.metaKey */
+  /// @domName MouseEvent.metaKey; @docsEditable true
   final bool metaKey;
 
-  /** @domName MouseEvent.relatedTarget */
+  /// @domName MouseEvent.relatedTarget; @docsEditable true
   EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._relatedTarget);
   dynamic get _relatedTarget => JS("dynamic", "#.relatedTarget", this);
 
-  /** @domName MouseEvent.screenX */
+  /// @domName MouseEvent.screenX; @docsEditable true
   final int screenX;
 
-  /** @domName MouseEvent.screenY */
+  /// @domName MouseEvent.screenY; @docsEditable true
   final int screenY;
 
-  /** @domName MouseEvent.shiftKey */
+  /// @domName MouseEvent.shiftKey; @docsEditable true
   final bool shiftKey;
 
-  /** @domName MouseEvent.toElement */
+  /// @domName MouseEvent.toElement; @docsEditable true
   final Node toElement;
 
-  /** @domName MouseEvent.webkitMovementX */
+  /// @domName MouseEvent.webkitMovementX; @docsEditable true
   final int webkitMovementX;
 
-  /** @domName MouseEvent.webkitMovementY */
+  /// @domName MouseEvent.webkitMovementY; @docsEditable true
   final int webkitMovementY;
 
-  /** @domName MouseEvent.x */
+  /// @domName MouseEvent.x; @docsEditable true
   final int x;
 
-  /** @domName MouseEvent.y */
+  /// @domName MouseEvent.y; @docsEditable true
   final int y;
 
-  /** @domName MouseEvent.initMouseEvent */
+  /// @domName MouseEvent.initMouseEvent; @docsEditable true
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) {
     var relatedTarget_1 = _convertDartToNative_EventTarget(relatedTarget);
     _$dom_initMouseEvent_1(type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget_1);
@@ -13012,7 +13423,7 @@ typedef void MutationCallback(List<MutationRecord> mutations, MutationObserver o
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MutationEvent
+/// @domName MutationEvent; @docsEditable true
 class MutationEvent extends Event native "*MutationEvent" {
 
   static const int ADDITION = 2;
@@ -13021,22 +13432,22 @@ class MutationEvent extends Event native "*MutationEvent" {
 
   static const int REMOVAL = 3;
 
-  /** @domName MutationEvent.attrChange */
+  /// @domName MutationEvent.attrChange; @docsEditable true
   final int attrChange;
 
-  /** @domName MutationEvent.attrName */
+  /// @domName MutationEvent.attrName; @docsEditable true
   final String attrName;
 
-  /** @domName MutationEvent.newValue */
+  /// @domName MutationEvent.newValue; @docsEditable true
   final String newValue;
 
-  /** @domName MutationEvent.prevValue */
+  /// @domName MutationEvent.prevValue; @docsEditable true
   final String prevValue;
 
-  /** @domName MutationEvent.relatedNode */
+  /// @domName MutationEvent.relatedNode; @docsEditable true
   final Node relatedNode;
 
-  /** @domName MutationEvent.initMutationEvent */
+  /// @domName MutationEvent.initMutationEvent; @docsEditable true
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13048,10 +13459,10 @@ class MutationObserver native "*MutationObserver" {
 
   factory MutationObserver(MutationCallback callback) => _MutationObserverFactoryProvider.createMutationObserver(callback);
 
-  /** @domName MutationObserver.disconnect */
+  /// @domName MutationObserver.disconnect; @docsEditable true
   void disconnect() native;
 
-  /** @domName MutationObserver._observe */
+  /// @domName MutationObserver._observe; @docsEditable true
   void _observe(Node target, Map options) {
     var options_1 = _convertDartToNative_Dictionary(options);
     __observe_1(target, options_1);
@@ -13059,7 +13470,7 @@ class MutationObserver native "*MutationObserver" {
   }
   void __observe_1(Node target, options) native "observe";
 
-  /** @domName MutationObserver.takeRecords */
+  /// @domName MutationObserver.takeRecords; @docsEditable true
   List<MutationRecord> takeRecords() native;
 
   void observe(Node target,
@@ -13128,34 +13539,36 @@ class MutationObserver native "*MutationObserver" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MutationRecord
+/// @domName MutationRecord; @docsEditable true
 class MutationRecord native "*MutationRecord" {
 
-  /** @domName MutationRecord.addedNodes */
+  /// @domName MutationRecord.addedNodes; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> addedNodes;
 
-  /** @domName MutationRecord.attributeName */
+  /// @domName MutationRecord.attributeName; @docsEditable true
   final String attributeName;
 
-  /** @domName MutationRecord.attributeNamespace */
+  /// @domName MutationRecord.attributeNamespace; @docsEditable true
   final String attributeNamespace;
 
-  /** @domName MutationRecord.nextSibling */
+  /// @domName MutationRecord.nextSibling; @docsEditable true
   final Node nextSibling;
 
-  /** @domName MutationRecord.oldValue */
+  /// @domName MutationRecord.oldValue; @docsEditable true
   final String oldValue;
 
-  /** @domName MutationRecord.previousSibling */
+  /// @domName MutationRecord.previousSibling; @docsEditable true
   final Node previousSibling;
 
-  /** @domName MutationRecord.removedNodes */
+  /// @domName MutationRecord.removedNodes; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> removedNodes;
 
-  /** @domName MutationRecord.target */
+  /// @domName MutationRecord.target; @docsEditable true
   final Node target;
 
-  /** @domName MutationRecord.type */
+  /// @domName MutationRecord.type; @docsEditable true
   final String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13163,10 +13576,10 @@ class MutationRecord native "*MutationRecord" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName NamedNodeMap
+/// @domName NamedNodeMap; @docsEditable true
 class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*NamedNodeMap" {
 
-  /** @domName NamedNodeMap.length */
+  /// @domName NamedNodeMap.length; @docsEditable true
   final int length;
 
   Node operator[](int index) => JS("Node", "#[#]", this, index);
@@ -13229,6 +13642,8 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  Node get first => this[0];
+
   Node get last => this[length - 1];
 
   Node removeLast() {
@@ -13252,25 +13667,25 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
 
   // -- end List<Node> mixins.
 
-  /** @domName NamedNodeMap.getNamedItem */
+  /// @domName NamedNodeMap.getNamedItem; @docsEditable true
   Node getNamedItem(String name) native;
 
-  /** @domName NamedNodeMap.getNamedItemNS */
+  /// @domName NamedNodeMap.getNamedItemNS; @docsEditable true
   Node getNamedItemNS(String namespaceURI, String localName) native;
 
-  /** @domName NamedNodeMap.item */
+  /// @domName NamedNodeMap.item; @docsEditable true
   Node item(int index) native;
 
-  /** @domName NamedNodeMap.removeNamedItem */
+  /// @domName NamedNodeMap.removeNamedItem; @docsEditable true
   Node removeNamedItem(String name) native;
 
-  /** @domName NamedNodeMap.removeNamedItemNS */
+  /// @domName NamedNodeMap.removeNamedItemNS; @docsEditable true
   Node removeNamedItemNS(String namespaceURI, String localName) native;
 
-  /** @domName NamedNodeMap.setNamedItem */
+  /// @domName NamedNodeMap.setNamedItem; @docsEditable true
   Node setNamedItem(Node node) native;
 
-  /** @domName NamedNodeMap.setNamedItemNS */
+  /// @domName NamedNodeMap.setNamedItemNS; @docsEditable true
   Node setNamedItemNS(Node node) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13278,67 +13693,68 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Navigator
+/// @domName Navigator; @docsEditable true
 class Navigator native "*Navigator" {
 
-  /** @domName Navigator.appCodeName */
+  /// @domName Navigator.appCodeName; @docsEditable true
   final String appCodeName;
 
-  /** @domName Navigator.appName */
+  /// @domName Navigator.appName; @docsEditable true
   final String appName;
 
-  /** @domName Navigator.appVersion */
+  /// @domName Navigator.appVersion; @docsEditable true
   final String appVersion;
 
-  /** @domName Navigator.cookieEnabled */
+  /// @domName Navigator.cookieEnabled; @docsEditable true
   final bool cookieEnabled;
 
-  /** @domName Navigator.geolocation */
+  /// @domName Navigator.geolocation; @docsEditable true
   final Geolocation geolocation;
 
-  /** @domName Navigator.language */
+  /// @domName Navigator.language; @docsEditable true
   final String language;
 
-  /** @domName Navigator.mimeTypes */
+  /// @domName Navigator.mimeTypes; @docsEditable true
   final DOMMimeTypeArray mimeTypes;
 
-  /** @domName Navigator.onLine */
+  /// @domName Navigator.onLine; @docsEditable true
   final bool onLine;
 
-  /** @domName Navigator.platform */
+  /// @domName Navigator.platform; @docsEditable true
   final String platform;
 
-  /** @domName Navigator.plugins */
+  /// @domName Navigator.plugins; @docsEditable true
   final DOMPluginArray plugins;
 
-  /** @domName Navigator.product */
+  /// @domName Navigator.product; @docsEditable true
   final String product;
 
-  /** @domName Navigator.productSub */
+  /// @domName Navigator.productSub; @docsEditable true
   final String productSub;
 
-  /** @domName Navigator.userAgent */
+  /// @domName Navigator.userAgent; @docsEditable true
   final String userAgent;
 
-  /** @domName Navigator.vendor */
+  /// @domName Navigator.vendor; @docsEditable true
   final String vendor;
 
-  /** @domName Navigator.vendorSub */
+  /// @domName Navigator.vendorSub; @docsEditable true
   final String vendorSub;
 
-  /** @domName Navigator.webkitBattery */
+  /// @domName Navigator.webkitBattery; @docsEditable true
   final BatteryManager webkitBattery;
 
-  /** @domName Navigator.getStorageUpdates */
+  /// @domName Navigator.getStorageUpdates; @docsEditable true
   void getStorageUpdates() native;
 
-  /** @domName Navigator.javaEnabled */
+  /// @domName Navigator.javaEnabled; @docsEditable true
   bool javaEnabled() native;
 
-  /** @domName Navigator.webkitGetGamepads */
+  /// @domName Navigator.webkitGetGamepads; @docsEditable true
+  @Returns('_GamepadList') @Creates('_GamepadList')
   List<Gamepad> webkitGetGamepads() native;
 
-  /** @domName Navigator.webkitGetUserMedia */
+  /// @domName Navigator.webkitGetUserMedia; @docsEditable true
   void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]) {
     if (?errorCallback) {
       var options_1 = _convertDartToNative_Dictionary(options);
@@ -13357,12 +13773,12 @@ class Navigator native "*Navigator" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName NavigatorUserMediaError
+/// @domName NavigatorUserMediaError; @docsEditable true
 class NavigatorUserMediaError native "*NavigatorUserMediaError" {
 
   static const int PERMISSION_DENIED = 1;
 
-  /** @domName NavigatorUserMediaError.code */
+  /// @domName NavigatorUserMediaError.code; @docsEditable true
   final int code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13442,7 +13858,7 @@ class _ChildNodeListLazy implements List {
   Collection map(f(Node element)) => _Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
-     new _NodeListWrapper(_Collections.filter(this, <Node>[], f));
+     _Collections.filter(this, <Node>[], f);
 
   bool every(bool f(Node element)) => _Collections.every(this, f);
 
@@ -13478,7 +13894,7 @@ class _ChildNodeListLazy implements List {
         "Cannot insertRange on immutable List.");
   }
   List<Node> getRange(int start, int rangeLength) =>
-    new _NodeListWrapper(_Lists.getRange(this, start, rangeLength, <Node>[]));
+      _Lists.getRange(this, start, rangeLength, <Node>[]);
 
   // -- end List<Node> mixins.
 
@@ -13568,69 +13984,69 @@ class Node extends EventTarget native "*Node" {
 
   static const int TEXT_NODE = 3;
 
-  /** @domName Node.attributes */
+  /// @domName Node.attributes; @docsEditable true
   NamedNodeMap get $dom_attributes => JS("NamedNodeMap", "#.attributes", this);
 
-  /** @domName Node.childNodes */
-  List<Node> get $dom_childNodes => JS("List<Node>", "#.childNodes", this);
+  /// @domName Node.childNodes; @docsEditable true
+  List<Node> get $dom_childNodes => JS("_NodeList", "#.childNodes", this);
 
-  /** @domName Node.firstChild */
+  /// @domName Node.firstChild; @docsEditable true
   Node get $dom_firstChild => JS("Node", "#.firstChild", this);
 
-  /** @domName Node.lastChild */
+  /// @domName Node.lastChild; @docsEditable true
   Node get $dom_lastChild => JS("Node", "#.lastChild", this);
 
-  /** @domName Node.nextSibling */
+  /// @domName Node.nextSibling; @docsEditable true
   Node get nextNode => JS("Node", "#.nextSibling", this);
 
-  /** @domName Node.nodeType */
+  /// @domName Node.nodeType; @docsEditable true
   final int nodeType;
 
-  /** @domName Node.ownerDocument */
+  /// @domName Node.ownerDocument; @docsEditable true
   Document get document => JS("Document", "#.ownerDocument", this);
 
-  /** @domName Node.parentNode */
+  /// @domName Node.parentNode; @docsEditable true
   Node get parent => JS("Node", "#.parentNode", this);
 
-  /** @domName Node.previousSibling */
+  /// @domName Node.previousSibling; @docsEditable true
   Node get previousNode => JS("Node", "#.previousSibling", this);
 
-  /** @domName Node.textContent */
+  /// @domName Node.textContent; @docsEditable true
   String get text => JS("String", "#.textContent", this);
 
-  /** @domName Node.textContent */
+  /// @domName Node.textContent; @docsEditable true
   void set text(String value) {
     JS("void", "#.textContent = #", this, value);
   }
 
-  /** @domName Node.addEventListener */
+  /// @domName Node.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName Node.appendChild */
+  /// @domName Node.appendChild; @docsEditable true
   Node $dom_appendChild(Node newChild) native "appendChild";
 
-  /** @domName Node.cloneNode */
+  /// @domName Node.cloneNode; @docsEditable true
   Node clone(bool deep) native "cloneNode";
 
-  /** @domName Node.contains */
+  /// @domName Node.contains; @docsEditable true
   bool contains(Node other) native;
 
-  /** @domName Node.dispatchEvent */
+  /// @domName Node.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
-  /** @domName Node.hasChildNodes */
+  /// @domName Node.hasChildNodes; @docsEditable true
   bool hasChildNodes() native;
 
-  /** @domName Node.insertBefore */
+  /// @domName Node.insertBefore; @docsEditable true
   Node insertBefore(Node newChild, Node refChild) native;
 
-  /** @domName Node.removeChild */
+  /// @domName Node.removeChild; @docsEditable true
   Node $dom_removeChild(Node oldChild) native "removeChild";
 
-  /** @domName Node.removeEventListener */
+  /// @domName Node.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName Node.replaceChild */
+  /// @domName Node.replaceChild; @docsEditable true
   Node $dom_replaceChild(Node newChild, Node oldChild) native "replaceChild";
 
 }
@@ -13639,7 +14055,7 @@ class Node extends EventTarget native "*Node" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName NodeFilter
+/// @domName NodeFilter; @docsEditable true
 class NodeFilter native "*NodeFilter" {
 
   static const int FILTER_ACCEPT = 1;
@@ -13674,7 +14090,7 @@ class NodeFilter native "*NodeFilter" {
 
   static const int SHOW_TEXT = 0x00000004;
 
-  /** @domName NodeFilter.acceptNode */
+  /// @domName NodeFilter.acceptNode; @docsEditable true
   int acceptNode(Node n) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13682,34 +14098,34 @@ class NodeFilter native "*NodeFilter" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName NodeIterator
+/// @domName NodeIterator; @docsEditable true
 class NodeIterator native "*NodeIterator" {
 
-  /** @domName NodeIterator.expandEntityReferences */
+  /// @domName NodeIterator.expandEntityReferences; @docsEditable true
   final bool expandEntityReferences;
 
-  /** @domName NodeIterator.filter */
+  /// @domName NodeIterator.filter; @docsEditable true
   final NodeFilter filter;
 
-  /** @domName NodeIterator.pointerBeforeReferenceNode */
+  /// @domName NodeIterator.pointerBeforeReferenceNode; @docsEditable true
   final bool pointerBeforeReferenceNode;
 
-  /** @domName NodeIterator.referenceNode */
+  /// @domName NodeIterator.referenceNode; @docsEditable true
   final Node referenceNode;
 
-  /** @domName NodeIterator.root */
+  /// @domName NodeIterator.root; @docsEditable true
   final Node root;
 
-  /** @domName NodeIterator.whatToShow */
+  /// @domName NodeIterator.whatToShow; @docsEditable true
   final int whatToShow;
 
-  /** @domName NodeIterator.detach */
+  /// @domName NodeIterator.detach; @docsEditable true
   void detach() native;
 
-  /** @domName NodeIterator.nextNode */
+  /// @domName NodeIterator.nextNode; @docsEditable true
   Node nextNode() native;
 
-  /** @domName NodeIterator.previousNode */
+  /// @domName NodeIterator.previousNode; @docsEditable true
   Node previousNode() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13717,199 +14133,13 @@ class NodeIterator native "*NodeIterator" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-// TODO(nweiz): when all implementations we target have the same name for the
-// implementation of List<E>, extend that rather than wrapping.
-class _ListWrapper<E> implements List<E> {
-  List _list;
-
-  _ListWrapper(List this._list);
-
-  Iterator<E> iterator() => _list.iterator();
-
-  bool contains(E element) => _list.contains(element);
-
-  void forEach(void f(E element)) => _list.forEach(f);
-
-  Collection map(f(E element)) => _list.map(f);
-
-  List<E> filter(bool f(E element)) => _list.filter(f);
-
-  bool every(bool f(E element)) => _list.every(f);
-
-  bool some(bool f(E element)) => _list.some(f);
-
-  bool get isEmpty => _list.isEmpty;
-
-  int get length => _list.length;
-
-  E operator [](int index) => _list[index];
-
-  void operator []=(int index, E value) { _list[index] = value; }
-
-  void set length(int newLength) { _list.length = newLength; }
-
-  void add(E value) => _list.add(value);
-
-  void addLast(E value) => _list.addLast(value);
-
-  void addAll(Collection<E> collection) => _list.addAll(collection);
-
-  void sort([Comparator<E> compare = Comparable.compare]) => _list.sort(compare);
-
-  int indexOf(E element, [int start = 0]) => _list.indexOf(element, start);
-
-  int lastIndexOf(E element, [int start = 0]) =>
-    _list.lastIndexOf(element, start);
-
-  void clear() => _list.clear();
-
-  E removeLast() => _list.removeLast();
-
-  E get last => _list.last;
-
-  List<E> getRange(int start, int rangeLength) =>
-    _list.getRange(start, rangeLength);
-
-  void setRange(int start, int rangeLength, List<E> from, [int startFrom = 0])
-      => _list.setRange(start, rangeLength, from, startFrom);
-
-  void removeRange(int start, int rangeLength) =>
-    _list.removeRange(start, rangeLength);
-
-  void insertRange(int start, int rangeLength, [E initialValue = null]) =>
-    _list.insertRange(start, rangeLength, initialValue);
-
-  E get first => _list[0];
-}
-
-/**
- * This class is used to insure the results of list operations are NodeLists
- * instead of lists.
- */
-class _NodeListWrapper extends _ListWrapper<Node> implements List {
-  _NodeListWrapper(List list) : super(list);
-
-  List<Node> filter(bool f(Node element)) =>
-    new _NodeListWrapper(_list.filter(f));
-
-  List<Node> getRange(int start, int rangeLength) =>
-    new _NodeListWrapper(_list.getRange(start, rangeLength));
-}
-
-class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeList" {
-  Node _parent;
-
-  // -- start List<Node> mixins.
-  // Node is the element type.
-
-  // From Iterable<Node>:
-
-  Iterator<Node> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<Node>(this);
-  }
-
-  // From Collection<Node>:
-
-  void add(Node value) {
-    _parent.$dom_appendChild(value);
-  }
-
-  void addLast(Node value) {
-    _parent.$dom_appendChild(value);
-  }
-
-  void addAll(Collection<Node> collection) {
-    for (Node node in collection) {
-      _parent.$dom_appendChild(node);
-    }
-  }
-
-  Node removeLast() {
-    final result = this.last;
-    if (result != null) {
-      _parent.$dom_removeChild(result);
-    }
-    return result;
-  }
-
-  void clear() {
-    _parent.text = '';
-  }
-
-  void operator []=(int index, Node value) {
-    _parent.$dom_replaceChild(value, this[index]);
-  }
-
-  bool contains(Node element) => _Collections.contains(this, element);
-
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
-
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
-
-  Collection<Node> filter(bool f(Node element)) =>
-     new _NodeListWrapper(_Collections.filter(this, <Node>[], f));
-
-  bool every(bool f(Node element)) => _Collections.every(this, f);
-
-  bool some(bool f(Node element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<Node>:
-
-  void sort([Comparator<Node> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(Node element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Node element, [int start = 0]) =>
-      _Lists.lastIndexOf(this, element, start);
-
-  Node get last => this[length - 1];
-  Node get first => this[0];
-
-  // FIXME: implement thesee.
-  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-  void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-  List<Node> getRange(int start, int rangeLength) =>
-    new _NodeListWrapper(_Lists.getRange(this, start, rangeLength, <Node>[]));
-
-  // -- end List<Node> mixins.
-
-
-  /** @domName NodeList.length */
-  final int length;
-
-  Node operator[](int index) => JS("Node", "#[#]", this, index);
-
-  /** @domName NodeList.item */
-  Node _item(int index) native "item";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName Notation
+/// @domName Notation; @docsEditable true
 class Notation extends Node native "*Notation" {
 
-  /** @domName Notation.publicId */
+  /// @domName Notation.publicId; @docsEditable true
   final String publicId;
 
-  /** @domName Notation.systemId */
+  /// @domName Notation.systemId; @docsEditable true
   final String systemId;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13917,7 +14147,7 @@ class Notation extends Node native "*Notation" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Notification
+/// @domName Notification; @docsEditable true
 class Notification extends EventTarget native "*Notification" {
 
   factory Notification(String title, [Map options]) {
@@ -13927,43 +14157,41 @@ class Notification extends EventTarget native "*Notification" {
     return _NotificationFactoryProvider.createNotification(title, options);
   }
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   NotificationEvents get on =>
     new NotificationEvents(this);
 
-  /** @domName Notification.dir */
+  /// @domName Notification.dir; @docsEditable true
   String dir;
 
-  /** @domName Notification.permission */
+  /// @domName Notification.permission; @docsEditable true
   final String permission;
 
-  /** @domName Notification.replaceId */
+  /// @domName Notification.replaceId; @docsEditable true
   String replaceId;
 
-  /** @domName Notification.tag */
+  /// @domName Notification.tag; @docsEditable true
   String tag;
 
-  /** @domName Notification.addEventListener */
+  /// @domName Notification.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName Notification.cancel */
+  /// @domName Notification.cancel; @docsEditable true
   void cancel() native;
 
-  /** @domName Notification.close */
+  /// @domName Notification.close; @docsEditable true
   void close() native;
 
-  /** @domName Notification.dispatchEvent */
+  /// @domName Notification.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName Notification.removeEventListener */
+  /// @domName Notification.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName Notification.requestPermission */
+  /// @domName Notification.requestPermission; @docsEditable true
   static void requestPermission(NotificationPermissionCallback callback) native;
 
-  /** @domName Notification.show */
+  /// @domName Notification.show; @docsEditable true
   void show() native;
 }
 
@@ -13985,19 +14213,19 @@ class NotificationEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName NotificationCenter
+/// @domName NotificationCenter; @docsEditable true
 class NotificationCenter native "*NotificationCenter" {
 
-  /** @domName NotificationCenter.checkPermission */
+  /// @domName NotificationCenter.checkPermission; @docsEditable true
   int checkPermission() native;
 
-  /** @domName NotificationCenter.createHTMLNotification */
+  /// @domName NotificationCenter.createHTMLNotification; @docsEditable true
   Notification createHTMLNotification(String url) native;
 
-  /** @domName NotificationCenter.createNotification */
+  /// @domName NotificationCenter.createNotification; @docsEditable true
   Notification createNotification(String iconUrl, String title, String body) native;
 
-  /** @domName NotificationCenter.requestPermission */
+  /// @domName NotificationCenter.requestPermission; @docsEditable true
   void requestPermission(VoidCallback callback) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14013,7 +14241,7 @@ typedef void NotificationPermissionCallback(String permission);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName OESElementIndexUint
+/// @domName OESElementIndexUint; @docsEditable true
 class OESElementIndexUint native "*OESElementIndexUint" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14021,7 +14249,7 @@ class OESElementIndexUint native "*OESElementIndexUint" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName OESStandardDerivatives
+/// @domName OESStandardDerivatives; @docsEditable true
 class OESStandardDerivatives native "*OESStandardDerivatives" {
 
   static const int FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B;
@@ -14031,7 +14259,7 @@ class OESStandardDerivatives native "*OESStandardDerivatives" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName OESTextureFloat
+/// @domName OESTextureFloat; @docsEditable true
 class OESTextureFloat native "*OESTextureFloat" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14039,21 +14267,21 @@ class OESTextureFloat native "*OESTextureFloat" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName OESVertexArrayObject
+/// @domName OESVertexArrayObject; @docsEditable true
 class OESVertexArrayObject native "*OESVertexArrayObject" {
 
   static const int VERTEX_ARRAY_BINDING_OES = 0x85B5;
 
-  /** @domName OESVertexArrayObject.bindVertexArrayOES */
+  /// @domName OESVertexArrayObject.bindVertexArrayOES; @docsEditable true
   void bindVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) native;
 
-  /** @domName OESVertexArrayObject.createVertexArrayOES */
+  /// @domName OESVertexArrayObject.createVertexArrayOES; @docsEditable true
   WebGLVertexArrayObjectOES createVertexArrayOES() native;
 
-  /** @domName OESVertexArrayObject.deleteVertexArrayOES */
+  /// @domName OESVertexArrayObject.deleteVertexArrayOES; @docsEditable true
   void deleteVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) native;
 
-  /** @domName OESVertexArrayObject.isVertexArrayOES */
+  /// @domName OESVertexArrayObject.isVertexArrayOES; @docsEditable true
   bool isVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14061,21 +14289,21 @@ class OESVertexArrayObject native "*OESVertexArrayObject" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLOListElement
+/// @domName HTMLOListElement; @docsEditable true
 class OListElement extends Element implements Element native "*HTMLOListElement" {
 
-  factory OListElement() => _Elements.createOListElement();
+  factory OListElement() => document.$dom_createElement("ol");
 
-  /** @domName HTMLOListElement.compact */
+  /// @domName HTMLOListElement.compact; @docsEditable true
   bool compact;
 
-  /** @domName HTMLOListElement.reversed */
+  /// @domName HTMLOListElement.reversed; @docsEditable true
   bool reversed;
 
-  /** @domName HTMLOListElement.start */
+  /// @domName HTMLOListElement.start; @docsEditable true
   int start;
 
-  /** @domName HTMLOListElement.type */
+  /// @domName HTMLOListElement.type; @docsEditable true
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14083,75 +14311,75 @@ class OListElement extends Element implements Element native "*HTMLOListElement"
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLObjectElement
+/// @domName HTMLObjectElement; @docsEditable true
 class ObjectElement extends Element implements Element native "*HTMLObjectElement" {
 
-  factory ObjectElement() => _Elements.createObjectElement();
+  factory ObjectElement() => document.$dom_createElement("object");
 
-  /** @domName HTMLObjectElement.align */
+  /// @domName HTMLObjectElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLObjectElement.archive */
+  /// @domName HTMLObjectElement.archive; @docsEditable true
   String archive;
 
-  /** @domName HTMLObjectElement.border */
+  /// @domName HTMLObjectElement.border; @docsEditable true
   String border;
 
-  /** @domName HTMLObjectElement.code */
+  /// @domName HTMLObjectElement.code; @docsEditable true
   String code;
 
-  /** @domName HTMLObjectElement.codeBase */
+  /// @domName HTMLObjectElement.codeBase; @docsEditable true
   String codeBase;
 
-  /** @domName HTMLObjectElement.codeType */
+  /// @domName HTMLObjectElement.codeType; @docsEditable true
   String codeType;
 
-  /** @domName HTMLObjectElement.data */
+  /// @domName HTMLObjectElement.data; @docsEditable true
   String data;
 
-  /** @domName HTMLObjectElement.declare */
+  /// @domName HTMLObjectElement.declare; @docsEditable true
   bool declare;
 
-  /** @domName HTMLObjectElement.form */
+  /// @domName HTMLObjectElement.form; @docsEditable true
   final FormElement form;
 
-  /** @domName HTMLObjectElement.height */
+  /// @domName HTMLObjectElement.height; @docsEditable true
   String height;
 
-  /** @domName HTMLObjectElement.hspace */
+  /// @domName HTMLObjectElement.hspace; @docsEditable true
   int hspace;
 
-  /** @domName HTMLObjectElement.name */
+  /// @domName HTMLObjectElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLObjectElement.standby */
+  /// @domName HTMLObjectElement.standby; @docsEditable true
   String standby;
 
-  /** @domName HTMLObjectElement.type */
+  /// @domName HTMLObjectElement.type; @docsEditable true
   String type;
 
-  /** @domName HTMLObjectElement.useMap */
+  /// @domName HTMLObjectElement.useMap; @docsEditable true
   String useMap;
 
-  /** @domName HTMLObjectElement.validationMessage */
+  /// @domName HTMLObjectElement.validationMessage; @docsEditable true
   final String validationMessage;
 
-  /** @domName HTMLObjectElement.validity */
+  /// @domName HTMLObjectElement.validity; @docsEditable true
   final ValidityState validity;
 
-  /** @domName HTMLObjectElement.vspace */
+  /// @domName HTMLObjectElement.vspace; @docsEditable true
   int vspace;
 
-  /** @domName HTMLObjectElement.width */
+  /// @domName HTMLObjectElement.width; @docsEditable true
   String width;
 
-  /** @domName HTMLObjectElement.willValidate */
+  /// @domName HTMLObjectElement.willValidate; @docsEditable true
   final bool willValidate;
 
-  /** @domName HTMLObjectElement.checkValidity */
+  /// @domName HTMLObjectElement.checkValidity; @docsEditable true
   bool checkValidity() native;
 
-  /** @domName HTMLObjectElement.setCustomValidity */
+  /// @domName HTMLObjectElement.setCustomValidity; @docsEditable true
   void setCustomValidity(String error) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14159,10 +14387,10 @@ class ObjectElement extends Element implements Element native "*HTMLObjectElemen
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName OfflineAudioCompletionEvent
+/// @domName OfflineAudioCompletionEvent; @docsEditable true
 class OfflineAudioCompletionEvent extends Event native "*OfflineAudioCompletionEvent" {
 
-  /** @domName OfflineAudioCompletionEvent.renderedBuffer */
+  /// @domName OfflineAudioCompletionEvent.renderedBuffer; @docsEditable true
   final AudioBuffer renderedBuffer;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14170,15 +14398,15 @@ class OfflineAudioCompletionEvent extends Event native "*OfflineAudioCompletionE
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLOptGroupElement
+/// @domName HTMLOptGroupElement; @docsEditable true
 class OptGroupElement extends Element implements Element native "*HTMLOptGroupElement" {
 
-  factory OptGroupElement() => _Elements.createOptGroupElement();
+  factory OptGroupElement() => document.$dom_createElement("optgroup");
 
-  /** @domName HTMLOptGroupElement.disabled */
+  /// @domName HTMLOptGroupElement.disabled; @docsEditable true
   bool disabled;
 
-  /** @domName HTMLOptGroupElement.label */
+  /// @domName HTMLOptGroupElement.label; @docsEditable true
   String label;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14186,7 +14414,7 @@ class OptGroupElement extends Element implements Element native "*HTMLOptGroupEl
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLOptionElement
+/// @domName HTMLOptionElement; @docsEditable true
 class OptionElement extends Element implements Element native "*HTMLOptionElement" {
 
   factory OptionElement([String data, String value, bool defaultSelected, bool selected]) {
@@ -14205,25 +14433,25 @@ class OptionElement extends Element implements Element native "*HTMLOptionElemen
     return _OptionElementFactoryProvider.createOptionElement(data, value, defaultSelected, selected);
   }
 
-  /** @domName HTMLOptionElement.defaultSelected */
+  /// @domName HTMLOptionElement.defaultSelected; @docsEditable true
   bool defaultSelected;
 
-  /** @domName HTMLOptionElement.disabled */
+  /// @domName HTMLOptionElement.disabled; @docsEditable true
   bool disabled;
 
-  /** @domName HTMLOptionElement.form */
+  /// @domName HTMLOptionElement.form; @docsEditable true
   final FormElement form;
 
-  /** @domName HTMLOptionElement.index */
+  /// @domName HTMLOptionElement.index; @docsEditable true
   final int index;
 
-  /** @domName HTMLOptionElement.label */
+  /// @domName HTMLOptionElement.label; @docsEditable true
   String label;
 
-  /** @domName HTMLOptionElement.selected */
+  /// @domName HTMLOptionElement.selected; @docsEditable true
   bool selected;
 
-  /** @domName HTMLOptionElement.value */
+  /// @domName HTMLOptionElement.value; @docsEditable true
   String value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14231,7 +14459,7 @@ class OptionElement extends Element implements Element native "*HTMLOptionElemen
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName OscillatorNode
+/// @domName OscillatorNode; @docsEditable true
 class OscillatorNode extends AudioSourceNode native "*OscillatorNode" {
 
   static const int CUSTOM = 4;
@@ -14252,25 +14480,25 @@ class OscillatorNode extends AudioSourceNode native "*OscillatorNode" {
 
   static const int UNSCHEDULED_STATE = 0;
 
-  /** @domName OscillatorNode.detune */
+  /// @domName OscillatorNode.detune; @docsEditable true
   final AudioParam detune;
 
-  /** @domName OscillatorNode.frequency */
+  /// @domName OscillatorNode.frequency; @docsEditable true
   final AudioParam frequency;
 
-  /** @domName OscillatorNode.playbackState */
+  /// @domName OscillatorNode.playbackState; @docsEditable true
   final int playbackState;
 
-  /** @domName OscillatorNode.type */
+  /// @domName OscillatorNode.type; @docsEditable true
   int type;
 
-  /** @domName OscillatorNode.setWaveTable */
+  /// @domName OscillatorNode.setWaveTable; @docsEditable true
   void setWaveTable(WaveTable waveTable) native;
 
-  /** @domName OscillatorNode.start */
+  /// @domName OscillatorNode.start; @docsEditable true
   void start(num when) native;
 
-  /** @domName OscillatorNode.stop */
+  /// @domName OscillatorNode.stop; @docsEditable true
   void stop(num when) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14278,45 +14506,46 @@ class OscillatorNode extends AudioSourceNode native "*OscillatorNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLOutputElement
+/// @domName HTMLOutputElement; @docsEditable true
 class OutputElement extends Element implements Element native "*HTMLOutputElement" {
 
-  factory OutputElement() => _Elements.createOutputElement();
+  factory OutputElement() => document.$dom_createElement("output");
 
-  /** @domName HTMLOutputElement.defaultValue */
+  /// @domName HTMLOutputElement.defaultValue; @docsEditable true
   String defaultValue;
 
-  /** @domName HTMLOutputElement.form */
+  /// @domName HTMLOutputElement.form; @docsEditable true
   final FormElement form;
 
-  /** @domName HTMLOutputElement.htmlFor */
+  /// @domName HTMLOutputElement.htmlFor; @docsEditable true
   DOMSettableTokenList htmlFor;
 
-  /** @domName HTMLOutputElement.labels */
+  /// @domName HTMLOutputElement.labels; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> labels;
 
-  /** @domName HTMLOutputElement.name */
+  /// @domName HTMLOutputElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLOutputElement.type */
+  /// @domName HTMLOutputElement.type; @docsEditable true
   final String type;
 
-  /** @domName HTMLOutputElement.validationMessage */
+  /// @domName HTMLOutputElement.validationMessage; @docsEditable true
   final String validationMessage;
 
-  /** @domName HTMLOutputElement.validity */
+  /// @domName HTMLOutputElement.validity; @docsEditable true
   final ValidityState validity;
 
-  /** @domName HTMLOutputElement.value */
+  /// @domName HTMLOutputElement.value; @docsEditable true
   String value;
 
-  /** @domName HTMLOutputElement.willValidate */
+  /// @domName HTMLOutputElement.willValidate; @docsEditable true
   final bool willValidate;
 
-  /** @domName HTMLOutputElement.checkValidity */
+  /// @domName HTMLOutputElement.checkValidity; @docsEditable true
   bool checkValidity() native;
 
-  /** @domName HTMLOutputElement.setCustomValidity */
+  /// @domName HTMLOutputElement.setCustomValidity; @docsEditable true
   void setCustomValidity(String error) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14324,7 +14553,7 @@ class OutputElement extends Element implements Element native "*HTMLOutputElemen
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName OverflowEvent
+/// @domName OverflowEvent; @docsEditable true
 class OverflowEvent extends Event native "*OverflowEvent" {
 
   static const int BOTH = 2;
@@ -14333,13 +14562,13 @@ class OverflowEvent extends Event native "*OverflowEvent" {
 
   static const int VERTICAL = 1;
 
-  /** @domName OverflowEvent.horizontalOverflow */
+  /// @domName OverflowEvent.horizontalOverflow; @docsEditable true
   final bool horizontalOverflow;
 
-  /** @domName OverflowEvent.orient */
+  /// @domName OverflowEvent.orient; @docsEditable true
   final int orient;
 
-  /** @domName OverflowEvent.verticalOverflow */
+  /// @domName OverflowEvent.verticalOverflow; @docsEditable true
   final bool verticalOverflow;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14347,13 +14576,13 @@ class OverflowEvent extends Event native "*OverflowEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName PagePopupController
+/// @domName PagePopupController; @docsEditable true
 class PagePopupController native "*PagePopupController" {
 
-  /** @domName PagePopupController.localizeNumberString */
+  /// @domName PagePopupController.localizeNumberString; @docsEditable true
   String localizeNumberString(String numberString) native;
 
-  /** @domName PagePopupController.setValueAndClosePopup */
+  /// @domName PagePopupController.setValueAndClosePopup; @docsEditable true
   void setValueAndClosePopup(int numberValue, String stringValue) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14361,10 +14590,10 @@ class PagePopupController native "*PagePopupController" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName PageTransitionEvent
+/// @domName PageTransitionEvent; @docsEditable true
 class PageTransitionEvent extends Event native "*PageTransitionEvent" {
 
-  /** @domName PageTransitionEvent.persisted */
+  /// @domName PageTransitionEvent.persisted; @docsEditable true
   final bool persisted;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14372,7 +14601,7 @@ class PageTransitionEvent extends Event native "*PageTransitionEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName PannerNode
+/// @domName PannerNode; @docsEditable true
 class PannerNode extends AudioNode native "*PannerNode" {
 
   static const int EQUALPOWER = 0;
@@ -14387,43 +14616,43 @@ class PannerNode extends AudioNode native "*PannerNode" {
 
   static const int SOUNDFIELD = 2;
 
-  /** @domName PannerNode.coneGain */
+  /// @domName PannerNode.coneGain; @docsEditable true
   final AudioGain coneGain;
 
-  /** @domName PannerNode.coneInnerAngle */
+  /// @domName PannerNode.coneInnerAngle; @docsEditable true
   num coneInnerAngle;
 
-  /** @domName PannerNode.coneOuterAngle */
+  /// @domName PannerNode.coneOuterAngle; @docsEditable true
   num coneOuterAngle;
 
-  /** @domName PannerNode.coneOuterGain */
+  /// @domName PannerNode.coneOuterGain; @docsEditable true
   num coneOuterGain;
 
-  /** @domName PannerNode.distanceGain */
+  /// @domName PannerNode.distanceGain; @docsEditable true
   final AudioGain distanceGain;
 
-  /** @domName PannerNode.distanceModel */
+  /// @domName PannerNode.distanceModel; @docsEditable true
   int distanceModel;
 
-  /** @domName PannerNode.maxDistance */
+  /// @domName PannerNode.maxDistance; @docsEditable true
   num maxDistance;
 
-  /** @domName PannerNode.panningModel */
+  /// @domName PannerNode.panningModel; @docsEditable true
   int panningModel;
 
-  /** @domName PannerNode.refDistance */
+  /// @domName PannerNode.refDistance; @docsEditable true
   num refDistance;
 
-  /** @domName PannerNode.rolloffFactor */
+  /// @domName PannerNode.rolloffFactor; @docsEditable true
   num rolloffFactor;
 
-  /** @domName PannerNode.setOrientation */
+  /// @domName PannerNode.setOrientation; @docsEditable true
   void setOrientation(num x, num y, num z) native;
 
-  /** @domName PannerNode.setPosition */
+  /// @domName PannerNode.setPosition; @docsEditable true
   void setPosition(num x, num y, num z) native;
 
-  /** @domName PannerNode.setVelocity */
+  /// @domName PannerNode.setVelocity; @docsEditable true
   void setVelocity(num x, num y, num z) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14431,12 +14660,12 @@ class PannerNode extends AudioNode native "*PannerNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLParagraphElement
+/// @domName HTMLParagraphElement; @docsEditable true
 class ParagraphElement extends Element implements Element native "*HTMLParagraphElement" {
 
-  factory ParagraphElement() => _Elements.createParagraphElement();
+  factory ParagraphElement() => document.$dom_createElement("p");
 
-  /** @domName HTMLParagraphElement.align */
+  /// @domName HTMLParagraphElement.align; @docsEditable true
   String align;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14444,21 +14673,21 @@ class ParagraphElement extends Element implements Element native "*HTMLParagraph
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLParamElement
+/// @domName HTMLParamElement; @docsEditable true
 class ParamElement extends Element implements Element native "*HTMLParamElement" {
 
-  factory ParamElement() => _Elements.createParamElement();
+  factory ParamElement() => document.$dom_createElement("param");
 
-  /** @domName HTMLParamElement.name */
+  /// @domName HTMLParamElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLParamElement.type */
+  /// @domName HTMLParamElement.type; @docsEditable true
   String type;
 
-  /** @domName HTMLParamElement.value */
+  /// @domName HTMLParamElement.value; @docsEditable true
   String value;
 
-  /** @domName HTMLParamElement.valueType */
+  /// @domName HTMLParamElement.valueType; @docsEditable true
   String valueType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14466,14 +14695,12 @@ class ParamElement extends Element implements Element native "*HTMLParamElement"
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName PeerConnection00
+/// @domName PeerConnection00; @docsEditable true
 class PeerConnection00 extends EventTarget native "*PeerConnection00" {
 
   factory PeerConnection00(String serverConfiguration, IceCallback iceCallback) => _PeerConnection00FactoryProvider.createPeerConnection00(serverConfiguration, iceCallback);
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   PeerConnection00Events get on =>
     new PeerConnection00Events(this);
 
@@ -14505,28 +14732,30 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
 
   static const int SDP_PRANSWER = 0x200;
 
-  /** @domName PeerConnection00.iceState */
+  /// @domName PeerConnection00.iceState; @docsEditable true
   final int iceState;
 
-  /** @domName PeerConnection00.localDescription */
+  /// @domName PeerConnection00.localDescription; @docsEditable true
   final SessionDescription localDescription;
 
-  /** @domName PeerConnection00.localStreams */
+  /// @domName PeerConnection00.localStreams; @docsEditable true
+  @Returns('_MediaStreamList') @Creates('_MediaStreamList')
   final List<MediaStream> localStreams;
 
-  /** @domName PeerConnection00.readyState */
+  /// @domName PeerConnection00.readyState; @docsEditable true
   final int readyState;
 
-  /** @domName PeerConnection00.remoteDescription */
+  /// @domName PeerConnection00.remoteDescription; @docsEditable true
   final SessionDescription remoteDescription;
 
-  /** @domName PeerConnection00.remoteStreams */
+  /// @domName PeerConnection00.remoteStreams; @docsEditable true
+  @Returns('_MediaStreamList') @Creates('_MediaStreamList')
   final List<MediaStream> remoteStreams;
 
-  /** @domName PeerConnection00.addEventListener */
+  /// @domName PeerConnection00.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName PeerConnection00.addStream */
+  /// @domName PeerConnection00.addStream; @docsEditable true
   void addStream(MediaStream stream, [Map mediaStreamHints]) {
     if (?mediaStreamHints) {
       var mediaStreamHints_1 = _convertDartToNative_Dictionary(mediaStreamHints);
@@ -14539,10 +14768,10 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   void _addStream_1(MediaStream stream, mediaStreamHints) native "addStream";
   void _addStream_2(MediaStream stream) native "addStream";
 
-  /** @domName PeerConnection00.close */
+  /// @domName PeerConnection00.close; @docsEditable true
   void close() native;
 
-  /** @domName PeerConnection00.createAnswer */
+  /// @domName PeerConnection00.createAnswer; @docsEditable true
   SessionDescription createAnswer(String offer, [Map mediaHints]) {
     if (?mediaHints) {
       var mediaHints_1 = _convertDartToNative_Dictionary(mediaHints);
@@ -14553,7 +14782,7 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   SessionDescription _createAnswer_1(offer, mediaHints) native "createAnswer";
   SessionDescription _createAnswer_2(offer) native "createAnswer";
 
-  /** @domName PeerConnection00.createOffer */
+  /// @domName PeerConnection00.createOffer; @docsEditable true
   SessionDescription createOffer([Map mediaHints]) {
     if (?mediaHints) {
       var mediaHints_1 = _convertDartToNative_Dictionary(mediaHints);
@@ -14564,25 +14793,25 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   SessionDescription _createOffer_1(mediaHints) native "createOffer";
   SessionDescription _createOffer_2() native "createOffer";
 
-  /** @domName PeerConnection00.dispatchEvent */
+  /// @domName PeerConnection00.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
-  /** @domName PeerConnection00.processIceMessage */
+  /// @domName PeerConnection00.processIceMessage; @docsEditable true
   void processIceMessage(IceCandidate candidate) native;
 
-  /** @domName PeerConnection00.removeEventListener */
+  /// @domName PeerConnection00.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName PeerConnection00.removeStream */
+  /// @domName PeerConnection00.removeStream; @docsEditable true
   void removeStream(MediaStream stream) native;
 
-  /** @domName PeerConnection00.setLocalDescription */
+  /// @domName PeerConnection00.setLocalDescription; @docsEditable true
   void setLocalDescription(int action, SessionDescription desc) native;
 
-  /** @domName PeerConnection00.setRemoteDescription */
+  /// @domName PeerConnection00.setRemoteDescription; @docsEditable true
   void setRemoteDescription(int action, SessionDescription desc) native;
 
-  /** @domName PeerConnection00.startIce */
+  /// @domName PeerConnection00.startIce; @docsEditable true
   void startIce([Map iceOptions]) {
     if (?iceOptions) {
       var iceOptions_1 = _convertDartToNative_Dictionary(iceOptions);
@@ -14614,19 +14843,19 @@ class PeerConnection00Events extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Performance
+/// @domName Performance; @docsEditable true
 class Performance extends EventTarget native "*Performance" {
 
-  /** @domName Performance.memory */
+  /// @domName Performance.memory; @docsEditable true
   final MemoryInfo memory;
 
-  /** @domName Performance.navigation */
+  /// @domName Performance.navigation; @docsEditable true
   final PerformanceNavigation navigation;
 
-  /** @domName Performance.timing */
+  /// @domName Performance.timing; @docsEditable true
   final PerformanceTiming timing;
 
-  /** @domName Performance.now */
+  /// @domName Performance.now; @docsEditable true
   num now() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14634,7 +14863,7 @@ class Performance extends EventTarget native "*Performance" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName PerformanceNavigation
+/// @domName PerformanceNavigation; @docsEditable true
 class PerformanceNavigation native "*PerformanceNavigation" {
 
   static const int TYPE_BACK_FORWARD = 2;
@@ -14645,10 +14874,10 @@ class PerformanceNavigation native "*PerformanceNavigation" {
 
   static const int TYPE_RESERVED = 255;
 
-  /** @domName PerformanceNavigation.redirectCount */
+  /// @domName PerformanceNavigation.redirectCount; @docsEditable true
   final int redirectCount;
 
-  /** @domName PerformanceNavigation.type */
+  /// @domName PerformanceNavigation.type; @docsEditable true
   final int type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14656,70 +14885,70 @@ class PerformanceNavigation native "*PerformanceNavigation" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName PerformanceTiming
+/// @domName PerformanceTiming; @docsEditable true
 class PerformanceTiming native "*PerformanceTiming" {
 
-  /** @domName PerformanceTiming.connectEnd */
+  /// @domName PerformanceTiming.connectEnd; @docsEditable true
   final int connectEnd;
 
-  /** @domName PerformanceTiming.connectStart */
+  /// @domName PerformanceTiming.connectStart; @docsEditable true
   final int connectStart;
 
-  /** @domName PerformanceTiming.domComplete */
+  /// @domName PerformanceTiming.domComplete; @docsEditable true
   final int domComplete;
 
-  /** @domName PerformanceTiming.domContentLoadedEventEnd */
+  /// @domName PerformanceTiming.domContentLoadedEventEnd; @docsEditable true
   final int domContentLoadedEventEnd;
 
-  /** @domName PerformanceTiming.domContentLoadedEventStart */
+  /// @domName PerformanceTiming.domContentLoadedEventStart; @docsEditable true
   final int domContentLoadedEventStart;
 
-  /** @domName PerformanceTiming.domInteractive */
+  /// @domName PerformanceTiming.domInteractive; @docsEditable true
   final int domInteractive;
 
-  /** @domName PerformanceTiming.domLoading */
+  /// @domName PerformanceTiming.domLoading; @docsEditable true
   final int domLoading;
 
-  /** @domName PerformanceTiming.domainLookupEnd */
+  /// @domName PerformanceTiming.domainLookupEnd; @docsEditable true
   final int domainLookupEnd;
 
-  /** @domName PerformanceTiming.domainLookupStart */
+  /// @domName PerformanceTiming.domainLookupStart; @docsEditable true
   final int domainLookupStart;
 
-  /** @domName PerformanceTiming.fetchStart */
+  /// @domName PerformanceTiming.fetchStart; @docsEditable true
   final int fetchStart;
 
-  /** @domName PerformanceTiming.loadEventEnd */
+  /// @domName PerformanceTiming.loadEventEnd; @docsEditable true
   final int loadEventEnd;
 
-  /** @domName PerformanceTiming.loadEventStart */
+  /// @domName PerformanceTiming.loadEventStart; @docsEditable true
   final int loadEventStart;
 
-  /** @domName PerformanceTiming.navigationStart */
+  /// @domName PerformanceTiming.navigationStart; @docsEditable true
   final int navigationStart;
 
-  /** @domName PerformanceTiming.redirectEnd */
+  /// @domName PerformanceTiming.redirectEnd; @docsEditable true
   final int redirectEnd;
 
-  /** @domName PerformanceTiming.redirectStart */
+  /// @domName PerformanceTiming.redirectStart; @docsEditable true
   final int redirectStart;
 
-  /** @domName PerformanceTiming.requestStart */
+  /// @domName PerformanceTiming.requestStart; @docsEditable true
   final int requestStart;
 
-  /** @domName PerformanceTiming.responseEnd */
+  /// @domName PerformanceTiming.responseEnd; @docsEditable true
   final int responseEnd;
 
-  /** @domName PerformanceTiming.responseStart */
+  /// @domName PerformanceTiming.responseStart; @docsEditable true
   final int responseStart;
 
-  /** @domName PerformanceTiming.secureConnectionStart */
+  /// @domName PerformanceTiming.secureConnectionStart; @docsEditable true
   final int secureConnectionStart;
 
-  /** @domName PerformanceTiming.unloadEventEnd */
+  /// @domName PerformanceTiming.unloadEventEnd; @docsEditable true
   final int unloadEventEnd;
 
-  /** @domName PerformanceTiming.unloadEventStart */
+  /// @domName PerformanceTiming.unloadEventStart; @docsEditable true
   final int unloadEventStart;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14732,10 +14961,10 @@ class PerformanceTiming native "*PerformanceTiming" {
 class Point native "*WebKitPoint" {
   factory Point(num x, num y) => _PointFactoryProvider.createPoint(x, y);
 
-  /** @domName WebKitPoint.x */
+  /// @domName WebKitPoint.x; @docsEditable true
   num x;
 
-  /** @domName WebKitPoint.y */
+  /// @domName WebKitPoint.y; @docsEditable true
   num y;
 
 }
@@ -14744,10 +14973,10 @@ class Point native "*WebKitPoint" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName PopStateEvent
+/// @domName PopStateEvent; @docsEditable true
 class PopStateEvent extends Event native "*PopStateEvent" {
 
-  /** @domName PopStateEvent.state */
+  /// @domName PopStateEvent.state; @docsEditable true
   dynamic get state => _convertNativeToDart_SerializedScriptValue(this._state);
   dynamic get _state => JS("dynamic", "#.state", this);
 }
@@ -14764,7 +14993,7 @@ typedef void PositionCallback(Geoposition position);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName PositionError
+/// @domName PositionError; @docsEditable true
 class PositionError native "*PositionError" {
 
   static const int PERMISSION_DENIED = 1;
@@ -14773,10 +15002,10 @@ class PositionError native "*PositionError" {
 
   static const int TIMEOUT = 3;
 
-  /** @domName PositionError.code */
+  /// @domName PositionError.code; @docsEditable true
   final int code;
 
-  /** @domName PositionError.message */
+  /// @domName PositionError.message; @docsEditable true
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14792,15 +15021,15 @@ typedef void PositionErrorCallback(PositionError error);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLPreElement
+/// @domName HTMLPreElement; @docsEditable true
 class PreElement extends Element implements Element native "*HTMLPreElement" {
 
-  factory PreElement() => _Elements.createPreElement();
+  factory PreElement() => document.$dom_createElement("pre");
 
-  /** @domName HTMLPreElement.width */
+  /// @domName HTMLPreElement.width; @docsEditable true
   int width;
 
-  /** @domName HTMLPreElement.wrap */
+  /// @domName HTMLPreElement.wrap; @docsEditable true
   bool wrap;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14808,16 +15037,16 @@ class PreElement extends Element implements Element native "*HTMLPreElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ProcessingInstruction
+/// @domName ProcessingInstruction; @docsEditable true
 class ProcessingInstruction extends Node native "*ProcessingInstruction" {
 
-  /** @domName ProcessingInstruction.data */
+  /// @domName ProcessingInstruction.data; @docsEditable true
   String data;
 
-  /** @domName ProcessingInstruction.sheet */
+  /// @domName ProcessingInstruction.sheet; @docsEditable true
   final StyleSheet sheet;
 
-  /** @domName ProcessingInstruction.target */
+  /// @domName ProcessingInstruction.target; @docsEditable true
   final String target;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14825,21 +15054,22 @@ class ProcessingInstruction extends Node native "*ProcessingInstruction" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLProgressElement
+/// @domName HTMLProgressElement; @docsEditable true
 class ProgressElement extends Element implements Element native "*HTMLProgressElement" {
 
-  factory ProgressElement() => _Elements.createProgressElement();
+  factory ProgressElement() => document.$dom_createElement("progress");
 
-  /** @domName HTMLProgressElement.labels */
+  /// @domName HTMLProgressElement.labels; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> labels;
 
-  /** @domName HTMLProgressElement.max */
+  /// @domName HTMLProgressElement.max; @docsEditable true
   num max;
 
-  /** @domName HTMLProgressElement.position */
+  /// @domName HTMLProgressElement.position; @docsEditable true
   final num position;
 
-  /** @domName HTMLProgressElement.value */
+  /// @domName HTMLProgressElement.value; @docsEditable true
   num value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14847,16 +15077,16 @@ class ProgressElement extends Element implements Element native "*HTMLProgressEl
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ProgressEvent
+/// @domName ProgressEvent; @docsEditable true
 class ProgressEvent extends Event native "*ProgressEvent" {
 
-  /** @domName ProgressEvent.lengthComputable */
+  /// @domName ProgressEvent.lengthComputable; @docsEditable true
   final bool lengthComputable;
 
-  /** @domName ProgressEvent.loaded */
+  /// @domName ProgressEvent.loaded; @docsEditable true
   final int loaded;
 
-  /** @domName ProgressEvent.total */
+  /// @domName ProgressEvent.total; @docsEditable true
   final int total;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14864,10 +15094,10 @@ class ProgressEvent extends Event native "*ProgressEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLQuoteElement
+/// @domName HTMLQuoteElement; @docsEditable true
 class QuoteElement extends Element implements Element native "*HTMLQuoteElement" {
 
-  /** @domName HTMLQuoteElement.cite */
+  /// @domName HTMLQuoteElement.cite; @docsEditable true
   String cite;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14875,16 +15105,16 @@ class QuoteElement extends Element implements Element native "*HTMLQuoteElement"
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName RGBColor
+/// @domName RGBColor; @docsEditable true
 class RGBColor native "*RGBColor" {
 
-  /** @domName RGBColor.blue */
+  /// @domName RGBColor.blue; @docsEditable true
   final CSSPrimitiveValue blue;
 
-  /** @domName RGBColor.green */
+  /// @domName RGBColor.green; @docsEditable true
   final CSSPrimitiveValue green;
 
-  /** @domName RGBColor.red */
+  /// @domName RGBColor.red; @docsEditable true
   final CSSPrimitiveValue red;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14892,43 +15122,41 @@ class RGBColor native "*RGBColor" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName RTCDataChannel
+/// @domName RTCDataChannel; @docsEditable true
 class RTCDataChannel extends EventTarget native "*RTCDataChannel" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   RTCDataChannelEvents get on =>
     new RTCDataChannelEvents(this);
 
-  /** @domName RTCDataChannel.binaryType */
+  /// @domName RTCDataChannel.binaryType; @docsEditable true
   String binaryType;
 
-  /** @domName RTCDataChannel.bufferedAmount */
+  /// @domName RTCDataChannel.bufferedAmount; @docsEditable true
   final int bufferedAmount;
 
-  /** @domName RTCDataChannel.label */
+  /// @domName RTCDataChannel.label; @docsEditable true
   final String label;
 
-  /** @domName RTCDataChannel.readyState */
+  /// @domName RTCDataChannel.readyState; @docsEditable true
   final String readyState;
 
-  /** @domName RTCDataChannel.reliable */
+  /// @domName RTCDataChannel.reliable; @docsEditable true
   final bool reliable;
 
-  /** @domName RTCDataChannel.addEventListener */
+  /// @domName RTCDataChannel.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName RTCDataChannel.close */
+  /// @domName RTCDataChannel.close; @docsEditable true
   void close() native;
 
-  /** @domName RTCDataChannel.dispatchEvent */
+  /// @domName RTCDataChannel.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
-  /** @domName RTCDataChannel.removeEventListener */
+  /// @domName RTCDataChannel.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName RTCDataChannel.send */
+  /// @domName RTCDataChannel.send; @docsEditable true
   void send(data) native;
 }
 
@@ -14948,10 +15176,10 @@ class RTCDataChannelEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName RTCDataChannelEvent
+/// @domName RTCDataChannelEvent; @docsEditable true
 class RTCDataChannelEvent extends Event native "*RTCDataChannelEvent" {
 
-  /** @domName RTCDataChannelEvent.channel */
+  /// @domName RTCDataChannelEvent.channel; @docsEditable true
   final RTCDataChannel channel;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14967,18 +15195,18 @@ typedef void RTCErrorCallback(String errorInformation);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName RTCIceCandidate
+/// @domName RTCIceCandidate; @docsEditable true
 class RTCIceCandidate native "*RTCIceCandidate" {
 
   factory RTCIceCandidate(Map dictionary) => _RTCIceCandidateFactoryProvider.createRTCIceCandidate(dictionary);
 
-  /** @domName RTCIceCandidate.candidate */
+  /// @domName RTCIceCandidate.candidate; @docsEditable true
   final String candidate;
 
-  /** @domName RTCIceCandidate.sdpMLineIndex */
+  /// @domName RTCIceCandidate.sdpMLineIndex; @docsEditable true
   final int sdpMLineIndex;
 
-  /** @domName RTCIceCandidate.sdpMid */
+  /// @domName RTCIceCandidate.sdpMid; @docsEditable true
   final String sdpMid;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14986,10 +15214,10 @@ class RTCIceCandidate native "*RTCIceCandidate" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName RTCIceCandidateEvent
+/// @domName RTCIceCandidateEvent; @docsEditable true
 class RTCIceCandidateEvent extends Event native "*RTCIceCandidateEvent" {
 
-  /** @domName RTCIceCandidateEvent.candidate */
+  /// @domName RTCIceCandidateEvent.candidate; @docsEditable true
   final RTCIceCandidate candidate;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14997,7 +15225,7 @@ class RTCIceCandidateEvent extends Event native "*RTCIceCandidateEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName RTCPeerConnection
+/// @domName RTCPeerConnection; @docsEditable true
 class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
 
   factory RTCPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
@@ -15007,37 +15235,37 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
     return _RTCPeerConnectionFactoryProvider.createRTCPeerConnection(rtcIceServers, mediaConstraints);
   }
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   RTCPeerConnectionEvents get on =>
     new RTCPeerConnectionEvents(this);
 
-  /** @domName RTCPeerConnection.iceState */
+  /// @domName RTCPeerConnection.iceState; @docsEditable true
   final String iceState;
 
-  /** @domName RTCPeerConnection.localDescription */
+  /// @domName RTCPeerConnection.localDescription; @docsEditable true
   final RTCSessionDescription localDescription;
 
-  /** @domName RTCPeerConnection.localStreams */
+  /// @domName RTCPeerConnection.localStreams; @docsEditable true
+  @Returns('_MediaStreamList') @Creates('_MediaStreamList')
   final List<MediaStream> localStreams;
 
-  /** @domName RTCPeerConnection.readyState */
+  /// @domName RTCPeerConnection.readyState; @docsEditable true
   final String readyState;
 
-  /** @domName RTCPeerConnection.remoteDescription */
+  /// @domName RTCPeerConnection.remoteDescription; @docsEditable true
   final RTCSessionDescription remoteDescription;
 
-  /** @domName RTCPeerConnection.remoteStreams */
+  /// @domName RTCPeerConnection.remoteStreams; @docsEditable true
+  @Returns('_MediaStreamList') @Creates('_MediaStreamList')
   final List<MediaStream> remoteStreams;
 
-  /** @domName RTCPeerConnection.addEventListener */
+  /// @domName RTCPeerConnection.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName RTCPeerConnection.addIceCandidate */
+  /// @domName RTCPeerConnection.addIceCandidate; @docsEditable true
   void addIceCandidate(RTCIceCandidate candidate) native;
 
-  /** @domName RTCPeerConnection.addStream */
+  /// @domName RTCPeerConnection.addStream; @docsEditable true
   void addStream(MediaStream stream, [Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
@@ -15050,10 +15278,10 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   void _addStream_1(MediaStream stream, mediaConstraints) native "addStream";
   void _addStream_2(MediaStream stream) native "addStream";
 
-  /** @domName RTCPeerConnection.close */
+  /// @domName RTCPeerConnection.close; @docsEditable true
   void close() native;
 
-  /** @domName RTCPeerConnection.createAnswer */
+  /// @domName RTCPeerConnection.createAnswer; @docsEditable true
   void createAnswer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
@@ -15066,7 +15294,7 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   void _createAnswer_1(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback, mediaConstraints) native "createAnswer";
   void _createAnswer_2(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback) native "createAnswer";
 
-  /** @domName RTCPeerConnection.createDataChannel */
+  /// @domName RTCPeerConnection.createDataChannel; @docsEditable true
   RTCDataChannel createDataChannel(String label, [Map options]) {
     if (?options) {
       var options_1 = _convertDartToNative_Dictionary(options);
@@ -15077,7 +15305,7 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   RTCDataChannel _createDataChannel_1(label, options) native "createDataChannel";
   RTCDataChannel _createDataChannel_2(label) native "createDataChannel";
 
-  /** @domName RTCPeerConnection.createOffer */
+  /// @domName RTCPeerConnection.createOffer; @docsEditable true
   void createOffer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
@@ -15090,25 +15318,25 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   void _createOffer_1(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback, mediaConstraints) native "createOffer";
   void _createOffer_2(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback) native "createOffer";
 
-  /** @domName RTCPeerConnection.dispatchEvent */
+  /// @domName RTCPeerConnection.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
-  /** @domName RTCPeerConnection.getStats */
+  /// @domName RTCPeerConnection.getStats; @docsEditable true
   void getStats(RTCStatsCallback successCallback, MediaStreamTrack selector) native;
 
-  /** @domName RTCPeerConnection.removeEventListener */
+  /// @domName RTCPeerConnection.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName RTCPeerConnection.removeStream */
+  /// @domName RTCPeerConnection.removeStream; @docsEditable true
   void removeStream(MediaStream stream) native;
 
-  /** @domName RTCPeerConnection.setLocalDescription */
+  /// @domName RTCPeerConnection.setLocalDescription; @docsEditable true
   void setLocalDescription(RTCSessionDescription description, [VoidCallback successCallback, RTCErrorCallback failureCallback]) native;
 
-  /** @domName RTCPeerConnection.setRemoteDescription */
+  /// @domName RTCPeerConnection.setRemoteDescription; @docsEditable true
   void setRemoteDescription(RTCSessionDescription description, [VoidCallback successCallback, RTCErrorCallback failureCallback]) native;
 
-  /** @domName RTCPeerConnection.updateIce */
+  /// @domName RTCPeerConnection.updateIce; @docsEditable true
   void updateIce([Map configuration, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var configuration_1 = _convertDartToNative_Dictionary(configuration);
@@ -15151,15 +15379,15 @@ class RTCPeerConnectionEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName RTCSessionDescription
+/// @domName RTCSessionDescription; @docsEditable true
 class RTCSessionDescription native "*RTCSessionDescription" {
 
   factory RTCSessionDescription(Map dictionary) => _RTCSessionDescriptionFactoryProvider.createRTCSessionDescription(dictionary);
 
-  /** @domName RTCSessionDescription.sdp */
+  /// @domName RTCSessionDescription.sdp; @docsEditable true
   String sdp;
 
-  /** @domName RTCSessionDescription.type */
+  /// @domName RTCSessionDescription.type; @docsEditable true
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15183,13 +15411,13 @@ typedef void RTCStatsCallback(RTCStatsResponse response);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName RTCStatsElement
+/// @domName RTCStatsElement; @docsEditable true
 class RTCStatsElement native "*RTCStatsElement" {
 
-  /** @domName RTCStatsElement.timestamp */
+  /// @domName RTCStatsElement.timestamp; @docsEditable true
   final Date timestamp;
 
-  /** @domName RTCStatsElement.stat */
+  /// @domName RTCStatsElement.stat; @docsEditable true
   String stat(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15197,13 +15425,13 @@ class RTCStatsElement native "*RTCStatsElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName RTCStatsReport
+/// @domName RTCStatsReport; @docsEditable true
 class RTCStatsReport native "*RTCStatsReport" {
 
-  /** @domName RTCStatsReport.local */
+  /// @domName RTCStatsReport.local; @docsEditable true
   final RTCStatsElement local;
 
-  /** @domName RTCStatsReport.remote */
+  /// @domName RTCStatsReport.remote; @docsEditable true
   final RTCStatsElement remote;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15211,10 +15439,10 @@ class RTCStatsReport native "*RTCStatsReport" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName RTCStatsResponse
+/// @domName RTCStatsResponse; @docsEditable true
 class RTCStatsResponse native "*RTCStatsResponse" {
 
-  /** @domName RTCStatsResponse.result */
+  /// @domName RTCStatsResponse.result; @docsEditable true
   List<RTCStatsReport> result() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15222,10 +15450,10 @@ class RTCStatsResponse native "*RTCStatsResponse" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName RadioNodeList
-class RadioNodeList extends NodeList native "*RadioNodeList" {
+/// @domName RadioNodeList; @docsEditable true
+class RadioNodeList extends _NodeList native "*RadioNodeList" {
 
-  /** @domName RadioNodeList.value */
+  /// @domName RadioNodeList.value; @docsEditable true
   String value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15233,7 +15461,7 @@ class RadioNodeList extends NodeList native "*RadioNodeList" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Range
+/// @domName Range; @docsEditable true
 class Range native "*Range" {
 
   static const int END_TO_END = 2;
@@ -15252,97 +15480,98 @@ class Range native "*Range" {
 
   static const int START_TO_START = 0;
 
-  /** @domName Range.collapsed */
+  /// @domName Range.collapsed; @docsEditable true
   final bool collapsed;
 
-  /** @domName Range.commonAncestorContainer */
+  /// @domName Range.commonAncestorContainer; @docsEditable true
   final Node commonAncestorContainer;
 
-  /** @domName Range.endContainer */
+  /// @domName Range.endContainer; @docsEditable true
   final Node endContainer;
 
-  /** @domName Range.endOffset */
+  /// @domName Range.endOffset; @docsEditable true
   final int endOffset;
 
-  /** @domName Range.startContainer */
+  /// @domName Range.startContainer; @docsEditable true
   final Node startContainer;
 
-  /** @domName Range.startOffset */
+  /// @domName Range.startOffset; @docsEditable true
   final int startOffset;
 
-  /** @domName Range.cloneContents */
+  /// @domName Range.cloneContents; @docsEditable true
   DocumentFragment cloneContents() native;
 
-  /** @domName Range.cloneRange */
+  /// @domName Range.cloneRange; @docsEditable true
   Range cloneRange() native;
 
-  /** @domName Range.collapse */
+  /// @domName Range.collapse; @docsEditable true
   void collapse(bool toStart) native;
 
-  /** @domName Range.compareNode */
+  /// @domName Range.compareNode; @docsEditable true
   int compareNode(Node refNode) native;
 
-  /** @domName Range.comparePoint */
+  /// @domName Range.comparePoint; @docsEditable true
   int comparePoint(Node refNode, int offset) native;
 
-  /** @domName Range.createContextualFragment */
+  /// @domName Range.createContextualFragment; @docsEditable true
   DocumentFragment createContextualFragment(String html) native;
 
-  /** @domName Range.deleteContents */
+  /// @domName Range.deleteContents; @docsEditable true
   void deleteContents() native;
 
-  /** @domName Range.detach */
+  /// @domName Range.detach; @docsEditable true
   void detach() native;
 
-  /** @domName Range.expand */
+  /// @domName Range.expand; @docsEditable true
   void expand(String unit) native;
 
-  /** @domName Range.extractContents */
+  /// @domName Range.extractContents; @docsEditable true
   DocumentFragment extractContents() native;
 
-  /** @domName Range.getBoundingClientRect */
+  /// @domName Range.getBoundingClientRect; @docsEditable true
   ClientRect getBoundingClientRect() native;
 
-  /** @domName Range.getClientRects */
+  /// @domName Range.getClientRects; @docsEditable true
+  @Returns('_ClientRectList') @Creates('_ClientRectList')
   List<ClientRect> getClientRects() native;
 
-  /** @domName Range.insertNode */
+  /// @domName Range.insertNode; @docsEditable true
   void insertNode(Node newNode) native;
 
-  /** @domName Range.intersectsNode */
+  /// @domName Range.intersectsNode; @docsEditable true
   bool intersectsNode(Node refNode) native;
 
-  /** @domName Range.isPointInRange */
+  /// @domName Range.isPointInRange; @docsEditable true
   bool isPointInRange(Node refNode, int offset) native;
 
-  /** @domName Range.selectNode */
+  /// @domName Range.selectNode; @docsEditable true
   void selectNode(Node refNode) native;
 
-  /** @domName Range.selectNodeContents */
+  /// @domName Range.selectNodeContents; @docsEditable true
   void selectNodeContents(Node refNode) native;
 
-  /** @domName Range.setEnd */
+  /// @domName Range.setEnd; @docsEditable true
   void setEnd(Node refNode, int offset) native;
 
-  /** @domName Range.setEndAfter */
+  /// @domName Range.setEndAfter; @docsEditable true
   void setEndAfter(Node refNode) native;
 
-  /** @domName Range.setEndBefore */
+  /// @domName Range.setEndBefore; @docsEditable true
   void setEndBefore(Node refNode) native;
 
-  /** @domName Range.setStart */
+  /// @domName Range.setStart; @docsEditable true
   void setStart(Node refNode, int offset) native;
 
-  /** @domName Range.setStartAfter */
+  /// @domName Range.setStartAfter; @docsEditable true
   void setStartAfter(Node refNode) native;
 
-  /** @domName Range.setStartBefore */
+  /// @domName Range.setStartBefore; @docsEditable true
   void setStartBefore(Node refNode) native;
 
-  /** @domName Range.surroundContents */
+  /// @domName Range.surroundContents; @docsEditable true
   void surroundContents(Node newParent) native;
 
-  /** @domName Range.toString */
+  /// @domName Range.toString; @docsEditable true
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15350,23 +15579,23 @@ class Range native "*Range" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName RangeException
+/// @domName RangeException; @docsEditable true
 class RangeException native "*RangeException" {
 
   static const int BAD_BOUNDARYPOINTS_ERR = 1;
 
   static const int INVALID_NODE_TYPE_ERR = 2;
 
-  /** @domName RangeException.code */
+  /// @domName RangeException.code; @docsEditable true
   final int code;
 
-  /** @domName RangeException.message */
+  /// @domName RangeException.message; @docsEditable true
   final String message;
 
-  /** @domName RangeException.name */
+  /// @domName RangeException.name; @docsEditable true
   final String name;
 
-  /** @domName RangeException.toString */
+  /// @domName RangeException.toString; @docsEditable true
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15374,19 +15603,19 @@ class RangeException native "*RangeException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Rect
+/// @domName Rect; @docsEditable true
 class Rect native "*Rect" {
 
-  /** @domName Rect.bottom */
+  /// @domName Rect.bottom; @docsEditable true
   final CSSPrimitiveValue bottom;
 
-  /** @domName Rect.left */
+  /// @domName Rect.left; @docsEditable true
   final CSSPrimitiveValue left;
 
-  /** @domName Rect.right */
+  /// @domName Rect.right; @docsEditable true
   final CSSPrimitiveValue right;
 
-  /** @domName Rect.top */
+  /// @domName Rect.top; @docsEditable true
   final CSSPrimitiveValue top;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15402,7 +15631,7 @@ typedef void RequestAnimationFrameCallback(num highResTime);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SQLError
+/// @domName SQLError; @docsEditable true
 class SQLError native "*SQLError" {
 
   static const int CONSTRAINT_ERR = 6;
@@ -15421,10 +15650,10 @@ class SQLError native "*SQLError" {
 
   static const int VERSION_ERR = 2;
 
-  /** @domName SQLError.code */
+  /// @domName SQLError.code; @docsEditable true
   final int code;
 
-  /** @domName SQLError.message */
+  /// @domName SQLError.message; @docsEditable true
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15432,7 +15661,7 @@ class SQLError native "*SQLError" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SQLException
+/// @domName SQLException; @docsEditable true
 class SQLException native "*SQLException" {
 
   static const int CONSTRAINT_ERR = 6;
@@ -15451,10 +15680,10 @@ class SQLException native "*SQLException" {
 
   static const int VERSION_ERR = 2;
 
-  /** @domName SQLException.code */
+  /// @domName SQLException.code; @docsEditable true
   final int code;
 
-  /** @domName SQLException.message */
+  /// @domName SQLException.message; @docsEditable true
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15462,16 +15691,16 @@ class SQLException native "*SQLException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SQLResultSet
+/// @domName SQLResultSet; @docsEditable true
 class SQLResultSet native "*SQLResultSet" {
 
-  /** @domName SQLResultSet.insertId */
+  /// @domName SQLResultSet.insertId; @docsEditable true
   final int insertId;
 
-  /** @domName SQLResultSet.rows */
+  /// @domName SQLResultSet.rows; @docsEditable true
   final SQLResultSetRowList rows;
 
-  /** @domName SQLResultSet.rowsAffected */
+  /// @domName SQLResultSet.rowsAffected; @docsEditable true
   final int rowsAffected;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15479,10 +15708,10 @@ class SQLResultSet native "*SQLResultSet" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SQLResultSetRowList
+/// @domName SQLResultSetRowList; @docsEditable true
 class SQLResultSetRowList implements JavaScriptIndexingBehavior, List<Map> native "*SQLResultSetRowList" {
 
-  /** @domName SQLResultSetRowList.length */
+  /// @domName SQLResultSetRowList.length; @docsEditable true
   final int length;
 
   Map operator[](int index) => JS("Map", "#[#]", this, index);
@@ -15545,6 +15774,8 @@ class SQLResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  Map get first => this[0];
+
   Map get last => this[length - 1];
 
   Map removeLast() {
@@ -15568,10 +15799,11 @@ class SQLResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
 
   // -- end List<Map> mixins.
 
-  /** @domName SQLResultSetRowList.item */
+  /// @domName SQLResultSetRowList.item; @docsEditable true
   Map item(int index) {
     return _convertNativeToDart_Dictionary(_item_1(index));
   }
+  @Creates('=Object')
   _item_1(index) native "item";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15595,10 +15827,10 @@ typedef void SQLStatementErrorCallback(SQLTransaction transaction, SQLError erro
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SQLTransaction
+/// @domName SQLTransaction; @docsEditable true
 class SQLTransaction native "*SQLTransaction" {
 
-  /** @domName SQLTransaction.executeSql */
+  /// @domName SQLTransaction.executeSql; @docsEditable true
   void executeSql(String sqlStatement, List arguments, [SQLStatementCallback callback, SQLStatementErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15622,10 +15854,10 @@ typedef void SQLTransactionErrorCallback(SQLError error);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SQLTransactionSync
+/// @domName SQLTransactionSync; @docsEditable true
 class SQLTransactionSync native "*SQLTransactionSync" {
 
-  /** @domName SQLTransactionSync.executeSql */
+  /// @domName SQLTransactionSync.executeSql; @docsEditable true
   SQLResultSet executeSql(String sqlStatement, List arguments) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15641,31 +15873,31 @@ typedef void SQLTransactionSyncCallback(SQLTransactionSync transaction);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Screen
+/// @domName Screen; @docsEditable true
 class Screen native "*Screen" {
 
-  /** @domName Screen.availHeight */
+  /// @domName Screen.availHeight; @docsEditable true
   final int availHeight;
 
-  /** @domName Screen.availLeft */
+  /// @domName Screen.availLeft; @docsEditable true
   final int availLeft;
 
-  /** @domName Screen.availTop */
+  /// @domName Screen.availTop; @docsEditable true
   final int availTop;
 
-  /** @domName Screen.availWidth */
+  /// @domName Screen.availWidth; @docsEditable true
   final int availWidth;
 
-  /** @domName Screen.colorDepth */
+  /// @domName Screen.colorDepth; @docsEditable true
   final int colorDepth;
 
-  /** @domName Screen.height */
+  /// @domName Screen.height; @docsEditable true
   final int height;
 
-  /** @domName Screen.pixelDepth */
+  /// @domName Screen.pixelDepth; @docsEditable true
   final int pixelDepth;
 
-  /** @domName Screen.width */
+  /// @domName Screen.width; @docsEditable true
   final int width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15673,33 +15905,33 @@ class Screen native "*Screen" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLScriptElement
+/// @domName HTMLScriptElement; @docsEditable true
 class ScriptElement extends Element implements Element native "*HTMLScriptElement" {
 
-  factory ScriptElement() => _Elements.createScriptElement();
+  factory ScriptElement() => document.$dom_createElement("script");
 
-  /** @domName HTMLScriptElement.async */
+  /// @domName HTMLScriptElement.async; @docsEditable true
   bool async;
 
-  /** @domName HTMLScriptElement.charset */
+  /// @domName HTMLScriptElement.charset; @docsEditable true
   String charset;
 
-  /** @domName HTMLScriptElement.crossOrigin */
+  /// @domName HTMLScriptElement.crossOrigin; @docsEditable true
   String crossOrigin;
 
-  /** @domName HTMLScriptElement.defer */
+  /// @domName HTMLScriptElement.defer; @docsEditable true
   bool defer;
 
-  /** @domName HTMLScriptElement.event */
+  /// @domName HTMLScriptElement.event; @docsEditable true
   String event;
 
-  /** @domName HTMLScriptElement.htmlFor */
+  /// @domName HTMLScriptElement.htmlFor; @docsEditable true
   String htmlFor;
 
-  /** @domName HTMLScriptElement.src */
+  /// @domName HTMLScriptElement.src; @docsEditable true
   String src;
 
-  /** @domName HTMLScriptElement.type */
+  /// @domName HTMLScriptElement.type; @docsEditable true
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15707,16 +15939,14 @@ class ScriptElement extends Element implements Element native "*HTMLScriptElemen
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ScriptProcessorNode
+/// @domName ScriptProcessorNode; @docsEditable true
 class ScriptProcessorNode extends AudioNode implements EventTarget native "*ScriptProcessorNode" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ScriptProcessorNodeEvents get on =>
     new ScriptProcessorNodeEvents(this);
 
-  /** @domName ScriptProcessorNode.bufferSize */
+  /// @domName ScriptProcessorNode.bufferSize; @docsEditable true
   final int bufferSize;
 }
 
@@ -15730,16 +15960,16 @@ class ScriptProcessorNodeEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ScriptProfile
+/// @domName ScriptProfile; @docsEditable true
 class ScriptProfile native "*ScriptProfile" {
 
-  /** @domName ScriptProfile.head */
+  /// @domName ScriptProfile.head; @docsEditable true
   final ScriptProfileNode head;
 
-  /** @domName ScriptProfile.title */
+  /// @domName ScriptProfile.title; @docsEditable true
   final String title;
 
-  /** @domName ScriptProfile.uid */
+  /// @domName ScriptProfile.uid; @docsEditable true
   final int uid;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15747,34 +15977,34 @@ class ScriptProfile native "*ScriptProfile" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ScriptProfileNode
+/// @domName ScriptProfileNode; @docsEditable true
 class ScriptProfileNode native "*ScriptProfileNode" {
 
-  /** @domName ScriptProfileNode.callUID */
+  /// @domName ScriptProfileNode.callUID; @docsEditable true
   final int callUID;
 
-  /** @domName ScriptProfileNode.functionName */
+  /// @domName ScriptProfileNode.functionName; @docsEditable true
   final String functionName;
 
-  /** @domName ScriptProfileNode.lineNumber */
+  /// @domName ScriptProfileNode.lineNumber; @docsEditable true
   final int lineNumber;
 
-  /** @domName ScriptProfileNode.numberOfCalls */
+  /// @domName ScriptProfileNode.numberOfCalls; @docsEditable true
   final int numberOfCalls;
 
-  /** @domName ScriptProfileNode.selfTime */
+  /// @domName ScriptProfileNode.selfTime; @docsEditable true
   final num selfTime;
 
-  /** @domName ScriptProfileNode.totalTime */
+  /// @domName ScriptProfileNode.totalTime; @docsEditable true
   final num totalTime;
 
-  /** @domName ScriptProfileNode.url */
+  /// @domName ScriptProfileNode.url; @docsEditable true
   final String url;
 
-  /** @domName ScriptProfileNode.visible */
+  /// @domName ScriptProfileNode.visible; @docsEditable true
   final bool visible;
 
-  /** @domName ScriptProfileNode.children */
+  /// @domName ScriptProfileNode.children; @docsEditable true
   List<ScriptProfileNode> children() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15784,63 +16014,64 @@ class ScriptProfileNode native "*ScriptProfileNode" {
 
 class SelectElement extends Element implements Element native "*HTMLSelectElement" {
 
-  factory SelectElement() => _Elements.createSelectElement();
+  factory SelectElement() => document.$dom_createElement("select");
 
-  /** @domName HTMLSelectElement.autofocus */
+  /// @domName HTMLSelectElement.autofocus; @docsEditable true
   bool autofocus;
 
-  /** @domName HTMLSelectElement.disabled */
+  /// @domName HTMLSelectElement.disabled; @docsEditable true
   bool disabled;
 
-  /** @domName HTMLSelectElement.form */
+  /// @domName HTMLSelectElement.form; @docsEditable true
   final FormElement form;
 
-  /** @domName HTMLSelectElement.labels */
+  /// @domName HTMLSelectElement.labels; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> labels;
 
-  /** @domName HTMLSelectElement.length */
+  /// @domName HTMLSelectElement.length; @docsEditable true
   int length;
 
-  /** @domName HTMLSelectElement.multiple */
+  /// @domName HTMLSelectElement.multiple; @docsEditable true
   bool multiple;
 
-  /** @domName HTMLSelectElement.name */
+  /// @domName HTMLSelectElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLSelectElement.required */
+  /// @domName HTMLSelectElement.required; @docsEditable true
   bool required;
 
-  /** @domName HTMLSelectElement.selectedIndex */
+  /// @domName HTMLSelectElement.selectedIndex; @docsEditable true
   int selectedIndex;
 
-  /** @domName HTMLSelectElement.size */
+  /// @domName HTMLSelectElement.size; @docsEditable true
   int size;
 
-  /** @domName HTMLSelectElement.type */
+  /// @domName HTMLSelectElement.type; @docsEditable true
   final String type;
 
-  /** @domName HTMLSelectElement.validationMessage */
+  /// @domName HTMLSelectElement.validationMessage; @docsEditable true
   final String validationMessage;
 
-  /** @domName HTMLSelectElement.validity */
+  /// @domName HTMLSelectElement.validity; @docsEditable true
   final ValidityState validity;
 
-  /** @domName HTMLSelectElement.value */
+  /// @domName HTMLSelectElement.value; @docsEditable true
   String value;
 
-  /** @domName HTMLSelectElement.willValidate */
+  /// @domName HTMLSelectElement.willValidate; @docsEditable true
   final bool willValidate;
 
-  /** @domName HTMLSelectElement.checkValidity */
+  /// @domName HTMLSelectElement.checkValidity; @docsEditable true
   bool checkValidity() native;
 
-  /** @domName HTMLSelectElement.item */
+  /// @domName HTMLSelectElement.item; @docsEditable true
   Node item(int index) native;
 
-  /** @domName HTMLSelectElement.namedItem */
+  /// @domName HTMLSelectElement.namedItem; @docsEditable true
   Node namedItem(String name) native;
 
-  /** @domName HTMLSelectElement.setCustomValidity */
+  /// @domName HTMLSelectElement.setCustomValidity; @docsEditable true
   void setCustomValidity(String error) native;
 
 
@@ -15864,15 +16095,15 @@ class SelectElement extends Element implements Element native "*HTMLSelectElemen
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SessionDescription
+/// @domName SessionDescription; @docsEditable true
 class SessionDescription native "*SessionDescription" {
 
   factory SessionDescription(String sdp) => _SessionDescriptionFactoryProvider.createSessionDescription(sdp);
 
-  /** @domName SessionDescription.addCandidate */
+  /// @domName SessionDescription.addCandidate; @docsEditable true
   void addCandidate(IceCandidate candidate) native;
 
-  /** @domName SessionDescription.toSdp */
+  /// @domName SessionDescription.toSdp; @docsEditable true
   String toSdp() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15880,10 +16111,10 @@ class SessionDescription native "*SessionDescription" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLShadowElement
+/// @domName HTMLShadowElement; @docsEditable true
 class ShadowElement extends Element implements Element native "*HTMLShadowElement" {
 
-  /** @domName HTMLShadowElement.resetStyleInheritance */
+  /// @domName HTMLShadowElement.resetStyleInheritance; @docsEditable true
   bool resetStyleInheritance;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15897,31 +16128,33 @@ class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
 
   factory ShadowRoot(Element host) => _ShadowRootFactoryProvider.createShadowRoot(host);
 
-  /** @domName ShadowRoot.activeElement */
+  /// @domName ShadowRoot.activeElement; @docsEditable true
   final Element activeElement;
 
-  /** @domName ShadowRoot.applyAuthorStyles */
+  /// @domName ShadowRoot.applyAuthorStyles; @docsEditable true
   bool applyAuthorStyles;
 
-  /** @domName ShadowRoot.innerHTML */
+  /// @domName ShadowRoot.innerHTML; @docsEditable true
   String innerHTML;
 
-  /** @domName ShadowRoot.resetStyleInheritance */
+  /// @domName ShadowRoot.resetStyleInheritance; @docsEditable true
   bool resetStyleInheritance;
 
-  /** @domName ShadowRoot.cloneNode */
+  /// @domName ShadowRoot.cloneNode; @docsEditable true
   Node clone(bool deep) native "cloneNode";
 
-  /** @domName ShadowRoot.getElementById */
+  /// @domName ShadowRoot.getElementById; @docsEditable true
   Element $dom_getElementById(String elementId) native "getElementById";
 
-  /** @domName ShadowRoot.getElementsByClassName */
+  /// @domName ShadowRoot.getElementsByClassName; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_getElementsByClassName(String className) native "getElementsByClassName";
 
-  /** @domName ShadowRoot.getElementsByTagName */
+  /// @domName ShadowRoot.getElementsByTagName; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> $dom_getElementsByTagName(String tagName) native "getElementsByTagName";
 
-  /** @domName ShadowRoot.getSelection */
+  /// @domName ShadowRoot.getSelection; @docsEditable true
   DOMSelection getSelection() native;
 
   static bool get supported =>
@@ -15932,7 +16165,7 @@ class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SharedWorker
+/// @domName SharedWorker; @docsEditable true
 class SharedWorker extends AbstractWorker native "*SharedWorker" {
 
   factory SharedWorker(String scriptURL, [String name]) {
@@ -15942,7 +16175,7 @@ class SharedWorker extends AbstractWorker native "*SharedWorker" {
     return _SharedWorkerFactoryProvider.createSharedWorker(scriptURL, name);
   }
 
-  /** @domName SharedWorker.port */
+  /// @domName SharedWorker.port; @docsEditable true
   final MessagePort port;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15950,16 +16183,14 @@ class SharedWorker extends AbstractWorker native "*SharedWorker" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SharedWorkerContext
+/// @domName SharedWorkerContext; @docsEditable true
 class SharedWorkerContext extends WorkerContext native "*SharedWorkerContext" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   SharedWorkerContextEvents get on =>
     new SharedWorkerContextEvents(this);
 
-  /** @domName SharedWorkerContext.name */
+  /// @domName SharedWorkerContext.name; @docsEditable true
   final String name;
 }
 
@@ -15973,19 +16204,19 @@ class SharedWorkerContextEvents extends WorkerContextEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SourceBuffer
+/// @domName SourceBuffer; @docsEditable true
 class SourceBuffer native "*SourceBuffer" {
 
-  /** @domName SourceBuffer.buffered */
+  /// @domName SourceBuffer.buffered; @docsEditable true
   final TimeRanges buffered;
 
-  /** @domName SourceBuffer.timestampOffset */
+  /// @domName SourceBuffer.timestampOffset; @docsEditable true
   num timestampOffset;
 
-  /** @domName SourceBuffer.abort */
+  /// @domName SourceBuffer.abort; @docsEditable true
   void abort() native;
 
-  /** @domName SourceBuffer.append */
+  /// @domName SourceBuffer.append; @docsEditable true
   void append(Uint8Array data) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15993,10 +16224,10 @@ class SourceBuffer native "*SourceBuffer" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SourceBufferList
+/// @domName SourceBufferList; @docsEditable true
 class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior, List<SourceBuffer> native "*SourceBufferList" {
 
-  /** @domName SourceBufferList.length */
+  /// @domName SourceBufferList.length; @docsEditable true
   final int length;
 
   SourceBuffer operator[](int index) => JS("SourceBuffer", "#[#]", this, index);
@@ -16059,6 +16290,8 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  SourceBuffer get first => this[0];
+
   SourceBuffer get last => this[length - 1];
 
   SourceBuffer removeLast() {
@@ -16082,16 +16315,16 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
 
   // -- end List<SourceBuffer> mixins.
 
-  /** @domName SourceBufferList.addEventListener */
+  /// @domName SourceBufferList.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName SourceBufferList.dispatchEvent */
+  /// @domName SourceBufferList.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
-  /** @domName SourceBufferList.item */
+  /// @domName SourceBufferList.item; @docsEditable true
   SourceBuffer item(int index) native;
 
-  /** @domName SourceBufferList.removeEventListener */
+  /// @domName SourceBufferList.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16099,18 +16332,18 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLSourceElement
+/// @domName HTMLSourceElement; @docsEditable true
 class SourceElement extends Element implements Element native "*HTMLSourceElement" {
 
-  factory SourceElement() => _Elements.createSourceElement();
+  factory SourceElement() => document.$dom_createElement("source");
 
-  /** @domName HTMLSourceElement.media */
+  /// @domName HTMLSourceElement.media; @docsEditable true
   String media;
 
-  /** @domName HTMLSourceElement.src */
+  /// @domName HTMLSourceElement.src; @docsEditable true
   String src;
 
-  /** @domName HTMLSourceElement.type */
+  /// @domName HTMLSourceElement.type; @docsEditable true
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16118,25 +16351,25 @@ class SourceElement extends Element implements Element native "*HTMLSourceElemen
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLSpanElement
+/// @domName HTMLSpanElement; @docsEditable true
 class SpanElement extends Element implements Element native "*HTMLSpanElement" {
 
-  factory SpanElement() => _Elements.createSpanElement();
+  factory SpanElement() => document.$dom_createElement("span");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SpeechGrammar
+/// @domName SpeechGrammar; @docsEditable true
 class SpeechGrammar native "*SpeechGrammar" {
 
   factory SpeechGrammar() => _SpeechGrammarFactoryProvider.createSpeechGrammar();
 
-  /** @domName SpeechGrammar.src */
+  /// @domName SpeechGrammar.src; @docsEditable true
   String src;
 
-  /** @domName SpeechGrammar.weight */
+  /// @domName SpeechGrammar.weight; @docsEditable true
   num weight;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16144,12 +16377,12 @@ class SpeechGrammar native "*SpeechGrammar" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SpeechGrammarList
+/// @domName SpeechGrammarList; @docsEditable true
 class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGrammar> native "*SpeechGrammarList" {
 
   factory SpeechGrammarList() => _SpeechGrammarListFactoryProvider.createSpeechGrammarList();
 
-  /** @domName SpeechGrammarList.length */
+  /// @domName SpeechGrammarList.length; @docsEditable true
   final int length;
 
   SpeechGrammar operator[](int index) => JS("SpeechGrammar", "#[#]", this, index);
@@ -16212,6 +16445,8 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  SpeechGrammar get first => this[0];
+
   SpeechGrammar get last => this[length - 1];
 
   SpeechGrammar removeLast() {
@@ -16235,13 +16470,13 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
 
   // -- end List<SpeechGrammar> mixins.
 
-  /** @domName SpeechGrammarList.addFromString */
+  /// @domName SpeechGrammarList.addFromString; @docsEditable true
   void addFromString(String string, [num weight]) native;
 
-  /** @domName SpeechGrammarList.addFromUri */
+  /// @domName SpeechGrammarList.addFromUri; @docsEditable true
   void addFromUri(String src, [num weight]) native;
 
-  /** @domName SpeechGrammarList.item */
+  /// @domName SpeechGrammarList.item; @docsEditable true
   SpeechGrammar item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16249,10 +16484,11 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SpeechInputEvent
+/// @domName SpeechInputEvent; @docsEditable true
 class SpeechInputEvent extends Event native "*SpeechInputEvent" {
 
-  /** @domName SpeechInputEvent.results */
+  /// @domName SpeechInputEvent.results; @docsEditable true
+  @Returns('_SpeechInputResultList') @Creates('_SpeechInputResultList')
   final List<SpeechInputResult> results;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16260,13 +16496,13 @@ class SpeechInputEvent extends Event native "*SpeechInputEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SpeechInputResult
+/// @domName SpeechInputResult; @docsEditable true
 class SpeechInputResult native "*SpeechInputResult" {
 
-  /** @domName SpeechInputResult.confidence */
+  /// @domName SpeechInputResult.confidence; @docsEditable true
   final num confidence;
 
-  /** @domName SpeechInputResult.utterance */
+  /// @domName SpeechInputResult.utterance; @docsEditable true
   final String utterance;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16274,48 +16510,46 @@ class SpeechInputResult native "*SpeechInputResult" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SpeechRecognition
+/// @domName SpeechRecognition; @docsEditable true
 class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
 
   factory SpeechRecognition() => _SpeechRecognitionFactoryProvider.createSpeechRecognition();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   SpeechRecognitionEvents get on =>
     new SpeechRecognitionEvents(this);
 
-  /** @domName SpeechRecognition.continuous */
+  /// @domName SpeechRecognition.continuous; @docsEditable true
   bool continuous;
 
-  /** @domName SpeechRecognition.grammars */
+  /// @domName SpeechRecognition.grammars; @docsEditable true
   SpeechGrammarList grammars;
 
-  /** @domName SpeechRecognition.interimResults */
+  /// @domName SpeechRecognition.interimResults; @docsEditable true
   bool interimResults;
 
-  /** @domName SpeechRecognition.lang */
+  /// @domName SpeechRecognition.lang; @docsEditable true
   String lang;
 
-  /** @domName SpeechRecognition.maxAlternatives */
+  /// @domName SpeechRecognition.maxAlternatives; @docsEditable true
   int maxAlternatives;
 
-  /** @domName SpeechRecognition.abort */
+  /// @domName SpeechRecognition.abort; @docsEditable true
   void abort() native;
 
-  /** @domName SpeechRecognition.addEventListener */
+  /// @domName SpeechRecognition.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName SpeechRecognition.dispatchEvent */
+  /// @domName SpeechRecognition.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName SpeechRecognition.removeEventListener */
+  /// @domName SpeechRecognition.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName SpeechRecognition.start */
+  /// @domName SpeechRecognition.start; @docsEditable true
   void start() native;
 
-  /** @domName SpeechRecognition.stop */
+  /// @domName SpeechRecognition.stop; @docsEditable true
   void stop() native;
 }
 
@@ -16349,13 +16583,13 @@ class SpeechRecognitionEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SpeechRecognitionAlternative
+/// @domName SpeechRecognitionAlternative; @docsEditable true
 class SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
 
-  /** @domName SpeechRecognitionAlternative.confidence */
+  /// @domName SpeechRecognitionAlternative.confidence; @docsEditable true
   final num confidence;
 
-  /** @domName SpeechRecognitionAlternative.transcript */
+  /// @domName SpeechRecognitionAlternative.transcript; @docsEditable true
   final String transcript;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16363,7 +16597,7 @@ class SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SpeechRecognitionError
+/// @domName SpeechRecognitionError; @docsEditable true
 class SpeechRecognitionError extends Event native "*SpeechRecognitionError" {
 
   static const int ABORTED = 2;
@@ -16384,10 +16618,10 @@ class SpeechRecognitionError extends Event native "*SpeechRecognitionError" {
 
   static const int SERVICE_NOT_ALLOWED = 6;
 
-  /** @domName SpeechRecognitionError.code */
+  /// @domName SpeechRecognitionError.code; @docsEditable true
   final int code;
 
-  /** @domName SpeechRecognitionError.message */
+  /// @domName SpeechRecognitionError.message; @docsEditable true
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16395,16 +16629,17 @@ class SpeechRecognitionError extends Event native "*SpeechRecognitionError" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SpeechRecognitionEvent
+/// @domName SpeechRecognitionEvent; @docsEditable true
 class SpeechRecognitionEvent extends Event native "*SpeechRecognitionEvent" {
 
-  /** @domName SpeechRecognitionEvent.result */
+  /// @domName SpeechRecognitionEvent.result; @docsEditable true
   final SpeechRecognitionResult result;
 
-  /** @domName SpeechRecognitionEvent.resultHistory */
+  /// @domName SpeechRecognitionEvent.resultHistory; @docsEditable true
+  @Returns('_SpeechRecognitionResultList') @Creates('_SpeechRecognitionResultList')
   final List<SpeechRecognitionResult> resultHistory;
 
-  /** @domName SpeechRecognitionEvent.resultIndex */
+  /// @domName SpeechRecognitionEvent.resultIndex; @docsEditable true
   final int resultIndex;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16412,19 +16647,19 @@ class SpeechRecognitionEvent extends Event native "*SpeechRecognitionEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SpeechRecognitionResult
+/// @domName SpeechRecognitionResult; @docsEditable true
 class SpeechRecognitionResult native "*SpeechRecognitionResult" {
 
-  /** @domName SpeechRecognitionResult.emma */
+  /// @domName SpeechRecognitionResult.emma; @docsEditable true
   final Document emma;
 
-  /** @domName SpeechRecognitionResult.finalValue */
+  /// @domName SpeechRecognitionResult.finalValue; @docsEditable true
   bool get finalValue => JS("bool", "#.final", this);
 
-  /** @domName SpeechRecognitionResult.length */
+  /// @domName SpeechRecognitionResult.length; @docsEditable true
   final int length;
 
-  /** @domName SpeechRecognitionResult.item */
+  /// @domName SpeechRecognitionResult.item; @docsEditable true
   SpeechRecognitionAlternative item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16441,7 +16676,7 @@ class Storage implements Map<String, String>  native "*Storage" {
 
   String operator [](String key) => $dom_getItem(key);
 
-  void operator []=(String key, String value) => $dom_setItem(key, value);
+  void operator []=(String key, String value) { $dom_setItem(key, value); }
 
   String putIfAbsent(String key, String ifAbsent()) {
     if (!containsKey(key)) this[key] = ifAbsent();
@@ -16481,22 +16716,22 @@ class Storage implements Map<String, String>  native "*Storage" {
 
   bool get isEmpty => $dom_key(0) == null;
 
-  /** @domName Storage.length */
+  /// @domName Storage.length; @docsEditable true
   int get $dom_length => JS("int", "#.length", this);
 
-  /** @domName Storage.clear */
+  /// @domName Storage.clear; @docsEditable true
   void $dom_clear() native "clear";
 
-  /** @domName Storage.getItem */
+  /// @domName Storage.getItem; @docsEditable true
   String $dom_getItem(String key) native "getItem";
 
-  /** @domName Storage.key */
+  /// @domName Storage.key; @docsEditable true
   String $dom_key(int index) native "key";
 
-  /** @domName Storage.removeItem */
+  /// @domName Storage.removeItem; @docsEditable true
   void $dom_removeItem(String key) native "removeItem";
 
-  /** @domName Storage.setItem */
+  /// @domName Storage.setItem; @docsEditable true
   void $dom_setItem(String key, String data) native "setItem";
 
 }
@@ -16505,25 +16740,25 @@ class Storage implements Map<String, String>  native "*Storage" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName StorageEvent
+/// @domName StorageEvent; @docsEditable true
 class StorageEvent extends Event native "*StorageEvent" {
 
-  /** @domName StorageEvent.key */
+  /// @domName StorageEvent.key; @docsEditable true
   final String key;
 
-  /** @domName StorageEvent.newValue */
+  /// @domName StorageEvent.newValue; @docsEditable true
   final String newValue;
 
-  /** @domName StorageEvent.oldValue */
+  /// @domName StorageEvent.oldValue; @docsEditable true
   final String oldValue;
 
-  /** @domName StorageEvent.storageArea */
+  /// @domName StorageEvent.storageArea; @docsEditable true
   final Storage storageArea;
 
-  /** @domName StorageEvent.url */
+  /// @domName StorageEvent.url; @docsEditable true
   final String url;
 
-  /** @domName StorageEvent.initStorageEvent */
+  /// @domName StorageEvent.initStorageEvent; @docsEditable true
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16531,17 +16766,17 @@ class StorageEvent extends Event native "*StorageEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName StorageInfo
+/// @domName StorageInfo; @docsEditable true
 class StorageInfo native "*StorageInfo" {
 
   static const int PERSISTENT = 1;
 
   static const int TEMPORARY = 0;
 
-  /** @domName StorageInfo.queryUsageAndQuota */
+  /// @domName StorageInfo.queryUsageAndQuota; @docsEditable true
   void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]) native;
 
-  /** @domName StorageInfo.requestQuota */
+  /// @domName StorageInfo.requestQuota; @docsEditable true
   void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16581,24 +16816,24 @@ typedef void StringCallback(String data);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLStyleElement
+/// @domName HTMLStyleElement; @docsEditable true
 class StyleElement extends Element implements Element native "*HTMLStyleElement" {
 
-  factory StyleElement() => _Elements.createStyleElement();
+  factory StyleElement() => document.$dom_createElement("style");
 
-  /** @domName HTMLStyleElement.disabled */
+  /// @domName HTMLStyleElement.disabled; @docsEditable true
   bool disabled;
 
-  /** @domName HTMLStyleElement.media */
+  /// @domName HTMLStyleElement.media; @docsEditable true
   String media;
 
-  /** @domName HTMLStyleElement.scoped */
+  /// @domName HTMLStyleElement.scoped; @docsEditable true
   bool scoped;
 
-  /** @domName HTMLStyleElement.sheet */
+  /// @domName HTMLStyleElement.sheet; @docsEditable true
   final StyleSheet sheet;
 
-  /** @domName HTMLStyleElement.type */
+  /// @domName HTMLStyleElement.type; @docsEditable true
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16606,13 +16841,13 @@ class StyleElement extends Element implements Element native "*HTMLStyleElement"
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName StyleMedia
+/// @domName StyleMedia; @docsEditable true
 class StyleMedia native "*StyleMedia" {
 
-  /** @domName StyleMedia.type */
+  /// @domName StyleMedia.type; @docsEditable true
   final String type;
 
-  /** @domName StyleMedia.matchMedium */
+  /// @domName StyleMedia.matchMedium; @docsEditable true
   bool matchMedium(String mediaquery) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16620,28 +16855,28 @@ class StyleMedia native "*StyleMedia" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName StyleSheet
+/// @domName StyleSheet; @docsEditable true
 class StyleSheet native "*StyleSheet" {
 
-  /** @domName StyleSheet.disabled */
+  /// @domName StyleSheet.disabled; @docsEditable true
   bool disabled;
 
-  /** @domName StyleSheet.href */
+  /// @domName StyleSheet.href; @docsEditable true
   final String href;
 
-  /** @domName StyleSheet.media */
+  /// @domName StyleSheet.media; @docsEditable true
   final MediaList media;
 
-  /** @domName StyleSheet.ownerNode */
+  /// @domName StyleSheet.ownerNode; @docsEditable true
   final Node ownerNode;
 
-  /** @domName StyleSheet.parentStyleSheet */
+  /// @domName StyleSheet.parentStyleSheet; @docsEditable true
   final StyleSheet parentStyleSheet;
 
-  /** @domName StyleSheet.title */
+  /// @domName StyleSheet.title; @docsEditable true
   final String title;
 
-  /** @domName StyleSheet.type */
+  /// @domName StyleSheet.type; @docsEditable true
   final String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16649,12 +16884,12 @@ class StyleSheet native "*StyleSheet" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLTableCaptionElement
+/// @domName HTMLTableCaptionElement; @docsEditable true
 class TableCaptionElement extends Element implements Element native "*HTMLTableCaptionElement" {
 
-  factory TableCaptionElement() => _Elements.createTableCaptionElement();
+  factory TableCaptionElement() => document.$dom_createElement("caption");
 
-  /** @domName HTMLTableCaptionElement.align */
+  /// @domName HTMLTableCaptionElement.align; @docsEditable true
   String align;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16662,54 +16897,54 @@ class TableCaptionElement extends Element implements Element native "*HTMLTableC
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLTableCellElement
+/// @domName HTMLTableCellElement; @docsEditable true
 class TableCellElement extends Element implements Element native "*HTMLTableCellElement" {
 
-  factory TableCellElement() => _Elements.createTableCellElement();
+  factory TableCellElement() => document.$dom_createElement("td");
 
-  /** @domName HTMLTableCellElement.abbr */
+  /// @domName HTMLTableCellElement.abbr; @docsEditable true
   String abbr;
 
-  /** @domName HTMLTableCellElement.align */
+  /// @domName HTMLTableCellElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLTableCellElement.axis */
+  /// @domName HTMLTableCellElement.axis; @docsEditable true
   String axis;
 
-  /** @domName HTMLTableCellElement.bgColor */
+  /// @domName HTMLTableCellElement.bgColor; @docsEditable true
   String bgColor;
 
-  /** @domName HTMLTableCellElement.cellIndex */
+  /// @domName HTMLTableCellElement.cellIndex; @docsEditable true
   final int cellIndex;
 
-  /** @domName HTMLTableCellElement.ch */
+  /// @domName HTMLTableCellElement.ch; @docsEditable true
   String ch;
 
-  /** @domName HTMLTableCellElement.chOff */
+  /// @domName HTMLTableCellElement.chOff; @docsEditable true
   String chOff;
 
-  /** @domName HTMLTableCellElement.colSpan */
+  /// @domName HTMLTableCellElement.colSpan; @docsEditable true
   int colSpan;
 
-  /** @domName HTMLTableCellElement.headers */
+  /// @domName HTMLTableCellElement.headers; @docsEditable true
   String headers;
 
-  /** @domName HTMLTableCellElement.height */
+  /// @domName HTMLTableCellElement.height; @docsEditable true
   String height;
 
-  /** @domName HTMLTableCellElement.noWrap */
+  /// @domName HTMLTableCellElement.noWrap; @docsEditable true
   bool noWrap;
 
-  /** @domName HTMLTableCellElement.rowSpan */
+  /// @domName HTMLTableCellElement.rowSpan; @docsEditable true
   int rowSpan;
 
-  /** @domName HTMLTableCellElement.scope */
+  /// @domName HTMLTableCellElement.scope; @docsEditable true
   String scope;
 
-  /** @domName HTMLTableCellElement.vAlign */
+  /// @domName HTMLTableCellElement.vAlign; @docsEditable true
   String vAlign;
 
-  /** @domName HTMLTableCellElement.width */
+  /// @domName HTMLTableCellElement.width; @docsEditable true
   String width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16717,27 +16952,27 @@ class TableCellElement extends Element implements Element native "*HTMLTableCell
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLTableColElement
+/// @domName HTMLTableColElement; @docsEditable true
 class TableColElement extends Element implements Element native "*HTMLTableColElement" {
 
-  factory TableColElement() => _Elements.createTableColElement();
+  factory TableColElement() => document.$dom_createElement("col");
 
-  /** @domName HTMLTableColElement.align */
+  /// @domName HTMLTableColElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLTableColElement.ch */
+  /// @domName HTMLTableColElement.ch; @docsEditable true
   String ch;
 
-  /** @domName HTMLTableColElement.chOff */
+  /// @domName HTMLTableColElement.chOff; @docsEditable true
   String chOff;
 
-  /** @domName HTMLTableColElement.span */
+  /// @domName HTMLTableColElement.span; @docsEditable true
   int span;
 
-  /** @domName HTMLTableColElement.vAlign */
+  /// @domName HTMLTableColElement.vAlign; @docsEditable true
   String vAlign;
 
-  /** @domName HTMLTableColElement.width */
+  /// @domName HTMLTableColElement.width; @docsEditable true
   String width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16747,72 +16982,72 @@ class TableColElement extends Element implements Element native "*HTMLTableColEl
 
 class TableElement extends Element implements Element native "*HTMLTableElement" {
 
-  factory TableElement() => _Elements.createTableElement();
+  factory TableElement() => document.$dom_createElement("table");
 
-  /** @domName HTMLTableElement.align */
+  /// @domName HTMLTableElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLTableElement.bgColor */
+  /// @domName HTMLTableElement.bgColor; @docsEditable true
   String bgColor;
 
-  /** @domName HTMLTableElement.border */
+  /// @domName HTMLTableElement.border; @docsEditable true
   String border;
 
-  /** @domName HTMLTableElement.caption */
+  /// @domName HTMLTableElement.caption; @docsEditable true
   TableCaptionElement caption;
 
-  /** @domName HTMLTableElement.cellPadding */
+  /// @domName HTMLTableElement.cellPadding; @docsEditable true
   String cellPadding;
 
-  /** @domName HTMLTableElement.cellSpacing */
+  /// @domName HTMLTableElement.cellSpacing; @docsEditable true
   String cellSpacing;
 
-  /** @domName HTMLTableElement.frame */
+  /// @domName HTMLTableElement.frame; @docsEditable true
   String frame;
 
-  /** @domName HTMLTableElement.rows */
+  /// @domName HTMLTableElement.rows; @docsEditable true
   final HTMLCollection rows;
 
-  /** @domName HTMLTableElement.rules */
+  /// @domName HTMLTableElement.rules; @docsEditable true
   String rules;
 
-  /** @domName HTMLTableElement.summary */
+  /// @domName HTMLTableElement.summary; @docsEditable true
   String summary;
 
-  /** @domName HTMLTableElement.tBodies */
+  /// @domName HTMLTableElement.tBodies; @docsEditable true
   final HTMLCollection tBodies;
 
-  /** @domName HTMLTableElement.tFoot */
+  /// @domName HTMLTableElement.tFoot; @docsEditable true
   TableSectionElement tFoot;
 
-  /** @domName HTMLTableElement.tHead */
+  /// @domName HTMLTableElement.tHead; @docsEditable true
   TableSectionElement tHead;
 
-  /** @domName HTMLTableElement.width */
+  /// @domName HTMLTableElement.width; @docsEditable true
   String width;
 
-  /** @domName HTMLTableElement.createCaption */
+  /// @domName HTMLTableElement.createCaption; @docsEditable true
   Element createCaption() native;
 
-  /** @domName HTMLTableElement.createTFoot */
+  /// @domName HTMLTableElement.createTFoot; @docsEditable true
   Element createTFoot() native;
 
-  /** @domName HTMLTableElement.createTHead */
+  /// @domName HTMLTableElement.createTHead; @docsEditable true
   Element createTHead() native;
 
-  /** @domName HTMLTableElement.deleteCaption */
+  /// @domName HTMLTableElement.deleteCaption; @docsEditable true
   void deleteCaption() native;
 
-  /** @domName HTMLTableElement.deleteRow */
+  /// @domName HTMLTableElement.deleteRow; @docsEditable true
   void deleteRow(int index) native;
 
-  /** @domName HTMLTableElement.deleteTFoot */
+  /// @domName HTMLTableElement.deleteTFoot; @docsEditable true
   void deleteTFoot() native;
 
-  /** @domName HTMLTableElement.deleteTHead */
+  /// @domName HTMLTableElement.deleteTHead; @docsEditable true
   void deleteTHead() native;
 
-  /** @domName HTMLTableElement.insertRow */
+  /// @domName HTMLTableElement.insertRow; @docsEditable true
   Element insertRow(int index) native;
 
 
@@ -16832,39 +17067,39 @@ class TableElement extends Element implements Element native "*HTMLTableElement"
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLTableRowElement
+/// @domName HTMLTableRowElement; @docsEditable true
 class TableRowElement extends Element implements Element native "*HTMLTableRowElement" {
 
-  factory TableRowElement() => _Elements.createTableRowElement();
+  factory TableRowElement() => document.$dom_createElement("tr");
 
-  /** @domName HTMLTableRowElement.align */
+  /// @domName HTMLTableRowElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLTableRowElement.bgColor */
+  /// @domName HTMLTableRowElement.bgColor; @docsEditable true
   String bgColor;
 
-  /** @domName HTMLTableRowElement.cells */
+  /// @domName HTMLTableRowElement.cells; @docsEditable true
   final HTMLCollection cells;
 
-  /** @domName HTMLTableRowElement.ch */
+  /// @domName HTMLTableRowElement.ch; @docsEditable true
   String ch;
 
-  /** @domName HTMLTableRowElement.chOff */
+  /// @domName HTMLTableRowElement.chOff; @docsEditable true
   String chOff;
 
-  /** @domName HTMLTableRowElement.rowIndex */
+  /// @domName HTMLTableRowElement.rowIndex; @docsEditable true
   final int rowIndex;
 
-  /** @domName HTMLTableRowElement.sectionRowIndex */
+  /// @domName HTMLTableRowElement.sectionRowIndex; @docsEditable true
   final int sectionRowIndex;
 
-  /** @domName HTMLTableRowElement.vAlign */
+  /// @domName HTMLTableRowElement.vAlign; @docsEditable true
   String vAlign;
 
-  /** @domName HTMLTableRowElement.deleteCell */
+  /// @domName HTMLTableRowElement.deleteCell; @docsEditable true
   void deleteCell(int index) native;
 
-  /** @domName HTMLTableRowElement.insertCell */
+  /// @domName HTMLTableRowElement.insertCell; @docsEditable true
   Element insertCell(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16872,28 +17107,28 @@ class TableRowElement extends Element implements Element native "*HTMLTableRowEl
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLTableSectionElement
+/// @domName HTMLTableSectionElement; @docsEditable true
 class TableSectionElement extends Element implements Element native "*HTMLTableSectionElement" {
 
-  /** @domName HTMLTableSectionElement.align */
+  /// @domName HTMLTableSectionElement.align; @docsEditable true
   String align;
 
-  /** @domName HTMLTableSectionElement.ch */
+  /// @domName HTMLTableSectionElement.ch; @docsEditable true
   String ch;
 
-  /** @domName HTMLTableSectionElement.chOff */
+  /// @domName HTMLTableSectionElement.chOff; @docsEditable true
   String chOff;
 
-  /** @domName HTMLTableSectionElement.rows */
+  /// @domName HTMLTableSectionElement.rows; @docsEditable true
   final HTMLCollection rows;
 
-  /** @domName HTMLTableSectionElement.vAlign */
+  /// @domName HTMLTableSectionElement.vAlign; @docsEditable true
   String vAlign;
 
-  /** @domName HTMLTableSectionElement.deleteRow */
+  /// @domName HTMLTableSectionElement.deleteRow; @docsEditable true
   void deleteRow(int index) native;
 
-  /** @domName HTMLTableSectionElement.insertRow */
+  /// @domName HTMLTableSectionElement.insertRow; @docsEditable true
   Element insertRow(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16906,13 +17141,13 @@ class TableSectionElement extends Element implements Element native "*HTMLTableS
 class Text extends CharacterData native "*Text" {
   factory Text(String data) => _TextFactoryProvider.createText(data);
 
-  /** @domName Text.wholeText */
+  /// @domName Text.wholeText; @docsEditable true
   final String wholeText;
 
-  /** @domName Text.replaceWholeText */
+  /// @domName Text.replaceWholeText; @docsEditable true
   Text replaceWholeText(String content) native;
 
-  /** @domName Text.splitText */
+  /// @domName Text.splitText; @docsEditable true
   Text splitText(int offset) native;
 
 }
@@ -16921,93 +17156,94 @@ class Text extends CharacterData native "*Text" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLTextAreaElement
+/// @domName HTMLTextAreaElement; @docsEditable true
 class TextAreaElement extends Element implements Element native "*HTMLTextAreaElement" {
 
-  factory TextAreaElement() => _Elements.createTextAreaElement();
+  factory TextAreaElement() => document.$dom_createElement("textarea");
 
-  /** @domName HTMLTextAreaElement.autofocus */
+  /// @domName HTMLTextAreaElement.autofocus; @docsEditable true
   bool autofocus;
 
-  /** @domName HTMLTextAreaElement.cols */
+  /// @domName HTMLTextAreaElement.cols; @docsEditable true
   int cols;
 
-  /** @domName HTMLTextAreaElement.defaultValue */
+  /// @domName HTMLTextAreaElement.defaultValue; @docsEditable true
   String defaultValue;
 
-  /** @domName HTMLTextAreaElement.dirName */
+  /// @domName HTMLTextAreaElement.dirName; @docsEditable true
   String dirName;
 
-  /** @domName HTMLTextAreaElement.disabled */
+  /// @domName HTMLTextAreaElement.disabled; @docsEditable true
   bool disabled;
 
-  /** @domName HTMLTextAreaElement.form */
+  /// @domName HTMLTextAreaElement.form; @docsEditable true
   final FormElement form;
 
-  /** @domName HTMLTextAreaElement.labels */
+  /// @domName HTMLTextAreaElement.labels; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   final List<Node> labels;
 
-  /** @domName HTMLTextAreaElement.maxLength */
+  /// @domName HTMLTextAreaElement.maxLength; @docsEditable true
   int maxLength;
 
-  /** @domName HTMLTextAreaElement.name */
+  /// @domName HTMLTextAreaElement.name; @docsEditable true
   String name;
 
-  /** @domName HTMLTextAreaElement.placeholder */
+  /// @domName HTMLTextAreaElement.placeholder; @docsEditable true
   String placeholder;
 
-  /** @domName HTMLTextAreaElement.readOnly */
+  /// @domName HTMLTextAreaElement.readOnly; @docsEditable true
   bool readOnly;
 
-  /** @domName HTMLTextAreaElement.required */
+  /// @domName HTMLTextAreaElement.required; @docsEditable true
   bool required;
 
-  /** @domName HTMLTextAreaElement.rows */
+  /// @domName HTMLTextAreaElement.rows; @docsEditable true
   int rows;
 
-  /** @domName HTMLTextAreaElement.selectionDirection */
+  /// @domName HTMLTextAreaElement.selectionDirection; @docsEditable true
   String selectionDirection;
 
-  /** @domName HTMLTextAreaElement.selectionEnd */
+  /// @domName HTMLTextAreaElement.selectionEnd; @docsEditable true
   int selectionEnd;
 
-  /** @domName HTMLTextAreaElement.selectionStart */
+  /// @domName HTMLTextAreaElement.selectionStart; @docsEditable true
   int selectionStart;
 
-  /** @domName HTMLTextAreaElement.textLength */
+  /// @domName HTMLTextAreaElement.textLength; @docsEditable true
   final int textLength;
 
-  /** @domName HTMLTextAreaElement.type */
+  /// @domName HTMLTextAreaElement.type; @docsEditable true
   final String type;
 
-  /** @domName HTMLTextAreaElement.validationMessage */
+  /// @domName HTMLTextAreaElement.validationMessage; @docsEditable true
   final String validationMessage;
 
-  /** @domName HTMLTextAreaElement.validity */
+  /// @domName HTMLTextAreaElement.validity; @docsEditable true
   final ValidityState validity;
 
-  /** @domName HTMLTextAreaElement.value */
+  /// @domName HTMLTextAreaElement.value; @docsEditable true
   String value;
 
-  /** @domName HTMLTextAreaElement.willValidate */
+  /// @domName HTMLTextAreaElement.willValidate; @docsEditable true
   final bool willValidate;
 
-  /** @domName HTMLTextAreaElement.wrap */
+  /// @domName HTMLTextAreaElement.wrap; @docsEditable true
   String wrap;
 
-  /** @domName HTMLTextAreaElement.checkValidity */
+  /// @domName HTMLTextAreaElement.checkValidity; @docsEditable true
   bool checkValidity() native;
 
-  /** @domName HTMLTextAreaElement.select */
+  /// @domName HTMLTextAreaElement.select; @docsEditable true
   void select() native;
 
-  /** @domName HTMLTextAreaElement.setCustomValidity */
+  /// @domName HTMLTextAreaElement.setCustomValidity; @docsEditable true
   void setCustomValidity(String error) native;
 
-  /** @domName HTMLTextAreaElement.setRangeText */
+  /// @domName HTMLTextAreaElement.setRangeText; @docsEditable true
   void setRangeText(String replacement, [int start, int end, String selectionMode]) native;
 
-  /** @domName HTMLTextAreaElement.setSelectionRange */
+  /// @domName HTMLTextAreaElement.setSelectionRange; @docsEditable true
   void setSelectionRange(int start, int end, [String direction]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17015,13 +17251,13 @@ class TextAreaElement extends Element implements Element native "*HTMLTextAreaEl
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName TextEvent
+/// @domName TextEvent; @docsEditable true
 class TextEvent extends UIEvent native "*TextEvent" {
 
-  /** @domName TextEvent.data */
+  /// @domName TextEvent.data; @docsEditable true
   final String data;
 
-  /** @domName TextEvent.initTextEvent */
+  /// @domName TextEvent.initTextEvent; @docsEditable true
   void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17029,10 +17265,10 @@ class TextEvent extends UIEvent native "*TextEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName TextMetrics
+/// @domName TextMetrics; @docsEditable true
 class TextMetrics native "*TextMetrics" {
 
-  /** @domName TextMetrics.width */
+  /// @domName TextMetrics.width; @docsEditable true
   final num width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17040,46 +17276,44 @@ class TextMetrics native "*TextMetrics" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName TextTrack
+/// @domName TextTrack; @docsEditable true
 class TextTrack extends EventTarget native "*TextTrack" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TextTrackEvents get on =>
     new TextTrackEvents(this);
 
-  /** @domName TextTrack.activeCues */
+  /// @domName TextTrack.activeCues; @docsEditable true
   final TextTrackCueList activeCues;
 
-  /** @domName TextTrack.cues */
+  /// @domName TextTrack.cues; @docsEditable true
   final TextTrackCueList cues;
 
-  /** @domName TextTrack.kind */
+  /// @domName TextTrack.kind; @docsEditable true
   final String kind;
 
-  /** @domName TextTrack.label */
+  /// @domName TextTrack.label; @docsEditable true
   final String label;
 
-  /** @domName TextTrack.language */
+  /// @domName TextTrack.language; @docsEditable true
   final String language;
 
-  /** @domName TextTrack.mode */
+  /// @domName TextTrack.mode; @docsEditable true
   String mode;
 
-  /** @domName TextTrack.addCue */
+  /// @domName TextTrack.addCue; @docsEditable true
   void addCue(TextTrackCue cue) native;
 
-  /** @domName TextTrack.addEventListener */
+  /// @domName TextTrack.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName TextTrack.dispatchEvent */
+  /// @domName TextTrack.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName TextTrack.removeCue */
+  /// @domName TextTrack.removeCue; @docsEditable true
   void removeCue(TextTrackCue cue) native;
 
-  /** @domName TextTrack.removeEventListener */
+  /// @domName TextTrack.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -17093,63 +17327,61 @@ class TextTrackEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName TextTrackCue
+/// @domName TextTrackCue; @docsEditable true
 class TextTrackCue extends EventTarget native "*TextTrackCue" {
 
   factory TextTrackCue(num startTime, num endTime, String text) => _TextTrackCueFactoryProvider.createTextTrackCue(startTime, endTime, text);
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TextTrackCueEvents get on =>
     new TextTrackCueEvents(this);
 
-  /** @domName TextTrackCue.align */
+  /// @domName TextTrackCue.align; @docsEditable true
   String align;
 
-  /** @domName TextTrackCue.endTime */
+  /// @domName TextTrackCue.endTime; @docsEditable true
   num endTime;
 
-  /** @domName TextTrackCue.id */
+  /// @domName TextTrackCue.id; @docsEditable true
   String id;
 
-  /** @domName TextTrackCue.line */
+  /// @domName TextTrackCue.line; @docsEditable true
   int line;
 
-  /** @domName TextTrackCue.pauseOnExit */
+  /// @domName TextTrackCue.pauseOnExit; @docsEditable true
   bool pauseOnExit;
 
-  /** @domName TextTrackCue.position */
+  /// @domName TextTrackCue.position; @docsEditable true
   int position;
 
-  /** @domName TextTrackCue.size */
+  /// @domName TextTrackCue.size; @docsEditable true
   int size;
 
-  /** @domName TextTrackCue.snapToLines */
+  /// @domName TextTrackCue.snapToLines; @docsEditable true
   bool snapToLines;
 
-  /** @domName TextTrackCue.startTime */
+  /// @domName TextTrackCue.startTime; @docsEditable true
   num startTime;
 
-  /** @domName TextTrackCue.text */
+  /// @domName TextTrackCue.text; @docsEditable true
   String text;
 
-  /** @domName TextTrackCue.track */
+  /// @domName TextTrackCue.track; @docsEditable true
   final TextTrack track;
 
-  /** @domName TextTrackCue.vertical */
+  /// @domName TextTrackCue.vertical; @docsEditable true
   String vertical;
 
-  /** @domName TextTrackCue.addEventListener */
+  /// @domName TextTrackCue.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName TextTrackCue.dispatchEvent */
+  /// @domName TextTrackCue.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName TextTrackCue.getCueAsHTML */
+  /// @domName TextTrackCue.getCueAsHTML; @docsEditable true
   DocumentFragment getCueAsHTML() native;
 
-  /** @domName TextTrackCue.removeEventListener */
+  /// @domName TextTrackCue.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -17165,10 +17397,10 @@ class TextTrackCueEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName TextTrackCueList
+/// @domName TextTrackCueList; @docsEditable true
 class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior native "*TextTrackCueList" {
 
-  /** @domName TextTrackCueList.length */
+  /// @domName TextTrackCueList.length; @docsEditable true
   final int length;
 
   TextTrackCue operator[](int index) => JS("TextTrackCue", "#[#]", this, index);
@@ -17231,6 +17463,8 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  TextTrackCue get first => this[0];
+
   TextTrackCue get last => this[length - 1];
 
   TextTrackCue removeLast() {
@@ -17254,10 +17488,10 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
 
   // -- end List<TextTrackCue> mixins.
 
-  /** @domName TextTrackCueList.getCueById */
+  /// @domName TextTrackCueList.getCueById; @docsEditable true
   TextTrackCue getCueById(String id) native;
 
-  /** @domName TextTrackCueList.item */
+  /// @domName TextTrackCueList.item; @docsEditable true
   TextTrackCue item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17265,16 +17499,14 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName TextTrackList
+/// @domName TextTrackList; @docsEditable true
 class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, List<TextTrack> native "*TextTrackList" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TextTrackListEvents get on =>
     new TextTrackListEvents(this);
 
-  /** @domName TextTrackList.length */
+  /// @domName TextTrackList.length; @docsEditable true
   final int length;
 
   TextTrack operator[](int index) => JS("TextTrack", "#[#]", this, index);
@@ -17337,6 +17569,8 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  TextTrack get first => this[0];
+
   TextTrack get last => this[length - 1];
 
   TextTrack removeLast() {
@@ -17360,16 +17594,16 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
 
   // -- end List<TextTrack> mixins.
 
-  /** @domName TextTrackList.addEventListener */
+  /// @domName TextTrackList.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName TextTrackList.dispatchEvent */
+  /// @domName TextTrackList.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName TextTrackList.item */
+  /// @domName TextTrackList.item; @docsEditable true
   TextTrack item(int index) native;
 
-  /** @domName TextTrackList.removeEventListener */
+  /// @domName TextTrackList.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
@@ -17383,16 +17617,16 @@ class TextTrackListEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName TimeRanges
+/// @domName TimeRanges; @docsEditable true
 class TimeRanges native "*TimeRanges" {
 
-  /** @domName TimeRanges.length */
+  /// @domName TimeRanges.length; @docsEditable true
   final int length;
 
-  /** @domName TimeRanges.end */
+  /// @domName TimeRanges.end; @docsEditable true
   num end(int index) native;
 
-  /** @domName TimeRanges.start */
+  /// @domName TimeRanges.start; @docsEditable true
   num start(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17408,54 +17642,54 @@ typedef void TimeoutHandler();
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLTitleElement
+/// @domName HTMLTitleElement; @docsEditable true
 class TitleElement extends Element implements Element native "*HTMLTitleElement" {
 
-  factory TitleElement() => _Elements.createTitleElement();
+  factory TitleElement() => document.$dom_createElement("title");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Touch
+/// @domName Touch; @docsEditable true
 class Touch native "*Touch" {
 
-  /** @domName Touch.clientX */
+  /// @domName Touch.clientX; @docsEditable true
   final int clientX;
 
-  /** @domName Touch.clientY */
+  /// @domName Touch.clientY; @docsEditable true
   final int clientY;
 
-  /** @domName Touch.identifier */
+  /// @domName Touch.identifier; @docsEditable true
   final int identifier;
 
-  /** @domName Touch.pageX */
+  /// @domName Touch.pageX; @docsEditable true
   final int pageX;
 
-  /** @domName Touch.pageY */
+  /// @domName Touch.pageY; @docsEditable true
   final int pageY;
 
-  /** @domName Touch.screenX */
+  /// @domName Touch.screenX; @docsEditable true
   final int screenX;
 
-  /** @domName Touch.screenY */
+  /// @domName Touch.screenY; @docsEditable true
   final int screenY;
 
-  /** @domName Touch.target */
+  /// @domName Touch.target; @docsEditable true
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
   dynamic get _target => JS("dynamic", "#.target", this);
 
-  /** @domName Touch.webkitForce */
+  /// @domName Touch.webkitForce; @docsEditable true
   final num webkitForce;
 
-  /** @domName Touch.webkitRadiusX */
+  /// @domName Touch.webkitRadiusX; @docsEditable true
   final int webkitRadiusX;
 
-  /** @domName Touch.webkitRadiusY */
+  /// @domName Touch.webkitRadiusY; @docsEditable true
   final int webkitRadiusY;
 
-  /** @domName Touch.webkitRotationAngle */
+  /// @domName Touch.webkitRotationAngle; @docsEditable true
   final num webkitRotationAngle;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17463,31 +17697,31 @@ class Touch native "*Touch" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName TouchEvent
+/// @domName TouchEvent; @docsEditable true
 class TouchEvent extends UIEvent native "*TouchEvent" {
 
-  /** @domName TouchEvent.altKey */
+  /// @domName TouchEvent.altKey; @docsEditable true
   final bool altKey;
 
-  /** @domName TouchEvent.changedTouches */
+  /// @domName TouchEvent.changedTouches; @docsEditable true
   final TouchList changedTouches;
 
-  /** @domName TouchEvent.ctrlKey */
+  /// @domName TouchEvent.ctrlKey; @docsEditable true
   final bool ctrlKey;
 
-  /** @domName TouchEvent.metaKey */
+  /// @domName TouchEvent.metaKey; @docsEditable true
   final bool metaKey;
 
-  /** @domName TouchEvent.shiftKey */
+  /// @domName TouchEvent.shiftKey; @docsEditable true
   final bool shiftKey;
 
-  /** @domName TouchEvent.targetTouches */
+  /// @domName TouchEvent.targetTouches; @docsEditable true
   final TouchList targetTouches;
 
-  /** @domName TouchEvent.touches */
+  /// @domName TouchEvent.touches; @docsEditable true
   final TouchList touches;
 
-  /** @domName TouchEvent.initTouchEvent */
+  /// @domName TouchEvent.initTouchEvent; @docsEditable true
   void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, LocalWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17495,10 +17729,10 @@ class TouchEvent extends UIEvent native "*TouchEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName TouchList
+/// @domName TouchList; @docsEditable true
 class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*TouchList" {
 
-  /** @domName TouchList.length */
+  /// @domName TouchList.length; @docsEditable true
   final int length;
 
   Touch operator[](int index) => JS("Touch", "#[#]", this, index);
@@ -17561,6 +17795,8 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  Touch get first => this[0];
+
   Touch get last => this[length - 1];
 
   Touch removeLast() {
@@ -17584,7 +17820,7 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
 
   // -- end List<Touch> mixins.
 
-  /** @domName TouchList.item */
+  /// @domName TouchList.item; @docsEditable true
   Touch item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17592,10 +17828,10 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLTrackElement
+/// @domName HTMLTrackElement; @docsEditable true
 class TrackElement extends Element implements Element native "*HTMLTrackElement" {
 
-  factory TrackElement() => _Elements.createTrackElement();
+  factory TrackElement() => document.$dom_createElement("track");
 
   static const int ERROR = 3;
 
@@ -17605,30 +17841,30 @@ class TrackElement extends Element implements Element native "*HTMLTrackElement"
 
   static const int NONE = 0;
 
-  /** @domName HTMLTrackElement.defaultValue */
+  /// @domName HTMLTrackElement.defaultValue; @docsEditable true
   bool get defaultValue => JS("bool", "#.default", this);
 
-  /** @domName HTMLTrackElement.defaultValue */
+  /// @domName HTMLTrackElement.defaultValue; @docsEditable true
   void set defaultValue(bool value) {
     JS("void", "#.default = #", this, value);
   }
 
-  /** @domName HTMLTrackElement.kind */
+  /// @domName HTMLTrackElement.kind; @docsEditable true
   String kind;
 
-  /** @domName HTMLTrackElement.label */
+  /// @domName HTMLTrackElement.label; @docsEditable true
   String label;
 
-  /** @domName HTMLTrackElement.readyState */
+  /// @domName HTMLTrackElement.readyState; @docsEditable true
   final int readyState;
 
-  /** @domName HTMLTrackElement.src */
+  /// @domName HTMLTrackElement.src; @docsEditable true
   String src;
 
-  /** @domName HTMLTrackElement.srclang */
+  /// @domName HTMLTrackElement.srclang; @docsEditable true
   String srclang;
 
-  /** @domName HTMLTrackElement.track */
+  /// @domName HTMLTrackElement.track; @docsEditable true
   final TextTrack track;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17636,10 +17872,10 @@ class TrackElement extends Element implements Element native "*HTMLTrackElement"
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName TrackEvent
+/// @domName TrackEvent; @docsEditable true
 class TrackEvent extends Event native "*TrackEvent" {
 
-  /** @domName TrackEvent.track */
+  /// @domName TrackEvent.track; @docsEditable true
   final Object track;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17647,13 +17883,13 @@ class TrackEvent extends Event native "*TrackEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebKitTransitionEvent
+/// @domName WebKitTransitionEvent; @docsEditable true
 class TransitionEvent extends Event native "*WebKitTransitionEvent" {
 
-  /** @domName WebKitTransitionEvent.elapsedTime */
+  /// @domName WebKitTransitionEvent.elapsedTime; @docsEditable true
   final num elapsedTime;
 
-  /** @domName WebKitTransitionEvent.propertyName */
+  /// @domName WebKitTransitionEvent.propertyName; @docsEditable true
   final String propertyName;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17661,43 +17897,43 @@ class TransitionEvent extends Event native "*WebKitTransitionEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName TreeWalker
+/// @domName TreeWalker; @docsEditable true
 class TreeWalker native "*TreeWalker" {
 
-  /** @domName TreeWalker.currentNode */
+  /// @domName TreeWalker.currentNode; @docsEditable true
   Node currentNode;
 
-  /** @domName TreeWalker.expandEntityReferences */
+  /// @domName TreeWalker.expandEntityReferences; @docsEditable true
   final bool expandEntityReferences;
 
-  /** @domName TreeWalker.filter */
+  /// @domName TreeWalker.filter; @docsEditable true
   final NodeFilter filter;
 
-  /** @domName TreeWalker.root */
+  /// @domName TreeWalker.root; @docsEditable true
   final Node root;
 
-  /** @domName TreeWalker.whatToShow */
+  /// @domName TreeWalker.whatToShow; @docsEditable true
   final int whatToShow;
 
-  /** @domName TreeWalker.firstChild */
+  /// @domName TreeWalker.firstChild; @docsEditable true
   Node firstChild() native;
 
-  /** @domName TreeWalker.lastChild */
+  /// @domName TreeWalker.lastChild; @docsEditable true
   Node lastChild() native;
 
-  /** @domName TreeWalker.nextNode */
+  /// @domName TreeWalker.nextNode; @docsEditable true
   Node nextNode() native;
 
-  /** @domName TreeWalker.nextSibling */
+  /// @domName TreeWalker.nextSibling; @docsEditable true
   Node nextSibling() native;
 
-  /** @domName TreeWalker.parentNode */
+  /// @domName TreeWalker.parentNode; @docsEditable true
   Node parentNode() native;
 
-  /** @domName TreeWalker.previousNode */
+  /// @domName TreeWalker.previousNode; @docsEditable true
   Node previousNode() native;
 
-  /** @domName TreeWalker.previousSibling */
+  /// @domName TreeWalker.previousSibling; @docsEditable true
   Node previousSibling() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17705,38 +17941,38 @@ class TreeWalker native "*TreeWalker" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName UIEvent
+/// @domName UIEvent; @docsEditable true
 class UIEvent extends Event native "*UIEvent" {
 
-  /** @domName UIEvent.charCode */
+  /// @domName UIEvent.charCode; @docsEditable true
   final int charCode;
 
-  /** @domName UIEvent.detail */
+  /// @domName UIEvent.detail; @docsEditable true
   final int detail;
 
-  /** @domName UIEvent.keyCode */
+  /// @domName UIEvent.keyCode; @docsEditable true
   final int keyCode;
 
-  /** @domName UIEvent.layerX */
+  /// @domName UIEvent.layerX; @docsEditable true
   final int layerX;
 
-  /** @domName UIEvent.layerY */
+  /// @domName UIEvent.layerY; @docsEditable true
   final int layerY;
 
-  /** @domName UIEvent.pageX */
+  /// @domName UIEvent.pageX; @docsEditable true
   final int pageX;
 
-  /** @domName UIEvent.pageY */
+  /// @domName UIEvent.pageY; @docsEditable true
   final int pageY;
 
-  /** @domName UIEvent.view */
+  /// @domName UIEvent.view; @docsEditable true
   Window get view => _convertNativeToDart_Window(this._view);
   dynamic get _view => JS("dynamic", "#.view", this);
 
-  /** @domName UIEvent.which */
+  /// @domName UIEvent.which; @docsEditable true
   final int which;
 
-  /** @domName UIEvent.initUIEvent */
+  /// @domName UIEvent.initUIEvent; @docsEditable true
   void initUIEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17744,15 +17980,15 @@ class UIEvent extends Event native "*UIEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLUListElement
+/// @domName HTMLUListElement; @docsEditable true
 class UListElement extends Element implements Element native "*HTMLUListElement" {
 
-  factory UListElement() => _Elements.createUListElement();
+  factory UListElement() => document.$dom_createElement("ul");
 
-  /** @domName HTMLUListElement.compact */
+  /// @domName HTMLUListElement.compact; @docsEditable true
   bool compact;
 
-  /** @domName HTMLUListElement.type */
+  /// @domName HTMLUListElement.type; @docsEditable true
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17760,7 +17996,7 @@ class UListElement extends Element implements Element native "*HTMLUListElement"
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Uint16Array
+/// @domName Uint16Array; @docsEditable true
 class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Uint16Array" {
 
   factory Uint16Array(int length) =>
@@ -17774,13 +18010,12 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   static const int BYTES_PER_ELEMENT = 2;
 
-  /** @domName Uint16Array.length */
+  /// @domName Uint16Array.length; @docsEditable true
   final int length;
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) => JS("void", "#[#] = #", this, index, value);
-  // -- start List<int> mixins.
+  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
   // int is the element type.
 
   // From Iterable<int>:
@@ -17835,6 +18070,8 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  int get first => this[0];
+
   int get last => this[length - 1];
 
   int removeLast() {
@@ -17858,10 +18095,10 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   // -- end List<int> mixins.
 
-  /** @domName Uint16Array.setElements */
+  /// @domName Uint16Array.setElements; @docsEditable true
   void setElements(Object array, [int offset]) native "set";
 
-  /** @domName Uint16Array.subarray */
+  /// @domName Uint16Array.subarray; @docsEditable true
   Uint16Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17869,7 +18106,7 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Uint32Array
+/// @domName Uint32Array; @docsEditable true
 class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Uint32Array" {
 
   factory Uint32Array(int length) =>
@@ -17883,13 +18120,12 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   static const int BYTES_PER_ELEMENT = 4;
 
-  /** @domName Uint32Array.length */
+  /// @domName Uint32Array.length; @docsEditable true
   final int length;
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) => JS("void", "#[#] = #", this, index, value);
-  // -- start List<int> mixins.
+  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
   // int is the element type.
 
   // From Iterable<int>:
@@ -17944,6 +18180,8 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  int get first => this[0];
+
   int get last => this[length - 1];
 
   int removeLast() {
@@ -17967,10 +18205,10 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   // -- end List<int> mixins.
 
-  /** @domName Uint32Array.setElements */
+  /// @domName Uint32Array.setElements; @docsEditable true
   void setElements(Object array, [int offset]) native "set";
 
-  /** @domName Uint32Array.subarray */
+  /// @domName Uint32Array.subarray; @docsEditable true
   Uint32Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17978,7 +18216,7 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Uint8Array
+/// @domName Uint8Array; @docsEditable true
 class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Uint8Array" {
 
   factory Uint8Array(int length) =>
@@ -17992,13 +18230,12 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   static const int BYTES_PER_ELEMENT = 1;
 
-  /** @domName Uint8Array.length */
+  /// @domName Uint8Array.length; @docsEditable true
   final int length;
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) => JS("void", "#[#] = #", this, index, value);
-  // -- start List<int> mixins.
+  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
   // int is the element type.
 
   // From Iterable<int>:
@@ -18053,6 +18290,8 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  int get first => this[0];
+
   int get last => this[length - 1];
 
   int removeLast() {
@@ -18076,10 +18315,10 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   // -- end List<int> mixins.
 
-  /** @domName Uint8Array.setElements */
+  /// @domName Uint8Array.setElements; @docsEditable true
   void setElements(Object array, [int offset]) native "set";
 
-  /** @domName Uint8Array.subarray */
+  /// @domName Uint8Array.subarray; @docsEditable true
   Uint8Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18087,7 +18326,7 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Uint8ClampedArray
+/// @domName Uint8ClampedArray; @docsEditable true
 class Uint8ClampedArray extends Uint8Array native "*Uint8ClampedArray" {
 
   factory Uint8ClampedArray(int length) =>
@@ -18102,10 +18341,10 @@ class Uint8ClampedArray extends Uint8Array native "*Uint8ClampedArray" {
   // Use implementation from Uint8Array.
   // final int length;
 
-  /** @domName Uint8ClampedArray.setElements */
+  /// @domName Uint8ClampedArray.setElements; @docsEditable true
   void setElements(Object array, [int offset]) native "set";
 
-  /** @domName Uint8ClampedArray.subarray */
+  /// @domName Uint8ClampedArray.subarray; @docsEditable true
   Uint8ClampedArray subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18113,7 +18352,7 @@ class Uint8ClampedArray extends Uint8Array native "*Uint8ClampedArray" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLUnknownElement
+/// @domName HTMLUnknownElement; @docsEditable true
 class UnknownElement extends Element implements Element native "*HTMLUnknownElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18138,34 +18377,34 @@ class Url native "*URL" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ValidityState
+/// @domName ValidityState; @docsEditable true
 class ValidityState native "*ValidityState" {
 
-  /** @domName ValidityState.customError */
+  /// @domName ValidityState.customError; @docsEditable true
   final bool customError;
 
-  /** @domName ValidityState.patternMismatch */
+  /// @domName ValidityState.patternMismatch; @docsEditable true
   final bool patternMismatch;
 
-  /** @domName ValidityState.rangeOverflow */
+  /// @domName ValidityState.rangeOverflow; @docsEditable true
   final bool rangeOverflow;
 
-  /** @domName ValidityState.rangeUnderflow */
+  /// @domName ValidityState.rangeUnderflow; @docsEditable true
   final bool rangeUnderflow;
 
-  /** @domName ValidityState.stepMismatch */
+  /// @domName ValidityState.stepMismatch; @docsEditable true
   final bool stepMismatch;
 
-  /** @domName ValidityState.tooLong */
+  /// @domName ValidityState.tooLong; @docsEditable true
   final bool tooLong;
 
-  /** @domName ValidityState.typeMismatch */
+  /// @domName ValidityState.typeMismatch; @docsEditable true
   final bool typeMismatch;
 
-  /** @domName ValidityState.valid */
+  /// @domName ValidityState.valid; @docsEditable true
   final bool valid;
 
-  /** @domName ValidityState.valueMissing */
+  /// @domName ValidityState.valueMissing; @docsEditable true
   final bool valueMissing;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18173,48 +18412,48 @@ class ValidityState native "*ValidityState" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLVideoElement
+/// @domName HTMLVideoElement; @docsEditable true
 class VideoElement extends MediaElement native "*HTMLVideoElement" {
 
-  factory VideoElement() => _Elements.createVideoElement();
+  factory VideoElement() => document.$dom_createElement("video");
 
-  /** @domName HTMLVideoElement.height */
+  /// @domName HTMLVideoElement.height; @docsEditable true
   int height;
 
-  /** @domName HTMLVideoElement.poster */
+  /// @domName HTMLVideoElement.poster; @docsEditable true
   String poster;
 
-  /** @domName HTMLVideoElement.videoHeight */
+  /// @domName HTMLVideoElement.videoHeight; @docsEditable true
   final int videoHeight;
 
-  /** @domName HTMLVideoElement.videoWidth */
+  /// @domName HTMLVideoElement.videoWidth; @docsEditable true
   final int videoWidth;
 
-  /** @domName HTMLVideoElement.webkitDecodedFrameCount */
+  /// @domName HTMLVideoElement.webkitDecodedFrameCount; @docsEditable true
   final int webkitDecodedFrameCount;
 
-  /** @domName HTMLVideoElement.webkitDisplayingFullscreen */
+  /// @domName HTMLVideoElement.webkitDisplayingFullscreen; @docsEditable true
   final bool webkitDisplayingFullscreen;
 
-  /** @domName HTMLVideoElement.webkitDroppedFrameCount */
+  /// @domName HTMLVideoElement.webkitDroppedFrameCount; @docsEditable true
   final int webkitDroppedFrameCount;
 
-  /** @domName HTMLVideoElement.webkitSupportsFullscreen */
+  /// @domName HTMLVideoElement.webkitSupportsFullscreen; @docsEditable true
   final bool webkitSupportsFullscreen;
 
-  /** @domName HTMLVideoElement.width */
+  /// @domName HTMLVideoElement.width; @docsEditable true
   int width;
 
-  /** @domName HTMLVideoElement.webkitEnterFullScreen */
+  /// @domName HTMLVideoElement.webkitEnterFullScreen; @docsEditable true
   void webkitEnterFullScreen() native;
 
-  /** @domName HTMLVideoElement.webkitEnterFullscreen */
+  /// @domName HTMLVideoElement.webkitEnterFullscreen; @docsEditable true
   void webkitEnterFullscreen() native;
 
-  /** @domName HTMLVideoElement.webkitExitFullScreen */
+  /// @domName HTMLVideoElement.webkitExitFullScreen; @docsEditable true
   void webkitExitFullScreen() native;
 
-  /** @domName HTMLVideoElement.webkitExitFullscreen */
+  /// @domName HTMLVideoElement.webkitExitFullscreen; @docsEditable true
   void webkitExitFullscreen() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18230,10 +18469,10 @@ typedef void VoidCallback();
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WaveShaperNode
+/// @domName WaveShaperNode; @docsEditable true
 class WaveShaperNode extends AudioNode native "*WaveShaperNode" {
 
-  /** @domName WaveShaperNode.curve */
+  /// @domName WaveShaperNode.curve; @docsEditable true
   Float32Array curve;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18241,7 +18480,7 @@ class WaveShaperNode extends AudioNode native "*WaveShaperNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WaveTable
+/// @domName WaveTable; @docsEditable true
 class WaveTable native "*WaveTable" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18249,16 +18488,16 @@ class WaveTable native "*WaveTable" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLActiveInfo
+/// @domName WebGLActiveInfo; @docsEditable true
 class WebGLActiveInfo native "*WebGLActiveInfo" {
 
-  /** @domName WebGLActiveInfo.name */
+  /// @domName WebGLActiveInfo.name; @docsEditable true
   final String name;
 
-  /** @domName WebGLActiveInfo.size */
+  /// @domName WebGLActiveInfo.size; @docsEditable true
   final int size;
 
-  /** @domName WebGLActiveInfo.type */
+  /// @domName WebGLActiveInfo.type; @docsEditable true
   final int type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18266,7 +18505,7 @@ class WebGLActiveInfo native "*WebGLActiveInfo" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLBuffer
+/// @domName WebGLBuffer; @docsEditable true
 class WebGLBuffer native "*WebGLBuffer" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18274,7 +18513,7 @@ class WebGLBuffer native "*WebGLBuffer" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLCompressedTextureS3TC
+/// @domName WebGLCompressedTextureS3TC; @docsEditable true
 class WebGLCompressedTextureS3TC native "*WebGLCompressedTextureS3TC" {
 
   static const int COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1;
@@ -18290,25 +18529,25 @@ class WebGLCompressedTextureS3TC native "*WebGLCompressedTextureS3TC" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLContextAttributes
+/// @domName WebGLContextAttributes; @docsEditable true
 class WebGLContextAttributes native "*WebGLContextAttributes" {
 
-  /** @domName WebGLContextAttributes.alpha */
+  /// @domName WebGLContextAttributes.alpha; @docsEditable true
   bool alpha;
 
-  /** @domName WebGLContextAttributes.antialias */
+  /// @domName WebGLContextAttributes.antialias; @docsEditable true
   bool antialias;
 
-  /** @domName WebGLContextAttributes.depth */
+  /// @domName WebGLContextAttributes.depth; @docsEditable true
   bool depth;
 
-  /** @domName WebGLContextAttributes.premultipliedAlpha */
+  /// @domName WebGLContextAttributes.premultipliedAlpha; @docsEditable true
   bool premultipliedAlpha;
 
-  /** @domName WebGLContextAttributes.preserveDrawingBuffer */
+  /// @domName WebGLContextAttributes.preserveDrawingBuffer; @docsEditable true
   bool preserveDrawingBuffer;
 
-  /** @domName WebGLContextAttributes.stencil */
+  /// @domName WebGLContextAttributes.stencil; @docsEditable true
   bool stencil;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18316,10 +18555,10 @@ class WebGLContextAttributes native "*WebGLContextAttributes" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLContextEvent
+/// @domName WebGLContextEvent; @docsEditable true
 class WebGLContextEvent extends Event native "*WebGLContextEvent" {
 
-  /** @domName WebGLContextEvent.statusMessage */
+  /// @domName WebGLContextEvent.statusMessage; @docsEditable true
   final String statusMessage;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18327,7 +18566,7 @@ class WebGLContextEvent extends Event native "*WebGLContextEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLDebugRendererInfo
+/// @domName WebGLDebugRendererInfo; @docsEditable true
 class WebGLDebugRendererInfo native "*WebGLDebugRendererInfo" {
 
   static const int UNMASKED_RENDERER_WEBGL = 0x9246;
@@ -18339,10 +18578,10 @@ class WebGLDebugRendererInfo native "*WebGLDebugRendererInfo" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLDebugShaders
+/// @domName WebGLDebugShaders; @docsEditable true
 class WebGLDebugShaders native "*WebGLDebugShaders" {
 
-  /** @domName WebGLDebugShaders.getTranslatedShaderSource */
+  /// @domName WebGLDebugShaders.getTranslatedShaderSource; @docsEditable true
   String getTranslatedShaderSource(WebGLShader shader) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18350,7 +18589,7 @@ class WebGLDebugShaders native "*WebGLDebugShaders" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLDepthTexture
+/// @domName WebGLDepthTexture; @docsEditable true
 class WebGLDepthTexture native "*WebGLDepthTexture" {
 
   static const int UNSIGNED_INT_24_8_WEBGL = 0x84FA;
@@ -18360,7 +18599,7 @@ class WebGLDepthTexture native "*WebGLDepthTexture" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLFramebuffer
+/// @domName WebGLFramebuffer; @docsEditable true
 class WebGLFramebuffer native "*WebGLFramebuffer" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18368,13 +18607,13 @@ class WebGLFramebuffer native "*WebGLFramebuffer" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLLoseContext
+/// @domName WebGLLoseContext; @docsEditable true
 class WebGLLoseContext native "*WebGLLoseContext" {
 
-  /** @domName WebGLLoseContext.loseContext */
+  /// @domName WebGLLoseContext.loseContext; @docsEditable true
   void loseContext() native;
 
-  /** @domName WebGLLoseContext.restoreContext */
+  /// @domName WebGLLoseContext.restoreContext; @docsEditable true
   void restoreContext() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18382,7 +18621,7 @@ class WebGLLoseContext native "*WebGLLoseContext" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLProgram
+/// @domName WebGLProgram; @docsEditable true
 class WebGLProgram native "*WebGLProgram" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18390,7 +18629,7 @@ class WebGLProgram native "*WebGLProgram" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLRenderbuffer
+/// @domName WebGLRenderbuffer; @docsEditable true
 class WebGLRenderbuffer native "*WebGLRenderbuffer" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18398,7 +18637,7 @@ class WebGLRenderbuffer native "*WebGLRenderbuffer" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLRenderingContext
+/// @domName WebGLRenderingContext; @docsEditable true
 class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderingContext" {
 
   static const int ACTIVE_ATTRIBUTES = 0x8B89;
@@ -18991,319 +19230,319 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
 
   static const int ZERO = 0;
 
-  /** @domName WebGLRenderingContext.drawingBufferHeight */
+  /// @domName WebGLRenderingContext.drawingBufferHeight; @docsEditable true
   final int drawingBufferHeight;
 
-  /** @domName WebGLRenderingContext.drawingBufferWidth */
+  /// @domName WebGLRenderingContext.drawingBufferWidth; @docsEditable true
   final int drawingBufferWidth;
 
-  /** @domName WebGLRenderingContext.activeTexture */
+  /// @domName WebGLRenderingContext.activeTexture; @docsEditable true
   void activeTexture(int texture) native;
 
-  /** @domName WebGLRenderingContext.attachShader */
+  /// @domName WebGLRenderingContext.attachShader; @docsEditable true
   void attachShader(WebGLProgram program, WebGLShader shader) native;
 
-  /** @domName WebGLRenderingContext.bindAttribLocation */
+  /// @domName WebGLRenderingContext.bindAttribLocation; @docsEditable true
   void bindAttribLocation(WebGLProgram program, int index, String name) native;
 
-  /** @domName WebGLRenderingContext.bindBuffer */
+  /// @domName WebGLRenderingContext.bindBuffer; @docsEditable true
   void bindBuffer(int target, WebGLBuffer buffer) native;
 
-  /** @domName WebGLRenderingContext.bindFramebuffer */
+  /// @domName WebGLRenderingContext.bindFramebuffer; @docsEditable true
   void bindFramebuffer(int target, WebGLFramebuffer framebuffer) native;
 
-  /** @domName WebGLRenderingContext.bindRenderbuffer */
+  /// @domName WebGLRenderingContext.bindRenderbuffer; @docsEditable true
   void bindRenderbuffer(int target, WebGLRenderbuffer renderbuffer) native;
 
-  /** @domName WebGLRenderingContext.bindTexture */
+  /// @domName WebGLRenderingContext.bindTexture; @docsEditable true
   void bindTexture(int target, WebGLTexture texture) native;
 
-  /** @domName WebGLRenderingContext.blendColor */
+  /// @domName WebGLRenderingContext.blendColor; @docsEditable true
   void blendColor(num red, num green, num blue, num alpha) native;
 
-  /** @domName WebGLRenderingContext.blendEquation */
+  /// @domName WebGLRenderingContext.blendEquation; @docsEditable true
   void blendEquation(int mode) native;
 
-  /** @domName WebGLRenderingContext.blendEquationSeparate */
+  /// @domName WebGLRenderingContext.blendEquationSeparate; @docsEditable true
   void blendEquationSeparate(int modeRGB, int modeAlpha) native;
 
-  /** @domName WebGLRenderingContext.blendFunc */
+  /// @domName WebGLRenderingContext.blendFunc; @docsEditable true
   void blendFunc(int sfactor, int dfactor) native;
 
-  /** @domName WebGLRenderingContext.blendFuncSeparate */
+  /// @domName WebGLRenderingContext.blendFuncSeparate; @docsEditable true
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) native;
 
-  /** @domName WebGLRenderingContext.bufferData */
+  /// @domName WebGLRenderingContext.bufferData; @docsEditable true
   void bufferData(int target, data_OR_size, int usage) native;
 
-  /** @domName WebGLRenderingContext.bufferSubData */
+  /// @domName WebGLRenderingContext.bufferSubData; @docsEditable true
   void bufferSubData(int target, int offset, data) native;
 
-  /** @domName WebGLRenderingContext.checkFramebufferStatus */
+  /// @domName WebGLRenderingContext.checkFramebufferStatus; @docsEditable true
   int checkFramebufferStatus(int target) native;
 
-  /** @domName WebGLRenderingContext.clear */
+  /// @domName WebGLRenderingContext.clear; @docsEditable true
   void clear(int mask) native;
 
-  /** @domName WebGLRenderingContext.clearColor */
+  /// @domName WebGLRenderingContext.clearColor; @docsEditable true
   void clearColor(num red, num green, num blue, num alpha) native;
 
-  /** @domName WebGLRenderingContext.clearDepth */
+  /// @domName WebGLRenderingContext.clearDepth; @docsEditable true
   void clearDepth(num depth) native;
 
-  /** @domName WebGLRenderingContext.clearStencil */
+  /// @domName WebGLRenderingContext.clearStencil; @docsEditable true
   void clearStencil(int s) native;
 
-  /** @domName WebGLRenderingContext.colorMask */
+  /// @domName WebGLRenderingContext.colorMask; @docsEditable true
   void colorMask(bool red, bool green, bool blue, bool alpha) native;
 
-  /** @domName WebGLRenderingContext.compileShader */
+  /// @domName WebGLRenderingContext.compileShader; @docsEditable true
   void compileShader(WebGLShader shader) native;
 
-  /** @domName WebGLRenderingContext.compressedTexImage2D */
+  /// @domName WebGLRenderingContext.compressedTexImage2D; @docsEditable true
   void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, ArrayBufferView data) native;
 
-  /** @domName WebGLRenderingContext.compressedTexSubImage2D */
+  /// @domName WebGLRenderingContext.compressedTexSubImage2D; @docsEditable true
   void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, ArrayBufferView data) native;
 
-  /** @domName WebGLRenderingContext.copyTexImage2D */
+  /// @domName WebGLRenderingContext.copyTexImage2D; @docsEditable true
   void copyTexImage2D(int target, int level, int internalformat, int x, int y, int width, int height, int border) native;
 
-  /** @domName WebGLRenderingContext.copyTexSubImage2D */
+  /// @domName WebGLRenderingContext.copyTexSubImage2D; @docsEditable true
   void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height) native;
 
-  /** @domName WebGLRenderingContext.createBuffer */
+  /// @domName WebGLRenderingContext.createBuffer; @docsEditable true
   WebGLBuffer createBuffer() native;
 
-  /** @domName WebGLRenderingContext.createFramebuffer */
+  /// @domName WebGLRenderingContext.createFramebuffer; @docsEditable true
   WebGLFramebuffer createFramebuffer() native;
 
-  /** @domName WebGLRenderingContext.createProgram */
+  /// @domName WebGLRenderingContext.createProgram; @docsEditable true
   WebGLProgram createProgram() native;
 
-  /** @domName WebGLRenderingContext.createRenderbuffer */
+  /// @domName WebGLRenderingContext.createRenderbuffer; @docsEditable true
   WebGLRenderbuffer createRenderbuffer() native;
 
-  /** @domName WebGLRenderingContext.createShader */
+  /// @domName WebGLRenderingContext.createShader; @docsEditable true
   WebGLShader createShader(int type) native;
 
-  /** @domName WebGLRenderingContext.createTexture */
+  /// @domName WebGLRenderingContext.createTexture; @docsEditable true
   WebGLTexture createTexture() native;
 
-  /** @domName WebGLRenderingContext.cullFace */
+  /// @domName WebGLRenderingContext.cullFace; @docsEditable true
   void cullFace(int mode) native;
 
-  /** @domName WebGLRenderingContext.deleteBuffer */
+  /// @domName WebGLRenderingContext.deleteBuffer; @docsEditable true
   void deleteBuffer(WebGLBuffer buffer) native;
 
-  /** @domName WebGLRenderingContext.deleteFramebuffer */
+  /// @domName WebGLRenderingContext.deleteFramebuffer; @docsEditable true
   void deleteFramebuffer(WebGLFramebuffer framebuffer) native;
 
-  /** @domName WebGLRenderingContext.deleteProgram */
+  /// @domName WebGLRenderingContext.deleteProgram; @docsEditable true
   void deleteProgram(WebGLProgram program) native;
 
-  /** @domName WebGLRenderingContext.deleteRenderbuffer */
+  /// @domName WebGLRenderingContext.deleteRenderbuffer; @docsEditable true
   void deleteRenderbuffer(WebGLRenderbuffer renderbuffer) native;
 
-  /** @domName WebGLRenderingContext.deleteShader */
+  /// @domName WebGLRenderingContext.deleteShader; @docsEditable true
   void deleteShader(WebGLShader shader) native;
 
-  /** @domName WebGLRenderingContext.deleteTexture */
+  /// @domName WebGLRenderingContext.deleteTexture; @docsEditable true
   void deleteTexture(WebGLTexture texture) native;
 
-  /** @domName WebGLRenderingContext.depthFunc */
+  /// @domName WebGLRenderingContext.depthFunc; @docsEditable true
   void depthFunc(int func) native;
 
-  /** @domName WebGLRenderingContext.depthMask */
+  /// @domName WebGLRenderingContext.depthMask; @docsEditable true
   void depthMask(bool flag) native;
 
-  /** @domName WebGLRenderingContext.depthRange */
+  /// @domName WebGLRenderingContext.depthRange; @docsEditable true
   void depthRange(num zNear, num zFar) native;
 
-  /** @domName WebGLRenderingContext.detachShader */
+  /// @domName WebGLRenderingContext.detachShader; @docsEditable true
   void detachShader(WebGLProgram program, WebGLShader shader) native;
 
-  /** @domName WebGLRenderingContext.disable */
+  /// @domName WebGLRenderingContext.disable; @docsEditable true
   void disable(int cap) native;
 
-  /** @domName WebGLRenderingContext.disableVertexAttribArray */
+  /// @domName WebGLRenderingContext.disableVertexAttribArray; @docsEditable true
   void disableVertexAttribArray(int index) native;
 
-  /** @domName WebGLRenderingContext.drawArrays */
+  /// @domName WebGLRenderingContext.drawArrays; @docsEditable true
   void drawArrays(int mode, int first, int count) native;
 
-  /** @domName WebGLRenderingContext.drawElements */
+  /// @domName WebGLRenderingContext.drawElements; @docsEditable true
   void drawElements(int mode, int count, int type, int offset) native;
 
-  /** @domName WebGLRenderingContext.enable */
+  /// @domName WebGLRenderingContext.enable; @docsEditable true
   void enable(int cap) native;
 
-  /** @domName WebGLRenderingContext.enableVertexAttribArray */
+  /// @domName WebGLRenderingContext.enableVertexAttribArray; @docsEditable true
   void enableVertexAttribArray(int index) native;
 
-  /** @domName WebGLRenderingContext.finish */
+  /// @domName WebGLRenderingContext.finish; @docsEditable true
   void finish() native;
 
-  /** @domName WebGLRenderingContext.flush */
+  /// @domName WebGLRenderingContext.flush; @docsEditable true
   void flush() native;
 
-  /** @domName WebGLRenderingContext.framebufferRenderbuffer */
+  /// @domName WebGLRenderingContext.framebufferRenderbuffer; @docsEditable true
   void framebufferRenderbuffer(int target, int attachment, int renderbuffertarget, WebGLRenderbuffer renderbuffer) native;
 
-  /** @domName WebGLRenderingContext.framebufferTexture2D */
+  /// @domName WebGLRenderingContext.framebufferTexture2D; @docsEditable true
   void framebufferTexture2D(int target, int attachment, int textarget, WebGLTexture texture, int level) native;
 
-  /** @domName WebGLRenderingContext.frontFace */
+  /// @domName WebGLRenderingContext.frontFace; @docsEditable true
   void frontFace(int mode) native;
 
-  /** @domName WebGLRenderingContext.generateMipmap */
+  /// @domName WebGLRenderingContext.generateMipmap; @docsEditable true
   void generateMipmap(int target) native;
 
-  /** @domName WebGLRenderingContext.getActiveAttrib */
+  /// @domName WebGLRenderingContext.getActiveAttrib; @docsEditable true
   WebGLActiveInfo getActiveAttrib(WebGLProgram program, int index) native;
 
-  /** @domName WebGLRenderingContext.getActiveUniform */
+  /// @domName WebGLRenderingContext.getActiveUniform; @docsEditable true
   WebGLActiveInfo getActiveUniform(WebGLProgram program, int index) native;
 
-  /** @domName WebGLRenderingContext.getAttachedShaders */
+  /// @domName WebGLRenderingContext.getAttachedShaders; @docsEditable true
   void getAttachedShaders(WebGLProgram program) native;
 
-  /** @domName WebGLRenderingContext.getAttribLocation */
+  /// @domName WebGLRenderingContext.getAttribLocation; @docsEditable true
   int getAttribLocation(WebGLProgram program, String name) native;
 
-  /** @domName WebGLRenderingContext.getBufferParameter */
+  /// @domName WebGLRenderingContext.getBufferParameter; @docsEditable true
   Object getBufferParameter(int target, int pname) native;
 
-  /** @domName WebGLRenderingContext.getContextAttributes */
+  /// @domName WebGLRenderingContext.getContextAttributes; @docsEditable true
   WebGLContextAttributes getContextAttributes() native;
 
-  /** @domName WebGLRenderingContext.getError */
+  /// @domName WebGLRenderingContext.getError; @docsEditable true
   int getError() native;
 
-  /** @domName WebGLRenderingContext.getExtension */
+  /// @domName WebGLRenderingContext.getExtension; @docsEditable true
   Object getExtension(String name) native;
 
-  /** @domName WebGLRenderingContext.getFramebufferAttachmentParameter */
+  /// @domName WebGLRenderingContext.getFramebufferAttachmentParameter; @docsEditable true
   Object getFramebufferAttachmentParameter(int target, int attachment, int pname) native;
 
-  /** @domName WebGLRenderingContext.getParameter */
+  /// @domName WebGLRenderingContext.getParameter; @docsEditable true
   Object getParameter(int pname) native;
 
-  /** @domName WebGLRenderingContext.getProgramInfoLog */
+  /// @domName WebGLRenderingContext.getProgramInfoLog; @docsEditable true
   String getProgramInfoLog(WebGLProgram program) native;
 
-  /** @domName WebGLRenderingContext.getProgramParameter */
+  /// @domName WebGLRenderingContext.getProgramParameter; @docsEditable true
   Object getProgramParameter(WebGLProgram program, int pname) native;
 
-  /** @domName WebGLRenderingContext.getRenderbufferParameter */
+  /// @domName WebGLRenderingContext.getRenderbufferParameter; @docsEditable true
   Object getRenderbufferParameter(int target, int pname) native;
 
-  /** @domName WebGLRenderingContext.getShaderInfoLog */
+  /// @domName WebGLRenderingContext.getShaderInfoLog; @docsEditable true
   String getShaderInfoLog(WebGLShader shader) native;
 
-  /** @domName WebGLRenderingContext.getShaderParameter */
+  /// @domName WebGLRenderingContext.getShaderParameter; @docsEditable true
   Object getShaderParameter(WebGLShader shader, int pname) native;
 
-  /** @domName WebGLRenderingContext.getShaderPrecisionFormat */
+  /// @domName WebGLRenderingContext.getShaderPrecisionFormat; @docsEditable true
   WebGLShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype) native;
 
-  /** @domName WebGLRenderingContext.getShaderSource */
+  /// @domName WebGLRenderingContext.getShaderSource; @docsEditable true
   String getShaderSource(WebGLShader shader) native;
 
-  /** @domName WebGLRenderingContext.getSupportedExtensions */
+  /// @domName WebGLRenderingContext.getSupportedExtensions; @docsEditable true
   List<String> getSupportedExtensions() native;
 
-  /** @domName WebGLRenderingContext.getTexParameter */
+  /// @domName WebGLRenderingContext.getTexParameter; @docsEditable true
   Object getTexParameter(int target, int pname) native;
 
-  /** @domName WebGLRenderingContext.getUniform */
+  /// @domName WebGLRenderingContext.getUniform; @docsEditable true
   Object getUniform(WebGLProgram program, WebGLUniformLocation location) native;
 
-  /** @domName WebGLRenderingContext.getUniformLocation */
+  /// @domName WebGLRenderingContext.getUniformLocation; @docsEditable true
   WebGLUniformLocation getUniformLocation(WebGLProgram program, String name) native;
 
-  /** @domName WebGLRenderingContext.getVertexAttrib */
+  /// @domName WebGLRenderingContext.getVertexAttrib; @docsEditable true
   Object getVertexAttrib(int index, int pname) native;
 
-  /** @domName WebGLRenderingContext.getVertexAttribOffset */
+  /// @domName WebGLRenderingContext.getVertexAttribOffset; @docsEditable true
   int getVertexAttribOffset(int index, int pname) native;
 
-  /** @domName WebGLRenderingContext.hint */
+  /// @domName WebGLRenderingContext.hint; @docsEditable true
   void hint(int target, int mode) native;
 
-  /** @domName WebGLRenderingContext.isBuffer */
+  /// @domName WebGLRenderingContext.isBuffer; @docsEditable true
   bool isBuffer(WebGLBuffer buffer) native;
 
-  /** @domName WebGLRenderingContext.isContextLost */
+  /// @domName WebGLRenderingContext.isContextLost; @docsEditable true
   bool isContextLost() native;
 
-  /** @domName WebGLRenderingContext.isEnabled */
+  /// @domName WebGLRenderingContext.isEnabled; @docsEditable true
   bool isEnabled(int cap) native;
 
-  /** @domName WebGLRenderingContext.isFramebuffer */
+  /// @domName WebGLRenderingContext.isFramebuffer; @docsEditable true
   bool isFramebuffer(WebGLFramebuffer framebuffer) native;
 
-  /** @domName WebGLRenderingContext.isProgram */
+  /// @domName WebGLRenderingContext.isProgram; @docsEditable true
   bool isProgram(WebGLProgram program) native;
 
-  /** @domName WebGLRenderingContext.isRenderbuffer */
+  /// @domName WebGLRenderingContext.isRenderbuffer; @docsEditable true
   bool isRenderbuffer(WebGLRenderbuffer renderbuffer) native;
 
-  /** @domName WebGLRenderingContext.isShader */
+  /// @domName WebGLRenderingContext.isShader; @docsEditable true
   bool isShader(WebGLShader shader) native;
 
-  /** @domName WebGLRenderingContext.isTexture */
+  /// @domName WebGLRenderingContext.isTexture; @docsEditable true
   bool isTexture(WebGLTexture texture) native;
 
-  /** @domName WebGLRenderingContext.lineWidth */
+  /// @domName WebGLRenderingContext.lineWidth; @docsEditable true
   void lineWidth(num width) native;
 
-  /** @domName WebGLRenderingContext.linkProgram */
+  /// @domName WebGLRenderingContext.linkProgram; @docsEditable true
   void linkProgram(WebGLProgram program) native;
 
-  /** @domName WebGLRenderingContext.pixelStorei */
+  /// @domName WebGLRenderingContext.pixelStorei; @docsEditable true
   void pixelStorei(int pname, int param) native;
 
-  /** @domName WebGLRenderingContext.polygonOffset */
+  /// @domName WebGLRenderingContext.polygonOffset; @docsEditable true
   void polygonOffset(num factor, num units) native;
 
-  /** @domName WebGLRenderingContext.readPixels */
+  /// @domName WebGLRenderingContext.readPixels; @docsEditable true
   void readPixels(int x, int y, int width, int height, int format, int type, ArrayBufferView pixels) native;
 
-  /** @domName WebGLRenderingContext.releaseShaderCompiler */
+  /// @domName WebGLRenderingContext.releaseShaderCompiler; @docsEditable true
   void releaseShaderCompiler() native;
 
-  /** @domName WebGLRenderingContext.renderbufferStorage */
+  /// @domName WebGLRenderingContext.renderbufferStorage; @docsEditable true
   void renderbufferStorage(int target, int internalformat, int width, int height) native;
 
-  /** @domName WebGLRenderingContext.sampleCoverage */
+  /// @domName WebGLRenderingContext.sampleCoverage; @docsEditable true
   void sampleCoverage(num value, bool invert) native;
 
-  /** @domName WebGLRenderingContext.scissor */
+  /// @domName WebGLRenderingContext.scissor; @docsEditable true
   void scissor(int x, int y, int width, int height) native;
 
-  /** @domName WebGLRenderingContext.shaderSource */
+  /// @domName WebGLRenderingContext.shaderSource; @docsEditable true
   void shaderSource(WebGLShader shader, String string) native;
 
-  /** @domName WebGLRenderingContext.stencilFunc */
+  /// @domName WebGLRenderingContext.stencilFunc; @docsEditable true
   void stencilFunc(int func, int ref, int mask) native;
 
-  /** @domName WebGLRenderingContext.stencilFuncSeparate */
+  /// @domName WebGLRenderingContext.stencilFuncSeparate; @docsEditable true
   void stencilFuncSeparate(int face, int func, int ref, int mask) native;
 
-  /** @domName WebGLRenderingContext.stencilMask */
+  /// @domName WebGLRenderingContext.stencilMask; @docsEditable true
   void stencilMask(int mask) native;
 
-  /** @domName WebGLRenderingContext.stencilMaskSeparate */
+  /// @domName WebGLRenderingContext.stencilMaskSeparate; @docsEditable true
   void stencilMaskSeparate(int face, int mask) native;
 
-  /** @domName WebGLRenderingContext.stencilOp */
+  /// @domName WebGLRenderingContext.stencilOp; @docsEditable true
   void stencilOp(int fail, int zfail, int zpass) native;
 
-  /** @domName WebGLRenderingContext.stencilOpSeparate */
+  /// @domName WebGLRenderingContext.stencilOpSeparate; @docsEditable true
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
-  /** @domName WebGLRenderingContext.texImage2D */
+  /// @domName WebGLRenderingContext.texImage2D; @docsEditable true
   void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, ArrayBufferView pixels]) {
     if ((?border_OR_canvas_OR_image_OR_pixels_OR_video && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null))) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
@@ -19338,7 +19577,7 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
       _texImage2D_5(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    throw const Exception("Incorrect number or type of arguments");
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
   void _texImage2D_1(target, level, internalformat, width, height, int border, format, type, ArrayBufferView pixels) native "texImage2D";
   void _texImage2D_2(target, level, internalformat, format, type, pixels) native "texImage2D";
@@ -19346,13 +19585,13 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
   void _texImage2D_4(target, level, internalformat, format, type, CanvasElement canvas) native "texImage2D";
   void _texImage2D_5(target, level, internalformat, format, type, VideoElement video) native "texImage2D";
 
-  /** @domName WebGLRenderingContext.texParameterf */
+  /// @domName WebGLRenderingContext.texParameterf; @docsEditable true
   void texParameterf(int target, int pname, num param) native;
 
-  /** @domName WebGLRenderingContext.texParameteri */
+  /// @domName WebGLRenderingContext.texParameteri; @docsEditable true
   void texParameteri(int target, int pname, int param) native;
 
-  /** @domName WebGLRenderingContext.texSubImage2D */
+  /// @domName WebGLRenderingContext.texSubImage2D; @docsEditable true
   void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, ArrayBufferView pixels]) {
     if ((?canvas_OR_format_OR_image_OR_pixels_OR_video && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null))) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
@@ -19383,7 +19622,7 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
       _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    throw const Exception("Incorrect number or type of arguments");
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
   void _texSubImage2D_1(target, level, xoffset, yoffset, width, height, int format, type, ArrayBufferView pixels) native "texSubImage2D";
   void _texSubImage2D_2(target, level, xoffset, yoffset, format, type, pixels) native "texSubImage2D";
@@ -19391,97 +19630,97 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
   void _texSubImage2D_4(target, level, xoffset, yoffset, format, type, CanvasElement canvas) native "texSubImage2D";
   void _texSubImage2D_5(target, level, xoffset, yoffset, format, type, VideoElement video) native "texSubImage2D";
 
-  /** @domName WebGLRenderingContext.uniform1f */
+  /// @domName WebGLRenderingContext.uniform1f; @docsEditable true
   void uniform1f(WebGLUniformLocation location, num x) native;
 
-  /** @domName WebGLRenderingContext.uniform1fv */
+  /// @domName WebGLRenderingContext.uniform1fv; @docsEditable true
   void uniform1fv(WebGLUniformLocation location, Float32Array v) native;
 
-  /** @domName WebGLRenderingContext.uniform1i */
+  /// @domName WebGLRenderingContext.uniform1i; @docsEditable true
   void uniform1i(WebGLUniformLocation location, int x) native;
 
-  /** @domName WebGLRenderingContext.uniform1iv */
+  /// @domName WebGLRenderingContext.uniform1iv; @docsEditable true
   void uniform1iv(WebGLUniformLocation location, Int32Array v) native;
 
-  /** @domName WebGLRenderingContext.uniform2f */
+  /// @domName WebGLRenderingContext.uniform2f; @docsEditable true
   void uniform2f(WebGLUniformLocation location, num x, num y) native;
 
-  /** @domName WebGLRenderingContext.uniform2fv */
+  /// @domName WebGLRenderingContext.uniform2fv; @docsEditable true
   void uniform2fv(WebGLUniformLocation location, Float32Array v) native;
 
-  /** @domName WebGLRenderingContext.uniform2i */
+  /// @domName WebGLRenderingContext.uniform2i; @docsEditable true
   void uniform2i(WebGLUniformLocation location, int x, int y) native;
 
-  /** @domName WebGLRenderingContext.uniform2iv */
+  /// @domName WebGLRenderingContext.uniform2iv; @docsEditable true
   void uniform2iv(WebGLUniformLocation location, Int32Array v) native;
 
-  /** @domName WebGLRenderingContext.uniform3f */
+  /// @domName WebGLRenderingContext.uniform3f; @docsEditable true
   void uniform3f(WebGLUniformLocation location, num x, num y, num z) native;
 
-  /** @domName WebGLRenderingContext.uniform3fv */
+  /// @domName WebGLRenderingContext.uniform3fv; @docsEditable true
   void uniform3fv(WebGLUniformLocation location, Float32Array v) native;
 
-  /** @domName WebGLRenderingContext.uniform3i */
+  /// @domName WebGLRenderingContext.uniform3i; @docsEditable true
   void uniform3i(WebGLUniformLocation location, int x, int y, int z) native;
 
-  /** @domName WebGLRenderingContext.uniform3iv */
+  /// @domName WebGLRenderingContext.uniform3iv; @docsEditable true
   void uniform3iv(WebGLUniformLocation location, Int32Array v) native;
 
-  /** @domName WebGLRenderingContext.uniform4f */
+  /// @domName WebGLRenderingContext.uniform4f; @docsEditable true
   void uniform4f(WebGLUniformLocation location, num x, num y, num z, num w) native;
 
-  /** @domName WebGLRenderingContext.uniform4fv */
+  /// @domName WebGLRenderingContext.uniform4fv; @docsEditable true
   void uniform4fv(WebGLUniformLocation location, Float32Array v) native;
 
-  /** @domName WebGLRenderingContext.uniform4i */
+  /// @domName WebGLRenderingContext.uniform4i; @docsEditable true
   void uniform4i(WebGLUniformLocation location, int x, int y, int z, int w) native;
 
-  /** @domName WebGLRenderingContext.uniform4iv */
+  /// @domName WebGLRenderingContext.uniform4iv; @docsEditable true
   void uniform4iv(WebGLUniformLocation location, Int32Array v) native;
 
-  /** @domName WebGLRenderingContext.uniformMatrix2fv */
+  /// @domName WebGLRenderingContext.uniformMatrix2fv; @docsEditable true
   void uniformMatrix2fv(WebGLUniformLocation location, bool transpose, Float32Array array) native;
 
-  /** @domName WebGLRenderingContext.uniformMatrix3fv */
+  /// @domName WebGLRenderingContext.uniformMatrix3fv; @docsEditable true
   void uniformMatrix3fv(WebGLUniformLocation location, bool transpose, Float32Array array) native;
 
-  /** @domName WebGLRenderingContext.uniformMatrix4fv */
+  /// @domName WebGLRenderingContext.uniformMatrix4fv; @docsEditable true
   void uniformMatrix4fv(WebGLUniformLocation location, bool transpose, Float32Array array) native;
 
-  /** @domName WebGLRenderingContext.useProgram */
+  /// @domName WebGLRenderingContext.useProgram; @docsEditable true
   void useProgram(WebGLProgram program) native;
 
-  /** @domName WebGLRenderingContext.validateProgram */
+  /// @domName WebGLRenderingContext.validateProgram; @docsEditable true
   void validateProgram(WebGLProgram program) native;
 
-  /** @domName WebGLRenderingContext.vertexAttrib1f */
+  /// @domName WebGLRenderingContext.vertexAttrib1f; @docsEditable true
   void vertexAttrib1f(int indx, num x) native;
 
-  /** @domName WebGLRenderingContext.vertexAttrib1fv */
+  /// @domName WebGLRenderingContext.vertexAttrib1fv; @docsEditable true
   void vertexAttrib1fv(int indx, Float32Array values) native;
 
-  /** @domName WebGLRenderingContext.vertexAttrib2f */
+  /// @domName WebGLRenderingContext.vertexAttrib2f; @docsEditable true
   void vertexAttrib2f(int indx, num x, num y) native;
 
-  /** @domName WebGLRenderingContext.vertexAttrib2fv */
+  /// @domName WebGLRenderingContext.vertexAttrib2fv; @docsEditable true
   void vertexAttrib2fv(int indx, Float32Array values) native;
 
-  /** @domName WebGLRenderingContext.vertexAttrib3f */
+  /// @domName WebGLRenderingContext.vertexAttrib3f; @docsEditable true
   void vertexAttrib3f(int indx, num x, num y, num z) native;
 
-  /** @domName WebGLRenderingContext.vertexAttrib3fv */
+  /// @domName WebGLRenderingContext.vertexAttrib3fv; @docsEditable true
   void vertexAttrib3fv(int indx, Float32Array values) native;
 
-  /** @domName WebGLRenderingContext.vertexAttrib4f */
+  /// @domName WebGLRenderingContext.vertexAttrib4f; @docsEditable true
   void vertexAttrib4f(int indx, num x, num y, num z, num w) native;
 
-  /** @domName WebGLRenderingContext.vertexAttrib4fv */
+  /// @domName WebGLRenderingContext.vertexAttrib4fv; @docsEditable true
   void vertexAttrib4fv(int indx, Float32Array values) native;
 
-  /** @domName WebGLRenderingContext.vertexAttribPointer */
+  /// @domName WebGLRenderingContext.vertexAttribPointer; @docsEditable true
   void vertexAttribPointer(int indx, int size, int type, bool normalized, int stride, int offset) native;
 
-  /** @domName WebGLRenderingContext.viewport */
+  /// @domName WebGLRenderingContext.viewport; @docsEditable true
   void viewport(int x, int y, int width, int height) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19489,7 +19728,7 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLShader
+/// @domName WebGLShader; @docsEditable true
 class WebGLShader native "*WebGLShader" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19497,16 +19736,16 @@ class WebGLShader native "*WebGLShader" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLShaderPrecisionFormat
+/// @domName WebGLShaderPrecisionFormat; @docsEditable true
 class WebGLShaderPrecisionFormat native "*WebGLShaderPrecisionFormat" {
 
-  /** @domName WebGLShaderPrecisionFormat.precision */
+  /// @domName WebGLShaderPrecisionFormat.precision; @docsEditable true
   final int precision;
 
-  /** @domName WebGLShaderPrecisionFormat.rangeMax */
+  /// @domName WebGLShaderPrecisionFormat.rangeMax; @docsEditable true
   final int rangeMax;
 
-  /** @domName WebGLShaderPrecisionFormat.rangeMin */
+  /// @domName WebGLShaderPrecisionFormat.rangeMin; @docsEditable true
   final int rangeMin;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19514,7 +19753,7 @@ class WebGLShaderPrecisionFormat native "*WebGLShaderPrecisionFormat" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLTexture
+/// @domName WebGLTexture; @docsEditable true
 class WebGLTexture native "*WebGLTexture" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19522,7 +19761,7 @@ class WebGLTexture native "*WebGLTexture" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLUniformLocation
+/// @domName WebGLUniformLocation; @docsEditable true
 class WebGLUniformLocation native "*WebGLUniformLocation" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19530,7 +19769,7 @@ class WebGLUniformLocation native "*WebGLUniformLocation" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLVertexArrayObjectOES
+/// @domName WebGLVertexArrayObjectOES; @docsEditable true
 class WebGLVertexArrayObjectOES native "*WebGLVertexArrayObjectOES" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19538,7 +19777,7 @@ class WebGLVertexArrayObjectOES native "*WebGLVertexArrayObjectOES" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebKitCSSFilterValue
+/// @domName WebKitCSSFilterValue; @docsEditable true
 class WebKitCSSFilterValue extends _CSSValueList native "*WebKitCSSFilterValue" {
 
   static const int CSS_FILTER_BLUR = 10;
@@ -19565,7 +19804,7 @@ class WebKitCSSFilterValue extends _CSSValueList native "*WebKitCSSFilterValue" 
 
   static const int CSS_FILTER_SEPIA = 3;
 
-  /** @domName WebKitCSSFilterValue.operationType */
+  /// @domName WebKitCSSFilterValue.operationType; @docsEditable true
   final int operationType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19573,34 +19812,37 @@ class WebKitCSSFilterValue extends _CSSValueList native "*WebKitCSSFilterValue" 
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebKitNamedFlow
+/// @domName WebKitNamedFlow; @docsEditable true
 class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
 
-  /** @domName WebKitNamedFlow.firstEmptyRegionIndex */
+  /// @domName WebKitNamedFlow.firstEmptyRegionIndex; @docsEditable true
   final int firstEmptyRegionIndex;
 
-  /** @domName WebKitNamedFlow.name */
+  /// @domName WebKitNamedFlow.name; @docsEditable true
   final String name;
 
-  /** @domName WebKitNamedFlow.overset */
+  /// @domName WebKitNamedFlow.overset; @docsEditable true
   final bool overset;
 
-  /** @domName WebKitNamedFlow.addEventListener */
+  /// @domName WebKitNamedFlow.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName WebKitNamedFlow.dispatchEvent */
+  /// @domName WebKitNamedFlow.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event event) native "dispatchEvent";
 
-  /** @domName WebKitNamedFlow.getContent */
+  /// @domName WebKitNamedFlow.getContent; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> getContent() native;
 
-  /** @domName WebKitNamedFlow.getRegions */
+  /// @domName WebKitNamedFlow.getRegions; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> getRegions() native;
 
-  /** @domName WebKitNamedFlow.getRegionsByContent */
+  /// @domName WebKitNamedFlow.getRegionsByContent; @docsEditable true
+  @Returns('_NodeList') @Creates('_NodeList')
   List<Node> getRegionsByContent(Node contentNode) native;
 
-  /** @domName WebKitNamedFlow.removeEventListener */
+  /// @domName WebKitNamedFlow.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19613,9 +19855,7 @@ class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
 class WebSocket extends EventTarget native "*WebSocket" {
   factory WebSocket(String url) => _WebSocketFactoryProvider.createWebSocket(url);
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WebSocketEvents get on =>
     new WebSocketEvents(this);
 
@@ -19627,40 +19867,40 @@ class WebSocket extends EventTarget native "*WebSocket" {
 
   static const int OPEN = 1;
 
-  /** @domName WebSocket.URL */
+  /// @domName WebSocket.URL; @docsEditable true
   final String URL;
 
-  /** @domName WebSocket.binaryType */
+  /// @domName WebSocket.binaryType; @docsEditable true
   String binaryType;
 
-  /** @domName WebSocket.bufferedAmount */
+  /// @domName WebSocket.bufferedAmount; @docsEditable true
   final int bufferedAmount;
 
-  /** @domName WebSocket.extensions */
+  /// @domName WebSocket.extensions; @docsEditable true
   final String extensions;
 
-  /** @domName WebSocket.protocol */
+  /// @domName WebSocket.protocol; @docsEditable true
   final String protocol;
 
-  /** @domName WebSocket.readyState */
+  /// @domName WebSocket.readyState; @docsEditable true
   final int readyState;
 
-  /** @domName WebSocket.url */
+  /// @domName WebSocket.url; @docsEditable true
   final String url;
 
-  /** @domName WebSocket.addEventListener */
+  /// @domName WebSocket.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName WebSocket.close */
+  /// @domName WebSocket.close; @docsEditable true
   void close([int code, String reason]) native;
 
-  /** @domName WebSocket.dispatchEvent */
+  /// @domName WebSocket.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName WebSocket.removeEventListener */
+  /// @domName WebSocket.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName WebSocket.send */
+  /// @domName WebSocket.send; @docsEditable true
   void send(data) native;
 
 }
@@ -19683,10 +19923,10 @@ class WebSocketEvents extends Events {
 
 class WheelEvent extends MouseEvent native "*WheelEvent" {
 
-  /** @domName WheelEvent.webkitDirectionInvertedFromDevice */
+  /// @domName WheelEvent.webkitDirectionInvertedFromDevice; @docsEditable true
   final bool webkitDirectionInvertedFromDevice;
 
-  /** @domName WheelEvent.initWebKitWheelEvent */
+  /// @domName WheelEvent.initWebKitWheelEvent; @docsEditable true
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, LocalWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 
 
@@ -19768,18 +20008,16 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Worker
+/// @domName Worker; @docsEditable true
 class Worker extends AbstractWorker native "*Worker" {
 
   factory Worker(String scriptUrl) => _WorkerFactoryProvider.createWorker(scriptUrl);
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WorkerEvents get on =>
     new WorkerEvents(this);
 
-  /** @domName Worker.postMessage */
+  /// @domName Worker.postMessage; @docsEditable true
   void postMessage(/*SerializedScriptValue*/ message, [List messagePorts]) {
     if (?messagePorts) {
       var message_1 = _convertDartToNative_SerializedScriptValue(message);
@@ -19793,7 +20031,7 @@ class Worker extends AbstractWorker native "*Worker" {
   void _postMessage_1(message, List messagePorts) native "postMessage";
   void _postMessage_2(message) native "postMessage";
 
-  /** @domName Worker.terminate */
+  /// @domName Worker.terminate; @docsEditable true
   void terminate() native;
 }
 
@@ -19807,12 +20045,10 @@ class WorkerEvents extends AbstractWorkerEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WorkerContext
+/// @domName WorkerContext; @docsEditable true
 class WorkerContext extends EventTarget native "*WorkerContext" {
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WorkerContextEvents get on =>
     new WorkerContextEvents(this);
 
@@ -19820,67 +20056,67 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
 
   static const int TEMPORARY = 0;
 
-  /** @domName WorkerContext.indexedDB */
+  /// @domName WorkerContext.indexedDB; @docsEditable true
   final IDBFactory indexedDB;
 
-  /** @domName WorkerContext.location */
+  /// @domName WorkerContext.location; @docsEditable true
   final WorkerLocation location;
 
-  /** @domName WorkerContext.navigator */
+  /// @domName WorkerContext.navigator; @docsEditable true
   final WorkerNavigator navigator;
 
-  /** @domName WorkerContext.self */
+  /// @domName WorkerContext.self; @docsEditable true
   final WorkerContext self;
 
-  /** @domName WorkerContext.webkitIndexedDB */
+  /// @domName WorkerContext.webkitIndexedDB; @docsEditable true
   final IDBFactory webkitIndexedDB;
 
-  /** @domName WorkerContext.webkitNotifications */
+  /// @domName WorkerContext.webkitNotifications; @docsEditable true
   final NotificationCenter webkitNotifications;
 
-  /** @domName WorkerContext.addEventListener */
+  /// @domName WorkerContext.addEventListener; @docsEditable true
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  /** @domName WorkerContext.clearInterval */
+  /// @domName WorkerContext.clearInterval; @docsEditable true
   void clearInterval(int handle) native;
 
-  /** @domName WorkerContext.clearTimeout */
+  /// @domName WorkerContext.clearTimeout; @docsEditable true
   void clearTimeout(int handle) native;
 
-  /** @domName WorkerContext.close */
+  /// @domName WorkerContext.close; @docsEditable true
   void close() native;
 
-  /** @domName WorkerContext.dispatchEvent */
+  /// @domName WorkerContext.dispatchEvent; @docsEditable true
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
-  /** @domName WorkerContext.importScripts */
+  /// @domName WorkerContext.importScripts; @docsEditable true
   void importScripts() native;
 
-  /** @domName WorkerContext.openDatabase */
+  /// @domName WorkerContext.openDatabase; @docsEditable true
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
-  /** @domName WorkerContext.openDatabaseSync */
+  /// @domName WorkerContext.openDatabaseSync; @docsEditable true
   DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
-  /** @domName WorkerContext.removeEventListener */
+  /// @domName WorkerContext.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  /** @domName WorkerContext.setInterval */
+  /// @domName WorkerContext.setInterval; @docsEditable true
   int setInterval(TimeoutHandler handler, int timeout) native;
 
-  /** @domName WorkerContext.setTimeout */
+  /// @domName WorkerContext.setTimeout; @docsEditable true
   int setTimeout(TimeoutHandler handler, int timeout) native;
 
-  /** @domName WorkerContext.webkitRequestFileSystem */
+  /// @domName WorkerContext.webkitRequestFileSystem; @docsEditable true
   void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]) native;
 
-  /** @domName WorkerContext.webkitRequestFileSystemSync */
+  /// @domName WorkerContext.webkitRequestFileSystemSync; @docsEditable true
   DOMFileSystemSync webkitRequestFileSystemSync(int type, int size) native;
 
-  /** @domName WorkerContext.webkitResolveLocalFileSystemSyncURL */
+  /// @domName WorkerContext.webkitResolveLocalFileSystemSyncURL; @docsEditable true
   EntrySync webkitResolveLocalFileSystemSyncURL(String url) native;
 
-  /** @domName WorkerContext.webkitResolveLocalFileSystemURL */
+  /// @domName WorkerContext.webkitResolveLocalFileSystemURL; @docsEditable true
   void webkitResolveLocalFileSystemURL(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
 }
 
@@ -19894,34 +20130,34 @@ class WorkerContextEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WorkerLocation
+/// @domName WorkerLocation; @docsEditable true
 class WorkerLocation native "*WorkerLocation" {
 
-  /** @domName WorkerLocation.hash */
+  /// @domName WorkerLocation.hash; @docsEditable true
   final String hash;
 
-  /** @domName WorkerLocation.host */
+  /// @domName WorkerLocation.host; @docsEditable true
   final String host;
 
-  /** @domName WorkerLocation.hostname */
+  /// @domName WorkerLocation.hostname; @docsEditable true
   final String hostname;
 
-  /** @domName WorkerLocation.href */
+  /// @domName WorkerLocation.href; @docsEditable true
   final String href;
 
-  /** @domName WorkerLocation.pathname */
+  /// @domName WorkerLocation.pathname; @docsEditable true
   final String pathname;
 
-  /** @domName WorkerLocation.port */
+  /// @domName WorkerLocation.port; @docsEditable true
   final String port;
 
-  /** @domName WorkerLocation.protocol */
+  /// @domName WorkerLocation.protocol; @docsEditable true
   final String protocol;
 
-  /** @domName WorkerLocation.search */
+  /// @domName WorkerLocation.search; @docsEditable true
   final String search;
 
-  /** @domName WorkerLocation.toString */
+  /// @domName WorkerLocation.toString; @docsEditable true
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19929,22 +20165,22 @@ class WorkerLocation native "*WorkerLocation" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WorkerNavigator
+/// @domName WorkerNavigator; @docsEditable true
 class WorkerNavigator native "*WorkerNavigator" {
 
-  /** @domName WorkerNavigator.appName */
+  /// @domName WorkerNavigator.appName; @docsEditable true
   final String appName;
 
-  /** @domName WorkerNavigator.appVersion */
+  /// @domName WorkerNavigator.appVersion; @docsEditable true
   final String appVersion;
 
-  /** @domName WorkerNavigator.onLine */
+  /// @domName WorkerNavigator.onLine; @docsEditable true
   final bool onLine;
 
-  /** @domName WorkerNavigator.platform */
+  /// @domName WorkerNavigator.platform; @docsEditable true
   final String platform;
 
-  /** @domName WorkerNavigator.userAgent */
+  /// @domName WorkerNavigator.userAgent; @docsEditable true
   final String userAgent;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19952,12 +20188,12 @@ class WorkerNavigator native "*WorkerNavigator" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName XMLSerializer
+/// @domName XMLSerializer; @docsEditable true
 class XMLSerializer native "*XMLSerializer" {
 
   factory XMLSerializer() => _XMLSerializerFactoryProvider.createXMLSerializer();
 
-  /** @domName XMLSerializer.serializeToString */
+  /// @domName XMLSerializer.serializeToString; @docsEditable true
   String serializeToString(Node node) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19965,18 +20201,18 @@ class XMLSerializer native "*XMLSerializer" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName XPathEvaluator
+/// @domName XPathEvaluator; @docsEditable true
 class XPathEvaluator native "*XPathEvaluator" {
 
   factory XPathEvaluator() => _XPathEvaluatorFactoryProvider.createXPathEvaluator();
 
-  /** @domName XPathEvaluator.createExpression */
+  /// @domName XPathEvaluator.createExpression; @docsEditable true
   XPathExpression createExpression(String expression, XPathNSResolver resolver) native;
 
-  /** @domName XPathEvaluator.createNSResolver */
+  /// @domName XPathEvaluator.createNSResolver; @docsEditable true
   XPathNSResolver createNSResolver(Node nodeResolver) native;
 
-  /** @domName XPathEvaluator.evaluate */
+  /// @domName XPathEvaluator.evaluate; @docsEditable true
   XPathResult evaluate(String expression, Node contextNode, XPathNSResolver resolver, int type, XPathResult inResult) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19984,23 +20220,23 @@ class XPathEvaluator native "*XPathEvaluator" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName XPathException
+/// @domName XPathException; @docsEditable true
 class XPathException native "*XPathException" {
 
   static const int INVALID_EXPRESSION_ERR = 51;
 
   static const int TYPE_ERR = 52;
 
-  /** @domName XPathException.code */
+  /// @domName XPathException.code; @docsEditable true
   final int code;
 
-  /** @domName XPathException.message */
+  /// @domName XPathException.message; @docsEditable true
   final String message;
 
-  /** @domName XPathException.name */
+  /// @domName XPathException.name; @docsEditable true
   final String name;
 
-  /** @domName XPathException.toString */
+  /// @domName XPathException.toString; @docsEditable true
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20008,10 +20244,10 @@ class XPathException native "*XPathException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName XPathExpression
+/// @domName XPathExpression; @docsEditable true
 class XPathExpression native "*XPathExpression" {
 
-  /** @domName XPathExpression.evaluate */
+  /// @domName XPathExpression.evaluate; @docsEditable true
   XPathResult evaluate(Node contextNode, int type, XPathResult inResult) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20019,10 +20255,10 @@ class XPathExpression native "*XPathExpression" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName XPathNSResolver
+/// @domName XPathNSResolver; @docsEditable true
 class XPathNSResolver native "*XPathNSResolver" {
 
-  /** @domName XPathNSResolver.lookupNamespaceURI */
+  /// @domName XPathNSResolver.lookupNamespaceURI; @docsEditable true
   String lookupNamespaceURI(String prefix) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20030,7 +20266,7 @@ class XPathNSResolver native "*XPathNSResolver" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName XPathResult
+/// @domName XPathResult; @docsEditable true
 class XPathResult native "*XPathResult" {
 
   static const int ANY_TYPE = 0;
@@ -20053,31 +20289,31 @@ class XPathResult native "*XPathResult" {
 
   static const int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
 
-  /** @domName XPathResult.booleanValue */
+  /// @domName XPathResult.booleanValue; @docsEditable true
   final bool booleanValue;
 
-  /** @domName XPathResult.invalidIteratorState */
+  /// @domName XPathResult.invalidIteratorState; @docsEditable true
   final bool invalidIteratorState;
 
-  /** @domName XPathResult.numberValue */
+  /// @domName XPathResult.numberValue; @docsEditable true
   final num numberValue;
 
-  /** @domName XPathResult.resultType */
+  /// @domName XPathResult.resultType; @docsEditable true
   final int resultType;
 
-  /** @domName XPathResult.singleNodeValue */
+  /// @domName XPathResult.singleNodeValue; @docsEditable true
   final Node singleNodeValue;
 
-  /** @domName XPathResult.snapshotLength */
+  /// @domName XPathResult.snapshotLength; @docsEditable true
   final int snapshotLength;
 
-  /** @domName XPathResult.stringValue */
+  /// @domName XPathResult.stringValue; @docsEditable true
   final String stringValue;
 
-  /** @domName XPathResult.iterateNext */
+  /// @domName XPathResult.iterateNext; @docsEditable true
   Node iterateNext() native;
 
-  /** @domName XPathResult.snapshotItem */
+  /// @domName XPathResult.snapshotItem; @docsEditable true
   Node snapshotItem(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20085,33 +20321,33 @@ class XPathResult native "*XPathResult" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName XSLTProcessor
+/// @domName XSLTProcessor; @docsEditable true
 class XSLTProcessor native "*XSLTProcessor" {
 
   factory XSLTProcessor() => _XSLTProcessorFactoryProvider.createXSLTProcessor();
 
-  /** @domName XSLTProcessor.clearParameters */
+  /// @domName XSLTProcessor.clearParameters; @docsEditable true
   void clearParameters() native;
 
-  /** @domName XSLTProcessor.getParameter */
+  /// @domName XSLTProcessor.getParameter; @docsEditable true
   String getParameter(String namespaceURI, String localName) native;
 
-  /** @domName XSLTProcessor.importStylesheet */
+  /// @domName XSLTProcessor.importStylesheet; @docsEditable true
   void importStylesheet(Node stylesheet) native;
 
-  /** @domName XSLTProcessor.removeParameter */
+  /// @domName XSLTProcessor.removeParameter; @docsEditable true
   void removeParameter(String namespaceURI, String localName) native;
 
-  /** @domName XSLTProcessor.reset */
+  /// @domName XSLTProcessor.reset; @docsEditable true
   void reset() native;
 
-  /** @domName XSLTProcessor.setParameter */
+  /// @domName XSLTProcessor.setParameter; @docsEditable true
   void setParameter(String namespaceURI, String localName, String value) native;
 
-  /** @domName XSLTProcessor.transformToDocument */
+  /// @domName XSLTProcessor.transformToDocument; @docsEditable true
   Document transformToDocument(Node source) native;
 
-  /** @domName XSLTProcessor.transformToFragment */
+  /// @domName XSLTProcessor.transformToFragment; @docsEditable true
   DocumentFragment transformToFragment(Node source, Document docVal) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20173,10 +20409,10 @@ class _CSSMatrixFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSRuleList
+/// @domName CSSRuleList; @docsEditable true
 class _CSSRuleList implements JavaScriptIndexingBehavior, List<CSSRule> native "*CSSRuleList" {
 
-  /** @domName CSSRuleList.length */
+  /// @domName CSSRuleList.length; @docsEditable true
   final int length;
 
   CSSRule operator[](int index) => JS("CSSRule", "#[#]", this, index);
@@ -20239,6 +20475,8 @@ class _CSSRuleList implements JavaScriptIndexingBehavior, List<CSSRule> native "
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  CSSRule get first => this[0];
+
   CSSRule get last => this[length - 1];
 
   CSSRule removeLast() {
@@ -20262,7 +20500,7 @@ class _CSSRuleList implements JavaScriptIndexingBehavior, List<CSSRule> native "
 
   // -- end List<CSSRule> mixins.
 
-  /** @domName CSSRuleList.item */
+  /// @domName CSSRuleList.item; @docsEditable true
   CSSRule item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20270,10 +20508,10 @@ class _CSSRuleList implements JavaScriptIndexingBehavior, List<CSSRule> native "
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSValueList
+/// @domName CSSValueList; @docsEditable true
 class _CSSValueList extends CSSValue implements List<CSSValue>, JavaScriptIndexingBehavior native "*CSSValueList" {
 
-  /** @domName CSSValueList.length */
+  /// @domName CSSValueList.length; @docsEditable true
   final int length;
 
   CSSValue operator[](int index) => JS("CSSValue", "#[#]", this, index);
@@ -20336,6 +20574,8 @@ class _CSSValueList extends CSSValue implements List<CSSValue>, JavaScriptIndexi
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  CSSValue get first => this[0];
+
   CSSValue get last => this[length - 1];
 
   CSSValue removeLast() {
@@ -20359,7 +20599,7 @@ class _CSSValueList extends CSSValue implements List<CSSValue>, JavaScriptIndexi
 
   // -- end List<CSSValue> mixins.
 
-  /** @domName CSSValueList.item */
+  /// @domName CSSValueList.item; @docsEditable true
   CSSValue item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20367,10 +20607,10 @@ class _CSSValueList extends CSSValue implements List<CSSValue>, JavaScriptIndexi
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ClientRectList
+/// @domName ClientRectList; @docsEditable true
 class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> native "*ClientRectList" {
 
-  /** @domName ClientRectList.length */
+  /// @domName ClientRectList.length; @docsEditable true
   final int length;
 
   ClientRect operator[](int index) => JS("ClientRect", "#[#]", this, index);
@@ -20433,6 +20673,8 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  ClientRect get first => this[0];
+
   ClientRect get last => this[length - 1];
 
   ClientRect removeLast() {
@@ -20456,7 +20698,7 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
 
   // -- end List<ClientRect> mixins.
 
-  /** @domName ClientRectList.item */
+  /// @domName ClientRectList.item; @docsEditable true
   ClientRect item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20473,10 +20715,10 @@ class _DOMParserFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMStringList
+/// @domName DOMStringList; @docsEditable true
 class _DOMStringList implements JavaScriptIndexingBehavior, List<String> native "*DOMStringList" {
 
-  /** @domName DOMStringList.length */
+  /// @domName DOMStringList.length; @docsEditable true
   final int length;
 
   String operator[](int index) => JS("String", "#[#]", this, index);
@@ -20539,6 +20781,8 @@ class _DOMStringList implements JavaScriptIndexingBehavior, List<String> native 
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  String get first => this[0];
+
   String get last => this[length - 1];
 
   String removeLast() {
@@ -20562,10 +20806,10 @@ class _DOMStringList implements JavaScriptIndexingBehavior, List<String> native 
 
   // -- end List<String> mixins.
 
-  /** @domName DOMStringList.contains */
+  /// @domName DOMStringList.contains; @docsEditable true
   bool contains(String string) native;
 
-  /** @domName DOMStringList.item */
+  /// @domName DOMStringList.item; @docsEditable true
   String item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20590,315 +20834,10 @@ class _DataViewFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _Elements {
-
-
-  static AnchorElement createAnchorElement([String href]) {
-    AnchorElement _e = document.$dom_createElement("a");
-    if (href != null) _e.href = href;
-    return _e;
-  }
-
-  static AreaElement createAreaElement() {
-    AreaElement _e = document.$dom_createElement("area");
-    return _e;
-  }
-
-  static BRElement createBRElement() {
-    BRElement _e = document.$dom_createElement("br");
-    return _e;
-  }
-
-  static BaseElement createBaseElement() {
-    BaseElement _e = document.$dom_createElement("base");
-    return _e;
-  }
-
-  static BodyElement createBodyElement() {
-    BodyElement _e = document.$dom_createElement("body");
-    return _e;
-  }
-
-  static ButtonElement createButtonElement() {
-    ButtonElement _e = document.$dom_createElement("button");
-    return _e;
-  }
-
-  static CanvasElement createCanvasElement([int width, int height]) {
-    CanvasElement _e = document.$dom_createElement("canvas");
-    if (width != null) _e.width = width;
-    if (height != null) _e.height = height;
-    return _e;
-  }
-
-  static ContentElement createContentElement() {
-    ContentElement _e = document.$dom_createElement("content");
-    return _e;
-  }
-
-  static DListElement createDListElement() {
-    DListElement _e = document.$dom_createElement("dl");
-    return _e;
-  }
-
-  static DataListElement createDataListElement() {
-    DataListElement _e = document.$dom_createElement("datalist");
-    return _e;
-  }
-
-  static DetailsElement createDetailsElement() {
-    DetailsElement _e = document.$dom_createElement("details");
-    return _e;
-  }
-
-  static DivElement createDivElement() {
-    DivElement _e = document.$dom_createElement("div");
-    return _e;
-  }
-
-  static EmbedElement createEmbedElement() {
-    EmbedElement _e = document.$dom_createElement("embed");
-    return _e;
-  }
-
-  static FieldSetElement createFieldSetElement() {
-    FieldSetElement _e = document.$dom_createElement("fieldset");
-    return _e;
-  }
-
-  static FormElement createFormElement() {
-    FormElement _e = document.$dom_createElement("form");
-    return _e;
-  }
-
-  static HRElement createHRElement() {
-    HRElement _e = document.$dom_createElement("hr");
-    return _e;
-  }
-
-  static HeadElement createHeadElement() {
-    HeadElement _e = document.$dom_createElement("head");
-    return _e;
-  }
-
-  static HeadingElement createHeadingElement_h1() {
-    HeadingElement _e = document.$dom_createElement("h1");
-    return _e;
-  }
-
-  static HeadingElement createHeadingElement_h2() {
-    HeadingElement _e = document.$dom_createElement("h2");
-    return _e;
-  }
-
-  static HeadingElement createHeadingElement_h3() {
-    HeadingElement _e = document.$dom_createElement("h3");
-    return _e;
-  }
-
-  static HeadingElement createHeadingElement_h4() {
-    HeadingElement _e = document.$dom_createElement("h4");
-    return _e;
-  }
-
-  static HeadingElement createHeadingElement_h5() {
-    HeadingElement _e = document.$dom_createElement("h5");
-    return _e;
-  }
-
-  static HeadingElement createHeadingElement_h6() {
-    HeadingElement _e = document.$dom_createElement("h6");
-    return _e;
-  }
-
-  static HtmlElement createHtmlElement() {
-    HtmlElement _e = document.$dom_createElement("html");
-    return _e;
-  }
-
-  static IFrameElement createIFrameElement() {
-    IFrameElement _e = document.$dom_createElement("iframe");
-    return _e;
-  }
-
-  static ImageElement createImageElement([String src, int width, int height]) {
-    ImageElement _e = document.$dom_createElement("img");
-    if (src != null) _e.src = src;
-    if (width != null) _e.width = width;
-    if (height != null) _e.height = height;
-    return _e;
-  }
-
-  static InputElement createInputElement([String type]) {
-    InputElement _e = document.$dom_createElement("input");
-    if (type != null) _e.type = type;
-    return _e;
-  }
-
-  static KeygenElement createKeygenElement() {
-    KeygenElement _e = document.$dom_createElement("keygen");
-    return _e;
-  }
-
-  static LIElement createLIElement() {
-    LIElement _e = document.$dom_createElement("li");
-    return _e;
-  }
-
-  static LabelElement createLabelElement() {
-    LabelElement _e = document.$dom_createElement("label");
-    return _e;
-  }
-
-  static LegendElement createLegendElement() {
-    LegendElement _e = document.$dom_createElement("legend");
-    return _e;
-  }
-
-  static LinkElement createLinkElement() {
-    LinkElement _e = document.$dom_createElement("link");
-    return _e;
-  }
-
-  static MapElement createMapElement() {
-    MapElement _e = document.$dom_createElement("map");
-    return _e;
-  }
-
-  static MenuElement createMenuElement() {
-    MenuElement _e = document.$dom_createElement("menu");
-    return _e;
-  }
-
-  static MeterElement createMeterElement() {
-    MeterElement _e = document.$dom_createElement("meter");
-    return _e;
-  }
-
-  static OListElement createOListElement() {
-    OListElement _e = document.$dom_createElement("ol");
-    return _e;
-  }
-
-  static ObjectElement createObjectElement() {
-    ObjectElement _e = document.$dom_createElement("object");
-    return _e;
-  }
-
-  static OptGroupElement createOptGroupElement() {
-    OptGroupElement _e = document.$dom_createElement("optgroup");
-    return _e;
-  }
-
-  static OutputElement createOutputElement() {
-    OutputElement _e = document.$dom_createElement("output");
-    return _e;
-  }
-
-  static ParagraphElement createParagraphElement() {
-    ParagraphElement _e = document.$dom_createElement("p");
-    return _e;
-  }
-
-  static ParamElement createParamElement() {
-    ParamElement _e = document.$dom_createElement("param");
-    return _e;
-  }
-
-  static PreElement createPreElement() {
-    PreElement _e = document.$dom_createElement("pre");
-    return _e;
-  }
-
-  static ProgressElement createProgressElement() {
-    ProgressElement _e = document.$dom_createElement("progress");
-    return _e;
-  }
-
-  static ScriptElement createScriptElement() {
-    ScriptElement _e = document.$dom_createElement("script");
-    return _e;
-  }
-
-  static SelectElement createSelectElement() {
-    SelectElement _e = document.$dom_createElement("select");
-    return _e;
-  }
-
-  static SourceElement createSourceElement() {
-    SourceElement _e = document.$dom_createElement("source");
-    return _e;
-  }
-
-  static SpanElement createSpanElement() {
-    SpanElement _e = document.$dom_createElement("span");
-    return _e;
-  }
-
-  static StyleElement createStyleElement() {
-    StyleElement _e = document.$dom_createElement("style");
-    return _e;
-  }
-
-  static TableCaptionElement createTableCaptionElement() {
-    TableCaptionElement _e = document.$dom_createElement("caption");
-    return _e;
-  }
-
-  static TableCellElement createTableCellElement() {
-    TableCellElement _e = document.$dom_createElement("td");
-    return _e;
-  }
-
-  static TableColElement createTableColElement() {
-    TableColElement _e = document.$dom_createElement("col");
-    return _e;
-  }
-
-  static TableElement createTableElement() {
-    TableElement _e = document.$dom_createElement("table");
-    return _e;
-  }
-
-  static TableRowElement createTableRowElement() {
-    TableRowElement _e = document.$dom_createElement("tr");
-    return _e;
-  }
-
-  static TextAreaElement createTextAreaElement() {
-    TextAreaElement _e = document.$dom_createElement("textarea");
-    return _e;
-  }
-
-  static TitleElement createTitleElement() {
-    TitleElement _e = document.$dom_createElement("title");
-    return _e;
-  }
-
-  static TrackElement createTrackElement() {
-    TrackElement _e = document.$dom_createElement("track");
-    return _e;
-  }
-
-  static UListElement createUListElement() {
-    UListElement _e = document.$dom_createElement("ul");
-    return _e;
-  }
-
-  static VideoElement createVideoElement() {
-    VideoElement _e = document.$dom_createElement("video");
-    return _e;
-  }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName EntryArray
+/// @domName EntryArray; @docsEditable true
 class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*EntryArray" {
 
-  /** @domName EntryArray.length */
+  /// @domName EntryArray.length; @docsEditable true
   final int length;
 
   Entry operator[](int index) => JS("Entry", "#[#]", this, index);
@@ -20961,6 +20900,8 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  Entry get first => this[0];
+
   Entry get last => this[length - 1];
 
   Entry removeLast() {
@@ -20984,7 +20925,7 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
 
   // -- end List<Entry> mixins.
 
-  /** @domName EntryArray.item */
+  /// @domName EntryArray.item; @docsEditable true
   Entry item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20992,10 +20933,10 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName EntryArraySync
+/// @domName EntryArraySync; @docsEditable true
 class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> native "*EntryArraySync" {
 
-  /** @domName EntryArraySync.length */
+  /// @domName EntryArraySync.length; @docsEditable true
   final int length;
 
   EntrySync operator[](int index) => JS("EntrySync", "#[#]", this, index);
@@ -21058,6 +20999,8 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  EntrySync get first => this[0];
+
   EntrySync get last => this[length - 1];
 
   EntrySync removeLast() {
@@ -21081,7 +21024,7 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
 
   // -- end List<EntrySync> mixins.
 
-  /** @domName EntryArraySync.item */
+  /// @domName EntryArraySync.item; @docsEditable true
   EntrySync item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21098,10 +21041,10 @@ class _EventSourceFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName FileList
+/// @domName FileList; @docsEditable true
 class _FileList implements JavaScriptIndexingBehavior, List<File> native "*FileList" {
 
-  /** @domName FileList.length */
+  /// @domName FileList.length; @docsEditable true
   final int length;
 
   File operator[](int index) => JS("File", "#[#]", this, index);
@@ -21164,6 +21107,8 @@ class _FileList implements JavaScriptIndexingBehavior, List<File> native "*FileL
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  File get first => this[0];
+
   File get last => this[length - 1];
 
   File removeLast() {
@@ -21187,7 +21132,7 @@ class _FileList implements JavaScriptIndexingBehavior, List<File> native "*FileL
 
   // -- end List<File> mixins.
 
-  /** @domName FileList.item */
+  /// @domName FileList.item; @docsEditable true
   File item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21224,10 +21169,10 @@ class _FormDataFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName GamepadList
+/// @domName GamepadList; @docsEditable true
 class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "*GamepadList" {
 
-  /** @domName GamepadList.length */
+  /// @domName GamepadList.length; @docsEditable true
   final int length;
 
   Gamepad operator[](int index) => JS("Gamepad", "#[#]", this, index);
@@ -21290,6 +21235,8 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  Gamepad get first => this[0];
+
   Gamepad get last => this[length - 1];
 
   Gamepad removeLast() {
@@ -21313,7 +21260,7 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
 
   // -- end List<Gamepad> mixins.
 
-  /** @domName GamepadList.item */
+  /// @domName GamepadList.item; @docsEditable true
   Gamepad item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21326,12 +21273,12 @@ class _HttpRequestFactoryProvider {
       JS('HttpRequest', 'new XMLHttpRequest()');
 
   static HttpRequest createHttpRequest_get(String url,
-      onSuccess(HttpRequest request)) =>
-      _HttpRequestUtils.get(url, onSuccess, false);
+      onComplete(HttpRequest request)) =>
+      _HttpRequestUtils.get(url, onComplete, false);
 
   static HttpRequest createHttpRequest_getWithCredentials(String url,
-      onSuccess(HttpRequest request)) =>
-      _HttpRequestUtils.get(url, onSuccess, true);
+      onComplete(HttpRequest request)) =>
+      _HttpRequestUtils.get(url, onComplete, true);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21374,10 +21321,10 @@ class _MediaStreamFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaStreamList
+/// @domName MediaStreamList; @docsEditable true
 class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> native "*MediaStreamList" {
 
-  /** @domName MediaStreamList.length */
+  /// @domName MediaStreamList.length; @docsEditable true
   final int length;
 
   MediaStream operator[](int index) => JS("MediaStream", "#[#]", this, index);
@@ -21440,6 +21387,8 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  MediaStream get first => this[0];
+
   MediaStream get last => this[length - 1];
 
   MediaStream removeLast() {
@@ -21463,7 +21412,7 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
 
   // -- end List<MediaStream> mixins.
 
-  /** @domName MediaStreamList.item */
+  /// @domName MediaStreamList.item; @docsEditable true
   MediaStream item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21481,20 +21430,10 @@ class _MessageChannelFactoryProvider {
 
 
 class _MutationObserverFactoryProvider {
-  static MutationObserver createMutationObserver(MutationCallback callback) {
 
-    // This is a hack to cause MutationRecord to appear to be instantiated.
-    //
-    // MutationCallback has a parameter type List<MutationRecord>.  From this we
-    // infer a list is created in the browser, but not the element type, because
-    // other native fields and methods return plain List which is too general
-    // and would imply creating anything.  This statement is a work-around.
-    JS('MutationRecord','0');
-
-    return _createMutationObserver(callback);
-  }
-
-  static MutationObserver _createMutationObserver(MutationCallback callback) native '''
+  @Creates('MutationObserver')
+  @Creates('MutationRecord')
+  static MutationObserver createMutationObserver(MutationCallback callback) native '''
     var constructor =
         window.MutationObserver || window.WebKitMutationObserver ||
         window.MozMutationObserver;
@@ -21510,6 +21449,105 @@ class _MutationObserverFactoryProvider {
   //
   // static createMutationObserver(MutationCallback callback) =>
   //    JS('var', 'new (window.MutationObserver)(#)', callback);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName NodeList; @docsEditable true
+class _NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeList" {
+
+  /// @domName NodeList.length; @docsEditable true
+  final int length;
+
+  Node operator[](int index) => JS("Node", "#[#]", this, index);
+
+  void operator[]=(int index, Node value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<Node> mixins.
+  // Node is the element type.
+
+  // From Iterable<Node>:
+
+  Iterator<Node> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<Node>(this);
+  }
+
+  // From Collection<Node>:
+
+  void add(Node value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(Node value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Node> collection) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  bool contains(Node element) => _Collections.contains(this, element);
+
+  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+
+  Collection map(f(Node element)) => _Collections.map(this, [], f);
+
+  Collection<Node> filter(bool f(Node element)) =>
+     _Collections.filter(this, <Node>[], f);
+
+  bool every(bool f(Node element)) => _Collections.every(this, f);
+
+  bool some(bool f(Node element)) => _Collections.some(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  // From List<Node>:
+
+  void sort([Comparator<Node> compare = Comparable.compare]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(Node element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Node element, [int start]) {
+    if (start == null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  Node get first => this[0];
+
+  Node get last => this[length - 1];
+
+  Node removeLast() {
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<Node> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Node>[]);
+
+  // -- end List<Node> mixins.
+
+  /// @domName NodeList.item; @docsEditable true
+  Node _item(int index) native "item";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21634,10 +21672,10 @@ class _SpeechGrammarListFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SpeechInputResultList
+/// @domName SpeechInputResultList; @docsEditable true
 class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechInputResult> native "*SpeechInputResultList" {
 
-  /** @domName SpeechInputResultList.length */
+  /// @domName SpeechInputResultList.length; @docsEditable true
   final int length;
 
   SpeechInputResult operator[](int index) => JS("SpeechInputResult", "#[#]", this, index);
@@ -21700,6 +21738,8 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  SpeechInputResult get first => this[0];
+
   SpeechInputResult get last => this[length - 1];
 
   SpeechInputResult removeLast() {
@@ -21723,7 +21763,7 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
 
   // -- end List<SpeechInputResult> mixins.
 
-  /** @domName SpeechInputResultList.item */
+  /// @domName SpeechInputResultList.item; @docsEditable true
   SpeechInputResult item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21740,10 +21780,10 @@ class _SpeechRecognitionFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SpeechRecognitionResultList
+/// @domName SpeechRecognitionResultList; @docsEditable true
 class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<SpeechRecognitionResult> native "*SpeechRecognitionResultList" {
 
-  /** @domName SpeechRecognitionResultList.length */
+  /// @domName SpeechRecognitionResultList.length; @docsEditable true
   final int length;
 
   SpeechRecognitionResult operator[](int index) => JS("SpeechRecognitionResult", "#[#]", this, index);
@@ -21806,6 +21846,8 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  SpeechRecognitionResult get first => this[0];
+
   SpeechRecognitionResult get last => this[length - 1];
 
   SpeechRecognitionResult removeLast() {
@@ -21829,7 +21871,7 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
 
   // -- end List<SpeechRecognitionResult> mixins.
 
-  /** @domName SpeechRecognitionResultList.item */
+  /// @domName SpeechRecognitionResultList.item; @docsEditable true
   SpeechRecognitionResult item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21837,10 +21879,10 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName StyleSheetList
+/// @domName StyleSheetList; @docsEditable true
 class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> native "*StyleSheetList" {
 
-  /** @domName StyleSheetList.length */
+  /// @domName StyleSheetList.length; @docsEditable true
   final int length;
 
   StyleSheet operator[](int index) => JS("StyleSheet", "#[#]", this, index);
@@ -21903,6 +21945,8 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  StyleSheet get first => this[0];
+
   StyleSheet get last => this[length - 1];
 
   StyleSheet removeLast() {
@@ -21926,7 +21970,7 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
 
   // -- end List<StyleSheet> mixins.
 
-  /** @domName StyleSheetList.item */
+  /// @domName StyleSheetList.item; @docsEditable true
   StyleSheet item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21936,21 +21980,21 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
 
 class _TextTrackCueFactoryProvider {
   static TextTrackCue createTextTrackCue(
-      String id, num startTime, num endTime, String text,
+      num startTime, num endTime, String text,
       [String settings, bool pauseOnExit]) {
         if (settings == null) {
           return JS('TextTrackCue',
-                    'new TextTrackCue(#,#,#,#)',
-                    id, startTime, endTime, text);
+                    'new TextTrackCue(#,#,#)',
+                    startTime, endTime, text);
         }
         if (pauseOnExit == null) {
           return JS('TextTrackCue',
-                    'new TextTrackCue(#,#,#,#,#)',
-                    id, startTime, endTime, text, settings);
+                    'new TextTrackCue(#,#,#,#)',
+                    startTime, endTime, text, settings);
         }
         return JS('TextTrackCue',
-                  'new TextTrackCue(#,#,#,#,#,#)',
-                  id, startTime, endTime, text, settings, pauseOnExit);
+                  'new TextTrackCue(#,#,#,#,#)',
+                  startTime, endTime, text, settings, pauseOnExit);
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21958,10 +22002,10 @@ class _TextTrackCueFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebKitAnimationList
+/// @domName WebKitAnimationList; @docsEditable true
 class _WebKitAnimationList implements JavaScriptIndexingBehavior, List<Animation> native "*WebKitAnimationList" {
 
-  /** @domName WebKitAnimationList.length */
+  /// @domName WebKitAnimationList.length; @docsEditable true
   final int length;
 
   Animation operator[](int index) => JS("Animation", "#[#]", this, index);
@@ -22024,6 +22068,8 @@ class _WebKitAnimationList implements JavaScriptIndexingBehavior, List<Animation
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  Animation get first => this[0];
+
   Animation get last => this[length - 1];
 
   Animation removeLast() {
@@ -22047,7 +22093,7 @@ class _WebKitAnimationList implements JavaScriptIndexingBehavior, List<Animation
 
   // -- end List<Animation> mixins.
 
-  /** @domName WebKitAnimationList.item */
+  /// @domName WebKitAnimationList.item; @docsEditable true
   Animation item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22091,19 +22137,88 @@ class _XSLTProcessorFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/**
+ * An object representing the top-level context object for web scripting.
+ *
+ * In a web browser, a [Window] object represents the actual browser window.
+ * In a multi-tabbed browser, each tab has its own [Window] object. A [Window]
+ * is the container that displays a [Document]'s content. All web scripting
+ * happens within the context of a [Window] object.
+ *
+ * **Note:** This class represents any window, whereas [LocalWindow] is
+ * used to access the properties and content of the current window.
+ *
+ * See also:
+ *
+ * * [DOM Window](https://developer.mozilla.org/en-US/docs/DOM/window) from MDN.
+ * * [Window](http://www.w3.org/TR/Window/) from the W3C.
+ */
 abstract class Window {
   // Fields.
+
+  /**
+   * The current location of this window.
+   *
+   *     Location currentLocation = window.location;
+   *     print(currentLocation.href); // 'http://www.example.com:80/'
+   */
   Location get location;
   History get history;
 
+  /**
+   * Indicates whether this window is closed.
+   *
+   *     print(window.closed); // 'false'
+   *     window.close();
+   *     print(window.closed); // 'true'
+   */
   bool get closed;
+
+  /**
+   * A reference to the window that opened this one.
+   *
+   *     Window thisWindow = window;
+   *     Window otherWindow = thisWindow.open('http://www.example.com/', 'foo');
+   *     print(otherWindow.opener == thisWindow); // 'true'
+   */
   Window get opener;
+
+  /**
+   * A reference to the parent of this window.
+   *
+   * If this [Window] has no parent, [parent] will return a reference to
+   * the [Window] itself.
+   *
+   *     IFrameElement myIFrame = new IFrameElement();
+   *     window.document.body.elements.add(myIFrame);
+   *     print(myIframe.contentWindow.parent == window) // 'true'
+   *
+   *     print(window.parent == window) // 'true'
+   */
   Window get parent;
+
+  /**
+   * A reference to the topmost window in the window hierarchy.
+   *
+   * If this [Window] is the topmost [Window], [top] will return a reference to
+   * the [Window] itself.
+   *
+   *     // Add an IFrame to the current window.
+   *     IFrameElement myIFrame = new IFrameElement();
+   *     window.document.body.elements.add(myIFrame);
+   *
+   *     // Add an IFrame inside of the other IFrame.
+   *     IFrameElement innerIFrame = new IFrameElement();
+   *     myIFrame.elements.add(innerIFrame);
+   *
+   *     print(myIframe.contentWindow.top == window) // 'true'
+   *     print(innerIFrame.contentWindow.top == window) // 'true'
+   *
+   *     print(window.top == window) // 'true'
+   */
   Window get top;
 
   // Methods.
-  void focus();
-  void blur();
   void close();
   void postMessage(var message, String targetOrigin, [List messagePorts = null]);
 }
@@ -22383,6 +22498,8 @@ class FilteredElementList implements List {
     if (start == null) start = length - 1;
     return _filtered.lastIndexOf(element, start);
   }
+
+  Element get first => _filtered.first;
 
   Element get last => _filtered.last;
 }
@@ -24064,7 +24181,7 @@ _convertDartToNative_ImageData(ImageData imageData) {
 Map _convertNativeToDart_Dictionary(object) {
   if (object == null) return null;
   var dict = {};
-  for (final key in JS('List', 'Object.getOwnPropertyNames(#)', object)) {
+  for (final key in JS('=List', 'Object.getOwnPropertyNames(#)', object)) {
     dict[key] = JS('var', '#[#]', object, key);
   }
   return dict;
@@ -24241,7 +24358,7 @@ _convertDartToNative_PrepareForStructuredClone(value) {
       var copy = readSlot(slot);
       if (copy != null) {
         if (true == copy) {  // Cycle, so commit to making a copy.
-          copy = JS('List', 'new Array(#)', length);
+          copy = JS('=List', 'new Array(#)', length);
           writeSlot(slot, copy);
         }
         return copy;
@@ -24261,7 +24378,7 @@ _convertDartToNative_PrepareForStructuredClone(value) {
           if (!identical(elementCopy, element)) {
             copy = readSlot(slot);   // Cyclic reference may have created it.
             if (true == copy) {
-              copy = JS('List', 'new Array(#)', length);
+              copy = JS('=List', 'new Array(#)', length);
               writeSlot(slot, copy);
             }
             for (int j = 0; j < i; j++) {
@@ -24278,7 +24395,7 @@ _convertDartToNative_PrepareForStructuredClone(value) {
         }
       } else {
         // Not a JavaScript Array.  We are forced to make a copy.
-        copy = JS('List', 'new Array(#)', length);
+        copy = JS('=List', 'new Array(#)', length);
         writeSlot(slot, copy);
       }
 
@@ -24358,7 +24475,7 @@ _convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) {
       copy = {};
 
       writeSlot(slot, copy);
-      for (final key in JS('List', 'Object.keys(#)', e)) {
+      for (final key in JS('=List', 'Object.keys(#)', e)) {
         copy[key] = walk(JS('var', '#[#]', e, key));
       }
       return copy;
@@ -24372,7 +24489,7 @@ _convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) {
       int length = e.length;
       // Since a JavaScript Array is an instance of Dart List, we can modify it
       // in-place unless we must copy.
-      copy = mustCopy ? JS('List', 'new Array(#)', length) : e;
+      copy = mustCopy ? JS('=List', 'new Array(#)', length) : e;
       writeSlot(slot, copy);
 
       for (int i = 0; i < length; i++) {
@@ -24398,6 +24515,23 @@ bool _isJavaScriptSimpleObject(value) =>
     JS('bool', 'Object.getPrototypeOf(#) === Object.prototype', value);
 bool _isImmutableJavaScriptArray(value) =>
     JS('bool', r'!!(#.immutable$list)', value);
+
+
+
+const String _serializedScriptValue =
+    'num|String|bool|'
+    '=List|=Object|'
+    'Blob|File|ArrayBuffer|ArrayBufferView'
+    // TODO(sra): Add Date, RegExp.
+    ;
+const _annotation_Creates_SerializedScriptValue =
+    const Creates(_serializedScriptValue);
+const _annotation_Returns_SerializedScriptValue =
+    const Returns(_serializedScriptValue);
+
+const String _idbKey = '=List|=Object|num|String';  // TODO(sra): Add Date.
+const _annotation_Creates_IDBKey = const Creates(_idbKey);
+const _annotation_Returns_IDBKey = const Returns(_idbKey);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -24427,10 +24561,6 @@ class _DOMWindowCrossFrame implements Window {
   Window get top => _createSafe(JS('Window', '#.top', _window));
 
   // Methods.
-  void focus() => JS('void', '#.focus()', _window);
-
-  void blur() => JS('void', '#.blur()', _window);
-
   void close() => JS('void', '#.close()', _window);
 
   void postMessage(var message, String targetOrigin, [List messagePorts = null]) {

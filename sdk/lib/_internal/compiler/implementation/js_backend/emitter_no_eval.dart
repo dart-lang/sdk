@@ -59,6 +59,18 @@ function(oldIsolate) {
 }""";
   }
 
+  String get lazyInitializerFunction {
+    return """
+function(prototype, staticName, fieldName, getterName, lazyValue, getter) {
+$lazyInitializerLogic
+}""";
+  }
+
+  void emitLazyInitializedGetter(VariableElement element, CodeBuffer buffer) {
+    String isolate = namer.CURRENT_ISOLATE;
+    buffer.add(', function() { return $isolate.${namer.getName(element)}; }');
+  }
+
   void emitBoundClosureClassHeader(String mangledName,
                                    String superName,
                                    String extraArgument,
@@ -121,17 +133,20 @@ $classesCollector.$mangledName = {'': function $mangledName(self, target) {
     buffer.add(' }');
   }
 
-  void emitClassFields(ClassElement classElement, CodeBuffer buffer) {
-    /* Do nothing. */
+  void emitClassFields(ClassElement classElement,
+                       CodeBuffer buffer,
+                       bool emitEndingComma) {
+    if (emitEndingComma) buffer.add(', ');
   }
 
-  void emitClassGettersSetters(ClassElement classElement, CodeBuffer buffer,
-                               {bool omitLeadingComma: false}) {
+  void emitClassGettersSetters(ClassElement classElement,
+                               CodeBuffer buffer,
+                               bool emitLeadingComma) {
     emitComma() {
-      if (!omitLeadingComma) {
+      if (emitLeadingComma) {
         buffer.add(",\n ");
       } else {
-        omitLeadingComma = false;
+        emitLeadingComma = true;
       }
     }
 

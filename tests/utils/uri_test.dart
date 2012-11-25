@@ -187,9 +187,10 @@ main() {
       "origin for non-http/https uri should fail");
 
   // URI encode tests
-  // Note: dart2js won't handle '\ud800\udc00' and frog
-  // won't handle '\u{10000}'. So we cons this up synthetically...
+  // Create a string with code point 0x10000 encoded as a surrogate pair.
   var s = decodeUtf8([0xf0, 0x90, 0x80, 0x80]);
+
+  Expect.stringEquals("\u{10000}", s);
 
   testEncodeDecode("\uFFFE", "%EF%BF%BE");
   testEncodeDecode("\uFFFF", "%EF%BF%BF");

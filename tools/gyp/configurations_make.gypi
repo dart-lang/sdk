@@ -29,10 +29,6 @@
           '-fvisibility-inlines-hidden',
           '-fno-omit-frame-pointer',
         ],
-        'ldflags': [
-          '-rdynamic',
-          '-Wl,-rpath,<(PRODUCT_DIR)/lib.target',
-        ],
       },
 
       'Dart_ia32_Base': {
@@ -56,9 +52,6 @@
           '-mfpu=vfp',
           '-mfloat-abi=softfp',
           '-fno-strict-overflow',
-        ],
-        'ldflags': [
-          '-Wl,-rpath=<(arm_cross_libc)/usr/lib',
         ],
       },
 

@@ -40,6 +40,7 @@ import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartGotoStatement;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartIfStatement;
+import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartInitializer;
 import com.google.dart.compiler.ast.DartIntegerLiteral;
 import com.google.dart.compiler.ast.DartInvocation;
@@ -76,6 +77,8 @@ import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
+import com.google.dart.compiler.ast.LibraryImport;
+import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.common.SourceInfo;
@@ -230,11 +233,33 @@ public class Resolver {
 
     @Override
     public Element visitUnit(DartUnit unit) {
+      List<DartImportDirective> importDirectives = Lists.newArrayList();
       for (DartDirective directive : unit.getDirectives()) {
+        if (directive instanceof DartImportDirective) {
+          importDirectives.add((DartImportDirective) directive);
+        }
         if (directive instanceof DartPartOfDirective) {
           directive.accept(this);
         }
       }
+      // set LibraryElement for "import" directives
+      {
+        LibraryUnit library = unit.getLibrary();
+        if (library != null) {
+          Iterator<LibraryImport> importIterator = library.getImports().iterator();
+          Iterator<DartImportDirective> directiveIterator = importDirectives.iterator();
+          while (importIterator.hasNext() && directiveIterator.hasNext()) {
+            LibraryImport imp = importIterator.next();
+            DartImportDirective dir = directiveIterator.next();
+            DartStringLiteral uri = dir.getLibraryUri();
+            LibraryUnit impLibrary = imp.getLibrary();
+            if (uri != null && impLibrary != null) {
+              uri.setElement(impLibrary.getElement());
+            }
+          }
+        }
+      }
+      // visit top-level nodes
       for (DartNode node : unit.getTopLevelNodes()) {
         node.accept(this);
       }
@@ -715,9 +740,18 @@ public class Resolver {
       }
       resolve(functionNode.getBody());
 
-      if (Elements.isNonFactoryConstructor(member)
-          && !(body instanceof DartNativeBlock)) {
+      if (Elements.isNonFactoryConstructor(member) && !(body instanceof DartNativeBlock)) {
         resolveInitializers(node, initializedFields);
+      }
+
+      // only generative constructor can have initializers, so resolve them, but report error 
+      if (!member.isConstructor() || member.getModifiers().isFactory()) {
+        for (DartInitializer initializer : node.getInitializers()) {
+          resolve(initializer);
+          if (initializer.getName() != null) {
+            onError(initializer, ResolverErrorCode.INITIALIZER_ONLY_IN_GENERATIVE_CONSTRUCTOR);
+          }
+        }
       }
       
       // resolve redirecting factory constructor
@@ -1253,6 +1287,20 @@ public class Resolver {
         }
       }
 
+      if (ElementKind.of(element) == ElementKind.FIELD) {
+        FieldElement fieldElement = (FieldElement) element;
+        if (fieldElement.getModifiers().isAbstractField()) {
+          if (fieldElement.getGetter() == null && ASTNodes.inGetterContext(x)) {
+            topLevelContext.onError(x, ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_GETTER);
+            x.markResolutionAlreadyReportedThatTheMethodCouldNotBeFound();
+          }
+          if (fieldElement.getSetter() == null && ASTNodes.inSetterContext(x)) {
+            topLevelContext.onError(x, ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_SETTER);
+            x.markResolutionAlreadyReportedThatTheMethodCouldNotBeFound();
+          }
+        }
+      }
+
       // May be local variable declared in lexical scope, but its declaration is not visited yet.
       if (getContext().getScope().isDeclaredButNotReachedVariable(name)) {
         onError(x, ResolverErrorCode.USING_LOCAL_VARIABLE_BEFORE_DECLARATION, x);
@@ -1278,6 +1326,7 @@ public class Resolver {
       // If we we haven't resolved the identifier, it will be normalized to
       // this.<identifier>.
 
+      checkDeprecated(x, element);
       return recordElement(x, element);
     }
 
@@ -1319,19 +1368,9 @@ public class Resolver {
             return typeProvider.getTypeType().getElement();
           }
           break;
+        case FUNCTION_TYPE_ALIAS:
         case TYPE_VARIABLE:
-          // Type variables are not legal in identifier expressions, but the type variable
-          // may be hiding a class element.
-          LibraryElement libraryElement = scope.getLibrary();
-          Scope libraryScope = libraryElement.getScope();
-          // dip again at the library level.
-          element = libraryScope.findElement(libraryElement, name);
-          if (element == null) {
-            onError(x, ResolverErrorCode.TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER);
-          } else {
-            return checkResolvedIdentifier(x, isQualifier, libraryScope, name, element);
-          }
-          break;
+          return typeProvider.getTypeType().getElement();
         default:
           break;
       }

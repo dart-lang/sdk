@@ -28,10 +28,6 @@ class _DOMWindowCrossFrame implements Window {
   Window get top => _createSafe(JS('Window', '#.top', _window));
 
   // Methods.
-  void focus() => JS('void', '#.focus()', _window);
-
-  void blur() => JS('void', '#.blur()', _window);
-
   void close() => JS('void', '#.close()', _window);
 
   void postMessage(var message, String targetOrigin, [List messagePorts = null]) {

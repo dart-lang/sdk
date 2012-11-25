@@ -28,8 +28,6 @@
     'integers_patch.dart',
     'invocation_mirror_patch.dart',
     'map_patch.dart',
-    'math.dart',
-    'math.cc',
     'object.cc',
     'object_patch.dart',
     'print_patch.dart',

@@ -1684,7 +1684,7 @@ class LibraryName extends LibraryTag {
  * Combinators filter away some identifiers from the other library.
  */
 abstract class LibraryDependency extends LibraryTag {
-  final LiteralString uri;
+  final StringNode uri;
   final NodeList combinators;
 
   LibraryDependency(this.uri, this.combinators);
@@ -1701,7 +1701,7 @@ class Import extends LibraryDependency {
   final Identifier prefix;
   final Token importKeyword;
 
-  Import(this.importKeyword, LiteralString uri,
+  Import(this.importKeyword, StringNode uri,
          this.prefix, NodeList combinators)
       : super(uri, combinators);
 
@@ -1761,7 +1761,7 @@ class Export extends LibraryDependency {
 }
 
 class Part extends LibraryTag {
-  final LiteralString uri;
+  final StringNode uri;
 
   final Token partKeyword;
 

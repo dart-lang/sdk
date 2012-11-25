@@ -120,6 +120,8 @@ class ElementKind {
       const ElementKind('ambiguous', ElementCategory.NONE);
   static const ElementKind ERROR =
       const ElementKind('error', ElementCategory.NONE);
+  static const ElementKind MALFORMED_TYPE =
+    const ElementKind('malformed', ElementCategory.NONE);
 
   toString() => id;
 }
@@ -199,6 +201,8 @@ class Element implements Spannable {
 
   /** See [AmbiguousElement] for documentation. */
   bool isAmbiguous() => false;
+
+  bool isMalformed() => false;
 
   /**
    * Is [:true:] if this element has a corresponding patch.
@@ -1136,7 +1140,7 @@ class FunctionElement extends Element {
    * changed by the resolver to point to the redirection target.  If
    * this is an interface constructor, [defaultImplementation] will be
    * changed by the resolver to point to the default implementation.
-   * Otherwise, [:defaultImplementation === this:].
+   * Otherwise, [:identical(defaultImplementation, this):].
    */
   // TODO(ahe): Rename this field to redirectionTarget and remove
   // mention of interface constructors above.
@@ -1178,7 +1182,7 @@ class FunctionElement extends Element {
 
   FunctionElement get redirectionTarget {
     if (this == defaultImplementation) return this;
-    Element target = defaultImplementation;
+    var target = defaultImplementation;
     Set<Element> seen = new Set<Element>();
     seen.add(target);
     while (!target.isErroneous() && target != target.defaultImplementation) {
@@ -1319,6 +1323,23 @@ class VoidElement extends Element {
   bool impliesType() => true;
 }
 
+class MalformedTypeElement extends Element {
+  final TypeAnnotation typeNode;
+
+  MalformedTypeElement(this.typeNode, Element enclosing)
+      : super(const SourceString('malformed'),
+              ElementKind.MALFORMED_TYPE,
+              enclosing);
+
+  DartType computeType(compiler) => compiler.types.malformedType;
+
+  Node parseNode(_) => typeNode;
+
+  bool impliesType() => true;
+
+  bool isMalformed() => true;
+}
+
 /**
  * [TypeDeclarationElement] defines the common interface for class/interface
  * declarations and typedefs.
@@ -1414,7 +1435,7 @@ abstract class ClassElement extends ScopeContainerElement
   bool isObject(Compiler compiler) =>
       identical(declaration, compiler.objectClass);
 
-  Link<DartType> get typeVariables => type.arguments;
+  Link<DartType> get typeVariables => type.typeArguments;
 
   ClassElement ensureResolved(Compiler compiler) {
     if (resolutionState == STATE_NOT_STARTED) {
@@ -1724,8 +1745,16 @@ abstract class ClassElement extends ScopeContainerElement
 }
 
 class Elements {
-  static bool isUnresolved(Element e) => e == null || e.isErroneous();
+  static bool isUnresolved(Element e) {
+    return e == null || e.isErroneous() || e.isMalformed();
+  }
   static bool isErroneousElement(Element e) => e != null && e.isErroneous();
+  static bool isMalformedElement(Element e) => e != null && e.isMalformed();
+
+  static bool isClass(Element e) => e != null && e.kind == ElementKind.CLASS;
+  static bool isTypedef(Element e) {
+    return e != null && e.kind == ElementKind.TYPEDEF;
+  }
 
   static bool isLocal(Element element) {
     return !Elements.isUnresolved(element)
@@ -1863,27 +1892,27 @@ class Elements {
 
   static SourceString constructOperatorName(SourceString op, bool isUnary) {
     String value = op.stringValue;
-    if ((value === '==') ||
-        (value === '~') ||
-        (value === '[]') ||
-        (value === '[]=') ||
-        (value === '*') ||
-        (value === '/') ||
-        (value === '%') ||
-        (value === '~/') ||
-        (value === '+') ||
-        (value === '<<') ||
-        (value === '>>>') ||
-        (value === '>>') ||
-        (value === '>=') ||
-        (value === '>') ||
-        (value === '<=') ||
-        (value === '<') ||
-        (value === '&') ||
-        (value === '^') ||
-        (value === '|')) {
+    if ((identical(value, '==')) ||
+        (identical(value, '~')) ||
+        (identical(value, '[]')) ||
+        (identical(value, '[]=')) ||
+        (identical(value, '*')) ||
+        (identical(value, '/')) ||
+        (identical(value, '%')) ||
+        (identical(value, '~/')) ||
+        (identical(value, '+')) ||
+        (identical(value, '<<')) ||
+        (identical(value, '>>>')) ||
+        (identical(value, '>>')) ||
+        (identical(value, '>=')) ||
+        (identical(value, '>')) ||
+        (identical(value, '<=')) ||
+        (identical(value, '<')) ||
+        (identical(value, '&')) ||
+        (identical(value, '^')) ||
+        (identical(value, '|'))) {
       return op;
-    } else if (value === '-') {
+    } else if (identical(value, '-')) {
       return isUnary ? const SourceString('unary-') : op;
     } else {
       throw 'Unhandled operator: ${op.slowToString()}';
@@ -1933,10 +1962,17 @@ class LabelElement extends Element {
   final TargetElement target;
   bool isBreakTarget = false;
   bool isContinueTarget = false;
-  LabelElement(Label label, this.labelName, this.target,
+  LabelElement(Label label, String labelName, this.target,
                Element enclosingElement)
       : this.label = label,
-        super(label.identifier.source, ElementKind.LABEL, enclosingElement);
+        this.labelName = labelName,
+        // In case of a synthetic label, just use [labelName] for
+        // identifying the element.
+        super(label == null
+                  ? new SourceString(labelName)
+                  : label.identifier.source,
+              ElementKind.LABEL,
+              enclosingElement);
 
   void setBreakTarget() {
     isBreakTarget = true;

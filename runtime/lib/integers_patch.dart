@@ -6,5 +6,5 @@
 // VM implementation of int.
 
 patch class int {
-  /* patch */ static int parse(String str) native "MathNatives_parseInt";
+  /* patch */ static int parse(String str) native "Integer_parse";
 }

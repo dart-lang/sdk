@@ -80,8 +80,11 @@ void testUrlUserInfo() {
           new Uri.fromString(
               "http://username:password@127.0.0.1:${server.port}/"));
   conn.onResponse = (HttpClientResponse response) {
-    server.shutdown();
-    client.shutdown();
+    response.inputStream.onData = response.inputStream.read;
+    response.inputStream.onClosed = () {
+      server.shutdown();
+      client.shutdown();
+    };
   };
 }
 
@@ -94,7 +97,8 @@ void testBasicNoCredentials() {
     HttpClientConnection conn = client.getUrl(url);
     conn.onResponse = (HttpClientResponse response) {
       Expect.equals(HttpStatus.UNAUTHORIZED, response.statusCode);
-      completer.complete(null);
+      response.inputStream.onData = response.inputStream.read;
+      response.inputStream.onClosed = () => completer.complete(null);
     };
     return completer.future;
   }
@@ -123,7 +127,8 @@ void testBasicCredentials() {
     HttpClientConnection conn = client.getUrl(url);
     conn.onResponse = (HttpClientResponse response) {
       Expect.equals(HttpStatus.OK, response.statusCode);
-      completer.complete(null);
+      response.inputStream.onData = response.inputStream.read;
+      response.inputStream.onClosed = () => completer.complete(null);
     };
     return completer.future;
   }
@@ -175,7 +180,8 @@ void testBasicAuthenticateCallback() {
     HttpClientConnection conn = client.getUrl(url);
     conn.onResponse = (HttpClientResponse response) {
       Expect.equals(HttpStatus.OK, response.statusCode);
-      completer.complete(null);
+      response.inputStream.onData = response.inputStream.read;
+      response.inputStream.onClosed = () => completer.complete(null);
     };
     return completer.future;
   }

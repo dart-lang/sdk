@@ -35,6 +35,8 @@ DEFINE_FLAG(bool, warn_legacy_getters, false,
             "Warning on legacy getter syntax");
 DEFINE_FLAG(bool, strict_function_literals, false,
             "enforce new function literal rules");
+DEFINE_FLAG(bool, fail_legacy_abstract, false,
+            "error on explicit use of abstract on class members");
 
 static void CheckedModeHandler(bool value) {
   FLAG_enable_asserts = value;
@@ -2543,7 +2545,8 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     const intptr_t type_pos = TokenPos();
     const AbstractType& type = AbstractType::Handle(
         ParseType(ClassFinalizer::kTryResolve));
-    if (type.IsTypeParameter() || type.IsDynamicType()) {
+    if (!type.IsMalformed() &&
+        (type.IsTypeParameter() || type.IsDynamicType())) {
       // Replace the type with a malformed type and compile a throw when called.
       redirection_type = ClassFinalizer::NewFinalizedMalformedType(
           Error::Handle(),  // No previous error.
@@ -2895,6 +2898,9 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
   current_member_ = &member;
   if ((CurrentToken() == Token::kABSTRACT) &&
       (LookaheadToken(1) != Token::kLPAREN)) {
+    if (FLAG_fail_legacy_abstract) {
+      ErrorMsg("illegal use of abstract");
+    }
     ConsumeToken();
     member.has_abstract = true;
   }
@@ -3736,10 +3742,7 @@ RawAbstractTypeArguments* Parser::ParseTypeArguments(
       // Map a malformed type argument to dynamic, so that malformed types with
       // a resolved type class are handled properly in production mode.
       if (type.IsMalformed()) {
-        ASSERT(finalization != ClassFinalizer::kCanonicalizeWellFormed);
-        if (finalization == ClassFinalizer::kCanonicalizeForCreation) {
-          ErrorMsg(*malformed_error);
-        }
+        ASSERT(finalization < ClassFinalizer::kCanonicalizeWellFormed);
         type = Type::DynamicType();
       }
       types.Add(type);
@@ -5035,9 +5038,13 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   // class in the current library (but not in its imports) and only create a new
   // canonical signature class if it does not exist yet.
   const String& signature = String::Handle(function.Signature());
-  Class& signature_class = Class::ZoneHandle(
-      library_.LookupLocalClass(signature));
-
+  Class& signature_class = Class::ZoneHandle();
+  if (!is_new_closure) {
+    signature_class = function.signature_class();
+  }
+  if (signature_class.IsNull()) {
+    signature_class = library_.LookupLocalClass(signature);
+  }
   if (signature_class.IsNull()) {
     // If we don't have a signature class yet, this must be a closure we
     // have not parsed before.
@@ -6179,6 +6186,8 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
     catch_seen = true;
     if (IsLiteral("on")) {
       ConsumeToken();
+      // TODO(regis): The spec may change in the way a malformed 'on' type is
+      // treated. For now, we require the type to be wellformed.
       exception_param.type = &AbstractType::ZoneHandle(
           ParseType(ClassFinalizer::kCanonicalizeWellFormed));
     } else {
@@ -6736,9 +6745,7 @@ String* Parser::ExpectIdentifier(const char* msg) {
 
 
 bool Parser::IsLiteral(const char* literal) {
-  const uint8_t* characters = reinterpret_cast<const uint8_t*>(literal);
-  intptr_t len = strlen(literal);
-  return IsIdentifier() && CurrentLiteral()->Equals(characters, len);
+  return IsIdentifier() && CurrentLiteral()->Equals(literal);
 }
 
 
@@ -6837,8 +6844,8 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
           op_kind = Token::kISNOT;
         }
         const intptr_t type_pos = TokenPos();
-        const AbstractType& type =
-            AbstractType::ZoneHandle(ParseType(ClassFinalizer::kCanonicalize));
+        const AbstractType& type = AbstractType::ZoneHandle(
+            ParseType(ClassFinalizer::kCanonicalizeExpression));
         if (!type.IsInstantiated() &&
             (current_block_->scope->function_level() > 0)) {
           // Make sure that the instantiator is captured.
@@ -7804,10 +7811,14 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
       }
       // Resolve classname in the scope of the current library.
       Error& error = Error::Handle();
-      resolved_type_class =
-          ResolveClassInCurrentLibraryScope(unresolved_class.token_pos(),
-                                            unresolved_class_name,
-                                            &error);
+      // If we finalize a type expression, as opposed to a type annotation, we
+      // tell the resolver (by passing NULL) to immediately report an ambiguous
+      // type as a compile time error.
+      resolved_type_class = ResolveClassInCurrentLibraryScope(
+          unresolved_class.token_pos(),
+          unresolved_class_name,
+          finalization >= ClassFinalizer::kCanonicalizeExpression ?
+              NULL : &error);
       if (!error.IsNull()) {
         *type = ClassFinalizer::NewFinalizedMalformedType(
             error,
@@ -7823,11 +7834,15 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
           LibraryPrefix::Handle(unresolved_class.library_prefix());
       // Resolve class name in the scope of the library prefix.
       Error& error = Error::Handle();
-      resolved_type_class =
-          ResolveClassInPrefixScope(unresolved_class.token_pos(),
-                                    lib_prefix,
-                                    unresolved_class_name,
-                                    &error);
+      // If we finalize a type expression, as opposed to a type annotation, we
+      // tell the resolver (by passing NULL) to immediately report an ambiguous
+      // type as a compile time error.
+      resolved_type_class = ResolveClassInPrefixScope(
+          unresolved_class.token_pos(),
+          lib_prefix,
+          unresolved_class_name,
+          finalization >= ClassFinalizer::kCanonicalizeExpression ?
+              NULL : &error);
       if (!error.IsNull()) {
         *type = ClassFinalizer::NewFinalizedMalformedType(
             error,
@@ -8695,7 +8710,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
   }
   ASSERT(type_arguments.IsNull() || (type_arguments.Length() == 1));
   const Class& array_class = Class::Handle(
-      Type::Handle(Type::ArrayType()).type_class());
+      Isolate::Current()->object_store()->array_class());
   Type& type = Type::ZoneHandle(
       Type::New(array_class, type_arguments, type_pos));
   type ^= ClassFinalizer::FinalizeType(
@@ -8763,9 +8778,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     return new LiteralNode(literal_pos, const_list);
   } else {
     // Factory call at runtime.
-    // TODO(regis): Once _ListImpl is removed, use Symbols::List() instead of
-    // Symbols::ListImplementation() on the following line.
-    String& factory_class_name = String::Handle(Symbols::ListImplementation());
+    String& factory_class_name = String::Handle(Symbols::List());
     const Class& factory_class =
         Class::Handle(LookupCoreClass(factory_class_name));
     ASSERT(!factory_class.IsNull());
@@ -9100,11 +9113,10 @@ AstNode* Parser::ParseNewOperator() {
   }
   intptr_t type_pos = TokenPos();
   AbstractType& type = AbstractType::Handle(
-      ParseType(ClassFinalizer::kCanonicalizeForCreation));
+      ParseType(ClassFinalizer::kCanonicalizeExpression));
   // In case the type is malformed, throw a dynamic type error after finishing
   // parsing the instance creation expression.
-  if (type.IsTypeParameter() || type.IsDynamicType()) {
-    ASSERT(!type.IsMalformed());
+  if (!type.IsMalformed() && (type.IsTypeParameter() || type.IsDynamicType())) {
     // Replace the type with a malformed type.
     type = ClassFinalizer::NewFinalizedMalformedType(
         Error::Handle(),  // No previous error.

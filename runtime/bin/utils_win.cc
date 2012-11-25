@@ -5,6 +5,7 @@
 #include <errno.h>
 
 #include "bin/utils.h"
+#include "bin/log.h"
 
 static void FormatMessageIntoBuffer(DWORD code,
                                     char* buffer,
@@ -19,7 +20,7 @@ static void FormatMessageIntoBuffer(DWORD code,
                     NULL);
   if (message_size == 0) {
     if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-      fprintf(stderr, "FormatMessage failed %d\n", GetLastError());
+      Log::PrintErr("FormatMessage failed %d\n", GetLastError());
     }
     snprintf(buffer, buffer_length, "OS Error %d", code);
   }

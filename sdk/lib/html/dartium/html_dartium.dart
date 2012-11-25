@@ -70,9 +70,7 @@ _callPortSync(num id, var message) {
 class AbstractWorker extends EventTarget {
   AbstractWorker.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   AbstractWorkerEvents get on =>
     new AbstractWorkerEvents(this);
 
@@ -166,10 +164,9 @@ class AnalyserNode extends AudioNode {
 class AnchorElement extends _Element_Merged {
 
   factory AnchorElement({String href}) {
-    if (!?href) {
-      return _Elements.createAnchorElement();
-    }
-    return _Elements.createAnchorElement(href);
+    var e = document.$dom_createElement("a");
+    if (href != null) e.href = href;
+    return e;
   }
   AnchorElement.internal(): super.internal();
 
@@ -536,7 +533,7 @@ class AppletElement extends _Element_Merged {
 /// @domName HTMLAreaElement
 class AreaElement extends _Element_Merged {
 
-  factory AreaElement() => _Elements.createAreaElement();
+  factory AreaElement() => document.$dom_createElement("area");
   AreaElement.internal(): super.internal();
 
 
@@ -862,9 +859,7 @@ class AudioContext extends EventTarget {
   factory AudioContext() => _AudioContextFactoryProvider.createAudioContext();
   AudioContext.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   AudioContextEvents get on =>
     new AudioContextEvents(this);
 
@@ -1277,7 +1272,7 @@ class AudioSourceNode extends AudioNode {
 /// @domName HTMLBRElement
 class BRElement extends _Element_Merged {
 
-  factory BRElement() => _Elements.createBRElement();
+  factory BRElement() => document.$dom_createElement("br");
   BRElement.internal(): super.internal();
 
 
@@ -1315,7 +1310,7 @@ class BarInfo extends NativeFieldWrapperClass1 {
 /// @domName HTMLBaseElement
 class BaseElement extends _Element_Merged {
 
-  factory BaseElement() => _Elements.createBaseElement();
+  factory BaseElement() => document.$dom_createElement("base");
   BaseElement.internal(): super.internal();
 
 
@@ -1382,9 +1377,7 @@ class BaseFontElement extends _Element_Merged {
 class BatteryManager extends EventTarget {
   BatteryManager.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   BatteryManagerEvents get on =>
     new BatteryManagerEvents(this);
 
@@ -1566,12 +1559,10 @@ class Blob extends NativeFieldWrapperClass1 {
 /// @domName HTMLBodyElement
 class BodyElement extends _Element_Merged {
 
-  factory BodyElement() => _Elements.createBodyElement();
+  factory BodyElement() => document.$dom_createElement("body");
   BodyElement.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   BodyElementEvents get on =>
     new BodyElementEvents(this);
 
@@ -1656,7 +1647,7 @@ class BodyElementEvents extends ElementEvents {
 /// @domName HTMLButtonElement
 class ButtonElement extends _Element_Merged {
 
-  factory ButtonElement() => _Elements.createButtonElement();
+  factory ButtonElement() => document.$dom_createElement("button");
   ButtonElement.internal(): super.internal();
 
 
@@ -2424,12 +2415,39 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
 
 
   // TODO(jacobr): generate this list of properties using the existing script.
-    /** Gets the value of "animation" */
+  /** Gets the value of "align-content" */
+  String get alignContent =>
+    getPropertyValue('${_browserPrefix}align-content');
+
+  /** Sets the value of "align-content" */
+  void set alignContent(String value) {
+    setProperty('${_browserPrefix}align-content', value, '');
+  }
+
+  /** Gets the value of "align-items" */
+  String get alignItems =>
+    getPropertyValue('${_browserPrefix}align-items');
+
+  /** Sets the value of "align-items" */
+  void set alignItems(String value) {
+    setProperty('${_browserPrefix}align-items', value, '');
+  }
+
+  /** Gets the value of "align-self" */
+  String get alignSelf =>
+    getPropertyValue('${_browserPrefix}align-self');
+
+  /** Sets the value of "align-self" */
+  void set alignSelf(String value) {
+    setProperty('${_browserPrefix}align-self', value, '');
+  }
+
+  /** Gets the value of "animation" */
   String get animation =>
     getPropertyValue('${_browserPrefix}animation');
 
   /** Sets the value of "animation" */
-  void set animation(var value) {
+  void set animation(String value) {
     setProperty('${_browserPrefix}animation', value, '');
   }
 
@@ -2438,7 +2456,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}animation-delay');
 
   /** Sets the value of "animation-delay" */
-  void set animationDelay(var value) {
+  void set animationDelay(String value) {
     setProperty('${_browserPrefix}animation-delay', value, '');
   }
 
@@ -2447,7 +2465,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}animation-direction');
 
   /** Sets the value of "animation-direction" */
-  void set animationDirection(var value) {
+  void set animationDirection(String value) {
     setProperty('${_browserPrefix}animation-direction', value, '');
   }
 
@@ -2456,7 +2474,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}animation-duration');
 
   /** Sets the value of "animation-duration" */
-  void set animationDuration(var value) {
+  void set animationDuration(String value) {
     setProperty('${_browserPrefix}animation-duration', value, '');
   }
 
@@ -2465,7 +2483,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}animation-fill-mode');
 
   /** Sets the value of "animation-fill-mode" */
-  void set animationFillMode(var value) {
+  void set animationFillMode(String value) {
     setProperty('${_browserPrefix}animation-fill-mode', value, '');
   }
 
@@ -2474,7 +2492,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}animation-iteration-count');
 
   /** Sets the value of "animation-iteration-count" */
-  void set animationIterationCount(var value) {
+  void set animationIterationCount(String value) {
     setProperty('${_browserPrefix}animation-iteration-count', value, '');
   }
 
@@ -2483,7 +2501,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}animation-name');
 
   /** Sets the value of "animation-name" */
-  void set animationName(var value) {
+  void set animationName(String value) {
     setProperty('${_browserPrefix}animation-name', value, '');
   }
 
@@ -2492,7 +2510,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}animation-play-state');
 
   /** Sets the value of "animation-play-state" */
-  void set animationPlayState(var value) {
+  void set animationPlayState(String value) {
     setProperty('${_browserPrefix}animation-play-state', value, '');
   }
 
@@ -2501,8 +2519,17 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}animation-timing-function');
 
   /** Sets the value of "animation-timing-function" */
-  void set animationTimingFunction(var value) {
+  void set animationTimingFunction(String value) {
     setProperty('${_browserPrefix}animation-timing-function', value, '');
+  }
+
+  /** Gets the value of "app-region" */
+  String get appRegion =>
+    getPropertyValue('${_browserPrefix}app-region');
+
+  /** Sets the value of "app-region" */
+  void set appRegion(String value) {
+    setProperty('${_browserPrefix}app-region', value, '');
   }
 
   /** Gets the value of "appearance" */
@@ -2510,8 +2537,17 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}appearance');
 
   /** Sets the value of "appearance" */
-  void set appearance(var value) {
+  void set appearance(String value) {
     setProperty('${_browserPrefix}appearance', value, '');
+  }
+
+  /** Gets the value of "aspect-ratio" */
+  String get aspectRatio =>
+    getPropertyValue('${_browserPrefix}aspect-ratio');
+
+  /** Sets the value of "aspect-ratio" */
+  void set aspectRatio(String value) {
+    setProperty('${_browserPrefix}aspect-ratio', value, '');
   }
 
   /** Gets the value of "backface-visibility" */
@@ -2519,7 +2555,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}backface-visibility');
 
   /** Sets the value of "backface-visibility" */
-  void set backfaceVisibility(var value) {
+  void set backfaceVisibility(String value) {
     setProperty('${_browserPrefix}backface-visibility', value, '');
   }
 
@@ -2528,7 +2564,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('background');
 
   /** Sets the value of "background" */
-  void set background(var value) {
+  void set background(String value) {
     setProperty('background', value, '');
   }
 
@@ -2537,7 +2573,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('background-attachment');
 
   /** Sets the value of "background-attachment" */
-  void set backgroundAttachment(var value) {
+  void set backgroundAttachment(String value) {
     setProperty('background-attachment', value, '');
   }
 
@@ -2546,7 +2582,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('background-clip');
 
   /** Sets the value of "background-clip" */
-  void set backgroundClip(var value) {
+  void set backgroundClip(String value) {
     setProperty('background-clip', value, '');
   }
 
@@ -2555,7 +2591,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('background-color');
 
   /** Sets the value of "background-color" */
-  void set backgroundColor(var value) {
+  void set backgroundColor(String value) {
     setProperty('background-color', value, '');
   }
 
@@ -2564,7 +2600,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}background-composite');
 
   /** Sets the value of "background-composite" */
-  void set backgroundComposite(var value) {
+  void set backgroundComposite(String value) {
     setProperty('${_browserPrefix}background-composite', value, '');
   }
 
@@ -2573,7 +2609,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('background-image');
 
   /** Sets the value of "background-image" */
-  void set backgroundImage(var value) {
+  void set backgroundImage(String value) {
     setProperty('background-image', value, '');
   }
 
@@ -2582,7 +2618,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('background-origin');
 
   /** Sets the value of "background-origin" */
-  void set backgroundOrigin(var value) {
+  void set backgroundOrigin(String value) {
     setProperty('background-origin', value, '');
   }
 
@@ -2591,7 +2627,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('background-position');
 
   /** Sets the value of "background-position" */
-  void set backgroundPosition(var value) {
+  void set backgroundPosition(String value) {
     setProperty('background-position', value, '');
   }
 
@@ -2600,7 +2636,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('background-position-x');
 
   /** Sets the value of "background-position-x" */
-  void set backgroundPositionX(var value) {
+  void set backgroundPositionX(String value) {
     setProperty('background-position-x', value, '');
   }
 
@@ -2609,7 +2645,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('background-position-y');
 
   /** Sets the value of "background-position-y" */
-  void set backgroundPositionY(var value) {
+  void set backgroundPositionY(String value) {
     setProperty('background-position-y', value, '');
   }
 
@@ -2618,7 +2654,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('background-repeat');
 
   /** Sets the value of "background-repeat" */
-  void set backgroundRepeat(var value) {
+  void set backgroundRepeat(String value) {
     setProperty('background-repeat', value, '');
   }
 
@@ -2627,7 +2663,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('background-repeat-x');
 
   /** Sets the value of "background-repeat-x" */
-  void set backgroundRepeatX(var value) {
+  void set backgroundRepeatX(String value) {
     setProperty('background-repeat-x', value, '');
   }
 
@@ -2636,7 +2672,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('background-repeat-y');
 
   /** Sets the value of "background-repeat-y" */
-  void set backgroundRepeatY(var value) {
+  void set backgroundRepeatY(String value) {
     setProperty('background-repeat-y', value, '');
   }
 
@@ -2645,8 +2681,17 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('background-size');
 
   /** Sets the value of "background-size" */
-  void set backgroundSize(var value) {
+  void set backgroundSize(String value) {
     setProperty('background-size', value, '');
+  }
+
+  /** Gets the value of "blend-mode" */
+  String get blendMode =>
+    getPropertyValue('${_browserPrefix}blend-mode');
+
+  /** Sets the value of "blend-mode" */
+  void set blendMode(String value) {
+    setProperty('${_browserPrefix}blend-mode', value, '');
   }
 
   /** Gets the value of "border" */
@@ -2654,7 +2699,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border');
 
   /** Sets the value of "border" */
-  void set border(var value) {
+  void set border(String value) {
     setProperty('border', value, '');
   }
 
@@ -2663,7 +2708,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}border-after');
 
   /** Sets the value of "border-after" */
-  void set borderAfter(var value) {
+  void set borderAfter(String value) {
     setProperty('${_browserPrefix}border-after', value, '');
   }
 
@@ -2672,7 +2717,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}border-after-color');
 
   /** Sets the value of "border-after-color" */
-  void set borderAfterColor(var value) {
+  void set borderAfterColor(String value) {
     setProperty('${_browserPrefix}border-after-color', value, '');
   }
 
@@ -2681,7 +2726,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}border-after-style');
 
   /** Sets the value of "border-after-style" */
-  void set borderAfterStyle(var value) {
+  void set borderAfterStyle(String value) {
     setProperty('${_browserPrefix}border-after-style', value, '');
   }
 
@@ -2690,7 +2735,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}border-after-width');
 
   /** Sets the value of "border-after-width" */
-  void set borderAfterWidth(var value) {
+  void set borderAfterWidth(String value) {
     setProperty('${_browserPrefix}border-after-width', value, '');
   }
 
@@ -2699,7 +2744,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}border-before');
 
   /** Sets the value of "border-before" */
-  void set borderBefore(var value) {
+  void set borderBefore(String value) {
     setProperty('${_browserPrefix}border-before', value, '');
   }
 
@@ -2708,7 +2753,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}border-before-color');
 
   /** Sets the value of "border-before-color" */
-  void set borderBeforeColor(var value) {
+  void set borderBeforeColor(String value) {
     setProperty('${_browserPrefix}border-before-color', value, '');
   }
 
@@ -2717,7 +2762,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}border-before-style');
 
   /** Sets the value of "border-before-style" */
-  void set borderBeforeStyle(var value) {
+  void set borderBeforeStyle(String value) {
     setProperty('${_browserPrefix}border-before-style', value, '');
   }
 
@@ -2726,7 +2771,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}border-before-width');
 
   /** Sets the value of "border-before-width" */
-  void set borderBeforeWidth(var value) {
+  void set borderBeforeWidth(String value) {
     setProperty('${_browserPrefix}border-before-width', value, '');
   }
 
@@ -2735,7 +2780,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-bottom');
 
   /** Sets the value of "border-bottom" */
-  void set borderBottom(var value) {
+  void set borderBottom(String value) {
     setProperty('border-bottom', value, '');
   }
 
@@ -2744,7 +2789,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-bottom-color');
 
   /** Sets the value of "border-bottom-color" */
-  void set borderBottomColor(var value) {
+  void set borderBottomColor(String value) {
     setProperty('border-bottom-color', value, '');
   }
 
@@ -2753,7 +2798,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-bottom-left-radius');
 
   /** Sets the value of "border-bottom-left-radius" */
-  void set borderBottomLeftRadius(var value) {
+  void set borderBottomLeftRadius(String value) {
     setProperty('border-bottom-left-radius', value, '');
   }
 
@@ -2762,7 +2807,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-bottom-right-radius');
 
   /** Sets the value of "border-bottom-right-radius" */
-  void set borderBottomRightRadius(var value) {
+  void set borderBottomRightRadius(String value) {
     setProperty('border-bottom-right-radius', value, '');
   }
 
@@ -2771,7 +2816,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-bottom-style');
 
   /** Sets the value of "border-bottom-style" */
-  void set borderBottomStyle(var value) {
+  void set borderBottomStyle(String value) {
     setProperty('border-bottom-style', value, '');
   }
 
@@ -2780,7 +2825,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-bottom-width');
 
   /** Sets the value of "border-bottom-width" */
-  void set borderBottomWidth(var value) {
+  void set borderBottomWidth(String value) {
     setProperty('border-bottom-width', value, '');
   }
 
@@ -2789,7 +2834,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-collapse');
 
   /** Sets the value of "border-collapse" */
-  void set borderCollapse(var value) {
+  void set borderCollapse(String value) {
     setProperty('border-collapse', value, '');
   }
 
@@ -2798,7 +2843,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-color');
 
   /** Sets the value of "border-color" */
-  void set borderColor(var value) {
+  void set borderColor(String value) {
     setProperty('border-color', value, '');
   }
 
@@ -2807,7 +2852,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}border-end');
 
   /** Sets the value of "border-end" */
-  void set borderEnd(var value) {
+  void set borderEnd(String value) {
     setProperty('${_browserPrefix}border-end', value, '');
   }
 
@@ -2816,7 +2861,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}border-end-color');
 
   /** Sets the value of "border-end-color" */
-  void set borderEndColor(var value) {
+  void set borderEndColor(String value) {
     setProperty('${_browserPrefix}border-end-color', value, '');
   }
 
@@ -2825,7 +2870,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}border-end-style');
 
   /** Sets the value of "border-end-style" */
-  void set borderEndStyle(var value) {
+  void set borderEndStyle(String value) {
     setProperty('${_browserPrefix}border-end-style', value, '');
   }
 
@@ -2834,7 +2879,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}border-end-width');
 
   /** Sets the value of "border-end-width" */
-  void set borderEndWidth(var value) {
+  void set borderEndWidth(String value) {
     setProperty('${_browserPrefix}border-end-width', value, '');
   }
 
@@ -2843,7 +2888,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}border-fit');
 
   /** Sets the value of "border-fit" */
-  void set borderFit(var value) {
+  void set borderFit(String value) {
     setProperty('${_browserPrefix}border-fit', value, '');
   }
 
@@ -2852,7 +2897,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}border-horizontal-spacing');
 
   /** Sets the value of "border-horizontal-spacing" */
-  void set borderHorizontalSpacing(var value) {
+  void set borderHorizontalSpacing(String value) {
     setProperty('${_browserPrefix}border-horizontal-spacing', value, '');
   }
 
@@ -2861,7 +2906,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-image');
 
   /** Sets the value of "border-image" */
-  void set borderImage(var value) {
+  void set borderImage(String value) {
     setProperty('border-image', value, '');
   }
 
@@ -2870,7 +2915,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-image-outset');
 
   /** Sets the value of "border-image-outset" */
-  void set borderImageOutset(var value) {
+  void set borderImageOutset(String value) {
     setProperty('border-image-outset', value, '');
   }
 
@@ -2879,7 +2924,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-image-repeat');
 
   /** Sets the value of "border-image-repeat" */
-  void set borderImageRepeat(var value) {
+  void set borderImageRepeat(String value) {
     setProperty('border-image-repeat', value, '');
   }
 
@@ -2888,7 +2933,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-image-slice');
 
   /** Sets the value of "border-image-slice" */
-  void set borderImageSlice(var value) {
+  void set borderImageSlice(String value) {
     setProperty('border-image-slice', value, '');
   }
 
@@ -2897,7 +2942,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-image-source');
 
   /** Sets the value of "border-image-source" */
-  void set borderImageSource(var value) {
+  void set borderImageSource(String value) {
     setProperty('border-image-source', value, '');
   }
 
@@ -2906,7 +2951,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-image-width');
 
   /** Sets the value of "border-image-width" */
-  void set borderImageWidth(var value) {
+  void set borderImageWidth(String value) {
     setProperty('border-image-width', value, '');
   }
 
@@ -2915,7 +2960,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-left');
 
   /** Sets the value of "border-left" */
-  void set borderLeft(var value) {
+  void set borderLeft(String value) {
     setProperty('border-left', value, '');
   }
 
@@ -2924,7 +2969,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-left-color');
 
   /** Sets the value of "border-left-color" */
-  void set borderLeftColor(var value) {
+  void set borderLeftColor(String value) {
     setProperty('border-left-color', value, '');
   }
 
@@ -2933,7 +2978,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-left-style');
 
   /** Sets the value of "border-left-style" */
-  void set borderLeftStyle(var value) {
+  void set borderLeftStyle(String value) {
     setProperty('border-left-style', value, '');
   }
 
@@ -2942,7 +2987,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-left-width');
 
   /** Sets the value of "border-left-width" */
-  void set borderLeftWidth(var value) {
+  void set borderLeftWidth(String value) {
     setProperty('border-left-width', value, '');
   }
 
@@ -2951,7 +2996,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-radius');
 
   /** Sets the value of "border-radius" */
-  void set borderRadius(var value) {
+  void set borderRadius(String value) {
     setProperty('border-radius', value, '');
   }
 
@@ -2960,7 +3005,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-right');
 
   /** Sets the value of "border-right" */
-  void set borderRight(var value) {
+  void set borderRight(String value) {
     setProperty('border-right', value, '');
   }
 
@@ -2969,7 +3014,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-right-color');
 
   /** Sets the value of "border-right-color" */
-  void set borderRightColor(var value) {
+  void set borderRightColor(String value) {
     setProperty('border-right-color', value, '');
   }
 
@@ -2978,7 +3023,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-right-style');
 
   /** Sets the value of "border-right-style" */
-  void set borderRightStyle(var value) {
+  void set borderRightStyle(String value) {
     setProperty('border-right-style', value, '');
   }
 
@@ -2987,7 +3032,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-right-width');
 
   /** Sets the value of "border-right-width" */
-  void set borderRightWidth(var value) {
+  void set borderRightWidth(String value) {
     setProperty('border-right-width', value, '');
   }
 
@@ -2996,7 +3041,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-spacing');
 
   /** Sets the value of "border-spacing" */
-  void set borderSpacing(var value) {
+  void set borderSpacing(String value) {
     setProperty('border-spacing', value, '');
   }
 
@@ -3005,7 +3050,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}border-start');
 
   /** Sets the value of "border-start" */
-  void set borderStart(var value) {
+  void set borderStart(String value) {
     setProperty('${_browserPrefix}border-start', value, '');
   }
 
@@ -3014,7 +3059,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}border-start-color');
 
   /** Sets the value of "border-start-color" */
-  void set borderStartColor(var value) {
+  void set borderStartColor(String value) {
     setProperty('${_browserPrefix}border-start-color', value, '');
   }
 
@@ -3023,7 +3068,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}border-start-style');
 
   /** Sets the value of "border-start-style" */
-  void set borderStartStyle(var value) {
+  void set borderStartStyle(String value) {
     setProperty('${_browserPrefix}border-start-style', value, '');
   }
 
@@ -3032,7 +3077,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}border-start-width');
 
   /** Sets the value of "border-start-width" */
-  void set borderStartWidth(var value) {
+  void set borderStartWidth(String value) {
     setProperty('${_browserPrefix}border-start-width', value, '');
   }
 
@@ -3041,7 +3086,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-style');
 
   /** Sets the value of "border-style" */
-  void set borderStyle(var value) {
+  void set borderStyle(String value) {
     setProperty('border-style', value, '');
   }
 
@@ -3050,7 +3095,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-top');
 
   /** Sets the value of "border-top" */
-  void set borderTop(var value) {
+  void set borderTop(String value) {
     setProperty('border-top', value, '');
   }
 
@@ -3059,7 +3104,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-top-color');
 
   /** Sets the value of "border-top-color" */
-  void set borderTopColor(var value) {
+  void set borderTopColor(String value) {
     setProperty('border-top-color', value, '');
   }
 
@@ -3068,7 +3113,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-top-left-radius');
 
   /** Sets the value of "border-top-left-radius" */
-  void set borderTopLeftRadius(var value) {
+  void set borderTopLeftRadius(String value) {
     setProperty('border-top-left-radius', value, '');
   }
 
@@ -3077,7 +3122,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-top-right-radius');
 
   /** Sets the value of "border-top-right-radius" */
-  void set borderTopRightRadius(var value) {
+  void set borderTopRightRadius(String value) {
     setProperty('border-top-right-radius', value, '');
   }
 
@@ -3086,7 +3131,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-top-style');
 
   /** Sets the value of "border-top-style" */
-  void set borderTopStyle(var value) {
+  void set borderTopStyle(String value) {
     setProperty('border-top-style', value, '');
   }
 
@@ -3095,7 +3140,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-top-width');
 
   /** Sets the value of "border-top-width" */
-  void set borderTopWidth(var value) {
+  void set borderTopWidth(String value) {
     setProperty('border-top-width', value, '');
   }
 
@@ -3104,7 +3149,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}border-vertical-spacing');
 
   /** Sets the value of "border-vertical-spacing" */
-  void set borderVerticalSpacing(var value) {
+  void set borderVerticalSpacing(String value) {
     setProperty('${_browserPrefix}border-vertical-spacing', value, '');
   }
 
@@ -3113,7 +3158,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('border-width');
 
   /** Sets the value of "border-width" */
-  void set borderWidth(var value) {
+  void set borderWidth(String value) {
     setProperty('border-width', value, '');
   }
 
@@ -3122,7 +3167,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('bottom');
 
   /** Sets the value of "bottom" */
-  void set bottom(var value) {
+  void set bottom(String value) {
     setProperty('bottom', value, '');
   }
 
@@ -3131,8 +3176,17 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}box-align');
 
   /** Sets the value of "box-align" */
-  void set boxAlign(var value) {
+  void set boxAlign(String value) {
     setProperty('${_browserPrefix}box-align', value, '');
+  }
+
+  /** Gets the value of "box-decoration-break" */
+  String get boxDecorationBreak =>
+    getPropertyValue('${_browserPrefix}box-decoration-break');
+
+  /** Sets the value of "box-decoration-break" */
+  void set boxDecorationBreak(String value) {
+    setProperty('${_browserPrefix}box-decoration-break', value, '');
   }
 
   /** Gets the value of "box-direction" */
@@ -3140,7 +3194,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}box-direction');
 
   /** Sets the value of "box-direction" */
-  void set boxDirection(var value) {
+  void set boxDirection(String value) {
     setProperty('${_browserPrefix}box-direction', value, '');
   }
 
@@ -3149,7 +3203,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}box-flex');
 
   /** Sets the value of "box-flex" */
-  void set boxFlex(var value) {
+  void set boxFlex(String value) {
     setProperty('${_browserPrefix}box-flex', value, '');
   }
 
@@ -3158,7 +3212,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}box-flex-group');
 
   /** Sets the value of "box-flex-group" */
-  void set boxFlexGroup(var value) {
+  void set boxFlexGroup(String value) {
     setProperty('${_browserPrefix}box-flex-group', value, '');
   }
 
@@ -3167,7 +3221,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}box-lines');
 
   /** Sets the value of "box-lines" */
-  void set boxLines(var value) {
+  void set boxLines(String value) {
     setProperty('${_browserPrefix}box-lines', value, '');
   }
 
@@ -3176,7 +3230,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}box-ordinal-group');
 
   /** Sets the value of "box-ordinal-group" */
-  void set boxOrdinalGroup(var value) {
+  void set boxOrdinalGroup(String value) {
     setProperty('${_browserPrefix}box-ordinal-group', value, '');
   }
 
@@ -3185,7 +3239,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}box-orient');
 
   /** Sets the value of "box-orient" */
-  void set boxOrient(var value) {
+  void set boxOrient(String value) {
     setProperty('${_browserPrefix}box-orient', value, '');
   }
 
@@ -3194,7 +3248,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}box-pack');
 
   /** Sets the value of "box-pack" */
-  void set boxPack(var value) {
+  void set boxPack(String value) {
     setProperty('${_browserPrefix}box-pack', value, '');
   }
 
@@ -3203,7 +3257,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}box-reflect');
 
   /** Sets the value of "box-reflect" */
-  void set boxReflect(var value) {
+  void set boxReflect(String value) {
     setProperty('${_browserPrefix}box-reflect', value, '');
   }
 
@@ -3212,7 +3266,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('box-shadow');
 
   /** Sets the value of "box-shadow" */
-  void set boxShadow(var value) {
+  void set boxShadow(String value) {
     setProperty('box-shadow', value, '');
   }
 
@@ -3221,7 +3275,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('box-sizing');
 
   /** Sets the value of "box-sizing" */
-  void set boxSizing(var value) {
+  void set boxSizing(String value) {
     setProperty('box-sizing', value, '');
   }
 
@@ -3230,7 +3284,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('caption-side');
 
   /** Sets the value of "caption-side" */
-  void set captionSide(var value) {
+  void set captionSide(String value) {
     setProperty('caption-side', value, '');
   }
 
@@ -3239,7 +3293,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('clear');
 
   /** Sets the value of "clear" */
-  void set clear(var value) {
+  void set clear(String value) {
     setProperty('clear', value, '');
   }
 
@@ -3248,8 +3302,17 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('clip');
 
   /** Sets the value of "clip" */
-  void set clip(var value) {
+  void set clip(String value) {
     setProperty('clip', value, '');
+  }
+
+  /** Gets the value of "clip-path" */
+  String get clipPath =>
+    getPropertyValue('${_browserPrefix}clip-path');
+
+  /** Sets the value of "clip-path" */
+  void set clipPath(String value) {
+    setProperty('${_browserPrefix}clip-path', value, '');
   }
 
   /** Gets the value of "color" */
@@ -3257,7 +3320,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('color');
 
   /** Sets the value of "color" */
-  void set color(var value) {
+  void set color(String value) {
     setProperty('color', value, '');
   }
 
@@ -3266,8 +3329,17 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}color-correction');
 
   /** Sets the value of "color-correction" */
-  void set colorCorrection(var value) {
+  void set colorCorrection(String value) {
     setProperty('${_browserPrefix}color-correction', value, '');
+  }
+
+  /** Gets the value of "column-axis" */
+  String get columnAxis =>
+    getPropertyValue('${_browserPrefix}column-axis');
+
+  /** Sets the value of "column-axis" */
+  void set columnAxis(String value) {
+    setProperty('${_browserPrefix}column-axis', value, '');
   }
 
   /** Gets the value of "column-break-after" */
@@ -3275,7 +3347,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}column-break-after');
 
   /** Sets the value of "column-break-after" */
-  void set columnBreakAfter(var value) {
+  void set columnBreakAfter(String value) {
     setProperty('${_browserPrefix}column-break-after', value, '');
   }
 
@@ -3284,7 +3356,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}column-break-before');
 
   /** Sets the value of "column-break-before" */
-  void set columnBreakBefore(var value) {
+  void set columnBreakBefore(String value) {
     setProperty('${_browserPrefix}column-break-before', value, '');
   }
 
@@ -3293,7 +3365,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}column-break-inside');
 
   /** Sets the value of "column-break-inside" */
-  void set columnBreakInside(var value) {
+  void set columnBreakInside(String value) {
     setProperty('${_browserPrefix}column-break-inside', value, '');
   }
 
@@ -3302,7 +3374,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}column-count');
 
   /** Sets the value of "column-count" */
-  void set columnCount(var value) {
+  void set columnCount(String value) {
     setProperty('${_browserPrefix}column-count', value, '');
   }
 
@@ -3311,8 +3383,17 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}column-gap');
 
   /** Sets the value of "column-gap" */
-  void set columnGap(var value) {
+  void set columnGap(String value) {
     setProperty('${_browserPrefix}column-gap', value, '');
+  }
+
+  /** Gets the value of "column-progression" */
+  String get columnProgression =>
+    getPropertyValue('${_browserPrefix}column-progression');
+
+  /** Sets the value of "column-progression" */
+  void set columnProgression(String value) {
+    setProperty('${_browserPrefix}column-progression', value, '');
   }
 
   /** Gets the value of "column-rule" */
@@ -3320,7 +3401,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}column-rule');
 
   /** Sets the value of "column-rule" */
-  void set columnRule(var value) {
+  void set columnRule(String value) {
     setProperty('${_browserPrefix}column-rule', value, '');
   }
 
@@ -3329,7 +3410,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}column-rule-color');
 
   /** Sets the value of "column-rule-color" */
-  void set columnRuleColor(var value) {
+  void set columnRuleColor(String value) {
     setProperty('${_browserPrefix}column-rule-color', value, '');
   }
 
@@ -3338,7 +3419,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}column-rule-style');
 
   /** Sets the value of "column-rule-style" */
-  void set columnRuleStyle(var value) {
+  void set columnRuleStyle(String value) {
     setProperty('${_browserPrefix}column-rule-style', value, '');
   }
 
@@ -3347,7 +3428,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}column-rule-width');
 
   /** Sets the value of "column-rule-width" */
-  void set columnRuleWidth(var value) {
+  void set columnRuleWidth(String value) {
     setProperty('${_browserPrefix}column-rule-width', value, '');
   }
 
@@ -3356,7 +3437,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}column-span');
 
   /** Sets the value of "column-span" */
-  void set columnSpan(var value) {
+  void set columnSpan(String value) {
     setProperty('${_browserPrefix}column-span', value, '');
   }
 
@@ -3365,7 +3446,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}column-width');
 
   /** Sets the value of "column-width" */
-  void set columnWidth(var value) {
+  void set columnWidth(String value) {
     setProperty('${_browserPrefix}column-width', value, '');
   }
 
@@ -3374,7 +3455,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}columns');
 
   /** Sets the value of "columns" */
-  void set columns(var value) {
+  void set columns(String value) {
     setProperty('${_browserPrefix}columns', value, '');
   }
 
@@ -3383,7 +3464,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('content');
 
   /** Sets the value of "content" */
-  void set content(var value) {
+  void set content(String value) {
     setProperty('content', value, '');
   }
 
@@ -3392,7 +3473,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('counter-increment');
 
   /** Sets the value of "counter-increment" */
-  void set counterIncrement(var value) {
+  void set counterIncrement(String value) {
     setProperty('counter-increment', value, '');
   }
 
@@ -3401,7 +3482,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('counter-reset');
 
   /** Sets the value of "counter-reset" */
-  void set counterReset(var value) {
+  void set counterReset(String value) {
     setProperty('counter-reset', value, '');
   }
 
@@ -3410,8 +3491,17 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('cursor');
 
   /** Sets the value of "cursor" */
-  void set cursor(var value) {
+  void set cursor(String value) {
     setProperty('cursor', value, '');
+  }
+
+  /** Gets the value of "dashboard-region" */
+  String get dashboardRegion =>
+    getPropertyValue('${_browserPrefix}dashboard-region');
+
+  /** Sets the value of "dashboard-region" */
+  void set dashboardRegion(String value) {
+    setProperty('${_browserPrefix}dashboard-region', value, '');
   }
 
   /** Gets the value of "direction" */
@@ -3419,7 +3509,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('direction');
 
   /** Sets the value of "direction" */
-  void set direction(var value) {
+  void set direction(String value) {
     setProperty('direction', value, '');
   }
 
@@ -3428,7 +3518,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('display');
 
   /** Sets the value of "display" */
-  void set display(var value) {
+  void set display(String value) {
     setProperty('display', value, '');
   }
 
@@ -3437,7 +3527,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('empty-cells');
 
   /** Sets the value of "empty-cells" */
-  void set emptyCells(var value) {
+  void set emptyCells(String value) {
     setProperty('empty-cells', value, '');
   }
 
@@ -3446,17 +3536,35 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}filter');
 
   /** Sets the value of "filter" */
-  void set filter(var value) {
+  void set filter(String value) {
     setProperty('${_browserPrefix}filter', value, '');
   }
 
-  /** Gets the value of "flex-align" */
-  String get flexAlign =>
-    getPropertyValue('${_browserPrefix}flex-align');
+  /** Gets the value of "flex" */
+  String get flex =>
+    getPropertyValue('${_browserPrefix}flex');
 
-  /** Sets the value of "flex-align" */
-  void set flexAlign(var value) {
-    setProperty('${_browserPrefix}flex-align', value, '');
+  /** Sets the value of "flex" */
+  void set flex(String value) {
+    setProperty('${_browserPrefix}flex', value, '');
+  }
+
+  /** Gets the value of "flex-basis" */
+  String get flexBasis =>
+    getPropertyValue('${_browserPrefix}flex-basis');
+
+  /** Sets the value of "flex-basis" */
+  void set flexBasis(String value) {
+    setProperty('${_browserPrefix}flex-basis', value, '');
+  }
+
+  /** Gets the value of "flex-direction" */
+  String get flexDirection =>
+    getPropertyValue('${_browserPrefix}flex-direction');
+
+  /** Sets the value of "flex-direction" */
+  void set flexDirection(String value) {
+    setProperty('${_browserPrefix}flex-direction', value, '');
   }
 
   /** Gets the value of "flex-flow" */
@@ -3464,26 +3572,35 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}flex-flow');
 
   /** Sets the value of "flex-flow" */
-  void set flexFlow(var value) {
+  void set flexFlow(String value) {
     setProperty('${_browserPrefix}flex-flow', value, '');
   }
 
-  /** Gets the value of "flex-order" */
-  String get flexOrder =>
-    getPropertyValue('${_browserPrefix}flex-order');
+  /** Gets the value of "flex-grow" */
+  String get flexGrow =>
+    getPropertyValue('${_browserPrefix}flex-grow');
 
-  /** Sets the value of "flex-order" */
-  void set flexOrder(var value) {
-    setProperty('${_browserPrefix}flex-order', value, '');
+  /** Sets the value of "flex-grow" */
+  void set flexGrow(String value) {
+    setProperty('${_browserPrefix}flex-grow', value, '');
   }
 
-  /** Gets the value of "flex-pack" */
-  String get flexPack =>
-    getPropertyValue('${_browserPrefix}flex-pack');
+  /** Gets the value of "flex-shrink" */
+  String get flexShrink =>
+    getPropertyValue('${_browserPrefix}flex-shrink');
 
-  /** Sets the value of "flex-pack" */
-  void set flexPack(var value) {
-    setProperty('${_browserPrefix}flex-pack', value, '');
+  /** Sets the value of "flex-shrink" */
+  void set flexShrink(String value) {
+    setProperty('${_browserPrefix}flex-shrink', value, '');
+  }
+
+  /** Gets the value of "flex-wrap" */
+  String get flexWrap =>
+    getPropertyValue('${_browserPrefix}flex-wrap');
+
+  /** Sets the value of "flex-wrap" */
+  void set flexWrap(String value) {
+    setProperty('${_browserPrefix}flex-wrap', value, '');
   }
 
   /** Gets the value of "float" */
@@ -3491,7 +3608,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('float');
 
   /** Sets the value of "float" */
-  void set float(var value) {
+  void set float(String value) {
     setProperty('float', value, '');
   }
 
@@ -3500,7 +3617,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}flow-from');
 
   /** Sets the value of "flow-from" */
-  void set flowFrom(var value) {
+  void set flowFrom(String value) {
     setProperty('${_browserPrefix}flow-from', value, '');
   }
 
@@ -3509,7 +3626,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}flow-into');
 
   /** Sets the value of "flow-into" */
-  void set flowInto(var value) {
+  void set flowInto(String value) {
     setProperty('${_browserPrefix}flow-into', value, '');
   }
 
@@ -3518,7 +3635,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('font');
 
   /** Sets the value of "font" */
-  void set font(var value) {
+  void set font(String value) {
     setProperty('font', value, '');
   }
 
@@ -3527,7 +3644,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('font-family');
 
   /** Sets the value of "font-family" */
-  void set fontFamily(var value) {
+  void set fontFamily(String value) {
     setProperty('font-family', value, '');
   }
 
@@ -3536,8 +3653,17 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}font-feature-settings');
 
   /** Sets the value of "font-feature-settings" */
-  void set fontFeatureSettings(var value) {
+  void set fontFeatureSettings(String value) {
     setProperty('${_browserPrefix}font-feature-settings', value, '');
+  }
+
+  /** Gets the value of "font-kerning" */
+  String get fontKerning =>
+    getPropertyValue('${_browserPrefix}font-kerning');
+
+  /** Sets the value of "font-kerning" */
+  void set fontKerning(String value) {
+    setProperty('${_browserPrefix}font-kerning', value, '');
   }
 
   /** Gets the value of "font-size" */
@@ -3545,7 +3671,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('font-size');
 
   /** Sets the value of "font-size" */
-  void set fontSize(var value) {
+  void set fontSize(String value) {
     setProperty('font-size', value, '');
   }
 
@@ -3554,7 +3680,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}font-size-delta');
 
   /** Sets the value of "font-size-delta" */
-  void set fontSizeDelta(var value) {
+  void set fontSizeDelta(String value) {
     setProperty('${_browserPrefix}font-size-delta', value, '');
   }
 
@@ -3563,7 +3689,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}font-smoothing');
 
   /** Sets the value of "font-smoothing" */
-  void set fontSmoothing(var value) {
+  void set fontSmoothing(String value) {
     setProperty('${_browserPrefix}font-smoothing', value, '');
   }
 
@@ -3572,7 +3698,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('font-stretch');
 
   /** Sets the value of "font-stretch" */
-  void set fontStretch(var value) {
+  void set fontStretch(String value) {
     setProperty('font-stretch', value, '');
   }
 
@@ -3581,7 +3707,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('font-style');
 
   /** Sets the value of "font-style" */
-  void set fontStyle(var value) {
+  void set fontStyle(String value) {
     setProperty('font-style', value, '');
   }
 
@@ -3590,8 +3716,17 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('font-variant');
 
   /** Sets the value of "font-variant" */
-  void set fontVariant(var value) {
+  void set fontVariant(String value) {
     setProperty('font-variant', value, '');
+  }
+
+  /** Gets the value of "font-variant-ligatures" */
+  String get fontVariantLigatures =>
+    getPropertyValue('${_browserPrefix}font-variant-ligatures');
+
+  /** Sets the value of "font-variant-ligatures" */
+  void set fontVariantLigatures(String value) {
+    setProperty('${_browserPrefix}font-variant-ligatures', value, '');
   }
 
   /** Gets the value of "font-weight" */
@@ -3599,8 +3734,44 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('font-weight');
 
   /** Sets the value of "font-weight" */
-  void set fontWeight(var value) {
+  void set fontWeight(String value) {
     setProperty('font-weight', value, '');
+  }
+
+  /** Gets the value of "grid-column" */
+  String get gridColumn =>
+    getPropertyValue('${_browserPrefix}grid-column');
+
+  /** Sets the value of "grid-column" */
+  void set gridColumn(String value) {
+    setProperty('${_browserPrefix}grid-column', value, '');
+  }
+
+  /** Gets the value of "grid-columns" */
+  String get gridColumns =>
+    getPropertyValue('${_browserPrefix}grid-columns');
+
+  /** Sets the value of "grid-columns" */
+  void set gridColumns(String value) {
+    setProperty('${_browserPrefix}grid-columns', value, '');
+  }
+
+  /** Gets the value of "grid-row" */
+  String get gridRow =>
+    getPropertyValue('${_browserPrefix}grid-row');
+
+  /** Sets the value of "grid-row" */
+  void set gridRow(String value) {
+    setProperty('${_browserPrefix}grid-row', value, '');
+  }
+
+  /** Gets the value of "grid-rows" */
+  String get gridRows =>
+    getPropertyValue('${_browserPrefix}grid-rows');
+
+  /** Sets the value of "grid-rows" */
+  void set gridRows(String value) {
+    setProperty('${_browserPrefix}grid-rows', value, '');
   }
 
   /** Gets the value of "height" */
@@ -3608,7 +3779,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('height');
 
   /** Sets the value of "height" */
-  void set height(var value) {
+  void set height(String value) {
     setProperty('height', value, '');
   }
 
@@ -3617,7 +3788,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}highlight');
 
   /** Sets the value of "highlight" */
-  void set highlight(var value) {
+  void set highlight(String value) {
     setProperty('${_browserPrefix}highlight', value, '');
   }
 
@@ -3626,7 +3797,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}hyphenate-character');
 
   /** Sets the value of "hyphenate-character" */
-  void set hyphenateCharacter(var value) {
+  void set hyphenateCharacter(String value) {
     setProperty('${_browserPrefix}hyphenate-character', value, '');
   }
 
@@ -3635,7 +3806,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}hyphenate-limit-after');
 
   /** Sets the value of "hyphenate-limit-after" */
-  void set hyphenateLimitAfter(var value) {
+  void set hyphenateLimitAfter(String value) {
     setProperty('${_browserPrefix}hyphenate-limit-after', value, '');
   }
 
@@ -3644,7 +3815,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}hyphenate-limit-before');
 
   /** Sets the value of "hyphenate-limit-before" */
-  void set hyphenateLimitBefore(var value) {
+  void set hyphenateLimitBefore(String value) {
     setProperty('${_browserPrefix}hyphenate-limit-before', value, '');
   }
 
@@ -3653,7 +3824,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}hyphenate-limit-lines');
 
   /** Sets the value of "hyphenate-limit-lines" */
-  void set hyphenateLimitLines(var value) {
+  void set hyphenateLimitLines(String value) {
     setProperty('${_browserPrefix}hyphenate-limit-lines', value, '');
   }
 
@@ -3662,8 +3833,17 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}hyphens');
 
   /** Sets the value of "hyphens" */
-  void set hyphens(var value) {
+  void set hyphens(String value) {
     setProperty('${_browserPrefix}hyphens', value, '');
+  }
+
+  /** Gets the value of "image-orientation" */
+  String get imageOrientation =>
+    getPropertyValue('image-orientation');
+
+  /** Sets the value of "image-orientation" */
+  void set imageOrientation(String value) {
+    setProperty('image-orientation', value, '');
   }
 
   /** Gets the value of "image-rendering" */
@@ -3671,8 +3851,26 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('image-rendering');
 
   /** Sets the value of "image-rendering" */
-  void set imageRendering(var value) {
+  void set imageRendering(String value) {
     setProperty('image-rendering', value, '');
+  }
+
+  /** Gets the value of "image-resolution" */
+  String get imageResolution =>
+    getPropertyValue('image-resolution');
+
+  /** Sets the value of "image-resolution" */
+  void set imageResolution(String value) {
+    setProperty('image-resolution', value, '');
+  }
+
+  /** Gets the value of "justify-content" */
+  String get justifyContent =>
+    getPropertyValue('${_browserPrefix}justify-content');
+
+  /** Sets the value of "justify-content" */
+  void set justifyContent(String value) {
+    setProperty('${_browserPrefix}justify-content', value, '');
   }
 
   /** Gets the value of "left" */
@@ -3680,7 +3878,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('left');
 
   /** Sets the value of "left" */
-  void set left(var value) {
+  void set left(String value) {
     setProperty('left', value, '');
   }
 
@@ -3689,8 +3887,17 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('letter-spacing');
 
   /** Sets the value of "letter-spacing" */
-  void set letterSpacing(var value) {
+  void set letterSpacing(String value) {
     setProperty('letter-spacing', value, '');
+  }
+
+  /** Gets the value of "line-align" */
+  String get lineAlign =>
+    getPropertyValue('${_browserPrefix}line-align');
+
+  /** Sets the value of "line-align" */
+  void set lineAlign(String value) {
+    setProperty('${_browserPrefix}line-align', value, '');
   }
 
   /** Gets the value of "line-box-contain" */
@@ -3698,7 +3905,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}line-box-contain');
 
   /** Sets the value of "line-box-contain" */
-  void set lineBoxContain(var value) {
+  void set lineBoxContain(String value) {
     setProperty('${_browserPrefix}line-box-contain', value, '');
   }
 
@@ -3707,7 +3914,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}line-break');
 
   /** Sets the value of "line-break" */
-  void set lineBreak(var value) {
+  void set lineBreak(String value) {
     setProperty('${_browserPrefix}line-break', value, '');
   }
 
@@ -3716,8 +3923,17 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}line-clamp');
 
   /** Sets the value of "line-clamp" */
-  void set lineClamp(var value) {
+  void set lineClamp(String value) {
     setProperty('${_browserPrefix}line-clamp', value, '');
+  }
+
+  /** Gets the value of "line-grid" */
+  String get lineGrid =>
+    getPropertyValue('${_browserPrefix}line-grid');
+
+  /** Sets the value of "line-grid" */
+  void set lineGrid(String value) {
+    setProperty('${_browserPrefix}line-grid', value, '');
   }
 
   /** Gets the value of "line-height" */
@@ -3725,8 +3941,17 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('line-height');
 
   /** Sets the value of "line-height" */
-  void set lineHeight(var value) {
+  void set lineHeight(String value) {
     setProperty('line-height', value, '');
+  }
+
+  /** Gets the value of "line-snap" */
+  String get lineSnap =>
+    getPropertyValue('${_browserPrefix}line-snap');
+
+  /** Sets the value of "line-snap" */
+  void set lineSnap(String value) {
+    setProperty('${_browserPrefix}line-snap', value, '');
   }
 
   /** Gets the value of "list-style" */
@@ -3734,7 +3959,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('list-style');
 
   /** Sets the value of "list-style" */
-  void set listStyle(var value) {
+  void set listStyle(String value) {
     setProperty('list-style', value, '');
   }
 
@@ -3743,7 +3968,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('list-style-image');
 
   /** Sets the value of "list-style-image" */
-  void set listStyleImage(var value) {
+  void set listStyleImage(String value) {
     setProperty('list-style-image', value, '');
   }
 
@@ -3752,7 +3977,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('list-style-position');
 
   /** Sets the value of "list-style-position" */
-  void set listStylePosition(var value) {
+  void set listStylePosition(String value) {
     setProperty('list-style-position', value, '');
   }
 
@@ -3761,7 +3986,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('list-style-type');
 
   /** Sets the value of "list-style-type" */
-  void set listStyleType(var value) {
+  void set listStyleType(String value) {
     setProperty('list-style-type', value, '');
   }
 
@@ -3770,7 +3995,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}locale');
 
   /** Sets the value of "locale" */
-  void set locale(var value) {
+  void set locale(String value) {
     setProperty('${_browserPrefix}locale', value, '');
   }
 
@@ -3779,7 +4004,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}logical-height');
 
   /** Sets the value of "logical-height" */
-  void set logicalHeight(var value) {
+  void set logicalHeight(String value) {
     setProperty('${_browserPrefix}logical-height', value, '');
   }
 
@@ -3788,7 +4013,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}logical-width');
 
   /** Sets the value of "logical-width" */
-  void set logicalWidth(var value) {
+  void set logicalWidth(String value) {
     setProperty('${_browserPrefix}logical-width', value, '');
   }
 
@@ -3797,7 +4022,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('margin');
 
   /** Sets the value of "margin" */
-  void set margin(var value) {
+  void set margin(String value) {
     setProperty('margin', value, '');
   }
 
@@ -3806,7 +4031,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}margin-after');
 
   /** Sets the value of "margin-after" */
-  void set marginAfter(var value) {
+  void set marginAfter(String value) {
     setProperty('${_browserPrefix}margin-after', value, '');
   }
 
@@ -3815,7 +4040,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}margin-after-collapse');
 
   /** Sets the value of "margin-after-collapse" */
-  void set marginAfterCollapse(var value) {
+  void set marginAfterCollapse(String value) {
     setProperty('${_browserPrefix}margin-after-collapse', value, '');
   }
 
@@ -3824,7 +4049,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}margin-before');
 
   /** Sets the value of "margin-before" */
-  void set marginBefore(var value) {
+  void set marginBefore(String value) {
     setProperty('${_browserPrefix}margin-before', value, '');
   }
 
@@ -3833,7 +4058,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}margin-before-collapse');
 
   /** Sets the value of "margin-before-collapse" */
-  void set marginBeforeCollapse(var value) {
+  void set marginBeforeCollapse(String value) {
     setProperty('${_browserPrefix}margin-before-collapse', value, '');
   }
 
@@ -3842,7 +4067,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('margin-bottom');
 
   /** Sets the value of "margin-bottom" */
-  void set marginBottom(var value) {
+  void set marginBottom(String value) {
     setProperty('margin-bottom', value, '');
   }
 
@@ -3851,7 +4076,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}margin-bottom-collapse');
 
   /** Sets the value of "margin-bottom-collapse" */
-  void set marginBottomCollapse(var value) {
+  void set marginBottomCollapse(String value) {
     setProperty('${_browserPrefix}margin-bottom-collapse', value, '');
   }
 
@@ -3860,7 +4085,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}margin-collapse');
 
   /** Sets the value of "margin-collapse" */
-  void set marginCollapse(var value) {
+  void set marginCollapse(String value) {
     setProperty('${_browserPrefix}margin-collapse', value, '');
   }
 
@@ -3869,7 +4094,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}margin-end');
 
   /** Sets the value of "margin-end" */
-  void set marginEnd(var value) {
+  void set marginEnd(String value) {
     setProperty('${_browserPrefix}margin-end', value, '');
   }
 
@@ -3878,7 +4103,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('margin-left');
 
   /** Sets the value of "margin-left" */
-  void set marginLeft(var value) {
+  void set marginLeft(String value) {
     setProperty('margin-left', value, '');
   }
 
@@ -3887,7 +4112,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('margin-right');
 
   /** Sets the value of "margin-right" */
-  void set marginRight(var value) {
+  void set marginRight(String value) {
     setProperty('margin-right', value, '');
   }
 
@@ -3896,7 +4121,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}margin-start');
 
   /** Sets the value of "margin-start" */
-  void set marginStart(var value) {
+  void set marginStart(String value) {
     setProperty('${_browserPrefix}margin-start', value, '');
   }
 
@@ -3905,7 +4130,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('margin-top');
 
   /** Sets the value of "margin-top" */
-  void set marginTop(var value) {
+  void set marginTop(String value) {
     setProperty('margin-top', value, '');
   }
 
@@ -3914,7 +4139,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}margin-top-collapse');
 
   /** Sets the value of "margin-top-collapse" */
-  void set marginTopCollapse(var value) {
+  void set marginTopCollapse(String value) {
     setProperty('${_browserPrefix}margin-top-collapse', value, '');
   }
 
@@ -3923,7 +4148,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}marquee');
 
   /** Sets the value of "marquee" */
-  void set marquee(var value) {
+  void set marquee(String value) {
     setProperty('${_browserPrefix}marquee', value, '');
   }
 
@@ -3932,7 +4157,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}marquee-direction');
 
   /** Sets the value of "marquee-direction" */
-  void set marqueeDirection(var value) {
+  void set marqueeDirection(String value) {
     setProperty('${_browserPrefix}marquee-direction', value, '');
   }
 
@@ -3941,7 +4166,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}marquee-increment');
 
   /** Sets the value of "marquee-increment" */
-  void set marqueeIncrement(var value) {
+  void set marqueeIncrement(String value) {
     setProperty('${_browserPrefix}marquee-increment', value, '');
   }
 
@@ -3950,7 +4175,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}marquee-repetition');
 
   /** Sets the value of "marquee-repetition" */
-  void set marqueeRepetition(var value) {
+  void set marqueeRepetition(String value) {
     setProperty('${_browserPrefix}marquee-repetition', value, '');
   }
 
@@ -3959,7 +4184,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}marquee-speed');
 
   /** Sets the value of "marquee-speed" */
-  void set marqueeSpeed(var value) {
+  void set marqueeSpeed(String value) {
     setProperty('${_browserPrefix}marquee-speed', value, '');
   }
 
@@ -3968,7 +4193,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}marquee-style');
 
   /** Sets the value of "marquee-style" */
-  void set marqueeStyle(var value) {
+  void set marqueeStyle(String value) {
     setProperty('${_browserPrefix}marquee-style', value, '');
   }
 
@@ -3977,7 +4202,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}mask');
 
   /** Sets the value of "mask" */
-  void set mask(var value) {
+  void set mask(String value) {
     setProperty('${_browserPrefix}mask', value, '');
   }
 
@@ -3986,7 +4211,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}mask-attachment');
 
   /** Sets the value of "mask-attachment" */
-  void set maskAttachment(var value) {
+  void set maskAttachment(String value) {
     setProperty('${_browserPrefix}mask-attachment', value, '');
   }
 
@@ -3995,7 +4220,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}mask-box-image');
 
   /** Sets the value of "mask-box-image" */
-  void set maskBoxImage(var value) {
+  void set maskBoxImage(String value) {
     setProperty('${_browserPrefix}mask-box-image', value, '');
   }
 
@@ -4004,7 +4229,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}mask-box-image-outset');
 
   /** Sets the value of "mask-box-image-outset" */
-  void set maskBoxImageOutset(var value) {
+  void set maskBoxImageOutset(String value) {
     setProperty('${_browserPrefix}mask-box-image-outset', value, '');
   }
 
@@ -4013,7 +4238,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}mask-box-image-repeat');
 
   /** Sets the value of "mask-box-image-repeat" */
-  void set maskBoxImageRepeat(var value) {
+  void set maskBoxImageRepeat(String value) {
     setProperty('${_browserPrefix}mask-box-image-repeat', value, '');
   }
 
@@ -4022,7 +4247,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}mask-box-image-slice');
 
   /** Sets the value of "mask-box-image-slice" */
-  void set maskBoxImageSlice(var value) {
+  void set maskBoxImageSlice(String value) {
     setProperty('${_browserPrefix}mask-box-image-slice', value, '');
   }
 
@@ -4031,7 +4256,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}mask-box-image-source');
 
   /** Sets the value of "mask-box-image-source" */
-  void set maskBoxImageSource(var value) {
+  void set maskBoxImageSource(String value) {
     setProperty('${_browserPrefix}mask-box-image-source', value, '');
   }
 
@@ -4040,7 +4265,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}mask-box-image-width');
 
   /** Sets the value of "mask-box-image-width" */
-  void set maskBoxImageWidth(var value) {
+  void set maskBoxImageWidth(String value) {
     setProperty('${_browserPrefix}mask-box-image-width', value, '');
   }
 
@@ -4049,7 +4274,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}mask-clip');
 
   /** Sets the value of "mask-clip" */
-  void set maskClip(var value) {
+  void set maskClip(String value) {
     setProperty('${_browserPrefix}mask-clip', value, '');
   }
 
@@ -4058,7 +4283,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}mask-composite');
 
   /** Sets the value of "mask-composite" */
-  void set maskComposite(var value) {
+  void set maskComposite(String value) {
     setProperty('${_browserPrefix}mask-composite', value, '');
   }
 
@@ -4067,7 +4292,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}mask-image');
 
   /** Sets the value of "mask-image" */
-  void set maskImage(var value) {
+  void set maskImage(String value) {
     setProperty('${_browserPrefix}mask-image', value, '');
   }
 
@@ -4076,7 +4301,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}mask-origin');
 
   /** Sets the value of "mask-origin" */
-  void set maskOrigin(var value) {
+  void set maskOrigin(String value) {
     setProperty('${_browserPrefix}mask-origin', value, '');
   }
 
@@ -4085,7 +4310,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}mask-position');
 
   /** Sets the value of "mask-position" */
-  void set maskPosition(var value) {
+  void set maskPosition(String value) {
     setProperty('${_browserPrefix}mask-position', value, '');
   }
 
@@ -4094,7 +4319,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}mask-position-x');
 
   /** Sets the value of "mask-position-x" */
-  void set maskPositionX(var value) {
+  void set maskPositionX(String value) {
     setProperty('${_browserPrefix}mask-position-x', value, '');
   }
 
@@ -4103,7 +4328,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}mask-position-y');
 
   /** Sets the value of "mask-position-y" */
-  void set maskPositionY(var value) {
+  void set maskPositionY(String value) {
     setProperty('${_browserPrefix}mask-position-y', value, '');
   }
 
@@ -4112,7 +4337,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}mask-repeat');
 
   /** Sets the value of "mask-repeat" */
-  void set maskRepeat(var value) {
+  void set maskRepeat(String value) {
     setProperty('${_browserPrefix}mask-repeat', value, '');
   }
 
@@ -4121,7 +4346,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}mask-repeat-x');
 
   /** Sets the value of "mask-repeat-x" */
-  void set maskRepeatX(var value) {
+  void set maskRepeatX(String value) {
     setProperty('${_browserPrefix}mask-repeat-x', value, '');
   }
 
@@ -4130,7 +4355,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}mask-repeat-y');
 
   /** Sets the value of "mask-repeat-y" */
-  void set maskRepeatY(var value) {
+  void set maskRepeatY(String value) {
     setProperty('${_browserPrefix}mask-repeat-y', value, '');
   }
 
@@ -4139,17 +4364,8 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}mask-size');
 
   /** Sets the value of "mask-size" */
-  void set maskSize(var value) {
+  void set maskSize(String value) {
     setProperty('${_browserPrefix}mask-size', value, '');
-  }
-
-  /** Gets the value of "match-nearest-mail-blockquote-color" */
-  String get matchNearestMailBlockquoteColor =>
-    getPropertyValue('${_browserPrefix}match-nearest-mail-blockquote-color');
-
-  /** Sets the value of "match-nearest-mail-blockquote-color" */
-  void set matchNearestMailBlockquoteColor(var value) {
-    setProperty('${_browserPrefix}match-nearest-mail-blockquote-color', value, '');
   }
 
   /** Gets the value of "max-height" */
@@ -4157,7 +4373,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('max-height');
 
   /** Sets the value of "max-height" */
-  void set maxHeight(var value) {
+  void set maxHeight(String value) {
     setProperty('max-height', value, '');
   }
 
@@ -4166,7 +4382,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}max-logical-height');
 
   /** Sets the value of "max-logical-height" */
-  void set maxLogicalHeight(var value) {
+  void set maxLogicalHeight(String value) {
     setProperty('${_browserPrefix}max-logical-height', value, '');
   }
 
@@ -4175,7 +4391,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}max-logical-width');
 
   /** Sets the value of "max-logical-width" */
-  void set maxLogicalWidth(var value) {
+  void set maxLogicalWidth(String value) {
     setProperty('${_browserPrefix}max-logical-width', value, '');
   }
 
@@ -4184,8 +4400,17 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('max-width');
 
   /** Sets the value of "max-width" */
-  void set maxWidth(var value) {
+  void set maxWidth(String value) {
     setProperty('max-width', value, '');
+  }
+
+  /** Gets the value of "max-zoom" */
+  String get maxZoom =>
+    getPropertyValue('max-zoom');
+
+  /** Sets the value of "max-zoom" */
+  void set maxZoom(String value) {
+    setProperty('max-zoom', value, '');
   }
 
   /** Gets the value of "min-height" */
@@ -4193,7 +4418,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('min-height');
 
   /** Sets the value of "min-height" */
-  void set minHeight(var value) {
+  void set minHeight(String value) {
     setProperty('min-height', value, '');
   }
 
@@ -4202,7 +4427,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}min-logical-height');
 
   /** Sets the value of "min-logical-height" */
-  void set minLogicalHeight(var value) {
+  void set minLogicalHeight(String value) {
     setProperty('${_browserPrefix}min-logical-height', value, '');
   }
 
@@ -4211,7 +4436,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}min-logical-width');
 
   /** Sets the value of "min-logical-width" */
-  void set minLogicalWidth(var value) {
+  void set minLogicalWidth(String value) {
     setProperty('${_browserPrefix}min-logical-width', value, '');
   }
 
@@ -4220,8 +4445,17 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('min-width');
 
   /** Sets the value of "min-width" */
-  void set minWidth(var value) {
+  void set minWidth(String value) {
     setProperty('min-width', value, '');
+  }
+
+  /** Gets the value of "min-zoom" */
+  String get minZoom =>
+    getPropertyValue('min-zoom');
+
+  /** Sets the value of "min-zoom" */
+  void set minZoom(String value) {
+    setProperty('min-zoom', value, '');
   }
 
   /** Gets the value of "nbsp-mode" */
@@ -4229,7 +4463,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}nbsp-mode');
 
   /** Sets the value of "nbsp-mode" */
-  void set nbspMode(var value) {
+  void set nbspMode(String value) {
     setProperty('${_browserPrefix}nbsp-mode', value, '');
   }
 
@@ -4238,8 +4472,26 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('opacity');
 
   /** Sets the value of "opacity" */
-  void set opacity(var value) {
+  void set opacity(String value) {
     setProperty('opacity', value, '');
+  }
+
+  /** Gets the value of "order" */
+  String get order =>
+    getPropertyValue('${_browserPrefix}order');
+
+  /** Sets the value of "order" */
+  void set order(String value) {
+    setProperty('${_browserPrefix}order', value, '');
+  }
+
+  /** Gets the value of "orientation" */
+  String get orientation =>
+    getPropertyValue('orientation');
+
+  /** Sets the value of "orientation" */
+  void set orientation(String value) {
+    setProperty('orientation', value, '');
   }
 
   /** Gets the value of "orphans" */
@@ -4247,7 +4499,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('orphans');
 
   /** Sets the value of "orphans" */
-  void set orphans(var value) {
+  void set orphans(String value) {
     setProperty('orphans', value, '');
   }
 
@@ -4256,7 +4508,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('outline');
 
   /** Sets the value of "outline" */
-  void set outline(var value) {
+  void set outline(String value) {
     setProperty('outline', value, '');
   }
 
@@ -4265,7 +4517,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('outline-color');
 
   /** Sets the value of "outline-color" */
-  void set outlineColor(var value) {
+  void set outlineColor(String value) {
     setProperty('outline-color', value, '');
   }
 
@@ -4274,7 +4526,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('outline-offset');
 
   /** Sets the value of "outline-offset" */
-  void set outlineOffset(var value) {
+  void set outlineOffset(String value) {
     setProperty('outline-offset', value, '');
   }
 
@@ -4283,7 +4535,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('outline-style');
 
   /** Sets the value of "outline-style" */
-  void set outlineStyle(var value) {
+  void set outlineStyle(String value) {
     setProperty('outline-style', value, '');
   }
 
@@ -4292,7 +4544,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('outline-width');
 
   /** Sets the value of "outline-width" */
-  void set outlineWidth(var value) {
+  void set outlineWidth(String value) {
     setProperty('outline-width', value, '');
   }
 
@@ -4301,8 +4553,26 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('overflow');
 
   /** Sets the value of "overflow" */
-  void set overflow(var value) {
+  void set overflow(String value) {
     setProperty('overflow', value, '');
+  }
+
+  /** Gets the value of "overflow-scrolling" */
+  String get overflowScrolling =>
+    getPropertyValue('${_browserPrefix}overflow-scrolling');
+
+  /** Sets the value of "overflow-scrolling" */
+  void set overflowScrolling(String value) {
+    setProperty('${_browserPrefix}overflow-scrolling', value, '');
+  }
+
+  /** Gets the value of "overflow-wrap" */
+  String get overflowWrap =>
+    getPropertyValue('overflow-wrap');
+
+  /** Sets the value of "overflow-wrap" */
+  void set overflowWrap(String value) {
+    setProperty('overflow-wrap', value, '');
   }
 
   /** Gets the value of "overflow-x" */
@@ -4310,7 +4580,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('overflow-x');
 
   /** Sets the value of "overflow-x" */
-  void set overflowX(var value) {
+  void set overflowX(String value) {
     setProperty('overflow-x', value, '');
   }
 
@@ -4319,7 +4589,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('overflow-y');
 
   /** Sets the value of "overflow-y" */
-  void set overflowY(var value) {
+  void set overflowY(String value) {
     setProperty('overflow-y', value, '');
   }
 
@@ -4328,7 +4598,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('padding');
 
   /** Sets the value of "padding" */
-  void set padding(var value) {
+  void set padding(String value) {
     setProperty('padding', value, '');
   }
 
@@ -4337,7 +4607,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}padding-after');
 
   /** Sets the value of "padding-after" */
-  void set paddingAfter(var value) {
+  void set paddingAfter(String value) {
     setProperty('${_browserPrefix}padding-after', value, '');
   }
 
@@ -4346,7 +4616,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}padding-before');
 
   /** Sets the value of "padding-before" */
-  void set paddingBefore(var value) {
+  void set paddingBefore(String value) {
     setProperty('${_browserPrefix}padding-before', value, '');
   }
 
@@ -4355,7 +4625,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('padding-bottom');
 
   /** Sets the value of "padding-bottom" */
-  void set paddingBottom(var value) {
+  void set paddingBottom(String value) {
     setProperty('padding-bottom', value, '');
   }
 
@@ -4364,7 +4634,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}padding-end');
 
   /** Sets the value of "padding-end" */
-  void set paddingEnd(var value) {
+  void set paddingEnd(String value) {
     setProperty('${_browserPrefix}padding-end', value, '');
   }
 
@@ -4373,7 +4643,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('padding-left');
 
   /** Sets the value of "padding-left" */
-  void set paddingLeft(var value) {
+  void set paddingLeft(String value) {
     setProperty('padding-left', value, '');
   }
 
@@ -4382,7 +4652,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('padding-right');
 
   /** Sets the value of "padding-right" */
-  void set paddingRight(var value) {
+  void set paddingRight(String value) {
     setProperty('padding-right', value, '');
   }
 
@@ -4391,7 +4661,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}padding-start');
 
   /** Sets the value of "padding-start" */
-  void set paddingStart(var value) {
+  void set paddingStart(String value) {
     setProperty('${_browserPrefix}padding-start', value, '');
   }
 
@@ -4400,7 +4670,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('padding-top');
 
   /** Sets the value of "padding-top" */
-  void set paddingTop(var value) {
+  void set paddingTop(String value) {
     setProperty('padding-top', value, '');
   }
 
@@ -4409,7 +4679,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('page');
 
   /** Sets the value of "page" */
-  void set page(var value) {
+  void set page(String value) {
     setProperty('page', value, '');
   }
 
@@ -4418,7 +4688,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('page-break-after');
 
   /** Sets the value of "page-break-after" */
-  void set pageBreakAfter(var value) {
+  void set pageBreakAfter(String value) {
     setProperty('page-break-after', value, '');
   }
 
@@ -4427,7 +4697,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('page-break-before');
 
   /** Sets the value of "page-break-before" */
-  void set pageBreakBefore(var value) {
+  void set pageBreakBefore(String value) {
     setProperty('page-break-before', value, '');
   }
 
@@ -4436,7 +4706,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('page-break-inside');
 
   /** Sets the value of "page-break-inside" */
-  void set pageBreakInside(var value) {
+  void set pageBreakInside(String value) {
     setProperty('page-break-inside', value, '');
   }
 
@@ -4445,7 +4715,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}perspective');
 
   /** Sets the value of "perspective" */
-  void set perspective(var value) {
+  void set perspective(String value) {
     setProperty('${_browserPrefix}perspective', value, '');
   }
 
@@ -4454,7 +4724,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}perspective-origin');
 
   /** Sets the value of "perspective-origin" */
-  void set perspectiveOrigin(var value) {
+  void set perspectiveOrigin(String value) {
     setProperty('${_browserPrefix}perspective-origin', value, '');
   }
 
@@ -4463,7 +4733,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}perspective-origin-x');
 
   /** Sets the value of "perspective-origin-x" */
-  void set perspectiveOriginX(var value) {
+  void set perspectiveOriginX(String value) {
     setProperty('${_browserPrefix}perspective-origin-x', value, '');
   }
 
@@ -4472,7 +4742,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}perspective-origin-y');
 
   /** Sets the value of "perspective-origin-y" */
-  void set perspectiveOriginY(var value) {
+  void set perspectiveOriginY(String value) {
     setProperty('${_browserPrefix}perspective-origin-y', value, '');
   }
 
@@ -4481,7 +4751,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('pointer-events');
 
   /** Sets the value of "pointer-events" */
-  void set pointerEvents(var value) {
+  void set pointerEvents(String value) {
     setProperty('pointer-events', value, '');
   }
 
@@ -4490,8 +4760,17 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('position');
 
   /** Sets the value of "position" */
-  void set position(var value) {
+  void set position(String value) {
     setProperty('position', value, '');
+  }
+
+  /** Gets the value of "print-color-adjust" */
+  String get printColorAdjust =>
+    getPropertyValue('${_browserPrefix}print-color-adjust');
+
+  /** Sets the value of "print-color-adjust" */
+  void set printColorAdjust(String value) {
+    setProperty('${_browserPrefix}print-color-adjust', value, '');
   }
 
   /** Gets the value of "quotes" */
@@ -4499,7 +4778,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('quotes');
 
   /** Sets the value of "quotes" */
-  void set quotes(var value) {
+  void set quotes(String value) {
     setProperty('quotes', value, '');
   }
 
@@ -4508,7 +4787,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}region-break-after');
 
   /** Sets the value of "region-break-after" */
-  void set regionBreakAfter(var value) {
+  void set regionBreakAfter(String value) {
     setProperty('${_browserPrefix}region-break-after', value, '');
   }
 
@@ -4517,7 +4796,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}region-break-before');
 
   /** Sets the value of "region-break-before" */
-  void set regionBreakBefore(var value) {
+  void set regionBreakBefore(String value) {
     setProperty('${_browserPrefix}region-break-before', value, '');
   }
 
@@ -4526,7 +4805,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}region-break-inside');
 
   /** Sets the value of "region-break-inside" */
-  void set regionBreakInside(var value) {
+  void set regionBreakInside(String value) {
     setProperty('${_browserPrefix}region-break-inside', value, '');
   }
 
@@ -4535,7 +4814,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}region-overflow');
 
   /** Sets the value of "region-overflow" */
-  void set regionOverflow(var value) {
+  void set regionOverflow(String value) {
     setProperty('${_browserPrefix}region-overflow', value, '');
   }
 
@@ -4544,7 +4823,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('resize');
 
   /** Sets the value of "resize" */
-  void set resize(var value) {
+  void set resize(String value) {
     setProperty('resize', value, '');
   }
 
@@ -4553,7 +4832,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('right');
 
   /** Sets the value of "right" */
-  void set right(var value) {
+  void set right(String value) {
     setProperty('right', value, '');
   }
 
@@ -4562,8 +4841,44 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}rtl-ordering');
 
   /** Sets the value of "rtl-ordering" */
-  void set rtlOrdering(var value) {
+  void set rtlOrdering(String value) {
     setProperty('${_browserPrefix}rtl-ordering', value, '');
+  }
+
+  /** Gets the value of "shape-inside" */
+  String get shapeInside =>
+    getPropertyValue('${_browserPrefix}shape-inside');
+
+  /** Sets the value of "shape-inside" */
+  void set shapeInside(String value) {
+    setProperty('${_browserPrefix}shape-inside', value, '');
+  }
+
+  /** Gets the value of "shape-margin" */
+  String get shapeMargin =>
+    getPropertyValue('${_browserPrefix}shape-margin');
+
+  /** Sets the value of "shape-margin" */
+  void set shapeMargin(String value) {
+    setProperty('${_browserPrefix}shape-margin', value, '');
+  }
+
+  /** Gets the value of "shape-outside" */
+  String get shapeOutside =>
+    getPropertyValue('${_browserPrefix}shape-outside');
+
+  /** Sets the value of "shape-outside" */
+  void set shapeOutside(String value) {
+    setProperty('${_browserPrefix}shape-outside', value, '');
+  }
+
+  /** Gets the value of "shape-padding" */
+  String get shapePadding =>
+    getPropertyValue('${_browserPrefix}shape-padding');
+
+  /** Sets the value of "shape-padding" */
+  void set shapePadding(String value) {
+    setProperty('${_browserPrefix}shape-padding', value, '');
   }
 
   /** Gets the value of "size" */
@@ -4571,7 +4886,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('size');
 
   /** Sets the value of "size" */
-  void set size(var value) {
+  void set size(String value) {
     setProperty('size', value, '');
   }
 
@@ -4580,7 +4895,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('speak');
 
   /** Sets the value of "speak" */
-  void set speak(var value) {
+  void set speak(String value) {
     setProperty('speak', value, '');
   }
 
@@ -4589,8 +4904,17 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('src');
 
   /** Sets the value of "src" */
-  void set src(var value) {
+  void set src(String value) {
     setProperty('src', value, '');
+  }
+
+  /** Gets the value of "tab-size" */
+  String get tabSize =>
+    getPropertyValue('tab-size');
+
+  /** Sets the value of "tab-size" */
+  void set tabSize(String value) {
+    setProperty('tab-size', value, '');
   }
 
   /** Gets the value of "table-layout" */
@@ -4598,7 +4922,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('table-layout');
 
   /** Sets the value of "table-layout" */
-  void set tableLayout(var value) {
+  void set tableLayout(String value) {
     setProperty('table-layout', value, '');
   }
 
@@ -4607,7 +4931,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}tap-highlight-color');
 
   /** Sets the value of "tap-highlight-color" */
-  void set tapHighlightColor(var value) {
+  void set tapHighlightColor(String value) {
     setProperty('${_browserPrefix}tap-highlight-color', value, '');
   }
 
@@ -4616,8 +4940,17 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('text-align');
 
   /** Sets the value of "text-align" */
-  void set textAlign(var value) {
+  void set textAlign(String value) {
     setProperty('text-align', value, '');
+  }
+
+  /** Gets the value of "text-align-last" */
+  String get textAlignLast =>
+    getPropertyValue('${_browserPrefix}text-align-last');
+
+  /** Sets the value of "text-align-last" */
+  void set textAlignLast(String value) {
+    setProperty('${_browserPrefix}text-align-last', value, '');
   }
 
   /** Gets the value of "text-combine" */
@@ -4625,7 +4958,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}text-combine');
 
   /** Sets the value of "text-combine" */
-  void set textCombine(var value) {
+  void set textCombine(String value) {
     setProperty('${_browserPrefix}text-combine', value, '');
   }
 
@@ -4634,8 +4967,26 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('text-decoration');
 
   /** Sets the value of "text-decoration" */
-  void set textDecoration(var value) {
+  void set textDecoration(String value) {
     setProperty('text-decoration', value, '');
+  }
+
+  /** Gets the value of "text-decoration-line" */
+  String get textDecorationLine =>
+    getPropertyValue('${_browserPrefix}text-decoration-line');
+
+  /** Sets the value of "text-decoration-line" */
+  void set textDecorationLine(String value) {
+    setProperty('${_browserPrefix}text-decoration-line', value, '');
+  }
+
+  /** Gets the value of "text-decoration-style" */
+  String get textDecorationStyle =>
+    getPropertyValue('${_browserPrefix}text-decoration-style');
+
+  /** Sets the value of "text-decoration-style" */
+  void set textDecorationStyle(String value) {
+    setProperty('${_browserPrefix}text-decoration-style', value, '');
   }
 
   /** Gets the value of "text-decorations-in-effect" */
@@ -4643,7 +4994,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}text-decorations-in-effect');
 
   /** Sets the value of "text-decorations-in-effect" */
-  void set textDecorationsInEffect(var value) {
+  void set textDecorationsInEffect(String value) {
     setProperty('${_browserPrefix}text-decorations-in-effect', value, '');
   }
 
@@ -4652,7 +5003,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}text-emphasis');
 
   /** Sets the value of "text-emphasis" */
-  void set textEmphasis(var value) {
+  void set textEmphasis(String value) {
     setProperty('${_browserPrefix}text-emphasis', value, '');
   }
 
@@ -4661,7 +5012,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}text-emphasis-color');
 
   /** Sets the value of "text-emphasis-color" */
-  void set textEmphasisColor(var value) {
+  void set textEmphasisColor(String value) {
     setProperty('${_browserPrefix}text-emphasis-color', value, '');
   }
 
@@ -4670,7 +5021,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}text-emphasis-position');
 
   /** Sets the value of "text-emphasis-position" */
-  void set textEmphasisPosition(var value) {
+  void set textEmphasisPosition(String value) {
     setProperty('${_browserPrefix}text-emphasis-position', value, '');
   }
 
@@ -4679,7 +5030,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}text-emphasis-style');
 
   /** Sets the value of "text-emphasis-style" */
-  void set textEmphasisStyle(var value) {
+  void set textEmphasisStyle(String value) {
     setProperty('${_browserPrefix}text-emphasis-style', value, '');
   }
 
@@ -4688,7 +5039,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}text-fill-color');
 
   /** Sets the value of "text-fill-color" */
-  void set textFillColor(var value) {
+  void set textFillColor(String value) {
     setProperty('${_browserPrefix}text-fill-color', value, '');
   }
 
@@ -4697,7 +5048,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('text-indent');
 
   /** Sets the value of "text-indent" */
-  void set textIndent(var value) {
+  void set textIndent(String value) {
     setProperty('text-indent', value, '');
   }
 
@@ -4706,7 +5057,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('text-line-through');
 
   /** Sets the value of "text-line-through" */
-  void set textLineThrough(var value) {
+  void set textLineThrough(String value) {
     setProperty('text-line-through', value, '');
   }
 
@@ -4715,7 +5066,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('text-line-through-color');
 
   /** Sets the value of "text-line-through-color" */
-  void set textLineThroughColor(var value) {
+  void set textLineThroughColor(String value) {
     setProperty('text-line-through-color', value, '');
   }
 
@@ -4724,7 +5075,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('text-line-through-mode');
 
   /** Sets the value of "text-line-through-mode" */
-  void set textLineThroughMode(var value) {
+  void set textLineThroughMode(String value) {
     setProperty('text-line-through-mode', value, '');
   }
 
@@ -4733,7 +5084,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('text-line-through-style');
 
   /** Sets the value of "text-line-through-style" */
-  void set textLineThroughStyle(var value) {
+  void set textLineThroughStyle(String value) {
     setProperty('text-line-through-style', value, '');
   }
 
@@ -4742,7 +5093,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('text-line-through-width');
 
   /** Sets the value of "text-line-through-width" */
-  void set textLineThroughWidth(var value) {
+  void set textLineThroughWidth(String value) {
     setProperty('text-line-through-width', value, '');
   }
 
@@ -4751,7 +5102,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}text-orientation');
 
   /** Sets the value of "text-orientation" */
-  void set textOrientation(var value) {
+  void set textOrientation(String value) {
     setProperty('${_browserPrefix}text-orientation', value, '');
   }
 
@@ -4760,7 +5111,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('text-overflow');
 
   /** Sets the value of "text-overflow" */
-  void set textOverflow(var value) {
+  void set textOverflow(String value) {
     setProperty('text-overflow', value, '');
   }
 
@@ -4769,7 +5120,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('text-overline');
 
   /** Sets the value of "text-overline" */
-  void set textOverline(var value) {
+  void set textOverline(String value) {
     setProperty('text-overline', value, '');
   }
 
@@ -4778,7 +5129,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('text-overline-color');
 
   /** Sets the value of "text-overline-color" */
-  void set textOverlineColor(var value) {
+  void set textOverlineColor(String value) {
     setProperty('text-overline-color', value, '');
   }
 
@@ -4787,7 +5138,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('text-overline-mode');
 
   /** Sets the value of "text-overline-mode" */
-  void set textOverlineMode(var value) {
+  void set textOverlineMode(String value) {
     setProperty('text-overline-mode', value, '');
   }
 
@@ -4796,7 +5147,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('text-overline-style');
 
   /** Sets the value of "text-overline-style" */
-  void set textOverlineStyle(var value) {
+  void set textOverlineStyle(String value) {
     setProperty('text-overline-style', value, '');
   }
 
@@ -4805,7 +5156,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('text-overline-width');
 
   /** Sets the value of "text-overline-width" */
-  void set textOverlineWidth(var value) {
+  void set textOverlineWidth(String value) {
     setProperty('text-overline-width', value, '');
   }
 
@@ -4814,7 +5165,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('text-rendering');
 
   /** Sets the value of "text-rendering" */
-  void set textRendering(var value) {
+  void set textRendering(String value) {
     setProperty('text-rendering', value, '');
   }
 
@@ -4823,7 +5174,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}text-security');
 
   /** Sets the value of "text-security" */
-  void set textSecurity(var value) {
+  void set textSecurity(String value) {
     setProperty('${_browserPrefix}text-security', value, '');
   }
 
@@ -4832,7 +5183,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('text-shadow');
 
   /** Sets the value of "text-shadow" */
-  void set textShadow(var value) {
+  void set textShadow(String value) {
     setProperty('text-shadow', value, '');
   }
 
@@ -4841,7 +5192,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}text-size-adjust');
 
   /** Sets the value of "text-size-adjust" */
-  void set textSizeAdjust(var value) {
+  void set textSizeAdjust(String value) {
     setProperty('${_browserPrefix}text-size-adjust', value, '');
   }
 
@@ -4850,7 +5201,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}text-stroke');
 
   /** Sets the value of "text-stroke" */
-  void set textStroke(var value) {
+  void set textStroke(String value) {
     setProperty('${_browserPrefix}text-stroke', value, '');
   }
 
@@ -4859,7 +5210,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}text-stroke-color');
 
   /** Sets the value of "text-stroke-color" */
-  void set textStrokeColor(var value) {
+  void set textStrokeColor(String value) {
     setProperty('${_browserPrefix}text-stroke-color', value, '');
   }
 
@@ -4868,7 +5219,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}text-stroke-width');
 
   /** Sets the value of "text-stroke-width" */
-  void set textStrokeWidth(var value) {
+  void set textStrokeWidth(String value) {
     setProperty('${_browserPrefix}text-stroke-width', value, '');
   }
 
@@ -4877,7 +5228,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('text-transform');
 
   /** Sets the value of "text-transform" */
-  void set textTransform(var value) {
+  void set textTransform(String value) {
     setProperty('text-transform', value, '');
   }
 
@@ -4886,7 +5237,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('text-underline');
 
   /** Sets the value of "text-underline" */
-  void set textUnderline(var value) {
+  void set textUnderline(String value) {
     setProperty('text-underline', value, '');
   }
 
@@ -4895,7 +5246,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('text-underline-color');
 
   /** Sets the value of "text-underline-color" */
-  void set textUnderlineColor(var value) {
+  void set textUnderlineColor(String value) {
     setProperty('text-underline-color', value, '');
   }
 
@@ -4904,7 +5255,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('text-underline-mode');
 
   /** Sets the value of "text-underline-mode" */
-  void set textUnderlineMode(var value) {
+  void set textUnderlineMode(String value) {
     setProperty('text-underline-mode', value, '');
   }
 
@@ -4913,7 +5264,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('text-underline-style');
 
   /** Sets the value of "text-underline-style" */
-  void set textUnderlineStyle(var value) {
+  void set textUnderlineStyle(String value) {
     setProperty('text-underline-style', value, '');
   }
 
@@ -4922,7 +5273,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('text-underline-width');
 
   /** Sets the value of "text-underline-width" */
-  void set textUnderlineWidth(var value) {
+  void set textUnderlineWidth(String value) {
     setProperty('text-underline-width', value, '');
   }
 
@@ -4931,7 +5282,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('top');
 
   /** Sets the value of "top" */
-  void set top(var value) {
+  void set top(String value) {
     setProperty('top', value, '');
   }
 
@@ -4940,7 +5291,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}transform');
 
   /** Sets the value of "transform" */
-  void set transform(var value) {
+  void set transform(String value) {
     setProperty('${_browserPrefix}transform', value, '');
   }
 
@@ -4949,7 +5300,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}transform-origin');
 
   /** Sets the value of "transform-origin" */
-  void set transformOrigin(var value) {
+  void set transformOrigin(String value) {
     setProperty('${_browserPrefix}transform-origin', value, '');
   }
 
@@ -4958,7 +5309,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}transform-origin-x');
 
   /** Sets the value of "transform-origin-x" */
-  void set transformOriginX(var value) {
+  void set transformOriginX(String value) {
     setProperty('${_browserPrefix}transform-origin-x', value, '');
   }
 
@@ -4967,7 +5318,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}transform-origin-y');
 
   /** Sets the value of "transform-origin-y" */
-  void set transformOriginY(var value) {
+  void set transformOriginY(String value) {
     setProperty('${_browserPrefix}transform-origin-y', value, '');
   }
 
@@ -4976,7 +5327,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}transform-origin-z');
 
   /** Sets the value of "transform-origin-z" */
-  void set transformOriginZ(var value) {
+  void set transformOriginZ(String value) {
     setProperty('${_browserPrefix}transform-origin-z', value, '');
   }
 
@@ -4985,7 +5336,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}transform-style');
 
   /** Sets the value of "transform-style" */
-  void set transformStyle(var value) {
+  void set transformStyle(String value) {
     setProperty('${_browserPrefix}transform-style', value, '');
   }
 
@@ -4994,7 +5345,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}transition');
 
   /** Sets the value of "transition" */
-  void set transition(var value) {
+  void set transition(String value) {
     setProperty('${_browserPrefix}transition', value, '');
   }
 
@@ -5003,7 +5354,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}transition-delay');
 
   /** Sets the value of "transition-delay" */
-  void set transitionDelay(var value) {
+  void set transitionDelay(String value) {
     setProperty('${_browserPrefix}transition-delay', value, '');
   }
 
@@ -5012,7 +5363,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}transition-duration');
 
   /** Sets the value of "transition-duration" */
-  void set transitionDuration(var value) {
+  void set transitionDuration(String value) {
     setProperty('${_browserPrefix}transition-duration', value, '');
   }
 
@@ -5021,7 +5372,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}transition-property');
 
   /** Sets the value of "transition-property" */
-  void set transitionProperty(var value) {
+  void set transitionProperty(String value) {
     setProperty('${_browserPrefix}transition-property', value, '');
   }
 
@@ -5030,7 +5381,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}transition-timing-function');
 
   /** Sets the value of "transition-timing-function" */
-  void set transitionTimingFunction(var value) {
+  void set transitionTimingFunction(String value) {
     setProperty('${_browserPrefix}transition-timing-function', value, '');
   }
 
@@ -5039,7 +5390,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('unicode-bidi');
 
   /** Sets the value of "unicode-bidi" */
-  void set unicodeBidi(var value) {
+  void set unicodeBidi(String value) {
     setProperty('unicode-bidi', value, '');
   }
 
@@ -5048,7 +5399,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('unicode-range');
 
   /** Sets the value of "unicode-range" */
-  void set unicodeRange(var value) {
+  void set unicodeRange(String value) {
     setProperty('unicode-range', value, '');
   }
 
@@ -5057,7 +5408,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}user-drag');
 
   /** Sets the value of "user-drag" */
-  void set userDrag(var value) {
+  void set userDrag(String value) {
     setProperty('${_browserPrefix}user-drag', value, '');
   }
 
@@ -5066,7 +5417,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}user-modify');
 
   /** Sets the value of "user-modify" */
-  void set userModify(var value) {
+  void set userModify(String value) {
     setProperty('${_browserPrefix}user-modify', value, '');
   }
 
@@ -5075,8 +5426,17 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}user-select');
 
   /** Sets the value of "user-select" */
-  void set userSelect(var value) {
+  void set userSelect(String value) {
     setProperty('${_browserPrefix}user-select', value, '');
+  }
+
+  /** Gets the value of "user-zoom" */
+  String get userZoom =>
+    getPropertyValue('user-zoom');
+
+  /** Sets the value of "user-zoom" */
+  void set userZoom(String value) {
+    setProperty('user-zoom', value, '');
   }
 
   /** Gets the value of "vertical-align" */
@@ -5084,7 +5444,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('vertical-align');
 
   /** Sets the value of "vertical-align" */
-  void set verticalAlign(var value) {
+  void set verticalAlign(String value) {
     setProperty('vertical-align', value, '');
   }
 
@@ -5093,7 +5453,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('visibility');
 
   /** Sets the value of "visibility" */
-  void set visibility(var value) {
+  void set visibility(String value) {
     setProperty('visibility', value, '');
   }
 
@@ -5102,7 +5462,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('white-space');
 
   /** Sets the value of "white-space" */
-  void set whiteSpace(var value) {
+  void set whiteSpace(String value) {
     setProperty('white-space', value, '');
   }
 
@@ -5111,7 +5471,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('widows');
 
   /** Sets the value of "widows" */
-  void set widows(var value) {
+  void set widows(String value) {
     setProperty('widows', value, '');
   }
 
@@ -5120,7 +5480,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('width');
 
   /** Sets the value of "width" */
-  void set width(var value) {
+  void set width(String value) {
     setProperty('width', value, '');
   }
 
@@ -5129,7 +5489,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('word-break');
 
   /** Sets the value of "word-break" */
-  void set wordBreak(var value) {
+  void set wordBreak(String value) {
     setProperty('word-break', value, '');
   }
 
@@ -5138,7 +5498,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('word-spacing');
 
   /** Sets the value of "word-spacing" */
-  void set wordSpacing(var value) {
+  void set wordSpacing(String value) {
     setProperty('word-spacing', value, '');
   }
 
@@ -5147,17 +5507,35 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('word-wrap');
 
   /** Sets the value of "word-wrap" */
-  void set wordWrap(var value) {
+  void set wordWrap(String value) {
     setProperty('word-wrap', value, '');
   }
 
-  /** Gets the value of "wrap-shape" */
-  String get wrapShape =>
-    getPropertyValue('${_browserPrefix}wrap-shape');
+  /** Gets the value of "wrap" */
+  String get wrap =>
+    getPropertyValue('${_browserPrefix}wrap');
 
-  /** Sets the value of "wrap-shape" */
-  void set wrapShape(var value) {
-    setProperty('${_browserPrefix}wrap-shape', value, '');
+  /** Sets the value of "wrap" */
+  void set wrap(String value) {
+    setProperty('${_browserPrefix}wrap', value, '');
+  }
+
+  /** Gets the value of "wrap-flow" */
+  String get wrapFlow =>
+    getPropertyValue('${_browserPrefix}wrap-flow');
+
+  /** Sets the value of "wrap-flow" */
+  void set wrapFlow(String value) {
+    setProperty('${_browserPrefix}wrap-flow', value, '');
+  }
+
+  /** Gets the value of "wrap-through" */
+  String get wrapThrough =>
+    getPropertyValue('${_browserPrefix}wrap-through');
+
+  /** Sets the value of "wrap-through" */
+  void set wrapThrough(String value) {
+    setProperty('${_browserPrefix}wrap-through', value, '');
   }
 
   /** Gets the value of "writing-mode" */
@@ -5165,7 +5543,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('${_browserPrefix}writing-mode');
 
   /** Sets the value of "writing-mode" */
-  void set writingMode(var value) {
+  void set writingMode(String value) {
     setProperty('${_browserPrefix}writing-mode', value, '');
   }
 
@@ -5174,7 +5552,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('z-index');
 
   /** Sets the value of "z-index" */
-  void set zIndex(var value) {
+  void set zIndex(String value) {
     setProperty('z-index', value, '');
   }
 
@@ -5183,7 +5561,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
     getPropertyValue('zoom');
 
   /** Sets the value of "zoom" */
-  void set zoom(var value) {
+  void set zoom(String value) {
     setProperty('zoom', value, '');
   }
 }
@@ -5372,13 +5750,10 @@ class CSSValue extends NativeFieldWrapperClass1 {
 class CanvasElement extends _Element_Merged {
 
   factory CanvasElement({int width, int height}) {
-    if (!?width) {
-      return _Elements.createCanvasElement();
-    }
-    if (!?height) {
-      return _Elements.createCanvasElement(width);
-    }
-    return _Elements.createCanvasElement(width, height);
+    var e = document.$dom_createElement("canvas");
+    if (width != null) e.width = width;
+    if (height != null) e.height = height;
+    return e;
   }
   CanvasElement.internal(): super.internal();
 
@@ -6464,7 +6839,7 @@ class Console extends NativeFieldWrapperClass1 {
 /// @domName HTMLContentElement
 class ContentElement extends _Element_Merged {
 
-  factory ContentElement() => _Elements.createContentElement();
+  factory ContentElement() => document.$dom_createElement("content");
   ContentElement.internal(): super.internal();
 
 
@@ -6628,7 +7003,7 @@ class CustomEvent extends Event {
 /// @domName HTMLDListElement
 class DListElement extends _Element_Merged {
 
-  factory DListElement() => _Elements.createDListElement();
+  factory DListElement() => document.$dom_createElement("dl");
   DListElement.internal(): super.internal();
 
 
@@ -6651,9 +7026,7 @@ class DListElement extends _Element_Merged {
 class DOMApplicationCache extends EventTarget {
   DOMApplicationCache.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   DOMApplicationCacheEvents get on =>
     new DOMApplicationCacheEvents(this);
 
@@ -6987,6 +7360,8 @@ class DOMMimeTypeArray extends NativeFieldWrapperClass1 implements List<DOMMimeT
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  DOMMimeType get first => this[0];
+
   DOMMimeType get last => this[length - 1];
 
   DOMMimeType removeLast() {
@@ -7147,6 +7522,8 @@ class DOMPluginArray extends NativeFieldWrapperClass1 implements List<DOMPlugin>
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  DOMPlugin get first => this[0];
 
   DOMPlugin get last => this[length - 1];
 
@@ -7385,7 +7762,7 @@ class DOMTokenList extends NativeFieldWrapperClass1 {
 /// @domName HTMLDataListElement
 class DataListElement extends _Element_Merged {
 
-  factory DataListElement() => _Elements.createDataListElement();
+  factory DataListElement() => document.$dom_createElement("datalist");
   DataListElement.internal(): super.internal();
 
 
@@ -7772,9 +8149,7 @@ class DatabaseSync extends NativeFieldWrapperClass1 {
 class DedicatedWorkerContext extends WorkerContext {
   DedicatedWorkerContext.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   DedicatedWorkerContextEvents get on =>
     new DedicatedWorkerContextEvents(this);
 
@@ -7815,7 +8190,7 @@ class DelayNode extends AudioNode {
 /// @domName HTMLDetailsElement
 class DetailsElement extends _Element_Merged {
 
-  factory DetailsElement() => _Elements.createDetailsElement();
+  factory DetailsElement() => document.$dom_createElement("details");
   DetailsElement.internal(): super.internal();
 
 
@@ -7993,7 +8368,7 @@ class DirectoryReaderSync extends NativeFieldWrapperClass1 {
 /// @domName HTMLDivElement
 class DivElement extends _Element_Merged {
 
-  factory DivElement() => _Elements.createDivElement();
+  factory DivElement() => document.$dom_createElement("div");
   DivElement.internal(): super.internal();
 
 }
@@ -8007,9 +8382,7 @@ class Document extends Node
 
   Document.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   DocumentEvents get on =>
     new DocumentEvents(this);
 
@@ -8388,24 +8761,30 @@ class DocumentFragment extends Node {
       _DocumentFragmentFactoryProvider.createDocumentFragment_html(html);
 
   factory DocumentFragment.svg(String svgContent) =>
-      new _DocumentFragmentFactoryProvider.createDocumentFragment_svg(svgContent);
+      _DocumentFragmentFactoryProvider.createDocumentFragment_svg(svgContent);
 
-  List<Element> _elements;
-
-  List<Element> get elements {
-    if (_elements == null) {
-      _elements = new FilteredElementList(this);
-    }
-    return _elements;
-  }
+  List<Element> get elements => this.children;
 
   // TODO: The type of value should be Collection<Element>. See http://b/5392897
   void set elements(value) {
+    this.children = value;
+  }
+
+  List<Element> _children;
+
+  List<Element> get children {
+    if (_children == null) {
+      _children = new FilteredElementList(this);
+    }
+    return _children;
+  }
+
+  void set children(Collection<Element> value) {
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
-    final elements = this.elements;
-    elements.clear();
-    elements.addAll(copy);
+    var children = this.children;
+    children.clear();
+    children.addAll(copy);
   }
 
   Element query(String selectors) => $dom_querySelector(selectors);
@@ -8615,9 +8994,7 @@ class DocumentFragment extends Node {
 
   DocumentFragment.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ElementEvents get on =>
     new ElementEvents(this);
 
@@ -8868,6 +9245,11 @@ class _ChildrenElementList implements List {
     return result;
   }
 
+  Element get first {
+    return _element.$dom_firstElementChild;
+  }
+
+
   Element get last {
     return _element.$dom_lastElementChild;
   }
@@ -8881,10 +9263,6 @@ class _FrozenElementList implements List {
   final List<Node> _nodeList;
 
   _FrozenElementList._wrap(this._nodeList);
-
-  Element get first {
-    return _nodeList[0];
-  }
 
   bool contains(Element element) {
     for (Element el in this) {
@@ -8994,6 +9372,8 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
+  Element get first => _nodeList.first;
+
   Element get last => _nodeList.last;
 }
 
@@ -9021,16 +9401,7 @@ class _FrozenElementListIterator implements Iterator<Element> {
   bool get hasNext => _index < _list.length;
 }
 
-/**
- * All your attribute manipulation needs in one place.
- * Extends the regular Map interface by automatically coercing non-string
- * values to strings.
- */
-abstract class AttributeMap implements Map<String, String> {
-  void operator []=(String key, value);
-}
-
-class _ElementAttributeMap extends AttributeMap {
+class _ElementAttributeMap implements Map<String, String> {
 
   final Element _element;
 
@@ -9125,7 +9496,7 @@ class _ElementAttributeMap extends AttributeMap {
  * Provides a Map abstraction on top of data-* attributes, similar to the
  * dataSet in the old DOM.
  */
-class _DataAttributeMap extends AttributeMap {
+class _DataAttributeMap implements Map<String, String> {
 
   final Map<String, String> $dom_attributes;
 
@@ -9238,7 +9609,7 @@ class _SimpleClientRect implements ClientRect {
   String toString() => "($left, $top, $width, $height)";
 }
 
-class Element extends Node implements ElementTraversal {
+abstract class Element extends Node implements ElementTraversal {
 
   factory Element.html(String html) =>
       _ElementFactoryProvider.createElement_html(html);
@@ -9249,7 +9620,7 @@ class Element extends Node implements ElementTraversal {
    * @domName Element.hasAttribute, Element.getAttribute, Element.setAttribute,
    *   Element.removeAttribute
    */
-  _ElementAttributeMap get attributes => new _ElementAttributeMap(this);
+  Map<String, String> get attributes => new _ElementAttributeMap(this);
 
   void set attributes(Map<String, String> value) {
     Map<String, String> attributes = this.attributes;
@@ -9260,16 +9631,27 @@ class Element extends Node implements ElementTraversal {
   }
 
   void set elements(Collection<Element> value) {
-    final elements = this.elements;
-    elements.clear();
-    elements.addAll(value);
+    this.children = value;
   }
+
+  /**
+   * Deprecated, use [children] instead.
+   */
+  List<Element> get elements => this.children;
 
   /**
    * @domName childElementCount, firstElementChild, lastElementChild,
    *   children, Node.nodes.add
    */
-  List<Element> get elements => new _ChildrenElementList._wrap(this);
+  List<Element> get children => new _ChildrenElementList._wrap(this);
+
+  void set children(Collection<Element> value) {
+    // Copy list first since we don't want liveness during iteration.
+    List copy = new List.from(value);
+    var children = this.children;
+    children.clear();
+    children.addAll(copy);
+  }
 
   Element query(String selectors) => $dom_querySelector(selectors);
 
@@ -9355,67 +9737,65 @@ class Element extends Node implements ElementTraversal {
 
   Element.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ElementEvents get on =>
     new ElementEvents(this);
 
-  /** @domName HTMLElement.children */
+  /// @domName HTMLElement.children; @docsEditable true
   HTMLCollection get $dom_children;
 
-  /** @domName HTMLElement.contentEditable */
+  /// @domName HTMLElement.contentEditable; @docsEditable true
   String contentEditable;
 
-  /** @domName HTMLElement.dir */
+  /// @domName HTMLElement.dir; @docsEditable true
   String dir;
 
-  /** @domName HTMLElement.draggable */
+  /// @domName HTMLElement.draggable; @docsEditable true
   bool draggable;
 
-  /** @domName HTMLElement.hidden */
+  /// @domName HTMLElement.hidden; @docsEditable true
   bool hidden;
 
-  /** @domName HTMLElement.id */
+  /// @domName HTMLElement.id; @docsEditable true
   String id;
 
-  /** @domName HTMLElement.innerHTML */
+  /// @domName HTMLElement.innerHTML; @docsEditable true
   String innerHTML;
 
-  /** @domName HTMLElement.isContentEditable */
+  /// @domName HTMLElement.isContentEditable; @docsEditable true
   bool get isContentEditable;
 
-  /** @domName HTMLElement.lang */
+  /// @domName HTMLElement.lang; @docsEditable true
   String lang;
 
-  /** @domName HTMLElement.outerHTML */
+  /// @domName HTMLElement.outerHTML; @docsEditable true
   String get outerHTML;
 
-  /** @domName HTMLElement.spellcheck */
+  /// @domName HTMLElement.spellcheck; @docsEditable true
   bool spellcheck;
 
-  /** @domName HTMLElement.tabIndex */
+  /// @domName HTMLElement.tabIndex; @docsEditable true
   int tabIndex;
 
-  /** @domName HTMLElement.title */
+  /// @domName HTMLElement.title; @docsEditable true
   String title;
 
-  /** @domName HTMLElement.translate */
+  /// @domName HTMLElement.translate; @docsEditable true
   bool translate;
 
-  /** @domName HTMLElement.webkitdropzone */
+  /// @domName HTMLElement.webkitdropzone; @docsEditable true
   String webkitdropzone;
 
-  /** @domName HTMLElement.click */
+  /// @domName HTMLElement.click; @docsEditable true
   void click();
 
-  /** @domName HTMLElement.insertAdjacentElement */
+  /// @domName HTMLElement.insertAdjacentElement; @docsEditable true
   Element insertAdjacentElement(String where, Element element);
 
-  /** @domName HTMLElement.insertAdjacentHTML */
+  /// @domName HTMLElement.insertAdjacentHTML; @docsEditable true
   void insertAdjacentHTML(String where, String html);
 
-  /** @domName HTMLElement.insertAdjacentText */
+  /// @domName HTMLElement.insertAdjacentText; @docsEditable true
   void insertAdjacentText(String where, String text);
 
   static const int ALLOW_KEYBOARD_INPUT = 1;
@@ -9654,15 +10034,15 @@ class _ElementFactoryProvider {
     temp.innerHTML = html;
 
     Element element;
-    if (temp.elements.length == 1) {
-      element = temp.elements[0];
-    } else if (parentTag == 'html' && temp.elements.length == 2) {
+    if (temp.children.length == 1) {
+      element = temp.children[0];
+    } else if (parentTag == 'html' && temp.children.length == 2) {
       // Work around for edge case in WebKit and possibly other browsers where
       // both body and head elements are created even though the inner html
       // only contains a head or body element.
-      element = temp.elements[tag == 'head' ? 0 : 1];
+      element = temp.children[tag == 'head' ? 0 : 1];
     } else {
-      throw new ArgumentError('HTML had ${temp.elements.length} '
+      throw new ArgumentError('HTML had ${temp.children.length} '
           'top level elements but 1 expected');
     }
     element.remove();
@@ -9843,7 +10223,7 @@ class ElementTraversal extends NativeFieldWrapperClass1 {
 /// @domName HTMLEmbedElement
 class EmbedElement extends _Element_Merged {
 
-  factory EmbedElement() => _Elements.createEmbedElement();
+  factory EmbedElement() => document.$dom_createElement("embed");
   EmbedElement.internal(): super.internal();
 
 
@@ -10263,9 +10643,7 @@ class EventSource extends EventTarget {
   factory EventSource(String scriptUrl) => _EventSourceFactoryProvider.createEventSource(scriptUrl);
   EventSource.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   EventSourceEvents get on =>
     new EventSourceEvents(this);
 
@@ -10394,7 +10772,7 @@ class EventTarget extends NativeFieldWrapperClass1 {
 /// @domName HTMLFieldSetElement
 class FieldSetElement extends _Element_Merged {
 
-  factory FieldSetElement() => _Elements.createFieldSetElement();
+  factory FieldSetElement() => document.$dom_createElement("fieldset");
   FieldSetElement.internal(): super.internal();
 
 
@@ -10623,9 +11001,7 @@ class FileReader extends EventTarget {
   factory FileReader() => _FileReaderFactoryProvider.createFileReader();
   FileReader.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FileReaderEvents get on =>
     new FileReaderEvents(this);
 
@@ -10768,9 +11144,7 @@ typedef void FileSystemCallback(DOMFileSystem fileSystem);
 class FileWriter extends EventTarget {
   FileWriter.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FileWriterEvents get on =>
     new FileWriterEvents(this);
 
@@ -10969,6 +11343,8 @@ class Float32Array extends ArrayBufferView implements List<num> {
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  num get first => this[0];
+
   num get last => this[length - 1];
 
   num removeLast() {
@@ -11100,6 +11476,8 @@ class Float64Array extends ArrayBufferView implements List<num> {
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  num get first => this[0];
+
   num get last => this[length - 1];
 
   num removeLast() {
@@ -11212,7 +11590,7 @@ class FormData extends NativeFieldWrapperClass1 {
 /// @domName HTMLFormElement
 class FormElement extends _Element_Merged {
 
-  factory FormElement() => _Elements.createFormElement();
+  factory FormElement() => document.$dom_createElement("form");
   FormElement.internal(): super.internal();
 
 
@@ -11411,9 +11789,7 @@ class FrameElement extends _Element_Merged {
 class FrameSetElement extends _Element_Merged {
   FrameSetElement.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   FrameSetElementEvents get on =>
     new FrameSetElementEvents(this);
 
@@ -11566,7 +11942,7 @@ class Geoposition extends NativeFieldWrapperClass1 {
 /// @domName HTMLHRElement
 class HRElement extends _Element_Merged {
 
-  factory HRElement() => _Elements.createHRElement();
+  factory HRElement() => document.$dom_createElement("hr");
   HRElement.internal(): super.internal();
 
 
@@ -11676,6 +12052,8 @@ class HTMLAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  Node get first => this[0];
 
   Node get last => this[length - 1];
 
@@ -11788,6 +12166,8 @@ class HTMLCollection extends NativeFieldWrapperClass1 implements List<Node> {
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  Node get first => this[0];
+
   Node get last => this[length - 1];
 
   Node removeLast() {
@@ -11890,7 +12270,7 @@ class HashChangeEvent extends Event {
 /// @domName HTMLHeadElement
 class HeadElement extends _Element_Merged {
 
-  factory HeadElement() => _Elements.createHeadElement();
+  factory HeadElement() => document.$dom_createElement("head");
   HeadElement.internal(): super.internal();
 
 
@@ -11912,17 +12292,17 @@ class HeadElement extends _Element_Merged {
 /// @domName HTMLHeadingElement
 class HeadingElement extends _Element_Merged {
 
-  factory HeadingElement.h1() => _Elements.createHeadingElement_h1();
+  factory HeadingElement.h1() => document.$dom_createElement("h1");
 
-  factory HeadingElement.h2() => _Elements.createHeadingElement_h2();
+  factory HeadingElement.h2() => document.$dom_createElement("h2");
 
-  factory HeadingElement.h3() => _Elements.createHeadingElement_h3();
+  factory HeadingElement.h3() => document.$dom_createElement("h3");
 
-  factory HeadingElement.h4() => _Elements.createHeadingElement_h4();
+  factory HeadingElement.h4() => document.$dom_createElement("h4");
 
-  factory HeadingElement.h5() => _Elements.createHeadingElement_h5();
+  factory HeadingElement.h5() => document.$dom_createElement("h5");
 
-  factory HeadingElement.h6() => _Elements.createHeadingElement_h6();
+  factory HeadingElement.h6() => document.$dom_createElement("h6");
   HeadingElement.internal(): super.internal();
 
 
@@ -12030,7 +12410,7 @@ class HtmlDocument extends Document {
 /// @domName HTMLHtmlElement
 class HtmlElement extends _Element_Merged {
 
-  factory HtmlElement() => _Elements.createHtmlElement();
+  factory HtmlElement() => document.$dom_createElement("html");
   HtmlElement.internal(): super.internal();
 
 }
@@ -12040,19 +12420,19 @@ class HtmlElement extends _Element_Merged {
 
 
 class HttpRequest extends EventTarget {
-  factory HttpRequest.get(String url, onSuccess(HttpRequest request)) =>
-      _HttpRequestFactoryProvider.createHttpRequest_get(url, onSuccess);
+  factory HttpRequest.get(String url, onComplete(HttpRequest request)) =>
+      _HttpRequestFactoryProvider.createHttpRequest_get(url, onComplete);
 
-  factory HttpRequest.getWithCredentials(String url, onSuccess(HttpRequest request)) =>
-      _HttpRequestFactoryProvider.createHttpRequestgetWithCredentials(url, onSuccess);
+  factory HttpRequest.getWithCredentials(String url,
+      onComplete(HttpRequest request)) =>
+      _HttpRequestFactoryProvider.createHttpRequest_getWithCredentials(url,
+      onComplete);
 
 
   factory HttpRequest() => _HttpRequestFactoryProvider.createHttpRequest();
   HttpRequest.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   HttpRequestEvents get on =>
     new HttpRequestEvents(this);
 
@@ -12232,9 +12612,7 @@ class HttpRequestProgressEvent extends ProgressEvent {
 class HttpRequestUpload extends EventTarget {
   HttpRequestUpload.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   HttpRequestUploadEvents get on =>
     new HttpRequestUploadEvents(this);
 
@@ -12370,9 +12748,7 @@ class IDBCursorWithValue extends IDBCursor {
 class IDBDatabase extends EventTarget {
   IDBDatabase.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   IDBDatabaseEvents get on =>
     new IDBDatabaseEvents(this);
 
@@ -13026,9 +13402,7 @@ class IDBObjectStore extends NativeFieldWrapperClass1 {
 class IDBOpenDBRequest extends IDBRequest implements EventTarget {
   IDBOpenDBRequest.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   IDBOpenDBRequestEvents get on =>
     new IDBOpenDBRequestEvents(this);
 
@@ -13052,9 +13426,7 @@ class IDBOpenDBRequestEvents extends IDBRequestEvents {
 class IDBRequest extends EventTarget {
   IDBRequest.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   IDBRequestEvents get on =>
     new IDBRequestEvents(this);
 
@@ -13118,9 +13490,7 @@ class IDBRequestEvents extends Events {
 class IDBTransaction extends EventTarget {
   IDBTransaction.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   IDBTransactionEvents get on =>
     new IDBTransactionEvents(this);
 
@@ -13220,9 +13590,7 @@ class IDBVersionChangeEvent extends Event {
 class IDBVersionChangeRequest extends IDBRequest implements EventTarget {
   IDBVersionChangeRequest.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   IDBVersionChangeRequestEvents get on =>
     new IDBVersionChangeRequestEvents(this);
 
@@ -13243,7 +13611,7 @@ class IDBVersionChangeRequestEvents extends IDBRequestEvents {
 /// @domName HTMLIFrameElement
 class IFrameElement extends _Element_Merged {
 
-  factory IFrameElement() => _Elements.createIFrameElement();
+  factory IFrameElement() => document.$dom_createElement("iframe");
   IFrameElement.internal(): super.internal();
 
 
@@ -13412,16 +13780,11 @@ class ImageData extends NativeFieldWrapperClass1 {
 class ImageElement extends _Element_Merged {
 
   factory ImageElement({String src, int width, int height}) {
-    if (!?src) {
-      return _Elements.createImageElement();
-    }
-    if (!?width) {
-      return _Elements.createImageElement(src);
-    }
-    if (!?height) {
-      return _Elements.createImageElement(src, width);
-    }
-    return _Elements.createImageElement(src, width, height);
+    var e = document.$dom_createElement("img");
+    if (src != null) e.src = src;
+    if (width != null) e.width = width;
+    if (height != null) e.height = height;
+    return e;
   }
   ImageElement.internal(): super.internal();
 
@@ -13569,16 +13932,13 @@ class ImageElement extends _Element_Merged {
 class InputElement extends _Element_Merged {
 
   factory InputElement({String type}) {
-    if (!?type) {
-      return _Elements.createInputElement();
-    }
-    return _Elements.createInputElement(type);
+    var e = document.$dom_createElement("input");
+    if (type != null) e.type = type;
+    return e;
   }
   InputElement.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   InputElementEvents get on =>
     new InputElementEvents(this);
 
@@ -14117,6 +14477,8 @@ class Int16Array extends ArrayBufferView implements List<int> {
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  int get first => this[0];
+
   int get last => this[length - 1];
 
   int removeLast() {
@@ -14248,6 +14610,8 @@ class Int32Array extends ArrayBufferView implements List<int> {
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  int get first => this[0];
+
   int get last => this[length - 1];
 
   int removeLast() {
@@ -14378,6 +14742,8 @@ class Int8Array extends ArrayBufferView implements List<int> {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  int get first => this[0];
 
   int get last => this[length - 1];
 
@@ -14542,7 +14908,7 @@ class KeyboardEvent extends UIEvent {
 /// @domName HTMLKeygenElement
 class KeygenElement extends _Element_Merged {
 
-  factory KeygenElement() => _Elements.createKeygenElement();
+  factory KeygenElement() => document.$dom_createElement("keygen");
   KeygenElement.internal(): super.internal();
 
 
@@ -14628,7 +14994,7 @@ class KeygenElement extends _Element_Merged {
 /// @domName HTMLLIElement
 class LIElement extends _Element_Merged {
 
-  factory LIElement() => _Elements.createLIElement();
+  factory LIElement() => document.$dom_createElement("li");
   LIElement.internal(): super.internal();
 
 
@@ -14658,7 +15024,7 @@ class LIElement extends _Element_Merged {
 /// @domName HTMLLabelElement
 class LabelElement extends _Element_Merged {
 
-  factory LabelElement() => _Elements.createLabelElement();
+  factory LabelElement() => document.$dom_createElement("label");
   LabelElement.internal(): super.internal();
 
 
@@ -14688,7 +15054,7 @@ class LabelElement extends _Element_Merged {
 /// @domName HTMLLegendElement
 class LegendElement extends _Element_Merged {
 
-  factory LegendElement() => _Elements.createLegendElement();
+  factory LegendElement() => document.$dom_createElement("legend");
   LegendElement.internal(): super.internal();
 
 
@@ -14714,7 +15080,7 @@ class LegendElement extends _Element_Merged {
 /// @domName HTMLLinkElement
 class LinkElement extends _Element_Merged {
 
-  factory LinkElement() => _Elements.createLinkElement();
+  factory LinkElement() => document.$dom_createElement("link");
   LinkElement.internal(): super.internal();
 
 
@@ -14979,7 +15345,7 @@ class LocalWindow extends EventTarget implements Window {
    * registered under [name].
    */
   lookupPort(String name) {
-    var port = JSON.parse(localStorage['dart-port:$name']);
+    var port = JSON.parse(document.documentElement.attributes['dart-port:$name']);
     return _deserialize(port);
   }
 
@@ -14990,14 +15356,12 @@ class LocalWindow extends EventTarget implements Window {
    */
   registerPort(String name, var port) {
     var serialized = _serialize(port);
-    localStorage['dart-port:$name'] = JSON.stringify(serialized);
+    document.documentElement.attributes['dart-port:$name'] = JSON.stringify(serialized);
   }
 
   LocalWindow.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   LocalWindowEvents get on =>
     new LocalWindowEvents(this);
 
@@ -15230,10 +15594,6 @@ class LocalWindow extends EventTarget implements Window {
   String atob(String string) native "DOMWindow_atob_Callback";
 
 
-  /** @domName DOMWindow.blur */
-  void blur() native "DOMWindow_blur_Callback";
-
-
   /** @domName DOMWindow.btoa */
   String btoa(String string) native "DOMWindow_btoa_Callback";
 
@@ -15268,10 +15628,6 @@ class LocalWindow extends EventTarget implements Window {
 
   /** @domName DOMWindow.find */
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native "DOMWindow_find_Callback";
-
-
-  /** @domName DOMWindow.focus */
-  void focus() native "DOMWindow_focus_Callback";
 
 
   /** @domName DOMWindow.getComputedStyle */
@@ -15546,7 +15902,7 @@ class LocalWindowEvents extends Events {
 /// @domName HTMLMapElement
 class MapElement extends _Element_Merged {
 
-  factory MapElement() => _Elements.createMapElement();
+  factory MapElement() => document.$dom_createElement("map");
   MapElement.internal(): super.internal();
 
 
@@ -15775,9 +16131,7 @@ class MediaController extends EventTarget {
 class MediaElement extends _Element_Merged {
   MediaElement.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaElementEvents get on =>
     new MediaElementEvents(this);
 
@@ -16377,9 +16731,7 @@ class MediaStream extends EventTarget {
   factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => _MediaStreamFactoryProvider.createMediaStream(audioTracks, videoTracks);
   MediaStream.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaStreamEvents get on =>
     new MediaStreamEvents(this);
 
@@ -16465,9 +16817,7 @@ class MediaStreamEvent extends Event {
 class MediaStreamTrack extends EventTarget {
   MediaStreamTrack.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaStreamTrackEvents get on =>
     new MediaStreamTrackEvents(this);
 
@@ -16547,9 +16897,7 @@ class MediaStreamTrackEvent extends Event {
 class MediaStreamTrackList extends EventTarget {
   MediaStreamTrackList.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MediaStreamTrackListEvents get on =>
     new MediaStreamTrackListEvents(this);
 
@@ -16624,7 +16972,7 @@ class MemoryInfo extends NativeFieldWrapperClass1 {
 /// @domName HTMLMenuElement
 class MenuElement extends _Element_Merged {
 
-  factory MenuElement() => _Elements.createMenuElement();
+  factory MenuElement() => document.$dom_createElement("menu");
   MenuElement.internal(): super.internal();
 
 
@@ -16709,9 +17057,7 @@ class MessageEvent extends Event {
 class MessagePort extends EventTarget {
   MessagePort.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   MessagePortEvents get on =>
     new MessagePortEvents(this);
 
@@ -16828,7 +17174,7 @@ typedef void MetadataCallback(Metadata metadata);
 /// @domName HTMLMeterElement
 class MeterElement extends _Element_Merged {
 
-  factory MeterElement() => _Elements.createMeterElement();
+  factory MeterElement() => document.$dom_createElement("meter");
   MeterElement.internal(): super.internal();
 
 
@@ -17270,6 +17616,8 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  Node get first => this[0];
+
   Node get last => this[length - 1];
 
   Node removeLast() {
@@ -17509,7 +17857,7 @@ class _ChildNodeListLazy implements List {
   Collection map(f(Node element)) => _Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
-     new _NodeListWrapper(_Collections.filter(this, <Node>[], f));
+     _Collections.filter(this, <Node>[], f);
 
   bool every(bool f(Node element)) => _Collections.every(this, f);
 
@@ -17545,7 +17893,7 @@ class _ChildNodeListLazy implements List {
         "Cannot insertRange on immutable List.");
   }
   List<Node> getRange(int start, int rangeLength) =>
-    new _NodeListWrapper(_Lists.getRange(this, start, rangeLength, <Node>[]));
+      _Lists.getRange(this, start, rangeLength, <Node>[]);
 
   // -- end List<Node> mixins.
 
@@ -17821,195 +18169,6 @@ class NodeIterator extends NativeFieldWrapperClass1 {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-// TODO(nweiz): when all implementations we target have the same name for the
-// implementation of List<E>, extend that rather than wrapping.
-class _ListWrapper<E> implements List<E> {
-  List _list;
-
-  _ListWrapper(List this._list);
-
-  Iterator<E> iterator() => _list.iterator();
-
-  bool contains(E element) => _list.contains(element);
-
-  void forEach(void f(E element)) => _list.forEach(f);
-
-  Collection map(f(E element)) => _list.map(f);
-
-  List<E> filter(bool f(E element)) => _list.filter(f);
-
-  bool every(bool f(E element)) => _list.every(f);
-
-  bool some(bool f(E element)) => _list.some(f);
-
-  bool get isEmpty => _list.isEmpty;
-
-  int get length => _list.length;
-
-  E operator [](int index) => _list[index];
-
-  void operator []=(int index, E value) { _list[index] = value; }
-
-  void set length(int newLength) { _list.length = newLength; }
-
-  void add(E value) => _list.add(value);
-
-  void addLast(E value) => _list.addLast(value);
-
-  void addAll(Collection<E> collection) => _list.addAll(collection);
-
-  void sort([Comparator<E> compare = Comparable.compare]) => _list.sort(compare);
-
-  int indexOf(E element, [int start = 0]) => _list.indexOf(element, start);
-
-  int lastIndexOf(E element, [int start = 0]) =>
-    _list.lastIndexOf(element, start);
-
-  void clear() => _list.clear();
-
-  E removeLast() => _list.removeLast();
-
-  E get last => _list.last;
-
-  List<E> getRange(int start, int rangeLength) =>
-    _list.getRange(start, rangeLength);
-
-  void setRange(int start, int rangeLength, List<E> from, [int startFrom = 0])
-      => _list.setRange(start, rangeLength, from, startFrom);
-
-  void removeRange(int start, int rangeLength) =>
-    _list.removeRange(start, rangeLength);
-
-  void insertRange(int start, int rangeLength, [E initialValue = null]) =>
-    _list.insertRange(start, rangeLength, initialValue);
-
-  E get first => _list[0];
-}
-
-/**
- * This class is used to insure the results of list operations are NodeLists
- * instead of lists.
- */
-class _NodeListWrapper extends _ListWrapper<Node> implements List {
-  _NodeListWrapper(List list) : super(list);
-
-  List<Node> filter(bool f(Node element)) =>
-    new _NodeListWrapper(_list.filter(f));
-
-  List<Node> getRange(int start, int rangeLength) =>
-    new _NodeListWrapper(_list.getRange(start, rangeLength));
-}
-
-class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
-  Node _parent;
-
-  // -- start List<Node> mixins.
-  // Node is the element type.
-
-  // From Iterable<Node>:
-
-  Iterator<Node> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<Node>(this);
-  }
-
-  // From Collection<Node>:
-
-  void add(Node value) {
-    _parent.$dom_appendChild(value);
-  }
-
-  void addLast(Node value) {
-    _parent.$dom_appendChild(value);
-  }
-
-  void addAll(Collection<Node> collection) {
-    for (Node node in collection) {
-      _parent.$dom_appendChild(node);
-    }
-  }
-
-  Node removeLast() {
-    final result = this.last;
-    if (result != null) {
-      _parent.$dom_removeChild(result);
-    }
-    return result;
-  }
-
-  void clear() {
-    _parent.text = '';
-  }
-
-  void operator []=(int index, Node value) {
-    _parent.$dom_replaceChild(value, this[index]);
-  }
-
-  bool contains(Node element) => _Collections.contains(this, element);
-
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
-
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
-
-  Collection<Node> filter(bool f(Node element)) =>
-     new _NodeListWrapper(_Collections.filter(this, <Node>[], f));
-
-  bool every(bool f(Node element)) => _Collections.every(this, f);
-
-  bool some(bool f(Node element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<Node>:
-
-  void sort([Comparator<Node> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(Node element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Node element, [int start = 0]) =>
-      _Lists.lastIndexOf(this, element, start);
-
-  Node get last => this[length - 1];
-  Node get first => this[0];
-
-  // FIXME: implement thesee.
-  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-  void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-  List<Node> getRange(int start, int rangeLength) =>
-    new _NodeListWrapper(_Lists.getRange(this, start, rangeLength, <Node>[]));
-
-  // -- end List<Node> mixins.
-
-  NodeList.internal();
-
-
-  /** @domName NodeList.length */
-  int get length native "NodeList_length_Getter";
-
-  Node operator[](int index) native "NodeList_item_Callback";
-
-
-  /** @domName NodeList.item */
-  Node _item(int index) native "NodeList_item_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 // WARNING: Do not edit - generated code.
 
 
@@ -18044,9 +18203,7 @@ class Notification extends EventTarget {
   }
   Notification.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   NotificationEvents get on =>
     new NotificationEvents(this);
 
@@ -18235,7 +18392,7 @@ class OESVertexArrayObject extends NativeFieldWrapperClass1 {
 /// @domName HTMLOListElement
 class OListElement extends _Element_Merged {
 
-  factory OListElement() => _Elements.createOListElement();
+  factory OListElement() => document.$dom_createElement("ol");
   OListElement.internal(): super.internal();
 
 
@@ -18281,7 +18438,7 @@ class OListElement extends _Element_Merged {
 /// @domName HTMLObjectElement
 class ObjectElement extends _Element_Merged {
 
-  factory ObjectElement() => _Elements.createObjectElement();
+  factory ObjectElement() => document.$dom_createElement("object");
   ObjectElement.internal(): super.internal();
 
 
@@ -18463,7 +18620,7 @@ class OfflineAudioCompletionEvent extends Event {
 /// @domName HTMLOptGroupElement
 class OptGroupElement extends _Element_Merged {
 
-  factory OptGroupElement() => _Elements.createOptGroupElement();
+  factory OptGroupElement() => document.$dom_createElement("optgroup");
   OptGroupElement.internal(): super.internal();
 
 
@@ -18631,7 +18788,7 @@ class OscillatorNode extends AudioSourceNode {
 /// @domName HTMLOutputElement
 class OutputElement extends _Element_Merged {
 
-  factory OutputElement() => _Elements.createOutputElement();
+  factory OutputElement() => document.$dom_createElement("output");
   OutputElement.internal(): super.internal();
 
 
@@ -18883,7 +19040,7 @@ class PannerNode extends AudioNode {
 /// @domName HTMLParagraphElement
 class ParagraphElement extends _Element_Merged {
 
-  factory ParagraphElement() => _Elements.createParagraphElement();
+  factory ParagraphElement() => document.$dom_createElement("p");
   ParagraphElement.internal(): super.internal();
 
 
@@ -18905,7 +19062,7 @@ class ParagraphElement extends _Element_Merged {
 /// @domName HTMLParamElement
 class ParamElement extends _Element_Merged {
 
-  factory ParamElement() => _Elements.createParamElement();
+  factory ParamElement() => document.$dom_createElement("param");
   ParamElement.internal(): super.internal();
 
 
@@ -18954,9 +19111,7 @@ class PeerConnection00 extends EventTarget {
   factory PeerConnection00(String serverConfiguration, IceCallback iceCallback) => _PeerConnection00FactoryProvider.createPeerConnection00(serverConfiguration, iceCallback);
   PeerConnection00.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   PeerConnection00Events get on =>
     new PeerConnection00Events(this);
 
@@ -19323,7 +19478,7 @@ typedef void PositionErrorCallback(PositionError error);
 /// @domName HTMLPreElement
 class PreElement extends _Element_Merged {
 
-  factory PreElement() => _Elements.createPreElement();
+  factory PreElement() => document.$dom_createElement("pre");
   PreElement.internal(): super.internal();
 
 
@@ -19381,7 +19536,7 @@ class ProcessingInstruction extends Node {
 /// @domName HTMLProgressElement
 class ProgressElement extends _Element_Merged {
 
-  factory ProgressElement() => _Elements.createProgressElement();
+  factory ProgressElement() => document.$dom_createElement("progress");
   ProgressElement.internal(): super.internal();
 
 
@@ -19488,9 +19643,7 @@ class RGBColor extends NativeFieldWrapperClass1 {
 class RTCDataChannel extends EventTarget {
   RTCDataChannel.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   RTCDataChannelEvents get on =>
     new RTCDataChannelEvents(this);
 
@@ -19667,9 +19820,7 @@ class RTCPeerConnection extends EventTarget {
   }
   RTCPeerConnection.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   RTCPeerConnectionEvents get on =>
     new RTCPeerConnectionEvents(this);
 
@@ -19882,7 +20033,7 @@ class RTCStatsResponse extends NativeFieldWrapperClass1 {
 
 
 /// @domName RadioNodeList
-class RadioNodeList extends NodeList {
+class RadioNodeList extends _NodeList {
   RadioNodeList.internal(): super.internal();
 
 
@@ -20285,6 +20436,8 @@ class SQLResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  Map get first => this[0];
+
   Map get last => this[length - 1];
 
   Map removeLast() {
@@ -20439,7 +20592,7 @@ class Screen extends NativeFieldWrapperClass1 {
 /// @domName HTMLScriptElement
 class ScriptElement extends _Element_Merged {
 
-  factory ScriptElement() => _Elements.createScriptElement();
+  factory ScriptElement() => document.$dom_createElement("script");
   ScriptElement.internal(): super.internal();
 
 
@@ -20518,9 +20671,7 @@ class ScriptElement extends _Element_Merged {
 class ScriptProcessorNode extends AudioNode implements EventTarget {
   ScriptProcessorNode.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   ScriptProcessorNodeEvents get on =>
     new ScriptProcessorNodeEvents(this);
 
@@ -20617,7 +20768,7 @@ class ScriptProfileNode extends NativeFieldWrapperClass1 {
 /// @domName HTMLSelectElement
 class SelectElement extends _Element_Merged {
 
-  factory SelectElement() => _Elements.createSelectElement();
+  factory SelectElement() => document.$dom_createElement("select");
   SelectElement.internal(): super.internal();
 
 
@@ -20879,9 +21030,7 @@ class SharedWorker extends AbstractWorker {
 class SharedWorkerContext extends WorkerContext {
   SharedWorkerContext.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   SharedWorkerContextEvents get on =>
     new SharedWorkerContextEvents(this);
 
@@ -21003,6 +21152,8 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  SourceBuffer get first => this[0];
+
   SourceBuffer get last => this[length - 1];
 
   SourceBuffer removeLast() {
@@ -21053,7 +21204,7 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
 /// @domName HTMLSourceElement
 class SourceElement extends _Element_Merged {
 
-  factory SourceElement() => _Elements.createSourceElement();
+  factory SourceElement() => document.$dom_createElement("source");
   SourceElement.internal(): super.internal();
 
 
@@ -21091,7 +21242,7 @@ class SourceElement extends _Element_Merged {
 /// @domName HTMLSpanElement
 class SpanElement extends _Element_Merged {
 
-  factory SpanElement() => _Elements.createSpanElement();
+  factory SpanElement() => document.$dom_createElement("span");
   SpanElement.internal(): super.internal();
 
 }
@@ -21202,6 +21353,8 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  SpeechGrammar get first => this[0];
+
   SpeechGrammar get last => this[length - 1];
 
   SpeechGrammar removeLast() {
@@ -21311,9 +21464,7 @@ class SpeechRecognition extends EventTarget {
   factory SpeechRecognition() => _SpeechRecognitionFactoryProvider.createSpeechRecognition();
   SpeechRecognition.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   SpeechRecognitionEvents get on =>
     new SpeechRecognitionEvents(this);
 
@@ -21532,7 +21683,7 @@ class Storage extends NativeFieldWrapperClass1 implements Map<String, String>  {
 
   String operator [](String key) => $dom_getItem(key);
 
-  void operator []=(String key, String value) => $dom_setItem(key, value);
+  void operator []=(String key, String value) { $dom_setItem(key, value); }
 
   String putIfAbsent(String key, String ifAbsent()) {
     if (!containsKey(key)) this[key] = ifAbsent();
@@ -21700,7 +21851,7 @@ typedef void StringCallback(String data);
 /// @domName HTMLStyleElement
 class StyleElement extends _Element_Merged {
 
-  factory StyleElement() => _Elements.createStyleElement();
+  factory StyleElement() => document.$dom_createElement("style");
   StyleElement.internal(): super.internal();
 
 
@@ -21814,7 +21965,7 @@ class StyleSheet extends NativeFieldWrapperClass1 {
 /// @domName HTMLTableCaptionElement
 class TableCaptionElement extends _Element_Merged {
 
-  factory TableCaptionElement() => _Elements.createTableCaptionElement();
+  factory TableCaptionElement() => document.$dom_createElement("caption");
   TableCaptionElement.internal(): super.internal();
 
 
@@ -21836,7 +21987,7 @@ class TableCaptionElement extends _Element_Merged {
 /// @domName HTMLTableCellElement
 class TableCellElement extends _Element_Merged {
 
-  factory TableCellElement() => _Elements.createTableCellElement();
+  factory TableCellElement() => document.$dom_createElement("td");
   TableCellElement.internal(): super.internal();
 
 
@@ -21966,7 +22117,7 @@ class TableCellElement extends _Element_Merged {
 /// @domName HTMLTableColElement
 class TableColElement extends _Element_Merged {
 
-  factory TableColElement() => _Elements.createTableColElement();
+  factory TableColElement() => document.$dom_createElement("col");
   TableColElement.internal(): super.internal();
 
 
@@ -22028,7 +22179,7 @@ class TableColElement extends _Element_Merged {
 /// @domName HTMLTableElement
 class TableElement extends _Element_Merged {
 
-  factory TableElement() => _Elements.createTableElement();
+  factory TableElement() => document.$dom_createElement("table");
   TableElement.internal(): super.internal();
 
 
@@ -22182,7 +22333,7 @@ class TableElement extends _Element_Merged {
 /// @domName HTMLTableRowElement
 class TableRowElement extends _Element_Merged {
 
-  factory TableRowElement() => _Elements.createTableRowElement();
+  factory TableRowElement() => document.$dom_createElement("tr");
   TableRowElement.internal(): super.internal();
 
 
@@ -22336,7 +22487,7 @@ class Text extends CharacterData {
 /// @domName HTMLTextAreaElement
 class TextAreaElement extends _Element_Merged {
 
-  factory TextAreaElement() => _Elements.createTextAreaElement();
+  factory TextAreaElement() => document.$dom_createElement("textarea");
   TextAreaElement.internal(): super.internal();
 
 
@@ -22591,9 +22742,7 @@ class TextMetrics extends NativeFieldWrapperClass1 {
 class TextTrack extends EventTarget {
   TextTrack.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TextTrackEvents get on =>
     new TextTrackEvents(this);
 
@@ -22665,9 +22814,7 @@ class TextTrackCue extends EventTarget {
   factory TextTrackCue(num startTime, num endTime, String text) => _TextTrackCueFactoryProvider.createTextTrackCue(startTime, endTime, text);
   TextTrackCue.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TextTrackCueEvents get on =>
     new TextTrackCueEvents(this);
 
@@ -22863,6 +23010,8 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  TextTrackCue get first => this[0];
+
   TextTrackCue get last => this[length - 1];
 
   TextTrackCue removeLast() {
@@ -22906,9 +23055,7 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
 class TextTrackList extends EventTarget implements List<TextTrack> {
   TextTrackList.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   TextTrackListEvents get on =>
     new TextTrackListEvents(this);
 
@@ -22975,6 +23122,8 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  TextTrack get first => this[0];
 
   TextTrack get last => this[length - 1];
 
@@ -23064,7 +23213,7 @@ typedef void TimeoutHandler();
 /// @domName HTMLTitleElement
 class TitleElement extends _Element_Merged {
 
-  factory TitleElement() => _Elements.createTitleElement();
+  factory TitleElement() => document.$dom_createElement("title");
   TitleElement.internal(): super.internal();
 
 }
@@ -23247,6 +23396,8 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  Touch get first => this[0];
+
   Touch get last => this[length - 1];
 
   Touch removeLast() {
@@ -23285,7 +23436,7 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 /// @domName HTMLTrackElement
 class TrackElement extends _Element_Merged {
 
-  factory TrackElement() => _Elements.createTrackElement();
+  factory TrackElement() => document.$dom_createElement("track");
   TrackElement.internal(): super.internal();
 
   static const int ERROR = 3;
@@ -23507,7 +23658,7 @@ class UIEvent extends Event {
 /// @domName HTMLUListElement
 class UListElement extends _Element_Merged {
 
-  factory UListElement() => _Elements.createUListElement();
+  factory UListElement() => document.$dom_createElement("ul");
   UListElement.internal(): super.internal();
 
 
@@ -23614,6 +23765,8 @@ class Uint16Array extends ArrayBufferView implements List<int> {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  int get first => this[0];
 
   int get last => this[length - 1];
 
@@ -23746,6 +23899,8 @@ class Uint32Array extends ArrayBufferView implements List<int> {
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  int get first => this[0];
+
   int get last => this[length - 1];
 
   int removeLast() {
@@ -23876,6 +24031,8 @@ class Uint8Array extends ArrayBufferView implements List<int> {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  int get first => this[0];
 
   int get last => this[length - 1];
 
@@ -24083,7 +24240,7 @@ class ValidityState extends NativeFieldWrapperClass1 {
 /// @domName HTMLVideoElement
 class VideoElement extends MediaElement {
 
-  factory VideoElement() => _Elements.createVideoElement();
+  factory VideoElement() => document.$dom_createElement("video");
   VideoElement.internal(): super.internal();
 
 
@@ -25874,9 +26031,7 @@ class WebSocket extends EventTarget {
   factory WebSocket(String url) => _WebSocketFactoryProvider.createWebSocket(url);
   WebSocket.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WebSocketEvents get on =>
     new WebSocketEvents(this);
 
@@ -26019,9 +26174,7 @@ class Worker extends AbstractWorker {
   factory Worker(String scriptUrl) => _WorkerFactoryProvider.createWorker(scriptUrl);
   Worker.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WorkerEvents get on =>
     new WorkerEvents(this);
 
@@ -26051,9 +26204,7 @@ class WorkerEvents extends AbstractWorkerEvents {
 class WorkerContext extends EventTarget {
   WorkerContext.internal(): super.internal();
 
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
+  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   WorkerContextEvents get on =>
     new WorkerContextEvents(this);
 
@@ -26561,6 +26712,8 @@ class _CSSRuleList extends NativeFieldWrapperClass1 implements List<CSSRule> {
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  CSSRule get first => this[0];
+
   CSSRule get last => this[length - 1];
 
   CSSRule removeLast() {
@@ -26664,6 +26817,8 @@ class _CSSValueList extends CSSValue implements List<CSSValue> {
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  CSSValue get first => this[0];
+
   CSSValue get last => this[length - 1];
 
   CSSValue removeLast() {
@@ -26766,6 +26921,8 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  ClientRect get first => this[0];
 
   ClientRect get last => this[length - 1];
 
@@ -26877,6 +27034,8 @@ class _DOMStringList extends NativeFieldWrapperClass1 implements List<String> {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  String get first => this[0];
 
   String get last => this[length - 1];
 
@@ -27058,311 +27217,6 @@ class _Element_Merged extends Element {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-class _Elements {
-
-
-  static AnchorElement createAnchorElement([String href]) {
-    AnchorElement _e = document.$dom_createElement("a");
-    if (href != null) _e.href = href;
-    return _e;
-  }
-
-  static AreaElement createAreaElement() {
-    AreaElement _e = document.$dom_createElement("area");
-    return _e;
-  }
-
-  static BRElement createBRElement() {
-    BRElement _e = document.$dom_createElement("br");
-    return _e;
-  }
-
-  static BaseElement createBaseElement() {
-    BaseElement _e = document.$dom_createElement("base");
-    return _e;
-  }
-
-  static BodyElement createBodyElement() {
-    BodyElement _e = document.$dom_createElement("body");
-    return _e;
-  }
-
-  static ButtonElement createButtonElement() {
-    ButtonElement _e = document.$dom_createElement("button");
-    return _e;
-  }
-
-  static CanvasElement createCanvasElement([int width, int height]) {
-    CanvasElement _e = document.$dom_createElement("canvas");
-    if (width != null) _e.width = width;
-    if (height != null) _e.height = height;
-    return _e;
-  }
-
-  static ContentElement createContentElement() {
-    ContentElement _e = document.$dom_createElement("content");
-    return _e;
-  }
-
-  static DListElement createDListElement() {
-    DListElement _e = document.$dom_createElement("dl");
-    return _e;
-  }
-
-  static DataListElement createDataListElement() {
-    DataListElement _e = document.$dom_createElement("datalist");
-    return _e;
-  }
-
-  static DetailsElement createDetailsElement() {
-    DetailsElement _e = document.$dom_createElement("details");
-    return _e;
-  }
-
-  static DivElement createDivElement() {
-    DivElement _e = document.$dom_createElement("div");
-    return _e;
-  }
-
-  static EmbedElement createEmbedElement() {
-    EmbedElement _e = document.$dom_createElement("embed");
-    return _e;
-  }
-
-  static FieldSetElement createFieldSetElement() {
-    FieldSetElement _e = document.$dom_createElement("fieldset");
-    return _e;
-  }
-
-  static FormElement createFormElement() {
-    FormElement _e = document.$dom_createElement("form");
-    return _e;
-  }
-
-  static HRElement createHRElement() {
-    HRElement _e = document.$dom_createElement("hr");
-    return _e;
-  }
-
-  static HeadElement createHeadElement() {
-    HeadElement _e = document.$dom_createElement("head");
-    return _e;
-  }
-
-  static HeadingElement createHeadingElement_h1() {
-    HeadingElement _e = document.$dom_createElement("h1");
-    return _e;
-  }
-
-  static HeadingElement createHeadingElement_h2() {
-    HeadingElement _e = document.$dom_createElement("h2");
-    return _e;
-  }
-
-  static HeadingElement createHeadingElement_h3() {
-    HeadingElement _e = document.$dom_createElement("h3");
-    return _e;
-  }
-
-  static HeadingElement createHeadingElement_h4() {
-    HeadingElement _e = document.$dom_createElement("h4");
-    return _e;
-  }
-
-  static HeadingElement createHeadingElement_h5() {
-    HeadingElement _e = document.$dom_createElement("h5");
-    return _e;
-  }
-
-  static HeadingElement createHeadingElement_h6() {
-    HeadingElement _e = document.$dom_createElement("h6");
-    return _e;
-  }
-
-  static HtmlElement createHtmlElement() {
-    HtmlElement _e = document.$dom_createElement("html");
-    return _e;
-  }
-
-  static IFrameElement createIFrameElement() {
-    IFrameElement _e = document.$dom_createElement("iframe");
-    return _e;
-  }
-
-  static ImageElement createImageElement([String src, int width, int height]) {
-    ImageElement _e = document.$dom_createElement("img");
-    if (src != null) _e.src = src;
-    if (width != null) _e.width = width;
-    if (height != null) _e.height = height;
-    return _e;
-  }
-
-  static InputElement createInputElement([String type]) {
-    InputElement _e = document.$dom_createElement("input");
-    if (type != null) _e.type = type;
-    return _e;
-  }
-
-  static KeygenElement createKeygenElement() {
-    KeygenElement _e = document.$dom_createElement("keygen");
-    return _e;
-  }
-
-  static LIElement createLIElement() {
-    LIElement _e = document.$dom_createElement("li");
-    return _e;
-  }
-
-  static LabelElement createLabelElement() {
-    LabelElement _e = document.$dom_createElement("label");
-    return _e;
-  }
-
-  static LegendElement createLegendElement() {
-    LegendElement _e = document.$dom_createElement("legend");
-    return _e;
-  }
-
-  static LinkElement createLinkElement() {
-    LinkElement _e = document.$dom_createElement("link");
-    return _e;
-  }
-
-  static MapElement createMapElement() {
-    MapElement _e = document.$dom_createElement("map");
-    return _e;
-  }
-
-  static MenuElement createMenuElement() {
-    MenuElement _e = document.$dom_createElement("menu");
-    return _e;
-  }
-
-  static MeterElement createMeterElement() {
-    MeterElement _e = document.$dom_createElement("meter");
-    return _e;
-  }
-
-  static OListElement createOListElement() {
-    OListElement _e = document.$dom_createElement("ol");
-    return _e;
-  }
-
-  static ObjectElement createObjectElement() {
-    ObjectElement _e = document.$dom_createElement("object");
-    return _e;
-  }
-
-  static OptGroupElement createOptGroupElement() {
-    OptGroupElement _e = document.$dom_createElement("optgroup");
-    return _e;
-  }
-
-  static OutputElement createOutputElement() {
-    OutputElement _e = document.$dom_createElement("output");
-    return _e;
-  }
-
-  static ParagraphElement createParagraphElement() {
-    ParagraphElement _e = document.$dom_createElement("p");
-    return _e;
-  }
-
-  static ParamElement createParamElement() {
-    ParamElement _e = document.$dom_createElement("param");
-    return _e;
-  }
-
-  static PreElement createPreElement() {
-    PreElement _e = document.$dom_createElement("pre");
-    return _e;
-  }
-
-  static ProgressElement createProgressElement() {
-    ProgressElement _e = document.$dom_createElement("progress");
-    return _e;
-  }
-
-  static ScriptElement createScriptElement() {
-    ScriptElement _e = document.$dom_createElement("script");
-    return _e;
-  }
-
-  static SelectElement createSelectElement() {
-    SelectElement _e = document.$dom_createElement("select");
-    return _e;
-  }
-
-  static SourceElement createSourceElement() {
-    SourceElement _e = document.$dom_createElement("source");
-    return _e;
-  }
-
-  static SpanElement createSpanElement() {
-    SpanElement _e = document.$dom_createElement("span");
-    return _e;
-  }
-
-  static StyleElement createStyleElement() {
-    StyleElement _e = document.$dom_createElement("style");
-    return _e;
-  }
-
-  static TableCaptionElement createTableCaptionElement() {
-    TableCaptionElement _e = document.$dom_createElement("caption");
-    return _e;
-  }
-
-  static TableCellElement createTableCellElement() {
-    TableCellElement _e = document.$dom_createElement("td");
-    return _e;
-  }
-
-  static TableColElement createTableColElement() {
-    TableColElement _e = document.$dom_createElement("col");
-    return _e;
-  }
-
-  static TableElement createTableElement() {
-    TableElement _e = document.$dom_createElement("table");
-    return _e;
-  }
-
-  static TableRowElement createTableRowElement() {
-    TableRowElement _e = document.$dom_createElement("tr");
-    return _e;
-  }
-
-  static TextAreaElement createTextAreaElement() {
-    TextAreaElement _e = document.$dom_createElement("textarea");
-    return _e;
-  }
-
-  static TitleElement createTitleElement() {
-    TitleElement _e = document.$dom_createElement("title");
-    return _e;
-  }
-
-  static TrackElement createTrackElement() {
-    TrackElement _e = document.$dom_createElement("track");
-    return _e;
-  }
-
-  static UListElement createUListElement() {
-    UListElement _e = document.$dom_createElement("ul");
-    return _e;
-  }
-
-  static VideoElement createVideoElement() {
-    VideoElement _e = document.$dom_createElement("video");
-    return _e;
-  }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 // WARNING: Do not edit - generated code.
 
 
@@ -27433,6 +27287,8 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  Entry get first => this[0];
 
   Entry get last => this[length - 1];
 
@@ -27536,6 +27392,8 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  EntrySync get first => this[0];
 
   EntrySync get last => this[length - 1];
 
@@ -27647,6 +27505,8 @@ class _FileList extends NativeFieldWrapperClass1 implements List<File> {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  File get first => this[0];
 
   File get last => this[length - 1];
 
@@ -27774,6 +27634,8 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  Gamepad get first => this[0];
 
   Gamepad get last => this[length - 1];
 
@@ -27927,6 +27789,8 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  MediaStream get first => this[0];
+
   MediaStream get last => this[length - 1];
 
   MediaStream removeLast() {
@@ -27970,6 +27834,111 @@ class _MessageChannelFactoryProvider {
 
 class _MutationObserverFactoryProvider {
   static MutationObserver createMutationObserver(MutationCallback callback) native "MutationObserver_constructor_Callback";
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName NodeList
+class _NodeList extends NativeFieldWrapperClass1 implements List<Node> {
+  _NodeList.internal();
+
+
+  /** @domName NodeList.length */
+  int get length native "NodeList_length_Getter";
+
+  Node operator[](int index) native "NodeList_item_Callback";
+
+  void operator[]=(int index, Node value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<Node> mixins.
+  // Node is the element type.
+
+  // From Iterable<Node>:
+
+  Iterator<Node> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<Node>(this);
+  }
+
+  // From Collection<Node>:
+
+  void add(Node value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(Node value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Node> collection) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  bool contains(Node element) => _Collections.contains(this, element);
+
+  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+
+  Collection map(f(Node element)) => _Collections.map(this, [], f);
+
+  Collection<Node> filter(bool f(Node element)) =>
+     _Collections.filter(this, <Node>[], f);
+
+  bool every(bool f(Node element)) => _Collections.every(this, f);
+
+  bool some(bool f(Node element)) => _Collections.some(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  // From List<Node>:
+
+  void sort([Comparator<Node> compare = Comparable.compare]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(Node element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Node element, [int start]) {
+    if (start == null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  Node get first => this[0];
+
+  Node get last => this[length - 1];
+
+  Node removeLast() {
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<Node> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Node>[]);
+
+  // -- end List<Node> mixins.
+
+
+  /** @domName NodeList.item */
+  Node _item(int index) native "NodeList_item_Callback";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28134,6 +28103,8 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  SpeechInputResult get first => this[0];
+
   SpeechInputResult get last => this[length - 1];
 
   SpeechInputResult removeLast() {
@@ -28245,6 +28216,8 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  SpeechRecognitionResult get first => this[0];
+
   SpeechRecognitionResult get last => this[length - 1];
 
   SpeechRecognitionResult removeLast() {
@@ -28347,6 +28320,8 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
     if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
+
+  StyleSheet get first => this[0];
 
   StyleSheet get last => this[length - 1];
 
@@ -28459,6 +28434,8 @@ class _WebKitAnimationList extends NativeFieldWrapperClass1 implements List<Anim
     return _Lists.lastIndexOf(this, element, start);
   }
 
+  Animation get first => this[0];
+
   Animation get last => this[length - 1];
 
   Animation removeLast() {
@@ -28524,19 +28501,88 @@ class _XSLTProcessorFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/**
+ * An object representing the top-level context object for web scripting.
+ *
+ * In a web browser, a [Window] object represents the actual browser window.
+ * In a multi-tabbed browser, each tab has its own [Window] object. A [Window]
+ * is the container that displays a [Document]'s content. All web scripting
+ * happens within the context of a [Window] object.
+ *
+ * **Note:** This class represents any window, whereas [LocalWindow] is
+ * used to access the properties and content of the current window.
+ *
+ * See also:
+ *
+ * * [DOM Window](https://developer.mozilla.org/en-US/docs/DOM/window) from MDN.
+ * * [Window](http://www.w3.org/TR/Window/) from the W3C.
+ */
 abstract class Window {
   // Fields.
+
+  /**
+   * The current location of this window.
+   *
+   *     Location currentLocation = window.location;
+   *     print(currentLocation.href); // 'http://www.example.com:80/'
+   */
   Location get location;
   History get history;
 
+  /**
+   * Indicates whether this window is closed.
+   *
+   *     print(window.closed); // 'false'
+   *     window.close();
+   *     print(window.closed); // 'true'
+   */
   bool get closed;
+
+  /**
+   * A reference to the window that opened this one.
+   *
+   *     Window thisWindow = window;
+   *     Window otherWindow = thisWindow.open('http://www.example.com/', 'foo');
+   *     print(otherWindow.opener == thisWindow); // 'true'
+   */
   Window get opener;
+
+  /**
+   * A reference to the parent of this window.
+   *
+   * If this [Window] has no parent, [parent] will return a reference to
+   * the [Window] itself.
+   *
+   *     IFrameElement myIFrame = new IFrameElement();
+   *     window.document.body.elements.add(myIFrame);
+   *     print(myIframe.contentWindow.parent == window) // 'true'
+   *
+   *     print(window.parent == window) // 'true'
+   */
   Window get parent;
+
+  /**
+   * A reference to the topmost window in the window hierarchy.
+   *
+   * If this [Window] is the topmost [Window], [top] will return a reference to
+   * the [Window] itself.
+   *
+   *     // Add an IFrame to the current window.
+   *     IFrameElement myIFrame = new IFrameElement();
+   *     window.document.body.elements.add(myIFrame);
+   *
+   *     // Add an IFrame inside of the other IFrame.
+   *     IFrameElement innerIFrame = new IFrameElement();
+   *     myIFrame.elements.add(innerIFrame);
+   *
+   *     print(myIframe.contentWindow.top == window) // 'true'
+   *     print(innerIFrame.contentWindow.top == window) // 'true'
+   *
+   *     print(window.top == window) // 'true'
+   */
   Window get top;
 
   // Methods.
-  void focus();
-  void blur();
   void close();
   void postMessage(var message, String targetOrigin, [List messagePorts = null]);
 }
@@ -28780,6 +28826,8 @@ class FilteredElementList implements List {
     if (start == null) start = length - 1;
     return _filtered.lastIndexOf(element, start);
   }
+
+  Element get first => _filtered.first;
 
   Element get last => _filtered.last;
 }
@@ -30735,8 +30783,6 @@ class _DOMWindowCrossFrame extends NativeFieldWrapperClass1 implements Window {
   Window get top() native "DOMWindow_top_Getter";
 
   // Methods.
-  void focus() native "DOMWindow_focus_Callback";
-  void blur() native "DOMWindow_blur_Callback";
   void close() native "DOMWindow_close_Callback";
   void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) native "DOMWindow_postMessage_Callback";
 

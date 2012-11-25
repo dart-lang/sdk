@@ -16,7 +16,7 @@ main() {
 
 main() {
   String generated = compileAll(CODE);
-  RegExp regexp = new RegExp(r'\$.A = {"":');
+  RegExp regexp = new RegExp(r'\$.A = {\n "super"');
   Iterator<Match> matches = regexp.allMatches(generated).iterator();
   checkNumberOfMatches(matches, 1);
 }

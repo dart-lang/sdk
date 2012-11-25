@@ -71,12 +71,20 @@ String _resolveUri(String base, String userString) {
   var baseUri = new Uri.fromString(base);
   _logResolution("# Resolving: $userString from $base");
 
-  // Relative URIs with scheme dart-ext should be resolved as if with no scheme.
   var uri = new Uri.fromString(userString);
   var resolved;
   if ('dart-ext' == uri.scheme) {
+    // Relative URIs with scheme dart-ext should be resolved as if with no
+    // scheme.
     resolved = baseUri.resolve(uri.path);
-    resolved = new Uri.fromComponents(scheme: "dart-ext", path: resolved.path);
+    var path = resolved.path;
+    if (resolved.scheme == 'package') {
+      // If we are resolving relative to a package URI we go directly to the
+      // file path and keep the dart-ext scheme. Otherwise, we will lose the
+      // package URI path part.
+      path = _filePathFromPackageUri(resolved);
+    }
+    resolved = new Uri.fromComponents(scheme: "dart-ext", path: path);
   } else {
     resolved = baseUri.resolve(userString);
   }

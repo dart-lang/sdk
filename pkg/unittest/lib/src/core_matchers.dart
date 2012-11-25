@@ -489,18 +489,6 @@ class _UnimplementedError extends TypeMatcher {
   bool matches(item, MatchState matchState) => item is UnimplementedError;
 }
 
-/** A matcher for NullPointerExceptions. */
-const isNullPointerException = const _NullPointerException();
-
-/** A matcher for functions that throw NotNullPointerException. */
-const Matcher throwsNullPointerException =
-    const Throws(isNullPointerException);
-
-class _NullPointerException extends TypeMatcher {
-  const _NullPointerException() : super("NullPointerException");
-  bool matches(item, MatchState matchState) => item is NullPointerException;
-}
-
 /** A matcher for UnsupportedError. */
 const isUnsupportedError = const _UnsupportedError();
 

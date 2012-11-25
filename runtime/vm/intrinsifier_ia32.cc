@@ -538,22 +538,19 @@ bool Intrinsifier::Int8Array_setIndexed(Assembler* assembler) {
   // * EBX has the index into the array.
   // EBX contains the SMI index which is shifted by 1.
   __ SmiUntag(EBX);
-  // Move EBX into EDI.
+  // Free EBX for the value since we want a byte register.
   __ movl(EDI, EBX);
-  // Load the value into EBX.
   __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Value.
-  // If EBX is not an Smi, jump to fall through.
   __ testl(EBX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
   __ SmiUntag(EBX);
-  // Add 128 to EBX to bring it into 0..FF.
+  // Check that the value is a byte. Add 128 to EBX to bring it into
+  // the range 0..FF.
   __ addl(EBX, Immediate(128));
   __ cmpl(EBX, Immediate(0xFF));
-  // If EBX is too large an Int8, jump to fall through.
   __ j(ABOVE, &fall_through, Assembler::kNearJump);
-  // Remove addition.
+  // Undo addition.
   __ subl(EBX, Immediate(128));
-  // Store BL into array EAX[EDI] = BL.
   __ movb(FieldAddress(EAX, EDI, TIMES_1, Int8Array::data_offset()), BL);
   __ ret();
   __ Bind(&fall_through);
@@ -585,18 +582,15 @@ bool Intrinsifier::Uint8Array_setIndexed(Assembler* assembler) {
   // * EBX has the index into the array.
   // EBX contains the SMI index which is shifted by 1.
   __ SmiUntag(EBX);
-  // Move EBX into EDI.
+  // Free EBX for the value since we want a byte register.
   __ movl(EDI, EBX);
-  // Load the value into EBX.
   __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Value.
-  // If EBX is not an Smi, jump to fall through.
   __ testl(EBX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
   __ SmiUntag(EBX);
-  // If EBX is too large an Uint8, jump to fall through.
+  // Check that the value is a byte.
   __ cmpl(EBX, Immediate(0xFF));
   __ j(ABOVE, &fall_through, Assembler::kNearJump);
-  // Store BL into array EAX[EDI] = BL.
   __ movb(FieldAddress(EAX, EDI, TIMES_1, Uint8Array::data_offset()), BL);
   __ ret();
   __ Bind(&fall_through);
@@ -786,6 +780,20 @@ bool Intrinsifier::Float64Array_setIndexed(Assembler* assembler) {
   // This shift means we only multiply the index by 4 not 8 (sizeof float).
   // Store into array.
   __ movsd(FieldAddress(EAX, EBX, TIMES_4, Float64Array::data_offset()), XMM7);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::ExternalUint8Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ SmiUntag(EBX);
+  __ movl(EAX, FieldAddress(EAX, ExternalUint8Array::external_data_offset()));
+  __ movl(EAX, Address(EAX, ExternalByteArrayData<uint8_t>::data_offset()));
+  __ movzxb(EAX, Address(EAX, EBX, TIMES_1, 0));
+  __ SmiTag(EAX);
   __ ret();
   __ Bind(&fall_through);
   return false;

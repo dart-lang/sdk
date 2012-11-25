@@ -155,16 +155,6 @@ void main() {
             "UnimplementedError.");
     });
 
-    test('throwsNullPointerException', () {
-      shouldPass(() { throw new NullPointerException(''); },
-          throwsNullPointerException);
-      shouldFail(() { throw new Exception(); },
-          throwsNullPointerException,
-        "Expected: throws an exception which matches NullPointerException "
-        "but:  exception <Exception> does not match "
-            "NullPointerException.");
-    });
-
     test('throwsUnsupportedError', () {
       shouldPass(() { throw new UnsupportedError(''); },
           throwsUnsupportedError);

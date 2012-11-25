@@ -64,7 +64,7 @@ main() {
   return a.removeLast();
 }
 """,
-KEPT,
+REMOVED, // TODO(6829): Put it back to KEPT
 
 """
 main() {
@@ -211,8 +211,7 @@ const String DEFAULT_CORELIB_WITH_LIST_INTERFACE = r'''
   class Object {}
   class Type {}
   class Function {}
-  interface List default ListImplementation { List([length]);}
-  class ListImplementation { factory List([length]) => null; }
+  class List { List([length]); }
   abstract class Map {}
   class Closure {}
   class Null {}

@@ -63,7 +63,7 @@ class NativeEnqueuer {
 }
 
 
-class NativeEnqueuerBase implements NativeEnqueuer {
+abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   /**
    * The set of all native classes.  Each native class is in [nativeClasses] and
@@ -303,8 +303,8 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
     super.processNativeClasses(libraries);
 
     // HACK HACK - add all the resolved classes.
-    for (final classElement
-         in compiler.enqueuer.resolution.nativeEnqueuer.registeredClasses) {
+    NativeEnqueuerBase enqueuer = compiler.enqueuer.resolution.nativeEnqueuer;
+    for (final classElement in enqueuer.registeredClasses) {
       if (unusedClasses.contains(classElement)) {
         enqueueClass(classElement, 'was resolved');
       }
@@ -382,10 +382,10 @@ void maybeEnableNative(Compiler compiler,
 class NativeBehavior {
 
   /// [DartType]s or [SpecialType]s returned or yielded by the native element.
-  final Collection typesReturned = [];
+  final List typesReturned = [];
 
   /// [DartType]s or [SpecialType]s instantiated by the native element.
-  final Collection typesInstantiated = [];
+  final List typesInstantiated = [];
 
   static final NativeBehavior NONE = new NativeBehavior();
 
@@ -432,8 +432,8 @@ class NativeBehavior {
     compiler.cancel("Unexpected JS first argument", node: firstArg);
   }
 
-  static NativeBehavior ofMethod(Element method, Compiler compiler) {
-    DartType type = method.computeType(compiler);
+  static NativeBehavior ofMethod(FunctionElement method, Compiler compiler) {
+    FunctionType type = method.computeType(compiler);
     var behavior = new NativeBehavior();
     behavior.typesReturned.add(type.returnType);
     behavior._capture(type, compiler);
@@ -479,14 +479,11 @@ class NativeBehavior {
       return e.computeType(compiler);
     }
 
-    var creates =
-        _collect(element, compiler,
-            compiler.enqueuer.resolution.nativeEnqueuer.annotationCreatesClass,
-            lookup);
-    var returns =
-        _collect(element, compiler,
-            compiler.enqueuer.resolution.nativeEnqueuer.annotationReturnsClass,
-            lookup);
+    NativeEnqueuerBase enqueuer = compiler.enqueuer.resolution.nativeEnqueuer;
+    var creates = _collect(element, compiler, enqueuer.annotationCreatesClass,
+                           lookup);
+    var returns = _collect(element, compiler, enqueuer.annotationReturnsClass,
+                           lookup);
 
     if (creates != null) {
       typesInstantiated..clear()..addAll(creates);
@@ -516,8 +513,9 @@ class NativeBehavior {
       var fields = value.fields;
       // TODO(sra): Better validation of the constant.
       if (fields.length != 1 || fields[0] is! StringConstant) {
+        PartialMetadataAnnotation partial = annotation;
         compiler.cancel(
-            'Annotations needs one string: ${annotation.parseNode(compiler)}');
+            'Annotations needs one string: ${partial.parseNode(compiler)}');
       }
       String specString = fields[0].toDartString().slowToString();
       for (final typeString in specString.split('|')) {

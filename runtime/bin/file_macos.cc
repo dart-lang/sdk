@@ -13,6 +13,7 @@
 
 #include "bin/builtin.h"
 #include "bin/fdutils.h"
+#include "bin/log.h"
 
 class FileHandle {
  public:
@@ -44,7 +45,7 @@ void File::Close() {
     const int kBufferSize = 1024;
     char error_message[kBufferSize];
     strerror_r(errno, error_message, kBufferSize);
-    fprintf(stderr, "%s\n", error_message);
+    Log::PrintErr("%s\n", error_message);
   }
   handle_->set_fd(kClosedFd);
 }

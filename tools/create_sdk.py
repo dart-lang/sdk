@@ -112,14 +112,12 @@ def CopyDartScripts(home, build_dir, sdk_root, version):
     CopyShellScript(os.path.join(home, 'sdk', 'bin', executable),
                     os.path.join(sdk_root, 'bin'))
 
-  if utils.GuessOS() != 'win32':
-    # TODO(ahe): Enable for Windows as well.
-    subprocess.call([os.path.join(build_dir, 'gen_snapshot'),
-                     '--script_snapshot=%s' %
-                     os.path.join(sdk_root, 'lib', '_internal', 'compiler',
-                                  'implementation', 'dart2js.dart.snapshot'),
-                     os.path.join(sdk_root, 'lib', '_internal', 'compiler',
-                                  'implementation', 'dart2js.dart')])
+  subprocess.call([os.path.join(build_dir, 'gen_snapshot'),
+                   '--script_snapshot=%s' %
+                   os.path.join(sdk_root, 'lib', '_internal', 'compiler',
+                                'implementation', 'dart2js.dart.snapshot'),
+                   os.path.join(sdk_root, 'lib', '_internal', 'compiler',
+                                'implementation', 'dart2js.dart')])
 
 
 
@@ -262,6 +260,23 @@ def Main(argv):
         ("var pathTo7zip = '../../third_party/7zip/7za.exe';",
          "var pathTo7zip = '7zip/7za.exe';"),
       ])
+
+  # Copy in cURL on all operating systems, since we need the certificates file
+  # even outside Windows. Leave out the EXE on non-Windows systems, though.
+  curl_ignore_patterns = ignore_patterns('.svn') if utils.GuessOS() == 'win32' \
+      else ignore_patterns('.svn', '*.exe')
+  copytree(join(HOME, 'third_party', 'curl'),
+           join(join(UTIL, 'pub'), 'curl'),
+           ignore=curl_ignore_patterns)
+
+  ReplaceInFiles([
+      join(UTIL, 'pub', 'curl_client.dart'),
+    ], [
+      ("var pathToCurl = '../../third_party/curl/curl.exe';",
+       "var pathToCurl = 'curl/curl.exe';"),
+      ("var pathToCertificates = '../../third_party/curl/ca-certificates.crt';",
+       "var pathToCertificates = 'curl/ca-certificates.crt';"),
+    ])
 
   version = utils.GetVersion()
 

@@ -26,8 +26,6 @@ bool throwsBecauseOfBadArgument(f) {
     return true;
   } on ArgumentError catch (e) {
     return true;
-  } on NullPointerException catch (e) {
-    return true;
   } on TypeError catch (e) {
     // In type checked mode.
     return true;

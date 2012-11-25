@@ -1244,6 +1244,14 @@ ASSEMBLER_TEST_GENERATE(SingleFPMoves, assembler) {
   __ movss(XMM5, XMM4);
   __ movss(XMM6, XMM5);
   __ movss(XMM7, XMM6);
+  __ movss(XMM8, XMM7);
+  __ movss(XMM9, XMM8);
+  __ movss(XMM10, XMM9);
+  __ movss(XMM11, XMM10);
+  __ movss(XMM12, XMM11);
+  __ movss(XMM13, XMM12);
+  __ movss(XMM14, XMM13);
+  __ movss(XMM15, XMM14);
   __ pushq(R15);  // Callee saved.
   __ pushq(RAX);
   __ movq(Address(RSP, 0), Immediate(0));
@@ -1258,8 +1266,23 @@ ASSEMBLER_TEST_GENERATE(SingleFPMoves, assembler) {
   __ movss(XMM3, Address(R15, 0));
   __ movq(RAX, RSP);
   __ movss(Address(RAX, 0), XMM3);
-  __ movss(XMM4, Address(RAX, 0));
-  __ movss(XMM0, Address(RAX, 0));
+  __ movss(XMM1, Address(RAX, 0));
+  __ movss(XMM15, Address(RAX, 0));
+  __ movss(XMM14, XMM15);
+  __ movss(XMM13, XMM14);
+  __ movss(XMM12, XMM13);
+  __ movss(XMM11, XMM12);
+  __ movss(XMM10, XMM11);
+  __ movss(XMM9, XMM10);
+  __ movss(XMM8, XMM9);
+  __ movss(XMM7, XMM8);
+  __ movss(XMM6, XMM7);
+  __ movss(XMM5, XMM6);
+  __ movss(XMM4, XMM5);
+  __ movss(XMM3, XMM4);
+  __ movss(XMM2, XMM3);
+  __ movss(XMM1, XMM2);
+  __ movss(XMM0, XMM1);
   __ popq(RAX);
   __ popq(R15);  // Callee saved.
   __ ret();
@@ -1275,12 +1298,18 @@ ASSEMBLER_TEST_RUN(SingleFPMoves, entry) {
 ASSEMBLER_TEST_GENERATE(SingleFPMoves2, assembler) {
   __ movq(RAX, Immediate(bit_cast<int32_t, float>(234.0f)));
   __ movd(XMM0, RAX);
-  __ movss(XMM1, XMM0);
+  __ movd(XMM8, RAX);
+  __ movss(XMM1, XMM8);
   __ pushq(RAX);
   __ movq(Address(RSP, 0), Immediate(0));
   __ movss(XMM0, Address(RSP, 0));
   __ movss(Address(RSP, 0), XMM1);
   __ movss(XMM0, Address(RSP, 0));
+  __ movq(Address(RSP, 0), Immediate(0));
+  __ movss(XMM9, XMM8);
+  __ movss(Address(RSP, 0), XMM9);
+  __ movss(XMM8, Address(RSP, 0));
+  __ movss(XMM0, XMM8);
   __ popq(RAX);
   __ ret();
 }
@@ -1297,12 +1326,19 @@ ASSEMBLER_TEST_GENERATE(SingleFPOperations, assembler) {
   __ pushq(RCX);
   __ movq(RBX, Immediate(bit_cast<int32_t, float>(12.3f)));
   __ movd(XMM0, RBX);
+  __ movd(XMM8, RBX);
   __ movq(RCX, Immediate(bit_cast<int32_t, float>(3.4f)));
   __ movd(XMM1, RCX);
+  __ movd(XMM9, RCX);
   __ addss(XMM0, XMM1);  // 15.7f
   __ mulss(XMM0, XMM1);  // 53.38f
   __ subss(XMM0, XMM1);  // 49.98f
   __ divss(XMM0, XMM1);  // 14.7f
+  __ addss(XMM8, XMM9);  // 15.7f
+  __ mulss(XMM8, XMM9);  // 53.38f
+  __ subss(XMM8, XMM9);  // 49.98f
+  __ divss(XMM8, XMM9);  // 14.7f
+  __ subss(XMM0, XMM8);  // 0.0f
   __ popq(RCX);
   __ popq(RBX);
   __ ret();
@@ -1312,7 +1348,7 @@ ASSEMBLER_TEST_GENERATE(SingleFPOperations, assembler) {
 ASSEMBLER_TEST_RUN(SingleFPOperations, entry) {
   typedef float (*SingleFPOperationsCode)();
   float res = reinterpret_cast<SingleFPOperationsCode>(entry)();
-  EXPECT_FLOAT_EQ(14.7f, res, 0.001f);
+  EXPECT_FLOAT_EQ(0.0f, res, 0.001f);
 }
 
 
@@ -1328,9 +1364,17 @@ ASSEMBLER_TEST_GENERATE(DoubleFPMoves, assembler) {
   __ movsd(XMM5, XMM4);
   __ movsd(XMM6, XMM5);
   __ movsd(XMM7, XMM6);
+  __ movsd(XMM8, XMM7);
+  __ movsd(XMM9, XMM8);
+  __ movsd(XMM10, XMM9);
+  __ movsd(XMM11, XMM10);
+  __ movsd(XMM12, XMM11);
+  __ movsd(XMM13, XMM12);
+  __ movsd(XMM14, XMM13);
+  __ movsd(XMM15, XMM14);
   __ movq(Address(RSP, 0), Immediate(0));
   __ movsd(XMM0, Address(RSP, 0));
-  __ movsd(Address(RSP, 0), XMM7);
+  __ movsd(Address(RSP, 0), XMM15);
   __ movsd(XMM1, Address(RSP, 0));
   __ movq(R10, RSP);
   __ movsd(Address(R10, 0), XMM1);
@@ -1341,7 +1385,15 @@ ASSEMBLER_TEST_GENERATE(DoubleFPMoves, assembler) {
   __ movq(RAX, RSP);
   __ movsd(Address(RAX, 0), XMM3);
   __ movsd(XMM4, Address(RAX, 0));
-  __ movsd(XMM7, Address(RSP, 0));
+  __ movsd(XMM15, Address(RSP, 0));
+  __ movaps(XMM14, XMM15);
+  __ movaps(XMM13, XMM14);
+  __ movaps(XMM12, XMM13);
+  __ movaps(XMM11, XMM12);
+  __ movaps(XMM10, XMM11);
+  __ movaps(XMM9, XMM10);
+  __ movaps(XMM8, XMM9);
+  __ movaps(XMM7, XMM8);
   __ movaps(XMM6, XMM7);
   __ movaps(XMM5, XMM6);
   __ movaps(XMM4, XMM5);
@@ -1365,13 +1417,22 @@ ASSEMBLER_TEST_GENERATE(DoubleFPOperations, assembler) {
   __ movq(RAX, Immediate(bit_cast<int64_t, double>(12.3)));
   __ pushq(RAX);
   __ movsd(XMM0, Address(RSP, 0));
+  __ movsd(XMM8, Address(RSP, 0));
   __ movq(RAX, Immediate(bit_cast<int64_t, double>(3.4)));
   __ movq(Address(RSP, 0), RAX);
+  __ movsd(XMM12, Address(RSP, 0));
+  __ addsd(XMM8, XMM12);  // 15.7
+  __ mulsd(XMM8, XMM12);  // 53.38
+  __ subsd(XMM8, XMM12);  // 49.98
+  __ divsd(XMM8, XMM12);  // 14.7
+  __ sqrtsd(XMM8, XMM8);  // 3.834
   __ movsd(XMM1, Address(RSP, 0));
   __ addsd(XMM0, XMM1);  // 15.7
   __ mulsd(XMM0, XMM1);  // 53.38
   __ subsd(XMM0, XMM1);  // 49.98
   __ divsd(XMM0, XMM1);  // 14.7
+  __ sqrtsd(XMM0, XMM0);  // 3.834057902
+  __ addsd(XMM0, XMM8);  // 7.6681
   __ popq(RAX);
   __ ret();
 }
@@ -1380,13 +1441,16 @@ ASSEMBLER_TEST_GENERATE(DoubleFPOperations, assembler) {
 ASSEMBLER_TEST_RUN(DoubleFPOperations, entry) {
   typedef double (*SingleFPOperationsCode)();
   double res = reinterpret_cast<SingleFPOperationsCode>(entry)();
-  EXPECT_FLOAT_EQ(14.7, res, 0.001);
+  EXPECT_FLOAT_EQ(7.668, res, 0.001);
 }
 
 
 ASSEMBLER_TEST_GENERATE(Int32ToDoubleConversion, assembler) {
   __ movl(RDX, Immediate(6));
   __ cvtsi2sd(XMM0, RDX);
+  __ movl(RDX, Immediate(8));
+  __ cvtsi2sd(XMM8, RDX);
+  __ subsd(XMM0, XMM8);
   __ ret();
 }
 
@@ -1394,13 +1458,16 @@ ASSEMBLER_TEST_GENERATE(Int32ToDoubleConversion, assembler) {
 ASSEMBLER_TEST_RUN(Int32ToDoubleConversion, entry) {
   typedef double (*IntToDoubleConversionCode)();
   double res = reinterpret_cast<IntToDoubleConversionCode>(entry)();
-  EXPECT_FLOAT_EQ(6.0, res, 0.001);
+  EXPECT_FLOAT_EQ(-2.0, res, 0.001);
 }
 
 
 ASSEMBLER_TEST_GENERATE(Int64ToDoubleConversion, assembler) {
   __ movq(RDX, Immediate(12LL << 32));
   __ cvtsi2sd(XMM0, RDX);
+  __ movsd(XMM15, XMM0);  // Move to high register
+  __ addsd(XMM0, XMM0);  // Stomp XMM0
+  __ movsd(XMM0, XMM15);  // Move back to XMM0
   __ ret();
 }
 
@@ -1415,9 +1482,14 @@ ASSEMBLER_TEST_RUN(Int64ToDoubleConversion, entry) {
 ASSEMBLER_TEST_GENERATE(DoubleToInt64Conversion, assembler) {
   __ movq(RAX, Immediate(bit_cast<int64_t, double>(12.3)));
   __ pushq(RAX);
+  __ movsd(XMM9, Address(RSP, 0));
   __ movsd(XMM6, Address(RSP, 0));
   __ popq(RAX);
+  __ cvttsd2siq(R10, XMM6);
   __ cvttsd2siq(RDX, XMM6);
+  __ cvttsd2siq(R10, XMM9);
+  __ cvttsd2siq(RDX, XMM9);
+  __ subq(RDX, R10);
   __ movq(RAX, RDX);
   __ ret();
 }
@@ -1426,7 +1498,7 @@ ASSEMBLER_TEST_GENERATE(DoubleToInt64Conversion, assembler) {
 ASSEMBLER_TEST_RUN(DoubleToInt64Conversion, entry) {
   typedef int64_t (*DoubleToInt64ConversionCode)();
   int64_t res = reinterpret_cast<DoubleToInt64ConversionCode>(entry)();
-  EXPECT_EQ(12, res);
+  EXPECT_EQ(0, res);
 }
 
 
@@ -1605,7 +1677,14 @@ ASSEMBLER_TEST_RUN(XorpdZeroing, entry) {
 
 
 ASSEMBLER_TEST_GENERATE(XorpdZeroing2, assembler) {
+  Label done;
+  __ xorpd(XMM15, XMM15);
   __ xorpd(XMM0, XMM0);
+  __ xorpd(XMM0, XMM15);
+  __ comisd(XMM0, XMM15);
+  __ j(ZERO, &done);
+  __ int3();
+  __ Bind(&done);
   __ ret();
 }
 

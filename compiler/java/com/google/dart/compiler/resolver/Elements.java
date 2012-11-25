@@ -87,6 +87,10 @@ public class Elements {
     return new LibraryElementImplementation(libraryUnit);
   }
   
+  public static void setLibraryMetadata(LibraryElement element, DartObsoleteMetadata metadata) {
+    ((LibraryElementImplementation) element).setMetadata(metadata);
+  }
+  
   public static void addExportedElement(LibraryElement libraryElement, Element element) {
     ((LibraryElementImplementation) libraryElement).addExportedElements(element);
   }
@@ -741,21 +745,6 @@ static FieldElementImplementation fieldFromNode(DartField node,
     if (library != null) {
       String libraryName = library.getName();
       return libraryName.endsWith(name);
-    }
-    return false;
-  }
-  
-  /**
-   * @return <code>true</code> if given {@link Source} represents library with given name.
-   */
-  public static boolean isDart2JsLibrarySource(Source source) {
-    if (source instanceof DartSource) {
-      DartSource dartSource = (DartSource) source;
-      LibrarySource library = dartSource.getLibrary();
-      if (library != null) {
-        String libraryName = library.getName();
-        return libraryName.contains("lib/compiler/implementation/");
-      }
     }
     return false;
   }

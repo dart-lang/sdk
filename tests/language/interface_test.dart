@@ -30,9 +30,9 @@ class InterfaceTest implements Ai, Aai, Abi, Baz, Bi {
   int foo() { return 1; }
 
   // intentionally unimplemented methods
-  abstract beta();
-  abstract String beta1();
-  abstract String beta2(double d);
+  beta();  // Abstract.
+  String beta1();  // Abstract.
+  String beta2(double d);  // Abstract.
 }
 
 main() {

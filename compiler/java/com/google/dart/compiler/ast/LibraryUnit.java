@@ -187,6 +187,14 @@ public class LibraryUnit {
 
   public void setSelfDartUnit(DartUnit unit) {
     this.selfDartUnit = unit;
+    // set DartObsoleteMetadata for LibraryElement
+    if (unit != null) {
+      List<DartDirective> directives = unit.getDirectives();
+      if (!directives.isEmpty() && directives.get(0) instanceof DartLibraryDirective) {
+        DartLibraryDirective libraryDirective = (DartLibraryDirective) directives.get(0);
+        Elements.setLibraryMetadata(element, libraryDirective.getObsoleteMetadata());
+      }
+    }
   }
 
   /**
