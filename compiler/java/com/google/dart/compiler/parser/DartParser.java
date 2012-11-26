@@ -3857,6 +3857,21 @@ public class DartParser extends CompletionHooksParserBase {
             DartIdentifier error = doneWithoutConsuming(new DartIdentifier(""));
             return doneWithoutConsuming(new DartPropertyAccess(receiver, error));
         }
+        // receiver.() = missing name
+        if (peek(0) == Token.LPAREN) {
+          reportUnexpectedToken(position(), Token.IDENTIFIER, peek(0));
+          DartIdentifier name;
+          {
+            beginIdentifier();
+            name = done(new DartSyntheticErrorIdentifier());
+          }
+          boolean save = setAllowFunctionExpression(true);
+          DartMethodInvocation expr = doneWithoutConsuming(new DartMethodInvocation(receiver,
+              false, name, parseArguments()));
+          setAllowFunctionExpression(save);
+          return expr;
+        }
+        // expect name
         DartIdentifier name = parseIdentifier();
         if (peek(0) == Token.LPAREN) {
           boolean save = setAllowFunctionExpression(true);

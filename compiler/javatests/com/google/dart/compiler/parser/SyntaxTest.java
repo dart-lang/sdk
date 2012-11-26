@@ -40,6 +40,9 @@ import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.NodeList;
 
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+
 import java.util.List;
 
 public class SyntaxTest extends AbstractParserTest {
@@ -97,6 +100,28 @@ public class SyntaxTest extends AbstractParserTest {
             "",
             "@meta @meta2 export 'Lib.dart';",
             ""));
+  }
+
+  /**
+   * There was bug that handling missing identifier (method name) after "cursor." in switch caused
+   * infinite parsing loop.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6908
+   */
+  public void test_switch_noMethodName_inCase() {
+    DartParserRunner runner = parseSource(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "void main() {",
+        "  print((e) {",
+        "    switch (e) {",
+        "      case 'Up': cursor.();",
+        "      case 'Down':",
+        "    }",
+        "  }); ",
+        "}",
+        ""));
+    assertErrors(runner.getErrors(),
+        errEx(ParserErrorCode.INVALID_IDENTIFIER, 5, 24, 1));
   }
 
   public void test_getter() {
