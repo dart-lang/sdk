@@ -301,171 +301,6 @@ class _FrozenElementListIterator implements Iterator<Element> {
   bool get hasNext => _index < _list.length;
 }
 
-class _ElementAttributeMap implements Map<String, String> {
-
-  final Element _element;
-
-  _ElementAttributeMap(this._element);
-
-  bool containsValue(String value) {
-    final attributes = _element.$dom_attributes;
-    for (int i = 0, len = attributes.length; i < len; i++) {
-      if(value == attributes[i].value) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool containsKey(String key) {
-    return _element.$dom_hasAttribute(key);
-  }
-
-  String operator [](String key) {
-    return _element.$dom_getAttribute(key);
-  }
-
-  void operator []=(String key, value) {
-    _element.$dom_setAttribute(key, '$value');
-  }
-
-  String putIfAbsent(String key, String ifAbsent()) {
-    if (!containsKey(key)) {
-      this[key] = ifAbsent();
-    }
-    return this[key];
-  }
-
-  String remove(String key) {
-    String value = _element.$dom_getAttribute(key);
-    _element.$dom_removeAttribute(key);
-    return value;
-  }
-
-  void clear() {
-    final attributes = _element.$dom_attributes;
-    for (int i = attributes.length - 1; i >= 0; i--) {
-      remove(attributes[i].name);
-    }
-  }
-
-  void forEach(void f(String key, String value)) {
-    final attributes = _element.$dom_attributes;
-    for (int i = 0, len = attributes.length; i < len; i++) {
-      final item = attributes[i];
-      f(item.name, item.value);
-    }
-  }
-
-  Collection<String> get keys {
-    // TODO(jacobr): generate a lazy collection instead.
-    final attributes = _element.$dom_attributes;
-    final keys = new List<String>(attributes.length);
-    for (int i = 0, len = attributes.length; i < len; i++) {
-      keys[i] = attributes[i].name;
-    }
-    return keys;
-  }
-
-  Collection<String> get values {
-    // TODO(jacobr): generate a lazy collection instead.
-    final attributes = _element.$dom_attributes;
-    final values = new List<String>(attributes.length);
-    for (int i = 0, len = attributes.length; i < len; i++) {
-      values[i] = attributes[i].value;
-    }
-    return values;
-  }
-
-  /**
-   * The number of {key, value} pairs in the map.
-   */
-  int get length {
-    return _element.$dom_attributes.length;
-  }
-
-  /**
-   * Returns true if there is no {key, value} pair in the map.
-   */
-  bool get isEmpty {
-    return length == 0;
-  }
-}
-
-/**
- * Provides a Map abstraction on top of data-* attributes, similar to the
- * dataSet in the old DOM.
- */
-class _DataAttributeMap implements Map<String, String> {
-
-  final Map<String, String> $dom_attributes;
-
-  _DataAttributeMap(this.$dom_attributes);
-
-  // interface Map
-
-  // TODO: Use lazy iterator when it is available on Map.
-  bool containsValue(String value) => values.some((v) => v == value);
-
-  bool containsKey(String key) => $dom_attributes.containsKey(_attr(key));
-
-  String operator [](String key) => $dom_attributes[_attr(key)];
-
-  void operator []=(String key, value) {
-    $dom_attributes[_attr(key)] = '$value';
-  }
-
-  String putIfAbsent(String key, String ifAbsent()) =>
-    $dom_attributes.putIfAbsent(_attr(key), ifAbsent);
-
-  String remove(String key) => $dom_attributes.remove(_attr(key));
-
-  void clear() {
-    // Needs to operate on a snapshot since we are mutating the collection.
-    for (String key in keys) {
-      remove(key);
-    }
-  }
-
-  void forEach(void f(String key, String value)) {
-    $dom_attributes.forEach((String key, String value) {
-      if (_matches(key)) {
-        f(_strip(key), value);
-      }
-    });
-  }
-
-  Collection<String> get keys {
-    final keys = new List<String>();
-    $dom_attributes.forEach((String key, String value) {
-      if (_matches(key)) {
-        keys.add(_strip(key));
-      }
-    });
-    return keys;
-  }
-
-  Collection<String> get values {
-    final values = new List<String>();
-    $dom_attributes.forEach((String key, String value) {
-      if (_matches(key)) {
-        values.add(value);
-      }
-    });
-    return values;
-  }
-
-  int get length => keys.length;
-
-  // TODO: Use lazy iterator when it is available on Map.
-  bool get isEmpty => length == 0;
-
-  // Helpers.
-  String _attr(String key) => 'data-$key';
-  bool _matches(String key) => key.startsWith('data-');
-  String _strip(String key) => key.substring(5);
-}
-
 class _ElementCssClassSet extends CssClassSet {
 
   final Element _element;
@@ -576,6 +411,14 @@ abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     for (String key in value.keys) {
       dataAttributes[key] = value[key];
     }
+  }
+
+  /**
+   * Gets a map for manipulating the attributes of a particular namespace.
+   * This is primarily useful for SVG attributes such as xref:link.
+   */
+  Map<String, String> getNamespacedAttributes(String namespace) {
+    return new _NamespacedAttributeMap(this, namespace);
   }
 
   /** @domName Window.getComputedStyle */

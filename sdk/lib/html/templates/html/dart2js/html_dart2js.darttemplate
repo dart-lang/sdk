@@ -13,6 +13,7 @@ import 'dart:svg' as svg;
 
 $!GENERATED_DART_FILES
 
+part '$AUXILIARY_DIR/AttributeMap.dart';
 part '$AUXILIARY_DIR/CrossFrameTypes.dart';
 part '$AUXILIARY_DIR/CssClassSet.dart';
 part '$AUXILIARY_DIR/Device.dart';
