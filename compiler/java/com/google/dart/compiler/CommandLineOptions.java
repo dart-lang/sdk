@@ -6,6 +6,7 @@ package com.google.dart.compiler;
 
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.CompilerConfiguration.ErrorFormat;
+import com.google.dart.compiler.util.apache.StringUtils;
 
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
@@ -14,6 +15,7 @@ import org.kohsuke.args4j.Option;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -269,6 +271,16 @@ public class CommandLineOptions {
    */
   public static CmdLineParser parse(String[] args, CompilerOptions parsedOptions)
       throws CmdLineException {
+    // convert new "--name=value" into old "--name value" style
+    {
+      List<String> argList = Lists.newArrayList();
+      for (String arg : args) {
+        String[] parts = StringUtils.split(arg, '=');
+        Collections.addAll(argList, parts);
+      }
+      args = argList.toArray(new String[argList.size()]);
+    }
+
     boolean ignoreUnrecognized = false;
     for (String arg : args) {
       if (arg.equals("--ignore-unrecognized-flags")) {
