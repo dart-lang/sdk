@@ -6660,99 +6660,9 @@ class Document extends Node  native "*Document"
 class DocumentEvents extends ElementEvents {
   DocumentEvents(EventTarget _ptr) : super(_ptr);
 
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get beforeCopy => this['beforecopy'];
-
-  EventListenerList get beforeCut => this['beforecut'];
-
-  EventListenerList get beforePaste => this['beforepaste'];
-
-  EventListenerList get blur => this['blur'];
-
-  EventListenerList get change => this['change'];
-
-  EventListenerList get click => this['click'];
-
-  EventListenerList get contextMenu => this['contextmenu'];
-
-  EventListenerList get copy => this['copy'];
-
-  EventListenerList get cut => this['cut'];
-
-  EventListenerList get doubleClick => this['dblclick'];
-
-  EventListenerList get drag => this['drag'];
-
-  EventListenerList get dragEnd => this['dragend'];
-
-  EventListenerList get dragEnter => this['dragenter'];
-
-  EventListenerList get dragLeave => this['dragleave'];
-
-  EventListenerList get dragOver => this['dragover'];
-
-  EventListenerList get dragStart => this['dragstart'];
-
-  EventListenerList get drop => this['drop'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get focus => this['focus'];
-
-  EventListenerList get input => this['input'];
-
-  EventListenerList get invalid => this['invalid'];
-
-  EventListenerList get keyDown => this['keydown'];
-
-  EventListenerList get keyPress => this['keypress'];
-
-  EventListenerList get keyUp => this['keyup'];
-
-  EventListenerList get load => this['load'];
-
-  EventListenerList get mouseDown => this['mousedown'];
-
-  EventListenerList get mouseMove => this['mousemove'];
-
-  EventListenerList get mouseOut => this['mouseout'];
-
-  EventListenerList get mouseOver => this['mouseover'];
-
-  EventListenerList get mouseUp => this['mouseup'];
-
-  EventListenerList get mouseWheel => this['mousewheel'];
-
-  EventListenerList get paste => this['paste'];
-
   EventListenerList get readyStateChange => this['readystatechange'];
 
-  EventListenerList get reset => this['reset'];
-
-  EventListenerList get scroll => this['scroll'];
-
-  EventListenerList get search => this['search'];
-
-  EventListenerList get select => this['select'];
-
   EventListenerList get selectionChange => this['selectionchange'];
-
-  EventListenerList get selectStart => this['selectstart'];
-
-  EventListenerList get submit => this['submit'];
-
-  EventListenerList get touchCancel => this['touchcancel'];
-
-  EventListenerList get touchEnd => this['touchend'];
-
-  EventListenerList get touchMove => this['touchmove'];
-
-  EventListenerList get touchStart => this['touchstart'];
-
-  EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
-
-  EventListenerList get fullscreenError => this['webkitfullscreenerror'];
 
   EventListenerList get pointerLockChange => this['webkitpointerlockchange'];
 
