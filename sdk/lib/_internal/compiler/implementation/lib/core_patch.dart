@@ -148,8 +148,8 @@ patch class _DateImpl {
 
 // Patch for Stopwatch implementation.
 patch class _StopwatchImpl {
-  patch static int _frequency() => 1000;
-  patch static int _now() => Primitives.dateNow();
+  patch static int _frequency() => 1000000;
+  patch static int _now() => Primitives.numMicroseconds();
 }
 
 
