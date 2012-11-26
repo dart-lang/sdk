@@ -49,8 +49,9 @@ class PremarkingVisitor : public ObjectVisitor {
 
 // TODO(turnidge): We should add a corresponding Dart::Cleanup.
 const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
-                    Dart_IsolateInterruptCallback interrupt,
-                    Dart_IsolateShutdownCallback shutdown) {
+                           Dart_IsolateInterruptCallback interrupt,
+                           Dart_IsolateUnhandledExceptionCallback unhandled,
+                           Dart_IsolateShutdownCallback shutdown) {
   // TODO(iposva): Fix race condition here.
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
     return "VM already initialized.";
@@ -90,6 +91,7 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
   Isolate::SetCurrent(NULL);  // Unregister the VM isolate from this thread.
   Isolate::SetCreateCallback(create);
   Isolate::SetInterruptCallback(interrupt);
+  Isolate::SetUnhandledExceptionCallback(unhandled);
   Isolate::SetShutdownCallback(shutdown);
   return NULL;
 }

@@ -6250,11 +6250,28 @@ static bool RunLoopTestCallback(const char* script_name,
 }
 
 
+// The error string from the last unhandled exception. This value is only
+// valid until the next Dart_ExitScope().
+static char* last_exception = NULL;
+
+
+static void RunLoopUnhandledExceptionCallback(Dart_Handle exception) {
+  Dart_Handle error_string = Dart_ToString(exception);
+  EXPECT_VALID(error_string);
+  const char* error_text;
+  Dart_Handle result = Dart_StringToCString(error_string, &error_text);
+  // Duplicate the string since error text is freed when callback is finished.
+  last_exception = strdup(error_text);
+  EXPECT_VALID(result);
+}
+
+
 // Common code for RunLoop_Success/RunLoop_Failure.
 static void RunLoopTest(bool throw_exception_child,
                         bool throw_exception_parent) {
   Dart_IsolateCreateCallback saved = Isolate::CreateCallback();
   Isolate::SetCreateCallback(RunLoopTestCallback);
+  Isolate::SetUnhandledExceptionCallback(RunLoopUnhandledExceptionCallback);
   RunLoopTestCallback(NULL, NULL, NULL, NULL);
 
   Dart_EnterScope();
@@ -6267,11 +6284,23 @@ static void RunLoopTest(bool throw_exception_child,
   args[1] = (throw_exception_parent ? Dart_True() : Dart_False());
   result = Dart_Invoke(lib, NewString("main"), 2, args);
   EXPECT_VALID(result);
-  result = Dart_RunLoop();
-  if (throw_exception_parent) {
-    EXPECT_ERROR(result, "Exception: MakeParentExit");
+  if (throw_exception_child) {
+    EXPECT_NOTNULL(last_exception);
+    EXPECT_STREQ("UnhandledException", last_exception);
   } else {
-    EXPECT_VALID(result);
+    result = Dart_RunLoop();
+    if (throw_exception_parent) {
+      EXPECT_ERROR(result, "Exception: MakeParentExit");
+      EXPECT_NOTNULL(last_exception);
+      EXPECT_STREQ("UnhandledException", last_exception);
+    } else {
+      EXPECT_VALID(result);
+      EXPECT(last_exception == NULL);
+    }
+  }
+  if (last_exception != NULL) {
+    free(last_exception);
+    last_exception = NULL;
   }
 
   Dart_ExitScope();

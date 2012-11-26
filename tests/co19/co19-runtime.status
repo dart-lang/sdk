@@ -3,16 +3,16 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == none && $runtime == vm ]
-Language/13_Libraries_and_Scripts/1_Imports_A02_t21: Crash # TODO(vm-team): Please triage this crash.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t22: Crash # TODO(vm-team): Please triage this crash.
+Language/13_Libraries_and_Scripts/1_Imports_A02_t21: Crash # Dart issue 6060
+Language/13_Libraries_and_Scripts/1_Imports_A02_t22: Crash # Dart issue 6060
 
-Language/05_Variables/05_Variables_A05_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/05_Variables/05_Variables_A05_t11: Fail # TODO(vm-team): Please triage this failure.
-Language/05_Variables/05_Variables_A05_t13: Fail # TODO(vm-team): Please triage this failure.
-Language/05_Variables/05_Variables_A05_t14: Fail # TODO(vm-team): Please triage this failure.
-Language/05_Variables/05_Variables_A05_t15: Fail # TODO(vm-team): Please triage this failure.
-Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # TODO(vm-team): Please triage this failure.
+Language/05_Variables/05_Variables_A05_t04: Fail # Dart issue 5881
+Language/05_Variables/05_Variables_A05_t11: Fail # Dart issue 5885
+Language/05_Variables/05_Variables_A05_t13: Fail # Dart issue 5885
+Language/05_Variables/05_Variables_A05_t14: Fail # Dart issue 5885
+Language/05_Variables/05_Variables_A05_t15: Fail # Dart issue 5885
+Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # Dart issue 5802
+Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # Dart issue 5894
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t10: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/2_Getters_A01_t03: Fail # Expects compile-time error when getter has empty parameter list.
 Language/07_Classes/2_Getters_A01_t05: Fail # Expects compile-time error when getter has empty parameter list.
@@ -278,8 +278,8 @@ LibTest/core/int/remainder_A01_t02: Fail # TODO(vm-team): Please triage this fai
 LibTest/core/Date/toString_A02_t01: Fail, OK
 LibTest/core/Date/year_A01_t01: Fail, OK
 
-LibTest/isolate/SendPort/send_A02_t02: Fail, OK # co19 issue 293
-LibTest/isolate/SendPort/send_A02_t03: Fail, OK # co19 issue 293
+LibTest/isolate/SendPort/send_A02_t02: Skip # co19 issue 293
+LibTest/isolate/SendPort/send_A02_t03: Skip # co19 issue 293
 LibTest/isolate/SendPort/send_A02_t04: Fail, OK # co19 issue 293
 LibTest/core/LinkedHashMap/LinkedHashMap_class_A01_t01: Fail, OK # co19 issue 293
 LibTest/core/Map/getKeys_A01_t01: Fail, OK # co19 issue 293

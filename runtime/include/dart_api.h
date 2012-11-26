@@ -622,6 +622,19 @@ typedef bool (*Dart_IsolateInterruptCallback)();
 // TODO(turnidge): Define and implement unwinding.
 
 /**
+ * An isolate unhandled exception callback function.
+ *
+ * This callback, provided by the embedder, is called when an unhandled
+ * exception or internal error is thrown during isolate execution. When the
+ * callback is invoked, Dart_CurrentIsolate can be used to figure out which
+ * isolate was running when the exception was thrown.
+ *
+ * \param error The unhandled exception or error.  This handle's scope is
+ *   only valid until the embedder returns from this callback.
+ */
+typedef void (*Dart_IsolateUnhandledExceptionCallback)(Dart_Handle error);
+
+/**
  * An isolate shutdown callback function.
  *
  * This callback, provided by the embedder, is called after the vm
@@ -644,12 +657,18 @@ typedef void (*Dart_IsolateShutdownCallback)(void* callback_data);
  *   See Dart_IsolateCreateCallback.
  * \param interrupt A function to be called when an isolate is interrupted.
  *   See Dart_IsolateInterruptCallback.
+ * \param unhandled_exception A function to be called if an isolate has an
+ *   unhandled exception.  Set Dart_IsolateUnhandledExceptionCallback.
+ * \param shutdown A function to be called when an isolate is shutdown.
+ *   See Dart_IsolateShutdownCallback.
  *
  * \return True if initialization is successful.
  */
-DART_EXPORT bool Dart_Initialize(Dart_IsolateCreateCallback create,
-                                 Dart_IsolateInterruptCallback interrupt,
-                                 Dart_IsolateShutdownCallback shutdown);
+DART_EXPORT bool Dart_Initialize(
+    Dart_IsolateCreateCallback create,
+    Dart_IsolateInterruptCallback interrupt,
+    Dart_IsolateUnhandledExceptionCallback unhandled_exception,
+    Dart_IsolateShutdownCallback shutdown);
 
 /**
  * Sets command line flags. Should be called before Dart_Initialize.

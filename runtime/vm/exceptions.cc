@@ -4,6 +4,7 @@
 
 #include "vm/exceptions.h"
 
+#include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/flags.h"
@@ -163,14 +164,20 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
                                              pc_offset_list);
   if (handler_pc == 0) {
     // There are no dart invocation frames on the stack so we do not
-    // have a caller to return to. This is a case where we would have
-    // to call the Isolate error handler and let it deal with the shutdown.
-    // We report an error and shutdown the process as a temporary solution
-    // until the isolate error handler stuff is implemented.
+    // have a caller to return to.
     ASSERT(!handler_exists);
-    OS::PrintErr("Exception '%s' thrown:\n", exception.ToCString());
-    OS::PrintErr("Exiting the process\n");
-    OS::Exit(255);
+    if (Isolate::UnhandledExceptionCallback() != NULL) {
+      // Notify embedder that an unhandled exception occurred.
+      Dart_EnterScope();
+      Dart_Handle error_handle = Api::NewHandle(Isolate::Current(),
+                                                incoming_exception.raw());
+      (Isolate::UnhandledExceptionCallback())(error_handle);
+      Dart_ExitScope();
+    } else {
+      OS::PrintErr("Exception '%s' thrown:\n", exception.ToCString());
+      OS::PrintErr("Shutting down the isolate\n");
+    }
+    Dart_ShutdownIsolate();
   }
   // TODO(5411263): At some point we can optimize by figuring out if a
   // stack trace is needed based on whether the catch code specifies a

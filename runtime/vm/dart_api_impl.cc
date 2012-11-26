@@ -736,10 +736,12 @@ DART_EXPORT const char* Dart_VersionString() {
   return Version::String();
 }
 
-DART_EXPORT bool Dart_Initialize(Dart_IsolateCreateCallback create,
-                                 Dart_IsolateInterruptCallback interrupt,
-                                 Dart_IsolateShutdownCallback shutdown) {
-  const char* err_msg = Dart::InitOnce(create, interrupt, shutdown);
+DART_EXPORT bool Dart_Initialize(
+    Dart_IsolateCreateCallback create,
+    Dart_IsolateInterruptCallback interrupt,
+    Dart_IsolateUnhandledExceptionCallback unhandled,
+    Dart_IsolateShutdownCallback shutdown) {
+  const char* err_msg = Dart::InitOnce(create, interrupt, unhandled, shutdown);
   if (err_msg != NULL) {
     OS::PrintErr("Dart_Initialize: %s\n", err_msg);
     return false;

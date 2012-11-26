@@ -692,6 +692,7 @@ int main(int argc, char** argv) {
   // Initialize the Dart VM.
   if (!Dart_Initialize(CreateIsolateAndSetup,
                        NULL,
+                       NULL,
                        ShutdownIsolate)) {
     fprintf(stderr, "%s", "VM initialization failed\n");
     fflush(stderr);
