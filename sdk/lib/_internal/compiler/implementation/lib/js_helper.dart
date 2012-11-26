@@ -535,7 +535,27 @@ class Primitives {
 
   static num dateNow() => JS('num', r'Date.now()');
 
-  static stringFromCodePoints(codePoints) {
+  // This is to avoid stack overflows due to very large argument arrays in
+  // apply().  It fixes http://dartbug.com/6919
+  static String _fromCharCodeApply(List<int> array) {
+    String result = "";
+    const kMaxApply = 500;
+    int end = array.length;
+    for (var i = 0; i < end; i += kMaxApply) {
+      var subarray;
+      if (end <= kMaxApply) {
+        subarray = array;
+      } else {
+        subarray = JS('List<int>', r'array.slice(#, #)',
+                      i, i + kMaxApply < end ? i + kMaxApply : end);
+      }
+      result = JS('String', '# + String.fromCharCode.apply(#, #)',
+                  result, null, subarray);
+    }
+    return result;
+  }
+
+  static String stringFromCodePoints(codePoints) {
     List<int> a = <int>[];
     for (var i in codePoints) {
       if (i is !int) throw new ArgumentError(i);
@@ -548,7 +568,7 @@ class Primitives {
         throw new ArgumentError(i);
       }
     }
-    return JS('String', r'String.fromCharCode.apply(#, #)', null, a);
+    return _fromCharCodeApply(a);
   }
 
   static String stringFromCharCodes(charCodes) {
@@ -557,7 +577,7 @@ class Primitives {
       if (i < 0) throw new ArgumentError(i);
       if (i > 0xffff) return stringFromCodePoints(charCodes);
     }
-    return JS('String', r'String.fromCharCode.apply(#, #)', null, charCodes);
+    return _fromCharCodeApply(charCodes);
   }
 
   static String getTimeZoneName(receiver) {

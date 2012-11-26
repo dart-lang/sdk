@@ -19,6 +19,26 @@ class StringFromListTest {
       a.add(66);
       Expect.equals("AB", new String.fromCharCodes(a));
     }
+
+    // Long list (bug 6919).
+    for (int len in [499, 500, 501, 999, 100000]) {
+      List<int> list = new List(len);
+      for (int i = 0; i < len; i++) {
+        list[i] = 65 + (i % 26);
+      }
+      for (int i = len - 9; i < len; i++) {
+        list[i] = 48 + (len - i);
+      }
+      // We should not throw a stack overflow here.
+      String long = new String.fromCharCodes(list);
+      // Minimal sanity checking on the string.
+      Expect.isTrue(long.startsWith('ABCDE'));
+      Expect.isTrue(long.endsWith('987654321'));
+      int middle = len ~/ 2;
+      middle -= middle % 26;
+      Expect.equals('XYZABC', long.substring(middle - 3, middle + 3));
+      Expect.equals(len, long.length);
+    }
   }
 }
 
