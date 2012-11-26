@@ -9,9 +9,3 @@
 # Pub only runs on the standalone VM, not the browser.
 [ $runtime == drt || $runtime == dartium || $runtime == opera]
 *: Skip
-
-# Git on Windows is embarrassingly slow.
-# TODO(rnystrom): Get them fast enough to reliably not time out (#5271).
-[ $system == windows ]
-install/git/*: Slow, Pass, Timeout
-update/git/*: Slow, Pass, Timeout
