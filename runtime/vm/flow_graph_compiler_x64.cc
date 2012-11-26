@@ -24,26 +24,6 @@ DECLARE_FLAG(bool, use_sse41);
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 
 
-FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
-                                                          Register array,
-                                                          Register index) {
-  // Note that index is Smi, i.e, times 2.
-  ASSERT(kSmiTagShift == 1);
-  switch (cid) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-      return FieldAddress(array, index, TIMES_4, sizeof(RawArray));
-    case kFloat32ArrayCid:
-      return FieldAddress(array, index, TIMES_2, Float32Array::data_offset());
-    case kFloat64ArrayCid:
-      return FieldAddress(array, index, TIMES_4, Float64Array::data_offset());
-    default:
-      UNIMPLEMENTED();
-      return FieldAddress(SPREG, 0);
-  }
-}
-
-
 bool FlowGraphCompiler::SupportsUnboxedMints() {
   return false;
 }

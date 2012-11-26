@@ -1142,12 +1142,14 @@ intptr_t StringFromCharCodeInstr::ResultCid() const {
 RawAbstractType* LoadIndexedInstr::CompileType() const {
   switch (class_id_) {
     case kArrayCid:
-    case kGrowableObjectArrayCid:
     case kImmutableArrayCid:
       return Type::DynamicType();
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
       return Type::Double();
+    case kUint8ArrayCid:
+    case kExternalUint8ArrayCid:
+      return Type::IntType();
     default:
       UNIMPLEMENTED();
       return Type::IntType();
@@ -1158,12 +1160,14 @@ RawAbstractType* LoadIndexedInstr::CompileType() const {
 intptr_t LoadIndexedInstr::ResultCid() const {
   switch (class_id_) {
     case kArrayCid:
-    case kGrowableObjectArrayCid:
     case kImmutableArrayCid:
       return kDynamicCid;
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
       return kDoubleCid;
+    case kUint8ArrayCid:
+    case kExternalUint8ArrayCid:
+      return kSmiCid;
     default:
       UNIMPLEMENTED();
       return kSmiCid;
@@ -1174,8 +1178,9 @@ intptr_t LoadIndexedInstr::ResultCid() const {
 Representation LoadIndexedInstr::representation() const {
   switch (class_id_) {
     case kArrayCid:
-    case kGrowableObjectArrayCid:
     case kImmutableArrayCid:
+    case kUint8ArrayCid:
+    case kExternalUint8ArrayCid:
       return kTagged;
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
@@ -1198,8 +1203,6 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
   ASSERT(idx == 2);
   switch (class_id_) {
     case kArrayCid:
-    case kGrowableObjectArrayCid:
-    case kImmutableArrayCid:
       return kTagged;
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
@@ -2437,6 +2440,20 @@ void LoadFieldInstr::InferRange() {
 }
 
 
+void LoadIndexedInstr::InferRange() {
+  switch (class_id()) {
+    case kExternalUint8ArrayCid:
+    case kUint8ArrayCid:
+      range_ = new Range(RangeBoundary::FromConstant(0),
+                         RangeBoundary::FromConstant(255));
+      break;
+    default:
+      Definition::InferRange();
+      break;
+  }
+}
+
+
 void PhiInstr::InferRange() {
   RangeBoundary new_min;
   RangeBoundary new_max;
@@ -2662,6 +2679,10 @@ intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
     case kArrayCid:
     case kImmutableArrayCid:
       return Array::length_offset();
+    case kUint8ArrayCid:
+      return Uint8Array::length_offset();
+    case kExternalUint8ArrayCid:
+      return ByteArray::length_offset();
     default:
       UNREACHABLE();
       return -1;

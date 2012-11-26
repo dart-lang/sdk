@@ -954,7 +954,6 @@ FieldAddress FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
                                                           intptr_t offset) {
   switch (cid) {
     case kArrayCid:
-    case kGrowableObjectArrayCid:
     case kImmutableArrayCid: {
       const intptr_t disp = offset * kWordSize + sizeof(RawArray);
       ASSERT(Utils::IsInt(31, disp));
@@ -972,6 +971,33 @@ FieldAddress FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
       ASSERT(Utils::IsInt(31, disp));
       return FieldAddress(array, disp);
     }
+    case kUint8ArrayCid: {
+      const intptr_t disp = offset + Uint8Array::data_offset();
+      ASSERT(Utils::IsInt(31, disp));
+      return FieldAddress(array, disp);
+    }
+    default:
+      UNIMPLEMENTED();
+      return FieldAddress(SPREG, 0);
+  }
+}
+
+
+FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
+                                                          Register array,
+                                                          Register index) {
+  // Note that index is Smi, i.e, times 2.
+  ASSERT(kSmiTagShift == 1);
+  switch (cid) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+      return FieldAddress(array, index, TIMES_HALF_WORD_SIZE, sizeof(RawArray));
+    case kFloat32ArrayCid:
+      return FieldAddress(array, index, TIMES_2, Float32Array::data_offset());
+    case kFloat64ArrayCid:
+      return FieldAddress(array, index, TIMES_4, Float64Array::data_offset());
+    case kUint8ArrayCid:
+      return FieldAddress(array, index, TIMES_1, Uint8Array::data_offset());
     default:
       UNIMPLEMENTED();
       return FieldAddress(SPREG, 0);

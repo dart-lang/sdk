@@ -628,6 +628,8 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
     case kGrowableObjectArrayCid:
     case kFloat32ArrayCid:
     case kFloat64ArrayCid:
+    case kUint8ArrayCid:
+    case kExternalUint8ArrayCid:
       // Acceptable load index classes.
       break;
     default:
