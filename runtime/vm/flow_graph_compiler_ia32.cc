@@ -1086,11 +1086,45 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
 
 
 void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
-                                                    const Object& obj) {
+                                                    const Object& obj,
+                                                    bool needs_number_check) {
+  if (needs_number_check) {
+    if (!obj.IsMint() && !obj.IsDouble() && !obj.IsBigint()) {
+      needs_number_check = false;
+    }
+  }
+
   if (obj.IsSmi() && (Smi::Cast(obj).Value() == 0)) {
+    ASSERT(!needs_number_check);
     __ testl(reg, reg);
+    return;
+  }
+
+  if (needs_number_check) {
+    __ pushl(reg);
+    __ PushObject(obj);
+    __ call(&StubCode::IdenticalWithNumberCheckLabel());
+    __ popl(reg);  // Discard constant.
+    __ popl(reg);  // Restore 'reg'.
+    return;
+  }
+
+  __ CompareObject(reg, obj);
+}
+
+
+void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
+                                                  Register right,
+                                                  bool needs_number_check) {
+  if (needs_number_check) {
+    __ pushl(left);
+    __ pushl(right);
+    __ call(&StubCode::IdenticalWithNumberCheckLabel());
+    // Stub returns result in flags (result of a cmpl, we need ZF computed).
+    __ popl(right);
+    __ popl(left);
   } else {
-    __ CompareObject(reg, obj);
+    __ cmpl(left, right);
   }
 }
 

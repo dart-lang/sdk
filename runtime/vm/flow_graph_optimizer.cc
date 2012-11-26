@@ -56,6 +56,13 @@ void FlowGraphOptimizer::ApplyClassIds() {
             VisitInstanceCall(call);
           }
         }
+      } else if (it.Current()->IsStrictCompare()) {
+        VisitStrictCompare(it.Current()->AsStrictCompare());
+      } else if (it.Current()->IsBranch()) {
+        ComparisonInstr* compare = it.Current()->AsBranch()->comparison();
+        if (compare->IsStrictCompare()) {
+          VisitStrictCompare(compare->AsStrictCompare());
+        }
       }
     }
     current_iterator_ = NULL;
@@ -1510,6 +1517,27 @@ void FlowGraphOptimizer::VisitBranch(BranchInstr* instr) {
   } else {
     ASSERT(comparison->IsStrictCompare());
     // Nothing to do.
+  }
+}
+
+
+static bool MayBeBoxableNumber(intptr_t cid) {
+  return (cid == kDynamicCid) ||
+         (cid == kMintCid) ||
+         (cid == kBigintCid) ||
+         (cid == kDoubleCid);
+}
+
+
+// Check if number check is not needed.
+void FlowGraphOptimizer::VisitStrictCompare(StrictCompareInstr* instr) {
+  if (!instr->needs_number_check()) return;
+
+  // If one of the input is not a boxable number (Mint, Double, Bigint), no
+  // need for number checks.
+  if (!MayBeBoxableNumber(instr->left()->ResultCid()) ||
+      !MayBeBoxableNumber(instr->right()->ResultCid()))  {
+    instr->set_needs_number_check(false);
   }
 }
 

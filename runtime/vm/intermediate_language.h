@@ -2234,10 +2234,7 @@ inline Representation BranchInstr::RequiredInputRepresentation(
 
 class StrictCompareInstr : public ComparisonInstr {
  public:
-  StrictCompareInstr(Token::Kind kind, Value* left, Value* right)
-      : ComparisonInstr(kind, left, right) {
-    ASSERT((kind == Token::kEQ_STRICT) || (kind == Token::kNE_STRICT));
-  }
+  StrictCompareInstr(Token::Kind kind, Value* left, Value* right);
 
   DECLARE_INSTRUCTION(StrictCompare)
   virtual RawAbstractType* CompileType() const;
@@ -2258,7 +2255,14 @@ class StrictCompareInstr : public ComparisonInstr {
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
                               BranchInstr* branch);
 
+  bool needs_number_check() const { return needs_number_check_; }
+  void set_needs_number_check(bool value) { needs_number_check_ = value; }
+
  private:
+  // True if the comparison must check for double, Mint or Bigint and
+  // use value comparison instead.
+  bool needs_number_check_;
+
   DISALLOW_COPY_AND_ASSIGN(StrictCompareInstr);
 };
 

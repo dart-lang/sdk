@@ -20,6 +20,8 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, new_identity_spec, true,
+    "Use new identity check rules for numbers.");
 DEFINE_FLAG(bool, propagate_ic_data, true,
     "Propagate IC data from unoptimized to optimized IC calls.");
 DECLARE_FLAG(bool, enable_type_checks);
@@ -1787,6 +1789,15 @@ void StoreContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+StrictCompareInstr::StrictCompareInstr(Token::Kind kind,
+                                       Value* left,
+                                       Value* right)
+    : ComparisonInstr(kind, left, right),
+      needs_number_check_(FLAG_new_identity_spec) {
+  ASSERT((kind == Token::kEQ_STRICT) || (kind == Token::kNE_STRICT));
+}
+
+
 LocationSummary* StrictCompareInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
@@ -1799,6 +1810,7 @@ LocationSummary* StrictCompareInstr::MakeLocationSummary() const {
 }
 
 
+// Special code for numbers (compare values instead of references.)
 void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
   Location left = locs()->in(0);
@@ -1813,11 +1825,17 @@ void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
   if (left.IsConstant()) {
-    compiler->EmitEqualityRegConstCompare(right.reg(), left.constant());
+    compiler->EmitEqualityRegConstCompare(right.reg(),
+                                          left.constant(),
+                                          needs_number_check());
   } else if (right.IsConstant()) {
-    compiler->EmitEqualityRegConstCompare(left.reg(), right.constant());
+    compiler->EmitEqualityRegConstCompare(left.reg(),
+                                          right.constant(),
+                                          needs_number_check());
   } else {
-    __ CompareRegisters(left.reg(), right.reg());
+    compiler->EmitEqualityRegRegCompare(left.reg(),
+                                       right.reg(),
+                                       needs_number_check());
   }
 
   Register result = locs()->out().reg();
@@ -1846,11 +1864,17 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
     return;
   }
   if (left.IsConstant()) {
-    compiler->EmitEqualityRegConstCompare(right.reg(), left.constant());
+    compiler->EmitEqualityRegConstCompare(right.reg(),
+                                          left.constant(),
+                                          needs_number_check());
   } else if (right.IsConstant()) {
-    compiler->EmitEqualityRegConstCompare(left.reg(), right.constant());
+    compiler->EmitEqualityRegConstCompare(left.reg(),
+                                          right.constant(),
+                                          needs_number_check());
   } else {
-    __ CompareRegisters(left.reg(), right.reg());
+    compiler->EmitEqualityRegRegCompare(left.reg(),
+                                        right.reg(),
+                                        needs_number_check());
   }
 
   Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
