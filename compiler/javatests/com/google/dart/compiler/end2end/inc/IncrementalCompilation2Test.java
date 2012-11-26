@@ -969,7 +969,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
 
   /**
    * <p>
-   * http://code.google.com/p/dart/issues/detail?id=3340
+   * http://code.google.com/p/dart/issues/detail?id=6822
    */
   public void test_useImportPrefix_asVariableName() throws Exception {
     appSource.setContent(
@@ -990,7 +990,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             ""));
     // do compile, no errors expected
     compile();
-    assertErrors(errors, errEx(ResolverErrorCode.CANNOT_HIDE_IMPORT_PREFIX, 5, 7, 3));
+    assertErrors(errors);
   }
   
   /**

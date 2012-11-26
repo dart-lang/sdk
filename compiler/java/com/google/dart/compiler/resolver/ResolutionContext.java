@@ -81,16 +81,6 @@ public class ResolutionContext implements ResolutionErrorListener {
   void declare(Element element, ErrorCode errorCode) {
     String name = element.getName();
     Element existingLocalElement = scope.findLocalElement(name);
-    // Check for duplicate declaration in the enclosing scope.
-    if (existingLocalElement == null) {
-      Element existingElement = scope.findElement(scope.getLibrary(), name);
-      if (existingElement != null) {
-        SourceInfo nameSourceInfo = element.getNameLocation();
-        if (existingElement.getKind() == ElementKind.LIBRARY_PREFIX) {
-          onError(nameSourceInfo, ResolverErrorCode.CANNOT_HIDE_IMPORT_PREFIX, name);
-        }
-      }
-    }
     // Check for duplicate declaration in the same scope.
     if (existingLocalElement != null && errorCode != null) {
       SourceInfo nameSourceInfo = element.getNameLocation();
