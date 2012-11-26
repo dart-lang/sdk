@@ -727,6 +727,39 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     assertErrors(errors);
   }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6824
+   */
+  public void test_exportConflict() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library lib_a;",
+            "class Test {}",
+            ""));
+    appSource.setContent(
+        "B.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library lib_b;",
+            "class Test {}",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.app;",
+            "export 'A.dart';",
+            "export 'B.dart';",
+            ""));
+    compile();
+    assertErrors(
+        errors,
+        errEx(APP, ResolverErrorCode.DUPLICATE_EXPORTED_NAME, 4, 1, 16));
+  }
 
   private void prepare_importConflictAB() {
     appSource.setContent(

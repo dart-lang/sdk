@@ -164,13 +164,25 @@ public class TopLevelElementBuilder {
       fillInLibraryScope(lib, listener, processedObjects);
       for (Element element : lib.getElement().getExportedElements()) {
         String name = element.getName();
-        // re-export only in not defined locally
+        // re-export only if not defined locally
         if (scope.findLocalElement(name) != null) {
           continue;
         }
         // check if show/hide combinators of "export" are satisfied
-        if (export.isVisible(name)) {
-          Elements.addExportedElement(library.getElement(), element);
+        if (!export.isVisible(name)) {
+          continue;
+        }
+        // do export
+        Element oldElement = Elements.addExportedElement(library.getElement(), element);
+        if (oldElement != null && oldElement.getEnclosingElement() instanceof LibraryElement) {
+          LibraryElement oldLibrary = (LibraryElement) oldElement.getEnclosingElement();
+          SourceInfo sourceInfo = export.getSourceInfo();
+          if (sourceInfo != null) {
+            String oldLibraryName = oldLibrary.getLibraryUnit().getName();
+            listener.onError(new DartCompilationError(sourceInfo,
+                ResolverErrorCode.DUPLICATE_EXPORTED_NAME, Elements.getUserElementTitle(oldElement),
+                oldLibraryName));
+          }
         }
       }
     }

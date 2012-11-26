@@ -5,6 +5,7 @@
 package com.google.dart.compiler.ast;
 
 import com.google.common.collect.Sets;
+import com.google.dart.compiler.common.SourceInfo;
 
 import java.util.List;
 import java.util.Set;
@@ -13,14 +14,21 @@ import java.util.Set;
  * Information about export - {@link LibraryUnit} and show/hide names.
  */
 public class LibraryExport {
+  private final SourceInfo sourceInfo;
   private final LibraryUnit library;
   private final Set<String> showNames;
   private final Set<String> hideNames;
 
-  public LibraryExport(LibraryUnit library, List<ImportCombinator> combinators) {
+  public LibraryExport(SourceInfo sourceInfo, LibraryUnit library,
+      List<ImportCombinator> combinators) {
+    this.sourceInfo = sourceInfo;
     this.library = library;
     this.showNames = createCombinatorsSet(combinators, true);
     this.hideNames = createCombinatorsSet(combinators, false);
+  }
+
+  public SourceInfo getSourceInfo() {
+    return sourceInfo;
   }
 
   public LibraryUnit getLibrary() {

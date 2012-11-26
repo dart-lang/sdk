@@ -6,14 +6,14 @@ package com.google.dart.compiler.resolver;
 
 import com.google.dart.compiler.ast.LibraryUnit;
 
-import java.util.List;
+import java.util.Collection;
 
 public interface LibraryElement extends EnclosingElement {
   Scope getImportScope();
 
   Scope getScope();
   
-  List<Element> getExportedElements();
+  Collection<Element> getExportedElements();
 
   LibraryUnit getLibraryUnit();
 

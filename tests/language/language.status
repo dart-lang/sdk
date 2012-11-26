@@ -140,7 +140,6 @@ field_method4_negative_test: Fail  # Runtime only test, rewrite as multitest
 getter_no_setter_test/01: Fail # Fails to detect compile-time error.
 getter_no_setter2_test/01: Fail # Fails to detect compile-time error.
 instance_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
-duplicate_export_negative_test: Fail # Duplicate export not reported.
 # Test expects signature of noSuchMethod to be correct according
 # to specification. Should start working when the library signature
 # changes.

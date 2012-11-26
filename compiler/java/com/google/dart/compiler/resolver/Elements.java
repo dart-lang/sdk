@@ -91,8 +91,8 @@ public class Elements {
     ((LibraryElementImplementation) element).setMetadata(metadata);
   }
   
-  public static void addExportedElement(LibraryElement libraryElement, Element element) {
-    ((LibraryElementImplementation) libraryElement).addExportedElements(element);
+  public static Element addExportedElement(LibraryElement libraryElement, Element element) {
+    return ((LibraryElementImplementation) libraryElement).addExportedElements(element);
   }
 
   public static LibraryElement getLibraryElement(Element element) {

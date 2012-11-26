@@ -4,18 +4,18 @@
 
 package com.google.dart.compiler.resolver;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.dart.compiler.ast.DartObsoleteMetadata;
 import com.google.dart.compiler.ast.LibraryUnit;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Map;
 
 class LibraryElementImplementation extends AbstractNodeElement implements LibraryElement {
 
   private final Scope importScope = new Scope("import", this);
   private final Scope scope = new Scope("library", this, importScope);
-  private final List<Element> exportedElements = Lists.newArrayList();
+  private final Map<String, Element> exportedElements = Maps.newHashMap();
   private LibraryUnit libraryUnit;
   private MethodElement entryPoint;
   private DartObsoleteMetadata metadata;
@@ -41,12 +41,13 @@ class LibraryElementImplementation extends AbstractNodeElement implements Librar
     return scope;
   }
 
-  public void addExportedElements(Element element) {
-    exportedElements.add(element);
+  public Element addExportedElements(Element element) {
+    String name = element.getName();
+    return exportedElements.put(name, element);
   }
   
-  public List<Element> getExportedElements() {
-    return exportedElements;
+  public Collection<Element> getExportedElements() {
+    return exportedElements.values();
   }
 
   @Override
