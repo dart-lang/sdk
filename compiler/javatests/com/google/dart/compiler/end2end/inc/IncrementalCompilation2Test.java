@@ -728,6 +728,23 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     assertErrors(errors);
   }
   
+  public void test_importConflict_used_inCommentRef() throws Exception {
+    prepare_importConflictAB();
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.app;",
+            "import 'A.dart';",
+            "import 'B.dart';",
+            "/** [Test] */",
+            "main() {",
+            "}",
+            ""));
+    compile();
+    assertErrors(errors);
+  }
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=6824
@@ -756,10 +773,8 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             "export 'B.dart';",
             ""));
     compile();
-    assertErrors(
-        errors,
-        errEx(APP, ResolverErrorCode.DUPLICATE_EXPORTED_NAME, 4, 1, 16));
-  }
+    assertErrors(errors, errEx(APP, ResolverErrorCode.DUPLICATE_EXPORTED_NAME, 4, 1, 16));
+  } 
 
   private void prepare_importConflictAB() {
     appSource.setContent(
