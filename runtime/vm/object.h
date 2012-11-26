@@ -3474,7 +3474,7 @@ class Integer : public Number {
   virtual int CompareWith(const Integer& other) const;
 
   // Return the most compact presentation of an integer.
-  RawInteger* AsInteger() const;
+  RawInteger* AsValidInteger() const;
   // Return an integer in the form of a RawBigint.
   RawBigint* AsBigint() const;
 
@@ -3622,7 +3622,6 @@ class Bigint : public Integer {
   }
 
   static RawBigint* New(const String& str, Heap::Space space = Heap::kNew);
-  static RawBigint* New(int64_t value, Heap::Space space = Heap::kNew);
 
   RawBigint* ArithmeticOp(Token::Kind operation, const Bigint& other) const;
 

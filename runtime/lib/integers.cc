@@ -45,9 +45,9 @@ DEFINE_NATIVE_ENTRY(Integer_bitAndFromInteger, 2) {
     OS::Print("Integer_bitAndFromInteger %s & %s\n",
         right.ToCString(), left.ToCString());
   }
-  Integer& result =
+  const Integer& result =
       Integer::Handle(left.BitOp(Token::kBIT_AND, right));
-  return result.AsInteger();
+  return result.AsValidInteger();
 }
 
 
@@ -60,9 +60,9 @@ DEFINE_NATIVE_ENTRY(Integer_bitOrFromInteger, 2) {
     OS::Print("Integer_bitOrFromInteger %s | %s\n",
         left.ToCString(), right.ToCString());
   }
-  Integer& result =
+  const Integer& result =
       Integer::Handle(left.BitOp(Token::kBIT_OR, right));
-  return result.AsInteger();
+  return result.AsValidInteger();
 }
 
 
@@ -75,9 +75,9 @@ DEFINE_NATIVE_ENTRY(Integer_bitXorFromInteger, 2) {
     OS::Print("Integer_bitXorFromInteger %s ^ %s\n",
         left.ToCString(), right.ToCString());
   }
-  Integer& result =
+  const Integer& result =
       Integer::Handle(left.BitOp(Token::kBIT_XOR, right));
-  return result.AsInteger();
+  return result.AsValidInteger();
 }
 
 
@@ -90,7 +90,9 @@ DEFINE_NATIVE_ENTRY(Integer_addFromInteger, 2) {
     OS::Print("Integer_addFromInteger %s + %s\n",
         left_int.ToCString(), right_int.ToCString());
   }
-  return left_int.ArithmeticOp(Token::kADD, right_int);
+  const Integer& result =
+      Integer::Handle(left_int.ArithmeticOp(Token::kADD, right_int));
+  return result.AsValidInteger();
 }
 
 
@@ -103,7 +105,9 @@ DEFINE_NATIVE_ENTRY(Integer_subFromInteger, 2) {
     OS::Print("Integer_subFromInteger %s - %s\n",
         left_int.ToCString(), right_int.ToCString());
   }
-  return left_int.ArithmeticOp(Token::kSUB, right_int);
+  const Integer& result =
+      Integer::Handle(left_int.ArithmeticOp(Token::kSUB, right_int));
+  return result.AsValidInteger();
 }
 
 
@@ -116,7 +120,9 @@ DEFINE_NATIVE_ENTRY(Integer_mulFromInteger, 2) {
     OS::Print("Integer_mulFromInteger %s * %s\n",
         left_int.ToCString(), right_int.ToCString());
   }
-  return left_int.ArithmeticOp(Token::kMUL, right_int);
+  const Integer& result =
+      Integer::Handle(left_int.ArithmeticOp(Token::kMUL, right_int));
+  return result.AsValidInteger();
 }
 
 
@@ -126,7 +132,9 @@ DEFINE_NATIVE_ENTRY(Integer_truncDivFromInteger, 2) {
   ASSERT(CheckInteger(right_int));
   ASSERT(CheckInteger(left_int));
   ASSERT(!right_int.IsZero());
-  return left_int.ArithmeticOp(Token::kTRUNCDIV, right_int);
+  const Integer& result =
+      Integer::Handle(left_int.ArithmeticOp(Token::kTRUNCDIV, right_int));
+  return result.AsValidInteger();
 }
 
 
@@ -143,7 +151,9 @@ DEFINE_NATIVE_ENTRY(Integer_moduloFromInteger, 2) {
     // Should have been caught before calling into runtime.
     UNIMPLEMENTED();
   }
-  return left_int.ArithmeticOp(Token::kMOD, right_int);
+  const Integer& result =
+      Integer::Handle(left_int.ArithmeticOp(Token::kMOD, right_int));
+  return result.AsValidInteger();
 }
 
 
@@ -250,9 +260,9 @@ DEFINE_NATIVE_ENTRY(Smi_shrFromInt, 2) {
   GET_NATIVE_ARGUMENT(Integer, value, arguments->NativeArgAt(1));
   ASSERT(CheckInteger(amount));
   ASSERT(CheckInteger(value));
-  Integer& result = Integer::Handle(
+  const Integer& result = Integer::Handle(
       ShiftOperationHelper(Token::kSHR, value, amount));
-  return result.AsInteger();
+  return result.AsValidInteger();
 }
 
 
@@ -266,9 +276,9 @@ DEFINE_NATIVE_ENTRY(Smi_shlFromInt, 2) {
     OS::Print("Smi_shlFromInt: %s << %s\n",
         value.ToCString(), amount.ToCString());
   }
-  Integer& result = Integer::Handle(
+  const Integer& result = Integer::Handle(
       ShiftOperationHelper(Token::kSHL, value, amount));
-  return result.AsInteger();
+  return result.AsValidInteger();
 }
 
 
@@ -301,7 +311,7 @@ DEFINE_NATIVE_ENTRY(Bigint_bitNegate, 1) {
   const Bigint& result = Bigint::Handle(BigintOperations::BitNot(value));
   ASSERT(CheckInteger(value));
   ASSERT(CheckInteger(result));
-  return result.AsInteger();
+  return result.AsValidInteger();
 }
 
 }  // namespace dart
