@@ -54,7 +54,7 @@ void main() {
   }).chain((_) {
     Path script = testDirectory.append('test_extension_tester.dart');
     return Process.run(options.executable, [script.toNativePath()]);
-  })..then((processResult result) {
+  })..then((ProcessResult result) {
     Expect.equals(0, result.exitCode);
     tempDirectory.deleteSync(recursive: true);
   })..handleException((_) {
