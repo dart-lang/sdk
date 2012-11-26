@@ -296,6 +296,8 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
 
   final CodeEmitterTask emitter;
 
+  final Set<ClassElement> doneAddSubtypes = new Set<ClassElement>();
+
   NativeCodegenEnqueuer(Enqueuer world, Compiler compiler, this.emitter)
     : super(world, compiler, compiler.enableNativeLiveTypeAnalysis);
 
@@ -320,6 +322,14 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
   }
 
   void addSubtypes(ClassElement cls, NativeEmitter emitter) {
+    if (!cls.isNative()) return;
+    if (doneAddSubtypes.contains(cls)) return;
+    doneAddSubtypes.add(cls);
+
+    // Walk the superclass chain since classes on the superclass chain might not
+    // be instantiated (abstract or simply unused).
+    addSubtypes(cls.superclass, emitter);
+
     for (DartType type in cls.allSupertypes) {
       List<Element> subtypes = emitter.subtypes.putIfAbsent(
           type.element,

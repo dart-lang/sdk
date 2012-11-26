@@ -285,16 +285,12 @@ function(cls, desc) {
     void visit(ClassElement cls) {
       if (seen.contains(cls)) return;
       seen.add(cls);
-      for (final ClassElement subclass in getDirectSubclasses(cls)) {
-        visit(subclass);
-      }
+      getDirectSubclasses(cls).forEach(visit);
       classes.add(cls);
     }
-    for (final ClassElement classElement in classesWithDynamicDispatch) {
-      visit(classElement);
-    }
+    classesWithDynamicDispatch.forEach(visit);
 
-    Collection<ClassElement> dispatchClasses = classes.filter(
+    Collection<ClassElement> preorderDispatchClasses = classes.filter(
         (cls) => !getDirectSubclasses(cls).isEmpty &&
                   classesWithDynamicDispatch.contains(cls));
 
@@ -318,9 +314,12 @@ function(cls, desc) {
 
     // Temporary variables for common substrings.
     List<String> varNames = <String>[];
-    // var -> expression
-    Map<dynamic, js.Expression> varDefns = new Map<dynamic, js.Expression>();
-    // tag -> expression (a string or a variable)
+    // Values of temporary variables.
+    Map<String, js.Expression> varDefns = new Map<String, js.Expression>();
+
+    // Expression to compute tags string for a class.  The expression will
+    // initially be a string or expression building a string, but may be
+    // replaced with a variable reference to the common substring.
     Map<ClassElement, js.Expression> tagDefns =
         new Map<ClassElement, js.Expression>();
 
@@ -332,13 +331,21 @@ function(cls, desc) {
       void walk(ClassElement cls) {
         for (final ClassElement subclass in getDirectSubclasses(cls)) {
           ClassElement tag = subclass;
-          var existing = tagDefns[tag];
+          js.Expression existing = tagDefns[tag];
           if (existing == null) {
+            // [subclass] is still within the subtree between dispatch classes.
             subtags.add(toNativeName(tag));
             walk(subclass);
           } else {
-            if (varDefns.containsKey(existing)) {
-              expressions.add(existing);
+            // [subclass] is one of the preorderDispatchClasses, so CSE this
+            // reference with the previous reference.
+            if (existing is js.VariableUse &&
+                varDefns.containsKey(existing.name)) {
+              // We end up here if the subclasses have a DAG structure.  We
+              // don't have DAGs yet, but if the dispatch is used for mixins
+              // that will be a possibility.
+              // Re-use the previously created temporary variable.
+              expressions.add(new js.VariableUse(existing.name));
             } else {
               String varName = 'v${varNames.length}_${tag.name.slowToString()}';
               varNames.add(varName);
@@ -350,6 +357,7 @@ function(cls, desc) {
         }
       }
       walk(classElement);
+
       if (!subtags.isEmpty) {
         expressions.add(
             new js.LiteralString("'${Strings.join(subtags, '|')}'"));
@@ -366,7 +374,7 @@ function(cls, desc) {
       return expression;
     }
 
-    for (final ClassElement classElement in dispatchClasses) {
+    for (final ClassElement classElement in preorderDispatchClasses) {
       tagDefns[classElement] = makeExpression(classElement);
     }
 
@@ -394,7 +402,7 @@ function(cls, desc) {
       //   [['Node', 'Text|HTMLElement|HTMLDivElement|...'], ...]
       js.Expression table =
           new js.ArrayInitializer.from(
-              dispatchClasses.map((cls) =>
+              preorderDispatchClasses.map((cls) =>
                   new js.ArrayInitializer.from([
                       new js.LiteralString("'${toNativeName(cls)}'"),
                       tagDefns[cls]])));
