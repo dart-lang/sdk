@@ -535,17 +535,6 @@ class Primitives {
 
   static num dateNow() => JS('num', r'Date.now()');
 
-  static num numMicroseconds() {
-    if (JS('bool', 'typeof window != "undefined" && window !== null')) {
-      var performance = JS('var', 'window.performance');
-      if (performance != null && 
-          JS('bool', 'typeof #.webkitNow == "function"', performance)) {
-        return JS('num', '#.webkitNow()', performance);
-      }
-    }
-    return 1000 * dateNow();
-  }
-
   // This is to avoid stack overflows due to very large argument arrays in
   // apply().  It fixes http://dartbug.com/6919
   static String _fromCharCodeApply(List<int> array) {
