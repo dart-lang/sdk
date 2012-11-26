@@ -85,6 +85,7 @@ public enum ResolverErrorCode implements ErrorCode {
   DEPRECATED_MAP_LITERAL_SYNTAX(ErrorSeverity.WARNING,
       "Deprecated Map literal syntax. Both String (as key) and value type arguments required."),
   DID_YOU_MEAN_NEW("%1$s is a %2$s. Did you mean (new %1$s)?"),
+  DUPLICATE_EXPORTED_NAME("%s already exported from '%s'"),
   DUPLICATE_IMPLEMENTS_TYPE("Duplicate type in the implements clause"),
   DUPLICATE_IMPORTED_NAME("Element '%s' is introduced by %s imports: %s"),
   DUPLICATE_IMPORTED_NAME_TYPE(ErrorSeverity.WARNING, "Element '%s' is introduced by %s imports: %s"),
@@ -213,6 +214,7 @@ public enum ResolverErrorCode implements ErrorCode {
       "type variables are not allowed in identifier expressions"),
   USE_ASSIGNMENT_ON_SETTER("Use assignment to set field '%s'"),
   USING_LOCAL_VARIABLE_BEFORE_DECLARATION("Using local variable '%s' before its declaration in lexical scope"),
+  VARIABLE_REFERENCES_SAME_NAME_IN_INITIALIZER("Initializer of variable \"%s\" cannot refer to the name \"%s\""),
   WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments (%d).  Expected %d");
 
   private final ErrorSeverity severity;

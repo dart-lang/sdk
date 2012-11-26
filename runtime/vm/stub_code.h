@@ -39,6 +39,7 @@ class RawCode;
   V(GetStackPointer)                                                           \
   V(JumpToExceptionHandler)                                                    \
   V(JumpToErrorHandler)                                                        \
+  V(IdenticalWithNumberCheck)                                                  \
 
 // Is it permitted for the stubs above to refer to Object::null(), which is
 // allocated in the VM isolate and shared across all isolates.

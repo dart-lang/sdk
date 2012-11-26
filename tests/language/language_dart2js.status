@@ -82,6 +82,7 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dart2js ]
+number_identity2_test: Fail # identity of NaN
 factory_redirection2_test/01: Fail # http://dartbug.com/6791
 new_expression_type_args_test/00: Fail # Wrongly reports compile-time error.
 new_expression_type_args_test/01: Fail # Wrongly reports compile-time error.

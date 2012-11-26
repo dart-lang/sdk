@@ -2130,6 +2130,92 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ ret();
 }
 
+
+DECLARE_LEAF_RUNTIME_ENTRY(intptr_t,
+                           BigintCompare,
+                           RawBigint* left,
+                           RawBigint* right);
+
+
+// Does identical check (object references are equal or not equal) with special
+// checks for boxed numbers.
+// Left and right are pushed on stack.
+// Return ZF set.
+// Note: A Mint cannot contain a value that would fit in Smi, a Bigint
+// cannot contain a value that fits in Mint or Smi.
+void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler) {
+  const Register left = EAX;
+  const Register right = EDX;
+  const Register temp = ECX;
+  // Preserve left, right and temp.
+  __ pushl(left);
+  __ pushl(right);
+  __ pushl(temp);
+  // TOS + 0: saved temp
+  // TOS + 1: saved right
+  // TOS + 2: saved left
+  // TOS + 3: return address
+  // TOS + 4: right argument.
+  // TOS + 5: left argument.
+  __ movl(left, Address(ESP, 5 * kWordSize));
+  __ movl(right, Address(ESP, 4 * kWordSize));
+  Label reference_compare, done, check_mint, check_bigint;
+  // If any of the arguments is Smi do reference compare.
+  __ testl(left, Immediate(kSmiTagMask));
+  __ j(ZERO, &reference_compare, Assembler::kNearJump);
+  __ testl(right, Immediate(kSmiTagMask));
+  __ j(ZERO, &reference_compare, Assembler::kNearJump);
+
+  // Value compare for two doubles.
+  __ CompareClassId(left, kDoubleCid, temp);
+  __ j(NOT_EQUAL, &check_mint, Assembler::kNearJump);
+  __ CompareClassId(right, kDoubleCid, temp);
+  __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+
+  // Double values bitwise compare.
+  __ movl(temp, FieldAddress(left, Double::value_offset() + 0 * kWordSize));
+  __ cmpl(temp, FieldAddress(right, Double::value_offset() + 0 * kWordSize));
+  __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+  __ movl(temp, FieldAddress(left, Double::value_offset() + 1 * kWordSize));
+  __ cmpl(temp, FieldAddress(right, Double::value_offset() + 1 * kWordSize));
+  __ jmp(&done, Assembler::kNearJump);
+
+  __ Bind(&check_mint);
+  __ CompareClassId(left, kMintCid, temp);
+  __ j(NOT_EQUAL, &check_bigint, Assembler::kNearJump);
+  __ CompareClassId(right, kMintCid, temp);
+  __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+  __ movl(temp, FieldAddress(left, Mint::value_offset() + 0 * kWordSize));
+  __ cmpl(temp, FieldAddress(right, Mint::value_offset() + 0 * kWordSize));
+  __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+  __ movl(temp, FieldAddress(left, Mint::value_offset() + 1 * kWordSize));
+  __ cmpl(temp, FieldAddress(right, Mint::value_offset() + 1 * kWordSize));
+  __ jmp(&done, Assembler::kNearJump);
+
+  __ Bind(&check_bigint);
+  __ CompareClassId(left, kBigintCid, temp);
+  __ j(NOT_EQUAL, &reference_compare, Assembler::kNearJump);
+  __ CompareClassId(right, kBigintCid, temp);
+  __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+  __ EnterFrame(0);
+  __ ReserveAlignedFrameSpace(2 * kWordSize);
+  __ movl(Address(ESP, 1 * kWordSize), left);
+  __ movl(Address(ESP, 0 * kWordSize), right);
+  __ CallRuntime(kBigintCompareRuntimeEntry);
+  // Result in EAX, 0 means equal.
+  __ LeaveFrame();
+  __ cmpl(EAX, Immediate(0));
+  __ jmp(&done);
+
+  __ Bind(&reference_compare);
+  __ cmpl(left, right);
+  __ Bind(&done);
+  __ popl(temp);
+  __ popl(right);
+  __ popl(left);
+  __ ret();
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_IA32

@@ -1599,7 +1599,8 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
 //                               arguments: <ArgumentList> }
 void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
   if (node->function().name() == Symbols::Identical()) {
-    // Attempt to replace identical with strcit equal early on.
+    // Attempt to replace top level defined 'identical' from the core
+    // library with strict equal early on.
     // TODO(hausner): Evaluate if this can happen at AST building time.
     const Class& cls = Class::Handle(node->function().Owner());
     if (cls.IsTopLevel()) {

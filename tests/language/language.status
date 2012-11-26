@@ -97,8 +97,6 @@ body_less_constructor_wrong_arg_negative_test: Fail # Runtime only test, rewrite
 call_nonexistent_static_test/03: Fail # Unresolved static calls are no longer errors.
 call_nonexistent_static_test/04: Fail # Unresolved static calls are no longer errors.
 call_nonexistent_static_test/05: Fail # Unresolved static calls are no longer errors.
-call_nonexistent_static_test/06: Fail # Unresolved static calls are no longer errors.
-call_nonexistent_static_test/07: Fail # Unresolved static calls are no longer errors.
 call_nonexistent_static_test/08: Fail # Unresolved static calls are no longer errors.
 call_nonexistent_static_test/09: Fail # Unresolved static calls are no longer errors.
 call_nonexistent_static_test/10: Fail # Unresolved static calls are no longer errors.
@@ -142,7 +140,6 @@ field_method4_negative_test: Fail  # Runtime only test, rewrite as multitest
 getter_no_setter_test/01: Fail # Fails to detect compile-time error.
 getter_no_setter2_test/01: Fail # Fails to detect compile-time error.
 instance_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
-duplicate_export_negative_test: Fail # Duplicate export not reported.
 # Test expects signature of noSuchMethod to be correct according
 # to specification. Should start working when the library signature
 # changes.
@@ -338,7 +335,16 @@ typed_message_test: Fail, OK
 type_variable_identifier_expression_negative_test: Fail, OK
 
 # test issue 6866
-abstract_factory_constructor_test/00: Fail, OK
+abstract_factory_constructor_test/none: Fail
+abstract_syntax_test/none: Fail
+get_set_syntax_test/none: Fail
+
+# test issue 6838
+import_combinators_negative_test: Fail, OK
+unresolved_top_level_var_negative_test: Fail, OK
+
+# test issue 6871
+block_scope_test: Fail, OK
 
 
 #

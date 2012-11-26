@@ -1303,7 +1303,7 @@ public class ResolverTest extends ResolverTestCase {
         "method() {",
         "  A.noField = 1;",
         "}"),
-        errEx(ResolverErrorCode.CANNOT_BE_RESOLVED, 3, 22, 1),
+        errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 3, 22, 1),
         errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 6, 5, 7));
   }
 
@@ -1378,15 +1378,6 @@ public class ResolverTest extends ResolverTestCase {
         "  var a = C.method();",
         "}"),
         errEx(ResolverErrorCode.IS_AN_INSTANCE_METHOD, 6, 13, 6));
-  }
-
-  public void test_methodMustHaveBody() {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class C {",
-        "  method();",
-        "}"),
-        errEx(ResolverErrorCode.METHOD_MUST_HAVE_BODY, 3, 3, 9));
   }
 
   public void test_staticAccess() throws Exception {

@@ -6,6 +6,7 @@
 
 #include "vm/assembler_macros.h"
 #include "vm/ast.h"
+#include "vm/bigint_operations.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
@@ -1907,5 +1908,18 @@ DEFINE_RUNTIME_ENTRY(DeoptimizeMaterializeDoubles, 0) {
   }
 }
 
+
+DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
+                          BigintCompare,
+                          RawBigint* left,
+                          RawBigint* right) {
+  Isolate* isolate = Isolate::Current();
+  StackZone zone(isolate);
+  HANDLESCOPE(isolate);
+  const Bigint& big_left = Bigint::Handle(left);
+  const Bigint& big_right = Bigint::Handle(right);
+  return BigintOperations::Compare(big_left, big_right);
+}
+END_LEAF_RUNTIME_ENTRY
 
 }  // namespace dart

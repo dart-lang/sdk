@@ -91,8 +91,8 @@ public class Elements {
     ((LibraryElementImplementation) element).setMetadata(metadata);
   }
   
-  public static void addExportedElement(LibraryElement libraryElement, Element element) {
-    ((LibraryElementImplementation) libraryElement).addExportedElements(element);
+  public static Element addExportedElement(LibraryElement libraryElement, Element element) {
+    return ((LibraryElementImplementation) libraryElement).addExportedElements(element);
   }
 
   public static LibraryElement getLibraryElement(Element element) {
@@ -766,8 +766,16 @@ static FieldElementImplementation fieldFromNode(DartField node,
         || Elements.isLibrarySource(source, "/core/core.dart");
   }
   
+  public static boolean isCollectionLibrarySource(Source source) {
+    return Elements.isLibrarySource(source, "/collection/collection.dart");
+  }
+  
   public static boolean isHtmlLibrarySource(Source source) {
     return Elements.isLibrarySource(source, "/html/dartium/html_dartium.dart");
+  }
+  
+  public static boolean isSourceName(Source source, String requiredName) {
+    return source.getName().equals(requiredName);
   }
 
   /**
@@ -892,5 +900,35 @@ static FieldElementImplementation fieldFromNode(DartField node,
     for (InterfaceType intf : classElement.getInterfaces()) {
       addAllMembers(visited, allMembers, intf.getElement());
     }
+  }
+  
+  public static boolean isAbstractElement(Element element) {
+    if (element == null) {
+      return false;
+    }
+    if (element.getModifiers().isAbstract()) {
+      return true;
+    }
+    if (element.getModifiers().isExternal()) {
+      return false;
+    }
+    if (element.getModifiers().isStatic()) {
+      return false;
+    }
+    if (ElementKind.of(element) == ElementKind.METHOD) {
+      MethodElement method = (MethodElement) element;
+      return !method.hasBody();
+    }
+    if (ElementKind.of(element) == ElementKind.FIELD) {
+      FieldElement field = (FieldElement) element;
+      if (isAbstractElement(field.getGetter())) {
+        return true;
+      }
+      if (isAbstractElement(field.getSetter())) {
+        return true;
+      }
+      return false;
+    }
+    return false;
   }
 }

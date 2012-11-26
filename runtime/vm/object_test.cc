@@ -454,10 +454,11 @@ TEST_CASE(Double) {
 TEST_CASE(Bigint) {
   Bigint& b = Bigint::Handle();
   EXPECT(b.IsNull());
-  const String& test = String::Handle(String::New("1234"));
+  const char* cstr = "18446744073709551615000";
+  const String& test = String::Handle(String::New(cstr));
   b = Bigint::New(test);
   const char* str = b.ToCString();
-  EXPECT_STREQ("1234", str);
+  EXPECT_STREQ(cstr, str);
 
   int64_t t64 = DART_2PART_UINT64_C(1, 0);
   Bigint& big = Bigint::Handle();

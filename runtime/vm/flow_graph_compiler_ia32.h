@@ -159,7 +159,12 @@ class FlowGraphCompiler : public ValueObject {
                              XmmRegister right,
                              Register result);
 
-  void EmitEqualityRegConstCompare(Register reg, const Object& obj);
+  void EmitEqualityRegConstCompare(Register reg,
+                                   const Object& obj,
+                                   bool needs_number_check);
+  void EmitEqualityRegRegCompare(Register left,
+                                 Register right,
+                                 bool needs_number_check);
   // Implement equality: if any of the arguments is null do identity check.
   // Fallthrough calls super equality.
   void EmitSuperEqualityCallPrologue(Register result, Label* skip_call);

@@ -124,7 +124,7 @@ public class LibraryUnit {
   public void addExport(LibraryUnit unit, LibraryNode node) {
     if (unit != null) {
       if (node != null) {
-        exports.add(new LibraryExport(unit, node.getCombinators()));
+        exports.add(new LibraryExport(node.getSourceInfo(), unit, node.getCombinators()));
       }
     }
   }

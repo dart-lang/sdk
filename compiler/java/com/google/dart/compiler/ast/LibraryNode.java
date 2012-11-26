@@ -33,6 +33,7 @@ public class LibraryNode extends AbstractNode {
   }
 
   public LibraryNode(DartImportDirective importDirective) {
+    setSourceInfo(importDirective.getSourceInfo());
     this.text = importDirective.getLibraryUri().getValue();
     this.prefix = importDirective.getPrefixValue();
     this.combinators = importDirective.getCombinators();
@@ -40,12 +41,13 @@ public class LibraryNode extends AbstractNode {
   }
 
   public LibraryNode(DartExportDirective exportDirective) {
+    setSourceInfo(exportDirective.getSourceInfo());
     this.text = exportDirective.getLibraryUri().getValue();
     this.prefix = null;
     this.combinators = exportDirective.getCombinators();
     this.exported = false;
   }
-
+  
   public String getText() {
     return text;
   }

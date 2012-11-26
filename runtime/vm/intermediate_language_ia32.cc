@@ -1169,6 +1169,27 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
 void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register array = locs()->in(0).reg();
   Location index = locs()->in(1);
+
+  if (class_id() == kExternalUint8ArrayCid) {
+    Register result = locs()->out().reg();
+    Address element_address = index.IsRegister()
+        ? Address(result, index.reg(), TIMES_1, 0)
+        : Address(result, Smi::Cast(index.constant()).Value());
+    if (index.IsRegister()) {
+      __ SmiUntag(index.reg());
+    }
+    __ movl(result,
+            FieldAddress(array, ExternalUint8Array::external_data_offset()));
+    __ movl(result,
+            Address(result, ExternalByteArrayData<uint8_t>::data_offset()));
+    __ movzxb(result, element_address);
+    __ SmiTag(result);
+    if (index.IsRegister()) {
+      __ SmiTag(index.reg());  // Re-tag.
+    }
+    return;
+  }
+
   FieldAddress element_address = index.IsRegister() ?
       FlowGraphCompiler::ElementAddressForRegIndex(
           class_id(), array, index.reg()) :
@@ -1176,18 +1197,34 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           class_id(), array, Smi::Cast(index.constant()).Value());
 
   if (representation() == kUnboxedDouble) {
+    XmmRegister result = locs()->out().xmm_reg();
     if (class_id() == kFloat32ArrayCid) {
       // Load single precision float.
-      __ movss(locs()->out().xmm_reg(), element_address);
+      __ movss(result, element_address);
       // Promote to double.
-      __ cvtss2sd(locs()->out().xmm_reg(), locs()->out().xmm_reg());
+      __ cvtss2sd(result, locs()->out().xmm_reg());
     } else {
       ASSERT(class_id() == kFloat64ArrayCid);
-      __ movsd(locs()->out().xmm_reg(), element_address);
+      __ movsd(result, element_address);
     }
-  } else {
-    __ movl(locs()->out().reg(), element_address);
+    return;
   }
+
+  Register result = locs()->out().reg();
+  if (class_id() == kUint8ArrayCid) {
+    if (index.IsRegister()) {
+      __ SmiUntag(index.reg());
+    }
+    __ movzxb(result, element_address);
+    __ SmiTag(result);
+    if (index.IsRegister()) {
+      __ SmiTag(index.reg());  // Re-tag.
+    }
+    return;
+  }
+
+  ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid));
+  __ movl(result, element_address);
 }
 
 
@@ -1238,6 +1275,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
+  ASSERT(class_id() == kArrayCid);
   if (ShouldEmitStoreBarrier()) {
     Register value = locs()->in(2).reg();
     __ StoreIntoObject(array, element_address, value);

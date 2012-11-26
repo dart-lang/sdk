@@ -20,9 +20,9 @@ testWithConstMap() {
   Expect.equals(2, otherMap.values.length);
 
   var count = (map) {
-    int count = 0;
-    map.forEach((a, b) { count += b; });
-    return count;
+    int cnt = 0;
+    map.forEach((a, b) { cnt += b; });
+    return cnt;
   };
 
   Expect.equals(42 + 43, count(map));

@@ -373,7 +373,9 @@ TEST_CASE(SerializeBigint) {
   // Write snapshot with object content.
   uint8_t* buffer;
   MessageWriter writer(&buffer, &zone_allocator);
-  const Bigint& bigint = Bigint::Handle(Bigint::New(DART_INT64_C(0xfffffffff)));
+  const char* cstr = "0x270FFFFFFFFFFFFFD8F0";
+  const String& str = String::Handle(String::New(cstr));
+  const Bigint& bigint = Bigint::Handle(Bigint::New(str));
   writer.WriteMessage(bigint);
   intptr_t buffer_len = writer.BytesWritten();
 
@@ -383,7 +385,8 @@ TEST_CASE(SerializeBigint) {
   Bigint& obj = Bigint::Handle();
   obj ^= reader.ReadObject();
 
-  EXPECT_EQ(BigintOperations::ToMint(bigint), BigintOperations::ToMint(obj));
+  EXPECT_STREQ(BigintOperations::ToHexCString(bigint, &allocator),
+               BigintOperations::ToHexCString(obj, &allocator));
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
@@ -392,7 +395,7 @@ TEST_CASE(SerializeBigint) {
   // Bigint not supported.
   EXPECT_NOTNULL(root);
   EXPECT_EQ(Dart_CObject::kBigint, root->type);
-  EXPECT_STREQ("FFFFFFFFF", root->value.as_bigint);
+  EXPECT_STREQ("270FFFFFFFFFFFFFD8F0", root->value.as_bigint);
   CheckEncodeDecodeMessage(root);
 }
 

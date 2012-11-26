@@ -40,6 +40,9 @@ import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.NodeList;
 
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+
 import java.util.List;
 
 public class SyntaxTest extends AbstractParserTest {
@@ -82,6 +85,43 @@ public class SyntaxTest extends AbstractParserTest {
         "}",
         ""),
         ParserErrorCode.EXPECTED_TOKEN, 3, 12);
+  }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6825
+   */
+  public void test_annotation_forExport() {
+    parseUnit(
+        "test.dart",
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library Test;",
+            "",
+            "@meta @meta2 export 'Lib.dart';",
+            ""));
+  }
+
+  /**
+   * There was bug that handling missing identifier (method name) after "cursor." in switch caused
+   * infinite parsing loop.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6908
+   */
+  public void test_switch_noMethodName_inCase() {
+    DartParserRunner runner = parseSource(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "void main() {",
+        "  print((e) {",
+        "    switch (e) {",
+        "      case 'Up': cursor.();",
+        "      case 'Down':",
+        "    }",
+        "  }); ",
+        "}",
+        ""));
+    assertErrors(runner.getErrors(),
+        errEx(ParserErrorCode.INVALID_IDENTIFIER, 5, 24, 1));
   }
 
   public void test_getter() {
@@ -1521,5 +1561,13 @@ public class SyntaxTest extends AbstractParserTest {
     parseUnit("phony_var_in_function_type.dart",
             "typedef func(final arg());",
             ParserErrorCode.FUNCTION_TYPED_PARAMETER_IS_FINAL, 1, 20);
+  }
+
+  public void test_export_withoutLibraryDirective() {
+    parseUnit("test.dart", Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "export 'Lib.dart';",
+        ""),
+        ParserErrorCode.EXPORT_WITHOUT_LIBRARY_DIRECTIVE, 2, 1);
   }
 }

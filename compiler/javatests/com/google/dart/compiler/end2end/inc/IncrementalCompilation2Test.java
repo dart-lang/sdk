@@ -727,6 +727,54 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     assertErrors(errors);
   }
+  
+  public void test_importConflict_used_inCommentRef() throws Exception {
+    prepare_importConflictAB();
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.app;",
+            "import 'A.dart';",
+            "import 'B.dart';",
+            "/** [Test] */",
+            "main() {",
+            "}",
+            ""));
+    compile();
+    assertErrors(errors);
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6824
+   */
+  public void test_exportConflict() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library lib_a;",
+            "class Test {}",
+            ""));
+    appSource.setContent(
+        "B.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library lib_b;",
+            "class Test {}",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.app;",
+            "export 'A.dart';",
+            "export 'B.dart';",
+            ""));
+    compile();
+    assertErrors(errors, errEx(APP, ResolverErrorCode.DUPLICATE_EXPORTED_NAME, 4, 1, 16));
+  } 
 
   private void prepare_importConflictAB() {
     appSource.setContent(
@@ -969,7 +1017,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
 
   /**
    * <p>
-   * http://code.google.com/p/dart/issues/detail?id=3340
+   * http://code.google.com/p/dart/issues/detail?id=6822
    */
   public void test_useImportPrefix_asVariableName() throws Exception {
     appSource.setContent(
@@ -990,7 +1038,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             ""));
     // do compile, no errors expected
     compile();
-    assertErrors(errors, errEx(ResolverErrorCode.CANNOT_HIDE_IMPORT_PREFIX, 5, 7, 3));
+    assertErrors(errors);
   }
   
   /**

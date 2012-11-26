@@ -9283,7 +9283,7 @@ int Integer::CompareWith(const Integer& other) const {
 }
 
 
-RawInteger* Integer::AsInteger() const {
+RawInteger* Integer::AsValidInteger() const {
   if (IsSmi()) return raw();
   if (IsMint()) {
     Mint& mint = Mint::Handle();
@@ -9402,7 +9402,7 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
   const Bigint& right_big = Bigint::Handle(other.AsBigint());
   const Bigint& result =
       Bigint::Handle(left_big.ArithmeticOp(operation, right_big));
-  return Integer::Handle(result.AsInteger()).raw();
+  return Integer::Handle(result.AsValidInteger()).raw();
 }
 
 
@@ -9873,12 +9873,10 @@ bool Bigint::Equals(const Instance& other) const {
 
 
 RawBigint* Bigint::New(const String& str, Heap::Space space) {
-  return BigintOperations::NewFromCString(str.ToCString(), space);
-}
-
-
-RawBigint* Bigint::New(int64_t value, Heap::Space space) {
-  return BigintOperations::NewFromInt64(value, space);
+  const Bigint& result = Bigint::Handle(
+      BigintOperations::NewFromCString(str.ToCString(), space));
+  ASSERT(!BigintOperations::FitsIntoMint(result));
+  return result.raw();
 }
 
 

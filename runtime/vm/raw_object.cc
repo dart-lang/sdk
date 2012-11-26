@@ -671,16 +671,18 @@ intptr_t RawString::VisitStringPointers(RawString* raw_obj,
 
 intptr_t RawOneByteString::VisitOneByteStringPointers(
     RawOneByteString* raw_obj, ObjectPointerVisitor* visitor) {
+  ASSERT(!raw_obj->ptr()->length_->IsHeapObject());
+  ASSERT(!raw_obj->ptr()->hash_->IsHeapObject());
   intptr_t length = Smi::Value(raw_obj->ptr()->length_);
-  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return OneByteString::InstanceSize(length);
 }
 
 
 intptr_t RawTwoByteString::VisitTwoByteStringPointers(
     RawTwoByteString* raw_obj, ObjectPointerVisitor* visitor) {
+  ASSERT(!raw_obj->ptr()->length_->IsHeapObject());
+  ASSERT(!raw_obj->ptr()->hash_->IsHeapObject());
   intptr_t length = Smi::Value(raw_obj->ptr()->length_);
-  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return TwoByteString::InstanceSize(length);
 }
 

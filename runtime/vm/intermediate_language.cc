@@ -20,6 +20,8 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, new_identity_spec, true,
+    "Use new identity check rules for numbers.");
 DEFINE_FLAG(bool, propagate_ic_data, true,
     "Propagate IC data from unoptimized to optimized IC calls.");
 DECLARE_FLAG(bool, enable_type_checks);
@@ -1142,12 +1144,14 @@ intptr_t StringFromCharCodeInstr::ResultCid() const {
 RawAbstractType* LoadIndexedInstr::CompileType() const {
   switch (class_id_) {
     case kArrayCid:
-    case kGrowableObjectArrayCid:
     case kImmutableArrayCid:
       return Type::DynamicType();
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
       return Type::Double();
+    case kUint8ArrayCid:
+    case kExternalUint8ArrayCid:
+      return Type::IntType();
     default:
       UNIMPLEMENTED();
       return Type::IntType();
@@ -1158,12 +1162,14 @@ RawAbstractType* LoadIndexedInstr::CompileType() const {
 intptr_t LoadIndexedInstr::ResultCid() const {
   switch (class_id_) {
     case kArrayCid:
-    case kGrowableObjectArrayCid:
     case kImmutableArrayCid:
       return kDynamicCid;
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
       return kDoubleCid;
+    case kUint8ArrayCid:
+    case kExternalUint8ArrayCid:
+      return kSmiCid;
     default:
       UNIMPLEMENTED();
       return kSmiCid;
@@ -1174,8 +1180,9 @@ intptr_t LoadIndexedInstr::ResultCid() const {
 Representation LoadIndexedInstr::representation() const {
   switch (class_id_) {
     case kArrayCid:
-    case kGrowableObjectArrayCid:
     case kImmutableArrayCid:
+    case kUint8ArrayCid:
+    case kExternalUint8ArrayCid:
       return kTagged;
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
@@ -1198,8 +1205,6 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
   ASSERT(idx == 2);
   switch (class_id_) {
     case kArrayCid:
-    case kGrowableObjectArrayCid:
-    case kImmutableArrayCid:
       return kTagged;
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
@@ -1784,6 +1789,15 @@ void StoreContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+StrictCompareInstr::StrictCompareInstr(Token::Kind kind,
+                                       Value* left,
+                                       Value* right)
+    : ComparisonInstr(kind, left, right),
+      needs_number_check_(FLAG_new_identity_spec) {
+  ASSERT((kind == Token::kEQ_STRICT) || (kind == Token::kNE_STRICT));
+}
+
+
 LocationSummary* StrictCompareInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
@@ -1796,6 +1810,7 @@ LocationSummary* StrictCompareInstr::MakeLocationSummary() const {
 }
 
 
+// Special code for numbers (compare values instead of references.)
 void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
   Location left = locs()->in(0);
@@ -1810,11 +1825,17 @@ void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
   if (left.IsConstant()) {
-    compiler->EmitEqualityRegConstCompare(right.reg(), left.constant());
+    compiler->EmitEqualityRegConstCompare(right.reg(),
+                                          left.constant(),
+                                          needs_number_check());
   } else if (right.IsConstant()) {
-    compiler->EmitEqualityRegConstCompare(left.reg(), right.constant());
+    compiler->EmitEqualityRegConstCompare(left.reg(),
+                                          right.constant(),
+                                          needs_number_check());
   } else {
-    __ CompareRegisters(left.reg(), right.reg());
+    compiler->EmitEqualityRegRegCompare(left.reg(),
+                                       right.reg(),
+                                       needs_number_check());
   }
 
   Register result = locs()->out().reg();
@@ -1843,11 +1864,17 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
     return;
   }
   if (left.IsConstant()) {
-    compiler->EmitEqualityRegConstCompare(right.reg(), left.constant());
+    compiler->EmitEqualityRegConstCompare(right.reg(),
+                                          left.constant(),
+                                          needs_number_check());
   } else if (right.IsConstant()) {
-    compiler->EmitEqualityRegConstCompare(left.reg(), right.constant());
+    compiler->EmitEqualityRegConstCompare(left.reg(),
+                                          right.constant(),
+                                          needs_number_check());
   } else {
-    __ CompareRegisters(left.reg(), right.reg());
+    compiler->EmitEqualityRegRegCompare(left.reg(),
+                                        right.reg(),
+                                        needs_number_check());
   }
 
   Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
@@ -2437,6 +2464,20 @@ void LoadFieldInstr::InferRange() {
 }
 
 
+void LoadIndexedInstr::InferRange() {
+  switch (class_id()) {
+    case kExternalUint8ArrayCid:
+    case kUint8ArrayCid:
+      range_ = new Range(RangeBoundary::FromConstant(0),
+                         RangeBoundary::FromConstant(255));
+      break;
+    default:
+      Definition::InferRange();
+      break;
+  }
+}
+
+
 void PhiInstr::InferRange() {
   RangeBoundary new_min;
   RangeBoundary new_max;
@@ -2662,6 +2703,10 @@ intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
     case kArrayCid:
     case kImmutableArrayCid:
       return Array::length_offset();
+    case kUint8ArrayCid:
+      return Uint8Array::length_offset();
+    case kExternalUint8ArrayCid:
+      return ByteArray::length_offset();
     default:
       UNREACHABLE();
       return -1;

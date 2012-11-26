@@ -5,14 +5,13 @@
 package com.google.dart.compiler.ast;
 
 import com.google.dart.compiler.resolver.Element;
-import com.google.dart.compiler.resolver.NodeElement;
 
 /**
- * <code>[new name]</code> in {@link DartComment}.
+ * <code>[name]</code> in {@link DartComment}.
  */
 public final class DartCommentRefName extends DartNode {
   private final String name;
-  private NodeElement element;
+  private Element element;
 
   public DartCommentRefName(String name) {
     assert name != null;
@@ -25,13 +24,13 @@ public final class DartCommentRefName extends DartNode {
   }
 
   @Override
-  public NodeElement getElement() {
+  public Element getElement() {
     return element;
   }
 
   @Override
   public void setElement(Element element) {
-    this.element = (NodeElement) element;
+    this.element = element;
   }
 
   public String getName() {

@@ -24,26 +24,6 @@ DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 
 
-FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
-                                                          Register array,
-                                                          Register index) {
-  // Note that index is Smi, i.e, times 2.
-  ASSERT(kSmiTagShift == 1);
-  switch (cid) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-      return FieldAddress(array, index, TIMES_2, sizeof(RawArray));
-    case kFloat32ArrayCid:
-      return FieldAddress(array, index, TIMES_2, Float32Array::data_offset());
-    case kFloat64ArrayCid:
-      return FieldAddress(array, index, TIMES_4, Float64Array::data_offset());
-    default:
-      UNIMPLEMENTED();
-      return FieldAddress(SPREG, 0);
-  }
-}
-
-
 bool FlowGraphCompiler::SupportsUnboxedMints() {
   // Support unboxed mints when SSE 4.1 is available.
   return FLAG_unbox_mints && CPUFeatures::sse4_1_supported();
@@ -1106,11 +1086,45 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
 
 
 void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
-                                                    const Object& obj) {
+                                                    const Object& obj,
+                                                    bool needs_number_check) {
+  if (needs_number_check) {
+    if (!obj.IsMint() && !obj.IsDouble() && !obj.IsBigint()) {
+      needs_number_check = false;
+    }
+  }
+
   if (obj.IsSmi() && (Smi::Cast(obj).Value() == 0)) {
+    ASSERT(!needs_number_check);
     __ testl(reg, reg);
+    return;
+  }
+
+  if (needs_number_check) {
+    __ pushl(reg);
+    __ PushObject(obj);
+    __ call(&StubCode::IdenticalWithNumberCheckLabel());
+    __ popl(reg);  // Discard constant.
+    __ popl(reg);  // Restore 'reg'.
+    return;
+  }
+
+  __ CompareObject(reg, obj);
+}
+
+
+void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
+                                                  Register right,
+                                                  bool needs_number_check) {
+  if (needs_number_check) {
+    __ pushl(left);
+    __ pushl(right);
+    __ call(&StubCode::IdenticalWithNumberCheckLabel());
+    // Stub returns result in flags (result of a cmpl, we need ZF computed).
+    __ popl(right);
+    __ popl(left);
   } else {
-    __ CompareObject(reg, obj);
+    __ cmpl(left, right);
   }
 }
 
