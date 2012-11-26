@@ -335,7 +335,9 @@ typed_message_test: Fail, OK
 type_variable_identifier_expression_negative_test: Fail, OK
 
 # test issue 6866
-abstract_factory_constructor_test/00: Fail, OK
+abstract_factory_constructor_test/none: Fail
+abstract_syntax_test/none: Fail
+get_set_syntax_test/none: Fail
 
 # test issue 6838
 import_combinators_negative_test: Fail, OK

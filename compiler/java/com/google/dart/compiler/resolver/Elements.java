@@ -901,4 +901,34 @@ static FieldElementImplementation fieldFromNode(DartField node,
       addAllMembers(visited, allMembers, intf.getElement());
     }
   }
+  
+  public static boolean isAbstractElement(Element element) {
+    if (element == null) {
+      return false;
+    }
+    if (element.getModifiers().isAbstract()) {
+      return true;
+    }
+    if (element.getModifiers().isExternal()) {
+      return false;
+    }
+    if (element.getModifiers().isStatic()) {
+      return false;
+    }
+    if (ElementKind.of(element) == ElementKind.METHOD) {
+      MethodElement method = (MethodElement) element;
+      return !method.hasBody();
+    }
+    if (ElementKind.of(element) == ElementKind.FIELD) {
+      FieldElement field = (FieldElement) element;
+      if (isAbstractElement(field.getGetter())) {
+        return true;
+      }
+      if (isAbstractElement(field.getSetter())) {
+        return true;
+      }
+      return false;
+    }
+    return false;
+  }
 }

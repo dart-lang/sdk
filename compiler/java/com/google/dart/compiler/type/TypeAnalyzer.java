@@ -3147,7 +3147,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         Set<String> artificialNames = Sets.newHashSet();
         for (ClassElement interfaceElement : typesForAbstractMembers) {
           for (Element member : interfaceElement.getMembers()) {
-            if (interfaceElement == currentClass.getElement() && !member.getModifiers().isAbstract()) {
+            if (interfaceElement == currentClass.getElement() && !Elements.isAbstractElement(member)) {
               continue;
             }
             String name = member.getName();
@@ -3188,7 +3188,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           ClassElement superclass = supertype.getElement();
           for (Element member : superclass.getMembers()) {
             String name = member.getName();
-            if (!member.getModifiers().isAbstract()) {
+            if (!Elements.isAbstractElement(member)) {
               superMembers.removeAll(name);
             }
             if (member instanceof FieldElement) {
@@ -3219,7 +3219,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         
         // add abstract members of current class
         for (Element member : currentClass.getElement().getMembers()) {
-          if (member.getModifiers().isAbstract()) {
+          if (Elements.isAbstractElement(member)) {
             unimplementedElements.add(member);
           }
         }

@@ -1380,15 +1380,6 @@ public class ResolverTest extends ResolverTestCase {
         errEx(ResolverErrorCode.IS_AN_INSTANCE_METHOD, 6, 13, 6));
   }
 
-  public void test_methodMustHaveBody() {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class C {",
-        "  method();",
-        "}"),
-        errEx(ResolverErrorCode.METHOD_MUST_HAVE_BODY, 3, 3, 9));
-  }
-
   public void test_staticAccess() throws Exception {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
