@@ -83,6 +83,21 @@ public class SyntaxTest extends AbstractParserTest {
         ""),
         ParserErrorCode.EXPECTED_TOKEN, 3, 12);
   }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6825
+   */
+  public void test_annotation_forExport() {
+    parseUnit(
+        "test.dart",
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library Test;",
+            "",
+            "@meta @meta2 export 'Lib.dart';",
+            ""));
+  }
 
   public void test_getter() {
     parseUnit("getter.dart", Joiner.on("\n").join(

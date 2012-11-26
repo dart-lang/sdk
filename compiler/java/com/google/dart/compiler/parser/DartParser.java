@@ -308,14 +308,14 @@ public class DartParser extends CompletionHooksParserBase {
       beginCompilationUnit();
       ctx.unitAboutToCompile(dartSource, isDietParse);
       DartUnit unit = new DartUnit(dartSource, isDietParse);
+      List<DartAnnotation> metadata = parseMetadata();
 
       // parse any directives at the beginning of the source
-      parseDirectives(unit);
+      metadata = parseDirectives(unit, metadata);
 
       while (!EOS()) {
         DartNodeWithMetadata node = null;
         beginTopLevelElement();
-        List<DartAnnotation> metadata = parseMetadata();
         isParsingClass = isParsingInterface = false;
         // Check for ABSTRACT_KEYWORD.
         isTopLevelAbstract = false;
@@ -347,14 +347,15 @@ public class DartParser extends CompletionHooksParserBase {
           node = done(parseFunctionTypeAlias());
         } else if (looksLikeDirective()) {
           reportErrorWithoutAdvancing(ParserErrorCode.DIRECTIVE_OUT_OF_ORDER);
-          parseDirectives(unit);
+          metadata = parseDirectives(unit, metadata);
         } else {
           node = done(parseFieldOrMethod(false));
         }
         // Parsing was successful, add node.
         if (node != null) {
-          setMetadata(node, metadata);
           unit.getTopLevelNodes().add(node);
+          setMetadata(node, metadata);
+          metadata = parseMetadata();
           // Only "class" can be top-level abstract element.
           if (isTopLevelAbstract && !isParsingClass) {
             int abstractPositionEnd = topLevelAbstractModifierPosition + ABSTRACT_KEYWORD.length();
@@ -530,8 +531,7 @@ public class DartParser extends CompletionHooksParserBase {
     return done(libUnit);
   }
 
-  private void parseDirectives(DartUnit unit) {
-    List<DartAnnotation> metadata = parseMetadata();
+  private List<DartAnnotation> parseDirectives(DartUnit unit, List<DartAnnotation> metadata) {
     boolean hasLibraryDirective = false;
     if (peekPseudoKeyword(0, LIBRARY_KEYWORD)) {
       DartLibraryDirective libraryDirective = parseLibraryDirective();
@@ -541,33 +541,38 @@ public class DartParser extends CompletionHooksParserBase {
           break;
         }
       }
-      setMetadata(libraryDirective, metadata);
       unit.getDirectives().add(libraryDirective);
       hasLibraryDirective = true;
+      setMetadata(libraryDirective, metadata);
+      metadata = parseMetadata();
     }
     while (peekPseudoKeyword(0, IMPORT_KEYWORD) || peekPseudoKeyword(0, EXPORT_KEYWORD)) {
       if (peekPseudoKeyword(0, IMPORT_KEYWORD)) {
         DartImportDirective importDirective = parseImportDirective();
-        setMetadata(importDirective, metadata);
         unit.getDirectives().add(importDirective);
+        setMetadata(importDirective, metadata);
+        metadata = parseMetadata();
       } else {
         DartExportDirective exportDirective = parseExportDirective();
-        setMetadata(exportDirective, metadata);
         unit.getDirectives().add(exportDirective);
         if (!hasLibraryDirective) {
           reportError(exportDirective, ParserErrorCode.EXPORT_WITHOUT_LIBRARY_DIRECTIVE);
         }
+        setMetadata(exportDirective, metadata);
+        metadata = parseMetadata();
       }
     }
     while (peekPseudoKeyword(0, PART_KEYWORD)) {
       if (peekPseudoKeyword(1, OF_KEYWORD)) {
         DartPartOfDirective partOfDirective = parsePartOfDirective();
-        setMetadata(partOfDirective, metadata);
         unit.getDirectives().add(partOfDirective);
+        setMetadata(partOfDirective, metadata);
+        metadata = parseMetadata();
       } else {
         DartSourceDirective partDirective = parsePartDirective();
-        setMetadata(partDirective, metadata);
         unit.getDirectives().add(partDirective);
+        setMetadata(partDirective, metadata);
+        metadata = parseMetadata();
       }
     }
     //
@@ -583,21 +588,24 @@ public class DartParser extends CompletionHooksParserBase {
           break;
         }
       }
-      setMetadata(libraryDirective, metadata);
       unit.getDirectives().add(libraryDirective);
       done(libraryDirective);
+      setMetadata(libraryDirective, metadata);
+      metadata = parseMetadata();
     }
     while (peek(0) == Token.IMPORT) {
       beginImportDirective();
       DartImportDirective importDirective = parseObsoleteImportDirective();
-      setMetadata(importDirective, metadata);
       unit.getDirectives().add(done(importDirective));
+      setMetadata(importDirective, metadata);
+      metadata = parseMetadata();
     }
     while (peek(0) == Token.SOURCE) {
       beginSourceDirective();
       DartSourceDirective sourceDirective = parseSourceDirective();
-      setMetadata(sourceDirective, metadata);
       unit.getDirectives().add(done(sourceDirective));
+      setMetadata(sourceDirective, metadata);
+      metadata = parseMetadata();
     }
     while (peek(0) == Token.RESOURCE) {
       parseResourceDirective();
@@ -605,9 +613,11 @@ public class DartParser extends CompletionHooksParserBase {
     while (peek(0) == Token.NATIVE) {
       beginNativeDirective();
       DartNativeDirective nativeDirective = parseNativeDirective();
-      setMetadata(nativeDirective, metadata);
       unit.getDirectives().add(done(nativeDirective));
+      setMetadata(nativeDirective, metadata);
+      metadata = parseMetadata();
     }
+    return metadata;
   }
 
   private DartLibraryDirective parseLibraryDirective() {

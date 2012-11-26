@@ -65,9 +65,6 @@ Language/13_Libraries_and_Scripts/1_Imports_A02_t19: Fail, OK
 Language/13_Libraries_and_Scripts/2_Exports_A04_t05: Fail
 Language/13_Libraries_and_Scripts/2_Exports_A04_t06: Fail
 
-# issue 6825
-Language/13_Libraries_and_Scripts/2_Exports_A01_t17: Fail
-
 
 # co19 issue 327
 Language/03_Overview/1_Scoping_A02_t17: Fail, OK
