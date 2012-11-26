@@ -1522,4 +1522,12 @@ public class SyntaxTest extends AbstractParserTest {
             "typedef func(final arg());",
             ParserErrorCode.FUNCTION_TYPED_PARAMETER_IS_FINAL, 1, 20);
   }
+
+  public void test_export_withoutLibraryDirective() {
+    parseUnit("test.dart", Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "export 'Lib.dart';",
+        ""),
+        ParserErrorCode.EXPORT_WITHOUT_LIBRARY_DIRECTIVE, 2, 1);
+  }
 }

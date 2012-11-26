@@ -25,3 +25,8 @@ recursive_import_test: Fail # http://dartbug.com/2264
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
 *: Skip
+
+[ $compiler == dartc ]
+# dart2js issue 6870
+dummy_compiler_test: Fail, OK
+recursive_import_test: Fail, OK

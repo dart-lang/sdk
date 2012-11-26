@@ -1081,7 +1081,7 @@ public class NegativeResolverTest extends CompilerTestCase {
             "  for (var y in foo(y)) {",
             "  }",
             "}"),
-            errEx(ResolverErrorCode.CANNOT_BE_RESOLVED, 4, 21, 1));
+            errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 4, 21, 1));
   }
 
   /**

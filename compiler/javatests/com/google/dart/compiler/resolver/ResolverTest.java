@@ -1303,7 +1303,7 @@ public class ResolverTest extends ResolverTestCase {
         "method() {",
         "  A.noField = 1;",
         "}"),
-        errEx(ResolverErrorCode.CANNOT_BE_RESOLVED, 3, 22, 1),
+        errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 3, 22, 1),
         errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 6, 5, 7));
   }
 

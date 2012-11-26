@@ -213,6 +213,7 @@ public enum ResolverErrorCode implements ErrorCode {
       "type variables are not allowed in identifier expressions"),
   USE_ASSIGNMENT_ON_SETTER("Use assignment to set field '%s'"),
   USING_LOCAL_VARIABLE_BEFORE_DECLARATION("Using local variable '%s' before its declaration in lexical scope"),
+  VARIABLE_REFERENCES_SAME_NAME_IN_INITIALIZER("Initializer of variable \"%s\" cannot refer to the name \"%s\""),
   WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments (%d).  Expected %d");
 
   private final ErrorSeverity severity;

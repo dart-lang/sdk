@@ -532,6 +532,7 @@ public class DartParser extends CompletionHooksParserBase {
 
   private void parseDirectives(DartUnit unit) {
     List<DartAnnotation> metadata = parseMetadata();
+    boolean hasLibraryDirective = false;
     if (peekPseudoKeyword(0, LIBRARY_KEYWORD)) {
       DartLibraryDirective libraryDirective = parseLibraryDirective();
       for (DartDirective directive : unit.getDirectives()) {
@@ -542,6 +543,7 @@ public class DartParser extends CompletionHooksParserBase {
       }
       setMetadata(libraryDirective, metadata);
       unit.getDirectives().add(libraryDirective);
+      hasLibraryDirective = true;
     }
     while (peekPseudoKeyword(0, IMPORT_KEYWORD) || peekPseudoKeyword(0, EXPORT_KEYWORD)) {
       if (peekPseudoKeyword(0, IMPORT_KEYWORD)) {
@@ -552,6 +554,9 @@ public class DartParser extends CompletionHooksParserBase {
         DartExportDirective exportDirective = parseExportDirective();
         setMetadata(exportDirective, metadata);
         unit.getDirectives().add(exportDirective);
+        if (!hasLibraryDirective) {
+          reportError(exportDirective, ParserErrorCode.EXPORT_WITHOUT_LIBRARY_DIRECTIVE);
+        }
       }
     }
     while (peekPseudoKeyword(0, PART_KEYWORD)) {

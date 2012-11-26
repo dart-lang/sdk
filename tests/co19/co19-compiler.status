@@ -5,7 +5,6 @@
 [ $compiler == dartc ]
 Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/03_Overview/1_Scoping_A02_t06: Fail # TODO(analyzer-team): Please triage this failure.
-Language/03_Overview/2_Privacy_A01_t04: Fail # TODO(analyzer-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t09: Fail # TODO(analyzer-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t10: Fail # TODO(analyzer-team): Please triage this failure.
@@ -22,7 +21,6 @@ Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # 
 Language/06_Functions/1_Function_Declaration_A02_t03: Fail # TODO(analyzer-team): Please triage this failure.
 Language/06_Functions/1_Function_Declaration_A03_t03: Fail # TODO(analyzer-team): Please triage this failure.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t10: Fail # TODO(analyzer-team): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters_A02_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A02_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A02_t02: Fail # TODO(analyzer-team): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A05_t02: Fail # TODO(analyzer-team): Please triage this failure.
@@ -34,50 +32,29 @@ Language/11_Expressions/01_Constants_A03_t01: Fail # TODO(analyzer-team): Please
 Language/11_Expressions/01_Constants_A05_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/01_Constants_A14_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/01_Constants_A20_t03: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t07: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t13: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/08_Throw_A05_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/1_New_A02_t07: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/1_New_A06_t06: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/2_Const_A10_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/18_Assignment_A05_t05: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/30_Identifier_Reference_A13_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/31_Type_Test_A01_t02: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/31_Type_Test_A01_t04: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/32_Type_Cast_A01_t04: Fail # TODO(analyzer-team): Please triage this failure.
 Language/12_Statements/02_Expression_Statements_A01_t12: Fail # TODO(analyzer-team): Please triage this failure.
-Language/12_Statements/03_Variable_Declaration_A01_t05: Fail # TODO(analyzer-team): Please triage this failure.
-Language/12_Statements/03_Variable_Declaration_A01_t06: Fail # TODO(analyzer-team): Please triage this failure.
 Language/12_Statements/03_Variable_Declaration_A01_t09: Fail # TODO(analyzer-team): Please triage this failure.
-Language/12_Statements/03_Variable_Declaration_A01_t10: Fail # TODO(analyzer-team): Please triage this failure.
 Language/12_Statements/03_Variable_Declaration_A01_t16: Fail # TODO(analyzer-team): Please triage this failure.
-Language/12_Statements/03_Variable_Declaration_A01_t17: Fail # TODO(analyzer-team): Please triage this failure.
-Language/12_Statements/03_Variable_Declaration_A01_t18: Fail # TODO(analyzer-team): Please triage this failure.
-Language/12_Statements/03_Variable_Declaration_A01_t19: Fail # TODO(analyzer-team): Please triage this failure.
-Language/12_Statements/06_For_A01_t07: Fail # TODO(analyzer-team): Please triage this failure.
 Language/12_Statements/06_For_A01_t11: Fail # TODO(analyzer-team): Please triage this failure.
 Language/12_Statements/09_Switch_A02_t03: Fail # TODO(analyzer-team): Please triage this failure.
-Language/12_Statements/09_Switch_A06_t02: Fail # TODO(analyzer-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t29: Fail # TODO(analyzer-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A05_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A05_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/4_Scripts_A01_t21: Fail # TODO(analyzer-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/4_Scripts_A01_t22: Fail # TODO(analyzer-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/4_Scripts_A01_t23: Fail # TODO(analyzer-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/5_URIs_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/5_URIs_A01_t21: Fail # TODO(analyzer-team): Please triage this failure.
 
-# co19 issue 319
-Language/13_Libraries_and_Scripts/1_Imports_A01_t51: Fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A01_t52: Fail, OK
-Language/13_Libraries_and_Scripts/2_Exports_A01_t02: Fail, OK
-Language/13_Libraries_and_Scripts/2_Exports_A01_t03: Fail, OK
-
 # co19 issue 320
-Language/13_Libraries_and_Scripts/1_Imports_A02_t03: Fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A02_t05: Fail, OK
 Language/13_Libraries_and_Scripts/1_Imports_A02_t12: Fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A02_t13: Fail, OK
 Language/13_Libraries_and_Scripts/1_Imports_A02_t15: Fail, OK
 Language/13_Libraries_and_Scripts/1_Imports_A02_t18: Fail, OK
 Language/13_Libraries_and_Scripts/1_Imports_A02_t19: Fail, OK
@@ -91,10 +68,6 @@ Language/13_Libraries_and_Scripts/1_Imports_A03_t26: Fail
 Language/13_Libraries_and_Scripts/1_Imports_A03_t46: Fail
 Language/13_Libraries_and_Scripts/1_Imports_A03_t66: Fail
 
-# co19 issue 324
-Language/13_Libraries_and_Scripts/2_Exports_A03_t01: Fail, OK
-Language/13_Libraries_and_Scripts/2_Exports_A03_t02: Fail, OK
-
 # issue 6824
 Language/13_Libraries_and_Scripts/2_Exports_A04_t02: Fail
 Language/13_Libraries_and_Scripts/2_Exports_A04_t05: Fail
@@ -104,6 +77,15 @@ Language/13_Libraries_and_Scripts/2_Exports_A01_t17: Fail
 
 # wait for answer from Gilad
 Language/13_Libraries_and_Scripts/2_Exports_A04_t06: Fail # TODO(analyzer-team): Please triage this failure.
+
+
+# co19 issue 327
+Language/03_Overview/1_Scoping_A02_t17: Fail, OK
+Language/03_Overview/1_Scoping_A02_t20: Fail, OK
+Language/03_Overview/1_Scoping_A02_t32: Fail, OK
+Language/12_Statements/03_Variable_Declaration_A01_t10: Fail, OK
+Language/12_Statements/03_Variable_Declaration_A01_t17: Fail, OK
+
 
 Language/03_Overview/2_Privacy_A01_t08: pass # http://dartbug.com/5179
 Language/03_Overview/2_Privacy_A01_t11: pass # http://dartbug.com/5179
@@ -148,6 +130,9 @@ Language/13_Libraries_and_Scripts/1_Imports_A02_t16: Fail, OK
 Language/13_Libraries_and_Scripts/1_Imports_A02_t17: Fail, OK
 
 Language/07_Classes/6_Constructors/2_Factories_A03_t01: Fail, OK # co19 issue 307
+
+# co19 issue 329
+Language/13_Libraries_and_Scripts/4_Scripts_A01_t20: Fail
 
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail, OK # contains syntax error
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail, OK # contains syntax error

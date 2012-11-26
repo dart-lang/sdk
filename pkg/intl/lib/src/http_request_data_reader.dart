@@ -23,7 +23,7 @@ class HTTPRequestDataReader implements LocaleDataReader {
     var source = '$url$locale.json';
     var request = new HttpRequest.get(
         source,
-        (request) => completer.complete(request.responseText));
+        (req) => completer.complete(req.responseText));
     return completer.future;
  }
 }

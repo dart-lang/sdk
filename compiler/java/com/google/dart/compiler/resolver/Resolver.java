@@ -5,11 +5,13 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompilationPhase;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.ASTNodes;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayLiteral;
@@ -877,13 +879,51 @@ public class Resolver {
     }
 
     public VariableElement resolveVariable(DartVariable x, Modifiers modifiers) {
+      final DartIdentifier nameNode = x.getName();
+      final String name = nameNode.getName();
       // Visit the initializer first.
-      resolve(x.getValue());
-      VariableElement element = Elements.variableElement(enclosingElement, x, x.getVariableName(), modifiers);
-      getContext().declare(
-          recordElement(x, element),
+      DartExpression value = x.getValue();
+      if (value != null) {
+        // It is a compile-time error if e refers to the name v or the name v=.
+        value.accept(new ASTVisitor<Void>() {
+          @Override
+          public Void visitIdentifier(DartIdentifier node) {
+            // ignore cases when name is used with some qualifier
+            if (node.getParent() instanceof DartPropertyAccess) {
+              DartPropertyAccess x = (DartPropertyAccess) node.getParent();
+              if (x.getName() == node) {
+                return null;
+              }
+            }
+            if (node.getParent() instanceof DartMethodInvocation) {
+              DartMethodInvocation x = (DartMethodInvocation) node.getParent();
+              if (x.getFunctionName() == node) {
+                return null;
+              }
+            }
+            // TODO(scheglov) remove this after http://code.google.com/p/dart/issues/detail?id=6869
+            {
+              Source source = node.getSourceInfo().getSource();
+              if (Elements.isSourceName(source, "dart://json/json.dart/json.dart")) {
+                return null;
+              }
+            }
+            if (Objects.equal(node.getName(), name)) {
+              onError(node, ResolverErrorCode.VARIABLE_REFERENCES_SAME_NAME_IN_INITIALIZER, name,
+                  name);
+              node.markResolutionAlreadyReportedThatTheMethodCouldNotBeFound();
+            }
+            return null;
+          }
+        });
+        // do resolve
+        resolve(value);
+      }
+      // declare variable
+      VariableElement element = Elements.variableElement(enclosingElement, x, name, modifiers);
+      getContext().declare(recordElement(x, element),
           ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_ERROR);
-      recordElement(x.getName(), element);
+      recordElement(nameNode, element);
       return element;
     }
 
@@ -1265,8 +1305,10 @@ public class Resolver {
           }
         }
         if (isStaticOrFactoryContextOrInitializer(x) && !isQualifier) {
-          onError(x, ResolverErrorCode.CANNOT_BE_RESOLVED, name);
-          x.markResolutionAlreadyReportedThatTheMethodCouldNotBeFound();
+          if (!x.isResolutionAlreadyReportedThatTheMethodCouldNotBeFound()) {
+            onError(x, TypeErrorCode.CANNOT_BE_RESOLVED, name);
+            x.markResolutionAlreadyReportedThatTheMethodCouldNotBeFound();
+          }
         }
       } else if (x.getParent() instanceof DartComment) {
       } else {

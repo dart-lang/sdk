@@ -4534,23 +4534,29 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
-   * If "unknown" is separate identifier, it is handled as "this.unknown", but "this" is not
-   * accessible in static context.
    * <p>
-   * http://code.google.com/p/dart/issues/detail?id=3084
+   * http://code.google.com/p/dart/issues/detail?id=6836
    */
   public void test_unresolvedIdentifier_inStatic_notPropertyAccess() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "process(x) {}",
+        "",
+        "class A {",
+        "  static foo() {",
+        "    unknown = 0;",
+        "  }",
+        "}",
+        "",
         "main() {",
         "  unknown = 0;",
         "  process(unknown);",
         "}");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(ResolverErrorCode.CANNOT_BE_RESOLVED, 4, 3, 7),
-        errEx(ResolverErrorCode.CANNOT_BE_RESOLVED, 5, 11, 7));
+        errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 6, 5, 7),
+        errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 11, 3, 7),
+        errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 12, 11, 7));
   }
   
   /**
@@ -5690,7 +5696,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors(),
         errEx(ResolverErrorCode.NOT_GENERATIVE_SUPER_CONSTRUCTOR, 8, 9, 13));
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=6718
@@ -5705,5 +5711,16 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(result.getErrors(),
         errEx(ResolverErrorCode.INITIALIZER_ONLY_IN_GENERATIVE_CONSTRUCTOR, 4, 9, 15));
+  }
+  
+  public void test_variableReferencesItselfInInitializer() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var x = x;",
+        "}",
+        "");
+    assertErrors(result.getErrors(),
+        errEx(ResolverErrorCode.VARIABLE_REFERENCES_SAME_NAME_IN_INITIALIZER, 3, 11, 1));
   }
 }

@@ -97,8 +97,6 @@ body_less_constructor_wrong_arg_negative_test: Fail # Runtime only test, rewrite
 call_nonexistent_static_test/03: Fail # Unresolved static calls are no longer errors.
 call_nonexistent_static_test/04: Fail # Unresolved static calls are no longer errors.
 call_nonexistent_static_test/05: Fail # Unresolved static calls are no longer errors.
-call_nonexistent_static_test/06: Fail # Unresolved static calls are no longer errors.
-call_nonexistent_static_test/07: Fail # Unresolved static calls are no longer errors.
 call_nonexistent_static_test/08: Fail # Unresolved static calls are no longer errors.
 call_nonexistent_static_test/09: Fail # Unresolved static calls are no longer errors.
 call_nonexistent_static_test/10: Fail # Unresolved static calls are no longer errors.
@@ -339,6 +337,13 @@ type_variable_identifier_expression_negative_test: Fail, OK
 
 # test issue 6866
 abstract_factory_constructor_test/00: Fail, OK
+
+# test issue 6838
+import_combinators_negative_test: Fail, OK
+unresolved_top_level_var_negative_test: Fail, OK
+
+# test issue 6871
+block_scope_test: Fail, OK
 
 
 #
