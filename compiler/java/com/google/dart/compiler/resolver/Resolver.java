@@ -522,7 +522,7 @@ public class Resolver {
                   boundNode,
                   false,
                   false,
-                  false,
+                  true,
                   ResolverErrorCode.NO_SUCH_TYPE,
                   ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
           boundNode.setType(bound);
