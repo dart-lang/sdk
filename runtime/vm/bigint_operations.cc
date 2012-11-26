@@ -731,7 +731,13 @@ RawBigint* BigintOperations::Multiply(const Bigint& a, const Bigint& b) {
   const DoubleChunk left_over_carry = kDoubleChunkMaxValue >> kDigitBitSize;
   const intptr_t kMaxDigits = (kDoubleChunkMaxValue - left_over_carry) / square;
   if (Utils::Minimum(a_length, b_length) > kMaxDigits) {
-    UNIMPLEMENTED();
+    // Use the preallocated out of memory exception to avoid calling
+    // into dart code or allocating any code.
+    Isolate* isolate = Isolate::Current();
+    const Instance& exception =
+        Instance::Handle(isolate->object_store()->out_of_memory());
+    Exceptions::Throw(exception);
+    UNREACHABLE();
   }
 
   DoubleChunk accumulator = 0;  // Accumulates the result of one column.
