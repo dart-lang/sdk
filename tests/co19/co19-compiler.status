@@ -72,6 +72,14 @@ Language/03_Overview/1_Scoping_A02_t32: Fail, OK
 Language/12_Statements/03_Variable_Declaration_A01_t10: Fail, OK
 Language/12_Statements/03_Variable_Declaration_A01_t17: Fail, OK
 
+# co19 issue 331
+Language/13_Libraries_and_Scripts/5_URIs_A01_t04: Fail
+Language/13_Libraries_and_Scripts/5_URIs_A01_t05: Fail
+Language/13_Libraries_and_Scripts/5_URIs_A01_t14: Fail
+Language/13_Libraries_and_Scripts/5_URIs_A01_t15: Fail
+
+
+
 Language/03_Overview/2_Privacy_A01_t08: pass # http://dartbug.com/5179
 Language/03_Overview/2_Privacy_A01_t11: pass # http://dartbug.com/5179
 Language/03_Overview/2_Privacy_A01_t18: pass # http://dartbug.com/5179

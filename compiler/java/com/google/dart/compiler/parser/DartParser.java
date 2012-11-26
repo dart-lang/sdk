@@ -654,9 +654,7 @@ public class DartParser extends CompletionHooksParserBase {
   protected DartExportDirective parseExportDirective() {
     beginExportDirective();
     next(); // "export"
-    beginLiteral();
-    expect(Token.STRING);
-    DartStringLiteral libUri = done(DartStringLiteral.get(ctx.getTokenString()));
+    DartStringLiteral libUri = parseUri();
 
     List<ImportCombinator> combinators = new ArrayList<ImportCombinator>();
     while (peekPseudoKeyword(0, HIDE_KEYWORD) || peekPseudoKeyword(0, SHOW_KEYWORD)) {
@@ -682,10 +680,7 @@ public class DartParser extends CompletionHooksParserBase {
   protected DartImportDirective parseImportDirective() {
     beginImportDirective();
     next(); // "import"
-    beginLiteral();
-    expect(Token.STRING);
-    DartStringLiteral libUri = done(DartStringLiteral.get(ctx.getTokenString()));
-    
+    DartStringLiteral libUri = parseUri();
     // allow "native" if we have "dart-ext:" import
     if (StringUtils.startsWith(libUri.getValue(), "dart-ext:")) {
       allowNativeKeyword = true;
@@ -741,9 +736,7 @@ public class DartParser extends CompletionHooksParserBase {
     reportDeprecatedError(position(), ParserErrorCode.DEPRECATED_IMPORT_DIRECTIVE);
     expect(Token.LPAREN);
     
-    beginLiteral();
-    expect(Token.STRING);
-    DartStringLiteral libUri = done(DartStringLiteral.get(ctx.getTokenString()));
+    DartStringLiteral libUri = parseUri();
     
     // allow "native" if we have "dart-ext:" import
     if (StringUtils.startsWith(libUri.getValue(), "dart-ext:")) {
@@ -787,9 +780,7 @@ public class DartParser extends CompletionHooksParserBase {
     expect(Token.SOURCE);
     reportDeprecatedError(position(), ParserErrorCode.DEPRECATED_SOURCE_DIRECTIVE);
     expect(Token.LPAREN);
-    beginLiteral();
-    expect(Token.STRING);
-    DartStringLiteral sourceUri = done(DartStringLiteral.get(ctx.getTokenString()));
+    DartStringLiteral sourceUri = parseUri();
     expectCloseParen();
     expect(Token.SEMICOLON);
     return new DartSourceDirective(sourceUri);
@@ -809,10 +800,8 @@ public class DartParser extends CompletionHooksParserBase {
     expect(Token.RESOURCE);
     reportError(position(), ParserErrorCode.DEPRECATED_RESOURCE_DIRECTIVE);
     expect(Token.LPAREN);
-    beginLiteral();
-    expect(Token.STRING);
     @SuppressWarnings("unused")
-    DartStringLiteral resourceUri = done(DartStringLiteral.get(ctx.getTokenString()));
+    DartStringLiteral sourceUri = parseUri();
     expectCloseParen();
     expect(Token.SEMICOLON);
   }
@@ -820,9 +809,7 @@ public class DartParser extends CompletionHooksParserBase {
   private DartNativeDirective parseNativeDirective() {
     expect(Token.NATIVE);
     expect(Token.LPAREN);
-    beginLiteral();
-    expect(Token.STRING);
-    DartStringLiteral nativeUri = done(DartStringLiteral.get(ctx.getTokenString()));
+    DartStringLiteral nativeUri = parseUri();
     expect(Token.RPAREN);
     expect(Token.SEMICOLON);
     return new DartNativeDirective(nativeUri);
@@ -2889,6 +2876,21 @@ public class DartParser extends CompletionHooksParserBase {
       }
     }
     return offset;
+  }
+
+  private DartStringLiteral parseUri() {
+    DartExpression str = parseStringWithPasting();
+    if (str instanceof DartStringLiteral) {
+      return (DartStringLiteral) str;
+    } else if (str != null) {
+      reportError(str, ParserErrorCode.URI_CANNOT_USE_INTERPOLATION);
+      DartStringLiteral result = DartStringLiteral.get("<invalid-uri>");
+      result.setSourceInfo(str.getSourceInfo());
+      return result;
+    } else {
+      expect(Token.STRING);
+      return DartStringLiteral.get(null);
+    }
   }
 
   /**
