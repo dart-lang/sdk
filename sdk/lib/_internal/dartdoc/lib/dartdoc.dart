@@ -25,9 +25,12 @@ import '../../compiler/implementation/mirrors/mirrors.dart';
 import '../../compiler/implementation/mirrors/mirrors_util.dart';
 import '../../compiler/implementation/mirrors/dart2js_mirror.dart' as dart2js;
 import 'classify.dart';
+import 'universe_serializer.dart';
 import 'markdown.dart' as md;
+import 'src/json_serializer.dart' as json_serializer;
 import '../../compiler/implementation/scanner/scannerlib.dart' as dart2js;
 import '../../libraries.dart';
+
 
 // TODO(rnystrom): Use "package:" URL (#4968).
 part 'src/dartdoc/comment_map.dart';
@@ -355,6 +358,12 @@ class Dartdoc {
     if (generateAppCache) {
       generateAppCacheManifest();
     }
+
+    startFile("apidoc.json");
+    var libraries = _sortedLibraries.map(
+        (lib) => new LibraryElement(lib.qualifiedName, lib, _comments));
+    write(json_serializer.serialize(libraries));
+    endFile();
   }
 
   void startFile(String path) {
