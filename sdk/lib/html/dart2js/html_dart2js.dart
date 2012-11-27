@@ -12878,13 +12878,20 @@ class MemoryInfo native "*MemoryInfo" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/**
+ * An HTML <menu> element.
+ *
+ * A <menu> element represents an unordered list of menu commands.
+ *
+ * See also:
+ *
+ *  * [Menu Element](https://developer.mozilla.org/en-US/docs/HTML/Element/menu) from MDN.
+ *  * [Menu Element](http://www.w3.org/TR/html5/the-menu-element.html#the-menu-element) from the W3C.
+ */
 /// @domName HTMLMenuElement; @docsEditable true
 class MenuElement extends Element implements Element native "*HTMLMenuElement" {
 
   factory MenuElement() => document.$dom_createElement("menu");
-
-  /// @domName HTMLMenuElement.compact; @docsEditable true
-  bool compact;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21977,7 +21984,7 @@ abstract class _AttributeMap implements Map<String, String> {
 }
 
 /**
- * Wrapper to expose Element.attributes as a typed map.
+ * Wrapper to expose [Element.attributes] as a typed map.
  */
 class _ElementAttributeMap extends _AttributeMap {
 

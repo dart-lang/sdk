@@ -254,6 +254,7 @@ _removed_html_members = set([
     "HTMLOptionsCollection.*",
     "HTMLPropertiesCollection.*",
     "SelectElement.remove",
+    "MenuElement.compact",
     "NamedNodeMap.*",
     "Node.isEqualNode",
     "Node.get:TEXT_NODE",

@@ -16744,14 +16744,6 @@ class MenuElement extends _Element_Merged {
   factory MenuElement() => document.$dom_createElement("menu");
   MenuElement.internal(): super.internal();
 
-
-  /** @domName HTMLMenuElement.compact */
-  bool get compact native "HTMLMenuElement_compact_Getter";
-
-
-  /** @domName HTMLMenuElement.compact */
-  void set compact(bool value) native "HTMLMenuElement_compact_Setter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28347,7 +28339,7 @@ abstract class _AttributeMap implements Map<String, String> {
 }
 
 /**
- * Wrapper to expose Element.attributes as a typed map.
+ * Wrapper to expose [Element.attributes] as a typed map.
  */
 class _ElementAttributeMap extends _AttributeMap {
 

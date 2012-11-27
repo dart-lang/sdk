@@ -85,6 +85,7 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
       interface_generator.Generate()
 
     generator.Generate(webkit_database, common_database, generate_interface)
+
     dart_library_emitter.EmitLibraries(auxiliary_dir)
 
   if dart2js_output_dir:
@@ -131,7 +132,7 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
   _logger.info('Flush...')
   emitters.Flush()
 
-def GenerateSingleFile(library_path, output_dir):
+def GenerateSingleFile(library_path, output_dir, generated_output_dir=None):
   library_dir = os.path.dirname(library_path)
   library_filename = os.path.basename(library_path)
   copy_dart_script = os.path.relpath('../../../../tools/copy_dart.py',
@@ -170,6 +171,7 @@ def main():
   systems = options.systems.split(',')
 
   output_dir = options.output_dir or os.path.join(current_dir, '../generated')
+
   dart2js_output_dir = None
   if 'htmldart2js' in systems:
     dart2js_output_dir = os.path.join(output_dir, 'dart2js')
@@ -184,6 +186,21 @@ def main():
     # Load the previously generated database.
     database = LoadDatabase(database_dir, options.use_database_cache)
   GenerateFromDatabase(database, dart2js_output_dir, dartium_output_dir)
+
+  _logger.info('Add documentation to generated classes.')
+  html_to_json_script = os.path.relpath(
+      '../../../../tools/html_json_doc/bin/html_json_doc.dart',
+      current_dir)
+  html_output_dir = os.path.join(output_dir, 'dart2js/dart/html/')
+  svg_output_dir = os.path.join(output_dir, 'dart2js/dart/svg/')
+  html_json_path = os.path.relpath('../docs/html_docs.json')
+  svg_json_path = os.path.relpath('../docs/svg_docs.json')
+  html_command = ' '.join(['dart', html_to_json_script, '--mode=json-to-html',
+                      html_output_dir, html_json_path])
+  svg_command = ' '.join(['dart', html_to_json_script, '--mode=json-to-html',
+                      svg_output_dir, svg_json_path])
+  subprocess.call([html_command], shell=True)
+  subprocess.call([svg_command], shell=True)
 
   if 'htmldart2js' in systems:
     _logger.info('Generating dart2js single files.')

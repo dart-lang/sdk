@@ -1,0 +1,1634 @@
+{
+"MenuElement.dart":
+  {
+  "class MenuElement extends Element implements Element native \"*HTMLMenuElement\" {":
+    [
+      "/**",
+      " * An HTML <menu> element.",
+      " *",
+      " * A <menu> element represents an unordered list of menu commands.",
+      " *",
+      " * See also:",
+      " *",
+      " *  * [Menu Element](https://developer.mozilla.org/en-US/docs/HTML/Element/menu) from MDN.",
+      " *  * [Menu Element](http://www.w3.org/TR/html5/the-menu-element.html#the-menu-element) from the W3C.",
+      " */"
+    ]
+  },
+"RTCIceCandidateEvent.dart":
+  {
+
+  },
+"BRElement.dart":
+  {
+
+  },
+"NavigatorUserMediaError.dart":
+  {
+
+  },
+"WorkerContext.dart":
+  {
+
+  },
+"TextTrackCue.dart":
+  {
+
+  },
+"DOMParser.dart":
+  {
+
+  },
+"EntryCallback.dart":
+  {
+
+  },
+"SQLTransactionSync.dart":
+  {
+
+  },
+"ProgressElement.dart":
+  {
+
+  },
+"HtmlElement.dart":
+  {
+
+  },
+"Worker.dart":
+  {
+
+  },
+"XMLSerializer.dart":
+  {
+
+  },
+"PositionErrorCallback.dart":
+  {
+
+  },
+"MapElement.dart":
+  {
+
+  },
+"Rect.dart":
+  {
+
+  },
+"SourceElement.dart":
+  {
+
+  },
+"FileWriter.dart":
+  {
+
+  },
+"CSSMatrix.dart":
+  {
+
+  },
+"Metadata.dart":
+  {
+
+  },
+"StorageInfoUsageCallback.dart":
+  {
+
+  },
+"WebGLDebugShaders.dart":
+  {
+
+  },
+"WebGLShaderPrecisionFormat.dart":
+  {
+
+  },
+"NodeFilter.dart":
+  {
+
+  },
+"Float64Array.dart":
+  {
+
+  },
+"BodyElement.dart":
+  {
+
+  },
+"OESElementIndexUint.dart":
+  {
+
+  },
+"WebGLLoseContext.dart":
+  {
+
+  },
+"TableElement.dart":
+  {
+
+  },
+"ScriptElement.dart":
+  {
+
+  },
+"WebGLCompressedTextureS3TC.dart":
+  {
+
+  },
+"CharacterData.dart":
+  {
+
+  },
+"OESStandardDerivatives.dart":
+  {
+
+  },
+"IDBUpgradeNeededEvent.dart":
+  {
+
+  },
+"RTCIceCandidate.dart":
+  {
+
+  },
+"IDBKeyRange.dart":
+  {
+
+  },
+"XPathException.dart":
+  {
+
+  },
+"MediaError.dart":
+  {
+
+  },
+"SQLException.dart":
+  {
+
+  },
+"WorkerLocation.dart":
+  {
+
+  },
+"ClientRect.dart":
+  {
+
+  },
+"MediaController.dart":
+  {
+
+  },
+"CustomEvent.dart":
+  {
+
+  },
+"IDBVersionChangeEvent.dart":
+  {
+
+  },
+"StorageEvent.dart":
+  {
+
+  },
+"EntityReference.dart":
+  {
+
+  },
+"FileException.dart":
+  {
+
+  },
+"Notation.dart":
+  {
+
+  },
+"HTMLCollection.dart":
+  {
+
+  },
+"Int8Array.dart":
+  {
+
+  },
+"BaseFontElement.dart":
+  {
+
+  },
+"CSSPageRule.dart":
+  {
+
+  },
+"FileEntry.dart":
+  {
+
+  },
+"UListElement.dart":
+  {
+
+  },
+"HRElement.dart":
+  {
+
+  },
+"LocalHistory.dart":
+  {
+
+  },
+"WebGLRenderbuffer.dart":
+  {
+
+  },
+"StorageInfoErrorCallback.dart":
+  {
+
+  },
+"TimeRanges.dart":
+  {
+
+  },
+"CanvasRenderingContext.dart":
+  {
+
+  },
+"IDBOpenDBRequest.dart":
+  {
+
+  },
+"TableSectionElement.dart":
+  {
+
+  },
+"Point.dart":
+  {
+
+  },
+"OESTextureFloat.dart":
+  {
+
+  },
+"Uint8ClampedArray.dart":
+  {
+
+  },
+"TransitionEvent.dart":
+  {
+
+  },
+"WebGLActiveInfo.dart":
+  {
+
+  },
+"SharedWorkerContext.dart":
+  {
+
+  },
+"HttpRequestProgressEvent.dart":
+  {
+
+  },
+"Comment.dart":
+  {
+
+  },
+"BaseElement.dart":
+  {
+
+  },
+"CloseEvent.dart":
+  {
+
+  },
+"DOMPluginArray.dart":
+  {
+
+  },
+"PopStateEvent.dart":
+  {
+
+  },
+"RGBColor.dart":
+  {
+
+  },
+"DOMSettableTokenList.dart":
+  {
+
+  },
+"Geolocation.dart":
+  {
+
+  },
+"DataTransferItem.dart":
+  {
+
+  },
+"DOMError.dart":
+  {
+
+  },
+"FormData.dart":
+  {
+
+  },
+"SQLTransactionErrorCallback.dart":
+  {
+
+  },
+"OverflowEvent.dart":
+  {
+
+  },
+"AnimationEvent.dart":
+  {
+
+  },
+"FontElement.dart":
+  {
+
+  },
+"ScriptProfileNode.dart":
+  {
+
+  },
+"SpeechRecognition.dart":
+  {
+
+  },
+"WebGLContextEvent.dart":
+  {
+
+  },
+"SpeechRecognitionEvent.dart":
+  {
+
+  },
+"RadioNodeList.dart":
+  {
+
+  },
+"BatteryManager.dart":
+  {
+
+  },
+"SelectElement.dart":
+  {
+
+  },
+"EventException.dart":
+  {
+
+  },
+"DOMImplementation.dart":
+  {
+
+  },
+"WebGLFramebuffer.dart":
+  {
+
+  },
+"Navigator.dart":
+  {
+
+  },
+"WebGLShader.dart":
+  {
+
+  },
+"IceCandidate.dart":
+  {
+
+  },
+"WebSocket.dart":
+  {
+
+  },
+"RequestAnimationFrameCallback.dart":
+  {
+
+  },
+"RTCStatsElement.dart":
+  {
+
+  },
+"HeadElement.dart":
+  {
+
+  },
+"CanvasRenderingContext2D.dart":
+  {
+
+  },
+"IDBKey.dart":
+  {
+
+  },
+"ElementTraversal.dart":
+  {
+
+  },
+"Float32Array.dart":
+  {
+
+  },
+"RTCSessionDescription.dart":
+  {
+
+  },
+"DOMTokenList.dart":
+  {
+
+  },
+"RTCStatsCallback.dart":
+  {
+
+  },
+"FrameSetElement.dart":
+  {
+
+  },
+"IDBIndex.dart":
+  {
+
+  },
+"EventSource.dart":
+  {
+
+  },
+"MediaStreamAudioSourceNode.dart":
+  {
+
+  },
+"DeviceOrientationEvent.dart":
+  {
+
+  },
+"DOMFileSystem.dart":
+  {
+
+  },
+"SpeechInputResult.dart":
+  {
+
+  },
+"DataView.dart":
+  {
+
+  },
+"LocalLocation.dart":
+  {
+
+  },
+"AnchorElement.dart":
+  {
+
+  },
+"HtmlDocument.dart":
+  {
+
+  },
+"ImageData.dart":
+  {
+
+  },
+"PageTransitionEvent.dart":
+  {
+
+  },
+"AudioGain.dart":
+  {
+
+  },
+"PannerNode.dart":
+  {
+
+  },
+"UIEvent.dart":
+  {
+
+  },
+"SourceBuffer.dart":
+  {
+
+  },
+"CSSPrimitiveValue.dart":
+  {
+
+  },
+"MediaQueryList.dart":
+  {
+
+  },
+"TableCellElement.dart":
+  {
+
+  },
+"ScriptProcessorNode.dart":
+  {
+
+  },
+"ShadowRoot.dart":
+  {
+
+  },
+"MeterElement.dart":
+  {
+
+  },
+"WebKitNamedFlow.dart":
+  {
+
+  },
+"HashChangeEvent.dart":
+  {
+
+  },
+"WebGLBuffer.dart":
+  {
+
+  },
+"TouchEvent.dart":
+  {
+
+  },
+"LegendElement.dart":
+  {
+
+  },
+"CDATASection.dart":
+  {
+
+  },
+"HttpRequestUpload.dart":
+  {
+
+  },
+"Uint8Array.dart":
+  {
+
+  },
+"StyleSheet.dart":
+  {
+
+  },
+"DataTransferItemList.dart":
+  {
+
+  },
+"RTCErrorCallback.dart":
+  {
+
+  },
+"IDBDatabase.dart":
+  {
+
+  },
+"AppletElement.dart":
+  {
+
+  },
+"TextTrackList.dart":
+  {
+
+  },
+"NodeIterator.dart":
+  {
+
+  },
+"DynamicsCompressorNode.dart":
+  {
+
+  },
+"TextMetrics.dart":
+  {
+
+  },
+"Database.dart":
+  {
+
+  },
+"OfflineAudioCompletionEvent.dart":
+  {
+
+  },
+"SQLTransaction.dart":
+  {
+
+  },
+"TableRowElement.dart":
+  {
+
+  },
+"MediaStream.dart":
+  {
+
+  },
+"MetadataCallback.dart":
+  {
+
+  },
+"TreeWalker.dart":
+  {
+
+  },
+"IDBTransaction.dart":
+  {
+
+  },
+"WebGLContextAttributes.dart":
+  {
+
+  },
+"FileEntrySync.dart":
+  {
+
+  },
+"ProgressEvent.dart":
+  {
+
+  },
+"OscillatorNode.dart":
+  {
+
+  },
+"CSSKeyframesRule.dart":
+  {
+
+  },
+"ConvolverNode.dart":
+  {
+
+  },
+"MouseEvent.dart":
+  {
+
+  },
+"Notification.dart":
+  {
+
+  },
+"ChannelSplitterNode.dart":
+  {
+
+  },
+"DirectoryReaderSync.dart":
+  {
+
+  },
+"MemoryInfo.dart":
+  {
+
+  },
+"CSSCharsetRule.dart":
+  {
+
+  },
+"RTCStatsResponse.dart":
+  {
+
+  },
+"SQLError.dart":
+  {
+
+  },
+"EntriesCallback.dart":
+  {
+
+  },
+"CanvasPattern.dart":
+  {
+
+  },
+"WebGLUniformLocation.dart":
+  {
+
+  },
+"NotificationCenter.dart":
+  {
+
+  },
+"WorkerNavigator.dart":
+  {
+
+  },
+"MarqueeElement.dart":
+  {
+
+  },
+"EXTTextureFilterAnisotropic.dart":
+  {
+
+  },
+"WebGLVertexArrayObjectOES.dart":
+  {
+
+  },
+"InputElement.dart":
+  {
+
+  },
+"ImageElement.dart":
+  {
+
+  },
+"WebGLDebugRendererInfo.dart":
+  {
+
+  },
+"SpeechRecognitionError.dart":
+  {
+
+  },
+"XPathResult.dart":
+  {
+
+  },
+"ErrorEvent.dart":
+  {
+
+  },
+"FileWriterCallback.dart":
+  {
+
+  },
+"ArrayBuffer.dart":
+  {
+
+  },
+"MessagePort.dart":
+  {
+
+  },
+"CSSKeyframeRule.dart":
+  {
+
+  },
+"NavigatorUserMediaErrorCallback.dart":
+  {
+
+  },
+"TextTrackCueList.dart":
+  {
+
+  },
+"PositionError.dart":
+  {
+
+  },
+"File.dart":
+  {
+
+  },
+"LinkElement.dart":
+  {
+
+  },
+"DeviceMotionEvent.dart":
+  {
+
+  },
+"KeygenElement.dart":
+  {
+
+  },
+"VoidCallback.dart":
+  {
+
+  },
+"ShadowElement.dart":
+  {
+
+  },
+"NotificationPermissionCallback.dart":
+  {
+
+  },
+"WebKitCSSFilterValue.dart":
+  {
+
+  },
+"CompositionEvent.dart":
+  {
+
+  },
+"LocalMediaStream.dart":
+  {
+
+  },
+"RTCSessionDescriptionCallback.dart":
+  {
+
+  },
+"HeadingElement.dart":
+  {
+
+  },
+"ScriptProfile.dart":
+  {
+
+  },
+"DOMMimeType.dart":
+  {
+
+  },
+"MutationObserver.dart":
+  {
+
+  },
+"MetaElement.dart":
+  {
+
+  },
+"SpeechRecognitionResult.dart":
+  {
+
+  },
+"FrameElement.dart":
+  {
+
+  },
+"TitleElement.dart":
+  {
+
+  },
+"Uint16Array.dart":
+  {
+
+  },
+"AudioBufferCallback.dart":
+  {
+
+  },
+"IDBCursorWithValue.dart":
+  {
+
+  },
+"HttpRequest.dart":
+  {
+
+  },
+"MediaStreamTrackList.dart":
+  {
+
+  },
+"MediaStreamEvent.dart":
+  {
+
+  },
+"IFrameElement.dart":
+  {
+
+  },
+"ParagraphElement.dart":
+  {
+
+  },
+"CSSRule.dart":
+  {
+
+  },
+"QuoteElement.dart":
+  {
+
+  },
+"AudioDestinationNode.dart":
+  {
+
+  },
+"DListElement.dart":
+  {
+
+  },
+"RTCDataChannelEvent.dart":
+  {
+
+  },
+"TableCaptionElement.dart":
+  {
+
+  },
+"SpanElement.dart":
+  {
+
+  },
+"DirectoryEntry.dart":
+  {
+
+  },
+"MediaStreamTrackEvent.dart":
+  {
+
+  },
+"OutputElement.dart":
+  {
+
+  },
+"WheelEvent.dart":
+  {
+
+  },
+"SpeechGrammarList.dart":
+  {
+
+  },
+"PositionCallback.dart":
+  {
+
+  },
+"BarInfo.dart":
+  {
+
+  },
+"FileWriterSync.dart":
+  {
+
+  },
+"AudioListener.dart":
+  {
+
+  },
+"SQLStatementErrorCallback.dart":
+  {
+
+  },
+"BeforeLoadEvent.dart":
+  {
+
+  },
+"CSSMediaRule.dart":
+  {
+
+  },
+"MediaStreamTrack.dart":
+  {
+
+  },
+"XPathEvaluator.dart":
+  {
+
+  },
+"AreaElement.dart":
+  {
+
+  },
+"Node.dart":
+  {
+
+  },
+"IDBAny.dart":
+  {
+
+  },
+"BiquadFilterNode.dart":
+  {
+
+  },
+"DOMPlugin.dart":
+  {
+
+  },
+"DatabaseSync.dart":
+  {
+
+  },
+"CSSStyleSheet.dart":
+  {
+
+  },
+"DocumentType.dart":
+  {
+
+  },
+"Uint32Array.dart":
+  {
+
+  },
+"EmbedElement.dart":
+  {
+
+  },
+"Int32Array.dart":
+  {
+
+  },
+"PerformanceNavigation.dart":
+  {
+
+  },
+"MutationCallback.dart":
+  {
+
+  },
+"WebGLRenderingContext.dart":
+  {
+
+  },
+"SpeechInputEvent.dart":
+  {
+
+  },
+"IceCallback.dart":
+  {
+
+  },
+"RangeException.dart":
+  {
+
+  },
+"DirectoryReader.dart":
+  {
+
+  },
+"UnknownElement.dart":
+  {
+
+  },
+"ErrorCallback.dart":
+  {
+
+  },
+"CanvasGradient.dart":
+  {
+
+  },
+"SQLTransactionCallback.dart":
+  {
+
+  },
+"Coordinates.dart":
+  {
+
+  },
+"JavaScriptCallFrame.dart":
+  {
+
+  },
+"StyleMedia.dart":
+  {
+
+  },
+"IDBDatabaseException.dart":
+  {
+
+  },
+"ArrayBufferView.dart":
+  {
+
+  },
+"Console.dart":
+  {
+
+  },
+"CanvasElement.dart":
+  {
+
+  },
+"RTCDataChannel.dart":
+  {
+
+  },
+"Int16Array.dart":
+  {
+
+  },
+"KeyboardEvent.dart":
+  {
+
+  },
+"FileSystemCallback.dart":
+  {
+
+  },
+"StorageInfoQuotaCallback.dart":
+  {
+
+  },
+"Screen.dart":
+  {
+
+  },
+"SessionDescription.dart":
+  {
+
+  },
+"Range.dart":
+  {
+
+  },
+"VideoElement.dart":
+  {
+
+  },
+"DirectoryElement.dart":
+  {
+
+  },
+"ModElement.dart":
+  {
+
+  },
+"Animation.dart":
+  {
+
+  },
+"WebGLProgram.dart":
+  {
+
+  },
+"Gamepad.dart":
+  {
+
+  },
+"Clipboard.dart":
+  {
+
+  },
+"Storage.dart":
+  {
+
+  },
+"LocalWindow.dart":
+  {
+
+  },
+"MediaQueryListListener.dart":
+  {
+
+  },
+"TextAreaElement.dart":
+  {
+
+  },
+"DOMApplicationCache.dart":
+  {
+
+  },
+"ParamElement.dart":
+  {
+
+  },
+"HTMLOptionsCollection.dart":
+  {
+
+  },
+"MessageEvent.dart":
+  {
+
+  },
+"AbstractWorker.dart":
+  {
+
+  },
+"OListElement.dart":
+  {
+
+  },
+"FileReader.dart":
+  {
+
+  },
+"Blob.dart":
+  {
+
+  },
+"NamedNodeMap.dart":
+  {
+
+  },
+"DataListElement.dart":
+  {
+
+  },
+"CSSImportRule.dart":
+  {
+
+  },
+"AudioParam.dart":
+  {
+
+  },
+"DOMException.dart":
+  {
+
+  },
+"ObjectElement.dart":
+  {
+
+  },
+"CSSStyleRule.dart":
+  {
+
+  },
+"TouchList.dart":
+  {
+
+  },
+"MediaElementAudioSourceNode.dart":
+  {
+
+  },
+"CSSValue.dart":
+  {
+
+  },
+"Geoposition.dart":
+  {
+
+  },
+"MediaKeyEvent.dart":
+  {
+
+  },
+"MutationRecord.dart":
+  {
+
+  },
+"CSSTransformValue.dart":
+  {
+
+  },
+"FileError.dart":
+  {
+
+  },
+"Performance.dart":
+  {
+
+  },
+"DivElement.dart":
+  {
+
+  },
+"AnalyserNode.dart":
+  {
+
+  },
+"AudioBuffer.dart":
+  {
+
+  },
+"SQLTransactionSyncCallback.dart":
+  {
+
+  },
+"StorageInfo.dart":
+  {
+
+  },
+"GainNode.dart":
+  {
+
+  },
+"TimeoutHandler.dart":
+  {
+
+  },
+"MutationEvent.dart":
+  {
+
+  },
+"SpeechRecognitionAlternative.dart":
+  {
+
+  },
+"AudioNode.dart":
+  {
+
+  },
+"SQLResultSetRowList.dart":
+  {
+
+  },
+"ContentElement.dart":
+  {
+
+  },
+"OESVertexArrayObject.dart":
+  {
+
+  },
+"TableColElement.dart":
+  {
+
+  },
+"RTCPeerConnection.dart":
+  {
+
+  },
+"Crypto.dart":
+  {
+
+  },
+"StyleElement.dart":
+  {
+
+  },
+"TrackElement.dart":
+  {
+
+  },
+"IDBVersionChangeRequest.dart":
+  {
+
+  },
+"TextEvent.dart":
+  {
+
+  },
+"ElementTimeControl.dart":
+  {
+
+  },
+"Touch.dart":
+  {
+
+  },
+"FieldSetElement.dart":
+  {
+
+  },
+"XSLTProcessor.dart":
+  {
+
+  },
+"EventTarget.dart":
+  {
+
+  },
+"Document.dart":
+  {
+
+  },
+"CSSStyleDeclaration.dart":
+  {
+
+  },
+"DocumentFragment.dart":
+  {
+
+  },
+"XPathNSResolver.dart":
+  {
+
+  },
+"DedicatedWorkerContext.dart":
+  {
+
+  },
+"IDBRequest.dart":
+  {
+
+  },
+"XPathExpression.dart":
+  {
+
+  },
+"IDBObjectStore.dart":
+  {
+
+  },
+"DelayNode.dart":
+  {
+
+  },
+"SQLResultSet.dart":
+  {
+
+  },
+"ButtonElement.dart":
+  {
+
+  },
+"ValidityState.dart":
+  {
+
+  },
+"Text.dart":
+  {
+
+  },
+"DirectoryEntrySync.dart":
+  {
+
+  },
+"Url.dart":
+  {
+
+  },
+"CSSFontFaceRule.dart":
+  {
+
+  },
+"NavigatorUserMediaSuccessCallback.dart":
+  {
+
+  },
+"OptGroupElement.dart":
+  {
+
+  },
+"Entry.dart":
+  {
+
+  },
+"IDBFactory.dart":
+  {
+
+  },
+"OptionElement.dart":
+  {
+
+  },
+"AudioContext.dart":
+  {
+
+  },
+"DetailsElement.dart":
+  {
+
+  },
+"DOMSelection.dart":
+  {
+
+  },
+"LabelElement.dart":
+  {
+
+  },
+"CSSUnknownRule.dart":
+  {
+
+  },
+"ProcessingInstruction.dart":
+  {
+
+  },
+"HTMLAllCollection.dart":
+  {
+
+  },
+"TrackEvent.dart":
+  {
+
+  },
+"SharedWorker.dart":
+  {
+
+  },
+"Element.dart":
+  {
+
+  },
+"MediaSource.dart":
+  {
+
+  },
+"MediaList.dart":
+  {
+
+  },
+"StringCallback.dart":
+  {
+
+  },
+"DOMFileSystemSync.dart":
+  {
+
+  },
+"DOMStringMap.dart":
+  {
+
+  },
+"AudioProcessingEvent.dart":
+  {
+
+  },
+"Attr.dart":
+  {
+
+  },
+"ChannelMergerNode.dart":
+  {
+
+  },
+"IDBCursor.dart":
+  {
+
+  },
+"MessageChannel.dart":
+  {
+
+  },
+"FileCallback.dart":
+  {
+
+  },
+"PerformanceTiming.dart":
+  {
+
+  },
+"SourceBufferList.dart":
+  {
+
+  },
+"AudioElement.dart":
+  {
+
+  },
+"Event.dart":
+  {
+
+  },
+"FileReaderSync.dart":
+  {
+
+  },
+"TextTrack.dart":
+  {
+
+  },
+"Counter.dart":
+  {
+
+  },
+"MediaElement.dart":
+  {
+
+  },
+"DOMMimeTypeArray.dart":
+  {
+
+  },
+"PreElement.dart":
+  {
+
+  },
+"WebGLDepthTexture.dart":
+  {
+
+  },
+"FormElement.dart":
+  {
+
+  },
+"HttpRequestException.dart":
+  {
+
+  },
+"PeerConnection00.dart":
+  {
+
+  },
+"PagePopupController.dart":
+  {
+
+  },
+"LIElement.dart":
+  {
+
+  },
+"AudioBufferSourceNode.dart":
+  {
+
+  },
+"AudioSourceNode.dart":
+  {
+
+  },
+"RTCStatsReport.dart":
+  {
+
+  },
+"SQLStatementCallback.dart":
+  {
+
+  },
+"WaveTable.dart":
+  {
+
+  },
+"DatabaseCallback.dart":
+  {
+
+  },
+"WebGLTexture.dart":
+  {
+
+  },
+"EntrySync.dart":
+  {
+
+  },
+"SpeechGrammar.dart":
+  {
+
+  },
+"WaveShaperNode.dart":
+  {
+
+  },
+"MediaKeyError.dart":
+  {
+
+  }
+}
