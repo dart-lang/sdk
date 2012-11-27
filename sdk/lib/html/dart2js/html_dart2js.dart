@@ -7336,24 +7336,6 @@ class _ElementCssClassSet extends CssClassSet {
   }
 }
 
-class _SimpleClientRect implements ClientRect {
-  final num left;
-  final num top;
-  final num width;
-  final num height;
-  num get right => left + width;
-  num get bottom => top + height;
-
-  const _SimpleClientRect(this.left, this.top, this.width, this.height);
-
-  bool operator ==(ClientRect other) {
-    return other != null && left == other.left && top == other.top
-        && width == other.width && height == other.height;
-  }
-
-  String toString() => "($left, $top, $width, $height)";
-}
-
 abstract class Element extends Node implements ElementTraversal native "*Element" {
 
   factory Element.html(String html) =>
