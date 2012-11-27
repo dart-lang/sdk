@@ -947,7 +947,11 @@ class ElementListener extends Listener {
   }
 
   Token unexpected(Token token) {
-    listener.cancel("unexpected token '${token.slowToString()}'", token: token);
+    String message = "unexpected token '${token.slowToString()}'";
+    if (token.info == BAD_INPUT_INFO) {
+      message = token.stringValue;
+    }
+    listener.cancel(message, token: token);
     return skipToEof(token);
   }
 

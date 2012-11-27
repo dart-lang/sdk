@@ -68,8 +68,7 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
     tail.next = tail;
     discardOpenLt();
     while (!groupingStack.isEmpty) {
-      BeginGroupToken begin = groupingStack.head;
-      begin.endGroup = tail;
+      unmatchedBeginGroup(groupingStack.head);
       groupingStack = groupingStack.tail;
     }
   }
