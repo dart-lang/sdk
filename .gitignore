@@ -5,62 +5,30 @@
 #
 # Whenever possible, prefer creating ignores in svn and then generating them
 # to keep git in sync.
-/api_docs.target.mk
-/benchmarks
-/compiler.target.mk
-/create_sdk.target.mk
-/dart.Makefile
-/dart.xcodeproj
-/dart2js.target.mk
-/dart2js_bot.target.mk
-/Makefile
-/out
-/runtime.target.mk
-/samples.target.mk
-/upload_sdk.target.mk
-/xcodebuild
-/upload_sdk.vcxproj
-/dart2js.vcxproj.user
-/api_docs.vcproj
-/upload_sdk.vcxproj.filters
-/api_docs.vcxproj.user
-/dart.suo
-/dart2js.vcxproj
-/compiler.vcxproj
-/dart.sdf
-/cached_results.txt
-/chromedriver.log
-/api_docs.vcxproj
-/compiler.vcproj
-/timing_info.txt
-/compiler.vcxproj.user
-/dart.sln
-/runtime.vcproj
-/upload_sdk.vcproj
-/runtime.vcxproj.user
-/upload_sdk.vcxproj.user
-/create_sdk.vcxproj
-/create_sdk.vcxproj.filters
-/create_sdk.vcproj
-/samples.vcproj
-/dart2js.vcproj
-/create_sdk.vcxproj.user
-/runtime.vcxproj
-/build
-/*.xcodeproj
 /.children
 /.project
+/Makefile
+/benchmarks
+/build
+/dart.sdf
+/dart.suo
+/out
+/xcodebuild
+/*.Makefile
 /*.pyc
+/*.sln
+/*.target.mk
+/*.vcproj
+/*.vcxproj
+/*.vcxproj.user
+/*.vcxproj.filters
+/*.xcodeproj
+/cached_results.txt
+/chromedriver.log
+/timing_info.txt
 
 # End generated ignores. The following are hand-added because the svn:ignore
 # stuff doesn't handle them well.
-
-# Generated XCode projects on Mac
-*.xcodeproj
-
-# Dart Editor config files
-.children
-.project
 
 # Built by chromebot and downloaded from Google Storage
 client/tests/drt

@@ -1,8 +1,14 @@
-/compiler.Makefile
-/compiler.xcodeproj
-/dart2js.target.mk
+/Makefile
 /out
 /xcodebuild
+/*.Makefile
+/*.sln
+/*.target.mk
+/*.vcproj
+/*.vcxproj
+/*.vcxproj.filters
+/*.vcxproj.user
+/*.xcodeproj
 /Debug
 /DebugARM
 /DebugIA32
@@ -13,9 +19,3 @@
 /ReleaseIA32
 /ReleaseSIMARM
 /ReleaseX64
-/api_docs.vcxproj
-/dart2js.vcxproj.user
-/dart2js.vcxproj
-/compiler.sln
-/dart2js.vcxproj.filters
-/dart2js.vcproj
