@@ -74,19 +74,7 @@ def _load_idl_file(file_name, import_options):
   except SyntaxError, e:
     raise RuntimeError('Failed to load file %s: %s'
                        % (file_name, e))
- 
-def _load_idl_file_to_queue(file_name, import_options, result_queue):
-  """Loads an IDL file into a result_queue to process in the master thread"""
-  try:
-    result = _load_idl_file(file_name, import_options)
-    result_queue.put(result, False)
-    return 0
-  except RuntimeError, e:
-    result_queue.put(e, False)
-    return 1
-  except:
-    result_queue.put('Unknown error loading %s' % file_name, False)
-    return 1
+
 
 class DatabaseBuilder(object):
   def __init__(self, database):
@@ -429,25 +417,17 @@ class DatabaseBuilder(object):
   def import_idl_files(self, file_paths, import_options, parallel):
     if parallel:
       # Parse the IDL files in parallel.
-      result_queue = multiprocessing.Queue(len(file_paths))
-      jobs = [ multiprocessing.Process(target=_load_idl_file_to_queue,
-                                       args=(file_path, import_options,
-                                             result_queue))
-               for file_path in file_paths ]
+      pool = multiprocessing.Pool()
       try:
-        for job in jobs:
-          job.start()
-        for job in jobs:
-          # Timeout and throw after 5 sec.
-          result = result_queue.get(True, 5)
-          if isinstance(result, IDLFile):
-            self._process_idl_file(result, import_options)
-          else:
-            raise result
+        for file_path in file_paths:
+          pool.apply_async(_load_idl_file,
+                           [ file_path, import_options],
+                           callback = lambda idl_file:
+                             self._process_idl_file(idl_file, import_options))
+        pool.close()
+        pool.join()
       except:
-        # Clean up child processes on error.
-        for job in jobs:
-          job.terminate()
+        pool.terminate()
         raise
     else:
       # Parse the IDL files in serial.
