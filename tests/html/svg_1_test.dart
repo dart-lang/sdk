@@ -14,7 +14,7 @@ main() {
   test('simpleRect', () {
       var div = new Element.tag('div');
       document.body.nodes.add(div);
-      div.innerHTML = r'''
+      div.innerHtml = r'''
 <svg id='svg1' width='200' height='100'>
 <rect id='rect1' x='10' y='20' width='130' height='40' rx='5'fill='blue'></rect>
 </svg>

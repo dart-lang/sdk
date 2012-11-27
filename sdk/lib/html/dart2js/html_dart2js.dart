@@ -173,6 +173,9 @@ class AnchorElement extends Element implements Element native "*HTMLAnchorElemen
   /// @domName HTMLAnchorElement.target; @docsEditable true
   String target;
 
+  /// @domName HTMLAnchorElement.text; @docsEditable true
+  final String text;
+
   /// @domName HTMLAnchorElement.type; @docsEditable true
   String type;
 
@@ -955,6 +958,9 @@ class BodyElement extends Element implements Element native "*HTMLBodyElement" {
   /// @domName HTMLBodyElement.link; @docsEditable true
   String link;
 
+  /// @domName HTMLBodyElement.text; @docsEditable true
+  String text;
+
   /// @domName HTMLBodyElement.vLink; @docsEditable true
   String vLink;
 }
@@ -1357,7 +1363,7 @@ class CSSPrimitiveValue extends CSSValue native "*CSSPrimitiveValue" {
   num getFloatValue(int unitType) native;
 
   /// @domName CSSPrimitiveValue.getRGBColorValue; @docsEditable true
-  RGBColor getRGBColorValue() native;
+  RGBColor getRgbColorValue() native "getRGBColorValue";
 
   /// @domName CSSPrimitiveValue.getRectValue; @docsEditable true
   Rect getRectValue() native;
@@ -1447,7 +1453,7 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
   final CSSRule parentRule;
 
   /// @domName CSSStyleDeclaration.getPropertyCSSValue; @docsEditable true
-  CSSValue getPropertyCSSValue(String propertyName) native;
+  CSSValue getPropertyCssValue(String propertyName) native "getPropertyCSSValue";
 
   /// @domName CSSStyleDeclaration.getPropertyPriority; @docsEditable true
   String getPropertyPriority(String propertyName) native;
@@ -4781,7 +4787,7 @@ class CanvasElement extends Element implements Element native "*HTMLCanvasElemen
   int width;
 
   /// @domName HTMLCanvasElement.toDataURL; @docsEditable true
-  String toDataURL(String type, [num quality]) native;
+  String toDataUrl(String type, [num quality]) native "toDataURL";
 
 
   CanvasRenderingContext getContext(String contextId) native;
@@ -5639,7 +5645,7 @@ class DOMFileSystemSync native "*DOMFileSystemSync" {
 class DOMImplementation native "*DOMImplementation" {
 
   /// @domName DOMImplementation.createCSSStyleSheet; @docsEditable true
-  CSSStyleSheet createCSSStyleSheet(String title, String media) native;
+  CSSStyleSheet createCssStyleSheet(String title, String media) native "createCSSStyleSheet";
 
   /// @domName DOMImplementation.createDocument; @docsEditable true
   Document createDocument(String namespaceURI, String qualifiedName, DocumentType doctype) native;
@@ -5648,7 +5654,7 @@ class DOMImplementation native "*DOMImplementation" {
   DocumentType createDocumentType(String qualifiedName, String publicId, String systemId) native;
 
   /// @domName DOMImplementation.createHTMLDocument; @docsEditable true
-  HtmlDocument createHTMLDocument(String title) native;
+  HtmlDocument createHtmlDocument(String title) native "createHTMLDocument";
 
   /// @domName DOMImplementation.hasFeature; @docsEditable true
   bool hasFeature(String feature, String version) native;
@@ -6445,6 +6451,9 @@ class DirectoryReaderSync native "*DirectoryReaderSync" {
 class DivElement extends Element implements Element native "*HTMLDivElement" {
 
   factory DivElement() => document.$dom_createElement("div");
+
+  /// @domName HTMLDivElement.align; @docsEditable true
+  String align;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6537,7 +6546,7 @@ class Document extends Node  native "*Document"
   Range $dom_caretRangeFromPoint(int x, int y) native "caretRangeFromPoint";
 
   /// @domName Document.createCDATASection; @docsEditable true
-  CDATASection createCDATASection(String data) native;
+  CDATASection createCDataSection(String data) native "createCDATASection";
 
   /// @domName Document.createDocumentFragment; @docsEditable true
   DocumentFragment createDocumentFragment() native;
@@ -6574,7 +6583,7 @@ class Document extends Node  native "*Document"
   bool execCommand(String command, bool userInterface, String value) native;
 
   /// @domName Document.getCSSCanvasContext; @docsEditable true
-  CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height) native;
+  CanvasRenderingContext getCssCanvasContext(String contextId, String name, int width, int height) native "getCSSCanvasContext";
 
   /// @domName Document.getElementById; @docsEditable true
   Element $dom_getElementById(String elementId) native "getElementById";
@@ -6729,21 +6738,21 @@ class DocumentFragment extends Node native "*DocumentFragment" {
   List<Element> queryAll(String selectors) =>
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
-  String get innerHTML {
+  String get innerHtml {
     final e = new Element.tag("div");
     e.nodes.add(this.clone(true));
-    return e.innerHTML;
+    return e.innerHtml;
   }
 
-  String get outerHTML => innerHTML;
+  String get outerHtml => innerHtml;
 
-  // TODO(nweiz): Do we want to support some variant of innerHTML for XML and/or
+  // TODO(nweiz): Do we want to support some variant of innerHtml for XML and/or
   // SVG strings?
-  void set innerHTML(String value) {
+  void set innerHtml(String value) {
     this.nodes.clear();
 
     final e = new Element.tag("div");
-    e.innerHTML = value;
+    e.innerHtml = value;
 
     // Copy list first since we don't want liveness during iteration.
     List nodes = new List.from(e.nodes);
@@ -6773,7 +6782,7 @@ class DocumentFragment extends Node native "*DocumentFragment" {
     this._insertAdjacentNode(where, new Text(text));
   }
 
-  void insertAdjacentHTML(String where, String text) {
+  void insertAdjacentHtml(String where, String text) {
     this._insertAdjacentNode(where, new DocumentFragment.html(text));
   }
 
@@ -6782,7 +6791,7 @@ class DocumentFragment extends Node native "*DocumentFragment" {
   }
 
   void addHtml(String text) {
-    this.insertAdjacentHTML('beforeend', text);
+    this.insertAdjacentHtml('beforeend', text);
   }
 
   // If we can come up with a semi-reasonable default value for an Element
@@ -7357,6 +7366,14 @@ abstract class Element extends Node implements ElementTraversal native "*Element
     }
   }
 
+  /**
+   * Deprecated, use innerHtml instead.
+   */
+  String get innerHTML => this.innerHtml;
+  void set innerHTML(String value) {
+    this.innerHtml = value;
+  }
+
   void set elements(Collection<Element> value) {
     this.children = value;
   }
@@ -7438,7 +7455,7 @@ abstract class Element extends Node implements ElementTraversal native "*Element
    * last child of this.
    */
   void addHtml(String text) {
-    this.insertAdjacentHTML('beforeend', text);
+    this.insertAdjacentHtml('beforeend', text);
   }
 
   // Hooks to support custom WebComponents.
@@ -7470,15 +7487,15 @@ abstract class Element extends Node implements ElementTraversal native "*Element
       native 'insertAdjacentText';
 
   /** @domName Element.insertAdjacentHTML */
-  void insertAdjacentHTML(String where, String text) {
-    if (JS('bool', '!!#.insertAdjacentHTML', this)) {
-      _insertAdjacentHTML(where, text);
+  void insertAdjacentHtml(String where, String text) {
+    if (JS('bool', '!!#.insertAdjacentHtml', this)) {
+      _insertAdjacentHtml(where, text);
     } else {
       _insertAdjacentNode(where, new DocumentFragment.html(text));
     }
   }
 
-  void _insertAdjacentHTML(String where, String text)
+  void _insertAdjacentHtml(String where, String text)
       native 'insertAdjacentHTML';
 
   /** @domName Element.insertAdjacentHTML */
@@ -7538,7 +7555,12 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   String id;
 
   /// @domName HTMLElement.innerHTML; @docsEditable true
-  String innerHTML;
+  String get innerHtml => JS("String", "#.innerHTML", this);
+
+  /// @domName HTMLElement.innerHTML; @docsEditable true
+  void set innerHtml(String value) {
+    JS("void", "#.innerHTML = #", this, value);
+  }
 
   /// @domName HTMLElement.isContentEditable; @docsEditable true
   final bool isContentEditable;
@@ -7547,7 +7569,7 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   String lang;
 
   /// @domName HTMLElement.outerHTML; @docsEditable true
-  final String outerHTML;
+  String get outerHtml => JS("String", "#.outerHTML", this);
 
   /// @domName HTMLElement.spellcheck; @docsEditable true
   bool spellcheck;
@@ -7752,7 +7774,7 @@ class _ElementFactoryProvider {
       }
     }
     final Element temp = new Element.tag(parentTag);
-    temp.innerHTML = html;
+    temp.innerHtml = html;
 
     Element element;
     if (temp.children.length == 1) {
@@ -8012,7 +8034,7 @@ class Entry native "*Entry" {
   void remove(VoidCallback successCallback, [ErrorCallback errorCallback]) native;
 
   /// @domName Entry.toURL; @docsEditable true
-  String toURL() native;
+  String toUrl() native "toURL";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8061,7 +8083,7 @@ class EntrySync native "*EntrySync" {
   void remove() native;
 
   /// @domName EntrySync.toURL; @docsEditable true
-  String toURL() native;
+  String toUrl() native "toURL";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8236,9 +8258,6 @@ class EventSource extends EventTarget native "*EventSource" {
   static const int CONNECTING = 0;
 
   static const int OPEN = 1;
-
-  /// @domName EventSource.URL; @docsEditable true
-  final String URL;
 
   /// @domName EventSource.readyState; @docsEditable true
   final int readyState;
@@ -8552,7 +8571,7 @@ class FileReader extends EventTarget native "*FileReader" {
   void readAsBinaryString(Blob blob) native;
 
   /// @domName FileReader.readAsDataURL; @docsEditable true
-  void readAsDataURL(Blob blob) native;
+  void readAsDataUrl(Blob blob) native "readAsDataURL";
 
   /// @domName FileReader.readAsText; @docsEditable true
   void readAsText(Blob blob, [String encoding]) native;
@@ -8593,7 +8612,7 @@ class FileReaderSync native "*FileReaderSync" {
   String readAsBinaryString(Blob blob) native;
 
   /// @domName FileReaderSync.readAsDataURL; @docsEditable true
-  String readAsDataURL(Blob blob) native;
+  String readAsDataUrl(Blob blob) native "readAsDataURL";
 
   /// @domName FileReaderSync.readAsText; @docsEditable true
   String readAsText(Blob blob, [String encoding]) native;
@@ -8977,6 +8996,9 @@ class FormElement extends Element implements Element native "*HTMLFormElement" {
 
   /// @domName HTMLFormElement.autocomplete; @docsEditable true
   String autocomplete;
+
+  /// @domName HTMLFormElement.elements; @docsEditable true
+  final HTMLCollection elements;
 
   /// @domName HTMLFormElement.encoding; @docsEditable true
   String encoding;
@@ -9428,10 +9450,10 @@ class HTMLOptionsCollection extends HTMLCollection native "*HTMLOptionsCollectio
 class HashChangeEvent extends Event native "*HashChangeEvent" {
 
   /// @domName HashChangeEvent.newURL; @docsEditable true
-  final String newURL;
+  String get newUrl => JS("String", "#.newURL", this);
 
   /// @domName HashChangeEvent.oldURL; @docsEditable true
-  final String oldURL;
+  String get oldUrl => JS("String", "#.oldURL", this);
 
   /// @domName HashChangeEvent.initHashChangeEvent; @docsEditable true
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native;
@@ -9565,6 +9587,12 @@ class HtmlDocument extends Document native "*HTMLDocument" {
 class HtmlElement extends Element implements Element native "*HTMLHtmlElement" {
 
   factory HtmlElement() => document.$dom_createElement("html");
+
+  /// @domName HTMLHtmlElement.manifest; @docsEditable true
+  String manifest;
+
+  /// @domName HTMLHtmlElement.version; @docsEditable true
+  String version;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9611,7 +9639,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   String responseType;
 
   /// @domName XMLHttpRequest.responseXML; @docsEditable true
-  final Document responseXML;
+  Document get responseXml => JS("Document", "#.responseXML", this);
 
   /// @domName XMLHttpRequest.status; @docsEditable true
   final int status;
@@ -11760,6 +11788,9 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   /// @domName Window.applicationCache; @docsEditable true
   final DOMApplicationCache applicationCache;
 
+  /// @domName Window.clientInformation; @docsEditable true
+  final Navigator clientInformation;
+
   /// @domName Window.closed; @docsEditable true
   final bool closed;
 
@@ -11781,6 +11812,10 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   /// @domName Window.event; @docsEditable true
   final Event event;
 
+  /// @domName Window.frames; @docsEditable true
+  Window get frames => _convertNativeToDart_Window(this._frames);
+  dynamic get _frames => JS("dynamic", "#.frames", this);
+
   /// @domName Window.history; @docsEditable true
   final LocalHistory history;
 
@@ -11789,6 +11824,9 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   /// @domName Window.innerWidth; @docsEditable true
   final int innerWidth;
+
+  /// @domName Window.length; @docsEditable true
+  final int length;
 
   /// @domName Window.localStorage; @docsEditable true
   final Storage localStorage;
@@ -11906,6 +11944,9 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   /// @domName Window.atob; @docsEditable true
   String atob(String string) native;
 
+  /// @domName Window.blur; @docsEditable true
+  void blur() native;
+
   /// @domName Window.btoa; @docsEditable true
   String btoa(String string) native;
 
@@ -11930,12 +11971,15 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   /// @domName Window.find; @docsEditable true
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native;
 
+  /// @domName Window.focus; @docsEditable true
+  void focus() native;
+
   /// @domName Window.getComputedStyle; @docsEditable true
-  CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native "getComputedStyle";
+  CSSStyleDeclaration getComputedStyle(Element element, String pseudoElement) native;
 
   /// @domName Window.getMatchedCSSRules; @docsEditable true
   @Returns('_CSSRuleList') @Creates('_CSSRuleList')
-  List<CSSRule> getMatchedCSSRules(Element element, String pseudoElement) native;
+  List<CSSRule> getMatchedCssRules(Element element, String pseudoElement) native "getMatchedCSSRules";
 
   /// @domName Window.getSelection; @docsEditable true
   DOMSelection getSelection() native;
@@ -11974,6 +12018,9 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   /// @domName Window.print; @docsEditable true
   void print() native;
 
+  /// @domName Window.prompt; @docsEditable true
+  String prompt(String message, String defaultValue) native;
+
   /// @domName Window.releaseEvents; @docsEditable true
   void releaseEvents() native;
 
@@ -12007,6 +12054,9 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   /// @domName Window.stop; @docsEditable true
   void stop() native;
 
+  /// @domName Window.webkitCancelRequestAnimationFrame; @docsEditable true
+  void webkitCancelRequestAnimationFrame(int id) native;
+
   /// @domName Window.webkitConvertPointFromNodeToPage; @docsEditable true
   Point webkitConvertPointFromNodeToPage(Node node, Point p) native;
 
@@ -12017,7 +12067,7 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native;
 
   /// @domName DOMWindow.webkitResolveLocalFileSystemURL; @docsEditable true
-  void webkitResolveLocalFileSystemURL(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
+  void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "webkitResolveLocalFileSystemURL";
 
 }
 
@@ -12556,7 +12606,7 @@ class MediaKeyError native "*MediaKeyError" {
 class MediaKeyEvent extends Event native "*MediaKeyEvent" {
 
   /// @domName MediaKeyEvent.defaultURL; @docsEditable true
-  final String defaultURL;
+  String get defaultUrl => JS("String", "#.defaultURL", this);
 
   /// @domName MediaKeyEvent.errorCode; @docsEditable true
   final MediaKeyError errorCode;
@@ -13754,7 +13804,7 @@ class Node extends EventTarget native "*Node" {
   String get $dom_localName => JS("String", "#.localName", this);
 
   /// @domName Node.namespaceURI; @docsEditable true
-  String get $dom_namespaceURI => JS("String", "#.namespaceURI", this);
+  String get $dom_namespaceUri => JS("String", "#.namespaceURI", this);
 
   /// @domName Node.nextSibling; @docsEditable true
   Node get nextNode => JS("Node", "#.nextSibling", this);
@@ -13980,7 +14030,7 @@ class NotificationCenter native "*NotificationCenter" {
   int checkPermission() native;
 
   /// @domName NotificationCenter.createHTMLNotification; @docsEditable true
-  Notification createHTMLNotification(String url) native;
+  Notification createHtmlNotification(String url) native "createHTMLNotification";
 
   /// @domName NotificationCenter.createNotification; @docsEditable true
   Notification createNotification(String iconUrl, String title, String body) native;
@@ -14033,16 +14083,16 @@ class OESVertexArrayObject native "*OESVertexArrayObject" {
   static const int VERTEX_ARRAY_BINDING_OES = 0x85B5;
 
   /// @domName OESVertexArrayObject.bindVertexArrayOES; @docsEditable true
-  void bindVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) native;
+  void bindVertexArray(WebGLVertexArrayObjectOES arrayObject) native "bindVertexArrayOES";
 
   /// @domName OESVertexArrayObject.createVertexArrayOES; @docsEditable true
-  WebGLVertexArrayObjectOES createVertexArrayOES() native;
+  WebGLVertexArrayObjectOES createVertexArray() native "createVertexArrayOES";
 
   /// @domName OESVertexArrayObject.deleteVertexArrayOES; @docsEditable true
-  void deleteVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) native;
+  void deleteVertexArray(WebGLVertexArrayObjectOES arrayObject) native "deleteVertexArrayOES";
 
   /// @domName OESVertexArrayObject.isVertexArrayOES; @docsEditable true
-  bool isVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) native;
+  bool isVertexArray(WebGLVertexArrayObjectOES arrayObject) native "isVertexArrayOES";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14210,6 +14260,9 @@ class OptionElement extends Element implements Element native "*HTMLOptionElemen
 
   /// @domName HTMLOptionElement.selected; @docsEditable true
   bool selected;
+
+  /// @domName HTMLOptionElement.text; @docsEditable true
+  String text;
 
   /// @domName HTMLOptionElement.value; @docsEditable true
   String value;
@@ -15691,6 +15744,9 @@ class ScriptElement extends Element implements Element native "*HTMLScriptElemen
   /// @domName HTMLScriptElement.src; @docsEditable true
   String src;
 
+  /// @domName HTMLScriptElement.text; @docsEditable true
+  String text;
+
   /// @domName HTMLScriptElement.type; @docsEditable true
   String type;
 }
@@ -15741,7 +15797,7 @@ class ScriptProfile native "*ScriptProfile" {
 class ScriptProfileNode native "*ScriptProfileNode" {
 
   /// @domName ScriptProfileNode.callUID; @docsEditable true
-  final int callUID;
+  int get callUid => JS("int", "#.callUID", this);
 
   /// @domName ScriptProfileNode.functionName; @docsEditable true
   final String functionName;
@@ -15831,6 +15887,9 @@ class SelectElement extends Element implements Element native "*HTMLSelectElemen
   /// @domName HTMLSelectElement.namedItem; @docsEditable true
   Node namedItem(String name) native;
 
+  /// @domName HTMLSelectElement.remove; @docsEditable true
+  void remove(index_OR_option) native;
+
   /// @domName HTMLSelectElement.setCustomValidity; @docsEditable true
   void setCustomValidity(String error) native;
 
@@ -15895,7 +15954,12 @@ class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
   bool applyAuthorStyles;
 
   /// @domName ShadowRoot.innerHTML; @docsEditable true
-  String innerHTML;
+  String get innerHtml => JS("String", "#.innerHTML", this);
+
+  /// @domName ShadowRoot.innerHTML; @docsEditable true
+  void set innerHtml(String value) {
+    JS("void", "#.innerHTML = #", this, value);
+  }
 
   /// @domName ShadowRoot.resetStyleInheritance; @docsEditable true
   bool resetStyleInheritance;
@@ -17139,7 +17203,7 @@ class TextTrackCue extends EventTarget native "*TextTrackCue" {
   bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
 
   /// @domName TextTrackCue.getCueAsHTML; @docsEditable true
-  DocumentFragment getCueAsHTML() native;
+  DocumentFragment getCueAsHtml() native "getCueAsHTML";
 
   /// @domName TextTrackCue.removeEventListener; @docsEditable true
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
@@ -17406,6 +17470,9 @@ typedef void TimeoutHandler();
 class TitleElement extends Element implements Element native "*HTMLTitleElement" {
 
   factory TitleElement() => document.$dom_createElement("title");
+
+  /// @domName HTMLTitleElement.text; @docsEditable true
+  String text;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19628,7 +19695,7 @@ class WebSocket extends EventTarget native "*WebSocket" {
   static const int OPEN = 1;
 
   /// @domName WebSocket.URL; @docsEditable true
-  final String URL;
+  String get Url => JS("String", "#.URL", this);
 
   /// @domName WebSocket.binaryType; @docsEditable true
   String binaryType;
@@ -19874,10 +19941,10 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   DOMFileSystemSync webkitRequestFileSystemSync(int type, int size) native;
 
   /// @domName WorkerContext.webkitResolveLocalFileSystemSyncURL; @docsEditable true
-  EntrySync webkitResolveLocalFileSystemSyncURL(String url) native;
+  EntrySync webkitResolveLocalFileSystemSyncUrl(String url) native "webkitResolveLocalFileSystemSyncURL";
 
   /// @domName WorkerContext.webkitResolveLocalFileSystemURL; @docsEditable true
-  void webkitResolveLocalFileSystemURL(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
+  void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "webkitResolveLocalFileSystemURL";
 }
 
 class WorkerContextEvents extends Events {
@@ -20019,7 +20086,7 @@ class XPathExpression native "*XPathExpression" {
 class XPathNSResolver native "*XPathNSResolver" {
 
   /// @domName XPathNSResolver.lookupNamespaceURI; @docsEditable true
-  String lookupNamespaceURI(String prefix) native;
+  String lookupNamespaceUri(String prefix) native "lookupNamespaceURI";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24036,7 +24103,7 @@ class _DocumentFragmentFactoryProvider {
 
   static DocumentFragment createDocumentFragment_html(String html) {
     final fragment = new DocumentFragment();
-    fragment.innerHTML = html;
+    fragment.innerHtml = html;
     return fragment;
   }
 
@@ -24044,7 +24111,7 @@ class _DocumentFragmentFactoryProvider {
   // factory DocumentFragment.xml(String xml) {
   //   final fragment = new DocumentFragment();
   //   final e = new XMLElement.tag("xml");
-  //   e.innerHTML = xml;
+  //   e.innerHtml = xml;
   //
   //   // Copy list first since we don't want liveness during iteration.
   //   final List nodes = new List.from(e.nodes);
@@ -24055,7 +24122,7 @@ class _DocumentFragmentFactoryProvider {
   static DocumentFragment createDocumentFragment_svg(String svgContent) {
     final fragment = new DocumentFragment();
     final e = new svg.SVGSVGElement();
-    e.innerHTML = svgContent;
+    e.innerHtml = svgContent;
 
     // Copy list first since we don't want liveness during iteration.
     final List nodes = new List.from(e.nodes);

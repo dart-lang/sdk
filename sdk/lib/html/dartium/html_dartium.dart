@@ -319,6 +319,10 @@ class AnchorElement extends _Element_Merged {
   void set target(String value) native "HTMLAnchorElement_target_Setter";
 
 
+  /** @domName HTMLAnchorElement.text */
+  String get text native "HTMLAnchorElement_text_Getter";
+
+
   /** @domName HTMLAnchorElement.type */
   String get type native "HTMLAnchorElement_type_Getter";
 
@@ -1599,6 +1603,14 @@ class BodyElement extends _Element_Merged {
   void set link(String value) native "HTMLBodyElement_link_Setter";
 
 
+  /** @domName HTMLBodyElement.text */
+  String get text native "HTMLBodyElement_text_Getter";
+
+
+  /** @domName HTMLBodyElement.text */
+  void set text(String value) native "HTMLBodyElement_text_Setter";
+
+
   /** @domName HTMLBodyElement.vLink */
   String get vLink native "HTMLBodyElement_vLink_Getter";
 
@@ -2261,7 +2273,7 @@ class CSSPrimitiveValue extends CSSValue {
 
 
   /** @domName CSSPrimitiveValue.getRGBColorValue */
-  RGBColor getRGBColorValue() native "CSSPrimitiveValue_getRGBColorValue_Callback";
+  RGBColor getRgbColorValue() native "CSSPrimitiveValue_getRGBColorValue_Callback";
 
 
   /** @domName CSSPrimitiveValue.getRectValue */
@@ -2377,7 +2389,7 @@ class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
 
 
   /** @domName CSSStyleDeclaration.getPropertyCSSValue */
-  CSSValue getPropertyCSSValue(String propertyName) native "CSSStyleDeclaration_getPropertyCSSValue_Callback";
+  CSSValue getPropertyCssValue(String propertyName) native "CSSStyleDeclaration_getPropertyCSSValue_Callback";
 
 
   /** @domName CSSStyleDeclaration.getPropertyPriority */
@@ -5779,7 +5791,7 @@ class CanvasElement extends _Element_Merged {
 
 
   /** @domName HTMLCanvasElement.toDataURL */
-  String toDataURL(String type, [num quality]) native "HTMLCanvasElement_toDataURL_Callback";
+  String toDataUrl(String type, [num quality]) native "HTMLCanvasElement_toDataURL_Callback";
 
 
   CanvasRenderingContext2D get context2d => getContext('2d');
@@ -7238,7 +7250,7 @@ class DOMImplementation extends NativeFieldWrapperClass1 {
 
 
   /** @domName DOMImplementation.createCSSStyleSheet */
-  CSSStyleSheet createCSSStyleSheet(String title, String media) native "DOMImplementation_createCSSStyleSheet_Callback";
+  CSSStyleSheet createCssStyleSheet(String title, String media) native "DOMImplementation_createCSSStyleSheet_Callback";
 
 
   /** @domName DOMImplementation.createDocument */
@@ -7250,7 +7262,7 @@ class DOMImplementation extends NativeFieldWrapperClass1 {
 
 
   /** @domName DOMImplementation.createHTMLDocument */
-  HtmlDocument createHTMLDocument(String title) native "DOMImplementation_createHTMLDocument_Callback";
+  HtmlDocument createHtmlDocument(String title) native "DOMImplementation_createHTMLDocument_Callback";
 
 
   /** @domName DOMImplementation.hasFeature */
@@ -8371,6 +8383,14 @@ class DivElement extends _Element_Merged {
   factory DivElement() => document.$dom_createElement("div");
   DivElement.internal(): super.internal();
 
+
+  /** @domName HTMLDivElement.align */
+  String get align native "HTMLDivElement_align_Getter";
+
+
+  /** @domName HTMLDivElement.align */
+  void set align(String value) native "HTMLDivElement_align_Setter";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8496,7 +8516,7 @@ class Document extends Node
 
 
   /** @domName Document.createCDATASection */
-  CDATASection createCDATASection(String data) native "Document_createCDATASection_Callback";
+  CDATASection createCDataSection(String data) native "Document_createCDATASection_Callback";
 
 
   /** @domName Document.createDocumentFragment */
@@ -8540,7 +8560,7 @@ class Document extends Node
 
 
   /** @domName Document.getCSSCanvasContext */
-  CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height) native "Document_getCSSCanvasContext_Callback";
+  CanvasRenderingContext getCssCanvasContext(String contextId, String name, int width, int height) native "Document_getCSSCanvasContext_Callback";
 
 
   /** @domName Document.getElementById */
@@ -8702,21 +8722,21 @@ class DocumentFragment extends Node {
   List<Element> queryAll(String selectors) =>
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
-  String get innerHTML {
+  String get innerHtml {
     final e = new Element.tag("div");
     e.nodes.add(this.clone(true));
-    return e.innerHTML;
+    return e.innerHtml;
   }
 
-  String get outerHTML => innerHTML;
+  String get outerHtml => innerHtml;
 
-  // TODO(nweiz): Do we want to support some variant of innerHTML for XML and/or
+  // TODO(nweiz): Do we want to support some variant of innerHtml for XML and/or
   // SVG strings?
-  void set innerHTML(String value) {
+  void set innerHtml(String value) {
     this.nodes.clear();
 
     final e = new Element.tag("div");
-    e.innerHTML = value;
+    e.innerHtml = value;
 
     // Copy list first since we don't want liveness during iteration.
     List nodes = new List.from(e.nodes);
@@ -8746,7 +8766,7 @@ class DocumentFragment extends Node {
     this._insertAdjacentNode(where, new Text(text));
   }
 
-  void insertAdjacentHTML(String where, String text) {
+  void insertAdjacentHtml(String where, String text) {
     this._insertAdjacentNode(where, new DocumentFragment.html(text));
   }
 
@@ -8755,7 +8775,7 @@ class DocumentFragment extends Node {
   }
 
   void addHtml(String text) {
-    this.insertAdjacentHTML('beforeend', text);
+    this.insertAdjacentHtml('beforeend', text);
   }
 
   // If we can come up with a semi-reasonable default value for an Element
@@ -9357,6 +9377,14 @@ abstract class Element extends Node implements ElementTraversal {
     }
   }
 
+  /**
+   * Deprecated, use innerHtml instead.
+   */
+  String get innerHTML => this.innerHtml;
+  void set innerHTML(String value) {
+    this.innerHtml = value;
+  }
+
   void set elements(Collection<Element> value) {
     this.children = value;
   }
@@ -9438,7 +9466,7 @@ abstract class Element extends Node implements ElementTraversal {
    * last child of this.
    */
   void addHtml(String text) {
-    this.insertAdjacentHTML('beforeend', text);
+    this.insertAdjacentHtml('beforeend', text);
   }
 
   // Hooks to support custom WebComponents.
@@ -9495,7 +9523,7 @@ abstract class Element extends Node implements ElementTraversal {
   String id;
 
   /// @domName HTMLElement.innerHTML; @docsEditable true
-  String innerHTML;
+  String innerHtml;
 
   /// @domName HTMLElement.isContentEditable; @docsEditable true
   bool get isContentEditable;
@@ -9504,7 +9532,7 @@ abstract class Element extends Node implements ElementTraversal {
   String lang;
 
   /// @domName HTMLElement.outerHTML; @docsEditable true
-  String get outerHTML;
+  String get outerHtml;
 
   /// @domName HTMLElement.spellcheck; @docsEditable true
   bool spellcheck;
@@ -9528,7 +9556,7 @@ abstract class Element extends Node implements ElementTraversal {
   Element insertAdjacentElement(String where, Element element);
 
   /// @domName HTMLElement.insertAdjacentHTML; @docsEditable true
-  void insertAdjacentHTML(String where, String html);
+  void insertAdjacentHtml(String where, String html);
 
   /// @domName HTMLElement.insertAdjacentText; @docsEditable true
   void insertAdjacentText(String where, String text);
@@ -9782,7 +9810,7 @@ class _ElementFactoryProvider {
       }
     }
     final Element temp = new Element.tag(parentTag);
-    temp.innerHTML = html;
+    temp.innerHtml = html;
 
     Element element;
     if (temp.children.length == 1) {
@@ -10123,7 +10151,7 @@ class Entry extends NativeFieldWrapperClass1 {
 
 
   /** @domName Entry.toURL */
-  String toURL() native "Entry_toURL_Callback";
+  String toUrl() native "Entry_toURL_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10187,7 +10215,7 @@ class EntrySync extends NativeFieldWrapperClass1 {
 
 
   /** @domName EntrySync.toURL */
-  String toURL() native "EntrySync_toURL_Callback";
+  String toUrl() native "EntrySync_toURL_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10403,10 +10431,6 @@ class EventSource extends EventTarget {
   static const int CONNECTING = 0;
 
   static const int OPEN = 1;
-
-
-  /** @domName EventSource.URL */
-  String get URL native "EventSource_URL_Getter";
 
 
   /** @domName EventSource.readyState */
@@ -10796,7 +10820,7 @@ class FileReader extends EventTarget {
 
 
   /** @domName FileReader.readAsDataURL */
-  void readAsDataURL(Blob blob) native "FileReader_readAsDataURL_Callback";
+  void readAsDataUrl(Blob blob) native "FileReader_readAsDataURL_Callback";
 
   void readAsText(/*Blob*/ blob, [/*DOMString*/ encoding]) {
     if (?encoding) {
@@ -10858,7 +10882,7 @@ class FileReaderSync extends NativeFieldWrapperClass1 {
 
 
   /** @domName FileReaderSync.readAsDataURL */
-  String readAsDataURL(Blob blob) native "FileReaderSync_readAsDataURL_Callback";
+  String readAsDataUrl(Blob blob) native "FileReaderSync_readAsDataURL_Callback";
 
   String readAsText(/*Blob*/ blob, [/*DOMString*/ encoding]) {
     if (?encoding) {
@@ -11367,6 +11391,10 @@ class FormElement extends _Element_Merged {
 
   /** @domName HTMLFormElement.autocomplete */
   void set autocomplete(String value) native "HTMLFormElement_autocomplete_Setter";
+
+
+  /** @domName HTMLFormElement.elements */
+  HTMLCollection get elements native "HTMLFormElement_elements_Getter";
 
 
   /** @domName HTMLFormElement.encoding */
@@ -12000,11 +12028,11 @@ class HashChangeEvent extends Event {
 
 
   /** @domName HashChangeEvent.newURL */
-  String get newURL native "HashChangeEvent_newURL_Getter";
+  String get newUrl native "HashChangeEvent_newURL_Getter";
 
 
   /** @domName HashChangeEvent.oldURL */
-  String get oldURL native "HashChangeEvent_oldURL_Getter";
+  String get oldUrl native "HashChangeEvent_oldURL_Getter";
 
 
   /** @domName HashChangeEvent.initHashChangeEvent */
@@ -12164,6 +12192,22 @@ class HtmlElement extends _Element_Merged {
   factory HtmlElement() => document.$dom_createElement("html");
   HtmlElement.internal(): super.internal();
 
+
+  /** @domName HTMLHtmlElement.manifest */
+  String get manifest native "HTMLHtmlElement_manifest_Getter";
+
+
+  /** @domName HTMLHtmlElement.manifest */
+  void set manifest(String value) native "HTMLHtmlElement_manifest_Setter";
+
+
+  /** @domName HTMLHtmlElement.version */
+  String get version native "HTMLHtmlElement_version_Getter";
+
+
+  /** @domName HTMLHtmlElement.version */
+  void set version(String value) native "HTMLHtmlElement_version_Setter";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12219,7 +12263,7 @@ class HttpRequest extends EventTarget {
 
 
   /** @domName XMLHttpRequest.responseXML */
-  Document get responseXML native "XMLHttpRequest_responseXML_Getter";
+  Document get responseXml native "XMLHttpRequest_responseXML_Getter";
 
 
   /** @domName XMLHttpRequest.status */
@@ -15125,6 +15169,10 @@ class LocalWindow extends EventTarget implements Window {
   DOMApplicationCache get applicationCache native "DOMWindow_applicationCache_Getter";
 
 
+  /** @domName DOMWindow.clientInformation */
+  Navigator get clientInformation native "DOMWindow_clientInformation_Getter";
+
+
   /** @domName DOMWindow.closed */
   bool get closed native "DOMWindow_closed_Getter";
 
@@ -15165,6 +15213,10 @@ class LocalWindow extends EventTarget implements Window {
   Event get event native "DOMWindow_event_Getter";
 
 
+  /** @domName DOMWindow.frames */
+  Window get frames native "DOMWindow_frames_Getter";
+
+
   /** @domName DOMWindow.history */
   LocalHistory get history native "DOMWindow_history_Getter";
 
@@ -15179,6 +15231,10 @@ class LocalWindow extends EventTarget implements Window {
 
   /** @domName DOMWindow.innerWidth */
   int get innerWidth native "DOMWindow_innerWidth_Getter";
+
+
+  /** @domName DOMWindow.length */
+  int get length native "DOMWindow_length_Getter";
 
 
   /** @domName DOMWindow.localStorage */
@@ -15345,6 +15401,10 @@ class LocalWindow extends EventTarget implements Window {
   String atob(String string) native "DOMWindow_atob_Callback";
 
 
+  /** @domName DOMWindow.blur */
+  void blur() native "DOMWindow_blur_Callback";
+
+
   /** @domName DOMWindow.btoa */
   String btoa(String string) native "DOMWindow_btoa_Callback";
 
@@ -15381,12 +15441,16 @@ class LocalWindow extends EventTarget implements Window {
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native "DOMWindow_find_Callback";
 
 
+  /** @domName DOMWindow.focus */
+  void focus() native "DOMWindow_focus_Callback";
+
+
   /** @domName DOMWindow.getComputedStyle */
-  CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native "DOMWindow_getComputedStyle_Callback";
+  CSSStyleDeclaration getComputedStyle(Element element, String pseudoElement) native "DOMWindow_getComputedStyle_Callback";
 
 
   /** @domName DOMWindow.getMatchedCSSRules */
-  List<CSSRule> getMatchedCSSRules(Element element, String pseudoElement) native "DOMWindow_getMatchedCSSRules_Callback";
+  List<CSSRule> getMatchedCssRules(Element element, String pseudoElement) native "DOMWindow_getMatchedCSSRules_Callback";
 
 
   /** @domName DOMWindow.getSelection */
@@ -15419,6 +15483,10 @@ class LocalWindow extends EventTarget implements Window {
 
   /** @domName DOMWindow.print */
   void print() native "DOMWindow_print_Callback";
+
+
+  /** @domName DOMWindow.prompt */
+  String prompt(String message, String defaultValue) native "DOMWindow_prompt_Callback";
 
 
   /** @domName DOMWindow.releaseEvents */
@@ -15473,6 +15541,10 @@ class LocalWindow extends EventTarget implements Window {
   void webkitCancelAnimationFrame(int id) native "DOMWindow_webkitCancelAnimationFrame_Callback";
 
 
+  /** @domName DOMWindow.webkitCancelRequestAnimationFrame */
+  void webkitCancelRequestAnimationFrame(int id) native "DOMWindow_webkitCancelRequestAnimationFrame_Callback";
+
+
   /** @domName DOMWindow.webkitConvertPointFromNodeToPage */
   Point webkitConvertPointFromNodeToPage(Node node, Point p) native "DOMWindow_webkitConvertPointFromNodeToPage_Callback";
 
@@ -15490,7 +15562,7 @@ class LocalWindow extends EventTarget implements Window {
 
 
   /** @domName DOMWindow.webkitResolveLocalFileSystemURL */
-  void webkitResolveLocalFileSystemURL(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
+  void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
 
 }
 
@@ -16304,7 +16376,7 @@ class MediaKeyEvent extends Event {
 
 
   /** @domName MediaKeyEvent.defaultURL */
-  String get defaultURL native "MediaKeyEvent_defaultURL_Getter";
+  String get defaultUrl native "MediaKeyEvent_defaultURL_Getter";
 
 
   /** @domName MediaKeyEvent.errorCode */
@@ -17749,7 +17821,7 @@ class Node extends EventTarget {
 
 
   /** @domName Node.namespaceURI */
-  String get $dom_namespaceURI native "Node_namespaceURI_Getter";
+  String get $dom_namespaceUri native "Node_namespaceURI_Getter";
 
 
   /** @domName Node.nextSibling */
@@ -18046,7 +18118,7 @@ class NotificationCenter extends NativeFieldWrapperClass1 {
 
 
   /** @domName NotificationCenter.createHTMLNotification */
-  Notification createHTMLNotification(String url) native "NotificationCenter_createHTMLNotification_Callback";
+  Notification createHtmlNotification(String url) native "NotificationCenter_createHTMLNotification_Callback";
 
 
   /** @domName NotificationCenter.createNotification */
@@ -18118,19 +18190,19 @@ class OESVertexArrayObject extends NativeFieldWrapperClass1 {
 
 
   /** @domName OESVertexArrayObject.bindVertexArrayOES */
-  void bindVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) native "OESVertexArrayObject_bindVertexArrayOES_Callback";
+  void bindVertexArray(WebGLVertexArrayObjectOES arrayObject) native "OESVertexArrayObject_bindVertexArrayOES_Callback";
 
 
   /** @domName OESVertexArrayObject.createVertexArrayOES */
-  WebGLVertexArrayObjectOES createVertexArrayOES() native "OESVertexArrayObject_createVertexArrayOES_Callback";
+  WebGLVertexArrayObjectOES createVertexArray() native "OESVertexArrayObject_createVertexArrayOES_Callback";
 
 
   /** @domName OESVertexArrayObject.deleteVertexArrayOES */
-  void deleteVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) native "OESVertexArrayObject_deleteVertexArrayOES_Callback";
+  void deleteVertexArray(WebGLVertexArrayObjectOES arrayObject) native "OESVertexArrayObject_deleteVertexArrayOES_Callback";
 
 
   /** @domName OESVertexArrayObject.isVertexArrayOES */
-  bool isVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) native "OESVertexArrayObject_isVertexArrayOES_Callback";
+  bool isVertexArray(WebGLVertexArrayObjectOES arrayObject) native "OESVertexArrayObject_isVertexArrayOES_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18457,6 +18529,14 @@ class OptionElement extends _Element_Merged {
 
   /** @domName HTMLOptionElement.selected */
   void set selected(bool value) native "HTMLOptionElement_selected_Setter";
+
+
+  /** @domName HTMLOptionElement.text */
+  String get text native "HTMLOptionElement_text_Getter";
+
+
+  /** @domName HTMLOptionElement.text */
+  void set text(String value) native "HTMLOptionElement_text_Setter";
 
 
   /** @domName HTMLOptionElement.value */
@@ -20403,6 +20483,14 @@ class ScriptElement extends _Element_Merged {
   void set src(String value) native "HTMLScriptElement_src_Setter";
 
 
+  /** @domName HTMLScriptElement.text */
+  String get text native "HTMLScriptElement_text_Getter";
+
+
+  /** @domName HTMLScriptElement.text */
+  void set text(String value) native "HTMLScriptElement_text_Setter";
+
+
   /** @domName HTMLScriptElement.type */
   String get type native "HTMLScriptElement_type_Getter";
 
@@ -20474,7 +20562,7 @@ class ScriptProfileNode extends NativeFieldWrapperClass1 {
 
 
   /** @domName ScriptProfileNode.callUID */
-  int get callUID native "ScriptProfileNode_callUID_Getter";
+  int get callUid native "ScriptProfileNode_callUID_Getter";
 
 
   /** @domName ScriptProfileNode.functionName */
@@ -20639,6 +20727,10 @@ class SelectElement extends _Element_Merged {
   Node namedItem(String name) native "HTMLSelectElement_namedItem_Callback";
 
 
+  /** @domName HTMLSelectElement.remove */
+  void remove(index_OR_option) native "HTMLSelectElement_remove_Callback";
+
+
   /** @domName HTMLSelectElement.setCustomValidity */
   void setCustomValidity(String error) native "HTMLSelectElement_setCustomValidity_Callback";
 
@@ -20711,11 +20803,11 @@ class ShadowRoot extends DocumentFragment {
 
 
   /** @domName ShadowRoot.innerHTML */
-  String get innerHTML native "ShadowRoot_innerHTML_Getter";
+  String get innerHtml native "ShadowRoot_innerHTML_Getter";
 
 
   /** @domName ShadowRoot.innerHTML */
-  void set innerHTML(String value) native "ShadowRoot_innerHTML_Setter";
+  void set innerHtml(String value) native "ShadowRoot_innerHTML_Setter";
 
 
   /** @domName ShadowRoot.resetStyleInheritance */
@@ -22671,7 +22763,7 @@ class TextTrackCue extends EventTarget {
 
 
   /** @domName TextTrackCue.getCueAsHTML */
-  DocumentFragment getCueAsHTML() native "TextTrackCue_getCueAsHTML_Callback";
+  DocumentFragment getCueAsHtml() native "TextTrackCue_getCueAsHTML_Callback";
 
 
   /** @domName TextTrackCue.removeEventListener */
@@ -22966,6 +23058,14 @@ class TitleElement extends _Element_Merged {
 
   factory TitleElement() => document.$dom_createElement("title");
   TitleElement.internal(): super.internal();
+
+
+  /** @domName HTMLTitleElement.text */
+  String get text native "HTMLTitleElement_text_Getter";
+
+
+  /** @domName HTMLTitleElement.text */
+  void set text(String value) native "HTMLTitleElement_text_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25796,7 +25896,7 @@ class WebSocket extends EventTarget {
 
 
   /** @domName WebSocket.URL */
-  String get URL native "WebSocket_URL_Getter";
+  String get Url native "WebSocket_URL_Getter";
 
 
   /** @domName WebSocket.binaryType */
@@ -26041,11 +26141,11 @@ class WorkerContext extends EventTarget {
 
 
   /** @domName WorkerContext.webkitResolveLocalFileSystemSyncURL */
-  EntrySync webkitResolveLocalFileSystemSyncURL(String url) native "WorkerContext_webkitResolveLocalFileSystemSyncURL_Callback";
+  EntrySync webkitResolveLocalFileSystemSyncUrl(String url) native "WorkerContext_webkitResolveLocalFileSystemSyncURL_Callback";
 
 
   /** @domName WorkerContext.webkitResolveLocalFileSystemURL */
-  void webkitResolveLocalFileSystemURL(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "WorkerContext_webkitResolveLocalFileSystemURL_Callback";
+  void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "WorkerContext_webkitResolveLocalFileSystemURL_Callback";
 
 }
 
@@ -26239,7 +26339,7 @@ class XPathNSResolver extends NativeFieldWrapperClass1 {
 
 
   /** @domName XPathNSResolver.lookupNamespaceURI */
-  String lookupNamespaceURI(String prefix) native "XPathNSResolver_lookupNamespaceURI_Callback";
+  String lookupNamespaceUri(String prefix) native "XPathNSResolver_lookupNamespaceURI_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26885,11 +26985,11 @@ class _Element_Merged extends Element {
 
 
   /** @domName HTMLElement.innerHTML */
-  String get innerHTML native "HTMLElement_innerHTML_Getter";
+  String get innerHtml native "HTMLElement_innerHTML_Getter";
 
 
   /** @domName HTMLElement.innerHTML */
-  void set innerHTML(String value) native "HTMLElement_innerHTML_Setter";
+  void set innerHtml(String value) native "HTMLElement_innerHTML_Setter";
 
 
   /** @domName HTMLElement.isContentEditable */
@@ -26905,7 +27005,7 @@ class _Element_Merged extends Element {
 
 
   /** @domName HTMLElement.outerHTML */
-  String get outerHTML native "HTMLElement_outerHTML_Getter";
+  String get outerHtml native "HTMLElement_outerHTML_Getter";
 
 
   /** @domName HTMLElement.spellcheck */
@@ -26957,7 +27057,7 @@ class _Element_Merged extends Element {
 
 
   /** @domName HTMLElement.insertAdjacentHTML */
-  void insertAdjacentHTML(String where, String html) native "HTMLElement_insertAdjacentHTML_Callback";
+  void insertAdjacentHtml(String where, String html) native "HTMLElement_insertAdjacentHTML_Callback";
 
 
   /** @domName HTMLElement.insertAdjacentText */
@@ -29740,7 +29840,7 @@ class _DocumentFragmentFactoryProvider {
 
   static DocumentFragment createDocumentFragment_html(String html) {
     final fragment = new DocumentFragment();
-    fragment.innerHTML = html;
+    fragment.innerHtml = html;
     return fragment;
   }
 
@@ -29748,7 +29848,7 @@ class _DocumentFragmentFactoryProvider {
   // factory DocumentFragment.xml(String xml) {
   //   final fragment = new DocumentFragment();
   //   final e = new XMLElement.tag("xml");
-  //   e.innerHTML = xml;
+  //   e.innerHtml = xml;
   //
   //   // Copy list first since we don't want liveness during iteration.
   //   final List nodes = new List.from(e.nodes);
@@ -29759,7 +29859,7 @@ class _DocumentFragmentFactoryProvider {
   static DocumentFragment createDocumentFragment_svg(String svgContent) {
     final fragment = new DocumentFragment();
     final e = new svg.SVGSVGElement();
-    e.innerHTML = svgContent;
+    e.innerHtml = svgContent;
 
     // Copy list first since we don't want liveness during iteration.
     final List nodes = new List.from(e.nodes);

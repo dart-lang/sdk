@@ -19,7 +19,7 @@ main() {
     context.fillStyle = 'red';
     context.fillRect(0, 0, canvas.width, canvas.height);
 
-    var dataUri = canvas.toDataURL('image/png');
+    var dataUri = canvas.toDataUrl('image/png');
     var byteString = window.atob(dataUri.split(',')[1]);
     var mimeString = dataUri.split(',')[0].split(':')[1].split(';')[0];
 

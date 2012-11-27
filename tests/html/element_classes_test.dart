@@ -21,7 +21,7 @@ main() {
   Set<String> makeClassSet() => makeElementWithClasses().classes;
 
   Set<String> extractClasses(Element el) {
-    final match = new RegExp('class="([^"]+)"').firstMatch(el.outerHTML);
+    final match = new RegExp('class="([^"]+)"').firstMatch(el.outerHtml);
     return new Set.from(match[1].split(' '));
   }
 
@@ -45,7 +45,7 @@ main() {
   });
 
   test('toString', () {
-    expect(makeClassSet().toString().split(' '), 
+    expect(makeClassSet().toString().split(' '),
         unorderedEquals(['foo', 'bar', 'baz']));
     expect(makeElement().classes.toString(), '');
   });

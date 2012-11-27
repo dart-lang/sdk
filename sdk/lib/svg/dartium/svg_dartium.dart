@@ -32,7 +32,7 @@ class _SvgElementFactoryProvider {
       parentTag = new SvgSvgElement();
     }
 
-    parentTag.innerHTML = svg;
+    parentTag.innerHtml = svg;
     if (parentTag.elements.length == 1) return parentTag.elements.removeLast();
 
     throw new ArgumentError(
@@ -100,11 +100,11 @@ class AElement extends SvgElement implements Transformable, Tests, UriReference,
 
 
   /** @domName SVGAElement.getCTM */
-  Matrix getCTM() native "SVGAElement_getCTM_Callback";
+  Matrix getCtm() native "SVGAElement_getCTM_Callback";
 
 
   /** @domName SVGAElement.getScreenCTM */
-  Matrix getScreenCTM() native "SVGAElement_getScreenCTM_Callback";
+  Matrix getScreenCtm() native "SVGAElement_getScreenCTM_Callback";
 
 
   /** @domName SVGAElement.getTransformToElement */
@@ -957,11 +957,11 @@ class CircleElement extends SvgElement implements Transformable, Tests, Stylable
 
 
   /** @domName SVGCircleElement.getCTM */
-  Matrix getCTM() native "SVGCircleElement_getCTM_Callback";
+  Matrix getCtm() native "SVGCircleElement_getCTM_Callback";
 
 
   /** @domName SVGCircleElement.getScreenCTM */
-  Matrix getScreenCTM() native "SVGCircleElement_getScreenCTM_Callback";
+  Matrix getScreenCtm() native "SVGCircleElement_getScreenCTM_Callback";
 
 
   /** @domName SVGCircleElement.getTransformToElement */
@@ -1051,11 +1051,11 @@ class ClipPathElement extends SvgElement implements Transformable, Tests, Stylab
 
 
   /** @domName SVGClipPathElement.getCTM */
-  Matrix getCTM() native "SVGClipPathElement_getCTM_Callback";
+  Matrix getCtm() native "SVGClipPathElement_getCTM_Callback";
 
 
   /** @domName SVGClipPathElement.getScreenCTM */
-  Matrix getScreenCTM() native "SVGClipPathElement_getScreenCTM_Callback";
+  Matrix getScreenCtm() native "SVGClipPathElement_getScreenCTM_Callback";
 
 
   /** @domName SVGClipPathElement.getTransformToElement */
@@ -1127,11 +1127,11 @@ class Color extends CSSValue {
 
 
   /** @domName SVGColor.setRGBColor */
-  void setRGBColor(String rgbColor) native "SVGColor_setRGBColor_Callback";
+  void setRgbColor(String rgbColor) native "SVGColor_setRGBColor_Callback";
 
 
   /** @domName SVGColor.setRGBColorICCColor */
-  void setRGBColorICCColor(String rgbColor, String iccColor) native "SVGColor_setRGBColorICCColor_Callback";
+  void setRgbColorIccColor(String rgbColor, String iccColor) native "SVGColor_setRGBColorICCColor_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1279,11 +1279,11 @@ class DefsElement extends SvgElement implements Transformable, Tests, Stylable, 
 
 
   /** @domName SVGDefsElement.getCTM */
-  Matrix getCTM() native "SVGDefsElement_getCTM_Callback";
+  Matrix getCtm() native "SVGDefsElement_getCTM_Callback";
 
 
   /** @domName SVGDefsElement.getScreenCTM */
-  Matrix getScreenCTM() native "SVGDefsElement_getScreenCTM_Callback";
+  Matrix getScreenCtm() native "SVGDefsElement_getScreenCTM_Callback";
 
 
   /** @domName SVGDefsElement.getTransformToElement */
@@ -1559,11 +1559,11 @@ class EllipseElement extends SvgElement implements Transformable, Tests, Stylabl
 
 
   /** @domName SVGEllipseElement.getCTM */
-  Matrix getCTM() native "SVGEllipseElement_getCTM_Callback";
+  Matrix getCtm() native "SVGEllipseElement_getCTM_Callback";
 
 
   /** @domName SVGEllipseElement.getScreenCTM */
-  Matrix getScreenCTM() native "SVGEllipseElement_getScreenCTM_Callback";
+  Matrix getScreenCtm() native "SVGEllipseElement_getScreenCTM_Callback";
 
 
   /** @domName SVGEllipseElement.getTransformToElement */
@@ -3209,11 +3209,11 @@ class ForeignObjectElement extends SvgElement implements Transformable, Tests, S
 
 
   /** @domName SVGForeignObjectElement.getCTM */
-  Matrix getCTM() native "SVGForeignObjectElement_getCTM_Callback";
+  Matrix getCtm() native "SVGForeignObjectElement_getCTM_Callback";
 
 
   /** @domName SVGForeignObjectElement.getScreenCTM */
-  Matrix getScreenCTM() native "SVGForeignObjectElement_getScreenCTM_Callback";
+  Matrix getScreenCtm() native "SVGForeignObjectElement_getScreenCTM_Callback";
 
 
   /** @domName SVGForeignObjectElement.getTransformToElement */
@@ -3299,11 +3299,11 @@ class GElement extends SvgElement implements Transformable, Tests, Stylable, Ext
 
 
   /** @domName SVGGElement.getCTM */
-  Matrix getCTM() native "SVGGElement_getCTM_Callback";
+  Matrix getCtm() native "SVGGElement_getCTM_Callback";
 
 
   /** @domName SVGGElement.getScreenCTM */
-  Matrix getScreenCTM() native "SVGGElement_getScreenCTM_Callback";
+  Matrix getScreenCtm() native "SVGGElement_getScreenCTM_Callback";
 
 
   /** @domName SVGGElement.getTransformToElement */
@@ -3565,11 +3565,11 @@ class ImageElement extends SvgElement implements Transformable, Tests, UriRefere
 
 
   /** @domName SVGImageElement.getCTM */
-  Matrix getCTM() native "SVGImageElement_getCTM_Callback";
+  Matrix getCtm() native "SVGImageElement_getCTM_Callback";
 
 
   /** @domName SVGImageElement.getScreenCTM */
-  Matrix getScreenCTM() native "SVGImageElement_getScreenCTM_Callback";
+  Matrix getScreenCtm() native "SVGImageElement_getScreenCTM_Callback";
 
 
   /** @domName SVGImageElement.getTransformToElement */
@@ -3902,11 +3902,11 @@ class LineElement extends SvgElement implements Transformable, Tests, Stylable, 
 
 
   /** @domName SVGLineElement.getCTM */
-  Matrix getCTM() native "SVGLineElement_getCTM_Callback";
+  Matrix getCtm() native "SVGLineElement_getCTM_Callback";
 
 
   /** @domName SVGLineElement.getScreenCTM */
-  Matrix getScreenCTM() native "SVGLineElement_getScreenCTM_Callback";
+  Matrix getScreenCtm() native "SVGLineElement_getScreenCTM_Callback";
 
 
   /** @domName SVGLineElement.getTransformToElement */
@@ -4000,11 +4000,11 @@ class Locatable extends NativeFieldWrapperClass1 {
 
 
   /** @domName SVGLocatable.getCTM */
-  Matrix getCTM() native "SVGLocatable_getCTM_Callback";
+  Matrix getCtm() native "SVGLocatable_getCTM_Callback";
 
 
   /** @domName SVGLocatable.getScreenCTM */
-  Matrix getScreenCTM() native "SVGLocatable_getScreenCTM_Callback";
+  Matrix getScreenCtm() native "SVGLocatable_getScreenCTM_Callback";
 
 
   /** @domName SVGLocatable.getTransformToElement */
@@ -4581,79 +4581,79 @@ class PathElement extends SvgElement implements Transformable, Tests, Stylable, 
 
 
   /** @domName SVGPathElement.createSVGPathSegArcAbs */
-  PathSegArcAbs createSVGPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native "SVGPathElement_createSVGPathSegArcAbs_Callback";
+  PathSegArcAbs createSvgPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native "SVGPathElement_createSVGPathSegArcAbs_Callback";
 
 
   /** @domName SVGPathElement.createSVGPathSegArcRel */
-  PathSegArcRel createSVGPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native "SVGPathElement_createSVGPathSegArcRel_Callback";
+  PathSegArcRel createSvgPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native "SVGPathElement_createSVGPathSegArcRel_Callback";
 
 
   /** @domName SVGPathElement.createSVGPathSegClosePath */
-  PathSegClosePath createSVGPathSegClosePath() native "SVGPathElement_createSVGPathSegClosePath_Callback";
+  PathSegClosePath createSvgPathSegClosePath() native "SVGPathElement_createSVGPathSegClosePath_Callback";
 
 
   /** @domName SVGPathElement.createSVGPathSegCurvetoCubicAbs */
-  PathSegCurvetoCubicAbs createSVGPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) native "SVGPathElement_createSVGPathSegCurvetoCubicAbs_Callback";
+  PathSegCurvetoCubicAbs createSvgPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) native "SVGPathElement_createSVGPathSegCurvetoCubicAbs_Callback";
 
 
   /** @domName SVGPathElement.createSVGPathSegCurvetoCubicRel */
-  PathSegCurvetoCubicRel createSVGPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) native "SVGPathElement_createSVGPathSegCurvetoCubicRel_Callback";
+  PathSegCurvetoCubicRel createSvgPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) native "SVGPathElement_createSVGPathSegCurvetoCubicRel_Callback";
 
 
   /** @domName SVGPathElement.createSVGPathSegCurvetoCubicSmoothAbs */
-  PathSegCurvetoCubicSmoothAbs createSVGPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) native "SVGPathElement_createSVGPathSegCurvetoCubicSmoothAbs_Callback";
+  PathSegCurvetoCubicSmoothAbs createSvgPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) native "SVGPathElement_createSVGPathSegCurvetoCubicSmoothAbs_Callback";
 
 
   /** @domName SVGPathElement.createSVGPathSegCurvetoCubicSmoothRel */
-  PathSegCurvetoCubicSmoothRel createSVGPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) native "SVGPathElement_createSVGPathSegCurvetoCubicSmoothRel_Callback";
+  PathSegCurvetoCubicSmoothRel createSvgPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) native "SVGPathElement_createSVGPathSegCurvetoCubicSmoothRel_Callback";
 
 
   /** @domName SVGPathElement.createSVGPathSegCurvetoQuadraticAbs */
-  PathSegCurvetoQuadraticAbs createSVGPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) native "SVGPathElement_createSVGPathSegCurvetoQuadraticAbs_Callback";
+  PathSegCurvetoQuadraticAbs createSvgPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) native "SVGPathElement_createSVGPathSegCurvetoQuadraticAbs_Callback";
 
 
   /** @domName SVGPathElement.createSVGPathSegCurvetoQuadraticRel */
-  PathSegCurvetoQuadraticRel createSVGPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) native "SVGPathElement_createSVGPathSegCurvetoQuadraticRel_Callback";
+  PathSegCurvetoQuadraticRel createSvgPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) native "SVGPathElement_createSVGPathSegCurvetoQuadraticRel_Callback";
 
 
   /** @domName SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothAbs */
-  PathSegCurvetoQuadraticSmoothAbs createSVGPathSegCurvetoQuadraticSmoothAbs(num x, num y) native "SVGPathElement_createSVGPathSegCurvetoQuadraticSmoothAbs_Callback";
+  PathSegCurvetoQuadraticSmoothAbs createSvgPathSegCurvetoQuadraticSmoothAbs(num x, num y) native "SVGPathElement_createSVGPathSegCurvetoQuadraticSmoothAbs_Callback";
 
 
   /** @domName SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothRel */
-  PathSegCurvetoQuadraticSmoothRel createSVGPathSegCurvetoQuadraticSmoothRel(num x, num y) native "SVGPathElement_createSVGPathSegCurvetoQuadraticSmoothRel_Callback";
+  PathSegCurvetoQuadraticSmoothRel createSvgPathSegCurvetoQuadraticSmoothRel(num x, num y) native "SVGPathElement_createSVGPathSegCurvetoQuadraticSmoothRel_Callback";
 
 
   /** @domName SVGPathElement.createSVGPathSegLinetoAbs */
-  PathSegLinetoAbs createSVGPathSegLinetoAbs(num x, num y) native "SVGPathElement_createSVGPathSegLinetoAbs_Callback";
+  PathSegLinetoAbs createSvgPathSegLinetoAbs(num x, num y) native "SVGPathElement_createSVGPathSegLinetoAbs_Callback";
 
 
   /** @domName SVGPathElement.createSVGPathSegLinetoHorizontalAbs */
-  PathSegLinetoHorizontalAbs createSVGPathSegLinetoHorizontalAbs(num x) native "SVGPathElement_createSVGPathSegLinetoHorizontalAbs_Callback";
+  PathSegLinetoHorizontalAbs createSvgPathSegLinetoHorizontalAbs(num x) native "SVGPathElement_createSVGPathSegLinetoHorizontalAbs_Callback";
 
 
   /** @domName SVGPathElement.createSVGPathSegLinetoHorizontalRel */
-  PathSegLinetoHorizontalRel createSVGPathSegLinetoHorizontalRel(num x) native "SVGPathElement_createSVGPathSegLinetoHorizontalRel_Callback";
+  PathSegLinetoHorizontalRel createSvgPathSegLinetoHorizontalRel(num x) native "SVGPathElement_createSVGPathSegLinetoHorizontalRel_Callback";
 
 
   /** @domName SVGPathElement.createSVGPathSegLinetoRel */
-  PathSegLinetoRel createSVGPathSegLinetoRel(num x, num y) native "SVGPathElement_createSVGPathSegLinetoRel_Callback";
+  PathSegLinetoRel createSvgPathSegLinetoRel(num x, num y) native "SVGPathElement_createSVGPathSegLinetoRel_Callback";
 
 
   /** @domName SVGPathElement.createSVGPathSegLinetoVerticalAbs */
-  PathSegLinetoVerticalAbs createSVGPathSegLinetoVerticalAbs(num y) native "SVGPathElement_createSVGPathSegLinetoVerticalAbs_Callback";
+  PathSegLinetoVerticalAbs createSvgPathSegLinetoVerticalAbs(num y) native "SVGPathElement_createSVGPathSegLinetoVerticalAbs_Callback";
 
 
   /** @domName SVGPathElement.createSVGPathSegLinetoVerticalRel */
-  PathSegLinetoVerticalRel createSVGPathSegLinetoVerticalRel(num y) native "SVGPathElement_createSVGPathSegLinetoVerticalRel_Callback";
+  PathSegLinetoVerticalRel createSvgPathSegLinetoVerticalRel(num y) native "SVGPathElement_createSVGPathSegLinetoVerticalRel_Callback";
 
 
   /** @domName SVGPathElement.createSVGPathSegMovetoAbs */
-  PathSegMovetoAbs createSVGPathSegMovetoAbs(num x, num y) native "SVGPathElement_createSVGPathSegMovetoAbs_Callback";
+  PathSegMovetoAbs createSvgPathSegMovetoAbs(num x, num y) native "SVGPathElement_createSVGPathSegMovetoAbs_Callback";
 
 
   /** @domName SVGPathElement.createSVGPathSegMovetoRel */
-  PathSegMovetoRel createSVGPathSegMovetoRel(num x, num y) native "SVGPathElement_createSVGPathSegMovetoRel_Callback";
+  PathSegMovetoRel createSvgPathSegMovetoRel(num x, num y) native "SVGPathElement_createSVGPathSegMovetoRel_Callback";
 
 
   /** @domName SVGPathElement.getPathSegAtLength */
@@ -4701,11 +4701,11 @@ class PathElement extends SvgElement implements Transformable, Tests, Stylable, 
 
 
   /** @domName SVGPathElement.getCTM */
-  Matrix getCTM() native "SVGPathElement_getCTM_Callback";
+  Matrix getCtm() native "SVGPathElement_getCTM_Callback";
 
 
   /** @domName SVGPathElement.getScreenCTM */
-  Matrix getScreenCTM() native "SVGPathElement_getScreenCTM_Callback";
+  Matrix getScreenCtm() native "SVGPathElement_getScreenCTM_Callback";
 
 
   /** @domName SVGPathElement.getTransformToElement */
@@ -5858,11 +5858,11 @@ class PolygonElement extends SvgElement implements Transformable, Tests, Stylabl
 
 
   /** @domName SVGPolygonElement.getCTM */
-  Matrix getCTM() native "SVGPolygonElement_getCTM_Callback";
+  Matrix getCtm() native "SVGPolygonElement_getCTM_Callback";
 
 
   /** @domName SVGPolygonElement.getScreenCTM */
-  Matrix getScreenCTM() native "SVGPolygonElement_getScreenCTM_Callback";
+  Matrix getScreenCtm() native "SVGPolygonElement_getScreenCTM_Callback";
 
 
   /** @domName SVGPolygonElement.getTransformToElement */
@@ -5956,11 +5956,11 @@ class PolylineElement extends SvgElement implements Transformable, Tests, Stylab
 
 
   /** @domName SVGPolylineElement.getCTM */
-  Matrix getCTM() native "SVGPolylineElement_getCTM_Callback";
+  Matrix getCtm() native "SVGPolylineElement_getCTM_Callback";
 
 
   /** @domName SVGPolylineElement.getScreenCTM */
-  Matrix getScreenCTM() native "SVGPolylineElement_getScreenCTM_Callback";
+  Matrix getScreenCtm() native "SVGPolylineElement_getScreenCTM_Callback";
 
 
   /** @domName SVGPolylineElement.getTransformToElement */
@@ -6208,11 +6208,11 @@ class RectElement extends SvgElement implements Transformable, Tests, Stylable, 
 
 
   /** @domName SVGRectElement.getCTM */
-  Matrix getCTM() native "SVGRectElement_getCTM_Callback";
+  Matrix getCtm() native "SVGRectElement_getCTM_Callback";
 
 
   /** @domName SVGRectElement.getScreenCTM */
-  Matrix getScreenCTM() native "SVGRectElement_getScreenCTM_Callback";
+  Matrix getScreenCtm() native "SVGRectElement_getScreenCTM_Callback";
 
 
   /** @domName SVGRectElement.getTransformToElement */
@@ -6646,25 +6646,25 @@ class SvgElement extends Element {
     children.addAll(value);
   }
 
-  String get outerHTML {
+  String get outerHtml {
     final container = new Element.tag("div");
     final SvgElement cloned = this.clone(true);
     container.children.add(cloned);
-    return container.innerHTML;
+    return container.innerHtml;
   }
 
-  String get innerHTML {
+  String get innerHtml {
     final container = new Element.tag("div");
     final SvgElement cloned = this.clone(true);
     container.children.addAll(cloned.children);
-    return container.innerHTML;
+    return container.innerHtml;
   }
 
-  void set innerHTML(String svg) {
+  void set innerHtml(String svg) {
     final container = new Element.tag("div");
     // Wrap the SVG string in <svg> so that SvgElements are created, rather than
     // HTMLElements.
-    container.innerHTML = '<svg version="1.1">$svg</svg>';
+    container.innerHtml = '<svg version="1.1">$svg</svg>';
     this.children = container.children[0].children;
   }
 
@@ -6680,7 +6680,7 @@ class SvgElement extends Element {
 
 
   /** @domName SVGElement.ownerSVGElement */
-  SvgSvgElement get ownerSVGElement native "SVGElement_ownerSVGElement_Getter";
+  SvgSvgElement get ownerSvgElement native "SVGElement_ownerSVGElement_Getter";
 
 
   /** @domName SVGElement.viewportElement */
@@ -6791,35 +6791,35 @@ class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable,
 
 
   /** @domName SVGSVGElement.createSVGAngle */
-  Angle createSVGAngle() native "SVGSVGElement_createSVGAngle_Callback";
+  Angle createSvgAngle() native "SVGSVGElement_createSVGAngle_Callback";
 
 
   /** @domName SVGSVGElement.createSVGLength */
-  Length createSVGLength() native "SVGSVGElement_createSVGLength_Callback";
+  Length createSvgLength() native "SVGSVGElement_createSVGLength_Callback";
 
 
   /** @domName SVGSVGElement.createSVGMatrix */
-  Matrix createSVGMatrix() native "SVGSVGElement_createSVGMatrix_Callback";
+  Matrix createSvgMatrix() native "SVGSVGElement_createSVGMatrix_Callback";
 
 
   /** @domName SVGSVGElement.createSVGNumber */
-  Number createSVGNumber() native "SVGSVGElement_createSVGNumber_Callback";
+  Number createSvgNumber() native "SVGSVGElement_createSVGNumber_Callback";
 
 
   /** @domName SVGSVGElement.createSVGPoint */
-  Point createSVGPoint() native "SVGSVGElement_createSVGPoint_Callback";
+  Point createSvgPoint() native "SVGSVGElement_createSVGPoint_Callback";
 
 
   /** @domName SVGSVGElement.createSVGRect */
-  Rect createSVGRect() native "SVGSVGElement_createSVGRect_Callback";
+  Rect createSvgRect() native "SVGSVGElement_createSVGRect_Callback";
 
 
   /** @domName SVGSVGElement.createSVGTransform */
-  Transform createSVGTransform() native "SVGSVGElement_createSVGTransform_Callback";
+  Transform createSvgTransform() native "SVGSVGElement_createSVGTransform_Callback";
 
 
   /** @domName SVGSVGElement.createSVGTransformFromMatrix */
-  Transform createSVGTransformFromMatrix(Matrix matrix) native "SVGSVGElement_createSVGTransformFromMatrix_Callback";
+  Transform createSvgTransformFromMatrix(Matrix matrix) native "SVGSVGElement_createSVGTransformFromMatrix_Callback";
 
 
   /** @domName SVGSVGElement.deselectAll */
@@ -6911,11 +6911,11 @@ class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable,
 
 
   /** @domName SVGSVGElement.getCTM */
-  Matrix getCTM() native "SVGSVGElement_getCTM_Callback";
+  Matrix getCtm() native "SVGSVGElement_getCTM_Callback";
 
 
   /** @domName SVGSVGElement.getScreenCTM */
-  Matrix getScreenCTM() native "SVGSVGElement_getScreenCTM_Callback";
+  Matrix getScreenCtm() native "SVGSVGElement_getScreenCTM_Callback";
 
 
   /** @domName SVGSVGElement.getTransformToElement */
@@ -7005,11 +7005,11 @@ class SwitchElement extends SvgElement implements Transformable, Tests, Stylable
 
 
   /** @domName SVGSwitchElement.getCTM */
-  Matrix getCTM() native "SVGSwitchElement_getCTM_Callback";
+  Matrix getCtm() native "SVGSwitchElement_getCTM_Callback";
 
 
   /** @domName SVGSwitchElement.getScreenCTM */
-  Matrix getScreenCTM() native "SVGSwitchElement_getScreenCTM_Callback";
+  Matrix getScreenCtm() native "SVGSwitchElement_getScreenCTM_Callback";
 
 
   /** @domName SVGSwitchElement.getTransformToElement */
@@ -7299,11 +7299,11 @@ class TextElement extends TextPositioningElement implements Transformable {
 
 
   /** @domName SVGTextElement.getCTM */
-  Matrix getCTM() native "SVGTextElement_getCTM_Callback";
+  Matrix getCtm() native "SVGTextElement_getCTM_Callback";
 
 
   /** @domName SVGTextElement.getScreenCTM */
-  Matrix getScreenCTM() native "SVGTextElement_getScreenCTM_Callback";
+  Matrix getScreenCtm() native "SVGTextElement_getScreenCTM_Callback";
 
 
   /** @domName SVGTextElement.getTransformToElement */
@@ -7604,7 +7604,7 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
 
 
   /** @domName SVGTransformList.createSVGTransformFromMatrix */
-  Transform createSVGTransformFromMatrix(Matrix matrix) native "SVGTransformList_createSVGTransformFromMatrix_Callback";
+  Transform createSvgTransformFromMatrix(Matrix matrix) native "SVGTransformList_createSVGTransformFromMatrix_Callback";
 
 
   /** @domName SVGTransformList.getItem */
@@ -7656,11 +7656,11 @@ class Transformable extends NativeFieldWrapperClass1 implements Locatable {
 
 
   /** @domName SVGTransformable.getCTM */
-  Matrix getCTM() native "SVGTransformable_getCTM_Callback";
+  Matrix getCtm() native "SVGTransformable_getCTM_Callback";
 
 
   /** @domName SVGTransformable.getScreenCTM */
-  Matrix getScreenCTM() native "SVGTransformable_getScreenCTM_Callback";
+  Matrix getScreenCtm() native "SVGTransformable_getScreenCTM_Callback";
 
 
   /** @domName SVGTransformable.getTransformToElement */
@@ -7772,11 +7772,11 @@ class UseElement extends SvgElement implements Transformable, Tests, UriReferenc
 
 
   /** @domName SVGUseElement.getCTM */
-  Matrix getCTM() native "SVGUseElement_getCTM_Callback";
+  Matrix getCtm() native "SVGUseElement_getCTM_Callback";
 
 
   /** @domName SVGUseElement.getScreenCTM */
-  Matrix getScreenCTM() native "SVGUseElement_getScreenCTM_Callback";
+  Matrix getScreenCtm() native "SVGUseElement_getScreenCTM_Callback";
 
 
   /** @domName SVGUseElement.getTransformToElement */

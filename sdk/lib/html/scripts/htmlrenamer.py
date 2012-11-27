@@ -118,6 +118,7 @@ _private_html_members = set([
 # Members from the standard dom that exist in the dart:html library with
 # identical functionality but with cleaner names.
 _renamed_html_members = {
+    'Document.createCDATASection': 'createCDataSection',
     'Document.defaultView': 'window',
     'Element.webkitMatchesSelector' : 'matchesSelector',
     'Element.scrollIntoViewIfNeeded': 'scrollIntoView',
@@ -203,6 +204,7 @@ _removed_html_members = set([
     "Element.setAttributeNodeNS",
     "Element.getAttributeNodeNS",
     "Event.srcElement",
+    "EventSource.URL",
     "BodyElement.text",
     "AnchorElement.text",
     "OptionElement.text",
@@ -251,10 +253,10 @@ _removed_html_members = set([
     "Document.version",
     "Document.manifest",
     "HTMLIsIndexElement.*",
+    "HTMLMenuElement.compact",
     "HTMLOptionsCollection.*",
     "HTMLPropertiesCollection.*",
     "SelectElement.remove",
-    "MenuElement.compact",
     "NamedNodeMap.*",
     "Node.isEqualNode",
     "Node.get:TEXT_NODE",
@@ -329,15 +331,18 @@ class HtmlRenamer(object):
 
     name = self._FindMatch(interface, member, member_prefix,
                            _renamed_html_members)
+
     target_name = _renamed_html_members[name] if name else member
     if self._FindMatch(interface, member, member_prefix, _private_html_members):
       if not target_name.startswith('$dom_'):  # e.g. $dom_svgClassName
         target_name = '$dom_' + target_name
+
+    target_name = self._DartifyMemberName(target_name)
     return target_name
 
   def _FindMatch(self, interface, member, member_prefix, candidates):
     for interface in self._database.Hierarchy(interface):
-      html_interface_name = self.RenameInterface(interface)
+      html_interface_name = self.DartifyTypeName(interface.id)
       member_name = html_interface_name + '.' + member
       if member_name in candidates:
         return member_name
@@ -353,10 +358,10 @@ class HtmlRenamer(object):
     Gets the name of the library this type should live in.
     This is private because this should use interfaces to resolve the library.
     """
-
     if idl_type_name.startswith('SVG'):
       return 'svg'
     return 'html'
+
 
   def DartifyTypeName(self, type_name):
     """Converts a DOM name to a Dart-friendly class name. """
@@ -367,6 +372,14 @@ class HtmlRenamer(object):
 
     # Strip off the SVG prefix.
     name = re.sub(r'^SVG', '', type_name)
+    return self._CamelCaseName(name)
+
+  def _DartifyMemberName(self, member_name):
+    # Strip off any OpenGL ES suffixes.
+    name = re.sub(r'OES$', '', member_name)
+    return self._CamelCaseName(name)
+
+  def _CamelCaseName(self, name):
 
     def toLower(match):
       return match.group(1) + match.group(2).lower() + match.group(3)

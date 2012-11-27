@@ -25,7 +25,7 @@ main() {
     expect(style, hasLength(0));
     // These assertions throw a UnimplementedError in dartium:
     // expect(style.parentRule, isNull);
-    // expect(style.getPropertyCSSValue('color'), isNull);
+    // expect(style.getPropertyCssValue('color'), isNull);
     // expect(style.getPropertyShorthand('color'), isNull);
   });
 

@@ -111,13 +111,13 @@ main() {
     });
   });
 
-  group('insertAdjacentHTML', () {
+  group('insertAdjacentHtml', () {
     test('beforebegin', () {
       var parent = new DivElement();
       var child = new DivElement();
       parent.children.add(child);
 
-      child.insertAdjacentHTML('beforebegin', '<span></span>');
+      child.insertAdjacentHtml('beforebegin', '<span></span>');
 
       expect(parent.children.length, 2);
       expect(parent.children[0], isSpanElement);
@@ -128,7 +128,7 @@ main() {
       var child = new DivElement();
       parent.children.add(child);
 
-      child.insertAdjacentHTML('afterend', '<span></span>');
+      child.insertAdjacentHtml('afterend', '<span></span>');
 
       expect(parent.children.length, 2);
       expect(parent.children[1], isSpanElement);
@@ -139,7 +139,7 @@ main() {
       var child = new DivElement();
       parent.children.add(child);
 
-      parent.insertAdjacentHTML('afterbegin', '<span></span>');
+      parent.insertAdjacentHtml('afterbegin', '<span></span>');
 
       expect(parent.children.length, 2);
       expect(parent.children[0], isSpanElement);
@@ -150,7 +150,7 @@ main() {
       var child = new DivElement();
       parent.children.add(child);
 
-      parent.insertAdjacentHTML('beforeend', '<span></span>');
+      parent.insertAdjacentHtml('beforeend', '<span></span>');
 
       expect(parent.children.length, 2);
       expect(parent.children[1], isSpanElement);

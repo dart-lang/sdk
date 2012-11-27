@@ -47,7 +47,7 @@ main() {
     test('overwrites nodes when set', () {
       final doc = new XMLDocument.xml("<xml>1<a/><b/>2<c/>3<d/></xml>");
       doc.children = [new XMLElement.tag('x'), new XMLElement.tag('y')];
-      expect(doc.outerHTML, "<xml><x></x><y></y></xml>");
+      expect(doc.outerHtml, "<xml><x></x><y></y></xml>");
     });
   });
 
@@ -58,7 +58,7 @@ main() {
     Set<String> makeClassSet() => makeDocumentWithClasses().classes;
 
     Set<String> extractClasses(Document doc) {
-      final match = new RegExp('class="([^"]+)"').firstMatch(doc.outerHTML);
+      final match = new RegExp('class="([^"]+)"').firstMatch(doc.outerHtml);
       return new Set.from(match[1].split(' '));
     }
 
@@ -398,9 +398,9 @@ main() {
     });
   });
 
-  test('set innerHTML', () {
+  test('set innerHtml', () {
     final doc = makeDocument();
-    doc.innerHTML = "<foo>Bar<baz/></foo>";
+    doc.innerHtml = "<foo>Bar<baz/></foo>";
     expect(doc.nodes.length, 1);
     final node = doc.nodes[0];
     expect(node, isXMLElement);
@@ -409,13 +409,13 @@ main() {
     expect(node.nodes[1].tagName, 'baz');
   });
 
-  test('get innerHTML/outerHTML', () {
+  test('get innerHtml/outerHtml', () {
     final doc = makeDocument();
-    expect(doc.innerHTML, "<foo></foo><bar></bar>");
+    expect(doc.innerHtml, "<foo></foo><bar></bar>");
     doc.nodes.clear();
     doc.nodes.addAll([new Text("foo"), new XMLElement.xml("<a>bar</a>")]);
-    expect(doc.innertHTML, "foo<a>bar</a>");
-    expect(doc.outerHTML, "<xml>foo<a>bar</a></xml>");
+    expect(doc.innerHtml, "foo<a>bar</a>");
+    expect(doc.outerHtml, "<xml>foo<a>bar</a></xml>");
   });
 
   test('query', () {
@@ -447,28 +447,28 @@ main() {
       final doc = getDoc();
       expect(doc.insertAdjacentElement("beforeBegin", new XMLElement.tag("b")),
           isNull);
-      expect(doc.innerHTML, "<a>foo</a>");
+      expect(doc.innerHtml, "<a>foo</a>");
     });
 
     test('afterEnd does nothing', () {
       final doc = getDoc();
       expect(doc.insertAdjacentElement("afterEnd", new XMLElement.tag("b")),
           isNull);
-      expect(doc.innerHTML, "<a>foo</a>");
+      expect(doc.innerHtml, "<a>foo</a>");
     });
 
     test('afterBegin inserts the element', () {
       final doc = getDoc();
       final el = new XMLElement.tag("b");
       expect(doc.insertAdjacentElement("afterBegin", el), el);
-      expect(doc.innerHTML, "<b></b><a>foo</a>");
+      expect(doc.innerHtml, "<b></b><a>foo</a>");
     });
 
     test('beforeEnd inserts the element', () {
       final doc = getDoc();
       final el = new XMLElement.tag("b");
       expect(doc.insertAdjacentElement("beforeEnd", el), el);
-      expect(doc.innerHTML, "<a>foo</a><b></b>");
+      expect(doc.innerHtml, "<a>foo</a><b></b>");
     });
   });
 
@@ -478,53 +478,53 @@ main() {
     test('beforeBegin does nothing', () {
       final doc = getDoc();
       doc.insertAdjacentText("beforeBegin", "foo");
-      expect(doc.innerHTML, "<a>foo</a>");
+      expect(doc.innerHtml, "<a>foo</a>");
     });
 
     test('afterEnd does nothing', () {
       final doc = getDoc();
       doc.insertAdjacentText("afterEnd", "foo");
-      expect(doc.innerHTML, "<a>foo</a>");
+      expect(doc.innerHtml, "<a>foo</a>");
     });
 
     test('afterBegin inserts the text', () {
       final doc = getDoc();
       doc.insertAdjacentText("afterBegin", "foo");
-      expect(doc.innerHTML, "foo<a>foo</a>");
+      expect(doc.innerHtml, "foo<a>foo</a>");
     });
 
     test('beforeEnd inserts the text', () {
       final doc = getDoc();
       doc.insertAdjacentText("beforeEnd", "foo");
-      expect(doc.innerHTML, "<a>foo</a>foo");
+      expect(doc.innerHtml, "<a>foo</a>foo");
     });
   });
 
-  group('insertAdjacentHTML', () {
+  group('insertAdjacentHtml', () {
     getDoc() => new XMLDocument.xml("<xml><a>foo</a></xml>");
 
     test('beforeBegin does nothing', () {
       final doc = getDoc();
-      doc.insertAdjacentHTML("beforeBegin", "foo<b/>");
-      expect(doc.innerHTML, "<a>foo</a>");
+      doc.insertAdjacentHtml("beforeBegin", "foo<b/>");
+      expect(doc.innerHtml, "<a>foo</a>");
     });
 
     test('afterEnd does nothing', () {
       final doc = getDoc();
-      doc.insertAdjacentHTML("afterEnd", "<b/>foo");
-      expect(doc.innerHTML, "<a>foo</a>");
+      doc.insertAdjacentHtml("afterEnd", "<b/>foo");
+      expect(doc.innerHtml, "<a>foo</a>");
     });
 
     test('afterBegin inserts the HTML', () {
       final doc = getDoc();
-      doc.insertAdjacentHTML("afterBegin", "foo<b/>");
-      expect(doc.innerHTML, "foo<b></b><a>foo</a>");
+      doc.insertAdjacentHtml("afterBegin", "foo<b/>");
+      expect(doc.innerHtml, "foo<b></b><a>foo</a>");
     });
 
     test('beforeEnd inserts the HTML', () {
       final doc = getDoc();
-      doc.insertAdjacentHTML("beforeEnd", "<b/>foo");
-      expect(doc.innerHTML, "<a>foo</a><b></b>foo");
+      doc.insertAdjacentHtml("beforeEnd", "<b/>foo");
+      expect(doc.innerHtml, "<a>foo</a><b></b>foo");
     });
   });
 

@@ -44,8 +44,8 @@ main() {
 </svg>""";
         final el = new svg.SvgElement.svg(svgContent);
         expect(el, isSvgSvgElement);
-        expect(el.innerHTML, "<circle></circle><path></path>");
-        expect(el.outerHTML, svgContent);
+        expect(el.innerHtml, "<circle></circle><path></path>");
+        expect(el.outerHtml, svgContent);
       });
 
       test('has no parent', () =>
@@ -149,29 +149,29 @@ main() {
     testConstructor('view', (e) => e is svg.ViewElement);
   });
 
-  group('outerHTML', () {
-    test('outerHTML', () {
+  group('outerHtml', () {
+    test('outerHtml', () {
       final el = new svg.SvgSvgElement();
       el.children.add(new svg.CircleElement());
       el.children.add(new svg.PathElement());
-      expect(el.outerHTML,
+      expect(el.outerHtml,
           '<svg version="1.1"><circle></circle><path></path></svg>');
     });
   });
 
-  group('innerHTML', () {
+  group('innerHtml', () {
     test('get', () {
       final el = new svg.SvgSvgElement();
       el.children.add(new svg.CircleElement());
       el.children.add(new svg.PathElement());
-      expect(el.innerHTML, '<circle></circle><path></path>');
+      expect(el.innerHtml, '<circle></circle><path></path>');
     });
 
     test('set', () {
       final el = new svg.SvgSvgElement();
       el.children.add(new svg.CircleElement());
       el.children.add(new svg.PathElement());
-      el.innerHTML = '<rect></rect><a></a>';
+      el.innerHtml = '<rect></rect><a></a>';
       expect(_nodeStrings(el.children), ["rect", "a"]);
     });
   });
@@ -192,7 +192,7 @@ main() {
     test('set', () {
       final el = new svg.SvgSvgElement();
       el.children = [new svg.SvgElement.tag("circle"), new svg.SvgElement.tag("path")];
-      expect(el.innerHTML, '<circle></circle><path></path>');
+      expect(el.innerHtml, '<circle></circle><path></path>');
     });
   });
 

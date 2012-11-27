@@ -11,7 +11,7 @@ import 'dart:json';
 injectSource(code) {
   final script = new ScriptElement();
   script.type = 'text/javascript';
-  script.innerHTML = code;
+  script.innerHtml = code;
   document.body.nodes.add(script);
 }
 

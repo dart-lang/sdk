@@ -55,7 +55,7 @@ class _DocumentFragmentFactoryProvider {
 
   static DocumentFragment createDocumentFragment_html(String html) {
     final fragment = new DocumentFragment();
-    fragment.innerHTML = html;
+    fragment.innerHtml = html;
     return fragment;
   }
 
@@ -63,7 +63,7 @@ class _DocumentFragmentFactoryProvider {
   // factory DocumentFragment.xml(String xml) {
   //   final fragment = new DocumentFragment();
   //   final e = new XMLElement.tag("xml");
-  //   e.innerHTML = xml;
+  //   e.innerHtml = xml;
   //
   //   // Copy list first since we don't want liveness during iteration.
   //   final List nodes = new List.from(e.nodes);
@@ -74,7 +74,7 @@ class _DocumentFragmentFactoryProvider {
   static DocumentFragment createDocumentFragment_svg(String svgContent) {
     final fragment = new DocumentFragment();
     final e = new svg.SVGSVGElement();
-    e.innerHTML = svgContent;
+    e.innerHtml = svgContent;
 
     // Copy list first since we don't want liveness during iteration.
     final List nodes = new List.from(e.nodes);

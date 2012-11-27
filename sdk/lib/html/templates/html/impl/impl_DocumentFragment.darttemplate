@@ -62,21 +62,21 @@ $endif
   List<Element> queryAll(String selectors) =>
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
-  String get innerHTML {
+  String get innerHtml {
     final e = new Element.tag("div");
     e.nodes.add(this.clone(true));
-    return e.innerHTML;
+    return e.innerHtml;
   }
 
-  String get outerHTML => innerHTML;
+  String get outerHtml => innerHtml;
 
-  // TODO(nweiz): Do we want to support some variant of innerHTML for XML and/or
+  // TODO(nweiz): Do we want to support some variant of innerHtml for XML and/or
   // SVG strings?
-  void set innerHTML(String value) {
+  void set innerHtml(String value) {
     this.nodes.clear();
 
     final e = new Element.tag("div");
-    e.innerHTML = value;
+    e.innerHtml = value;
 
     // Copy list first since we don't want liveness during iteration.
     List nodes = new List.from(e.nodes);
@@ -106,7 +106,7 @@ $endif
     this._insertAdjacentNode(where, new Text(text));
   }
 
-  void insertAdjacentHTML(String where, String text) {
+  void insertAdjacentHtml(String where, String text) {
     this._insertAdjacentNode(where, new DocumentFragment.html(text));
   }
 
@@ -115,7 +115,7 @@ $endif
   }
 
   void addHtml(String text) {
-    this.insertAdjacentHTML('beforeend', text);
+    this.insertAdjacentHtml('beforeend', text);
   }
 
   // If we can come up with a semi-reasonable default value for an Element

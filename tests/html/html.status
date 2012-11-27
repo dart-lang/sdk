@@ -85,8 +85,8 @@ serialized_script_value_test: Fail
 storage_test: Fail, Pass
 svgelement_test/additionalConstructors: Fail
 svgelement_test/elementset: Fail
-svgelement_test/innerHTML: Fail
-svgelement_test/outerHTML: Fail
+svgelement_test/innerHtml: Fail
+svgelement_test/outerHtml: Fail
 svgelement2_test: Fail
 svg_3_test: Fail
 typed_arrays_1_test: Fail
@@ -146,8 +146,8 @@ svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail
 svgelement_test/elementset: Fail
 element_test/eventListening: Fail
-svgelement_test/innerHTML: Fail
-svgelement_test/outerHTML: Fail
+svgelement_test/innerHtml: Fail
+svgelement_test/outerHtml: Fail
 svgelement2_test: Fail
 url_test: Fail              # IE9 does not support createObjectURL (it is supported in IE10)
 websocket_test: Fail
@@ -201,8 +201,8 @@ svgelement_test/css: Crash
 svgelement_test/additionalConstructors: Fail
 svgelement_test/elementget: Fail
 svgelement_test/elementset: Fail
-svgelement_test/innerHTML: Crash, Fail
-svgelement_test/outerHTML: Fail
+svgelement_test/innerHtml: Crash, Fail
+svgelement_test/outerHtml: Fail
 svgelement_test/svg: Fail
 url_test: Fail
 

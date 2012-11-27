@@ -14,7 +14,7 @@ import 'unittest.dart';
 void _showResultsInPage(int passed, int failed, int errors,
     List<TestCase> results, bool isLayoutTest, String uncaughtError) {
   if (isLayoutTest && (passed == results.length) && uncaughtError == null) {
-    document.body.innerHTML = "PASS";
+    document.body.innerHtml = "PASS";
   } else {
     var newBody = new StringBuffer();
     newBody.add("<table class='unittest-table'><tbody>");
@@ -49,7 +49,7 @@ void _showResultsInPage(int passed, int failed, int errors,
           </td></tr>""");
     }
     newBody.add("</tbody></table>");
-    document.body.innerHTML = newBody.toString();
+    document.body.innerHtml = newBody.toString();
   }
 }
 

@@ -31,7 +31,7 @@ class _SvgElementFactoryProvider {
       parentTag = new SvgSvgElement();
     }
 
-    parentTag.innerHTML = svg;
+    parentTag.innerHtml = svg;
     if (parentTag.elements.length == 1) return parentTag.elements.removeLast();
 
     throw new ArgumentError(
@@ -86,10 +86,10 @@ class AElement extends SvgElement implements Transformable, Tests, UriReference,
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  Matrix getCtm() native "getCTM";
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  Matrix getScreenCtm() native "getScreenCTM";
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
@@ -762,10 +762,10 @@ class CircleElement extends SvgElement implements Transformable, Tests, Stylable
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  Matrix getCtm() native "getCTM";
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  Matrix getScreenCtm() native "getScreenCTM";
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
@@ -838,10 +838,10 @@ class ClipPathElement extends SvgElement implements Transformable, Tests, Stylab
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  Matrix getCtm() native "getCTM";
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  Matrix getScreenCtm() native "getScreenCTM";
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
@@ -902,10 +902,10 @@ class Color extends CSSValue native "*SVGColor" {
   void setColor(int colorType, String rgbColor, String iccColor) native;
 
   /// @domName SVGColor.setRGBColor; @docsEditable true
-  void setRGBColor(String rgbColor) native;
+  void setRgbColor(String rgbColor) native "setRGBColor";
 
   /// @domName SVGColor.setRGBColorICCColor; @docsEditable true
-  void setRGBColorICCColor(String rgbColor, String iccColor) native;
+  void setRgbColorIccColor(String rgbColor, String iccColor) native "setRGBColorICCColor";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1023,10 +1023,10 @@ class DefsElement extends SvgElement implements Transformable, Tests, Stylable, 
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  Matrix getCtm() native "getCTM";
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  Matrix getScreenCtm() native "getScreenCTM";
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
@@ -1258,10 +1258,10 @@ class EllipseElement extends SvgElement implements Transformable, Tests, Stylabl
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  Matrix getCtm() native "getCTM";
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  Matrix getScreenCtm() native "getScreenCTM";
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
@@ -2550,10 +2550,10 @@ class ForeignObjectElement extends SvgElement implements Transformable, Tests, S
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  Matrix getCtm() native "getCTM";
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  Matrix getScreenCtm() native "getScreenCTM";
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
@@ -2623,10 +2623,10 @@ class GElement extends SvgElement implements Transformable, Tests, Stylable, Ext
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  Matrix getCtm() native "getCTM";
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  Matrix getScreenCtm() native "getScreenCTM";
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
@@ -2819,10 +2819,10 @@ class ImageElement extends SvgElement implements Transformable, Tests, UriRefere
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  Matrix getCtm() native "getCTM";
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  Matrix getScreenCtm() native "getScreenCTM";
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
@@ -3086,10 +3086,10 @@ class LineElement extends SvgElement implements Transformable, Tests, Stylable, 
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  Matrix getCtm() native "getCTM";
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  Matrix getScreenCtm() native "getScreenCTM";
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
@@ -3606,61 +3606,61 @@ class PathElement extends SvgElement implements Transformable, Tests, Stylable, 
   final PathSegList pathSegList;
 
   /// @domName SVGPathElement.createSVGPathSegArcAbs; @docsEditable true
-  PathSegArcAbs createSVGPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
+  PathSegArcAbs createSvgPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native "createSVGPathSegArcAbs";
 
   /// @domName SVGPathElement.createSVGPathSegArcRel; @docsEditable true
-  PathSegArcRel createSVGPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
+  PathSegArcRel createSvgPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native "createSVGPathSegArcRel";
 
   /// @domName SVGPathElement.createSVGPathSegClosePath; @docsEditable true
-  PathSegClosePath createSVGPathSegClosePath() native;
+  PathSegClosePath createSvgPathSegClosePath() native "createSVGPathSegClosePath";
 
   /// @domName SVGPathElement.createSVGPathSegCurvetoCubicAbs; @docsEditable true
-  PathSegCurvetoCubicAbs createSVGPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) native;
+  PathSegCurvetoCubicAbs createSvgPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) native "createSVGPathSegCurvetoCubicAbs";
 
   /// @domName SVGPathElement.createSVGPathSegCurvetoCubicRel; @docsEditable true
-  PathSegCurvetoCubicRel createSVGPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) native;
+  PathSegCurvetoCubicRel createSvgPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) native "createSVGPathSegCurvetoCubicRel";
 
   /// @domName SVGPathElement.createSVGPathSegCurvetoCubicSmoothAbs; @docsEditable true
-  PathSegCurvetoCubicSmoothAbs createSVGPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) native;
+  PathSegCurvetoCubicSmoothAbs createSvgPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) native "createSVGPathSegCurvetoCubicSmoothAbs";
 
   /// @domName SVGPathElement.createSVGPathSegCurvetoCubicSmoothRel; @docsEditable true
-  PathSegCurvetoCubicSmoothRel createSVGPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) native;
+  PathSegCurvetoCubicSmoothRel createSvgPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) native "createSVGPathSegCurvetoCubicSmoothRel";
 
   /// @domName SVGPathElement.createSVGPathSegCurvetoQuadraticAbs; @docsEditable true
-  PathSegCurvetoQuadraticAbs createSVGPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) native;
+  PathSegCurvetoQuadraticAbs createSvgPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) native "createSVGPathSegCurvetoQuadraticAbs";
 
   /// @domName SVGPathElement.createSVGPathSegCurvetoQuadraticRel; @docsEditable true
-  PathSegCurvetoQuadraticRel createSVGPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) native;
+  PathSegCurvetoQuadraticRel createSvgPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) native "createSVGPathSegCurvetoQuadraticRel";
 
   /// @domName SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothAbs; @docsEditable true
-  PathSegCurvetoQuadraticSmoothAbs createSVGPathSegCurvetoQuadraticSmoothAbs(num x, num y) native;
+  PathSegCurvetoQuadraticSmoothAbs createSvgPathSegCurvetoQuadraticSmoothAbs(num x, num y) native "createSVGPathSegCurvetoQuadraticSmoothAbs";
 
   /// @domName SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothRel; @docsEditable true
-  PathSegCurvetoQuadraticSmoothRel createSVGPathSegCurvetoQuadraticSmoothRel(num x, num y) native;
+  PathSegCurvetoQuadraticSmoothRel createSvgPathSegCurvetoQuadraticSmoothRel(num x, num y) native "createSVGPathSegCurvetoQuadraticSmoothRel";
 
   /// @domName SVGPathElement.createSVGPathSegLinetoAbs; @docsEditable true
-  PathSegLinetoAbs createSVGPathSegLinetoAbs(num x, num y) native;
+  PathSegLinetoAbs createSvgPathSegLinetoAbs(num x, num y) native "createSVGPathSegLinetoAbs";
 
   /// @domName SVGPathElement.createSVGPathSegLinetoHorizontalAbs; @docsEditable true
-  PathSegLinetoHorizontalAbs createSVGPathSegLinetoHorizontalAbs(num x) native;
+  PathSegLinetoHorizontalAbs createSvgPathSegLinetoHorizontalAbs(num x) native "createSVGPathSegLinetoHorizontalAbs";
 
   /// @domName SVGPathElement.createSVGPathSegLinetoHorizontalRel; @docsEditable true
-  PathSegLinetoHorizontalRel createSVGPathSegLinetoHorizontalRel(num x) native;
+  PathSegLinetoHorizontalRel createSvgPathSegLinetoHorizontalRel(num x) native "createSVGPathSegLinetoHorizontalRel";
 
   /// @domName SVGPathElement.createSVGPathSegLinetoRel; @docsEditable true
-  PathSegLinetoRel createSVGPathSegLinetoRel(num x, num y) native;
+  PathSegLinetoRel createSvgPathSegLinetoRel(num x, num y) native "createSVGPathSegLinetoRel";
 
   /// @domName SVGPathElement.createSVGPathSegLinetoVerticalAbs; @docsEditable true
-  PathSegLinetoVerticalAbs createSVGPathSegLinetoVerticalAbs(num y) native;
+  PathSegLinetoVerticalAbs createSvgPathSegLinetoVerticalAbs(num y) native "createSVGPathSegLinetoVerticalAbs";
 
   /// @domName SVGPathElement.createSVGPathSegLinetoVerticalRel; @docsEditable true
-  PathSegLinetoVerticalRel createSVGPathSegLinetoVerticalRel(num y) native;
+  PathSegLinetoVerticalRel createSvgPathSegLinetoVerticalRel(num y) native "createSVGPathSegLinetoVerticalRel";
 
   /// @domName SVGPathElement.createSVGPathSegMovetoAbs; @docsEditable true
-  PathSegMovetoAbs createSVGPathSegMovetoAbs(num x, num y) native;
+  PathSegMovetoAbs createSvgPathSegMovetoAbs(num x, num y) native "createSVGPathSegMovetoAbs";
 
   /// @domName SVGPathElement.createSVGPathSegMovetoRel; @docsEditable true
-  PathSegMovetoRel createSVGPathSegMovetoRel(num x, num y) native;
+  PathSegMovetoRel createSvgPathSegMovetoRel(num x, num y) native "createSVGPathSegMovetoRel";
 
   /// @domName SVGPathElement.getPathSegAtLength; @docsEditable true
   int getPathSegAtLength(num distance) native;
@@ -3696,10 +3696,10 @@ class PathElement extends SvgElement implements Transformable, Tests, Stylable, 
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  Matrix getCtm() native "getCTM";
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  Matrix getScreenCtm() native "getScreenCTM";
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
@@ -4406,10 +4406,10 @@ class PolygonElement extends SvgElement implements Transformable, Tests, Stylabl
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  Matrix getCtm() native "getCTM";
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  Matrix getScreenCtm() native "getScreenCTM";
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
@@ -4485,10 +4485,10 @@ class PolylineElement extends SvgElement implements Transformable, Tests, Stylab
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  Matrix getCtm() native "getCTM";
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  Matrix getScreenCtm() native "getScreenCTM";
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
@@ -4666,10 +4666,10 @@ class RectElement extends SvgElement implements Transformable, Tests, Stylable, 
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  Matrix getCtm() native "getCTM";
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  Matrix getScreenCtm() native "getScreenCTM";
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
@@ -5025,25 +5025,25 @@ class SvgElement extends Element native "*SVGElement" {
     children.addAll(value);
   }
 
-  String get outerHTML {
+  String get outerHtml {
     final container = new Element.tag("div");
     final SvgElement cloned = this.clone(true);
     container.children.add(cloned);
-    return container.innerHTML;
+    return container.innerHtml;
   }
 
-  String get innerHTML {
+  String get innerHtml {
     final container = new Element.tag("div");
     final SvgElement cloned = this.clone(true);
     container.children.addAll(cloned.children);
-    return container.innerHTML;
+    return container.innerHtml;
   }
 
-  void set innerHTML(String svg) {
+  void set innerHtml(String svg) {
     final container = new Element.tag("div");
     // Wrap the SVG string in <svg> so that SvgElements are created, rather than
     // HTMLElements.
-    container.innerHTML = '<svg version="1.1">$svg</svg>';
+    container.innerHtml = '<svg version="1.1">$svg</svg>';
     this.children = container.children[0].children;
   }
 
@@ -5058,7 +5058,7 @@ class SvgElement extends Element native "*SVGElement" {
   }
 
   /// @domName SVGElement.ownerSVGElement; @docsEditable true
-  final SvgSvgElement ownerSVGElement;
+  SvgSvgElement get ownerSvgElement => JS("SvgSvgElement", "#.ownerSVGElement", this);
 
   /// @domName SVGElement.viewportElement; @docsEditable true
   final SvgElement viewportElement;
@@ -5131,28 +5131,28 @@ class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable,
   bool checkIntersection(SvgElement element, Rect rect) native;
 
   /// @domName SVGSVGElement.createSVGAngle; @docsEditable true
-  Angle createSVGAngle() native;
+  Angle createSvgAngle() native "createSVGAngle";
 
   /// @domName SVGSVGElement.createSVGLength; @docsEditable true
-  Length createSVGLength() native;
+  Length createSvgLength() native "createSVGLength";
 
   /// @domName SVGSVGElement.createSVGMatrix; @docsEditable true
-  Matrix createSVGMatrix() native;
+  Matrix createSvgMatrix() native "createSVGMatrix";
 
   /// @domName SVGSVGElement.createSVGNumber; @docsEditable true
-  Number createSVGNumber() native;
+  Number createSvgNumber() native "createSVGNumber";
 
   /// @domName SVGSVGElement.createSVGPoint; @docsEditable true
-  Point createSVGPoint() native;
+  Point createSvgPoint() native "createSVGPoint";
 
   /// @domName SVGSVGElement.createSVGRect; @docsEditable true
-  Rect createSVGRect() native;
+  Rect createSvgRect() native "createSVGRect";
 
   /// @domName SVGSVGElement.createSVGTransform; @docsEditable true
-  Transform createSVGTransform() native;
+  Transform createSvgTransform() native "createSVGTransform";
 
   /// @domName SVGSVGElement.createSVGTransformFromMatrix; @docsEditable true
-  Transform createSVGTransformFromMatrix(Matrix matrix) native;
+  Transform createSvgTransformFromMatrix(Matrix matrix) native "createSVGTransformFromMatrix";
 
   /// @domName SVGSVGElement.deselectAll; @docsEditable true
   void deselectAll() native;
@@ -5225,10 +5225,10 @@ class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable,
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  Matrix getCtm() native "getCTM";
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  Matrix getScreenCtm() native "getScreenCTM";
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
@@ -5299,10 +5299,10 @@ class SwitchElement extends SvgElement implements Transformable, Tests, Stylable
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  Matrix getCtm() native "getCTM";
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  Matrix getScreenCtm() native "getScreenCTM";
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
@@ -5528,10 +5528,10 @@ class TextElement extends TextPositioningElement implements Transformable native
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  Matrix getCtm() native "getCTM";
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  Matrix getScreenCtm() native "getScreenCTM";
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;
@@ -5782,7 +5782,7 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
   Transform consolidate() native;
 
   /// @domName SVGTransformList.createSVGTransformFromMatrix; @docsEditable true
-  Transform createSVGTransformFromMatrix(Matrix matrix) native;
+  Transform createSvgTransformFromMatrix(Matrix matrix) native "createSVGTransformFromMatrix";
 
   /// @domName SVGTransformList.getItem; @docsEditable true
   Transform getItem(int index) native;
@@ -5904,10 +5904,10 @@ class UseElement extends SvgElement implements Transformable, Tests, UriReferenc
   Rect getBBox() native;
 
   /// @domName SVGLocatable.getCTM; @docsEditable true
-  Matrix getCTM() native;
+  Matrix getCtm() native "getCTM";
 
   /// @domName SVGLocatable.getScreenCTM; @docsEditable true
-  Matrix getScreenCTM() native;
+  Matrix getScreenCtm() native "getScreenCTM";
 
   /// @domName SVGLocatable.getTransformToElement; @docsEditable true
   Matrix getTransformToElement(SvgElement element) native;

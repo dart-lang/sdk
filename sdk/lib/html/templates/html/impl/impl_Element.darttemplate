@@ -347,6 +347,14 @@ abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     }
   }
 
+  /**
+   * Deprecated, use innerHtml instead.
+   */
+  String get innerHTML => this.innerHtml;
+  void set innerHTML(String value) {
+    this.innerHtml = value;
+  }
+
   void set elements(Collection<Element> value) {
     this.children = value;
   }
@@ -428,7 +436,7 @@ abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    * last child of this.
    */
   void addHtml(String text) {
-    this.insertAdjacentHTML('beforeend', text);
+    this.insertAdjacentHtml('beforeend', text);
   }
 
   // Hooks to support custom WebComponents.
@@ -480,15 +488,15 @@ $if DART2JS
       native 'insertAdjacentText';
 
   /** @domName Element.insertAdjacentHTML */
-  void insertAdjacentHTML(String where, String text) {
-    if (JS('bool', '!!#.insertAdjacentHTML', this)) {
-      _insertAdjacentHTML(where, text);
+  void insertAdjacentHtml(String where, String text) {
+    if (JS('bool', '!!#.insertAdjacentHtml', this)) {
+      _insertAdjacentHtml(where, text);
     } else {
       _insertAdjacentNode(where, new DocumentFragment.html(text));
     }
   }
 
-  void _insertAdjacentHTML(String where, String text)
+  void _insertAdjacentHtml(String where, String text)
       native 'insertAdjacentHTML';
 
   /** @domName Element.insertAdjacentHTML */
@@ -566,7 +574,7 @@ class _ElementFactoryProvider {
       }
     }
     final Element temp = new Element.tag(parentTag);
-    temp.innerHTML = html;
+    temp.innerHtml = html;
 
     Element element;
     if (temp.children.length == 1) {
