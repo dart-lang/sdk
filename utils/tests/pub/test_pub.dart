@@ -16,6 +16,7 @@ import 'dart:json';
 import 'dart:math';
 import 'dart:uri';
 
+import '../../../pkg/oauth2/lib/oauth2.dart' as oauth2;
 import '../../../pkg/unittest/lib/unittest.dart';
 import '../../lib/file_system.dart' as fs;
 import '../../pub/git_source.dart';
@@ -364,6 +365,26 @@ DirectoryDescriptor cacheDir(Map packages) {
   ]);
 }
 
+/// Describes the file in the system cache that contains the client's OAuth2
+/// credentials. The URL "/token" on [server] will be used as the token
+/// endpoint for refreshing the access token.
+Descriptor credentialsFile(
+    ScheduledServer server,
+    String accessToken,
+    {String refreshToken,
+     Date expiration}) {
+  return async(server.url.transform((url) {
+    return dir(cachePath, [
+      file('credentials.json', new oauth2.Credentials(
+          accessToken,
+          refreshToken,
+          url.resolve('/token'),
+          ['https://www.googleapis.com/auth/userinfo.email'],
+          expiration).toJson())
+    ]);
+  }));
+}
+
 /**
  * Describes the application directory, containing only a pubspec specifying the
  * given [dependencies].
@@ -460,6 +481,10 @@ List<_ScheduledEvent> _scheduled;
  */
 List<_ScheduledEvent> _scheduledCleanup;
 
+/// The list of events that are scheduled to run after the test case only if it
+/// failed.
+List<_ScheduledEvent> _scheduledOnException;
+
 /**
  * Set to true when the current batch of scheduled events should be aborted.
  */
@@ -477,6 +502,8 @@ void run() {
   Future cleanup() {
     return _runScheduled(createdSandboxDir, _scheduledCleanup).chain((_) {
       _scheduled = null;
+      _scheduledCleanup = null;
+      _scheduledOnException = null;
       if (createdSandboxDir != null) return deleteDir(createdSandboxDir);
       return new Future.immediate(null);
     });
@@ -491,7 +518,15 @@ void run() {
     // If an error occurs during testing, delete the sandbox, throw the error so
     // that the test framework sees it, then finally call asyncDone so that the
     // test framework knows we're done doing asynchronous stuff.
-    cleanup().then((_) => registerException(error, future.stackTrace));
+    var future = _runScheduled(createdSandboxDir, _scheduledOnException)
+        .chain((_) => cleanup());
+    future.handleException((e) {
+      print("Exception while cleaning up: $e");
+      print(future.stackTrace);
+      registerException(error, future.stackTrace);
+      return true;
+    });
+    future.then((_) => registerException(error, future.stackTrace));
     return true;
   });
 
@@ -513,36 +548,10 @@ String get testDirectory {
  * validates that its results match [output], [error], and [exitCode].
  */
 void schedulePub({List<String> args, Pattern output, Pattern error,
-    int exitCode: 0}) {
+    Future<Uri> tokenEndpoint, int exitCode: 0}) {
   _schedule((sandboxDir) {
-    String pathInSandbox(path) => join(getFullPath(sandboxDir), path);
-
-    return ensureDir(pathInSandbox(appPath)).chain((_) {
-      // Find a Dart executable we can use to spawn. Use the same one that was
-      // used to run this script itself.
-      var dartBin = new Options().executable;
-
-      // If the executable looks like a path, get its full path. That way we
-      // can still find it when we spawn it with a different working directory.
-      if (dartBin.contains(Platform.pathSeparator)) {
-        dartBin = new File(dartBin).fullPathSync();
-      }
-
-      // Find the main pub entrypoint.
-      var pubPath = fs.joinPaths(testDirectory, '../../pub/pub.dart');
-
-      var dartArgs =
-          ['--enable-type-checks', '--enable-asserts', pubPath, '--trace'];
-      dartArgs.addAll(args);
-
-      var environment = {
-        'PUB_CACHE': pathInSandbox(cachePath),
-        'DART_SDK': pathInSandbox(sdkPath)
-      };
-
-      return runProcess(dartBin, dartArgs, workingDir: pathInSandbox(appPath),
-          environment: environment);
-    }).transform((result) {
+    return _doPub(runProcess, sandboxDir, args, tokenEndpoint)
+        .transform((result) {
       var failures = [];
 
       _validateOutput(failures, 'stdout', output, result.stdout);
@@ -576,6 +585,66 @@ void runPub({List<String> args, Pattern output, Pattern error,
     int exitCode: 0}) {
   schedulePub(args: args, output: output, error: error, exitCode: exitCode);
   run();
+}
+
+/// Starts a Pub process and returns a [ScheduledProcess] that supports
+/// interaction with that process.
+ScheduledProcess startPub({List<String> args}) {
+  var process = _scheduleValue((sandboxDir) =>
+      _doPub(startProcess, sandboxDir, args));
+  return new ScheduledProcess("pub", process);
+}
+
+/// Like [startPub], but runs `pub lish` in particular with [server] used both
+/// as the OAuth2 server (with "/token" as the token endpoint) and as the
+/// package server.
+ScheduledProcess startPubLish(ScheduledServer server, {List<String> args}) {
+  var process = _scheduleValue((sandboxDir) {
+    return server.url.chain((url) {
+      var tokenEndpoint = url.resolve('/token');
+      if (args == null) args = [];
+      args = flatten(['lish', '--server', url.toString(), args]);
+      return _doPub(startProcess, sandboxDir, args, tokenEndpoint);
+    });
+  });
+  return new ScheduledProcess("pub lish", process);
+}
+
+/// Calls [fn] with appropriately modified arguments to run a pub process. [fn]
+/// should have the same signature as [startProcess], except that the returned
+/// [Future] may have a type other than [Process].
+Future _doPub(Function fn, sandboxDir, List<String> args, Uri tokenEndpoint) {
+  String pathInSandbox(path) => join(getFullPath(sandboxDir), path);
+
+  return ensureDir(pathInSandbox(appPath)).chain((_) {
+    // Find a Dart executable we can use to spawn. Use the same one that was
+    // used to run this script itself.
+    var dartBin = new Options().executable;
+
+    // If the executable looks like a path, get its full path. That way we
+    // can still find it when we spawn it with a different working directory.
+    if (dartBin.contains(Platform.pathSeparator)) {
+      dartBin = new File(dartBin).fullPathSync();
+    }
+
+    // Find the main pub entrypoint.
+    var pubPath = fs.joinPaths(testDirectory, '../../pub/pub.dart');
+
+    var dartArgs =
+        ['--enable-type-checks', '--enable-asserts', pubPath, '--trace'];
+    dartArgs.addAll(args);
+
+    var environment = {
+      'PUB_CACHE': pathInSandbox(cachePath),
+      'DART_SDK': pathInSandbox(sdkPath)
+    };
+    if (tokenEndpoint != null) {
+      environment['_PUB_TEST_TOKEN_ENDPOINT'] = tokenEndpoint.toString();
+    }
+
+    return fn(dartBin, dartArgs, workingDir: pathInSandbox(appPath),
+        environment: environment);
+  });
 }
 
 /**
@@ -1019,16 +1088,11 @@ class GitRepoDescriptor extends DirectoryDescriptor {
    * to by [ref] at the current point in the scheduled test run.
    */
   Future<String> revParse(String ref) {
-    var completer = new Completer<String>();
-    _schedule((parentDir) {
+    return _scheduleValue((parentDir) {
       return super.create(parentDir).chain((rootDir) {
         return _runGit(['rev-parse', ref], rootDir);
-      }).transform((output) {
-        completer.complete(output[0]);
-        return null;
-      });
+      }).transform((output) => output[0]);
     });
-    return completer.future;
   }
 
   /// Schedule a Git command to run in this repository.
@@ -1094,37 +1158,12 @@ class TarFileDescriptor extends Descriptor {
     return parentDir.createTemp().chain((_tempDir) {
       tempDir = _tempDir;
       return Futures.wait(contents.map((child) => child.create(tempDir)));
-    }).chain((_) {
-      if (Platform.operatingSystem != "windows") {
-        var args = ["--directory", tempDir.path, "--create", "--gzip",
-            "--file", join(parentDir, _stringName)];
-        args.addAll(contents.map((child) => child.name));
-        return runProcess("tar", args);
-      } else {
-        // Create the tar file.
-        var tarFile = join(tempDir, _stringName.replaceAll("tar.gz", "tar"));
-        var args = ["a", tarFile];
-        args.addAll(contents.map(
-            (child) => '-i!"${join(tempDir, child.name)}"'));
-
-        // Find 7zip.
-        var command = fs.joinPaths(testDirectory,
-            '../../../third_party/7zip/7za.exe');
-
-        return runProcess(command, args).chain((_) {
-          // GZIP it. 7zip doesn't support doing both as a single operation.
-          args = ["a", join(parentDir, _stringName), tarFile];
-          return runProcess(command, args);
-        });
-      }
-    }).chain((result) {
-      if (!result.success) {
-        throw "Failed to create tar file $name.\n"
-            "STDERR: ${Strings.join(result.stderr, "\n")}";
-      }
-      return deleteDir(tempDir);
-    }).transform((_) {
-      return new File(join(parentDir, _stringName));
+    }).chain((createdContents) {
+      return consumeInputStream(createTarGz(createdContents, baseDir: tempDir));
+    }).chain((bytes) {
+      return new File(join(parentDir, _stringName)).writeAsBytes(bytes);
+    }).chain((file) {
+      return deleteDir(tempDir).transform((_) => file);
     });
   }
 
@@ -1189,6 +1228,224 @@ class NothingDescriptor extends Descriptor {
   }
 }
 
+/// A class representing a [Process] that is scheduled to run in the course of
+/// the test. This class allows actions on the process to be scheduled
+/// synchronously. All operations on this class are scheduled.
+///
+/// Before running the test, either [shouldExit] or [kill] must be called on
+/// this to ensure that the process terminates when expected.
+///
+/// If the test fails, this will automatically print out any remaining stdout
+/// and stderr from the process to aid debugging.
+class ScheduledProcess {
+  /// The name of the process. Used for error reporting.
+  final String name;
+
+  /// The process that's scheduled to run.
+  final Future<Process> _process;
+
+  /// A [StringInputStream] wrapping the stdout of the process that's scheduled
+  /// to run.
+  final Future<StringInputStream> _stdout;
+
+  /// A [StringInputStream] wrapping the stderr of the process that's scheduled
+  /// to run.
+  final Future<StringInputStream> _stderr;
+
+  /// The exit code of the process that's scheduled to run. This will naturally
+  /// only complete once the process has terminated.
+  Future<int> get _exitCode => _exitCodeCompleter.future;
+
+  /// The completer for [_exitCode].
+  final Completer<int> _exitCodeCompleter = new Completer();
+
+  /// Whether the user has scheduled the end of this process by calling either
+  /// [shouldExit] or [kill].
+  bool _endScheduled = false;
+
+  /// Whether the process is expected to terminate at this point.
+  bool _endExpected = false;
+
+  /// Wraps a [Process] [Future] in a scheduled process.
+  ScheduledProcess(this.name, Future<Process> process)
+    : _process = process,
+      _stdout = process.transform((p) => new StringInputStream(p.stdout)),
+      _stderr = process.transform((p) => new StringInputStream(p.stderr)) {
+
+    _schedule((_) {
+      if (!_endScheduled) {
+        throw new StateError("Scheduled process $name must have shouldExit() "
+            "or kill() called before the test is run.");
+      }
+
+      return _process.transform((p) {
+        p.onExit = (c) {
+          if (_endExpected) {
+            _exitCodeCompleter.complete(c);
+            return;
+          }
+
+          // Sleep for half a second in case _endExpected is set in the next
+          // scheduled event.
+          sleep(500).then((_) {
+            if (_endExpected) {
+              _exitCodeCompleter.complete(c);
+              return;
+            }
+
+            _printStreams().then((_) {
+              registerException(new ExpectException("Process $name ended "
+                  "earlier than scheduled with exit code $c"));
+            });
+          });
+        };
+      });
+    });
+
+    _scheduleOnException((_) {
+      if (!_process.hasValue) return;
+
+      if (!_exitCode.hasValue) {
+        print("\nKilling process $name prematurely.");
+        _endExpected = true;
+        _process.value.kill();
+      }
+
+      return _printStreams();
+    });
+
+    _scheduleCleanup((_) {
+      if (!_process.hasValue) return;
+      // Ensure that the process is dead and we aren't waiting on any IO.
+      var process = _process.value;
+      process.kill();
+      process.stdout.close();
+      process.stderr.close();
+    });
+  }
+
+  /// Reads the next line of stdout from the process.
+  Future<String> nextLine() {
+    return _scheduleValue((_) {
+      return timeout(_stdout.chain(readLine), 5000,
+          "waiting for the next stdout line from process $name");
+    });
+  }
+
+  /// Reads the next line of stderr from the process.
+  Future<String> nextErrLine() {
+    return _scheduleValue((_) {
+      return timeout(_stderr.chain(readLine), 5000,
+          "waiting for the next stderr line from process $name");
+    });
+  }
+
+  /// Writes [line] to the process as stdin.
+  void writeLine(String line) {
+    _schedule((_) => _process.transform((p) => p.stdin.writeString('$line\n')));
+  }
+
+  /// Kills the process, and waits until it's dead.
+  void kill() {
+    _endScheduled = true;
+    _schedule((_) {
+      _endExpected = true;
+      return _process.chain((p) {
+        p.kill();
+        return timeout(_exitCode, 5000, "waiting for process $name to die");
+      });
+    });
+  }
+
+  /// Waits for the process to exit, and verifies that the exit code matches
+  /// [expectedExitCode] (if given).
+  void shouldExit([int expectedExitCode]) {
+    _endScheduled = true;
+    _schedule((_) {
+      _endExpected = true;
+      return timeout(_exitCode, 5000, "waiting for process $name to exit")
+          .transform((exitCode) {
+        if (expectedExitCode != null) {
+          expect(exitCode, equals(expectedExitCode));
+        }
+      });
+    });
+  }
+
+  /// Prints the remaining data in the process's stdout and stderr streams.
+  /// Prints nothing if the straems are empty.
+  Future _printStreams() {
+    Future printStream(String streamName, StringInputStream stream) {
+      return consumeStringInputStream(stream).transform((output) {
+        if (output.isEmpty) return;
+
+        print('\nProcess $name $streamName:');
+        for (var line in output.trim().split("\n")) {
+          print('| $line');
+        }
+        return;
+      });
+    }
+
+    return printStream('stdout', _stdout.value)
+        .chain((_) => printStream('stderr', _stderr.value));
+  }
+}
+
+/// A class representing an [HttpServer] that's scheduled to run in the course
+/// of the test. This class allows the server's request handling to be scheduled
+/// synchronously. All operations on this class are scheduled.
+class ScheduledServer {
+  /// The wrapped server.
+  final Future<HttpServer> _server;
+
+  ScheduledServer._(this._server);
+
+  /// Creates a new server listening on an automatically-allocated port on
+  /// localhost.
+  factory ScheduledServer() {
+    return new ScheduledServer._(_scheduleValue((_) {
+      var server = new HttpServer();
+      server.defaultRequestHandler = _unexpectedRequest;
+      server.listen("127.0.0.1", 0);
+      _scheduleCleanup((_) => server.close());
+      return new Future.immediate(server);
+    }));
+  }
+
+  /// The port on which the server is listening.
+  Future<int> get port => _server.transform((s) => s.port);
+
+  /// The base URL of the server, including its port.
+  Future<Uri> get url =>
+    port.transform((p) => new Uri.fromString("http://localhost:$p"));
+
+  /// Assert that the next request has the given [method] and [path], and pass
+  /// it to [handler] to handle. If [handler] returns a [Future], wait until
+  /// it's completed to continue the schedule.
+  void handle(String method, String path,
+      Future handler(HttpRequest request, HttpResponse response)) {
+    _schedule((_) => timeout(_server.chain((server) {
+      var completer = new Completer();
+      server.defaultRequestHandler = (request, response) {
+        server.defaultRequestHandler = _unexpectedRequest;
+        expect(request.method, equals(method));
+        expect(request.path, equals(path));
+
+        var future = handler(request, response);
+        if (future == null) future = new Future.immediate(null);
+        chainToCompleter(future, completer);
+      };
+      return completer.future;
+    }), 5000, "waiting for $method $path"));
+  }
+
+  /// Raises an error complaining of an unexpected request.
+  static void _unexpectedRequest(HttpRequest request, HttpResponse response) {
+    fail('Unexpected ${request.method} request to ${request.path}.');
+  }
+}
+
 /**
  * Takes a simple data structure (composed of [Map]s, [List]s, scalar objects,
  * and [Future]s) and recursively resolves all the [Future]s contained within.
@@ -1222,11 +1479,43 @@ void _schedule(_ScheduledEvent event) {
   _scheduled.add(event);
 }
 
-/**
- * Schedules a callback to be called after Pub is run with [runPub], even if it
- * fails.
- */
+/// Like [_schedule], but pipes the return value of [event] to a returned
+/// [Future].
+Future _scheduleValue(_ScheduledEvent event) {
+  var completer = new Completer();
+  _schedule((parentDir) {
+    chainToCompleter(event(parentDir), completer);
+    return completer.future;
+  });
+  return completer.future;
+}
+
+/// Schedules a callback to be called after the test case has completed, even if
+/// it failed.
 void _scheduleCleanup(_ScheduledEvent event) {
   if (_scheduledCleanup == null) _scheduledCleanup = [];
   _scheduledCleanup.add(event);
+}
+
+/// Schedules a callback to be called after the test case has completed, but
+/// only if it failed.
+void _scheduleOnException(_ScheduledEvent event) {
+  if (_scheduledOnException == null) _scheduledOnException = [];
+  _scheduledOnException.add(event);
+}
+
+/// Like [expect], but for [Future]s that complete as part of the scheduled
+/// test. This is necessary to ensure that the exception thrown by the
+/// expectation failing is handled by the scheduler.
+///
+/// Note that [matcher] matches against the completed value of [actual], so
+/// calling [completion] is unnecessary.
+Matcher expectLater(Future actual, matcher, {String reason,
+    FailureHandler failureHandler, bool verbose: false}) {
+  _schedule((_) {
+    return actual.transform((value) {
+      expect(value, matcher, reason: reason, failureHandler: failureHandler,
+          verbose: false);
+    });
+  });
 }

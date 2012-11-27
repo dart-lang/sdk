@@ -134,7 +134,7 @@ Future sleep(int milliSeconds) {
 /// to [completer].
 void chainToCompleter(Future future, Completer completer) {
   future.handleException((e) {
-    completer.completeException(e);
+    completer.completeException(e, future.stackTrace);
     return true;
   });
   future.then(completer.complete);

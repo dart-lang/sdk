@@ -31,13 +31,14 @@ void printError(value) {
   stderr.writeString('\n');
 }
 
+
 /**
  * Joins a number of path string parts into a single path. Handles
  * platform-specific path separators. Parts can be [String], [Directory], or
  * [File] objects.
  */
 String join(part1, [part2, part3, part4]) {
-  final parts = _getPath(part1).replaceAll('\\', '/').split('/');
+  final parts = _sanitizePath(part1).split('/');
 
   for (final part in [part2, part3, part4]) {
     if (part == null) continue;
@@ -65,7 +66,7 @@ String join(part1, [part2, part3, part4]) {
 // TODO(rnystrom): Copied from file_system (so that we don't have to add
 // file_system to the SDK). Should unify.
 String basename(file) {
-  file = _getPath(file).replaceAll('\\', '/');
+  file = _sanitizePath(file);
 
   int lastSlash = file.lastIndexOf('/', file.length);
   if (lastSlash == -1) {
@@ -82,7 +83,7 @@ String basename(file) {
 // TODO(nweiz): Copied from file_system (so that we don't have to add
 // file_system to the SDK). Should unify.
 String dirname(file) {
-  file = _getPath(file).replaceAll('\\', '/');
+  file = _sanitizePath(file);
 
   int lastSlash = file.lastIndexOf('/', file.length);
   if (lastSlash == -1) {
@@ -91,6 +92,11 @@ String dirname(file) {
     return file.substring(0, lastSlash);
   }
 }
+
+/// Returns whether or not [entry] is nested somewhere within [dir]. This just
+/// performs a path comparison; it doesn't look at the actual filesystem.
+bool isBeneath(entry, dir) =>
+  _sanitizePath(entry).startsWith('${_sanitizePath(dir)}/');
 
 /**
  * Asynchronously determines if [path], which can be a [String] file path, a
@@ -228,12 +234,11 @@ Future<Directory> deleteDir(dir) {
 /**
  * Asynchronously lists the contents of [dir], which can be a [String] directory
  * path or a [Directory]. If [recursive] is `true`, lists subdirectory contents
- * (defaults to `false`). If [includeSpecialFiles] is `true`, includes
- * hidden `.DS_Store` files (defaults to `false`, other hidden files may be
- * omitted later).
+ * (defaults to `false`). If [includeHiddenFiles] is `true`, includes files
+ * beginning with `.` (defaults to `false`).
  */
 Future<List<String>> listDir(dir,
-    [bool recursive = false, bool includeSpecialFiles = false]) {
+    {bool recursive: false, bool includeHiddenFiles: false}) {
   final completer = new Completer<List<String>>();
   final contents = <String>[];
 
@@ -249,9 +254,7 @@ Future<List<String>> listDir(dir,
   lister.onError = (error) => completer.completeException(error);
   lister.onDir = (file) => contents.add(file);
   lister.onFile = (file) {
-    if (!includeSpecialFiles) {
-      if (basename(file) == '.DS_Store') return;
-    }
+    if (!includeHiddenFiles && basename(file).startsWith('.')) return;
     contents.add(file);
   };
 
@@ -372,6 +375,41 @@ String relativeToPub(String path) {
   return scriptDir.append(path).canonicalize().toNativePath();
 }
 
+/// A StringInputStream reading from stdin.
+final _stringStdin = new StringInputStream(stdin);
+
+/// Returns a single line read from a [StringInputStream]. By default, reads
+/// from stdin.
+///
+/// A [StringInputStream] passed to this should have no callbacks registered.
+Future<String> readLine([StringInputStream stream]) {
+  if (stream == null) stream = _stringStdin;
+  if (stream.closed) return new Future.immediate('');
+  void removeCallbacks() {
+    stream.onClosed = null;
+    stream.onLine = null;
+    stream.onError = null;
+  }
+
+  var completer = new Completer();
+  stream.onClosed = () {
+    removeCallbacks();
+    completer.complete('');
+  };
+
+  stream.onLine = () {
+    removeCallbacks();
+    completer.complete(stream.readLine());
+  };
+
+  stream.onError = (e) {
+    removeCallbacks();
+    completer.completeException(e);
+  };
+
+  return completer.future;
+}
+
 // TODO(nweiz): make this configurable
 /**
  * The amount of time in milliseconds to allow HTTP requests before assuming
@@ -432,7 +470,7 @@ Future<InputStream> httpGet(uri) {
 Future<String> httpGetString(uri) {
   var future = httpGet(uri).chain((stream) => consumeInputStream(stream))
       .transform((bytes) => new String.fromCharCodes(bytes));
-  return timeout(future, HTTP_TIMEOUT, 'Timed out while fetching URL "$uri".');
+  return timeout(future, HTTP_TIMEOUT, 'fetching URL "$uri"');
 }
 
 /**
@@ -455,6 +493,8 @@ void pipeInputToInput(InputStream source, ListInputStream sink,
  * Buffers all input from an InputStream and returns it as a future.
  */
 Future<List<int>> consumeInputStream(InputStream stream) {
+  if (stream.closed) return new Future.immediate(<int>[]);
+
   var completer = new Completer<List<int>>();
   var buffer = <int>[];
   stream.onClosed = () => completer.complete(buffer);
@@ -463,22 +503,56 @@ Future<List<int>> consumeInputStream(InputStream stream) {
   return completer.future;
 }
 
+/// Buffers all input from a StringInputStream and returns it as a future.
+Future<String> consumeStringInputStream(StringInputStream stream) {
+  if (stream.closed) return new Future.immediate('');
+
+  var completer = new Completer<String>();
+  var buffer = new StringBuffer();
+  stream.onClosed = () => completer.complete(buffer.toString());
+  stream.onData = () => buffer.add(stream.read());
+  stream.onError = (e) => completer.completeException(e);
+  return completer.future;
+}
+
 /// Spawns and runs the process located at [executable], passing in [args].
-/// Returns a [Future] that will complete the results of the process after it
-/// has ended.
+/// Returns a [Future] that will complete with the results of the process after
+/// it has ended.
 ///
 /// The spawned process will inherit its parent's environment variables. If
 /// [environment] is provided, that will be used to augment (not replace) the
 /// the inherited variables.
-///
-/// If [pipeStdout] and/or [pipeStderr] are set, all output from the
-/// subprocess's output streams are sent to the parent process's output streams.
-/// Output from piped streams won't be available in the result object.
 Future<PubProcessResult> runProcess(String executable, List<String> args,
-    {workingDir, Map<String, String> environment, bool pipeStdout: false,
-    bool pipeStderr: false}) {
-  int exitCode;
+    {workingDir, Map<String, String> environment}) {
+  return _doProcess(Process.run, executable, args, workingDir, environment)
+      .transform((result) {
+    // TODO(rnystrom): Remove this and change to returning one string.
+    List<String> toLines(String output) {
+      var lines = output.split(NEWLINE_PATTERN);
+      if (!lines.isEmpty && lines.last == "") lines.removeLast();
+      return lines;
+    }
+    return new PubProcessResult(toLines(result.stdout),
+                                toLines(result.stderr),
+                                result.exitCode);
+  });
+}
 
+/// Spawns the process located at [executable], passing in [args]. Returns a
+/// [Future] that will complete with the [Process] once it's been started.
+///
+/// The spawned process will inherit its parent's environment variables. If
+/// [environment] is provided, that will be used to augment (not replace) the
+/// the inherited variables.
+Future<Process> startProcess(String executable, List<String> args,
+    {workingDir, Map<String, String> environment}) =>
+  _doProcess(Process.start, executable, args, workingDir, environment);
+
+/// Calls [fn] with appropriately modified arguments. [fn] should have the same
+/// signature as [Process.start], except that the returned [Future] may have a
+/// type other than [Process].
+Future _doProcess(Function fn, String executable, List<String> args, workingDir,
+    Map<String, String> environment) {
   // TODO(rnystrom): Should dart:io just handle this?
   // Spawning a process on Windows will not look for the executable in the
   // system path. So, if executable looks like it needs that (i.e. it doesn't
@@ -499,34 +573,25 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
     environment.forEach((key, value) => options.environment[key] = value);
   }
 
-  var future = Process.run(executable, args, options);
-  return future.transform((result) {
-    // TODO(rnystrom): Remove this and change to returning one string.
-    List<String> toLines(String output) {
-      var lines = output.split(NEWLINE_PATTERN);
-      if (!lines.isEmpty && lines.last == "") lines.removeLast();
-      return lines;
-    }
-    return new PubProcessResult(toLines(result.stdout),
-                                toLines(result.stderr),
-                                result.exitCode);
-  });
+  return fn(executable, args, options);
 }
 
 /**
  * Wraps [input] to provide a timeout. If [input] completes before
  * [milliseconds] have passed, then the return value completes in the same way.
  * However, if [milliseconds] pass before [input] has completed, it completes
- * with a [TimeoutException] with [message].
+ * with a [TimeoutException] with [description] (which should be a fragment
+ * describing the action that timed out).
  *
  * Note that timing out will not cancel the asynchronous operation behind
  * [input].
  */
-Future timeout(Future input, int milliseconds, String message) {
+Future timeout(Future input, int milliseconds, String description) {
   var completer = new Completer();
   var timer = new Timer(milliseconds, (_) {
     if (completer.future.isComplete) return;
-    completer.completeException(new TimeoutException(message));
+    completer.completeException(new TimeoutException(
+        'Timed out while $description.'));
   });
   input.handleException((e) {
     if (completer.future.isComplete) return false;
@@ -704,6 +769,62 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
   }).transform((_) => true);
 }
 
+/// Create a .tar.gz archive from a list of entries. Each entry can be a
+/// [String], [Directory], or [File] object. The root of the archive is
+/// considered to be [baseDir], which defaults to the current working directory.
+/// Returns an [InputStream] that will emit the contents of the archive.
+InputStream createTarGz(List contents, {baseDir}) {
+  // TODO(nweiz): Propagate errors to the returned stream (including non-zero
+  // exit codes). See issue 3657.
+  var stream = new ListInputStream();
+
+  if (baseDir == null) baseDir = currentWorkingDir;
+  baseDir = getFullPath(baseDir);
+  contents = contents.map((entry) {
+    entry = getFullPath(entry);
+    if (!isBeneath(entry, baseDir)) {
+      throw 'Entry $entry is not inside $baseDir.';
+    }
+    return new Path(entry).relativeTo(new Path(baseDir)).toNativePath();
+  });
+
+  if (Platform.operatingSystem != "windows") {
+    var args = ["--create", "--gzip", "--directory", baseDir];
+    args.addAll(contents.map(_getPath));
+    // TODO(nweiz): It's possible that enough command-line arguments will make
+    // the process choke, so at some point we should save the arguments to a
+    // file and pass them in via --files-from for tar and -i@filename for 7zip.
+    startProcess("tar", args).then((process) {
+      pipeInputToInput(process.stdout, stream);
+      process.stderr.pipe(stderr, close: false);
+    });
+    return stream;
+  }
+
+  withTempDir((tempDir) {
+    // Create the tar file.
+    var tarFile = join(tempDir, "intermediate.tar");
+    var args = ["a", "-w$baseDir", tarFile];
+    args.addAll(contents.map((entry) => '-i!"$entry"'));
+
+    // Note: This line of code gets munged by create_sdk.py to be the correct
+    // relative path to 7zip in the SDK.
+    var pathTo7zip = '../../third_party/7zip/7za.exe';
+    var command = relativeToPub(pathTo7zip);
+
+    return runProcess(command, args).chain((_) {
+      // GZIP it. 7zip doesn't support doing both as a single operation. Send
+      // the output to stdout.
+      args = ["a", "not used", "-so", tarFile];
+      return startProcess(command, args);
+    }).transform((process) {
+      pipeInputToInput(process.stdout, stream);
+      process.stderr.pipe(stderr, close: false);
+    });
+  });
+  return stream;
+}
+
 /**
  * Exception thrown when an HTTP operation fails.
  */
@@ -750,6 +871,16 @@ String _getPath(entry) {
   if (entry is File) return entry.name;
   if (entry is Directory) return entry.path;
   throw 'Entry $entry is not a supported type.';
+}
+
+/// Gets the path string for [entry] as in [_getPath], but normalizes
+/// backslashes to forward slashes on Windows.
+String _sanitizePath(entry) {
+  entry = _getPath(entry);
+  if (Platform.operatingSystem == 'windows') {
+    entry = entry.replaceAll('\\', '/');
+  }
+  return entry;
 }
 
 /**

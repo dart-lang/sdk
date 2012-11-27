@@ -79,7 +79,7 @@ class HostedSource extends Source {
                          systemCache.createTempDir()]).chain((args) {
       tempDir = args[1];
       return timeout(extractTarGz(args[0], tempDir), HTTP_TIMEOUT,
-          'Timed out while fetching URL "$fullUrl".');
+          'fetching URL "$fullUrl"');
     }).chain((_) {
       // Now that the install has succeeded, move it to the real location in
       // the cache. This ensures that we don't leave half-busted ghost
