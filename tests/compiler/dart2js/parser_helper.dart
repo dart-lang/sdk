@@ -85,8 +85,9 @@ Link<Element> parseUnit(String text, Compiler compiler,
   return unit.localMembers;
 }
 
-NodeList fullParseUnit(String source) {
-  return parseBodyCode(source, (parser, tokens) => parser.parseUnit(tokens));
+NodeList fullParseUnit(String source, {DiagnosticListener diagnosticHandler}) {
+  return parseBodyCode(source, (parser, tokens) => parser.parseUnit(tokens),
+                       diagnosticHandler: diagnosticHandler);
 }
 
 // TODO(ahe): We define this method to avoid having to import
