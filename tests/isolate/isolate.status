@@ -14,14 +14,16 @@ timer_isolate_test: Skip # See Issue 4997
 unresolved_ports_negative_test: Skip # See Issue 6839
 
 [ $compiler == none && $runtime == drt ]
+isolate2_negative_test: Skip  # Inherited from VM.
+isolate3_negative_test: Skip  # Inherited from VM.
 serialization_test: Skip  # tests dart2js-specific serialization code
 spawn_uri_test: Skip # uses a .js extension (not for dartium)
 spawn_uri_negative_test: Skip # ditto
 spawn_uri_vm_test: Skip # not implemented in dartium yet.
 spawn_uri_vm_negative_test: Skip
-timer_isolate_test: Pass, Fail # See Issue 4997
-timer_not_available_test: Fail, OK # only meant to test when there is no way to
-                                   # implement timer (currently only in d8)
+timer_isolate_test: Skip # See Issue 4997
+timer_not_available_test: Skip # only meant to test when there is no way to
+                               # implement timer (currently only in d8)
 
 [ $compiler == dartc ]
 serialization_test: Skip  # tests dart2js-specific serialization code
