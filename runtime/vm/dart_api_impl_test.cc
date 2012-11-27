@@ -6284,6 +6284,7 @@ static void RunLoopTest(bool throw_exception_child,
   args[1] = (throw_exception_parent ? Dart_True() : Dart_False());
   result = Dart_Invoke(lib, NewString("main"), 2, args);
   EXPECT_VALID(result);
+  OS::Sleep(1);  // Wait a little for isolate to fail.
   if (throw_exception_child) {
     EXPECT_NOTNULL(last_exception);
     EXPECT_STREQ("UnhandledException", last_exception);
