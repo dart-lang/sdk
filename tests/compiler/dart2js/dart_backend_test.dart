@@ -718,7 +718,8 @@ main() {
   testVariableDefinitions();
   testGetSet();
   testAbstractClass();
-  testConflictSendsRename();
+  // TODO(6976): Re-enable when fixed.
+  //testConflictSendsRename();
   testNoConflictSendsRename();
   testConflictLibraryClassRename();
   testDefaultClassWithArgs();
