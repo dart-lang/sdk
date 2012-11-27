@@ -2802,7 +2802,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     List<HInstruction> inputs = <HInstruction>[];
     Set<ClassElement> interceptedClasses =
-        interceptors.getInterceptedClassesOn(selector);
+        getInterceptedClassesOn(send, selector);
     if (interceptedClasses != null) {
       inputs.add(invokeInterceptor(interceptedClasses, receiver, node));
     }
