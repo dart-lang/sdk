@@ -5080,6 +5080,7 @@ public class DartParser extends CompletionHooksParserBase {
       if (peekPseudoKeyword(0, ON_KEYWORD)) {
         beginCatchClause();
         next();
+        int onTokenOffset = position();
         DartTypeNode exceptionType = parseTypeAnnotation();
         DartParameter exception = null;
         DartParameter stackTrace = null;
@@ -5106,7 +5107,7 @@ public class DartParser extends CompletionHooksParserBase {
           setMetadata(exception, metadata);
         }
         DartBlock block = parseBlock();
-        catches.add(done(new DartCatchBlock(block, exception, stackTrace)));
+        catches.add(done(new DartCatchBlock(block, onTokenOffset, exception, stackTrace)));
       } else {
         beginCatchClause();
         next();
@@ -5139,7 +5140,7 @@ public class DartParser extends CompletionHooksParserBase {
         }
         expectCloseParen();
         DartBlock block = parseBlock();
-        catches.add(done(new DartCatchBlock(block, exception, stackTrace)));
+        catches.add(done(new DartCatchBlock(block, -1, exception, stackTrace)));
       }
     }
 
