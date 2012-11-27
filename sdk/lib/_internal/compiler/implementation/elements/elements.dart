@@ -1852,7 +1852,7 @@ class Elements {
     } else if (identical(value, '[]')) {
       return const SourceString(r'operator$index');
     } else if (identical(value, '[]=')) {
-      return const SourceString(r'oprator$indexSet');
+      return const SourceString(r'operator$indexSet');
     } else if (identical(value, '*')) {
       return const SourceString(r'operator$mul');
     } else if (identical(value, '/')) {

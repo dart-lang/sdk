@@ -18,7 +18,7 @@ abstract class HType {
     if (identical(element.kind, ElementKind.TYPE_VARIABLE)) {
       // TODO(ngeoffray): Replace object type with [type].
       return new HBoundedPotentialPrimitiveType(
-          compiler.objectClass.computeType(compiler), canBeNull);
+          compiler.objectClass.computeType(compiler), canBeNull, true);
     }
 
     if (identical(element, compiler.intClass)) {
@@ -38,6 +38,9 @@ abstract class HType {
       return new HBoundedPotentialPrimitiveNumberOrString(type, canBeNull);
     } else if (Elements.isStringOnlySupertype(element, compiler)) {
       return new HBoundedPotentialPrimitiveString(type, canBeNull);
+    } else if (identical(element, compiler.objectClass)) {
+      return new HBoundedPotentialPrimitiveType(
+          compiler.objectClass.computeType(compiler), canBeNull, true);
     } else {
       return canBeNull ? new HBoundedType.withNull(type)
                        : new HBoundedType.nonNull(type);
@@ -85,6 +88,7 @@ abstract class HType {
   bool isPrimitive() => false;
   bool isExact() => false;
   bool isPrimitiveOrNull() => false;
+  bool isTop() => false;
 
   bool canBePrimitive() => false;
   bool canBeNull() => false;
@@ -218,6 +222,9 @@ class HBooleanOrNullType extends HPrimitiveOrNullType {
     if (other.isUnknown()) return HType.BOOLEAN_OR_NULL;
     if (other.isBoolean()) return HType.BOOLEAN;
     if (other.isBooleanOrNull()) return HType.BOOLEAN_OR_NULL;
+    if (other.isTop()) {
+      return other.canBeNull() ? this : HType.BOOLEAN;
+    }
     if (other.canBeNull()) return HType.NULL;
     return HType.CONFLICTING;
   }
@@ -278,6 +285,9 @@ class HNumberOrNullType extends HPrimitiveOrNullType {
     if (other.isIntegerOrNull()) return HType.INTEGER_OR_NULL;
     if (other.isDoubleOrNull()) return HType.DOUBLE_OR_NULL;
     if (other.isNumberOrNull()) return HType.NUMBER_OR_NULL;
+    if (other.isTop()) {
+      return other.canBeNull() ? this : HType.NUMBER;
+    }
     if (other.canBeNull()) return HType.NULL;
     return HType.CONFLICTING;
   }
@@ -342,6 +352,9 @@ class HIntegerOrNullType extends HNumberOrNullType {
     if (other.isDoubleOrNull()) return HType.NULL;
     if (other.isNumber()) return HType.INTEGER;
     if (other.isNumberOrNull()) return HType.INTEGER_OR_NULL;
+    if (other.isTop()) {
+      return other.canBeNull() ? this : HType.INTEGER;
+    }
     if (other.canBeNull()) return HType.NULL;
     return HType.CONFLICTING;
   }
@@ -410,6 +423,9 @@ class HDoubleOrNullType extends HNumberOrNullType {
     if (other.isDoubleOrNull()) return HType.DOUBLE_OR_NULL;
     if (other.isNumber()) return HType.DOUBLE;
     if (other.isNumberOrNull()) return HType.DOUBLE_OR_NULL;
+    if (other.isTop()) {
+      return other.canBeNull() ? this : HType.DOUBLE;
+    }
     if (other.canBeNull()) return HType.NULL;
     return HType.CONFLICTING;
   }
@@ -524,6 +540,9 @@ class HStringOrNullType extends HPrimitiveOrNullType {
     if (other.isIndexablePrimitive()) return HType.STRING;
     if (other is HBoundedPotentialPrimitiveString) {
       return other.canBeNull() ? HType.STRING_OR_NULL : HType.STRING;
+    }
+    if (other.isTop()) {
+      return other.canBeNull() ? this : HType.STRING;
     }
     if (other.canBeNull()) return HType.NULL;
     return HType.CONFLICTING;
@@ -679,8 +698,8 @@ class HBoundedType extends HType {
   final bool _canBeNull;
   final bool _isExact;
 
-  toString() {
-    return 'BoundedType($type, $_canBeNull, $_isExact)';
+  String toString() {
+    return 'BoundedType($type, canBeNull: $_canBeNull, isExact: $_isExact)';
   }
 
   bool canBeNull() => _canBeNull;
@@ -764,15 +783,47 @@ class HBoundedType extends HType {
 }
 
 class HBoundedPotentialPrimitiveType extends HBoundedType {
-  const HBoundedPotentialPrimitiveType(DartType type, bool canBeNull)
+  final bool _isObject;
+  const HBoundedPotentialPrimitiveType(DartType type,
+                                       bool canBeNull,
+                                       this._isObject)
       : super(type, canBeNull, false);
+
+  String toString() {
+    return 'BoundedPotentialPrimitiveType($type, canBeNull: $_canBeNull)';
+  }
+
   bool canBePrimitive() => true;
+  bool isTop() => _isObject;
+
+  HType union(HType other, Compiler compiler) {
+    if (isTop()) {
+      // The union of the top type and another type is the top type.
+      if (!canBeNull() && other.canBeNull()) {
+        return new HBoundedPotentialPrimitiveType(type, true, true);
+      } else {
+        return this;
+      }
+    } else {
+      return super.union(other, compiler);
+    }
+  }
+
+  HType intersection(HType other, Compiler compiler) {
+    if (isTop()) {
+      // The intersection of the top type and any other type is the other type.
+      // TODO(ngeoffray): Also update the canBeNull information.
+      return other;
+    } else {
+      return super.intersection(other, compiler);
+    }
+  }
 }
 
 class HBoundedPotentialPrimitiveNumberOrString
     extends HBoundedPotentialPrimitiveType {
   const HBoundedPotentialPrimitiveNumberOrString(DartType type, bool canBeNull)
-      : super(type, canBeNull);
+      : super(type, canBeNull, false);
 
   HType union(HType other, Compiler compiler) {
     if (other.isNumber()) return this;
@@ -812,7 +863,7 @@ class HBoundedPotentialPrimitiveNumberOrString
 
 class HBoundedPotentialPrimitiveArray extends HBoundedPotentialPrimitiveType {
   const HBoundedPotentialPrimitiveArray(DartType type, bool canBeNull)
-      : super(type, canBeNull);
+      : super(type, canBeNull, false);
 
   HType union(HType other, Compiler compiler) {
     if (other.isString()) return HType.UNKNOWN;
@@ -840,7 +891,7 @@ class HBoundedPotentialPrimitiveArray extends HBoundedPotentialPrimitiveType {
 
 class HBoundedPotentialPrimitiveString extends HBoundedPotentialPrimitiveType {
   const HBoundedPotentialPrimitiveString(DartType type, bool canBeNull)
-      : super(type, canBeNull);
+      : super(type, canBeNull, false);
 
   bool isPrimitiveOrNull() => true;
 

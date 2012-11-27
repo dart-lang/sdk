@@ -101,6 +101,13 @@ class HTypeList {
                                           HTypeMap types) {
     HTypeList result;
     int argumentsCount = node.inputs.length - 1;
+    int startInvokeIndex = HInvoke.ARGUMENTS_OFFSET;
+
+    if (node.isInterceptorCall) {
+      argumentsCount--;
+      startInvokeIndex++;
+    }
+
     if (selector.namedArgumentCount > 0) {
       result =
           new HTypeList.withNamedArguments(
@@ -108,8 +115,9 @@ class HTypeList {
     } else {
       result = new HTypeList(argumentsCount);
     }
+
     for (int i = 0; i < result.types.length; i++) {
-      result.types[i] = types[node.inputs[i + 1]];
+      result.types[i] = types[node.inputs[i + startInvokeIndex]];
     }
     return result;
   }
@@ -129,38 +137,6 @@ class HTypeList {
     HTypeList result = this;
     for (int i = 0; i < length; i++) {
       HType newType = this[i].union(other[i], compiler);
-      if (result == this && newType != this[i]) {
-        // Create a new argument types object with the matching types copied.
-        result = new HTypeList(length);
-        result.types.setRange(0, i, this.types);
-      }
-      if (result != this) {
-        result.types[i] = newType;
-      }
-      if (result[i] != HType.UNKNOWN) onlyUnknown = false;
-    }
-    return onlyUnknown ? HTypeList.ALL_UNKNOWN : result;
-  }
-
-  /**
-   * Create the union of this [HTypeList] object with the types used by
-   * the [node]. If the union results in exactly the same types the receiver
-   * is returned. Otherwise a different [HTypeList] object is returned
-   * with the type union information.
-   */
-  HTypeList unionWithInvoke(HInvoke node, HTypeMap types, Compiler compiler) {
-    // Union an all unknown list with something stays all unknown.
-    if (allUnknown) return this;
-
-    bool allUnknown = true;
-    if (length != node.inputs.length - 1) {
-      return HTypeList.ALL_UNKNOWN;
-    }
-
-    bool onlyUnknown = true;
-    HTypeList result = this;
-    for (int i = 0; i < length; i++) {
-      HType newType = this[i].union(types[node.inputs[i + 1]], compiler);
       if (result == this && newType != this[i]) {
         // Create a new argument types object with the matching types copied.
         result = new HTypeList(length);
@@ -473,18 +449,22 @@ class ArgumentTypesRegistry {
 
   Compiler get compiler => backend.compiler;
 
+  bool updateTypes(HTypeList oldTypes, HTypeList newTypes, var key, var map) {
+    if (oldTypes.allUnknown) return false;
+    newTypes = oldTypes.union(newTypes, backend.compiler);
+    if (identical(newTypes, oldTypes)) return false;
+    map[key] = newTypes;
+    return true;
+  }
+
   void registerStaticInvocation(HInvokeStatic node, HTypeMap types) {
     Element element = node.element;
     assert(invariant(node, element.isDeclaration));
     HTypeList oldTypes = staticTypeMap[element];
+    HTypeList newTypes = new HTypeList.fromStaticInvocation(node, types);
     if (oldTypes == null) {
-      staticTypeMap[element] = new HTypeList.fromStaticInvocation(node, types);
-    } else {
-      if (oldTypes.allUnknown) return;
-      HTypeList newTypes =
-          oldTypes.unionWithInvoke(node, types, backend.compiler);
-      if (identical(newTypes, oldTypes)) return;
       staticTypeMap[element] = newTypes;
+    } else if (updateTypes(oldTypes, newTypes, element, staticTypeMap)) {
       if (optimizedStaticFunctions.contains(element)) {
         backend.scheduleForRecompilation(element);
       }
@@ -524,10 +504,7 @@ class ArgumentTypesRegistry {
       selectorTypeMap[selector] = providedTypes;
     } else {
       HTypeList oldTypes = selectorTypeMap[selector];
-      HTypeList newTypes =
-           oldTypes.unionWithInvoke(node, types, backend.compiler);
-      if (identical(newTypes, oldTypes)) return;
-      selectorTypeMap[selector] = newTypes;
+      updateTypes(oldTypes, providedTypes, selector, selectorTypeMap);
     }
 
     // If we're not compiling, we don't have to do anything.
@@ -658,6 +635,14 @@ class JavaScriptBackend extends Backend {
   Element jsArrayLength;
   Element jsStringLength;
   Element getInterceptorMethod;
+  Element arrayInterceptor;
+  Element boolInterceptor;
+  Element doubleInterceptor;
+  Element functionInterceptor;
+  Element intInterceptor;
+  Element nullInterceptor;
+  Element numberInterceptor;
+  Element stringInterceptor;
   bool _interceptorsAreInitialized = false;
 
   final Namer namer;
@@ -788,6 +773,23 @@ class JavaScriptBackend extends Backend {
     jsStringClass.ensureResolved(compiler);
     jsStringLength =
         jsStringClass.lookupLocalMember(const SourceString('length'));
+
+    arrayInterceptor =
+        compiler.findInterceptor(const SourceString('arrayInterceptor'));
+    boolInterceptor =
+        compiler.findInterceptor(const SourceString('boolInterceptor'));
+    doubleInterceptor =
+        compiler.findInterceptor(const SourceString('doubleInterceptor'));
+    functionInterceptor =
+        compiler.findInterceptor(const SourceString('functionInterceptor'));
+    intInterceptor =
+        compiler.findInterceptor(const SourceString('intInterceptor'));
+    nullInterceptor =
+        compiler.findInterceptor(const SourceString('nullInterceptor'));
+    stringInterceptor =
+        compiler.findInterceptor(const SourceString('stringInterceptor'));
+    numberInterceptor =
+        compiler.findInterceptor(const SourceString('numberInterceptor'));
   }
 
   void addInterceptors(ClassElement cls) {

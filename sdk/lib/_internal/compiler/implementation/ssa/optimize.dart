@@ -211,6 +211,22 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         && node.selector.name == const SourceString('toString')) {
       return node.inputs[1];
     }
+    // Check if this call does not need to be intercepted.
+    HType type = types[input];
+    var interceptor = node.inputs[0];
+    if (node is HInvokeDynamicMethod
+        && interceptor is !HThis
+        && !type.canBePrimitive()) {
+      // If the type can be null, and the intercepted method can be in
+      // the object class, keep the interceptor.
+      if (type.canBeNull()
+          && interceptor.interceptedClasses.contains(compiler.objectClass)) {
+        return node;
+      }
+      // Change the call to a regular invoke dynamic call.
+      return new HInvokeDynamicMethod(
+          node.selector, node.inputs.getRange(1, node.inputs.length - 1));
+    }
     return node;
   }
 
@@ -250,8 +266,13 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return node;
   }
 
-  HInstruction fromInterceptorToDynamicInvocation(HInvokeStatic node,
-                                                  Selector selector) {
+  /**
+   * Turns a primitive instruction (e.g. [HIndex], [HAdd], ...) into a
+   * [HInvokeDynamic] because we know the receiver is not a JS
+   * primitive object.
+   */
+  HInstruction fromPrimitiveInstructionToDynamicInvocation(HInvokeStatic node,
+                                                           Selector selector) {
     HBoundedType type = types[node.inputs[1]];
     HInvokeDynamicMethod result = new HInvokeDynamicMethod(
         selector,
@@ -281,7 +302,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitIndex(HIndex node) {
     if (!node.receiver.canBePrimitive(types)) {
       Selector selector = new Selector.index();
-      return fromInterceptorToDynamicInvocation(node, selector);
+      return fromPrimitiveInstructionToDynamicInvocation(node, selector);
     }
     return node;
   }
@@ -289,7 +310,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitIndexAssign(HIndexAssign node) {
     if (!node.receiver.canBePrimitive(types)) {
       Selector selector = new Selector.indexSet();
-      return fromInterceptorToDynamicInvocation(node, selector);
+      return fromPrimitiveInstructionToDynamicInvocation(node, selector);
     }
     return node;
   }
@@ -310,7 +331,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         // The equals operation is being optimized in visitEquals.
         && node is! HEquals) {
       Selector selector = new Selector.binaryOperator(operation.name);
-      return fromInterceptorToDynamicInvocation(node, selector);
+      return fromPrimitiveInstructionToDynamicInvocation(node, selector);
     }
     return node;
   }
@@ -655,6 +676,38 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       folded = new DartString.concat(folded, primitive.toDartString());
     }
     return graph.addConstant(constantSystem.createString(folded, node.node));
+  }
+
+  HInstruction visitInterceptor(HInterceptor node) {
+    if (node.isConstant()) return node;
+    HType type = types[node.inputs[0]];
+    Element constantInterceptor;
+    if (type.isInteger()) {
+      constantInterceptor = backend.intInterceptor;
+    } else if (type.isDouble()) {
+      constantInterceptor = backend.doubleInterceptor;
+    } else if (type.isBoolean()) {
+      constantInterceptor = backend.boolInterceptor;
+    } else if (type.isString()) {
+      constantInterceptor = backend.stringInterceptor;
+    } else if (type.isArray()) {
+      constantInterceptor = backend.arrayInterceptor;
+    } else if (type.isNull()) {
+      constantInterceptor = backend.nullInterceptor;
+    } else if (type.isNumber()) {
+      Set<ClassElement> intercepted = node.interceptedClasses;
+      // If the method being intercepted is not defined in [int] or
+      // [double] we can safely use the number interceptor.
+      if (!intercepted.contains(compiler.intClass)
+          && !intercepted.contains(compiler.doubleClass)) {
+        constantInterceptor = backend.numberInterceptor;
+      }
+    }
+
+    if (constantInterceptor == null) return node;
+
+    ConstantHandler handler = compiler.constantHandler;
+    return graph.addConstant(handler.compileVariable(constantInterceptor));
   }
 }
 

@@ -1559,18 +1559,12 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       arguments = visitArguments(node.inputs);
       bool inLoop = node.block.enclosingLoopHeader != null;
 
-      // Register this invocation to collect the types used at all call sites.
       Selector selector = getOptimizedSelectorFor(node, node.selector);
-      // TODO(ngeoffray): Remove the following restriction. Because
-      // the second input of this interceptor call is the actual
-      // receiver (the first is the interceptor), the backend gets
-      // confused. We should pass a list of types instead of a node to
-      // [registerDynamicInvocation].
-      if (!node.isInterceptorCall) {
-        backend.registerDynamicInvocation(node, selector, types);
-      } else {
+      if (node.isInterceptorCall) {
         backend.addInterceptedSelector(selector);
       }
+      // Register this invocation to collect the types used at all call sites.
+      backend.registerDynamicInvocation(node, selector, types);
 
       // If we don't know what we're calling or if we are calling a getter,
       // we need to register that fact that we may be calling a closure
