@@ -878,17 +878,19 @@ class HBoundedPotentialPrimitiveString extends HBoundedPotentialPrimitiveType {
 }
 
 class HTypeMap {
-  Map<HInstruction, HType> _map;
-
-  HTypeMap() : _map = new Map<HInstruction, HType>();
+  List<HType> _list = new List<HType>();
 
   operator [](HInstruction instruction) {
-    HType result = _map[instruction];
+    HType result;
+    if (instruction.id < _list.length) result = _list[instruction.id];
     if (result == null) return instruction.guaranteedType;
     return result;
   }
 
   operator []=(HInstruction instruction, HType value) {
-    _map[instruction] = value;
+    if (_list.length <= instruction.id) {
+      _list.length = instruction.id + 1;
+    }
+    _list[instruction.id] = value;
   }
 }
