@@ -68,7 +68,7 @@ number_identity_test: Skip # Bigints and int/double diff. not supported.
 typed_array_test: Skip # This is a VM test
 float_array_test: Skip # This is a VM test
 int_array_test: Skip  # This is a VM test
-medium_integer_test: Fail, OK # cannot resolve type Mint
+medium_integer_test: Fail, OK # Test fails with JS number semantics: issue 1533.
 io/process_exit_negative_test: Fail, OK # relies on a static error that is a warning now.
 package/package_isolate_test: Skip # spawnUri does not work in dart2js. See issue 3051
 
@@ -82,6 +82,7 @@ io/options_test: Fail, OK # Cannot pass options to d8.
 
 [ $compiler == dart2js && $runtime == none ]
 io/options_test: Fail
+medium_integer_test: Pass # The test only fails at runtime, not at compilation.
 
 [ $compiler == dart2js && $browser ]
 *: Skip
