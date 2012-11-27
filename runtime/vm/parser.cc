@@ -29,8 +29,6 @@ DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
 DEFINE_FLAG(bool, warn_legacy_map_literal, false,
             "Warning on legacy map literal syntax (single type argument)");
-DEFINE_FLAG(bool, warn_legacy_dynamic, false,
-            "Warning on legacy type Dynamic)");
 DEFINE_FLAG(bool, warn_legacy_getters, false,
             "Warning on legacy getter syntax");
 DEFINE_FLAG(bool, strict_function_literals, false,
@@ -6723,9 +6721,7 @@ String* Parser::ExpectUserDefinedTypeIdentifier(const char* msg) {
     ErrorMsg("%s", msg);
   }
   String* ident = CurrentLiteral();
-  // TODO(hausner): Remove check for 'Dynamic' once support for upper-case
-  // type dynamic is gone.
-  if (ident->Equals("Dynamic") || ident->Equals("dynamic")) {
+  if (ident->Equals("dynamic")) {
     ErrorMsg("%s", msg);
   }
   ConsumeToken();
@@ -8603,16 +8599,6 @@ RawAbstractType* Parser::ParseType(
     SkipQualIdent();
   } else {
     ParseQualIdent(&type_name);
-    // TODO(hausner): Remove this once support for legacy type 'Dynamic'
-    // is removed.
-    if ((type_name.lib_prefix == NULL) && type_name.ident->Equals("Dynamic")) {
-      if (FLAG_warn_legacy_dynamic) {
-        Warning(type_name.ident_pos,
-                "legacy type 'Dynamic' found; auto-converting to 'dynamic'");
-      }
-      // Replace with lower-case 'dynamic'.
-      *type_name.ident ^= Symbols::Dynamic();
-    }
     // An identifier cannot be resolved in a local scope when top level parsing.
     if (!is_top_level_ &&
         (type_name.lib_prefix == NULL) &&
