@@ -1712,6 +1712,8 @@ if (typeof document !== 'undefined' && document.readyState != 'complete') {
    */
   void emitGetInterceptorMethods(CodeBuffer buffer) {
     JavaScriptBackend backend = compiler.backend;
+    // If no class needs to be intercepted, just return.
+    if (backend.objectInterceptorClass == null) return;
     String objectName = namer.isolateAccess(backend.objectInterceptorClass);
     backend.specializedGetInterceptors.forEach(
         (String key, Collection<ClassElement> classes) {

@@ -54,6 +54,10 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   class JSString {
     var length;
   }
+  class JSNumber {
+  }
+  class ObjectInterceptor {
+  }
   getInterceptor(x) {}''';
 
 const String DEFAULT_CORELIB = r'''

@@ -782,7 +782,7 @@ class JavaScriptBackend extends Backend {
         jsStringClass.lookupLocalMember(const SourceString('length'));
 
     for (ClassElement cls in classes) {
-      interceptedClasses[cls] = null;
+      if (cls != null) interceptedClasses[cls] = null;
     }
   }
 
