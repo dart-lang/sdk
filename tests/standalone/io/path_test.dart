@@ -11,6 +11,7 @@ void main() {
   testCanonicalize();
   testJoinAppend();
   testRelativeTo();
+  testWindowsShare();
 }
 
 void testBaseFunctions() {
@@ -193,4 +194,37 @@ void testRelativeTo() {
   // Should always throw - no relative path can be constructed.
   Expect.throws(() =>
                 new Path('a/b').relativeTo(new Path('../../d')));
+}
+
+// Test that Windows share information is maintain through
+// Path operations.
+void testWindowsShare() {
+  // Windows share information only makes sense on Windows.
+  if (Platform.operatingSystem != 'windows') return;
+  var path = new Path.fromNative(r'\\share\a\b\..\c');
+  Expect.isTrue(path.isAbsolute);
+  Expect.isTrue(path.isWindowsShare);
+  Expect.isFalse(path.hasTrailingSeparator);
+  var canonical = path.canonicalize();
+  Expect.isTrue(canonical.isAbsolute);
+  Expect.isTrue(canonical.isWindowsShare);
+  Expect.isFalse(path.isCanonical);
+  Expect.isTrue(canonical.isCanonical);
+  var joined = canonical.join(new Path('d/e/f'));
+  Expect.isTrue(joined.isAbsolute);
+  Expect.isTrue(joined.isWindowsShare);
+  var relativeTo = joined.relativeTo(canonical);
+  Expect.isFalse(relativeTo.isAbsolute);
+  Expect.isFalse(relativeTo.isWindowsShare);
+  var nonShare = new Path('/share/a/c/d/e');
+  Expect.throws(() => nonShare.relativeTo(canonical));
+  Expect.isTrue(canonical.toString().startsWith('/share/a'));
+  Expect.isTrue(canonical.toNativePath().startsWith(r'\\share\a'));
+  Expect.listEquals(['share', 'a', 'c'], canonical.segments());
+  var appended = canonical.append('d');
+  Expect.isTrue(appended.isAbsolute);
+  Expect.isTrue(appended.isWindowsShare);
+  var directoryPath = canonical.directoryPath;
+  Expect.isTrue(directoryPath.isAbsolute);
+  Expect.isTrue(directoryPath.isWindowsShare);
 }

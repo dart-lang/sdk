@@ -51,27 +51,55 @@ class _Directory implements Directory {
     return (result == 1);
   }
 
+  Future<int> _computeExistingIndex(List dirsToCreate) {
+    var future;
+    for (var i = 0; i < dirsToCreate.length; i++) {
+      if (future == null) {
+        future = dirsToCreate[i].exists().transform((e) => e ? i : -1);
+      } else {
+        future = future.chain((index) {
+          if (index != -1) {
+            return new Future.immediate(index);
+          }
+          return dirsToCreate[i].exists().transform((e) => e ? i : -1);
+        });
+      }
+    }
+    if (future == null) {
+      return new Future.immedidate(-1);
+    } else {
+      return future;
+    }
+  }
+
   Future<Directory> createRecursively() {
     if (_path is !String) {
       throw new ArgumentError();
     }
     var path = new Path.fromNative(_path);
-    var current = new Path(path.isAbsolute ? '/' : '');
-    var future = null;
-    for (var segment in path.segments()) {
-      var next = current.append(segment);
-      if (future == null) {
-        future = new Directory.fromPath(current).create();
-      } else {
-        future = future.chain((_) => new Directory.fromPath(next).create());
+    var dirsToCreate = [];
+    var terminator = path.isAbsolute ? '/' : '';
+    while (path.toString() != terminator) {
+      dirsToCreate.add(new Directory.fromPath(path));
+      path = path.directoryPath;
+    }
+    return _computeExistingIndex(dirsToCreate).chain((index) {
+      var future;
+      for (var i = index - 1; i >= 0 ; i--) {
+        if (future == null) {
+          future = dirsToCreate[i].create();
+        } else {
+          future = future.chain((_) {
+            return dirsToCreate[i].create();
+          });
+        }
       }
-      current = next;
-    }
-    if (future == null) {
-      return new Future.immediate(this);
-    } else {
-      return future.transform((result) => this);
-    }
+      if (future == null) {
+        return new Future.immediate(this);
+      } else {
+        return future.transform((_) => this);
+      }
+    });
   }
 
   Future<Directory> create({recursive: false}) {
@@ -90,10 +118,16 @@ class _Directory implements Directory {
 
   void createRecursivelySync() {
     var path = new Path.fromNative(_path);
-    var current = new Path(path.isAbsolute ? '/' : '');
-    for (var segment in path.segments()) {
-      current = current.append(segment);
-      new Directory.fromPath(current).createSync();
+    var dirsToCreate = [];
+    var terminator = path.isAbsolute ? '/' : '';
+    while (path.toString() != terminator) {
+      var dir = new Directory.fromPath(path);
+      if (dir.existsSync()) break;
+      dirsToCreate.add(dir);
+      path = path.directoryPath;
+    }
+    for (var i = dirsToCreate.length - 1; i >= 0; i--) {
+      dirsToCreate[i].createSync();
     }
   }
 
