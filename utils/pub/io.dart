@@ -785,7 +785,8 @@ InputStream createTarGz(List contents, {baseDir}) {
     if (!isBeneath(entry, baseDir)) {
       throw 'Entry $entry is not inside $baseDir.';
     }
-    return new Path(entry).relativeTo(new Path(baseDir)).toNativePath();
+    return new Path.fromNative(entry).relativeTo(new Path.fromNative(baseDir))
+        .toNativePath();
   });
 
   if (Platform.operatingSystem != "windows") {
