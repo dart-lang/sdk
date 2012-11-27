@@ -50,7 +50,7 @@ class _Tag {
 }
 
 /** The abstract class for YAML nodes. */
-class _Node {
+abstract class _Node {
   /** Every YAML node has a tag that describes its type. */
   _Tag tag;
 
@@ -66,7 +66,7 @@ class _Node {
 
   int get hashCode => _hashCode([tag, anchor]);
 
-  abstract visit(_Visitor v);
+  visit(_Visitor v);
 }
 
 /** A sequence node represents an ordered list of nodes. */
