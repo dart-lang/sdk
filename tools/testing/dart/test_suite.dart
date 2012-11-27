@@ -1262,6 +1262,10 @@ class StandardTestSuite extends TestSuite {
             'More than one "// PackageRoot=" line in test $filePath');
       }
       packageRoot = match[1];
+      if (packageRoot != 'none') {
+        // PackageRoot=none means that no package-root option should be given.
+        packageRoot = '${filePath.directoryPath.join(new Path(packageRoot))}';
+      }
     }
 
     matches = staticCleanRegExp.allMatches(contents);
