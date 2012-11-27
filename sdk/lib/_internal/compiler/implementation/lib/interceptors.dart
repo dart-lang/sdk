@@ -23,28 +23,11 @@ class ObjectInterceptor {
  * to emit a call to an intercepted method, that is a method that is
  * defined in an interceptor class.
  */
-getInterceptor(object) {
-  if (object is String) return stringInterceptor;
-  if (isJsArray(object)) return arrayInterceptor;
-  if (object is int) return intInterceptor;
-  if (object is double) return doubleInterceptor;
-  if (object is bool) return boolInterceptor;
-  if (object == null) return nullInterceptor;
-  if (JS('String', 'typeof #', object) == 'function') {
-    return functionInterceptor;
-  }
-  return objectInterceptor;
+getInterceptor() {
+  // This is a magic method: the compiler does specialization of it
+  // depending on the uses of intercepted methods and instantiated
+  // primitive types.
 }
-
-final arrayInterceptor = const JSArray();
-final boolInterceptor = const JSBool();
-final doubleInterceptor = const JSDouble();
-final intInterceptor = const JSInt();
-final functionInterceptor = const JSFunction();
-final nullInterceptor = const JSNull();
-final numberInterceptor = const JSNumber();
-final stringInterceptor = const JSString();
-final objectInterceptor = const ObjectInterceptor();
 
 /**
  * The interceptor class for tear-off static methods. Unlike

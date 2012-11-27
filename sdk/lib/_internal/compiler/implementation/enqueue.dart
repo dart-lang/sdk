@@ -89,10 +89,6 @@ class Enqueuer {
       if (isResolutionQueue && getCachedElements(element) != null) return;
       compiler.internalErrorOnElement(element, "Work list is closed.");
     }
-    if (!isResolutionQueue &&
-        identical(element.kind, ElementKind.GENERATIVE_CONSTRUCTOR)) {
-      registerInstantiatedClass(element.getEnclosingClass());
-    }
     if (elements == null) {
       elements = getCachedElements(element);
     }
@@ -139,8 +135,10 @@ class Enqueuer {
 
   void registerInstantiatedClass(ClassElement cls) {
     if (universe.instantiatedClasses.contains(cls)) return;
-    universe.instantiatedClasses.add(cls);
-    onRegisterInstantiatedClass(cls);
+    if (!cls.isAbstract(compiler)) {
+      universe.instantiatedClasses.add(cls);
+      onRegisterInstantiatedClass(cls);
+    }
     compiler.backend.registerInstantiatedClass(cls, this);
   }
 

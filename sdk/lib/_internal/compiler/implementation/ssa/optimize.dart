@@ -681,33 +681,36 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitInterceptor(HInterceptor node) {
     if (node.isConstant()) return node;
     HType type = types[node.inputs[0]];
-    Element constantInterceptor;
+    ClassElement constantInterceptor;
     if (type.isInteger()) {
-      constantInterceptor = backend.intInterceptor;
+      constantInterceptor = backend.jsIntClass;
     } else if (type.isDouble()) {
-      constantInterceptor = backend.doubleInterceptor;
+      constantInterceptor = backend.jsDoubleClass;
     } else if (type.isBoolean()) {
-      constantInterceptor = backend.boolInterceptor;
+      constantInterceptor = backend.jsBoolClass;
     } else if (type.isString()) {
-      constantInterceptor = backend.stringInterceptor;
+      constantInterceptor = backend.jsStringClass;
     } else if (type.isArray()) {
-      constantInterceptor = backend.arrayInterceptor;
+      constantInterceptor = backend.jsArrayClass;
     } else if (type.isNull()) {
-      constantInterceptor = backend.nullInterceptor;
+      constantInterceptor = backend.jsIntClass;
     } else if (type.isNumber()) {
       Set<ClassElement> intercepted = node.interceptedClasses;
       // If the method being intercepted is not defined in [int] or
       // [double] we can safely use the number interceptor.
       if (!intercepted.contains(compiler.intClass)
           && !intercepted.contains(compiler.doubleClass)) {
-        constantInterceptor = backend.numberInterceptor;
+        constantInterceptor = backend.jsNumberClass;
       }
     }
 
     if (constantInterceptor == null) return node;
 
     ConstantHandler handler = compiler.constantHandler;
-    return graph.addConstant(handler.compileVariable(constantInterceptor));
+    Constant constant = new ConstructedConstant(
+        constantInterceptor.computeType(compiler), <Constant>[]);
+    handler.registerCompileTimeConstant(constant);
+    return graph.addConstant(constant);
   }
 }
 

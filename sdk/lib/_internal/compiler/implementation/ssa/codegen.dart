@@ -1530,11 +1530,9 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitInterceptor(HInterceptor node) {
-    Element element = backend.getInterceptorMethod;
-    assert(element != null);
-    world.registerStaticUse(element);
-    js.VariableUse interceptor =
-        new js.VariableUse(backend.namer.isolateAccess(element));
+    String name =
+        backend.registerSpecializedGetInterceptor(node.interceptedClasses);
+    js.VariableUse interceptor = new js.VariableUse(name);
     use(node.receiver);
     List<js.Expression> arguments = <js.Expression>[pop()];
     push(new js.Call(interceptor, arguments), node);
@@ -1638,6 +1636,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.isInterceptorCall) {
       backend.addInterceptedSelector(getter);
     }
+    world.registerInstantiatedClass(compiler.functionClass);
   }
 
   visitInvokeClosure(HInvokeClosure node) {
@@ -1781,6 +1780,10 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
       push(new js.LiteralExpression.withData(code, data), node);
     }
+    DartType type = types[node].computeType(compiler);
+    if (type != null) {
+      world.registerInstantiatedClass(type.element);
+    }
     // TODO(sra): Tell world.nativeEnqueuer about the types created here.
   }
 
@@ -1852,6 +1855,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitConstant(HConstant node) {
     assert(isGenerateAtUseSite(node));
     generateConstant(node.constant);
+    DartType type = node.constant.computeType(compiler);
+    world.registerInstantiatedClass(type.element);
   }
 
   visitLoopBranch(HLoopBranch node) {
@@ -2085,20 +2090,20 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     node.usedBy.forEach((HInstruction instr) {
       if (instr is !HInvokeStatic) {
         backend.registerNonCallStaticUse(node);
-      } else if (!identical(instr.target, node)) {
-        backend.registerNonCallStaticUse(node);
-      } else {
-        // If invoking the static is can still be passed as an argument as well
-        // which will also be non call static use.
-        for (int i = 1; i < node.inputs.length; i++) {
-          if (identical(node.inputs, node)) {
-            backend.registerNonCallStaticUse(node);
-            break;
-          }
+        if (node.element.isFunction()) {
+          world.registerInstantiatedClass(compiler.functionClass);
         }
+      } else if (instr.target != node) {
+        backend.registerNonCallStaticUse(node);
       }
     });
-    world.registerStaticUse(node.element);
+    Element element = node.element;
+    world.registerStaticUse(element);
+    ClassElement cls = element.getEnclosingClass();    
+    if (element.isGenerativeConstructor()
+        || (element.isFactoryConstructor() && cls == compiler.listClass)) {
+      world.registerInstantiatedClass(cls);
+    }
     push(new js.VariableUse(backend.namer.isolateAccess(node.element)));
   }
 
@@ -2153,6 +2158,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitLiteralList(HLiteralList node) {
+    world.registerInstantiatedClass(compiler.listClass);
     generateArrayLiteral(node);
   }
 

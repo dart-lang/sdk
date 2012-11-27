@@ -635,14 +635,6 @@ class JavaScriptBackend extends Backend {
   Element jsArrayLength;
   Element jsStringLength;
   Element getInterceptorMethod;
-  Element arrayInterceptor;
-  Element boolInterceptor;
-  Element doubleInterceptor;
-  Element functionInterceptor;
-  Element intInterceptor;
-  Element nullInterceptor;
-  Element numberInterceptor;
-  Element stringInterceptor;
   bool _interceptorsAreInitialized = false;
 
   final Namer namer;
@@ -679,7 +671,24 @@ class JavaScriptBackend extends Backend {
    * name to the list of members that have that name. This map is used
    * by the codegen to know whether a send must be intercepted or not.
    */
-  final Map<SourceString, Set<Element>> interceptedElements;  
+  final Map<SourceString, Set<Element>> interceptedElements;
+
+  /**
+   * A map of specialized versions of the [getInterceptorMethod].
+   * Since [getInterceptorMethod] is a hot method at runtime, we're
+   * always specializing it based on the incoming type. The keys in
+   * the map are the names of these specialized versions. Note that
+   * the generic version that contains all possible type checks is
+   * also stored in this map.
+   */
+  final Map<String, Collection<ClassElement>> specializedGetInterceptors;
+
+  /**
+   * Set of classes whose instances are intercepted. Implemented as a
+   * [LinkedHashMap] to preserve the insertion order.
+   * TODO(ngeoffray): Use a BitSet instead.
+   */
+  final Map<ClassElement, ClassElement> interceptedClasses;
 
   List<CompilerTask> get tasks {
     return <CompilerTask>[builder, optimizer, generator, emitter];
@@ -695,6 +704,9 @@ class JavaScriptBackend extends Backend {
         usedInterceptors = new Set<Selector>(),
         interceptedElements = new Map<SourceString, Set<Element>>(),
         rti = new RuntimeTypeInformation(compiler),
+        specializedGetInterceptors =
+            new Map<String, Collection<ClassElement>>(),
+        interceptedClasses = new LinkedHashMap<ClassElement, ClassElement>(),
         super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM) {
     emitter = disableEval
         ? new CodeEmitterNoEvalTask(compiler, namer, generateSourceMap)
@@ -714,14 +726,7 @@ class JavaScriptBackend extends Backend {
 
   bool isInterceptorClass(Element element) {
     if (element == null) return false;
-    return element == jsStringClass
-        || element == jsArrayClass
-        || element == jsIntClass
-        || element == jsDoubleClass
-        || element == jsNullClass
-        || element == jsFunctionClass
-        || element == jsBoolClass
-        || element == jsNumberClass;
+    return interceptedClasses.containsKey(element);
   }
 
   void addInterceptedSelector(Selector selector) {
@@ -746,50 +751,39 @@ class JavaScriptBackend extends Backend {
     return result;
   }
 
+  List<ClassElement> getListOfInterceptedClasses() {
+      return <ClassElement>[jsStringClass, jsArrayClass, jsIntClass,
+                            jsDoubleClass, jsNumberClass, jsNullClass,
+                            jsFunctionClass, jsBoolClass];
+  }
+
   void initializeInterceptorElements() {
     objectInterceptorClass =
         compiler.findInterceptor(const SourceString('ObjectInterceptor'));
     getInterceptorMethod =
         compiler.findInterceptor(const SourceString('getInterceptor'));
-    jsStringClass =
-        compiler.findInterceptor(const SourceString('JSString'));
-    jsArrayClass =
-        compiler.findInterceptor(const SourceString('JSArray'));
-    jsNumberClass =
-        compiler.findInterceptor(const SourceString('JSNumber'));
-    jsIntClass =
-        compiler.findInterceptor(const SourceString('JSInt'));
-    jsDoubleClass =
-        compiler.findInterceptor(const SourceString('JSDouble'));
-    jsNullClass =
-        compiler.findInterceptor(const SourceString('JSNull'));
-    jsFunctionClass =
-        compiler.findInterceptor(const SourceString('JSFunction'));
-    jsBoolClass =
-        compiler.findInterceptor(const SourceString('JSBool'));
+    List<ClassElement> classes = [
+      jsStringClass = compiler.findInterceptor(const SourceString('JSString')),
+      jsArrayClass = compiler.findInterceptor(const SourceString('JSArray')),
+      jsNumberClass = compiler.findInterceptor(const SourceString('JSNumber')),
+      jsIntClass = compiler.findInterceptor(const SourceString('JSInt')),
+      jsDoubleClass = compiler.findInterceptor(const SourceString('JSDouble')),
+      jsNullClass = compiler.findInterceptor(const SourceString('JSNull')),
+      jsFunctionClass =
+          compiler.findInterceptor(const SourceString('JSFunction')),
+      jsBoolClass = compiler.findInterceptor(const SourceString('JSBool'))];
+
     jsArrayClass.ensureResolved(compiler);
     jsArrayLength =
         jsArrayClass.lookupLocalMember(const SourceString('length'));
+
     jsStringClass.ensureResolved(compiler);
     jsStringLength =
         jsStringClass.lookupLocalMember(const SourceString('length'));
 
-    arrayInterceptor =
-        compiler.findInterceptor(const SourceString('arrayInterceptor'));
-    boolInterceptor =
-        compiler.findInterceptor(const SourceString('boolInterceptor'));
-    doubleInterceptor =
-        compiler.findInterceptor(const SourceString('doubleInterceptor'));
-    functionInterceptor =
-        compiler.findInterceptor(const SourceString('functionInterceptor'));
-    intInterceptor =
-        compiler.findInterceptor(const SourceString('intInterceptor'));
-    nullInterceptor =
-        compiler.findInterceptor(const SourceString('nullInterceptor'));
-    stringInterceptor =
-        compiler.findInterceptor(const SourceString('stringInterceptor'));
-    numberInterceptor =
-        compiler.findInterceptor(const SourceString('numberInterceptor'));
+    for (ClassElement cls in classes) {
+      interceptedClasses[cls] = null;
+    }
   }
 
   void addInterceptors(ClassElement cls) {
@@ -802,24 +796,32 @@ class JavaScriptBackend extends Backend {
       includeSuperMembers: true);
   }
 
+  String registerSpecializedGetInterceptor(Set<ClassElement> classes) {
+    compiler.enqueuer.codegen.registerInstantiatedClass(objectInterceptorClass);
+    if (classes.contains(compiler.objectClass)) {
+      // We can't use a specialized [getInterceptorMethod], so we make
+      // sure we emit the one with all checks.
+      String name = namer.getName(getInterceptorMethod);
+      specializedGetInterceptors.putIfAbsent(name, () {
+        // It is important to take the order provided by this list,
+        // because we want the int type check to happen before the
+        // double type check: the double type check covers the int
+        // type check.
+        return interceptedClasses.keys;
+      });
+      return namer.isolateAccess(getInterceptorMethod);
+    } else {
+      String name = namer.getSpecializedName(getInterceptorMethod, classes);
+      specializedGetInterceptors[name] = classes;
+      return '${namer.CURRENT_ISOLATE}.$name';
+    }
+  }
+
   void registerInstantiatedClass(ClassElement cls, Enqueuer enqueuer) {
     ClassElement result = null;
     if (!_interceptorsAreInitialized) {
       initializeInterceptorElements();
       _interceptorsAreInitialized = true;
-      // The null interceptor and the function interceptor are
-      // currently always instantiated if a new class is instantiated.
-      // TODO(ngeoffray): do this elsewhere for the function
-      // interceptor?
-      if (jsNullClass != null) {
-        addInterceptors(jsNullClass);
-        enqueuer.registerInstantiatedClass(jsNullClass);
-      }
-      if (jsFunctionClass != null) {
-        addInterceptors(jsFunctionClass);
-        enqueuer.registerInstantiatedClass(jsFunctionClass);
-      }
-      enqueuer.addToWorkList(getInterceptorMethod);
     }
     if (cls == compiler.stringClass) {
       result = jsStringClass;
@@ -827,12 +829,16 @@ class JavaScriptBackend extends Backend {
       result = jsArrayClass;
     } else if (cls == compiler.intClass) {
       result = jsIntClass;
+      enqueuer.registerInstantiatedClass(jsNumberClass);
     } else if (cls == compiler.doubleClass) {
       result = jsDoubleClass;
+      enqueuer.registerInstantiatedClass(jsNumberClass);
     } else if (cls == compiler.functionClass) {
       result = jsFunctionClass;
     } else if (cls == compiler.boolClass) {
       result = jsBoolClass;
+    } else if (cls == compiler.nullClass) {
+      result = jsNullClass;
     }
 
     if (result == null) return;

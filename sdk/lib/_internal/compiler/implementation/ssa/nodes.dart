@@ -1509,6 +1509,7 @@ class HForeign extends HInstruction {
     if (declaredType.slowToString() == 'double') return HType.DOUBLE;
     if (declaredType.slowToString() == 'num') return HType.NUMBER;
     if (declaredType.slowToString() == 'String') return HType.STRING;
+    if (declaredType.slowToString() == 'JSArray') return HType.READABLE_ARRAY;
     return HType.UNKNOWN;
   }
 

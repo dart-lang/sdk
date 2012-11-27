@@ -316,6 +316,14 @@ class Namer {
     return name;
   }
 
+  String getSpecializedName(Element element, Collection<ClassElement> classes) {
+    StringBuffer buffer = new StringBuffer('${getName(element)}\$');
+    for (ClassElement cls in classes) {
+      buffer.add(getName(cls));
+    }
+    return getMappedGlobalName(buffer.toString());
+  }
+
   String getBailoutName(Element element) {
     String name = bailoutNames[element];
     if (name != null) return name;

@@ -1681,6 +1681,51 @@ if (typeof document !== 'undefined' && document.readyState != 'complete') {
 """);
   }
 
+  /**
+   * Emit the code for doing a type check on [cls]. [cls] must
+   * be an interceptor class.
+   */
+  void emitInterceptorCheck(ClassElement cls, CodeBuffer buffer) {
+    JavaScriptBackend backend = compiler.backend;
+    assert(backend.isInterceptorClass(cls));
+    if (cls == backend.jsBoolClass) {
+      buffer.add("if (typeof receiver == 'boolean')");
+    } else if (cls == backend.jsIntClass) {
+      buffer.add("if (typeof receiver == 'number' "
+                 "&& Math.floor(receiver) == receiver)");
+    } else if (cls == backend.jsDoubleClass || cls == backend.jsNumberClass) {
+      buffer.add("if (typeof receiver == 'number')");
+    } else if (cls == backend.jsArrayClass) {
+      buffer.add("if (receiver != null && receiver.constructor == Array)");
+    } else if (cls == backend.jsStringClass) {
+      buffer.add("if (typeof receiver == 'string')");
+    } else if (cls == backend.jsNullClass) {
+      buffer.add("if (receiver == null)");
+    } else if (cls == backend.jsFunctionClass) {
+      buffer.add("if (typeof receiver == 'function')");
+    }
+    buffer.add(' return ${namer.isolateAccess(cls)}.prototype;');
+  }
+
+  /**
+   * Emit all versions of the [:getInterceptor:] method.
+   */
+  void emitGetInterceptorMethods(CodeBuffer buffer) {
+    JavaScriptBackend backend = compiler.backend;
+    String objectName = namer.isolateAccess(backend.objectInterceptorClass);
+    backend.specializedGetInterceptors.forEach(
+        (String key, Collection<ClassElement> classes) {
+          buffer.add('$isolateProperties.$key = function(receiver) {');
+          for (ClassElement cls in classes) {
+            if (compiler.codegenWorld.instantiatedClasses.contains(cls)) {
+              buffer.add('\n  ');
+              emitInterceptorCheck(cls, buffer);
+            }
+          }
+          buffer.add('\n  return $objectName.prototype;\n};\n');
+        });
+  }
+
   String assembleProgram() {
     measure(() {
       mainBuffer.add(HOOKS_API_USAGE);
@@ -1705,6 +1750,7 @@ if (typeof document !== 'undefined' && document.readyState != 'complete') {
       // Static field initializations require the classes and compile-time
       // constants to be set up.
       emitStaticNonFinalFieldInitializations(mainBuffer);
+      emitGetInterceptorMethods(mainBuffer);
       emitLazilyInitializedStaticFields(mainBuffer);
 
       isolateProperties = isolatePropertiesName;

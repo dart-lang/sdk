@@ -1808,6 +1808,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     // unqualified.
     useElement(node, target);
     registerSend(selector, target);
+    if (node.isPropertyAccess) {
+      // It might be the closurization of a method.
+      world.registerInstantiatedClass(compiler.functionClass);
+    }
     return node.isPropertyAccess ? target : null;
   }
 
@@ -1926,6 +1930,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLiteralBool(LiteralBool node) {
+    world.registerInstantiatedClass(compiler.boolClass);
   }
 
   visitLiteralString(LiteralString node) {
@@ -1933,6 +1938,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLiteralNull(LiteralNull node) {
+    world.registerInstantiatedClass(compiler.nullClass);
   }
 
   visitStringJuxtaposition(StringJuxtaposition node) {
@@ -2779,7 +2785,11 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
     return visit(node.selector);
   }
 
-  SourceString visitIdentifier(Identifier node) => node.source;
+  SourceString visitIdentifier(Identifier node) {
+    // The variable is initialized to null.
+    resolver.world.registerInstantiatedClass(compiler.nullClass);
+    return node.source;
+  }
 
   visitNodeList(NodeList node) {
     for (Link<Node> link = node.nodes; !link.isEmpty; link = link.tail) {
