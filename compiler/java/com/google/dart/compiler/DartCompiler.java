@@ -408,10 +408,14 @@ public class DartCompiler {
         throws IOException {
       String libSpec = libNode.getText();
       LibrarySource dep;
-      if (PackageLibraryManager.isDartSpec(libSpec)) {
-        dep = context.getSystemLibraryFor(libSpec);
-      } else {
-        dep = libSrc.getImportFor(libSpec);
+      try {
+        if (PackageLibraryManager.isDartSpec(libSpec)) {
+          dep = context.getSystemLibraryFor(libSpec);
+        } else {
+          dep = libSrc.getImportFor(libSpec);
+        }
+      } catch (Throwable e) {
+        return null;
       }
       if (dep == null || !dep.exists()) {
         return null;
