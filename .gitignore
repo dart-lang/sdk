@@ -15,6 +15,7 @@
 /out
 /xcodebuild
 /*.Makefile
+/*.pyc
 /*.sln
 /*.target.mk
 /*.vcproj
