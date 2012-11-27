@@ -22014,7 +22014,7 @@ class _ElementAttributeMap extends _AttributeMap {
     return keys.length;
   }
 
-  bool _matches(Node node) => node.$dom_namespaceURI == null;
+  bool _matches(Node node) => node.$dom_namespaceUri == null;
 }
 
 /**
@@ -22052,7 +22052,7 @@ class _NamespacedAttributeMap extends _AttributeMap {
     return keys.length;
   }
 
-  bool _matches(Node node) => node.$dom_namespaceURI == _namespace;
+  bool _matches(Node node) => node.$dom_namespaceUri == _namespace;
 }
 
 
