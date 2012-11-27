@@ -16,6 +16,7 @@
 # 3) Update the language/src directory with the updated test.
 
 [ $compiler == none ]
+built_in_identifier_prefix_test: Fail # http://dartbug.com/6970
 library_juxtaposition_test: Fail # Issue 6877
 part_test: Fail
 part2_test: Fail
@@ -82,6 +83,7 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dartc ]
+built_in_identifier_prefix_test: Fail # http://dartbug.com/6971
 class_syntax_test/01: Fail # http://dartbug.com/6969
 library_juxtaposition_test: Fail # Issue 6881
 new_expression_type_args_test/0*: Fail # Wrongly reports compile-time error.
@@ -392,6 +394,7 @@ string_escape1_negative_test: Skip
 *: Skip
 
 [ $compiler == dart2dart ]
+built_in_identifier_prefix_test: Fail # Inherited from dart2js.
 factory_redirection2_test/01: Fail # Inherited from dart2js.
 const_factory_redirection_test: Fail # http://dartbug.com/6894
 
