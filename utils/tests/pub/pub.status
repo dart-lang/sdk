@@ -10,12 +10,6 @@
 [ $runtime == drt || $runtime == dartium || $runtime == opera]
 *: Skip
 
-# TODO(rnystrom): The pub tests are slow only on the VM bots. Remove this once
-# #6960 is fixed.
-[ $system == windows ]
-install/git/*: Slow, Pass, Timeout
-update/git/*: Slow, Pass, Timeout
-
 # TODO(nweiz): The "pub lish" tests fail mysteriously on OS X. See issue 6984.
-[ $system == mac ]
-pub_lish_test.dart: Fail
+[ $system == macos ]
+pub_lish_test: Fail
