@@ -15,7 +15,6 @@
 /out
 /xcodebuild
 /*.Makefile
-/*.pyc
 /*.sln
 /*.target.mk
 /*.vcproj
@@ -23,12 +22,13 @@
 /*.vcxproj.user
 /*.vcxproj.filters
 /*.xcodeproj
-/cached_results.txt
-/chromedriver.log
-/timing_info.txt
 
 # End generated ignores. The following are hand-added because the svn:ignore
 # stuff doesn't handle them well.
+
+# Dart Editor config files - also in all subdirectories.
+.children
+.project
 
 # Built by chromebot and downloaded from Google Storage
 client/tests/drt
