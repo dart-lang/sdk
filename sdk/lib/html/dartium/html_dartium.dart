@@ -319,10 +319,6 @@ class AnchorElement extends _Element_Merged {
   void set target(String value) native "HTMLAnchorElement_target_Setter";
 
 
-  /** @domName HTMLAnchorElement.text */
-  String get text native "HTMLAnchorElement_text_Getter";
-
-
   /** @domName HTMLAnchorElement.type */
   String get type native "HTMLAnchorElement_type_Getter";
 
@@ -1601,14 +1597,6 @@ class BodyElement extends _Element_Merged {
 
   /** @domName HTMLBodyElement.link */
   void set link(String value) native "HTMLBodyElement_link_Setter";
-
-
-  /** @domName HTMLBodyElement.text */
-  String get text native "HTMLBodyElement_text_Getter";
-
-
-  /** @domName HTMLBodyElement.text */
-  void set text(String value) native "HTMLBodyElement_text_Setter";
 
 
   /** @domName HTMLBodyElement.vLink */
@@ -8383,14 +8371,6 @@ class DivElement extends _Element_Merged {
   factory DivElement() => document.$dom_createElement("div");
   DivElement.internal(): super.internal();
 
-
-  /** @domName HTMLDivElement.align */
-  String get align native "HTMLDivElement_align_Getter";
-
-
-  /** @domName HTMLDivElement.align */
-  void set align(String value) native "HTMLDivElement_align_Setter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11393,10 +11373,6 @@ class FormElement extends _Element_Merged {
   void set autocomplete(String value) native "HTMLFormElement_autocomplete_Setter";
 
 
-  /** @domName HTMLFormElement.elements */
-  HTMLCollection get elements native "HTMLFormElement_elements_Getter";
-
-
   /** @domName HTMLFormElement.encoding */
   String get encoding native "HTMLFormElement_encoding_Getter";
 
@@ -12191,22 +12167,6 @@ class HtmlElement extends _Element_Merged {
 
   factory HtmlElement() => document.$dom_createElement("html");
   HtmlElement.internal(): super.internal();
-
-
-  /** @domName HTMLHtmlElement.manifest */
-  String get manifest native "HTMLHtmlElement_manifest_Getter";
-
-
-  /** @domName HTMLHtmlElement.manifest */
-  void set manifest(String value) native "HTMLHtmlElement_manifest_Setter";
-
-
-  /** @domName HTMLHtmlElement.version */
-  String get version native "HTMLHtmlElement_version_Getter";
-
-
-  /** @domName HTMLHtmlElement.version */
-  void set version(String value) native "HTMLHtmlElement_version_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15169,10 +15129,6 @@ class LocalWindow extends EventTarget implements Window {
   DOMApplicationCache get applicationCache native "DOMWindow_applicationCache_Getter";
 
 
-  /** @domName DOMWindow.clientInformation */
-  Navigator get clientInformation native "DOMWindow_clientInformation_Getter";
-
-
   /** @domName DOMWindow.closed */
   bool get closed native "DOMWindow_closed_Getter";
 
@@ -15213,10 +15169,6 @@ class LocalWindow extends EventTarget implements Window {
   Event get event native "DOMWindow_event_Getter";
 
 
-  /** @domName DOMWindow.frames */
-  Window get frames native "DOMWindow_frames_Getter";
-
-
   /** @domName DOMWindow.history */
   LocalHistory get history native "DOMWindow_history_Getter";
 
@@ -15231,10 +15183,6 @@ class LocalWindow extends EventTarget implements Window {
 
   /** @domName DOMWindow.innerWidth */
   int get innerWidth native "DOMWindow_innerWidth_Getter";
-
-
-  /** @domName DOMWindow.length */
-  int get length native "DOMWindow_length_Getter";
 
 
   /** @domName DOMWindow.localStorage */
@@ -15401,10 +15349,6 @@ class LocalWindow extends EventTarget implements Window {
   String atob(String string) native "DOMWindow_atob_Callback";
 
 
-  /** @domName DOMWindow.blur */
-  void blur() native "DOMWindow_blur_Callback";
-
-
   /** @domName DOMWindow.btoa */
   String btoa(String string) native "DOMWindow_btoa_Callback";
 
@@ -15441,12 +15385,8 @@ class LocalWindow extends EventTarget implements Window {
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native "DOMWindow_find_Callback";
 
 
-  /** @domName DOMWindow.focus */
-  void focus() native "DOMWindow_focus_Callback";
-
-
   /** @domName DOMWindow.getComputedStyle */
-  CSSStyleDeclaration getComputedStyle(Element element, String pseudoElement) native "DOMWindow_getComputedStyle_Callback";
+  CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native "DOMWindow_getComputedStyle_Callback";
 
 
   /** @domName DOMWindow.getMatchedCSSRules */
@@ -15483,10 +15423,6 @@ class LocalWindow extends EventTarget implements Window {
 
   /** @domName DOMWindow.print */
   void print() native "DOMWindow_print_Callback";
-
-
-  /** @domName DOMWindow.prompt */
-  String prompt(String message, String defaultValue) native "DOMWindow_prompt_Callback";
 
 
   /** @domName DOMWindow.releaseEvents */
@@ -15539,10 +15475,6 @@ class LocalWindow extends EventTarget implements Window {
 
   /** @domName DOMWindow.webkitCancelAnimationFrame */
   void webkitCancelAnimationFrame(int id) native "DOMWindow_webkitCancelAnimationFrame_Callback";
-
-
-  /** @domName DOMWindow.webkitCancelRequestAnimationFrame */
-  void webkitCancelRequestAnimationFrame(int id) native "DOMWindow_webkitCancelRequestAnimationFrame_Callback";
 
 
   /** @domName DOMWindow.webkitConvertPointFromNodeToPage */
@@ -18531,14 +18463,6 @@ class OptionElement extends _Element_Merged {
   void set selected(bool value) native "HTMLOptionElement_selected_Setter";
 
 
-  /** @domName HTMLOptionElement.text */
-  String get text native "HTMLOptionElement_text_Getter";
-
-
-  /** @domName HTMLOptionElement.text */
-  void set text(String value) native "HTMLOptionElement_text_Setter";
-
-
   /** @domName HTMLOptionElement.value */
   String get value native "HTMLOptionElement_value_Getter";
 
@@ -20483,14 +20407,6 @@ class ScriptElement extends _Element_Merged {
   void set src(String value) native "HTMLScriptElement_src_Setter";
 
 
-  /** @domName HTMLScriptElement.text */
-  String get text native "HTMLScriptElement_text_Getter";
-
-
-  /** @domName HTMLScriptElement.text */
-  void set text(String value) native "HTMLScriptElement_text_Setter";
-
-
   /** @domName HTMLScriptElement.type */
   String get type native "HTMLScriptElement_type_Getter";
 
@@ -20725,10 +20641,6 @@ class SelectElement extends _Element_Merged {
 
   /** @domName HTMLSelectElement.namedItem */
   Node namedItem(String name) native "HTMLSelectElement_namedItem_Callback";
-
-
-  /** @domName HTMLSelectElement.remove */
-  void remove(index_OR_option) native "HTMLSelectElement_remove_Callback";
 
 
   /** @domName HTMLSelectElement.setCustomValidity */
@@ -23058,14 +22970,6 @@ class TitleElement extends _Element_Merged {
 
   factory TitleElement() => document.$dom_createElement("title");
   TitleElement.internal(): super.internal();
-
-
-  /** @domName HTMLTitleElement.text */
-  String get text native "HTMLTitleElement_text_Getter";
-
-
-  /** @domName HTMLTitleElement.text */
-  void set text(String value) native "HTMLTitleElement_text_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

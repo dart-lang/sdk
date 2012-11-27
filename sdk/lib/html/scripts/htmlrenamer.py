@@ -253,7 +253,7 @@ _removed_html_members = set([
     "Document.version",
     "Document.manifest",
     "HTMLIsIndexElement.*",
-    "HTMLMenuElement.compact",
+    "MenuElement.compact",
     "HTMLOptionsCollection.*",
     "HTMLPropertiesCollection.*",
     "SelectElement.remove",
@@ -342,7 +342,7 @@ class HtmlRenamer(object):
 
   def _FindMatch(self, interface, member, member_prefix, candidates):
     for interface in self._database.Hierarchy(interface):
-      html_interface_name = self.DartifyTypeName(interface.id)
+      html_interface_name = self.RenameInterface(interface)
       member_name = html_interface_name + '.' + member
       if member_name in candidates:
         return member_name

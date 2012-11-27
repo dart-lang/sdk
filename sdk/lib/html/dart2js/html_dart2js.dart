@@ -173,9 +173,6 @@ class AnchorElement extends Element implements Element native "*HTMLAnchorElemen
   /// @domName HTMLAnchorElement.target; @docsEditable true
   String target;
 
-  /// @domName HTMLAnchorElement.text; @docsEditable true
-  final String text;
-
   /// @domName HTMLAnchorElement.type; @docsEditable true
   String type;
 
@@ -957,9 +954,6 @@ class BodyElement extends Element implements Element native "*HTMLBodyElement" {
 
   /// @domName HTMLBodyElement.link; @docsEditable true
   String link;
-
-  /// @domName HTMLBodyElement.text; @docsEditable true
-  String text;
 
   /// @domName HTMLBodyElement.vLink; @docsEditable true
   String vLink;
@@ -6451,9 +6445,6 @@ class DirectoryReaderSync native "*DirectoryReaderSync" {
 class DivElement extends Element implements Element native "*HTMLDivElement" {
 
   factory DivElement() => document.$dom_createElement("div");
-
-  /// @domName HTMLDivElement.align; @docsEditable true
-  String align;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8997,9 +8988,6 @@ class FormElement extends Element implements Element native "*HTMLFormElement" {
   /// @domName HTMLFormElement.autocomplete; @docsEditable true
   String autocomplete;
 
-  /// @domName HTMLFormElement.elements; @docsEditable true
-  final HTMLCollection elements;
-
   /// @domName HTMLFormElement.encoding; @docsEditable true
   String encoding;
 
@@ -9587,12 +9575,6 @@ class HtmlDocument extends Document native "*HTMLDocument" {
 class HtmlElement extends Element implements Element native "*HTMLHtmlElement" {
 
   factory HtmlElement() => document.$dom_createElement("html");
-
-  /// @domName HTMLHtmlElement.manifest; @docsEditable true
-  String manifest;
-
-  /// @domName HTMLHtmlElement.version; @docsEditable true
-  String version;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11788,9 +11770,6 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   /// @domName Window.applicationCache; @docsEditable true
   final DOMApplicationCache applicationCache;
 
-  /// @domName Window.clientInformation; @docsEditable true
-  final Navigator clientInformation;
-
   /// @domName Window.closed; @docsEditable true
   final bool closed;
 
@@ -11812,10 +11791,6 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   /// @domName Window.event; @docsEditable true
   final Event event;
 
-  /// @domName Window.frames; @docsEditable true
-  Window get frames => _convertNativeToDart_Window(this._frames);
-  dynamic get _frames => JS("dynamic", "#.frames", this);
-
   /// @domName Window.history; @docsEditable true
   final LocalHistory history;
 
@@ -11824,9 +11799,6 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   /// @domName Window.innerWidth; @docsEditable true
   final int innerWidth;
-
-  /// @domName Window.length; @docsEditable true
-  final int length;
 
   /// @domName Window.localStorage; @docsEditable true
   final Storage localStorage;
@@ -11944,9 +11916,6 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   /// @domName Window.atob; @docsEditable true
   String atob(String string) native;
 
-  /// @domName Window.blur; @docsEditable true
-  void blur() native;
-
   /// @domName Window.btoa; @docsEditable true
   String btoa(String string) native;
 
@@ -11971,11 +11940,8 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   /// @domName Window.find; @docsEditable true
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native;
 
-  /// @domName Window.focus; @docsEditable true
-  void focus() native;
-
   /// @domName Window.getComputedStyle; @docsEditable true
-  CSSStyleDeclaration getComputedStyle(Element element, String pseudoElement) native;
+  CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native "getComputedStyle";
 
   /// @domName Window.getMatchedCSSRules; @docsEditable true
   @Returns('_CSSRuleList') @Creates('_CSSRuleList')
@@ -12018,9 +11984,6 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   /// @domName Window.print; @docsEditable true
   void print() native;
 
-  /// @domName Window.prompt; @docsEditable true
-  String prompt(String message, String defaultValue) native;
-
   /// @domName Window.releaseEvents; @docsEditable true
   void releaseEvents() native;
 
@@ -12053,9 +12016,6 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   /// @domName Window.stop; @docsEditable true
   void stop() native;
-
-  /// @domName Window.webkitCancelRequestAnimationFrame; @docsEditable true
-  void webkitCancelRequestAnimationFrame(int id) native;
 
   /// @domName Window.webkitConvertPointFromNodeToPage; @docsEditable true
   Point webkitConvertPointFromNodeToPage(Node node, Point p) native;
@@ -14261,9 +14221,6 @@ class OptionElement extends Element implements Element native "*HTMLOptionElemen
   /// @domName HTMLOptionElement.selected; @docsEditable true
   bool selected;
 
-  /// @domName HTMLOptionElement.text; @docsEditable true
-  String text;
-
   /// @domName HTMLOptionElement.value; @docsEditable true
   String value;
 }
@@ -15744,9 +15701,6 @@ class ScriptElement extends Element implements Element native "*HTMLScriptElemen
   /// @domName HTMLScriptElement.src; @docsEditable true
   String src;
 
-  /// @domName HTMLScriptElement.text; @docsEditable true
-  String text;
-
   /// @domName HTMLScriptElement.type; @docsEditable true
   String type;
 }
@@ -15886,9 +15840,6 @@ class SelectElement extends Element implements Element native "*HTMLSelectElemen
 
   /// @domName HTMLSelectElement.namedItem; @docsEditable true
   Node namedItem(String name) native;
-
-  /// @domName HTMLSelectElement.remove; @docsEditable true
-  void remove(index_OR_option) native;
 
   /// @domName HTMLSelectElement.setCustomValidity; @docsEditable true
   void setCustomValidity(String error) native;
@@ -17470,9 +17421,6 @@ typedef void TimeoutHandler();
 class TitleElement extends Element implements Element native "*HTMLTitleElement" {
 
   factory TitleElement() => document.$dom_createElement("title");
-
-  /// @domName HTMLTitleElement.text; @docsEditable true
-  String text;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
