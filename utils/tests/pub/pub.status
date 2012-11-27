@@ -9,3 +9,9 @@
 # Pub only runs on the standalone VM, not the browser.
 [ $runtime == drt || $runtime == dartium || $runtime == opera]
 *: Skip
+
+# TODO(rnystrom): The pub tests are slow only on the VM bots. Remove this once
+# #6960 is fixed.
+[ $system == windows ]
+install/git/*: Slow, Pass, Timeout
+update/git/*: Slow, Pass, Timeout
