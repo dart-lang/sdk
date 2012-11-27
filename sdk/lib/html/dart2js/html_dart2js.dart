@@ -22184,7 +22184,7 @@ abstract class Window {
   History get history;
 
   /**
-   * Indicates whether this window is closed.
+   * Indicates whether this window has been closed.
    *
    *     print(window.closed); // 'false'
    *     window.close();
@@ -22237,6 +22237,34 @@ abstract class Window {
   Window get top;
 
   // Methods.
+  /**
+   * Closes the window.
+   *
+   * This method should only succeed if the [Window] object is
+   * **script-closeable** and the window calling [close] is allowed to navigate
+   * the window.
+   *
+   * A window is script-closeable if it is either a window
+   * that was opened by another window, or if it is a window with only one
+   * document in its history.
+   *
+   * A window might not be allowed to navigate, and therefore close, another
+   * window due to browser security features.
+   *
+   *     var other = window.open('http://www.example.com', 'foo');
+   *     // Closes other window, as it is script-closeable.
+   *     other.close();
+   *     print(other.closed()); // 'true'
+   *
+   *     window.location('http://www.mysite.com', 'foo');
+   *     // Does not close this window, as the history has changed.
+   *     window.close();
+   *     print(window.closed()); // 'false'
+   *
+   * See also:
+   *
+   * * [Window close discussion](http://www.w3.org/TR/html5/browsers.html#dom-window-close) from the W3C
+   */
   void close();
   void postMessage(var message, String targetOrigin, [List messagePorts = null]);
 }
