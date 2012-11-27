@@ -37,10 +37,9 @@ void testNoBody(int totalConnections, bool explicitContentLength) {
     conn.onResponse = (HttpClientResponse response) {
       Expect.equals("0", response.headers.value('content-length'));
       Expect.equals(0, response.contentLength);
-      count++;
       response.inputStream.onData = response.inputStream.read;
       response.inputStream.onClosed = () {
-        if (count == totalConnections) {
+        if (++count == totalConnections) {
           client.shutdown();
           server.close();
         }
@@ -84,10 +83,9 @@ void testBody(int totalConnections) {
     conn.onResponse = (HttpClientResponse response) {
       Expect.equals("2", response.headers.value('content-length'));
       Expect.equals(2, response.contentLength);
-      count++;
       response.inputStream.onData = response.inputStream.read;
       response.inputStream.onClosed = () {
-        if (count == totalConnections) {
+        if (++count == totalConnections) {
           client.shutdown();
           server.close();
         }
