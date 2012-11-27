@@ -40,8 +40,7 @@
         {
           'action_name': 'create_sdk_py',
           'inputs': [
-            '<!@(["python", "tools/list_files.py", "\\.dart$", "lib"])',
-            '<!@(["python", "tools/list_files.py", "import_.*\\.config$", "lib/config"])',
+            '<!@(["python", "tools/list_files.py", "\\.dart$", "sdk/lib"])',
             'tools/create_sdk.py',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '<(PRODUCT_DIR)/dart2js',
