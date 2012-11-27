@@ -78,6 +78,7 @@ class _SecureSocket implements SecureSocket {
     _socket.onConnect = _secureConnectHandler;
     _socket.onData = _secureDataHandler;
     _socket.onClosed = _secureCloseHandler;
+    _socket.onError = _secureErrorHandler;
     _secureFilter.init();
     _secureFilter.registerHandshakeCompleteCallback(_secureHandshakeCompleteHandler);
   }
@@ -89,7 +90,7 @@ class _SecureSocket implements SecureSocket {
   int get remotePort => _socket.remotePort;
 
   void set onClosed(void callback()) {
-    if (_inputStream != null) {
+    if (_inputStream != null && callback != null) {
       throw new StreamException(
            "Cannot set close handler when input stream is used");
     }
@@ -101,10 +102,6 @@ class _SecureSocket implements SecureSocket {
   }
 
   void set onConnect(void callback()) {
-    if (_outputStream != null) {
-      throw new StreamException(
-          "Cannot set connect handler when output stream is used");
-    }
     if (_status == CONNECTED || _status == CLOSED) {
       throw new StreamException(
           "Cannot set connect handler when already connected");
@@ -117,7 +114,7 @@ class _SecureSocket implements SecureSocket {
   }
 
   void set onData(void callback()) {
-    if (_outputStream != null) {
+    if (_outputStream != null && callback != null) {
       throw new StreamException(
           "Cannot set data handler when input stream is used");
     }
@@ -128,8 +125,12 @@ class _SecureSocket implements SecureSocket {
     _socketDataHandler = callback;
   }
 
+  void set onError(void callback(e)) {
+    _socketErrorHandler = callback;
+  }
+
   void set onWrite(void callback()) {
-    if (_outputStream != null) {
+    if (_outputStream != null && callback != null) {
       throw new StreamException(
           "Cannot set write handler when output stream is used");
     }
@@ -155,9 +156,9 @@ class _SecureSocket implements SecureSocket {
 
   OutputStream get outputStream {
     if (_outputStream == null) {
-      if (_socketConnectHandler != null || _socketWriteHandler != null) {
+      if (_socketWriteHandler != null) {
         throw new StreamException(
-            "Cannot get output stream when socket handlers are used");
+            "Cannot get output stream when socket write handler is used");
       }
       _outputStream = new _SocketOutputStream(this);
     }
@@ -312,6 +313,35 @@ class _SecureSocket implements SecureSocket {
         }
       }
     }
+  }
+
+  void _secureErrorHandler(e) {
+    _reportError(e, 'Error on underlying Socket');
+  }
+
+  void _reportError(error, String message) {
+    // TODO(whesse): Call _reportError from all internal functions that throw.
+    var e;
+    if (error is SocketIOException) {
+      e = new SocketIOException('$message (${error.message})', error.osError);
+    } else if (error is OSError) {
+      e = new SocketIOException(message, error);
+    } else {
+      e = new SocketIOException('$message (${error.toString()})', null);
+    }
+    bool reported = false;
+    if (_socketErrorHandler != null) {
+      reported = true;
+      _socketErrorHandler(e);
+    }
+    if (_inputStream != null) {
+      reported = reported || _inputStream._onSocketError(e);
+    }
+    if (_outputStream != null) {
+      reported = reported || _outputStream._onSocketError(e);
+    }
+
+    if (!reported) throw e;
   }
 
   void _secureCloseHandler() {
@@ -494,6 +524,7 @@ class _SecureSocket implements SecureSocket {
   Function _socketConnectHandler;
   Function _socketWriteHandler;
   Function _socketDataHandler;
+  Function _socketErrorHandler;
   Function _socketCloseHandler;
   Timer scheduledDataEvent;
 
