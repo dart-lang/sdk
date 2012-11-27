@@ -723,23 +723,10 @@ public class Resolver {
       }
 
       DartBlock body = functionNode.getBody();
-      boolean isInterface = false;
-      boolean isAbstractClass = false;
-      if (ElementKind.of(member.getEnclosingElement()).equals(ElementKind.CLASS)) {
-        ClassElement cl = (ClassElement) member.getEnclosingElement();
-        isInterface = cl.isInterface();
-        isAbstractClass = cl.getModifiers().isAbstract();
-      }
-
       if (body == null) {
         if (member.getModifiers().isStatic() && !member.getModifiers().isExternal()) {
           onError(functionNode, ResolverErrorCode.STATIC_METHOD_MUST_HAVE_BODY);
         }
-//        else if (!Elements.isNonFactoryConstructor(member) && !member.getModifiers().isAbstract()
-//            && !member.getModifiers().isExternal() && node.getRedirectedTypeName() == null
-//            && !(isInterface || isAbstractClass)) {
-//          onError(functionNode, ResolverErrorCode.METHOD_MUST_HAVE_BODY);
-//        }
       }
       resolve(functionNode.getBody());
 

@@ -84,7 +84,6 @@ compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dartc ]
 built_in_identifier_prefix_test: Fail # http://dartbug.com/6971
-class_syntax_test/01: Fail # http://dartbug.com/6969
 library_juxtaposition_test: Fail # Issue 6881
 new_expression_type_args_test/0*: Fail # Wrongly reports compile-time error.
 redirecting_factory_infinite_steps_test/01: Fail # http://dartbug.com/6560
