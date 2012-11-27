@@ -1785,9 +1785,15 @@ public class TypeAnalyzer implements DartCompilationPhase {
       Member iteratorMember = lookupMember(iterableType, "iterator", iterableExpression);
       Type elementType = null;
       if (iteratorMember != null) {
+        Type memberReturnType = null;
         if (TypeKind.of(iteratorMember.getType()) == TypeKind.FUNCTION) {
           FunctionType iteratorMethod = (FunctionType) iteratorMember.getType();
-          InterfaceType asInstanceOf = types.asInstanceOf(iteratorMethod.getReturnType(),
+          memberReturnType = iteratorMethod.getReturnType();
+        } else if (ElementKind.of(iteratorMember.getElement()) == ElementKind.FIELD) {
+          memberReturnType = iteratorMember.getType();
+        }
+        if (memberReturnType != null) {
+          InterfaceType asInstanceOf = types.asInstanceOf(memberReturnType,
               dynamicIteratorType.getElement());
           if (asInstanceOf != null) {
             elementType = asInstanceOf.getArguments().get(0);
@@ -1795,8 +1801,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           } else {
             InterfaceType expectedIteratorType = dynamicIteratorType.subst(
                 Arrays.asList(variableType), dynamicIteratorType.getElement().getTypeParameters());
-            typeError(iterableExpression,
-                TypeErrorCode.FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE,
+            typeError(iterableExpression, TypeErrorCode.FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE,
                 expectedIteratorType);
           }
         } else {

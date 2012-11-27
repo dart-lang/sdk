@@ -404,40 +404,6 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyzeClass(classes.get("Bad"), 3);
   }
 
-  public void testForEachStatement() {
-    Map<String, ClassNodeElement> invalidReturnType = loadSource(
-        "class A {",
-        "  Iterator<int> iterator() {}",
-        "}",
-        "class B {",
-        "  main() { for (int i in new A()) {}}",
-        "}");
-    analyzeClasses(invalidReturnType);
-  }
-
-  public void testForEachStatement_Negative1() {
-    Map<String, ClassNodeElement> fieldNotMethod = loadSource(
-        "class A {",
-        "  int iterator;",
-        "}",
-        "class B {",
-        "  main() { for (int i in new A()) {}}",
-        "}");
-    analyzeClasses(fieldNotMethod, TypeErrorCode.FOR_IN_WITH_ITERATOR_FIELD);
-  }
-
-  public void testForEachStatement_Negative2() {
-    Map<String, ClassNodeElement> invalidReturnType = loadSource(
-        "class A {",
-        "  int iterator() {}",
-        "}",
-        "class B {",
-        "  main() { for (int i in new A()) {}}",
-        "}");
-    analyzeClasses(invalidReturnType, TypeErrorCode.FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE);
-  }
-
-
   public void testForStatement() {
     analyze("for (;true;) {}");
     analyze("for (;null;) {}");

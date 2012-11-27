@@ -5695,4 +5695,74 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors(),
         errEx(ResolverErrorCode.VARIABLE_REFERENCES_SAME_NAME_IN_INITIALIZER, 3, 11, 1));
   }
+
+  public void test_ForEachStatement_method() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  Iterator<int> iterator() {}",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  for (int v in a) {}",
+        "}",
+        "");
+    assertErrors(result.getErrors());
+  }
+
+  public void test_ForEachStatement_negative_method_invalidReturnType() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int iterator() {}",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  for (int v in a) {}",
+        "}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(TypeErrorCode.FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE, 7, 17, 1));
+  }
+
+  /**
+   * It was negative test, but in the new <code>Iterator</code> field should be also supported.
+   */
+  public void test_ForEachStatement_field() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  Iterator iterator;",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  for (int v in a) {}",
+        "}",
+        "");
+    assertErrors(result.getErrors());
+//    Map<String, ClassNodeElement> fieldNotMethod = loadSource(
+//        "class A {",
+//        "  int iterator;",
+//        "}",
+//        "class B {",
+//        "  main() { for (int i in new A()) {}}",
+//        "}");
+//    analyzeClasses(fieldNotMethod, TypeErrorCode.FOR_IN_WITH_ITERATOR_FIELD);
+  }
+
+  public void test_ForEachStatement_negative_field_invalidReturnType() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int iterator;",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  for (int v in a) {}",
+        "}",
+        "");
+    assertErrors(result.getErrors(),
+        errEx(TypeErrorCode.FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE, 7, 17, 1));
+  }
 }
