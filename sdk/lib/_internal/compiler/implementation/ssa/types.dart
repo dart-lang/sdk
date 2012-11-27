@@ -929,7 +929,11 @@ class HBoundedPotentialPrimitiveString extends HBoundedPotentialPrimitiveType {
 }
 
 class HTypeMap {
-  List<HType> _list = new List<HType>();
+  // Approximately 85% of methods in the sample "swarm" have less than
+  // 32 instructions.
+  static const int INITIAL_SIZE = 32;
+
+  List<HType> _list = new List<HType>()..length = INITIAL_SIZE;
 
   operator [](HInstruction instruction) {
     HType result;
@@ -939,9 +943,15 @@ class HTypeMap {
   }
 
   operator []=(HInstruction instruction, HType value) {
-    if (_list.length <= instruction.id) {
-      _list.length = instruction.id + 1;
+    int length = _list.length;
+    int id = instruction.id;
+    if (length <= id) {
+      if (id + 1 < length * 2) {
+        _list.length = length * 2;
+      } else {
+        _list.length = id + 1;
+      }
     }
-    _list[instruction.id] = value;
+    _list[id] = value;
   }
 }
