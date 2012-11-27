@@ -25,7 +25,7 @@ class _InvocationMirror implements InvocationMirror {
   bool get isSetter => _type == SETTER;
 
   invokeOn(Object receiver) {
-    throw new UnsupportedOperation("invokeOn not implemented yet");
+    throw new UnsupportedError("invokeOn not implemented yet");
   }
 }
 
