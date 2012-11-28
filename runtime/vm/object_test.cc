@@ -328,13 +328,13 @@ TEST_CASE(Mint) {
     const String& smi_str = String::Handle(String::New("1"));
     const String& mint1_str = String::Handle(String::New("2147419168"));
     const String& mint2_str = String::Handle(String::New("-2147419168"));
-    Integer& i = Integer::Handle(Integer::New(smi_str));
+    Integer& i = Integer::Handle(Integer::NewCanonical(smi_str));
     EXPECT(i.IsSmi());
-    i = Integer::New(mint1_str);
+    i = Integer::NewCanonical(mint1_str);
     EXPECT(i.IsMint());
     EXPECT(!i.IsZero());
     EXPECT(!i.IsNegative());
-    i = Integer::New(mint2_str);
+    i = Integer::NewCanonical(mint2_str);
     EXPECT(i.IsMint());
     EXPECT(!i.IsZero());
     EXPECT(i.IsNegative());
@@ -456,7 +456,7 @@ TEST_CASE(Bigint) {
   EXPECT(b.IsNull());
   const char* cstr = "18446744073709551615000";
   const String& test = String::Handle(String::New(cstr));
-  b = Bigint::New(test);
+  b = Bigint::NewCanonical(test);
   const char* str = b.ToCString();
   EXPECT_STREQ(cstr, str);
 
@@ -493,15 +493,17 @@ TEST_CASE(Bigint) {
 
 TEST_CASE(Integer) {
   Integer& i = Integer::Handle();
-  i = Integer::New(String::Handle(String::New("12")));
+  i = Integer::NewCanonical(String::Handle(String::New("12")));
   EXPECT(i.IsSmi());
-  i = Integer::New(String::Handle(String::New("-120")));
+  i = Integer::NewCanonical(String::Handle(String::New("-120")));
   EXPECT(i.IsSmi());
-  i = Integer::New(String::Handle(String::New("0")));
+  i = Integer::NewCanonical(String::Handle(String::New("0")));
   EXPECT(i.IsSmi());
-  i = Integer::New(String::Handle(String::New("12345678901234567890")));
+  i = Integer::NewCanonical(
+      String::Handle(String::New("12345678901234567890")));
   EXPECT(i.IsBigint());
-  i = Integer::New(String::Handle(String::New("-12345678901234567890111222")));
+  i = Integer::NewCanonical(
+      String::Handle(String::New("-12345678901234567890111222")));
   EXPECT(i.IsBigint());
 }
 

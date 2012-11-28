@@ -3465,6 +3465,10 @@ class Number : public Instance {
 class Integer : public Number {
  public:
   static RawInteger* New(const String& str, Heap::Space space = Heap::kNew);
+
+  // Returns a canonical Integer object allocated in the old gen space.
+  static RawInteger* NewCanonical(const String& str);
+
   static RawInteger* New(int64_t value, Heap::Space space = Heap::kNew);
 
   virtual double AsDoubleValue() const;
@@ -3622,6 +3626,9 @@ class Bigint : public Integer {
   }
 
   static RawBigint* New(const String& str, Heap::Space space = Heap::kNew);
+
+  // Returns a canonical Bigint object allocated in the old gen space.
+  static RawBigint* NewCanonical(const String& str);
 
   RawBigint* ArithmeticOp(Token::Kind operation, const Bigint& other) const;
 

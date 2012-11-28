@@ -375,7 +375,7 @@ TEST_CASE(SerializeBigint) {
   MessageWriter writer(&buffer, &zone_allocator);
   const char* cstr = "0x270FFFFFFFFFFFFFD8F0";
   const String& str = String::Handle(String::New(cstr));
-  const Bigint& bigint = Bigint::Handle(Bigint::New(str));
+  const Bigint& bigint = Bigint::Handle(Bigint::NewCanonical(str));
   writer.WriteMessage(bigint);
   intptr_t buffer_len = writer.BytesWritten();
 

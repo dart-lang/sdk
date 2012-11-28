@@ -4497,7 +4497,7 @@ RawLiteralToken* LiteralToken::New(Token::Kind kind, const String& literal) {
   result.set_kind(kind);
   result.set_literal(literal);
   if (kind == Token::kINTEGER) {
-    const Integer& value = Integer::Handle(Integer::New(literal, Heap::kOld));
+    const Integer& value = Integer::Handle(Integer::NewCanonical(literal));
     ASSERT(value.IsSmi() || value.IsOld());
     result.set_value(value);
   } else if (kind == Token::kDOUBLE) {
@@ -9243,8 +9243,7 @@ const char* Integer::ToCString() const {
 
 
 RawInteger* Integer::New(const String& str, Heap::Space space) {
-  // We are not supposed to have integers represented as two byte or
-  // four byte strings.
+  // We are not supposed to have integers represented as two byte strings.
   ASSERT(str.IsOneByteString());
   int64_t value;
   if (!OS::StringToInt64(str.ToCString(), &value)) {
@@ -9254,6 +9253,23 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
     return big.raw();
   }
   return Integer::New(value, space);
+}
+
+
+RawInteger* Integer::NewCanonical(const String& str) {
+  // We are not supposed to have integers represented as two byte strings.
+  ASSERT(str.IsOneByteString());
+  int64_t value;
+  if (!OS::StringToInt64(str.ToCString(), &value)) {
+    const Bigint& big = Bigint::Handle(Bigint::NewCanonical(str));
+    ASSERT(!BigintOperations::FitsIntoSmi(big));
+    ASSERT(!BigintOperations::FitsIntoMint(big));
+    return big.raw();
+  }
+  if ((value <= Smi::kMaxValue) && (value >= Smi::kMinValue)) {
+    return Smi::New(value);
+  }
+  return Mint::NewCanonical(value);
 }
 
 
@@ -9858,6 +9874,10 @@ bool Bigint::Equals(const Instance& other) const {
 
   const Bigint& other_bgi = Bigint::Cast(other);
 
+  if (this->IsNegative() != other_bgi.IsNegative()) {
+    return false;
+  }
+
   intptr_t len = this->Length();
   if (len != other_bgi.Length()) {
     return false;
@@ -9877,6 +9897,36 @@ RawBigint* Bigint::New(const String& str, Heap::Space space) {
       BigintOperations::NewFromCString(str.ToCString(), space));
   ASSERT(!BigintOperations::FitsIntoMint(result));
   return result.raw();
+}
+
+
+RawBigint* Bigint::NewCanonical(const String& str) {
+  const Bigint& value = Bigint::Handle(
+      BigintOperations::NewFromCString(str.ToCString(), Heap::kOld));
+  ASSERT(!BigintOperations::FitsIntoMint(value));
+  const Class& cls =
+      Class::Handle(Isolate::Current()->object_store()->bigint_class());
+  const Array& constants = Array::Handle(cls.constants());
+  const intptr_t constants_len = constants.Length();
+  // Linear search to see whether this value is already present in the
+  // list of canonicalized constants.
+  Bigint& canonical_value = Bigint::Handle();
+  intptr_t index = 0;
+  while (index < constants_len) {
+    canonical_value ^= constants.At(index);
+    if (canonical_value.IsNull()) {
+      break;
+    }
+    if (canonical_value.Equals(value)) {
+      return canonical_value.raw();
+    }
+    index++;
+  }
+  // The value needs to be added to the constants list. Grow the list if
+  // it is full.
+  cls.InsertCanonicalConstant(index, value);
+  value.SetCanonical();
+  return value.raw();
 }
 
 
