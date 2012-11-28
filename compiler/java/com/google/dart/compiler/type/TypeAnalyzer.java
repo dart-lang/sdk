@@ -663,7 +663,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
       // report problem
       if (member == null && problemTarget != null) {
         if (reportNoMemberWhenHasInterceptor || !Elements.handlesNoSuchMethod(itype)) {
-          if (typeChecksForInferredTypes || !TypeQuality.isInferred(receiver)) {
+          if (typeChecksForInferredTypes && !isTooGenericInferredType(receiver)
+              || !TypeQuality.isInferred(receiver)) {
             ErrorCode code = TypeQuality.isInferred(receiver)
                 ? TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED_INFERRED
                 : TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED;
@@ -2375,7 +2376,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
       // report "not a member"
       if (member == null) {
         if (reportNoMemberWhenHasInterceptor || !Elements.handlesNoSuchMethod(cls)) {
-          if (typeChecksForInferredTypes || !TypeQuality.isInferred(receiver)) {
+          if (typeChecksForInferredTypes && !isTooGenericInferredType(receiver)
+              || !TypeQuality.isInferred(receiver)) {
             TypeErrorCode errorCode = TypeQuality.isInferred(receiver)
                 ? TypeErrorCode.NOT_A_MEMBER_OF_INFERRED : TypeErrorCode.NOT_A_MEMBER_OF;
             typeError(node.getName(), errorCode, name, cls);
@@ -3622,5 +3624,19 @@ public class TypeAnalyzer implements DartCompilationPhase {
     return type != null
         && Elements.isCoreLibrarySource(type.getElement().getSourceInfo().getSource())
         && type.getElement().getName().equals(name);
+  }
+
+  /**
+   * Sometimes inferred type is too generic - such as "Object" or "Collection", so there are no
+   * reason to reports problems.
+   */
+  private static boolean isTooGenericInferredType(Type type) {
+    if (TypeQuality.of(type) == TypeQuality.INFERRED) {
+      String typeName = type.getElement().getName();
+      if ("Object".equals(typeName) || "Collection".equals(typeName)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

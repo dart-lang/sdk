@@ -3095,6 +3095,37 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
+   * Sometimes inferred type is too generic - such as "Object" or "Collection", so there are no
+   * reason to reports problems.
+   */
+  public void test_typesPropagation_dontWant_ifTooGeneric() throws Exception {
+    compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
+      @Override
+      public boolean typeChecksForInferredTypes() {
+        return true;
+      }
+    });
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "typedef void HandlerObject(Object o);",
+        "typedef void HandlerCollection(Collection o);",
+        "fObject(HandlerObject h) {}",
+        "fCollection(HandlerCollection h) {}",
+        "main() {",
+        "  fObject((x) {",
+        "    x.myNoSuchField;",
+        "    x.myNoSuchMethod();",
+        "  });",
+        "  fCollection((x) {",
+        "    x.myNoSuchField;",
+        "    x.myNoSuchMethod();",
+        "  });",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+
+  /**
    * Helpful (but not perfectly satisfying Specification) type of "conditional" is intersection of
    * then/else types, not just their "least upper bounds". And this corresponds runtime behavior.
    */
