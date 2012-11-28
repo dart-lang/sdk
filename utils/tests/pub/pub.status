@@ -10,10 +10,6 @@
 [ $runtime == drt || $runtime == dartium || $runtime == opera]
 *: Skip
 
-# TODO(nweiz): The "pub lish" tests fail mysteriously on OS X. See issue 6984.
-[ $system == macos ]
-pub_lish_test: Fail
-
 [ $system == windows ]
 # TODO(nweiz): The "pub lish" tests fail mysteriously on Windows as well. See
 # issue 6984.
