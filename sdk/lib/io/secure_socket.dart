@@ -169,7 +169,7 @@ class _SecureSocket implements SecureSocket {
     throw new UnimplementedError("SecureSocket.available not implemented yet");
   }
 
-  void close([bool halfClose]) {
+  void close([bool halfClose = false]) {
     if (halfClose) {
       _closedWrite = true;
       _writeEncryptedData();
