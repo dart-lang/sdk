@@ -925,17 +925,40 @@ class _RequestHandlerRegistration {
 
 // HTTP server waiting for socket connections. The connections are
 // managed by the server and as requests are received the request.
-class _HttpServer implements HttpServer {
-  _HttpServer() : _connections = new Set<_HttpConnection>(),
-                  _handlers = new List<_RequestHandlerRegistration>(),
-                  _closeQueue = new _CloseQueue();
+// HTTPS connections are also supported, if the _HttpServer.httpsServer
+// constructor is used and a certificate name is provided in listen,
+// or a SecureServerSocket is provided to listenOn.
+class _HttpServer implements HttpServer, HttpsServer {
+  _HttpServer() : this._internal(isSecure: false);
 
-  void listen(String host, int port, {int backlog: 128}) {
-    listenOn(new ServerSocket(host, port, backlog));
+  _HttpServer.httpsServer() : this._internal(isSecure: true);
+
+  _HttpServer._internal({ bool isSecure: false })
+      : _secure = isSecure,
+        _connections = new Set<_HttpConnection>(),
+        _handlers = new List<_RequestHandlerRegistration>(),
+        _closeQueue = new _CloseQueue();
+
+  void listen(String host,
+              int port,
+              {int backlog: 128,
+              String certificate_name}) {
+    if (_secure) {
+      listenOn(new SecureServerSocket(host, port, backlog, certificate_name));
+    } else {
+      listenOn(new ServerSocket(host, port, backlog));
+    }
     _closeServer = true;
   }
 
   void listenOn(ServerSocket serverSocket) {
+    if (_secure && serverSocket is! SecureServerSocket) {
+        throw new HttpException(
+            'HttpsServer.listenOn was called with non-secure server socket');
+    } else if (!_secure && serverSocket is SecureServerSocket) {
+        throw new HttpException(
+            'HttpServer.listenOn was called with a secure server socket');
+    }
     void onConnection(Socket socket) {
       // Accept the client connection.
       _HttpConnection connection = new _HttpConnection(this);
@@ -1051,6 +1074,7 @@ class _HttpServer implements HttpServer {
 
   ServerSocket _server;  // The server listen socket.
   bool _closeServer = false;
+  bool _secure;
   Set<_HttpConnection> _connections;  // Set of currently connected clients.
   List<_RequestHandlerRegistration> _handlers;
   Object _defaultHandler;

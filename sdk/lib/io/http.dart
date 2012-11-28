@@ -62,11 +62,16 @@ abstract class HttpServer {
    * Start listening for HTTP requests on the specified [host] and
    * [port]. If a [port] of 0 is specified the server will choose an
    * ephemeral port. The optional argument [backlog] can be used to
-   * specify the listen backlog for the underlying OS listen
-   * setup. See [addRequestHandler] and [defaultRequestHandler] for
+   * specify the listen backlog for the underlying OS listen.
+   * The optional argument [certificate_name] is used by the HttpsServer
+   * class, which shares the same interface.
+   * See [addRequestHandler] and [defaultRequestHandler] for
    * information on how incoming HTTP requests are handled.
    */
-  void listen(String host, int port, {int backlog: 128});
+  void listen(String host,
+              int port,
+              {int backlog: 128,
+              String certificate_name});
 
   /**
    * Attach the HTTP server to an existing [:ServerSocket:]. If the
@@ -123,6 +128,14 @@ abstract class HttpServer {
    * current connection handled by the server.
    */
   HttpConnectionsInfo connectionsInfo();
+}
+
+
+/**
+ * HTTPS server.
+ */
+abstract class HttpsServer implements HttpServer {
+  factory HttpsServer() => new _HttpServer.httpsServer();
 }
 
 
