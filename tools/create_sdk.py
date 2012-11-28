@@ -211,11 +211,11 @@ def Main(argv):
   os.makedirs(PKG)
 
   #
-  # Create and populate pkg/{args, intl, logging, meta, unittest}
+  # Create and populate pkg/{args, intl, logging, meta, unittest, ...}
   #
 
-  for library in ['args', 'htmlescape', 'intl', 'logging',
-                  'meta', 'unittest']:
+  for library in ['args', 'htmlescape', 'http', 'intl', 'logging',
+                  'meta', 'oauth2', 'unittest']:
     copytree(join(HOME, 'pkg', library), join(PKG, library),
              ignore=ignore_patterns('*.svn', 'doc', 'docs',
                                     '*.py', '*.gypi', '*.sh'))
