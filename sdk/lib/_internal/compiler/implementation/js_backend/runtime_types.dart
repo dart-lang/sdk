@@ -23,11 +23,10 @@ class RuntimeTypeInformation {
         InterfaceType interface = t;
         ClassElement element = t.element;
         if (element.typeVariables.isEmpty) return;
-        bool isRaw = interface.typeArguments.isEmpty;
+        bool isRaw = interface.isRaw;
         if (isRaw && !expandRawType) return;
         builder.add('<');
-        Iterable items =
-            isRaw ? element.typeVariables : interface.typeArguments;
+        Iterable items = interface.typeArguments;
         var stringify = isRaw ? (_) => 'dynamic' : (type) => type.toString();
         bool first = true;
         for (var item in items) {
@@ -49,7 +48,7 @@ class RuntimeTypeInformation {
   static bool hasTypeArguments(DartType type) {
     if (type is InterfaceType) {
       InterfaceType interfaceType = type;
-      return !interfaceType.typeArguments.isEmpty;
+      return !interfaceType.isRaw;
     }
     return false;
   }

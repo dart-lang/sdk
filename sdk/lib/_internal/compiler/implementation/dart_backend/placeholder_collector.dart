@@ -174,14 +174,14 @@ class PlaceholderCollector extends Visitor {
   void collectFunctionDeclarationPlaceholders(
       FunctionElement element, FunctionExpression node) {
     if (element.isGenerativeConstructor() || element.isFactoryConstructor()) {
-      DartType type = element.getEnclosingClass().type.asRaw();
+      DartType type = element.getEnclosingClass().thisType.asRaw();
       makeConstructorPlaceholder(node.name, element, type);
       Return bodyAsReturn = node.body.asReturn();
       if (bodyAsReturn != null && bodyAsReturn.isRedirectingFactoryBody) {
         // Factory redirection.
         FunctionElement redirectTarget = element.defaultImplementation;
         assert(redirectTarget != null && redirectTarget != element);
-        type = redirectTarget.getEnclosingClass().type.asRaw();
+        type = redirectTarget.getEnclosingClass().thisType.asRaw();
         makeConstructorPlaceholder(
             bodyAsReturn.expression, redirectTarget, type);
       }

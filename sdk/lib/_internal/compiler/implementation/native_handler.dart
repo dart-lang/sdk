@@ -236,7 +236,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       }
       assert(type is DartType);
       enqueueUnusedClassesMatching(
-          (nativeClass)  => compiler.types.isSubtype(nativeClass.type, type),
+          (nativeClass) => compiler.types.isSubtype(nativeClass.thisType, type),
           cause,
           'subtypeof($type)');
     }

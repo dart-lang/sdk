@@ -1142,14 +1142,18 @@ class TypeResolver {
             type = new MalformedType(
                 new MalformedTypeElement(node, element));
           } else {
-            type = new InterfaceType(cls.declaration, arguments);
+            if (arguments.isEmpty) {
+              // Use the canonical raw type if the class is generic.
+              type = cls.rawType;
+            } else {
+              type = new InterfaceType(cls.declaration, arguments);
+            }
           }
         }
       } else if (element.isTypedef()) {
         TypedefElement typdef = element;
         // TODO(ahe): Should be [ensureResolved].
         compiler.resolveTypedef(typdef);
-        typdef.computeType(compiler);
         Link<DartType> arguments = resolveTypeArguments(
             node, typdef.typeVariables, inStaticContext,
             scope, onFailure, whenResolved);
@@ -1157,7 +1161,11 @@ class TypeResolver {
           // Return the canonical type if it has no type parameters.
           type = typdef.computeType(compiler);
         } else {
-          type = new TypedefType(typdef, arguments);
+          if (arguments.isEmpty) {
+            type = typdef.rawType;
+          } else {
+           type = new TypedefType(typdef, arguments);
+          }
         }
       } else if (element.isTypeVariable()) {
         if (inStaticContext) {
@@ -1967,7 +1975,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   void handleRedirectingFactoryBody(Return node) {
     Element redirectionTarget = resolveRedirectingFactory(node);
     var type = mapping.getType(node.expression);
-    if (type is InterfaceType && !type.typeArguments.isEmpty) {
+    if (type is InterfaceType && !type.isRaw) {
       unimplemented(node.expression, 'type arguments on redirecting factory');
     }
     useElement(node.expression, redirectionTarget);
@@ -2555,8 +2563,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       } else {
         objectElement.ensureResolved(compiler);
       }
-      // TODO(ahe): This should be objectElement.computeType(...).
-      element.supertype = new InterfaceType(objectElement);
+      element.supertype = objectElement.computeType(compiler);
     }
     assert(element.interfaces == null);
     Link<DartType> interfaces = const Link<DartType>();
