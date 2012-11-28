@@ -576,6 +576,22 @@ Future _doProcess(Function fn, String executable, List<String> args, workingDir,
   return fn(executable, args, options);
 }
 
+/// Closes [response] while ignoring the body of [request]. Returns a Future
+/// that completes once the response is closed.
+///
+/// Due to issue 6984, it's necessary to drain the request body before closing
+/// the response.
+Future closeHttpResponse(HttpRequest request, HttpResponse response) {
+  var completer = new Completer();
+  request.inputStream.onError = completer.completeException;
+  request.inputStream.onData = request.inputStream.read;
+  request.inputStream.onClosed = () {
+    response.outputStream.close();
+    completer.complete(null);
+  };
+  return completer.future;
+}
+
 /**
  * Wraps [input] to provide a timeout. If [input] completes before
  * [milliseconds] have passed, then the return value completes in the same way.

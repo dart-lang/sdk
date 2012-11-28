@@ -13,7 +13,7 @@ import '../../pub/io.dart';
 
 void handleUploadForm(ScheduledServer server, [Map body]) {
   server.handle('GET', '/packages/versions/new.json', (request, response) {
-    return server.url.transform((url) {
+    return server.url.chain((url) {
       expect(request.headers.value('authorization'),
           equals('Bearer access token'));
 
@@ -29,7 +29,7 @@ void handleUploadForm(ScheduledServer server, [Map body]) {
 
       response.headers.contentType = new ContentType("application", "json");
       response.outputStream.writeString(JSON.stringify(body));
-      response.outputStream.close();
+      return closeHttpResponse(request, response);
     });
   });
 }
@@ -38,10 +38,10 @@ void handleUpload(ScheduledServer server) {
   server.handle('POST', '/upload', (request, response) {
     // TODO(nweiz): Once a multipart/form-data parser in Dart exists, validate
     // that the request body is correctly formatted. See issue 6952.
-    return server.url.transform((url) {
+    return server.url.chain((url) {
       response.statusCode = 302;
       response.headers.set('location', url.resolve('/create').toString());
-      response.outputStream.close();
+      return closeHttpResponse(request, response);
     });
   });
 }
@@ -60,7 +60,7 @@ main() {
       response.outputStream.writeString(JSON.stringify({
         'success': {'message': 'Package test_pkg 1.0.0 uploaded!'}
       }));
-      response.outputStream.close();
+      return closeHttpResponse(request, response);
     });
 
     expectLater(pub.nextLine(), equals('Package test_pkg 1.0.0 uploaded!'));
@@ -85,7 +85,7 @@ main() {
       response.outputStream.writeString(JSON.stringify({
         'error': {'message': 'your request sucked'}
       }));
-      response.outputStream.close();
+      return closeHttpResponse(request, response);
     });
 
     expectLater(pub.nextErrLine(), equals('your request sucked'));
@@ -101,7 +101,7 @@ main() {
 
     server.handle('GET', '/packages/versions/new.json', (request, response) {
       response.outputStream.writeString('{not json');
-      response.outputStream.close();
+      return closeHttpResponse(request, response);
     });
 
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
@@ -208,7 +208,7 @@ main() {
       response.headers.contentType = new ContentType('application', 'xml');
       response.outputStream.writeString('<Error><Message>Your request sucked.'
           '</Message></Error>');
-      response.outputStream.close();
+      return closeHttpResponse(request, response);
     });
 
     // TODO(nweiz): This should use the server's error message once the client
@@ -227,7 +227,7 @@ main() {
 
     server.handle('POST', '/upload', (request, response) {
       // don't set the location header
-      response.outputStream.close();
+      return closeHttpResponse(request, response);
     });
 
     expectLater(pub.nextErrLine(), equals('Failed to upload the package.'));
@@ -247,7 +247,7 @@ main() {
       response.outputStream.writeString(JSON.stringify({
         'error': {'message': 'Your package was too boring.'}
       }));
-      response.outputStream.close();
+      return closeHttpResponse(request, response);
     });
 
     expectLater(pub.nextErrLine(), equals('Your package was too boring.'));
@@ -265,7 +265,7 @@ main() {
 
     server.handle('GET', '/create', (request, response) {
       response.outputStream.writeString('{not json');
-      response.outputStream.close();
+      return closeHttpResponse(request, response);
     });
 
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
@@ -286,7 +286,7 @@ main() {
     server.handle('GET', '/create', (request, response) {
       response.statusCode = 400;
       response.outputStream.writeString(JSON.stringify(body));
-      response.outputStream.close();
+      return closeHttpResponse(request, response);
     });
 
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
@@ -306,7 +306,7 @@ main() {
     var body = {'success': 'Your package was awesome.'};
     server.handle('GET', '/create', (request, response) {
       response.outputStream.writeString(JSON.stringify(body));
-      response.outputStream.close();
+      return closeHttpResponse(request, response);
     });
 
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));

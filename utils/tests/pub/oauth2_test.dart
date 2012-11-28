@@ -27,7 +27,7 @@ main() {
       expect(request.headers.value('authorization'),
           equals('Bearer access token'));
 
-      response.outputStream.close();
+      return closeHttpResponse(request, response);
     });
 
     pub.kill();
@@ -46,7 +46,7 @@ main() {
       expect(request.headers.value('authorization'),
           equals('Bearer access token'));
 
-      response.outputStream.close();
+      return closeHttpResponse(request, response);
     });
 
     pub.kill();
@@ -83,7 +83,7 @@ main() {
       expect(request.headers.value('authorization'),
           equals('Bearer new access token'));
 
-      response.outputStream.close();
+      return closeHttpResponse(request, response);
     });
 
     pub.shouldExit();
@@ -111,7 +111,7 @@ main() {
       expect(request.headers.value('authorization'),
           equals('Bearer new access token'));
 
-      response.outputStream.close();
+      return closeHttpResponse(request, response);
     });
 
     pub.kill();
@@ -135,7 +135,7 @@ main() {
       expect(request.headers.value('authorization'),
           equals('Bearer new access token'));
 
-      response.outputStream.close();
+      return closeHttpResponse(request, response);
     });
 
     pub.kill();

@@ -29,7 +29,7 @@ void startServer() {
       (request, response) {
     response.statusCode = 400;
     response.contentLength = 0;
-    response.outputStream.close();
+    closeResponse(request, response);
   });
 
   _server.addRequestHandler((request) => request.path == '/loop',
@@ -39,7 +39,7 @@ void startServer() {
     response.headers.set('location',
         serverUrl.resolve('/loop?${n + 1}').toString());
     response.contentLength = 0;
-    response.outputStream.close();
+    closeResponse(request, response);
   });
 
   _server.addRequestHandler((request) => request.path == '/redirect',
@@ -47,7 +47,7 @@ void startServer() {
     response.statusCode = 302;
     response.headers.set('location', serverUrl.resolve('/').toString());
     response.contentLength = 0;
-    response.outputStream.close();
+    closeResponse(request, response);
   });
 
   _server.defaultRequestHandler = (request, response) {
@@ -102,6 +102,15 @@ void startServer() {
 void stopServer() {
   _server.close();
   _server = null;
+}
+
+/// Closes [response] while ignoring the body of [request].
+///
+/// Due to issue 6984, it's necessary to drain the request body before closing
+/// the response.
+void closeResponse(HttpRequest request, HttpResponse response) {
+  request.inputStream.onData = request.inputStream.read;
+  request.inputStream.onClosed = response.outputStream.close;
 }
 
 /// A matcher that matches JSON that parses to a value that matches the inner
