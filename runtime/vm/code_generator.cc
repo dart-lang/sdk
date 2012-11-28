@@ -1380,26 +1380,6 @@ DEFINE_RUNTIME_ENTRY(ReportObjectNotClosure, 2) {
 }
 
 
-// A closure object was invoked with incompatible arguments.
-// TODO(regis): Deprecated. This case should be handled by a noSuchMethod call.
-DEFINE_RUNTIME_ENTRY(ClosureArgumentMismatch, 0) {
-  ASSERT(arguments.ArgCount() ==
-         kClosureArgumentMismatchRuntimeEntry.argument_count());
-  const Instance& instance = Instance::Handle();  // Incorrect. OK for now.
-  const Array& function_args = Array::Handle();  // Incorrect. OK for now.
-  const String& function_name = String::Handle(Symbols::Call());
-  GrowableArray<const Object*> dart_arguments(5);
-
-  const Object& null_object = Object::Handle();
-  dart_arguments.Add(&instance);
-  dart_arguments.Add(&function_name);
-  dart_arguments.Add(&function_args);
-  dart_arguments.Add(&null_object);
-  Exceptions::ThrowByType(Exceptions::kNoSuchMethod, dart_arguments);
-  UNREACHABLE();
-}
-
-
 DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   ASSERT(arguments.ArgCount() ==
          kStackOverflowRuntimeEntry.argument_count());
