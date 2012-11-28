@@ -1998,6 +1998,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     }
     constructor.defaultImplementation = redirectionTarget;
     world.registerStaticUse(redirectionTarget);
+    world.registerInstantiatedClass(
+        redirectionTarget.enclosingElement.declaration);
   }
 
   visitThrow(Throw node) {

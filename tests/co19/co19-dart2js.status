@@ -126,7 +126,6 @@ Language/12_Statements/14_Continue_A02_t13: Fail # TODO(ahe): Please triage this
 Language/13_Libraries_and_Scripts/1_Imports_A02_t14: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t16: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t17: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t18: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t19: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t27: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t28: Fail # TODO(ahe): Please triage this failure.
