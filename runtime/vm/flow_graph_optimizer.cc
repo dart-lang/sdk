@@ -3438,7 +3438,20 @@ void ConstantPropagator::VisitStoreVMField(StoreVMFieldInstr* instr) {
 
 void ConstantPropagator::VisitInstantiateTypeArguments(
     InstantiateTypeArgumentsInstr* instr) {
-  SetValue(instr, non_constant_);
+  const Object& object =
+      instr->instantiator()->definition()->constant_value();
+  if (IsNonConstant(object)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(object)) {
+    if (!object.IsNull() &&
+        object.IsTypeArguments() &&
+        (TypeArguments::Cast(object).Length() ==
+         instr->type_arguments().Length())) {
+      SetValue(instr, object);
+    } else {
+      SetValue(instr, non_constant_);
+    }
+  }
 }
 
 
@@ -3713,7 +3726,8 @@ void ConstantPropagator::Transform() {
       // TODO(kmillikin): Extend this to handle booleans, other number
       // types, etc.
       if ((defn != NULL) &&
-          defn->constant_value().IsSmi() &&
+          (defn->constant_value().IsSmi() ||
+           defn->constant_value().IsTypeArguments()) &&
           !defn->IsConstant() &&
           !defn->IsPushArgument() &&
           !defn->IsStoreIndexed() &&
