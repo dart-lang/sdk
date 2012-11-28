@@ -197,26 +197,6 @@ TEST_CASE(InstanceClass) {
 }
 
 
-TEST_CASE(Interface) {
-  String& class_name = String::Handle(Symbols::New("EmptyClass"));
-  Script& script = Script::Handle();
-  const Class& factory_class =
-      Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
-  const Array& no_fields = Array::Handle(Object::empty_array());
-  // Finalizes the class.
-  factory_class.SetFields(no_fields);
-
-  String& interface_name = String::Handle(Symbols::New("MyInterface"));
-  const Class& interface = Class::Handle(
-      Class::NewInterface(interface_name, script, Scanner::kDummyTokenIndex));
-  EXPECT(interface.is_interface());
-  EXPECT(!factory_class.is_interface());
-  EXPECT(!interface.HasFactoryClass());
-  interface.set_factory_class(factory_class);
-  EXPECT_EQ(factory_class.raw(), interface.FactoryClass());
-}
-
-
 TEST_CASE(Smi) {
   const Smi& smi = Smi::Handle(Smi::New(5));
   Object& smi_object = Object::Handle(smi.raw());

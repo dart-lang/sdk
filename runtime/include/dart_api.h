@@ -2038,16 +2038,6 @@ DART_EXPORT Dart_Handle Dart_ClassName(Dart_Handle clazz);
 DART_EXPORT Dart_Handle Dart_ClassGetLibrary(Dart_Handle clazz);
 
 /**
- * Returns the default factory class for the provided class or
- * interface.
- *
- * Only interfaces may have default fadctory classes.  If the class or
- * interface has no default factory class, this function returns
- * Dart_Null().
- */
-DART_EXPORT Dart_Handle Dart_ClassGetDefault(Dart_Handle clazz);
-
-/**
  * Returns the number of interfaces directly implemented by some class
  * or interface.
  *

@@ -2516,27 +2516,6 @@ DART_EXPORT Dart_Handle Dart_ClassGetLibrary(Dart_Handle clazz) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_ClassGetDefault(Dart_Handle clazz) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
-  if (cls.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, clazz, Class);
-  }
-
-  // Finalize all classes.
-  const char* msg = CheckIsolateState(isolate);
-  if (msg != NULL) {
-    return Api::NewError("%s", msg);
-  }
-
-  if (cls.HasFactoryClass() && cls.HasResolvedFactoryClass()) {
-    return Api::NewHandle(isolate, cls.FactoryClass());
-  }
-  return Api::Null(isolate);
-}
-
-
 DART_EXPORT Dart_Handle Dart_ClassGetInterfaceCount(Dart_Handle clazz,
                                                     intptr_t* count) {
   Isolate* isolate = Isolate::Current();
@@ -3336,40 +3315,13 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
     return Api::NewError("%s", msg);
   }
 
-  // Check for interfaces with default implementations.
-  if (cls.is_interface()) {
-    // Make sure that the constructor is found in the interface.
-    result = ResolveConstructor(
-        "Dart_New", cls, base_constructor_name, dot_name, number_of_arguments);
-    if (result.IsError()) {
-      return Api::NewHandle(isolate, result.raw());
-    }
-
-    ASSERT(cls.HasResolvedFactoryClass());
-    const Class& factory_class = Class::Handle(cls.FactoryClass());
-
-    // If the factory class implements the requested interface, then
-    // we use the name of the factory class when looking up the
-    // constructor.  Otherwise we use the original interface name when
-    // looking up the constructor.
-    const TypeArguments& no_type_args = TypeArguments::Handle(isolate);
-    Error& error = Error::Handle();
-    if (factory_class.IsSubtypeOf(no_type_args, cls, no_type_args, &error)) {
-      base_constructor_name = factory_class.Name();
-    }
-    if (!error.IsNull()) {
-      return Api::NewHandle(isolate, error.raw());
-    }
-
-    cls = cls.FactoryClass();
-  }
-
   // Resolve the constructor.
   result = ResolveConstructor(
       "Dart_New", cls, base_constructor_name, dot_name, number_of_arguments);
   if (result.IsError()) {
     return Api::NewHandle(isolate, result.raw());
   }
+  // TODO(turnidge): Support redirecting factories.
   ASSERT(result.IsFunction());
   Function& constructor = Function::Handle(isolate);
   constructor ^= result.raw();

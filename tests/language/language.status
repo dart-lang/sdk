@@ -59,6 +59,20 @@ duplicate_export_negative_test: Fail # issue 6134
 invocation_mirror_indirect_test: Fail # Issue 3326
 
 # Test issue 6324
+class_test: Fail, OK
+interface_test/none: Fail, OK
+interface_test/00: Fail, OK
+compile_time_constant_h_test: Fail, OK
+const_constructor_syntax_test/none: Fail, OK
+default_class_implicit_constructor_test: Fail, OK
+named_parameters_test/none: Fail, OK
+type_checks_in_factory_method_test: Fail, OK
+default_factory2_test/none: Fail, OK
+default_factory3_test: Fail, OK
+default_factory_library_test: Fail, OK
+default_implementation2_test: Fail, OK
+default_factory_test: Fail, OK
+default_implementation_test: Fail, OK
 factory2_test: Fail, OK
 factory3_test: Fail, OK
 factory5_test/none: Fail, OK
@@ -82,6 +96,7 @@ type_variable_scope_test/none: Fail, OK
 
 [ $compiler == none && $unchecked ]
 # Test issue 6324 (continued)
+default_factory2_test/01: Fail, OK
 type_variable_bounds_test/01: Fail, OK
 type_variable_bounds_test/02: Fail, OK
 type_variable_bounds_test/04: Fail, OK
@@ -97,6 +112,7 @@ type_variable_scope_test/05: Fail, OK
 [ $compiler == none && $checked ]
 # Test issue 6324 (continued)
 # Pass for the wrong reason: no distinction between compile-time error and dynamic error
+default_factory2_test/01: Pass
 type_variable_bounds_test/01: Pass
 type_variable_bounds_test/02: Pass
 type_variable_bounds_test/04: Pass
@@ -472,6 +488,17 @@ final_variable_assignment_test/04: Fail
 # factory2_negative_test: Fail
 # factory3_negative_test: Fail
 # factory_negative_test: Fail
+default_class_implicit_constructor_test: Fail, OK
+default_implementation2_test:Fail, OK
+named_parameters_test/none: Fail, OK
+type_checks_in_factory_method_test: Fail, OK
+default_factory2_test/01: Fail, OK
+default_implementation_test: Fail, OK
+default_factory3_test: Fail, OK
+class_test: Fail, OK
+compile_time_constant_h_test: Fail, OK
+interface_test/00: Fail, OK
+default_implementation2_test: Fail, OK
 default_factory_test: Fail
 factory2_test: Fail
 factory3_test: Fail

@@ -139,9 +139,6 @@ bool ClassFinalizer::FinalizePendingClasses() {
         OS::Print("Resolving super and interfaces: %s\n", cls.ToCString());
       }
       ResolveSuperType(cls);
-      if (cls.is_interface()) {
-        ResolveFactoryClass(cls);
-      }
       GrowableArray<intptr_t> visited_interfaces;
       ResolveInterfaces(cls, &visited_interfaces);
     }
@@ -397,86 +394,6 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
     }
   }
   return;
-}
-
-
-void ClassFinalizer::ResolveFactoryClass(const Class& interface) {
-  ASSERT(interface.is_interface());
-  if (interface.is_finalized() ||
-      !interface.HasFactoryClass() ||
-      interface.HasResolvedFactoryClass()) {
-    return;
-  }
-  const UnresolvedClass& unresolved_factory_class =
-      UnresolvedClass::Handle(interface.UnresolvedFactoryClass());
-
-  // Lookup the factory class.
-  const Class& factory_class =
-      Class::Handle(ResolveClass(interface, unresolved_factory_class));
-  if (factory_class.IsNull()) {
-    const Script& script = Script::Handle(interface.script());
-    ReportError(script, unresolved_factory_class.token_pos(),
-                "cannot resolve factory class name '%s' from '%s'",
-                String::Handle(unresolved_factory_class.Name()).ToCString(),
-                String::Handle(interface.Name()).ToCString());
-  }
-  if (factory_class.is_interface()) {
-    const String& interface_name = String::Handle(interface.Name());
-    const String& factory_name = String::Handle(factory_class.Name());
-    const Script& script = Script::Handle(interface.script());
-    ReportError(script, unresolved_factory_class.token_pos(),
-                "default clause of interface '%s' names non-class '%s'",
-                interface_name.ToCString(),
-                factory_name.ToCString());
-  }
-  interface.set_factory_class(factory_class);
-  // It is not necessary to finalize the bounds before comparing them between
-  // the expected and actual factory class.
-  const Class& factory_signature_class = Class::Handle(
-      unresolved_factory_class.factory_signature_class());
-  ASSERT(!factory_signature_class.IsNull());
-  // If a type parameter list is included in the default factory clause (it
-  // can be omitted), verify that it matches the list of type parameters of
-  // the factory class in number, names, and bounds.
-  if (factory_signature_class.NumTypeParameters() > 0) {
-    const TypeArguments& expected_type_parameters =
-        TypeArguments::Handle(factory_signature_class.type_parameters());
-    const TypeArguments& actual_type_parameters =
-        TypeArguments::Handle(factory_class.type_parameters());
-    const bool check_type_parameter_bounds = true;
-    if (!AbstractTypeArguments::AreIdentical(expected_type_parameters,
-                                             actual_type_parameters,
-                                             check_type_parameter_bounds)) {
-      const String& interface_name = String::Handle(interface.Name());
-      const String& factory_name = String::Handle(factory_class.Name());
-      const Script& script = Script::Handle(interface.script());
-      ReportError(script, unresolved_factory_class.token_pos(),
-                  "mismatch in number, names, or bounds of type parameters "
-                  "between default clause of interface '%s' and actual factory "
-                  "class '%s'",
-                  interface_name.ToCString(),
-                  factory_name.ToCString());
-    }
-  }
-  // Verify that the type parameters of the factory class and of the interface
-  // have identical names, but not necessarily identical bounds.
-  const TypeArguments& interface_type_parameters =
-      TypeArguments::Handle(interface.type_parameters());
-  const TypeArguments& factory_type_parameters =
-      TypeArguments::Handle(factory_class.type_parameters());
-  const bool check_type_parameter_bounds = false;
-  if (!AbstractTypeArguments::AreIdentical(interface_type_parameters,
-                                           factory_type_parameters,
-                                           check_type_parameter_bounds)) {
-    const String& interface_name = String::Handle(interface.Name());
-    const String& factory_name = String::Handle(factory_class.Name());
-    const Script& script = Script::Handle(interface.script());
-    ReportError(script, unresolved_factory_class.token_pos(),
-                "mismatch in number or names of type parameters between "
-                "interface '%s' and default factory class '%s'",
-                interface_name.ToCString(),
-                factory_name.ToCString());
-  }
 }
 
 
@@ -1316,19 +1233,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     // subclasses of Object.
     ASSERT(super_type.IsNull() || super_type.IsObjectType());
     return;
-  }
-  // Finalize factory class, if any.
-  if (cls.is_interface()) {
-    if (cls.HasFactoryClass()) {
-      const Class& factory_class = Class::Handle(cls.FactoryClass());
-      if (!factory_class.is_finalized()) {
-        FinalizeClass(factory_class);
-        // Finalizing the factory class may indirectly finalize this interface.
-        if (cls.is_finalized()) {
-          return;
-        }
-      }
-    }
   }
   // Finalize interface types (but not necessarily interface classes).
   Array& interface_types = Array::Handle(cls.interfaces());

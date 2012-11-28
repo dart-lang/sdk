@@ -454,7 +454,8 @@ static Dart_Handle CreateClassMirror(Dart_Handle intf,
   if (Dart_IsNull(super_class)) {
     super_class = Dart_GetClass(CoreLib(), NewString("Object"));
   }
-  Dart_Handle default_class = Dart_ClassGetDefault(intf);
+  // TODO(turnidge): Simplify code, now that default classes have been removed.
+  Dart_Handle default_class = Dart_Null();
 
   Dart_Handle intf_mirror = CreateLazyMirror(intf);
   if (Dart_IsError(intf_mirror)) {

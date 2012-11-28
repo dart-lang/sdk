@@ -561,21 +561,6 @@ class Class : public Object {
   // Asserts that the class of the super type has been resolved.
   RawClass* SuperClass() const;
 
-  // Return true if this interface has a factory class.
-  bool HasFactoryClass() const;
-
-  // Return true if the factory class of this interface is resolved.
-  bool HasResolvedFactoryClass() const;
-
-  // Return the resolved factory class of this interface.
-  RawClass* FactoryClass() const;
-
-  // Return the unresolved factory class of this interface.
-  RawUnresolvedClass* UnresolvedFactoryClass() const;
-
-  // Set the resolved or unresolved factory class of this interface.
-  void set_factory_class(const Object& value) const;
-
   // Interfaces is an array of Types.
   RawArray* interfaces() const { return raw_ptr()->interfaces_; }
   void set_interfaces(const Array& value) const;
@@ -825,11 +810,6 @@ class UnresolvedClass : public Object {
   }
   RawString* ident() const { return raw_ptr()->ident_; }
   intptr_t token_pos() const { return raw_ptr()->token_pos_; }
-
-  RawClass* factory_signature_class() const {
-    return raw_ptr()->factory_signature_class_;
-  }
-  void set_factory_signature_class(const Class& value) const;
 
   RawString* Name() const;
 

@@ -3463,6 +3463,7 @@ void Parser::ParseFunctionTypeAlias(
 }
 
 
+// TODO(regis): Remove support for interfaces.
 void Parser::ParseInterfaceDefinition(
     const GrowableObjectArray& pending_classes) {
   TRACE_PARSER("ParseInterfaceDefinition");
@@ -3507,49 +3508,6 @@ void Parser::ParseInterfaceDefinition(
     AddInterfaces(interfaces_pos, interface, interfaces);
   }
 
-  if (CurrentToken() == Token::kDEFAULT) {
-    ConsumeToken();
-    if (CurrentToken() != Token::kIDENT) {
-      ErrorMsg("class name expected");
-    }
-    QualIdent factory_name;
-    ParseQualIdent(&factory_name);
-    LibraryPrefix& lib_prefix = LibraryPrefix::Handle();
-    if (factory_name.lib_prefix != NULL) {
-      lib_prefix = factory_name.lib_prefix->raw();
-    }
-    const UnresolvedClass& unresolved_factory_class = UnresolvedClass::Handle(
-        UnresolvedClass::New(lib_prefix,
-                             *factory_name.ident,
-                             factory_name.ident_pos));
-    const Class& factory_class = Class::Handle(
-        Class::New(String::Handle(Symbols::New(":factory_signature")),
-                   script_,
-                   factory_name.ident_pos));
-    factory_class.set_library(library_);
-    factory_class.set_is_finalized();
-    ParseTypeParameters(factory_class);
-    unresolved_factory_class.set_factory_signature_class(factory_class);
-    interface.set_factory_class(unresolved_factory_class);
-    // If a type parameter list is included in the default factory clause (it
-    // can be omitted), verify that it matches the list of type parameters of
-    // the interface in number and names, but not necessarily in bounds.
-    if (factory_class.NumTypeParameters() > 0) {
-      const bool check_type_parameter_bounds = false;
-      if (!AbstractTypeArguments::AreIdentical(
-          AbstractTypeArguments::Handle(interface.type_parameters()),
-          AbstractTypeArguments::Handle(factory_class.type_parameters()),
-          check_type_parameter_bounds)) {
-        const String& interface_name = String::Handle(interface.Name());
-        ErrorMsg(factory_name.ident_pos,
-                 "mismatch in number or names of type parameters between "
-                 "interface '%s' and default factory class '%s'.\n",
-                 interface_name.ToCString(),
-                 factory_name.ident->ToCString());
-      }
-    }
-  }
-
   ExpectToken(Token::kLBRACE);
   ClassDesc members(interface, interface_name, true, interface_pos);
   while (CurrentToken() != Token::kRBRACE) {
@@ -3557,9 +3515,9 @@ void Parser::ParseInterfaceDefinition(
   }
   ExpectToken(Token::kRBRACE);
 
-  if (members.has_constructor() && !interface.HasFactoryClass()) {
+  if (members.has_constructor()) {
     ErrorMsg(interfacename_pos,
-             "interface '%s' with constructor must declare a factory class",
+             "interface '%s' cannot declare constructor",
              interface_name.ToCString());
   }
 
@@ -9149,73 +9107,8 @@ AstNode* Parser::ParseNewOperator() {
   intptr_t arguments_length = arguments->length() + 2;
 
   if (type_class.is_interface()) {
-    // We need to make sure that an appropriate constructor is
-    // declared in the interface.
-    const String& constructor_name =
-        BuildConstructorName(type_class_name, named_constructor);
-    const String& external_constructor_name =
-        (named_constructor ? constructor_name : type_class_name);
-    Function& constructor = Function::ZoneHandle(
-        type_class.LookupConstructor(constructor_name));
-    if (constructor.IsNull()) {
-      // Replace the type with a malformed type and compile a throw or report
-      // a compile-time error if the constructor is const.
-      type = ClassFinalizer::NewFinalizedMalformedType(
-          Error::Handle(),  // No previous error.
-          current_class(),
-          call_pos,
-          ClassFinalizer::kTryResolve,  // No compile-time error.
-          "interface '%s' has no constructor named '%s'",
-          type_class_name.ToCString(),
-          external_constructor_name.ToCString());
-      if (is_const) {
-        const Error& error = Error::Handle(type.malformed_error());
-        ErrorMsg(error);
-      }
-      return ThrowNoSuchMethodError(call_pos, external_constructor_name);
-    }
-    String& error_message = String::Handle();
-    if (!constructor.AreValidArguments(arguments_length,
-                                       arguments->names(),
-                                       &error_message)) {
-      if (is_const) {
-        ErrorMsg(call_pos,
-                 "invalid arguments passed to constructor '%s' "
-                 "for interface '%s': %s",
-                 external_constructor_name.ToCString(),
-                 type_class_name.ToCString(),
-                 error_message.ToCString());
-      }
-      return ThrowNoSuchMethodError(call_pos, external_constructor_name);
-    }
-    // TODO(regis): Remove support for obsolete default factory classes.
-    if (!type_class.HasFactoryClass()) {
-      ErrorMsg(type_pos,
-               "cannot allocate interface '%s' without factory class",
-               type_class_name.ToCString());
-    }
-    if (!type_class.HasResolvedFactoryClass()) {
-      // This error can occur only with bootstrap classes.
-      const UnresolvedClass& unresolved =
-          UnresolvedClass::Handle(type_class.UnresolvedFactoryClass());
-      const String& missing_class_name = String::Handle(unresolved.ident());
-      ErrorMsg("unresolved factory class '%s'", missing_class_name.ToCString());
-    }
-    // Only change the class of the constructor to the factory class if the
-    // factory class implements the interface 'type'.
-    const Class& factory_class = Class::Handle(type_class.FactoryClass());
-    if (factory_class.IsSubtypeOf(TypeArguments::Handle(),
-                                  type_class,
-                                  TypeArguments::Handle(),
-                                  NULL)) {
-      // Class finalization verifies that the factory class has identical type
-      // parameters as the interface.
-      constructor_class_name = factory_class.Name();
-    }
-    // Always change the result type of the constructor to the factory type.
-    constructor_class = factory_class.raw();
-    // The finalized type_arguments are still those of the interface type.
-    ASSERT(!constructor_class.is_interface());
+    // TODO(regis): Remove support for interfaces.
+    UNREACHABLE();
   }
 
   // An additional type check of the result of a redirecting factory may be

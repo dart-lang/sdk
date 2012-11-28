@@ -1546,40 +1546,6 @@ void Class::set_super_type(const Type& value) const {
 }
 
 
-bool Class::HasFactoryClass() const {
-  const Object& factory_class = Object::Handle(raw_ptr()->factory_class_);
-  return !factory_class.IsNull();
-}
-
-
-bool Class::HasResolvedFactoryClass() const {
-  ASSERT(HasFactoryClass());
-  const Object& factory_class = Object::Handle(raw_ptr()->factory_class_);
-  return factory_class.IsClass();
-}
-
-
-RawClass* Class::FactoryClass() const {
-  ASSERT(HasResolvedFactoryClass());
-  Class& type_class = Class::Handle();
-  type_class ^= raw_ptr()->factory_class_;
-  return type_class.raw();
-}
-
-
-RawUnresolvedClass* Class::UnresolvedFactoryClass() const {
-  ASSERT(!HasResolvedFactoryClass());
-  UnresolvedClass& unresolved_factory_class = UnresolvedClass::Handle();
-  unresolved_factory_class ^= raw_ptr()->factory_class_;
-  return unresolved_factory_class.raw();
-}
-
-
-void Class::set_factory_class(const Object& value) const {
-  StorePointer(&raw_ptr()->factory_class_, value.raw());
-}
-
-
 // Return a TypeParameter if the type_name is a type parameter of this class.
 // Return null otherwise.
 RawTypeParameter* Class::LookupTypeParameter(const String& type_name,
@@ -2456,11 +2422,6 @@ void UnresolvedClass::set_ident(const String& ident) const {
 void UnresolvedClass::set_library_prefix(
     const LibraryPrefix& library_prefix) const {
   StorePointer(&raw_ptr()->library_prefix_, library_prefix.raw());
-}
-
-
-void UnresolvedClass::set_factory_signature_class(const Class& value) const {
-  StorePointer(&raw_ptr()->factory_signature_class_, value.raw());
 }
 
 

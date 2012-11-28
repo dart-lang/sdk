@@ -423,7 +423,6 @@ class RawClass : public RawObject {
   RawLibrary* library_;
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
   RawType* super_type_;
-  RawObject* factory_class_;  // UnresolvedClass (until finalization) or Class.
   RawFunction* signature_function_;  // Associated function for signature class.
   RawArray* constants_;  // Canonicalized values of this class.
   RawArray* canonical_types_;  // Canonicalized types of this class.
@@ -457,9 +456,8 @@ class RawUnresolvedClass : public RawObject {
   }
   RawLibraryPrefix* library_prefix_;  // Library prefix qualifier for the ident.
   RawString* ident_;  // Name of the unresolved identifier.
-  RawClass* factory_signature_class_;  // Expected type parameters for factory.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->factory_signature_class_);
+    return reinterpret_cast<RawObject**>(&ptr()->ident_);
   }
   intptr_t token_pos_;
 };
