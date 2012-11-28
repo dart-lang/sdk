@@ -28,7 +28,9 @@ Future testCompleteBeforeWait() {
 }
 
 Future testForEachEmpty() {
-  return Futures.forEach([], (_) => throw 'should not be called');
+  return Futures.forEach([], (_) {
+    throw 'should not be called';
+  });
 }
 
 Future testForEach() {
@@ -45,7 +47,9 @@ Future testForEachWithException() {
     if (n == 4) throw 'correct exception';
     seen.add(n);
     return new Future.immediate(null);
-  }).transform((_) => throw 'incorrect exception').transformException((e) {
+  }).transform((_) {
+    throw 'incorrect exception';
+  }).transformException((e) {
     Expect.equals('correct exception', e);
   });
 }
