@@ -2371,7 +2371,7 @@ class HStatic extends HInstruction {
 }
 
 class HInterceptor extends HInstruction {
-  final Set<ClassElement> interceptedClasses;
+  Set<ClassElement> interceptedClasses;
   HInterceptor(this.interceptedClasses, HInstruction receiver)
       : super(<HInstruction>[receiver]);
   String toString() => 'interceptor on $interceptedClasses';
@@ -2385,6 +2385,11 @@ class HInterceptor extends HInstruction {
 
   int typeCode() => HInstruction.INTERCEPTOR_TYPECODE;
   bool typeEquals(other) => other is HInterceptor;
+  bool dataEquals(HInterceptor other) {
+    return interceptedClasses == other.interceptedClasses
+        || (interceptedClasses.length == other.interceptedClasses.length
+            && interceptedClasses.containsAll(other.interceptedClasses));
+  }
 }
 
 /** An [HLazyStatic] is a static that is initialized lazily at first read. */

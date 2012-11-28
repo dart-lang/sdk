@@ -45,6 +45,7 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaDeadPhiEliminator(),
           new SsaConstantFolder(constantSystem, backend, work, types),
           new SsaTypePropagator(compiler, types),
+          new SsaReceiverSpecialization(compiler),
           new SsaGlobalValueNumberer(compiler, types),
           new SsaCodeMotion(),
           new SsaValueRangeAnalyzer(constantSystem, types, work),
@@ -1415,4 +1416,33 @@ class SsaConstructionFieldTypes
       backend.registerFieldConstructor(element, HType.UNKNOWN);
     });
   }
+}
+
+/**
+ * This phase specializes dominated uses of a call, where the call
+ * can give us some type information of what the receiver might be.
+ * For example, after a call to [:a.foo():], if [:foo:] is only
+ * in class [:A:], a can be of type [:A:].
+ */
+class SsaReceiverSpecialization extends HBaseVisitor
+    implements OptimizationPhase {
+  final String name = "SsaReceiverSpecialization";
+  final Compiler compiler;
+
+  SsaReceiverSpecialization(this.compiler);
+
+  void visitGraph(HGraph graph) {
+    visitDominatorTree(graph);
+  }
+
+  void visitInterceptor(HInterceptor interceptor) {
+    HInstruction receiver = interceptor.receiver;
+    for (var user in receiver.usedBy) {
+      if (user is HInterceptor && interceptor.dominates(user)) {
+        user.interceptedClasses = interceptor.interceptedClasses;
+      }
+    }
+  }
+
+  // TODO(ngeoffray): Also implement it for non-intercepted calls.
 }
