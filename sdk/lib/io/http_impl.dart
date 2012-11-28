@@ -1839,7 +1839,7 @@ class _HttpClient implements HttpClient {
           if (proxyIndex < proxyConfiguration.proxies.length) {
             // Try the next proxy in the list.
             _establishConnection(
-                host, port, proxyConfiguration, proxyIndex, false);
+                host, port, proxyConfiguration, proxyIndex, false, secure);
           } else {
             // Report the error through the HttpClientConnection object to
             // the client.
@@ -1870,13 +1870,13 @@ class _HttpClient implements HttpClient {
     }
 
     // Find out if we want a secure socket.
-    bool secure = (url.scheme == "https");
+    bool is_secure = (url.scheme == "https");
 
     // Find the TCP host and port.
     String host = url.domain;
     int port = url.port;
     if (port == 0) {
-      port = secure ?
+      port = is_secure ?
           HttpClient.DEFAULT_HTTPS_PORT :
           HttpClient.DEFAULT_HTTP_PORT;
     }
@@ -1903,7 +1903,7 @@ class _HttpClient implements HttpClient {
                          proxyConfiguration,
                          0,
                          reusedConnection,
-                         secure);
+                         is_secure);
 
     return connection;
   }
