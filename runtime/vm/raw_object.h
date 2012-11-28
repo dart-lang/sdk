@@ -435,7 +435,7 @@ class RawClass : public RawObject {
   cpp_vtable handle_vtable_;
   intptr_t instance_size_;  // Size if fixed length or 0 if variable length.
   intptr_t id_;  // Class Id, also index in the class table.
-  intptr_t type_arguments_instance_field_offset_;  // May be kNoTypeArguments.
+  intptr_t type_arguments_field_offset_;  // Offset of the type arguments field.
   intptr_t next_field_offset_;  // Offset of the next instance field.
   intptr_t num_native_fields_;  // Number of native fields in class.
   intptr_t token_pos_;

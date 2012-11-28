@@ -273,8 +273,7 @@ void Object::InitOnce() {
     cls.set_id(Class::kClassId);
     cls.raw_ptr()->state_bits_ = 0;
     cls.set_is_finalized();
-    cls.raw_ptr()->type_arguments_instance_field_offset_ =
-        Class::kNoTypeArguments;
+    cls.raw_ptr()->type_arguments_field_offset_ = Class::kNoTypeArguments;
     cls.raw_ptr()->num_native_fields_ = 0;
     cls.InitEmptyFields();
     isolate->class_table()->Register(cls);
@@ -557,13 +556,13 @@ RawError* Object::Init(Isolate* isolate) {
   // Since they are pre-finalized, CalculateFieldOffsets() is not called, so we
   // need to set the offset of their type_arguments_ field, which is explicitly
   // declared in RawArray.
-  cls.set_type_arguments_instance_field_offset(Array::type_arguments_offset());
+  cls.set_type_arguments_field_offset(Array::type_arguments_offset());
 
   // Set up the growable object array class (Has to be done after the array
   // class is setup as one of its field is an array object).
   cls = Class::New<GrowableObjectArray>();
   object_store->set_growable_object_array_class(cls);
-  cls.set_type_arguments_instance_field_offset(
+  cls.set_type_arguments_field_offset(
       GrowableObjectArray::type_arguments_offset());
 
   // canonical_type_arguments_ are NULL terminated.
@@ -634,7 +633,7 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = Class::New<ImmutableArray>();
   object_store->set_immutable_array_class(cls);
-  cls.set_type_arguments_instance_field_offset(Array::type_arguments_offset());
+  cls.set_type_arguments_field_offset(Array::type_arguments_offset());
   ASSERT(object_store->immutable_array_class() != object_store->array_class());
   name = Symbols::ImmutableArray();
   RegisterPrivateClass(cls, name, core_lib);
@@ -1371,7 +1370,7 @@ RawClass* Class::New() {
   // VM backed classes are almost ready: run checks and resolve class
   // references, but do not recompute size.
   result.set_is_prefinalized();
-  result.raw_ptr()->type_arguments_instance_field_offset_ = kNoTypeArguments;
+  result.raw_ptr()->type_arguments_field_offset_ = kNoTypeArguments;
   result.raw_ptr()->num_native_fields_ = 0;
   result.raw_ptr()->token_pos_ = Scanner::kDummyTokenIndex;
   result.InitEmptyFields();
@@ -1525,7 +1524,7 @@ intptr_t Class::NumTypeArguments() const {
 bool Class::HasTypeArguments() const {
   if (!IsSignatureClass() && (is_finalized() || is_prefinalized())) {
     // More efficient than calling NumTypeArguments().
-    return type_arguments_instance_field_offset() != kNoTypeArguments;
+    return type_arguments_field_offset() != kNoTypeArguments;
   } else {
     // No need to check NumTypeArguments() if class has type parameters.
     return (NumTypeParameters() > 0) || (NumTypeArguments() > 0);
@@ -1624,7 +1623,7 @@ void Class::CalculateFieldOffsets() const {
   if (super.IsNull()) {
     offset = sizeof(RawObject);
   } else {
-    type_args_field_offset = super.type_arguments_instance_field_offset();
+    type_args_field_offset = super.type_arguments_field_offset();
     offset = super.next_field_offset();
     ASSERT(offset > 0);
     // We should never call CalculateFieldOffsets for native wrapper
@@ -1642,7 +1641,7 @@ void Class::CalculateFieldOffsets() const {
       offset += kWordSize;
     }
   }
-  set_type_arguments_instance_field_offset(type_args_field_offset);
+  set_type_arguments_field_offset(type_args_field_offset);
   ASSERT(offset != 0);
   Field& field = Field::Handle();
   intptr_t len = flds.Length();
@@ -1791,7 +1790,7 @@ RawClass* Class::New(intptr_t index) {
   result.set_next_field_offset(FakeInstance::InstanceSize());
   result.set_id(index);
   result.raw_ptr()->state_bits_ = 0;
-  result.raw_ptr()->type_arguments_instance_field_offset_ = kNoTypeArguments;
+  result.raw_ptr()->type_arguments_field_offset_ = kNoTypeArguments;
   result.raw_ptr()->num_native_fields_ = 0;
   result.raw_ptr()->token_pos_ = Scanner::kDummyTokenIndex;
   result.InitEmptyFields();
@@ -1856,7 +1855,7 @@ RawClass* Class::NewSignatureClass(const String& name,
   result.set_type_parameters(type_parameters);
   result.SetFields(empty_array);
   result.SetFunctions(empty_array);
-  result.set_type_arguments_instance_field_offset(
+  result.set_type_arguments_field_offset(
       Closure::type_arguments_offset());
   // Implements interface "Function".
   const Type& function_type = Type::Handle(Type::Function());
@@ -8223,7 +8222,7 @@ RawType* Instance::GetType() const {
 
 RawAbstractTypeArguments* Instance::GetTypeArguments() const {
   const Class& cls = Class::Handle(clazz());
-  intptr_t field_offset = cls.type_arguments_instance_field_offset();
+  intptr_t field_offset = cls.type_arguments_field_offset();
   ASSERT(field_offset != Class::kNoTypeArguments);
   AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle();
   type_arguments ^= *FieldAddrAtOffset(field_offset);
@@ -8233,7 +8232,7 @@ RawAbstractTypeArguments* Instance::GetTypeArguments() const {
 
 void Instance::SetTypeArguments(const AbstractTypeArguments& value) const {
   const Class& cls = Class::Handle(clazz());
-  intptr_t field_offset = cls.type_arguments_instance_field_offset();
+  intptr_t field_offset = cls.type_arguments_field_offset();
   ASSERT(field_offset != Class::kNoTypeArguments);
   SetFieldAtOffset(field_offset, value);
 }

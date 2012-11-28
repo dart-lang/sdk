@@ -559,11 +559,11 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
       case kArrayCid:
       case kGrowableObjectArrayCid: {
         const Class& instantiator_class = Class::Handle(target.Owner());
-        intptr_t type_arguments_instance_field_offset =
-            instantiator_class.type_arguments_instance_field_offset();
+        intptr_t type_arguments_field_offset =
+            instantiator_class.type_arguments_field_offset();
         LoadFieldInstr* load_type_args =
             new LoadFieldInstr(array->Copy(),
-                               type_arguments_instance_field_offset,
+                               type_arguments_field_offset,
                                Type::ZoneHandle());  // No type.
         InsertBefore(call, load_type_args, NULL, Definition::kValue);
         instantiator = array->Copy();

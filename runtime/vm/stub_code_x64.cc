@@ -1094,7 +1094,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   // The generated code is different if the class is parameterized.
   const bool is_cls_parameterized =
-      cls.type_arguments_instance_field_offset() != Class::kNoTypeArguments;
+      cls.type_arguments_field_offset() != Class::kNoTypeArguments;
   // kInlineInstanceSize is a constant used as a threshold for determining
   // when the object initialization should be done as a loop or as
   // straight line code.
@@ -1222,7 +1222,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     if (is_cls_parameterized) {
       // RDI: new object type arguments.
       // Set the type arguments in the new object.
-      __ movq(Address(RAX, cls.type_arguments_instance_field_offset()), RDI);
+      __ movq(Address(RAX, cls.type_arguments_field_offset()), RDI);
     }
     // Done allocating and initializing the instance.
     // RAX: new object.
@@ -1845,7 +1845,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     Label has_no_type_arguments;
     __ movq(R13, raw_null);
     __ movq(RDI, FieldAddress(R10,
-        Class::type_arguments_instance_field_offset_offset()));
+        Class::type_arguments_field_offset_offset()));
     __ cmpq(RDI, Immediate(Class::kNoTypeArguments));
     __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
     __ movq(R13, FieldAddress(RAX, RDI, TIMES_1, 0));

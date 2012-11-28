@@ -540,15 +540,15 @@ class Class : public Object {
 
   // If this class is parameterized, each instance has a type_arguments field.
   static const intptr_t kNoTypeArguments = -1;
-  intptr_t type_arguments_instance_field_offset() const {
+  intptr_t type_arguments_field_offset() const {
     ASSERT(is_finalized() || is_prefinalized());
-    return raw_ptr()->type_arguments_instance_field_offset_;
+    return raw_ptr()->type_arguments_field_offset_;
   }
-  void set_type_arguments_instance_field_offset(intptr_t value) const {
-    raw_ptr()->type_arguments_instance_field_offset_ = value;
+  void set_type_arguments_field_offset(intptr_t value) const {
+    raw_ptr()->type_arguments_field_offset_ = value;
   }
-  static intptr_t type_arguments_instance_field_offset_offset() {
-    return OFFSET_OF(RawClass, type_arguments_instance_field_offset_);
+  static intptr_t type_arguments_field_offset_offset() {
+    return OFFSET_OF(RawClass, type_arguments_field_offset_);
   }
 
   // The super type of this class, Object type if not explicitly specified.

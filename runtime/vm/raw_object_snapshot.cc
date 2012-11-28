@@ -58,7 +58,7 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
 
     // Set all non object fields.
     cls.set_instance_size(reader->ReadIntptrValue());
-    cls.set_type_arguments_instance_field_offset(reader->ReadIntptrValue());
+    cls.set_type_arguments_field_offset(reader->ReadIntptrValue());
     cls.set_next_field_offset(reader->ReadIntptrValue());
     cls.set_num_native_fields(reader->ReadIntptrValue());
     cls.set_token_pos(reader->ReadIntptrValue());
@@ -97,7 +97,7 @@ void RawClass::WriteTo(SnapshotWriter* writer,
     // NOTE: cpp_vtable_ is not written.
     writer->WriteIntptrValue(ptr()->id_);
     writer->WriteIntptrValue(ptr()->instance_size_);
-    writer->WriteIntptrValue(ptr()->type_arguments_instance_field_offset_);
+    writer->WriteIntptrValue(ptr()->type_arguments_field_offset_);
     writer->WriteIntptrValue(ptr()->next_field_offset_);
     writer->WriteIntptrValue(ptr()->num_native_fields_);
     writer->WriteIntptrValue(ptr()->token_pos_);
