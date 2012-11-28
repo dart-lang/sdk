@@ -3060,6 +3060,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   HInstruction analyzeTypeArgument(DartType argument, Node currentNode) {
+    if (argument == compiler.types.dynamicType) {
+      // Represent [dynamic] as [null].
+      return graph.addConstantNull(constantSystem);
+    }
+
     // These variables are shared between invocations of the helper methods.
     HInstruction typeInfo;
     StringBuffer template = new StringBuffer();
@@ -3119,7 +3124,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       } else if (type is InterfaceType) {
         bool isFirstVariable = true;
         InterfaceType interfaceType = type;
-        bool hasTypeArguments = !interfaceType.typeArguments.isEmpty;
+        bool hasTypeArguments = !interfaceType.isRaw;
         if (!isInQuotes) template.add("'");
         template.add(backend.namer.getName(type.element));
         if (hasTypeArguments) {
@@ -3157,9 +3162,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                              HInstruction newObject) {
     if (!compiler.world.needsRti(type.element)) return;
     List<HInstruction> inputs = <HInstruction>[];
-    type.typeArguments.forEach((DartType argument) {
-      inputs.add(analyzeTypeArgument(argument, currentNode));
-    });
+    if (!type.isRaw) {
+      type.typeArguments.forEach((DartType argument) {
+        inputs.add(analyzeTypeArgument(argument, currentNode));
+      });
+    }
     callSetRuntimeTypeInfo(type.element, inputs, newObject);
   }
 
@@ -3194,7 +3201,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
       } else if (element.isGenerativeConstructor()) {
         ClassElement cls = element.getEnclosingClass();
-        return new HBoundedType.exact(cls.type);
+        return new HBoundedType.exact(cls.thisType);
       } else {
         return HType.UNKNOWN;
       }
@@ -3229,7 +3236,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return;
     }
     if (compiler.world.needsRti(constructor.enclosingElement)) {
-      if (!type.typeArguments.isEmpty) {
+      if (!type.isRaw) {
         type.typeArguments.forEach((DartType argument) {
           inputs.add(analyzeTypeArgument(argument, node));
         });
