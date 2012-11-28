@@ -81,17 +81,13 @@ class CodeEmitterTask extends CompilerTask {
     });
   }
 
-  js.Expression constantReference(Constant value) {
-    return constantEmitter.reference(value);
-  }
-
-  js.Expression constantInitializerExpression(Constant value) {
-    return constantEmitter.initializationExpression(value);
-  }
-
-  // Deprecated.  Remove after last use is converted to JS ASTs.
-  void writeConstantToBuffer(Constant value, CodeBuffer buffer) {
-    buffer.add(js.prettyPrint(constantReference(value), compiler));
+  void writeConstantToBuffer(Constant value, CodeBuffer buffer,
+                             {emitCanonicalVersion: true}) {
+    if (emitCanonicalVersion) {
+      constantEmitter.emitCanonicalVersionOfConstant(value, buffer);
+    } else {
+      constantEmitter.emitJavaScriptCodeForConstant(value, buffer);
+    }
   }
 
   String get name => 'CodeEmitter';
@@ -1323,17 +1319,12 @@ $classesCollector.$mangledName = {'':
     List<VariableElement> staticNonFinalFields =
         handler.getStaticNonFinalFieldsForEmission();
     for (Element element in staticNonFinalFields) {
+      buffer.add('$isolateProperties.${namer.getName(element)} = ');
       compiler.withCurrentElement(element, () {
-        Constant initialValue = handler.getInitialValueFor(element);
-        js.Expression init =
-            new js.Assignment(
-                new js.PropertyAccess.field(
-                    new js.VariableUse(isolateProperties),
-                    namer.getName(element)),
-                constantEmitter.referenceInInitializationContext(initialValue));
-        buffer.add(js.prettyPrint(init, compiler));
-        buffer.add(';\n');
-      });
+          Constant initialValue = handler.getInitialValueFor(element);
+          writeConstantToBuffer(initialValue, buffer);
+        });
+      buffer.add(';\n');
     }
   }
 
@@ -1391,13 +1382,8 @@ $classesCollector.$mangledName = {'':
         addedMakeConstantList = true;
         emitMakeConstantList(buffer);
       }
-      js.Expression init =
-          new js.Assignment(
-              new js.PropertyAccess.field(
-                  new js.VariableUse(isolateProperties),
-                  name),
-              constantInitializerExpression(constant));
-      buffer.add(js.prettyPrint(init, compiler));
+      buffer.add('$isolateProperties.$name = ');
+      writeConstantToBuffer(constant, buffer, emitCanonicalVersion: false);
       buffer.add(';\n');
     }
   }
