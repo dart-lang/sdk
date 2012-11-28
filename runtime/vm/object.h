@@ -681,6 +681,11 @@ class Class : public Object {
   }
   void set_is_interface() const;
 
+  bool is_implemented() const {
+    return ImplementedBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_implemented() const;
+
   bool is_abstract() const {
     return AbstractBit::decode(raw_ptr()->state_bits_);
   }
@@ -757,12 +762,14 @@ class Class : public Object {
   enum {
     kConstBit = 1,
     kInterfaceBit = 2,
-    kAbstractBit = 3,
-    kStateTagBit = 4,
+    kImplementedBit = 3,
+    kAbstractBit = 4,
+    kStateTagBit = 5,
     kStateTagSize = 2,
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class InterfaceBit : public BitField<bool, kInterfaceBit, 1> {};
+  class ImplementedBit : public BitField<bool, kImplementedBit, 1> {};
   class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
   class StateBits : public BitField<RawClass::ClassState,
                                     kStateTagBit, kStateTagSize> {};  // NOLINT

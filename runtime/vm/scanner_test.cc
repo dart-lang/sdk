@@ -338,7 +338,7 @@ void ScanLargeText() {
       "// This source is not meant to be valid Dart code. The text is used to"
       "// test the Dart scanner."
       ""
-      "// Cartesian point implemetation."
+      "// Cartesian point implementation."
       "class Point {"
       ""
       "  // Constructor"

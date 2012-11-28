@@ -1501,6 +1501,7 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
                     String::Handle(interface_class.Name()).ToCString());
       }
     }
+    interface_class.set_is_implemented();
     // Now resolve the super interfaces.
     ResolveInterfaces(interface_class, visited);
   }

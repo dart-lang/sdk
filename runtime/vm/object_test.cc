@@ -191,6 +191,9 @@ TEST_CASE(InstanceClass) {
   EXPECT_EQ(Utils::RoundUp((header_size + (1 * kWordSize)), kObjectAlignment),
             one_field_class.instance_size());
   EXPECT_EQ(header_size, field.Offset());
+  EXPECT(!one_field_class.is_implemented());
+  one_field_class.set_is_implemented();
+  EXPECT(one_field_class.is_implemented());
 }
 
 

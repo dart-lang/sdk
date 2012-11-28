@@ -1954,6 +1954,12 @@ void Class::set_is_interface() const {
   set_state_bits(InterfaceBit::update(true, raw_ptr()->state_bits_));
 }
 
+
+void Class::set_is_implemented() const {
+  set_state_bits(ImplementedBit::update(true, raw_ptr()->state_bits_));
+}
+
+
 void Class::set_is_abstract() const {
   set_state_bits(AbstractBit::update(true, raw_ptr()->state_bits_));
 }
