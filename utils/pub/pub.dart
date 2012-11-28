@@ -134,6 +134,8 @@ void printUsage([String description = 'Pub is a package manager for Dart.']) {
   int length = 0;
   var names = <String>[];
   for (var command in pubCommands.keys) {
+    // Hide aliases.
+    if (pubCommands[command].aliases.indexOf(command) >= 0) continue;
     length = max(length, command.length);
     names.add(command);
   }
