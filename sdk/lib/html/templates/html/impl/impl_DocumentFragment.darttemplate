@@ -111,11 +111,15 @@ $endif
     this._insertAdjacentNode(where, new DocumentFragment.html(text));
   }
 
-  void addText(String text) {
+  void append(Element element) {
+    this.children.add(element);
+  }
+
+  void appendText(String text) {
     this.insertAdjacentText('beforeend', text);
   }
 
-  void addHtml(String text) {
+  void appendHtml(String text) {
     this.insertAdjacentHtml('beforeend', text);
   }
 

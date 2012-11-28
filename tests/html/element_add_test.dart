@@ -18,15 +18,15 @@ main() {
   void expectNoSuchMethod(void fn()) =>
     expect(fn, throwsNoSuchMethodError);
 
-  group('addHtml', () {
+   group('append', () {
     test('htmlelement', () {
       var el = new DivElement();
-      el.addHtml('<span></span>');
+      el.append(new SpanElement());
       expect(el.children.length, equals(1));
       var span = el.children[0];
       expect(span, isSpanElement);
 
-      el.addHtml('<div></div>');
+      el.append(new DivElement());
       expect(el.children.length, equals(2));
       // Validate that the first item is still first.
       expect(el.children[0], equals(span));
@@ -35,16 +35,39 @@ main() {
 
     test('documentFragment', () {
       var fragment = new DocumentFragment();
-      fragment.addHtml('<span>something</span>');
+      fragment.append(new SpanElement());
       expect(fragment.children.length, equals(1));
       expect(fragment.children[0], isSpanElement);
     });
   });
 
-  group('addText', () {
+  group('appendHtml', () {
     test('htmlelement', () {
       var el = new DivElement();
-      el.addText('foo');
+      el.appendHtml('<span></span>');
+      expect(el.children.length, equals(1));
+      var span = el.children[0];
+      expect(span, isSpanElement);
+
+      el.appendHtml('<div></div>');
+      expect(el.children.length, equals(2));
+      // Validate that the first item is still first.
+      expect(el.children[0], equals(span));
+      expect(el.children[1], isDivElement);
+    });
+
+    test('documentFragment', () {
+      var fragment = new DocumentFragment();
+      fragment.appendHtml('<span>something</span>');
+      expect(fragment.children.length, equals(1));
+      expect(fragment.children[0], isSpanElement);
+    });
+  });
+
+  group('appendText', () {
+    test('htmlelement', () {
+      var el = new DivElement();
+      el.appendText('foo');
       // No children were created.
       expect(el.children.length, equals(0));
       // One text node was added.
@@ -53,7 +76,7 @@ main() {
 
     test('documentFragment', () {
       var fragment = new DocumentFragment();
-      fragment.addText('foo');
+      fragment.appendText('foo');
       // No children were created.
       expect(fragment.children.length, equals(0));
       // One text node was added.
