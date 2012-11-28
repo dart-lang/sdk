@@ -152,6 +152,12 @@ class _StringBase {
     if (startIndex > endIndex) {
       throw new RangeError.value(startIndex);
     }
+    if (startIndex == endIndex) {
+      return "";
+    }
+    if ((startIndex + 1) == endIndex) {
+      return this[startIndex];
+    }
     return _substringUnchecked(startIndex, endIndex);
   }
 

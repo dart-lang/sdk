@@ -51,12 +51,11 @@ patch class Random {
 
 class _Random implements Random {
   // Internal state of the random number generator.
-  var _state;
+  final _state = new List(2);
   static const kSTATE_LO = 0;
   static const kSTATE_HI = 1;
 
   _Random._internal(state) {
-    _state = new List(2);
     _state[kSTATE_LO] = state & _MASK_32;
     _state[kSTATE_HI] = state >> 32;
   }
