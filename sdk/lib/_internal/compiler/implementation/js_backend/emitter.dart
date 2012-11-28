@@ -81,13 +81,17 @@ class CodeEmitterTask extends CompilerTask {
     });
   }
 
-  void writeConstantToBuffer(Constant value, CodeBuffer buffer,
-                             {emitCanonicalVersion: true}) {
-    if (emitCanonicalVersion) {
-      constantEmitter.emitCanonicalVersionOfConstant(value, buffer);
-    } else {
-      constantEmitter.emitJavaScriptCodeForConstant(value, buffer);
-    }
+  js.Expression constantReference(Constant value) {
+    return constantEmitter.reference(value);
+  }
+
+  js.Expression constantInitializerExpression(Constant value) {
+    return constantEmitter.initializationExpression(value);
+  }
+
+  // Deprecated.  Remove after last use is converted to JS ASTs.
+  void writeConstantToBuffer(Constant value, CodeBuffer buffer) {
+    buffer.add(js.prettyPrint(constantReference(value), compiler));
   }
 
   String get name => 'CodeEmitter';
@@ -432,10 +436,10 @@ $lazyInitializerLogic
     // If the method is in an interceptor class, we need to also pass
     // the actual receiver.
     int extraArgumentCount = isInterceptorClass ? 1 : 0;
-    // Use '$' to avoid clashes with other parameter names. Using '$'
-    // works because [JsNames.getValid] used for getting parameter
-    // names never returns '$'.
-    String extraArgumentName = r'$';
+    // Use '$receiver' to avoid clashes with other parameter names. Using
+    // '$receiver' works because [JsNames.getValid] used for getting parameter
+    // names never returns a name beginning with a single '$'.
+    String receiverArgumentName = r'$receiver';
 
     // The parameters that this stub takes.
     List<String> parametersBuffer =
@@ -447,8 +451,8 @@ $lazyInitializerLogic
     int count = 0;
     if (isInterceptorClass) {
       count++;
-      parametersBuffer[0] = extraArgumentName;
-      argumentsBuffer[0] = extraArgumentName;
+      parametersBuffer[0] = receiverArgumentName;
+      argumentsBuffer[0] = receiverArgumentName;
     }
 
     int indexOfLastOptionalArgumentInParameters = positionalArgumentCount - 1;
@@ -457,7 +461,7 @@ $lazyInitializerLogic
 
     parameters.orderedForEachParameter((Element element) {
       String jsName = JsNames.getValid(element.name.slowToString());
-      assert(jsName != extraArgumentName);
+      assert(jsName != receiverArgumentName);
       if (count < positionalArgumentCount + extraArgumentCount) {
         parametersBuffer[count] = jsName;
         argumentsBuffer[count] = jsName;
@@ -1319,12 +1323,17 @@ $classesCollector.$mangledName = {'':
     List<VariableElement> staticNonFinalFields =
         handler.getStaticNonFinalFieldsForEmission();
     for (Element element in staticNonFinalFields) {
-      buffer.add('$isolateProperties.${namer.getName(element)} = ');
       compiler.withCurrentElement(element, () {
-          Constant initialValue = handler.getInitialValueFor(element);
-          writeConstantToBuffer(initialValue, buffer);
-        });
-      buffer.add(';\n');
+        Constant initialValue = handler.getInitialValueFor(element);
+        js.Expression init =
+            new js.Assignment(
+                new js.PropertyAccess.field(
+                    new js.VariableUse(isolateProperties),
+                    namer.getName(element)),
+                constantEmitter.referenceInInitializationContext(initialValue));
+        buffer.add(js.prettyPrint(init, compiler));
+        buffer.add(';\n');
+      });
     }
   }
 
@@ -1382,8 +1391,13 @@ $classesCollector.$mangledName = {'':
         addedMakeConstantList = true;
         emitMakeConstantList(buffer);
       }
-      buffer.add('$isolateProperties.$name = ');
-      writeConstantToBuffer(constant, buffer, emitCanonicalVersion: false);
+      js.Expression init =
+          new js.Assignment(
+              new js.PropertyAccess.field(
+                  new js.VariableUse(isolateProperties),
+                  name),
+              constantInitializerExpression(constant));
+      buffer.add(js.prettyPrint(init, compiler));
       buffer.add(';\n');
     }
   }

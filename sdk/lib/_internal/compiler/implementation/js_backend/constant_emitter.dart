@@ -4,84 +4,114 @@
 
 part of js_backend;
 
-class ConstantEmitter implements ConstantVisitor {
+class ConstantEmitter  {
+  ConstantReferenceEmitter _referenceEmitter;
+  ConstantInitializerEmitter _initializerEmitter;
+
+  ConstantEmitter(Compiler compiler, Namer namer) {
+    _referenceEmitter = new ConstantReferenceEmitter(compiler, namer);
+    _initializerEmitter = new ConstantInitializerEmitter(
+        compiler, namer, _referenceEmitter);
+  }
+
+  /**
+   * Constructs an expression that is a reference to the constant.  Uses a
+   * canonical name unless the constant can be emitted multiple times (as for
+   * numbers and strings).
+   */
+  js.Expression reference(Constant constant) {
+    return _referenceEmitter.generate(constant);
+  }
+
+  /**
+   * Constructs an expression like [reference], but the expression is valid
+   * during isolate initialization.
+   */
+  js.Expression referenceInInitializationContext(Constant constant) {
+    return _referenceEmitter.generateInInitializationContext(constant);
+  }
+
+  /**
+   * Constructs an expression used to initialize a canonicalized constant.
+   */
+  js.Expression initializationExpression(Constant constant) {
+    return _initializerEmitter.generate(constant);
+  }
+}
+
+/**
+ * Visitor for generating JavaScript expressions to refer to [Constant]s.
+ * Do not use directly, use methods from [ConstantEmitter].
+ */
+class ConstantReferenceEmitter implements ConstantVisitor<js.Expression> {
   final Compiler compiler;
   final Namer namer;
+  bool inIsolateInitializationContext = false;
 
-  CodeBuffer buffer;
-  bool shouldEmitCanonicalVersion;
+  ConstantReferenceEmitter(this.compiler, this.namer);
 
-  ConstantEmitter(this.compiler, this.namer);
-
-  /**
-   * Unless the constant can be emitted multiple times (as for numbers and
-   * strings) use the canonical name.
-   */
-  void emitCanonicalVersionOfConstant(Constant constant, CodeBuffer newBuffer) {
-    shouldEmitCanonicalVersion = true;
-    buffer = newBuffer;
-    _visit(constant);
+  js.Expression generate(Constant constant) {
+    inIsolateInitializationContext = false;
+    return _visit(constant);
   }
 
-  /**
-   * Emit the JavaScript code of the constant. If the constant must be
-   * canonicalized this method emits the initialization value.
-   */
-  void emitJavaScriptCodeForConstant(Constant constant, CodeBuffer newBuffer) {
-    shouldEmitCanonicalVersion = false;
-    buffer = newBuffer;
-    _visit(constant);
+  js.Expression generateInInitializationContext(Constant constant) {
+    inIsolateInitializationContext = true;
+    return _visit(constant);
   }
 
-  _visit(Constant constant) {
-    constant.accept(this);
+  js.Expression _visit(Constant constant) {
+    return constant.accept(this);
   }
 
-  void visitSentinel(SentinelConstant constant) {
-    if (shouldEmitCanonicalVersion) {
-      buffer.add(namer.CURRENT_ISOLATE);
-    } else {
-      compiler.internalError(
-          "The parameter sentinel constant does not need specific JS code");
-    }
+  js.Expression visitSentinel(SentinelConstant constant) {
+    return new js.VariableUse(namer.CURRENT_ISOLATE);
   }
 
-  void visitFunction(FunctionConstant constant) {
-    if (shouldEmitCanonicalVersion) {
-      buffer.add(namer.isolatePropertiesAccess(constant.element));
-    } else {
-      compiler.internalError(
-          "The function constant does not need specific JS code");
-    }
+  js.Expression visitFunction(FunctionConstant constant) {
+    return inIsolateInitializationContext
+        ? new js.VariableUse(namer.isolatePropertiesAccess(constant.element))
+        : new js.VariableUse(namer.isolateAccess(constant.element));
   }
 
-  void visitNull(NullConstant constant) {
-    buffer.add("null");
+  js.Expression visitNull(NullConstant constant) {
+    return new js.LiteralNull();
   }
 
-  void visitInt(IntConstant constant) {
-    buffer.add(constant.value.toString());
+  js.Expression visitInt(IntConstant constant) {
+    return new js.LiteralNumber('${constant.value}');
   }
 
-  void visitDouble(DoubleConstant constant) {
+  js.Expression visitDouble(DoubleConstant constant) {
     double value = constant.value;
     if (value.isNaN) {
-      buffer.add("(0/0)");
+      return new js.LiteralNumber("(0/0)");
     } else if (value == double.INFINITY) {
-      buffer.add("(1/0)");
+      return new js.LiteralNumber("(1/0)");
     } else if (value == -double.INFINITY) {
-      buffer.add("(-1/0)");
+      return new js.LiteralNumber("(-1/0)");
     } else {
-      buffer.add("$value");
+      return new js.LiteralNumber("$value");
     }
   }
 
-  void visitTrue(TrueConstant constant) {
-    buffer.add("true");
+  js.Expression visitTrue(TrueConstant constant) {
+    if (compiler.enableMinification) {
+      // Use !0 for true.
+      return new js.Prefix("!", new js.LiteralNumber("0"));
+    } else {
+      return new js.LiteralBool(true);
+    }
+
   }
 
-  void visitFalse(FalseConstant constant) {
-    buffer.add("false");
+  js.Expression visitFalse(FalseConstant constant) {
+    if (compiler.enableMinification) {
+      // Use !1 for false.
+      return new js.Prefix("!", new js.LiteralNumber("1"));
+    } else {
+      return new js.LiteralBool(false);
+    }
   }
 
   /**
@@ -89,139 +119,213 @@ class ConstantEmitter implements ConstantVisitor {
    * a form that is valid as JavaScript string literal content.
    * The string is assumed quoted by double quote characters.
    */
-  void visitString(StringConstant constant) {
-    buffer.add('"');
-    writeJsonEscapedCharsOn(constant.value.slowToString(), buffer);
-    buffer.add('"');
+  js.Expression visitString(StringConstant constant) {
+    // TODO(sra): If the string is long *and repeated* (and not on a hot path)
+    // then it should be assigned to a name.  We don't have reference counts (or
+    // profile information) here, so this is the wrong place.
+    StringBuffer sb = new StringBuffer();
+    writeJsonEscapedCharsOn(constant.value.slowToString(), sb);
+    return new js.LiteralString('"$sb"');
   }
 
-  void emitCanonicalVersion(Constant constant) {
+  js.Expression emitCanonicalVersion(Constant constant) {
     String name = namer.constantName(constant);
-    buffer.add(namer.isolatePropertiesAccessForConstant(name));
+    if (inIsolateInitializationContext) {
+      //  $ISOLATE.$ISOLATE_PROPERTIES.$name
+      return new js.PropertyAccess.field(
+          new js.PropertyAccess.field(
+              new js.VariableUse(namer.ISOLATE),
+              namer.ISOLATE_PROPERTIES),
+          name);
+    } else {
+      return new js.PropertyAccess.field(
+          new js.VariableUse(namer.CURRENT_ISOLATE),
+          name);
+    }
   }
 
-  void visitList(ListConstant constant) {
-    if (shouldEmitCanonicalVersion) {
-      emitCanonicalVersion(constant);
-    } else {
-      shouldEmitCanonicalVersion = true;
-      buffer.add("${namer.ISOLATE}.makeConstantList");
-      buffer.add("([");
-      for (int i = 0; i < constant.entries.length; i++) {
-        if (i != 0) buffer.add(", ");
-        _visit(constant.entries[i]);
-      }
-      buffer.add("])");
-    }
+  js.Expression visitList(ListConstant constant) {
+    return emitCanonicalVersion(constant);
+  }
+
+  js.Expression visitMap(MapConstant constant) {
+    return emitCanonicalVersion(constant);
+  }
+
+  js.Expression visitType(TypeConstant constant) {
+    return emitCanonicalVersion(constant);
+  }
+
+  js.Expression visitConstructed(ConstructedConstant constant) {
+    return emitCanonicalVersion(constant);
+  }
+}
+
+/**
+ * Visitor for generating JavaScript expressions to initialize [Constant]s.
+ * Do not use directly; use methods from [ConstantEmitter].
+ */
+class ConstantInitializerEmitter implements ConstantVisitor<js.Expression> {
+  final Compiler compiler;
+  final Namer namer;
+  final ConstantReferenceEmitter referenceEmitter;
+
+  ConstantInitializerEmitter(this.compiler, this.namer, this.referenceEmitter);
+
+  js.Expression generate(Constant constant) {
+    return _visit(constant);
+  }
+
+  js.Expression _visit(Constant constant) {
+    return constant.accept(this);
+  }
+
+  js.Expression _reference(Constant constant) {
+    return referenceEmitter.generateInInitializationContext(constant);
+  }
+
+  js.Expression visitSentinel(SentinelConstant constant) {
+    compiler.internalError(
+        "The parameter sentinel constant does not need specific JS code");
+  }
+
+  js.Expression visitFunction(FunctionConstant constant) {
+    compiler.internalError(
+        "The function constant does not need specific JS code");
+  }
+
+  js.Expression visitNull(NullConstant constant) {
+    return _reference(constant);
+  }
+
+  js.Expression visitInt(IntConstant constant) {
+    return _reference(constant);
+  }
+
+  js.Expression visitDouble(DoubleConstant constant) {
+    return _reference(constant);
+  }
+
+  js.Expression visitTrue(TrueConstant constant) {
+    return _reference(constant);
+  }
+
+  js.Expression visitFalse(FalseConstant constant) {
+    return _reference(constant);
+  }
+
+  js.Expression visitString(StringConstant constant) {
+    // TODO(sra): Some larger strings are worth sharing.
+    return _reference(constant);
+  }
+
+  js.Expression visitList(ListConstant constant) {
+    return new js.Call(
+        new js.PropertyAccess.field(
+            new js.VariableUse(namer.ISOLATE),
+            'makeConstantList'),
+        [new js.ArrayInitializer.from(_array(constant.entries))]);
   }
 
   String getJsConstructor(ClassElement element) {
     return namer.isolatePropertiesAccess(element);
   }
 
-  void visitMap(MapConstant constant) {
-    if (shouldEmitCanonicalVersion) {
-      emitCanonicalVersion(constant);
-    } else {
-      void writeJsMap() {
-        buffer.add("{");
-        int valueIndex = 0;
-        for (int i = 0; i < constant.keys.entries.length; i++) {
-          StringConstant key = constant.keys.entries[i];
-          if (key.value == MapConstant.PROTO_PROPERTY) continue;
+  js.Expression visitMap(MapConstant constant) {
+    js.Expression jsMap() {
+      List<js.Property> properties = <js.Property>[];
+      int valueIndex = 0;
+      for (int i = 0; i < constant.keys.entries.length; i++) {
+        StringConstant key = constant.keys.entries[i];
+        if (key.value == MapConstant.PROTO_PROPERTY) continue;
 
-          if (valueIndex != 0) buffer.add(", ");
-
-          // Keys in literal maps must be emitted in place.
-          emitJavaScriptCodeForConstant(key, buffer);
-
-          buffer.add(": ");
-          emitCanonicalVersionOfConstant(constant.values[valueIndex++], buffer);
-        }
-        buffer.add("}");
-        if (valueIndex != constant.values.length) {
-          compiler.internalError("Bad value count.");
-        }
+        // Keys in literal maps must be emitted in place.
+        js.Literal keyExpression = _visit(key);
+        js.Expression valueExpression =
+            _reference(constant.values[valueIndex++]);
+        properties.add(new js.Property(keyExpression, valueExpression));
       }
+      if (valueIndex != constant.values.length) {
+        compiler.internalError("Bad value count.");
+      }
+      return new js.ObjectInitializer(properties);
+    }
 
-      void badFieldCountError() {
-        compiler.internalError(
+    void badFieldCountError() {
+      compiler.internalError(
           "Compiler and ConstantMap disagree on number of fields.");
-      }
-
-      shouldEmitCanonicalVersion = true;
-
-      ClassElement classElement = constant.type.element;
-      buffer.add("new ");
-      buffer.add(getJsConstructor(classElement));
-      buffer.add("(");
-      // The arguments of the JavaScript constructor for any given Dart class
-      // are in the same order as the members of the class element.
-      int emittedArgumentCount = 0;
-      classElement.implementation.forEachInstanceField(
-          (ClassElement enclosing, Element field) {
-            if (emittedArgumentCount != 0) buffer.add(", ");
-            if (field.name == MapConstant.LENGTH_NAME) {
-              buffer.add(constant.keys.entries.length);
-            } else if (field.name == MapConstant.JS_OBJECT_NAME) {
-              writeJsMap();
-            } else if (field.name == MapConstant.KEYS_NAME) {
-              emitCanonicalVersionOfConstant(constant.keys, buffer);
-            } else if (field.name == MapConstant.PROTO_VALUE) {
-              assert(constant.protoValue != null);
-              emitCanonicalVersionOfConstant(constant.protoValue, buffer);
-            } else {
-              badFieldCountError();
-            }
-            emittedArgumentCount++;
-          },
-          includeBackendMembers: true,
-          includeSuperMembers: true);
-      if ((constant.protoValue == null && emittedArgumentCount != 3) ||
-          (constant.protoValue != null && emittedArgumentCount != 4)) {
-        badFieldCountError();
-      }
-      buffer.add(")");
     }
+
+    ClassElement classElement = constant.type.element;
+
+    List<js.Expression> arguments = <js.Expression>[];
+
+    // The arguments of the JavaScript constructor for any given Dart class
+    // are in the same order as the members of the class element.
+    int emittedArgumentCount = 0;
+    classElement.implementation.forEachInstanceField(
+        (ClassElement enclosing, Element field) {
+          if (field.name == MapConstant.LENGTH_NAME) {
+            arguments.add(
+                new js.LiteralNumber('${constant.keys.entries.length}'));
+          } else if (field.name == MapConstant.JS_OBJECT_NAME) {
+            arguments.add(jsMap());
+          } else if (field.name == MapConstant.KEYS_NAME) {
+            arguments.add(_reference(constant.keys));
+          } else if (field.name == MapConstant.PROTO_VALUE) {
+            assert(constant.protoValue != null);
+            arguments.add(_reference(constant.protoValue));
+          } else {
+            badFieldCountError();
+          }
+          emittedArgumentCount++;
+        },
+        includeBackendMembers: true,
+        includeSuperMembers: true);
+
+    if ((constant.protoValue == null && emittedArgumentCount != 3) ||
+        (constant.protoValue != null && emittedArgumentCount != 4)) {
+      badFieldCountError();
+    }
+
+    return new js.New(
+        new js.VariableUse(getJsConstructor(classElement)),
+        arguments);
   }
 
-  void visitType(TypeConstant constant) {
-    if (shouldEmitCanonicalVersion) {
-      emitCanonicalVersion(constant);
+  js.Expression visitType(TypeConstant constant) {
+    SourceString helperSourceName = const SourceString('createRuntimeType');
+    Element helper = compiler.findHelper(helperSourceName);
+    JavaScriptBackend backend = compiler.backend;
+    String helperName = backend.namer.getName(helper);
+    DartType type = constant.representedType;
+    Element element = type.element;
+    String typeName;
+    if (type.kind == TypeKind.INTERFACE) {
+      typeName =
+          backend.rti.getStringRepresentation(type, expandRawType: true);
     } else {
-      SourceString helperSourceName =
-          const SourceString('createRuntimeType');
-      Element helper = compiler.findHelper(helperSourceName);
-      JavaScriptBackend backend = compiler.backend;
-      String helperName = backend.namer.getName(helper);
-      DartType type = constant.representedType;
-      Element element = type.element;
-      String typeName;
-      if (type.kind == TypeKind.INTERFACE) {
-        typeName =
-            backend.rti.getStringRepresentation(type, expandRawType: true);
-      } else {
-        assert(type.kind == TypeKind.TYPEDEF);
-        typeName = element.name.slowToString();
-      }
-      buffer.add("${namer.CURRENT_ISOLATE}.$helperName('$typeName')");
+      assert(type.kind == TypeKind.TYPEDEF);
+      typeName = element.name.slowToString();
     }
+    return new js.Call(
+        new js.PropertyAccess.field(
+            new js.VariableUse(namer.CURRENT_ISOLATE),
+            helperName),
+        [new js.LiteralString("'$typeName'")]);
   }
 
-  void visitConstructed(ConstructedConstant constant) {
-    if (shouldEmitCanonicalVersion) {
-      emitCanonicalVersion(constant);
-    } else {
-      shouldEmitCanonicalVersion = true;
+  js.Expression visitConstructed(ConstructedConstant constant) {
+    return new js.New(
+        new js.VariableUse(getJsConstructor(constant.type.element)),
+        _array(constant.fields));
+  }
 
-      buffer.add("new ");
-      buffer.add(getJsConstructor(constant.type.element));
-      buffer.add("(");
-      for (int i = 0; i < constant.fields.length; i++) {
-        if (i != 0) buffer.add(", ");
-        _visit(constant.fields[i]);
-      }
-      buffer.add(")");
+  List<js.Expression> _array(List<Constant> values) {
+    List<js.Expression> valueList = <js.Expression>[];
+    for (int i = 0; i < values.length; i++) {
+      valueList.add(_reference(values[i]));
     }
+    return valueList;
   }
 }

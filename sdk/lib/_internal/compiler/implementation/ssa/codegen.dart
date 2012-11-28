@@ -1812,44 +1812,11 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void generateConstant(Constant constant) {
-    Namer namer = backend.namer;
-    // TODO(floitsch): should we use the ConstantVisitor here?
-    if (!constant.isObject()) {
-      if (constant.isBool()) {
-        BoolConstant boolConstant = constant;
-        push(newLiteralBool(boolConstant.value));
-      } else if (constant.isNum()) {
-        // TODO(floitsch): get rid of the code buffer.
-        CodeBuffer buffer = new CodeBuffer();
-        backend.emitter.writeConstantToBuffer(constant, buffer);
-        push(new js.LiteralNumber(buffer.toString()));
-      } else if (constant.isNull()) {
-        push(new js.LiteralNull());
-      } else if (constant.isString()) {
-        // TODO(floitsch): get rid of the code buffer.
-        CodeBuffer buffer = new CodeBuffer();
-        backend.emitter.writeConstantToBuffer(constant, buffer);
-        push(new js.LiteralString(buffer.toString()));
-      } else if (constant.isFunction()) {
-        FunctionConstant function = constant;
-        world.registerStaticUse(function.element);
-        push(new js.VariableUse(namer.isolateAccess(function.element)));
-      } else if (constant.isSentinel()) {
-        // TODO(floitsch): get rid of the code buffer.
-        CodeBuffer buffer = new CodeBuffer();
-        backend.emitter.writeConstantToBuffer(constant, buffer);
-        push(new js.VariableUse(buffer.toString()));
-      } else {
-        compiler.internalError(
-            "The compiler does not know how generate code for "
-            "constant $constant");
-      }
-    } else {
-      String name = namer.constantName(constant);
-      js.VariableUse currentIsolateUse =
-          new js.VariableUse(backend.namer.CURRENT_ISOLATE);
-      push(new js.PropertyAccess.field(currentIsolateUse, name));
+    if (constant.isFunction()) {
+      FunctionConstant function = constant;
+      world.registerStaticUse(function.element);
     }
+    push(backend.emitter.constantReference(constant));
   }
 
   visitConstant(HConstant node) {

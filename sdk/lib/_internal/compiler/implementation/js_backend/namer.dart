@@ -416,10 +416,6 @@ class Namer {
     return "$ISOLATE.$ISOLATE_PROPERTIES.${getName(element)}";
   }
 
-  String isolatePropertiesAccessForConstant(String constantName) {
-    return "$ISOLATE.$ISOLATE_PROPERTIES.$constantName";
-  }
-
   String isolateAccess(Element element) {
     return "$CURRENT_ISOLATE.${getName(element)}";
   }
