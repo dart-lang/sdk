@@ -855,6 +855,7 @@ class AudioBufferSourceNode extends AudioSourceNode {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName AudioContext
 class AudioContext extends EventTarget {
   factory AudioContext() => _AudioContextFactoryProvider.createAudioContext();
   AudioContext.internal(): super.internal();
@@ -2352,6 +2353,7 @@ String get _browserPrefix {
   return _cachedBrowserPrefix;
 }
 
+/// @domName CSSStyleDeclaration
 class CSSStyleDeclaration extends NativeFieldWrapperClass1 {
   factory CSSStyleDeclaration() => _CSSStyleDeclarationFactoryProvider.createCSSStyleDeclaration();
   factory CSSStyleDeclaration.css(String css) =>
@@ -5747,6 +5749,7 @@ class CSSValue extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName HTMLCanvasElement
 class CanvasElement extends _Element_Merged {
 
   factory CanvasElement({int width, int height}) {
@@ -5833,6 +5836,7 @@ class CanvasRenderingContext extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName CanvasRenderingContext2D
 class CanvasRenderingContext2D extends CanvasRenderingContext {
   CanvasRenderingContext2D.internal(): super.internal();
 
@@ -6978,6 +6982,7 @@ class Crypto extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName CustomEvent
 class CustomEvent extends Event {
   factory CustomEvent(String type, [bool canBubble = true, bool cancelable = true,
       Object detail]) => _CustomEventFactoryProvider.createCustomEvent(
@@ -8377,6 +8382,7 @@ class DivElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName Document
 class Document extends Node 
 {
 
@@ -8664,6 +8670,7 @@ class _FrozenCssClassSet extends CssClassSet {
   bool get frozen => true;
 }
 
+/// @domName DocumentFragment
 class DocumentFragment extends Node {
   factory DocumentFragment() => _DocumentFragmentFactoryProvider.createDocumentFragment();
 
@@ -9336,6 +9343,7 @@ class _ElementCssClassSet extends CssClassSet {
   }
 }
 
+/// @domName Element
 abstract class Element extends Node implements ElementTraversal {
 
   factory Element.html(String html) =>
@@ -10237,6 +10245,7 @@ class ErrorEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName Event
 class Event extends NativeFieldWrapperClass1 {
   // In JS, canBubble and cancelable are technically required parameters to
   // init*Event. In practice, though, if they aren't provided they simply
@@ -10497,7 +10506,7 @@ class EventListenerList {
   }
 }
 
-
+/// @domName EventTarget
 class EventTarget extends NativeFieldWrapperClass1 {
 
   /** @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent */
@@ -12076,6 +12085,7 @@ class HeadingElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName HTMLDocument
 class HtmlDocument extends Document {
   HtmlDocument.internal(): super.internal();
 
@@ -12174,6 +12184,7 @@ class HtmlElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName XMLHttpRequest
 class HttpRequest extends EventTarget {
   factory HttpRequest.get(String url, onComplete(HttpRequest request)) =>
       _HttpRequestFactoryProvider.createHttpRequest_get(url, onComplete);
@@ -12858,6 +12869,7 @@ class IDBKey extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName IDBKeyRange
 class IDBKeyRange extends NativeFieldWrapperClass1 {
   /**
    * @domName IDBKeyRange.only
@@ -15084,6 +15096,7 @@ class LocalMediaStream extends MediaStream implements EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName Window
 class LocalWindow extends EventTarget implements Window {
 
   /**
@@ -17012,6 +17025,7 @@ class ModElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName MouseEvent
 class MouseEvent extends UIEvent {
   factory MouseEvent(String type, Window view, int detail, int screenX,
       int screenY, int clientX, int clientY, int button, [bool canBubble = true,
@@ -17161,6 +17175,7 @@ class MutationEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName MutationObserver
 class MutationObserver extends NativeFieldWrapperClass1 {
 
   factory MutationObserver(MutationCallback callback) => _MutationObserverFactoryProvider.createMutationObserver(callback);
@@ -17651,6 +17666,7 @@ class _ChildNodeListLazy implements List {
   Node operator[](int index) => _this.$dom_childNodes[index];
 }
 
+/// @domName Node
 class Node extends EventTarget {
   _ChildNodeListLazy get nodes {
     return new _ChildNodeListLazy(this);
@@ -19144,6 +19160,7 @@ class PerformanceTiming extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName WebKitPoint
 class Point extends NativeFieldWrapperClass1 {
   factory Point(num x, num y) => _PointFactoryProvider.createPoint(x, y);
   Point.internal();
@@ -20696,6 +20713,7 @@ class ShadowElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName ShadowRoot
 class ShadowRoot extends DocumentFragment {
 
   factory ShadowRoot(Element host) => _ShadowRootFactoryProvider.createShadowRoot(host);
@@ -21429,6 +21447,7 @@ class SpeechRecognitionResult extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName Storage
 class Storage extends NativeFieldWrapperClass1 implements Map<String, String>  {
 
   // TODO(nweiz): update this when maps support lazy iteration
@@ -22215,6 +22234,7 @@ class TableSectionElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName Text
 class Text extends CharacterData {
   factory Text(String data) => _TextFactoryProvider.createText(data);
   Text.internal(): super.internal();
@@ -25782,6 +25802,7 @@ class WebKitNamedFlow extends EventTarget {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName WebSocket
 class WebSocket extends EventTarget {
   factory WebSocket(String url) => _WebSocketFactoryProvider.createWebSocket(url);
   WebSocket.internal(): super.internal();
@@ -25888,6 +25909,7 @@ class WebSocketEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName WheelEvent
 class WheelEvent extends MouseEvent {
   WheelEvent.internal(): super.internal();
 

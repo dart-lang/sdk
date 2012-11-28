@@ -21,6 +21,7 @@ String get _browserPrefix {
   return _cachedBrowserPrefix;
 }
 
+/// @domName $DOMNAME
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   factory $CLASSNAME() => _$(CLASSNAME)FactoryProvider.create$CLASSNAME();
   factory $CLASSNAME.css(String css) =>

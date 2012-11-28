@@ -4,6 +4,7 @@
 
 part of svg;
 
+/// @domName $DOMNAME
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   factory $CLASSNAME() => _$(CLASSNAME)FactoryProvider.createSvgSvgElement();
 

@@ -4,6 +4,7 @@
 
 part of html;
 
+/// @domName $DOMNAME
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   IDBTransaction transaction(storeName_OR_storeNames, String mode) {

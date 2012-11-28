@@ -326,6 +326,7 @@ class _ElementCssClassSet extends CssClassSet {
   }
 }
 
+/// @domName $DOMNAME
 abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   factory $CLASSNAME.html(String html) =>

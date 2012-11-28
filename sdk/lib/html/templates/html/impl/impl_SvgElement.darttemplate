@@ -31,6 +31,7 @@ class _AttributeClassSet extends CssClassSet {
   }
 }
 
+/// @domName $DOMNAME
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   factory $CLASSNAME.tag(String tag) =>
       _$(CLASSNAME)FactoryProvider.create$(CLASSNAME)_tag(tag);

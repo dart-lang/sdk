@@ -4294,6 +4294,7 @@ class PatternElement extends SvgElement implements FitToViewBox, Tests, UriRefer
 // WARNING: Do not edit - generated code.
 
 
+/// @domName SVGPoint
 class Point native "*SVGPoint" {
   factory Point(num x, num y) => _PointFactoryProvider.createPoint(x, y);
 
@@ -4969,6 +4970,7 @@ class _AttributeClassSet extends CssClassSet {
   }
 }
 
+/// @domName SVGElement
 class SvgElement extends Element native "*SVGElement" {
   factory SvgElement.tag(String tag) =>
       _SvgElementFactoryProvider.createSvgElement_tag(tag);
@@ -5072,6 +5074,7 @@ class SvgException native "*SVGException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName SVGSVGElement
 class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable, Locatable, ExternalResourcesRequired, ZoomAndPan, LangSpace native "*SVGSVGElement" {
   factory SvgSvgElement() => _SvgSvgElementFactoryProvider.createSvgSvgElement();
 

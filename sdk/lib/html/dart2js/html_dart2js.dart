@@ -434,6 +434,7 @@ typedef void AudioBufferCallback(AudioBuffer audioBuffer);
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName AudioBufferSourceNode
 class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNode" {
 
   // TODO(efortuna): Remove these methods when Chrome stable also uses start
@@ -501,6 +502,7 @@ class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNo
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName AudioContext
 class AudioContext extends EventTarget native "*AudioContext" {
   factory AudioContext() => _AudioContextFactoryProvider.createAudioContext();
 
@@ -1431,6 +1433,7 @@ String get _browserPrefix {
   return _cachedBrowserPrefix;
 }
 
+/// @domName CSSStyleDeclaration
 class CSSStyleDeclaration native "*CSSStyleDeclaration" {
   factory CSSStyleDeclaration() => _CSSStyleDeclarationFactoryProvider.createCSSStyleDeclaration();
   factory CSSStyleDeclaration.css(String css) =>
@@ -4765,6 +4768,7 @@ class CSSValue native "*CSSValue" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName HTMLCanvasElement
 class CanvasElement extends Element implements Element native "*HTMLCanvasElement" {
 
   factory CanvasElement({int width, int height}) {
@@ -4822,6 +4826,7 @@ class CanvasRenderingContext native "*CanvasRenderingContext" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName CanvasRenderingContext2D
 class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRenderingContext2D" {
 
   /// @domName CanvasRenderingContext2D.fillStyle; @docsEditable true
@@ -5265,6 +5270,7 @@ class CompositionEvent extends UIEvent native "*CompositionEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName Console
 class Console
     // Console is sometimes a singleton bag-of-properties without a prototype.
     native "=(typeof console == 'undefined' ? {} : console)" {
@@ -5431,6 +5437,7 @@ class Crypto native "*Crypto" {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName CustomEvent
 class CustomEvent extends Event native "*CustomEvent" {
   factory CustomEvent(String type, [bool canBubble = true, bool cancelable = true,
       Object detail]) => _CustomEventFactoryProvider.createCustomEvent(
@@ -6472,6 +6479,7 @@ class DivElement extends Element implements Element native "*HTMLDivElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName Document
 class Document extends Node  native "*Document"
 {
 
@@ -6709,6 +6717,7 @@ class _FrozenCssClassSet extends CssClassSet {
   bool get frozen => true;
 }
 
+/// @domName DocumentFragment
 class DocumentFragment extends Node native "*DocumentFragment" {
   factory DocumentFragment() => _DocumentFragmentFactoryProvider.createDocumentFragment();
 
@@ -7357,6 +7366,7 @@ class _ElementCssClassSet extends CssClassSet {
   }
 }
 
+/// @domName Element
 abstract class Element extends Node implements ElementTraversal native "*Element" {
 
   factory Element.html(String html) =>
@@ -8129,6 +8139,7 @@ class ErrorEvent extends Event native "*ErrorEvent" {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName Event
 class Event native "*Event" {
   // In JS, canBubble and cancelable are technically required parameters to
   // init*Event. In practice, though, if they aren't provided they simply
@@ -8349,7 +8360,7 @@ class EventListenerList {
   }
 }
 
-
+/// @domName EventTarget
 class EventTarget native "*EventTarget" {
 
   /** @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent */
@@ -9510,6 +9521,7 @@ class HeadingElement extends Element implements Element native "*HTMLHeadingElem
 // WARNING: Do not edit - generated code.
 
 
+/// @domName HTMLDocument
 class HtmlDocument extends Document native "*HTMLDocument" {
 
   /// @domName HTMLDocument.activeElement; @docsEditable true
@@ -9602,6 +9614,7 @@ class HtmlElement extends Element implements Element native "*HTMLHtmlElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName XMLHttpRequest
 class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   factory HttpRequest.get(String url, onComplete(HttpRequest request)) =>
       _HttpRequestFactoryProvider.createHttpRequest_get(url, onComplete);
@@ -9860,6 +9873,7 @@ class IDBCursorWithValue extends IDBCursor native "*IDBCursorWithValue" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName IDBDatabase
 class IDBDatabase extends EventTarget native "*IDBDatabase" {
 
   IDBTransaction transaction(storeName_OR_storeNames, String mode) {
@@ -10189,6 +10203,7 @@ class IDBKey native "*IDBKey" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName IDBKeyRange
 class IDBKeyRange native "*IDBKeyRange" {
   /**
    * @domName IDBKeyRange.only
@@ -11638,6 +11653,7 @@ class LocalMediaStream extends MediaStream implements EventTarget native "*Local
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName Window
 class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   Document get document => JS('Document', '#.document', this);
@@ -13094,6 +13110,7 @@ class ModElement extends Element implements Element native "*HTMLModElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName MouseEvent
 class MouseEvent extends UIEvent native "*MouseEvent" {
   factory MouseEvent(String type, Window view, int detail, int screenX,
       int screenY, int clientX, int clientY, int button, [bool canBubble = true,
@@ -13240,6 +13257,7 @@ class MutationEvent extends Event native "*MutationEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName MutationObserver
 class MutationObserver native "*MutationObserver" {
 
   factory MutationObserver(MutationCallback callback) => _MutationObserverFactoryProvider.createMutationObserver(callback);
@@ -13690,6 +13708,7 @@ class _ChildNodeListLazy implements List {
   Node operator[](int index) => _this.$dom_childNodes[index];
 }
 
+/// @domName Node
 class Node extends EventTarget native "*Node" {
   _ChildNodeListLazy get nodes {
     return new _ChildNodeListLazy(this);
@@ -14749,6 +14768,7 @@ class PerformanceTiming native "*PerformanceTiming" {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName WebKitPoint
 class Point native "*WebKitPoint" {
   factory Point(num x, num y) => _PointFactoryProvider.createPoint(x, y);
 
@@ -15803,6 +15823,7 @@ class ScriptProfileNode native "*ScriptProfileNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName HTMLSelectElement
 class SelectElement extends Element implements Element native "*HTMLSelectElement" {
 
   factory SelectElement() => document.$dom_createElement("select");
@@ -15915,6 +15936,7 @@ class ShadowElement extends Element implements Element native "*HTMLShadowElemen
 // WARNING: Do not edit - generated code.
 
 
+/// @domName ShadowRoot
 class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
 
   factory ShadowRoot(Element host) => _ShadowRootFactoryProvider.createShadowRoot(host);
@@ -16463,6 +16485,7 @@ class SpeechRecognitionResult native "*SpeechRecognitionResult" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName Storage
 class Storage implements Map<String, String>  native "*Storage" {
 
   // TODO(nweiz): update this when maps support lazy iteration
@@ -16776,6 +16799,7 @@ class TableColElement extends Element implements Element native "*HTMLTableColEl
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName HTMLTableElement
 class TableElement extends Element implements Element native "*HTMLTableElement" {
 
   factory TableElement() => document.$dom_createElement("table");
@@ -16934,6 +16958,7 @@ class TableSectionElement extends Element implements Element native "*HTMLTableS
 // WARNING: Do not edit - generated code.
 
 
+/// @domName Text
 class Text extends CharacterData native "*Text" {
   factory Text(String data) => _TextFactoryProvider.createText(data);
 
@@ -18156,6 +18181,7 @@ class UnknownElement extends Element implements Element native "*HTMLUnknownElem
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName URL
 class Url native "*URL" {
 
   static String createObjectUrl(blob_OR_source_OR_stream) =>
@@ -19648,6 +19674,7 @@ class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
 // WARNING: Do not edit - generated code.
 
 
+/// @domName WebSocket
 class WebSocket extends EventTarget native "*WebSocket" {
   factory WebSocket(String url) => _WebSocketFactoryProvider.createWebSocket(url);
 
@@ -19717,6 +19744,7 @@ class WebSocketEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName WheelEvent
 class WheelEvent extends MouseEvent native "*WheelEvent" {
 
   /// @domName WheelEvent.webkitDirectionInvertedFromDevice; @docsEditable true
