@@ -12,7 +12,7 @@ then
   DART_CONFIGURATION="ReleaseIA32"
 fi
 
-if [[ `uname` -eq 'Darwin' ]]; 
+if [[ `uname` == 'Darwin' ]]; 
 then
   BIN_DIR="$CUR_DIR"/../../xcodebuild/$DART_CONFIGURATION
 else
