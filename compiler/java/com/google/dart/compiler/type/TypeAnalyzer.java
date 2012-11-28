@@ -1606,7 +1606,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
       // remember unimplemented members
       {
         List<Element> unimplementedMembers = findUnimplementedMembers(element);
-        if (!node.getModifiers().isAbstract() && !unimplementedMembers.isEmpty()) {
+        if (!node.getModifiers().isAbstract() && !unimplementedMembers.isEmpty() &&
+            (reportNoMemberWhenHasInterceptor || !Elements.handlesNoSuchMethod(type))) {
           StringBuilder sb = getUnimplementedMembersMessage(element, unimplementedMembers);
           onError(node.getName(), TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS,
               node.getName(), sb.toString());

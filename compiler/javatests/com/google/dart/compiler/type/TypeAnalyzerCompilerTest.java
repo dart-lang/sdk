@@ -617,6 +617,49 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     }
   }
 
+  /**
+   * When class implements "noSuchMethod", we presume that it will handle unimplemented methods.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6964
+   */
+  public void test_warnAbstract_onConcreteClassDeclaration_hasUnimplementedMethod_noSuchMethod()
+      throws Exception {
+    // report by default
+    {
+      AnalyzeLibraryResult libraryResult =
+          analyzeLibrary(
+              "class A {",
+              "  void foo();",
+              "  noSuchMethod(InvocationMirror m) {}",
+              "}",
+              "main() {",
+              "  new A();",
+              "}");
+      assertErrors(
+          libraryResult.getErrors(),
+          errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 1, 7, 1));
+    }
+    // disable warnings if has "noSuchMethod"
+    {
+      compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
+        @Override
+        public boolean reportNoMemberWhenHasInterceptor() {
+          return false;
+        }
+      });
+      AnalyzeLibraryResult libraryResult =
+          analyzeLibrary(
+              "class A {",
+              "  void foo();",
+              "  noSuchMethod(InvocationMirror m) {}",
+              "}",
+              "main() {",
+              "  new A();",
+              "}");
+      assertErrors(libraryResult.getErrors());
+    }
+  }
+
   public void test_warnAbstract_onConcreteClassDeclaration_hasUnimplemented_getter()
       throws Exception {
     AnalyzeLibraryResult libraryResult =
