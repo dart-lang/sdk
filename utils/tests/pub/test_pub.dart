@@ -1399,18 +1399,23 @@ class ScheduledServer {
   /// The wrapped server.
   final Future<HttpServer> _server;
 
+  /// The queue of handlers to run for upcoming requests.
+  final _handlers = new Queue<Future>();
+
   ScheduledServer._(this._server);
 
   /// Creates a new server listening on an automatically-allocated port on
   /// localhost.
   factory ScheduledServer() {
-    return new ScheduledServer._(_scheduleValue((_) {
+    var scheduledServer;
+    scheduledServer = new ScheduledServer._(_scheduleValue((_) {
       var server = new HttpServer();
-      server.defaultRequestHandler = _unexpectedRequest;
+      server.defaultRequestHandler = scheduledServer._awaitHandle;
       server.listen("127.0.0.1", 0);
       _scheduleCleanup((_) => server.close());
       return new Future.immediate(server);
     }));
+    return scheduledServer;
   }
 
   /// The port on which the server is listening.
@@ -1425,24 +1430,35 @@ class ScheduledServer {
   /// it's completed to continue the schedule.
   void handle(String method, String path,
       Future handler(HttpRequest request, HttpResponse response)) {
-    _schedule((_) => timeout(_server.chain((server) {
-      var completer = new Completer();
-      server.defaultRequestHandler = (request, response) {
-        server.defaultRequestHandler = _unexpectedRequest;
+    var handlerCompleter = new Completer<Function>();
+    _scheduleValue((_) {
+      var requestCompleteCompleter = new Completer();
+      handlerCompleter.complete((request, response) {
         expect(request.method, equals(method));
         expect(request.path, equals(path));
 
         var future = handler(request, response);
         if (future == null) future = new Future.immediate(null);
-        chainToCompleter(future, completer);
-      };
-      return completer.future;
-    }), 5000, "waiting for $method $path"));
+        chainToCompleter(future, requestCompleteCompleter);
+      });
+      return timeout(requestCompleteCompleter.future,
+          5000, "waiting for $method $path");
+    });
+    _handlers.add(handlerCompleter.future);
   }
 
   /// Raises an error complaining of an unexpected request.
-  static void _unexpectedRequest(HttpRequest request, HttpResponse response) {
-    fail('Unexpected ${request.method} request to ${request.path}.');
+  void _awaitHandle(HttpRequest request, HttpResponse response) {
+    var future = timeout(new Future.immediate(null).chain((_) {
+      var handlerFuture = _handlers.removeFirst();
+      if (handlerFuture == null) {
+        fail('Unexpected ${request.method} request to ${request.path}.');
+      }
+      return handlerFuture;
+    }).transform((handler) {
+      handler(request, response);
+    }), 5000, "waiting for a handler for ${request.method} ${request.path}");
+    expect(future, completes);
   }
 }
 
@@ -1510,7 +1526,7 @@ void _scheduleOnException(_ScheduledEvent event) {
 ///
 /// Note that [matcher] matches against the completed value of [actual], so
 /// calling [completion] is unnecessary.
-Matcher expectLater(Future actual, matcher, {String reason,
+void expectLater(Future actual, matcher, {String reason,
     FailureHandler failureHandler, bool verbose: false}) {
   _schedule((_) {
     return actual.transform((value) {

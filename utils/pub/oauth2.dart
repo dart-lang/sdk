@@ -78,40 +78,10 @@ Future withClient(SystemCache cache, Future fn(Client client)) {
 /// Gets a new OAuth2 client. If saved credentials are available, those are
 /// used; otherwise, the user is prompted to authorize the pub client.
 Future<Client> _getClient(SystemCache cache) {
-  var httpClient = new CurlClient();
-
   return _loadCredentials(cache).chain((credentials) {
-    if (credentials != null) {
-      return new Future.immediate(new Client(
-          _identifier, _secret, credentials, httpClient: httpClient));
-    }
-
-    // Allow the tests to inject their own token endpoint URL.
-    var tokenEndpoint = Platform.environment['_PUB_TEST_TOKEN_ENDPOINT'];
-    if (tokenEndpoint != null) {
-      tokenEndpoint = new Uri.fromString(tokenEndpoint);
-    } else {
-      tokenEndpoint = _tokenEndpoint;
-    }
-
-    var grant = new AuthorizationCodeGrant(
-        _identifier,
-        _secret,
-        _authorizationEndpoint,
-        tokenEndpoint,
-        httpClient: httpClient);
-
-    // TODO(nweiz): spin up a server on localhost and redirect the user there so
-    // they don't have to copy/paste the authorization code. See issue 6951.
-    var authUrl = grant.getAuthorizationUrl(
-        new Uri.fromString('urn:ietf:wg:oauth:2.0:oob'), scopes: _scopes);
-
-    stdout.writeString(
-        'Pub needs your authorization to upload packages on your behalf.\n'
-        'Go to $authUrl\n'
-        'Then click "Allow access" and paste the code below:\n'
-        '> ');
-    return readLine().chain(grant.handleAuthorizationCode);
+    if (credentials == null) return _authorize();
+    return new Future.immediate(new Client(
+        _identifier, _secret, credentials, httpClient: new CurlClient()));
   }).chain((client) {
     return _saveCredentials(cache, client.credentials).transform((_) => client);
   });
@@ -155,3 +125,55 @@ Future _saveCredentials(SystemCache cache, Credentials credentials) {
 /// The path to the file in which the user's OAuth2 credentials are stored.
 String _credentialsFile(SystemCache cache) =>
   join(cache.rootDir, 'credentials.json');
+
+/// Gets the user to authorize pub as a client of pub.dartlang.org via oauth2.
+/// Returns a Future that will complete to a fully-authorized [Client].
+Future<Client> _authorize() {
+  // Allow the tests to inject their own token endpoint URL.
+  var tokenEndpoint = Platform.environment['_PUB_TEST_TOKEN_ENDPOINT'];
+  if (tokenEndpoint != null) {
+    tokenEndpoint = new Uri.fromString(tokenEndpoint);
+  } else {
+    tokenEndpoint = _tokenEndpoint;
+  }
+
+  var grant = new AuthorizationCodeGrant(
+      _identifier,
+      _secret,
+      _authorizationEndpoint,
+      tokenEndpoint,
+      httpClient: new CurlClient());
+
+  // Spin up a one-shot HTTP server to receive the authorization code from the
+  // Google OAuth2 server via redirect. This server will close itself as soon as
+  // the code is received.
+  var completer = new Completer();
+  var server = new HttpServer();
+  server.addRequestHandler((request) => request.path == "/",
+      (request, response) {
+    chainToCompleter(new Future.immediate(null).chain((_) {
+      print('Authorization received, processing...');
+      var queryString = request.queryString;
+      if (queryString == null) queryString = '';
+      response.statusCode = 302;
+      response.headers.set('location', 'http://pub.dartlang.org/authorized');
+      response.outputStream.close();
+      server.close();
+      return grant.handleAuthorizationResponse(queryToMap(queryString));
+    }), completer);
+  });
+  server.listen('127.0.0.1', 0);
+
+  var authUrl = grant.getAuthorizationUrl(
+      new Uri.fromString('http://localhost:${server.port}'), scopes: _scopes);
+
+  print('Pub needs your authorization to upload packages on your behalf.\n'
+        'In a web browser, go to $authUrl\n'
+        'Then click "Allow access".\n\n'
+        'Waiting for your authorization...');
+
+  return completer.future.transform((client) {
+    print('Successfully authorized.\n');
+    return client;
+  });
+}

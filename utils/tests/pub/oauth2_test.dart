@@ -6,10 +6,13 @@ library oauth2_test;
 
 import 'dart:io';
 import 'dart:json';
+import 'dart:uri';
 
 import 'test_pub.dart';
+import '../../../pkg/http/lib/http.dart' as http;
 import '../../../pkg/unittest/lib/unittest.dart';
 import '../../pub/io.dart';
+import '../../pub/utils.dart';
 
 main() {
   setUp(() => dir(appPath, [libPubspec("test_pkg", "1.0.0")]).scheduleCreate());
@@ -18,12 +21,7 @@ main() {
       () {
     var server = new ScheduledServer();
     var pub = startPubLish(server);
-
-    expectLater(pub.nextLine(), equals('Pub needs your '
-       'authorization to upload packages on your behalf.'));
-    pub.writeLine('access code');
-
-    handleAccessTokenRequest(server, "access token");
+    authorizePub(pub, server);
 
     server.handle('GET', '/packages/versions/new.json', (request, response) {
       expect(request.headers.value('authorization'),
@@ -107,11 +105,7 @@ main() {
 
     expectLater(pub.nextErrLine(), equals("Pub's authorization to upload "
           "packages has expired and can't be automatically refreshed."));
-    expectLater(pub.nextLine(), equals('Pub needs your '
-       'authorization to upload packages on your behalf.'));
-    pub.writeLine('access code');
-
-    handleAccessTokenRequest(server, "new access token");
+    authorizePub(pub, server, "new access token");
 
     server.handle('GET', '/packages/versions/new.json', (request, response) {
       expect(request.headers.value('authorization'),
@@ -135,12 +129,7 @@ main() {
     ]).scheduleCreate();
 
     var pub = startPubLish(server);
-
-    expectLater(pub.nextLine(), equals('Pub needs your '
-       'authorization to upload packages on your behalf.'));
-    pub.writeLine('access code');
-
-    handleAccessTokenRequest(server, "new access token");
+    authorizePub(pub, server, "new access token");
 
     server.handle('GET', '/packages/versions/new.json', (request, response) {
       expect(request.headers.value('authorization'),
@@ -155,6 +144,28 @@ main() {
 
     run();
   });
+}
+
+void authorizePub(ScheduledProcess pub, ScheduledServer server,
+    [String accessToken="access token"]) {
+  expectLater(pub.nextLine(), equals('Pub needs your '
+     'authorization to upload packages on your behalf.'));
+
+  expectLater(pub.nextLine().chain((line) {
+    var match = new RegExp(r'[?&]redirect_uri=([0-9a-zA-Z%+-]+)[$&]')
+        .firstMatch(line);
+    expect(match, isNotNull);
+
+    var redirectUrl = new Uri.fromString(decodeUriComponent(match.group(1)));
+    redirectUrl = addQueryParameters(redirectUrl, {'code': 'access code'});
+    return (new http.Request('GET', redirectUrl)..followRedirects = false)
+      .send();
+  }).transform((response) {
+    expect(response.headers['location'],
+        equals(['http://pub.dartlang.org/authorized']));
+  }), anything);
+
+  handleAccessTokenRequest(server, accessToken);
 }
 
 void handleAccessTokenRequest(ScheduledServer server, String accessToken) {
