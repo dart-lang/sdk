@@ -34,13 +34,21 @@ Version get pubVersion => new Version(0, 0, 0);
 /**
  * The commands that Pub understands.
  */
-Map<String, PubCommand> get pubCommands => {
-  'help': new HelpCommand(),
-  'install': new InstallCommand(),
-  'lish': new LishCommand(),
-  'update': new UpdateCommand(),
-  'version': new VersionCommand()
-};
+Map<String, PubCommand> get pubCommands {
+  var commands = {
+    'help': new HelpCommand(),
+    'install': new InstallCommand(),
+    'publish': new LishCommand(),
+    'update': new UpdateCommand(),
+    'version': new VersionCommand()
+  };
+  for (var command in commands.values) {
+    for (var alias in command.aliases) {
+      commands[alias] = command;
+    }
+  }
+  return commands;
+}
 
 /**
  * The parser for arguments that are global to Pub rather than specific to a
@@ -164,7 +172,11 @@ abstract class PubCommand {
   /// Whether or not this command requires [entrypoint] to be defined. If false,
   /// Pub won't look for a pubspec and [entrypoint] will be null when the
   /// command runs.
-  bool get requiresEntrypoint => true;
+  final requiresEntrypoint = true;
+
+  /// Alternate names for this command. These names won't be used in the
+  /// documentation, but they will work when invoked on the command line.
+  final aliases = const <String>[];
 
   /**
    * Override this to define command-specific options. The results will be made

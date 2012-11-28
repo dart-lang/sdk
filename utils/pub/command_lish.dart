@@ -18,8 +18,9 @@ import 'oauth2.dart' as oauth2;
 // 6949.
 /// Handles the `lish` and `publish` pub commands.
 class LishCommand extends PubCommand {
-  String get description => "publish the current package to pub.dartlang.org";
-  String get usage => "pub lish [options]";
+  final description = "publish the current package to pub.dartlang.org";
+  final usage = "pub publish [options]";
+  final aliases = const ["lish", "lush"];
 
   ArgParser get commandParser {
     var parser = new ArgParser();
