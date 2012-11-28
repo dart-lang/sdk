@@ -53,7 +53,7 @@ class TypeErrorImplementation
 class CastErrorImplementation
     extends TypeErrorImplementation
     implements CastError {
-  factory CastError._uninstantiable() {
+  factory CastErrorImplementation._uninstantiable() {
     throw new UnsupportedError(
         "CastError can only be allocated by the VM");
   }

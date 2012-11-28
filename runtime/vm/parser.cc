@@ -2975,37 +2975,26 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
   // Optionally parse a (possibly named) constructor name or factory.
   if (IsIdentifier() &&
       (CurrentLiteral()->Equals(members->class_name()) || member.has_factory)) {
+    member.name_pos = TokenPos();
+    member.name = CurrentLiteral();  // Unqualified identifier.
+    ConsumeToken();
     if (member.has_factory) {
-      // TODO(regis): Simplify this code once the core library is fixed.
-      // See issue 6641.
-      // Per specification, the name of the factory must be the name of the
-      // immediately enclosing class.
-
-      // The factory name may be qualified.
-      QualIdent factory_name;
-      ParseQualIdent(&factory_name);
-      member.name_pos = factory_name.ident_pos;
-      member.name = factory_name.ident;  // Unqualified identifier.
-      // The class of the factory result type is specified by the factory name.
-      LibraryPrefix& lib_prefix = LibraryPrefix::Handle();
-      if (factory_name.lib_prefix != NULL) {
-        lib_prefix = factory_name.lib_prefix->raw();
+      // The factory name may be qualified, but the first identifier must match
+      // the name of the immediately enclosing class.
+      if (!member.name->Equals(members->class_name())) {
+        ErrorMsg(member.name_pos, "factory name must be '%s'",
+                 members->class_name().ToCString());
       }
       const Object& result_type_class = Object::Handle(
-          UnresolvedClass::New(lib_prefix,
-                               *factory_name.ident,
-                               factory_name.ident_pos));
+          UnresolvedClass::New(LibraryPrefix::Handle(),
+                               *member.name,
+                               member.name_pos));
       // The type arguments of the result type are set during finalization.
       member.type = &Type::ZoneHandle(Type::New(result_type_class,
                                                 TypeArguments::Handle(),
-                                                factory_name.ident_pos));
-    } else {
-      if (member.has_static) {
-        ErrorMsg("constructor cannot be static");
-      }
-      member.name_pos = TokenPos();
-      member.name = CurrentLiteral();
-      ConsumeToken();
+                                                member.name_pos));
+    } else if (member.has_static) {
+      ErrorMsg(member.name_pos, "constructor cannot be static");
     }
     // We must be dealing with a constructor or named constructor.
     member.kind = RawFunction::kConstructor;
@@ -9003,7 +8992,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     }
   } else {
     // Factory call at runtime.
-    String& factory_class_name = String::Handle(Symbols::MapImplementation());
+    String& factory_class_name = String::Handle(Symbols::Map());
     const Class& factory_class =
         Class::Handle(LookupCoreClass(factory_class_name));
     ASSERT(!factory_class.IsNull());

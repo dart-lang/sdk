@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch class _HashMapImpl<K, V> {
+patch class Map<K, V> {
   // Factory constructing a Map from a parser generated Map literal.
   // [elements] contains n key-value pairs.
   // The keys are at position 2*n and are already type checked by the parser

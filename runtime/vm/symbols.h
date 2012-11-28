@@ -45,7 +45,7 @@ class ObjectPointerVisitor;
   V(List, "List")                                                              \
   V(ListLiteralFactory, "List._fromLiteral")                                   \
   V(ListFactory, "List.")                                                      \
-  V(MapImplementation, "_HashMapImpl")                                         \
+  V(Map, "Map")                                                                \
   V(MapLiteralFactory, "Map._fromLiteral")                                     \
   V(ImmutableMap, "ImmutableMap")                                              \
   V(ImmutableMapConstructor, "ImmutableMap._create")                           \

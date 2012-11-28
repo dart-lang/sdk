@@ -58,6 +58,57 @@ export_cyclic_test: Fail, Crash # issue 6060
 duplicate_export_negative_test: Fail # issue 6134
 invocation_mirror_indirect_test: Fail # Issue 3326
 
+# Test issue 6324
+factory2_test: Fail, OK
+factory3_test: Fail, OK
+factory5_test/none: Fail, OK
+factory5_test/00: Fail, OK
+factory4_test: Fail, OK
+factory_implementation_test: Fail, OK
+interface_factory_test: Fail, OK
+interface_factory_multi_test: Fail, OK
+type_variable_bounds_test/none: Fail, OK
+type_variable_bounds_test/00: Fail, OK
+type_variable_bounds_test/03: Fail, OK
+type_variable_bounds_test/06: Fail, OK
+type_variable_bounds_test/09: Fail, OK
+type_variable_bounds_test/10: Fail, OK
+non_parameterized_factory2_test: Fail, OK
+non_parameterized_factory_test: Fail, OK
+default_factory_test: Fail, OK
+default_factory_library_test: Fail, OK
+default_factory_test: Fail, OK
+type_variable_scope_test/none: Fail, OK
+
+[ $compiler == none && $unchecked ]
+# Test issue 6324 (continued)
+type_variable_bounds_test/01: Fail, OK
+type_variable_bounds_test/02: Fail, OK
+type_variable_bounds_test/04: Fail, OK
+type_variable_bounds_test/05: Fail, OK
+type_variable_bounds_test/07: Fail, OK
+type_variable_scope_test/00: Fail, OK
+type_variable_scope_test/01: Fail, OK
+type_variable_scope_test/02: Fail, OK
+type_variable_scope_test/03: Fail, OK
+type_variable_scope_test/04: Fail, OK
+type_variable_scope_test/05: Fail, OK
+
+[ $compiler == none && $checked ]
+# Test issue 6324 (continued)
+# Pass for the wrong reason: no distinction between compile-time error and dynamic error
+type_variable_bounds_test/01: Pass
+type_variable_bounds_test/02: Pass
+type_variable_bounds_test/04: Pass
+type_variable_bounds_test/05: Pass
+type_variable_bounds_test/07: Pass
+type_variable_scope_test/00: Pass
+type_variable_scope_test/01: Pass
+type_variable_scope_test/02: Pass
+type_variable_scope_test/03: Pass
+type_variable_scope_test/04: Pass
+type_variable_scope_test/05: Pass
+
 [ $compiler == none && ($system == macos || $system == linux) && $arch == ia32 && $checked ]
 gc_test: Skip  # Issue 1487, flaky.
 
