@@ -43,7 +43,7 @@ public class SystemLibraryManager  {
   
   public URI expandRelativeDartUri(URI uri) throws AssertionError {
       String host = uri.getHost();
-      if (host == null) {
+      if (host == null && uri.getAuthority() == null) {
         String spec = uri.getSchemeSpecificPart();
         String replacement = expansionMap.get(spec);
         if (replacement != null) {
