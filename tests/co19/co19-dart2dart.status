@@ -361,7 +361,6 @@ Language/12_Statements/14_Continue_A02_t13: Fail # Inherited from dart2js
 Language/13_Libraries_and_Scripts/1_Imports_A02_t14: Fail # Inherited from dart2js
 Language/13_Libraries_and_Scripts/1_Imports_A02_t16: Fail # Inherited from dart2js
 Language/13_Libraries_and_Scripts/1_Imports_A02_t17: Fail # Inherited from dart2js
-Language/13_Libraries_and_Scripts/1_Imports_A02_t18: Fail # Inherited from dart2js
 Language/13_Libraries_and_Scripts/1_Imports_A02_t28: Fail # Inherited from dart2js
 Language/13_Libraries_and_Scripts/1_Imports_A03_t31: Fail # Inherited from dart2js
 Language/13_Libraries_and_Scripts/1_Imports_A05_t01: Fail # Inherited from dart2js
