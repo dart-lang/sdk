@@ -13,3 +13,27 @@
 # TODO(nweiz): The "pub lish" tests fail mysteriously on OS X. See issue 6984.
 [ $system == macos ]
 pub_lish_test: Fail
+
+[ $system == windows ]
+# TODO(nweiz): The "pub lish" tests fail mysteriously on Windows as well. See
+# issue 6984.
+pub_lish_test: Fail
+
+# A bunch of tests are timing out on Windows due to their inability to find
+# 7zip. See issue 6990.
+install/hosted/check_out_test: Timeout
+install/hosted/check_out_transitive_test: Timeout
+install/hosted/do_not_update_on_removed_constraints_test: Timeout
+install/hosted/remove_removed_dependency_test: Timeout
+install/hosted/remove_removed_transitive_dependency_test: Timeout
+install/hosted/resolve_constraints_test: Timeout
+install/hosted/stay_locked_if_compatible_test: Timeout
+install/hosted/stay_locked_if_new_is_satisfied_test: Timeout
+install/hosted/stay_locked_test: Timeout
+install/hosted/unlock_if_incompatible_test: Timeout
+install/hosted/unlock_if_new_is_unsatisfied_test: Timeout
+update/hosted/remove_removed_dependency_test: Timeout
+update/hosted/remove_removed_transitive_dependency_test: Timeout
+update/hosted/unlock_dependers_test: Timeout
+update/hosted/unlock_if_necessary_test: Timeout
+update/hosted/update_removed_constraints_test: Timeout
