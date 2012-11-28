@@ -25,6 +25,8 @@ class IOClient extends BaseClient {
 
     var completer = new Completer<StreamedResponse>();
     var connection = _inner.openUrl(request.method, request.url);
+    connection.followRedirects = request.followRedirects;
+    connection.maxRedirects = request.maxRedirects;
     connection.onError = (e) {
       async.then((_) {
         // TODO(nweiz): remove this when issue 4974 is fixed

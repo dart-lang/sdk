@@ -36,7 +36,8 @@ void startServer() {
       (request, response) {
     var n = int.parse(new Uri.fromString(request.uri).query);
     response.statusCode = 302;
-    response.headers.set('location', '/loop?${n + 1}');
+    response.headers.set('location',
+        serverUrl.resolve('/loop?${n + 1}').toString());
     response.contentLength = 0;
     response.outputStream.close();
   });
@@ -44,7 +45,7 @@ void startServer() {
   _server.addRequestHandler((request) => request.path == '/redirect',
       (request, response) {
     response.statusCode = 302;
-    response.headers.set('location', '/');
+    response.headers.set('location', serverUrl.resolve('/').toString());
     response.contentLength = 0;
     response.outputStream.close();
   });

@@ -183,6 +183,53 @@ void main() {
     // when issue 6284 is fixed.
   });
 
+  test('#followRedirects', () {
+    print("This test is known to be flaky, please ignore "
+          "(debug prints below added by sgjesse@)");
+    print("#followRedirects test starting server...");
+    startServer();
+    print("#followRedirects test server running");
+
+    var request = new http.Request('POST', serverUrl.resolve('/redirect'))
+        ..followRedirects = false;
+    var future = request.send().transform((response) {
+      print("#followRedirects test response received");
+      expect(response.statusCode, equals(302));
+    });
+    future.onComplete((_) {
+      print("#followRedirects test stopping server...");
+      stopServer();
+      print("#followRedirects test server stopped");
+    });
+
+    expect(future, completes);
+    print("#followRedirects test started");
+  });
+
+  test('#maxRedirects', () {
+    print("This test is known to be flaky, please ignore "
+          "(debug prints below added by sgjesse@)");
+    print("#maxRedirects test starting server...");
+    startServer();
+    print("#maxRedirects test server running");
+
+    var request = new http.Request('POST', serverUrl.resolve('/loop?1'))
+      ..maxRedirects = 2;
+    var future = request.send().transformException((e) {
+      print("#maxRedirects test exception received");
+      expect(e, isRedirectLimitExceededException);
+      expect(e.redirects.length, equals(2));
+    });
+    future.onComplete((_) {
+      print("#maxRedirects test stopping server...");
+      stopServer();
+      print("#maxRedirects test server stopped");
+    });
+
+    expect(future, completes);
+    print("#maxRedirects test started");
+  });
+
   group('content-type header', () {
     test('defaults to empty', () {
       var request = new http.Request('POST', dummyUrl);
