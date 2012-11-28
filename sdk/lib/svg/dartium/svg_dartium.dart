@@ -1609,40 +1609,6 @@ class EllipseElement extends SvgElement implements Transformable, Tests, Stylabl
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGException
-class Exception extends NativeFieldWrapperClass1 {
-  Exception.internal();
-
-  static const int SVG_INVALID_VALUE_ERR = 1;
-
-  static const int SVG_MATRIX_NOT_INVERTABLE = 2;
-
-  static const int SVG_WRONG_TYPE_ERR = 0;
-
-
-  /** @domName SVGException.code */
-  int get code native "SVGException_code_Getter";
-
-
-  /** @domName SVGException.message */
-  String get message native "SVGException_message_Getter";
-
-
-  /** @domName SVGException.name */
-  String get name native "SVGException_name_Getter";
-
-
-  /** @domName SVGException.toString */
-  String toString() native "SVGException_toString_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 /// @domName SVGExternalResourcesRequired
 class ExternalResourcesRequired extends NativeFieldWrapperClass1 {
   ExternalResourcesRequired.internal();
@@ -6693,6 +6659,40 @@ class SvgElement extends Element {
 
   /** @domName SVGElement.xmlbase */
   void set xmlbase(String value) native "SVGElement_xmlbase_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+/// @domName SVGException
+class SvgException extends NativeFieldWrapperClass1 {
+  SvgException.internal();
+
+  static const int SVG_INVALID_VALUE_ERR = 1;
+
+  static const int SVG_MATRIX_NOT_INVERTABLE = 2;
+
+  static const int SVG_WRONG_TYPE_ERR = 0;
+
+
+  /** @domName SVGException.code */
+  int get code native "SVGException_code_Getter";
+
+
+  /** @domName SVGException.message */
+  String get message native "SVGException_message_Getter";
+
+
+  /** @domName SVGException.name */
+  String get name native "SVGException_name_Getter";
+
+
+  /** @domName SVGException.toString */
+  String toString() native "SVGException_toString_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

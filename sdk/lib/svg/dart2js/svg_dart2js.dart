@@ -1301,32 +1301,6 @@ class EllipseElement extends SvgElement implements Transformable, Tests, Stylabl
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGException; @docsEditable true
-class Exception native "*SVGException" {
-
-  static const int SVG_INVALID_VALUE_ERR = 1;
-
-  static const int SVG_MATRIX_NOT_INVERTABLE = 2;
-
-  static const int SVG_WRONG_TYPE_ERR = 0;
-
-  /// @domName SVGException.code; @docsEditable true
-  final int code;
-
-  /// @domName SVGException.message; @docsEditable true
-  final String message;
-
-  /// @domName SVGException.name; @docsEditable true
-  final String name;
-
-  /// @domName SVGException.toString; @docsEditable true
-  String toString() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 /// @domName SVGExternalResourcesRequired
 abstract class ExternalResourcesRequired {
 
@@ -5066,6 +5040,32 @@ class SvgElement extends Element native "*SVGElement" {
   /// @domName SVGElement.xmlbase; @docsEditable true
   String xmlbase;
 
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName SVGException; @docsEditable true
+class SvgException native "*SVGException" {
+
+  static const int SVG_INVALID_VALUE_ERR = 1;
+
+  static const int SVG_MATRIX_NOT_INVERTABLE = 2;
+
+  static const int SVG_WRONG_TYPE_ERR = 0;
+
+  /// @domName SVGException.code; @docsEditable true
+  final int code;
+
+  /// @domName SVGException.message; @docsEditable true
+  final String message;
+
+  /// @domName SVGException.name; @docsEditable true
+  final String name;
+
+  /// @domName SVGException.toString; @docsEditable true
+  String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

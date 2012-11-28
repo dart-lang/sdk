@@ -14,6 +14,7 @@ html_interface_renames = {
     'Location': 'LocalLocation',
     'SVGDocument': 'SvgDocument', # Manual to avoid name conflicts.
     'SVGElement': 'SvgElement', # Manual to avoid name conflicts.
+    'SVGException': 'SvgException', # Manual of avoid conflict with Exception.
     'SVGSVGElement': 'SvgSvgElement', # Manual to avoid name conflicts.
     'WebKitAnimation': 'Animation',
     'WebKitAnimationEvent': 'AnimationEvent',
