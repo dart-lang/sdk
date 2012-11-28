@@ -12,7 +12,7 @@ class Printer implements NodeVisitor {
   bool inForInit = false;
   bool atStatementBegin = false;
   final DanglingElseVisitor danglingElseVisitor;
-  final LocalNamer localNamer;
+  final Namer namer;
   bool pendingSemicolon = false;
   bool pendingSpace = false;
   static final identifierRegexp = new RegExp(r'^[a-zA-Z_0-9$]');
@@ -22,11 +22,11 @@ class Printer implements NodeVisitor {
         this.compiler = compiler,
         outBuffer = new leg.CodeBuffer(),
         danglingElseVisitor = new DanglingElseVisitor(compiler),
-        localNamer = determineRenamer(compiler.enableMinification,
-                                      allowVariableMinification);
+        namer = determineRenamer(compiler.enableMinification,
+                                 allowVariableMinification);
 
-  static LocalNamer determineRenamer(bool shouldCompressOutput,
-                                     bool allowVariableMinification) {
+  static Namer determineRenamer(bool shouldCompressOutput,
+                                bool allowVariableMinification) {
     return (shouldCompressOutput && allowVariableMinification)
         ? new MinifyRenamer() : new IdentityNamer();
   }
@@ -391,7 +391,7 @@ class Printer implements NodeVisitor {
       visitNestedExpression(name, PRIMARY,
                             newInForInit: false, newAtStatementBegin: false);
     }
-    localNamer.enterScope(vars);
+    namer.enterScope(vars);
     out("(");
     if (fun.params != null) {
       visitCommaSeparated(fun.params, PRIMARY,
@@ -399,7 +399,7 @@ class Printer implements NodeVisitor {
     }
     out(")");
     blockBody(fun.body, needsSeparation: false, needsNewline: false);
-    localNamer.leaveScope();
+    namer.leaveScope();
   }
 
   visitFunctionDeclaration(FunctionDeclaration declaration) {
@@ -639,7 +639,7 @@ class Printer implements NodeVisitor {
   }
 
   visitVariableUse(VariableUse ref) {
-    out(localNamer.getName(ref.name));
+    out(namer.getName(ref.name));
   }
 
   visitThis(This node) {
@@ -647,11 +647,11 @@ class Printer implements NodeVisitor {
   }
 
   visitVariableDeclaration(VariableDeclaration decl) {
-    out(localNamer.getName(decl.name));
+    out(namer.getName(decl.name));
   }
 
   visitParameter(Parameter param) {
-    out(localNamer.getName(param.name));
+    out(namer.getName(param.name));
   }
 
   bool isDigit(int charCode) {
@@ -944,7 +944,7 @@ leg.CodeBuffer prettyPrint(Node node, leg.Compiler compiler,
 }
 
 
-abstract class LocalNamer {
+abstract class Namer {
   String getName(String oldName);
   String declareVariable(String oldName);
   String declareParameter(String oldName);
@@ -953,7 +953,7 @@ abstract class LocalNamer {
 }
 
 
-class IdentityNamer implements LocalNamer {
+class IdentityNamer implements Namer {
   String getName(String oldName) => oldName;
   String declareVariable(String oldName) => oldName;
   String declareParameter(String oldName) => oldName;
@@ -962,7 +962,7 @@ class IdentityNamer implements LocalNamer {
 }
 
 
-class MinifyRenamer implements LocalNamer {
+class MinifyRenamer implements Namer {
   final List<Map<String, String>> maps = [];
   final List<int> parameterNumberStack = [];
   final List<int> variableNumberStack = [];

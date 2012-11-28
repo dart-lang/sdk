@@ -696,8 +696,10 @@ class JavaScriptBackend extends Backend {
 
   final RuntimeTypeInformation rti;
 
-  JavaScriptBackend(Compiler compiler, bool generateSourceMap, bool disableEval)
-      : namer = determineNamer(compiler),
+  JavaScriptBackend(Compiler compiler,
+                    bool generateSourceMap,
+                    bool disableEval)
+      : namer = new Namer(compiler),
         returnInfo = new Map<Element, ReturnInfo>(),
         invalidateAfterCodegen = new List<Element>(),
         interceptors = new Interceptors(compiler),
@@ -716,12 +718,6 @@ class JavaScriptBackend extends Backend {
     generator = new SsaCodeGeneratorTask(this);
     argumentTypes = new ArgumentTypesRegistry(this);
     fieldTypes = new FieldTypesRegistry(this);
-  }
-
-  static Namer determineNamer(Compiler compiler) {
-    return compiler.enableMinification ?
-        new MinifyNamer(compiler) :
-        new Namer(compiler);
   }
 
   bool isInterceptorClass(Element element) {

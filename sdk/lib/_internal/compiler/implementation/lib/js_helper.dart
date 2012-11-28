@@ -972,9 +972,6 @@ throwAbstractClassInstantiationError(className) {
  *
  * Some native exceptions are mapped to new Dart instances, others are
  * returned unmodified.
- *
- * TODO(erikcorry): Fix this to produce consistent result regardless of
- * minification.
  */
 unwrapException(ex) {
   // Note that we are checking if the object has the property. If it
