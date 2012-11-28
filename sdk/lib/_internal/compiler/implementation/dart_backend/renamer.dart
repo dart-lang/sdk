@@ -88,7 +88,7 @@ void renamePlaceholders(
     // js-helpers.
     StringBuffer result = new StringBuffer(renameElement(type.element));
     if (type is InterfaceType) {
-      if (!type.isRaw) {
+      if (!type.typeArguments.isEmpty) {
         result.add('<');
         Link<DartType> argumentsLink = type.typeArguments;
         result.add(renameType(argumentsLink.head, renameElement));

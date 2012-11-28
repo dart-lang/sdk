@@ -838,19 +838,6 @@ class PrefixElement extends Element {
 class TypedefElement extends Element implements TypeDeclarationElement {
   Typedef cachedNode;
   TypedefType cachedType;
-
-  /**
-   * Canonicalize raw version of [cachedType].
-   *
-   * See [ClassElement.rawType] for motivation.
-   *
-   * The [rawType] is computed together with [cachedType] in [computeType].
-   */
-  TypedefType rawType;
-
-  /**
-   * The type annotation which defines this typedef.
-   */
   DartType alias;
 
   bool isResolved = false;
@@ -875,16 +862,6 @@ class TypedefElement extends Element implements TypeDeclarationElement {
     Link<DartType> parameters =
         TypeDeclarationElement.createTypeVariables(this, node.typeParameters);
     cachedType = new TypedefType(this, parameters);
-    if (parameters.isEmpty) {
-      rawType = cachedType;
-    } else {
-      var dynamicParameters = const Link<DartType>();
-      parameters.forEach((_) {
-        dynamicParameters =
-            dynamicParameters.prepend(compiler.types.dynamicType);
-      });
-      rawType = new TypedefType(this, dynamicParameters);
-    }
     compiler.resolveTypedef(this);
     return cachedType;
   }
@@ -1406,36 +1383,7 @@ abstract class TypeDeclarationElement implements Element {
 abstract class ClassElement extends ScopeContainerElement
     implements TypeDeclarationElement {
   final int id;
-  /**
-   * The type of [:this:] for this class declaration.
-   *
-   * The type of [:this:] is the interface type based on this element in which
-   * the type arguments are the declared type variables. For instance,
-   * [:List<E>:] for [:List:] and [:Map<K,V>:] for [:Map:].
-   *
-   * This type is computed in [computeType].
-   */
-  InterfaceType thisType;
-
-  /**
-   * The raw type for this class declaration.
-   *
-   * The raw type is the interface type base on this element in which the type
-   * arguments are all [dynamic]. For instance [:List<dynamic>:] for [:List:]
-   * and [:Map<dynamic,dynamic>:] for [:Map:]. For non-generic classes [rawType]
-   * is the same as [thisType].
-   *
-   * The [rawType] field is a canonicalization of the raw type and should be
-   * used to distinguish explicit and implicit uses of the [dynamic]
-   * type arguments. For instance should [:List:] be the [rawType] of the
-   * [:List:] class element whereas [:List<dynamic>:] should be its own
-   * instantiation of [InterfaceType] with [:dynamic:] as type argument. Using
-   * this distinction, we can print the raw type with type arguments only when
-   * the input source has used explicit type arguments.
-   *
-   * This type is computed together with [thisType] in [computeType].
-   */
-  InterfaceType rawType;
+  InterfaceType type;
   DartType supertype;
   DartType defaultClass;
   Link<DartType> interfaces;
@@ -1461,29 +1409,18 @@ abstract class ClassElement extends ScopeContainerElement
   ClassNode parseNode(Compiler compiler);
 
   InterfaceType computeType(compiler) {
-    if (thisType == null) {
+    if (type == null) {
       if (origin == null) {
         ClassNode node = parseNode(compiler);
         Link<DartType> parameters =
             TypeDeclarationElement.createTypeVariables(this,
                                                        node.typeParameters);
-        thisType = new InterfaceType(this, parameters);
-        if (parameters.isEmpty) {
-          rawType = thisType;
-        } else {
-          var dynamicParameters = const Link<DartType>();
-          parameters.forEach((_) {
-            dynamicParameters =
-                dynamicParameters.prepend(compiler.types.dynamicType);
-          });
-          rawType = new InterfaceType(this, dynamicParameters);
-        }
+        type = new InterfaceType(this, parameters);
       } else {
-        thisType = origin.computeType(compiler);
-        rawType = origin.rawType;
+        type = origin.computeType(compiler);
       }
     }
-    return thisType;
+    return type;
   }
 
   bool get isPatched => patch != null;
@@ -1498,7 +1435,7 @@ abstract class ClassElement extends ScopeContainerElement
   bool isObject(Compiler compiler) =>
       identical(declaration, compiler.objectClass);
 
-  Link<DartType> get typeVariables => thisType.typeArguments;
+  Link<DartType> get typeVariables => type.typeArguments;
 
   ClassElement ensureResolved(Compiler compiler) {
     if (resolutionState == STATE_NOT_STARTED) {
@@ -1791,6 +1728,10 @@ abstract class ClassElement extends ScopeContainerElement
   int get hashCode => id;
 
   Scope buildScope() => new ClassScope(enclosingElement.buildScope(), this);
+
+  Link<DartType> get allSupertypesAndSelf {
+    return allSupertypes.prepend(new InterfaceType(this));
+  }
 
   String toString() {
     if (origin != null) {

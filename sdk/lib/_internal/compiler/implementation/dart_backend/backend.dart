@@ -137,7 +137,7 @@ class DartBackend extends Backend {
     Set<DartType> processedTypes = new Set<DartType>();
     List<DartType> workQueue = new List<DartType>();
     workQueue.addAll(
-        classMembers.keys.map((classElement) => classElement.thisType));
+        classMembers.keys.map((classElement) => classElement.type));
     workQueue.addAll(compiler.resolverWorld.isChecks);
     Element typeErrorElement =
         compiler.coreLibrary.find(new SourceString('TypeError'));

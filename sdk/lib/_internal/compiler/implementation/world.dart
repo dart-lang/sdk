@@ -76,7 +76,7 @@ class World {
     compiler.resolverWorld.isChecks.forEach((DartType type) {
       if (type is InterfaceType) {
         InterfaceType itf = type;
-        if (!itf.isRaw) {
+        if (!itf.typeArguments.isEmpty) {
           potentiallyAddForRti(itf.element, null);
         }
       }

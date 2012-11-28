@@ -3060,11 +3060,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   HInstruction analyzeTypeArgument(DartType argument, Node currentNode) {
-    if (argument == compiler.types.dynamicType) {
-      // Represent [dynamic] as [null].
-      return graph.addConstantNull(constantSystem);
-    }
-
     // These variables are shared between invocations of the helper methods.
     HInstruction typeInfo;
     StringBuffer template = new StringBuffer();
@@ -3124,7 +3119,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       } else if (type is InterfaceType) {
         bool isFirstVariable = true;
         InterfaceType interfaceType = type;
-        bool hasTypeArguments = !interfaceType.isRaw;
+        bool hasTypeArguments = !interfaceType.typeArguments.isEmpty;
         if (!isInQuotes) template.add("'");
         template.add(backend.namer.getName(type.element));
         if (hasTypeArguments) {
@@ -3161,7 +3156,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                              Node currentNode,
                              HInstruction newObject) {
     if (!compiler.world.needsRti(type.element)) return;
-    if (type.isRaw) return;
     List<HInstruction> inputs = <HInstruction>[];
     type.typeArguments.forEach((DartType argument) {
       inputs.add(analyzeTypeArgument(argument, currentNode));
@@ -3200,7 +3194,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
       } else if (element.isGenerativeConstructor()) {
         ClassElement cls = element.getEnclosingClass();
-        return new HBoundedType.exact(cls.thisType);
+        return new HBoundedType.exact(cls.type);
       } else {
         return HType.UNKNOWN;
       }
@@ -3235,7 +3229,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return;
     }
     if (compiler.world.needsRti(constructor.enclosingElement)) {
-      if (!type.isRaw) {
+      if (!type.typeArguments.isEmpty) {
         type.typeArguments.forEach((DartType argument) {
           inputs.add(analyzeTypeArgument(argument, node));
         });

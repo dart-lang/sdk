@@ -226,9 +226,10 @@ class Enqueuer {
       // supertypes.
       cls.ensureResolved(compiler);
 
-      void processClass(ClassElement cls) {
-        if (seenClasses.contains(cls)) return;
-
+      for (Link<DartType> supertypes = cls.allSupertypesAndSelf;
+           !supertypes.isEmpty; supertypes = supertypes.tail) {
+        cls = supertypes.head.element;
+        if (seenClasses.contains(cls)) continue;
         seenClasses.add(cls);
         cls.ensureResolved(compiler);
         cls.implementation.forEachMember(processInstantiatedClassMember);
@@ -251,11 +252,6 @@ class Enqueuer {
             }
           });
         }
-      }
-      processClass(cls);
-      for (Link<DartType> supertypes = cls.allSupertypes;
-           !supertypes.isEmpty; supertypes = supertypes.tail) {
-        processClass(supertypes.head.element);
       }
     });
   }

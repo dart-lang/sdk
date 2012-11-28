@@ -2390,19 +2390,15 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         use(node.typeInfoCall);
         int index = RuntimeTypeInformation.getTypeVariableIndex(typeVariable);
         js.PropertyAccess field = new js.PropertyAccess.indexed(pop(), index);
+        RuntimeTypeInformation rti = backend.rti;
+        String typeName = rti.getStringRepresentation(arguments.head);
+        js.Expression genericName = new js.LiteralString("'$typeName'");
+        js.Binary eqTest = new js.Binary('===', field, genericName);
         // Also test for 'undefined' in case the object does not have
         // any type variable.
         js.Prefix undefinedTest = new js.Prefix('!', field);
-        if (arguments.head == compiler.types.dynamicType) {
-          result = new js.Binary('&&', result, undefinedTest);
-        } else {
-          RuntimeTypeInformation rti = backend.rti;
-          String typeName = rti.getStringRepresentation(arguments.head);
-          js.Expression genericName = new js.LiteralString("'$typeName'");
-          js.Binary eqTest = new js.Binary('===', field, genericName);
-          result = new js.Binary(
-              '&&', result, new js.Binary('||', undefinedTest, eqTest));
-        }
+        result = new js.Binary(
+            '&&', result, new js.Binary('||', undefinedTest, eqTest));
         arguments = arguments.tail;
       }
       push(result, node);

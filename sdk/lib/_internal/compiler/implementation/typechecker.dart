@@ -87,11 +87,6 @@ abstract class DartType {
 
   bool operator ==(other);
 
-  /**
-   * Is [: true :] if this type has no explict type arguments.
-   */
-  bool get isRaw => true;
-
   DartType asRaw() => this;
 }
 
@@ -269,7 +264,7 @@ class MalformedType extends DartType {
 }
 
 class InterfaceType extends DartType {
-  final ClassElement element;
+  final Element element;
   final Link<DartType> typeArguments;
 
   InterfaceType(this.element,
@@ -305,7 +300,7 @@ class InterfaceType extends DartType {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.add(name.slowToString());
-    if (!isRaw) {
+    if (!typeArguments.isEmpty) {
       sb.add('<');
       typeArguments.printOn(sb, ', ');
       sb.add('>');
@@ -330,9 +325,10 @@ class InterfaceType extends DartType {
     return typeArguments == other.typeArguments;
   }
 
-  bool get isRaw => typeArguments.isEmpty || identical(this, element.rawType);
-
-  InterfaceType asRaw() => element.rawType;
+  InterfaceType asRaw() {
+    if (typeArguments.isEmpty) return this;
+    return new InterfaceType(element);
+  }
 }
 
 class FunctionType extends DartType {
@@ -449,7 +445,7 @@ class TypedefType extends DartType {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.add(name.slowToString());
-    if (!isRaw) {
+    if (!typeArguments.isEmpty) {
       sb.add('<');
       typeArguments.printOn(sb, ', ');
       sb.add('>');
@@ -464,10 +460,6 @@ class TypedefType extends DartType {
     if (!identical(element, other.element)) return false;
     return typeArguments == other.typeArguments;
   }
-
-  bool get isRaw => typeArguments.isEmpty || identical(this, element.rawType);
-
-  TypedefType asRaw() => element.rawType;
 }
 
 /**
@@ -485,7 +477,7 @@ class Types {
   final Compiler compiler;
   // TODO(karlklose): should we have a class Void?
   final VoidType voidType;
-  final DynamicType dynamicType;
+  final InterfaceType dynamicType;
 
   Types(Compiler compiler, ClassElement dynamicElement)
     : this.with(compiler, dynamicElement,
@@ -496,7 +488,7 @@ class Types {
              LibraryElement library)
     : voidType = new VoidType(new VoidElement(library)),
       dynamicType = new DynamicType(dynamicElement) {
-      dynamicElement.rawType = dynamicElement.thisType = dynamicType;
+    dynamicElement.type = dynamicType;
   }
 
   /** Returns true if t is a subtype of s */
@@ -513,9 +505,8 @@ class Types {
 
     if (t is VoidType) {
       return false;
-    } else if (t is MalformedType || s is MalformedType) {
-      // A malformed type should be treated as dynamic.
-      return true;
+    } else if (t is MalformedType) {
+      return false;
     } else if (t is InterfaceType) {
       if (s is !InterfaceType) return false;
       ClassElement tc = t.element;
