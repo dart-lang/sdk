@@ -164,8 +164,6 @@ Language/05_Variables/05_Variables_A05_t14: Fail # Dart issue 5885
 Language/05_Variables/05_Variables_A05_t15: Fail # Dart issue 5885
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # Dart issue 5802
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # Dart issue 5894
-Language/07_Classes/2_Getters_A01_t03: Fail # Expects compile-time error when getter has empty parameter list.
-Language/07_Classes/2_Getters_A01_t05: Fail # Expects compile-time error when getter has empty parameter list.
 
 LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
 

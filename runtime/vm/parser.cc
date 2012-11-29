@@ -29,8 +29,6 @@ DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
 DEFINE_FLAG(bool, warn_legacy_map_literal, false,
             "Warning on legacy map literal syntax (single type argument)");
-DEFINE_FLAG(bool, warn_legacy_getters, false,
-            "Warning on legacy getter syntax");
 DEFINE_FLAG(bool, strict_function_literals, false,
             "enforce new function literal rules");
 DEFINE_FLAG(bool, fail_legacy_abstract, false,
@@ -2486,16 +2484,6 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   }
   if (!method->IsGetter()) {
     ParseFormalParameterList(allow_explicit_default_values, &method->params);
-  } else {
-    // TODO(hausner): Remove this once the old getter syntax with
-    // empty parameter list is no longer supported.
-    if (CurrentToken() == Token::kLPAREN) {
-      if (FLAG_warn_legacy_getters) {
-        Warning("legacy getter syntax, remove parenthesis");
-      }
-      ConsumeToken();
-      ExpectToken(Token::kRPAREN);
-    }
   }
 
   // Now that we know the parameter list, we can distinguish between the
@@ -4010,12 +3998,8 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
 
   const intptr_t accessor_pos = TokenPos();
   ParamList params;
-  if (FLAG_warn_legacy_getters &&
-      is_getter && (CurrentToken() == Token::kLPAREN)) {
-    Warning("legacy getter syntax, remove parenthesis");
-  }
-  // TODO(hausner): Remove the kLPAREN check once we remove old getter syntax.
-  if (!is_getter || (CurrentToken() == Token::kLPAREN)) {
+
+  if (!is_getter) {
     const bool allow_explicit_default_values = true;
     ParseFormalParameterList(allow_explicit_default_values, &params);
   }
