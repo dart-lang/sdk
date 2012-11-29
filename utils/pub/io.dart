@@ -372,15 +372,16 @@ String getFullPath(entry) {
 String relativeToPub(String path) {
   var scriptPath = new File(new Options().script).fullPathSync();
 
-  // Walk up until we hit the "utils" directory. This lets us figure out where
+  // Walk up until we hit the "util(s)" directory. This lets us figure out where
   // we are if this function is called from pub.dart, or one of the tests,
-  // which also live under "utils".
-  var utilsDir = new Path.fromNative(scriptPath).directoryPath;
-  while (utilsDir.filename != 'utils') {
-    utilsDir = utilsDir.directoryPath;
+  // which also live under "utils", or from the SDK where pub is in "util".
+  var utilDir = new Path.fromNative(scriptPath).directoryPath;
+  while (utilDir.filename != 'utils' && utilDir.filename != 'util') {
+    if (utilDir.filename == '') throw 'Could not find path to pub.';
+    utilDir = utilDir.directoryPath;
   }
 
-  return utilsDir.append('pub').append(path).canonicalize().toNativePath();
+  return utilDir.append('pub').append(path).canonicalize().toNativePath();
 }
 
 /// A StringInputStream reading from stdin.
