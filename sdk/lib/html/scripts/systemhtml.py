@@ -507,11 +507,7 @@ class Dart2JSBackend(HtmlDartGenerator):
       return
 
     if IsPureInterface(self._interface.id):
-      self._AddInterfaceAttribute(attribute)
-      return
-
-    if attribute.id != html_name:
-      self._AddAttributeUsingProperties(attribute, html_name, read_only)
+      self._AddInterfaceAttribute(attribute, html_name)
       return
 
     # If the attribute is shadowing, we can't generate a shadowing
@@ -532,7 +528,7 @@ class Dart2JSBackend(HtmlDartGenerator):
               '  // Use implementation from $SUPER.\n'
               '  // final $TYPE $NAME;\n',
               SUPER=super_attribute_interface,
-              NAME=DartDomNameOfAttribute(attribute),
+              NAME=html_name,
               TYPE=self.SecureOutputType(attribute.type.id))
           return
       self._members_emitter.Emit('\n  // Shadowing definition.')
@@ -549,20 +545,23 @@ class Dart2JSBackend(HtmlDartGenerator):
     output_type = self.SecureOutputType(attribute.type.id)
     input_type = self._NarrowInputType(attribute.type.id)
     annotations = self._Annotations(attribute.type.id, attribute.id)
+    rename = self._RenamingAnnotation(attribute.id, html_name)
     self.EmitAttributeDocumentation(attribute)
     if not read_only:
       self._members_emitter.Emit(
-          '\n  $ANNOTATIONS$TYPE $NAME;'
+          '\n  $RENAME$ANNOTATIONS$TYPE $NAME;'
           '\n',
+          RENAME=rename,
           ANNOTATIONS=annotations,
-          NAME=DartDomNameOfAttribute(attribute),
+          NAME=html_name,
           TYPE=output_type)
     else:
       self._members_emitter.Emit(
-          '\n  $(ANNOTATIONS)final $TYPE $NAME;'
+          '\n  $RENAME$(ANNOTATIONS)final $TYPE $NAME;'
           '\n',
+          RENAME=rename,
           ANNOTATIONS=annotations,
-          NAME=DartDomNameOfAttribute(attribute),
+          NAME=html_name,
           TYPE=output_type)
 
   def _AddAttributeUsingProperties(self, attribute, html_name, read_only):
@@ -570,11 +569,11 @@ class Dart2JSBackend(HtmlDartGenerator):
     if not read_only:
       self._AddRenamingSetter(attribute, html_name)
 
-  def _AddInterfaceAttribute(self, attribute):
+  def _AddInterfaceAttribute(self, attribute, html_name):
     self._members_emitter.Emit(
         '\n  $TYPE $NAME;'
         '\n',
-        NAME=DartDomNameOfAttribute(attribute),
+        NAME=html_name,
         TYPE=self.SecureOutputType(attribute.type.id))
 
   def _AddRenamingGetter(self, attr, html_name):
@@ -612,11 +611,11 @@ class Dart2JSBackend(HtmlDartGenerator):
 
   def _AddConvertingGetter(self, attr, html_name, conversion):
     self._members_emitter.Emit(
-        # TODO(sra): Use metadata to provide native name.
         '\n  $RETURN_TYPE get $HTML_NAME => $CONVERT(this._$(HTML_NAME));'
-        '\n  $NATIVE_TYPE get _$HTML_NAME =>'
-        ' JS("$NATIVE_TYPE", "#.$NAME", this);'
+        "\n  @JSName('$NAME')"
+        '\n  $(ANNOTATIONS)final $NATIVE_TYPE _$HTML_NAME;'
         '\n',
+        ANNOTATIONS=self._Annotations(attr.type.id, html_name),
         CONVERT=conversion.function_name,
         HTML_NAME=html_name,
         NAME=attr.id,
@@ -661,32 +660,15 @@ class Dart2JSBackend(HtmlDartGenerator):
       self._AddDirectNativeOperation(info, html_name)
 
   def _AddDirectNativeOperation(self, info, html_name):
-    # Do we need a native body?
-    if html_name != info.declared_name:
-      return_type = self.SecureOutputType(info.type_name)
-
-      operation_emitter = self._members_emitter.Emit(
-          '$!SCOPE',
-          MODIFIERS='static ' if info.IsStatic() else '',
-          ANNOTATIONS=self._Annotations(info.type_name, info.declared_name),
-          TYPE=return_type,
-          HTML_NAME=html_name,
-          NAME=info.declared_name,
-          PARAMS=info.ParametersDeclaration(self._NarrowInputType))
-
-      operation_emitter.Emit(
-          '\n'
-          '  $ANNOTATIONS'
-          '$MODIFIERS$TYPE $(HTML_NAME)($PARAMS) native "$NAME";\n')
-    else:
-      self._members_emitter.Emit(
-          '\n'
-          '  $ANNOTATIONS$MODIFIERS$TYPE $NAME($PARAMS) native;\n',
-          MODIFIERS='static ' if info.IsStatic() else '',
-          ANNOTATIONS=self._Annotations(info.type_name, info.declared_name),
-          TYPE=self.SecureOutputType(info.type_name),
-          NAME=info.name,
-          PARAMS=info.ParametersDeclaration(self._NarrowInputType))
+    self._members_emitter.Emit(
+        '\n'
+        '  $RENAME$ANNOTATIONS$MODIFIERS$TYPE $NAME($PARAMS) native;\n',
+        RENAME=self._RenamingAnnotation(info.declared_name, html_name),
+        ANNOTATIONS=self._Annotations(info.type_name, info.declared_name),
+        MODIFIERS='static ' if info.IsStatic() else '',
+        TYPE=self.SecureOutputType(info.type_name),
+        NAME=html_name,
+        PARAMS=info.ParametersDeclaration(self._NarrowInputType))
 
   def _AddOperationWithConversions(self, info, html_name):
     # Assert all operations have same return type.
@@ -785,13 +767,13 @@ class Dart2JSBackend(HtmlDartGenerator):
         call_emitter.Emit('$(INDENT)return $CALL;\n', CALL=call)
 
       self._members_emitter.Emit(
-          '  $MODIFIERS$ANNOTATIONS$TYPE$TARGET($PARAMS) native "$NATIVE";\n',
-          MODIFIERS='static ' if info.IsStatic() else '',
+          '  $RENAME$ANNOTATIONS$MODIFIERS$TYPE$TARGET($PARAMS) native;\n',
+          RENAME=self._RenamingAnnotation(info.declared_name, target),
           ANNOTATIONS=self._Annotations(info.type_name, info.declared_name),
+          MODIFIERS='static ' if info.IsStatic() else '',
           TYPE=TypeOrNothing(native_return_type),
           TARGET=target,
-          PARAMS=', '.join(target_parameters),
-          NATIVE=info.declared_name)
+          PARAMS=', '.join(target_parameters))
 
     def GenerateChecksAndCall(operation, argument_count):
       checks = []
@@ -871,8 +853,13 @@ class Dart2JSBackend(HtmlDartGenerator):
                              member_name)
     return member_name in _js_custom_members
 
-  def _Annotations(self, idl_type, member_name):
-    annotations = FindAnnotations(idl_type, self._interface.id, member_name)
+  def _RenamingAnnotation(self, idl_name, member_name):
+    if member_name != idl_name:
+      return  "@JSName('%s')\n  " % idl_name
+    return ''
+
+  def _Annotations(self, idl_type, idl_member_name):
+    annotations = FindAnnotations(idl_type, self._interface.id, idl_member_name)
     if annotations:
       return '%s\n  ' % annotations
     return_type = self.SecureOutputType(idl_type)

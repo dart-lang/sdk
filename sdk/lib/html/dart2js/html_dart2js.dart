@@ -56,13 +56,16 @@ class AbstractWorker extends EventTarget native "*AbstractWorker" {
     new AbstractWorkerEvents(this);
 
   /// @domName AbstractWorker.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName AbstractWorker.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event evt) native;
 
   /// @domName AbstractWorker.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class AbstractWorkerEvents extends Events {
@@ -834,13 +837,16 @@ class BatteryManager extends EventTarget native "*BatteryManager" {
   final num level;
 
   /// @domName BatteryManager.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName BatteryManager.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event event) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event event) native;
 
   /// @domName BatteryManager.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class BatteryManagerEvents extends Events {
@@ -1025,7 +1031,7 @@ class ButtonElement extends Element implements Element native "*HTMLButtonElemen
   String formTarget;
 
   /// @domName HTMLButtonElement.labels; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
+  @Returns('NodeList') @Creates('NodeList')
   final List<Node> labels;
 
   /// @domName HTMLButtonElement.name; @docsEditable true
@@ -1359,7 +1365,8 @@ class CSSPrimitiveValue extends CSSValue native "*CSSPrimitiveValue" {
   num getFloatValue(int unitType) native;
 
   /// @domName CSSPrimitiveValue.getRGBColorValue; @docsEditable true
-  RGBColor getRgbColorValue() native "getRGBColorValue";
+  @JSName('getRGBColorValue')
+  RGBColor getRgbColorValue() native;
 
   /// @domName CSSPrimitiveValue.getRectValue; @docsEditable true
   Rect getRectValue() native;
@@ -1450,7 +1457,8 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
   final CSSRule parentRule;
 
   /// @domName CSSStyleDeclaration.getPropertyCSSValue; @docsEditable true
-  CSSValue getPropertyCssValue(String propertyName) native "getPropertyCSSValue";
+  @JSName('getPropertyCSSValue')
+  CSSValue getPropertyCssValue(String propertyName) native;
 
   /// @domName CSSStyleDeclaration.getPropertyPriority; @docsEditable true
   String getPropertyPriority(String propertyName) native;
@@ -1459,7 +1467,8 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
   String getPropertyShorthand(String propertyName) native;
 
   /// @domName CSSStyleDeclaration._getPropertyValue; @docsEditable true
-  String _getPropertyValue(String propertyName) native "getPropertyValue";
+  @JSName('getPropertyValue')
+  String _getPropertyValue(String propertyName) native;
 
   /// @domName CSSStyleDeclaration.isPropertyImplicit; @docsEditable true
   bool isPropertyImplicit(String propertyName) native;
@@ -4785,7 +4794,8 @@ class CanvasElement extends Element implements Element native "*HTMLCanvasElemen
   int width;
 
   /// @domName HTMLCanvasElement.toDataURL; @docsEditable true
-  String toDataUrl(String type, [num quality]) native "toDataURL";
+  @JSName('toDataURL')
+  String toDataUrl(String type, [num quality]) native;
 
 
   CanvasRenderingContext getContext(String contextId) native;
@@ -4925,10 +4935,12 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+  @JSName('createImageData')
   @Creates('ImageData|=Object')
-  _createImageData_1(imagedata) native "createImageData";
+  _createImageData_1(imagedata) native;
+  @JSName('createImageData')
   @Creates('ImageData|=Object')
-  _createImageData_2(num sw, sh) native "createImageData";
+  _createImageData_2(num sw, sh) native;
 
   /// @domName CanvasRenderingContext2D.createLinearGradient; @docsEditable true
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
@@ -4958,8 +4970,9 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   ImageData getImageData(num sx, num sy, num sw, num sh) {
     return _convertNativeToDart_ImageData(_getImageData_1(sx, sy, sw, sh));
   }
+  @JSName('getImageData')
   @Creates('ImageData|=Object')
-  _getImageData_1(sx, sy, sw, sh) native "getImageData";
+  _getImageData_1(sx, sy, sw, sh) native;
 
   /// @domName CanvasRenderingContext2D.getLineDash; @docsEditable true
   List<num> getLineDash() native;
@@ -4991,8 +5004,10 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
     return;
     throw new ArgumentError("Incorrect number or type of arguments");
   }
-  void _putImageData_1(imagedata, dx, dy) native "putImageData";
-  void _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "putImageData";
+  @JSName('putImageData')
+  void _putImageData_1(imagedata, dx, dy) native;
+  @JSName('putImageData')
+  void _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native;
 
   /// @domName CanvasRenderingContext2D.quadraticCurveTo; @docsEditable true
   void quadraticCurveTo(num cpx, num cpy, num x, num y) native;
@@ -5058,8 +5073,9 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) {
     return _convertNativeToDart_ImageData(_webkitGetImageDataHD_1(sx, sy, sw, sh));
   }
+  @JSName('webkitGetImageDataHD')
   @Creates('ImageData|=Object')
-  _webkitGetImageDataHD_1(sx, sy, sw, sh) native "webkitGetImageDataHD";
+  _webkitGetImageDataHD_1(sx, sy, sw, sh) native;
 
   /// @domName CanvasRenderingContext2D.webkitPutImageDataHD; @docsEditable true
   void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
@@ -5076,8 +5092,10 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
     return;
     throw new ArgumentError("Incorrect number or type of arguments");
   }
-  void _webkitPutImageDataHD_1(imagedata, dx, dy) native "webkitPutImageDataHD";
-  void _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "webkitPutImageDataHD";
+  @JSName('webkitPutImageDataHD')
+  void _webkitPutImageDataHD_1(imagedata, dx, dy) native;
+  @JSName('webkitPutImageDataHD')
+  void _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native;
 
 
   /**
@@ -5356,7 +5374,7 @@ class ContentElement extends Element implements Element native "*HTMLContentElem
   String select;
 
   /// @domName HTMLContentElement.getDistributedNodes; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
+  @Returns('NodeList') @Creates('NodeList')
   List<Node> getDistributedNodes() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5447,7 +5465,8 @@ class CustomEvent extends Event native "*CustomEvent" {
   final Object detail;
 
   /// @domName CustomEvent.initCustomEvent; @docsEditable true
-  void $dom_initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native "initCustomEvent";
+  @JSName('initCustomEvent')
+  void $dom_initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5494,13 +5513,16 @@ class DOMApplicationCache extends EventTarget native "*DOMApplicationCache" {
   void abort() native;
 
   /// @domName DOMApplicationCache.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName DOMApplicationCache.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event evt) native;
 
   /// @domName DOMApplicationCache.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName DOMApplicationCache.swapCache; @docsEditable true
   void swapCache() native;
@@ -5646,7 +5668,8 @@ class DOMFileSystemSync native "*DOMFileSystemSync" {
 class DOMImplementation native "*DOMImplementation" {
 
   /// @domName DOMImplementation.createCSSStyleSheet; @docsEditable true
-  CSSStyleSheet createCssStyleSheet(String title, String media) native "createCSSStyleSheet";
+  @JSName('createCSSStyleSheet')
+  CSSStyleSheet createCssStyleSheet(String title, String media) native;
 
   /// @domName DOMImplementation.createDocument; @docsEditable true
   Document createDocument(String namespaceURI, String qualifiedName, DocumentType doctype) native;
@@ -5655,7 +5678,8 @@ class DOMImplementation native "*DOMImplementation" {
   DocumentType createDocumentType(String qualifiedName, String publicId, String systemId) native;
 
   /// @domName DOMImplementation.createHTMLDocument; @docsEditable true
-  HtmlDocument createHtmlDocument(String title) native "createHTMLDocument";
+  @JSName('createHTMLDocument')
+  HtmlDocument createHtmlDocument(String title) native;
 
   /// @domName DOMImplementation.hasFeature; @docsEditable true
   bool hasFeature(String feature, String version) native;
@@ -6250,8 +6274,10 @@ class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerConte
     _postMessage_2(message_2);
     return;
   }
-  void _postMessage_1(message, List messagePorts) native "postMessage";
-  void _postMessage_2(message) native "postMessage";
+  @JSName('postMessage')
+  void _postMessage_1(message, List messagePorts) native;
+  @JSName('postMessage')
+  void _postMessage_2(message) native;
 }
 
 class DedicatedWorkerContextEvents extends WorkerContextEvents {
@@ -6359,10 +6385,14 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
     _getDirectory_4(path);
     return;
   }
-  void _getDirectory_1(path, options, EntryCallback successCallback, ErrorCallback errorCallback) native "getDirectory";
-  void _getDirectory_2(path, options, EntryCallback successCallback) native "getDirectory";
-  void _getDirectory_3(path, options) native "getDirectory";
-  void _getDirectory_4(path) native "getDirectory";
+  @JSName('getDirectory')
+  void _getDirectory_1(path, options, EntryCallback successCallback, ErrorCallback errorCallback) native;
+  @JSName('getDirectory')
+  void _getDirectory_2(path, options, EntryCallback successCallback) native;
+  @JSName('getDirectory')
+  void _getDirectory_3(path, options) native;
+  @JSName('getDirectory')
+  void _getDirectory_4(path) native;
 
   /// @domName DirectoryEntry.getFile; @docsEditable true
   void getFile(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) {
@@ -6384,10 +6414,14 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
     _getFile_4(path);
     return;
   }
-  void _getFile_1(path, options, EntryCallback successCallback, ErrorCallback errorCallback) native "getFile";
-  void _getFile_2(path, options, EntryCallback successCallback) native "getFile";
-  void _getFile_3(path, options) native "getFile";
-  void _getFile_4(path) native "getFile";
+  @JSName('getFile')
+  void _getFile_1(path, options, EntryCallback successCallback, ErrorCallback errorCallback) native;
+  @JSName('getFile')
+  void _getFile_2(path, options, EntryCallback successCallback) native;
+  @JSName('getFile')
+  void _getFile_3(path, options) native;
+  @JSName('getFile')
+  void _getFile_4(path) native;
 
   /// @domName DirectoryEntry.removeRecursively; @docsEditable true
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]) native;
@@ -6408,14 +6442,16 @@ class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
     var flags_1 = _convertDartToNative_Dictionary(flags);
     return _getDirectory_1(path, flags_1);
   }
-  DirectoryEntrySync _getDirectory_1(path, flags) native "getDirectory";
+  @JSName('getDirectory')
+  DirectoryEntrySync _getDirectory_1(path, flags) native;
 
   /// @domName DirectoryEntrySync.getFile; @docsEditable true
   FileEntrySync getFile(String path, Map flags) {
     var flags_1 = _convertDartToNative_Dictionary(flags);
     return _getFile_1(path, flags_1);
   }
-  FileEntrySync _getFile_1(path, flags) native "getFile";
+  @JSName('getFile')
+  FileEntrySync _getFile_1(path, flags) native;
 
   /// @domName DirectoryEntrySync.removeRecursively; @docsEditable true
   void removeRecursively() native;
@@ -6489,12 +6525,8 @@ class Document extends Node  native "*Document"
     new DocumentEvents(this);
 
   /// @domName Document.body; @docsEditable true
-  Element get $dom_body => JS("Element", "#.body", this);
-
-  /// @domName Document.body; @docsEditable true
-  void set $dom_body(Element value) {
-    JS("void", "#.body = #", this, value);
-  }
+  @JSName('body')
+  Element $dom_body;
 
   /// @domName Document.charset; @docsEditable true
   String charset;
@@ -6504,7 +6536,9 @@ class Document extends Node  native "*Document"
 
   /// @domName Document.defaultView; @docsEditable true
   Window get window => _convertNativeToDart_Window(this._window);
-  dynamic get _window => JS("dynamic", "#.defaultView", this);
+  @JSName('defaultView')
+  @Creates('LocalWindow|=Object') @Returns('LocalWindow|=Object')
+  final dynamic _window;
 
   /// @domName Document.documentElement; @docsEditable true
   final Element documentElement;
@@ -6513,13 +6547,15 @@ class Document extends Node  native "*Document"
   final String domain;
 
   /// @domName Document.head; @docsEditable true
-  HeadElement get $dom_head => JS("HeadElement", "#.head", this);
+  @JSName('head')
+  final HeadElement $dom_head;
 
   /// @domName Document.implementation; @docsEditable true
   final DOMImplementation implementation;
 
   /// @domName Document.lastModified; @docsEditable true
-  String get $dom_lastModified => JS("String", "#.lastModified", this);
+  @JSName('lastModified')
+  final String $dom_lastModified;
 
   /// @domName Document.preferredStylesheetSet; @docsEditable true
   final String preferredStylesheetSet;
@@ -6528,97 +6564,116 @@ class Document extends Node  native "*Document"
   final String readyState;
 
   /// @domName Document.referrer; @docsEditable true
-  String get $dom_referrer => JS("String", "#.referrer", this);
+  @JSName('referrer')
+  final String $dom_referrer;
 
   /// @domName Document.selectedStylesheetSet; @docsEditable true
   String selectedStylesheetSet;
 
   /// @domName Document.styleSheets; @docsEditable true
-  List<StyleSheet> get $dom_styleSheets => JS("_StyleSheetList", "#.styleSheets", this);
+  @JSName('styleSheets')
+  @Returns('_StyleSheetList') @Creates('_StyleSheetList')
+  final List<StyleSheet> $dom_styleSheets;
 
   /// @domName Document.title; @docsEditable true
-  String get $dom_title => JS("String", "#.title", this);
-
-  /// @domName Document.title; @docsEditable true
-  void set $dom_title(String value) {
-    JS("void", "#.title = #", this, value);
-  }
+  @JSName('title')
+  String $dom_title;
 
   /// @domName Document.webkitFullscreenElement; @docsEditable true
-  Element get $dom_webkitFullscreenElement => JS("Element", "#.webkitFullscreenElement", this);
+  @JSName('webkitFullscreenElement')
+  final Element $dom_webkitFullscreenElement;
 
   /// @domName Document.webkitFullscreenEnabled; @docsEditable true
-  bool get $dom_webkitFullscreenEnabled => JS("bool", "#.webkitFullscreenEnabled", this);
+  @JSName('webkitFullscreenEnabled')
+  final bool $dom_webkitFullscreenEnabled;
 
   /// @domName Document.webkitHidden; @docsEditable true
-  bool get $dom_webkitHidden => JS("bool", "#.webkitHidden", this);
+  @JSName('webkitHidden')
+  final bool $dom_webkitHidden;
 
   /// @domName Document.webkitIsFullScreen; @docsEditable true
-  bool get $dom_webkitIsFullScreen => JS("bool", "#.webkitIsFullScreen", this);
+  @JSName('webkitIsFullScreen')
+  final bool $dom_webkitIsFullScreen;
 
   /// @domName Document.webkitPointerLockElement; @docsEditable true
-  Element get $dom_webkitPointerLockElement => JS("Element", "#.webkitPointerLockElement", this);
+  @JSName('webkitPointerLockElement')
+  final Element $dom_webkitPointerLockElement;
 
   /// @domName Document.webkitVisibilityState; @docsEditable true
-  String get $dom_webkitVisibilityState => JS("String", "#.webkitVisibilityState", this);
+  @JSName('webkitVisibilityState')
+  final String $dom_webkitVisibilityState;
 
   /// @domName Document.caretRangeFromPoint; @docsEditable true
-  Range $dom_caretRangeFromPoint(int x, int y) native "caretRangeFromPoint";
+  @JSName('caretRangeFromPoint')
+  Range $dom_caretRangeFromPoint(int x, int y) native;
 
   /// @domName Document.createCDATASection; @docsEditable true
-  CDATASection createCDataSection(String data) native "createCDATASection";
+  @JSName('createCDATASection')
+  CDATASection createCDataSection(String data) native;
 
   /// @domName Document.createDocumentFragment; @docsEditable true
   DocumentFragment createDocumentFragment() native;
 
   /// @domName Document.createElement; @docsEditable true
-  Element $dom_createElement(String tagName) native "createElement";
+  @JSName('createElement')
+  Element $dom_createElement(String tagName) native;
 
   /// @domName Document.createElementNS; @docsEditable true
-  Element $dom_createElementNS(String namespaceURI, String qualifiedName) native "createElementNS";
+  @JSName('createElementNS')
+  Element $dom_createElementNS(String namespaceURI, String qualifiedName) native;
 
   /// @domName Document.createEvent; @docsEditable true
-  Event $dom_createEvent(String eventType) native "createEvent";
+  @JSName('createEvent')
+  Event $dom_createEvent(String eventType) native;
 
   /// @domName Document.createRange; @docsEditable true
   Range createRange() native;
 
   /// @domName Document.createTextNode; @docsEditable true
-  Text $dom_createTextNode(String data) native "createTextNode";
+  @JSName('createTextNode')
+  Text $dom_createTextNode(String data) native;
 
   /// @domName Document.createTouch; @docsEditable true
   Touch createTouch(LocalWindow window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) {
     var target_1 = _convertDartToNative_EventTarget(target);
     return _createTouch_1(window, target_1, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
   }
-  Touch _createTouch_1(LocalWindow window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native "createTouch";
+  @JSName('createTouch')
+  Touch _createTouch_1(LocalWindow window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native;
 
   /// @domName Document.createTouchList; @docsEditable true
-  TouchList $dom_createTouchList() native "createTouchList";
+  @JSName('createTouchList')
+  TouchList $dom_createTouchList() native;
 
   /// @domName Document.elementFromPoint; @docsEditable true
-  Element $dom_elementFromPoint(int x, int y) native "elementFromPoint";
+  @JSName('elementFromPoint')
+  Element $dom_elementFromPoint(int x, int y) native;
 
   /// @domName Document.execCommand; @docsEditable true
   bool execCommand(String command, bool userInterface, String value) native;
 
   /// @domName Document.getCSSCanvasContext; @docsEditable true
-  CanvasRenderingContext getCssCanvasContext(String contextId, String name, int width, int height) native "getCSSCanvasContext";
+  @JSName('getCSSCanvasContext')
+  CanvasRenderingContext getCssCanvasContext(String contextId, String name, int width, int height) native;
 
   /// @domName Document.getElementById; @docsEditable true
-  Element $dom_getElementById(String elementId) native "getElementById";
+  @JSName('getElementById')
+  Element $dom_getElementById(String elementId) native;
 
   /// @domName Document.getElementsByClassName; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
-  List<Node> $dom_getElementsByClassName(String tagname) native "getElementsByClassName";
+  @JSName('getElementsByClassName')
+  @Returns('NodeList') @Creates('NodeList')
+  List<Node> $dom_getElementsByClassName(String tagname) native;
 
   /// @domName Document.getElementsByName; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
-  List<Node> $dom_getElementsByName(String elementName) native "getElementsByName";
+  @JSName('getElementsByName')
+  @Returns('NodeList') @Creates('NodeList')
+  List<Node> $dom_getElementsByName(String elementName) native;
 
   /// @domName Document.getElementsByTagName; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
-  List<Node> $dom_getElementsByTagName(String tagname) native "getElementsByTagName";
+  @JSName('getElementsByTagName')
+  @Returns('NodeList') @Creates('NodeList')
+  List<Node> $dom_getElementsByTagName(String tagname) native;
 
   /// @domName Document.queryCommandEnabled; @docsEditable true
   bool queryCommandEnabled(String command) native;
@@ -6636,20 +6691,25 @@ class Document extends Node  native "*Document"
   String queryCommandValue(String command) native;
 
   /// @domName Document.querySelector; @docsEditable true
-  Element $dom_querySelector(String selectors) native "querySelector";
+  @JSName('querySelector')
+  Element $dom_querySelector(String selectors) native;
 
   /// @domName Document.querySelectorAll; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
-  List<Node> $dom_querySelectorAll(String selectors) native "querySelectorAll";
+  @JSName('querySelectorAll')
+  @Returns('NodeList') @Creates('NodeList')
+  List<Node> $dom_querySelectorAll(String selectors) native;
 
   /// @domName Document.webkitCancelFullScreen; @docsEditable true
-  void $dom_webkitCancelFullScreen() native "webkitCancelFullScreen";
+  @JSName('webkitCancelFullScreen')
+  void $dom_webkitCancelFullScreen() native;
 
   /// @domName Document.webkitExitFullscreen; @docsEditable true
-  void $dom_webkitExitFullscreen() native "webkitExitFullscreen";
+  @JSName('webkitExitFullscreen')
+  void $dom_webkitExitFullscreen() native;
 
   /// @domName Document.webkitExitPointerLock; @docsEditable true
-  void $dom_webkitExitPointerLock() native "webkitExitPointerLock";
+  @JSName('webkitExitPointerLock')
+  void $dom_webkitExitPointerLock() native;
 
   // TODO(jacobr): implement all Element methods not on Document.
 
@@ -6969,11 +7029,13 @@ class DocumentFragment extends Node native "*DocumentFragment" {
     new ElementEvents(this);
 
   /// @domName DocumentFragment.querySelector; @docsEditable true
-  Element $dom_querySelector(String selectors) native "querySelector";
+  @JSName('querySelector')
+  Element $dom_querySelector(String selectors) native;
 
   /// @domName DocumentFragment.querySelectorAll; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
-  List<Node> $dom_querySelectorAll(String selectors) native "querySelectorAll";
+  @JSName('querySelectorAll')
+  @Returns('NodeList') @Creates('NodeList')
+  List<Node> $dom_querySelectorAll(String selectors) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7516,8 +7578,8 @@ abstract class Element extends Node implements ElementTraversal native "*Element
     }
   }
 
-  void _insertAdjacentText(String where, String text)
-      native 'insertAdjacentText';
+  @JSName('insertAdjacentText')
+  void _insertAdjacentText(String where, String text) native;
 
   /** @domName Element.insertAdjacentHTML */
   void insertAdjacentHtml(String where, String text) {
@@ -7528,8 +7590,8 @@ abstract class Element extends Node implements ElementTraversal native "*Element
     }
   }
 
-  void _insertAdjacentHtml(String where, String text)
-      native 'insertAdjacentHTML';
+  @JSName('insertAdjacentHTML')
+  void _insertAdjacentHTML(String where, String text) native;
 
   /** @domName Element.insertAdjacentHTML */
   Element insertAdjacentElement(String where, Element element) {
@@ -7541,8 +7603,8 @@ abstract class Element extends Node implements ElementTraversal native "*Element
     return element;
   }
 
-  void _insertAdjacentElement(String where, Element element)
-      native 'insertAdjacentElement';
+  @JSName('insertAdjacentElement')
+  void _insertAdjacentElement(String where, Element element) native;
 
   void _insertAdjacentNode(String where, Node node) {
     switch (where.toLowerCase()) {
@@ -7570,7 +7632,8 @@ abstract class Element extends Node implements ElementTraversal native "*Element
     new ElementEvents(this);
 
   /// @domName HTMLElement.children; @docsEditable true
-  HTMLCollection get $dom_children => JS("HTMLCollection", "#.children", this);
+  @JSName('children')
+  final HTMLCollection $dom_children;
 
   /// @domName HTMLElement.contentEditable; @docsEditable true
   String contentEditable;
@@ -7588,12 +7651,8 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   String id;
 
   /// @domName HTMLElement.innerHTML; @docsEditable true
-  String get innerHtml => JS("String", "#.innerHTML", this);
-
-  /// @domName HTMLElement.innerHTML; @docsEditable true
-  void set innerHtml(String value) {
-    JS("void", "#.innerHTML = #", this, value);
-  }
+  @JSName('innerHTML')
+  String innerHtml;
 
   /// @domName HTMLElement.isContentEditable; @docsEditable true
   final bool isContentEditable;
@@ -7602,7 +7661,8 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   String lang;
 
   /// @domName HTMLElement.outerHTML; @docsEditable true
-  String get outerHtml => JS("String", "#.outerHTML", this);
+  @JSName('outerHTML')
+  final String outerHtml;
 
   /// @domName HTMLElement.spellcheck; @docsEditable true
   bool spellcheck;
@@ -7625,15 +7685,12 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   static const int ALLOW_KEYBOARD_INPUT = 1;
 
   /// @domName Element.childElementCount; @docsEditable true
-  int get $dom_childElementCount => JS("int", "#.childElementCount", this);
+  @JSName('childElementCount')
+  final int $dom_childElementCount;
 
   /// @domName Element.className; @docsEditable true
-  String get $dom_className => JS("String", "#.className", this);
-
-  /// @domName Element.className; @docsEditable true
-  void set $dom_className(String value) {
-    JS("void", "#.className = #", this, value);
-  }
+  @JSName('className')
+  String $dom_className;
 
   /// @domName Element.clientHeight; @docsEditable true
   final int clientHeight;
@@ -7651,10 +7708,12 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   final Map<String, String> dataset;
 
   /// @domName Element.firstElementChild; @docsEditable true
-  Element get $dom_firstElementChild => JS("Element", "#.firstElementChild", this);
+  @JSName('firstElementChild')
+  final Element $dom_firstElementChild;
 
   /// @domName Element.lastElementChild; @docsEditable true
-  Element get $dom_lastElementChild => JS("Element", "#.lastElementChild", this);
+  @JSName('lastElementChild')
+  final Element $dom_lastElementChild;
 
   /// @domName Element.nextElementSibling; @docsEditable true
   final Element nextElementSibling;
@@ -7702,10 +7761,12 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   void focus() native;
 
   /// @domName Element.getAttribute; @docsEditable true
-  String $dom_getAttribute(String name) native "getAttribute";
+  @JSName('getAttribute')
+  String $dom_getAttribute(String name) native;
 
   /// @domName Element.getAttributeNS; @docsEditable true
-  String $dom_getAttributeNS(String namespaceURI, String localName) native "getAttributeNS";
+  @JSName('getAttributeNS')
+  String $dom_getAttributeNS(String namespaceURI, String localName) native;
 
   /// @domName Element.getBoundingClientRect; @docsEditable true
   ClientRect getBoundingClientRect() native;
@@ -7715,31 +7776,39 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   List<ClientRect> getClientRects() native;
 
   /// @domName Element.getElementsByClassName; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
-  List<Node> $dom_getElementsByClassName(String name) native "getElementsByClassName";
+  @JSName('getElementsByClassName')
+  @Returns('NodeList') @Creates('NodeList')
+  List<Node> $dom_getElementsByClassName(String name) native;
 
   /// @domName Element.getElementsByTagName; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
-  List<Node> $dom_getElementsByTagName(String name) native "getElementsByTagName";
+  @JSName('getElementsByTagName')
+  @Returns('NodeList') @Creates('NodeList')
+  List<Node> $dom_getElementsByTagName(String name) native;
 
   /// @domName Element.hasAttribute; @docsEditable true
-  bool $dom_hasAttribute(String name) native "hasAttribute";
+  @JSName('hasAttribute')
+  bool $dom_hasAttribute(String name) native;
 
   /// @domName Element.hasAttributeNS; @docsEditable true
-  bool $dom_hasAttributeNS(String namespaceURI, String localName) native "hasAttributeNS";
+  @JSName('hasAttributeNS')
+  bool $dom_hasAttributeNS(String namespaceURI, String localName) native;
 
   /// @domName Element.querySelector; @docsEditable true
-  Element $dom_querySelector(String selectors) native "querySelector";
+  @JSName('querySelector')
+  Element $dom_querySelector(String selectors) native;
 
   /// @domName Element.querySelectorAll; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
-  List<Node> $dom_querySelectorAll(String selectors) native "querySelectorAll";
+  @JSName('querySelectorAll')
+  @Returns('NodeList') @Creates('NodeList')
+  List<Node> $dom_querySelectorAll(String selectors) native;
 
   /// @domName Element.removeAttribute; @docsEditable true
-  void $dom_removeAttribute(String name) native "removeAttribute";
+  @JSName('removeAttribute')
+  void $dom_removeAttribute(String name) native;
 
   /// @domName Element.removeAttributeNS; @docsEditable true
-  void $dom_removeAttributeNS(String namespaceURI, String localName) native "removeAttributeNS";
+  @JSName('removeAttributeNS')
+  void $dom_removeAttributeNS(String namespaceURI, String localName) native;
 
   /// @domName Element.scrollByLines; @docsEditable true
   void scrollByLines(int lines) native;
@@ -7748,16 +7817,20 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   void scrollByPages(int pages) native;
 
   /// @domName Element.scrollIntoViewIfNeeded; @docsEditable true
-  void scrollIntoView([bool centerIfNeeded]) native "scrollIntoViewIfNeeded";
+  @JSName('scrollIntoViewIfNeeded')
+  void scrollIntoView([bool centerIfNeeded]) native;
 
   /// @domName Element.setAttribute; @docsEditable true
-  void $dom_setAttribute(String name, String value) native "setAttribute";
+  @JSName('setAttribute')
+  void $dom_setAttribute(String name, String value) native;
 
   /// @domName Element.setAttributeNS; @docsEditable true
-  void $dom_setAttributeNS(String namespaceURI, String qualifiedName, String value) native "setAttributeNS";
+  @JSName('setAttributeNS')
+  void $dom_setAttributeNS(String namespaceURI, String qualifiedName, String value) native;
 
   /// @domName Element.webkitMatchesSelector; @docsEditable true
-  bool matchesSelector(String selectors) native "webkitMatchesSelector";
+  @JSName('webkitMatchesSelector')
+  bool matchesSelector(String selectors) native;
 
   /// @domName Element.webkitRequestFullScreen; @docsEditable true
   void webkitRequestFullScreen(int flags) native;
@@ -8067,7 +8140,8 @@ class Entry native "*Entry" {
   void remove(VoidCallback successCallback, [ErrorCallback errorCallback]) native;
 
   /// @domName Entry.toURL; @docsEditable true
-  String toUrl() native "toURL";
+  @JSName('toURL')
+  String toUrl() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8116,7 +8190,8 @@ class EntrySync native "*EntrySync" {
   void remove() native;
 
   /// @domName EntrySync.toURL; @docsEditable true
-  String toUrl() native "toURL";
+  @JSName('toURL')
+  String toUrl() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8215,7 +8290,9 @@ class Event native "*Event" {
 
   /// @domName Event.currentTarget; @docsEditable true
   EventTarget get currentTarget => _convertNativeToDart_EventTarget(this._currentTarget);
-  dynamic get _currentTarget => JS("dynamic", "#.currentTarget", this);
+  @JSName('currentTarget')
+  @Creates('EventTarget|=Object') @Returns('EventTarget|=Object')
+  final dynamic _currentTarget;
 
   /// @domName Event.defaultPrevented; @docsEditable true
   final bool defaultPrevented;
@@ -8228,7 +8305,9 @@ class Event native "*Event" {
 
   /// @domName Event.target; @docsEditable true
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
-  dynamic get _target => JS("dynamic", "#.target", this);
+  @JSName('target')
+  @Creates('EventTarget|=Object') @Returns('EventTarget|=Object')
+  final dynamic _target;
 
   /// @domName Event.timeStamp; @docsEditable true
   final int timeStamp;
@@ -8237,7 +8316,8 @@ class Event native "*Event" {
   final String type;
 
   /// @domName Event.initEvent; @docsEditable true
-  void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) native "initEvent";
+  @JSName('initEvent')
+  void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) native;
 
   /// @domName Event.preventDefault; @docsEditable true
   void preventDefault() native;
@@ -8300,16 +8380,19 @@ class EventSource extends EventTarget native "*EventSource" {
   final String url;
 
   /// @domName EventSource.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName EventSource.close; @docsEditable true
   void close() native;
 
   /// @domName EventSource.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event evt) native;
 
   /// @domName EventSource.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class EventSourceEvents extends Events {
@@ -8378,13 +8461,16 @@ class EventTarget native "*EventTarget" {
   Events get on => new Events(this);
 
   /// @domName EventTarget.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName EventTarget.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event event) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event event) native;
 
   /// @domName EventTarget.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8593,10 +8679,12 @@ class FileReader extends EventTarget native "*FileReader" {
   void abort() native;
 
   /// @domName FileReader.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName FileReader.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event evt) native;
 
   /// @domName FileReader.readAsArrayBuffer; @docsEditable true
   void readAsArrayBuffer(Blob blob) native;
@@ -8605,13 +8693,15 @@ class FileReader extends EventTarget native "*FileReader" {
   void readAsBinaryString(Blob blob) native;
 
   /// @domName FileReader.readAsDataURL; @docsEditable true
-  void readAsDataUrl(Blob blob) native "readAsDataURL";
+  @JSName('readAsDataURL')
+  void readAsDataUrl(Blob blob) native;
 
   /// @domName FileReader.readAsText; @docsEditable true
   void readAsText(Blob blob, [String encoding]) native;
 
   /// @domName FileReader.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class FileReaderEvents extends Events {
@@ -8646,7 +8736,8 @@ class FileReaderSync native "*FileReaderSync" {
   String readAsBinaryString(Blob blob) native;
 
   /// @domName FileReaderSync.readAsDataURL; @docsEditable true
-  String readAsDataUrl(Blob blob) native "readAsDataURL";
+  @JSName('readAsDataURL')
+  String readAsDataUrl(Blob blob) native;
 
   /// @domName FileReaderSync.readAsText; @docsEditable true
   String readAsText(Blob blob, [String encoding]) native;
@@ -8693,13 +8784,16 @@ class FileWriter extends EventTarget native "*FileWriter" {
   void abort() native;
 
   /// @domName FileWriter.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName FileWriter.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event evt) native;
 
   /// @domName FileWriter.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName FileWriter.seek; @docsEditable true
   void seek(int position) native;
@@ -8862,7 +8956,8 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   // -- end List<num> mixins.
 
   /// @domName Float32Array.setElements; @docsEditable true
-  void setElements(Object array, [int offset]) native "set";
+  @JSName('set')
+  void setElements(Object array, [int offset]) native;
 
   /// @domName Float32Array.subarray; @docsEditable true
   Float32Array subarray(int start, [int end]) native;
@@ -8972,7 +9067,8 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   // -- end List<num> mixins.
 
   /// @domName Float64Array.setElements; @docsEditable true
-  void setElements(Object array, [int offset]) native "set";
+  @JSName('set')
+  void setElements(Object array, [int offset]) native;
 
   /// @domName Float64Array.subarray; @docsEditable true
   Float64Array subarray(int start, [int end]) native;
@@ -9071,7 +9167,9 @@ class FrameElement extends Element implements Element native "*HTMLFrameElement"
 
   /// @domName HTMLFrameElement.contentWindow; @docsEditable true
   Window get contentWindow => _convertNativeToDart_Window(this._contentWindow);
-  dynamic get _contentWindow => JS("dynamic", "#.contentWindow", this);
+  @JSName('contentWindow')
+  @Creates('LocalWindow|=Object') @Returns('LocalWindow|=Object')
+  final dynamic _contentWindow;
 
   /// @domName HTMLFrameElement.frameBorder; @docsEditable true
   String frameBorder;
@@ -9344,7 +9442,7 @@ class HTMLAllCollection implements JavaScriptIndexingBehavior, List<Node> native
   Node namedItem(String name) native;
 
   /// @domName HTMLAllCollection.tags; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
+  @Returns('NodeList') @Creates('NodeList')
   List<Node> tags(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9481,10 +9579,12 @@ class HTMLOptionsCollection extends HTMLCollection native "*HTMLOptionsCollectio
 class HashChangeEvent extends Event native "*HashChangeEvent" {
 
   /// @domName HashChangeEvent.newURL; @docsEditable true
-  String get newUrl => JS("String", "#.newURL", this);
+  @JSName('newURL')
+  final String newUrl;
 
   /// @domName HashChangeEvent.oldURL; @docsEditable true
-  String get oldUrl => JS("String", "#.oldURL", this);
+  @JSName('oldURL')
+  final String oldUrl;
 
   /// @domName HashChangeEvent.initHashChangeEvent; @docsEditable true
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native;
@@ -9666,7 +9766,8 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   String responseType;
 
   /// @domName XMLHttpRequest.responseXML; @docsEditable true
-  Document get responseXml => JS("Document", "#.responseXML", this);
+  @JSName('responseXML')
+  final Document responseXml;
 
   /// @domName XMLHttpRequest.status; @docsEditable true
   final int status;
@@ -9684,10 +9785,12 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   void abort() native;
 
   /// @domName XMLHttpRequest.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName XMLHttpRequest.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event evt) native;
 
   /// @domName XMLHttpRequest.getAllResponseHeaders; @docsEditable true
   String getAllResponseHeaders() native;
@@ -9702,7 +9805,8 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   void overrideMimeType(String override) native;
 
   /// @domName XMLHttpRequest.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName XMLHttpRequest.send; @docsEditable true
   void send([data]) native;
@@ -9780,13 +9884,16 @@ class HttpRequestUpload extends EventTarget native "*XMLHttpRequestUpload" {
     new HttpRequestUploadEvents(this);
 
   /// @domName XMLHttpRequestUpload.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName XMLHttpRequestUpload.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event evt) native;
 
   /// @domName XMLHttpRequestUpload.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class HttpRequestUploadEvents extends Events {
@@ -9854,8 +9961,10 @@ class IDBCursor native "*IDBCursor" {
     _continueFunction_2();
     return;
   }
-  void _continueFunction_1(key) native "continue";
-  void _continueFunction_2() native "continue";
+  @JSName('continue')
+  void _continueFunction_1(key) native;
+  @JSName('continue')
+  void _continueFunction_2() native;
 
   /// @domName IDBCursor.delete; @docsEditable true
   IDBRequest delete() native;
@@ -9865,7 +9974,8 @@ class IDBCursor native "*IDBCursor" {
     var value_1 = _convertDartToNative_SerializedScriptValue(value);
     return _update_1(value_1);
   }
-  IDBRequest _update_1(value) native "update";
+  @JSName('update')
+  IDBRequest _update_1(value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9923,7 +10033,8 @@ class IDBDatabase extends EventTarget native "*IDBDatabase" {
     return db._transaction(stores, intMode);
   }
 
-  IDBTransaction _transaction(stores, mode) native 'transaction';
+  @JSName('transaction')
+  IDBTransaction _transaction(stores, mode) native;
 
   static bool _hasNumericMode(txn) =>
       JS('bool', 'typeof(#.mode) === "number"', txn);
@@ -9944,7 +10055,8 @@ class IDBDatabase extends EventTarget native "*IDBDatabase" {
   final dynamic version;
 
   /// @domName IDBDatabase.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName IDBDatabase.close; @docsEditable true
   void close() native;
@@ -9957,17 +10069,21 @@ class IDBDatabase extends EventTarget native "*IDBDatabase" {
     }
     return _createObjectStore_2(name);
   }
-  IDBObjectStore _createObjectStore_1(name, options) native "createObjectStore";
-  IDBObjectStore _createObjectStore_2(name) native "createObjectStore";
+  @JSName('createObjectStore')
+  IDBObjectStore _createObjectStore_1(name, options) native;
+  @JSName('createObjectStore')
+  IDBObjectStore _createObjectStore_2(name) native;
 
   /// @domName IDBDatabase.deleteObjectStore; @docsEditable true
   void deleteObjectStore(String name) native;
 
   /// @domName IDBDatabase.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event evt) native;
 
   /// @domName IDBDatabase.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName IDBDatabase.setVersion; @docsEditable true
   IDBVersionChangeRequest setVersion(String version) native;
@@ -10046,7 +10162,8 @@ class IDBFactory native "*IDBFactory" {
     var second_2 = _convertDartToNative_IDBKey(second);
     return _cmp_1(first_1, second_2);
   }
-  int _cmp_1(first, second) native "cmp";
+  @JSName('cmp')
+  int _cmp_1(first, second) native;
 
   /// @domName IDBFactory.deleteDatabase; @docsEditable true
   IDBVersionChangeRequest deleteDatabase(String name) native;
@@ -10095,9 +10212,12 @@ class IDBIndex native "*IDBIndex" {
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
-  IDBRequest _count_1() native "count";
-  IDBRequest _count_2(IDBKeyRange range) native "count";
-  IDBRequest _count_3(key) native "count";
+  @JSName('count')
+  IDBRequest _count_1() native;
+  @JSName('count')
+  IDBRequest _count_2(IDBKeyRange range) native;
+  @JSName('count')
+  IDBRequest _count_3(key) native;
 
   /// @domName IDBIndex.get; @docsEditable true
   IDBRequest get(key) {
@@ -10110,10 +10230,12 @@ class IDBIndex native "*IDBIndex" {
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+  @JSName('get')
   @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue
-  IDBRequest _get_1(IDBKeyRange key) native "get";
+  IDBRequest _get_1(IDBKeyRange key) native;
+  @JSName('get')
   @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue
-  IDBRequest _get_2(key) native "get";
+  IDBRequest _get_2(key) native;
 
   /// @domName IDBIndex.getKey; @docsEditable true
   IDBRequest getKey(key) {
@@ -10126,10 +10248,12 @@ class IDBIndex native "*IDBIndex" {
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+  @JSName('getKey')
   @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue @Creates('IDBObjectStore')
-  IDBRequest _getKey_1(IDBKeyRange key) native "getKey";
+  IDBRequest _getKey_1(IDBKeyRange key) native;
+  @JSName('getKey')
   @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue @Creates('IDBObjectStore')
-  IDBRequest _getKey_2(key) native "getKey";
+  IDBRequest _getKey_2(key) native;
 
   /// @domName IDBIndex.openCursor; @docsEditable true
   IDBRequest openCursor([key_OR_range, String direction]) {
@@ -10155,16 +10279,21 @@ class IDBIndex native "*IDBIndex" {
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+  @JSName('openCursor')
   @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openCursor_1() native "openCursor";
+  IDBRequest _openCursor_1() native;
+  @JSName('openCursor')
   @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openCursor_2(IDBKeyRange range) native "openCursor";
+  IDBRequest _openCursor_2(IDBKeyRange range) native;
+  @JSName('openCursor')
   @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openCursor_3(IDBKeyRange range, direction) native "openCursor";
+  IDBRequest _openCursor_3(IDBKeyRange range, direction) native;
+  @JSName('openCursor')
   @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openCursor_4(key) native "openCursor";
+  IDBRequest _openCursor_4(key) native;
+  @JSName('openCursor')
   @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openCursor_5(key, direction) native "openCursor";
+  IDBRequest _openCursor_5(key, direction) native;
 
   /// @domName IDBIndex.openKeyCursor; @docsEditable true
   IDBRequest openKeyCursor([key_OR_range, String direction]) {
@@ -10190,16 +10319,21 @@ class IDBIndex native "*IDBIndex" {
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+  @JSName('openKeyCursor')
   @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openKeyCursor_1() native "openKeyCursor";
+  IDBRequest _openKeyCursor_1() native;
+  @JSName('openKeyCursor')
   @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openKeyCursor_2(IDBKeyRange range) native "openKeyCursor";
+  IDBRequest _openKeyCursor_2(IDBKeyRange range) native;
+  @JSName('openKeyCursor')
   @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openKeyCursor_3(IDBKeyRange range, direction) native "openKeyCursor";
+  IDBRequest _openKeyCursor_3(IDBKeyRange range, direction) native;
+  @JSName('openKeyCursor')
   @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openKeyCursor_4(key) native "openKeyCursor";
+  IDBRequest _openKeyCursor_4(key) native;
+  @JSName('openKeyCursor')
   @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openKeyCursor_5(key, direction) native "openKeyCursor";
+  IDBRequest _openKeyCursor_5(key, direction) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10245,14 +10379,16 @@ class IDBKeyRange native "*IDBKeyRange" {
 
   /// @domName IDBKeyRange.lower; @docsEditable true
   dynamic get lower => _convertNativeToDart_IDBKey(this._lower);
-  dynamic get _lower => JS("dynamic", "#.lower", this);
+  @JSName('lower')
+  final dynamic _lower;
 
   /// @domName IDBKeyRange.lowerOpen; @docsEditable true
   final bool lowerOpen;
 
   /// @domName IDBKeyRange.upper; @docsEditable true
   dynamic get upper => _convertNativeToDart_IDBKey(this._upper);
-  dynamic get _upper => JS("dynamic", "#.upper", this);
+  @JSName('upper')
+  final dynamic _upper;
 
   /// @domName IDBKeyRange.upperOpen; @docsEditable true
   final bool upperOpen;
@@ -10273,9 +10409,12 @@ class IDBKeyRange native "*IDBKeyRange" {
     var upper_6 = _convertDartToNative_IDBKey(upper);
     return _bound__3(lower_5, upper_6);
   }
-  static IDBKeyRange _bound__1(lower, upper, lowerOpen, upperOpen) native "bound";
-  static IDBKeyRange _bound__2(lower, upper, lowerOpen) native "bound";
-  static IDBKeyRange _bound__3(lower, upper) native "bound";
+  @JSName('bound')
+  static IDBKeyRange _bound__1(lower, upper, lowerOpen, upperOpen) native;
+  @JSName('bound')
+  static IDBKeyRange _bound__2(lower, upper, lowerOpen) native;
+  @JSName('bound')
+  static IDBKeyRange _bound__3(lower, upper) native;
 
   /// @domName IDBKeyRange.lowerBound_; @docsEditable true
   static IDBKeyRange lowerBound_(/*IDBKey*/ bound, [bool open]) {
@@ -10286,15 +10425,18 @@ class IDBKeyRange native "*IDBKeyRange" {
     var bound_2 = _convertDartToNative_IDBKey(bound);
     return _lowerBound__2(bound_2);
   }
-  static IDBKeyRange _lowerBound__1(bound, open) native "lowerBound";
-  static IDBKeyRange _lowerBound__2(bound) native "lowerBound";
+  @JSName('lowerBound')
+  static IDBKeyRange _lowerBound__1(bound, open) native;
+  @JSName('lowerBound')
+  static IDBKeyRange _lowerBound__2(bound) native;
 
   /// @domName IDBKeyRange.only_; @docsEditable true
   static IDBKeyRange only_(/*IDBKey*/ value) {
     var value_1 = _convertDartToNative_IDBKey(value);
     return _only__1(value_1);
   }
-  static IDBKeyRange _only__1(value) native "only";
+  @JSName('only')
+  static IDBKeyRange _only__1(value) native;
 
   /// @domName IDBKeyRange.upperBound_; @docsEditable true
   static IDBKeyRange upperBound_(/*IDBKey*/ bound, [bool open]) {
@@ -10305,8 +10447,10 @@ class IDBKeyRange native "*IDBKeyRange" {
     var bound_2 = _convertDartToNative_IDBKey(bound);
     return _upperBound__2(bound_2);
   }
-  static IDBKeyRange _upperBound__1(bound, open) native "upperBound";
-  static IDBKeyRange _upperBound__2(bound) native "upperBound";
+  @JSName('upperBound')
+  static IDBKeyRange _upperBound__1(bound, open) native;
+  @JSName('upperBound')
+  static IDBKeyRange _upperBound__2(bound) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10343,10 +10487,12 @@ class IDBObjectStore native "*IDBObjectStore" {
     var value_3 = _convertDartToNative_SerializedScriptValue(value);
     return _add_2(value_3);
   }
+  @JSName('add')
   @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_IDBKey
-  IDBRequest _add_1(value, key) native "add";
+  IDBRequest _add_1(value, key) native;
+  @JSName('add')
   @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_IDBKey
-  IDBRequest _add_2(value) native "add";
+  IDBRequest _add_2(value) native;
 
   /// @domName IDBObjectStore.clear; @docsEditable true
   IDBRequest clear() native;
@@ -10365,9 +10511,12 @@ class IDBObjectStore native "*IDBObjectStore" {
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
-  IDBRequest _count_1() native "count";
-  IDBRequest _count_2(IDBKeyRange range) native "count";
-  IDBRequest _count_3(key) native "count";
+  @JSName('count')
+  IDBRequest _count_1() native;
+  @JSName('count')
+  IDBRequest _count_2(IDBKeyRange range) native;
+  @JSName('count')
+  IDBRequest _count_3(key) native;
 
   /// @domName IDBObjectStore.createIndex; @docsEditable true
   IDBIndex createIndex(String name, keyPath, [Map options]) {
@@ -10391,10 +10540,14 @@ class IDBObjectStore native "*IDBObjectStore" {
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
-  IDBIndex _createIndex_1(name, List keyPath) native "createIndex";
-  IDBIndex _createIndex_2(name, List keyPath, options) native "createIndex";
-  IDBIndex _createIndex_3(name, String keyPath) native "createIndex";
-  IDBIndex _createIndex_4(name, String keyPath, options) native "createIndex";
+  @JSName('createIndex')
+  IDBIndex _createIndex_1(name, List keyPath) native;
+  @JSName('createIndex')
+  IDBIndex _createIndex_2(name, List keyPath, options) native;
+  @JSName('createIndex')
+  IDBIndex _createIndex_3(name, String keyPath) native;
+  @JSName('createIndex')
+  IDBIndex _createIndex_4(name, String keyPath, options) native;
 
   /// @domName IDBObjectStore.delete; @docsEditable true
   IDBRequest delete(key_OR_keyRange) {
@@ -10407,8 +10560,10 @@ class IDBObjectStore native "*IDBObjectStore" {
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
-  IDBRequest _delete_1(IDBKeyRange keyRange) native "delete";
-  IDBRequest _delete_2(key) native "delete";
+  @JSName('delete')
+  IDBRequest _delete_1(IDBKeyRange keyRange) native;
+  @JSName('delete')
+  IDBRequest _delete_2(key) native;
 
   /// @domName IDBObjectStore.deleteIndex; @docsEditable true
   void deleteIndex(String name) native;
@@ -10424,10 +10579,12 @@ class IDBObjectStore native "*IDBObjectStore" {
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+  @JSName('get')
   @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue
-  IDBRequest _getObject_1(IDBKeyRange key) native "get";
+  IDBRequest _getObject_1(IDBKeyRange key) native;
+  @JSName('get')
   @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_SerializedScriptValue
-  IDBRequest _getObject_2(key) native "get";
+  IDBRequest _getObject_2(key) native;
 
   /// @domName IDBObjectStore.index; @docsEditable true
   IDBIndex index(String name) native;
@@ -10456,16 +10613,21 @@ class IDBObjectStore native "*IDBObjectStore" {
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+  @JSName('openCursor')
   @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openCursor_1() native "openCursor";
+  IDBRequest _openCursor_1() native;
+  @JSName('openCursor')
   @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openCursor_2(IDBKeyRange range) native "openCursor";
+  IDBRequest _openCursor_2(IDBKeyRange range) native;
+  @JSName('openCursor')
   @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openCursor_3(IDBKeyRange range, direction) native "openCursor";
+  IDBRequest _openCursor_3(IDBKeyRange range, direction) native;
+  @JSName('openCursor')
   @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openCursor_4(key) native "openCursor";
+  IDBRequest _openCursor_4(key) native;
+  @JSName('openCursor')
   @Returns('IDBRequest') @Creates('IDBRequest') @Creates('IDBCursor')
-  IDBRequest _openCursor_5(key, direction) native "openCursor";
+  IDBRequest _openCursor_5(key, direction) native;
 
   /// @domName IDBObjectStore.put; @docsEditable true
   IDBRequest put(/*any*/ value, [/*IDBKey*/ key]) {
@@ -10477,10 +10639,12 @@ class IDBObjectStore native "*IDBObjectStore" {
     var value_3 = _convertDartToNative_SerializedScriptValue(value);
     return _put_2(value_3);
   }
+  @JSName('put')
   @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_IDBKey
-  IDBRequest _put_1(value, key) native "put";
+  IDBRequest _put_1(value, key) native;
+  @JSName('put')
   @Returns('IDBRequest') @Creates('IDBRequest') @_annotation_Creates_IDBKey
-  IDBRequest _put_2(value) native "put";
+  IDBRequest _put_2(value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10525,7 +10689,9 @@ class IDBRequest extends EventTarget native "*IDBRequest" {
 
   /// @domName IDBRequest.result; @docsEditable true
   dynamic get result => _convertNativeToDart_IDBAny(this._result);
-  dynamic get _result => JS("dynamic", "#.result", this);
+  @JSName('result')
+  @Creates('Null')
+  final dynamic _result;
 
   /// @domName IDBRequest.source; @docsEditable true
   @Creates('Null')
@@ -10538,13 +10704,16 @@ class IDBRequest extends EventTarget native "*IDBRequest" {
   final String webkitErrorMessage;
 
   /// @domName IDBRequest.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName IDBRequest.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event evt) native;
 
   /// @domName IDBRequest.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class IDBRequestEvents extends Events {
@@ -10585,16 +10754,19 @@ class IDBTransaction extends EventTarget native "*IDBTransaction" {
   void abort() native;
 
   /// @domName IDBTransaction.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName IDBTransaction.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event evt) native;
 
   /// @domName IDBTransaction.objectStore; @docsEditable true
   IDBObjectStore objectStore(String name) native;
 
   /// @domName IDBTransaction.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class IDBTransactionEvents extends Events {
@@ -10664,7 +10836,9 @@ class IFrameElement extends Element implements Element native "*HTMLIFrameElemen
 
   /// @domName HTMLIFrameElement.contentWindow; @docsEditable true
   Window get contentWindow => _convertNativeToDart_Window(this._contentWindow);
-  dynamic get _contentWindow => JS("dynamic", "#.contentWindow", this);
+  @JSName('contentWindow')
+  @Creates('LocalWindow|=Object') @Returns('LocalWindow|=Object')
+  final dynamic _contentWindow;
 
   /// @domName HTMLIFrameElement.frameBorder; @docsEditable true
   String frameBorder;
@@ -10893,7 +11067,7 @@ class InputElement extends Element implements Element native "*HTMLInputElement"
   bool indeterminate;
 
   /// @domName HTMLInputElement.labels; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
+  @Returns('NodeList') @Creates('NodeList')
   final List<Node> labels;
 
   /// @domName HTMLInputElement.list; @docsEditable true
@@ -11116,7 +11290,8 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   // -- end List<int> mixins.
 
   /// @domName Int16Array.setElements; @docsEditable true
-  void setElements(Object array, [int offset]) native "set";
+  @JSName('set')
+  void setElements(Object array, [int offset]) native;
 
   /// @domName Int16Array.subarray; @docsEditable true
   Int16Array subarray(int start, [int end]) native;
@@ -11226,7 +11401,8 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   // -- end List<int> mixins.
 
   /// @domName Int32Array.setElements; @docsEditable true
-  void setElements(Object array, [int offset]) native "set";
+  @JSName('set')
+  void setElements(Object array, [int offset]) native;
 
   /// @domName Int32Array.subarray; @docsEditable true
   Int32Array subarray(int start, [int end]) native;
@@ -11336,7 +11512,8 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
   // -- end List<int> mixins.
 
   /// @domName Int8Array.setElements; @docsEditable true
-  void setElements(Object array, [int offset]) native "set";
+  @JSName('set')
+  void setElements(Object array, [int offset]) native;
 
   /// @domName Int8Array.subarray; @docsEditable true
   Int8Array subarray(int start, [int end]) native;
@@ -11450,7 +11627,7 @@ class KeygenElement extends Element implements Element native "*HTMLKeygenElemen
   String keytype;
 
   /// @domName HTMLKeygenElement.labels; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
+  @Returns('NodeList') @Creates('NodeList')
   final List<Node> labels;
 
   /// @domName HTMLKeygenElement.name; @docsEditable true
@@ -11580,7 +11757,10 @@ class LocalHistory implements History native "*History" {
   final int length;
 
   /// @domName History.state; @docsEditable true
-  final dynamic state;
+  dynamic get state => _convertNativeToDart_SerializedScriptValue(this._state);
+  @JSName('state')
+  @_annotation_Creates_SerializedScriptValue @_annotation_Returns_SerializedScriptValue
+  final dynamic _state;
 
   /// @domName History.back; @docsEditable true
   void back() native;
@@ -11718,7 +11898,8 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   }
   // Prevent compiled from thinking 'location' property is available for a Dart
   // member.
-  _protect_location() native 'location';
+  @JSName('location')
+  _protect_location() native;
 
   static _isDartLocation(thing) {
     // On Firefox the code that implements 'is Location' fails to find the patch
@@ -11750,11 +11931,11 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
     _cancelAnimationFrame(id);
   }
 
-  int _requestAnimationFrame(RequestAnimationFrameCallback callback)
-      native 'requestAnimationFrame';
+  @JSName('requestAnimationFrame')
+  int _requestAnimationFrame(RequestAnimationFrameCallback callback) native;
 
-  void _cancelAnimationFrame(int id)
-      native 'cancelAnimationFrame';
+  @JSName('cancelAnimationFrame')
+  void _cancelAnimationFrame(int id) native;
 
   _ensureRequestAnimationFrame() {
     if (JS('bool',
@@ -11868,7 +12049,9 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   /// @domName Window.opener; @docsEditable true
   Window get opener => _convertNativeToDart_Window(this._opener);
-  dynamic get _opener => JS("dynamic", "#.opener", this);
+  @JSName('opener')
+  @Creates('LocalWindow|=Object') @Returns('LocalWindow|=Object')
+  final dynamic _opener;
 
   /// @domName Window.outerHeight; @docsEditable true
   final int outerHeight;
@@ -11887,7 +12070,9 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   /// @domName Window.parent; @docsEditable true
   Window get parent => _convertNativeToDart_Window(this._parent);
-  dynamic get _parent => JS("dynamic", "#.parent", this);
+  @JSName('parent')
+  @Creates('LocalWindow|=Object') @Returns('LocalWindow|=Object')
+  final dynamic _parent;
 
   /// @domName Window.performance; @docsEditable true
   final Performance performance;
@@ -11921,7 +12106,9 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   /// @domName Window.self; @docsEditable true
   Window get self => _convertNativeToDart_Window(this._self);
-  dynamic get _self => JS("dynamic", "#.self", this);
+  @JSName('self')
+  @Creates('LocalWindow|=Object') @Returns('LocalWindow|=Object')
+  final dynamic _self;
 
   /// @domName Window.sessionStorage; @docsEditable true
   final Storage sessionStorage;
@@ -11940,7 +12127,9 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   /// @domName Window.top; @docsEditable true
   Window get top => _convertNativeToDart_Window(this._top);
-  dynamic get _top => JS("dynamic", "#.top", this);
+  @JSName('top')
+  @Creates('LocalWindow|=Object') @Returns('LocalWindow|=Object')
+  final dynamic _top;
 
   /// @domName DOMWindow.webkitIndexedDB; @docsEditable true
   final IDBFactory webkitIndexedDB;
@@ -11953,10 +12142,13 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
 
   /// @domName Window.window; @docsEditable true
   Window get window => _convertNativeToDart_Window(this._window);
-  dynamic get _window => JS("dynamic", "#.window", this);
+  @JSName('window')
+  @Creates('LocalWindow|=Object') @Returns('LocalWindow|=Object')
+  final dynamic _window;
 
   /// @domName Window.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName Window.alert; @docsEditable true
   void alert(String message) native;
@@ -11983,17 +12175,20 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   bool confirm(String message) native;
 
   /// @domName Window.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event evt) native;
 
   /// @domName Window.find; @docsEditable true
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native;
 
   /// @domName Window.getComputedStyle; @docsEditable true
-  CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native "getComputedStyle";
+  @JSName('getComputedStyle')
+  CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native;
 
   /// @domName Window.getMatchedCSSRules; @docsEditable true
+  @JSName('getMatchedCSSRules')
   @Returns('_CSSRuleList') @Creates('_CSSRuleList')
-  List<CSSRule> getMatchedCssRules(Element element, String pseudoElement) native "getMatchedCSSRules";
+  List<CSSRule> getMatchedCssRules(Element element, String pseudoElement) native;
 
   /// @domName Window.getSelection; @docsEditable true
   DOMSelection getSelection() native;
@@ -12026,8 +12221,10 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
-  void _postMessage_1(message, targetOrigin) native "postMessage";
-  void _postMessage_2(message, targetOrigin, List messagePorts) native "postMessage";
+  @JSName('postMessage')
+  void _postMessage_1(message, targetOrigin) native;
+  @JSName('postMessage')
+  void _postMessage_2(message, targetOrigin, List messagePorts) native;
 
   /// @domName Window.print; @docsEditable true
   void print() native;
@@ -12036,7 +12233,8 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   void releaseEvents() native;
 
   /// @domName Window.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName Window.resizeBy; @docsEditable true
   void resizeBy(num x, num y) native;
@@ -12075,7 +12273,8 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native;
 
   /// @domName DOMWindow.webkitResolveLocalFileSystemURL; @docsEditable true
-  void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "webkitResolveLocalFileSystemURL";
+  @JSName('webkitResolveLocalFileSystemURL')
+  void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
 
 }
 
@@ -12332,10 +12531,12 @@ class MediaController extends EventTarget native "*MediaController" {
   num volume;
 
   /// @domName MediaController.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName MediaController.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event evt) native;
 
   /// @domName MediaController.pause; @docsEditable true
   void pause() native;
@@ -12344,7 +12545,8 @@ class MediaController extends EventTarget native "*MediaController" {
   void play() native;
 
   /// @domName MediaController.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12614,7 +12816,8 @@ class MediaKeyError native "*MediaKeyError" {
 class MediaKeyEvent extends Event native "*MediaKeyEvent" {
 
   /// @domName MediaKeyEvent.defaultURL; @docsEditable true
-  String get defaultUrl => JS("String", "#.defaultURL", this);
+  @JSName('defaultURL')
+  final String defaultUrl;
 
   /// @domName MediaKeyEvent.errorCode; @docsEditable true
   final MediaKeyError errorCode;
@@ -12711,19 +12914,22 @@ class MediaSource extends EventTarget native "*MediaSource" {
   final SourceBufferList sourceBuffers;
 
   /// @domName MediaSource.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName MediaSource.addSourceBuffer; @docsEditable true
   SourceBuffer addSourceBuffer(String type) native;
 
   /// @domName MediaSource.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event event) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event event) native;
 
   /// @domName MediaSource.endOfStream; @docsEditable true
   void endOfStream(String error) native;
 
   /// @domName MediaSource.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName MediaSource.removeSourceBuffer; @docsEditable true
   void removeSourceBuffer(SourceBuffer buffer) native;
@@ -12759,13 +12965,16 @@ class MediaStream extends EventTarget native "*MediaStream" {
   final MediaStreamTrackList videoTracks;
 
   /// @domName MediaStream.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName MediaStream.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event event) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event event) native;
 
   /// @domName MediaStream.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class MediaStreamEvents extends Events {
@@ -12826,13 +13035,16 @@ class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
   final int readyState;
 
   /// @domName MediaStreamTrack.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName MediaStreamTrack.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event event) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event event) native;
 
   /// @domName MediaStreamTrack.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class MediaStreamTrackEvents extends Events {
@@ -12874,10 +13086,12 @@ class MediaStreamTrackList extends EventTarget native "*MediaStreamTrackList" {
   void add(MediaStreamTrack track) native;
 
   /// @domName MediaStreamTrackList.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName MediaStreamTrackList.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event event) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event event) native;
 
   /// @domName MediaStreamTrackList.item; @docsEditable true
   MediaStreamTrack item(int index) native;
@@ -12886,7 +13100,8 @@ class MediaStreamTrackList extends EventTarget native "*MediaStreamTrackList" {
   void remove(MediaStreamTrack track) native;
 
   /// @domName MediaStreamTrackList.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class MediaStreamTrackListEvents extends Events {
@@ -12959,7 +13174,9 @@ class MessageEvent extends Event native "*MessageEvent" {
 
   /// @domName MessageEvent.data; @docsEditable true
   dynamic get data => _convertNativeToDart_SerializedScriptValue(this._data);
-  dynamic get _data => JS("dynamic", "#.data", this);
+  @JSName('data')
+  @_annotation_Creates_SerializedScriptValue @_annotation_Returns_SerializedScriptValue
+  final dynamic _data;
 
   /// @domName MessageEvent.lastEventId; @docsEditable true
   final String lastEventId;
@@ -12973,7 +13190,9 @@ class MessageEvent extends Event native "*MessageEvent" {
 
   /// @domName MessageEvent.source; @docsEditable true
   Window get source => _convertNativeToDart_Window(this._source);
-  dynamic get _source => JS("dynamic", "#.source", this);
+  @JSName('source')
+  @Creates('LocalWindow|=Object') @Returns('LocalWindow|=Object')
+  final dynamic _source;
 
   /// @domName MessageEvent.initMessageEvent; @docsEditable true
   void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, LocalWindow sourceArg, List messagePorts) native;
@@ -12994,13 +13213,15 @@ class MessagePort extends EventTarget native "*MessagePort" {
     new MessagePortEvents(this);
 
   /// @domName MessagePort.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName MessagePort.close; @docsEditable true
   void close() native;
 
   /// @domName MessagePort.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event evt) native;
 
   /// @domName MessagePort.postMessage; @docsEditable true
   void postMessage(/*any*/ message, [List messagePorts]) {
@@ -13013,11 +13234,14 @@ class MessagePort extends EventTarget native "*MessagePort" {
     _postMessage_2(message_2);
     return;
   }
-  void _postMessage_1(message, List messagePorts) native "postMessage";
-  void _postMessage_2(message) native "postMessage";
+  @JSName('postMessage')
+  void _postMessage_1(message, List messagePorts) native;
+  @JSName('postMessage')
+  void _postMessage_2(message) native;
 
   /// @domName MessagePort.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName MessagePort.start; @docsEditable true
   void start() native;
@@ -13084,7 +13308,7 @@ class MeterElement extends Element implements Element native "*HTMLMeterElement"
   num high;
 
   /// @domName HTMLMeterElement.labels; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
+  @Returns('NodeList') @Creates('NodeList')
   final List<Node> labels;
 
   /// @domName HTMLMeterElement.low; @docsEditable true
@@ -13160,7 +13384,9 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
 
   /// @domName MouseEvent.relatedTarget; @docsEditable true
   EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._relatedTarget);
-  dynamic get _relatedTarget => JS("dynamic", "#.relatedTarget", this);
+  @JSName('relatedTarget')
+  @Creates('EventTarget|=Object') @Returns('EventTarget|=Object')
+  final dynamic _relatedTarget;
 
   /// @domName MouseEvent.screenX; @docsEditable true
   final int screenX;
@@ -13192,7 +13418,8 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
     _$dom_initMouseEvent_1(type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget_1);
     return;
   }
-  void _$dom_initMouseEvent_1(type, canBubble, cancelable, LocalWindow view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget) native "initMouseEvent";
+  @JSName('initMouseEvent')
+  void _$dom_initMouseEvent_1(type, canBubble, cancelable, LocalWindow view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget) native;
 
 
   int get offsetX {
@@ -13282,7 +13509,8 @@ class MutationObserver native "*MutationObserver" {
     __observe_1(target, options_1);
     return;
   }
-  void __observe_1(Node target, options) native "observe";
+  @JSName('observe')
+  void __observe_1(Node target, options) native;
 
   /// @domName MutationObserver.takeRecords; @docsEditable true
   List<MutationRecord> takeRecords() native;
@@ -13346,7 +13574,8 @@ class MutationObserver native "*MutationObserver" {
   static _fixupList(list) => list;  // TODO: Ensure is a JavaScript Array.
 
   // Call native function with no conversions.
-  void _call(target, options) native 'observe';
+  @JSName('observe')
+  void _call(target, options) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13357,7 +13586,7 @@ class MutationObserver native "*MutationObserver" {
 class MutationRecord native "*MutationRecord" {
 
   /// @domName MutationRecord.addedNodes; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
+  @Returns('NodeList') @Creates('NodeList')
   final List<Node> addedNodes;
 
   /// @domName MutationRecord.attributeName; @docsEditable true
@@ -13376,7 +13605,7 @@ class MutationRecord native "*MutationRecord" {
   final Node previousSibling;
 
   /// @domName MutationRecord.removedNodes; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
+  @Returns('NodeList') @Creates('NodeList')
   final List<Node> removedNodes;
 
   /// @domName MutationRecord.target; @docsEditable true
@@ -13579,8 +13808,10 @@ class Navigator native "*Navigator" {
     _webkitGetUserMedia_2(options_2, successCallback);
     return;
   }
-  void _webkitGetUserMedia_1(options, NavigatorUserMediaSuccessCallback successCallback, NavigatorUserMediaErrorCallback errorCallback) native "webkitGetUserMedia";
-  void _webkitGetUserMedia_2(options, NavigatorUserMediaSuccessCallback successCallback) native "webkitGetUserMedia";
+  @JSName('webkitGetUserMedia')
+  void _webkitGetUserMedia_1(options, NavigatorUserMediaSuccessCallback successCallback, NavigatorUserMediaErrorCallback errorCallback) native;
+  @JSName('webkitGetUserMedia')
+  void _webkitGetUserMedia_2(options, NavigatorUserMediaSuccessCallback successCallback) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13800,60 +14031,71 @@ class Node extends EventTarget native "*Node" {
   static const int TEXT_NODE = 3;
 
   /// @domName Node.attributes; @docsEditable true
-  NamedNodeMap get $dom_attributes => JS("NamedNodeMap", "#.attributes", this);
+  @JSName('attributes')
+  final NamedNodeMap $dom_attributes;
 
   /// @domName Node.childNodes; @docsEditable true
-  List<Node> get $dom_childNodes => JS("_NodeList", "#.childNodes", this);
+  @JSName('childNodes')
+  @Returns('NodeList') @Creates('NodeList')
+  final List<Node> $dom_childNodes;
 
   /// @domName Node.firstChild; @docsEditable true
-  Node get $dom_firstChild => JS("Node", "#.firstChild", this);
+  @JSName('firstChild')
+  final Node $dom_firstChild;
 
   /// @domName Node.lastChild; @docsEditable true
-  Node get $dom_lastChild => JS("Node", "#.lastChild", this);
+  @JSName('lastChild')
+  final Node $dom_lastChild;
 
   /// @domName Node.localName; @docsEditable true
-  String get $dom_localName => JS("String", "#.localName", this);
+  @JSName('localName')
+  final String $dom_localName;
 
   /// @domName Node.namespaceURI; @docsEditable true
-  String get $dom_namespaceUri => JS("String", "#.namespaceURI", this);
+  @JSName('namespaceURI')
+  final String $dom_namespaceUri;
 
   /// @domName Node.nextSibling; @docsEditable true
-  Node get nextNode => JS("Node", "#.nextSibling", this);
+  @JSName('nextSibling')
+  final Node nextNode;
 
   /// @domName Node.nodeType; @docsEditable true
   final int nodeType;
 
   /// @domName Node.ownerDocument; @docsEditable true
-  Document get document => JS("Document", "#.ownerDocument", this);
+  @JSName('ownerDocument')
+  final Document document;
 
   /// @domName Node.parentNode; @docsEditable true
-  Node get parent => JS("Node", "#.parentNode", this);
+  @JSName('parentNode')
+  final Node parent;
 
   /// @domName Node.previousSibling; @docsEditable true
-  Node get previousNode => JS("Node", "#.previousSibling", this);
+  @JSName('previousSibling')
+  final Node previousNode;
 
   /// @domName Node.textContent; @docsEditable true
-  String get text => JS("String", "#.textContent", this);
-
-  /// @domName Node.textContent; @docsEditable true
-  void set text(String value) {
-    JS("void", "#.textContent = #", this, value);
-  }
+  @JSName('textContent')
+  String text;
 
   /// @domName Node.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName Node.appendChild; @docsEditable true
-  Node $dom_appendChild(Node newChild) native "appendChild";
+  @JSName('appendChild')
+  Node $dom_appendChild(Node newChild) native;
 
   /// @domName Node.cloneNode; @docsEditable true
-  Node clone(bool deep) native "cloneNode";
+  @JSName('cloneNode')
+  Node clone(bool deep) native;
 
   /// @domName Node.contains; @docsEditable true
   bool contains(Node other) native;
 
   /// @domName Node.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event event) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event event) native;
 
   /// @domName Node.hasChildNodes; @docsEditable true
   bool hasChildNodes() native;
@@ -13862,13 +14104,16 @@ class Node extends EventTarget native "*Node" {
   Node insertBefore(Node newChild, Node refChild) native;
 
   /// @domName Node.removeChild; @docsEditable true
-  Node $dom_removeChild(Node oldChild) native "removeChild";
+  @JSName('removeChild')
+  Node $dom_removeChild(Node oldChild) native;
 
   /// @domName Node.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName Node.replaceChild; @docsEditable true
-  Node $dom_replaceChild(Node newChild, Node oldChild) native "replaceChild";
+  @JSName('replaceChild')
+  Node $dom_replaceChild(Node newChild, Node oldChild) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13954,6 +14199,106 @@ class NodeIterator native "*NodeIterator" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/// @domName NodeList; @docsEditable true
+class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeList" {
+
+  /// @domName NodeList.length; @docsEditable true
+  final int length;
+
+  Node operator[](int index) => JS("Node", "#[#]", this, index);
+
+  void operator[]=(int index, Node value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<Node> mixins.
+  // Node is the element type.
+
+  // From Iterable<Node>:
+
+  Iterator<Node> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<Node>(this);
+  }
+
+  // From Collection<Node>:
+
+  void add(Node value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(Node value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Node> collection) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  bool contains(Node element) => _Collections.contains(this, element);
+
+  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+
+  Collection map(f(Node element)) => _Collections.map(this, [], f);
+
+  Collection<Node> filter(bool f(Node element)) =>
+     _Collections.filter(this, <Node>[], f);
+
+  bool every(bool f(Node element)) => _Collections.every(this, f);
+
+  bool some(bool f(Node element)) => _Collections.some(this, f);
+
+  bool get isEmpty => this.length == 0;
+
+  // From List<Node>:
+
+  void sort([Comparator<Node> compare = Comparable.compare]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(Node element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Node element, [int start]) {
+    if (start == null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  Node get first => this[0];
+
+  Node get last => this[length - 1];
+
+  Node removeLast() {
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<Node> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Node>[]);
+
+  // -- end List<Node> mixins.
+
+  /// @domName NodeList.item; @docsEditable true
+  @JSName('item')
+  Node _item(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 /// @domName Notation; @docsEditable true
 class Notation extends Node native "*Notation" {
 
@@ -13995,7 +14340,8 @@ class Notification extends EventTarget native "*Notification" {
   String tag;
 
   /// @domName Notification.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName Notification.cancel; @docsEditable true
   void cancel() native;
@@ -14004,10 +14350,12 @@ class Notification extends EventTarget native "*Notification" {
   void close() native;
 
   /// @domName Notification.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event evt) native;
 
   /// @domName Notification.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName Notification.requestPermission; @docsEditable true
   static void requestPermission(NotificationPermissionCallback callback) native;
@@ -14041,7 +14389,8 @@ class NotificationCenter native "*NotificationCenter" {
   int checkPermission() native;
 
   /// @domName NotificationCenter.createHTMLNotification; @docsEditable true
-  Notification createHtmlNotification(String url) native "createHTMLNotification";
+  @JSName('createHTMLNotification')
+  Notification createHtmlNotification(String url) native;
 
   /// @domName NotificationCenter.createNotification; @docsEditable true
   Notification createNotification(String iconUrl, String title, String body) native;
@@ -14094,16 +14443,20 @@ class OESVertexArrayObject native "*OESVertexArrayObject" {
   static const int VERTEX_ARRAY_BINDING_OES = 0x85B5;
 
   /// @domName OESVertexArrayObject.bindVertexArrayOES; @docsEditable true
-  void bindVertexArray(WebGLVertexArrayObjectOES arrayObject) native "bindVertexArrayOES";
+  @JSName('bindVertexArrayOES')
+  void bindVertexArray(WebGLVertexArrayObjectOES arrayObject) native;
 
   /// @domName OESVertexArrayObject.createVertexArrayOES; @docsEditable true
-  WebGLVertexArrayObjectOES createVertexArray() native "createVertexArrayOES";
+  @JSName('createVertexArrayOES')
+  WebGLVertexArrayObjectOES createVertexArray() native;
 
   /// @domName OESVertexArrayObject.deleteVertexArrayOES; @docsEditable true
-  void deleteVertexArray(WebGLVertexArrayObjectOES arrayObject) native "deleteVertexArrayOES";
+  @JSName('deleteVertexArrayOES')
+  void deleteVertexArray(WebGLVertexArrayObjectOES arrayObject) native;
 
   /// @domName OESVertexArrayObject.isVertexArrayOES; @docsEditable true
-  bool isVertexArray(WebGLVertexArrayObjectOES arrayObject) native "isVertexArrayOES";
+  @JSName('isVertexArrayOES')
+  bool isVertexArray(WebGLVertexArrayObjectOES arrayObject) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14342,7 +14695,7 @@ class OutputElement extends Element implements Element native "*HTMLOutputElemen
   DOMSettableTokenList htmlFor;
 
   /// @domName HTMLOutputElement.labels; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
+  @Returns('NodeList') @Creates('NodeList')
   final List<Node> labels;
 
   /// @domName HTMLOutputElement.name; @docsEditable true
@@ -14574,7 +14927,8 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
   final List<MediaStream> remoteStreams;
 
   /// @domName PeerConnection00.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName PeerConnection00.addStream; @docsEditable true
   void addStream(MediaStream stream, [Map mediaStreamHints]) {
@@ -14586,8 +14940,10 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
     _addStream_2(stream);
     return;
   }
-  void _addStream_1(MediaStream stream, mediaStreamHints) native "addStream";
-  void _addStream_2(MediaStream stream) native "addStream";
+  @JSName('addStream')
+  void _addStream_1(MediaStream stream, mediaStreamHints) native;
+  @JSName('addStream')
+  void _addStream_2(MediaStream stream) native;
 
   /// @domName PeerConnection00.close; @docsEditable true
   void close() native;
@@ -14600,8 +14956,10 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
     }
     return _createAnswer_2(offer);
   }
-  SessionDescription _createAnswer_1(offer, mediaHints) native "createAnswer";
-  SessionDescription _createAnswer_2(offer) native "createAnswer";
+  @JSName('createAnswer')
+  SessionDescription _createAnswer_1(offer, mediaHints) native;
+  @JSName('createAnswer')
+  SessionDescription _createAnswer_2(offer) native;
 
   /// @domName PeerConnection00.createOffer; @docsEditable true
   SessionDescription createOffer([Map mediaHints]) {
@@ -14611,17 +14969,21 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
     }
     return _createOffer_2();
   }
-  SessionDescription _createOffer_1(mediaHints) native "createOffer";
-  SessionDescription _createOffer_2() native "createOffer";
+  @JSName('createOffer')
+  SessionDescription _createOffer_1(mediaHints) native;
+  @JSName('createOffer')
+  SessionDescription _createOffer_2() native;
 
   /// @domName PeerConnection00.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event event) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event event) native;
 
   /// @domName PeerConnection00.processIceMessage; @docsEditable true
   void processIceMessage(IceCandidate candidate) native;
 
   /// @domName PeerConnection00.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName PeerConnection00.removeStream; @docsEditable true
   void removeStream(MediaStream stream) native;
@@ -14642,8 +15004,10 @@ class PeerConnection00 extends EventTarget native "*PeerConnection00" {
     _startIce_2();
     return;
   }
-  void _startIce_1(iceOptions) native "startIce";
-  void _startIce_2() native "startIce";
+  @JSName('startIce')
+  void _startIce_1(iceOptions) native;
+  @JSName('startIce')
+  void _startIce_2() native;
 }
 
 class PeerConnection00Events extends Events {
@@ -14800,7 +15164,9 @@ class PopStateEvent extends Event native "*PopStateEvent" {
 
   /// @domName PopStateEvent.state; @docsEditable true
   dynamic get state => _convertNativeToDart_SerializedScriptValue(this._state);
-  dynamic get _state => JS("dynamic", "#.state", this);
+  @JSName('state')
+  @_annotation_Creates_SerializedScriptValue @_annotation_Returns_SerializedScriptValue
+  final dynamic _state;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14882,7 +15248,7 @@ class ProgressElement extends Element implements Element native "*HTMLProgressEl
   factory ProgressElement() => document.$dom_createElement("progress");
 
   /// @domName HTMLProgressElement.labels; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
+  @Returns('NodeList') @Creates('NodeList')
   final List<Node> labels;
 
   /// @domName HTMLProgressElement.max; @docsEditable true
@@ -14967,16 +15333,19 @@ class RTCDataChannel extends EventTarget native "*RTCDataChannel" {
   final bool reliable;
 
   /// @domName RTCDataChannel.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName RTCDataChannel.close; @docsEditable true
   void close() native;
 
   /// @domName RTCDataChannel.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event event) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event event) native;
 
   /// @domName RTCDataChannel.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName RTCDataChannel.send; @docsEditable true
   void send(data) native;
@@ -15082,7 +15451,8 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
   final List<MediaStream> remoteStreams;
 
   /// @domName RTCPeerConnection.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName RTCPeerConnection.addIceCandidate; @docsEditable true
   void addIceCandidate(RTCIceCandidate candidate) native;
@@ -15097,8 +15467,10 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
     _addStream_2(stream);
     return;
   }
-  void _addStream_1(MediaStream stream, mediaConstraints) native "addStream";
-  void _addStream_2(MediaStream stream) native "addStream";
+  @JSName('addStream')
+  void _addStream_1(MediaStream stream, mediaConstraints) native;
+  @JSName('addStream')
+  void _addStream_2(MediaStream stream) native;
 
   /// @domName RTCPeerConnection.close; @docsEditable true
   void close() native;
@@ -15113,8 +15485,10 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
     _createAnswer_2(successCallback, failureCallback);
     return;
   }
-  void _createAnswer_1(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback, mediaConstraints) native "createAnswer";
-  void _createAnswer_2(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback) native "createAnswer";
+  @JSName('createAnswer')
+  void _createAnswer_1(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback, mediaConstraints) native;
+  @JSName('createAnswer')
+  void _createAnswer_2(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback) native;
 
   /// @domName RTCPeerConnection.createDataChannel; @docsEditable true
   RTCDataChannel createDataChannel(String label, [Map options]) {
@@ -15124,8 +15498,10 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
     }
     return _createDataChannel_2(label);
   }
-  RTCDataChannel _createDataChannel_1(label, options) native "createDataChannel";
-  RTCDataChannel _createDataChannel_2(label) native "createDataChannel";
+  @JSName('createDataChannel')
+  RTCDataChannel _createDataChannel_1(label, options) native;
+  @JSName('createDataChannel')
+  RTCDataChannel _createDataChannel_2(label) native;
 
   /// @domName RTCPeerConnection.createOffer; @docsEditable true
   void createOffer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]) {
@@ -15137,17 +15513,21 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
     _createOffer_2(successCallback, failureCallback);
     return;
   }
-  void _createOffer_1(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback, mediaConstraints) native "createOffer";
-  void _createOffer_2(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback) native "createOffer";
+  @JSName('createOffer')
+  void _createOffer_1(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback, mediaConstraints) native;
+  @JSName('createOffer')
+  void _createOffer_2(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback) native;
 
   /// @domName RTCPeerConnection.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event event) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event event) native;
 
   /// @domName RTCPeerConnection.getStats; @docsEditable true
   void getStats(RTCStatsCallback successCallback, MediaStreamTrack selector) native;
 
   /// @domName RTCPeerConnection.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName RTCPeerConnection.removeStream; @docsEditable true
   void removeStream(MediaStream stream) native;
@@ -15174,9 +15554,12 @@ class RTCPeerConnection extends EventTarget native "*RTCPeerConnection" {
     _updateIce_3();
     return;
   }
-  void _updateIce_1(configuration, mediaConstraints) native "updateIce";
-  void _updateIce_2(configuration) native "updateIce";
-  void _updateIce_3() native "updateIce";
+  @JSName('updateIce')
+  void _updateIce_1(configuration, mediaConstraints) native;
+  @JSName('updateIce')
+  void _updateIce_2(configuration) native;
+  @JSName('updateIce')
+  void _updateIce_3() native;
 }
 
 class RTCPeerConnectionEvents extends Events {
@@ -15273,7 +15656,7 @@ class RTCStatsResponse native "*RTCStatsResponse" {
 
 
 /// @domName RadioNodeList; @docsEditable true
-class RadioNodeList extends _NodeList native "*RadioNodeList" {
+class RadioNodeList extends NodeList native "*RadioNodeList" {
 
   /// @domName RadioNodeList.value; @docsEditable true
   String value;
@@ -15625,8 +16008,9 @@ class SQLResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
   Map item(int index) {
     return _convertNativeToDart_Dictionary(_item_1(index));
   }
+  @JSName('item')
   @Creates('=Object')
-  _item_1(index) native "item";
+  _item_1(index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15803,7 +16187,8 @@ class ScriptProfile native "*ScriptProfile" {
 class ScriptProfileNode native "*ScriptProfileNode" {
 
   /// @domName ScriptProfileNode.callUID; @docsEditable true
-  int get callUid => JS("int", "#.callUID", this);
+  @JSName('callUID')
+  final int callUid;
 
   /// @domName ScriptProfileNode.functionName; @docsEditable true
   final String functionName;
@@ -15849,7 +16234,7 @@ class SelectElement extends Element implements Element native "*HTMLSelectElemen
   final FormElement form;
 
   /// @domName HTMLSelectElement.labels; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
+  @Returns('NodeList') @Creates('NodeList')
   final List<Node> labels;
 
   /// @domName HTMLSelectElement.length; @docsEditable true
@@ -15959,29 +16344,29 @@ class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
   bool applyAuthorStyles;
 
   /// @domName ShadowRoot.innerHTML; @docsEditable true
-  String get innerHtml => JS("String", "#.innerHTML", this);
-
-  /// @domName ShadowRoot.innerHTML; @docsEditable true
-  void set innerHtml(String value) {
-    JS("void", "#.innerHTML = #", this, value);
-  }
+  @JSName('innerHTML')
+  String innerHtml;
 
   /// @domName ShadowRoot.resetStyleInheritance; @docsEditable true
   bool resetStyleInheritance;
 
   /// @domName ShadowRoot.cloneNode; @docsEditable true
-  Node clone(bool deep) native "cloneNode";
+  @JSName('cloneNode')
+  Node clone(bool deep) native;
 
   /// @domName ShadowRoot.getElementById; @docsEditable true
-  Element $dom_getElementById(String elementId) native "getElementById";
+  @JSName('getElementById')
+  Element $dom_getElementById(String elementId) native;
 
   /// @domName ShadowRoot.getElementsByClassName; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
-  List<Node> $dom_getElementsByClassName(String className) native "getElementsByClassName";
+  @JSName('getElementsByClassName')
+  @Returns('NodeList') @Creates('NodeList')
+  List<Node> $dom_getElementsByClassName(String className) native;
 
   /// @domName ShadowRoot.getElementsByTagName; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
-  List<Node> $dom_getElementsByTagName(String tagName) native "getElementsByTagName";
+  @JSName('getElementsByTagName')
+  @Returns('NodeList') @Creates('NodeList')
+  List<Node> $dom_getElementsByTagName(String tagName) native;
 
   /// @domName ShadowRoot.getSelection; @docsEditable true
   DOMSelection getSelection() native;
@@ -16145,16 +16530,19 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
   // -- end List<SourceBuffer> mixins.
 
   /// @domName SourceBufferList.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName SourceBufferList.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event event) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event event) native;
 
   /// @domName SourceBufferList.item; @docsEditable true
   SourceBuffer item(int index) native;
 
   /// @domName SourceBufferList.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16367,13 +16755,16 @@ class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
   void abort() native;
 
   /// @domName SpeechRecognition.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName SpeechRecognition.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event evt) native;
 
   /// @domName SpeechRecognition.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName SpeechRecognition.start; @docsEditable true
   void start() native;
@@ -16483,7 +16874,8 @@ class SpeechRecognitionResult native "*SpeechRecognitionResult" {
   final Document emma;
 
   /// @domName SpeechRecognitionResult.finalValue; @docsEditable true
-  bool get finalValue => JS("bool", "#.final", this);
+  @JSName('final')
+  final bool finalValue;
 
   /// @domName SpeechRecognitionResult.length; @docsEditable true
   final int length;
@@ -16547,22 +16939,28 @@ class Storage implements Map<String, String>  native "*Storage" {
   bool get isEmpty => $dom_key(0) == null;
 
   /// @domName Storage.length; @docsEditable true
-  int get $dom_length => JS("int", "#.length", this);
+  @JSName('length')
+  final int $dom_length;
 
   /// @domName Storage.clear; @docsEditable true
-  void $dom_clear() native "clear";
+  @JSName('clear')
+  void $dom_clear() native;
 
   /// @domName Storage.getItem; @docsEditable true
-  String $dom_getItem(String key) native "getItem";
+  @JSName('getItem')
+  String $dom_getItem(String key) native;
 
   /// @domName Storage.key; @docsEditable true
-  String $dom_key(int index) native "key";
+  @JSName('key')
+  String $dom_key(int index) native;
 
   /// @domName Storage.removeItem; @docsEditable true
-  void $dom_removeItem(String key) native "removeItem";
+  @JSName('removeItem')
+  void $dom_removeItem(String key) native;
 
   /// @domName Storage.setItem; @docsEditable true
-  void $dom_setItem(String key, String data) native "setItem";
+  @JSName('setItem')
+  void $dom_setItem(String key, String data) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16891,7 +17289,8 @@ class TableElement extends Element implements Element native "*HTMLTableElement"
     return tbody;
   }
 
-  Element _createTBody() native 'createTBody';
+  @JSName('createTBody')
+  Element _createTBody() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17012,7 +17411,7 @@ class TextAreaElement extends Element implements Element native "*HTMLTextAreaEl
   final FormElement form;
 
   /// @domName HTMLTextAreaElement.labels; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
+  @Returns('NodeList') @Creates('NodeList')
   final List<Node> labels;
 
   /// @domName HTMLTextAreaElement.maxLength; @docsEditable true
@@ -17137,16 +17536,19 @@ class TextTrack extends EventTarget native "*TextTrack" {
   void addCue(TextTrackCue cue) native;
 
   /// @domName TextTrack.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName TextTrack.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event evt) native;
 
   /// @domName TextTrack.removeCue; @docsEditable true
   void removeCue(TextTrackCue cue) native;
 
   /// @domName TextTrack.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class TextTrackEvents extends Events {
@@ -17205,16 +17607,20 @@ class TextTrackCue extends EventTarget native "*TextTrackCue" {
   String vertical;
 
   /// @domName TextTrackCue.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName TextTrackCue.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event evt) native;
 
   /// @domName TextTrackCue.getCueAsHTML; @docsEditable true
-  DocumentFragment getCueAsHtml() native "getCueAsHTML";
+  @JSName('getCueAsHTML')
+  DocumentFragment getCueAsHtml() native;
 
   /// @domName TextTrackCue.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class TextTrackCueEvents extends Events {
@@ -17427,16 +17833,19 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
   // -- end List<TextTrack> mixins.
 
   /// @domName TextTrackList.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName TextTrackList.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event evt) native;
 
   /// @domName TextTrackList.item; @docsEditable true
   TextTrack item(int index) native;
 
   /// @domName TextTrackList.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class TextTrackListEvents extends Events {
@@ -17510,7 +17919,9 @@ class Touch native "*Touch" {
 
   /// @domName Touch.target; @docsEditable true
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
-  dynamic get _target => JS("dynamic", "#.target", this);
+  @JSName('target')
+  @Creates('EventTarget|=Object') @Returns('EventTarget|=Object')
+  final dynamic _target;
 
   /// @domName Touch.webkitForce; @docsEditable true
   final num webkitForce;
@@ -17674,12 +18085,8 @@ class TrackElement extends Element implements Element native "*HTMLTrackElement"
   static const int NONE = 0;
 
   /// @domName HTMLTrackElement.defaultValue; @docsEditable true
-  bool get defaultValue => JS("bool", "#.default", this);
-
-  /// @domName HTMLTrackElement.defaultValue; @docsEditable true
-  void set defaultValue(bool value) {
-    JS("void", "#.default = #", this, value);
-  }
+  @JSName('default')
+  bool defaultValue;
 
   /// @domName HTMLTrackElement.kind; @docsEditable true
   String kind;
@@ -17799,7 +18206,9 @@ class UIEvent extends Event native "*UIEvent" {
 
   /// @domName UIEvent.view; @docsEditable true
   Window get view => _convertNativeToDart_Window(this._view);
-  dynamic get _view => JS("dynamic", "#.view", this);
+  @JSName('view')
+  @Creates('LocalWindow|=Object') @Returns('LocalWindow|=Object')
+  final dynamic _view;
 
   /// @domName UIEvent.which; @docsEditable true
   final int which;
@@ -17928,7 +18337,8 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   // -- end List<int> mixins.
 
   /// @domName Uint16Array.setElements; @docsEditable true
-  void setElements(Object array, [int offset]) native "set";
+  @JSName('set')
+  void setElements(Object array, [int offset]) native;
 
   /// @domName Uint16Array.subarray; @docsEditable true
   Uint16Array subarray(int start, [int end]) native;
@@ -18038,7 +18448,8 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   // -- end List<int> mixins.
 
   /// @domName Uint32Array.setElements; @docsEditable true
-  void setElements(Object array, [int offset]) native "set";
+  @JSName('set')
+  void setElements(Object array, [int offset]) native;
 
   /// @domName Uint32Array.subarray; @docsEditable true
   Uint32Array subarray(int start, [int end]) native;
@@ -18148,7 +18559,8 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   // -- end List<int> mixins.
 
   /// @domName Uint8Array.setElements; @docsEditable true
-  void setElements(Object array, [int offset]) native "set";
+  @JSName('set')
+  void setElements(Object array, [int offset]) native;
 
   /// @domName Uint8Array.subarray; @docsEditable true
   Uint8Array subarray(int start, [int end]) native;
@@ -18174,7 +18586,8 @@ class Uint8ClampedArray extends Uint8Array native "*Uint8ClampedArray" {
   // final int length;
 
   /// @domName Uint8ClampedArray.setElements; @docsEditable true
-  void setElements(Object array, [int offset]) native "set";
+  @JSName('set')
+  void setElements(Object array, [int offset]) native;
 
   /// @domName Uint8ClampedArray.subarray; @docsEditable true
   Uint8ClampedArray subarray(int start, [int end]) native;
@@ -19412,11 +19825,16 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
-  void _texImage2D_1(target, level, internalformat, width, height, int border, format, type, ArrayBufferView pixels) native "texImage2D";
-  void _texImage2D_2(target, level, internalformat, format, type, pixels) native "texImage2D";
-  void _texImage2D_3(target, level, internalformat, format, type, ImageElement image) native "texImage2D";
-  void _texImage2D_4(target, level, internalformat, format, type, CanvasElement canvas) native "texImage2D";
-  void _texImage2D_5(target, level, internalformat, format, type, VideoElement video) native "texImage2D";
+  @JSName('texImage2D')
+  void _texImage2D_1(target, level, internalformat, width, height, int border, format, type, ArrayBufferView pixels) native;
+  @JSName('texImage2D')
+  void _texImage2D_2(target, level, internalformat, format, type, pixels) native;
+  @JSName('texImage2D')
+  void _texImage2D_3(target, level, internalformat, format, type, ImageElement image) native;
+  @JSName('texImage2D')
+  void _texImage2D_4(target, level, internalformat, format, type, CanvasElement canvas) native;
+  @JSName('texImage2D')
+  void _texImage2D_5(target, level, internalformat, format, type, VideoElement video) native;
 
   /// @domName WebGLRenderingContext.texParameterf; @docsEditable true
   void texParameterf(int target, int pname, num param) native;
@@ -19457,11 +19875,16 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
-  void _texSubImage2D_1(target, level, xoffset, yoffset, width, height, int format, type, ArrayBufferView pixels) native "texSubImage2D";
-  void _texSubImage2D_2(target, level, xoffset, yoffset, format, type, pixels) native "texSubImage2D";
-  void _texSubImage2D_3(target, level, xoffset, yoffset, format, type, ImageElement image) native "texSubImage2D";
-  void _texSubImage2D_4(target, level, xoffset, yoffset, format, type, CanvasElement canvas) native "texSubImage2D";
-  void _texSubImage2D_5(target, level, xoffset, yoffset, format, type, VideoElement video) native "texSubImage2D";
+  @JSName('texSubImage2D')
+  void _texSubImage2D_1(target, level, xoffset, yoffset, width, height, int format, type, ArrayBufferView pixels) native;
+  @JSName('texSubImage2D')
+  void _texSubImage2D_2(target, level, xoffset, yoffset, format, type, pixels) native;
+  @JSName('texSubImage2D')
+  void _texSubImage2D_3(target, level, xoffset, yoffset, format, type, ImageElement image) native;
+  @JSName('texSubImage2D')
+  void _texSubImage2D_4(target, level, xoffset, yoffset, format, type, CanvasElement canvas) native;
+  @JSName('texSubImage2D')
+  void _texSubImage2D_5(target, level, xoffset, yoffset, format, type, VideoElement video) native;
 
   /// @domName WebGLRenderingContext.uniform1f; @docsEditable true
   void uniform1f(WebGLUniformLocation location, num x) native;
@@ -19658,25 +20081,28 @@ class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
   final bool overset;
 
   /// @domName WebKitNamedFlow.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName WebKitNamedFlow.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event event) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event event) native;
 
   /// @domName WebKitNamedFlow.getContent; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
+  @Returns('NodeList') @Creates('NodeList')
   List<Node> getContent() native;
 
   /// @domName WebKitNamedFlow.getRegions; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
+  @Returns('NodeList') @Creates('NodeList')
   List<Node> getRegions() native;
 
   /// @domName WebKitNamedFlow.getRegionsByContent; @docsEditable true
-  @Returns('_NodeList') @Creates('_NodeList')
+  @Returns('NodeList') @Creates('NodeList')
   List<Node> getRegionsByContent(Node contentNode) native;
 
   /// @domName WebKitNamedFlow.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19702,7 +20128,8 @@ class WebSocket extends EventTarget native "*WebSocket" {
   static const int OPEN = 1;
 
   /// @domName WebSocket.URL; @docsEditable true
-  String get Url => JS("String", "#.URL", this);
+  @JSName('URL')
+  final String Url;
 
   /// @domName WebSocket.binaryType; @docsEditable true
   String binaryType;
@@ -19723,16 +20150,19 @@ class WebSocket extends EventTarget native "*WebSocket" {
   final String url;
 
   /// @domName WebSocket.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName WebSocket.close; @docsEditable true
   void close([int code, String reason]) native;
 
   /// @domName WebSocket.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event evt) native;
 
   /// @domName WebSocket.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName WebSocket.send; @docsEditable true
   void send(data) native;
@@ -19863,8 +20293,10 @@ class Worker extends AbstractWorker native "*Worker" {
     _postMessage_2(message_2);
     return;
   }
-  void _postMessage_1(message, List messagePorts) native "postMessage";
-  void _postMessage_2(message) native "postMessage";
+  @JSName('postMessage')
+  void _postMessage_1(message, List messagePorts) native;
+  @JSName('postMessage')
+  void _postMessage_2(message) native;
 
   /// @domName Worker.terminate; @docsEditable true
   void terminate() native;
@@ -19910,7 +20342,8 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   final NotificationCenter webkitNotifications;
 
   /// @domName WorkerContext.addEventListener; @docsEditable true
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  @JSName('addEventListener')
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName WorkerContext.clearInterval; @docsEditable true
   void clearInterval(int handle) native;
@@ -19922,7 +20355,8 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   void close() native;
 
   /// @domName WorkerContext.dispatchEvent; @docsEditable true
-  bool $dom_dispatchEvent(Event evt) native "dispatchEvent";
+  @JSName('dispatchEvent')
+  bool $dom_dispatchEvent(Event evt) native;
 
   /// @domName WorkerContext.importScripts; @docsEditable true
   void importScripts() native;
@@ -19934,7 +20368,8 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
   /// @domName WorkerContext.removeEventListener; @docsEditable true
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  @JSName('removeEventListener')
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   /// @domName WorkerContext.setInterval; @docsEditable true
   int setInterval(TimeoutHandler handler, int timeout) native;
@@ -19949,10 +20384,12 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   DOMFileSystemSync webkitRequestFileSystemSync(int type, int size) native;
 
   /// @domName WorkerContext.webkitResolveLocalFileSystemSyncURL; @docsEditable true
-  EntrySync webkitResolveLocalFileSystemSyncUrl(String url) native "webkitResolveLocalFileSystemSyncURL";
+  @JSName('webkitResolveLocalFileSystemSyncURL')
+  EntrySync webkitResolveLocalFileSystemSyncUrl(String url) native;
 
   /// @domName WorkerContext.webkitResolveLocalFileSystemURL; @docsEditable true
-  void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "webkitResolveLocalFileSystemURL";
+  @JSName('webkitResolveLocalFileSystemURL')
+  void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
 }
 
 class WorkerContextEvents extends Events {
@@ -20094,7 +20531,8 @@ class XPathExpression native "*XPathExpression" {
 class XPathNSResolver native "*XPathNSResolver" {
 
   /// @domName XPathNSResolver.lookupNamespaceURI; @docsEditable true
-  String lookupNamespaceUri(String prefix) native "lookupNamespaceURI";
+  @JSName('lookupNamespaceURI')
+  String lookupNamespaceUri(String prefix) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21284,105 +21722,6 @@ class _MutationObserverFactoryProvider {
   //
   // static createMutationObserver(MutationCallback callback) =>
   //    JS('var', 'new (window.MutationObserver)(#)', callback);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName NodeList; @docsEditable true
-class _NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeList" {
-
-  /// @domName NodeList.length; @docsEditable true
-  final int length;
-
-  Node operator[](int index) => JS("Node", "#[#]", this, index);
-
-  void operator[]=(int index, Node value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<Node> mixins.
-  // Node is the element type.
-
-  // From Iterable<Node>:
-
-  Iterator<Node> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<Node>(this);
-  }
-
-  // From Collection<Node>:
-
-  void add(Node value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(Node value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<Node> collection) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  bool contains(Node element) => _Collections.contains(this, element);
-
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
-
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
-
-  Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
-
-  bool every(bool f(Node element)) => _Collections.every(this, f);
-
-  bool some(bool f(Node element)) => _Collections.some(this, f);
-
-  bool get isEmpty => this.length == 0;
-
-  // From List<Node>:
-
-  void sort([Comparator<Node> compare = Comparable.compare]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(Node element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Node element, [int start]) {
-    if (start == null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  Node get first => this[0];
-
-  Node get last => this[length - 1];
-
-  Node removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<Node> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Node>[]);
-
-  // -- end List<Node> mixins.
-
-  /// @domName NodeList.item; @docsEditable true
-  Node _item(int index) native "item";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
