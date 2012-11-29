@@ -29,8 +29,22 @@ class IOClient extends BaseClient {
     connection.maxRedirects = request.maxRedirects;
     connection.onError = (e) {
       async.then((_) {
-        // TODO(nweiz): remove this when issue 4974 is fixed
-        if (completer.future.isComplete) throw e;
+        if (completer.future.isComplete) {
+          // TODO(nweiz): issue 7014 means that connection errors may be routed
+          // here even after onResponse has been called. Since these errors are
+          // also routed to the response input stream, we want to silently
+          // ignore them.
+          //
+          // We test if they're HTTP exceptions to distinguish them from errors
+          // caused by issue 4974 (see below).
+          if (e is HttpException) return;
+
+          // TODO(nweiz): issue 4974 means that any errors that appear in the
+          // onRequest or onResponse callbacks get passed to onError. If the
+          // completer has already fired, we want to re-throw those exceptions
+          // to the top level so that they aren't silently ignored.
+          throw e;
+        }
 
         completer.completeException(e);
       });
@@ -55,7 +69,7 @@ class IOClient extends BaseClient {
       response.headers.forEach((key, value) => headers[key] = value);
 
       completer.complete(new StreamedResponse(
-          response.inputStream,
+          wrapInputStream(response.inputStream),
           response.statusCode,
           response.contentLength,
           headers: headers,
@@ -70,7 +84,7 @@ class IOClient extends BaseClient {
   /// Closes the client. This terminates all active connections. If a client
   /// remains unclosed, the Dart process may not terminate.
   void close() {
-    if (_inner != null) _inner.shutdown();
+    if (_inner != null) _inner.shutdown(force: true);
     _inner = null;
   }
 }
