@@ -4,6 +4,7 @@
 
 #include "vm/dart.h"
 
+#include "vm/code_observers.h"
 #include "vm/dart_api_state.h"
 #include "vm/flags.h"
 #include "vm/freelist.h"
@@ -62,6 +63,7 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
   PortMap::InitOnce();
   FreeListElement::InitOnce();
   Api::InitOnce();
+  CodeObservers::InitOnce();
   // Create the VM isolate and finish the VM initialization.
   ASSERT(thread_pool_ == NULL);
   thread_pool_ = new ThreadPool();
@@ -192,5 +194,6 @@ void Dart::ShutdownIsolate() {
     (callback)(callback_data);
   }
 }
+
 
 }  // namespace dart

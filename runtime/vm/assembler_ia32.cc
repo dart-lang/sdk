@@ -1707,8 +1707,8 @@ void Assembler::DoubleAbs(XmmRegister reg) {
 
 
 void Assembler::EnterFrame(intptr_t frame_size) {
-  if (prolog_offset_ == -1) {
-    prolog_offset_ = CodeSize();
+  if (prologue_offset_ == -1) {
+    prologue_offset_ = CodeSize();
   }
   pushl(EBP);
   movl(EBP, ESP);

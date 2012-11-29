@@ -11,6 +11,7 @@
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_generator.h"
+#include "vm/code_observers.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
 #include "vm/compiler_stats.h"
@@ -18,7 +19,6 @@
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/datastream.h"
-#include "vm/debuginfo.h"
 #include "vm/deopt_instructions.h"
 #include "vm/double_conversion.h"
 #include "vm/exceptions.h"
@@ -35,8 +35,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, generate_gdb_symbols, false,
-    "Generate symbols of generated dart functions for debugging with GDB");
 DEFINE_FLAG(bool, show_internal_names, false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
@@ -7098,46 +7096,12 @@ RawCode* Code::FinalizeCode(const char* name,
   MemoryRegion region(reinterpret_cast<void*>(instrs.EntryPoint()),
                       instrs.size());
   assembler->FinalizeInstructions(region);
-  Dart_FileWriterFunction perf_events_writer = Dart::perf_events_writer();
-  if (perf_events_writer != NULL) {
-    const char* format = "%"Px" %"Px" %s%s\n";
-    uword addr = instrs.EntryPoint();
-    uword size = instrs.size();
-    const char* marker = optimized ? "*" : "";
-    intptr_t len = OS::SNPrint(NULL, 0, format, addr, size, marker, name);
-    char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
-    OS::SNPrint(buffer, len + 1, format, addr, size, marker, name);
-    (*perf_events_writer)(buffer, len);
-  }
-  DebugInfo* pprof_symbol_generator = Dart::pprof_symbol_generator();
-  if (pprof_symbol_generator != NULL) {
-    ASSERT(strlen(name) != 0);
-    pprof_symbol_generator->AddCode(instrs.EntryPoint(), instrs.size());
-    pprof_symbol_generator->AddCodeRegion(name,
-                                          instrs.EntryPoint(),
-                                          instrs.size());
-  }
-  if (FLAG_generate_gdb_symbols) {
-    ASSERT(strlen(name) != 0);
-    intptr_t prolog_offset = assembler->prolog_offset();
-    if (prolog_offset > 0) {
-      // In order to ensure that gdb sees the first instruction of a function
-      // as the prolog sequence we register two symbols for the cases when
-      // the prolog sequence is not the first instruction:
-      // <name>_entry is used for code preceding the prolog sequence.
-      // <name> for rest of the code (first instruction is prolog sequence).
-      const char* kFormat = "%s_%s";
-      intptr_t len = OS::SNPrint(NULL, 0, kFormat, name, "entry");
-      char* pname = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
-      OS::SNPrint(pname, (len + 1), kFormat, name, "entry");
-      DebugInfo::RegisterSection(pname, instrs.EntryPoint(), prolog_offset);
-      DebugInfo::RegisterSection(name,
-                                 (instrs.EntryPoint() + prolog_offset),
-                                 (instrs.size() - prolog_offset));
-    } else {
-      DebugInfo::RegisterSection(name, instrs.EntryPoint(), instrs.size());
-    }
-  }
+
+  CodeObservers::NotifyAll(name,
+                           instrs.EntryPoint(),
+                           assembler->prologue_offset(),
+                           instrs.size(),
+                           optimized);
 
   const ZoneGrowableArray<int>& pointer_offsets =
       assembler->GetPointerOffsets();
@@ -7169,9 +7133,7 @@ RawCode* Code::FinalizeCode(const Function& function,
                             Assembler* assembler,
                             bool optimized) {
   // Calling ToFullyQualifiedCString is very expensive, try to avoid it.
-  if (FLAG_generate_gdb_symbols ||
-      Dart::perf_events_writer() != NULL ||
-      Dart::pprof_symbol_generator() != NULL) {
+  if (CodeObservers::AreActive()) {
     return FinalizeCode(function.ToFullyQualifiedCString(),
                         assembler,
                         optimized);

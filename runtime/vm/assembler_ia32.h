@@ -275,7 +275,7 @@ class CPUFeatures : public AllStatic {
 
 class Assembler : public ValueObject {
  public:
-  Assembler() : buffer_(), prolog_offset_(-1), comments_() { }
+  Assembler() : buffer_(), prologue_offset_(-1), comments_() { }
   ~Assembler() { }
 
   static const bool kNearJump = true;
@@ -603,7 +603,7 @@ class Assembler : public ValueObject {
   void Bind(Label* label);
 
   int CodeSize() const { return buffer_.Size(); }
-  int prolog_offset() const { return prolog_offset_; }
+  int prologue_offset() const { return prologue_offset_; }
   const ZoneGrowableArray<int>& GetPointerOffsets() const {
     return buffer_.pointer_offsets();
   }
@@ -628,7 +628,7 @@ class Assembler : public ValueObject {
 
  private:
   AssemblerBuffer buffer_;
-  int prolog_offset_;
+  int prologue_offset_;
 
   class CodeComment : public ZoneAllocated {
    public:

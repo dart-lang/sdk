@@ -31,7 +31,7 @@
       ],
       'sources/': [
         # Exclude all _test.[cc|h] files.
-        ['exclude', '_test\\.cc|h$'],
+        ['exclude', '_test\\.(cc|h)$'],
       ],
       'include_dirs': [
         '..',
@@ -57,7 +57,24 @@
           'sources/' : [
             ['exclude', 'gdbjit.cc'],
           ],
-       }]],
+       }],
+       ['dart_vtune_support == 0', {
+          'sources/' : [
+            ['exclude', 'vtune\\.(cc|h)$'],
+          ],
+       }],
+       ['OS=="linux" and dart_vtune_support == 1', {
+          # Link in libjitprofiling.a.
+          'cflags': [
+            '-DDART_VTUNE_SUPPORT',
+            '-I<(dart_vtune_root)/include',
+          ],
+          'link_settings': {
+            'libraries': [
+              '-ljitprofiling',
+            ],
+          },
+        }]],
     },
     {
       'target_name': 'libdart_lib_withcore',

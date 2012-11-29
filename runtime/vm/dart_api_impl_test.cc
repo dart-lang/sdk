@@ -2014,7 +2014,7 @@ TEST_CASE(SingleGarbageCollectionCallback) {
   EXPECT_EQ(7, global_epilogue_callback_status);
 
   // Garbage collect old space again.  Callbacks are persistent so the
-  // prolog status value should change again.
+  // prologue status value should change again.
   Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
   EXPECT_EQ(12, global_prologue_callback_status);
   EXPECT_EQ(7, global_epilogue_callback_status);

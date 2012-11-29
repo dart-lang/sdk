@@ -73,7 +73,7 @@ class Assembler {
     UNIMPLEMENTED();
     return 0;
   }
-  int prolog_offset() const {
+  int prologue_offset() const {
     UNIMPLEMENTED();
     return 0;
   }
