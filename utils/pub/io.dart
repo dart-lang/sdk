@@ -163,8 +163,16 @@ Future<File> createFileFromStream(InputStream stream, path) {
     completer.complete(file);
   };
 
+  // TODO(nweiz): remove this when issue 4061 is fixed.
+  var stackTrace;
+  try {
+    throw "";
+  } catch (_, localStackTrace) {
+    stackTrace = localStackTrace;
+  }
+
   completeError(error) {
-    if (!completer.isComplete) completer.completeException(error);
+    if (!completer.isComplete) completer.completeException(error, stackTrace);
   }
 
   stream.onError = completeError;
@@ -251,7 +259,15 @@ Future<List<String>> listDir(dir,
     if (done) completer.complete(contents);
   };
 
-  lister.onError = (error) => completer.completeException(error);
+  // TODO(nweiz): remove this when issue 4061 is fixed.
+  var stackTrace;
+  try {
+    throw "";
+  } catch (_, localStackTrace) {
+    stackTrace = localStackTrace;
+  }
+
+  lister.onError = (error) => completer.completeException(error, stackTrace);
   lister.onDir = (file) => contents.add(file);
   lister.onFile = (file) {
     if (!includeHiddenFiles && basename(file).startsWith('.')) return;
@@ -400,6 +416,14 @@ Future<String> readLine([StringInputStream stream]) {
     stream.onError = null;
   }
 
+  // TODO(nweiz): remove this when issue 4061 is fixed.
+  var stackTrace;
+  try {
+    throw "";
+  } catch (_, localStackTrace) {
+    stackTrace = localStackTrace;
+  }
+
   var completer = new Completer();
   stream.onClosed = () {
     removeCallbacks();
@@ -413,7 +437,7 @@ Future<String> readLine([StringInputStream stream]) {
 
   stream.onError = (e) {
     removeCallbacks();
-    completer.completeException(e);
+    completer.completeException(e, stackTrace);
   };
 
   return completer.future;
@@ -443,6 +467,14 @@ Future<InputStream> httpGet(uri) {
   var client = new HttpClient();
   var connection = client.getUrl(uri);
 
+  // TODO(nweiz): remove this when issue 4061 is fixed.
+  var stackTrace;
+  try {
+    throw "";
+  } catch (_, localStackTrace) {
+    stackTrace = localStackTrace;
+  }
+
   connection.onError = (e) {
     // Show a friendly error if the URL couldn't be resolved.
     if (e is SocketIOException &&
@@ -455,14 +487,15 @@ Future<InputStream> httpGet(uri) {
     }
 
     client.shutdown();
-    completer.completeException(e);
+    completer.completeException(e, stackTrace);
   };
 
   connection.onResponse = (response) {
     if (response.statusCode >= 400) {
       client.shutdown();
       completer.completeException(
-          new PubHttpException(response.statusCode, response.reasonPhrase));
+          new PubHttpException(response.statusCode, response.reasonPhrase),
+          stackTrace);
       return;
     }
 
@@ -505,11 +538,19 @@ Future pipeInputToInput(InputStream source, ListInputStream sink) {
 Future<List<int>> consumeInputStream(InputStream stream) {
   if (stream.closed) return new Future.immediate(<int>[]);
 
+  // TODO(nweiz): remove this when issue 4061 is fixed.
+  var stackTrace;
+  try {
+    throw "";
+  } catch (_, localStackTrace) {
+    stackTrace = localStackTrace;
+  }
+
   var completer = new Completer<List<int>>();
   var buffer = <int>[];
   stream.onClosed = () => completer.complete(buffer);
   stream.onData = () => buffer.addAll(stream.read());
-  stream.onError = (e) => completer.completeException(e);
+  stream.onError = (e) => completer.completeException(e, stackTrace);
   return completer.future;
 }
 
@@ -517,11 +558,19 @@ Future<List<int>> consumeInputStream(InputStream stream) {
 Future<String> consumeStringInputStream(StringInputStream stream) {
   if (stream.closed) return new Future.immediate('');
 
+  // TODO(nweiz): remove this when issue 4061 is fixed.
+  var stackTrace;
+  try {
+    throw "";
+  } catch (_, localStackTrace) {
+    stackTrace = localStackTrace;
+  }
+
   var completer = new Completer<String>();
   var buffer = new StringBuffer();
   stream.onClosed = () => completer.complete(buffer.toString());
   stream.onData = () => buffer.add(stream.read());
-  stream.onError = (e) => completer.completeException(e);
+  stream.onError = (e) => completer.completeException(e, stackTrace);
   return completer.future;
 }
 
@@ -592,8 +641,17 @@ Future _doProcess(Function fn, String executable, List<String> args, workingDir,
 /// Due to issue 6984, it's necessary to drain the request body before closing
 /// the response.
 Future closeHttpResponse(HttpRequest request, HttpResponse response) {
+  // TODO(nweiz): remove this when issue 4061 is fixed.
+  var stackTrace;
+  try {
+    throw "";
+  } catch (_, localStackTrace) {
+    stackTrace = localStackTrace;
+  }
+
   var completer = new Completer();
-  request.inputStream.onError = completer.completeException;
+  request.inputStream.onError = (e) =>
+      completer.completeException(e, stackTrace);
   request.inputStream.onData = request.inputStream.read;
   request.inputStream.onClosed = () {
     response.outputStream.close();
@@ -622,7 +680,7 @@ Future timeout(Future input, int milliseconds, String description) {
   input.handleException((e) {
     if (completer.future.isComplete) return false;
     timer.cancel();
-    completer.completeException(e);
+    completer.completeException(e, input.stackTrace);
     return true;
   });
   input.then((value) {
@@ -729,7 +787,7 @@ Future<bool> extractTarGz(InputStream stream, destination) {
     process.stderr.pipe(stderr, close: false);
   });
   processFuture.handleException((error) {
-    completer.completeException(error);
+    completer.completeException(error, processFuture.stackTrace);
     return true;
   });
 

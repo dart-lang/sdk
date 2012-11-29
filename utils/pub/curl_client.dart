@@ -135,6 +135,14 @@ class CurlClient extends http.BaseClient {
       ]);
     }
 
+    // TODO(nweiz): remove this when issue 4061 is fixed.
+    var stackTrace;
+    try {
+      throw "";
+    } catch (_, localStackTrace) {
+      stackTrace = localStackTrace;
+    }
+
     var completer = new Completer();
     resetCallbacks() {
       process.stdout.onData = null;
@@ -151,7 +159,7 @@ class CurlClient extends http.BaseClient {
     };
     process.stdout.onError = (e) {
       resetCallbacks();
-      completer.completeException(e);
+      completer.completeException(e, stackTrace);
     };
     process.stdout.onClosed = () {
       resetCallbacks();

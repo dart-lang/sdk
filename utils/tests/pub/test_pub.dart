@@ -848,6 +848,14 @@ abstract class Descriptor {
       });
     }
 
+    // TODO(nweiz): remove this when issue 4061 is fixed.
+    var stackTrace;
+    try {
+      throw "";
+    } catch (_, localStackTrace) {
+      stackTrace = localStackTrace;
+    }
+
     return listDir(dir).chain((files) {
       var matches = files.filter((file) => endsWithPattern(file, name));
       if (matches.length == 0) {
@@ -870,7 +878,8 @@ abstract class Descriptor {
         for (var failure in failures) {
           error.add("  ").add(failure).add("\n");
         }
-        completer.completeException(new ExpectException(error.toString()));
+        completer.completeException(
+            new ExpectException(error.toString()), stackTrace);
       }
 
       for (var match in matches) {
