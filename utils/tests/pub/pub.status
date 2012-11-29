@@ -10,7 +10,8 @@
 [ $runtime == drt || $runtime == dartium || $runtime == opera]
 *: Skip
 
+# TODO(nweiz): The "pub lish" and oauth2 tests fail mysteriously on Windows. See
+# issues 7015 and 7016.
 [ $system == windows ]
-# TODO(nweiz): The "pub lish" tests fail mysteriously on Windows as well. See
-# issue 6984.
 pub_lish_test: Fail
+oauth2_test: Fail
