@@ -15,7 +15,7 @@ class Printer implements NodeVisitor {
   final Namer namer;
   bool pendingSemicolon = false;
   bool pendingSpace = false;
-  static final identifierRegexp = new RegExp(r'^[a-zA-Z_0-9$]');
+  static final identifierCharacterRegExp = new RegExp(r'^[a-zA-Z_0-9$]');
 
   Printer(leg.Compiler compiler, { allowVariableMinification: true })
       : shouldCompressOutput = compiler.enableMinification,
@@ -51,7 +51,7 @@ class Printer implements NodeVisitor {
         outBuffer.add(";");
       }
       if (pendingSpace &&
-          (!shouldCompressOutput || identifierRegexp.hasMatch(str))) {
+          (!shouldCompressOutput || identifierCharacterRegExp.hasMatch(str))) {
         outBuffer.add(" ");
       }
       pendingSpace = false;
