@@ -8,6 +8,7 @@
     'assert.cc',
     'hashmap.cc',
     'json.cc',
+    'floating_point_win.cc',
     'thread_android.cc',
     'thread_linux.cc',
     'thread_macos.cc',

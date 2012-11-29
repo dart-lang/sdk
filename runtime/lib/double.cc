@@ -87,7 +87,8 @@ DEFINE_NATIVE_ENTRY(Double_modulo, 2) {
   double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
   GET_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
   double right = right_object.value();
-  double remainder = fmod(left, right);
+
+  double remainder = fmod_ieee(left, right);
   if (remainder == 0.0) {
     // We explicitely switch to the positive 0.0 (just in case it was negative).
     remainder = +0.0;
@@ -106,7 +107,7 @@ DEFINE_NATIVE_ENTRY(Double_remainder, 2) {
   double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
   GET_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
   double right = right_object.value();
-  return Double::New(fmod(left, right));
+  return Double::New(fmod_ieee(left, right));
 }
 
 

@@ -192,7 +192,6 @@ LibTest/core/double/NEGATIVE_INFINITY_A01_t04: Fail # TODO(ahe): Please triage t
 LibTest/core/double/parse_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/Random/nextDouble_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/math/exp_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A11_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A13_t01: Fail # TODO(ahe): Please triage this failure.
@@ -202,6 +201,8 @@ LibTest/math/tan_A01_t01: Fail # TODO(ahe): Please triage this failure.
 # Partially implemented rediriecting constructors makes this fail.
 Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail
 
+[ $compiler == dart2js && ($system == linux || $system == macos)]
+LibTest/math/exp_A01_t01: Fail # TODO(ahe): Please triage this failure.
 
 [ $compiler == dart2js && $unchecked ]
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(ahe): Please triage this failure.
@@ -326,9 +327,6 @@ LibTest/core/int/isOdd_A01_t01: Fail, OK # co19 issue 277
 LibTest/core/int/isEven_A01_t01: Fail, OK # co19 issue 277
 
 Language/09_Generics/09_Generics_A05_t01: Fail # co19 issue 297
-
-[ $compiler == dart2js && $system == windows && $jscl ]
-LibTest/core/double/operator_remainder_A01_t04: Fail
 
 [ $compiler == dart2js ]
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # TODO(ahe): Enforce optional parameter semantics.

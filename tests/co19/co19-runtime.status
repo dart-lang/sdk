@@ -258,15 +258,6 @@ LibTest/math/tan_A01_t01: Fail
 [ $compiler == none && $runtime == vm && $arch == x64 && $mode == debug ]
 LibTest/core/Map/Map_class_A01_t04: Skip # Timeout
 
-[ $compiler == none && $runtime == vm && $system == windows ]
-LibTest/math/atan2_A01_t03: Fail # http://dartbug.com/5407
-LibTest/core/double/operator_remainder_A01_t04: Fail # http://dartbug.com/5407
-LibTest/core/double/remainder_A01_t04: Fail # http://dartbug.com/5407
-LibTest/core/double/round_A01_t01: Fail # http://dartbug.com/5407
-LibTest/core/int/operator_remainder_A01_t02: Fail # TODO(vm-team): Please triage this failure.
-LibTest/core/int/remainder_A01_t02: Fail # TODO(vm-team): Please triage this failure.
-
-
 [ $compiler == none && $runtime == vm ]
 
 # The following tests use the deprecated Date interface.
