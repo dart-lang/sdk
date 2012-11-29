@@ -1019,14 +1019,14 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType analyzeSetNode(Node receiver, ConcreteType argumentType,
-                              SourceString source) {
+                              SourceString name) {
     ConcreteType receiverType = analyze(receiver);
 
-    void augmentField(BaseType baseReceiverType, Element fieldOrSetter) {
-      if (fieldOrSetter.isField()) {
-        inferrer.augmentFieldType(fieldOrSetter, argumentType);
-      } else {
-        AbstractFieldElement abstractField = fieldOrSetter;
+    void augmentField(BaseType baseReceiverType, Element member) {
+      if (member.isField()) {
+        inferrer.augmentFieldType(member, argumentType);
+      } else if (member.isAbstractField()){
+        AbstractFieldElement abstractField = member;
         FunctionElement setter = abstractField.setter;
         // TODO(polux): A setter always returns void so there's no need to
         // invalidate its callers even if it is called with new arguments.
@@ -1037,10 +1037,12 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         inferrer.getSendReturnType(setter, baseReceiverType,
             new ArgumentsTypes([argumentType], new Map()));
       }
+      // since this is a sendSet we ignore non-fields
     }
 
     if (receiverType.isUnkown()) {
-      for (Element member in inferrer.getMembersByName(source)) {
+      for (Element member in inferrer.getMembersByName(name)) {
+        if (!(member.isField() || member.isAbstractField())) continue;
         Element classElem = member.getEnclosingClass();
         BaseType baseReceiverType = new ClassBaseType(classElem);
         augmentField(baseReceiverType, member);
@@ -1049,7 +1051,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       for (BaseType baseReceiverType in receiverType.baseTypes) {
         if (!baseReceiverType.isClass()) continue;
         ClassBaseType baseReceiverClassType = baseReceiverType;
-        Element member = baseReceiverClassType.element.lookupMember(source);
+        Element member = baseReceiverClassType.element.lookupMember(name);
         if (member != null) {
           augmentField(baseReceiverClassType, member);
         }
@@ -1356,22 +1358,24 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       assert(node.receiver != null);
 
       ConcreteType result = new ConcreteType.empty();
-      void augmentResult(BaseType baseReceiverType, Element getterOrField) {
-        if (getterOrField.isField()) {
-          result = result.union(analyzeFieldRead(getterOrField));
-        } else {
+      void augmentResult(BaseType baseReceiverType, Element member) {
+        if (member.isField()) {
+          result = result.union(analyzeFieldRead(member));
+        } else if (member.isAbstractField()){
           // call to a getter
-          AbstractFieldElement abstractField = getterOrField;
+          AbstractFieldElement abstractField = member;
           result = result.union(analyzeGetterSend(baseReceiverType,
                                                   abstractField.getter));
         }
+        // since this is a get we ignore non-fields
       }
 
       ConcreteType receiverType = analyze(node.receiver);
       if (receiverType.isUnkown()) {
         List<Element> members =
             inferrer.getMembersByName(node.selector.asIdentifier().source);
-        for (final member in members) {
+        for (Element member in members) {
+          if (!(member.isField() || member.isAbstractField())) continue;
           Element classElement = member.getEnclosingClass();
           ClassBaseType baseReceiverType = new ClassBaseType(classElement);
           augmentResult(baseReceiverType, member);
