@@ -1755,7 +1755,11 @@ public class Resolver {
           }
         break;
         case TYPE_VARIABLE:
-          onError(x.getConstructor(), ResolverErrorCode.NEW_EXPRESSION_CANT_USE_TYPE_VAR);
+          if (x.isConst() ) {
+            onError(x.getConstructor(), ResolverErrorCode.CONST_EXPRESSION_CANT_USE_TYPE_VAR);
+          } else {
+            onError(x.getConstructor(), ResolverErrorCode.NEW_EXPRESSION_CANT_USE_TYPE_VAR);
+          }
           return null;
         default:
           break;

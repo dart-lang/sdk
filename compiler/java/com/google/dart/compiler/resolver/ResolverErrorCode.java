@@ -67,6 +67,7 @@ public enum ResolverErrorCode implements ErrorCode {
   CONST_CLASS_WITH_NONFINAL_FIELDS("Const class %s cannot have non-final field %s"),
   CONST_CONSTRUCTOR_CANNOT_HAVE_BODY("A const constructor cannot have a body"),
   CONST_CONSTRUCTOR_MUST_CALL_CONST_SUPER("const constructor must call const super constructor"),
+  CONST_EXPRESSION_CANT_USE_TYPE_VAR("Const expression cannot be invoked on type variable"),
   CONST_MAP_WITH_TYPE_VARIABLE("Const map literals cannot have a type variable as a type argument"),
   CONST_WITH_TYPE_VARIABLE("Const constructor cannot be invoked with a type variable as a type argument"),
   CONSTANTS_MUST_BE_INITIALIZED("constants must be initialized"),
@@ -123,9 +124,9 @@ public enum ResolverErrorCode implements ErrorCode {
   FINAL_FIELD_MUST_BE_INITIALIZED("The final field %s must be initialized"),
   FORMAL_PARAMETER_NAME_EXPECTED("Formal parameter name expected"),
   // TODO(zundel): error message needs JUnit test - how to test #imports in junit?
-  ILLEGAL_ACCESS_TO_PRIVATE("'%s' is private and not defined in this library"),
+  ILLEGAL_ACCESS_TO_PRIVATE(ErrorSeverity.WARNING, "'%s' is private and not defined in this library"),
   // TODO(zundel): error message needs JUnit test - how to test #imports in junit?
-  ILLEGAL_ACCESS_TO_PRIVATE_MEMBER("\"%s\" refers to \"%s\" which is in a different library"),
+  ILLEGAL_ACCESS_TO_PRIVATE_MEMBER("ErrorSeverity.WARNING, \"%s\" refers to \"%s\" which is in a different library"),
   ILLEGAL_FIELD_ACCESS_FROM_STATIC("Illegal access of instance field %s from static scope"),
   ILLEGAL_METHOD_ACCESS_FROM_STATIC("Illegal access of instance method %s from static scope"),
   INITIALIZER_ONLY_IN_GENERATIVE_CONSTRUCTOR("Initializers are allowed only in non-redirecting generative constructors"),
@@ -156,7 +157,7 @@ public enum ResolverErrorCode implements ErrorCode {
       "Constructor cannot have the same name as the name of a member declared in the enclosing class"),
   METHOD_MUST_HAVE_BODY(ErrorSeverity.WARNING, "Method must have a body in a non-abstract class"),
   NAMED_PARAMETERS_CANNOT_START_WITH_UNDER("Named parameters cannot start with an '_' character"),
-  NEW_EXPRESSION_CANT_USE_TYPE_VAR("New expression cannot be invoked on type variable"),
+  NEW_EXPRESSION_CANT_USE_TYPE_VAR(ErrorSeverity.WARNING, "New expression cannot be invoked on type variable"),
   NEW_EXPRESSION_NOT_CONSTRUCTOR(
       ErrorSeverity.WARNING, "New expression does not resolve to a constructor"),
   NEW_EXPRESSION_NOT_CONST_CONSTRUCTOR("New expression does not resolve to a const constructor"),
@@ -209,7 +210,8 @@ public enum ResolverErrorCode implements ErrorCode {
   TYPE_VARIABLE_DOES_NOT_MATCH("Type variable %s does not match %s in default class %s."),
   TYPE_PARAMETERS_MUST_MATCH_EXACTLY(
       "Type parameters in default declaration must match referenced class exactly"),
-  TYPE_VARIABLE_IN_STATIC_CONTEXT("cannot access type variable %s in static context"),
+  TYPE_VARIABLE_IN_STATIC_CONTEXT(ErrorSeverity.WARNING, "cannot access type variable %s in static context"),
+  TYPE_VARIABLE_IN_STATIC_CONTEXT_ERROR("cannot access type variable %s in static context"),
   TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER(
       "type variables are not allowed in identifier expressions"),
   USE_ASSIGNMENT_ON_SETTER("Use assignment to set field '%s'"),

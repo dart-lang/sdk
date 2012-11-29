@@ -393,6 +393,18 @@ public class ResolverTest extends ResolverTestCase {
         "}"),
         ResolverErrorCode.NEW_EXPRESSION_CANT_USE_TYPE_VAR);
   }
+  
+  public void testConstExpression4() {
+    // New expression tied to an unbound type variable is not allowed.
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class Foo<T> {",
+        "  T create() {",
+        "    return const T();",
+        "  }",
+        "}"),
+        ResolverErrorCode.CONST_EXPRESSION_CANT_USE_TYPE_VAR);
+  }
 
   public void testNewExpression5() {
     // More cowbell. (Foo<T> isn't a type yet)

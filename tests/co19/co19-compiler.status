@@ -3,12 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartc ]
-Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(analyzer-team): Please triage this failure.
-Language/03_Overview/1_Scoping_A02_t06: Fail # TODO(analyzer-team): Please triage this failure.
-Language/03_Overview/2_Privacy_A01_t09: Fail # TODO(analyzer-team): Please triage this failure.
-Language/03_Overview/2_Privacy_A01_t10: Fail # TODO(analyzer-team): Please triage this failure.
-Language/03_Overview/2_Privacy_A01_t19: Fail # TODO(analyzer-team): Please triage this failure.
-Language/03_Overview/2_Privacy_A01_t20: Fail # TODO(analyzer-team): Please triage this failure.
 Language/05_Variables/05_Variables_A05_t11: Fail # TODO(analyzer-team): Please triage this failure.
 Language/05_Variables/05_Variables_A05_t12: Fail # TODO(analyzer-team): Please triage this failure.
 Language/05_Variables/05_Variables_A05_t13: Fail # TODO(analyzer-team): Please triage this failure.
@@ -22,15 +16,11 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: Fail # TOD
 Language/07_Classes/6_Constructors/2_Factories_A02_t03: Fail # TODO(analyzer-team): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A02_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/08_Interfaces/5_Superinterfaces_A01_t02: Fail # TODO(analyzer-team): Please triage this failure.
-Language/09_Generics/09_Generics_A05_t01: Fail # TODO(analyzer-team): Please triage this failure.
-Language/09_Generics/09_Generics_A05_t02: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/01_Constants_A03_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/01_Constants_A05_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/01_Constants_A14_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/01_Constants_A20_t03: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/08_Throw_A05_t01: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/11_Instance_Creation/1_New_A02_t07: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/11_Instance_Creation/1_New_A06_t06: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/2_Const_A10_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/18_Assignment_A05_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/31_Type_Test_A01_t02: Fail # TODO(analyzer-team): Please triage this failure.
@@ -54,6 +44,7 @@ Language/13_Libraries_and_Scripts/5_URIs_A01_t21: Fail # TODO(analyzer-team): Pl
 Language/14_Types/5_Function_Types_A04_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/15_Reference/1_Lexical_Rules_A01_t09: Fail # TODO(analyzer-team): Please triage this failure.
 Language/15_Reference/1_Lexical_Rules_A01_t11: Fail # TODO(analyzer-team): Please triage this failure.
+
 
 # co19 issue 320
 Language/13_Libraries_and_Scripts/1_Imports_A02_t12: Fail, OK
@@ -105,7 +96,6 @@ Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t01: pass # http:
 Language/13_Libraries_and_Scripts/1_Imports_A02_t16: Fail, OK
 Language/13_Libraries_and_Scripts/1_Imports_A02_t17: Fail, OK
 
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail, OK # contains syntax error
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail, OK # contains syntax error
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail, OK # deprecated parameter syntax
 
