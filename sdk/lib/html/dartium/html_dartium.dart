@@ -8063,7 +8063,7 @@ class DocumentFragment extends Node {
     }
     return null;
   }
-  Element get $m_lastElementChild() => elements.last;
+  Element get $m_lastElementChild => elements.last;
   Element get nextElementSibling => null;
   Element get previousElementSibling => null;
   Element get offsetParent => null;
@@ -29753,13 +29753,13 @@ class _DOMWindowCrossFrame extends NativeFieldWrapperClass1 implements Window {
   _DOMWindowCrossFrame.internal();
 
   // Fields.
-  History get history() native "DOMWindow_history_cross_frame_Getter";
-  Location get location() native "DOMWindow_location_cross_frame_Getter";
-  bool get closed() native "DOMWindow_closed_Getter";
-  int get length() native "DOMWindow_length_Getter";
-  Window get opener() native "DOMWindow_opener_Getter";
-  Window get parent() native "DOMWindow_parent_Getter";
-  Window get top() native "DOMWindow_top_Getter";
+  History get history native "DOMWindow_history_cross_frame_Getter";
+  Location get location native "DOMWindow_location_cross_frame_Getter";
+  bool get closed native "DOMWindow_closed_Getter";
+  int get length native "DOMWindow_length_Getter";
+  Window get opener native "DOMWindow_opener_Getter";
+  Window get parent native "DOMWindow_parent_Getter";
+  Window get top native "DOMWindow_top_Getter";
 
   // Methods.
   void close() native "DOMWindow_close_Callback";

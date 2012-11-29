@@ -144,7 +144,7 @@ $endif
     }
     return null;
   }
-  Element get $m_lastElementChild() => elements.last;
+  Element get $m_lastElementChild => elements.last;
   Element get nextElementSibling => null;
   Element get previousElementSibling => null;
   Element get offsetParent => null;
