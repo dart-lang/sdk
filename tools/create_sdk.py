@@ -259,12 +259,12 @@ def Main(argv):
              join(join(UTIL, 'pub'), '7zip'),
              ignore=ignore_patterns('.svn'))
 
-    ReplaceInFiles([
-        join(UTIL, 'pub', 'io.dart'),
-      ], [
-        ("var pathTo7zip = '../../third_party/7zip/7za.exe';",
-         "var pathTo7zip = '7zip/7za.exe';"),
-      ])
+  ReplaceInFiles([
+      join(UTIL, 'pub', 'io.dart'),
+    ], [
+      ("../../third_party/7zip/7za.exe",
+       "7zip/7za.exe"),
+    ])
 
   # Copy in cURL on all operating systems, since we need the certificates file
   # even outside Windows. Leave out the EXE on non-Windows systems, though.
@@ -277,10 +277,10 @@ def Main(argv):
   ReplaceInFiles([
       join(UTIL, 'pub', 'curl_client.dart'),
     ], [
-      ("var pathToCurl = '../../third_party/curl/curl.exe';",
-       "var pathToCurl = 'curl/curl.exe';"),
-      ("var pathToCertificates = '../../third_party/curl/ca-certificates.crt';",
-       "var pathToCertificates = 'curl/ca-certificates.crt';"),
+      ("../../third_party/curl/curl.exe",
+       "curl/curl.exe"),
+      ("../../third_party/curl/ca-certificates.crt",
+       "curl/ca-certificates.crt"),
     ])
 
   version = utils.GetVersion()
