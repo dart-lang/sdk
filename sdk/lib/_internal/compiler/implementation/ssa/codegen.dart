@@ -1546,23 +1546,27 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     List<js.Expression> arguments = visitArguments(node.inputs);
     Element target = node.element;
 
-    // Avoid adding the generative constructor name to the list of
-    // seen selectors.
-    if (target != null && target.isGenerativeConstructorBody()) {
-      methodName = name.slowToString();
-    } else if (target == backend.jsArrayAdd) {
-      methodName = 'push';
-    } else if (target == backend.jsArrayRemoveLast) {
-      methodName = 'pop';
-    } else if (target == backend.jsStringSplit) {
-      methodName = 'split';
-      // Split returns a List, so we make sure the backend knows the
-      // list class is instantiated.
-      world.registerInstantiatedClass(compiler.listClass);
-    } else if (target == backend.jsStringConcat) {
-      push(new js.Binary('+', object, arguments[0]), node);
-      return;
-    } else {
+    if (target != null) {
+      // Avoid adding the generative constructor name to the list of
+      // seen selectors.
+      if (target.isGenerativeConstructorBody()) {
+        methodName = name.slowToString();
+      } else if (target == backend.jsArrayAdd) {
+        methodName = 'push';
+      } else if (target == backend.jsArrayRemoveLast) {
+        methodName = 'pop';
+      } else if (target == backend.jsStringSplit) {
+        methodName = 'split';
+        // Split returns a List, so we make sure the backend knows the
+        // list class is instantiated.
+        world.registerInstantiatedClass(compiler.listClass);
+      } else if (target == backend.jsStringConcat) {
+        push(new js.Binary('+', object, arguments[0]), node);
+        return;
+      }
+    }
+
+    if (methodName == null) {
       methodName = backend.namer.instanceMethodInvocationName(
           node.selector.library, name, node.selector);
       bool inLoop = node.block.enclosingLoopHeader != null;
