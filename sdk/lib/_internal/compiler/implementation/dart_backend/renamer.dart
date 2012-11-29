@@ -285,7 +285,7 @@ void renamePlaceholders(
   }
 
   // Rename constructors.
-  placeholderCollector.constructorPlaceholders.forEach(
+  sortedForEach(placeholderCollector.constructorPlaceholders,
       (Element constructor, List<ConstructorPlaceholder> placeholders) {
         for (ConstructorPlaceholder ph in placeholders) {
           renames[ph.node] =
