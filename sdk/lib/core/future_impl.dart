@@ -1,8 +1,6 @@
 // Copyright 2012 Google Inc. All Rights Reserved.
 // Dart core library.
 
-part of dart_core;
-
 class _FutureImpl<T> implements Future<T> {
 
   bool _isComplete = false;

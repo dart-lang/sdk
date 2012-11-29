@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart_io;
-
 class _Timer implements Timer {
   // Set jitter to wake up timer events that would happen in _TIMER_JITTER ms.
   static const int _TIMER_JITTER = 0;

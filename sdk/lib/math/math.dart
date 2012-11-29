@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart_math;
+#library("dart:math");
 
-part "base.dart";
-part "random.dart";
+#source("base.dart");
+#source("random.dart");

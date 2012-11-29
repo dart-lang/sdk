@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart_io;
-
 // Interface for decoders decoding binary data into string data. The
 // decoder keeps track of line breaks during decoding.
 abstract class _StringDecoder {

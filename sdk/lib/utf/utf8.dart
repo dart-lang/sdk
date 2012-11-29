@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart_utf;
-
 const int _UTF8_ONE_BYTE_MAX = 0x7f;
 const int _UTF8_TWO_BYTE_MAX = 0x7ff;
 const int _UTF8_THREE_BYTE_MAX = 0xffff;

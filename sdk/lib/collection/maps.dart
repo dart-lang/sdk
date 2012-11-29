@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart_collection;
-
 /*
  * Helper class which implements complex [Map] operations
  * in term of basic ones ([Map.keys], [Map.operator []],

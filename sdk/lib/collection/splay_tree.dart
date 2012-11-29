@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart_collection;
-
 /**
  * A node in a splay tree. It holds the key, the value and the left
  * and right children in the tree.

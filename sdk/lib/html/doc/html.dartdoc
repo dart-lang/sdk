@@ -5,22 +5,22 @@
 // Fake dart:html library for documentation.
 
 /// The Dart HTML5 Library.
-library dart_html;
+#library("dart:html");
 
-part 'interface/AbstractWorker.dartdoc';
-part 'interface/Element.dartdoc';
-part 'interface/Event.dartdoc';
-part 'interface/EventTarget.dartdoc';
-part 'interface/HttpRequest.dartdoc';
-part 'interface/MouseEvent.dartdoc';
-part 'interface/Storage.dartdoc';
-part 'interface/Node.dartdoc';
-part 'interface/UIEvent.dartdoc';
-part 'interface/WebSocket.dartdoc';
+#source('interface/AbstractWorker.dartdoc');
+#source('interface/Element.dartdoc');
+#source('interface/Event.dartdoc');
+#source('interface/EventTarget.dartdoc');
+#source('interface/HttpRequest.dartdoc');
+#source('interface/MouseEvent.dartdoc');
+#source('interface/Storage.dartdoc');
+#source('interface/Node.dartdoc');
+#source('interface/UIEvent.dartdoc');
+#source('interface/WebSocket.dartdoc');
 
 // Implementation files that appear to be necessary to load the sources.
 
-//part 'nodoc-src/SomeFile.dart';
+//#source('nodoc-src/SomeFile.dart');
 
 // Global definitions.
 

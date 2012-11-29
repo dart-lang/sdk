@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart_io;
 
 class _Directory implements Directory {
   static const CREATE_REQUEST = 0;

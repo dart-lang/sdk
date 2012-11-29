@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart_core;
-
 class Error {
   const Error();
 
@@ -77,7 +75,7 @@ class ArgumentError implements Error {
 }
 
 /**
- * Error thrown because of an index outside of the valid range.
+ * Exception thrown because of an index outside of the valid range.
  *
  */
 class RangeError extends ArgumentError {

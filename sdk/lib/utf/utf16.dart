@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart_utf;
 
 /**
  * Decodes the UTF-16 bytes as an iterable. Thus, the consumer can only convert

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart_utf;
-
 // TODO(jmesserly): would be nice to have this on String (dartbug.com/6501).
 /**
  * Provide a list of Unicode codepoints for a given string.

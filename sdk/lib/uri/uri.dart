@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart_uri;
+#library('dart:uri');
 
-import 'dart:math';
-import 'dart:utf';
+#import('dart:math');
+#import('dart:utf');
 
-part 'encode_decode.dart';
-part 'helpers.dart';
+#source('encode_decode.dart');
+#source('helpers.dart');
 
 /**
  * A parsed URI, inspired by Closure's [URI][] class. Implements [RFC-3986][].

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart_io;
-
 // The close queue handles graceful closing of HTTP connections. When
 // a connection is added to the queue it will enter a wait state
 // waiting for all data written and possibly socket shutdown from

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart_core;
-
 /**
  * Expect is used for tests that do not want to make use of the
  * Dart unit test library - for example, the core language tests.
