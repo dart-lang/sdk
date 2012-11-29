@@ -10,18 +10,20 @@
 /Makefile
 /benchmarks
 /build
-/dart.sdf
-/dart.suo
+/ipch
 /out
 /xcodebuild
 /*.Makefile
+/*.opensdf
 /*.pyc
+/*.sdf
 /*.sln
+/*.suo
 /*.target.mk
 /*.vcproj
 /*.vcxproj
-/*.vcxproj.user
 /*.vcxproj.filters
+/*.vcxproj.user
 /*.xcodeproj
 
 # End generated ignores. The following are hand-added because the svn:ignore
