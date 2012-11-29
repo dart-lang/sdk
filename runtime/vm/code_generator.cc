@@ -402,20 +402,18 @@ static void PrintTypeCheck(
 // Converts InstantiatedTypeArguments to TypeArguments and stores it
 // into the instance. The assembly code can handle only type arguments of
 // class TypeArguments. Because of the overhead, do it only when needed.
-// Return false if the optimization was aborted.
-// Set type_arguments_replaced to true if they have changed.
-static bool OptimizeTypeArguments(const Instance& instance,
-                                  bool* type_arguments_replaced) {
-  *type_arguments_replaced = false;
+// Return true if type arguments have been replaced, false otherwise.
+static bool OptimizeTypeArguments(const Instance& instance) {
   const Class& type_class = Class::ZoneHandle(instance.clazz());
   if (!type_class.HasTypeArguments()) {
-    return true;
+    return false;
   }
   AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::Handle(instance.GetTypeArguments());
   if (type_arguments.IsNull()) {
-    return true;
+    return false;
   }
+  bool replaced = false;
   if (type_arguments.IsInstantiatedTypeArguments()) {
     do {
       const InstantiatedTypeArguments& instantiated_type_arguments =
@@ -431,16 +429,16 @@ static bool OptimizeTypeArguments(const Instance& instance,
     AbstractTypeArguments& new_type_arguments = AbstractTypeArguments::Handle();
     new_type_arguments = type_arguments.Canonicalize();
     instance.SetTypeArguments(new_type_arguments);
-    *type_arguments_replaced = true;
+    replaced = true;
   } else if (!type_arguments.IsCanonical()) {
     AbstractTypeArguments& new_type_arguments = AbstractTypeArguments::Handle();
     new_type_arguments = type_arguments.Canonicalize();
     instance.SetTypeArguments(new_type_arguments);
-    *type_arguments_replaced = true;
+    replaced = true;
   }
   ASSERT(AbstractTypeArguments::Handle(
       instance.GetTypeArguments()).IsTypeArguments());
-  return true;
+  return replaced;
 }
 
 
@@ -473,26 +471,11 @@ static void UpdateTypeTestCache(
   bool type_arguments_replaced = false;
   if (instance_class.HasTypeArguments()) {
     // Canonicalize type arguments.
-    if (!OptimizeTypeArguments(instance, &type_arguments_replaced)) {
-      if (FLAG_trace_type_checks) {
-        PrintTypeCheck("WARNING: Cannot canonicalize instance type arguments",
-            instance, type, instantiator_type_arguments, result);
-      }
-      return;
-    }
+    type_arguments_replaced = OptimizeTypeArguments(instance);
     instance_type_arguments = instance.GetTypeArguments();
   }
   if (!instantiator.IsNull()) {
-    bool replaced = false;
-    if (!OptimizeTypeArguments(instantiator, &replaced)) {
-      if (FLAG_trace_type_checks) {
-        PrintTypeCheck("WARNING: Cannot canonicalize instantiator "
-            "type arguments",
-            instance, type, instantiator_type_arguments, result);
-      }
-      return;
-    }
-    if (replaced) {
+    if (OptimizeTypeArguments(instantiator)) {
       type_arguments_replaced = true;
     }
     instantiator_type_arguments = instantiator.GetTypeArguments();
