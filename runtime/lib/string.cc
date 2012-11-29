@@ -51,13 +51,25 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
 
 
 DEFINE_NATIVE_ENTRY(StringBase_substringUnchecked, 3) {
-  GET_NATIVE_ARGUMENT(String, receiver, arguments->NativeArgAt(0));
+  const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
   GET_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));
   GET_NATIVE_ARGUMENT(Smi, end_obj, arguments->NativeArgAt(2));
 
   intptr_t start = start_obj.Value();
   intptr_t end = end_obj.Value();
   return String::SubString(receiver, start, (end - start));
+}
+
+
+DEFINE_NATIVE_ENTRY(OneByteString_substringUnchecked, 3) {
+  const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
+  ASSERT(receiver.IsOneByteString());
+  GET_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));
+  GET_NATIVE_ARGUMENT(Smi, end_obj, arguments->NativeArgAt(2));
+
+  const intptr_t start = start_obj.Value();
+  const intptr_t end = end_obj.Value();
+  return OneByteString::New(receiver, start, end - start, Heap::kNew);
 }
 
 

@@ -4003,6 +4003,11 @@ class OneByteString : public AllStatic {
                                Heap::Space space);
   static RawOneByteString* New(const String& str,
                                Heap::Space space);
+  // 'other' must be OneByteString.
+  static RawOneByteString* New(const String& other_one_byte_string,
+                               intptr_t other_start_index,
+                               intptr_t other_len,
+                               Heap::Space space);
 
   static RawOneByteString* Concat(const String& str1,
                                   const String& str2,

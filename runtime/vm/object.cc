@@ -10781,6 +10781,22 @@ RawOneByteString* OneByteString::New(const String& str,
 }
 
 
+RawOneByteString* OneByteString::New(const String& other_one_byte_string,
+                                     intptr_t other_start_index,
+                                     intptr_t other_len,
+                                     Heap::Space space) {
+  const String& result = String::Handle(OneByteString::New(other_len, space));
+  ASSERT(other_one_byte_string.IsOneByteString());
+  if (other_len > 0) {
+    NoGCScope no_gc;
+    memmove(OneByteString::CharAddr(result, 0),
+            OneByteString::CharAddr(other_one_byte_string, other_start_index),
+            other_len);
+  }
+  return OneByteString::raw(result);
+}
+
+
 RawOneByteString* OneByteString::Concat(const String& str1,
                                         const String& str2,
                                         Heap::Space space) {
