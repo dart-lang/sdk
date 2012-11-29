@@ -392,6 +392,20 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
     // type error. A null value is handled prior to executing this inline code.
     return SubtypeTestCache::null();
   }
+  if (TypeCheckAsClassEquality(type)) {
+    const intptr_t type_cid = Class::Handle(type.type_class()).id();
+    const Register kInstanceReg = EAX;
+    __ testl(kInstanceReg, Immediate(kSmiTagMask));
+    if (type_cid == kSmiCid) {
+      __ j(ZERO, is_instance_lbl);
+    } else {
+      __ j(ZERO, is_not_instance_lbl);
+      __ CompareClassId(kInstanceReg, type_cid, EDI);
+      __ j(EQUAL, is_instance_lbl);
+    }
+    __ jmp(is_not_instance_lbl);
+    return SubtypeTestCache::null();
+  }
   if (type.IsInstantiated()) {
     const Class& type_class = Class::ZoneHandle(type.type_class());
     // A Smi object cannot be the instance of a parameterized class.

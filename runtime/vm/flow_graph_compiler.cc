@@ -6,6 +6,7 @@
 
 #include "vm/flow_graph_compiler.h"
 
+#include "vm/cha.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
@@ -28,6 +29,7 @@ DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(bool, report_usage_count);
 DECLARE_FLAG(int, optimization_counter_threshold);
+DECLARE_FLAG(bool, use_cha);
 
 void CompilerDeoptInfo::BuildReturnAddress(DeoptInfoBuilder* builder,
                                            const Function& function,
@@ -1002,6 +1004,30 @@ FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
       UNIMPLEMENTED();
       return FieldAddress(SPREG, 0);
   }
+}
+
+
+// Returns true if checking against this type is a direct class id comparison.
+bool FlowGraphCompiler::TypeCheckAsClassEquality(const AbstractType& type) {
+  ASSERT(type.IsFinalized() && !type.IsMalformed());
+  // Requires CHA, which can be applied in optimized code only,
+  if (!FLAG_use_cha || !is_optimizing()) return false;
+  if (!type.IsInstantiated()) return false;
+  const Class& type_class = Class::Handle(type.type_class());
+  // Could be an interface check?
+  if (type_class.is_implemented()) return false;
+  const intptr_t type_cid = type_class.id();
+  if (CHA::HasSubclasses(type_cid)) return false;
+  if (type_class.HasTypeArguments()) {
+    // Only raw types can be directly compared, thus disregarding type
+    // arguments.
+    const AbstractTypeArguments& type_arguments =
+        AbstractTypeArguments::Handle(type.arguments());
+    const bool is_raw_type = type_arguments.IsNull() ||
+        type_arguments.IsRaw(type_arguments.Length());
+    return is_raw_type;
+  }
+  return true;
 }
 
 }  // namespace dart
