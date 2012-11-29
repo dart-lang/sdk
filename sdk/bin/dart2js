@@ -20,7 +20,10 @@ BIN_DIR="$(follow_links "$(cd "${PROG_NAME%/*}" ; pwd -P)")"
 SDK_DIR="$(cd "${BIN_DIR}/.." ; pwd -P)"
 
 DART2JS="$SDK_DIR/lib/_internal/compiler/implementation/dart2js.dart"
+
 DART="$BIN_DIR/dart"
+
+SNAPSHOT="${DART2JS}.snapshot"
 
 unset EXTRA_OPTIONS
 declare -a EXTRA_OPTIONS
@@ -36,7 +39,6 @@ fi
 unset EXTRA_VM_OPTIONS
 declare -a EXTRA_VM_OPTIONS
 
-SNAPSHOT="$SDK_DIR/_internal/compiler/implementation/dart2js.dart.snapshot"
 if test -f "$SNAPSHOT"; then
   # TODO(ahe): Remove the following line when we are relatively sure it works.
   echo Using snapshot "$SNAPSHOT" 1>&2
