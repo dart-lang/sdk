@@ -12,7 +12,7 @@
 List<String> defaultTestSelectors =
     const ['dartc', 'samples', 'standalone', 'corelib', 'co19', 'language',
            'isolate', 'vm', 'html', 'json', 'benchmark_smoke',
-           'utils', 'pub', 'lib', 'pkg'];
+           'utils', 'lib', 'pkg'];
 
 /**
  * Specification of a single test option.
