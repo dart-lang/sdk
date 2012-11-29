@@ -39,11 +39,12 @@ Language/06_Functions/06_Functions_A01_t22: Fail # TODO(ahe): Please triage this
 Language/07_Classes/07_Classes_A03_t07: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/1_Instance_Methods_A06_t01: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/1_Instance_Methods_A06_t02: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/1_Instance_Methods_A07_t01: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A05_t01: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A05_t02: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A05_t03: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A05_t04: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/6_Constructors/2_Factories_A02_t01: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/6_Constructors/2_Factories_A02_t02: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/6_Constructors/2_Factories_A02_t03: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/6_Constructors/2_Factories_A02_t04: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/6_Constructors/2_Factories_A02_t05: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A07_t01: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: Fail # TODO(ahe): Please triage this failure.
@@ -67,6 +68,7 @@ Language/11_Expressions/11_Instance_Creation/1_New_A02_t05: Fail # TODO(ahe): Pl
 Language/11_Expressions/11_Instance_Creation/1_New_A02_t06: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/1_New_A02_t07: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/2_Const_A01_t02: Fail # TODO(ahe): Please triage this failure.
+Language/11_Expressions/11_Instance_Creation/2_Const_A03_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/17_Getter_Invocation_A02_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/18_Assignment_A05_t02: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/18_Assignment_A05_t04: Fail # TODO(ahe): Please triage this failure.
@@ -109,6 +111,7 @@ Language/12_Statements/03_Variable_Declaration_A04_t03: Fail # TODO(ahe): Please
 Language/12_Statements/03_Variable_Declaration_A04_t04: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/03_Variable_Declaration_A04_t05: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/03_Variable_Declaration_A04_t06: Fail # TODO(ahe): Please triage this failure.
+Language/12_Statements/03_Variable_Declaration_A04_t07: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/04_Local_Function_Declaration_A01_t01: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/04_Local_Function_Declaration_A02_t02: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/06_For_A01_t11: Fail # TODO(ahe): Please triage this failure.
@@ -118,7 +121,11 @@ Language/12_Statements/09_Switch_A02_t02: Fail # TODO(ahe): Please triage this f
 Language/12_Statements/09_Switch_A02_t03: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/09_Switch_A03_t01: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/09_Switch_A03_t02: Fail # TODO(ahe): Please triage this failure.
+Language/12_Statements/09_Switch_A04_t01: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/09_Switch_A06_t02: Fail # TODO(ahe): Please triage this failure.
+Language/12_Statements/10_Try_A03_t01: Fail # TODO(ahe): Please triage this failure.
+Language/12_Statements/10_Try_A03_t02: Fail # TODO(ahe): Please triage this failure.
+Language/12_Statements/10_Try_A03_t03: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/10_Try_A06_t01: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/10_Try_A07_t03: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/11_Return_A05_t01: Fail # TODO(ahe): Please triage this failure.
@@ -133,21 +140,16 @@ Language/13_Libraries_and_Scripts/1_Imports_A02_t17: Fail # TODO(ahe): Please tr
 Language/13_Libraries_and_Scripts/1_Imports_A02_t19: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t27: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t28: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A03_t31: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A03_t51: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A05_t01: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A04_t05: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A04_t06: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A06_t02: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/3_Parts_A03_t02: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/4_Scripts_A01_t20: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/4_Scripts_A01_t21: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/4_Scripts_A01_t22: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/4_Scripts_A01_t23: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/5_URIs_A01_t01: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/5_URIs_A01_t04: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/5_URIs_A01_t05: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/5_URIs_A01_t11: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/5_URIs_A01_t14: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/5_URIs_A01_t15: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/5_URIs_A01_t21: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/5_URIs_A01_t24: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/5_URIs_A01_t25: Fail # TODO(ahe): Please triage this failure.
@@ -177,8 +179,11 @@ Language/14_Types/5_Function_Types_A03_t10: Fail # TODO(ahe): Please triage this
 Language/14_Types/5_Function_Types_A03_t11: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/5_Function_Types_A03_t12: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/5_Function_Types_A03_t13: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A04_t01: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/5_Function_Types_A06_t01: Fail # TODO(ahe): Please triage this failure.
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: Fail # TODO(ahe): Please triage this failure.
+Language/15_Reference/1_Lexical_Rules_A01_t09: Fail # TODO(ahe): Please triage this failure.
+Language/15_Reference/1_Lexical_Rules_A01_t11: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A02_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A06_t01: Fail # TODO(ahe): Please triage this failure.
@@ -249,6 +254,7 @@ Language/12_Statements/06_For/1_For_Loop_A01_t08: Fail # TODO(ahe): Please triag
 Language/12_Statements/09_Switch_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A03_t06: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A03_t26: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A03_t31: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A03_t46: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A03_t66: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/4_Interface_Types_A08_t03: Fail # TODO(ahe): Please triage this failure.
@@ -388,8 +394,6 @@ Language/11_Expressions/32_Type_Cast_A01_t04: Fail, OK # co19 issue 241
 Language/11_Expressions/22_Equality_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
 Language/11_Expressions/28_Postfix_Expressions_A01_t01: Fail, OK # A map literal cannot start an expression statement.
 
-Language/06_Functions/1_Function_Declaration_A02_t03: Fail, OK # co19 issue 210
-Language/06_Functions/1_Function_Declaration_A03_t03: Fail, OK # co19 issue 210
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t14: Fail, OK # co19 issue 210
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t15: Fail, OK # co19 issue 210
 Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t09: Fail, OK # co19 issue 210
@@ -406,8 +410,6 @@ LibTest/core/int/hashCode_A01_t01: Fail, OK # co19 issue 308
 
 Language/03_Overview/2_Privacy_A01_t11: Pass, OK # co19 issue 316
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Pass, OK # co19 issue 316
-LibTest/core/Future/chain_A03_t01: Fail, OK # co19 issue 328
-LibTest/core/Future/transform_A03_t01: Fail, OK # co19 issue 328
 
 [ $compiler == dart2js && $jscl ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail, Pass # issue 3333
@@ -504,8 +506,6 @@ Language/05_Variables/05_Variables_A04_t01: Fail # Checks that a compile-time er
 Language/05_Variables/05_Variables_A05_t01: Fail # Checks that a compile-time error occurs if a constant variable is not initialized.
 Language/06_Functions/06_Functions_A01_t31: Fail # Checks that functions can't be declared as static inside of a function body.
 Language/06_Functions/1_Function_Declaration_A01_t01: Fail # Checks that it is a compile-time error to preface library function with 'static'.
-Language/06_Functions/1_Function_Declaration_A02_t02: Fail # Checks that 'id' is not assignable since its declaration is equivalent to a final variable declaration.
-Language/06_Functions/1_Function_Declaration_A03_t02: Fail # Checks that 'id' is not assignable since its declaration is equivalent to the final variable declaration.
 Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t03: Fail # Checks that a required parameter can be constant. Reassigning it should produce a compile-time error.
 Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t04: Fail # Checks that static variable declaration can't be a required formal parameter
 Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t05: Fail # Checks that reassigning a final required parameter produces a compile-time error.
@@ -557,8 +557,6 @@ Language/07_Classes/4_Abstract_Instance_Members_A04_t06: Fail # Checks that a co
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A03_t05: Fail # Checks that redirecting constructor can not have initializing formals.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Fail # Checks that error is produced if a final variable is not initialized in one  of the specified ways.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A21_t01: Fail # Checks that a compile-time error occur if k’s initializer list contains an initializer for a ﬁnal variable whose declaration includes an initialization expression.
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A02_t01: Fail # Checks that it is a compile-time error when a constant constructor  declaration has a body.
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A02_t03: Fail # Checks that it is a compile-time error if a named constant constructor has a body.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A03_t01: Fail # Checks that a compile-time error is produced when a class with constant  constructor also declares a non-final instance variable.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A03_t02: Fail # Checks that compile-time error is produced when a class with constant constructor inherits a non-final instance variable.
 Language/07_Classes/6_Constructors_A01_t01: Fail # Checks that a compile-error is produced when a constructor's id coincides with the name of a field in the same class.

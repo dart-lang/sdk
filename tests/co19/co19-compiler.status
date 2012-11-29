@@ -5,7 +5,6 @@
 [ $compiler == dartc ]
 Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/03_Overview/1_Scoping_A02_t06: Fail # TODO(analyzer-team): Please triage this failure.
-Language/03_Overview/2_Privacy_A01_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t09: Fail # TODO(analyzer-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t10: Fail # TODO(analyzer-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t19: Fail # TODO(analyzer-team): Please triage this failure.
@@ -18,13 +17,10 @@ Language/05_Variables/05_Variables_A05_t15: Fail # TODO(analyzer-team): Please t
 Language/05_Variables/05_Variables_A06_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/05_Variables/05_Variables_A11_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # TODO(analyzer-team): Please triage this failure.
-Language/06_Functions/1_Function_Declaration_A02_t03: Fail # TODO(analyzer-team): Please triage this failure.
-Language/06_Functions/1_Function_Declaration_A03_t03: Fail # TODO(analyzer-team): Please triage this failure.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t10: Fail # TODO(analyzer-team): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A02_t01: Fail # TODO(analyzer-team): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A02_t02: Fail # TODO(analyzer-team): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A05_t02: Fail # TODO(analyzer-team): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A05_t04: Fail # TODO(analyzer-team): Please triage this failure.
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: Fail # TODO(analyzer-team): Please triage this failure.
+Language/07_Classes/6_Constructors/2_Factories_A02_t03: Fail # TODO(analyzer-team): Please triage this failure.
+Language/07_Classes/6_Constructors/2_Factories_A02_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/08_Interfaces/5_Superinterfaces_A01_t02: Fail # TODO(analyzer-team): Please triage this failure.
 Language/09_Generics/09_Generics_A05_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/09_Generics/09_Generics_A05_t02: Fail # TODO(analyzer-team): Please triage this failure.
@@ -45,6 +41,9 @@ Language/12_Statements/03_Variable_Declaration_A01_t09: Fail # TODO(analyzer-tea
 Language/12_Statements/03_Variable_Declaration_A01_t16: Fail # TODO(analyzer-team): Please triage this failure.
 Language/12_Statements/06_For_A01_t11: Fail # TODO(analyzer-team): Please triage this failure.
 Language/12_Statements/09_Switch_A02_t03: Fail # TODO(analyzer-team): Please triage this failure.
+Language/12_Statements/10_Try_A03_t01: Fail # TODO(analyzer-team): Please triage this failure.
+Language/12_Statements/10_Try_A03_t02: Fail # TODO(analyzer-team): Please triage this failure.
+Language/12_Statements/10_Try_A03_t03: Fail # TODO(analyzer-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t29: Fail # TODO(analyzer-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A05_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A05_t01: Fail # TODO(analyzer-team): Please triage this failure.
@@ -52,6 +51,9 @@ Language/13_Libraries_and_Scripts/4_Scripts_A01_t21: Fail # TODO(analyzer-team):
 Language/13_Libraries_and_Scripts/4_Scripts_A01_t23: Fail # TODO(analyzer-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/5_URIs_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/5_URIs_A01_t21: Fail # TODO(analyzer-team): Please triage this failure.
+Language/14_Types/5_Function_Types_A04_t01: Fail # TODO(analyzer-team): Please triage this failure.
+Language/15_Reference/1_Lexical_Rules_A01_t09: Fail # TODO(analyzer-team): Please triage this failure.
+Language/15_Reference/1_Lexical_Rules_A01_t11: Fail # TODO(analyzer-team): Please triage this failure.
 
 # co19 issue 320
 Language/13_Libraries_and_Scripts/1_Imports_A02_t12: Fail, OK
@@ -59,26 +61,8 @@ Language/13_Libraries_and_Scripts/1_Imports_A02_t15: Fail, OK
 Language/13_Libraries_and_Scripts/1_Imports_A02_t18: Fail, OK
 Language/13_Libraries_and_Scripts/1_Imports_A02_t19: Fail, OK
 
-
-# co19 issue 330
-# was issue 6824
-Language/13_Libraries_and_Scripts/2_Exports_A04_t05: Fail
-Language/13_Libraries_and_Scripts/2_Exports_A04_t06: Fail
-
-
 # co19 issue 327
-Language/03_Overview/1_Scoping_A02_t17: Fail, OK
 Language/03_Overview/1_Scoping_A02_t32: Fail, OK
-Language/12_Statements/03_Variable_Declaration_A01_t10: Fail, OK
-Language/12_Statements/03_Variable_Declaration_A01_t17: Fail, OK
-
-# co19 issue 331
-Language/13_Libraries_and_Scripts/5_URIs_A01_t04: Fail
-Language/13_Libraries_and_Scripts/5_URIs_A01_t05: Fail
-Language/13_Libraries_and_Scripts/5_URIs_A01_t14: Fail
-Language/13_Libraries_and_Scripts/5_URIs_A01_t15: Fail
-
-
 
 Language/03_Overview/2_Privacy_A01_t08: pass # http://dartbug.com/5179
 Language/03_Overview/2_Privacy_A01_t11: pass # http://dartbug.com/5179
@@ -118,19 +102,12 @@ Language/11_Expressions/30_Identifier_Reference_A05_t06: pass # http://dartbug.c
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t01: pass # http://dartbug.com/5179
 
 # co19 issue 298
-Language/03_Overview/2_Privacy_A01_t07: Fail, OK
 Language/13_Libraries_and_Scripts/1_Imports_A02_t16: Fail, OK
 Language/13_Libraries_and_Scripts/1_Imports_A02_t17: Fail, OK
-
-Language/07_Classes/6_Constructors/2_Factories_A03_t01: Fail, OK # co19 issue 307
-
-# co19 issue 329
-Language/13_Libraries_and_Scripts/4_Scripts_A01_t20: Fail
 
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail, OK # contains syntax error
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail, OK # contains syntax error
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail, OK # deprecated parameter syntax
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t04: Fail # Issue 5294
 
 # The following tests use NoSuchMethodException instead of NoSuchMethodError.
 Language/06_Functions/4_External_Functions_A01_t01: Fail, OK # co19 issue 195
@@ -148,7 +125,6 @@ Language/11_Expressions/01_Constants_A16_t01: Fail # Issue 1473
 Language/11_Expressions/01_Constants_A16_t02: Fail # Issue 1473
 Language/11_Expressions/01_Constants_A16_t03: Fail # Issue 1473
 Language/11_Expressions/01_Constants_A17_t03: Fail # Issue 1473
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail # Issue 3524
 Language/11_Expressions/22_Equality_A01_t19: Fail # language change 3368
 Language/11_Expressions/22_Equality_A01_t20: Fail # language change 3368
 Language/11_Expressions/22_Equality_A02_t03: Fail, OK # co19 issue 169
