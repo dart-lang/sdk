@@ -35,18 +35,15 @@ class NativeEnqueuer {
   /// Initial entry point to native enqueuer.
   void processNativeClasses(Collection<LibraryElement> libraries) {}
 
-  /// Notification of a main Enqueuer worklist element.  For methods, adds
-  /// information from metadata attributes, and computes types instantiated due
-  /// to calling the method.
   void registerElement(Element element) {}
 
-  /// Notification of native field.  Adds information from metadata attributes.
-  void registerField(Element field) {}
+  /// Method is a member of a native class.
+  void registerMethod(Element method) {}
 
-  /// Computes types instantiated due to getting a native field.
+  /// Compute types instantiated due to getting a native field.
   void registerFieldLoad(Element field) {}
 
-  /// Computes types instantiated due to setting a native field.
+  /// Compute types instantiated due to setting a native field.
   void registerFieldStore(Element field) {}
 
   /**
@@ -96,7 +93,6 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   ClassElement _annotationCreatesClass;
   ClassElement _annotationReturnsClass;
-  ClassElement _annotationJsNameClass;
 
   /// Subclasses of [NativeEnqueuerBase] are constructed by the backend.
   NativeEnqueuerBase(this.world, this.compiler, this.enableLiveTypeAnalysis);
@@ -126,22 +122,16 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   }
 
   ClassElement get annotationCreatesClass {
-    findAnnotationClasses();
+    if (_annotationCreatesClass == null) findAnnotationClasses();
     return _annotationCreatesClass;
   }
 
   ClassElement get annotationReturnsClass {
-    findAnnotationClasses();
+    if (_annotationReturnsClass == null) findAnnotationClasses();
     return _annotationReturnsClass;
   }
 
-  ClassElement get annotationJsNameClass {
-    findAnnotationClasses();
-    return _annotationJsNameClass;
-  }
-
   void findAnnotationClasses() {
-    if (_annotationCreatesClass != null) return;
     ClassElement find(name) {
       Element e = compiler.findHelper(name);
       if (e == null || e is! ClassElement) {
@@ -151,41 +141,8 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     }
     _annotationCreatesClass = find(const SourceString('Creates'));
     _annotationReturnsClass = find(const SourceString('Returns'));
-    _annotationJsNameClass = find(const SourceString('JSName'));
   }
 
-  /// Returns the JSName annotation string or `null` if no JSName annotation is
-  /// present.
-  String findJsNameFromAnnotation(Element element) {
-    String name = null;
-    ClassElement annotationClass = annotationJsNameClass;
-    for (Link<MetadataAnnotation> link = element.metadata;
-         !link.isEmpty;
-         link = link.tail) {
-      MetadataAnnotation annotation = link.head.ensureResolved(compiler);
-      var value = annotation.value;
-      if (value is! ConstructedConstant) continue;
-      if (value.type is! InterfaceType) continue;
-      if (!identical(value.type.element, annotationClass)) continue;
-
-      var fields = value.fields;
-      // TODO(sra): Better validation of the constant.
-      if (fields.length != 1 || fields[0] is! StringConstant) {
-        PartialMetadataAnnotation partial = annotation;
-        compiler.cancel(
-            'Annotations needs one string: ${partial.parseNode(compiler)}');
-      }
-      String specString = fields[0].toDartString().slowToString();
-      if (name == null) {
-        name = specString;
-      } else {
-        PartialMetadataAnnotation partial = annotation;
-        compiler.cancel(
-            'Too many JSName annotations: ${partial.parseNode(compiler)}');
-      }
-    }
-    return name;
-  }
 
   enqueueClass(ClassElement classElement, cause) {
     assert(unusedClasses.contains(classElement));
@@ -225,28 +182,13 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     if (element.isFunction()) return registerMethod(element);
   }
 
-  registerField(Element element) {
-    if (element.enclosingElement.isNative()) {
-      setNativeName(element);
-    }
-  }
-
   registerMethod(Element method) {
     if (isNativeMethod(method)) {
-      setNativeName(method);
       processNativeBehavior(
           NativeBehavior.ofMethod(method, compiler),
           method);
       flushQueue();
     }
-  }
-
-  /// Sets the native name of [element], either from an annotation, or
-  /// defaulting to the Dart name.
-  void setNativeName(Element element) {
-    String name = findJsNameFromAnnotation(element);
-    if (name == null) name = element.name.slowToString();
-    element.setNative(name);
   }
 
   bool isNativeMethod(Element element) {
@@ -724,15 +666,15 @@ Token handleNativeFunctionBody(ElementListener listener, Token token) {
 }
 
 SourceString checkForNativeClass(ElementListener listener) {
-  SourceString nativeTagInfo;
+  SourceString nativeName;
   Node node = listener.nodes.head;
   if (node != null
       && node.asIdentifier() != null
       && node.asIdentifier().source.stringValue == 'native') {
-    nativeTagInfo = node.asIdentifier().token.next.value;
+    nativeName = node.asIdentifier().token.next.value;
     listener.popNode();
   }
-  return nativeTagInfo;
+  return nativeName;
 }
 
 bool isOverriddenMethod(FunctionElement element,
@@ -751,6 +693,7 @@ final RegExp nativeRedirectionRegExp = new RegExp(r'^[a-zA-Z][a-zA-Z_$0-9]*$');
 void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   Compiler compiler = builder.compiler;
   FunctionElement element = builder.work.element;
+  element.setNative();
   NativeEmitter nativeEmitter = builder.emitter.nativeEmitter;
   // If what we're compiling is a getter named 'typeName' and the native
   // class is named 'DOMType', we generate a call to the typeNameOf
@@ -780,22 +723,22 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   }
 
   // Check which pattern this native method follows:
-  // 1) foo() native;
-  //      hasBody = false, isRedirecting = false
-  // 2) foo() native "bar";
-  //      hasBody = false, isRedirecting = true, no longer supported.
-  // 3) foo() native "return 42";
-  //      hasBody = true, isRedirecting = false
+  // 1) foo() native; hasBody = false, isRedirecting = false
+  // 2) foo() native "bar"; hasBody = false, isRedirecting = true
+  // 3) foo() native "return 42"; hasBody = true, isRedirecting = false
   bool hasBody = false;
-  String nativeMethodName = element.nativeName();
+  bool isRedirecting = false;
+  String nativeMethodName = element.name.slowToString();
   if (nativeBody != null) {
     LiteralString jsCode = nativeBody.asLiteralString();
     String str = jsCode.dartString.slowToString();
     if (nativeRedirectionRegExp.hasMatch(str)) {
-      compiler.cancel("Deprecated syntax, use @JSName('name') instead.",
-                      node: nativeBody);
+      nativeMethodName = str;
+      isRedirecting = true;
+      nativeEmitter.addRedirectingMethod(element, nativeMethodName);
+    } else {
+      hasBody = true;
     }
-    hasBody = true;
   }
 
   if (!hasBody) {

@@ -31,6 +31,9 @@ class NativeEmitter {
   // Caches the methods that have a native body.
   Set<FunctionElement> nativeMethods;
 
+  // Caches the methods that redirect to a JS method.
+  Map<FunctionElement, String> redirectingMethods;
+
   // Do we need the native emitter to take care of handling
   // noSuchMethod for us? This flag is set to true in the emitter if
   // it finds any native class that needs noSuchMethod handling.
@@ -43,10 +46,15 @@ class NativeEmitter {
         directSubtypes = new Map<ClassElement, List<ClassElement>>(),
         overriddenMethods = new Set<FunctionElement>(),
         nativeMethods = new Set<FunctionElement>(),
+        redirectingMethods = new Map<FunctionElement, String>(),
         nativeBuffer = new CodeBuffer();
 
   Compiler get compiler => emitter.compiler;
   JavaScriptBackend get backend => compiler.backend;
+
+  void addRedirectingMethod(FunctionElement element, String name) {
+    redirectingMethods[element] = name;
+  }
 
   String get dynamicName {
     Element element = compiler.findHelper(
@@ -107,7 +115,7 @@ function(cls, desc) {
   }
 
   void generateNativeLiteral(ClassElement classElement) {
-    String quotedNative = classElement.nativeTagInfo.slowToString();
+    String quotedNative = classElement.nativeName.slowToString();
     String nativeCode = quotedNative.substring(2, quotedNative.length - 1);
     String className = backend.namer.getName(classElement);
     nativeBuffer.add(className);
@@ -134,8 +142,8 @@ function(cls, desc) {
     return identical(quotedName[1], '@');
   }
 
-  String toNativeTag(ClassElement cls) {
-    String quotedName = cls.nativeTagInfo.slowToString();
+  String toNativeName(ClassElement cls) {
+    String quotedName = cls.nativeName.slowToString();
     if (isNativeGlobal(quotedName)) {
       // Global object, just be like the other types for now.
       return quotedName.substring(3, quotedName.length - 1);
@@ -148,7 +156,7 @@ function(cls, desc) {
     nativeClasses.add(classElement);
 
     assert(classElement.backendMembers.isEmpty);
-    String quotedName = classElement.nativeTagInfo.slowToString();
+    String quotedName = classElement.nativeName.slowToString();
     if (isNativeLiteral(quotedName)) {
       generateNativeLiteral(classElement);
       // The native literal kind needs to be dealt with specially when
@@ -170,8 +178,8 @@ function(cls, desc) {
       return;
     }
 
-    String nativeTag = toNativeTag(classElement);
-    nativeBuffer.add("$defineNativeClassName('$nativeTag', ");
+    String nativeName = toNativeName(classElement);
+    nativeBuffer.add("$defineNativeClassName('$nativeName', ");
     nativeBuffer.add('{');
     bool firstInMap = true;
     if (!fieldBuffer.isEmpty) {
@@ -239,7 +247,7 @@ function(cls, desc) {
         0, indexOfLastOptionalArgumentInParameters + 1);
 
     ClassElement classElement = member.enclosingElement;
-    String nativeTagInfo = classElement.nativeTagInfo.slowToString();
+    String nativeName = classElement.nativeName.slowToString();
     String nativeArguments = Strings.join(nativeArgumentsBuffer, ",");
 
     CodeBuffer code = new CodeBuffer();
@@ -252,11 +260,12 @@ function(cls, desc) {
       code.add('  return this.${backend.namer.getName(member)}($arguments)');
     } else {
       // When calling a JS method, we call it with the native name.
-      String name = member.nativeName();
+      String name = redirectingMethods[member];
+      if (name == null) name = member.name.slowToString();
       code.add('  return this.$name($nativeArguments);');
     }
 
-    if (isNativeLiteral(nativeTagInfo) || !overriddenMethods.contains(member)) {
+    if (isNativeLiteral(nativeName) || !overriddenMethods.contains(member)) {
       // Call the method directly.
       buffer.add(code.toString());
     } else {
@@ -318,14 +327,14 @@ function(cls, desc) {
       // Expression fragments for this set of cls keys.
       List<js.Expression> expressions = <js.Expression>[];
       // TODO: Remove if cls is abstract.
-      List<String> subtags = [toNativeTag(classElement)];
+      List<String> subtags = [toNativeName(classElement)];
       void walk(ClassElement cls) {
         for (final ClassElement subclass in getDirectSubclasses(cls)) {
           ClassElement tag = subclass;
           js.Expression existing = tagDefns[tag];
           if (existing == null) {
             // [subclass] is still within the subtree between dispatch classes.
-            subtags.add(toNativeTag(tag));
+            subtags.add(toNativeName(tag));
             walk(subclass);
           } else {
             // [subclass] is one of the preorderDispatchClasses, so CSE this
@@ -395,7 +404,7 @@ function(cls, desc) {
           new js.ArrayInitializer.from(
               preorderDispatchClasses.map((cls) =>
                   new js.ArrayInitializer.from([
-                      new js.LiteralString("'${toNativeTag(cls)}'"),
+                      new js.LiteralString("'${toNativeName(cls)}'"),
                       tagDefns[cls]])));
 
       //  $.dynamicSetMetadata(table);

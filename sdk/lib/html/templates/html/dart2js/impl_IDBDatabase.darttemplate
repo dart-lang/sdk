@@ -43,8 +43,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     return db._transaction(stores, intMode);
   }
 
-  @JSName('transaction')
-  IDBTransaction _transaction(stores, mode) native;
+  IDBTransaction _transaction(stores, mode) native 'transaction';
 
   static bool _hasNumericMode(txn) =>
       JS('bool', 'typeof(#.mode) === "number"', txn);

@@ -171,7 +171,6 @@ class Enqueuer {
     if (member.isField()) {
       // Native fields need to go into instanceMembersByName as they are virtual
       // instantiation points and escape points.
-      // Test the enclosing class, since the metadata has not been parsed yet.
       if (!member.enclosingElement.isNative()) return;
     }
 
@@ -211,7 +210,6 @@ class Enqueuer {
       }
     } else if (member.kind == ElementKind.FIELD &&
                member.enclosingElement.isNative()) {
-      nativeEnqueuer.registerField(member);
       if (universe.hasInvokedGetter(member, compiler) ||
           universe.hasInvocation(member, compiler)) {
         nativeEnqueuer.registerFieldLoad(member);

@@ -731,6 +731,7 @@ $lazyInitializerLogic
         compiler.codegenWorld.instantiatedClasses.contains(classElement);
 
     void visitField(ClassElement enclosingClass, Element member) {
+      assert(!member.isNative());
       assert(invariant(classElement, member.isDeclaration));
 
       LibraryElement library = member.getLibrary();
@@ -755,12 +756,9 @@ $lazyInitializerLogic
       if ((isInstantiated && !enclosingClass.isNative())
           || needsGetter
           || needsSetter) {
-        String accessorName = isShadowed
+        String fieldName = isShadowed
             ? namer.shadowedFieldName(member)
             : namer.getName(member);
-        String fieldName = member.isNative()
-            ? member.nativeName()
-            : accessorName;
         bool needsCheckedSetter = false;
         if (needsSetter && compiler.enableTypeAssertions
             && canGenerateCheckedSetter(member)) {
@@ -1255,9 +1253,7 @@ $classesCollector.$mangledName = {'':
     if (member.isGetter()) {
       getter = "this.${namer.getterName(member.getLibrary(), member.name)}()";
     } else {
-      String name = member.isNative()
-          ? member.nativeName()
-          : namer.instanceFieldName(memberLibrary, member.name);
+      String name = namer.instanceFieldName(memberLibrary, member.name);
       getter = "this.$name";
     }
     for (Selector selector in selectors) {

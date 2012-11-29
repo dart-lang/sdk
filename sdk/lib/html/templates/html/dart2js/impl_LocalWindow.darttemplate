@@ -58,8 +58,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
   }
   // Prevent compiled from thinking 'location' property is available for a Dart
   // member.
-  @JSName('location')
-  _protect_location() native;
+  _protect_location() native 'location';
 
   static _isDartLocation(thing) {
     // On Firefox the code that implements 'is Location' fails to find the patch
@@ -91,11 +90,11 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
     _cancelAnimationFrame(id);
   }
 
-  @JSName('requestAnimationFrame')
-  int _requestAnimationFrame(RequestAnimationFrameCallback callback) native;
+  int _requestAnimationFrame(RequestAnimationFrameCallback callback)
+      native 'requestAnimationFrame';
 
-  @JSName('cancelAnimationFrame')
-  void _cancelAnimationFrame(int id) native;
+  void _cancelAnimationFrame(int id)
+      native 'cancelAnimationFrame';
 
   _ensureRequestAnimationFrame() {
     if (JS('bool',

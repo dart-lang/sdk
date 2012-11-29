@@ -355,11 +355,9 @@ class Element implements Spannable {
     }
   }
 
-  String _nativeName = null;
-  bool isNative() => _nativeName != null;
-  String nativeName() => _nativeName;
-  /// Marks this element as a native element.
-  void setNative(String name) { _nativeName = name; }
+  bool _isNative = false;
+  void setNative() { _isNative = true; }
+  bool isNative() => _isNative;
 
   FunctionElement asFunctionElement() => null;
 
@@ -1441,7 +1439,7 @@ abstract class ClassElement extends ScopeContainerElement
   DartType supertype;
   DartType defaultClass;
   Link<DartType> interfaces;
-  SourceString nativeTagInfo;
+  SourceString nativeName;
   int supertypeLoadState;
   int resolutionState;
 
@@ -1789,7 +1787,7 @@ abstract class ClassElement extends ScopeContainerElement
   }
 
   bool isInterface() => false;
-  bool isNative() => nativeTagInfo != null;
+  bool isNative() => nativeName != null;
   int get hashCode => id;
 
   Scope buildScope() => new ClassScope(enclosingElement.buildScope(), this);

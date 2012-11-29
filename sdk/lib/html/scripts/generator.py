@@ -545,15 +545,11 @@ dart2js_conversions = {
     'SerializedScriptValue set Worker.postMessage': _serialize_SSV,
 
     # receiving message via MessageEvent
-    '* get MessageEvent.data':
+    'DOMObject get MessageEvent.data':
       Conversion('_convertNativeToDart_SerializedScriptValue',
                  'dynamic', 'dynamic'),
 
-    '* get History.state':
-      Conversion('_convertNativeToDart_SerializedScriptValue',
-                 'dynamic', 'dynamic'),
-
-    '* get PopStateEvent.state':
+    'DOMObject get PopStateEvent.state':
       Conversion('_convertNativeToDart_SerializedScriptValue',
                  'dynamic', 'dynamic'),
 
@@ -581,14 +577,13 @@ dart2js_conversions = {
 def FindConversion(idl_type, direction, interface, member):
   table = dart2js_conversions
   return (table.get('%s %s %s.%s' % (idl_type, direction, interface, member)) or
-          table.get('* %s %s.%s' % (direction, interface, member)) or
           table.get('%s %s %s.*' % (idl_type, direction, interface)) or
           table.get('%s %s' % (idl_type, direction)))
   return None
 
 # ------------------------------------------------------------------------------
 
-# Annotations to be placed on native members.  The table is indexed by the IDL
+# Annotations to be placed on members.  The table is indexed by the IDL
 # interface and member name, and by IDL return or field type name.  Both are
 # used to assemble the annotations:
 #
@@ -607,17 +602,7 @@ dart2js_annotations = {
     'CanvasRenderingContext2D.webkitGetImageDataHD':
       "@Creates('ImageData|=Object')",
 
-    # Methods returning Window can return a local window, or a cross-frame
-    # window (=Object) that needs wrapping.
-    'DOMWindow':
-      "@Creates('LocalWindow|=Object') @Returns('LocalWindow|=Object')",
-
     'DOMWindow.openDatabase': "@Creates('Database') @Creates('DatabaseSync')",
-
-    # Cross-frame windows are EventTargets.
-    'EventTarget':
-      #"@Creates('Null') @Returns('EventTarget|=Object')",
-      "@Creates('EventTarget|=Object') @Returns('EventTarget|=Object')",
 
     'FileReader.result': "@Creates('String|ArrayBuffer|Null')",
 
@@ -659,16 +644,6 @@ dart2js_annotations = {
 
 
     'MessageEvent.ports': "@Creates('=List')",
-
-    'MessageEvent.data':
-      "@_annotation_Creates_SerializedScriptValue "
-      "@_annotation_Returns_SerializedScriptValue",
-    'PopStateEvent.state':
-      "@_annotation_Creates_SerializedScriptValue "
-      "@_annotation_Returns_SerializedScriptValue",
-    'SerializedScriptValue':
-      "@_annotation_Creates_SerializedScriptValue "
-      "@_annotation_Returns_SerializedScriptValue",
 
     'SQLResultSetRowList.item': "@Creates('=Object')",
 
@@ -1121,7 +1096,7 @@ _idl_type_registry = {
         item_type='MediaStream', suppress_interface=True),
     'NamedNodeMap': TypeData(clazz='Interface', item_type='Node'),
     'NodeList': TypeData(clazz='Interface', item_type='Node',
-                         suppress_interface=False, dart_type='List<Node>'),
+                         suppress_interface=True),
     'SVGAnimatedLengthList': TypeData(clazz='Interface',
         item_type='SVGAnimatedLength'),
     'SVGAnimatedNumberList': TypeData(clazz='Interface',
