@@ -1949,7 +1949,8 @@ class Elements {
     }
   }
 
-  static SourceString constructOperatorName(SourceString op, bool isUnary) {
+  static SourceString constructOperatorNameOrNull(SourceString op,
+                                                  bool isUnary) {
     String value = op.stringValue;
     if ((identical(value, '==')) ||
         (identical(value, '~')) ||
@@ -1974,11 +1975,17 @@ class Elements {
     } else if (identical(value, '-')) {
       return isUnary ? const SourceString('unary-') : op;
     } else {
-      throw 'Unhandled operator: ${op.slowToString()}';
+      return null;
     }
   }
 
-  static SourceString mapToUserOperator(SourceString op) {
+  static SourceString constructOperatorName(SourceString op, bool isUnary) {
+    SourceString operatorName = constructOperatorNameOrNull(op, isUnary);
+    if (operatorName == null) throw 'Unhandled operator: ${op.slowToString()}';
+    else return operatorName;
+  }
+
+  static SourceString mapToUserOperatorOrNull(SourceString op) {
     String value = op.stringValue;
 
     if (identical(value, '!=')) return const SourceString('==');
@@ -1994,7 +2001,13 @@ class Elements {
     if (identical(value, '^=')) return const SourceString('^');
     if (identical(value, '|=')) return const SourceString('|');
 
-    throw 'Unhandled operator: ${op.slowToString()}';
+    return null;
+  }
+
+  static SourceString mapToUserOperator(SourceString op) {
+    SourceString userOperator = mapToUserOperatorOrNull(op);
+    if (userOperator == null) throw 'Unhandled operator: ${op.slowToString()}';
+    else return userOperator;
   }
 
   static bool isNumberOrStringSupertype(Element element, Compiler compiler) {

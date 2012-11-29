@@ -142,7 +142,12 @@ class AnalysisResult {
 
 const String CORELIB = r'''
   print(var obj) {}
-  abstract class num { operator +(x); operator *(x); operator -(x); }
+  abstract class num { 
+    operator +(x);
+    operator *(x);
+    operator -(x);
+    operator ==(x);
+  }
   abstract class int extends num { }
   abstract class double extends num { }
   class bool {}
@@ -637,25 +642,55 @@ testOperators() {
   result.checkNodeHasType('y', [result.string]);
 }
 
+testSetIndexOperator() {
+  final String source = r"""
+      class A {
+        var witness1;
+        var witness2;
+        operator []=(i, x) { witness1 = i; witness2 = x; }
+      }
+      main() {
+        var x = new A()[42] = "abc";
+        x;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('x', [result.string]);
+  // TODO(polux): the two following results should be [:[null, string:], see
+  // testFieldInitialization().
+  result.checkFieldHasType('A', 'witness1', [result.int]);
+  result.checkFieldHasType('A', 'witness2', [result.string]);
+}
+
 testCompoundOperators1() {
   final String source = r"""
       class A {
         operator +(x) => "foo";
       }
       main() {
-        var x1 = 1; x1++;
-        var x2 = 1; ++x2;
-        var x3 = new A(); x3++;
-        var x4 = new A(); ++x4;
+        var x1 = 1;
+        x1++;
+        var x2 = 1;
+        ++x2;
+        var x3 = 1;
+        x3 += 42;
+        var x4 = new A();
+        x4++;
+        var x5 = new A();
+        ++x5;
+        var x6 = new A();
+        x6 += true;
 
-        x1; x2; x3; x4;
+        x1; x2; x3; x4; x5; x6;
       }
       """;
   AnalysisResult result = analyze(source);
   result.checkNodeHasType('x1', [result.int]);
   result.checkNodeHasType('x2', [result.int]);
-  result.checkNodeHasType('x3', [result.string]);
+  result.checkNodeHasType('x3', [result.int]);
   result.checkNodeHasType('x4', [result.string]);
+  result.checkNodeHasType('x5', [result.string]);
+  result.checkNodeHasType('x6', [result.string]);
 }
 
 
@@ -663,24 +698,58 @@ testCompoundOperators2() {
   final String source = r"""
     class A {
       var xx;
+      var yy;
       var witness1;
       var witness2;
+      var witness3;
+      var witness4;
 
-      A(this.xx);
+      A(this.xx, this.yy);
       get x { witness1 = "foo"; return xx; }
-      set x(y) { witness2 = "foo"; xx = y; }
+      set x(a) { witness2 = "foo"; xx = a; }
+      get y { witness3 = "foo"; return yy; }
+      set y(a) { witness4 = "foo"; yy = a; }
     }
     main () {
-      var a = new A(1);
+      var a = new A(1, 1);
       a.x++;
+      a.y++; 
     }
     """;
   AnalysisResult result = analyze(source);
   result.checkFieldHasType('A', 'xx', [result.int]);
-  // TODO(polux): the two following results should be {null, string}, see
-  // fieldInitialization().
+  result.checkFieldHasType('A', 'yy', [result.int]);
+  // TODO(polux): the four following results should be [:[null, string]:], see
+  // testFieldInitialization().
   result.checkFieldHasType('A', 'witness1', [result.string]);
   result.checkFieldHasType('A', 'witness2', [result.string]);
+  result.checkFieldHasType('A', 'witness3', [result.string]);
+  result.checkFieldHasType('A', 'witness4', [result.string]);
+}
+
+testInequality() {
+  final String source = r"""
+      class A {
+        var witness;
+        operator ==(x) { witness = "foo"; return "abc"; }
+      }
+      class B {
+        operator ==(x) { throw "error"; }
+      }
+      main() {
+        var foo = 1 != 2;
+        var bar = new A() != 2;
+        var baz = new B() != 2;
+        foo; bar; baz;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('foo', [result.bool]);
+  result.checkNodeHasType('bar', [result.bool]);
+  result.checkNodeHasType('baz', []);
+  // TODO(polux): the following result should be [:[null, string]:], see
+  // fieldInitialization().
+  result.checkFieldHasType('A', 'witness', [result.string]);
 }
 
 testFieldInitialization() {
@@ -762,6 +831,8 @@ void main() {
   testOperators();
   testCompoundOperators1();
   testCompoundOperators2();
+  testSetIndexOperator();
+  testInequality();
   // testFieldInitialization(); // TODO(polux)
   testSendWithWrongArity();
   testDynamicIsAbsorbing();
