@@ -361,13 +361,15 @@ testGetters() {
         var foo = a.x;
         var bar = a.y;
         var baz = a.z;
-        foo; bar; baz;
+        var qux = null.x;
+        foo; bar; baz; qux;
       }
       """;
   AnalysisResult result = analyze(source);
   result.checkNodeHasType('foo', [result.int]);
   result.checkNodeHasType('bar', [result.int]);
   result.checkNodeHasType('baz', [result.int]);
+  result.checkNodeHasType('qux', []);
 }
 
 testSetters() {
@@ -383,6 +385,7 @@ testSetters() {
         var a = new A(42, 42);
         a.x = 'abc';
         a.y = true;
+        null.x = 42;  // should be ignored
       }
       """;
   AnalysisResult result = analyze(source);

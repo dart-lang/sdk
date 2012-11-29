@@ -1035,10 +1035,12 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         augmentField(baseReceiverType, member);
       }
     } else {
-      for (ClassBaseType baseReceiverType in receiverType.baseTypes) {
-        Element member = baseReceiverType.element.lookupMember(source);
+      for (BaseType baseReceiverType in receiverType.baseTypes) {
+        if (!baseReceiverType.isClass()) continue;
+        ClassBaseType baseReceiverClassType = baseReceiverType;
+        Element member = baseReceiverClassType.element.lookupMember(source);
         if (member != null) {
-          augmentField(baseReceiverType, member);
+          augmentField(baseReceiverClassType, member);
         }
       }
     }
