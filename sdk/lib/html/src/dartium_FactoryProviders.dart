@@ -4,14 +4,6 @@
 
 part of html;
 
-class _AudioContextFactoryProvider {
-  static AudioContext createAudioContext() => _createAudioContext();
-  static _createAudioContext([int numberOfChannels,
-                              int numberOfFrames,
-                              int sampleRate])
-      native "AudioContext_constructor_Callback";
-}
-
 class _IDBKeyRangeFactoryProvider {
 
   static IDBKeyRange createIDBKeyRange_only(/*IDBKey*/ value) =>

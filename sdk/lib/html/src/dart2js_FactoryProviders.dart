@@ -4,14 +4,6 @@
 
 part of html;
 
-class _AudioContextFactoryProvider {
-
-  static AudioContext createAudioContext() {
-    return JS('AudioContext',
-              'new (window.AudioContext || window.webkitAudioContext)()');
-  }
-}
-
 class _PointFactoryProvider {
   static Point createPoint(num x, num y) =>
       JS('Point', 'new WebKitPoint(#, #)', x, y);

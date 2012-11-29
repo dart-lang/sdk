@@ -317,6 +317,7 @@ class HtmlRenamer(object):
         return interface.id[len('HTML'):]
     return self.DartifyTypeName(interface.id)
 
+
   def RenameMember(self, interface_name, member_node, member, member_prefix=''):
     """
     Returns the name of the member in the HTML library or None if the member is
@@ -361,6 +362,15 @@ class HtmlRenamer(object):
     """
     if idl_type_name.startswith('SVG'):
       return 'svg'
+    if 'Audio' in idl_type_name:
+      return 'web_audio'
+
+    if self._database.HasInterface(idl_type_name):
+      interface = self._database.GetInterface(idl_type_name)
+      for parent in self._database.Hierarchy(interface):
+        if parent.id == 'AudioNode':
+          return 'web_audio'
+
     return 'html'
 
 

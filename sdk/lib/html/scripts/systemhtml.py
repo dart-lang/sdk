@@ -202,7 +202,8 @@ _svg_element_constructors = {
 
 _element_constructors = {
   'html': _html_element_constructors,
-  'svg': _svg_element_constructors
+  'svg': _svg_element_constructors,
+  'web_audio': {},
 }
 
 _factory_ctr_strings = {
@@ -213,6 +214,10 @@ _factory_ctr_strings = {
   'svg': {
     'provider_name': '_SvgElementFactoryProvider',
     'constructor_name': 'createSvgElement_tag',
+  },
+  'web_audio': {
+    'provider_name': 'document',
+    'constructor_name': '$dom_createElement'
   },
 }
 
@@ -985,11 +990,11 @@ class DartLibrary():
 # ------------------------------------------------------------------------------
 
 class DartLibraries():
-  def __init__(self, template_loader, library_type, output_dir):
-    self._libraries = {
-      'svg': DartLibrary('svg', template_loader, library_type, output_dir),
-      'html': DartLibrary('html', template_loader, library_type, output_dir),
-    }
+  def __init__(self, libraries, template_loader, library_type, output_dir):
+    self._libraries = {}
+    for library_name in libraries:
+      self._libraries[library_name] = DartLibrary(
+          library_name, template_loader, library_type, output_dir)
 
   def AddFile(self, basename, library_name, path):
     self._libraries[library_name].AddFile(path)

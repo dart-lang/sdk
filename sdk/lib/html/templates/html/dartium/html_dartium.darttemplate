@@ -10,7 +10,9 @@ library html;
 import 'dart:isolate';
 import 'dart:json';
 import 'dart:nativewrappers';
+// Not actually used, but imported since dart:html can generate these objects.
 import 'dart:svg' as svg;
+import 'dart:web_audio' as web_audio;
 
 $!GENERATED_DART_FILES
 

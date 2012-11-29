@@ -357,7 +357,8 @@ void maybeEnableNative(Compiler compiler,
           'dart/tests/compiler/dart2js_native')
       || libraryName == 'dart:isolate'
       || libraryName == 'dart:html'
-      || libraryName == 'dart:svg') {
+      || libraryName == 'dart:svg'
+      || libraryName == 'dart:web_audio') {
     library.canUseNative = true;
   }
 }

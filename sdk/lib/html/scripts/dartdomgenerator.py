@@ -25,6 +25,8 @@ from templateloader import TemplateLoader
 
 _logger = logging.getLogger('dartdomgenerator')
 
+_libraries = ['html', 'svg', 'web_audio']
+
 class GeneratorOptions(object):
   def __init__(self, templates, database, type_registry, renamer):
     self.templates = templates
@@ -100,7 +102,7 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
 
     dart_output_dir = os.path.join(dart2js_output_dir, 'dart')
     dart_libraries = DartLibraries(
-        template_loader, 'dart2js', dart2js_output_dir)
+        _libraries, template_loader, 'dart2js', dart2js_output_dir)
 
     RunGenerator(dart_libraries, dart_output_dir,
         template_loader, backend_factory)
@@ -119,7 +121,7 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
 
     dart_output_dir = os.path.join(dartium_output_dir, 'dart')
     dart_libraries = DartLibraries(
-        template_loader, 'dartium', dartium_output_dir)
+        _libraries, template_loader, 'dartium', dartium_output_dir)
 
     RunGenerator(dart_libraries, dart_output_dir,
                  template_loader, backend_factory)
@@ -204,16 +206,16 @@ def main():
 
   if 'htmldart2js' in systems:
     _logger.info('Generating dart2js single files.')
-    GenerateSingleFile(os.path.join(dart2js_output_dir, 'html_dart2js.dart'),
-                       '../dart2js')
-    GenerateSingleFile(os.path.join(dart2js_output_dir, 'svg_dart2js.dart'),
-        '../../svg/dart2js')
+    for library_name in _libraries:
+      GenerateSingleFile(
+          os.path.join(dart2js_output_dir, '%s_dart2js.dart' % library_name),
+          '../../%s/dart2js' % library_name)
   if 'htmldartium' in systems:
     _logger.info('Generating dartium single files.')
-    GenerateSingleFile(os.path.join(dartium_output_dir, 'html_dartium.dart'),
-                       '../dartium')
-    GenerateSingleFile(os.path.join(dartium_output_dir, 'svg_dartium.dart'),
-        '../../svg/dartium')
+    for library_name in _libraries:
+      GenerateSingleFile(
+          os.path.join(dartium_output_dir, '%s_dartium.dart' % library_name),
+          '../../%s/dartium' % library_name)
 
 if __name__ == '__main__':
   sys.exit(main())

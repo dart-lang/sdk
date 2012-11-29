@@ -6,7 +6,18 @@ part of html;
 
 /// @domName $DOMNAME
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
-  factory $CLASSNAME() => _$(CLASSNAME)FactoryProvider.create$CLASSNAME();
+$if DART2JS
+  factory AudioContext() => JS('AudioContext',
+      'new (window.AudioContext || window.webkitAudioContext)()');
+$else
+  factory AudioContext() => _createAudioContext();
+
+  static _createAudioContext([int numberOfChannels,
+                              int numberOfFrames,
+                              int sampleRate])
+      native "AudioContext_constructor_Callback";
+$endif
+
 $!MEMBERS
 $if DART2JS
   GainNode createGain() {

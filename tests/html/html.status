@@ -33,7 +33,6 @@ audiocontext_test: Fail # Issue 4517
 audioelement_test: Fail # Issue 4517
 blob_constructor_test: Fail # Issue 4517
 css_test: Fail # Issue 4517
-htmlaudioelement_test: Fail # Issue 4517
 form_data_test: Fail # Possibly Issue 4517
 fileapi_test: Fail # Possibly Issue 4517
 websql_test: Pass, Fail # Possibly Issue 4517
