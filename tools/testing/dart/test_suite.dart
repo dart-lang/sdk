@@ -115,26 +115,33 @@ abstract class TestSuite {
     if (configuration['compiler'] == 'none') {
       return null;  // No separate compiler for dartium tests.
     }
-    var name = '$buildDir/${compilerName}';
+    var name;
+    switch (configuration['compiler']) {
+      case 'dartc':
+        name = '$buildDir/$executableName';
+      case 'dart2js':
+      case 'dart2dart':
+        var prefix = 'sdk/bin/';
+        String suffix = getExecutableSuffix(configuration['compiler']);
+        if (configuration['host_checked']) {
+          // The script dart2js_developer is not included in the
+          // shipped SDK, that is the script is not installed in
+          // "$buildDir/dart-sdk/bin/"
+          name = '$prefix/dart2js_developer$suffix';
+        } else {
+          if (configuration['use_sdk']) {
+            prefix = '$buildDir/dart-sdk/bin/';
+          }
+          name = '${prefix}dart2js$suffix';
+        }
+        break;
+      default:
+        throw "Unknown compiler for: ${configuration['compiler']}";
+    }
     if (!(new File(name)).existsSync() && !configuration['list']) {
       throw "Executable '$name' does not exist";
     }
     return name;
-  }
-
-  /**
-   * The name of the compiler for this suite's configuration. Throws an error
-   * if the configuration does not use a compiler.
-   */
-  String get compilerName {
-    switch (configuration['compiler']) {
-      case 'dartc':
-      case 'dart2js':
-      case 'dart2dart':
-        return executableName;
-      default:
-        throw "Unknown compiler for: ${configuration['compiler']}";
-    }
   }
 
   /**
@@ -147,19 +154,6 @@ abstract class TestSuite {
         return 'dart$suffix';
       case 'dartc':
         return 'analyzer/bin/dart_analyzer$suffix';
-      case 'dart2js':
-      case 'dart2dart':
-        var prefix = '';
-        if (configuration['use_sdk']) {
-          prefix = 'dart-sdk/bin/';
-        }
-        if (configuration['host_checked']) {
-          // The script dart2js_developer is not in the SDK.
-          return 'dart2js_developer$suffix';
-        } else {
-          return '${prefix}dart2js$suffix';
-        }
-        break;
       default:
         throw "Unknown executable for: ${configuration['compiler']}";
     }
@@ -695,7 +689,7 @@ class StandardTestSuite extends TestSuite {
       args = new List.from(args);
       String tempDir = createOutputDirectory(info.filePath, '');
       args.add('--out=$tempDir/out.js');
-      List<Command> commands = <Command>[new Command(dartShellFileName, args)];
+      List<Command> commands = <Command>[new Command(compilerPath, args)];
       if (info.hasCompileError) {
         // Do not attempt to run the compiled result. A compilation
         // error should be reported by the compilation command.
@@ -712,7 +706,7 @@ class StandardTestSuite extends TestSuite {
       String tempDir = createOutputDirectory(info.filePath, '');
       compilerArguments.add('--out=$tempDir/out.dart');
       List<Command> commands =
-          <Command>[new Command(dartShellFileName, compilerArguments)];
+          <Command>[new Command(compilerPath, compilerArguments)];
       if (info.hasCompileError) {
         // Do not attempt to run the compiled result. A compilation
         // error should be reported by the compilation command.
@@ -1620,9 +1614,13 @@ class TestUtils {
     } else if (system == 'windows') {
       outputDir = 'build/';
     }
+    return "$outputDir${configurationDir(configuration)}";
+  }
+
+  static String configurationDir(Map configuration) {
     var mode = (configuration['mode'] == 'debug') ? 'Debug' : 'Release';
     var arch = configuration['arch'].toUpperCase();
-    return "$outputDir$mode$arch";
+    return '$mode$arch';
   }
 }
 

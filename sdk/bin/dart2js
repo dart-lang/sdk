@@ -3,24 +3,61 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Setting BIN_DIR this way is ugly, but is needed to handle the case where
-# dart-sdk/bin has been symlinked to. On MacOS, readlink doesn't work
-# with this case.
-BIN_DIR="$(cd "${0%/*}" ; pwd -P)"
+function follow_links() {
+  while [ -h "$1" ]; do
+    # On Mac OS, readlink -f doesn't work.
+    1="$(readlink "$1")"
+  done
+  echo "$1"
+}
 
-unset COLORS
+# Unlike $0, $BASH_SOURCE points to the absolute path of this file.
+PROG_NAME="$(follow_links "$BASH_SOURCE")"
+
+# Handle the case where dart-sdk/bin has been symlinked to.
+BIN_DIR="$(follow_links "$(cd "${PROG_NAME%/*}" ; pwd -P)")"
+
+SDK_DIR="$(cd "${BIN_DIR}/.." ; pwd -P)"
+
+DART2JS="$SDK_DIR/lib/_internal/compiler/implementation/dart2js.dart"
+DART="$BIN_DIR/dart"
+
+unset EXTRA_OPTIONS
+declare -a EXTRA_OPTIONS
+
 if test -t 1; then
   # Stdout is a terminal.
   if test 8 -le `tput colors`; then
     # Stdout has at least 8 colors, so enable colors.
-    COLORS="--enable-diagnostic-colors"
+    EXTRA_OPTIONS[${#EXTRA_OPTIONS[@]}]='--enable-diagnostic-colors'
   fi
 fi
 
-unset SNAPSHOT
-if test -f "$BIN_DIR/../lib/_internal/compiler/implementation/dart2js.dart.snapshot"; then
+unset EXTRA_VM_OPTIONS
+declare -a EXTRA_VM_OPTIONS
+
+SNAPSHOT="$SDK_DIR/_internal/compiler/implementation/dart2js.dart.snapshot"
+if test -f "$SNAPSHOT"; then
   # TODO(ahe): Remove the following line when we are relatively sure it works.
-  echo Using snapshot "$BIN_DIR/../lib/_internal/compiler/implementation/dart2js.dart.snapshot" 1>&2
-  SNAPSHOT="--use_script_snapshot=$BIN_DIR/../lib/_internal/compiler/implementation/dart2js.dart.snapshot"
+  echo Using snapshot "$SNAPSHOT" 1>&2
+  EXTRA_VM_OPTIONS[${#EXTRA_VM_OPTIONS[@]}]="--use_script_snapshot=$SNAPSHOT"
 fi
-exec "$BIN_DIR"/dart --no_use_inlining --heap_growth_rate=32 $SNAPSHOT "$BIN_DIR/../lib/_internal/compiler/implementation/dart2js.dart" $COLORS "$@"
+
+# Tell the VM to grow the heap more aggressively. This should only
+# be necessary temporarily until the VM is better at detecting how
+# applications use memory.
+# TODO(ahe): Remove this option (http://dartbug.com/6495).
+EXTRA_VM_OPTIONS[${#EXTRA_VM_OPTIONS[@]}]='--heap_growth_rate=512'
+
+# Tell the VM to don't bother inlining methods. So far inlining isn't
+# paying off but the VM team is working on fixing that.
+# TODO(ahe): Remove this option (http://dartbug.com/6495).
+EXTRA_VM_OPTIONS[${#EXTRA_VM_OPTIONS[@]}]='--no_use_inlining'
+
+case $0 in
+  *_developer)
+    EXTRA_VM_OPTIONS[${#EXTRA_VM_OPTIONS[@]}]='--checked'
+    ;;
+esac
+
+exec "$DART" "${EXTRA_VM_OPTIONS[@]}" "$DART2JS" "${EXTRA_OPTIONS[@]}" "$@"
