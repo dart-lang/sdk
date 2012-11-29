@@ -1425,10 +1425,10 @@ DART_EXPORT Dart_Handle Dart_ExternalStringGetPeer(Dart_Handle object,
                                                    void** peer);
 
 /**
- * Returns a String which references an external array of UTF-8 encoded
- * characters.
+ * Returns a String which references an external array of
+ * Latin-1 (ISO-8859-1) encoded characters.
  *
- * \param utf8_array An array of UTF-8 encoded characters. This must not move.
+ * \param latin1_array Array of Latin-1 encoded characters. This must not move.
  * \param length The length of the characters array.
  * \param peer An external pointer to associate with this string.
  * \param cback A callback to be called when this string is finalized.
@@ -1436,10 +1436,11 @@ DART_EXPORT Dart_Handle Dart_ExternalStringGetPeer(Dart_Handle object,
  * \return The String object if no error occurs. Otherwise returns
  *   an error handle.
  */
-DART_EXPORT Dart_Handle Dart_NewExternalUTF8String(const uint8_t* utf8_array,
-                                                   intptr_t length,
-                                                   void* peer,
-                                                   Dart_PeerFinalizer cback);
+DART_EXPORT Dart_Handle Dart_NewExternalLatin1String(
+    const uint8_t* latin1_array,
+    intptr_t length,
+    void* peer,
+    Dart_PeerFinalizer cback);
 
 /**
  * Returns a String which references an external array of UTF-16 encoded

@@ -34,7 +34,7 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
       GrowableArray<const Object*> args;
       Exceptions::ThrowByType(Exceptions::kArgument, args);
     } else {
-      if (value > 0x7F) {
+      if (value > 0xFF) {
         is_one_byte_string = false;
       }
       if (value > 0xFFFF) {

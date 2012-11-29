@@ -521,8 +521,8 @@ TEST_CASE(IsString) {
   EXPECT(Dart_IsStringLatin1(str8));
   EXPECT(!Dart_IsExternalString(str8));
 
-  Dart_Handle ext8 = Dart_NewExternalUTF8String(data8, ARRAY_SIZE(data8),
-                                                NULL, NULL);
+  Dart_Handle ext8 = Dart_NewExternalLatin1String(data8, ARRAY_SIZE(data8),
+                                                  NULL, NULL);
   EXPECT_VALID(ext8);
   EXPECT(Dart_IsString(ext8));
   EXPECT(Dart_IsExternalString(ext8));
@@ -575,13 +575,13 @@ TEST_CASE(NewString) {
 TEST_CASE(ExternalStringGetPeer) {
   Dart_Handle result;
 
-  uint8_t data8[] = { 'o', 'n', 'e', 0x7F };
+  uint8_t data8[] = { 'o', 'n', 'e', 0xFF };
   int peer_data = 123;
   void* peer = NULL;
 
   // Success.
-  Dart_Handle ext8 = Dart_NewExternalUTF8String(data8, ARRAY_SIZE(data8),
-                                                &peer_data, NULL);
+  Dart_Handle ext8 = Dart_NewExternalLatin1String(data8, ARRAY_SIZE(data8),
+                                                  &peer_data, NULL);
   EXPECT_VALID(ext8);
 
   result = Dart_ExternalStringGetPeer(ext8, &peer);
@@ -596,7 +596,8 @@ TEST_CASE(ExternalStringGetPeer) {
 
   // String is not external.
   peer = NULL;
-  Dart_Handle str8 = Dart_NewStringFromUTF8(data8, ARRAY_SIZE(data8));
+  uint8_t utf8_data8[] = { 'o', 'n', 'e', 0x7F };
+  Dart_Handle str8 = Dart_NewStringFromUTF8(utf8_data8, ARRAY_SIZE(data8));
   EXPECT_VALID(str8);
   result = Dart_ExternalStringGetPeer(str8, &peer);
   EXPECT(Dart_IsError(result));
@@ -630,7 +631,7 @@ TEST_CASE(ExternalStringCallback) {
     Dart_EnterScope();
 
     uint8_t data8[] = { 'h', 'e', 'l', 'l', 'o' };
-    Dart_Handle obj8 = Dart_NewExternalUTF8String(
+    Dart_Handle obj8 = Dart_NewExternalLatin1String(
         data8,
         ARRAY_SIZE(data8),
         &peer8,
@@ -7175,7 +7176,7 @@ TEST_CASE(MakeExternalString) {
     uint8_t data8[] = { 'h', 'e', 'l', 'l', 'o' };
     const char* err = "string";
     Dart_Handle err_str = NewString(err);
-    Dart_Handle ext_err_str = Dart_NewExternalUTF8String(
+    Dart_Handle ext_err_str = Dart_NewExternalLatin1String(
         data8, ARRAY_SIZE(data8), NULL, NULL);
     Dart_Handle result = Dart_MakeExternalString(Dart_Null(),
                                                  data8,

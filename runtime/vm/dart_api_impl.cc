@@ -1617,18 +1617,19 @@ DART_EXPORT Dart_Handle Dart_ExternalStringGetPeer(Dart_Handle object,
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewExternalUTF8String(const uint8_t* utf8_array,
-                                                   intptr_t length,
-                                                   void* peer,
-                                                   Dart_PeerFinalizer cback) {
+DART_EXPORT Dart_Handle Dart_NewExternalLatin1String(
+    const uint8_t* latin1_array,
+    intptr_t length,
+    void* peer,
+    Dart_PeerFinalizer cback) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  if (utf8_array == NULL && length != 0) {
-    RETURN_NULL_ERROR(utf8_array);
+  if (latin1_array == NULL && length != 0) {
+    RETURN_NULL_ERROR(latin1_array);
   }
   CHECK_LENGTH(length, String::kMaxElements);
   return Api::NewHandle(isolate,
-                        String::NewExternal(utf8_array, length, peer, cback));
+                        String::NewExternal(latin1_array, length, peer, cback));
 }
 
 
