@@ -371,8 +371,16 @@ String getFullPath(entry) {
 /// Resolves [path] relative to the location of pub.dart.
 String relativeToPub(String path) {
   var scriptPath = new File(new Options().script).fullPathSync();
-  var scriptDir = new Path.fromNative(scriptPath).directoryPath;
-  return scriptDir.append(path).canonicalize().toNativePath();
+
+  // Walk up until we hit the "utils" directory. This lets us figure out where
+  // we are if this function is called from pub.dart, or one of the tests,
+  // which also live under "utils".
+  var utilsDir = new Path.fromNative(scriptPath).directoryPath;
+  while (utilsDir.filename != 'utils') {
+    utilsDir = utilsDir.directoryPath;
+  }
+
+  return utilsDir.append('pub').append(path).canonicalize().toNativePath();
 }
 
 /// A StringInputStream reading from stdin.
@@ -476,17 +484,18 @@ Future<String> httpGetString(uri) {
 /**
  * Takes all input from [source] and writes it to [sink].
  *
- * [onClosed] is called when [source] is closed.
+ * Returns a future that completes when [source] is closed.
  */
-void pipeInputToInput(InputStream source, ListInputStream sink,
-    [void onClosed()]) {
+Future pipeInputToInput(InputStream source, ListInputStream sink) {
+  var completer = new Completer();
   source.onClosed = () {
     sink.markEndOfStream();
-    if (onClosed != null) onClosed();
+    completer.complete(null);
   };
   source.onData = () => sink.write(source.read());
   // TODO(nweiz): propagate this error to the sink. See issue 3657.
   source.onError = (e) { throw e; };
+  return completer.future;
 }
 
 /**
@@ -628,7 +637,7 @@ Future timeout(Future input, int milliseconds, String description) {
 /// will be deleted.
 Future withTempDir(Future fn(String path)) {
   var tempDir;
-  var future = new Directory('').createTemp().chain((dir) {
+  var future = createTempDir().chain((dir) {
     tempDir = dir;
     return fn(tempDir.path);
   });
@@ -741,6 +750,7 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
 
   var tempDir;
 
+  // TODO(rnystrom): Use withTempDir().
   return createTempDir().chain((temp) {
     // Write the archive to a temp file.
     tempDir = temp;
@@ -829,14 +839,18 @@ InputStream createTarGz(List contents, {baseDir}) {
     var pathTo7zip = '../../third_party/7zip/7za.exe';
     var command = relativeToPub(pathTo7zip);
 
-    return runProcess(command, args).chain((_) {
+    // We're passing 'baseDir' both as '-w' and setting it as the working
+    // directory explicitly here intentionally. The former ensures that the
+    // files added to the archive have the correct relative path in the archive.
+    // The latter enables relative paths in the "-i" args to be resolved.
+    return runProcess(command, args, workingDir: baseDir).chain((_) {
       // GZIP it. 7zip doesn't support doing both as a single operation. Send
       // the output to stdout.
-      args = ["a", "not used", "-so", tarFile];
+      args = ["a", "unused", "-tgzip", "-so", tarFile];
       return startProcess(command, args);
-    }).transform((process) {
-      pipeInputToInput(process.stdout, stream);
+    }).chain((process) {
       process.stderr.pipe(stderr, close: false);
+      return pipeInputToInput(process.stdout, stream);
     });
   });
   return stream;

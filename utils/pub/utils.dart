@@ -123,11 +123,11 @@ String sha1(String source) =>
   CryptoUtils.bytesToHex(new SHA1().update(source.charCodes).digest());
 
 /**
- * Returns a [Future] that completes in [milliSeconds].
+ * Returns a [Future] that completes in [milliseconds].
  */
-Future sleep(int milliSeconds) {
+Future sleep(int milliseconds) {
   var completer = new Completer();
-  new Timer(milliSeconds, completer.complete);
+  new Timer(milliseconds, completer.complete);
   return completer.future;
 }
 

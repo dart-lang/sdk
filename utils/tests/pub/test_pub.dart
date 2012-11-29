@@ -667,9 +667,7 @@ void ensureGit() {
   });
 }
 
-Future<Directory> _setUpSandbox() {
-  return createTempDir();
-}
+Future<Directory> _setUpSandbox() => createTempDir();
 
 Future _runScheduled(Directory parentDir, List<_ScheduledEvent> scheduled) {
   if (scheduled == null) return new Future.immediate(null);
@@ -1154,8 +1152,9 @@ class TarFileDescriptor extends Descriptor {
    * compresses them, and saves the result to [parentDir].
    */
   Future<File> create(parentDir) {
+    // TODO(rnystrom): Use withTempDir().
     var tempDir;
-    return parentDir.createTemp().chain((_tempDir) {
+    return createTempDir().chain((_tempDir) {
       tempDir = _tempDir;
       return Futures.wait(contents.map((child) => child.create(tempDir)));
     }).chain((createdContents) {
@@ -1189,15 +1188,16 @@ class TarFileDescriptor extends Descriptor {
 
     var sinkStream = new ListInputStream();
     var tempDir;
+    // TODO(rnystrom): Use withTempDir() here.
     // TODO(nweiz): propagate any errors to the return value. See issue 3657.
     createTempDir().chain((_tempDir) {
       tempDir = _tempDir;
       return create(tempDir);
     }).then((tar) {
       var sourceStream = tar.openInputStream();
-      pipeInputToInput(sourceStream,
-                       sinkStream,
-                       () => tempDir.delete(recursive: true));
+      pipeInputToInput(sourceStream, sinkStream).then((_) {
+        tempDir.delete(recursive: true);
+      });
     });
     return sinkStream;
   }
