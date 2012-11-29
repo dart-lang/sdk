@@ -73,7 +73,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
       FunctionElement element = work.element;
       js.Block body;
       ClassElement enclosingClass = element.getEnclosingClass();
-      bool allowVariableMinification;
+      bool allowVariableMinification = !codegen.visitedForeignCode;
+
       if (element.isInstanceMember()
           && enclosingClass.isNative()
           && native.isOverriddenMethod(
@@ -83,18 +84,13 @@ class SsaCodeGeneratorTask extends CompilerTask {
         // and needs to know if the method is overridden.
         nativeEmitter.overriddenMethods.add(element);
         StringBuffer buffer = new StringBuffer();
-        String codeString = prettyPrint(codegen.body).toString();
-        String parametersString =
-            Strings.join(codegen.parameterNames.values, ", ");
-        native.generateMethodWithPrototypeCheckForElement(
-            compiler, buffer, element, codeString, parametersString);
-        js.Node nativeCode = new js.LiteralStatement(buffer.toString());
-        body = new js.Block(<js.Statement>[nativeCode]);
-        allowVariableMinification = false;
+        body =
+            nativeEmitter.generateMethodBodyWithPrototypeCheckForElement(
+                element, codegen.body, codegen.parameters);
       } else {
         body = codegen.body;
-        allowVariableMinification = !codegen.visitedForeignCode;
       }
+
       js.Fun fun = buildJavaScriptFunction(element, codegen.parameters, body);
       return prettyPrint(fun,
                          allowVariableMinification: allowVariableMinification);

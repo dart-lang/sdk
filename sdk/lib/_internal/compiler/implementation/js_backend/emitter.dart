@@ -89,11 +89,6 @@ class CodeEmitterTask extends CompilerTask {
     return constantEmitter.initializationExpression(value);
   }
 
-  // Deprecated.  Remove after last use is converted to JS ASTs.
-  void writeConstantToBuffer(Constant value, CodeBuffer buffer) {
-    buffer.add(js.prettyPrint(constantReference(value), compiler));
-  }
-
   String get name => 'CodeEmitter';
 
   String get defineClassName
@@ -404,8 +399,6 @@ $lazyInitializerLogic
                                            selector);
     if (alreadyGenerated.contains(invocationName)) return;
     alreadyGenerated.add(invocationName);
-    CodeBuffer buffer = new CodeBuffer();
-    buffer.add('function(');
 
     JavaScriptBackend backend = compiler.backend;
     bool isInterceptorClass =
@@ -420,17 +413,17 @@ $lazyInitializerLogic
     String receiverArgumentName = r'$receiver';
 
     // The parameters that this stub takes.
-    List<String> parametersBuffer =
-        new List<String>(selector.argumentCount + extraArgumentCount);
+    List<js.Parameter> parametersBuffer =
+        new List<js.Parameter>(selector.argumentCount + extraArgumentCount);
     // The arguments that will be passed to the real method.
-    List<String> argumentsBuffer =
-        new List<String>(parameters.parameterCount + extraArgumentCount);
+    List<js.Expression> argumentsBuffer =
+        new List<js.Expression>(parameters.parameterCount + extraArgumentCount);
 
     int count = 0;
     if (isInterceptorClass) {
       count++;
-      parametersBuffer[0] = receiverArgumentName;
-      argumentsBuffer[0] = receiverArgumentName;
+      parametersBuffer[0] = new js.Parameter(receiverArgumentName);
+      argumentsBuffer[0] = new js.VariableUse(receiverArgumentName);
     }
 
     int indexOfLastOptionalArgumentInParameters = positionalArgumentCount - 1;
@@ -441,51 +434,54 @@ $lazyInitializerLogic
       String jsName = JsNames.getValid(element.name.slowToString());
       assert(jsName != receiverArgumentName);
       if (count < positionalArgumentCount + extraArgumentCount) {
-        parametersBuffer[count] = jsName;
-        argumentsBuffer[count] = jsName;
+        parametersBuffer[count] = new js.Parameter(jsName);
+        argumentsBuffer[count] = new js.VariableUse(jsName);
       } else {
         int index = names.indexOf(element.name);
         if (index != -1) {
           indexOfLastOptionalArgumentInParameters = count;
           // The order of the named arguments is not the same as the
           // one in the real method (which is in Dart source order).
-          argumentsBuffer[count] = jsName;
-          parametersBuffer[selector.positionalArgumentCount + index] = jsName;
-        // Note that [elements] may be null for a synthetized [member].
+          argumentsBuffer[count] = new js.VariableUse(jsName);
+          parametersBuffer[selector.positionalArgumentCount + index] =
+              new js.Parameter(jsName);
+        // Note that [elements] may be null for a synthesized [member].
         } else if (elements != null && elements.isParameterChecked(element)) {
-          CodeBuffer argumentBuffer = new CodeBuffer();
-          writeConstantToBuffer(SentinelConstant.SENTINEL, argumentBuffer);
-          argumentsBuffer[count] = argumentBuffer.toString();
+          argumentsBuffer[count] = constantReference(SentinelConstant.SENTINEL);
         } else {
           Constant value = handler.initialVariableValues[element];
           if (value == null) {
-            argumentsBuffer[count] = NullConstant.JsNull;
+            argumentsBuffer[count] = constantReference(new NullConstant());
           } else {
             if (!value.isNull()) {
               // If the value is the null constant, we should not pass it
               // down to the native method.
               indexOfLastOptionalArgumentInParameters = count;
             }
-            CodeBuffer argumentBuffer = new CodeBuffer();
-            writeConstantToBuffer(value, argumentBuffer);
-            argumentsBuffer[count] = argumentBuffer.toString();
+            argumentsBuffer[count] = constantReference(value);
           }
         }
       }
       count++;
     });
-    String parametersString = Strings.join(parametersBuffer, ",");
-    buffer.add('$parametersString) {\n');
 
+    List<js.Statement> body;
     if (member.isNative()) {
-      nativeEmitter.generateParameterStub(
-          member, invocationName, parametersString, argumentsBuffer,
-          indexOfLastOptionalArgumentInParameters, buffer);
+      body = nativeEmitter.generateParameterStubStatements(
+          member, invocationName, parametersBuffer, argumentsBuffer,
+          indexOfLastOptionalArgumentInParameters);
     } else {
-      String arguments = Strings.join(argumentsBuffer, ",");
-      buffer.add('  return this.${namer.getName(member)}($arguments)');
+      body = <js.Statement>[
+          new js.Return(
+              new js.VariableUse('this')
+                  .dot(namer.getName(member))
+                  .callWith(argumentsBuffer))];
     }
-    buffer.add('\n}');
+
+    js.Fun function = new js.Fun(parametersBuffer, new js.Block(body));
+
+    CodeBuffer buffer = new CodeBuffer();
+    buffer.add(js.prettyPrint(function, compiler));
     defineInstanceMember(invocationName, buffer);
   }
 

@@ -206,34 +206,47 @@ function(cls, desc) {
     return result == null ? const<ClassElement>[] : result;
   }
 
-  void potentiallyConvertDartClosuresToJs(CodeBuffer code,
+  void potentiallyConvertDartClosuresToJs(List<js.Statement> statements,
                                           FunctionElement member,
-                                          List<String> argumentsBuffer) {
+                                          List<js.Parameter> stubParameters) {
     FunctionSignature parameters = member.computeSignature(compiler);
     Element converter =
         compiler.findHelper(const SourceString('convertDartClosureToJS'));
     String closureConverter = backend.namer.isolateAccess(converter);
+    Set<String> stubParameterNames = new Set<String>.from(
+        stubParameters.map((param) => param.name));
     parameters.forEachParameter((Element parameter) {
       String name = parameter.name.slowToString();
-      // If [name] is not in [argumentsBuffer], then the parameter is
-      // an optional parameter that was not provided for that stub.
-      if (argumentsBuffer.indexOf(name) == -1) return;
-      DartType type = parameter.computeType(compiler).unalias(compiler);
-      if (type is FunctionType) {
-        // The parameter type is a function type either directly or through
-        // typedef(s).
-        int arity = type.computeArity();
-        code.add('  $name = $closureConverter($name, $arity);\n');
+      // If [name] is not in [stubParameters], then the parameter is an optional
+      // parameter that was not provided for this stub.
+      for (js.Parameter stubParameter in stubParameters) {
+        if (stubParameter.name == name) {
+          DartType type = parameter.computeType(compiler).unalias(compiler);
+          if (type is FunctionType) {
+            // The parameter type is a function type either directly or through
+            // typedef(s).
+            int arity = type.computeArity();
+
+            statements.add(
+                new js.ExpressionStatement(
+                    new js.Assignment(
+                        new js.VariableUse(name),
+                        new js.VariableUse(closureConverter)
+                            .callWith([new js.VariableUse(name),
+                                       new js.LiteralNumber('$arity')]))));
+            break;
+          }
+        }
       }
     });
   }
 
-  String generateParameterStub(Element member,
-                               String invocationName,
-                               String stubParameters,
-                               List<String> argumentsBuffer,
-                               int indexOfLastOptionalArgumentInParameters,
-                               CodeBuffer buffer) {
+  List<js.Statement> generateParameterStubStatements(
+      Element member,
+      String invocationName,
+      List<js.Parameter> stubParameters,
+      List<js.Expression> argumentsBuffer,
+      int indexOfLastOptionalArgumentInParameters) {
     // The target JS function may check arguments.length so we need to
     // make sure not to pass any unspecified optional arguments to it.
     // For example, for the following Dart method:
@@ -243,36 +256,91 @@ function(cls, desc) {
     // must be turned into a JS call to:
     //   foo(null, y).
 
-    List<String> nativeArgumentsBuffer = argumentsBuffer.getRange(
-        0, indexOfLastOptionalArgumentInParameters + 1);
-
     ClassElement classElement = member.enclosingElement;
-    String nativeName = classElement.nativeName.slowToString();
-    String nativeArguments = Strings.join(nativeArgumentsBuffer, ",");
+    String nativeTagInfo = classElement.nativeName.slowToString();
 
-    CodeBuffer code = new CodeBuffer();
-    potentiallyConvertDartClosuresToJs(code, member, argumentsBuffer);
+    List<js.Statement> statements = <js.Statement>[];
+    potentiallyConvertDartClosuresToJs(statements, member, stubParameters);
+
+    String target;
+    List<js.Expression> arguments;
 
     if (!nativeMethods.contains(member)) {
-      // When calling a method that has a native body, we call it
-      // with our calling conventions.
-      String arguments = Strings.join(argumentsBuffer, ",");
-      code.add('  return this.${backend.namer.getName(member)}($arguments)');
+      // When calling a method that has a native body, we call it with our
+      // calling conventions.
+      target = backend.namer.getName(member);
+      arguments = argumentsBuffer;
     } else {
-      // When calling a JS method, we call it with the native name.
-      String name = redirectingMethods[member];
-      if (name == null) name = member.name.slowToString();
-      code.add('  return this.$name($nativeArguments);');
+      // When calling a JS method, we call it with the native name, and only the
+      // arguments up until the last one provided.
+      target = redirectingMethods[member];
+      if (target == null) target = member.name.slowToString();
+      arguments = argumentsBuffer.getRange(
+          0, indexOfLastOptionalArgumentInParameters + 1);
     }
+    statements.add(
+        new js.Return(
+            new js.VariableUse('this').dot(target).callWith(arguments)));
 
-    if (isNativeLiteral(nativeName) || !overriddenMethods.contains(member)) {
+    if (isNativeLiteral(nativeTagInfo) || !overriddenMethods.contains(member)) {
       // Call the method directly.
-      buffer.add(code.toString());
+      return statements;
     } else {
-      native.generateMethodWithPrototypeCheck(
-          compiler, buffer, invocationName, code.toString(), stubParameters);
+      return <js.Statement>[
+          generateMethodBodyWithPrototypeCheck(
+              invocationName, new js.Block(statements), stubParameters)];
     }
   }
+
+  // If a method is overridden, we must check if the prototype of 'this' has the
+  // method available. Otherwise, we may end up calling the method from the
+  // super class. If the method is not available, we make a direct call to
+  // Object.prototype.$methodName.  This method will patch the prototype of
+  // 'this' to the real method.
+  js.Statement generateMethodBodyWithPrototypeCheck(
+      String methodName,
+      js.Statement body,
+      List<js.Parameter> parameters) {
+    return new js.If(
+        new js.VariableUse('Object')
+            .dot('getPrototypeOf')
+            .callWith([new js.VariableUse('this')])
+            .dot('hasOwnProperty')
+            .callWith([new js.LiteralString("'$methodName'")]),
+        body,
+        new js.Block(
+            <js.Statement>[
+                new js.Return(
+                    new js.VariableUse('Object')
+                        .dot('prototype').dot(methodName).dot('call')
+                        .callWith(
+                            <js.Expression>[new js.VariableUse('this')]
+                                ..addAll(parameters.map((param) =>
+                                        new js.VariableUse(param.name)))))
+            ]));
+  }
+
+  js.Block generateMethodBodyWithPrototypeCheckForElement(
+      FunctionElement element,
+      js.Block body,
+      List<js.Parameter> parameters) {
+    String methodName;
+    Namer namer = backend.namer;
+    if (element.kind == ElementKind.FUNCTION) {
+      methodName = namer.instanceMethodName(element);
+    } else if (element.kind == ElementKind.GETTER) {
+      methodName = namer.getterName(element.getLibrary(), element.name);
+    } else if (element.kind == ElementKind.SETTER) {
+      methodName = namer.setterName(element.getLibrary(), element.name);
+    } else {
+      compiler.internalError('unexpected kind: "${element.kind}"',
+          element: element);
+    }
+
+    return new js.Block(
+        [generateMethodBodyWithPrototypeCheck(methodName, body, parameters)]);
+  }
+
 
   void emitDynamicDispatchMetadata() {
     if (classesWithDynamicDispatch.isEmpty) return;
