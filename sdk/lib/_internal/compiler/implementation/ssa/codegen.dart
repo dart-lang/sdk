@@ -1543,18 +1543,28 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     js.Expression object = pop();
     SourceString name = node.selector.name;
     String methodName;
-    List<js.Expression> arguments;
+    List<js.Expression> arguments = visitArguments(node.inputs);
     Element target = node.element;
 
     // Avoid adding the generative constructor name to the list of
     // seen selectors.
     if (target != null && target.isGenerativeConstructorBody()) {
       methodName = name.slowToString();
-      arguments = visitArguments(node.inputs);
+    } else if (target == backend.jsArrayAdd) {
+      methodName = 'push';
+    } else if (target == backend.jsArrayRemoveLast) {
+      methodName = 'pop';
+    } else if (target == backend.jsStringSplit) {
+      methodName = 'split';
+      // Split returns a List, so we make sure the backend knows the
+      // list class is instantiated.
+      world.registerInstantiatedClass(compiler.listClass);
+    } else if (target == backend.jsStringConcat) {
+      push(new js.Binary('+', object, arguments[0]), node);
+      return;
     } else {
       methodName = backend.namer.instanceMethodInvocationName(
           node.selector.library, name, node.selector);
-      arguments = visitArguments(node.inputs);
       bool inLoop = node.block.enclosingLoopHeader != null;
 
       Selector selector = getOptimizedSelectorFor(node, node.selector);

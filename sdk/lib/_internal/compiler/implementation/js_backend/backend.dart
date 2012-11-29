@@ -634,6 +634,10 @@ class JavaScriptBackend extends Backend {
   ClassElement objectInterceptorClass;
   Element jsArrayLength;
   Element jsStringLength;
+  Element jsArrayRemoveLast;
+  Element jsArrayAdd;
+  Element jsStringSplit;
+  Element jsStringConcat;
   Element getInterceptorMethod;
   bool _interceptorsAreInitialized = false;
 
@@ -772,10 +776,18 @@ class JavaScriptBackend extends Backend {
     jsArrayClass.ensureResolved(compiler);
     jsArrayLength =
         jsArrayClass.lookupLocalMember(const SourceString('length'));
+    jsArrayRemoveLast =
+        jsArrayClass.lookupLocalMember(const SourceString('removeLast'));
+    jsArrayAdd =
+        jsArrayClass.lookupLocalMember(const SourceString('add'));
 
     jsStringClass.ensureResolved(compiler);
     jsStringLength =
         jsStringClass.lookupLocalMember(const SourceString('length'));
+    jsStringSplit =
+        jsStringClass.lookupLocalMember(const SourceString('split'));
+    jsStringConcat =
+        jsStringClass.lookupLocalMember(const SourceString('concat'));
 
     for (ClassElement cls in classes) {
       if (cls != null) interceptedClasses[cls] = null;

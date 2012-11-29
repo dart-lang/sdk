@@ -39,8 +39,8 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaConstantFolder(constantSystem, backend, work, types),
           new SsaTypeConversionInserter(compiler),
           new SsaTypePropagator(compiler, types),
-          new SsaCheckInserter(backend, work, types, context.boundsChecked),
           new SsaConstantFolder(constantSystem, backend, work, types),
+          new SsaCheckInserter(backend, work, types, context.boundsChecked),
           new SsaRedundantPhiEliminator(),
           new SsaDeadPhiEliminator(),
           new SsaConstantFolder(constantSystem, backend, work, types),
@@ -207,6 +207,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction handleInterceptorCall(HInvokeDynamic node) {
+    if (node is !HInvokeDynamicMethod) return;
     HInstruction input = node.inputs[1];
     if (input.isString(types)
         && node.selector.name == const SourceString('toString')) {
@@ -215,9 +216,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // Check if this call does not need to be intercepted.
     HType type = types[input];
     var interceptor = node.inputs[0];
-    if (node is HInvokeDynamicMethod
-        && interceptor is !HThis
-        && !type.canBePrimitive()) {
+    if (interceptor is !HThis && !type.canBePrimitive()) {
       // If the type can be null, and the intercepted method can be in
       // the object class, keep the interceptor.
       if (type.canBeNull()
@@ -227,6 +226,39 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       // Change the call to a regular invoke dynamic call.
       return new HInvokeDynamicMethod(
           node.selector, node.inputs.getRange(1, node.inputs.length - 1));
+    }
+
+    Selector selector = node.selector;
+    SourceString selectorName = selector.name;
+    Element target;
+    if (input.isExtendableArray(types)) {
+      if (selectorName == backend.jsArrayRemoveLast.name
+          && selector.argumentCount == 0) {
+        target = backend.jsArrayRemoveLast;
+      } else if (selectorName == backend.jsArrayAdd.name
+                 && selector.argumentCount == 1
+                 && selector.namedArgumentCount == 0
+                 && !compiler.enableTypeAssertions) {
+        target = backend.jsArrayAdd;
+      }
+    } else if (input.isString(types)) {
+      if (selectorName == backend.jsStringSplit.name
+          && selector.argumentCount == 1
+          && selector.namedArgumentCount == 0
+          && node.inputs[2].isString(types)) {
+        target = backend.jsStringSplit;
+      } else if (selectorName == backend.jsStringConcat.name
+                 && selector.argumentCount == 1
+                 && selector.namedArgumentCount == 0
+                 && node.inputs[2].isString(types)) {
+        target = backend.jsStringConcat;
+      }
+    }
+    if (target != null) {
+      HInvokeDynamicMethod result = new HInvokeDynamicMethod(
+          node.selector, node.inputs.getRange(1, node.inputs.length - 1));
+      result.element = target;
+      return result;
     }
     return node;
   }
@@ -717,20 +749,16 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
 class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   final HTypeMap types;
-  final ConstantSystem constantSystem;
   final Set<HInstruction> boundsChecked;
   final WorkItem work;
+  final JavaScriptBackend backend;
   final String name = "SsaCheckInserter";
   HGraph graph;
-  Element lengthInterceptor;
 
-  SsaCheckInserter(JavaScriptBackend backend,
+  SsaCheckInserter(this.backend,
                    this.work,
                    this.types,
-                   this.boundsChecked)
-      : constantSystem = backend.constantSystem {
-    lengthInterceptor = backend.jsArrayLength;
-  }
+                   this.boundsChecked);
 
   void visitGraph(HGraph graph) {
     this.graph = graph;
@@ -750,8 +778,8 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
                                  HInstruction receiver,
                                  HInstruction index) {
     bool isAssignable = !receiver.isFixedArray(types);
-    HFieldGet length =
-        new HFieldGet(lengthInterceptor, receiver, isAssignable: isAssignable);
+    HFieldGet length = new HFieldGet(
+        backend.jsArrayLength, receiver, isAssignable: isAssignable);
     length.guaranteedType = HType.INTEGER;
     types[length] = HType.INTEGER;
     node.block.addBefore(node, length);
@@ -794,6 +822,14 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     index = insertBoundsCheck(node, node.receiver, index);
     node.changeUse(node.index, index);
     assert(node.isBuiltin(types));
+  }
+
+  void visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
+    Element element = node.element;
+    if (element != backend.jsArrayRemoveLast) return;
+    if (boundsChecked.contains(node)) return;
+    insertBoundsCheck(
+        node, node.receiver, graph.addConstantInt(0, backend.constantSystem));
   }
 }
 
