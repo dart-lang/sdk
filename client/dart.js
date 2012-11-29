@@ -161,9 +161,14 @@ function ReceivePortSync() {
     var stringified = JSON.stringify(serialize(port));
     var attrName = 'dart-port:' + name;
     document.documentElement.setAttribute(attrName, stringified);
-    // TODO(vsm): Phase out usage of localStorage.  We're leaving it in
-    // temporarily for backwards compatibility.
-    window.localStorage[attrName] = stringified;
+    // TODO(vsm): Phase out usage of localStorage and delete the
+    // below.  We're leaving it in temporarily for backwards
+    // compatibility.
+    try {
+      window.localStorage[attrName] = stringified;
+    } catch (e) {
+      // Swallow errors (e.g., Chrome apps disallow this access).
+    }
   };
 
   window.lookupPort = function(name) {
