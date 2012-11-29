@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart_io;
+
 // Constants used when working with native ports.
 const int _SUCCESS_RESPONSE = 0;
 const int _ILLEGAL_ARGUMENT_RESPONSE = 1;

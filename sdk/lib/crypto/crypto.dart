@@ -2,16 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('dart:crypto');
+library dart_crypto;
 
-#import('dart:math');
+import 'dart:math';
 
-#source('crypto_utils.dart');
-#source('hash_utils.dart');
-#source('hmac.dart');
-#source('md5.dart');
-#source('sha1.dart');
-#source('sha256.dart');
+part 'crypto_utils.dart';
+part 'hash_utils.dart';
+part 'hmac.dart';
+part 'md5.dart';
+part 'sha1.dart';
+part 'sha256.dart';
 
 /**
  * Interface for cryptographic hash functions.

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart_core;
+
 /**
  * A [Queue] is a collection that can be manipulated at both ends. One
  * can iterate over the elements of a queue through [forEach] or with

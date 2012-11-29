@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart_io;
+
 /**
  * A Path, which is a String interpreted as a sequence of path segments,
  * which are strings, separated by forward slashes.

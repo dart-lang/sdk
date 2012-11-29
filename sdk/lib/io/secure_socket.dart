@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart_io;
+
 /**
  * SecureSocket provides a secure (SSL or TLS) client connection to a server.
  * The certificate provided by the server is checked

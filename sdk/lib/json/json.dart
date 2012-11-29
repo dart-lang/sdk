@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("dart:json");
+library dart_json;
 
-#import('dart:math');
+import 'dart:math';
 
 // JSON parsing and serialization.
 

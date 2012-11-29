@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart_io;
+
 const String _DART_SESSION_ID = "DARTSESSID";
 
 // A _HttpSession is a node in a double-linked list, with _next and _prev being

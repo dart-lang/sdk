@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart_core;
+
 /**
  * The [Iterator] class provides methods to iterate over an object. It
  * is transparently used by the for-in construct to test for the end

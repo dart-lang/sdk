@@ -10,9 +10,9 @@
  * This library allows you to work with arrays of scalar values
  * of various sizes.
  */
-#library('dart:scalarlist');
+library dart_scalarlist;
 
 // TODO(ager): Inline the contents of byte_arrays.dart here and get
 // rid of scalarlist_sources.gypi when the VM understands normal
 // library structure for builtin libraries.
-#source('byte_arrays.dart');
+part 'byte_arrays.dart';

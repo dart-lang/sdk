@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart_io;
+
 const String _webSocketGUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
 class _WebSocketMessageType {

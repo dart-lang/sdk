@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart_io;
+
 /**
  * Output streams are used to write data sequentially to a data
  * destination e.g. a connected socket or an open file.

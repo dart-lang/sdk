@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart_core;
+
 /**
  * The String class represents character strings. Strings are
  * immutable. A string is represented by a list of 32-bit Unicode

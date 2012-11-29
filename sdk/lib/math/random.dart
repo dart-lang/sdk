@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// A part of the dart:math library.
+part of dart_math;
 
 /**
  * A random number generator. The default implementation supplies a stream of

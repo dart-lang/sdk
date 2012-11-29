@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart_io;
+
 /**
  * Parser for MIME multipart types of data as described in RFC 2046
  * section 5.1.1. The data to parse is supplied through the [:update:]
