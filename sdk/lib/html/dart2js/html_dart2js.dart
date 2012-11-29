@@ -25,7 +25,7 @@ List<Element> queryAll(String selector) => document.queryAll(selector);
 
 // Workaround for tags like <cite> that lack their own Element subclass --
 // Dart issue 1990.
-class HTMLElement extends Element native "*HTMLElement" {
+class _HTMLElement extends Element native "*HTMLElement" {
 }
 
 // Support for Send/ReceivePortSync.
