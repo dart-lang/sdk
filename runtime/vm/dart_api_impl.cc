@@ -1749,6 +1749,10 @@ DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
   if (array == NULL) {
     RETURN_NULL_ERROR(array);
   }
+  if (str_obj.IsCanonical()) {
+    return Api::NewError("Dart_MakeExternalString "
+                         "cannot externalize a read-only string.");
+  }
   intptr_t str_size = (str_obj.Length() * str_obj.CharSize());
   if ((length < str_size) || (length > String::kMaxElements)) {
     return Api::NewError("Dart_MakeExternalString "

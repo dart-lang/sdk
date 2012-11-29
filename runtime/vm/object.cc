@@ -10498,15 +10498,16 @@ RawString* String::MakeExternal(void* array,
                                 intptr_t length,
                                 void* peer,
                                 Dart_PeerFinalizer cback) const {
+  NoGCScope no_gc;
   ASSERT(array != NULL);
   intptr_t str_length = this->Length();
   ASSERT(length >= (str_length * this->CharSize()));
   intptr_t class_id = raw()->GetClassId();
   intptr_t used_size = 0;
   intptr_t original_size = 0;
-  uword tags = 0;
-  NoGCScope no_gc;
+  uword tags = raw_ptr()->tags_;
 
+  ASSERT(!IsCanonical());
   if (class_id == kOneByteStringCid) {
     used_size = ExternalOneByteString::InstanceSize();
     original_size = OneByteString::InstanceSize(str_length);
