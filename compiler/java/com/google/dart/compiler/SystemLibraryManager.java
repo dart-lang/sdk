@@ -94,12 +94,17 @@ public class SystemLibraryManager  {
   public URI translateDartUri(URI uri) {
    
       String host = uri.getHost();
+      
       SystemLibrary library = hostMap.get(host);
       if (library != null) {
         return library.translateUri(uri);
       }
       if (host != null) {        
         return libraryProvider.resolveHost(host, uri);
+      }
+      String authorithy = uri.getAuthority();
+      if (authorithy != null){
+        return libraryProvider.resolveHost(authorithy, uri);
       }
       throw new RuntimeException("No system library defined for " + uri);
    
