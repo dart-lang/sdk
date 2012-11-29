@@ -588,6 +588,25 @@ testFieldInitialization() {
   result.checkFieldHasType('A', 'y', [result.int]);
 }
 
+testSendWithWrongArity() {
+  final String source = r"""
+    f(x) { }
+    class A { g(x) { } }
+    main () {
+      var x = f();
+      var y = f(1, 2);
+      var z = new A().g();
+      var w = new A().g(1, 2);
+      x; y; z; w;
+    }
+    """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('x', []);
+  result.checkNodeHasType('y', []);
+  result.checkNodeHasType('z', []);
+  result.checkNodeHasType('w', []);
+}
+
 void main() {
   testLiterals();
   testRedefinition();
@@ -614,4 +633,5 @@ void main() {
   testCompoundOperators1();
   testCompoundOperators2();
   // testFieldInitialization(); // TODO(polux)
+  testSendWithWrongArity();
 }

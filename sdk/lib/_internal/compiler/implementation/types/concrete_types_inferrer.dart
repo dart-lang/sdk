@@ -601,13 +601,11 @@ class ConcreteTypesInferrer {
     ConcreteType result = new ConcreteType.empty();
     Map<Element, ConcreteType> argumentMap =
         associateArguments(function, argumentsTypes);
-    argumentMap.forEach((Element parameter, ConcreteType type) {
-      augmentParameterType(parameter, type);
-    });
     // if the association failed, this send will never occur or will fail
     if (argumentMap == null) {
       return new ConcreteType.empty();
     }
+    argumentMap.forEach(augmentParameterType);
     ConcreteTypeCartesianProduct product =
         new ConcreteTypeCartesianProduct(receiverType, argumentMap);
     for (ConcreteTypesEnvironment environment in product) {
