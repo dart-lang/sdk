@@ -1028,10 +1028,16 @@ class StandardTestSuite extends TestSuite {
 
     // Create '[build dir]/generated_tests/$compiler-$runtime/$testUniqueName',
     // including any intermediate directories that don't exist.
+    // If the tests are run in checked or minified mode we add that to the
+    // '$compile-$runtime' directory name.
+    var checked = configuration['checked'] ? '-checked' : '';
+    var minified = configuration['minified'] ? '-minified' : '';
+    var dirName = "${configuration['compiler']}-${configuration['runtime']}"
+                  "$checked$minified";
     var generatedTestPath = Strings.join([
         buildDir,
         'generated_tests',
-        "${configuration['compiler']}-${configuration['runtime']}",
+        dirName,
         testUniqueName
     ], '/');
 
