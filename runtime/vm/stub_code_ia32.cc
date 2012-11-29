@@ -1881,10 +1881,10 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     Label has_no_type_arguments;
     __ movl(EBX, raw_null);
     __ movl(EDI, FieldAddress(ECX,
-        Class::type_arguments_field_offset_offset()));
+        Class::type_arguments_field_offset_in_words_offset()));
     __ cmpl(EDI, Immediate(Class::kNoTypeArguments));
     __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
-    __ movl(EBX, FieldAddress(EAX, EDI, TIMES_1, 0));
+    __ movl(EBX, FieldAddress(EAX, EDI, TIMES_4, 0));
     __ Bind(&has_no_type_arguments);
   }
   __ LoadClassId(ECX, EAX);

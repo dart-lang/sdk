@@ -1845,10 +1845,10 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     Label has_no_type_arguments;
     __ movq(R13, raw_null);
     __ movq(RDI, FieldAddress(R10,
-        Class::type_arguments_field_offset_offset()));
+        Class::type_arguments_field_offset_in_words_offset()));
     __ cmpq(RDI, Immediate(Class::kNoTypeArguments));
     __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
-    __ movq(R13, FieldAddress(RAX, RDI, TIMES_1, 0));
+    __ movq(R13, FieldAddress(RAX, RDI, TIMES_8, 0));
     __ Bind(&has_no_type_arguments);
   }
   __ LoadClassId(R10, RAX);

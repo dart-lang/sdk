@@ -432,10 +432,10 @@ class RawClass : public RawObject {
   }
 
   cpp_vtable handle_vtable_;
-  intptr_t instance_size_;  // Size if fixed length or 0 if variable length.
+  intptr_t instance_size_in_words_;  // Size if fixed len or 0 if variable len.
   intptr_t id_;  // Class Id, also index in the class table.
-  intptr_t type_arguments_field_offset_;  // Offset of the type arguments field.
-  intptr_t next_field_offset_;  // Offset of the next instance field.
+  intptr_t type_arguments_field_offset_in_words_;  // Offset of type args fld.
+  intptr_t next_field_offset_in_words_;  // Offset of the next instance field.
   intptr_t num_native_fields_;  // Number of native fields in class.
   intptr_t token_pos_;
   uint8_t state_bits_;  // state, is_const, is_interface, is_implemented.
@@ -602,7 +602,7 @@ class RawField : public RawObject {
   RawString* name_;
   RawClass* owner_;
   RawAbstractType* type_;
-  RawInstance* value_;  // Offset for instance and value for static fields.
+  RawInstance* value_;  // Offset in words for instance and value for static.
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->value_); }
 
   intptr_t token_pos_;

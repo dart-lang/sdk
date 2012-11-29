@@ -57,9 +57,9 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
     cls.set_tags(tags);
 
     // Set all non object fields.
-    cls.set_instance_size(reader->ReadIntptrValue());
-    cls.set_type_arguments_field_offset(reader->ReadIntptrValue());
-    cls.set_next_field_offset(reader->ReadIntptrValue());
+    cls.set_instance_size_in_words(reader->ReadIntptrValue());
+    cls.set_type_arguments_field_offset_in_words(reader->ReadIntptrValue());
+    cls.set_next_field_offset_in_words(reader->ReadIntptrValue());
     cls.set_num_native_fields(reader->ReadIntptrValue());
     cls.set_token_pos(reader->ReadIntptrValue());
     cls.set_state_bits(reader->Read<uint8_t>());
@@ -96,9 +96,9 @@ void RawClass::WriteTo(SnapshotWriter* writer,
     // Write out all the non object pointer fields.
     // NOTE: cpp_vtable_ is not written.
     writer->WriteIntptrValue(ptr()->id_);
-    writer->WriteIntptrValue(ptr()->instance_size_);
-    writer->WriteIntptrValue(ptr()->type_arguments_field_offset_);
-    writer->WriteIntptrValue(ptr()->next_field_offset_);
+    writer->WriteIntptrValue(ptr()->instance_size_in_words_);
+    writer->WriteIntptrValue(ptr()->type_arguments_field_offset_in_words_);
+    writer->WriteIntptrValue(ptr()->next_field_offset_in_words_);
     writer->WriteIntptrValue(ptr()->num_native_fields_);
     writer->WriteIntptrValue(ptr()->token_pos_);
     writer->Write<uint8_t>(ptr()->state_bits_);

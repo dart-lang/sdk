@@ -271,7 +271,8 @@ void Object::InitOnce() {
     cls.set_id(Class::kClassId);
     cls.raw_ptr()->state_bits_ = 0;
     cls.set_is_finalized();
-    cls.raw_ptr()->type_arguments_field_offset_ = Class::kNoTypeArguments;
+    cls.raw_ptr()->type_arguments_field_offset_in_words_ =
+        Class::kNoTypeArguments;
     cls.raw_ptr()->num_native_fields_ = 0;
     cls.InitEmptyFields();
     isolate->class_table()->Register(cls);
@@ -1368,7 +1369,7 @@ RawClass* Class::New() {
   // VM backed classes are almost ready: run checks and resolve class
   // references, but do not recompute size.
   result.set_is_prefinalized();
-  result.raw_ptr()->type_arguments_field_offset_ = kNoTypeArguments;
+  result.raw_ptr()->type_arguments_field_offset_in_words_ = kNoTypeArguments;
   result.raw_ptr()->num_native_fields_ = 0;
   result.raw_ptr()->token_pos_ = Scanner::kDummyTokenIndex;
   result.InitEmptyFields();
@@ -1754,7 +1755,7 @@ RawClass* Class::New(intptr_t index) {
   result.set_next_field_offset(FakeInstance::InstanceSize());
   result.set_id(index);
   result.raw_ptr()->state_bits_ = 0;
-  result.raw_ptr()->type_arguments_field_offset_ = kNoTypeArguments;
+  result.raw_ptr()->type_arguments_field_offset_in_words_ = kNoTypeArguments;
   result.raw_ptr()->num_native_fields_ = 0;
   result.raw_ptr()->token_pos_ = Scanner::kDummyTokenIndex;
   result.InitEmptyFields();

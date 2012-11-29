@@ -263,6 +263,7 @@ class SnapshotReader : public BaseReader {
   RawGrowableObjectArray* NewGrowableObjectArray();
   RawApiError* NewApiError();
   RawLanguageError* NewLanguageError();
+  RawObject* NewInteger(int64_t value);
 
  private:
   class BackRefNode : public ZoneAllocated {

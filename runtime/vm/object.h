@@ -454,25 +454,30 @@ class Class : public Object {
  public:
   intptr_t instance_size() const {
     ASSERT(is_finalized() || is_prefinalized());
-    return raw_ptr()->instance_size_;
+    return (raw_ptr()->instance_size_in_words_ * kWordSize);
   }
-  void set_instance_size(intptr_t value) const {
-    ASSERT(Utils::IsAligned(value, kObjectAlignment));
-    raw_ptr()->instance_size_ = value;
+  void set_instance_size(intptr_t value_in_bytes) const {
+    ASSERT(kWordSize != 0);
+    set_instance_size_in_words(value_in_bytes / kWordSize);
   }
-  static intptr_t instance_size_offset() {
-    return OFFSET_OF(RawClass, instance_size_);
+  void set_instance_size_in_words(intptr_t value) const {
+    ASSERT(Utils::IsAligned((value * kWordSize), kObjectAlignment));
+    raw_ptr()->instance_size_in_words_ = value;
   }
 
   intptr_t next_field_offset() const {
-    return raw_ptr()->next_field_offset_;
+    return raw_ptr()->next_field_offset_in_words_ * kWordSize;
   }
-  void set_next_field_offset(intptr_t value) const {
-    ASSERT((Utils::IsAligned(value, kObjectAlignment) &&
-            (value == raw_ptr()->instance_size_)) ||
-           (!Utils::IsAligned(value, kObjectAlignment) &&
-            (value + kWordSize == raw_ptr()->instance_size_)));
-    raw_ptr()->next_field_offset_ = value;
+  void set_next_field_offset(intptr_t value_in_bytes) const {
+    ASSERT(kWordSize != 0);
+    set_next_field_offset_in_words(value_in_bytes / kWordSize);
+  }
+  void set_next_field_offset_in_words(intptr_t value) const {
+    ASSERT((Utils::IsAligned((value * kWordSize), kObjectAlignment) &&
+            (value == raw_ptr()->instance_size_in_words_)) ||
+           (!Utils::IsAligned((value * kWordSize), kObjectAlignment) &&
+            ((value + 1) == raw_ptr()->instance_size_in_words_)));
+    raw_ptr()->next_field_offset_in_words_ = value;
   }
 
   cpp_vtable handle_vtable() const { return raw_ptr()->handle_vtable_; }
@@ -542,13 +547,26 @@ class Class : public Object {
   static const intptr_t kNoTypeArguments = -1;
   intptr_t type_arguments_field_offset() const {
     ASSERT(is_finalized() || is_prefinalized());
-    return raw_ptr()->type_arguments_field_offset_;
+    if (raw_ptr()->type_arguments_field_offset_in_words_ == kNoTypeArguments) {
+      return kNoTypeArguments;
+    }
+    return raw_ptr()->type_arguments_field_offset_in_words_ * kWordSize;
   }
-  void set_type_arguments_field_offset(intptr_t value) const {
-    raw_ptr()->type_arguments_field_offset_ = value;
+  void set_type_arguments_field_offset(intptr_t value_in_bytes) const {
+    intptr_t value;
+    if (value_in_bytes == kNoTypeArguments) {
+      value = kNoTypeArguments;
+    } else {
+      ASSERT(kWordSize != 0);
+      value = value_in_bytes / kWordSize;
+    }
+    set_type_arguments_field_offset_in_words(value);
   }
-  static intptr_t type_arguments_field_offset_offset() {
-    return OFFSET_OF(RawClass, type_arguments_field_offset_);
+  void set_type_arguments_field_offset_in_words(intptr_t value) const {
+    raw_ptr()->type_arguments_field_offset_in_words_ = value;
+  }
+  static intptr_t type_arguments_field_offset_in_words_offset() {
+    return OFFSET_OF(RawClass, type_arguments_field_offset_in_words_);
   }
 
   // The super type of this class, Object type if not explicitly specified.
@@ -1578,7 +1596,7 @@ class Field : public Object {
   bool is_const() const { return ConstBit::decode(raw_ptr()->kind_bits_); }
 
   inline intptr_t Offset() const;
-  inline void SetOffset(intptr_t value) const;
+  inline void SetOffset(intptr_t value_in_bytes) const;
 
   RawInstance* value() const;
   void set_value(const Instance& value) const;
@@ -5916,13 +5934,15 @@ bool Function::HasCode() const {
 
 intptr_t Field::Offset() const {
   ASSERT(!is_static());  // Offset is valid only for instance fields.
-  return Smi::Value(reinterpret_cast<RawSmi*>(raw_ptr()->value_));
+  intptr_t value = Smi::Value(reinterpret_cast<RawSmi*>(raw_ptr()->value_));
+  return (value * kWordSize);
 }
 
 
-void Field::SetOffset(intptr_t value) const {
+void Field::SetOffset(intptr_t value_in_bytes) const {
   ASSERT(!is_static());  // SetOffset is valid only for instance fields.
-  raw_ptr()->value_ = Smi::New(value);
+  ASSERT(kWordSize != 0);
+  raw_ptr()->value_ = Smi::New(value_in_bytes / kWordSize);
 }
 
 
