@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == dart2js && $host_checked && $checked]
+new_expression_type_args_test/02: Crash # Issue 6931
+
 [ $compiler == dart2js || $compiler == dart2dart ]
 class_literal_test/01: Fail # Class literals are expression now; delete this test.
 class_literal_test/02: Fail # Class literals are expression now; delete this test.

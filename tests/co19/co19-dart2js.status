@@ -4,6 +4,10 @@
 
 # Crashes first, please. Then untriaged bugs. There is a section below
 # for co19 bugs.
+[ $compiler == dart2js && $host_checked ]
+Language/13_Libraries_and_Scripts/5_URIs_A01_t15: Crash # Issue 6931
+Language/13_Libraries_and_Scripts/5_URIs_A01_t14: Crash # Issue 6931
+
 [ $compiler == dart2js ]
 Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(ahe): Please triage this failure.
 Language/03_Overview/1_Scoping_A02_t06: Fail # TODO(ahe): Please triage this failure.
