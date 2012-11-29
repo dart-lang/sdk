@@ -366,6 +366,14 @@ class ConcreteTypesInferrer {
   final Compiler compiler;
 
   /**
+   * When true, the string litteral [:"__dynamic_for_test":] is inferred to
+   * have the unknown type.
+   */
+  // TODO(polux): get rid of this hack once we have a natural way of inferring
+  // the unknown type.
+  bool testMode = false;
+
+  /**
    * Constants representing builtin base types. Initialized in [analyzeMain]
    * and not in the constructor because the compiler elements are not yet
    * populated.
@@ -479,9 +487,9 @@ class ConcreteTypesInferrer {
   /**
    * Returns all the members with name [methodName].
    */
-  List<FunctionElement> getMembersByName(SourceString methodName) {
+  List<Element> getMembersByName(SourceString methodName) {
     // TODO(polux): make this faster!
-    var result = new List<FunctionElement>();
+    var result = new List<Element>();
     for (ClassElement cls in compiler.enqueuer.resolution.seenClasses) {
       Element elem = cls.lookupLocalMember(methodName);
       if (elem != null) {
@@ -1029,7 +1037,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     }
 
     if (receiverType.isUnkown()) {
-      for (FunctionElement member in inferrer.getMembersByName(source)) {
+      for (Element member in inferrer.getMembersByName(source)) {
         Element classElem = member.getEnclosingClass();
         BaseType baseReceiverType = new ClassBaseType(classElem);
         augmentField(baseReceiverType, member);
@@ -1098,6 +1106,12 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitLiteralString(LiteralString node) {
+    // TODO(polux): get rid of this hack once we have a natural way of inferring
+    // the unknown type.
+    if (inferrer.testMode
+        && node.dartString.slowToString() == "__dynamic_for_test") {
+      return new ConcreteType.unknown();
+    }
     return new ConcreteType.singleton(inferrer.baseTypes.stringBaseType);
   }
 
@@ -1403,9 +1417,13 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     ConcreteType result = new ConcreteType.empty();
 
     if (receiverType.isUnkown()) {
-      List<FunctionElement> methods =
+      List<Element> methods =
           inferrer.getMembersByName(canonicalizedMethodName);
-      for (FunctionElement method in methods) {
+      for (Element element in methods) {
+        // TODO(polux): when we handle closures, we must handle sends to fields
+        // that are closures.
+        if (!element.isFunction()) continue;
+        FunctionElement method = element;
         inferrer.addCaller(method, currentMethod);
         Element classElem = method.enclosingElement;
         ClassBaseType baseReceiverType = new ClassBaseType(classElem);
