@@ -2776,9 +2776,60 @@ static bool IsLoadEliminationCandidate(Definition* def) {
 }
 
 
-static intptr_t NumberLoadExpressions(FlowGraph* graph) {
+static intptr_t ComputeLoadOffsetInWords(Definition* defn) {
+  if (defn->IsLoadIndexed()) {
+    // We are assuming that LoadField is never used to load the first word.
+    return 0;
+  }
+
+  LoadFieldInstr* load_field = defn->AsLoadField();
+  if (load_field != NULL) {
+    const intptr_t idx = load_field->offset_in_bytes() / kWordSize;
+    ASSERT(idx > 0);
+    return idx;
+  }
+
+  UNREACHABLE();
+  return 0;
+}
+
+
+static bool IsInterferingStore(Instruction* instr,
+                               intptr_t* offset_in_words) {
+  if (instr->IsStoreIndexed()) {
+    // We are assuming that LoadField is never used to load the first word.
+    *offset_in_words = 0;
+    return true;
+  }
+
+  StoreInstanceFieldInstr* store_instance_field = instr->AsStoreInstanceField();
+  if (store_instance_field != NULL) {
+    ASSERT(store_instance_field->field().Offset() != 0);
+    *offset_in_words = store_instance_field->field().Offset() / kWordSize;
+    return true;
+  }
+
+  StoreVMFieldInstr* store_vm_field = instr->AsStoreVMField();
+  if (store_vm_field != NULL) {
+    ASSERT(store_vm_field->offset_in_bytes() != 0);
+    *offset_in_words = store_vm_field->offset_in_bytes() / kWordSize;
+    return true;
+  }
+
+  return false;
+}
+
+
+static intptr_t NumberLoadExpressions(
+    FlowGraph* graph,
+    GrowableArray<BitVector*>* kill_by_offs) {
   DirectChainedHashMap<PointerKeyValueTrait<Definition> > map;
   intptr_t expr_id = 0;
+
+  // Loads representing different expression ids will be collected and
+  // used to build per offset kill sets.
+  GrowableArray<Definition*> loads(10);
+
   for (BlockIterator it = graph->reverse_postorder_iterator();
        !it.Done();
        it.Advance()) {
@@ -2794,11 +2845,29 @@ static intptr_t NumberLoadExpressions(FlowGraph* graph) {
       if (result == NULL) {
         map.Insert(defn);
         defn->set_expr_id(expr_id++);
+        loads.Add(defn);
       } else {
         defn->set_expr_id(result->expr_id());
       }
     }
   }
+
+  // Build per offset kill sets. Any store interferes only with loads from
+  // the same offset.
+  for (intptr_t i = 0; i < loads.length(); i++) {
+    Definition* defn = loads[i];
+
+    const intptr_t offset_in_words = ComputeLoadOffsetInWords(defn);
+    while (kill_by_offs->length() <= offset_in_words) {
+      kill_by_offs->Add(NULL);
+    }
+    if ((*kill_by_offs)[offset_in_words] == NULL) {
+      (*kill_by_offs)[offset_in_words] = new BitVector(expr_id);
+    }
+    (*kill_by_offs)[offset_in_words]->Add(defn->expr_id());
+  }
+
+
   return expr_id;
 }
 
@@ -2806,7 +2875,8 @@ static intptr_t NumberLoadExpressions(FlowGraph* graph) {
 static void ComputeAvailableLoads(
     FlowGraph* graph,
     intptr_t max_expr_id,
-    const GrowableArray<BitVector*>& avail_in) {
+    const GrowableArray<BitVector*>& avail_in,
+    const GrowableArray<BitVector*>& kill_by_offs) {
   // Initialize gen-, kill-, out-sets.
   intptr_t num_blocks = graph->preorder().length();
   GrowableArray<BitVector*> avail_out(num_blocks);
@@ -2827,15 +2897,29 @@ static void ComputeAvailableLoads(
          !instr_it.Done();
          instr_it.Advance()) {
       Instruction* instr = instr_it.Current();
-      if (instr->HasSideEffect()) {
+
+      intptr_t offset_in_words = 0;
+      if (IsInterferingStore(instr, &offset_in_words)) {
+        if ((offset_in_words < kill_by_offs.length()) &&
+            (kill_by_offs[offset_in_words] != NULL)) {
+          avail_kill[preorder_number]->AddAll(kill_by_offs[offset_in_words]);
+        }
+        ASSERT(instr->IsDefinition() &&
+               !IsLoadEliminationCandidate(instr->AsDefinition()));
+        continue;
+      } else if (instr->HasSideEffect()) {
         avail_kill[preorder_number]->SetAll();
         break;
       }
-      Definition* defn = instr_it.Current()->AsDefinition();
+      Definition* defn = instr->AsDefinition();
       if ((defn == NULL) || !IsLoadEliminationCandidate(defn)) {
         continue;
       }
-      avail_gen[preorder_number]->Add(defn->expr_id());
+
+      const intptr_t expr_id = defn->expr_id();
+      if (!avail_kill[preorder_number]->Contains(expr_id)) {
+        avail_gen[preorder_number]->Add(expr_id);
+      }
     }
     avail_out[preorder_number]->CopyFrom(avail_gen[preorder_number]);
   }
@@ -2887,7 +2971,8 @@ static void ComputeAvailableLoads(
 static bool OptimizeLoads(
     BlockEntryInstr* block,
     GrowableArray<Definition*>* definitions,
-    const GrowableArray<BitVector*>& avail_in) {
+    const GrowableArray<BitVector*>& avail_in,
+    const GrowableArray<BitVector*>& kill_by_offs) {
   // TODO(fschneider): Factor out code shared with the existing CSE pass.
 
   // Delete loads that are killed (not available) at the entry.
@@ -2902,7 +2987,21 @@ static bool OptimizeLoads(
   bool changed = false;
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
     Instruction* instr = it.Current();
-    if (instr->HasSideEffect()) {
+
+    intptr_t offset_in_words = 0;
+    if (IsInterferingStore(instr, &offset_in_words)) {
+      if ((offset_in_words < kill_by_offs.length()) &&
+          (kill_by_offs[offset_in_words] != NULL)) {
+        for (BitVector::Iterator it(kill_by_offs[offset_in_words]);
+             !it.Done();
+             it.Advance()) {
+          (*definitions)[it.Current()] = NULL;
+        }
+      }
+      ASSERT(instr->IsDefinition() &&
+             !IsLoadEliminationCandidate(instr->AsDefinition()));
+      continue;
+    } else if (instr->HasSideEffect()) {
       // Handle local side effects by clearing current definitions.
       for (intptr_t i = 0; i < definitions->length(); i++) {
         (*definitions)[i] = NULL;
@@ -2937,9 +3036,11 @@ static bool OptimizeLoads(
     if (i  < num_children - 1) {
       GrowableArray<Definition*> child_defs(definitions->length());
       child_defs.AddArray(*definitions);
-      changed = OptimizeLoads(child, &child_defs, avail_in) || changed;
+      changed = OptimizeLoads(child, &child_defs, avail_in, kill_by_offs) ||
+                changed;
     } else {
-      changed = OptimizeLoads(child, definitions, avail_in) || changed;
+      changed = OptimizeLoads(child, definitions, avail_in, kill_by_offs) ||
+                changed;
     }
   }
   return changed;
@@ -2949,7 +3050,8 @@ static bool OptimizeLoads(
 bool DominatorBasedCSE::Optimize(FlowGraph* graph) {
   bool changed = false;
   if (FLAG_load_cse) {
-    intptr_t max_expr_id = NumberLoadExpressions(graph);
+    GrowableArray<BitVector*> kill_by_offs(10);
+    intptr_t max_expr_id = NumberLoadExpressions(graph, &kill_by_offs);
     if (max_expr_id > 0) {
       intptr_t num_blocks = graph->preorder().length();
       GrowableArray<BitVector*> avail_in(num_blocks);
@@ -2957,13 +3059,14 @@ bool DominatorBasedCSE::Optimize(FlowGraph* graph) {
         avail_in.Add(new BitVector(max_expr_id));
       }
 
-      ComputeAvailableLoads(graph, max_expr_id, avail_in);
+      ComputeAvailableLoads(graph, max_expr_id, avail_in, kill_by_offs);
 
       GrowableArray<Definition*> definitions(max_expr_id);
       for (intptr_t j = 0; j < max_expr_id ; j++) {
         definitions.Add(NULL);
       }
-      changed = OptimizeLoads(graph->graph_entry(), &definitions, avail_in);
+      changed = OptimizeLoads(
+          graph->graph_entry(), &definitions, avail_in, kill_by_offs);
     }
   }
 
