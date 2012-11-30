@@ -365,8 +365,14 @@ class PlaceholderCollector extends Visitor {
     Element constructor = treeElements[send];
     assert(constructor != null);
     assert(send.receiver == null);
-    if (!Elements.isErroneousElement(constructor) &&
-        !Elements.isMalformedElement(constructor)) {
+
+    // For constructors that refer to malformed class types retrieve
+    // class type like it is done in [ SsaBuilder.visitNewSend ].
+    if (type.kind == TypeKind.MALFORMED_TYPE) {
+      type = constructor.getEnclosingClass().thisType;
+    }
+
+    if (!Elements.isUnresolved(constructor)) {
       makeConstructorPlaceholder(node.send.selector, constructor, type);
       // TODO(smok): Should this be in visitNamedArgument?
       // Field names can be exposed as names of optional arguments, e.g.

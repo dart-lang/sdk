@@ -3430,8 +3430,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   visitNewExpression(NewExpression node) {
     Element element = elements[node.send];
-    if (!Elements.isErroneousElement(element) &&
-        !Elements.isMalformedElement(element)) {
+    if (!Elements.isUnresolved(element)) {
       FunctionElement function = element;
       element = function.redirectionTarget;
     }
@@ -3453,12 +3452,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       ConstantHandler handler = compiler.constantHandler;
       Constant constant = handler.compileNodeWithDefinitions(node, elements);
       stack.add(graph.addConstant(constant));
-    } else if (Elements.isMalformedElement(element)) {
-      Message message =
-          MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER.message([element]);
-      generateRuntimeError(node.send, message.toString());
     } else {
-      visitNewSend(node.send, elements.getType(node));
+      DartType dartType = elements.getType(node);
+      if (dartType.kind == TypeKind.MALFORMED_TYPE &&
+          compiler.enableTypeAssertions) {
+        Message message = MessageKind.MALFORMED_TYPE_REFERENCE.message([node]);
+        generateRuntimeError(node.send, message.toString());
+      } else {
+        visitNewSend(node.send, dartType);
+      }
     }
   }
 

@@ -261,9 +261,13 @@ class MalformedType extends DartType {
 
   DartType unalias(Compiler compiler) => this;
 
-  int get hashCode => 1733;
+  int get hashCode => 1733 + 19 * element.hashCode;
 
-  bool operator ==(other) => other is MalformedType;
+  bool operator ==(other) {
+    if (other is !MalformedType) return false;
+    if (!identical(element, other.element)) return false;
+    return true;
+  }
 
   String toString() => name.slowToString();
 }

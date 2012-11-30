@@ -1038,7 +1038,7 @@ class TypeResolver {
 
   TypeResolver(this.compiler);
 
-  bool anyMalformedTypesInThere(Link<DartType> list) {
+  bool anyMalformedTypes(Link<DartType> list) {
     for (Link<DartType> link = list;
         !link.isEmpty;
         link = link.tail) {
@@ -1136,11 +1136,23 @@ class TypeResolver {
           // Use the canonical type if it has no type parameters.
           type = cls.computeType(compiler);
         } else {
-          // In checked mode malformed-ness of the type argument bubbles up.
-          if (anyMalformedTypesInThere(arguments) &&
-              compiler.enableTypeAssertions) {
-            type = new MalformedType(
-                new MalformedTypeElement(node, element));
+          if (anyMalformedTypes(arguments)) {
+            // Build interface type (with malformed arguments in it) and
+            // call [whenResolved] to let [ConstructorResolver] create
+            // constructor selectors, which are used by 
+            // [SsaBuilder.visitNewSend] to figure out what class needs 
+            // to be built.
+            whenResolved(node,
+                         new InterfaceType(cls.declaration, arguments));
+            // Return malformed type element below so that
+            // [ConstructorResolver.visitTypeAnnotation] gets [:MalformedType:]
+            // and can map (via resolver.mapping) NewExpression node to
+            // this malformed type.
+            // [SsaBuilder.visitNewExpression] picks up the fact that
+            // NewExpression is mapped to malformed type and generates
+            // runtime error in checked mode.
+            type = new MalformedType(new MalformedTypeElement(node, element));
+            return type;
           } else {
             if (arguments.isEmpty) {
               // Use the canonical raw type if the class is generic.
