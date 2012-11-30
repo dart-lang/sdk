@@ -58,18 +58,18 @@ $endif
 
   // TODO(jacobr): We can implement these methods much more efficiently by
   // looking up the nodeList only once instead of once per iteration.
-  bool contains(Node element) => _Collections.contains(this, element);
+  bool contains(Node element) => Collections.contains(this, element);
 
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+  void forEach(void f(Node element)) => Collections.forEach(this, f);
 
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
+  Collection map(f(Node element)) => Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
+     Collections.filter(this, <Node>[], f);
 
-  bool every(bool f(Node element)) => _Collections.every(this, f);
+  bool every(bool f(Node element)) => Collections.every(this, f);
 
-  bool some(bool f(Node element)) => _Collections.some(this, f);
+  bool some(bool f(Node element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 

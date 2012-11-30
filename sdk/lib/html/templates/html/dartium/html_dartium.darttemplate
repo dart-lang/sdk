@@ -7,6 +7,7 @@
 
 library html;
 
+import 'dart:html_common';
 import 'dart:isolate';
 import 'dart:json';
 import 'dart:nativewrappers';
@@ -27,7 +28,6 @@ part '$AUXILIARY_DIR/KeyLocation.dart';
 part '$AUXILIARY_DIR/KeyName.dart';
 part '$AUXILIARY_DIR/ReadyState.dart';
 part '$AUXILIARY_DIR/Timer.dart';
-part '$AUXILIARY_DIR/_Collections.dart';
 part '$AUXILIARY_DIR/_HttpRequestUtils.dart';
 part '$AUXILIARY_DIR/shared_FactoryProviders.dart';
 part '$AUXILIARY_DIR/dartium_KeyEvent.dart';

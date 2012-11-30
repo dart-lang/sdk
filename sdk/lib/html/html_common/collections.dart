@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of html;
+part of html_common;
 
 /**
  * The [Collections] class implements static methods useful when
  * writing a class that implements [Collection] and the [iterator]
  * method.
  */
-class _Collections {
+class Collections {
   static bool contains(Iterable<Object> iterable, Object element) {
     for (final e in iterable) {
       if (e == element) return true;

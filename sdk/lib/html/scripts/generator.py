@@ -308,7 +308,7 @@ class OperationInfo(object):
     factory_parameters: A list of parameters used for custom designed Factory
         calls.
   """
-  
+
   def __init__(self):
     self.factory_parameters = None
 
@@ -420,15 +420,15 @@ class OperationInfo(object):
     for index, param_info in enumerate(self.param_infos):
       if param_info.is_optional:
         EmitOptionalParameterInvocation(index)
-  
+
   def _GenerateFactoryOptParamsWithoutFactoryProvider(self, rename_type,
-      emitter, factory_name, factory_constructor_name, factory_parameters): 
+      emitter, factory_name, factory_constructor_name, factory_parameters):
     """Helper method for creating a factory constructor with optional
     parameters that does not call a factory provider, it simply creates the
     object itself. This is currently used for SVGElements and HTMLElements."""
     inits = emitter.Emit(
         '\n'
-        '  factory $CONSTRUCTOR($PARAMS) {\n'	
+        '  factory $CONSTRUCTOR($PARAMS) {\n'
         '    var e = $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
         '$!INITS'
         '    return e;\n'
@@ -500,7 +500,7 @@ class Conversion(object):
 # setters and operation arguments.  INTERFACE and MEMBER are the idl names.
 #
 
-_serialize_SSV = Conversion('_convertDartToNative_SerializedScriptValue',
+_serialize_SSV = Conversion('convertDartToNative_SerializedScriptValue',
                            'dynamic', 'dynamic')
 
 dart2js_conversions = {
@@ -527,12 +527,12 @@ dart2js_conversions = {
       Conversion('_convertDartToNative_ImageData', 'ImageData', 'dynamic'),
 
     'Dictionary get':
-      Conversion('_convertNativeToDart_Dictionary', 'dynamic', 'Map'),
+      Conversion('convertNativeToDart_Dictionary', 'dynamic', 'Map'),
     'Dictionary set':
-      Conversion('_convertDartToNative_Dictionary', 'Map', 'dynamic'),
+      Conversion('convertDartToNative_Dictionary', 'Map', 'dynamic'),
 
     'DOMString[] set':
-      Conversion('_convertDartToNative_StringArray', 'List<String>', 'List'),
+      Conversion('convertDartToNative_StringArray', 'List<String>', 'List'),
 
     'any set IDBObjectStore.add': _serialize_SSV,
     'any set IDBObjectStore.put': _serialize_SSV,
@@ -546,11 +546,11 @@ dart2js_conversions = {
 
     # receiving message via MessageEvent
     'DOMObject get MessageEvent.data':
-      Conversion('_convertNativeToDart_SerializedScriptValue',
+      Conversion('convertNativeToDart_SerializedScriptValue',
                  'dynamic', 'dynamic'),
 
     'DOMObject get PopStateEvent.state':
-      Conversion('_convertNativeToDart_SerializedScriptValue',
+      Conversion('convertNativeToDart_SerializedScriptValue',
                  'dynamic', 'dynamic'),
 
     # IDBAny is problematic.  Some uses are just a union of other IDB types,
@@ -620,20 +620,20 @@ dart2js_annotations = {
 
     'IDBObjectStore.put': "@_annotation_Creates_IDBKey",
     'IDBObjectStore.add': "@_annotation_Creates_IDBKey",
-    'IDBObjectStore.get': "@_annotation_Creates_SerializedScriptValue",
+    'IDBObjectStore.get': "@annotation_Creates_SerializedScriptValue",
     'IDBObjectStore.openCursor': "@Creates('IDBCursor')",
 
-    'IDBIndex.get': "@_annotation_Creates_SerializedScriptValue",
+    'IDBIndex.get': "@annotation_Creates_SerializedScriptValue",
     'IDBIndex.getKey':
-      "@_annotation_Creates_SerializedScriptValue "
+      "@annotation_Creates_SerializedScriptValue "
       # The source is the object store behind the index.
       "@Creates('IDBObjectStore')",
     'IDBIndex.openCursor': "@Creates('IDBCursor')",
     'IDBIndex.openKeyCursor': "@Creates('IDBCursor')",
 
     'IDBCursorWithValue.value':
-      '@_annotation_Creates_SerializedScriptValue '
-      '@_annotation_Returns_SerializedScriptValue',
+      '@annotation_Creates_SerializedScriptValue '
+      '@annotation_Returns_SerializedScriptValue',
 
     'IDBCursor.key': "@_annotation_Creates_IDBKey @_annotation_Returns_IDBKey",
 
@@ -1086,8 +1086,7 @@ _idl_type_registry = {
         suppress_interface=True),
     'EntryArraySync': TypeData(clazz='Interface', item_type='EntrySync',
         suppress_interface=True),
-    'FileList': TypeData(clazz='Interface', item_type='File',
-        suppress_interface=True),
+    'FileList': TypeData(clazz='Interface', item_type='File'),
     'GamepadList': TypeData(clazz='Interface', item_type='Gamepad',
         suppress_interface=True),
     'HTMLAllCollection': TypeData(clazz='Interface', item_type='Node'),

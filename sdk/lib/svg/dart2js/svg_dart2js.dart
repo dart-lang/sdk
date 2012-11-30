@@ -355,18 +355,18 @@ class AnimatedLengthList implements JavaScriptIndexingBehavior, List<AnimatedLen
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(AnimatedLength element) => _Collections.contains(this, element);
+  bool contains(AnimatedLength element) => Collections.contains(this, element);
 
-  void forEach(void f(AnimatedLength element)) => _Collections.forEach(this, f);
+  void forEach(void f(AnimatedLength element)) => Collections.forEach(this, f);
 
-  Collection map(f(AnimatedLength element)) => _Collections.map(this, [], f);
+  Collection map(f(AnimatedLength element)) => Collections.map(this, [], f);
 
   Collection<AnimatedLength> filter(bool f(AnimatedLength element)) =>
-     _Collections.filter(this, <AnimatedLength>[], f);
+     Collections.filter(this, <AnimatedLength>[], f);
 
-  bool every(bool f(AnimatedLength element)) => _Collections.every(this, f);
+  bool every(bool f(AnimatedLength element)) => Collections.every(this, f);
 
-  bool some(bool f(AnimatedLength element)) => _Collections.some(this, f);
+  bool some(bool f(AnimatedLength element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -468,18 +468,18 @@ class AnimatedNumberList implements JavaScriptIndexingBehavior, List<AnimatedNum
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(AnimatedNumber element) => _Collections.contains(this, element);
+  bool contains(AnimatedNumber element) => Collections.contains(this, element);
 
-  void forEach(void f(AnimatedNumber element)) => _Collections.forEach(this, f);
+  void forEach(void f(AnimatedNumber element)) => Collections.forEach(this, f);
 
-  Collection map(f(AnimatedNumber element)) => _Collections.map(this, [], f);
+  Collection map(f(AnimatedNumber element)) => Collections.map(this, [], f);
 
   Collection<AnimatedNumber> filter(bool f(AnimatedNumber element)) =>
-     _Collections.filter(this, <AnimatedNumber>[], f);
+     Collections.filter(this, <AnimatedNumber>[], f);
 
-  bool every(bool f(AnimatedNumber element)) => _Collections.every(this, f);
+  bool every(bool f(AnimatedNumber element)) => Collections.every(this, f);
 
-  bool some(bool f(AnimatedNumber element)) => _Collections.some(this, f);
+  bool some(bool f(AnimatedNumber element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -609,18 +609,18 @@ class AnimatedTransformList implements JavaScriptIndexingBehavior, List<AnimateT
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(AnimateTransformElement element) => _Collections.contains(this, element);
+  bool contains(AnimateTransformElement element) => Collections.contains(this, element);
 
-  void forEach(void f(AnimateTransformElement element)) => _Collections.forEach(this, f);
+  void forEach(void f(AnimateTransformElement element)) => Collections.forEach(this, f);
 
-  Collection map(f(AnimateTransformElement element)) => _Collections.map(this, [], f);
+  Collection map(f(AnimateTransformElement element)) => Collections.map(this, [], f);
 
   Collection<AnimateTransformElement> filter(bool f(AnimateTransformElement element)) =>
-     _Collections.filter(this, <AnimateTransformElement>[], f);
+     Collections.filter(this, <AnimateTransformElement>[], f);
 
-  bool every(bool f(AnimateTransformElement element)) => _Collections.every(this, f);
+  bool every(bool f(AnimateTransformElement element)) => Collections.every(this, f);
 
-  bool some(bool f(AnimateTransformElement element)) => _Collections.some(this, f);
+  bool some(bool f(AnimateTransformElement element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -2938,18 +2938,18 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Length element) => _Collections.contains(this, element);
+  bool contains(Length element) => Collections.contains(this, element);
 
-  void forEach(void f(Length element)) => _Collections.forEach(this, f);
+  void forEach(void f(Length element)) => Collections.forEach(this, f);
 
-  Collection map(f(Length element)) => _Collections.map(this, [], f);
+  Collection map(f(Length element)) => Collections.map(this, [], f);
 
   Collection<Length> filter(bool f(Length element)) =>
-     _Collections.filter(this, <Length>[], f);
+     Collections.filter(this, <Length>[], f);
 
-  bool every(bool f(Length element)) => _Collections.every(this, f);
+  bool every(bool f(Length element)) => Collections.every(this, f);
 
-  bool some(bool f(Length element)) => _Collections.some(this, f);
+  bool some(bool f(Length element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -3439,18 +3439,18 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Number element) => _Collections.contains(this, element);
+  bool contains(Number element) => Collections.contains(this, element);
 
-  void forEach(void f(Number element)) => _Collections.forEach(this, f);
+  void forEach(void f(Number element)) => Collections.forEach(this, f);
 
-  Collection map(f(Number element)) => _Collections.map(this, [], f);
+  Collection map(f(Number element)) => Collections.map(this, [], f);
 
   Collection<Number> filter(bool f(Number element)) =>
-     _Collections.filter(this, <Number>[], f);
+     Collections.filter(this, <Number>[], f);
 
-  bool every(bool f(Number element)) => _Collections.every(this, f);
+  bool every(bool f(Number element)) => Collections.every(this, f);
 
-  bool some(bool f(Number element)) => _Collections.some(this, f);
+  bool some(bool f(Number element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -4102,18 +4102,18 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(PathSeg element) => _Collections.contains(this, element);
+  bool contains(PathSeg element) => Collections.contains(this, element);
 
-  void forEach(void f(PathSeg element)) => _Collections.forEach(this, f);
+  void forEach(void f(PathSeg element)) => Collections.forEach(this, f);
 
-  Collection map(f(PathSeg element)) => _Collections.map(this, [], f);
+  Collection map(f(PathSeg element)) => Collections.map(this, [], f);
 
   Collection<PathSeg> filter(bool f(PathSeg element)) =>
-     _Collections.filter(this, <PathSeg>[], f);
+     Collections.filter(this, <PathSeg>[], f);
 
-  bool every(bool f(PathSeg element)) => _Collections.every(this, f);
+  bool every(bool f(PathSeg element)) => Collections.every(this, f);
 
-  bool some(bool f(PathSeg element)) => _Collections.some(this, f);
+  bool some(bool f(PathSeg element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -4798,18 +4798,18 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(String element) => _Collections.contains(this, element);
+  bool contains(String element) => Collections.contains(this, element);
 
-  void forEach(void f(String element)) => _Collections.forEach(this, f);
+  void forEach(void f(String element)) => Collections.forEach(this, f);
 
-  Collection map(f(String element)) => _Collections.map(this, [], f);
+  Collection map(f(String element)) => Collections.map(this, [], f);
 
   Collection<String> filter(bool f(String element)) =>
-     _Collections.filter(this, <String>[], f);
+     Collections.filter(this, <String>[], f);
 
-  bool every(bool f(String element)) => _Collections.every(this, f);
+  bool every(bool f(String element)) => Collections.every(this, f);
 
-  bool some(bool f(String element)) => _Collections.some(this, f);
+  bool some(bool f(String element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -5721,18 +5721,18 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(Transform element) => _Collections.contains(this, element);
+  bool contains(Transform element) => Collections.contains(this, element);
 
-  void forEach(void f(Transform element)) => _Collections.forEach(this, f);
+  void forEach(void f(Transform element)) => Collections.forEach(this, f);
 
-  Collection map(f(Transform element)) => _Collections.map(this, [], f);
+  Collection map(f(Transform element)) => Collections.map(this, [], f);
 
   Collection<Transform> filter(bool f(Transform element)) =>
-     _Collections.filter(this, <Transform>[], f);
+     Collections.filter(this, <Transform>[], f);
 
-  bool every(bool f(Transform element)) => _Collections.every(this, f);
+  bool every(bool f(Transform element)) => Collections.every(this, f);
 
-  bool some(bool f(Transform element)) => _Collections.some(this, f);
+  bool some(bool f(Transform element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
@@ -6107,18 +6107,18 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  bool contains(ElementInstance element) => _Collections.contains(this, element);
+  bool contains(ElementInstance element) => Collections.contains(this, element);
 
-  void forEach(void f(ElementInstance element)) => _Collections.forEach(this, f);
+  void forEach(void f(ElementInstance element)) => Collections.forEach(this, f);
 
-  Collection map(f(ElementInstance element)) => _Collections.map(this, [], f);
+  Collection map(f(ElementInstance element)) => Collections.map(this, [], f);
 
   Collection<ElementInstance> filter(bool f(ElementInstance element)) =>
-     _Collections.filter(this, <ElementInstance>[], f);
+     Collections.filter(this, <ElementInstance>[], f);
 
-  bool every(bool f(ElementInstance element)) => _Collections.every(this, f);
+  bool every(bool f(ElementInstance element)) => Collections.every(this, f);
 
-  bool some(bool f(ElementInstance element)) => _Collections.some(this, f);
+  bool some(bool f(ElementInstance element)) => Collections.some(this, f);
 
   bool get isEmpty => this.length == 0;
 
