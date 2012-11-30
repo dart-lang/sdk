@@ -14,7 +14,6 @@
             '../tools/make_links.py',
             'args/lib',
             'fixnum/lib',
-            'htmlescape/lib',
             'http/lib',
             'intl/lib',
             'logging/lib',
