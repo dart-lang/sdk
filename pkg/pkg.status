@@ -13,7 +13,7 @@ fixnum/test/int_64_vm_test: Skip
 *: Skip
 
 # Don't compile tests that use dart:io to JS
-[ $compiler == dart2js || $compiler == dart2dart ]
+[ $compiler == dart2js || $compiler == dart2dart || $compiler == dartc ]
 http/test/*: Skip
 oauth2/test/*: Skip
 
@@ -52,7 +52,7 @@ intl/test/intl_message_basic_example_test: Skip
 unittest/test/mock_regexp_negative_test: Fail
 unittest/test/mock_stepwise_negative_test: Fail
 
-[ $compiler == dart2js ]
+[ $compiler == dart2js || $compiler == dartc ]
 unittest/test/instance_test: Skip
 
 [ $compiler == none && $runtime == drt ]
