@@ -1,5 +1,0 @@
-name: htmlescape
-author: "Dart Team <misc@dartlang.org>"
-homepage: http://www.dartlang.org
-description: >
- Simple HTML utility for escaping a String.
