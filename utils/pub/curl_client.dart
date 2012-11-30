@@ -45,7 +45,7 @@ class CurlClient extends http.BaseClient {
 
         return _waitForHeaders(process, expectBody: request.method != "HEAD");
       }).chain((_) => new File(headerFile).readAsLines())
-        .transform((lines) => _buildResponse(process, lines));
+        .transform((lines) => _buildResponse(request, process, lines));
     });
   }
 
@@ -170,7 +170,8 @@ class CurlClient extends http.BaseClient {
 
   /// Returns a [http.StreamedResponse] from the response data printed by the
   /// `curl` [process]. [lines] are the headers that `curl` wrote to a file.
-  http.StreamedResponse _buildResponse(Process process, List<String> lines) {
+  http.StreamedResponse _buildResponse(
+      http.BaseRequest request, Process process, List<String> lines) {
     // When curl follows redirects, it prints the redirect headers as well as
     // the headers of the final request. Each block is separated by a blank
     // line. We just care about the last block. There is one trailing empty
@@ -200,6 +201,7 @@ class CurlClient extends http.BaseClient {
     }
 
     return new http.StreamedResponse(responseStream, status, contentLength,
+        request: request,
         headers: headers,
         isRedirect: isRedirect,
         reasonPhrase: reasonPhrase);

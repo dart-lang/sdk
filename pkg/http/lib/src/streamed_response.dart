@@ -7,6 +7,7 @@ library streamed_response;
 import 'dart:io';
 
 import 'base_response.dart';
+import 'base_request.dart';
 
 /// An HTTP response where the response body is received asynchronously after
 /// the headers have been received.
@@ -19,13 +20,15 @@ class StreamedResponse extends BaseResponse {
       this.stream,
       int statusCode,
       int contentLength,
-      {Map<String, String> headers: const <String>{},
+      {BaseRequest request,
+       Map<String, String> headers: const <String>{},
        bool isRedirect: false,
        bool persistentConnection: true,
        String reasonPhrase})
     : super(
         statusCode,
         contentLength,
+        request: request,
         headers: headers,
         isRedirect: isRedirect,
         persistentConnection: persistentConnection,

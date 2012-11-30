@@ -72,6 +72,7 @@ class IOClient extends BaseClient {
           wrapInputStream(response.inputStream),
           response.statusCode,
           response.contentLength,
+          request: request,
           headers: headers,
           isRedirect: response.isRedirect,
           persistentConnection: response.persistentConnection,

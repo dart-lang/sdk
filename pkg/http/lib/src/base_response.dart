@@ -6,11 +6,16 @@ library base_response;
 
 import 'dart:io';
 
+import 'base_request.dart';
+
 /// The base class for HTTP responses.
 ///
 /// Subclasses of [BaseResponse] are usually not constructed manually; instead,
 /// they're returned by [BaseClient.send] or other HTTP client methods.
 abstract class BaseResponse {
+  /// The (frozen) request that triggered this response.
+  final BaseRequest request;
+
   /// The status code of the response.
   final int statusCode;
 
@@ -37,7 +42,8 @@ abstract class BaseResponse {
   BaseResponse(
       this.statusCode,
       this.contentLength,
-      {this.headers: const <String>{},
+      {this.request,
+       this.headers: const <String>{},
        this.isRedirect: false,
        this.persistentConnection: true,
        this.reasonPhrase});

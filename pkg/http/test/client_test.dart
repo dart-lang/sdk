@@ -22,6 +22,7 @@ void main() {
       'application/json; charset=utf-8';
 
     var future = client.send(request).chain((response) {
+      expect(response.request, equals(request));
       expect(response.statusCode, equals(200));
       return consumeInputStream(response.stream);
     }).transform((bytes) => new String.fromCharCodes(bytes));
