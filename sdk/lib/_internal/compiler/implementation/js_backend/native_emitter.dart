@@ -90,14 +90,15 @@ class NativeEmitter {
   String get defineNativeClassFunction {
     return """
 function(cls, desc) {
-  var fields = desc[''] || [];
   var generateGetterSetter = ${emitter.generateGetterSetterFunction};
-  for (var i = 0; i < fields.length; i++) {
-    generateGetterSetter(fields[i], desc);
+  var fields = desc[''];
+  var fields_array = fields ? fields.split('.') : [];
+  for (var i = 0; i < fields_array.length; i++) {
+    generateGetterSetter(fields_array[i], desc);
   }
   var hasOwnProperty = Object.prototype.hasOwnProperty;
   for (var method in desc) {
-    if (method !== '') {
+    if (method) {  """/* method != '' */"""
       if (hasOwnProperty.call(desc, method)) {
         $dynamicName(method)[cls] = desc[method];
       }
@@ -160,7 +161,8 @@ function(cls, desc) {
     CodeBuffer getterSetterBuffer = new CodeBuffer();
     CodeBuffer methodBuffer = new CodeBuffer();
 
-    emitter.emitClassFields(classElement, fieldBuffer, false);
+    emitter.emitClassFields(
+        classElement, fieldBuffer, isNative: true, emitEndingComma: false);
     emitter.emitClassGettersSetters(classElement, getterSetterBuffer, false);
     emitter.emitInstanceMembers(classElement, methodBuffer, false);
 
