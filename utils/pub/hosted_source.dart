@@ -8,6 +8,8 @@ import 'dart:io' as io;
 import 'dart:json';
 import 'dart:uri';
 
+// TODO(nweiz): Make this import better.
+import '../../pkg/http/lib/http.dart' as http;
 import 'io.dart';
 import 'package.dart';
 import 'pubspec.dart';
@@ -37,7 +39,7 @@ class HostedSource extends Source {
     var parsed = _parseDescription(description);
     var fullUrl = "${parsed.last}/packages/${parsed.first}.json";
 
-    return httpGetString(fullUrl).transform((body) {
+    return httpClient.read(fullUrl).transform((body) {
       var doc = JSON.parse(body);
       return doc['versions'].map((version) => new Version.parse(version));
     }).transformException((ex) {
@@ -54,7 +56,7 @@ class HostedSource extends Source {
     var fullUrl = "${parsed.last}/packages/${parsed.first}/versions/"
       "${id.version}.yaml";
 
-    return httpGetString(fullUrl).transform((yaml) {
+    return httpClient.read(fullUrl).transform((yaml) {
       return new Pubspec.parse(yaml, systemCache.sources);
     }).transformException((ex) {
       _throwFriendlyError(ex, id, parsed.last);
@@ -75,8 +77,11 @@ class HostedSource extends Source {
 
     // Download and extract the archive to a temp directory.
     var tempDir;
-    return Futures.wait([httpGet(fullUrl),
-                         systemCache.createTempDir()]).chain((args) {
+    return Futures.wait([
+      httpClient.send(new http.Request("GET", new Uri.fromString(fullUrl)))
+          .transform((response) => response.stream),
+      systemCache.createTempDir()
+    ]).chain((args) {
       tempDir = args[1];
       return timeout(extractTarGz(args[0], tempDir), HTTP_TIMEOUT,
           'fetching URL "$fullUrl"');
@@ -123,7 +128,7 @@ class HostedSource extends Source {
   /// this tries to translate into a more user friendly error message. Always
   /// throws an error, either the original one or a better one.
   void _throwFriendlyError(ex, package, url) {
-    if (ex is PubHttpException && ex.statusCode == 404) {
+    if (ex is PubHttpException && ex.response.statusCode == 404) {
       throw 'Could not find package "$package" at $url.';
     }
 

@@ -11,7 +11,10 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:uri';
 
+// TODO(nweiz): Make this import better.
+import '../../pkg/http/lib/http.dart' as http;
 import 'utils.dart';
+import 'curl_client.dart';
 
 bool _isGitInstalledCache;
 
@@ -450,70 +453,51 @@ Future<String> readLine([StringInputStream stream]) {
  */
 final HTTP_TIMEOUT = 30 * 1000;
 
-/**
- * Opens an input stream for a HTTP GET request to [uri], which may be a
- * [String] or [Uri].
- *
- * Callers should be sure to use [timeout] to make sure that the HTTP request
- * doesn't last indefinitely
- */
-Future<InputStream> httpGet(uri) {
-  // TODO(nweiz): This could return an InputStream synchronously if issue 3657
-  // were fixed and errors could be propagated through it. Then we could also
-  // automatically attach a timeout to that stream.
-  uri = _getUri(uri);
+/// An HTTP client that transforms 40* errors and socket exceptions into more
+/// user-friendly error messages.
+class PubHttpClient extends http.BaseClient {
+  final http.Client _inner;
 
-  var completer = new Completer<InputStream>();
-  var client = new HttpClient();
-  var connection = client.getUrl(uri);
+  PubHttpClient([http.Client inner])
+    : _inner = inner == null ? new http.Client() : inner;
 
-  // TODO(nweiz): remove this when issue 4061 is fixed.
-  var stackTrace;
-  try {
-    throw "";
-  } catch (_, localStackTrace) {
-    stackTrace = localStackTrace;
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    // TODO(nweiz): remove this when issue 4061 is fixed.
+    var stackTrace;
+    try {
+      throw null;
+    } catch (_, localStackTrace) {
+      stackTrace = localStackTrace;
+    }
+
+    // TODO(nweiz): Ideally the timeout would extend to reading from the
+    // response input stream, but until issue 3657 is fixed that's not feasible.
+    return timeout(_inner.send(request).chain((streamedResponse) {
+      if (streamedResponse.statusCode < 400) {
+        return new Future.immediate(streamedResponse);
+      }
+
+      return http.Response.fromStream(streamedResponse).transform((response) {
+        throw new PubHttpException(response);
+      });
+    }).transformException((e) {
+      if (e is SocketIOException &&
+          e.osError != null &&
+          (e.osError.errorCode == 8 ||
+           e.osError.errorCode == -2 ||
+           e.osError.errorCode == -5 ||
+           e.osError.errorCode == 11004)) {
+        throw 'Could not resolve URL "${request.url.origin}".';
+      }
+      throw e;
+    }), HTTP_TIMEOUT, 'fetching URL "${request.url}"');
   }
-
-  connection.onError = (e) {
-    // Show a friendly error if the URL couldn't be resolved.
-    if (e is SocketIOException &&
-        e.osError != null &&
-        (e.osError.errorCode == 8 ||
-         e.osError.errorCode == -2 ||
-         e.osError.errorCode == -5 ||
-         e.osError.errorCode == 11004)) {
-      e = 'Could not resolve URL "${uri.origin}".';
-    }
-
-    client.shutdown();
-    completer.completeException(e, stackTrace);
-  };
-
-  connection.onResponse = (response) {
-    if (response.statusCode >= 400) {
-      client.shutdown();
-      completer.completeException(
-          new PubHttpException(response.statusCode, response.reasonPhrase),
-          stackTrace);
-      return;
-    }
-
-    completer.complete(response.inputStream);
-  };
-
-  return completer.future;
 }
 
-/**
- * Opens an input stream for a HTTP GET request to [uri], which may be a
- * [String] or [Uri]. Completes with the result of the request as a String.
- */
-Future<String> httpGetString(uri) {
-  var future = httpGet(uri).chain((stream) => consumeInputStream(stream))
-      .transform((bytes) => new String.fromCharCodes(bytes));
-  return timeout(future, HTTP_TIMEOUT, 'fetching URL "$uri"');
-}
+/// The HTTP client to use for all HTTP requests.
+final httpClient = new PubHttpClient();
+
+final curlClient = new PubHttpClient(new CurlClient());
 
 /**
  * Takes all input from [source] and writes it to [sink].
@@ -919,12 +903,11 @@ InputStream createTarGz(List contents, {baseDir}) {
  * Exception thrown when an HTTP operation fails.
  */
 class PubHttpException implements Exception {
-  final int statusCode;
-  final String reason;
+  final http.Response response;
 
-  const PubHttpException(this.statusCode, this.reason);
+  const PubHttpException(this.response);
 
-  String toString() => 'HTTP error $statusCode: $reason';
+  String toString() => 'HTTP error ${response.statusCode}: ${response.reason}';
 }
 
 /**

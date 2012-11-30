@@ -244,6 +244,7 @@ main() {
     handleUpload(server);
 
     server.handle('GET', '/create', (request, response) {
+      response.statusCode = 400;
       response.outputStream.writeString(JSON.stringify({
         'error': {'message': 'Your package was too boring.'}
       }));

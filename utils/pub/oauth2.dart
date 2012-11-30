@@ -9,7 +9,6 @@ import 'dart:uri';
 
 // TODO(nweiz): Make this a "package:" URL, or something nicer than this.
 import '../../pkg/oauth2/lib/oauth2.dart';
-import 'curl_client.dart';
 import 'io.dart';
 import 'system_cache.dart';
 import 'utils.dart';
@@ -81,7 +80,7 @@ Future<Client> _getClient(SystemCache cache) {
   return _loadCredentials(cache).chain((credentials) {
     if (credentials == null) return _authorize();
     return new Future.immediate(new Client(
-        _identifier, _secret, credentials, httpClient: new CurlClient()));
+        _identifier, _secret, credentials, httpClient: curlClient));
   }).chain((client) {
     return _saveCredentials(cache, client.credentials).transform((_) => client);
   });
@@ -142,7 +141,7 @@ Future<Client> _authorize() {
       _secret,
       _authorizationEndpoint,
       tokenEndpoint,
-      httpClient: new CurlClient());
+      httpClient: curlClient);
 
   // Spin up a one-shot HTTP server to receive the authorization code from the
   // Google OAuth2 server via redirect. This server will close itself as soon as

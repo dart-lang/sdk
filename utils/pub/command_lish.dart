@@ -4,6 +4,7 @@
 
 library command_lish;
 
+import 'dart:io';
 import 'dart:json';
 import 'dart:uri';
 
@@ -33,6 +34,7 @@ class LishCommand extends PubCommand {
   Uri get server => new Uri.fromString(commandOptions['server']);
 
   Future onRun() {
+    var cloudStorageUrl;
     return oauth2.withClient(cache, (client) {
       // TODO(nweiz): Better error-handling. There are a few cases we need to
       // handle better:
@@ -54,12 +56,11 @@ class LishCommand extends PubCommand {
         var response = results[0];
         var packageBytes = results[1];
         var parameters = _parseJson(response);
-        if (response.statusCode != 200) _serverError(parameters, response);
 
         var url = _expectField(parameters, 'url', response);
         if (url is! String) _invalidServerResponse(response);
-        var request = new http.MultipartRequest(
-            'POST', new Uri.fromString(url));
+        cloudStorageUrl = new Uri.fromString(url);
+        var request = new http.MultipartRequest('POST', cloudStorageUrl);
 
         var fields = _expectField(parameters, 'fields', response);
         if (fields is! Map) _invalidServerResponse(response);
@@ -72,18 +73,12 @@ class LishCommand extends PubCommand {
         request.files.add(new http.MultipartFile.fromBytes(
             'file', packageBytes, filename: 'package.tar.gz'));
         return client.send(request);
-      }).chain(http.Response.fromStream).chain((response) {
+      }).chain(http.Response.fromStream).transform((response) {
         var location = response.headers['location'];
-        if (location == null) {
-          // TODO(nweiz): the response may have XML-formatted information about
-          // the error. Try to parse that out once we have an easily-accessible
-          // XML parser.
-          throw 'Failed to upload the package.';
-        }
-        return client.get(location);
-      }).transform((response) {
+        if (location == null) throw new PubHttpException(response);
+        return location;
+      }).chain((location) => client.get(location)).transform((response) {
         var parsed = _parseJson(response);
-        if (parsed.containsKey('error')) _serverError(parsed, response);
         if (parsed['success'] is! Map ||
             !parsed['success'].containsKey('message') ||
             parsed['success']['message'] is! String) {
@@ -92,6 +87,24 @@ class LishCommand extends PubCommand {
         print(parsed['success']['message']);
       });
     }).transformException((e) {
+      if (e is PubHttpException) {
+        var url = e.response.request.url;
+        if (url.toString() == cloudStorageUrl.toString()) {
+          // TODO(nweiz): the response may have XML-formatted information about
+          // the error. Try to parse that out once we have an easily-accessible
+          // XML parser.
+          throw 'Failed to upload the package.';
+        } else if (url.origin == server.origin) {
+          var errorMap = _parseJson(e.response);
+          if (errorMap['error'] is! Map ||
+              !errorMap['error'].containsKey('message') ||
+              errorMap['error']['message'] is! String) {
+            _invalidServerResponse(e.response);
+          }
+          throw errorMap['error']['message'];
+        }
+      }
+
       if (e is! oauth2.ExpirationException) throw e;
 
       printError("Pub's authorization to upload packages has expired and can't "
@@ -145,17 +158,6 @@ class LishCommand extends PubCommand {
   _expectField(Map map, String key, http.Response response) {
     if (map.containsKey(key)) return map[key];
     _invalidServerResponse(response);
-  }
-
-  /// Extracts the error message from a JSON error sent from the server. Throws
-  /// an appropriate error if the error map is improperly formatted.
-  void _serverError(Map errorMap, http.Response response) {
-    if (errorMap['error'] is! Map ||
-        !errorMap['error'].containsKey('message') ||
-        errorMap['error']['message'] is! String) {
-      _invalidServerResponse(response);
-    }
-    throw errorMap['error']['message'];
   }
 
   /// Throws an error describing an invalid response from the server.
