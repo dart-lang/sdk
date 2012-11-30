@@ -204,11 +204,18 @@ main() {
     handleUploadForm(server);
 
     server.handle('POST', '/upload', (request, response) {
-      response.statusCode = 400;
-      response.headers.contentType = new ContentType('application', 'xml');
-      response.outputStream.writeString('<Error><Message>Your request sucked.'
-          '</Message></Error>');
-      return closeHttpResponse(request, response);
+      // TODO(rnystrom): HTTP requires that you don't start sending a response
+      // until the request has been completely sent, but dart:io doesn't
+      // ensure that (#7044). Workaround it by manually consuming the entire
+      // input stream before we start responding. If we don't do this, curl
+      // will choke on this on Mac and Windows.
+      return consumeInputStream(request.inputStream).transform((_) {
+        response.statusCode = 400;
+        response.headers.contentType = new ContentType('application', 'xml');
+        response.outputStream.writeString('<Error><Message>Your request sucked.'
+        '</Message></Error>');
+        response.outputStream.close();
+      });
     });
 
     // TODO(nweiz): This should use the server's error message once the client

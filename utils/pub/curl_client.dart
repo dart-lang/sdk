@@ -105,12 +105,17 @@ class CurlClient extends http.BaseClient {
   /// receiving the response headers. [expectBody] indicates that the server is
   /// expected to send a response body (which is not the case for HEAD
   /// requests).
+  ///
+  /// Curl prints the headers to a file and then prints the body to stdout. So,
+  /// in theory, we could read the headers as soon as we see anything appear
+  /// in stdout. However, that seems to be too early to successfully read the
+  /// file (at least on Mac). Instead, this just waits until the entire process
+  /// has completed.
   Future _waitForHeaders(Process process, {bool expectBody}) {
-    var exitCompleter = new Completer<int>();
-    var exitFuture = exitCompleter.future;
+    var completer = new Completer();
     process.onExit = (exitCode) {
       if (exitCode == 0) {
-        exitCompleter.complete(0);
+        completer.complete(null);
         return;
       }
 
@@ -122,7 +127,7 @@ class CurlClient extends http.BaseClient {
         } else {
           throw new HttpException(message);
         }
-      }), exitCompleter);
+      }), completer);
     };
 
     // If there's not going to be a response body (e.g. for HEAD requests), curl
@@ -131,40 +136,10 @@ class CurlClient extends http.BaseClient {
     if (!expectBody) {
       return Futures.wait([
         consumeInputStream(process.stdout),
-        exitFuture
+        completer.future
       ]);
     }
 
-    // TODO(nweiz): remove this when issue 4061 is fixed.
-    var stackTrace;
-    try {
-      throw "";
-    } catch (_, localStackTrace) {
-      stackTrace = localStackTrace;
-    }
-
-    var completer = new Completer();
-    resetCallbacks() {
-      process.stdout.onData = null;
-      process.stdout.onError = null;
-      process.stdout.onClosed = null;
-    }
-    process.stdout.onData = () {
-      // TODO(nweiz): If an error happens after the body data starts being
-      // received, it should be piped through Response.stream once issue
-      // 3657 is fixed.
-      exitFuture.handleException((e) => true);
-      resetCallbacks();
-      completer.complete(null);
-    };
-    process.stdout.onError = (e) {
-      resetCallbacks();
-      completer.completeException(e, stackTrace);
-    };
-    process.stdout.onClosed = () {
-      resetCallbacks();
-      chainToCompleter(exitFuture, completer);
-    };
     return completer.future;
   }
 
