@@ -53,7 +53,7 @@ class _StringBase {
   }
 
   bool operator ==(Object other) {
-    if (this === other) {
+    if (identical(this, other)) {
       return true;
     }
     if ((other is !String) ||
@@ -152,16 +152,25 @@ class _StringBase {
     if (startIndex > endIndex) {
       throw new RangeError.value(startIndex);
     }
+    return _substringUnchecked(startIndex, endIndex);
+  }
+
+  String _substringUnchecked(int startIndex, int endIndex) {
+    assert(endIndex != null);
+    assert((startIndex >= 0) && (startIndex <= this.length));
+    assert((endIndex >= 0) && (endIndex <= this.length));
+    assert(startIndex <= endIndex);
+
     if (startIndex == endIndex) {
       return "";
     }
     if ((startIndex + 1) == endIndex) {
       return this[startIndex];
     }
-    return _substringUnchecked(startIndex, endIndex);
+    return _substringUncheckedNative(startIndex, endIndex);
   }
 
-  String _substringUnchecked(int startIndex, int endIndex)
+  String _substringUncheckedNative(int startIndex, int endIndex)
       native "StringBase_substringUnchecked";
 
   String trim() {
@@ -283,12 +292,12 @@ class _StringBase {
     int previousIndex = 0;
     while (true) {
       if (startIndex == length || !iterator.hasNext) {
-        result.add(this.substring(previousIndex, length));
+        result.add(this._substringUnchecked(previousIndex, length));
         break;
       }
       Match match = iterator.next();
       if (match.start == length) {
-        result.add(this.substring(previousIndex, length));
+        result.add(this._substringUnchecked(previousIndex, length));
         break;
       }
       int endIndex = match.end;
@@ -296,7 +305,7 @@ class _StringBase {
         ++startIndex;  // empty match, advance and restart
         continue;
       }
-      result.add(this.substring(previousIndex, match.start));
+      result.add(this._substringUnchecked(previousIndex, match.start));
       startIndex = previousIndex = endIndex;
     }
     return result;
@@ -378,7 +387,7 @@ class _OneByteString extends _StringBase implements String {
       ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
   }
 
-  String _substringUnchecked(int startIndex, int endIndex)
+  String _substringUncheckedNative(int startIndex, int endIndex)
       native "OneByteString_substringUnchecked";
 }
 
