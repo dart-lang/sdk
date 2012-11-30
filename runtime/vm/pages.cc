@@ -5,6 +5,7 @@
 #include "vm/pages.h"
 
 #include "platform/assert.h"
+#include "vm/compiler_stats.h"
 #include "vm/gc_marker.h"
 #include "vm/gc_sweeper.h"
 #include "vm/object.h"
@@ -237,6 +238,9 @@ uword PageSpace::TryAllocate(intptr_t size,
   }
   if (result != 0) {
     in_use_ += size;
+    if (FLAG_compiler_stats && (type == HeapPage::kExecutable)) {
+      CompilerStats::code_allocated += size;
+    }
   }
   ASSERT((result & kObjectAlignmentMask) == kOldObjectAlignmentOffset);
   return result;
