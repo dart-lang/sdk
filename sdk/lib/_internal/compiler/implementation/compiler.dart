@@ -58,6 +58,11 @@ class WorkItem {
   }
 }
 
+class ReadingFilesTask extends CompilerTask {
+  ReadingFilesTask(Compiler compiler) : super(compiler);
+  String get name => 'Reading input files';
+}
+
 abstract class Backend {
   final Compiler compiler;
   final ConstantSystem constantSystem;
@@ -100,6 +105,7 @@ abstract class Backend {
 
 abstract class Compiler implements DiagnosticListener {
   final Map<String, LibraryElement> libraries;
+  final Stopwatch totalCompileTime = new Stopwatch();
   int nextFreeClassId = 0;
   World world;
   String assembledCode;
@@ -190,6 +196,7 @@ abstract class Compiler implements DiagnosticListener {
   Backend backend;
   ConstantHandler constantHandler;
   EnqueueTask enqueuer;
+  CompilerTask fileReadingTask;
 
   static const SourceString MAIN = const SourceString('main');
   static const SourceString CALL_OPERATOR_NAME = const SourceString('call');
@@ -232,26 +239,29 @@ abstract class Compiler implements DiagnosticListener {
         progress = new Stopwatch() {
     progress.start();
     world = new World(this);
-    scanner = new ScannerTask(this);
-    dietParser = new DietParserTask(this);
-    parser = new ParserTask(this);
-    patchParser = new PatchParserTask(this);
-    libraryLoader = new LibraryLoaderTask(this);
-    validator = new TreeValidatorTask(this);
-    resolver = new ResolverTask(this);
-    closureToClassMapper = new closureMapping.ClosureTask(this);
-    checker = new TypeCheckerTask(this);
-    typesTask = new ti.TypesTask(this, enableConcreteTypeInference);
     backend = emitJavaScript ?
         new js_backend.JavaScriptBackend(this,
                                          generateSourceMap,
                                          disallowUnsafeEval) :
         new dart_backend.DartBackend(this, strips);
-    constantHandler = new ConstantHandler(this, backend.constantSystem);
-    enqueuer = new EnqueueTask(this);
-    tasks = [scanner, dietParser, parser, patchParser, libraryLoader,
-             resolver, closureToClassMapper, checker, typesTask,
-             constantHandler, enqueuer];
+
+    // No-op in production mode.
+    validator = new TreeValidatorTask(this);
+
+    tasks = [
+      fileReadingTask = new ReadingFilesTask(this),
+      libraryLoader = new LibraryLoaderTask(this),
+      scanner = new ScannerTask(this),
+      dietParser = new DietParserTask(this),
+      parser = new ParserTask(this),
+      patchParser = new PatchParserTask(this),
+      resolver = new ResolverTask(this),
+      closureToClassMapper = new closureMapping.ClosureTask(this),
+      checker = new TypeCheckerTask(this),
+      typesTask = new ti.TypesTask(this, enableConcreteTypeInference),
+      constantHandler = new ConstantHandler(this, backend.constantSystem),
+      enqueuer = new EnqueueTask(this)];
+
     tasks.addAll(backend.tasks);
   }
 
@@ -340,13 +350,16 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   bool run(Uri uri) {
+    totalCompileTime.start();
     try {
       runCompiler(uri);
     } on CompilerCancelledException catch (exception) {
       log('Error: $exception');
       return false;
+    } finally {
+      tracer.close();
+      totalCompileTime.stop();
     }
-    tracer.close();
     return true;
   }
 
@@ -869,16 +882,18 @@ class CompilerTask {
   int get timing => watch.elapsedMilliseconds;
 
   measure(Function action) {
-    // TODO(kasperl): Do we have to worry about exceptions here?
     CompilerTask previous = compiler.measuredTask;
+    if (identical(this, previous)) return action();
     compiler.measuredTask = this;
     if (previous != null) previous.watch.stop();
     watch.start();
-    var result = action();
-    watch.stop();
-    if (previous != null) previous.watch.start();
-    compiler.measuredTask = previous;
-    return result;
+    try {
+      return action();
+    } finally {
+      watch.stop();
+      if (previous != null) previous.watch.start();
+      compiler.measuredTask = previous;
+    }
   }
 }
 
