@@ -1192,13 +1192,13 @@ TEST_CASE(StringSubStringDifferentWidth) {
 
   const String& onestr = String::Handle(String::New(onechars));
   EXPECT(!onestr.IsNull());
-  EXPECT(!onestr.IsOneByteString());
-  EXPECT(onestr.IsTwoByteString());
+  EXPECT(onestr.IsOneByteString());
+  EXPECT(!onestr.IsTwoByteString());
 
   const String& onesub = String::Handle(String::SubString(onestr, 0));
   EXPECT(!onesub.IsNull());
-  EXPECT(!onestr.IsOneByteString());
-  EXPECT(onestr.IsTwoByteString());
+  EXPECT(onestr.IsOneByteString());
+  EXPECT(!onestr.IsTwoByteString());
   EXPECT_EQ(onesub.Length(), 3);
 
   // Create 1- and 2-byte substrings from a 2-byte source string.
@@ -1290,7 +1290,7 @@ TEST_CASE(StringFromUtf8Literal) {
       0xF8, 0xF9, 0xFA, 0xFB, 0xFC, 0xFD, 0xFE, 0xFF,
     };
     const String& str = String::Handle(String::New(src));
-    EXPECT(str.IsTwoByteString());
+    EXPECT(str.IsOneByteString());
     intptr_t expected_length = sizeof(expected);
     EXPECT_EQ(expected_length, str.Length());
     for (int i = 0; i < str.Length(); ++i) {

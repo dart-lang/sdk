@@ -10063,7 +10063,7 @@ RawString* String::New(const uint8_t* utf8_array,
                        intptr_t array_len,
                        Heap::Space space) {
   Utf8::Type type;
-  intptr_t len = Utf8::CodePointCount(utf8_array, array_len, &type);
+  intptr_t len = Utf8::CodeUnitCount(utf8_array, array_len, &type);
   if (type == Utf8::kLatin1) {
     const String& strobj = String::Handle(OneByteString::New(len, space));
     if (len > 0) {

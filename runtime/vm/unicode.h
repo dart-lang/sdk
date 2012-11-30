@@ -43,9 +43,12 @@ class Utf8 : AllStatic {
     kSupplementary,  // Supplementary code point [U+010000, U+10FFFF].
   };
 
-  static intptr_t CodePointCount(const uint8_t* utf8_array,
-                                 intptr_t array_len,
-                                 Type* type);
+  // Returns the most restricted coding form in which the sequence of utf8
+  // characters in 'utf8_array' can be represented in, and the number of
+  // code units needed in that form.
+  static intptr_t CodeUnitCount(const uint8_t* utf8_array,
+                                intptr_t array_len,
+                                Type* type);
 
   // Returns true if 'utf8_array' is a valid UTF-8 string.
   static bool IsValid(const uint8_t* utf8_array, intptr_t array_len);
@@ -83,7 +86,7 @@ class Utf8 : AllStatic {
   static const int32_t kMaxFourByteChar  = Utf::kMaxCodePoint;
 
   static bool IsTrailByte(uint8_t code_unit) {
-    return (code_unit & 0xc0) == 0x80;
+    return (code_unit & 0xC0) == 0x80;
   }
 
   static bool IsNonShortestForm(uint32_t code_point, size_t num_code_units) {
@@ -91,12 +94,12 @@ class Utf8 : AllStatic {
   }
 
   static bool IsLatin1SequenceStart(uint8_t code_unit) {
-    // Check is codepoint is <= U+00FF
-    return (code_unit <= Utf8::kMaxOneByteChar);
+    // Check if utf8 sequence is the start of a codepoint <= U+00FF
+    return (code_unit <= 0xC3);
   }
 
   static bool IsSupplementarySequenceStart(uint8_t code_unit) {
-    // Check is codepoint is >= U+10000.
+    // Check if utf8 sequence is the start of a codepoint >= U+10000.
     return (code_unit >= 0xF0);
   }
 

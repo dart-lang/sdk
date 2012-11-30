@@ -53,23 +53,25 @@ const uint32_t Utf8::kOverlongMinimum[7] = {
 };
 
 
-// Returns a count of the number of UTF-8 trail bytes.
-intptr_t Utf8::CodePointCount(const uint8_t* utf8_array,
-                              intptr_t array_len,
-                              Type* type) {
+// Returns the most restricted coding form in which the sequence of utf8
+// characters in 'utf8_array' can be represented in, and the number of
+// code units needed in that form.
+intptr_t Utf8::CodeUnitCount(const uint8_t* utf8_array,
+                             intptr_t array_len,
+                             Type* type) {
   intptr_t len = 0;
   Type char_type = kLatin1;
   for (intptr_t i = 0; i < array_len; i++) {
     uint8_t code_unit = utf8_array[i];
     if (!IsTrailByte(code_unit)) {
       ++len;
-    }
-    if (!IsLatin1SequenceStart(code_unit)) {  // > U+00FF
-      if (IsSupplementarySequenceStart(code_unit)) {  // >= U+10000
-        char_type = kSupplementary;
-        ++len;
-      } else if (char_type == kLatin1) {
-        char_type = kBMP;
+      if (!IsLatin1SequenceStart(code_unit)) {  // > U+00FF
+        if (IsSupplementarySequenceStart(code_unit)) {  // >= U+10000
+          char_type = kSupplementary;
+          ++len;
+        } else if (char_type == kLatin1) {
+          char_type = kBMP;
+        }
       }
     }
   }

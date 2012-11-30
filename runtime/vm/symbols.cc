@@ -102,7 +102,7 @@ RawString* Symbols::New(const char* str) {
   Utf8::Type type;
   intptr_t str_len = strlen(str);
   const uint8_t* utf8_array = reinterpret_cast<const uint8_t*>(str);
-  intptr_t len = Utf8::CodePointCount(utf8_array, str_len, &type);
+  intptr_t len = Utf8::CodeUnitCount(utf8_array, str_len, &type);
   Zone* zone = Isolate::Current()->current_zone();
   if (len == 0) {
     return Symbols::New(reinterpret_cast<uint8_t*>(NULL), 0);
