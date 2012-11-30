@@ -37,7 +37,6 @@
 # ......scalarlist/
 # ....pkg/
 # ......args/
-#.......htmlescape/
 # ......intl/
 # ......logging/
 # ......meta/
@@ -219,7 +218,7 @@ def Main(argv):
   # Create and populate pkg/{args, intl, logging, meta, unittest, ...}
   #
 
-  for library in ['args', 'htmlescape', 'http', 'intl', 'logging',
+  for library in ['args', 'http', 'intl', 'logging',
                   'meta', 'oauth2', 'unittest']:
     copytree(join(HOME, 'pkg', library), join(PKG, library),
              ignore=ignore_patterns('*.svn', 'doc', 'docs',
