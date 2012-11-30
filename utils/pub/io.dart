@@ -62,6 +62,9 @@ String join(part1, [part2, part3, part4]) {
   return Strings.join(parts, Platform.pathSeparator);
 }
 
+/// Splits [path] into its individual components.
+List<String> splitPath(path) => _sanitizePath(path).split('/');
+
 /**
  * Gets the basename, the file name without any leading directory path, for
  * [file], which can either be a [String], [File], or [Directory].
@@ -245,8 +248,8 @@ Future<Directory> deleteDir(dir) {
 /**
  * Asynchronously lists the contents of [dir], which can be a [String] directory
  * path or a [Directory]. If [recursive] is `true`, lists subdirectory contents
- * (defaults to `false`). If [includeHiddenFiles] is `true`, includes files
- * beginning with `.` (defaults to `false`).
+ * (defaults to `false`). If [includeHiddenFiles] is `true`, includes files and
+ * directories beginning with `.` (defaults to `false`).
  */
 Future<List<String>> listDir(dir,
     {bool recursive: false, bool includeHiddenFiles: false}) {
@@ -271,7 +274,10 @@ Future<List<String>> listDir(dir,
   }
 
   lister.onError = (error) => completer.completeException(error, stackTrace);
-  lister.onDir = (file) => contents.add(file);
+  lister.onDir = (file) {
+    if (!includeHiddenFiles && basename(file).startsWith('.')) return;
+    contents.add(file);
+  };
   lister.onFile = (file) {
     if (!includeHiddenFiles && basename(file).startsWith('.')) return;
     contents.add(file);
@@ -372,19 +378,32 @@ String getFullPath(entry) {
   var path = _getPath(entry);
 
   // Don't do anything if it's already absolute.
-  if (Platform.operatingSystem == 'windows') {
-    // An absolute path on Windows is either UNC (two leading backslashes),
-    // or a drive letter followed by a colon and a slash.
-    var ABSOLUTE = new RegExp(r'^(\\\\|[a-zA-Z]:[/\\])');
-    if (ABSOLUTE.hasMatch(path)) return path;
-  } else {
-    if (path.startsWith('/')) return path;
-  }
+  if (isAbsolute(path)) return path;
 
   // Using Path.join here instead of File().fullPathSync() because the former
   // does not require an actual file to exist at that path.
   return new Path.fromNative(currentWorkingDir).join(new Path(path))
       .toNativePath();
+}
+
+/// Returns whether or not [entry] is an absolute path.
+bool isAbsolute(entry) => _splitAbsolute(entry).first != null;
+
+/// Splits [entry] into two components: the absolute path prefix and the
+/// remaining path. Takes into account Windows' quirky absolute paths syntaxes.
+Pair<String, String> _splitAbsolute(entry) {
+  var path = _getPath(entry);
+
+  if (Platform.operatingSystem != 'windows') {
+    return !path.startsWith('/') ? new Pair(null, path)
+        : new Pair('/', path.substring(1));
+  }
+
+  // An absolute path on Windows is either UNC (two leading backslashes),
+  // or a drive letter followed by a colon and a slash.
+  var match = new RegExp(r'^(\\\\|[a-zA-Z]:[/\\])').firstMatch(path);
+  return match == null ? new Pair(null, path)
+      : new Pair(match.group(0), path.substring(match.end));
 }
 
 /// Resolves [path] relative to the location of pub.dart.
@@ -950,10 +969,16 @@ String _getPath(entry) {
 /// backslashes to forward slashes on Windows.
 String _sanitizePath(entry) {
   entry = _getPath(entry);
-  if (Platform.operatingSystem == 'windows') {
-    entry = entry.replaceAll('\\', '/');
-  }
-  return entry;
+  if (Platform.operatingSystem != 'windows') return entry;
+
+  var split = _splitAbsolute(entry);
+  if (split.first == null) return split.last.replaceAll('\\', '/');
+
+  // For absolute Windows paths, we don't want the prefix (either "\\" or e.g.
+  // "C:\") to look like a normal path component, so we ensure that it only
+  // contains backslashes.
+  return '${split.first.replaceAll('/', '\\')}'
+         '${split.last.replaceAll('\\', '/')}';
 }
 
 /**

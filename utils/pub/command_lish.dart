@@ -113,6 +113,13 @@ class LishCommand extends PubCommand {
     });
   }
 
+  /// The basenames of files that are automatically excluded from archives.
+  final _BLACKLISTED_FILES = const ['pubspec.lock'];
+
+  /// The basenames of directories that are automatically excluded from
+  /// archives.
+  final _BLACKLISTED_DIRECTORIES = const ['packages'];
+
   /// Returns a list of files that should be included in the published package.
   /// If this is a Git repository, this will respect .gitignore; otherwise, it
   /// will return all non-hidden files.
@@ -134,7 +141,10 @@ class LishCommand extends PubCommand {
         }));
       });
     }).transform((files) => files.filter((file) {
-      return file != null && basename(file) != 'packages';
+      if (file == null || _BLACKLISTED_FILES.contains(basename(file))) {
+        return false;
+      }
+      return !splitPath(file).some(_BLACKLISTED_DIRECTORIES.contains);
     }));
   }
 
