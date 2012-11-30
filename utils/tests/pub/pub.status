@@ -13,8 +13,3 @@
 # TODO(nweiz): Figure out why this is failing.
 [ $system == windows ]
 pub_lish_test: Fail
-
-# TODO(nweiz): The "pub lish" and oauth2 tests often fail mysteriously on
-# Windows. See issues 7015 and 7016.
-oauth2_test: Skip
-curl_client_test: Skip

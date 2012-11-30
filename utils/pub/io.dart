@@ -315,7 +315,32 @@ Future<Directory> cleanDir(dir) {
 
 /// Renames (i.e. moves) the directory [from] to [to]. Returns a [Future] with
 /// the destination directory.
-Future<Directory> renameDir(from, String to) =>_getDirectory(from).rename(to);
+Future<Directory> renameDir(from, String to) {
+  from = _getDirectory(from);
+
+  if (Platform.operatingSystem != 'windows') return from.rename(to);
+
+  // On Windows, we sometimes get failures where the directory is still in use
+  // when we try to move it. To be a bit more resilient, we wait and retry a
+  // few times.
+  var attempts = 0;
+  attemptRename(_) {
+    attempts++;
+    return from.rename(to).transformException((e) {
+      if (attempts >= 10) {
+        throw 'Could not move directory "${from.path}" to "$to". Gave up '
+              'after $attempts attempts.';
+      }
+
+      // Wait a bit and try again.
+      return sleep(500).chain(attemptRename);
+    });
+
+    return from;
+  }
+
+  return attemptRename(null);
+}
 
 /**
  * Creates a new symlink that creates an alias from [from] to [to], both of
