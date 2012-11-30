@@ -58,20 +58,22 @@
             ['exclude', 'gdbjit.cc'],
           ],
        }],
-       ['dart_vtune_support == 0', {
+       ['dart_vtune_support==0', {
           'sources/' : [
             ['exclude', 'vtune\\.(cc|h)$'],
           ],
        }],
-       ['OS=="linux" and dart_vtune_support == 1', {
-          # Link in libjitprofiling.a.
-          'cflags': [
-            '-DDART_VTUNE_SUPPORT',
-            '-I<(dart_vtune_root)/include',
-          ],
+       ['dart_vtune_support==1', {
+          'include_dirs': ['<(dart_vtune_root)/include'],
+          'defines': ['DART_VTUNE_SUPPORT'],
           'link_settings': {
-            'libraries': [
-              '-ljitprofiling',
+            'conditions': [
+              ['OS=="linux"', {
+                 'libraries': ['-ljitprofiling'],
+              }],
+              ['OS=="win"', {
+                 'libraries': ['-ljitprofiling.lib'],
+              }],
             ],
           },
         }]],

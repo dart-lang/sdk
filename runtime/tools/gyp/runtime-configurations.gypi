@@ -10,21 +10,14 @@
     'dart_io_support%': 0,
     # Intel VTune related variables.
     'dart_vtune_support%': 0,
-    'dart_vtune_root%': '/opt/intel/vtune_amplifier_xe',
-  },
-
-  'configurations': {
-    'Dart_ia32_Base': {
-      'variables': {
-        'dart_vtune_lib_dir': '<(dart_vtune_root)/lib32',
-      }
-    },
-
-    'Dart_x64_Base': {
-      'variables': {
-        'dart_vtune_lib_dir': '<(dart_vtune_root)/lib64',
-      }
-    },
+    'conditions': [
+      ['OS=="linux"', {
+        'dart_vtune_root%': '/opt/intel/vtune_amplifier_xe',
+      }],
+      ['OS=="win"', {
+        'dart_vtune_root%': 'C:/Program Files (x86)/Intel/VTune Amplifier XE 2013',
+      }],
+    ],
   },
 
   'target_defaults': {
@@ -59,9 +52,16 @@
           'ARCHS': [ 'i386' ],
         },
         'conditions': [
-          ['OS=="linux" and dart_vtune_support == 1', {
+          ['OS=="linux" and dart_vtune_support==1', {
             'ldflags': ['-L<(dart_vtune_root)/lib32'],
-          }]
+          }],
+          ['OS=="win" and dart_vtune_support==1', {
+            'msvs_settings': {
+              'VCLinkerTool': {
+                'AdditionalLibraryDirectories': ['<(dart_vtune_root)/lib32'],
+              },
+            },
+          }],
         ],
       },
 
@@ -71,9 +71,16 @@
           'ARCHS': [ 'x86_64' ],
         },
         'conditions': [
-          ['OS=="linux" and dart_vtune_support == 1', {
+          ['OS=="linux" and dart_vtune_support==1', {
             'ldflags': ['-L<(dart_vtune_root)/lib64'],
-          }]
+          }],
+          ['OS=="win" and dart_vtune_support==1', {
+            'msvs_settings': {
+              'VCLinkerTool': {
+                'AdditionalLibraryDirectories': ['<(dart_vtune_root)/lib32'],
+              },
+            },
+          }],
         ],
       },
 
