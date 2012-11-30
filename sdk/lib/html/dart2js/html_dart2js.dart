@@ -5981,27 +5981,6 @@ class DirectoryReaderSync native "*DirectoryReaderSync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * Represents an HTML <div> element.
- *
- * The [DivElement] is a generic container for content and does not have any
- * special significance. It is functionally similar to [SpanElement].
- *
- * The [DivElement] is a block-level element, as opposed to [SpanElement],
- * which is an inline-level element.
- *
- * Example usage:
- *
- *     DivElement div = new DivElement();
- *     div.text = 'Here's my new DivElem
- *     document.body.elements.add(elem);
- *
- * See also:
- *
- * * [HTML <div> element](http://www.w3.org/TR/html-markup/div.html) from W3C.
- * * [Block-level element](http://www.w3.org/TR/CSS2/visuren.html#block-boxes) from W3C.
- * * [Inline-level element](http://www.w3.org/TR/CSS2/visuren.html#inline-boxes) from W3C.
- */
 /// @domName HTMLDivElement; @docsEditable true
 class DivElement extends Element implements Element native "*HTMLDivElement" {
 
@@ -6373,7 +6352,7 @@ class DocumentFragment extends Node native "*DocumentFragment" {
     }
     return null;
   }
-  Element get $m_lastElementChild() => elements.last;
+  Element get $m_lastElementChild => elements.last;
   Element get nextElementSibling => null;
   Element get previousElementSibling => null;
   Element get offsetParent => null;
@@ -10896,6 +10875,36 @@ class JavaScriptCallFrame native "*JavaScriptCallFrame" {
 /// @domName KeyboardEvent; @docsEditable true
 class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 
+  factory KeyboardEvent(String type, Window view,
+      [bool canBubble = true, bool cancelable = true, 
+      String keyIdentifier = null, int keyLocation = 1, bool ctrlKey = false,
+      bool altKey = false, bool shiftKey = false, bool metaKey = false,
+      bool altGraphKey = false]) {
+    final e = document.$dom_createEvent("KeyboardEvent");
+    e.$dom_initKeyboardEvent(type, canBubble, cancelable, view, keyIdentifier,
+        keyLocation, ctrlKey, altKey, shiftKey, metaKey, altGraphKey);
+    return e;
+  }
+
+  /** @domName KeyboardEvent.initKeyboardEvent */
+  void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable,
+      LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey,
+      bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) {
+    // initKeyEvent is the call in Firefox, initKeyboardEvent for all other
+    // browsers.
+    var function = JS('dynamic', '#.initKeyboardEvent || #.initKeyEvent', this,
+        this);
+    JS('void', '#(#, #, #, #, #, #, #, #, #, #, #)', function, type,
+        canBubble, cancelable, view, keyIdentifier, keyLocation, ctrlKey,
+        altKey, shiftKey, metaKey, altGraphKey);
+  }
+
+  /** @domName KeyboardEvent.keyCode */
+  int get keyCode => $dom_keyCode;
+
+  /** @domName KeyboardEvent.charCode */
+  int get charCode => $dom_charCode;
+
   /// @domName KeyboardEvent.altGraphKey; @docsEditable true
   final bool altGraphKey;
 
@@ -10906,7 +10915,7 @@ class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
   final bool ctrlKey;
 
   /// @domName KeyboardEvent.keyIdentifier; @docsEditable true
-  final String keyIdentifier;
+  String get $dom_keyIdentifier => JS("String", "#.keyIdentifier", this);
 
   /// @domName KeyboardEvent.keyLocation; @docsEditable true
   final int keyLocation;
@@ -10917,8 +10926,6 @@ class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
   /// @domName KeyboardEvent.shiftKey; @docsEditable true
   final bool shiftKey;
 
-  /// @domName KeyboardEvent.initKeyboardEvent; @docsEditable true
-  void initKeyboardEvent(String type, bool canBubble, bool cancelable, LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11181,7 +11188,7 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   // API level getter and setter for Location.
   // TODO: The cross domain safe wrapper can be inserted here or folded into
   // _LocationWrapper.
-  LocalLocation get location() {
+  LocalLocation get location {
     // Firefox work-around for Location.  The Firefox location object cannot be
     // made to behave like a Dart object so must be wrapped.
     var result = _location;
@@ -11278,7 +11285,7 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
        this);
   }
 
-  IDBFactory get indexedDB() =>
+  IDBFactory get indexedDB =>
       JS('IDBFactory',
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
          this, this, this);
@@ -11372,7 +11379,7 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   /// @domName Window.outerWidth; @docsEditable true
   final int outerWidth;
 
-  /// @domName DOMWindow.pagePopupController; @docsEditable true
+  /// @domName Window.pagePopupController; @docsEditable true
   final PagePopupController pagePopupController;
 
   /// @domName Window.pageXOffset; @docsEditable true
@@ -11438,13 +11445,13 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   Window get top => _convertNativeToDart_Window(this._top);
   dynamic get _top => JS("dynamic", "#.top", this);
 
-  /// @domName DOMWindow.webkitIndexedDB; @docsEditable true
+  /// @domName Window.webkitIndexedDB; @docsEditable true
   final IDBFactory webkitIndexedDB;
 
-  /// @domName DOMWindow.webkitNotifications; @docsEditable true
+  /// @domName Window.webkitNotifications; @docsEditable true
   final NotificationCenter webkitNotifications;
 
-  /// @domName DOMWindow.webkitStorageInfo; @docsEditable true
+  /// @domName Window.webkitStorageInfo; @docsEditable true
   final StorageInfo webkitStorageInfo;
 
   /// @domName Window.window; @docsEditable true
@@ -11503,7 +11510,7 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   /// @domName Window.moveTo; @docsEditable true
   void moveTo(num x, num y) native;
 
-  /// @domName DOMWindow.openDatabase; @docsEditable true
+  /// @domName Window.openDatabase; @docsEditable true
   @Creates('Database') @Creates('DatabaseSync')
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
@@ -11567,10 +11574,10 @@ class LocalWindow extends EventTarget implements Window native "@*DOMWindow" {
   /// @domName Window.webkitConvertPointFromPageToNode; @docsEditable true
   Point webkitConvertPointFromPageToNode(Node node, Point p) native;
 
-  /// @domName DOMWindow.webkitRequestFileSystem; @docsEditable true
+  /// @domName Window.webkitRequestFileSystem; @docsEditable true
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  /// @domName DOMWindow.webkitResolveLocalFileSystemURL; @docsEditable true
+  /// @domName Window.webkitResolveLocalFileSystemURL; @docsEditable true
   void webkitResolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "webkitResolveLocalFileSystemURL";
 
 }
@@ -12392,16 +12399,6 @@ class MemoryInfo native "*MemoryInfo" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * An HTML <menu> element.
- *
- * A <menu> element represents an unordered list of menu commands.
- *
- * See also:
- *
- *  * [Menu Element](https://developer.mozilla.org/en-US/docs/HTML/Element/menu) from MDN.
- *  * [Menu Element](http://www.w3.org/TR/html5/the-menu-element.html#the-menu-element) from the W3C.
- */
 /// @domName HTMLMenuElement; @docsEditable true
 class MenuElement extends Element implements Element native "*HTMLMenuElement" {
 
@@ -17108,18 +17105,32 @@ class TreeWalker native "*TreeWalker" {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
+
 
 /// @domName UIEvent; @docsEditable true
 class UIEvent extends Event native "*UIEvent" {
+  // In JS, canBubble and cancelable are technically required parameters to
+  // init*Event. In practice, though, if they aren't provided they simply
+  // default to false (since that's Boolean(undefined)).
+  //
+  // Contrary to JS, we default canBubble and cancelable to true, since that's
+  // what people want most of the time anyway.
+  factory UIEvent(String type, Window view, int detail,
+      [bool canBubble = true, bool cancelable = true]) {
+    final e = document.$dom_createEvent("UIEvent");
+    e.$dom_initUIEvent(type, canBubble, cancelable, view, detail);
+    return e;
+  }
 
   /// @domName UIEvent.charCode; @docsEditable true
-  final int charCode;
+  int get $dom_charCode => JS("int", "#.charCode", this);
 
   /// @domName UIEvent.detail; @docsEditable true
   final int detail;
 
   /// @domName UIEvent.keyCode; @docsEditable true
-  final int keyCode;
+  int get $dom_keyCode => JS("int", "#.keyCode", this);
 
   /// @domName UIEvent.layerX; @docsEditable true
   final int layerX;
@@ -17141,7 +17152,8 @@ class UIEvent extends Event native "*UIEvent" {
   final int which;
 
   /// @domName UIEvent.initUIEvent; @docsEditable true
-  void initUIEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail) native;
+  void $dom_initUIEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail) native "initUIEvent";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21908,6 +21920,410 @@ class FilteredElementList implements List {
 
 
 /**
+ * Works with KeyboardEvent and KeyEvent to determine how to expose information
+ * about Key(board)Events. This class functions like an EventListenerList, and
+ * provides a consistent interface for the Dart
+ * user, despite the fact that a multitude of browsers that have varying
+ * keyboard default behavior.
+ *
+ * This class is very much a work in progress, and we'd love to get information
+ * on how we can make this class work with as many international keyboards as
+ * possible. Bugs welcome! 
+ */
+class KeyboardEventController {
+  // This code inspired by Closure's KeyHandling library.
+  // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keyhandler.js.source.html
+  
+  /**
+   * The set of keys that have been pressed down without seeing their
+   * corresponding keyup event.
+   */
+  List<KeyboardEvent> _keyDownList;
+
+  /** The set of functions that wish to be notified when a KeyEvent happens. */
+  List<Function> _callbacks;
+
+  /** The type of KeyEvent we are tracking (keyup, keydown, keypress). */
+  String _type;
+
+  /** The element we are watching for events to happen on. */
+  EventTarget _target;
+
+  // The distance to shift from upper case alphabet Roman letters to lower case.
+  const int _ROMAN_ALPHABET_OFFSET = "a".charCodes[0] - "A".charCodes[0];
+
+  // Instance members referring to the internal event handlers because closures
+  // are not hashable.
+  var _keyUp, _keyDown, _keyPress;
+
+  /**
+   * An enumeration of key identifiers currently part of the W3C draft for DOM3
+   * and their mappings to keyCodes.
+   * http://www.w3.org/TR/DOM-Level-3-Events/keyset.html#KeySet-Set
+   */
+  static Map<String, int> _keyIdentifier = {
+    'Up': KeyCode.UP,
+    'Down': KeyCode.DOWN,
+    'Left': KeyCode.LEFT,
+    'Right': KeyCode.RIGHT,
+    'Enter': KeyCode.ENTER,
+    'F1': KeyCode.F1,
+    'F2': KeyCode.F2,
+    'F3': KeyCode.F3,
+    'F4': KeyCode.F4,
+    'F5': KeyCode.F5,
+    'F6': KeyCode.F6,
+    'F7': KeyCode.F7,
+    'F8': KeyCode.F8,
+    'F9': KeyCode.F9,
+    'F10': KeyCode.F10,
+    'F11': KeyCode.F11,
+    'F12': KeyCode.F12,
+    'U+007F': KeyCode.DELETE,
+    'Home': KeyCode.HOME,
+    'End': KeyCode.END,
+    'PageUp': KeyCode.PAGE_UP,
+    'PageDown': KeyCode.PAGE_DOWN,
+    'Insert': KeyCode.INSERT
+  };
+
+  /** Named constructor to add an onKeyPress event listener to our handler. */
+  KeyboardEventController.keypress(EventTarget target) {
+    _KeyboardEventController(target, 'keypress');
+  }
+  
+  /** Named constructor to add an onKeyUp event listener to our handler. */
+  KeyboardEventController.keyup(EventTarget target) {
+    _KeyboardEventController(target, 'keyup');
+  }
+
+  /** Named constructor to add an onKeyDown event listener to our handler. */
+  KeyboardEventController.keydown(EventTarget target) {
+    _KeyboardEventController(target, 'keydown');
+  }
+  
+  /**
+   * General constructor, performs basic initialization for our improved
+   * KeyboardEvent controller.
+   */
+  _KeyboardEventController(EventTarget target, String type) {
+    _callbacks = [];
+    _type = type;
+    _target = target;
+    _keyDown = processKeyDown;
+    _keyUp = processKeyUp;
+    _keyPress = processKeyPress;
+  }
+
+  /**
+   * Hook up all event listeners under the covers so we can estimate keycodes
+   * and charcodes when they are not provided.
+   */
+  void _initializeAllEventListeners() {
+    _keyDownList = [];
+    _target.on.keyDown.add(_keyDown, true);
+    _target.on.keyPress.add(_keyPress, true);
+    _target.on.keyUp.add(_keyUp, true);
+  }
+
+  /** Add a callback that wishes to be notified when a KeyEvent occurs. */
+  void add(void callback(KeyEvent)) {
+    if (_callbacks.length == 0) {
+      _initializeAllEventListeners();
+    }
+    _callbacks.add(callback);
+  }
+  
+  /**
+   * Notify all callback listeners that a KeyEvent of the relevant type has
+   * occurred.
+   */
+  bool _dispatch(KeyEvent event) {
+    if (event.type == _type) {
+      // Make a copy of the listeners in case a callback gets removed while
+      // dispatching from the list.
+      List callbacksCopy = new List.from(_callbacks);
+      for(var callback in callbacksCopy) {
+        callback(event);
+      }
+    }
+  }
+
+  /** Remove the given callback from the listeners list. */
+  void remove(void callback(KeyEvent)) {
+    var index = _callbacks.indexOf(callback);
+    if (index != -1) {
+      _callbacks.removeAt(index);
+    }
+    if (_callbacks.length == 0) {
+      // If we have no listeners, don't bother keeping track of keypresses.
+      _target.on.keyDown.remove(_keyDown);
+      _target.on.keyPress.remove(_keyPress);
+      _target.on.keyUp.remove(_keyUp);
+    }
+  }
+
+  /** Determine if caps lock is one of the currently depressed keys. */
+  bool get _capsLockOn() =>
+      _keyDownList.some((var element) => element.keyCode == KeyCode.CAPS_LOCK);
+
+  /**
+   * Given the previously recorded keydown key codes, see if we can determine
+   * the keycode of this keypress [event]. (Generally browsers only provide
+   * charCode information for keypress events, but with a little
+   * reverse-engineering, we can also determine the keyCode.) Returns
+   * KeyCode.UNKNOWN if the keycode could not be determined.
+   */
+  int _determineKeyCodeForKeypress(KeyboardEvent event) {
+    // Note: This function is a work in progress. We'll expand this function
+    // once we get more information about other keyboards.
+    for (var prevEvent in _keyDownList) {
+      if (prevEvent._shadowCharCode == event.charCode) {
+        return prevEvent.keyCode;
+      }
+      if ((event.shiftKey || _capsLockOn) && event.charCode >= "A".charCodes[0]
+          && event.charCode <= "Z".charCodes[0] && event.charCode +
+          _ROMAN_ALPHABET_OFFSET == prevEvent._shadowCharCode) {
+        return prevEvent.keyCode;
+      }
+    }
+    return KeyCode.UNKNOWN;
+  }
+
+  /**
+   * Given the charater code returned from a keyDown [event], try to ascertain
+   * and return the corresponding charCode for the character that was pressed.
+   * This information is not shown to the user, but used to help polyfill
+   * keypress events.
+   */
+  int _findCharCodeKeyDown(KeyboardEvent event) {
+    if (event.keyLocation == 3) { // Numpad keys.
+      switch (event.keyCode) {
+        case KeyCode.NUM_ZERO:
+          // Even though this function returns _charCodes_, for some cases the
+          // KeyCode == the charCode we want, in which case we use the keycode
+          // constant for readability.
+          return KeyCode.ZERO;
+        case KeyCode.NUM_ONE:
+          return KeyCode.ONE;
+        case KeyCode.NUM_TWO:
+          return KeyCode.TWO;
+        case KeyCode.NUM_THREE:
+          return KeyCode.THREE;
+        case KeyCode.NUM_FOUR:
+          return KeyCode.FOUR;
+        case KeyCode.NUM_FIVE:
+          return KeyCode.FIVE;
+        case KeyCode.NUM_SIX:
+          return KeyCode.SIX;
+        case KeyCode.NUM_SEVEN:
+          return KeyCode.SEVEN;
+        case KeyCode.NUM_EIGHT:
+          return KeyCode.EIGHT;
+        case KeyCode.NUM_NINE:
+          return KeyCode.NINE;
+        case KeyCode.NUM_MULTIPLY:
+          return 42; // Char code for *
+        case KeyCode.NUM_PLUS:
+          return 43; // +
+        case KeyCode.NUM_MINUS:
+          return 45; // -
+        case KeyCode.NUM_PERIOD:
+          return 46; // .
+        case KeyCode.NUM_DIVISION:
+          return 47; // /
+      }
+    } else if (event.keyCode >= 65 && event.keyCode <= 90) {
+      // Set the "char code" for key down as the lower case letter. Again, this
+      // will not show up for the user, but will be helpful in estimating
+      // keyCode locations and other information during the keyPress event.
+      return event.keyCode + _ROMAN_ALPHABET_OFFSET;
+    }
+    switch(event.keyCode) {
+      case KeyCode.SEMICOLON:
+        return KeyCode.FF_SEMICOLON;
+      case KeyCode.EQUALS:
+        return KeyCode.FF_EQUALS;
+      case KeyCode.COMMA:
+        return 44; // Ascii value for ,
+      case KeyCode.DASH:
+        return 45; // -
+      case KeyCode.PERIOD:
+        return 46; // .
+      case KeyCode.SLASH:
+        return 47; // /
+      case KeyCode.APOSTROPHE:
+        return 96; // `
+      case KeyCode.OPEN_SQUARE_BRACKET:
+        return 91; // [
+      case KeyCode.BACKSLASH:
+        return 92; // \
+      case KeyCode.CLOSE_SQUARE_BRACKET:
+        return 93; // ]
+      case KeyCode.SINGLE_QUOTE:
+        return 39; // '
+    }
+    return event.keyCode;
+  }
+
+  /**
+   * Returns true if the key fires a keypress event in the current browser.
+   */
+  bool _firesKeyPressEvent(KeyEvent event) {
+    if (!_Device.isIE && !_Device.isWebKit) {
+      return true;
+    }
+    
+    if (_Device.userAgent.contains('Mac') && event.altKey) {
+      return KeyCode.isCharacterKey(event.keyCode);
+    }
+ 
+    // Alt but not AltGr which is represented as Alt+Ctrl.
+    if (event.altKey && !event.ctrlKey) {
+      return false;
+    }
+ 
+    // Saves Ctrl or Alt + key for IE and WebKit, which won't fire keypress.
+    if (!event.shiftKey &&
+        (_keyDownList.last.keyCode == KeyCode.CTRL ||
+         _keyDownList.last.keyCode == KeyCode.ALT ||
+         _Device.userAgent.contains('Mac') &&
+         _keyDownList.last.keyCode == KeyCode.META)) {
+      return false;
+    }
+ 
+    // Some keys with Ctrl/Shift do not issue keypress in WebKit.
+    if (_Device.isWebKit && event.ctrlKey && event.shiftKey && (
+        event.keycode == KeyCode.BACKSLASH ||
+        event.keycode == KeyCode.OPEN_SQUARE_BRACKET ||
+        event.keycode == KeyCode.CLOSE_SQUARE_BRACKET ||
+        event.keycode == KeyCode.TILDE ||
+        event.keycode == KeyCode.SEMICOLON || event.keycode == KeyCode.DASH ||
+        event.keycode == KeyCode.EQUALS || event.keycode == KeyCode.COMMA ||
+        event.keycode == KeyCode.PERIOD || event.keycode == KeyCode.SLASH ||
+        event.keycode == KeyCode.APOSTROPHE ||
+        event.keycode == KeyCode.SINGLE_QUOTE)) {
+      return false;
+    }
+ 
+    switch (event.keyCode) {
+      case KeyCode.ENTER:
+        // IE9 does not fire keypress on ENTER.
+        return !_Device.isIE;
+      case KeyCode.ESC:
+        return !_Device.isWebKit;
+    }
+ 
+    return KeyCode.isCharacterKey(event.keyCode);
+  }
+
+  /**
+   * Normalize the keycodes to the IE KeyCodes (this is what Chrome, IE, and
+   * Opera all use).
+   */
+  int _normalizeKeyCodes(KeyboardEvent event) {
+    // Note: This may change once we get input about non-US keyboards.
+    if (_Device.isFirefox) {
+      switch(event.keyCode) {
+        case KeyCode.FF_EQUALS:
+          return KeyCode.EQUALS;
+        case KeyCode.FF_SEMICOLON:
+          return KeyCode.SEMICOLON;
+        case KeyCode.MAC_FF_META:
+          return KeyCode.META;
+        case KeyCode.WIN_KEY_FF_LINUX:
+          return KeyCode.WIN_KEY;
+      }
+    }
+    return event.keyCode;
+  }
+
+  /** Handle keydown events. */
+  void processKeyDown(KeyboardEvent e) {
+    // Ctrl-Tab and Alt-Tab can cause the focus to be moved to another window
+    // before we've caught a key-up event.  If the last-key was one of these
+    // we reset the state.
+    if (_keyDownList.length > 0 &&
+        (_keyDownList.last.keyCode == KeyCode.CTRL && !e.ctrlKey ||
+         _keyDownList.last.keyCode == KeyCode.ALT && !e.altKey ||
+         _Device.userAgent.contains('Mac') &&
+         _keyDownList.last.keyCode == KeyCode.META && !e.metaKey)) {
+      _keyDownList = [];
+    }
+
+    var event = new KeyEvent(e);
+    event._shadowKeyCode = _normalizeKeyCodes(event);
+    // Technically a "keydown" event doesn't have a charCode. This is
+    // calculated nonetheless to provide us with more information in giving
+    // as much information as possible on keypress about keycode and also
+    // charCode.
+    event._shadowCharCode = _findCharCodeKeyDown(event);
+    if (_keyDownList.length > 0 && event.keyCode != _keyDownList.last.keyCode &&
+        !_firesKeyPressEvent(event)) {
+      // Some browsers have quirks not firing keypress events where all other
+      // browsers do. This makes them more consistent.
+      processKeyPress(event);
+    }
+    _keyDownList.add(event);
+    _dispatch(event);
+  }
+
+  /** Handle keypress events. */
+  void processKeyPress(KeyboardEvent event) {
+    var e = new KeyEvent(event);
+    // IE reports the character code in the keyCode field for keypress events.
+    // There are two exceptions however, Enter and Escape.
+    if (_Device.isIE) {
+      if (e.keyCode == KeyCode.ENTER || e.keyCode == KeyCode.ESC) {
+        e._shadowCharCode = 0;
+      } else {
+        e._shadowCharCode = e.keyCode;
+      }
+    } else if (_Device.isOpera) {
+      // Opera reports the character code in the keyCode field.
+      e._shadowCharCode = KeyCode.isCharacterKey(keyCode) ? e.keyCode : 0;
+    }
+    // Now we guestimate about what the keycode is that was actually
+    // pressed, given previous keydown information.
+    e._shadowKeyCode = _determineKeyCodeForKeypress(e);
+
+    // Correct the key value for certain browser-specific quirks.
+    if (e._shadowKeyIdentifier &&
+        _keyIdentifier.contains(e._shadowKeyIdentifier)) {
+      // This is needed for Safari Windows because it currently doesn't give a
+      // keyCode/which for non printable keys.
+      e._shadowKeyCode = _keyIdentifier[keyIdentifier];
+    }
+    e._shadowAltKey = _keyDownList.some((var element) => element.altKey);
+    _dispatch(e);
+  }
+
+  /** Handle keyup events. */
+  void processKeyUp(KeyboardEvent event) {
+    var e = new KeyEvent(event);
+    KeyboardEvent toRemove = null;
+    for (var key in _keyDownList) {
+      if (key.keyCode == e.keyCode) {
+        toRemove = key;
+      }
+    }
+    if (toRemove != null) {
+      _keyDownList = _keyDownList.filter((element) => element != toRemove);
+    } else if (_keyDownList.length > 0) {
+      // This happens when we've reached some international keyboard case we
+      // haven't accounted for or we haven't correctly eliminated all browser
+      // inconsistencies. Filing bugs on when this is reached is welcome! 
+      _keyDownList.removeLast(); 
+    }
+    _dispatch(e);
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
  * Defines the keycode values for keys that are returned by 
  * KeyboardEvent.keyCode.
  * 
@@ -22098,6 +22514,36 @@ abstract class KeyCode {
   static const int WIN_KEY = 224;
   static const int MAC_FF_META = 224;
   static const int WIN_IME = 229;
+
+  /** A sentinel value if the keycode could not be determined. */
+  static const int UNKNOWN = -1;
+
+  /**
+   * Returns true if the keyCode produces a (US keyboard) character.
+   * Note: This does not (yet) cover characters on non-US keyboards (Russian,
+   * Hebrew, etc.).
+   */
+  static bool isCharacterKey(int keyCode) {
+    if ((keyCode >= ZERO && keyCode <= NINE) ||
+        (keyCode >= NUM_ZERO && keyCode <= NUM_MULTIPLY) ||
+        (keyCode >= A && keyCode <= Z)) {
+      return true;
+    }
+ 
+    // Safari sends zero key code for non-latin characters.
+    if (_Device.isWebKit && keyCode == 0) {
+      return true;
+    }
+ 
+    return (keyCode == SPACE || keyCode == QUESTION_MARK || keyCode == NUM_PLUS
+        || keyCode == NUM_MINUS || keyCode == NUM_PERIOD ||
+        keyCode == NUM_DIVISION || keyCode == SEMICOLON ||
+        keyCode == FF_SEMICOLON || keyCode == DASH || keyCode == EQUALS ||
+        keyCode == FF_EQUALS || keyCode == COMMA || keyCode == PERIOD ||
+        keyCode == SLASH || keyCode == APOSTROPHE || keyCode == SINGLE_QUOTE ||
+        keyCode == OPEN_SQUARE_BRACKET || keyCode == BACKSLASH ||
+        keyCode == CLOSE_SQUARE_BRACKET);
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24030,6 +24476,109 @@ class _HistoryCrossFrame implements History {
       return new _HistoryCrossFrame(h);
     }
   }
+}
+/**
+ * A custom KeyboardEvent that attempts to eliminate cross-browser
+ * inconsistencies, and also provide both keyCode and charCode information
+ * for all key events (when such information can be determined).
+ *
+ * This class is very much a work in progress, and we'd love to get information
+ * on how we can make this class work with as many international keyboards as
+ * possible. Bugs welcome!
+ */
+class KeyEvent implements KeyboardEvent {
+  /** The parent KeyboardEvent that this KeyEvent is wrapping and "fixing". */
+  KeyboardEvent _parent;
+
+  /** The "fixed" value of whether the alt key is being pressed. */
+  bool _shadowAltKey;
+
+  /** Caculated value of what the estimated charCode is for this event. */
+  int _shadowCharCode;
+
+  /** Caculated value of what the estimated keyCode is for this event. */
+  int _shadowKeyCode;
+
+  /** Caculated value of what the estimated keyCode is for this event. */
+  int get keyCode => _shadowKeyCode;
+
+  /** Caculated value of what the estimated charCode is for this event. */
+  int get charCode => this.type == 'keypress' ? _shadowCharCode : 0;
+
+  /** Caculated value of whether the alt key is pressed is for this event. */
+  bool get altKey => _shadowAltKey;
+
+  /** Caculated value of what the estimated keyCode is for this event. */
+  int get which => keyCode;
+
+  /** Accessor to the underlying keyCode value is the parent event. */
+  int get _realKeyCode => JS('int', '#.keyCode', _parent);
+  
+  /** Accessor to the underlying charCode value is the parent event. */
+  int get _realCharCode => JS('int', '#.charCode', _parent);
+
+  /** Accessor to the underlying altKey value is the parent event. */
+  bool get _realAltKey => JS('int', '#.altKey', _parent);
+
+  /** Construct a KeyEvent with [parent] as event we're emulating. */
+  KeyEvent(KeyboardEvent parent) {
+    _parent = parent;
+    _shadowAltKey = _realAltKey;
+    _shadowCharCode = _realCharCode;
+    _shadowKeyCode = _realKeyCode;
+  }
+
+  /** True if the altGraphKey is pressed during this event. */
+  bool get altGraphKey => _parent.altGraphKey;
+  bool get bubbles => _parent.bubbles;
+  /** True if this event can be cancelled. */
+  bool get cancelable => _parent.cancelable;
+  bool get cancelBubble => _parent.cancelBubble;
+  set cancelBubble(bool cancel) => _parent = cancel;  
+  /** Accessor to the clipboardData available for this event. */
+  Clipboard get clipboardData => _parent.clipboardData;
+  /** True if the ctrl key is pressed during this event. */
+  bool get ctrlKey => _parent.ctrlKey;
+  /** Accessor to the target this event is listening to for changes. */
+  EventTarget get currentTarget => _parent.currentTarget;
+  bool get defaultPrevented => _parent.defaultPrevented;
+  int get detail => _parent.detail;
+  int get eventPhase => _parent.eventPhase;
+  /**
+   * Accessor to the part of the keyboard that the key was pressed from (one of
+   * KeyLocation.STANDARD, KeyLocation.RIGHT, KeyLocation.LEFT,
+   * KeyLocation.NUMPAD, KeyLocation.MOBILE, KeyLocation.JOYSTICK).
+   */
+  int get keyLocation => _parent.keyLocation;
+  int get layerX => _parent.layerX;
+  int get layerY => _parent.layerY;
+  /** True if the Meta (or Mac command) key is pressed during this event. */
+  bool get metaKey => _parent.metaKey;
+  int get pageX => _parent.pageX;
+  int get pageY => _parent.pageY;
+  bool get returnValue => _parent.returnValue;
+  set returnValue(bool value) => _parent = value;  
+  /** True if the shift key was pressed during this event. */
+  bool get shiftKey => _parent.shiftKey;
+  int get timeStamp => _parent.timeStamp;
+  /**
+   * The type of key event that occurred. One of "keydown", "keyup", or
+   * "keypress".
+   */
+  String get type => _parent.type;
+  Window get view => _parent.view;
+  void preventDefault() => _parent.preventDefault();
+  void stopImmediatePropagation() => _parent.stopImmediatePropagation();
+  void stopPropagation() => _parent.stopPropagation();
+  void $dom_initUIEvent(String type, bool canBubble, bool cancelable,
+      LocalWindow view, int detail) {
+    throw new UnsupportedError("Cannot initialize a UI Event from a KeyEvent.");
+  }
+  void $dom_initEvent(String eventTypeArg, bool canBubbleArg,
+      bool cancelableArg) {
+    throw new UnsupportedError("Cannot initialize an Event from a KeyEvent.");
+  }
+  String get _shadowKeyIdentifier => JS('String', '#.keyIdentifier', _parent);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

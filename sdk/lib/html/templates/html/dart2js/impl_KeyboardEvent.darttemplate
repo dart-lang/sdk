@@ -1,0 +1,39 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/// @domName KeyboardEvent; @docsEditable true
+class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+
+  factory $CLASSNAME(String type, Window view,
+      [bool canBubble = true, bool cancelable = true, 
+      String keyIdentifier = null, int keyLocation = 1, bool ctrlKey = false,
+      bool altKey = false, bool shiftKey = false, bool metaKey = false,
+      bool altGraphKey = false]) {
+    final e = document.$dom_createEvent("KeyboardEvent");
+    e.$dom_initKeyboardEvent(type, canBubble, cancelable, view, keyIdentifier,
+        keyLocation, ctrlKey, altKey, shiftKey, metaKey, altGraphKey);
+    return e;
+  }
+
+  /** @domName KeyboardEvent.initKeyboardEvent */
+  void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable,
+      LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey,
+      bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) {
+    // initKeyEvent is the call in Firefox, initKeyboardEvent for all other
+    // browsers.
+    var function = JS('dynamic', '#.initKeyboardEvent || #.initKeyEvent', this,
+        this);
+    JS('void', '#(#, #, #, #, #, #, #, #, #, #, #)', function, type,
+        canBubble, cancelable, view, keyIdentifier, keyLocation, ctrlKey,
+        altKey, shiftKey, metaKey, altGraphKey);
+  }
+
+  /** @domName KeyboardEvent.keyCode */
+  int get keyCode => $dom_keyCode;
+
+  /** @domName KeyboardEvent.charCode */
+  int get charCode => $dom_charCode;
+$!MEMBERS
+}
