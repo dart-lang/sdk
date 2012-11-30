@@ -50,12 +50,14 @@ def make_link(source, target):
 
 def main(argv):
   target = os.path.relpath(argv[1])
+  if not os.path.exists(target):
+    os.makedirs(target)
   for source in argv[2:]:
-    # Assume the source directory is named ".../TARGET_NAME/lib".
+    # Assume the source directory is named ".../NAME/lib".
     (name, lib) = os.path.split(source)
     if lib != 'lib':
       name = source
-    # Remove any addtional path components preceding TARGET_NAME.
+    # Remove any addtional path components preceding NAME.
     (path, name) = os.path.split(name)
     if utils.GuessOS() == 'win32':
       source = os.path.relpath(source)
