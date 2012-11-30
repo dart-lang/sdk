@@ -135,12 +135,12 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   String get defineClassFunction {
-    // First the class name, then the super class name, followed by the fields
-    // (in an array) and the members (inside an Object literal).
+    // First the class name, then the field names in an array and the members
+    // (inside an Object literal).
     // The caller can also pass in the constructor as a function if needed.
     //
     // Example:
-    // defineClass("A", "B", ["x", "y"], {
+    // defineClass("A", ["x", "y"], {
     //  foo$1: function(y) {
     //   print(this.x + y);
     //  },
@@ -214,10 +214,12 @@ function(collectedClasses) {
   for (var cls in collectedClasses) {
     if (hasOwnProperty.call(collectedClasses, cls)) {
       var desc = collectedClasses[cls];
-'''/* If the class does not have any declared fields (in the ''
-      property of the description), then provide an empty list of fields. */'''
-      $isolatePropertiesName[cls] = $defineClassName(cls, desc[''] || [], desc);
-      if (desc['super'] !== "") $pendingClassesName[cls] = desc['super'];
+'''/* Get the superclass and the fields in the format Super;field1,field2 from
+      the null-string property on the descriptor. */'''
+      var s = desc[''].split(';'), supr = s[0];
+      var fields = s[1] == '' ? [] : s[1].split(',');
+      $isolatePropertiesName[cls] = $defineClassName(cls, fields, desc);
+      if (supr) $pendingClassesName[cls] = supr;
     }
   }
   var pendingClasses = $pendingClassesName;
@@ -248,7 +250,7 @@ function(collectedClasses) {
       constructor.prototype = newPrototype;
       newPrototype.constructor = constructor;
       for (var member in prototype) {
-        if (member == '' || member == 'super') continue;
+        if (!member) continue;  '''/* Short version of: if (member == '') */'''
         if (hasOwnProperty.call(prototype, member)) {
           newPrototype[member] = prototype[member];
         }
@@ -826,38 +828,47 @@ $lazyInitializerLogic
 
   void emitClassFields(ClassElement classElement,
                        CodeBuffer buffer,
-                       bool emitEndingComma) {
+                       bool emitEndingComma,
+                       { String superClass: "",
+                         bool isNative: false}) {
+    assert(!isNative || superClass != "");
     bool isFirstField = true;
+    bool isAnythingOutput = false;
+    if (!isNative) {
+      buffer.add('"":"$superClass;');
+      isAnythingOutput = true;
+    }
     visitClassFields(classElement, (Element member,
                                     String name,
                                     bool needsGetter,
                                     bool needsSetter,
                                     bool needsCheckedSetter) {
-
       if (!getterAndSetterCanBeImplementedByFieldSpec(
           member, name, needsGetter, needsSetter)) {
         return;
       }
-
-      if (isFirstField) {
-        buffer.add('"": [');
-        isFirstField = false;
-      } else {
-        buffer.add(", ");
+      if (!isNative || needsCheckedSetter || needsGetter || needsSetter) {
+        if (isFirstField) {
+          isFirstField = false;
+          if (!isAnythingOutput) {
+            buffer.add('"":"');
+            isAnythingOutput = true;
+          }
+        } else {
+          buffer.add(",");
+        }
+        buffer.add('$name');
+        if (needsGetter && needsSetter) {
+          buffer.add(GETTER_SETTER_SUFFIX);
+        } else if (needsGetter) {
+          buffer.add(GETTER_SUFFIX);
+        } else if (needsSetter) {
+          buffer.add(SETTER_SUFFIX);
+        }
       }
-      buffer.add('"$name');
-      if (needsGetter && needsSetter) {
-        buffer.add(GETTER_SETTER_SUFFIX);
-      } else if (needsGetter) {
-        buffer.add(GETTER_SUFFIX);
-      } else if (needsSetter) {
-        buffer.add(SETTER_SUFFIX);
-      }
-      buffer.add('"');
     });
-    if (!isFirstField) {
-      // There was at least one field.
-      buffer.add(']');
+    if (isAnythingOutput) {
+      buffer.add('"');
       if (emitEndingComma) {
         buffer.add(',');
       }
@@ -947,11 +958,11 @@ $lazyInitializerLogic
 
     buffer.add('$classesCollector.$className = {');
     emitClassConstructor(classElement, buffer);
-    emitClassFields(classElement, buffer, true);
+    emitClassFields(classElement, buffer, false,
+                    superClass: superName, isNative: false);
     // TODO(floitsch): the emitInstanceMember should simply always emit a ',\n'.
     // That does currently not work because the native classes have a different
     // syntax.
-    buffer.add('\n "super": "$superName"');
     emitClassGettersSetters(classElement, buffer, true);
     emitInstanceMembers(classElement, buffer, true);
     buffer.add('\n};\n\n');
@@ -1160,11 +1171,10 @@ $lazyInitializerLogic
                                    String superName,
                                    String extraArgument,
                                    CodeBuffer buffer) {
-    extraArgument = extraArgument.isEmpty ? '' : ", '$extraArgument'";
+    extraArgument = extraArgument.isEmpty ? '' : ",$extraArgument";
     buffer.add("""
 $classesCollector.$mangledName = {'':
-['self'$extraArgument, 'target'],
-'super': '$superName',
+\"$superName;self$extraArgument,target\",
 """);
   }
 

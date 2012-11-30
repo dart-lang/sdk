@@ -64,14 +64,14 @@ main() {
 
 twoClasses() {
   String generated = compileAll(TEST_ONE);
-  Expect.isTrue(generated.contains('\$.A = {\n "super": "Object"'));
-  Expect.isTrue(generated.contains('\$.B = {\n "super": "Object"'));
+  Expect.isTrue(generated.contains('\$.A = {"":"Object;"'));
+  Expect.isTrue(generated.contains('\$.B = {"":"Object;"'));
 }
 
 subClass() {
   checkOutput(String generated) {
-    Expect.isTrue(generated.contains('\$.A = {\n "super": "Object"'));
-    Expect.isTrue(generated.contains('\$.B = {\n "super": "A"'));
+    Expect.isTrue(generated.contains('\$.A = {"":"Object;"'));
+    Expect.isTrue(generated.contains('\$.B = {"":"A;"'));
   }
 
   checkOutput(compileAll(TEST_TWO));
@@ -81,8 +81,7 @@ subClass() {
 fieldTest() {
   String generated = compileAll(TEST_FOUR);
   Expect.isTrue(generated.contains(r"""
-$.B = {"": ["y", "z", "x"],
- "super": "A"
+$.B = {"":"A;y,z,x"
 }"""));
 }
 
