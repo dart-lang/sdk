@@ -553,6 +553,12 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
   Error& error = Error::Handle();
   Array& functions = Array::Handle(cls.functions());
   Function& func = Function::Handle();
+  // Class dynamic lives in the vm isolate. Its array fields cannot be set to
+  // an empty array.
+  if (functions.IsNull()) {
+    ASSERT(cls.IsDynamicClass());
+    return error.raw();
+  }
   for (int i = 0; i < functions.Length(); i++) {
     func ^= functions.At(i);
     ASSERT(!func.IsNull());

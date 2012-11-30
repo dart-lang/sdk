@@ -2006,27 +2006,13 @@ DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
 
 /**
  * Is this a class handle?
- *
- * Most parts of the dart embedding api do not distinguish between
- * classes and interfaces.  For example, Dart_GetClass can return a
- * class or an interface and Dart_New can instantiate a class or an
- * interface.  The exceptions are Dart_IsClass and Dart_IsInterface,
- * which can be used to distinguish whether a handle refers to a class
- * or an interface.
  */
 DART_EXPORT bool Dart_IsClass(Dart_Handle handle);
 
 /**
- * Is this an interface handle?
- *
- * Most parts of the dart embedding api do not distinguish between
- * classes and interfaces.  For example, Dart_GetClass can return a
- * class or an interface and Dart_New can instantiate a class or an
- * interface.  The exceptions are Dart_IsClass and Dart_IsInterface,
- * which can be used to distinguish whether a handle refers to a class
- * or an interface.
+ * Is this an abstract class handle?
  */
-DART_EXPORT bool Dart_IsInterface(Dart_Handle handle);
+DART_EXPORT bool Dart_IsAbstractClass(Dart_Handle handle);
 
 /**
  * Returns the class name for the provided class or interface.

@@ -319,16 +319,6 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
   // Resolve failures lead to a longjmp.
   ResolveType(cls, super_type, kCanonicalizeWellFormed);
   const Class& super_class = Class::Handle(super_type.type_class());
-  if (cls.is_interface() != super_class.is_interface()) {
-    String& class_name = String::Handle(cls.Name());
-    String& super_class_name = String::Handle(super_class.Name());
-    const Script& script = Script::Handle(cls.script());
-    ReportError(script, cls.token_pos(),
-                "class '%s' and superclass '%s' are not "
-                "both classes or both interfaces",
-                class_name.ToCString(),
-                super_class_name.ToCString());
-  }
   // If cls belongs to core lib or to core lib's implementation, restrictions
   // about allowed interfaces are lifted.
   if (cls.library() != Library::CoreLibrary()) {
@@ -1142,11 +1132,10 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
           const String& super_class_name = String::Handle(super_class.Name());
           const Script& script = Script::Handle(cls.script());
           ReportError(script, function.token_pos(),
-                      "class '%s' overrides function '%s' of %s '%s' "
+                      "class '%s' overrides function '%s' of super class '%s' "
                       "with incompatible parameters",
                       class_name.ToCString(),
                       function_name.ToCString(),
-                      super_class.is_interface() ? "interface" : "super class",
                       super_class_name.ToCString());
         }
       }
@@ -1447,9 +1436,7 @@ void ClassFinalizer::CheckForLegalConstClass(const Class& cls) {
 void ClassFinalizer::PrintClassInformation(const Class& cls) {
   HANDLESCOPE(Isolate::Current());
   const String& class_name = String::Handle(cls.Name());
-  OS::Print("%s '%s'",
-            cls.is_interface() ? "interface" : "class",
-            class_name.ToCString());
+  OS::Print("class '%s'", class_name.ToCString());
   const Library& library = Library::Handle(cls.library());
   if (!library.IsNull()) {
     OS::Print(" library '%s%s':\n",

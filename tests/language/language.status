@@ -59,6 +59,79 @@ duplicate_export_negative_test: Fail # issue 6134
 invocation_mirror_indirect_test: Fail # Issue 3326
 
 # Test issue 6324
+generic_instanceof3_test: Fail, OK
+interface_factory_test: Fail, OK
+factory4_test: Fail, OK
+list_literal_syntax_test/none: Fail, OK
+default_class_implicit_constructor_test: Fail, OK
+interface_factory_constructor_negative_test: Pass, OK
+implied_interface_test: Fail, OK
+throw2_test: Fail, OK
+class_override_negative_test: Pass, OK
+default_implementation2_test: Fail, OK
+implicit_this_test/none: Fail, OK
+implicit_this_test/01: Fail, OK
+implicit_this_test/04: Fail, OK
+interface_factory3_negative_test: Pass, OK
+factory_implementation_test: Fail, OK
+interface_factory_multi_test: Fail, OK
+interface_function_type_alias2_negative_test: Pass, OK
+throw1_test: Fail, OK
+factory2_negative_test: Pass, OK
+named_parameters_test/none: Fail, OK
+prefix14_test: Fail, OK
+prefix15_test: Fail, OK
+prefix16_test: Fail, OK
+prefix17_test: Fail, OK
+prefix22_test: Fail, OK
+prefix23_test: Fail, OK
+type_checks_in_factory_method_test: Fail, OK
+interface_static_method_negative_test: Pass, OK
+method_override2_test/none: Fail, OK
+interface_injection1_negative_test: Pass, OK
+extend_type_parameter2_negative_test: Pass, OK
+generic_syntax_test: Fail, OK
+is_operator_test: Fail, OK
+dynamic_test: Fail, OK
+generic_deep_test: Fail, OK
+default_factory2_test: Fail, OK
+default_implementation_test: Fail, OK
+non_parameterized_factory2_test: Fail, OK
+interface_function_type_alias1_negative_test: Pass, OK
+default_factory3_test: Fail, OK
+interface_inherit_field_test: Fail, OK
+class_test: Fail, OK
+interface2_negative_test: Pass, OK
+instanceof_test: Fail, OK
+default_interface1_negative_test: Pass, OK
+default_factory_test: Fail, OK
+default_factory_library_test: Fail, OK
+duplicate_implements_test/none: Fail, OK
+syntax_test/none: Fail, OK
+type_variable_scope_test: Fail, OK
+cyclic_type_variable_test: Fail, OK
+interface_function_type_alias3_negative_test: Pass, OK
+compile_time_constant_h_test: Fail, OK
+try_catch3_test: Fail, OK
+ct_const_test: Fail, OK
+factory_negative_test: Pass, OK
+instanceof2_test: Fail, OK
+interface_constants_test: Fail, OK
+interface_test: Fail, OK
+library_same_name_used_test: Fail, OK
+pseudo_kw_illegal_test/09: Fail, OK
+interface_injection2_negative_test: Pass, OK
+factory2_test: Fail, OK
+non_parameterized_factory_test: Fail, OK
+try_catch2_test: Fail, OK
+factory3_negative_test: Pass, OK
+class_extends_negative_test: Pass, OK
+interface_static_non_final_fields_negative_test: Pass, OK
+interface_cycle_negative_test: Pass, OK
+factory3_test: Fail, OK
+interface_factory1_negative_test: Pass, OK
+factory5_test: Fail, OK
+interface_factory2_negative_test: Pass, OK
 class_test: Fail, OK
 interface_test/none: Fail, OK
 interface_test/00: Fail, OK
@@ -102,6 +175,7 @@ type_variable_bounds_test/02: Fail, OK
 type_variable_bounds_test/04: Fail, OK
 type_variable_bounds_test/05: Fail, OK
 type_variable_bounds_test/07: Fail, OK
+type_variable_bounds2_test: Fail, OK
 type_variable_scope_test/00: Fail, OK
 type_variable_scope_test/01: Fail, OK
 type_variable_scope_test/02: Fail, OK
@@ -118,6 +192,14 @@ type_variable_bounds_test/02: Pass
 type_variable_bounds_test/04: Pass
 type_variable_bounds_test/05: Pass
 type_variable_bounds_test/07: Pass
+type_variable_bounds2_test/none: Fail, OK
+type_variable_bounds2_test/00: Pass
+type_variable_bounds2_test/01: Fail, OK
+type_variable_bounds2_test/02: Pass
+type_variable_bounds2_test/03: Pass
+type_variable_bounds2_test/04: Fail, OK
+type_variable_bounds2_test/05: Pass
+type_variable_bounds2_test/06: Pass
 type_variable_scope_test/00: Pass
 type_variable_scope_test/01: Pass
 type_variable_scope_test/02: Pass
@@ -288,6 +370,7 @@ cyclic_type_variable_test/02: Fail, OK
 cyclic_type_variable_test/03: Fail, OK
 cyclic_type_variable_test/04: Fail, OK
 default_class_implicit_constructor_test: Fail, OK
+default_factory2_test/none: Fail, OK
 default_factory2_test/none: Fail, OK
 default_factory2_test/01: Fail, OK
 default_factory3_test: Fail, OK
@@ -490,6 +573,42 @@ final_variable_assignment_test/04: Fail
 # factory2_negative_test: Fail
 # factory3_negative_test: Fail
 # factory_negative_test: Fail
+ct_const_test: Fail, OK
+cyclic_type_variable_test/01: Fail, OK
+cyclic_type_variable_test/02: Fail, OK
+cyclic_type_variable_test/03: Fail, OK
+cyclic_type_variable_test/04: Fail, OK
+cyclic_type_variable_test/none: Fail, OK
+dynamic_test: Fail, OK
+generic_deep_test: Fail, OK
+generic_instanceof3_test: Fail, OK
+generic_syntax_test: Fail, OK
+implicit_this_test/01: Fail, OK
+implicit_this_test/04: Fail, OK
+implicit_this_test/none: Fail, OK
+implied_interface_test: Fail, OK
+instanceof2_test: Fail, OK
+instanceof_test: Fail, OK
+interface_constants_test: Fail, OK
+interface_inherit_field_test: Fail, OK
+is_operator_test: Fail, OK
+library_same_name_used_test: Fail, OK
+method_override2_test/none: Fail, OK
+prefix14_test: Fail, OK
+prefix15_test: Fail, OK
+syntax_test/none: Fail, OK
+throw1_test: Fail, OK
+throw2_test: Fail, OK
+try_catch2_test: Fail, OK
+try_catch3_test: Fail, OK
+type_variable_bounds2_test/00: Fail, OK
+type_variable_bounds2_test/01: Fail, OK
+type_variable_bounds2_test/02: Fail, OK
+type_variable_bounds2_test/03: Fail, OK
+type_variable_bounds2_test/04: Fail, OK
+type_variable_bounds2_test/05: Fail, OK
+type_variable_bounds2_test/06: Fail, OK
+type_variable_bounds2_test/none: Fail, OK
 default_class_implicit_constructor_test: Fail, OK
 default_implementation2_test:Fail, OK
 named_parameters_test/none: Fail, OK

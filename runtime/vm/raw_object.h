@@ -438,7 +438,7 @@ class RawClass : public RawObject {
   intptr_t next_field_offset_in_words_;  // Offset of the next instance field.
   intptr_t num_native_fields_;  // Number of native fields in class.
   intptr_t token_pos_;
-  uint8_t state_bits_;  // state, is_const, is_interface, is_implemented.
+  uint8_t state_bits_;  // state, is_const, is_implemented.
 
   friend class Instance;
   friend class Object;

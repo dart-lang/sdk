@@ -2463,26 +2463,23 @@ DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
 }
 
 
-// --- Classes and Interfaces ---
+// --- Classes ---
 
 
 DART_EXPORT bool Dart_IsClass(Dart_Handle handle) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(handle));
-  if (obj.IsClass()) {
-    return !Class::Cast(obj).is_interface();
-  }
-  return false;
+  return obj.IsClass();
 }
 
 
-DART_EXPORT bool Dart_IsInterface(Dart_Handle handle) {
+DART_EXPORT bool Dart_IsAbstractClass(Dart_Handle handle) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(handle));
   if (obj.IsClass()) {
-    return Class::Cast(obj).is_interface();
+    return Class::Cast(obj).is_abstract();
   }
   return false;
 }

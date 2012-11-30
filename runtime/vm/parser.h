@@ -118,7 +118,7 @@ class Parser : public ValueObject {
   Parser(const Script& script, const Function& function, intptr_t token_pos);
 
   // Parse the top level of a whole script file and register declared classes
-  // and interfaces in the given library.
+  // in the given library.
   static void ParseCompilationUnit(const Library& library,
                                    const Script& script);
 
@@ -183,7 +183,7 @@ class Parser : public ValueObject {
   // current_function(), but is greater than zero while parsing the body of
   // local functions nested in current_function().
 
-  // The class or interface being parsed.
+  // The class being parsed.
   const Class& current_class() const;
   void set_current_class(const Class& value);
 
@@ -293,7 +293,6 @@ class Parser : public ValueObject {
   // Support for parsing of scripts.
   void ParseTopLevel();
   void ParseClassDefinition(const GrowableObjectArray& pending_classes);
-  void ParseInterfaceDefinition(const GrowableObjectArray& pending_classes);
   void ParseFunctionTypeAlias(const GrowableObjectArray& pending_classes);
   void ParseTopLevelVariable(TopLevel* top_level);
   void ParseTopLevelFunction(TopLevel* top_level);
@@ -352,7 +351,6 @@ class Parser : public ValueObject {
                          LocalVariable* receiver,
                          GrowableArray<Field*>* initialized_fields);
   String& ParseNativeDeclaration();
-  // TODO(srdjan): Return TypeArguments instead of Array?
   RawArray* ParseInterfaceList();
   void AddInterfaceIfUnique(intptr_t interfaces_pos,
                             const GrowableObjectArray& interface_list,
@@ -576,7 +574,6 @@ class Parser : public ValueObject {
   AstNode* ThrowTypeError(intptr_t type_pos, const AbstractType& type);
   AstNode* ThrowNoSuchMethodError(intptr_t call_pos, const String& name);
 
-  void CheckFunctionIsCallable(intptr_t token_pos, const Function& function);
   void CheckOperatorArity(const MemberDesc& member);
 
   const LocalVariable* GetIncrementTempLocal();
@@ -597,7 +594,8 @@ class Parser : public ValueObject {
   Block* current_block_;
 
   // is_top_level_ is true if parsing the "top level" of a compilation unit,
-  // that is interface and class definitions.
+  // that is class definitions, function type aliases, global functions,
+  // global variables.
   bool is_top_level_;
 
   // The member currently being parsed during "top level" parsing.
@@ -614,7 +612,7 @@ class Parser : public ValueObject {
   // The function currently being parsed.
   Function& innermost_function_;
 
-  // The class or interface currently being parsed, or the owner class of the
+  // The class currently being parsed, or the owner class of the
   // function currently being parsed. It is used for primary identifier lookups.
   Class& current_class_;
 

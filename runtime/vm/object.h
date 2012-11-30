@@ -679,11 +679,6 @@ class Class : public Object {
     return RoundedAllocationSize(sizeof(RawClass));
   }
 
-  bool is_interface() const {
-    return InterfaceBit::decode(raw_ptr()->state_bits_);
-  }
-  void set_is_interface() const;
-
   bool is_implemented() const {
     return ImplementedBit::decode(raw_ptr()->state_bits_);
   }
@@ -732,13 +727,10 @@ class Class : public Object {
   // Allocate a class used for VM internal objects.
   template <class FakeObject> static RawClass* New();
 
-  // Allocate instance classes and interfaces.
+  // Allocate instance classes.
   static RawClass* New(const String& name,
                        const Script& script,
                        intptr_t token_pos);
-  static RawClass* NewInterface(const String& name,
-                                const Script& script,
-                                intptr_t token_pos);
   static RawClass* NewNativeWrapper(const Library& library,
                                     const String& name,
                                     int num_fields);
@@ -764,14 +756,12 @@ class Class : public Object {
  private:
   enum {
     kConstBit = 1,
-    kInterfaceBit = 2,
-    kImplementedBit = 3,
-    kAbstractBit = 4,
-    kStateTagBit = 5,
+    kImplementedBit = 2,
+    kAbstractBit = 3,
+    kStateTagBit = 4,
     kStateTagSize = 2,
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
-  class InterfaceBit : public BitField<bool, kInterfaceBit, 1> {};
   class ImplementedBit : public BitField<bool, kImplementedBit, 1> {};
   class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
   class StateBits : public BitField<RawClass::ClassState,
@@ -859,12 +849,6 @@ class AbstractTypeArguments : public Object {
   static bool AreEqual(const AbstractTypeArguments& arguments,
                        const AbstractTypeArguments& other_arguments);
 
-  // Returns true if both arguments represent vectors of possibly still
-  // unresolved identical types.
-  static bool AreIdentical(const AbstractTypeArguments& arguments,
-                           const AbstractTypeArguments& other_arguments,
-                           bool check_type_parameter_bounds);
-
   // Return 'this' if this type argument vector is instantiated, i.e. if it does
   // not refer to type parameters. Otherwise, return a new type argument vector
   // where each reference to a type parameter is replaced with the corresponding
@@ -901,7 +885,7 @@ class AbstractTypeArguments : public Object {
   }
 
   // Check that this type argument vector is within the declared bounds of the
-  // given class or interface. If not, set malformed_error (if not yet set).
+  // given class. If not, set malformed_error (if not yet set).
   bool IsWithinBoundsOf(const Class& cls,
                         const AbstractTypeArguments& bounds_instantiator,
                         Error* malformed_error) const;
@@ -3182,8 +3166,6 @@ class AbstractType : public Instance {
   virtual intptr_t token_pos() const;
   virtual bool IsInstantiated() const;
   virtual bool Equals(const Instance& other) const;
-  virtual bool IsIdentical(const AbstractType& other,
-                           bool check_type_parameter_bound) const;
 
   // Instantiate this type using the given type argument vector.
   // Return a new type, or return 'this' if it is already instantiated.
@@ -3245,15 +3227,6 @@ class AbstractType : public Instance {
 
   // Check if this type represents the 'Function' type.
   bool IsFunctionType() const;
-
-  // Check if this type is an interface type.
-  bool IsInterfaceType() const {
-    if (!HasResolvedTypeClass()) {
-      return false;
-    }
-    const Class& cls = Class::Handle(type_class());
-    return !cls.IsNull() && cls.is_interface();
-  }
 
   // Check the subtype relationship.
   bool IsSubtypeOf(const AbstractType& other, Error* malformed_error) const {
@@ -3321,8 +3294,6 @@ class Type : public AbstractType {
   virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated() const;
   virtual bool Equals(const Instance& other) const;
-  virtual bool IsIdentical(const AbstractType& other,
-                           bool check_type_parameter_bound) const;
   virtual RawAbstractType* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments) const;
   virtual RawAbstractType* Canonicalize() const;
@@ -3358,7 +3329,7 @@ class Type : public AbstractType {
   // The 'double' type.
   static RawType* Double();
 
-  // The 'num' interface type.
+  // The 'num' type.
   static RawType* Number();
 
   // The 'String' type.
@@ -3367,7 +3338,7 @@ class Type : public AbstractType {
   // The 'Array' type.
   static RawType* ArrayType();
 
-  // The 'Function' interface type.
+  // The 'Function' type.
   static RawType* Function();
 
   // The finalized type of the given non-parameterized class.
@@ -3421,8 +3392,6 @@ class TypeParameter : public AbstractType {
   virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated() const { return false; }
   virtual bool Equals(const Instance& other) const;
-  virtual bool IsIdentical(const AbstractType& other,
-                           bool check_type_parameter_bound) const;
   virtual RawAbstractType* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments) const;
   virtual RawAbstractType* Canonicalize() const { return raw(); }

@@ -3,6 +3,9 @@
 # BSD-style license that can be found in the LICENSE file.
 
 cc/New: Crash # Issue 6958.
+cc/TypeVariableReflection: Crash # Issue 6958.
+cc/LibraryGetClassNames: Fail # Issue 6958.
+cc/ImportLibrary5: Fail # Issue 6958.
 cc/CustomIsolates: Crash # Default factory classes are removed.
 cc/SymbolUnicode: Fail
 

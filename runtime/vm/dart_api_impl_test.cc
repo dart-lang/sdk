@@ -2379,16 +2379,16 @@ TEST_CASE(ClassTypedefsEtc) {
                "class 'SomeClass' is not a function-type class.");
 }
 
-#define CHECK_INTERFACE(handle, name)                                   \
-  {                                                                     \
-    Dart_Handle tmp = (handle);                                         \
-    EXPECT_VALID(tmp);                                                  \
-    EXPECT(Dart_IsInterface(tmp));                                      \
-    Dart_Handle intf_name = Dart_ClassName(tmp);                        \
-    EXPECT_VALID(intf_name);                                            \
-    const char* intf_name_cstr = "";                                    \
-    EXPECT_VALID(Dart_StringToCString(intf_name, &intf_name_cstr));     \
-    EXPECT_STREQ((name), intf_name_cstr);                               \
+#define CHECK_ABSTRACT_CLASS(handle, name)                                     \
+  {                                                                            \
+    Dart_Handle tmp = (handle);                                                \
+    EXPECT_VALID(tmp);                                                         \
+    EXPECT(Dart_IsAbstractClass(tmp));                                         \
+    Dart_Handle intf_name = Dart_ClassName(tmp);                               \
+    EXPECT_VALID(intf_name);                                                   \
+    const char* intf_name_cstr = "";                                           \
+    EXPECT_VALID(Dart_StringToCString(intf_name, &intf_name_cstr));            \
+    EXPECT_STREQ((name), intf_name_cstr);                                      \
   }
 
 
@@ -2403,10 +2403,10 @@ TEST_CASE(ClassGetInterfaces) {
       "class MyClass2 implements MyInterface0, MyInterface1 {\n"
       "}\n"
       "\n"
-      "interface MyInterface0 {\n"
+      "abstract class MyInterface0 {\n"
       "}\n"
       "\n"
-      "interface MyInterface1 extends MyInterface0 {\n"
+      "abstract class MyInterface1 implements MyInterface0 {\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
@@ -2426,7 +2426,7 @@ TEST_CASE(ClassGetInterfaces) {
   len = -1;
   EXPECT_VALID(Dart_ClassGetInterfaceCount(cls1, &len));
   EXPECT_EQ(1, len);
-  CHECK_INTERFACE(Dart_ClassGetInterfaceAt(cls1, 0), "MyInterface1");
+  CHECK_ABSTRACT_CLASS(Dart_ClassGetInterfaceAt(cls1, 0), "MyInterface1");
 
   EXPECT_ERROR(Dart_ClassGetInterfaceAt(cls1, -1),
                "Dart_ClassGetInterfaceAt: argument 'index' out of bounds");
@@ -2438,8 +2438,8 @@ TEST_CASE(ClassGetInterfaces) {
   EXPECT_EQ(2, len);
 
   // TODO(turnidge): The test relies on the ordering here.  Sort this.
-  CHECK_INTERFACE(Dart_ClassGetInterfaceAt(cls2, 0), "MyInterface0");
-  CHECK_INTERFACE(Dart_ClassGetInterfaceAt(cls2, 1), "MyInterface1");
+  CHECK_ABSTRACT_CLASS(Dart_ClassGetInterfaceAt(cls2, 0), "MyInterface0");
+  CHECK_ABSTRACT_CLASS(Dart_ClassGetInterfaceAt(cls2, 1), "MyInterface1");
 
   len = -1;
   EXPECT_VALID(Dart_ClassGetInterfaceCount(intf0, &len));
@@ -2448,7 +2448,7 @@ TEST_CASE(ClassGetInterfaces) {
   len = -1;
   EXPECT_VALID(Dart_ClassGetInterfaceCount(intf1, &len));
   EXPECT_EQ(1, len);
-  CHECK_INTERFACE(Dart_ClassGetInterfaceAt(intf1, 0), "MyInterface0");
+  CHECK_ABSTRACT_CLASS(Dart_ClassGetInterfaceAt(intf1, 0), "MyInterface0");
 
   // Error cases.
   EXPECT_ERROR(Dart_ClassGetInterfaceCount(Dart_True(), &len),

@@ -534,7 +534,6 @@ class ClassDesc : public ValueObject {
             intptr_t token_pos)
       : clazz_(cls),
         class_name_(cls_name),
-        is_interface_(is_interface),
         token_pos_(token_pos),
         functions_(GrowableObjectArray::Handle(GrowableObjectArray::New())),
         fields_(GrowableObjectArray::Handle(GrowableObjectArray::New())) {
@@ -625,10 +624,6 @@ class ClassDesc : public ValueObject {
     return class_name_;
   }
 
-  bool is_interface() const {
-    return is_interface_;
-  }
-
   bool has_constructor() const {
     Function& func = Function::Handle();
     for (int i = 0; i < functions_.Length(); i++) {
@@ -698,7 +693,6 @@ class ClassDesc : public ValueObject {
 
   const Class& clazz_;
   const String& class_name_;
-  const bool is_interface_;
   intptr_t token_pos_;   // Token index of "class" keyword.
   GrowableObjectArray& functions_;
   GrowableObjectArray& fields_;
@@ -1286,15 +1280,6 @@ String& Parser::ParseNativeDeclaration() {
 }
 
 
-void Parser::CheckFunctionIsCallable(intptr_t token_pos,
-                                     const Function& function) {
-  if (Class::Handle(function.Owner()).is_interface()) {
-    ErrorMsg(token_pos, "cannot call function of interface '%s'",
-        function.ToFullyQualifiedCString());
-  }
-}
-
-
 // Resolve and return the dynamic function of the given name in the superclass.
 // If it is not found, and resolve_getter is true, try to resolve a getter of
 // the same name. If it is still not found, return noSuchMethod and
@@ -1325,7 +1310,6 @@ RawFunction* Parser::GetSuperFunction(intptr_t token_pos,
   } else {
     *is_no_such_method = false;
   }
-  CheckFunctionIsCallable(token_pos, super_func);
   return super_func.raw();
 }
 
@@ -1458,7 +1442,6 @@ AstNode* Parser::BuildUnarySuperOperator(Token::Kind op, PrimaryNode* super) {
     ArgumentListNode* op_arguments = new ArgumentListNode(super_pos);
     AstNode* receiver = LoadReceiver(super_pos);
     op_arguments->Add(receiver);
-    CheckFunctionIsCallable(super_pos, super_operator);
     if (is_no_such_method) {
       op_arguments = BuildNoSuchMethodArguments(
           super_pos, operator_function_name, *op_arguments);
@@ -1515,7 +1498,6 @@ AstNode* Parser::ParseSuperOperator() {
     op_arguments->Add(receiver);
     op_arguments->Add(other_operand);
 
-    CheckFunctionIsCallable(operator_pos, super_operator);
     if (is_no_such_method) {
       op_arguments = BuildNoSuchMethodArguments(
           operator_pos, operator_function_name, *op_arguments);
@@ -1634,7 +1616,6 @@ void Parser::GenerateSuperConstructorCall(const Class& cls,
              String::Handle(super_class.Name()).ToCString(),
              error_message.ToCString());
   }
-  CheckFunctionIsCallable(supercall_pos, super_ctor);
   current_block_->statements->Add(
       new StaticCallNode(supercall_pos, super_ctor, arguments));
 }
@@ -1694,7 +1675,6 @@ AstNode* Parser::ParseSuperInitializer(const Class& cls,
              ctor_name.ToCString(),
              error_message.ToCString());
   }
-  CheckFunctionIsCallable(supercall_pos, super_ctor);
   return new StaticCallNode(supercall_pos, super_ctor, arguments);
 }
 
@@ -1908,7 +1888,6 @@ void Parser::ParseConstructorRedirection(const Class& cls,
              ctor_name.ToCString(),
              error_message.ToCString());
   }
-  CheckFunctionIsCallable(call_pos, redirect_ctor);
   current_block_->statements->Add(
       new StaticCallNode(call_pos, redirect_ctor, arguments));
 }
@@ -2447,14 +2426,6 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     Class& cls = Class::Handle(library_.LookupClass(members->class_name()));
     cls.set_is_const();
   }
-  if (method->has_abstract && members->is_interface()) {
-    ErrorMsg(method->name_pos,
-             "'abstract' method only allowed in class definition");
-  }
-  if (method->has_external && members->is_interface()) {
-    ErrorMsg(method->name_pos,
-             "'external' method only allowed in class definition");
-  }
 
   // Parse the formal parameters.
   const bool are_implicitly_final = method->has_const;
@@ -2605,9 +2576,6 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       ErrorMsg(method->name_pos,
                "const constructor or factory '%s' may not have a function body",
                method->name->ToCString());
-    } else if (members->is_interface()) {
-      ErrorMsg(method->name_pos,
-               "function body not allowed in interface declaration");
     }
     if (method->redirect_name != NULL) {
       ErrorMsg(method->name_pos,
@@ -2626,9 +2594,6 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       ErrorMsg(method->name_pos,
                "abstract method '%s' may not have a function body",
                method->name->ToCString());
-    } else if (members->is_interface()) {
-      ErrorMsg(method->name_pos,
-               "function body not allowed in interface declaration");
     } else if (method->IsFactoryOrConstructor() && method->has_const) {
       ErrorMsg(method->name_pos,
                "const constructor or factory '%s' may not be native",
@@ -2642,7 +2607,6 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   } else {
     // We haven't found a method body. Issue error if one is required.
     const bool must_have_body =
-        !members->is_interface() &&
         method->has_static &&
         !method->has_external &&
         redirection_type.IsNull();
@@ -2654,8 +2618,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
 
     if (CurrentToken() == Token::kSEMICOLON) {
       ConsumeToken();
-      if (!members->is_interface() &&
-          !method->has_static &&
+      if (!method->has_static &&
           !method->has_external &&
           !method->IsConstructor()) {
           // Methods, getters and setters without a body are
@@ -2666,7 +2629,6 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       // Signature is not followed by semicolon or body. Issue an
       // appropriate error.
       const bool must_have_semicolon =
-          members->is_interface() ||
           (method->redirect_name != NULL) ||
           (method->IsConstructor() && method->has_const) ||
           method->has_external;
@@ -3067,13 +3029,6 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
 
   ASSERT(member.name != NULL);
   if (CurrentToken() == Token::kLPAREN || member.IsGetter()) {
-    if (members->is_interface() && member.has_static) {
-      if (member.has_factory) {
-        ErrorMsg("factory constructors are not allowed in interfaces");
-      } else {
-        ErrorMsg("static methods are not allowed in interfaces");
-      }
-    }
     // Constructor or method.
     if (member.type == NULL) {
       member.type = &Type::ZoneHandle(Type::DynamicType());
@@ -3095,9 +3050,6 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
         ErrorMsg("missing 'var', 'final', 'const' or type"
                  " in field declaration");
       }
-    }
-    if (members->is_interface() && member.has_static && !member.has_final) {
-      ErrorMsg("static non-final fields are not allowed in interfaces");
     }
     ParseFieldDefinition(members, &member);
   } else {
@@ -3143,13 +3095,7 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
                class_name.ToCString());
     }
     cls ^= obj.raw();
-    if (cls.is_interface()) {
-      ErrorMsg(classname_pos, "'%s' %s",
-               class_name.ToCString(),
-               is_patch ?
-                   "interface cannot be patched" :
-                   "is already defined as interface");
-    } else if (is_patch) {
+    if (is_patch) {
       String& patch = String::Handle(Symbols::New("patch "));
       patch = String::Concat(patch, class_name);
       patch = Symbols::New(patch);
@@ -3183,12 +3129,6 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
                String::Handle(type.UserVisibleName()).ToCString());
     }
     super_type ^= type.raw();
-    if (super_type.IsInterfaceType()) {
-      ErrorMsg(type_pos,
-               "class '%s' may implement, but cannot extend interface '%s'",
-               class_name.ToCString(),
-               String::Handle(super_type.UserVisibleName()).ToCString());
-    }
   } else {
     // No extends clause: Implicitly extend Object.
     super_type = Type::ObjectType();
@@ -3345,13 +3285,14 @@ void Parser::ParseFunctionTypeAlias(
   TRACE_PARSER("ParseFunctionTypeAlias");
   ExpectToken(Token::kTYPEDEF);
 
-  // Allocate an interface to hold the type parameters and their bounds.
+  // Allocate an abstract class to hold the type parameters and their bounds.
   // Make it the owner of the function type descriptor.
   const Class& alias_owner = Class::Handle(
       Class::New(String::Handle(Symbols::New(":alias_owner")),
                  Script::Handle(),
                  TokenPos()));
-  alias_owner.set_is_interface();
+
+  alias_owner.set_is_abstract();
   alias_owner.set_library(library_);
   set_current_class(alias_owner);
 
@@ -3448,77 +3389,6 @@ void Parser::ParseFunctionTypeAlias(
   library_.AddClass(function_type_alias);
   ExpectSemicolon();
   pending_classes.Add(function_type_alias, Heap::kOld);
-}
-
-
-// TODO(regis): Remove support for interfaces.
-void Parser::ParseInterfaceDefinition(
-    const GrowableObjectArray& pending_classes) {
-  TRACE_PARSER("ParseInterfaceDefinition");
-  const intptr_t interface_pos = TokenPos();
-  ExpectToken(Token::kINTERFACE);
-  const intptr_t interfacename_pos = TokenPos();
-  String& interface_name =
-      *ExpectUserDefinedTypeIdentifier("interface name expected");
-  if (FLAG_trace_parser) {
-    OS::Print("TopLevel parsing interface '%s'\n", interface_name.ToCString());
-  }
-  Class& interface = Class::Handle();
-  Object& obj = Object::Handle(library_.LookupLocalObject(interface_name));
-  if (obj.IsNull()) {
-    interface = Class::NewInterface(interface_name, script_, interfacename_pos);
-    library_.AddClass(interface);
-  } else {
-    if (!obj.IsClass()) {
-      ErrorMsg(interfacename_pos, "'%s' is already defined",
-               interface_name.ToCString());
-    }
-    interface ^= obj.raw();
-    if (!interface.is_interface()) {
-      ErrorMsg(interfacename_pos,
-               "'%s' is already defined as class",
-               interface_name.ToCString());
-    } else if (interface.functions() != Object::empty_array()) {
-      ErrorMsg(interfacename_pos,
-               "interface '%s' is already defined",
-               interface_name.ToCString());
-    }
-  }
-  ASSERT(!interface.IsNull());
-  ASSERT(interface.functions() == Object::empty_array());
-  set_current_class(interface);
-  ParseTypeParameters(interface);
-
-  if (CurrentToken() == Token::kEXTENDS) {
-    Array& interfaces = Array::Handle();
-    const intptr_t interfaces_pos = TokenPos();
-    interfaces = ParseInterfaceList();
-    AddInterfaces(interfaces_pos, interface, interfaces);
-  }
-
-  ExpectToken(Token::kLBRACE);
-  ClassDesc members(interface, interface_name, true, interface_pos);
-  while (CurrentToken() != Token::kRBRACE) {
-    ParseClassMemberDefinition(&members);
-  }
-  ExpectToken(Token::kRBRACE);
-
-  if (members.has_constructor()) {
-    ErrorMsg(interfacename_pos,
-             "interface '%s' cannot declare constructor",
-             interface_name.ToCString());
-  }
-
-  Array& array = Array::Handle();
-  array = Array::MakeArray(members.fields());
-  interface.SetFields(array);
-
-  // Creating a new array for functions marks the interface as parsed.
-  array = Array::MakeArray(members.functions());
-  interface.SetFunctions(array);
-  ASSERT(interface.is_interface());
-
-  pending_classes.Add(interface, Heap::kOld);
 }
 
 
@@ -3773,17 +3643,10 @@ void Parser::AddInterfaces(intptr_t interfaces_pos,
     AbstractType& interface = AbstractType::ZoneHandle();
     interface ^= interfaces.At(i);
     if (interface.IsTypeParameter()) {
-      if (cls.is_interface()) {
-        ErrorMsg(interfaces_pos,
-                 "interface '%s' may not extend type parameter '%s'",
-                 String::Handle(cls.Name()).ToCString(),
-                 String::Handle(interface.UserVisibleName()).ToCString());
-      } else {
-        ErrorMsg(interfaces_pos,
-                 "class '%s' may not implement type parameter '%s'",
-                 String::Handle(cls.Name()).ToCString(),
-                 String::Handle(interface.UserVisibleName()).ToCString());
-      }
+      ErrorMsg(interfaces_pos,
+               "class '%s' may not implement type parameter '%s'",
+               String::Handle(cls.Name()).ToCString(),
+               String::Handle(interface.UserVisibleName()).ToCString());
     }
     AddInterfaceIfUnique(interfaces_pos, all_interfaces, interface);
   }
@@ -4463,8 +4326,6 @@ void Parser::ParseTopLevel() {
     } else if ((CurrentToken() == Token::kTYPEDEF) &&
                (LookaheadToken(1) != Token::kLPAREN)) {
       ParseFunctionTypeAlias(pending_classes);
-    } else if (CurrentToken() == Token::kINTERFACE) {
-      ParseInterfaceDefinition(pending_classes);
     } else if ((CurrentToken() == Token::kABSTRACT) &&
         (LookaheadToken(1) == Token::kCLASS)) {
       ParseClassDefinition(pending_classes);
@@ -5873,7 +5734,6 @@ AstNode* Parser::MakeStaticCall(const String& cls_name,
                               arguments->names(),
                               Resolver::kIsQualified));
   ASSERT(!func.IsNull());
-  CheckFunctionIsCallable(arguments->token_pos(), func);
   return new StaticCallNode(arguments->token_pos(), func, arguments);
 }
 
@@ -7311,7 +7171,6 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
     // Could not resolve static method: throw a NoSuchMethodError.
     return ThrowNoSuchMethodError(ident_pos, func_name);
   }
-  CheckFunctionIsCallable(call_pos, func);
   return new StaticCallNode(call_pos, func, arguments);
 }
 
@@ -9079,21 +8938,10 @@ AstNode* Parser::ParseNewOperator() {
   AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::ZoneHandle(type.arguments());
 
-  // The constructor class and its name are those of the parsed type, unless the
-  // parsed type is an interface and a default factory class is specified, in
-  // which case constructor_class and constructor_class_name are modified below.
-  Class& constructor_class = Class::ZoneHandle(type_class.raw());
-  String& constructor_class_name = String::Handle(type_class_name.raw());
-
   // A constructor has an implicit 'this' parameter (instance to construct)
   // and a factory has an implicit 'this' parameter (type_arguments).
   // A constructor has a second implicit 'phase' parameter.
   intptr_t arguments_length = arguments->length() + 2;
-
-  if (type_class.is_interface()) {
-    // TODO(regis): Remove support for interfaces.
-    UNREACHABLE();
-  }
 
   // An additional type check of the result of a redirecting factory may be
   // required.
@@ -9101,14 +8949,14 @@ AstNode* Parser::ParseNewOperator() {
 
   // Make sure that an appropriate constructor exists.
   const String& constructor_name =
-      BuildConstructorName(constructor_class_name, named_constructor);
+      BuildConstructorName(type_class_name, named_constructor);
   Function& constructor = Function::ZoneHandle(
-      constructor_class.LookupConstructor(constructor_name));
+      type_class.LookupConstructor(constructor_name));
   if (constructor.IsNull()) {
-    constructor = constructor_class.LookupFactory(constructor_name);
+    constructor = type_class.LookupFactory(constructor_name);
     if (constructor.IsNull()) {
       const String& external_constructor_name =
-          (named_constructor ? constructor_name : constructor_class_name);
+          (named_constructor ? constructor_name : type_class_name);
       // Replace the type with a malformed type and compile a throw or report a
       // compile-time error if the constructor is const.
       type = ClassFinalizer::NewFinalizedMalformedType(
@@ -9117,7 +8965,7 @@ AstNode* Parser::ParseNewOperator() {
           call_pos,
           ClassFinalizer::kTryResolve,  // No compile-time error.
           "class '%s' has no constructor or factory named '%s'",
-          String::Handle(constructor_class.Name()).ToCString(),
+          String::Handle(type_class.Name()).ToCString(),
           external_constructor_name.ToCString());
       if (is_const) {
         const Error& error = Error::Handle(type.malformed_error());
@@ -9147,8 +8995,6 @@ AstNode* Parser::ParseNewOperator() {
       type_arguments = type.arguments();
       constructor = constructor.RedirectionTarget();
       ASSERT(!constructor.IsNull());
-      constructor_class = constructor.Owner();
-      ASSERT(type_class.raw() == constructor_class.raw());
     }
     if (constructor.IsFactory()) {
       // A factory does not have the implicit 'phase' parameter.
@@ -9159,12 +9005,12 @@ AstNode* Parser::ParseNewOperator() {
   // It is ok to call a factory method of an abstract class, but it is
   // a dynamic error to instantiate an abstract class.
   ASSERT(!constructor.IsNull());
-  if (constructor_class.is_abstract() && !constructor.IsFactory()) {
+  if (type_class.is_abstract() && !constructor.IsFactory()) {
     ArgumentListNode* arguments = new ArgumentListNode(type_pos);
     arguments->Add(new LiteralNode(
         TokenPos(), Integer::ZoneHandle(Integer::New(type_pos))));
     arguments->Add(new LiteralNode(
-        TokenPos(), String::ZoneHandle(constructor_class_name.raw())));
+        TokenPos(), String::ZoneHandle(type_class_name.raw())));
     const String& cls_name =
         String::Handle(Symbols::AbstractClassInstantiationError());
     const String& func_name = String::Handle(Symbols::ThrowNew());
@@ -9175,60 +9021,18 @@ AstNode* Parser::ParseNewOperator() {
                                      arguments->names(),
                                      &error_message)) {
     const String& external_constructor_name =
-        (named_constructor ? constructor_name : constructor_class_name);
+        (named_constructor ? constructor_name : type_class_name);
     if (is_const) {
       ErrorMsg(call_pos,
                "invalid arguments passed to constructor '%s' "
                "for class '%s': %s",
                external_constructor_name.ToCString(),
-               String::Handle(constructor_class.Name()).ToCString(),
+               String::Handle(type_class.Name()).ToCString(),
                error_message.ToCString());
     }
     return ThrowNoSuchMethodError(call_pos, external_constructor_name);
   }
 
-  // Now that the constructor to be called is identified, finalize the type
-  // argument vector to be passed.
-  // The type argument vector of the parsed type was finalized in ParseType.
-  // If the constructor class was changed from the interface class to the
-  // factory class, we need to finalize the type argument vector again, because
-  // it may be longer due to the factory class extending a class, or/and because
-  // the bounds on the factory class may be tighter than on the interface.
-  if (!constructor.IsNull() && (constructor_class.raw() != type_class.raw())) {
-    const intptr_t num_type_parameters = constructor_class.NumTypeParameters();
-    TypeArguments& temp_type_arguments = TypeArguments::Handle();
-    if (!type_arguments.IsNull()) {
-      // Copy the parsed type arguments starting at offset 0, because interfaces
-      // have no super types.
-      ASSERT(type_class.NumTypeArguments() == type_class.NumTypeParameters());
-      const intptr_t num_type_arguments = type_arguments.Length();
-      temp_type_arguments = TypeArguments::New(num_type_parameters, Heap::kNew);
-      AbstractType& type_argument = AbstractType::Handle();
-      for (intptr_t i = 0; i < num_type_parameters; i++) {
-        if (i < num_type_arguments) {
-          type_argument = type_arguments.TypeAt(i);
-        } else {
-          type_argument = Type::DynamicType();
-        }
-        temp_type_arguments.SetTypeAt(i, type_argument);
-      }
-    }
-    Type& temp_type = Type::Handle(Type::New(
-         constructor_class, temp_type_arguments, type.token_pos(), Heap::kNew));
-    // No need to canonicalize temporary type.
-    temp_type ^= ClassFinalizer::FinalizeType(
-        current_class(), temp_type, ClassFinalizer::kFinalize);
-    // The type argument vector may have been expanded with the type arguments
-    // of the super type when finalizing the temporary type.
-    type_arguments = temp_type.arguments();
-    // The type parameter bounds of the factory class may be more specific than
-    // the type parameter bounds of the interface class. Therefore, although
-    // type was not malformed, temp_type may be malformed.
-    if (!type.IsMalformed() && temp_type.IsMalformed()) {
-      const Error& error = Error::Handle(temp_type.malformed_error());
-      type.set_malformed_error(error);
-    }
-  }
   // Return a throw in case of a malformed type or report a compile-time error
   // if the constructor is const.
   if (type.IsMalformed()) {
@@ -9247,7 +9051,7 @@ AstNode* Parser::ParseNewOperator() {
           String::Handle(constructor.name()).ToCString());
     }
     const Object& constructor_result = Object::Handle(
-        EvaluateConstConstructorCall(constructor_class,
+        EvaluateConstConstructorCall(type_class,
                                      type_arguments,
                                      constructor,
                                      arguments));
@@ -9276,7 +9080,6 @@ AstNode* Parser::ParseNewOperator() {
       }
     }
   } else {
-    CheckFunctionIsCallable(new_pos, constructor);
     CheckConstructorCallTypeArguments(new_pos, constructor, type_arguments);
     if (!type_arguments.IsNull() &&
         !type_arguments.IsInstantiated() &&

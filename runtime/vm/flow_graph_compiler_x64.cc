@@ -132,12 +132,10 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   if (is_raw_type) {
     const Register kClassIdReg = R10;
     // dynamic type argument, check only classes.
-    // List is a very common case.
     __ LoadClassId(kClassIdReg, kInstanceReg);
-    if (!type_class.is_interface()) {
-      __ cmpl(kClassIdReg, Immediate(type_class.id()));
-      __ j(EQUAL, is_instance_lbl);
-    }
+    __ cmpl(kClassIdReg, Immediate(type_class.id()));
+    __ j(EQUAL, is_instance_lbl);
+    // List is a very common case.
     if (type_class.IsListClass()) {
       GenerateListTypeCheck(kClassIdReg, is_instance_lbl);
     }
@@ -216,11 +214,8 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   __ Bind(&compare_classes);
   const Register kClassIdReg = R10;
   __ LoadClassId(kClassIdReg, kInstanceReg);
-  // If type is an interface, we can skip the class equality check.
-  if (!type_class.is_interface()) {
-    __ cmpl(kClassIdReg, Immediate(type_class.id()));
-    __ j(EQUAL, is_instance_lbl);
-  }
+  __ cmpl(kClassIdReg, Immediate(type_class.id()));
+  __ j(EQUAL, is_instance_lbl);
   // Bool interface can be implemented only by core class Bool.
   // (see ClassFinalizer::ResolveInterfaces for list of restricted interfaces).
   if (type.IsBoolType()) {

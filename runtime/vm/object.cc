@@ -302,7 +302,7 @@ void Object::InitOnce() {
 
   cls = Class::New<Instance>(kDynamicCid);
   cls.set_is_finalized();
-  cls.set_is_interface();
+  cls.set_is_abstract();
   dynamic_class_ = cls.raw();
 
   // Allocate the remaining VM internal classes.
@@ -1784,15 +1784,6 @@ RawClass* Class::New(const String& name,
 }
 
 
-RawClass* Class::NewInterface(const String& name,
-                              const Script& script,
-                              intptr_t token_pos) {
-  Class& result = Class::Handle(New<Instance>(name, script, token_pos));
-  result.set_is_interface();
-  return result.raw();
-}
-
-
 RawClass* Class::NewSignatureClass(const String& name,
                                    const Function& signature_function,
                                    const Script& script) {
@@ -1912,11 +1903,6 @@ void Class::set_script(const Script& value) const {
 void Class::set_token_pos(intptr_t token_pos) const {
   ASSERT(token_pos >= 0);
   raw_ptr()->token_pos_ = token_pos;
-}
-
-
-void Class::set_is_interface() const {
-  set_state_bits(InterfaceBit::update(true, raw_ptr()->state_bits_));
 }
 
 
@@ -2050,6 +2036,11 @@ bool Class::TypeTest(
     ASSERT(test_kind == kIsMoreSpecificThan);
     return true;
   }
+  // Check for ObjectType. Any type that is not NullType or DynamicType (already
+  // checked above), is more specific than ObjectType.
+  if (other.IsObjectClass()) {
+    return true;
+  }
   // Check for reflexivity.
   if (raw() == other.raw()) {
     const intptr_t len = NumTypeArguments();
@@ -2072,8 +2063,7 @@ bool Class::TypeTest(
                                    len,
                                    malformed_error);
   }
-  // TODO(regis): Check for interface type S implementing method call() of
-  // function type T.
+  // TODO(regis): Check if type S has a call() method of function type T.
   // Check for two function types.
   if (IsSignatureClass() && other.IsSignatureClass()) {
     const Function& fun = Function::Handle(signature_function());
@@ -2084,9 +2074,8 @@ bool Class::TypeTest(
                         other_type_arguments,
                         malformed_error);
   }
-  // Check for 'direct super type' in the case of an interface
-  // (i.e. other.is_interface()) or implicit interface (i.e.
-  // !other.is_interface()) and check for transitivity at the same time.
+  // Check for 'direct super type' specified in the implements clause
+  // and check for transitivity at the same time.
   Array& interfaces = Array::Handle(this->interfaces());
   AbstractType& interface = AbstractType::Handle();
   Class& interface_class = Class::Handle();
@@ -2127,15 +2116,6 @@ bool Class::TypeTest(
                                  malformed_error)) {
       return true;
     }
-  }
-  // Check the interface case.
-  if (is_interface()) {
-    // We already checked the case where 'other' is an interface. Now, 'this',
-    // an interface, cannot be more specific than a class, except class Object,
-    // because although Object is not considered an interface by the vm, it is
-    // one. In other words, all classes implementing this interface also extend
-    // class Object. An interface is also more specific than the DynamicType.
-    return (other.IsDynamicClass() || other.IsObjectClass());
   }
   const Class& super_class = Class::Handle(SuperClass());
   if (super_class.IsNull()) {
@@ -2358,8 +2338,7 @@ RawLibraryPrefix* Class::LookupLibraryPrefix(const String& name) const {
 
 
 const char* Class::ToCString() const {
-  const char* format = is_interface()
-      ? "%s Interface: %s" : "%s Class: %s";
+  const char* format = "%s Class: %s";
   const Library& lib = Library::Handle(library());
   const char* library_name = lib.IsNull() ? "" : lib.ToCString();
   const char* class_name = String::Handle(Name()).ToCString();
@@ -2558,34 +2537,6 @@ bool AbstractTypeArguments::AreEqual(
     return arguments.IsDynamicTypes(false, arguments.Length());
   }
   return arguments.Equals(other_arguments);
-}
-
-
-bool AbstractTypeArguments::AreIdentical(
-    const AbstractTypeArguments& arguments,
-    const AbstractTypeArguments& other_arguments,
-    bool check_type_parameter_bounds) {
-  if (arguments.raw() == other_arguments.raw()) {
-    return true;
-  }
-  if (arguments.IsNull() || other_arguments.IsNull()) {
-    return false;
-  }
-  intptr_t num_types = arguments.Length();
-  if (num_types != other_arguments.Length()) {
-    return false;
-  }
-  AbstractType& type = AbstractType::Handle();
-  AbstractType& other_type = AbstractType::Handle();
-  for (intptr_t i = 0; i < num_types; i++) {
-    type = arguments.TypeAt(i);
-    ASSERT(!type.IsNull());
-    other_type = other_arguments.TypeAt(i);
-    if (!type.IsIdentical(other_type, check_type_parameter_bounds)) {
-      return false;
-    }
-  }
-  return true;
 }
 
 
@@ -4179,7 +4130,7 @@ int32_t Function::SourceFingerprint() const {
 
 bool Function::CheckSourceFingerprint(intptr_t fp) const {
   if (SourceFingerprint() != fp) {
-    OS::Print("FP mismatch while recogbnizing method %s:"
+    OS::Print("FP mismatch while recognizing method %s:"
       " expecting %"Pd" found %d\n",
       ToFullyQualifiedCString(),
       fp,
@@ -6357,17 +6308,14 @@ RawError* Library::CompileAll() {
     ClassDictionaryIterator it(lib);
     while (it.HasNext()) {
       cls ^= it.GetNextClass();
-      if (!cls.is_interface()) {
-        error = Compiler::CompileAllFunctions(cls);
-        if (!error.IsNull()) {
-          return error.raw();
-        }
+      error = Compiler::CompileAllFunctions(cls);
+      if (!error.IsNull()) {
+        return error.raw();
       }
     }
     Array& anon_classes = Array::Handle(lib.raw_ptr()->anonymous_classes_);
     for (int i = 0; i < lib.raw_ptr()->num_anonymous_; i++) {
       cls ^= anon_classes.At(i);
-      ASSERT(!cls.is_interface());
       error = Compiler::CompileAllFunctions(cls);
       if (!error.IsNull()) {
         return error.raw();
@@ -8424,14 +8372,6 @@ bool AbstractType::Equals(const Instance& other) const {
 }
 
 
-bool AbstractType::IsIdentical(const AbstractType& other,
-                               bool check_type_parameter_bound) const {
-  // AbstractType is an abstract class.
-  UNREACHABLE();
-  return false;
-}
-
-
 RawAbstractType* AbstractType::InstantiateFrom(
     const AbstractTypeArguments& instantiator_type_arguments) const {
   // AbstractType is an abstract class.
@@ -8855,27 +8795,6 @@ bool Type::Equals(const Instance& other) const {
 }
 
 
-bool Type::IsIdentical(const AbstractType& other,
-                       bool check_type_parameter_bounds) const {
-  if (raw() == other.raw()) {
-    return true;
-  }
-  if (!other.IsType()) {
-    return false;
-  }
-  // Both type classes may not be resolved yet.
-  String& name = String::Handle(TypeClassName());
-  String& other_name = String::Handle(Type::Cast(other).TypeClassName());
-  if (!name.Equals(other_name)) {
-    return false;
-  }
-  return AbstractTypeArguments::AreIdentical(
-      AbstractTypeArguments::Handle(arguments()),
-      AbstractTypeArguments::Handle(other.arguments()),
-      false);  // Bounds are only checked at the top level.
-}
-
-
 RawAbstractType* Type::Canonicalize() const {
   ASSERT(IsFinalized());
   if (IsCanonical() || IsMalformed()) {
@@ -9037,38 +8956,6 @@ bool TypeParameter::Equals(const Instance& other) const {
   const String& type_param_name = String::Handle(name());
   const String& other_type_param_name = String::Handle(other_type_param.name());
   return type_param_name.Equals(other_type_param_name);
-}
-
-
-bool TypeParameter::IsIdentical(const AbstractType& other,
-                                bool check_type_parameter_bound) const {
-  if (raw() == other.raw()) {
-    return true;
-  }
-  if (!other.IsTypeParameter()) {
-    return false;
-  }
-  const TypeParameter& other_type_param = TypeParameter::Cast(other);
-  // IsIdentical may be called on type parameters belonging to different
-  // classes, e.g. to an interface and to its default factory class.
-  // Therefore, both type parameters may have different parameterized classes
-  // and different indices. Compare the type parameter names only, and their
-  // bounds if requested.
-  String& type_param_name = String::Handle(name());
-  String& other_type_param_name = String::Handle(other_type_param.name());
-  if (!type_param_name.Equals(other_type_param_name)) {
-    return false;
-  }
-  if (check_type_parameter_bound) {
-    AbstractType& this_bound = AbstractType::Handle(bound());
-    AbstractType& other_bound = AbstractType::Handle(other_type_param.bound());
-    // Bounds are only checked at the top level.
-    const bool check_type_parameter_bounds = false;
-    if (!this_bound.IsIdentical(other_bound, check_type_parameter_bounds)) {
-      return false;
-    }
-  }
-  return true;
 }
 
 
