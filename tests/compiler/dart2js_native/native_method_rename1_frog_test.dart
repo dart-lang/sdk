@@ -5,9 +5,14 @@
 // Test the feature where the native string declares the native method's name.
 
 class A native "*A" {
-  int foo() native 'fooA';
-  int bar() native 'barA';
-  int baz() native 'bazA';
+  @JSName('fooA')
+  int foo() native;
+
+  @JSName('barA')
+  int bar() native;
+
+  @JSName('bazA')
+  int baz() native;
 }
 
 A makeA() native;

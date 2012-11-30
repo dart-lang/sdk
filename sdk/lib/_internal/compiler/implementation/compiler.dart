@@ -486,16 +486,21 @@ abstract class Compiler implements DiagnosticListener {
   /** Enable the 'JS' helper for a library if needed. */
   void maybeEnableJSHelper(LibraryElement library) {
     String libraryName = library.uri.toString();
-    if (library.entryCompilationUnit.script.name.contains(
-            'dart/tests/compiler/dart2js_native')
+    bool nativeTest = library.entryCompilationUnit.script.name.contains(
+        'dart/tests/compiler/dart2js_native');
+    if (nativeTest
         || libraryName == 'dart:mirrors'
         || libraryName == 'dart:isolate'
         || libraryName == 'dart:math'
         || libraryName == 'dart:html'
         || libraryName == 'dart:svg'
         || libraryName == 'dart:web_audio') {
-      if (libraryName == 'dart:html' || libraryName == 'dart:mirrors') {
-        // dart:html needs access to convertDartClosureToJS.
+      if (nativeTest
+          || libraryName == 'dart:html'
+          || libraryName == 'dart:svg'
+          || libraryName == 'dart:mirrors') {
+        // dart:html and dart:svg need access to convertDartClosureToJS and
+        // annotation classes.
         // dart:mirrors needs access to the Primitives class.
         importHelperLibrary(library);
       }

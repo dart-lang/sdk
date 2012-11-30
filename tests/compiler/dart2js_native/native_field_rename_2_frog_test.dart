@@ -22,9 +22,11 @@ class B implements I {
 }
 
 class X native "*X" {
-  int native_key_method() native 'key';
+  @JSName('key')
+  int native_key_method() native;
   // This should cause B.key to be renamed, but not A.key.
-  int key() native 'key';
+  @JSName('key')
+  int key() native;
 }
 
 A makeA() native;

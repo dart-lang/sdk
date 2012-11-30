@@ -5,11 +5,13 @@
 // Test the feature where the native string declares the native method's name.
 
 class A native "*A" {
-  int foo() native 'fooA';
+  @JSName('fooA')
+  int foo() native;
 }
 
 class B extends A native "*B" {
-  int foo() native 'fooB';
+  @JSName('fooB')
+  int foo() native;
 }
 
 makeA() native;

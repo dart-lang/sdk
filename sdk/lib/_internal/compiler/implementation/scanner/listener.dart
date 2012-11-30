@@ -747,7 +747,7 @@ class ElementListener extends Listener {
   void endClassDeclaration(int interfacesCount, Token beginToken,
                            Token extendsKeyword, Token implementsKeyword,
                            Token endToken) {
-    SourceString nativeName = native.checkForNativeClass(this);
+    SourceString nativeTagInfo = native.checkForNativeClass(this);
     NodeList interfaces =
         makeNodeList(interfacesCount, implementsKeyword, null, ",");
     TypeAnnotation supertype = popNode();
@@ -756,7 +756,7 @@ class ElementListener extends Listener {
     int id = idGenerator();
     ClassElement element = new PartialClassElement(
         name.source, beginToken, endToken, compilationUnitElement, id);
-    element.nativeName = nativeName;
+    element.nativeTagInfo = nativeTagInfo;
     pushElement(element);
     rejectBuiltInIdentifier(name);
   }

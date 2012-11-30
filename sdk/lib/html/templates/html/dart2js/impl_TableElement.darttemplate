@@ -17,5 +17,6 @@ $!MEMBERS
     return tbody;
   }
 
-  Element _createTBody() native 'createTBody';
+  @JSName('createTBody')
+  Element _createTBody() native;
 }

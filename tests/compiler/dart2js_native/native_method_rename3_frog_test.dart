@@ -6,11 +6,13 @@
 // #3. The name does not get
 
 class A native "*A" {
-  int foo() native 'fooA';
+  @JSName('fooA')
+  int foo() native;
 }
 
 class B extends A native "*B" {
-  int foo() native 'fooB';
+  @JSName('fooB')
+  int foo() native;
   int fooA() => 333;
 }
 

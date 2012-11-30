@@ -492,8 +492,8 @@ $if DART2JS
     }
   }
 
-  void _insertAdjacentText(String where, String text)
-      native 'insertAdjacentText';
+  @JSName('insertAdjacentText')
+  void _insertAdjacentText(String where, String text) native;
 
   /** @domName Element.insertAdjacentHTML */
   void insertAdjacentHtml(String where, String text) {
@@ -504,8 +504,8 @@ $if DART2JS
     }
   }
 
-  void _insertAdjacentHtml(String where, String text)
-      native 'insertAdjacentHTML';
+  @JSName('insertAdjacentHTML')
+  void _insertAdjacentHTML(String where, String text) native;
 
   /** @domName Element.insertAdjacentHTML */
   Element insertAdjacentElement(String where, Element element) {
@@ -517,8 +517,8 @@ $if DART2JS
     return element;
   }
 
-  void _insertAdjacentElement(String where, Element element)
-      native 'insertAdjacentElement';
+  @JSName('insertAdjacentElement')
+  void _insertAdjacentElement(String where, Element element) native;
 
   void _insertAdjacentNode(String where, Node node) {
     switch (where.toLowerCase()) {

@@ -138,35 +138,10 @@ $classesCollector.$mangledName = {'': function $mangledName(self, target) {
     if (emitEndingComma) buffer.add(', ');
   }
 
-  void emitClassGettersSetters(ClassElement classElement,
-                               CodeBuffer buffer,
-                               bool emitLeadingComma) {
-    emitComma() {
-      if (emitLeadingComma) {
-        buffer.add(",\n ");
-      } else {
-        emitLeadingComma = true;
-      }
-    }
-
-    visitClassFields(classElement, (Element member,
-                                    String name,
-                                    bool needsGetter,
-                                    bool needsSetter,
-                                    bool needsCheckedSetter) {
-      if (needsGetter) {
-        emitComma();
-        generateGetter(member, name, buffer);
-      }
-      if (needsSetter) {
-        emitComma();
-        generateSetter(member, name, buffer);
-      }
-      if (needsCheckedSetter) {
-        assert(!needsSetter);
-        emitComma();
-        generateCheckedSetter(member, name, buffer);
-      }
-    });
+  bool getterAndSetterCanBeImplementedByFieldSpec(Element member,
+                                                  String name,
+                                                  bool needsGetter,
+                                                  bool needsSetter) {
+    return false;
   }
 }

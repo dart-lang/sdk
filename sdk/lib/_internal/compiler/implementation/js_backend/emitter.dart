@@ -727,7 +727,6 @@ $lazyInitializerLogic
         compiler.codegenWorld.instantiatedClasses.contains(classElement);
 
     void visitField(ClassElement enclosingClass, Element member) {
-      assert(!member.isNative());
       assert(invariant(classElement, member.isDeclaration));
 
       LibraryElement library = member.getLibrary();
@@ -752,9 +751,12 @@ $lazyInitializerLogic
       if ((isInstantiated && !enclosingClass.isNative())
           || needsGetter
           || needsSetter) {
-        String fieldName = isShadowed
+        String accessorName = isShadowed
             ? namer.shadowedFieldName(member)
             : namer.getName(member);
+        String fieldName = member.isNative()
+            ? member.nativeName()
+            : accessorName;
         bool needsCheckedSetter = false;
         if (needsSetter && compiler.enableTypeAssertions
             && canGenerateCheckedSetter(member)) {
@@ -831,6 +833,12 @@ $lazyInitializerLogic
                                     bool needsGetter,
                                     bool needsSetter,
                                     bool needsCheckedSetter) {
+
+      if (!getterAndSetterCanBeImplementedByFieldSpec(
+          member, name, needsGetter, needsSetter)) {
+        return;
+      }
+
       if (isFirstField) {
         buffer.add('"": [');
         isFirstField = false;
@@ -860,21 +868,56 @@ $lazyInitializerLogic
   void emitClassGettersSetters(ClassElement classElement,
                                CodeBuffer buffer,
                                bool emitLeadingComma) {
+    emitComma() {
+      if (emitLeadingComma) {
+        buffer.add(",\n ");
+      } else {
+        emitLeadingComma = true;
+      }
+    }
+
     visitClassFields(classElement, (Element member,
                                     String name,
                                     bool needsGetter,
                                     bool needsSetter,
                                     bool needsCheckedSetter) {
+          if (name == null) throw 123;
+      if (getterAndSetterCanBeImplementedByFieldSpec(
+          member, name, needsGetter, needsSetter)) {
+        needsGetter = false;
+        needsSetter = false;
+      }
+      if (needsGetter) {
+        emitComma();
+        generateGetter(member, name, buffer);
+      }
+      if (needsSetter) {
+        emitComma();
+        generateSetter(member, name, buffer);
+      }
       if (needsCheckedSetter) {
         assert(!needsSetter);
-        if (emitLeadingComma) {
-          buffer.add(",\n ");
-        } else {
-          emitLeadingComma = true;
-        }
+        emitComma();
         generateCheckedSetter(member, name, buffer);
       }
     });
+  }
+
+  bool getterAndSetterCanBeImplementedByFieldSpec(Element member,
+      String name,
+      bool needsGetter,
+      bool needsSetter) {
+    if (needsGetter) {
+      if (namer.getterName(member.getLibrary(), member.name) != 'get\$$name') {
+        return false;
+      }
+    }
+    if (needsSetter) {
+      if (namer.setterName(member.getLibrary(), member.name) != 'set\$$name') {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
@@ -1249,7 +1292,9 @@ $classesCollector.$mangledName = {'':
     if (member.isGetter()) {
       getter = "this.${namer.getterName(member.getLibrary(), member.name)}()";
     } else {
-      String name = namer.instanceFieldName(memberLibrary, member.name);
+      String name = member.isNative()
+          ? member.nativeName()
+          : namer.instanceFieldName(memberLibrary, member.name);
       getter = "this.$name";
     }
     for (Selector selector in selectors) {

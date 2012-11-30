@@ -1732,7 +1732,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // property should not be mangled.
       push(new js.PropertyAccess.field(pop(), 'length'), node);
     } else {
-      String name = backend.namer.getName(node.element);
+      String name = _fieldPropertyName(node.element);
       push(new js.PropertyAccess.field(pop(), name), node);
       HType receiverHType = types[node.receiver];
       DartType type = receiverHType.computeType(compiler);
@@ -1744,7 +1744,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitFieldSet(HFieldSet node) {
-    String name = backend.namer.getName(node.element);
+    String name = _fieldPropertyName(node.element);
     DartType type = types[node.receiver].computeType(compiler);
     if (type != null) {
       // Field setters in the generative constructor body are handled in a
@@ -1760,8 +1760,12 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     js.Expression receiver = pop();
     use(node.value);
     push(new js.Assignment(new js.PropertyAccess.field(receiver, name), pop()),
-         node);
+        node);
   }
+
+  String _fieldPropertyName(Element element) => element.isNative()
+      ? element.nativeName()
+      : backend.namer.getName(element);
 
   visitLocalGet(HLocalGet node) {
     use(node.receiver);

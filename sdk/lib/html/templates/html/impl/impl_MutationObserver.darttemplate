@@ -76,6 +76,7 @@ $if DART2JS
   static _fixupList(list) => list;  // TODO: Ensure is a JavaScript Array.
 
   // Call native function with no conversions.
-  void _call(target, options) native 'observe';
+  @JSName('observe')
+  void _call(target, options) native;
 $endif
 }
