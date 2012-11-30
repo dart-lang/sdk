@@ -1487,17 +1487,18 @@ class _HttpClientConnection
   }
 
   void _onError(e) {
+    // Cancel any pending data in the HTTP parser.
+    _httpParser.cancel();
     if (_socketConn != null) {
       _client._closeSocketConnection(_socketConn);
     }
-    if (_onErrorCallback != null) {
+    // Report the error.
+    if (_response != null && _response._streamErrorHandler != null) {
+       _response._streamErrorHandler(e);
+    } else if (_onErrorCallback != null) {
       _onErrorCallback(e);
     } else {
       throw e;
-    }
-    // Propagate the error to the streams.
-    if (_response != null && _response._streamErrorHandler != null) {
-       _response._streamErrorHandler(e);
     }
   }
 
@@ -1767,8 +1768,8 @@ class _HttpClient implements HttpClient {
     });
     if (force) {
       _activeSockets.forEach((_SocketConnection socketConn) {
-        socketConn._socket.close();
         socketConn._httpClientConnection._onClientShutdown();
+        socketConn._close();
       });
     }
     if (_evictionTimer != null) _cancelEvictionTimer();

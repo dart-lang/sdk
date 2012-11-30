@@ -72,7 +72,8 @@ class _State {
   static const int BODY = 24;
   static const int CLOSED = 25;
   static const int UPGRADED = 26;
-  static const int FAILURE = 27;
+  static const int CANCELED = 27;
+  static const int FAILURE = 28;
 
   static const int FIRST_BODY_STATE = CHUNK_SIZE_STARTING_CR;
 }
@@ -152,8 +153,12 @@ class _HttpParser {
       if (_state == _State.FAILURE) {
         throw new HttpParserException("Data on failed connection");
       }
+      if (_state == _State.CANCELED) {
+        throw new HttpParserException("Data on canceled connection");
+      }
       while (_buffer != null &&
              _index < _lastIndex &&
+             _state != _State.CANCELED &&
              _state != _State.FAILURE &&
              _state != _State.UPGRADED) {
         int byte = _buffer[_index++];
@@ -450,6 +455,7 @@ class _HttpParser {
                             version,
                             _headers);
             }
+            if (_state == _State.CANCELED) continue;
             _method_or_status_code.clear();
             _uri_or_reason_phrase.clear();
             if (!_connectionUpgrade) {
@@ -464,6 +470,7 @@ class _HttpParser {
                 // If there is no message body get ready to process the
                 // next request.
                 _bodyEnd();
+                if (_state == _State.CANCELED) continue;
                 _reset();
               } else if (_contentLength > 0) {
                 _remainingContent = _contentLength;
@@ -520,6 +527,7 @@ class _HttpParser {
           case _State.CHUNKED_BODY_DONE_LF:
             _expect(byte, _CharCode.LF);
             _bodyEnd();
+            if (_state == _State.CANCELED) continue;
             _reset();
             break;
 
@@ -538,6 +546,7 @@ class _HttpParser {
             }
 
             dataReceived(data);
+            if (_state == _State.CANCELED) continue;
             if (_remainingContent != null) {
               _remainingContent -= data.length;
             }
@@ -545,6 +554,7 @@ class _HttpParser {
             if (_remainingContent == 0) {
               if (!_chunked) {
                 _bodyEnd();
+                if (_state == _State.CANCELED) continue;
                 _reset();
               } else {
                 _state = _State.CHUNK_SIZE_STARTING_CR;
@@ -639,6 +649,10 @@ class _HttpParser {
         return "1.1";
     }
     return null;
+  }
+
+  void cancel() {
+    _state = _State.CANCELED;
   }
 
   int get messageType => _messageType;
