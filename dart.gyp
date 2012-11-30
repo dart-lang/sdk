@@ -133,6 +133,7 @@
          ['OS=="android"', {
             'dependencies': [
               'samples/android_embedder/android_embedder.gyp:android_embedder',
+              'samples/android_sample/android_sample.gyp:android_sample',
             ],
           },
         ],
