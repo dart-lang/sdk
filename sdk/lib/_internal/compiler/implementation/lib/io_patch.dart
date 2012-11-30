@@ -87,6 +87,9 @@ patch class _RandomAccessFile {
   patch static _readByte(int id) {
     throw new UnsupportedError("RandomAccessFile._readByte");
   }
+  patch static _read(int id, int bytes) {
+    throw new UnsupportedError("RandomAccessFile._read");
+  }
   patch static _readList(int id, List<int> buffer, int offset, int bytes) {
     throw new UnsupportedError("RandomAccessFile._readList");
   }
