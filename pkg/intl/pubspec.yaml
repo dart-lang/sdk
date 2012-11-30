@@ -1,4 +1,6 @@
 name: intl
+author: "Dart Team <misc@dartlang.org>"
+homepage: http://www.dartlang.org
 description: >
   Contains code to deal with internationalized/localized
   messages, date and number formatting and parsing,

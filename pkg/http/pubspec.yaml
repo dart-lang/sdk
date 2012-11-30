@@ -1,4 +1,6 @@
 name: http
+author: "Dart Team <misc@dartlang.org>"
+homepage: http://www.dartlang.org
 description: A composable, Future-based API for making HTTP requests.
 dependencies:
   unittest:

@@ -1,4 +1,6 @@
 name: unittest
+author: "Dart Team <misc@dartlang.org>"
+homepage: http://www.dartlang.org
 description: >
  A library for writing dart unit tests.
 
