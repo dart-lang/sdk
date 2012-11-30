@@ -6049,6 +6049,15 @@ class DivElement extends Element implements Element native "*HTMLDivElement" {
 
 
 /// @domName Document
+/**
+ * The base class for all documents.
+ *
+ * Each web page loaded in the browser has its own [Document] object, which is
+ * typically an [HtmlDocument].
+ *
+ * If you aren't comfortable with DOM concepts, see the Dart tutorial
+ * [Target 2: Connect Dart & HTML](http://www.dartlang.org/docs/tutorials/connect-dart-html/).
+ */
 class Document extends Node  native "*Document"
 {
 
@@ -6067,6 +6076,7 @@ class Document extends Node  native "*Document"
   /// @domName Document.cookie; @docsEditable true
   String cookie;
 
+  /// Returns the [Window] associated with the document.
   /// @domName Document.defaultView; @docsEditable true
   Window get window => _convertNativeToDart_Window(this._window);
   @JSName('defaultView')
@@ -6244,8 +6254,22 @@ class Document extends Node  native "*Document"
   @JSName('webkitExitPointerLock')
   void $dom_webkitExitPointerLock() native;
 
-  // TODO(jacobr): implement all Element methods not on Document.
 
+  /**
+   * Finds the first descendant element of this document that matches the
+   * specified group of selectors.
+   *
+   * Unless your webpage contains multiple documents, the top-level query
+   * method behaves the same as this method, so you should use it instead to
+   * save typing a few characters.
+   *
+   * [selectors] should be a string using CSS selector syntax.
+   *     var element1 = document.query('.className');
+   *     var element2 = document.query('#id');
+   *
+   * For details about CSS selector syntax, see the
+   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
+   */
   Element query(String selectors) {
     // It is fine for our RegExp to detect element id query selectors to have
     // false negatives but not false positives.
@@ -6255,6 +6279,20 @@ class Document extends Node  native "*Document"
     return $dom_querySelector(selectors);
   }
 
+  /**
+   * Finds all descendant elements of this document that match the specified
+   * group of selectors.
+   *
+   * Unless your webpage contains multiple documents, the top-level queryAll
+   * method behaves the same as this method, so you should use it instead to
+   * save typing a few characters.
+   *
+   * [selectors] should be a string using CSS selector syntax.
+   *     var items = document.queryAll('.itemClassName');
+   *
+   * For details about CSS selector syntax, see the
+   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
+   */
   List<Element> queryAll(String selectors) {
     if (new RegExp("""^\\[name=["'][^'"]+['"]\\]\$""").hasMatch(selectors)) {
       final mutableMatches = $dom_getElementsByName(
@@ -7916,6 +7954,19 @@ class EventSourceEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/**
+ * Base class that supports listening for and dispatching browser events.
+ *
+ * Events can either be accessed by string name (using the indexed getter) or by
+ * getters exposed by subclasses. Use the getters exposed by subclasses when
+ * possible for better compile-time type checks.
+ * 
+ * Using an indexed getter:
+ *     events['mouseover'].add((e) => print("Mouse over!"));
+ *
+ * Using a getter provided by a subclass:
+ *     elementEvents.mouseOver.add((e) => print("Mouse over!"));
+ */
 class Events {
   /* Raw event target. */
   final EventTarget _ptr;
@@ -7927,6 +7978,9 @@ class Events {
   }
 }
 
+/**
+ * Supports adding, removing, and dispatching events for a specific event type.
+ */
 class EventListenerList {
 
   final EventTarget _ptr;
@@ -7962,6 +8016,14 @@ class EventListenerList {
 }
 
 /// @domName EventTarget
+/**
+ * Base class for all browser objects that support events.
+ *
+ * Use the [on] property to add, remove, and dispatch events (rather than
+ * [$dom_addEventListener], [$dom_dispatchEvent], and
+ * [$dom_removeEventListener]) for compile-time type checks and a more concise
+ * API.
+ */ 
 class EventTarget native "*EventTarget" {
 
   /** @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent */
