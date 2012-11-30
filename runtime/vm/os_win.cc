@@ -7,6 +7,7 @@
 #include <malloc.h>
 #include <time.h>
 
+#include "platform/utils.h"
 #include "platform/assert.h"
 
 namespace dart {

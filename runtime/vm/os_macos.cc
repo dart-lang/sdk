@@ -72,13 +72,12 @@ void* OS::AlignedAllocate(intptr_t size, intptr_t alignment) {
   const int kMinimumAlignment = 16;
   ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(alignment >= kMinimumAlignment);
-  void* p = NULL;
-  int r;
-  r = posix_memalign(&p, alignment, size);
-  if (p == NULL) {
-    UNREACHABLE();
-  }
-  return p;
+  // Temporary workaround until xcode is upgraded.
+  // Mac guarantees malloc returns a 16 byte aligned memory chunk.
+  // Currently we only allocate with 16-bye alignment.
+  ASSERT(alignment == 16);
+  // TODO(johnmccutchan): Remove hack and switch to posix_memalign.
+  return malloc(size);
 }
 
 
