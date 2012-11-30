@@ -54,4 +54,17 @@ UNIT_TEST_CASE(OsFuncs) {
   EXPECT_LT(0U, OS::GetStackSizeLimit());
 }
 
+
+UNIT_TEST_CASE(OSAlignedAllocate) {
+  void* p16 = OS::AlignedAllocate(1023, 16);
+  void* p32 = OS::AlignedAllocate(1025, 32);
+  void* p64 = OS::AlignedAllocate(1025, 64);
+  EXPECT((reinterpret_cast<intptr_t>(p16) & 15) == 0);
+  EXPECT((reinterpret_cast<intptr_t>(p32) & 31) == 0);
+  EXPECT((reinterpret_cast<intptr_t>(p64) & 63) == 0);
+  OS::AlignedFree(p16);
+  OS::AlignedFree(p32);
+  OS::AlignedFree(p64);
+}
+
 }  // namespace dart

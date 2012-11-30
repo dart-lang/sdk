@@ -1345,6 +1345,8 @@ class RawFloat64Array : public RawByteArray {
 template<typename T>
 class ExternalByteArrayData {
  public:
+  static const int kAlignment = 16;
+
   ExternalByteArrayData(T* data,
                         void* peer,
                         Dart_PeerFinalizer callback) :

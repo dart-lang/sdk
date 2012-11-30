@@ -127,33 +127,43 @@ namespace dart {
   V(ByteArray_setFloat64, 3)                                                   \
   V(ByteArray_setRange, 5)                                                     \
   V(Int8Array_new, 1)                                                          \
+  V(Int8Array_newTransferrable, 1)                                             \
   V(Int8Array_getIndexed, 2)                                                   \
   V(Int8Array_setIndexed, 3)                                                   \
   V(Uint8Array_new, 1)                                                         \
+  V(Uint8Array_newTransferrable, 1)                                            \
   V(Uint8Array_getIndexed, 2)                                                  \
   V(Uint8Array_setIndexed, 3)                                                  \
   V(Int16Array_new, 1)                                                         \
+  V(Int16Array_newTransferrable, 1)                                            \
   V(Int16Array_getIndexed, 2)                                                  \
   V(Int16Array_setIndexed, 3)                                                  \
   V(Uint16Array_new, 1)                                                        \
+  V(Uint16Array_newTransferrable, 1)                                           \
   V(Uint16Array_getIndexed, 2)                                                 \
   V(Uint16Array_setIndexed, 3)                                                 \
   V(Int32Array_new, 1)                                                         \
+  V(Int32Array_newTransferrable, 1)                                            \
   V(Int32Array_getIndexed, 2)                                                  \
   V(Int32Array_setIndexed, 3)                                                  \
   V(Uint32Array_new, 1)                                                        \
+  V(Uint32Array_newTransferrable, 1)                                           \
   V(Uint32Array_getIndexed, 2)                                                 \
   V(Uint32Array_setIndexed, 3)                                                 \
   V(Int64Array_new, 1)                                                         \
+  V(Int64Array_newTransferrable, 1)                                            \
   V(Int64Array_getIndexed, 2)                                                  \
   V(Int64Array_setIndexed, 3)                                                  \
   V(Uint64Array_new, 1)                                                        \
+  V(Uint64Array_newTransferrable, 1)                                           \
   V(Uint64Array_getIndexed, 2)                                                 \
   V(Uint64Array_setIndexed, 3)                                                 \
   V(Float32Array_new, 1)                                                       \
+  V(Float32Array_newTransferrable, 1)                                          \
   V(Float32Array_getIndexed, 2)                                                \
   V(Float32Array_setIndexed, 3)                                                \
   V(Float64Array_new, 1)                                                       \
+  V(Float64Array_newTransferrable, 1)                                          \
   V(Float64Array_getIndexed, 2)                                                \
   V(Float64Array_setIndexed, 3)                                                \
   V(ExternalInt8Array_getIndexed, 2)                                           \

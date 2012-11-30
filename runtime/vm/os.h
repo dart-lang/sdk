@@ -40,6 +40,22 @@ class OS {
   // from midnight January 1, 1970 UTC.
   static int64_t GetCurrentTimeMicros();
 
+  // Returns an aligned array of type T with n entries.
+  // Alignment must be >= 16 and a power of two.
+  template<typename T>
+  static T* AllocateAlignedArray(intptr_t n, intptr_t alignment) {
+    T* result = reinterpret_cast<T*>(OS::AlignedAllocate(n * sizeof(*result),
+                                                         alignment));
+    return result;
+  }
+
+  // Returns an aligned pointer in the C heap with room for size bytes.
+  // Alignment must be >= 16 and a power of two.
+  static void* AlignedAllocate(intptr_t size, intptr_t alignment);
+
+  // Frees a pointer returned from AlignedAllocate.
+  static void AlignedFree(void* ptr);
+
   // Returns the activation frame alignment constraint or zero if
   // the platform doesn't care. Guaranteed to be a power of two.
   static word ActivationFrameAlignment();

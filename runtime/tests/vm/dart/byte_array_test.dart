@@ -8,10 +8,7 @@ library byte_array_test;
 import 'dart:scalarlist';
 
 class ByteArrayTest {
-  static testInt8List() {
-    Expect.throws(() { new Int8List(-1); },
-                  (e) { return e is ArgumentError; });
-    var array = new Int8List(10);
+  static testInt8ListImpl(Int8List array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
     Expect.equals(1, array.bytesPerElement());
@@ -91,11 +88,18 @@ class ByteArrayTest {
     Expect.listEquals([0, 1, 2, -128, 0, 1, 127, 7, 8, 9],
                       array);
   }
-
-  static testUint8List() {
-    Expect.throws(() { new Uint8List(-1); },
+  static testInt8List() {
+    Expect.throws(() { new Int8List(-1); },
                   (e) { return e is ArgumentError; });
-    var array = new Uint8List(10);
+    Expect.throws(() { new Int8List.transferrable(-1); },
+                  (e) { return e is ArgumentError; });                  
+    var array = new Int8List(10);
+    testInt8ListImpl(array);
+    array = new Int8List.transferrable(10);
+    testInt8ListImpl(array);
+  }
+
+  static testUint8ListImpl(Uint8List array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
     Expect.equals(1, array.bytesPerElement());
@@ -164,10 +168,18 @@ class ByteArrayTest {
                       array);
   }
 
-  static testInt16List() {
-    Expect.throws(() { new Int16List(-1); },
+  static testUint8List() {
+    Expect.throws(() { new Uint8List(-1); },
                   (e) { return e is ArgumentError; });
-    var array = new Int16List(10);
+    Expect.throws(() { new Uint8List.transferrable(-1); },
+                  (e) { return e is ArgumentError; });
+    var array = new Uint8List(10);
+    testUint8ListImpl(array);
+    array = new Uint8List.transferrable(10);
+    testUint8ListImpl(array);
+  }
+
+  static testInt16ListImpl(Int16List array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
     Expect.equals(2, array.bytesPerElement());
@@ -248,10 +260,18 @@ class ByteArrayTest {
                       array);
   }
 
-  static testUint16List() {
-    Expect.throws(() { new Uint16List(-1); },
+  static testInt16List() {
+    Expect.throws(() { new Int16List(-1); },
                   (e) { return e is ArgumentError; });
-    var array = new Uint16List(10);
+    Expect.throws(() { new Int16List.transferrable(-1); },
+                  (e) { return e is ArgumentError; });                  
+    var array = new Int16List(10);
+    testInt16ListImpl(array);
+    array = new Int16List.transferrable(10);
+    testInt16ListImpl(array);
+  }
+
+  static testUint16ListImpl(Uint16List array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
     Expect.equals(2, array.bytesPerElement());
@@ -320,10 +340,18 @@ class ByteArrayTest {
                       array);
   }
 
-  static testInt32List() {
-    Expect.throws(() { new Int32List(-1); },
+  static testUint16List() {
+    Expect.throws(() { new Uint16List(-1); },
                   (e) { return e is ArgumentError; });
-    var array = new Int32List(10);
+    Expect.throws(() { new Uint16List.transferrable(-1); },
+                  (e) { return e is ArgumentError; });
+    var array = new Uint16List(10);
+    testUint16ListImpl(array);
+    array = new Uint16List.transferrable(10);
+    testUint16ListImpl(array);
+  }
+
+  static testInt32ListImpl(Int32List array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
     Expect.equals(4, array.bytesPerElement());
@@ -410,10 +438,18 @@ class ByteArrayTest {
                       array);
   }
 
-  static testUint32List() {
-    Expect.throws(() { new Uint32List(-1); },
+  static testInt32List() {
+    Expect.throws(() { new Int32List(-1); },
                   (e) { return e is ArgumentError; });
-    var array = new Uint32List(10);
+    Expect.throws(() { new Int32List.transferrable(-1); },
+                  (e) { return e is ArgumentError; });
+    var array = new Int32List(10);
+    testInt32ListImpl(array);
+    array = new Int32List.transferrable(10);
+    testInt32ListImpl(array);
+  }
+
+  static testUint32ListImpl(Uint32List array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
     Expect.equals(4, array.bytesPerElement());
@@ -485,10 +521,19 @@ class ByteArrayTest {
                       array);
   }
 
-  static testInt64List() {
-    Expect.throws(() { new Int64List(-1); },
+  static testUint32List() {
+    Expect.throws(() { new Uint32List(-1); },
                   (e) { return e is ArgumentError; });
-    var array = new Int64List(10);
+    Expect.throws(() { new Uint32List(-1); },
+                  (e) { return e is ArgumentError; });
+    var array = new Uint32List(10);
+    testUint32ListImpl(array);
+    array = new Uint32List.transferrable(10);
+    testUint32ListImpl(array);
+    
+  }
+
+  static testInt64ListImpl(Int64List array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
     Expect.equals(8, array.bytesPerElement());
@@ -576,10 +621,18 @@ class ByteArrayTest {
                       array);
   }
 
-  static testUint64List() {
-    Expect.throws(() { new Uint64List(-1); },
+  static testInt64List() {
+    Expect.throws(() { new Int64List(-1); },
                   (e) { return e is ArgumentError; });
-    var array = new Uint64List(10);
+    Expect.throws(() { new Int64List.transferrable(-1); },
+                  (e) { return e is ArgumentError; });
+    var array = new Int64List(10);
+    testInt64ListImpl(array);
+    array = new Int64List.transferrable(10);
+    testInt64ListImpl(array);
+  }
+
+  static testUint64ListImpl(Uint64List array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
     Expect.equals(8, array.bytesPerElement());
@@ -651,10 +704,18 @@ class ByteArrayTest {
                       array);
   }
 
-  static testFloat32List() {
-    Expect.throws(() { new Float32List(-1); },
+  static testUint64List() {
+    Expect.throws(() { new Uint64List(-1); },
                   (e) { return e is ArgumentError; });
-    var array = new Float32List(10);
+    Expect.throws(() { new Uint64List.transferrable(-1); },
+                  (e) { return e is ArgumentError; });
+    var array = new Uint64List(10);
+    testUint64ListImpl(array);
+    array = new Uint64List.transferrable(10);
+    testUint64ListImpl(array);
+  }
+
+  static testFloat32ListImpl(Float32List array) {
     Expect.isTrue(array is List<double>);
     Expect.equals(10, array.length);
     Expect.equals(4, array.bytesPerElement());
@@ -713,10 +774,18 @@ class ByteArrayTest {
                       array);
   }
 
-  static testFloat64List() {
-    Expect.throws(() { new Float64List(-1); },
+  static testFloat32List() {
+    Expect.throws(() { new Float32List(-1); },
                   (e) { return e is ArgumentError; });
-    var array = new Float64List(10);
+    Expect.throws(() { new Float32List.transferrable(-1); },
+                  (e) { return e is ArgumentError; });
+    var array = new Float32List(10);
+    testFloat32ListImpl(array);
+    array = new Float32List.transferrable(10);
+    testFloat32ListImpl(array);
+  }
+
+  static testFloat64ListImpl(Float64List array) {
     Expect.isTrue(array is List<double>);
     Expect.equals(10, array.length);
     Expect.equals(8, array.bytesPerElement());
@@ -773,6 +842,15 @@ class ByteArrayTest {
     Expect.listEquals([0.0, 1.0, 2.0, double.NEGATIVE_INFINITY, 0.0,
                        1.0, double.INFINITY, 7.0, 8.0, 9.0],
                       array);
+  }
+
+  static testFloat64List() {
+    Expect.throws(() { new Float64List(-1); },
+                  (e) { return e is ArgumentError; });
+    var array = new Float64List(10);
+    testFloat64ListImpl(array);
+    array = new Float64List.transferrable(10);
+    testFloat64ListImpl(array);
   }
 
   static testByteList() {
@@ -920,8 +998,7 @@ class ByteArrayTest {
     // TODO: byte_array.getFloat64(0)
   }
 
-  static testInt8ListView() {
-    var array = new Uint8List(12);
+  static testInt8ListViewImpl(var array) {
     Expect.equals(12, array.length);
     Expect.equals(1, array.bytesPerElement());
     Expect.equals(12, array.lengthInBytes());
@@ -1046,9 +1123,14 @@ class ByteArrayTest {
     Expect.listEquals([0xFF, 0, 1, 2, 128, 0, 1, 127, 7, 8, 9, 0xFF],
                       array);
   }
+  static testInt8ListView() {
+    var array = new Uint8List(12);
+    testInt8ListViewImpl(array);
+    array = new Uint8List.transferrable(12);
+    testInt8ListViewImpl(array);
+  }
 
-  static testUint8ListView() {
-    var array = new Int8List(12);
+  static testUint8ListViewImpl(var array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(12, array.length);
     Expect.equals(1, array.bytesPerElement());
@@ -1155,8 +1237,14 @@ class ByteArrayTest {
                       view);
   }
 
-  static testInt16ListView() {
-    var array = new Uint8List(24);
+  static testUint8ListView() {
+    var array = new Int8List(12);
+    testUint8ListViewImpl(array);
+    array = new Int8List.transferrable(12);
+    testUint8ListViewImpl(array);
+  }
+
+  static testInt16ListViewImpl(var array) {
     Expect.equals(24, array.length);
     Expect.equals(1, array.bytesPerElement());
     Expect.equals(24, array.lengthInBytes());
@@ -1289,8 +1377,14 @@ class ByteArrayTest {
                       array);
   }
 
-  static testUint16ListView() {
-    var array = new Int8List(24);
+  static testInt16ListView() {
+    var array = new Uint8List(24);
+    testInt16ListViewImpl(array);
+    array = new Uint8List.transferrable(24);
+    testInt16ListViewImpl(array);
+  }
+
+  static testUint16ListViewImpl(var array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(24, array.length);
     Expect.equals(1, array.bytesPerElement());
@@ -1400,6 +1494,13 @@ class ByteArrayTest {
                        1, 0, 0, 0, 1, 0, -1, -1,
                        7, 0, 8, 0, 9, 0, -1, -1],
                       array);
+  }
+
+  static testUint16ListView() {
+    var array = new Int8List(24);
+    testUint16ListViewImpl(array);
+    array = new Int8List.transferrable(24);
+    testUint16ListViewImpl(array);
   }
 
   static testInt32ListView() {
@@ -1560,8 +1661,7 @@ class ByteArrayTest {
                       array);
   }
 
-  static testUint32ListView() {
-    var array = new Int8List(48);
+  static testUint32ListViewImpl(var array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(48, array.length);
     Expect.equals(1, array.bytesPerElement());
@@ -1690,8 +1790,14 @@ class ByteArrayTest {
                       array);
   }
 
-  static testInt64ListView() {
-    var array = new Uint8List(96);
+  static testUint32ListView() {
+    var array = new Int8List(48);
+    testUint32ListViewImpl(array);
+    array = new Int8List.transferrable(48);
+    testUint32ListViewImpl(array);
+  }
+
+  static testInt64ListViewImpl(var array) {
     Expect.equals(96, array.length);
     Expect.equals(1, array.bytesPerElement());
     Expect.equals(96, array.lengthInBytes());
@@ -1885,8 +1991,14 @@ class ByteArrayTest {
                       array);
   }
 
-  static testUint64ListView() {
-    var array = new Int8List(96);
+  static testInt64ListView() {
+    var array = new Uint8List(96);
+    testInt64ListViewImpl(array);
+    array = new Uint8List.transferrable(96);
+    testInt64ListViewImpl(array);
+  }
+
+  static testUint64ListViewImpl(var array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(96, array.length);
     Expect.equals(1, array.bytesPerElement());
@@ -2042,8 +2154,14 @@ class ByteArrayTest {
                       array);
   }
 
-  static testFloat32ListView() {
-    var array = new Uint32List(12);
+  static testUint64ListView() {
+    var array = new Int8List(96);
+    testUint64ListViewImpl(array);
+    array = new Int8List.transferrable(96);
+    testUint64ListViewImpl(array);
+  }
+
+  static testFloat32ListViewImpl(var array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(12, array.length);
     Expect.equals(4, array.bytesPerElement());
@@ -2145,8 +2263,14 @@ class ByteArrayTest {
                       array);
   }
 
-  static testFloat64ListView() {
-    var array = new Uint64List(12);
+  static testFloat32ListView() {
+    var array = new Uint32List(12);
+    testFloat32ListViewImpl(array);
+    array = new Uint32List.transferrable(12);
+    testFloat32ListViewImpl(array);
+  }
+
+  static testFloat64ListViewImpl(var array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(12, array.length);
     Expect.equals(8, array.bytesPerElement());
@@ -2246,6 +2370,13 @@ class ByteArrayTest {
                        0x401C000000000000, 0x4020000000000000,
                        0x4022000000000000, 0xBFF0000000000000],
                       array);
+  }
+
+  static testFloat64ListView() {
+    var array = new Uint64List(12);
+    testFloat64ListViewImpl(array);
+    array = new Uint64List.transferrable(12);
+    testFloat64ListViewImpl(array);
   }
 
   static testMain() {

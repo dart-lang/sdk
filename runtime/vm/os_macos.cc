@@ -68,6 +68,25 @@ int64_t OS::GetCurrentTimeMicros() {
 }
 
 
+void* OS::AlignedAllocate(intptr_t size, intptr_t alignment) {
+  const int kMinimumAlignment = 16;
+  ASSERT(Utils::IsPowerOfTwo(alignment));
+  ASSERT(alignment >= kMinimumAlignment);
+  void* p = NULL;
+  int r;
+  r = posix_memalign(&p, alignment, size);
+  if (p == NULL) {
+    UNREACHABLE();
+  }
+  return p;
+}
+
+
+void OS::AlignedFree(void* ptr) {
+  free(ptr);
+}
+
+
 word OS::ActivationFrameAlignment() {
   // OS X activation frames must be 16 byte-aligned; see "Mac OS X ABI
   // Function Call Guide".

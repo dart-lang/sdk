@@ -285,6 +285,20 @@ DEFINE_NATIVE_ENTRY(Int8Array_new, 1) {
 }
 
 
+DEFINE_NATIVE_ENTRY(Int8Array_newTransferrable, 1) {
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  intptr_t len = length.Value();
+  LengthCheck(len, Int8Array::kMaxElements);
+  int8_t* bytes = OS::AllocateAlignedArray<int8_t>(
+      len,
+      ExternalByteArrayData<int8_t>::kAlignment);
+  return ExternalInt8Array::New(bytes,
+                                len,
+                                bytes,
+                                OS::AlignedFree);
+}
+
+
 DEFINE_NATIVE_ENTRY(Int8Array_getIndexed, 2) {
   GETTER(Int8Array, Smi, int8_t);
 }
@@ -302,6 +316,20 @@ DEFINE_NATIVE_ENTRY(Uint8Array_new, 1) {
   intptr_t len = length.Value();
   LengthCheck(len, Uint8Array::kMaxElements);
   return Uint8Array::New(len);
+}
+
+
+DEFINE_NATIVE_ENTRY(Uint8Array_newTransferrable, 1) {
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  intptr_t len = length.Value();
+  LengthCheck(len, Uint8Array::kMaxElements);
+  uint8_t* bytes = OS::AllocateAlignedArray<uint8_t>(
+      len,
+      ExternalByteArrayData<uint8_t>::kAlignment);
+  return ExternalUint8Array::New(bytes,
+                                 len,
+                                 bytes,
+                                 OS::AlignedFree);
 }
 
 
@@ -325,6 +353,20 @@ DEFINE_NATIVE_ENTRY(Int16Array_new, 1) {
 }
 
 
+DEFINE_NATIVE_ENTRY(Int16Array_newTransferrable, 1) {
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  intptr_t len = length.Value();
+  LengthCheck(len, Int16Array::kMaxElements);
+  int16_t* bytes = OS::AllocateAlignedArray<int16_t>(
+      len,
+      ExternalByteArrayData<int16_t>::kAlignment);
+  return ExternalInt16Array::New(bytes,
+                                 len,
+                                 bytes,
+                                 OS::AlignedFree);
+}
+
+
 DEFINE_NATIVE_ENTRY(Int16Array_getIndexed, 2) {
   GETTER(Int16Array, Smi, int16_t);
 }
@@ -342,6 +384,20 @@ DEFINE_NATIVE_ENTRY(Uint16Array_new, 1) {
   intptr_t len = length.Value();
   LengthCheck(len, Uint16Array::kMaxElements);
   return Uint16Array::New(len);
+}
+
+
+DEFINE_NATIVE_ENTRY(Uint16Array_newTransferrable, 1) {
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  intptr_t len = length.Value();
+  LengthCheck(len, Uint16Array::kMaxElements);
+  uint16_t* bytes = OS::AllocateAlignedArray<uint16_t>(
+      len,
+      ExternalByteArrayData<uint16_t>::kAlignment);
+  return ExternalUint16Array::New(bytes,
+                                  len,
+                                  bytes,
+                                  OS::AlignedFree);
 }
 
 
@@ -365,6 +421,20 @@ DEFINE_NATIVE_ENTRY(Int32Array_new, 1) {
 }
 
 
+DEFINE_NATIVE_ENTRY(Int32Array_newTransferrable, 1) {
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  intptr_t len = length.Value();
+  LengthCheck(len, Int32Array::kMaxElements);
+  int32_t* bytes = OS::AllocateAlignedArray<int32_t>(
+      len,
+      ExternalByteArrayData<int32_t>::kAlignment);
+  return ExternalInt32Array::New(bytes,
+                                 len,
+                                 bytes,
+                                 OS::AlignedFree);
+}
+
+
 DEFINE_NATIVE_ENTRY(Int32Array_getIndexed, 2) {
   GETTER(Int32Array, Integer, int32_t);
 }
@@ -382,6 +452,20 @@ DEFINE_NATIVE_ENTRY(Uint32Array_new, 1) {
   intptr_t len = length.Value();
   LengthCheck(len, Uint32Array::kMaxElements);
   return Uint32Array::New(len);
+}
+
+
+DEFINE_NATIVE_ENTRY(Uint32Array_newTransferrable, 1) {
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  intptr_t len = length.Value();
+  LengthCheck(len, Uint32Array::kMaxElements);
+  uint32_t* bytes = OS::AllocateAlignedArray<uint32_t>(
+      len,
+      ExternalByteArrayData<uint32_t>::kAlignment);
+  return ExternalUint32Array::New(bytes,
+                                  len,
+                                  bytes,
+                                  OS::AlignedFree);
 }
 
 
@@ -405,6 +489,20 @@ DEFINE_NATIVE_ENTRY(Int64Array_new, 1) {
 }
 
 
+DEFINE_NATIVE_ENTRY(Int64Array_newTransferrable, 1) {
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  intptr_t len = length.Value();
+  LengthCheck(len, Int64Array::kMaxElements);
+  int64_t* bytes = OS::AllocateAlignedArray<int64_t>(
+      len,
+      ExternalByteArrayData<int64_t>::kAlignment);
+  return ExternalInt64Array::New(bytes,
+                                 len,
+                                 bytes,
+                                 OS::AlignedFree);
+}
+
+
 DEFINE_NATIVE_ENTRY(Int64Array_getIndexed, 2) {
   GETTER(Int64Array, Integer, int64_t);
 }
@@ -422,6 +520,20 @@ DEFINE_NATIVE_ENTRY(Uint64Array_new, 1) {
   intptr_t len = length.Value();
   LengthCheck(len, Uint64Array::kMaxElements);
   return Uint64Array::New(len);
+}
+
+
+DEFINE_NATIVE_ENTRY(Uint64Array_newTransferrable, 1) {
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  intptr_t len = length.Value();
+  LengthCheck(len, Uint64Array::kMaxElements);
+  uint64_t* bytes = OS::AllocateAlignedArray<uint64_t>(
+      len,
+      ExternalByteArrayData<uint64_t>::kAlignment);
+  return ExternalUint64Array::New(bytes,
+                                  len,
+                                  bytes,
+                                  OS::AlignedFree);
 }
 
 
@@ -445,6 +557,20 @@ DEFINE_NATIVE_ENTRY(Float32Array_new, 1) {
 }
 
 
+DEFINE_NATIVE_ENTRY(Float32Array_newTransferrable, 1) {
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  intptr_t len = length.Value();
+  LengthCheck(len, Float32Array::kMaxElements);
+  float* bytes = OS::AllocateAlignedArray<float>(
+      len,
+      ExternalByteArrayData<float>::kAlignment);
+  return ExternalFloat32Array::New(bytes,
+                                   len,
+                                   bytes,
+                                   OS::AlignedFree);
+}
+
+
 DEFINE_NATIVE_ENTRY(Float32Array_getIndexed, 2) {
   GETTER(Float32Array, Double, float);
 }
@@ -462,6 +588,20 @@ DEFINE_NATIVE_ENTRY(Float64Array_new, 1) {
   intptr_t len = length.Value();
   LengthCheck(len, Float64Array::kMaxElements);
   return Float64Array::New(len);
+}
+
+
+DEFINE_NATIVE_ENTRY(Float64Array_newTransferrable, 1) {
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  intptr_t len = length.Value();
+  LengthCheck(len, Float64Array::kMaxElements);
+  double* bytes = OS::AllocateAlignedArray<double>(
+      len,
+      ExternalByteArrayData<double>::kAlignment);
+  return ExternalFloat64Array::New(bytes,
+                                   len,
+                                   bytes,
+                                   OS::AlignedFree);
 }
 
 
