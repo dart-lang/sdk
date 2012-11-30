@@ -129,8 +129,19 @@
     {
       'target_name': 'samples',
       'type': 'none',
-      'dependencies': [
-        'samples/sample_extension/sample_extension.gyp:sample_extension',
+      'conditions': [
+         ['OS=="android"', {
+            'dependencies': [
+              'samples/android_embedder/android_embedder.gyp:android_embedder',
+            ],
+          },
+        ],
+         ['OS!="android"', {
+            'dependencies': [
+              'samples/sample_extension/sample_extension.gyp:sample_extension',
+            ],
+          },
+        ]
       ],
     },
     {

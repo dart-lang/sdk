@@ -40,7 +40,15 @@
       'ANDROID',
     ],
     'configurations': {
-      'Release': {
+      'Dart_Debug': {
+        'defines': [
+          'DEBUG',
+        ],
+      },
+      'Dart_Release': {
+        'defines': [
+          'NDEBUG',
+        ],
         'cflags!': [
           '-O2',
           '-Os',
@@ -51,7 +59,7 @@
           '-fomit-frame-pointer',
           '-O3',
         ],
-      },  # Release
+      },
     },  # configurations
     'cflags': [ '-Wno-abi', '-Wall', '-W', '-Wno-unused-parameter',
                 '-Wnon-virtual-dtor', '-fno-rtti', '-fno-exceptions', ],
