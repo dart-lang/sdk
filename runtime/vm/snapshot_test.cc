@@ -1260,6 +1260,44 @@ static Dart_CObject* GetDeserializedDartMessage(Dart_Handle lib,
 }
 
 
+static void CheckString(Dart_Handle string, const char* expected) {
+  StackZone zone(Isolate::Current());
+  uint8_t* buffer;
+  MessageWriter writer(&buffer, &zone_allocator);
+  String& str = String::Handle();
+  str ^= Api::UnwrapHandle(string);
+  writer.WriteMessage(str);
+  intptr_t buffer_len = writer.BytesWritten();
+
+  // Read object back from the snapshot into a C structure.
+  ApiNativeScope scope;
+  ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
+  Dart_CObject* root = api_reader.ReadMessage();
+  EXPECT_NOTNULL(root);
+  EXPECT_EQ(Dart_CObject::kString, root->type);
+  EXPECT_STREQ(expected, root->value.as_string);
+  CheckEncodeDecodeMessage(root);
+}
+
+
+static void CheckStringInvalid(Dart_Handle string) {
+  StackZone zone(Isolate::Current());
+  uint8_t* buffer;
+  MessageWriter writer(&buffer, &zone_allocator);
+  String& str = String::Handle();
+  str ^= Api::UnwrapHandle(string);
+  writer.WriteMessage(str);
+  intptr_t buffer_len = writer.BytesWritten();
+
+  // Read object back from the snapshot into a C structure.
+  ApiNativeScope scope;
+  ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
+  Dart_CObject* root = api_reader.ReadMessage();
+  EXPECT_NOTNULL(root);
+  EXPECT_EQ(Dart_CObject::kUnsupported, root->type);
+}
+
+
 UNIT_TEST_CASE(DartGeneratedMessages) {
   static const char* kCustomIsolateScriptChars =
       "getSmi() {\n"
@@ -1273,6 +1311,21 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
       "}\n"
       "getNonAsciiString() {\n"
       "  return \"Blåbærgrød\";\n"
+      "}\n"
+      "getNonBMPString() {\n"
+      "  return \"\\u{10000}\\u{1F601}\\u{1F637}\\u{20000}\";\n"
+      "}\n"
+      "getLeadSurrogateString() {\n"
+      "  return new String.fromCharCodes([0xd800]);\n"
+      "}\n"
+      "getTrailSurrogateString() {\n"
+      "  return \"\\u{10000}\".substring(1);\n"
+      "}\n"
+      "getSurrogatesString() {\n"
+      "  return new String.fromCharCodes([0xdc00, 0xdc00, 0xd800, 0xd800]);\n"
+      "}\n"
+      "getCrappyString() {\n"
+      "  return new String.fromCharCodes([0xd800, 32, 0xdc00, 32]);\n"
       "}\n"
       "getList() {\n"
       "  return new List(kArrayLength);\n"
@@ -1292,15 +1345,47 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
   Dart_Handle bigint_result;
   bigint_result = Dart_Invoke(lib, NewString("getBigint"), 0, NULL);
   EXPECT_VALID(bigint_result);
+
   Dart_Handle ascii_string_result;
   ascii_string_result = Dart_Invoke(lib, NewString("getAsciiString"), 0, NULL);
   EXPECT_VALID(ascii_string_result);
   EXPECT(Dart_IsString(ascii_string_result));
+
   Dart_Handle non_ascii_string_result;
   non_ascii_string_result =
       Dart_Invoke(lib, NewString("getNonAsciiString"), 0, NULL);
   EXPECT_VALID(non_ascii_string_result);
   EXPECT(Dart_IsString(non_ascii_string_result));
+
+  Dart_Handle non_bmp_string_result;
+  non_bmp_string_result =
+      Dart_Invoke(lib, NewString("getNonBMPString"), 0, NULL);
+  EXPECT_VALID(non_bmp_string_result);
+  EXPECT(Dart_IsString(non_bmp_string_result));
+
+  Dart_Handle lead_surrogate_string_result;
+  lead_surrogate_string_result =
+      Dart_Invoke(lib, NewString("getLeadSurrogateString"), 0, NULL);
+  EXPECT_VALID(lead_surrogate_string_result);
+  EXPECT(Dart_IsString(lead_surrogate_string_result));
+
+  Dart_Handle trail_surrogate_string_result;
+  trail_surrogate_string_result =
+      Dart_Invoke(lib, NewString("getTrailSurrogateString"), 0, NULL);
+  EXPECT_VALID(trail_surrogate_string_result);
+  EXPECT(Dart_IsString(trail_surrogate_string_result));
+
+  Dart_Handle surrogates_string_result;
+  surrogates_string_result =
+      Dart_Invoke(lib, NewString("getSurrogatesString"), 0, NULL);
+  EXPECT_VALID(surrogates_string_result);
+  EXPECT(Dart_IsString(surrogates_string_result));
+
+  Dart_Handle crappy_string_result;
+  crappy_string_result =
+      Dart_Invoke(lib, NewString("getCrappyString"), 0, NULL);
+  EXPECT_VALID(crappy_string_result);
+  EXPECT(Dart_IsString(crappy_string_result));
 
   {
     DARTSCOPE_NOCHECKS(isolate);
@@ -1342,42 +1427,17 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
                    root->value.as_bigint);
       CheckEncodeDecodeMessage(root);
     }
-    {
-      StackZone zone(Isolate::Current());
-      uint8_t* buffer;
-      MessageWriter writer(&buffer, &zone_allocator);
-      String& str = String::Handle();
-      str ^= Api::UnwrapHandle(ascii_string_result);
-      writer.WriteMessage(str);
-      intptr_t buffer_len = writer.BytesWritten();
-
-      // Read object back from the snapshot into a C structure.
-      ApiNativeScope scope;
-      ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
-      Dart_CObject* root = api_reader.ReadMessage();
-      EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kString, root->type);
-      EXPECT_STREQ("Hello, world!", root->value.as_string);
-      CheckEncodeDecodeMessage(root);
-    }
-    {
-      StackZone zone(Isolate::Current());
-      uint8_t* buffer;
-      MessageWriter writer(&buffer, &zone_allocator);
-      String& str = String::Handle();
-      str ^= Api::UnwrapHandle(non_ascii_string_result);
-      writer.WriteMessage(str);
-      intptr_t buffer_len = writer.BytesWritten();
-
-      // Read object back from the snapshot into a C structure.
-      ApiNativeScope scope;
-      ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
-      Dart_CObject* root = api_reader.ReadMessage();
-      EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kString, root->type);
-      EXPECT_STREQ("Blåbærgrød", root->value.as_string);
-      CheckEncodeDecodeMessage(root);
-    }
+    CheckString(ascii_string_result, "Hello, world!");
+    CheckString(non_ascii_string_result, "Blåbærgrød");
+    CheckString(non_bmp_string_result,
+                "\xf0\x90\x80\x80"
+                "\xf0\x9f\x98\x81"
+                "\xf0\x9f\x98\xb7"
+                "\xf0\xa0\x80\x80");
+    CheckStringInvalid(lead_surrogate_string_result);
+    CheckStringInvalid(trail_surrogate_string_result);
+    CheckStringInvalid(crappy_string_result);
+    CheckStringInvalid(surrogates_string_result);
   }
   Dart_ExitScope();
   Dart_ShutdownIsolate();
@@ -2073,7 +2133,6 @@ UNIT_TEST_CASE(PostCObject) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_EnterScope();
 
-  // xxx
   Dart_Handle send_port = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(send_port);
   Dart_Handle result = Dart_GetField(send_port, NewString("_id"));
@@ -2108,12 +2167,6 @@ UNIT_TEST_CASE(PostCObject) {
   object.type = Dart_CObject::kString;
   object.value.as_string = const_cast<char*>("æøå");
   EXPECT(Dart_PostCObject(send_port_id, &object));
-
-  // Try to post an invalid UTF-8 sequence (lead surrogate).
-  const char* data = "\xED\xA0\x80";  // U+D800
-  object.type = Dart_CObject::kString;
-  object.value.as_string = const_cast<char*>(data);
-  EXPECT(!Dart_PostCObject(send_port_id, &object));
 
   object.type = Dart_CObject::kDouble;
   object.value.as_double = 3.14;

@@ -3725,7 +3725,7 @@ class String : public Instance {
       ASSERT(end_ <= str.Length());
     }
 
-    int32_t Current() {
+    int32_t Current() const {
       ASSERT(index_ >= 0);
       ASSERT(index_ < end_);
       return ch_;

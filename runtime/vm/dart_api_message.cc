@@ -389,17 +389,28 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       uint16_t *utf16 =
           reinterpret_cast<uint16_t*>(::malloc(len * sizeof(uint16_t)));
       intptr_t utf8_len = 0;
+      // Read all the UTF-16 code units.
       for (intptr_t i = 0; i < len; i++) {
         utf16[i] = Read<uint16_t>();
-        // TODO(sgjesse): Check for surrogate pairs.
-        utf8_len += Utf8::Length(utf16[i]);
+      }
+      // Calculate the UTF-8 length and check if the string can be
+      // UTF-8 encoded.
+      bool valid = true;
+      intptr_t i = 0;
+      while (i < len && valid) {
+        int32_t ch = Utf16::Next(utf16, &i, len);
+        utf8_len += Utf8::Length(ch);
+        valid = !Utf16::IsSurrogate(ch);
+      }
+      if (!valid) {
+        return AllocateDartCObjectUnsupported();
       }
       Dart_CObject* object = AllocateDartCObjectString(utf8_len);
       AddBackRef(object_id, object, kIsDeserialized);
       char* p = object->value.as_string;
-      for (intptr_t i = 0; i < len; i++) {
-        // TODO(sgjesse): Check for surrogate pairs.
-        p += Utf8::Encode(utf16[i], p);
+      i = 0;
+      while (i < len) {
+        p += Utf8::Encode(Utf16::Next(utf16, &i, len), p);
       }
       *p = '\0';
       ASSERT(p == (object->value.as_string + utf8_len));
@@ -807,16 +818,20 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       if (type == Utf8::kLatin1) {
         uint8_t* latin1_str =
             reinterpret_cast<uint8_t*>(::malloc(len * sizeof(uint8_t)));
-        Utf8::DecodeToLatin1(utf8_str, utf8_len, latin1_str, len);
+        bool success = Utf8::DecodeToLatin1(utf8_str,
+                                            utf8_len,
+                                            latin1_str,
+                                            len);
+        ASSERT(success);
         for (intptr_t i = 0; i < len; i++) {
           Write<uint8_t>(latin1_str[i]);
         }
         ::free(latin1_str);
       } else {
-        // TODO(sgjesse): Make sure surrogate pairs are handled.
         uint16_t* utf16_str =
             reinterpret_cast<uint16_t*>(::malloc(len * sizeof(uint16_t)));
-        Utf8::DecodeToUTF16(utf8_str, utf8_len, utf16_str, len);
+        bool success = Utf8::DecodeToUTF16(utf8_str, utf8_len, utf16_str, len);
+        ASSERT(success);
         for (intptr_t i = 0; i < len; i++) {
           Write<uint16_t>(utf16_str[i]);
         }

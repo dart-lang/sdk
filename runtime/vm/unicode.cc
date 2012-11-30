@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -31,7 +31,7 @@ const int8_t Utf8::kTrailBytes[256] = {
 
 
 const uint32_t Utf8::kMagicBits[7] = {
-  0,  // padding
+  0,  // Padding.
   0x00000000,
   0x00003080,
   0x000E2080,
@@ -43,7 +43,7 @@ const uint32_t Utf8::kMagicBits[7] = {
 
 // Minimum values of code points used to check shortest form.
 const uint32_t Utf8::kOverlongMinimum[7] = {
-  0,  // padding
+  0,  // Padding.
   0x0,
   0x80,
   0x800,
@@ -136,6 +136,7 @@ intptr_t Utf8::Length(const String& str) {
 
 
 intptr_t Utf8::Encode(int32_t ch, char* dst) {
+  ASSERT(!Utf16::IsSurrogate(ch));
   static const int kMask = ~(1 << 6);
   if (ch <= kMaxOneByteChar) {
     dst[0] = ch;
@@ -222,15 +223,15 @@ bool Utf8::DecodeToLatin1(const uint8_t* utf8_array,
     ASSERT(IsLatin1SequenceStart(utf8_array[i]));
     num_bytes = Utf8::Decode(&utf8_array[i], (array_len - i), &ch);
     if (ch == -1) {
-      return false;  // invalid input
+      return false;  // Invalid input.
     }
     ASSERT(Utf::IsLatin1(ch));
     dst[j] = ch;
   }
   if ((i < array_len) && (j == len)) {
-    return false;  // output overflow
+    return false;  // Output overflow.
   }
-  return true;  // success
+  return true;  // Success.
 }
 
 
@@ -246,7 +247,7 @@ bool Utf8::DecodeToUTF16(const uint8_t* utf8_array,
     bool is_supplementary = IsSupplementarySequenceStart(utf8_array[i]);
     num_bytes = Utf8::Decode(&utf8_array[i], (array_len - i), &ch);
     if (ch == -1) {
-      return false;  // invalid input
+      return false;  // Invalid input.
     }
     if (is_supplementary) {
       Utf16::Encode(ch, &dst[j]);
@@ -256,9 +257,9 @@ bool Utf8::DecodeToUTF16(const uint8_t* utf8_array,
     }
   }
   if ((i < array_len) && (j == len)) {
-    return false;  // output overflow
+    return false;  // Output overflow.
   }
-  return true;  // success
+  return true;  // Success.
 }
 
 
@@ -273,14 +274,14 @@ bool Utf8::DecodeToUTF32(const uint8_t* utf8_array,
     int32_t ch;
     num_bytes = Utf8::Decode(&utf8_array[i], (array_len - i), &ch);
     if (ch == -1) {
-      return false;  // invalid input
+      return false;  // Invalid input.
     }
     dst[j] = ch;
   }
   if ((i < array_len) && (j == len)) {
-    return false;  // output overflow
+    return false;  // Output overflow.
   }
-  return true;  // success
+  return true;  // Success.
 }
 
 
