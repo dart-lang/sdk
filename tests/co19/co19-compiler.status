@@ -3,21 +3,12 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartc ]
-Language/05_Variables/05_Variables_A05_t11: Fail # TODO(analyzer-team): Please triage this failure.
-Language/05_Variables/05_Variables_A05_t12: Fail # TODO(analyzer-team): Please triage this failure.
-Language/05_Variables/05_Variables_A05_t13: Fail # TODO(analyzer-team): Please triage this failure.
-Language/05_Variables/05_Variables_A05_t14: Fail # TODO(analyzer-team): Please triage this failure.
-Language/05_Variables/05_Variables_A05_t15: Fail # TODO(analyzer-team): Please triage this failure.
-Language/05_Variables/05_Variables_A06_t01: Fail # TODO(analyzer-team): Please triage this failure.
-Language/05_Variables/05_Variables_A11_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # TODO(analyzer-team): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t10: Fail # TODO(analyzer-team): Please triage this failure.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: Fail # TODO(analyzer-team): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A02_t03: Fail # TODO(analyzer-team): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A02_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/08_Interfaces/5_Superinterfaces_A01_t02: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/01_Constants_A03_t01: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Expressions/01_Constants_A05_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/01_Constants_A14_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/01_Constants_A20_t03: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/08_Throw_A05_t01: Fail # TODO(analyzer-team): Please triage this failure.
@@ -27,8 +18,6 @@ Language/11_Expressions/31_Type_Test_A01_t02: Fail # TODO(analyzer-team): Please
 Language/11_Expressions/31_Type_Test_A01_t04: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Expressions/32_Type_Cast_A01_t04: Fail # TODO(analyzer-team): Please triage this failure.
 Language/12_Statements/02_Expression_Statements_A01_t12: Fail # TODO(analyzer-team): Please triage this failure.
-Language/12_Statements/03_Variable_Declaration_A01_t09: Fail # TODO(analyzer-team): Please triage this failure.
-Language/12_Statements/03_Variable_Declaration_A01_t16: Fail # TODO(analyzer-team): Please triage this failure.
 Language/12_Statements/06_For_A01_t11: Fail # TODO(analyzer-team): Please triage this failure.
 Language/12_Statements/09_Switch_A02_t03: Fail # TODO(analyzer-team): Please triage this failure.
 Language/12_Statements/10_Try_A03_t01: Fail # TODO(analyzer-team): Please triage this failure.
@@ -46,14 +35,23 @@ Language/15_Reference/1_Lexical_Rules_A01_t09: Fail # TODO(analyzer-team): Pleas
 Language/15_Reference/1_Lexical_Rules_A01_t11: Fail # TODO(analyzer-team): Please triage this failure.
 
 
+# co19 issue 335 (assignment to final is warning, not error)
+Language/05_Variables/05_Variables_A07_t01: Fail
+Language/05_Variables/05_Variables_A07_t02: Fail
+Language/05_Variables/05_Variables_A07_t03: Fail
+Language/05_Variables/05_Variables_A07_t04: Fail
+Language/05_Variables/05_Variables_A07_t10: Fail
+Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t05: Fail
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t06: Fail
+
+
+
 # co19 issue 320
 Language/13_Libraries_and_Scripts/1_Imports_A02_t12: Fail, OK
 Language/13_Libraries_and_Scripts/1_Imports_A02_t15: Fail, OK
 Language/13_Libraries_and_Scripts/1_Imports_A02_t18: Fail, OK
 Language/13_Libraries_and_Scripts/1_Imports_A02_t19: Fail, OK
 
-# co19 issue 327
-Language/03_Overview/1_Scoping_A02_t32: Fail, OK
 
 Language/03_Overview/2_Privacy_A01_t08: pass # http://dartbug.com/5179
 Language/03_Overview/2_Privacy_A01_t11: pass # http://dartbug.com/5179

@@ -501,6 +501,19 @@ instantiate_type_variable_negative_test: Fail
 type_variable_static_context_negative_test: Fail
 
 
+# test issue 7062 (assignment to final variable is a static warning)
+final_for_in_variable_test/01: Fail
+final_param_negative_test: Fail
+final_var_negative_test: Fail
+final_variable_assignment_test/01: Fail
+final_variable_assignment_test/03: Fail
+final_variable_assignment_test/04: Fail
+final_variable_assignment_test/02: Fail
+scope_negative_test: Fail
+static_final_field2_negative_test: Fail
+
+
+
 #
 # Add new dartc annotations above in alphabetical order
 #

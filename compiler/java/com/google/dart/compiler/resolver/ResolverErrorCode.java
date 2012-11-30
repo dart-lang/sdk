@@ -19,7 +19,8 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_ACCESS_FIELD_IN_INIT("Cannot access an instance field in an initializer expression"),
   CANNOT_ACCESS_METHOD(ErrorSeverity.WARNING, "Cannot access private method '%s'"),
   CANNOT_ACCESS_OUTER_LABEL("Cannot access label %s declared in an outer function"),
-  CANNOT_ASSIGN_TO_FINAL("cannot assign value to final variable \"%s\"."),
+  CANNOT_ASSIGN_TO_FINAL(ErrorSeverity.WARNING, "cannot assign value to final variable \"%s\"."),
+  CANNOT_ASSIGN_TO_FINAL_ERROR("cannot assign value to final variable \"%s\"."),
   CANNOT_ASSIGN_TO_METHOD("cannot assign value to method '%s'."),
   CANNOT_BE_RESOLVED("cannot resolve %s"),
   // TODO(zundel): error message needs JUnit test - how to test #imports in junit?
@@ -168,7 +169,7 @@ public enum ResolverErrorCode implements ErrorCode {
   NOT_A_CLASS_OR_INTERFACE("\"%s\" is not a class or interface"),
   // TODO(zundel): error message needs JUnit test (reachable code?)
   NOT_A_LABEL("\"%s\" is not a label"),
-  NOT_A_STATIC_FIELD("\"%s\" is not a static field"),
+  NOT_A_STATIC_FIELD(ErrorSeverity.WARNING, "\"%s\" is not a static field"),
   NOT_A_STATIC_METHOD("\"%s\" is not a static method"),
   NOT_A_TYPE("type \"%s\" expected, but \"%s\" found"),
   // TODO(zundel): error message needs JUnit test (reachable code?)
@@ -215,7 +216,7 @@ public enum ResolverErrorCode implements ErrorCode {
   TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER(
       "type variables are not allowed in identifier expressions"),
   USE_ASSIGNMENT_ON_SETTER("Use assignment to set field '%s'"),
-  USING_LOCAL_VARIABLE_BEFORE_DECLARATION("Using local variable '%s' before its declaration in lexical scope"),
+  USING_LOCAL_VARIABLE_BEFORE_DECLARATION(ErrorSeverity.WARNING, "Using local variable '%s' before its declaration in lexical scope"),
   VARIABLE_REFERENCES_SAME_NAME_IN_INITIALIZER("Initializer of variable \"%s\" cannot refer to the name \"%s\""),
   WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments (%d).  Expected %d");
 

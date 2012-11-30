@@ -1270,6 +1270,51 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 11, 3, 1),
         errEx(TypeErrorCode.FIELD_IS_FINAL, 13, 5, 1));
   }
+
+  public void test_assignConst_topLevelVariable() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "const f = 1;",
+        "main() {",
+        "  f = 2;",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 4, 3, 1));
+  }
+  
+  public void test_assignFinal_topLevelVariable() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "final f = 1;",
+        "main() {",
+        "  f = 2;",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 4, 3, 1));
+  }
+  
+  public void test_assignFinal_instanceVariable_inConstructor() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  final f = 1;",
+        "  A() {",
+        "    f = 2;",
+        "    f += 3;",
+        "    print(f);",
+        "  }",
+        "",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL_ERROR, 5, 5, 1),
+        errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL_ERROR, 6, 5, 1));
+  }
   
   public void test_identicalFunction() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(

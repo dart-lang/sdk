@@ -934,4 +934,17 @@ static FieldElementImplementation fieldFromNode(DartField node,
     }
     return false;
   }
+  
+  public static boolean isFieldOfSameClassAsEnclosingConstructor(Element maybeField,
+      Element maybeConstructor) {
+    if (ElementKind.of(maybeField) == ElementKind.FIELD
+        && ElementKind.of(maybeConstructor) == ElementKind.CONSTRUCTOR) {
+      FieldElement field = (FieldElement) maybeField;
+      ConstructorElement constructor = (ConstructorElement) maybeConstructor;
+      if (field.getEnclosingElement() == constructor.getEnclosingElement()) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
