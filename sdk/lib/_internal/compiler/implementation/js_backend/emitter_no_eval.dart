@@ -134,9 +134,7 @@ $classesCollector.$mangledName = {'': function $mangledName(self, target) {
 
   void emitClassFields(ClassElement classElement,
                        CodeBuffer buffer,
-                       { String superClass: "",
-                         bool isNative: false,
-                         bool emitEndingComma: true}) {
+                       bool emitEndingComma) {
     if (emitEndingComma) buffer.add(', ');
   }
 
