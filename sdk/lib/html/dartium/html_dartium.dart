@@ -27883,7 +27883,7 @@ class KeyboardEventController {
   EventTarget _target;
 
   // The distance to shift from upper case alphabet Roman letters to lower case.
-  const int _ROMAN_ALPHABET_OFFSET = "a".charCodes[0] - "A".charCodes[0];
+  int _ROMAN_ALPHABET_OFFSET = "a".charCodes[0] - "A".charCodes[0];
 
   // Instance members referring to the internal event handlers because closures
   // are not hashable.
