@@ -84,10 +84,12 @@ class ConstantHandler extends CompilerTask {
         Constant result = initialVariableValues[element];
         return result;
       }
-      TreeElements definitions = compiler.analyzeElement(element);
-      Constant constant = compileVariableWithDefinitions(
-          element, definitions, isConst: isConst);
-      return constant;
+      return compiler.withCurrentElement(element, () {
+        TreeElements definitions = compiler.analyzeElement(element);
+        Constant constant = compileVariableWithDefinitions(
+            element, definitions, isConst: isConst);
+        return constant;
+      });
     });
   }
 
@@ -163,7 +165,7 @@ class ConstantHandler extends CompilerTask {
     return measure(() {
       assert(node != null);
       CompileTimeConstantEvaluator evaluator = new CompileTimeConstantEvaluator(
-          constantSystem, definitions, compiler, isConst: isConst);
+          this, definitions, compiler, isConst: isConst);
       return evaluator.evaluate(node);
     });
   }
@@ -174,9 +176,7 @@ class ConstantHandler extends CompilerTask {
       assert(node != null);
       try {
         TryCompileTimeConstantEvaluator evaluator =
-            new TryCompileTimeConstantEvaluator(constantSystem,
-                                                definitions,
-                                                compiler);
+            new TryCompileTimeConstantEvaluator(this, definitions, compiler);
         return evaluator.evaluate(node);
       } on CompileTimeConstantError catch (exn) {
         return null;
@@ -244,16 +244,18 @@ class ConstantHandler extends CompilerTask {
 
 class CompileTimeConstantEvaluator extends Visitor {
   bool isEvaluatingConstant;
-  final ConstantSystem constantSystem;
+  final ConstantHandler handler;
   final TreeElements elements;
   final Compiler compiler;
   bool enabledRuntimeTypeSupport = false;
 
-  CompileTimeConstantEvaluator(this.constantSystem,
+  CompileTimeConstantEvaluator(this.handler,
                                this.elements,
                                this.compiler,
                                {bool isConst: false})
       : this.isEvaluatingConstant = isConst;
+
+  ConstantSystem get constantSystem => handler.constantSystem;
 
   Constant evaluate(Node node) {
     return node.accept(this);
@@ -297,7 +299,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     // TODO(floitsch): get type parameters.
     DartType type = new InterfaceType(compiler.listClass);
     Constant constant = new ListConstant(type, arguments);
-    compiler.constantHandler.registerCompileTimeConstant(constant);
+    handler.registerCompileTimeConstant(constant);
     return constant;
   }
 
@@ -333,7 +335,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     // TODO(floitsch): this should be a List<String> type.
     DartType keysType = new InterfaceType(compiler.listClass);
     ListConstant keysList = new ListConstant(keysType, keys);
-    compiler.constantHandler.registerCompileTimeConstant(keysList);
+    handler.registerCompileTimeConstant(keysList);
     SourceString className = hasProtoKey
                              ? MapConstant.DART_PROTO_CLASS
                              : MapConstant.DART_CLASS;
@@ -343,7 +345,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     DartType type = new InterfaceType(classElement);
     registerInstantiatedClass(classElement);
     Constant constant = new MapConstant(type, keysList, values, protoValue);
-    compiler.constantHandler.registerCompileTimeConstant(constant);
+    handler.registerCompileTimeConstant(constant);
     return constant;
   }
 
@@ -415,7 +417,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     DartType elementType = element.computeType(compiler).asRaw();
     DartType constantType = compiler.typeClass.computeType(compiler);
     Constant constant = new TypeConstant(elementType, constantType);
-    compiler.constantHandler.registerCompileTimeConstant(constant);
+    handler.registerCompileTimeConstant(constant);
     return constant;
   }
 
@@ -426,15 +428,15 @@ class CompileTimeConstantEvaluator extends Visitor {
       if (Elements.isStaticOrTopLevelFunction(element)) {
         compiler.codegenWorld.staticFunctionsNeedingGetter.add(element);
         Constant constant = new FunctionConstant(element);
-        compiler.constantHandler.registerCompileTimeConstant(constant);
+        handler.registerCompileTimeConstant(constant);
         compiler.enqueuer.codegen.registerStaticUse(element);
         return constant;
       } else if (Elements.isStaticOrTopLevelField(element)) {
         Constant result;
         if (element.modifiers.isConst()) {
-          result = compiler.compileConstant(element);
+          result = handler.compileConstant(element);
         } else if (element.modifiers.isFinal() && !isEvaluatingConstant) {
-          result = compiler.compileVariable(element);
+          result = handler.compileVariable(element);
         }
         if (result != null) return result;
       } else if (Elements.isClass(element) || Elements.isTypedef(element)) {
@@ -584,7 +586,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     List<Constant> compiledArguments = <Constant>[];
 
     Function compileArgument = evaluateConstant;
-    Function compileConstant = compiler.compileConstant;
+    Function compileConstant = handler.compileConstant;
     bool succeeded = selector.addArgumentsToList(arguments,
                                                  compiledArguments,
                                                  target,
@@ -622,7 +624,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     List<Constant> arguments = evaluateArgumentsToConstructor(
         node, selector, send.arguments, constructor);
     ConstructorEvaluator evaluator =
-        new ConstructorEvaluator(node, constructor, constantSystem, compiler);
+        new ConstructorEvaluator(node, constructor, handler, compiler);
     evaluator.evaluateConstructorFieldValues(arguments);
     List<Constant> jsNewArguments = evaluator.buildJsNewArguments(classElement);
 
@@ -630,7 +632,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     // TODO(floitsch): take generic types into account.
     DartType type = classElement.computeType(compiler);
     Constant constant = new ConstructedConstant(type, jsNewArguments);
-    compiler.constantHandler.registerCompileTimeConstant(constant);
+    handler.registerCompileTimeConstant(constant);
     return constant;
   }
 
@@ -659,10 +661,10 @@ class CompileTimeConstantEvaluator extends Visitor {
 }
 
 class TryCompileTimeConstantEvaluator extends CompileTimeConstantEvaluator {
-  TryCompileTimeConstantEvaluator(ConstantSystem constantSystem,
+  TryCompileTimeConstantEvaluator(ConstantHandler handler,
                                   TreeElements elements,
                                   Compiler compiler)
-      : super(constantSystem, elements, compiler, isConst: true);
+      : super(handler, elements, compiler, isConst: true);
 
   error(Node node) {
     // Just fail without reporting it anywhere.
@@ -683,12 +685,12 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
    */
   ConstructorEvaluator(Node node,
                        FunctionElement constructor,
-                       ConstantSystem constantSystem,
+                       ConstantHandler handler,
                        Compiler compiler)
       : this.constructor = constructor,
         this.definitions = new Map<Element, Constant>(),
         this.fieldValues = new Map<Element, Constant>(),
-        super(constantSystem,
+        super(handler,
               compiler.resolver.resolveMethodElement(constructor.declaration),
               compiler,
               isConst: true) {
@@ -755,7 +757,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
         currentNode, selector, arguments, targetConstructor);
 
     ConstructorEvaluator evaluator = new ConstructorEvaluator(
-        currentNode, targetConstructor, constantSystem, compiler);
+        currentNode, targetConstructor, handler, compiler);
     evaluator.evaluateConstructorFieldValues(compiledArguments);
     // Copy over the fieldValues from the super/redirect-constructor.
     // No need to go through [updateFieldValue] because the
@@ -844,7 +846,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
           Constant fieldValue = fieldValues[field];
           if (fieldValue == null) {
             // Use the default value.
-            fieldValue = compiler.compileConstant(field);
+            fieldValue = handler.compileConstant(field);
           }
           jsNewArguments.add(fieldValue);
         },

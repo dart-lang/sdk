@@ -195,6 +195,7 @@ abstract class Compiler implements DiagnosticListener {
   ti.TypesTask typesTask;
   Backend backend;
   ConstantHandler constantHandler;
+  ConstantHandler metadataHandler;
   EnqueueTask enqueuer;
   CompilerTask fileReadingTask;
 
@@ -263,6 +264,7 @@ abstract class Compiler implements DiagnosticListener {
       enqueuer = new EnqueueTask(this)];
 
     tasks.addAll(backend.tasks);
+    metadataHandler = new ConstantHandler(this, backend.constantSystem);
   }
 
   Universe get resolverWorld => enqueuer.resolution.universe;
@@ -735,27 +737,6 @@ abstract class Compiler implements DiagnosticListener {
                                    FunctionSignature signature) {
     return withCurrentElement(element,
         () => resolver.computeFunctionType(element, signature));
-  }
-
-  bool isLazilyInitialized(VariableElement element) {
-    Constant initialValue = compileVariable(element);
-    return initialValue == null;
-  }
-
-  /**
-   * Compiles compile-time constants. Never returns [:null:].
-   * If the initial value is not a compile-time constants reports an error.
-   */
-  Constant compileConstant(VariableElement element) {
-    return withCurrentElement(element, () {
-      return constantHandler.compileConstant(element);
-    });
-  }
-
-  Constant compileVariable(VariableElement element) {
-    return withCurrentElement(element, () {
-      return constantHandler.compileVariable(element);
-    });
   }
 
   reportWarning(Node node, var message) {

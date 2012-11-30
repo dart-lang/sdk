@@ -202,7 +202,7 @@ class SsaBuilderTask extends CompilerTask {
               new OptionalParameterTypes(signature.optionalParameterCount);
           int index = 0;
           signature.forEachOptionalParameter((Element parameter) {
-            Constant defaultValue = compiler.compileVariable(parameter);
+            Constant defaultValue = builder.compileVariable(parameter);
             HType type = HGraph.mapConstantTypeToSsaType(defaultValue);
             defaultValueTypes.update(index, parameter.name, type);
             index++;
@@ -988,6 +988,24 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   /**
+   * Compiles compile-time constants. Never returns [:null:]. If the
+   * initial value is not a compile-time constants, it reports an
+   * internal error.
+   */
+  Constant compileConstant(VariableElement element) {
+    return compiler.constantHandler.compileConstant(element);
+  }
+
+  Constant compileVariable(VariableElement element) {
+    return compiler.constantHandler.compileVariable(element);
+  }
+
+  bool isLazilyInitialized(VariableElement element) {
+    Constant initialValue = compileVariable(element);
+    return initialValue == null;
+  }
+
+  /**
    * Documentation wanted -- johnniwinther
    *
    * Invariant: [functionElement] must be an implementation element.
@@ -1524,8 +1542,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // }
 
       // Fetch the original default value of [element];
-      ConstantHandler handler = compiler.constantHandler;
-      Constant constant = handler.compileVariable(element);
+      Constant constant = compileVariable(element);
       HConstant defaultValue = constant == null
           ? graph.addConstantNull(constantSystem)
           : graph.addConstant(constant);
@@ -2458,11 +2475,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (element.isField() && !element.isAssignable()) {
         // A static final or const. Get its constant value and inline it if
         // the value can be compiled eagerly.
-        value = compiler.compileVariable(element);
+        value = compileVariable(element);
       }
       if (value != null) {
         stack.add(graph.addConstant(value));
-      } else if (element.isField() && compiler.isLazilyInitialized(element)) {
+      } else if (element.isField() && isLazilyInitialized(element)) {
         push(new HLazyStatic(element));
       } else {
         // TODO(5346): Try to avoid the need for calling [declaration] before
@@ -2741,14 +2758,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return pop();
     }
 
-    HInstruction compileConstant(Element parameter) {
+    HInstruction handleConstant(Element parameter) {
       Constant constant;
       TreeElements calleeElements =
           compiler.enqueuer.resolution.getCachedElements(element);
       if (calleeElements.isParameterChecked(parameter)) {
         constant = SentinelConstant.SENTINEL;
       } else {
-        constant = compiler.compileConstant(parameter);
+        constant = compileConstant(parameter);
       }
       return graph.addConstant(constant);
     }
@@ -2757,7 +2774,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                        list,
                                        element,
                                        compileArgument,
-                                       compileConstant,
+                                       handleConstant,
                                        compiler);
   }
 

@@ -644,7 +644,7 @@ class ResolverTask extends CompilerTask {
       ResolverVisitor visitor =
           visitorFor(annotation.annotatedElement.enclosingElement);
       node.accept(visitor);
-      annotation.value = compiler.constantHandler.compileNodeWithDefinitions(
+      annotation.value = compiler.metadataHandler.compileNodeWithDefinitions(
           node, visitor.mapping, isConst: true);
 
       annotation.resolutionState = STATE_DONE;
