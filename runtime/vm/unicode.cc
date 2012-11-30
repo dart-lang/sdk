@@ -10,7 +10,7 @@
 
 namespace dart {
 
-static const int8_t kTrailBytes[256] = {
+const int8_t Utf8::kTrailBytes[256] = {
   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -30,7 +30,7 @@ static const int8_t kTrailBytes[256] = {
 };
 
 
-static const uint32_t kMagicBits[7] = {
+const uint32_t Utf8::kMagicBits[7] = {
   0,  // padding
   0x00000000,
   0x00003080,
@@ -42,7 +42,7 @@ static const uint32_t kMagicBits[7] = {
 
 
 // Minimum values of code points used to check shortest form.
-static const uint32_t kOverlongMinimum[7] = {
+const uint32_t Utf8::kOverlongMinimum[7] = {
   0,  // padding
   0x0,
   0x80,
@@ -51,35 +51,6 @@ static const uint32_t kOverlongMinimum[7] = {
   0xFFFFFFFF,
   0xFFFFFFFF
 };
-
-
-static bool IsTrailByte(uint8_t code_unit) {
-  return (code_unit & 0xc0) == 0x80;
-}
-
-
-static bool IsLatin1SequenceStart(uint8_t code_unit) {
-  // Check is codepoint is <= U+00FF
-  return (code_unit <= Utf8::kMaxOneByteChar);
-}
-
-
-static bool IsSupplementarySequenceStart(uint8_t code_unit) {
-  // Check is codepoint is >= U+10000.
-  return (code_unit >= 0xF0);
-}
-
-
-// Returns true if the code point value is above Plane 17.
-static bool IsOutOfRange(uint32_t code_point) {
-  return (code_point > 0x10FFFF);
-}
-
-
-// Returns true if the byte sequence is ill-formed.
-static bool IsNonShortestForm(uint32_t code_point, size_t num_bytes) {
-  return code_point < kOverlongMinimum[num_bytes];
-}
 
 
 // Returns a count of the number of UTF-8 trail bytes.
@@ -128,7 +99,7 @@ bool Utf8::IsValid(const uint8_t* utf8_array, intptr_t array_len) {
       ch -= kMagicBits[num_trail_bytes];
       if (!((is_malformed == false) &&
             (j == num_trail_bytes) &&
-            !IsOutOfRange(ch) &&
+            !Utf::IsOutOfRange(ch) &&
             !IsNonShortestForm(ch, j) &&
             !Utf16::IsSurrogate(ch))) {
         return false;
@@ -227,7 +198,7 @@ intptr_t Utf8::Decode(const uint8_t* utf8_array,
     ch -= kMagicBits[num_trail_bytes];
     if (!((is_malformed == false) &&
           (i == num_trail_bytes) &&
-          !IsOutOfRange(ch) &&
+          !Utf::IsOutOfRange(ch) &&
           !IsNonShortestForm(ch, i) &&
           !Utf16::IsSurrogate(ch))) {
       *dst = -1;
@@ -253,7 +224,7 @@ bool Utf8::DecodeToLatin1(const uint8_t* utf8_array,
     if (ch == -1) {
       return false;  // invalid input
     }
-    ASSERT(ch <= 0xff);
+    ASSERT(Utf::IsLatin1(ch));
     dst[j] = ch;
   }
   if ((i < array_len) && (j == len)) {
@@ -313,8 +284,16 @@ bool Utf8::DecodeToUTF32(const uint8_t* utf8_array,
 }
 
 
+bool Utf8::DecodeCStringToUTF32(const char* str, int32_t* dst, intptr_t len) {
+  ASSERT(str != NULL);
+  intptr_t array_len = strlen(str);
+  const uint8_t* utf8_array = reinterpret_cast<const uint8_t*>(str);
+  return Utf8::DecodeToUTF32(utf8_array, array_len, dst, len);
+}
+
+
 void Utf16::Encode(int32_t codepoint, uint16_t* dst) {
-  ASSERT(codepoint > kMaxBmpCodepoint);
+  ASSERT(codepoint > Utf16::kMaxCodeUnit);
   ASSERT(dst != NULL);
   dst[0] = (Utf16::kLeadSurrogateOffset + (codepoint >> 10));
   dst[1] = (0xDC00 + (codepoint & 0x3FF));

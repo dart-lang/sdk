@@ -12,6 +12,29 @@ namespace dart {
 
 class String;
 
+class Utf : AllStatic {
+ public:
+  static const int32_t kMaxCodePoint = 0x10FFFF;
+
+  static bool IsLatin1(int32_t code_point) {
+    return (code_point >= 0) && (code_point <= 0xFF);
+  }
+
+  static bool IsBmp(int32_t code_point) {
+    return (code_point >= 0) && (code_point <= 0xFFFF);
+  }
+
+  static bool IsSupplementary(int32_t code_point) {
+    return (code_point > 0xFFFF) && (code_point <= kMaxCodePoint);
+  }
+
+  // Returns true if the code point value is above Plane 17.
+  static bool IsOutOfRange(int32_t code_point) {
+    return (code_point < 0) || (code_point > kMaxCodePoint);
+  }
+};
+
+
 class Utf8 : AllStatic {
  public:
   enum Type {
@@ -19,11 +42,6 @@ class Utf8 : AllStatic {
     kBMP,  // Basic Multilingual Plane code point [U+0000, U+FFFF].
     kSupplementary,  // Supplementary code point [U+010000, U+10FFFF].
   };
-
-  static const intptr_t kMaxOneByteChar   = 0x7F;
-  static const intptr_t kMaxTwoByteChar   = 0x7FF;
-  static const intptr_t kMaxThreeByteChar = 0xFFFF;
-  static const intptr_t kMaxFourByteChar  = 0x10FFFF;
 
   static intptr_t CodePointCount(const uint8_t* utf8_array,
                                  intptr_t array_len,
@@ -56,26 +74,43 @@ class Utf8 : AllStatic {
                             intptr_t len);
   static bool DecodeCStringToUTF32(const char* str,
                                    int32_t* dst,
-                                   intptr_t len) {
-    ASSERT(str != NULL);
-    intptr_t array_len = strlen(str);
-    const uint8_t* utf8_array = reinterpret_cast<const uint8_t*>(str);
-    return DecodeToUTF32(utf8_array, array_len, dst, len);
+                                   intptr_t len);
+
+ private:
+  static const int32_t kMaxOneByteChar   = 0x7F;
+  static const int32_t kMaxTwoByteChar   = 0x7FF;
+  static const int32_t kMaxThreeByteChar = 0xFFFF;
+  static const int32_t kMaxFourByteChar  = Utf::kMaxCodePoint;
+
+  static bool IsTrailByte(uint8_t code_unit) {
+    return (code_unit & 0xc0) == 0x80;
   }
+
+  static bool IsNonShortestForm(uint32_t code_point, size_t num_code_units) {
+    return code_point < kOverlongMinimum[num_code_units];
+  }
+
+  static bool IsLatin1SequenceStart(uint8_t code_unit) {
+    // Check is codepoint is <= U+00FF
+    return (code_unit <= Utf8::kMaxOneByteChar);
+  }
+
+  static bool IsSupplementarySequenceStart(uint8_t code_unit) {
+    // Check is codepoint is >= U+10000.
+    return (code_unit >= 0xF0);
+  }
+
+  static const int8_t kTrailBytes[];
+  static const uint32_t kMagicBits[];
+  static const uint32_t kOverlongMinimum[];
 };
 
 
 class Utf16 : AllStatic {
  public:
-  static const int32_t kMaxBmpCodepoint  = 0xFFFF;
-
-  static const int32_t kLeadSurrogateOffset = (0xD800 - (0x10000 >> 10));
-
-  static const int32_t kSurrogateOffset = (0x10000 - (0xD800 << 10) - 0xDC00);
-
   // Returns the length of the code point in UTF-16 code units.
   static intptr_t Length(int32_t ch) {
-    return (ch <= kMaxBmpCodepoint) ? 1 : 2;
+    return (ch <= Utf16::kMaxCodeUnit) ? 1 : 2;
   }
 
   // Returns true if ch is a lead or trail surrogate.
@@ -115,6 +150,13 @@ class Utf16 : AllStatic {
 
   // Encodes a single code point.
   static void Encode(int32_t codepoint, uint16_t* dst);
+
+ private:
+  static const int32_t kMaxCodeUnit = 0xFFFF;
+
+  static const int32_t kLeadSurrogateOffset = (0xD800 - (0x10000 >> 10));
+
+  static const int32_t kSurrogateOffset = (0x10000 - (0xD800 << 10) - 0xDC00);
 };
 
 
@@ -153,7 +195,7 @@ class CaseMapping : AllStatic {
   static const int kBlockSize = 1 << kBlockSizeLog2;
 
   static int32_t Convert(int32_t ch, int32_t mapping) {
-    if (ch <= 0xFF) {
+    if (Utf::IsLatin1(ch)) {
       int32_t info = stage2_[ch];
       if ((info & kTypeMask) == mapping) {
         ch += info >> kTypeShift;

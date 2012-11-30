@@ -8,6 +8,7 @@
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/symbols.h"
+#include "vm/unicode.h"
 
 namespace dart {
 
@@ -30,15 +31,15 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
       Exceptions::ThrowByType(Exceptions::kArgument, args);
     }
     intptr_t value = Smi::Cast(index_object).Value();
-    if (value < 0) {
+    if (Utf::IsOutOfRange(value)) {
       GrowableArray<const Object*> args;
       Exceptions::ThrowByType(Exceptions::kArgument, args);
     } else {
-      if (value > 0xFF) {
+      if (!Utf::IsLatin1(value)) {
         is_one_byte_string = false;
-      }
-      if (value > 0xFFFF) {
-        utf16_len += 1;
+        if (Utf::IsSupplementary(value)) {
+          utf16_len += 1;
+        }
       }
     }
     utf32_array[i] = value;

@@ -10087,7 +10087,7 @@ RawString* String::New(const uint16_t* utf16_array,
                        Heap::Space space) {
   bool is_one_byte_string = true;
   for (intptr_t i = 0; i < array_len; ++i) {
-    if (utf16_array[i] > 0xFF) {
+    if (!Utf::IsLatin1(utf16_array[i])) {
       is_one_byte_string = false;
       break;
     }
@@ -10105,11 +10105,11 @@ RawString* String::New(const int32_t* utf32_array,
   bool is_one_byte_string = true;
   intptr_t utf16_len = array_len;
   for (intptr_t i = 0; i < array_len; ++i) {
-    if (utf32_array[i] > 0xFF) {
+    if (!Utf::IsLatin1(utf32_array[i])) {
       is_one_byte_string = false;
-    }
-    if (utf32_array[i] > 0xFFFF) {
-      utf16_len += 1;
+      if (Utf::IsSupplementary(utf32_array[i])) {
+        utf16_len += 1;
+      }
     }
   }
   if (is_one_byte_string) {
@@ -10186,7 +10186,7 @@ void String::Copy(const String& dst, intptr_t dst_offset,
   if (dst.IsOneByteString()) {
     NoGCScope no_gc;
     for (intptr_t i = 0; i < array_len; ++i) {
-      ASSERT(utf16_array[i] <= 0xFF);
+      ASSERT(Utf::IsLatin1(utf16_array[i]));
       *OneByteString::CharAddr(dst, i + dst_offset) = utf16_array[i];
     }
   } else {
@@ -10341,7 +10341,7 @@ RawString* String::SubString(const String& str,
   intptr_t char_size = str.CharSize();
   if (char_size == kTwoByteChar) {
     for (intptr_t i = begin_index; i < begin_index + length; ++i) {
-      if (str.CharAt(i) > 0xFF) {
+      if (!Utf::IsLatin1(str.CharAt(i))) {
         is_one_byte_string = false;
         break;
       }
@@ -10477,10 +10477,10 @@ RawString* String::Transform(int32_t (*mapping)(int32_t ch),
   if (!has_mapping) {
     return str.raw();
   }
-  if (dst_max <= 0xFF) {
+  if (Utf::IsLatin1(dst_max)) {
     return OneByteString::Transform(mapping, str, space);
   }
-  ASSERT(dst_max > 0xFF);
+  ASSERT(Utf::IsBmp(dst_max) || Utf::IsSupplementary(dst_max));
   return TwoByteString::Transform(mapping, str, space);
 }
 
@@ -10647,7 +10647,7 @@ RawOneByteString* OneByteString::New(const uint16_t* characters,
                                      Heap::Space space) {
   const String& result =String::Handle(OneByteString::New(len, space));
   for (intptr_t i = 0; i < len; ++i) {
-    ASSERT(characters[i] <= 0xFF);
+    ASSERT(Utf::IsLatin1(characters[i]));
     *CharAddr(result, i) = characters[i];
   }
   return OneByteString::raw(result);
@@ -10659,7 +10659,7 @@ RawOneByteString* OneByteString::New(const int32_t* characters,
                                      Heap::Space space) {
   const String& result = String::Handle(OneByteString::New(len, space));
   for (intptr_t i = 0; i < len; ++i) {
-    ASSERT(characters[i] <= 0xFF);
+    ASSERT(Utf::IsLatin1(characters[i]));
     *CharAddr(result, i) = characters[i];
   }
   return OneByteString::raw(result);
@@ -10729,7 +10729,7 @@ RawOneByteString* OneByteString::Transform(int32_t (*mapping)(int32_t ch),
   const String& result = String::Handle(OneByteString::New(len, space));
   for (intptr_t i = 0; i < len; ++i) {
     int32_t ch = mapping(str.CharAt(i));
-    ASSERT(ch >= 0 && ch <= 0xFF);
+    ASSERT(Utf::IsLatin1(ch));
     *CharAddr(result, i) = ch;
   }
   return OneByteString::raw(result);
@@ -10814,7 +10814,7 @@ RawTwoByteString* TwoByteString::New(intptr_t utf16_len,
     NoGCScope no_gc;
     intptr_t j = 0;
     for (intptr_t i = 0; i < array_len; ++i) {
-      if (utf32_array[i] > 0xffff) {
+      if (Utf::IsSupplementary(utf32_array[i])) {
         ASSERT(j < (utf16_len - 1));
         Utf16::Encode(utf32_array[i], CharAddr(result, j));
         j += 2;
